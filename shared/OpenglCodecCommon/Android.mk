@@ -10,7 +10,6 @@ commonSources := \
         glUtils.cpp \
         SocketStream.cpp \
         TcpStream.cpp \
-        TimeUtils.cpp
 
 ### CodecCommon  guest ##############################################
 $(call emugl-begin-static-library,libOpenglCodecCommon)
