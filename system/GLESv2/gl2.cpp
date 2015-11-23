@@ -76,13 +76,12 @@ void glEGLImageTargetTexture2DOES(void * self, GLenum target, GLeglImageOES img)
         ctx->override2DTextureTarget(target);
         rcEnc->rcBindTexture(rcEnc, ((cb_handle_t *)(native_buffer->handle))->hostHandle);
         ctx->restore2DTextureTarget();
-
-        return;
     }
     else if (image->target == EGL_GL_TEXTURE_2D_KHR) {
-        // TODO
-
-        return;
+        GET_CONTEXT;
+        ctx->override2DTextureTarget(target);
+        ctx->m_glEGLImageTargetTexture2DOES_enc(self, target, (GLeglImageOES)image->host_egl_image);
+        ctx->restore2DTextureTarget();
     }
 }
 
@@ -138,6 +137,7 @@ const GLubyte *my_glGetString (void *self, GLenum name)
 void init()
 {
     GET_CONTEXT;
+    ctx->m_glEGLImageTargetTexture2DOES_enc = ctx->glEGLImageTargetTexture2DOES;
     ctx->glEGLImageTargetTexture2DOES = &glEGLImageTargetTexture2DOES;
     ctx->glEGLImageTargetRenderbufferStorageOES = &glEGLImageTargetRenderbufferStorageOES;
     ctx->glGetString = &my_glGetString;

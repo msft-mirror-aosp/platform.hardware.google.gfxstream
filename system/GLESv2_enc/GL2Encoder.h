@@ -235,5 +235,8 @@ private:
             GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type,
             const GLvoid* pixels);
 
+public:
+    glEGLImageTargetTexture2DOES_client_proc_t m_glEGLImageTargetTexture2DOES_enc;
+
 };
 #endif
