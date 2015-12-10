@@ -80,7 +80,8 @@ void glEGLImageTargetTexture2DOES(void * self, GLenum target, GLeglImageOES img)
     else if (image->target == EGL_GL_TEXTURE_2D_KHR) {
         GET_CONTEXT;
         ctx->override2DTextureTarget(target);
-        ctx->m_glEGLImageTargetTexture2DOES_enc(self, target, (GLeglImageOES)image->host_egl_image);
+        GLeglImageOES hostImage = reinterpret_cast<GLeglImageOES>((intptr_t)image->host_egl_image);
+        ctx->m_glEGLImageTargetTexture2DOES_enc(self, target, hostImage);
         ctx->restore2DTextureTarget();
     }
 }
