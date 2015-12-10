@@ -1231,7 +1231,8 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
         DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_NO_IMAGE_KHR);
 
         uint32_t ctxHandle = (context) ? context->rcContext : 0;
-        uint32_t img = rcEnc->rcCreateClientImage(rcEnc, ctxHandle, target, (GLuint)buffer);
+        GLuint texture = (GLuint)reinterpret_cast<uintptr_t>(buffer);
+        uint32_t img = rcEnc->rcCreateClientImage(rcEnc, ctxHandle, target, texture);
         EGLImage_t *image = new EGLImage_t();
         image->dpy = dpy;
         image->target = target;
