@@ -462,6 +462,27 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count)
 void GL2Encoder::s_glDrawArrays(void *self, GLenum mode, GLint first, GLsizei count)
 {
     GL2Encoder *ctx = (GL2Encoder *)self;
+
+    bool has_arrays = false;
+    int nLocations = ctx->m_state->nLocations();
+    for (int i = 0; i < nLocations; i++) {
+        const GLClientState::VertexAttribState *state = ctx->m_state->getState(i);
+        if (state->enabled) {
+            if (state->bufferObject || state->data)  {
+                has_arrays = true;
+            }
+            else {
+                ALOGE("glDrawArrays: a vertex attribute array is enabled with no data bound\n");
+                ctx->setError(GL_INVALID_OPERATION);
+                return;
+            }
+        }
+    }
+    if (!has_arrays) {
+        ALOGE("glDrawArrays: no data bound to the command - ignoring\n");
+        return;
+    }
+
     ctx->sendVertexAttributes(first, count);
     ctx->m_glDrawArrays_enc(ctx, mode, 0, count);
 }
@@ -483,8 +504,12 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
         if (state->enabled) {
             if (state->bufferObject != 0) {
                 has_indirect_arrays = true;
-            } else {
+            } else if (state->data) {
                 has_immediate_arrays = true;
+            } else {
+                ALOGW("glDrawElements: a vertex attribute array is enabled with no data bound\n");
+                ctx->setError(GL_INVALID_OPERATION);
+                return;
             }
         }
     }
