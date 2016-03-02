@@ -271,6 +271,12 @@ void GL2Encoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
         *ptr = state->getBoundTexture(GL_TEXTURE_EXTERNAL_OES);
         break;
 
+    case GL_MAX_VERTEX_ATTRIBS:
+        if (!ctx->m_state->getClientStateParameter<GLint>(param, ptr)) {
+            ctx->m_glGetIntegerv_enc(self, param, ptr);
+            ctx->m_state->setMaxVertexAttribs(*ptr);
+        }
+        break;
     default:
         if (!ctx->m_state->getClientStateParameter<GLint>(param, ptr)) {
             ctx->m_glGetIntegerv_enc(self, param, ptr);
