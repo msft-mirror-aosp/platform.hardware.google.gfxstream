@@ -319,7 +319,7 @@ EGLBoolean egl_window_surface_t::swapBuffers()
     nativeWindow->queueBuffer_DEPRECATED(nativeWindow, buffer);
     if (nativeWindow->dequeueBuffer_DEPRECATED(nativeWindow, &buffer)) {
         buffer = NULL;
-        setErrorReturn(EGL_BAD_ALLOC, EGL_FALSE);
+        setErrorReturn(EGL_BAD_SURFACE, EGL_FALSE);
     }
 
     rcEnc->rcSetWindowColorBuffer(rcEnc, rcSurface,
