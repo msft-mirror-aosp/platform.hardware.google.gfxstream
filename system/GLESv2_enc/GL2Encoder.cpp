@@ -423,7 +423,10 @@ void GL2Encoder::s_glGetVertexAttribPointerv(void *self, GLuint index, GLenum pn
 {
     GL2Encoder *ctx = (GL2Encoder *)self;
     if (ctx->m_state == NULL) return;
-
+    GLint maxIndex;
+    ctx->glGetIntegerv(self, GL_MAX_VERTEX_ATTRIBS, &maxIndex);
+    SET_ERROR_IF(!(index < maxIndex), GL_INVALID_VALUE);
+    SET_ERROR_IF(pname != GL_VERTEX_ATTRIB_ARRAY_POINTER, GL_INVALID_ENUM);
     (void)pname;
 
     const GLClientState::VertexAttribState *va_state = ctx->m_state->getState(index);
