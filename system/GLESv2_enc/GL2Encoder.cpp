@@ -397,6 +397,9 @@ void GL2Encoder::s_glGetVertexAttribiv(void *self, GLuint index, GLenum pname, G
 {
     GL2Encoder *ctx = (GL2Encoder *)self;
     assert(ctx->m_state);
+    GLint maxIndex;
+    ctx->glGetIntegerv(self, GL_MAX_VERTEX_ATTRIBS, &maxIndex);
+    SET_ERROR_IF(!(index < maxIndex), GL_INVALID_VALUE);
 
     if (!ctx->m_state->getVertexAttribParameter<GLint>(index, pname, params)) {
         ctx->m_glGetVertexAttribiv_enc(self, index, pname, params);
@@ -407,6 +410,9 @@ void GL2Encoder::s_glGetVertexAttribfv(void *self, GLuint index, GLenum pname, G
 {
     GL2Encoder *ctx = (GL2Encoder *)self;
     assert(ctx->m_state);
+    GLint maxIndex;
+    ctx->glGetIntegerv(self, GL_MAX_VERTEX_ATTRIBS, &maxIndex);
+    SET_ERROR_IF(!(index < maxIndex), GL_INVALID_VALUE);
 
     if (!ctx->m_state->getVertexAttribParameter<GLfloat>(index, pname, params)) {
         ctx->m_glGetVertexAttribfv_enc(self, index, pname, params);
