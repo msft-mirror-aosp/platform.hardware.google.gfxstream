@@ -63,7 +63,25 @@ struct FboProps {
 struct RboProps {
     GLenum target;
     GLuint name;
+    GLenum format;
     bool previouslyBound;
+};
+
+// Enum for describing whether a framebuffer attachment
+// is a texture or renderbuffer.
+enum FboAttachmentType {
+    FBO_ATTACHMENT_RENDERBUFFER = 0,
+    FBO_ATTACHMENT_TEXTURE = 1,
+    FBO_ATTACHMENT_NONE = 2
+};
+
+// Tracking FBO format
+struct FboFormatInfo {
+    FboAttachmentType type;
+    GLenum rb_format;
+    GLint tex_internalformat;
+    GLenum tex_format;
+    GLenum tex_type;
 };
 
 class GLClientState {
@@ -215,6 +233,12 @@ public:
     // Return the texture currently bound to GL_TEXTURE_(2D|EXTERNAL_OES).
     GLuint getBoundTexture(GLenum target) const;
 
+    // Tracks the format of the currently bound texture.
+    // This is to pass dEQP tests for fbo completeness.
+    void setBoundTextureInternalFormat(GLenum target, GLint format);
+    void setBoundTextureFormat(GLenum target, GLenum format);
+    void setBoundTextureType(GLenum target, GLenum type);
+
     // glDeleteTextures(...)
     // Remove references to the to-be-deleted textures.
     void deleteTextures(GLsizei n, const GLuint* textures);
@@ -225,12 +249,15 @@ public:
     bool usedRenderbufferName(GLuint name) const;
     void bindRenderbuffer(GLenum target, GLuint name);
     GLuint boundRenderbuffer() const;
+    void setBoundRenderbufferFormat(GLenum format);
 
     // Frame buffer objects
     void addFramebuffers(GLsizei n, GLuint* framebuffers);
     void removeFramebuffers(GLsizei n, const GLuint* framebuffers);
     bool usedFramebufferName(GLuint name) const;
     void bindFramebuffer(GLenum target, GLuint name);
+    void setCheckFramebufferStatus(GLenum status);
+    GLenum getCheckFramebufferStatus() const;
     GLuint boundFramebuffer() const;
 
     // Texture object -> FBO
@@ -247,6 +274,12 @@ public:
     // set eglsurface property on default framebuffer
     // if coming from eglMakeCurrent
     void fromMakeCurrent();
+
+    // Queries the format backing the current framebuffer.
+    // Type differs depending on whether the attachment
+    // is a texture or renderbuffer.
+    void getBoundFramebufferFormat(
+            GLenum attachment, FboFormatInfo* res_info) const;
 
 private:
     PixelStoreState m_pixelStore;
@@ -273,6 +306,9 @@ private:
     struct TextureRec {
         GLuint id;
         GLenum target;
+        GLint internalformat;
+        GLenum format;
+        GLenum type;
     };
     struct TextureState {
         TextureUnit unit[MAX_TEXTURE_UNITS];
@@ -300,6 +336,7 @@ private:
         GLuint boundFramebuffer;
         size_t boundFramebufferIndex;
         std::vector<FboProps> fboData;
+        GLenum fboCheckStatus;
     };
     FboState mFboState;
     void addFreshFramebuffer(GLuint name);
@@ -307,6 +344,12 @@ private:
     size_t getFboIndex(GLuint name) const;
     FboProps& boundFboProps();
     const FboProps& boundFboProps_const() const;
+
+    // Querying framebuffer format
+    GLenum queryRboFormat(GLuint name) const;
+    GLint queryTexInternalFormat(GLuint name) const;
+    GLenum queryTexFormat(GLuint name) const;
+    GLenum queryTexType(GLuint name) const;
 
     static int compareTexId(const void* pid, const void* prec);
     TextureRec* addTextureRec(GLuint id, GLenum target);

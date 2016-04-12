@@ -46,6 +46,7 @@ public:
     void override2DTextureTarget(GLenum target);
     void restore2DTextureTarget();
 
+
 private:
 
     bool    m_initialized;
@@ -61,6 +62,7 @@ private:
 
     void sendVertexAttributes(GLint first, GLsizei count);
     bool updateHostTexture2DBinding(GLenum texUnit, GLenum newTarget);
+    bool isCompleteFbo(const GLClientState* state, GLenum attachment) const;
 
     glGetError_client_proc_t    m_glGetError_enc;
     static GLenum s_glGetError(void * self);
@@ -245,6 +247,10 @@ private:
 
     glBindRenderbuffer_client_proc_t m_glBindRenderbuffer_enc;
     static void s_glBindRenderbuffer(void* self, GLenum target, GLuint renderbuffer);
+
+    glRenderbufferStorage_client_proc_t m_glRenderbufferStorage_enc;
+    static void s_glRenderbufferStorage(void* self, GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
+
     glFramebufferRenderbuffer_client_proc_t m_glFramebufferRenderbuffer_enc;
     static void s_glFramebufferRenderbuffer(void* self, GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
 
@@ -264,6 +270,11 @@ private:
 
     glGetFramebufferAttachmentParameteriv_client_proc_t m_glGetFramebufferAttachmentParameteriv_enc;
     static void s_glGetFramebufferAttachmentParameteriv(void* self, GLenum target, GLenum attachment, GLenum pname, GLint* params);
+
+    glCheckFramebufferStatus_client_proc_t m_glCheckFramebufferStatus_enc;
+    static GLenum s_glCheckFramebufferStatus(void* self,
+            GLenum target);
+
 
 public:
     glEGLImageTargetTexture2DOES_client_proc_t m_glEGLImageTargetTexture2DOES_enc;
