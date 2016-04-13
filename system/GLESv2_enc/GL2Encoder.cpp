@@ -227,10 +227,44 @@ void GL2Encoder::s_glDeleteBuffers(void * self, GLsizei n, const GLuint * buffer
     }
 }
 
+static bool isValidVertexAttribIndex(void *self, GLuint indx)
+{
+    GL2Encoder *ctx = (GL2Encoder *) self;
+    GLint maxIndex;
+    ctx->glGetIntegerv(self, GL_MAX_VERTEX_ATTRIBS, &maxIndex);
+    return indx < maxIndex;
+}
+
+static bool isValidVertexAttribType(GLenum type)
+{
+    bool retval = false;
+    switch (type) {
+    case GL_BYTE:
+    case GL_UNSIGNED_BYTE:
+    case GL_SHORT:
+    case GL_UNSIGNED_SHORT:
+    case GL_FIXED:
+    case GL_FLOAT:
+    // The following are technically only available if certain GLES2 extensions are.
+    // However, they are supported by desktop GL3, which is a reasonable requirement
+    // for the desktop GL version. Therefore, consider them valid.
+    case GL_INT:
+    case GL_UNSIGNED_INT:
+    case GL_HALF_FLOAT_OES:
+        retval = true;
+        break;
+    }
+    return retval;
+}
+
 void GL2Encoder::s_glVertexAttribPointer(void *self, GLuint indx, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid * ptr)
 {
     GL2Encoder *ctx = (GL2Encoder *)self;
     assert(ctx->m_state != NULL);
+    SET_ERROR_IF(!isValidVertexAttribIndex(self, indx), GL_INVALID_VALUE);
+    SET_ERROR_IF((size < 1 || size > 4), GL_INVALID_VALUE);
+    SET_ERROR_IF(!isValidVertexAttribType(type), GL_INVALID_ENUM);
+    SET_ERROR_IF(stride < 0, GL_INVALID_VALUE);
     ctx->m_state->setState(indx, size, type, normalized, stride, ptr);
 }
 
@@ -382,6 +416,7 @@ void GL2Encoder::s_glEnableVertexAttribArray(void *self, GLuint index)
 {
     GL2Encoder *ctx = (GL2Encoder *)self;
     assert(ctx->m_state);
+    SET_ERROR_IF(!isValidVertexAttribIndex(self, index), GL_INVALID_VALUE);
     ctx->m_state->enable(index, 1);
 }
 
@@ -389,6 +424,7 @@ void GL2Encoder::s_glDisableVertexAttribArray(void *self, GLuint index)
 {
     GL2Encoder *ctx = (GL2Encoder *)self;
     assert(ctx->m_state);
+    SET_ERROR_IF(!isValidVertexAttribIndex(self, index), GL_INVALID_VALUE);
     ctx->m_state->enable(index, 0);
 }
 
@@ -475,9 +511,28 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count)
     }
 }
 
+static bool isValidDrawMode(GLenum mode)
+{
+    bool retval = false;
+    switch (mode) {
+    case GL_POINTS:
+    case GL_LINE_STRIP:
+    case GL_LINE_LOOP:
+    case GL_LINES:
+    case GL_TRIANGLE_STRIP:
+    case GL_TRIANGLE_FAN:
+    case GL_TRIANGLES:
+        retval = true;
+    }
+    return retval;
+}
+
 void GL2Encoder::s_glDrawArrays(void *self, GLenum mode, GLint first, GLsizei count)
 {
     GL2Encoder *ctx = (GL2Encoder *)self;
+    assert(ctx->m_state != NULL);
+    SET_ERROR_IF(!isValidDrawMode(mode), GL_INVALID_ENUM);
+    SET_ERROR_IF(count < 0, GL_INVALID_VALUE);
 
     bool has_arrays = false;
     int nLocations = ctx->m_state->nLocations();
@@ -509,7 +564,9 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
 
     GL2Encoder *ctx = (GL2Encoder *)self;
     assert(ctx->m_state != NULL);
-    SET_ERROR_IF(count<0, GL_INVALID_VALUE);
+    SET_ERROR_IF(!isValidDrawMode(mode), GL_INVALID_ENUM);
+    SET_ERROR_IF(count < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(!(type == GL_UNSIGNED_BYTE || type == GL_UNSIGNED_SHORT), GL_INVALID_ENUM);
 
     bool has_immediate_arrays = false;
     bool has_indirect_arrays = false;
