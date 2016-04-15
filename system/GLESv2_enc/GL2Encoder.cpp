@@ -494,10 +494,6 @@ void GL2Encoder::s_glDrawArrays(void *self, GLenum mode, GLint first, GLsizei co
             }
         }
     }
-    if (!has_arrays) {
-        ALOGE("glDrawArrays: no data bound to the command - ignoring\n");
-        return;
-    }
 
     ctx->sendVertexAttributes(first, count);
     ctx->m_glDrawArrays_enc(ctx, mode, 0, count);
