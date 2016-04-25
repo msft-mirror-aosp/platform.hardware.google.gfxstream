@@ -1025,7 +1025,7 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
         context->flags |= EGLContext_t::IS_CURRENT;
         //set the client state
         if (context->version == 2) {
-            hostCon->gl2Encoder()->setClientState(context->getClientState());
+            hostCon->gl2Encoder()->setClientStateMakeCurrent(context->getClientState());
             hostCon->gl2Encoder()->setSharedGroup(context->getSharedGroup());
         }
         else {

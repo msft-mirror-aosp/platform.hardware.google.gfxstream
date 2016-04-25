@@ -32,6 +32,40 @@
 #include "ErrorLog.h"
 #include "codec_defs.h"
 
+#include <vector>
+
+// Tracking framebuffer objects:
+// which framebuffer is bound,
+// and which texture names
+// are currently bound to which attachment points.
+struct FboProps {
+    GLenum target;
+    GLuint name;
+    bool previouslyBound;
+    GLuint colorAttachment0_texture;
+    GLuint depthAttachment_texture;
+    GLuint stencilAttachment_texture;
+
+    bool colorAttachment0_hasTexObj;
+    bool depthAttachment_hasTexObj;
+    bool stencilAttachment_hasTexObj;
+
+    GLuint colorAttachment0_rbo;
+    GLuint depthAttachment_rbo;
+    GLuint stencilAttachment_rbo;
+
+    bool colorAttachment0_hasRbo;
+    bool depthAttachment_hasRbo;
+    bool stencilAttachment_hasRbo;
+};
+
+// Same for Rbo's
+struct RboProps {
+    GLenum target;
+    GLuint name;
+    bool previouslyBound;
+};
+
 class GLClientState {
 public:
     typedef enum {
@@ -185,6 +219,35 @@ public:
     // Remove references to the to-be-deleted textures.
     void deleteTextures(GLsizei n, const GLuint* textures);
 
+    // Render buffer objects
+    void addRenderbuffers(GLsizei n, GLuint* renderbuffers);
+    void removeRenderbuffers(GLsizei n, const GLuint* renderbuffers);
+    bool usedRenderbufferName(GLuint name) const;
+    void bindRenderbuffer(GLenum target, GLuint name);
+    GLuint boundRenderbuffer() const;
+
+    // Frame buffer objects
+    void addFramebuffers(GLsizei n, GLuint* framebuffers);
+    void removeFramebuffers(GLsizei n, const GLuint* framebuffers);
+    bool usedFramebufferName(GLuint name) const;
+    void bindFramebuffer(GLenum target, GLuint name);
+    GLuint boundFramebuffer() const;
+
+    // Texture object -> FBO
+    void attachTextureObject(GLenum attachment, GLuint texture);
+    GLuint getFboAttachmentTextureId(GLenum attachment) const;
+
+    // RBO -> FBO
+    void attachRbo(GLenum attachment, GLuint renderbuffer);
+    GLuint getFboAttachmentRboId(GLenum attachment) const;
+
+    // FBO attachments in general
+    bool attachmentHasObject(GLenum attachment) const;
+
+    // set eglsurface property on default framebuffer
+    // if coming from eglMakeCurrent
+    void fromMakeCurrent();
+
 private:
     PixelStoreState m_pixelStore;
     VertexAttribState *m_states;
@@ -219,6 +282,31 @@ private:
         GLuint allocTextures;
     };
     TextureState m_tex;
+
+
+    struct RboState {
+        GLuint boundRenderbuffer;
+        size_t boundRenderbufferIndex;
+        std::vector<RboProps> rboData;
+    };
+    RboState mRboState;
+    void addFreshRenderbuffer(GLuint name);
+    void setBoundRenderbufferIndex();
+    size_t getRboIndex(GLuint name) const;
+    RboProps& boundRboProps();
+    const RboProps& boundRboProps_const() const;
+
+    struct FboState {
+        GLuint boundFramebuffer;
+        size_t boundFramebufferIndex;
+        std::vector<FboProps> fboData;
+    };
+    FboState mFboState;
+    void addFreshFramebuffer(GLuint name);
+    void setBoundFramebufferIndex();
+    size_t getFboIndex(GLuint name) const;
+    FboProps& boundFboProps();
+    const FboProps& boundFboProps_const() const;
 
     static int compareTexId(const void* pid, const void* prec);
     TextureRec* addTextureRec(GLuint id, GLenum target);

@@ -28,6 +28,10 @@ public:
     void setClientState(GLClientState *state) {
         m_state = state;
     }
+    void setClientStateMakeCurrent(GLClientState *state) {
+        m_state = state;
+        m_state->fromMakeCurrent();
+    }
     void setSharedGroup(GLSharedGroupPtr shared){ m_shared = shared; }
     const GLClientState *state() { return m_state; }
     const GLSharedGroupPtr shared() { return m_shared; }
@@ -233,6 +237,33 @@ private:
     static void s_glTexImage2D(void* self, GLenum target, GLint level, GLint internalformat,
             GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type,
             const GLvoid* pixels);
+
+    glGenRenderbuffers_client_proc_t m_glGenRenderbuffers_enc;
+    static void s_glGenRenderbuffers(void* self, GLsizei n, GLuint* renderbuffers);
+    glDeleteRenderbuffers_client_proc_t m_glDeleteRenderbuffers_enc;
+    static void s_glDeleteRenderbuffers(void* self, GLsizei n, const GLuint* renderbuffers);
+
+    glBindRenderbuffer_client_proc_t m_glBindRenderbuffer_enc;
+    static void s_glBindRenderbuffer(void* self, GLenum target, GLuint renderbuffer);
+    glFramebufferRenderbuffer_client_proc_t m_glFramebufferRenderbuffer_enc;
+    static void s_glFramebufferRenderbuffer(void* self, GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
+
+    glGenFramebuffers_client_proc_t m_glGenFramebuffers_enc;
+    static void s_glGenFramebuffers(void* self, GLsizei n, GLuint* framebuffers);
+    glDeleteFramebuffers_client_proc_t m_glDeleteFramebuffers_enc;
+    static void s_glDeleteFramebuffers(void* self, GLsizei n, const GLuint* framebuffers);
+
+    glBindFramebuffer_client_proc_t m_glBindFramebuffer_enc;
+    static void s_glBindFramebuffer(void* self, GLenum target, GLuint framebuffer);
+
+    glFramebufferTexture2D_client_proc_t m_glFramebufferTexture2D_enc;
+    static void s_glFramebufferTexture2D(void* self, GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
+
+    glFramebufferTexture3DOES_client_proc_t m_glFramebufferTexture3DOES_enc;
+    static void s_glFramebufferTexture3DOES(void*self, GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset);
+
+    glGetFramebufferAttachmentParameteriv_client_proc_t m_glGetFramebufferAttachmentParameteriv_enc;
+    static void s_glGetFramebufferAttachmentParameteriv(void* self, GLenum target, GLenum attachment, GLenum pname, GLint* params);
 
 public:
     glEGLImageTargetTexture2DOES_client_proc_t m_glEGLImageTargetTexture2DOES_enc;

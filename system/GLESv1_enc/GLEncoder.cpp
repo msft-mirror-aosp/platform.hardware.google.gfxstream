@@ -950,6 +950,78 @@ void GLEncoder::restore2DTextureTarget()
             m_state->getBoundTexture(priorityTarget));
 }
 
+void GLEncoder::s_glGenFramebuffersOES(void* self,
+        GLsizei n, GLuint* framebuffers) {
+    GLEncoder* ctx = (GLEncoder*)self;
+    GLClientState* state = ctx->m_state;
+
+    SET_ERROR_IF(n < 0, GL_INVALID_VALUE);
+
+    ctx->m_glGenFramebuffersOES_enc(self, n, framebuffers);
+    state->addFramebuffers(n, framebuffers);
+}
+
+void GLEncoder::s_glDeleteFramebuffersOES(void* self,
+        GLsizei n, const GLuint* framebuffers) {
+    GLEncoder* ctx = (GLEncoder*)self;
+    GLClientState* state = ctx->m_state;
+
+    SET_ERROR_IF(n < 0, GL_INVALID_VALUE);
+
+    ctx->m_glDeleteFramebuffersOES_enc(self, n, framebuffers);
+    state->removeFramebuffers(n, framebuffers);
+}
+
+void GLEncoder::s_glBindFramebufferOES(void* self,
+        GLenum target, GLuint framebuffer) {
+    GLEncoder* ctx = (GLEncoder*)self;
+    GLClientState* state = ctx->m_state;
+
+    SET_ERROR_IF((target != GL_FRAMEBUFFER),
+                 GL_INVALID_ENUM);
+
+    state->bindFramebuffer(target, framebuffer);
+
+    ctx->m_glBindFramebufferOES_enc(self, target, framebuffer);
+}
+
+void GLEncoder::s_glFramebufferTexture2DOES(void*self,
+        GLenum target, GLenum attachment,
+        GLenum textarget, GLuint texture, GLint level) {
+    GLEncoder* ctx = (GLEncoder*)self;
+    GLClientState* state = ctx->m_state;
+
+    state->attachTextureObject(attachment, texture);
+
+    ctx->m_glFramebufferTexture2DOES_enc(self, target, attachment, textarget, texture, level);
+}
+
+void GLEncoder::s_glFramebufferTexture2DMultisampleIMG(void* self,
+        GLenum target, GLenum attachment,
+        GLenum textarget, GLuint texture, GLint level, GLsizei samples) {
+    GLEncoder* ctx = (GLEncoder*)self;
+    GLClientState* state = ctx->m_state;
+
+    state->attachTextureObject(attachment, texture);
+
+    ctx->m_glFramebufferTexture2DMultisampleIMG_enc(self, target, attachment, textarget, texture, level, samples);
+}
+
+void GLEncoder::s_glGetFramebufferAttachmentParameterivOES(void* self,
+        GLenum target, GLenum attachment, GLenum pname, GLint* params)
+{
+    GLEncoder* ctx = (GLEncoder*)self;
+    const GLClientState* state = ctx->m_state;
+
+    SET_ERROR_IF(state->boundFramebuffer() == 0,
+                 GL_INVALID_OPERATION);
+    SET_ERROR_IF((pname != GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE) &&
+                 (!state->attachmentHasObject(attachment)),
+                 GL_INVALID_ENUM);
+
+    ctx->m_glGetFramebufferAttachmentParameterivOES_enc(self, target, attachment, pname, params);
+}
+
 GLEncoder::GLEncoder(IOStream *stream, ChecksumCalculator *protocol)
         : gl_encoder_context_t(stream, protocol)
 {
@@ -1009,6 +1081,13 @@ GLEncoder::GLEncoder(IOStream *stream, ChecksumCalculator *protocol)
     OVERRIDE(glTexParameterx);
     OVERRIDE(glTexParameteriv);
     OVERRIDE(glTexParameterxv);
+
+    OVERRIDE(glGenFramebuffersOES);
+    OVERRIDE(glDeleteFramebuffersOES);
+    OVERRIDE(glBindFramebufferOES);
+    OVERRIDE(glFramebufferTexture2DOES);
+    OVERRIDE(glFramebufferTexture2DMultisampleIMG);
+    OVERRIDE(glGetFramebufferAttachmentParameterivOES);
 }
 
 GLEncoder::~GLEncoder()

@@ -124,6 +124,18 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     OVERRIDE(glTexParameteri);
     OVERRIDE(glTexParameteriv);
     OVERRIDE(glTexImage2D);
+
+    OVERRIDE(glGenRenderbuffers);
+    OVERRIDE(glDeleteRenderbuffers);
+    OVERRIDE(glBindRenderbuffer);
+    OVERRIDE(glFramebufferRenderbuffer);
+
+    OVERRIDE(glGenFramebuffers);
+    OVERRIDE(glDeleteFramebuffers);
+    OVERRIDE(glBindFramebuffer);
+    OVERRIDE(glFramebufferTexture2D);
+    OVERRIDE(glFramebufferTexture3DOES);
+    OVERRIDE(glGetFramebufferAttachmentParameteriv);
 }
 
 GL2Encoder::~GL2Encoder()
@@ -1380,4 +1392,120 @@ void GL2Encoder::restore2DTextureTarget()
     GLenum priorityTarget = m_state->getPriorityEnabledTarget(GL_TEXTURE_2D);
     m_glBindTexture_enc(this, GL_TEXTURE_2D,
             m_state->getBoundTexture(priorityTarget));
+}
+
+void GL2Encoder::s_glGenRenderbuffers(void* self,
+        GLsizei n, GLuint* renderbuffers) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    GLClientState* state = ctx->m_state;
+
+    SET_ERROR_IF(n < 0, GL_INVALID_VALUE);
+
+    ctx->m_glGenFramebuffers_enc(self, n, renderbuffers);
+    state->addRenderbuffers(n, renderbuffers);
+}
+
+void GL2Encoder::s_glDeleteRenderbuffers(void* self,
+        GLsizei n, const GLuint* renderbuffers) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    GLClientState* state = ctx->m_state;
+
+    SET_ERROR_IF(n < 0, GL_INVALID_VALUE);
+
+    ctx->m_glDeleteRenderbuffers_enc(self, n, renderbuffers);
+    state->removeRenderbuffers(n, renderbuffers);
+}
+
+void GL2Encoder::s_glBindRenderbuffer(void* self,
+        GLenum target, GLuint renderbuffer) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    GLClientState* state = ctx->m_state;
+
+    SET_ERROR_IF((target != GL_RENDERBUFFER),
+                 GL_INVALID_ENUM);
+
+    ctx->m_glBindRenderbuffer_enc(self, target, renderbuffer);
+    state->bindRenderbuffer(target, renderbuffer);
+}
+
+void GL2Encoder::s_glFramebufferRenderbuffer(void* self,
+        GLenum target, GLenum attachment,
+        GLenum renderbuffertarget, GLuint renderbuffer) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    GLClientState* state = ctx->m_state;
+
+    state->attachRbo(attachment, renderbuffer);
+
+    ctx->m_glFramebufferRenderbuffer_enc(self, target, attachment, renderbuffertarget, renderbuffer);
+}
+
+void GL2Encoder::s_glGenFramebuffers(void* self,
+        GLsizei n, GLuint* framebuffers) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    GLClientState* state = ctx->m_state;
+
+    SET_ERROR_IF(n < 0, GL_INVALID_VALUE);
+
+    ctx->m_glGenFramebuffers_enc(self, n, framebuffers);
+    state->addFramebuffers(n, framebuffers);
+}
+
+void GL2Encoder::s_glDeleteFramebuffers(void* self,
+        GLsizei n, const GLuint* framebuffers) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    GLClientState* state = ctx->m_state;
+
+    SET_ERROR_IF(n < 0, GL_INVALID_VALUE);
+
+    ctx->m_glDeleteFramebuffers_enc(self, n, framebuffers);
+    state->removeFramebuffers(n, framebuffers);
+}
+
+void GL2Encoder::s_glBindFramebuffer(void* self,
+        GLenum target, GLuint framebuffer) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    GLClientState* state = ctx->m_state;
+
+    SET_ERROR_IF((target != GL_FRAMEBUFFER),
+                 GL_INVALID_ENUM);
+
+    state->bindFramebuffer(target, framebuffer);
+
+    ctx->m_glBindFramebuffer_enc(self, target, framebuffer);
+}
+
+void GL2Encoder::s_glFramebufferTexture2D(void* self,
+        GLenum target, GLenum attachment,
+        GLenum textarget, GLuint texture, GLint level) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    GLClientState* state = ctx->m_state;
+
+    state->attachTextureObject(attachment, texture);
+
+    ctx->m_glFramebufferTexture2D_enc(self, target, attachment, textarget, texture, level);
+}
+
+void GL2Encoder::s_glFramebufferTexture3DOES(void* self,
+        GLenum target, GLenum attachment,
+        GLenum textarget, GLuint texture, GLint level, GLint zoffset) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    GLClientState* state = ctx->m_state;
+
+    state->attachTextureObject(attachment, texture);
+
+    ctx->m_glFramebufferTexture3DOES_enc(self, target, attachment, textarget, texture, level, zoffset);
+}
+
+void GL2Encoder::s_glGetFramebufferAttachmentParameteriv(void* self,
+        GLenum target, GLenum attachment, GLenum pname, GLint* params) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    const GLClientState* state = ctx->m_state;
+
+    SET_ERROR_IF(state->boundFramebuffer() == 0,
+                 GL_INVALID_OPERATION);
+    SET_ERROR_IF((pname != GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE) &&
+                 (!state->attachmentHasObject(attachment)),
+                 GL_INVALID_ENUM);
+
+    ctx->m_glGetFramebufferAttachmentParameteriv_enc(self, target, attachment, pname, params);
 }
