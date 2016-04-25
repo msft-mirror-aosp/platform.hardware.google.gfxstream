@@ -18,6 +18,12 @@
 #include <assert.h>
 #include <ctype.h>
 
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+#include <GLES2/gl2platform.h>
+
+#include <GLES3/gl3.h>
+
 #ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #endif
@@ -128,6 +134,7 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     OVERRIDE(glGenRenderbuffers);
     OVERRIDE(glDeleteRenderbuffers);
     OVERRIDE(glBindRenderbuffer);
+    OVERRIDE(glRenderbufferStorage);
     OVERRIDE(glFramebufferRenderbuffer);
 
     OVERRIDE(glGenFramebuffers);
@@ -136,6 +143,8 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     OVERRIDE(glFramebufferTexture2D);
     OVERRIDE(glFramebufferTexture3DOES);
     OVERRIDE(glGetFramebufferAttachmentParameteriv);
+
+    OVERRIDE(glCheckFramebufferStatus);
 }
 
 GL2Encoder::~GL2Encoder()
@@ -1347,8 +1356,13 @@ void GL2Encoder::s_glTexImage2D(void* self, GLenum target, GLint level,
         GLenum format, GLenum type, const GLvoid* pixels)
 {
     GL2Encoder* ctx = (GL2Encoder*)self;
+    GLClientState* state = ctx->m_state;
     if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
         ctx->override2DTextureTarget(target);
+        state->setBoundTextureInternalFormat(target, internalformat);
+        state->setBoundTextureFormat(target, format);
+        state->setBoundTextureType(target, type);
+
         ctx->m_glTexImage2D_enc(ctx, target, level, internalformat, width,
                 height, border, format, type, pixels);
         ctx->restore2DTextureTarget();
@@ -1426,6 +1440,84 @@ void GL2Encoder::s_glBindRenderbuffer(void* self,
 
     ctx->m_glBindRenderbuffer_enc(self, target, renderbuffer);
     state->bindRenderbuffer(target, renderbuffer);
+}
+
+void GL2Encoder::s_glRenderbufferStorage(void* self,
+        GLenum target, GLenum internalformat,
+        GLsizei width, GLsizei height) {
+    GL2Encoder* ctx = (GL2Encoder*) self;
+    GLClientState* state = ctx->m_state;
+
+    SET_ERROR_IF(target != GL_RENDERBUFFER, GL_INVALID_ENUM);
+    switch (internalformat) {
+    // Funny internal formats
+    // that will cause an incomplete framebuffer
+    // attachment error. For dEQP,
+    // we can also just abort early here in
+    // RenderbufferStorage with a GL_INVALID_ENUM.
+    case GL_DEPTH_COMPONENT32F:
+    case GL_R8:
+    case GL_R8UI:
+    case GL_R8I:
+    case GL_R16UI:
+    case GL_R16I:
+    case GL_R32UI:
+    case GL_R32I:
+    case GL_RG8:
+    case GL_RG8UI:
+    case GL_RG8I:
+    case GL_RG16UI:
+    case GL_RG16I:
+    case GL_RG32UI:
+    case GL_RG32I:
+    case GL_SRGB8_ALPHA8:
+    case GL_RGB10_A2:
+    case GL_RGBA8UI:
+    case GL_RGBA8I:
+    case GL_RGB10_A2UI:
+    case GL_RGBA16UI:
+    case GL_RGBA16I:
+    case GL_RGBA32I:
+    case GL_RGBA32UI:
+    case GL_R11F_G11F_B10F:
+    case GL_R32F:
+    case GL_RG32F:
+    case GL_RGB32F:
+    case GL_RGBA32F:
+        SET_ERROR_IF(true, GL_INVALID_ENUM);
+        break;
+    // These 4 formats are still not OK,
+    // but dEQP expects GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT or
+    // GL_FRAMEBUFFER_UNSUPPORTED,
+    // not a GL_INVALID_ENUM from earlier on.
+    // So let's forward these to the rest of
+    // FBO initialization
+    case GL_R16F:
+    case GL_RG16F:
+    case GL_RGB16F:
+    case GL_RGBA16F:
+    // These formats are OK
+    case GL_DEPTH_COMPONENT16:
+    case GL_DEPTH_COMPONENT24:
+    case GL_DEPTH_COMPONENT32_OES:
+    case GL_RGBA4:
+    case GL_RGB5_A1:
+    case GL_RGB565:
+    case GL_RGB8_OES:
+    case GL_RGBA8_OES:
+    case GL_STENCIL_INDEX8:
+    case GL_DEPTH32F_STENCIL8:
+    case GL_DEPTH24_STENCIL8_OES:
+        break;
+    // Everything else: still not OK,
+    // and they need the GL_INVALID_ENUM
+    default:
+        SET_ERROR_IF(true, GL_INVALID_ENUM);
+    }
+
+    state->setBoundRenderbufferFormat(internalformat);
+    ctx->m_glRenderbufferStorage_enc(self, target, internalformat,
+                                     width, height);
 }
 
 void GL2Encoder::s_glFramebufferRenderbuffer(void* self,
@@ -1508,4 +1600,72 @@ void GL2Encoder::s_glGetFramebufferAttachmentParameteriv(void* self,
                  GL_INVALID_ENUM);
 
     ctx->m_glGetFramebufferAttachmentParameteriv_enc(self, target, attachment, pname, params);
+}
+
+bool GL2Encoder::isCompleteFbo(const GLClientState* state,
+                               GLenum attachment) const {
+    FboFormatInfo fbo_format_info;
+    state->getBoundFramebufferFormat(attachment, &fbo_format_info);
+
+    bool res;
+    switch (fbo_format_info.type) {
+    case FBO_ATTACHMENT_RENDERBUFFER:
+        switch (fbo_format_info.rb_format) {
+        case GL_R16F:
+        case GL_RG16F:
+        case GL_RGB16F:
+        case GL_RGBA16F:
+            res = false;
+            break;
+        case GL_STENCIL_INDEX8:
+            if (attachment == GL_STENCIL_ATTACHMENT) {
+                res = true;
+            } else {
+                res = false;
+            }
+            break;
+        default:
+            res = true;
+        }
+        break;
+    case FBO_ATTACHMENT_TEXTURE:
+        // No float/half-float formats allowed for RGB(A)
+        if (fbo_format_info.tex_internalformat == GL_RGB ||
+            fbo_format_info.tex_internalformat == GL_RGBA) {
+            switch (fbo_format_info.tex_type) {
+            case GL_FLOAT:
+            case GL_HALF_FLOAT_OES:
+                res = false;
+                break;
+            default:
+                res = true;
+            }
+        } else {
+            res = true;
+        }
+        break;
+    case FBO_ATTACHMENT_NONE:
+        res = true;
+        break;
+    default:
+        res = true;
+    }
+    return res;
+}
+
+GLenum GL2Encoder::s_glCheckFramebufferStatus(void* self, GLenum target) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    GLClientState* state = ctx->m_state;
+
+    bool complete = ctx->isCompleteFbo(state, GL_COLOR_ATTACHMENT0) &&
+                    ctx->isCompleteFbo(state, GL_DEPTH_ATTACHMENT) &&
+                    ctx->isCompleteFbo(state, GL_STENCIL_ATTACHMENT);
+    if (!complete) {
+        state->setCheckFramebufferStatus(GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT);
+        return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+    } else {
+        GLenum host_checkstatus = ctx->m_glCheckFramebufferStatus_enc(self, target);
+        state->setCheckFramebufferStatus(host_checkstatus);
+        return host_checkstatus;
+    }
 }

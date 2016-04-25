@@ -72,6 +72,7 @@ GLClientState::GLClientState(int nLocations)
 
     mFboState.boundFramebuffer = 0;
     mFboState.boundFramebufferIndex = 0;
+    mFboState.fboCheckStatus = GL_NONE;
     addFreshFramebuffer(0);
 
     m_maxVertexAttribsDirty = true;
@@ -381,9 +382,43 @@ GLClientState::TextureRec* GLClientState::addTextureRec(GLuint id,
     }
     tex->id = id;
     tex->target = target;
+    tex->format = -1;
     m_tex.numTextures++;
 
     return tex;
+}
+
+void GLClientState::setBoundTextureInternalFormat(GLenum target, GLint internalformat) {
+    GLuint texture = getBoundTexture(target);
+    TextureRec* texrec = NULL;
+    texrec = (TextureRec*)bsearch(&texture, m_tex.textures,
+                                  m_tex.numTextures,
+                                  sizeof(TextureRec),
+                                  compareTexId);
+    if (!texrec) return;
+    texrec->internalformat = internalformat;
+}
+
+void GLClientState::setBoundTextureFormat(GLenum target, GLenum format) {
+    GLuint texture = getBoundTexture(target);
+    TextureRec* texrec = NULL;
+    texrec = (TextureRec*)bsearch(&texture, m_tex.textures,
+                                  m_tex.numTextures,
+                                  sizeof(TextureRec),
+                                  compareTexId);
+    if (!texrec) return;
+    texrec->format = format;
+}
+
+void GLClientState::setBoundTextureType(GLenum target, GLenum type) {
+    GLuint texture = getBoundTexture(target);
+    TextureRec* texrec = NULL;
+    texrec = (TextureRec*)bsearch(&texture, m_tex.textures,
+                                  m_tex.numTextures,
+                                  sizeof(TextureRec),
+                                  compareTexId);
+    if (!texrec) return;
+    texrec->type = type;
 }
 
 GLuint GLClientState::getBoundTexture(GLenum target) const
@@ -436,6 +471,7 @@ void GLClientState::addFreshRenderbuffer(GLuint name) {
     RboProps& props = mRboState.rboData.back();
     props.target = GL_RENDERBUFFER;
     props.name = name;
+    props.format = GL_NONE;
     props.previouslyBound = false;
 }
 
@@ -517,7 +553,97 @@ GLuint GLClientState::boundRenderbuffer() const {
     return boundRboProps_const().name;
 }
 
+void GLClientState::setBoundRenderbufferFormat(GLenum format) {
+    boundRboProps().format = format;
+}
+
 // FBO//////////////////////////////////////////////////////////////////////////
+
+// Format querying
+
+GLenum GLClientState::queryRboFormat(GLuint rbo_name) const {
+    return mRboState.rboData[getRboIndex(rbo_name)].format;
+}
+
+GLint GLClientState::queryTexInternalFormat(GLuint tex_name) const {
+    TextureRec* texrec = NULL;
+    texrec = (TextureRec*)bsearch(&tex_name, m_tex.textures,
+                                  m_tex.numTextures, sizeof(TextureRec), compareTexId);
+    if (!texrec) return -1;
+    return texrec->internalformat;
+}
+
+GLenum GLClientState::queryTexFormat(GLuint tex_name) const {
+    TextureRec* texrec = NULL;
+    texrec = (TextureRec*)bsearch(&tex_name, m_tex.textures,
+                                  m_tex.numTextures, sizeof(TextureRec), compareTexId);
+    if (!texrec) return -1;
+    return texrec->format;
+}
+
+GLenum GLClientState::queryTexType(GLuint tex_name) const {
+    TextureRec* texrec = NULL;
+    texrec = (TextureRec*)bsearch(&tex_name, m_tex.textures,
+                                  m_tex.numTextures, sizeof(TextureRec), compareTexId);
+    if (!texrec) return -1;
+    return texrec->type;
+}
+
+void GLClientState::getBoundFramebufferFormat(
+        GLenum attachment, FboFormatInfo* res_info) const {
+    const FboProps& props = boundFboProps_const();
+
+    res_info->type = FBO_ATTACHMENT_NONE;
+    res_info->rb_format = GL_NONE;
+    res_info->tex_internalformat = -1;
+    res_info->tex_format = GL_NONE;
+    res_info->tex_type = GL_NONE;
+
+    switch (attachment) {
+    case GL_COLOR_ATTACHMENT0:
+        if (props.colorAttachment0_hasRbo) {
+            res_info->type = FBO_ATTACHMENT_RENDERBUFFER;
+            res_info->rb_format = queryRboFormat(props.colorAttachment0_rbo);
+        } else if (props.colorAttachment0_hasTexObj) {
+            res_info->type = FBO_ATTACHMENT_TEXTURE;
+            res_info->tex_internalformat = queryTexInternalFormat(props.colorAttachment0_texture);
+            res_info->tex_format = queryTexFormat(props.colorAttachment0_texture);
+            res_info->tex_type = queryTexType(props.colorAttachment0_texture);
+        } else {
+            res_info->type = FBO_ATTACHMENT_NONE;
+        }
+        break;
+    case GL_DEPTH_ATTACHMENT:
+        if (props.depthAttachment_hasRbo) {
+            res_info->type = FBO_ATTACHMENT_RENDERBUFFER;
+            res_info->rb_format = queryRboFormat(props.depthAttachment_rbo);
+        } else if (props.depthAttachment_hasTexObj) {
+            res_info->type = FBO_ATTACHMENT_TEXTURE;
+            res_info->tex_internalformat = queryTexInternalFormat(props.depthAttachment_texture);
+            res_info->tex_format = queryTexFormat(props.depthAttachment_texture);
+            res_info->tex_type = queryTexType(props.depthAttachment_texture);
+        } else {
+            res_info->type = FBO_ATTACHMENT_NONE;
+        }
+        break;
+    case GL_STENCIL_ATTACHMENT:
+        if (props.stencilAttachment_hasRbo) {
+            res_info->type = FBO_ATTACHMENT_RENDERBUFFER;
+            res_info->rb_format = queryRboFormat(props.stencilAttachment_rbo);
+        } else if (props.stencilAttachment_hasTexObj) {
+            res_info->type = FBO_ATTACHMENT_TEXTURE;
+            res_info->tex_internalformat = queryTexInternalFormat(props.stencilAttachment_texture);
+            res_info->tex_format = queryTexFormat(props.stencilAttachment_texture);
+            res_info->tex_type = queryTexType(props.stencilAttachment_texture);
+        } else {
+            res_info->type = FBO_ATTACHMENT_NONE;
+        }
+        break;
+    default:
+        res_info->type = FBO_ATTACHMENT_NONE;
+        break;
+    }
+}
 
 void GLClientState::addFreshFramebuffer(GLuint name) {
     mFboState.fboData.push_back(FboProps());
@@ -616,6 +742,14 @@ void GLClientState::bindFramebuffer(GLenum target, GLuint name) {
     setBoundFramebufferIndex();
     boundFboProps().target = target;
     boundFboProps().previouslyBound = true;
+}
+
+void GLClientState::setCheckFramebufferStatus(GLenum status) {
+    mFboState.fboCheckStatus = status;
+}
+
+GLenum GLClientState::getCheckFramebufferStatus() const {
+    return mFboState.fboCheckStatus;
 }
 
 GLuint GLClientState::boundFramebuffer() const {
