@@ -606,6 +606,8 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
 
     if (!has_immediate_arrays && !has_indirect_arrays) {
         ALOGE("glDrawElements: no data bound to the command - ignoring\n");
+        GLenum status = ctx->m_glCheckFramebufferStatus_enc(self, GL_FRAMEBUFFER);
+        SET_ERROR_IF(status != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
         return;
     }
 
