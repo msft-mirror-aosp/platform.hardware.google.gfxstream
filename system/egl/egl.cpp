@@ -910,7 +910,11 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
 
     EGLint version = 1; //default
     while (attrib_list && attrib_list[0] != EGL_NONE) {
-        if (attrib_list[0] == EGL_CONTEXT_CLIENT_VERSION) version = attrib_list[1];
+        if (attrib_list[0] == EGL_CONTEXT_CLIENT_VERSION) {
+            version = attrib_list[1];
+        } else { // Only the attribute EGL_CONTEXT_CLIENT_VERSION may be specified.
+            setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_NO_CONTEXT);
+        }
         attrib_list+=2;
     }
 
