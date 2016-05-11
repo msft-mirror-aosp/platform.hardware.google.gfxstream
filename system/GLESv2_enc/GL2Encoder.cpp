@@ -1473,7 +1473,6 @@ void GL2Encoder::s_glRenderbufferStorage(void* self,
     case GL_RG32UI:
     case GL_RG32I:
     case GL_SRGB8_ALPHA8:
-    case GL_RGB10_A2:
     case GL_RGBA8UI:
     case GL_RGBA8I:
     case GL_RGB10_A2UI:
@@ -1498,6 +1497,9 @@ void GL2Encoder::s_glRenderbufferStorage(void* self,
     case GL_RG16F:
     case GL_RGB16F:
     case GL_RGBA16F:
+    // dEQP expects GL_FRAMEBUFFER_UNSUPPORTED or GL_FRAMEBUFFER_COMPLETE
+    // for this format
+    case GL_RGB10_A2:
     // These formats are OK
     case GL_DEPTH_COMPONENT16:
     case GL_DEPTH_COMPONENT24:
