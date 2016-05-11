@@ -1357,7 +1357,6 @@ void GL2Encoder::s_glTexImage2D(void* self, GLenum target, GLint level,
         GLint internalformat, GLsizei width, GLsizei height, GLint border,
         GLenum format, GLenum type, const GLvoid* pixels)
 {
-    ALOGE("Tex format %u internal format %u\n", format, internalformat);
     GL2Encoder* ctx = (GL2Encoder*)self;
     GLClientState* state = ctx->m_state;
     if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
