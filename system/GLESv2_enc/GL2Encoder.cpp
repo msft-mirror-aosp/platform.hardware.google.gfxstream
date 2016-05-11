@@ -1357,6 +1357,7 @@ void GL2Encoder::s_glTexImage2D(void* self, GLenum target, GLint level,
         GLint internalformat, GLsizei width, GLsizei height, GLint border,
         GLenum format, GLenum type, const GLvoid* pixels)
 {
+    ALOGE("Tex format %u internal format %u\n", format, internalformat);
     GL2Encoder* ctx = (GL2Encoder*)self;
     GLClientState* state = ctx->m_state;
     if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
@@ -1631,18 +1632,30 @@ bool GL2Encoder::isCompleteFbo(const GLClientState* state,
         }
         break;
     case FBO_ATTACHMENT_TEXTURE:
+        switch (fbo_format_info.tex_internalformat) {
+        case GL_RED:
+        case GL_RG:
+        case GL_R16F:
+        case GL_RG16F:
+        case GL_RGBA16F:
+        case GL_RGB16F:
+        case GL_R11F_G11F_B10F:
+            res = false;
+            break;
         // No float/half-float formats allowed for RGB(A)
-        if (fbo_format_info.tex_internalformat == GL_RGB ||
-            fbo_format_info.tex_internalformat == GL_RGBA) {
+        case GL_RGB:
+        case GL_RGBA:
             switch (fbo_format_info.tex_type) {
             case GL_FLOAT:
             case GL_HALF_FLOAT_OES:
+            case GL_UNSIGNED_INT_10F_11F_11F_REV:
                 res = false;
                 break;
             default:
                 res = true;
             }
-        } else {
+            break;
+        default:
             res = true;
         }
         break;
