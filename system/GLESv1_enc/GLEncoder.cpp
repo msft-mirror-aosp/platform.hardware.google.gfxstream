@@ -396,6 +396,7 @@ void GLEncoder::s_glDeleteBuffers(void * self, GLsizei n, const GLuint * buffers
 void GLEncoder::sendVertexData(unsigned int first, unsigned int count)
 {
     assert(m_state != NULL);
+    GLenum prevActiveTexUnit = m_state->getActiveTextureUnit();
     for (int i = 0; i < GLClientState::LAST_LOCATION; i++) {
         bool enableDirty;
         const GLClientState::VertexAttribState *state = m_state->getStateAndEnableDirty(i, &enableDirty);
@@ -412,7 +413,6 @@ void GLEncoder::sendVertexData(unsigned int first, unsigned int count)
         }
 
         if (state->enabled) {
-
             if (enableDirty)
                 m_glEnableClientState_enc(this, state->glConst);
 
@@ -444,8 +444,11 @@ void GLEncoder::sendVertexData(unsigned int first, unsigned int count)
                 case GLClientState::TEXCOORD5_LOCATION:
                 case GLClientState::TEXCOORD6_LOCATION:
                 case GLClientState::TEXCOORD7_LOCATION:
-                    this->glTexCoordPointerData(this, i - GLClientState::TEXCOORD0_LOCATION, state->size, state->type, state->stride,
+                    m_state->setActiveTextureUnit(i - GLClientState::TEXCOORD0_LOCATION + GL_TEXTURE0);
+                    if (m_state->getPriorityEnabledTarget(GL_INVALID_ENUM) != GL_INVALID_ENUM) {
+                        this->glTexCoordPointerData(this, i - GLClientState::TEXCOORD0_LOCATION, state->size, state->type, state->stride,
                                                 (unsigned char *)state->data + firstIndex, datalen);
+                    }
                     break;
                 case GLClientState::POINTSIZE_LOCATION:
                     this->glPointSizePointerData(this, state->type, state->stride,
@@ -506,6 +509,7 @@ void GLEncoder::sendVertexData(unsigned int first, unsigned int count)
             this->m_glDisableClientState_enc(this, state->glConst);
         }
     }
+    m_state->setActiveTextureUnit(prevActiveTexUnit);
 }
 
 void GLEncoder::s_glDrawArrays(void *self, GLenum mode, GLint first, GLsizei count)
