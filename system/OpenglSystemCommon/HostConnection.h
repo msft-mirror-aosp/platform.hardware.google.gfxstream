@@ -20,6 +20,8 @@
 #include "renderControl_enc.h"
 #include "ChecksumCalculator.h"
 
+#include <string>
+
 class GLEncoder;
 class gl_client_context_t;
 class GL2Encoder;
@@ -46,6 +48,8 @@ private:
     HostConnection();
     static gl_client_context_t  *s_getGLContext();
     static gl2_client_context_t *s_getGL2Context();
+
+    std::string queryGLExtensions(renderControl_encoder_context_t *rcEnc);
     // setProtocol initilizes GL communication protocol for checksums
     // should be called when m_rcEnc is created
     void setChecksumHelper(renderControl_encoder_context_t *rcEnc);

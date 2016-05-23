@@ -157,21 +157,26 @@ gl2_client_context_t *HostConnection::s_getGL2Context()
     return NULL;
 }
 
-void HostConnection::setChecksumHelper(renderControl_encoder_context_t *rcEnc) {
+std::string HostConnection::queryGLExtensions(renderControl_encoder_context_t *rcEnc) {
     std::unique_ptr<char[]> glExtensions;
     int extensionSize = rcEnc->rcGetGLString(rcEnc, GL_EXTENSIONS, NULL, 0);
     if (extensionSize < 0) {
-        glExtensions = std::unique_ptr<char[]>(new char[-extensionSize]);
+        glExtensions.reset(new char[-extensionSize]);
         extensionSize = rcEnc->rcGetGLString(rcEnc, GL_EXTENSIONS, glExtensions.get(), -extensionSize);
         if (extensionSize <= 0) {
             glExtensions.reset();
+            return std::string();
         }
     }
+    return std::string(glExtensions.get(), extensionSize);
+}
+
+void HostConnection::setChecksumHelper(renderControl_encoder_context_t *rcEnc) {
+    std::string glExtensions = queryGLExtensions(rcEnc);
     // check the host supported version
     uint32_t checksumVersion = 0;
     const char* checksumPrefix = ChecksumCalculator::getMaxVersionStrPrefix();
-    const char* glProtocolStr = glExtensions.get() ?
-            strstr(glExtensions.get(), checksumPrefix) : NULL;
+    const char* glProtocolStr = strstr(glExtensions.c_str(), checksumPrefix);
     if (glProtocolStr) {
         uint32_t maxVersion = ChecksumCalculator::getMaxVersion();
         sscanf(glProtocolStr+strlen(checksumPrefix), "%d", &checksumVersion);
