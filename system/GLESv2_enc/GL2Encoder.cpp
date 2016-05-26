@@ -497,6 +497,7 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count)
 {
     assert(m_state);
 
+    GLuint lastBoundVbo = m_state->currentArrayVbo();
     for (int i = 0; i < m_state->nLocations(); i++) {
         bool enableDirty;
         const GLClientState::VertexAttribState *state = m_state->getStateAndEnableDirty(i, &enableDirty);
@@ -509,15 +510,17 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count)
             continue;
         }
 
-
         if (state->enabled) {
+            if (lastBoundVbo != state->bufferObject) {
+                this->m_glBindBuffer_enc(this, GL_ARRAY_BUFFER, state->bufferObject);
+                lastBoundVbo = state->bufferObject;
+            }
             m_glEnableVertexAttribArray_enc(this, i);
 
             unsigned int datalen = state->elementSize * count;
             int stride = state->stride == 0 ? state->elementSize : state->stride;
             int firstIndex = stride * first;
 
-            this->m_glBindBuffer_enc(this, GL_ARRAY_BUFFER, state->bufferObject);
             if (state->bufferObject == 0) {
                 this->glVertexAttribPointerData(this, i, state->size, state->type, state->normalized, state->stride,
                                                 (unsigned char *)state->data + firstIndex, datalen);
@@ -525,11 +528,15 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count)
                 this->glVertexAttribPointerOffset(this, i, state->size, state->type, state->normalized, state->stride,
                                                   (uintptr_t) state->data + firstIndex);
             }
-            this->m_glBindBuffer_enc(this, GL_ARRAY_BUFFER, m_state->currentArrayVbo());
         } else {
             this->m_glDisableVertexAttribArray_enc(this, i);
         }
     }
+
+    if (lastBoundVbo != m_state->currentArrayVbo()) {
+        this->m_glBindBuffer_enc(this, GL_ARRAY_BUFFER, m_state->currentArrayVbo());
+    }
+
 }
 
 static bool isValidDrawMode(GLenum mode)
