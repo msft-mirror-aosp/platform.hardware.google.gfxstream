@@ -536,6 +536,7 @@ void GLEncoder::s_glDrawArrays(void *self, GLenum mode, GLint first, GLsizei cou
 
     ctx->sendVertexData(first, count);
     ctx->m_glDrawArrays_enc(ctx, mode, /*first*/ 0, count);
+    ctx->m_stream->flush();
 }
 
 void GLEncoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum type, const void *indices)
@@ -574,6 +575,7 @@ void GLEncoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum 
             ctx->sendVertexData(0, count);
             ctx->m_glBindBuffer_enc(self, GL_ELEMENT_ARRAY_BUFFER, ctx->m_state->currentIndexVbo());
             ctx->glDrawElementsOffset(ctx, mode, count, type, (uintptr_t)indices);
+            ctx->m_stream->flush();
             adjustIndices = false;
         } else {
             BufferData * buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
@@ -623,6 +625,7 @@ void GLEncoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum 
             ctx->sendVertexData(minIndex, maxIndex - minIndex + 1);
             ctx->glDrawElementsData(ctx, mode, count, type, adjustedIndices,
                                       count * glSizeof(type));
+            ctx->m_stream->flush();
             // XXX - OPTIMIZATION (see the other else branch) should be implemented
             if(!has_indirect_arrays) {
                 //ALOGD("unoptimized drawelements !!!\n");
