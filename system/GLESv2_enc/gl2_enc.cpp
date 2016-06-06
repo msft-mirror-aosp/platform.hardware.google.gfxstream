@@ -1188,7 +1188,6 @@ void glDrawArrays_enc(void *self , GLenum mode, GLint first, GLsizei count)
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
-	stream->flush();
 
 }
 
@@ -4836,7 +4835,7 @@ void glDrawElementsOffset_enc(void *self , GLenum mode, GLsizei count, GLenum ty
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
-	stream->flush();
+
 }
 
 void glDrawElementsData_enc(void *self , GLenum mode, GLsizei count, GLenum type, void* data, GLuint datalen)
@@ -4867,7 +4866,7 @@ void glDrawElementsData_enc(void *self , GLenum mode, GLsizei count, GLenum type
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
-	stream->flush();
+
 }
 
 void glGetCompressedTextureFormats_enc(void *self , int count, GLint* formats)
