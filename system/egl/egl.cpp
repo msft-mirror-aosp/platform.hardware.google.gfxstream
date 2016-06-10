@@ -14,6 +14,7 @@
 * limitations under the License.
 */
 
+#include <assert.h>
 #include "HostConnection.h"
 #include "ThreadInfo.h"
 #include "eglDisplay.h"
@@ -130,6 +131,8 @@ const char *  eglStrError(EGLint err)
             setErrorReturn(EGL_BAD_DISPLAY, EGL_FALSE);    \
     }
 
+// The one and only supported display object.
+static eglDisplay s_display;
 
 EGLContext_t::EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* shareCtx) :
     dpy(dpy),
@@ -152,10 +155,14 @@ EGLContext_t::EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* share
         sharedGroup = shareCtx->getSharedGroup();
     else
         sharedGroup = GLSharedGroupPtr(new GLSharedGroup());
+    assert(dpy == (EGLDisplay)&s_display);
+    s_display.onCreateContext((EGLContext)this);
 };
 
 EGLContext_t::~EGLContext_t()
 {
+    assert(dpy == (EGLDisplay)&s_display);
+    s_display.onDestroyContext((EGLContext)this);
     delete clientState;
     delete [] versionString;
     delete [] vendorString;
@@ -216,6 +223,8 @@ egl_surface_t::egl_surface_t(EGLDisplay dpy, EGLConfig config, EGLint surfaceTyp
     height = 0;
     texFormat = EGL_NO_TEXTURE;
     texTarget = EGL_NO_TEXTURE;
+    assert(dpy == (EGLDisplay)&s_display);
+    s_display.onCreateSurface((EGLSurface)this);
 }
 
 EGLint egl_surface_t::getSwapBehavior() const {
@@ -224,6 +233,8 @@ EGLint egl_surface_t::getSwapBehavior() const {
 
 egl_surface_t::~egl_surface_t()
 {
+    assert(dpy == (EGLDisplay)&s_display);
+    s_display.onDestroySurface((EGLSurface)this);
 }
 
 // ----------------------------------------------------------------------------
@@ -474,9 +485,6 @@ static const char *getGLString(int glEnum)
 }
 
 // ----------------------------------------------------------------------------
-
-// The one and only supported display object.
-static eglDisplay s_display;
 
 static EGLClient_eglInterface s_eglIface = {
     getThreadInfo: getEGLThreadInfo,
@@ -797,8 +805,34 @@ EGLBoolean eglWaitClient()
 EGLBoolean eglReleaseThread()
 {
     EGLThreadInfo *tInfo = getEGLThreadInfo();
-    if (tInfo && tInfo->currentContext) {
-        return eglMakeCurrent(&s_display, EGL_NO_CONTEXT, EGL_NO_SURFACE, EGL_NO_SURFACE);
+    if (tInfo) {
+        tInfo->eglError = EGL_SUCCESS;
+        EGLContext_t* context = tInfo->currentContext;
+        if (context) {
+            // The following code is doing pretty much the same thing as
+            // eglMakeCurrent(&s_display, EGL_NO_CONTEXT, EGL_NO_SURFACE, EGL_NO_SURFACE)
+            // with the only issue that we do not require a valid display here.
+            DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
+            rcEnc->rcMakeCurrent(rcEnc, 0, 0, 0);
+             if (context->version == 2) {
+                hostCon->gl2Encoder()->setClientState(NULL);
+                hostCon->gl2Encoder()->setSharedGroup(GLSharedGroupPtr());
+            }
+            else {
+                hostCon->glEncoder()->setClientState(NULL);
+                hostCon->glEncoder()->setSharedGroup(GLSharedGroupPtr());
+            }
+            context->flags &= ~EGLContext_t::IS_CURRENT;
+
+            if (context->deletePending) {
+                if (context->rcContext) {
+                    rcEnc->rcDestroyContext(rcEnc, context->rcContext);
+                    context->rcContext = 0;
+                }
+                delete context;
+            }
+            tInfo->currentContext = 0;
+        }
     }
     return EGL_TRUE;
 }

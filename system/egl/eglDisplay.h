@@ -21,6 +21,7 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include "EGLClientIface.h"
+#include <unordered_set>
 #include <utils/KeyedVector.h>
 
 #include <ui/PixelFormat.h>
@@ -54,6 +55,12 @@ public:
     EGLBoolean getConfigNativePixelFormat(EGLConfig config, PixelFormat * format);
 
     void     dumpConfig(EGLConfig config);
+
+    void onCreateContext(EGLContext ctx);
+    void onCreateSurface(EGLSurface surface);
+
+    void onDestroyContext(EGLContext ctx);
+    void onDestroySurface(EGLSurface surface);
 private:
     EGLClient_glesInterface *loadGLESClientAPI(const char *libName,
                                                EGLClient_eglInterface *eglIface,
@@ -84,6 +91,11 @@ private:
     char *m_versionString;
     char *m_vendorString;
     char *m_extensionString;
+
+    std::unordered_set<EGLContext> m_contexts;
+    std::unordered_set<EGLSurface> m_surfaces;
+    pthread_mutex_t m_ctxLock;
+    pthread_mutex_t m_surfaceLock;
 };
 
 #endif
