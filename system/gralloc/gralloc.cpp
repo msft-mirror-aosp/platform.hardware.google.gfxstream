@@ -106,6 +106,14 @@ static int map_buffer(cb_handle_t *cb, void **vaddr)
     HostConnection *hostCon = HostConnection::get(); \
     renderControl_encoder_context_t *rcEnc = (hostCon ? hostCon->rcEncoder() : NULL)
 
+#define EXIT_GRALLOCONLY_HOST_CONNECTION \
+    HostConnection *hostCon = HostConnection::get(); \
+    if (hostCon && hostCon->isGrallocOnly()) { \
+        ALOGD("%s: exiting HostConnection (is buffer-handling thread)", \
+              __FUNCTION__); \
+        HostConnection::exit(); \
+    }
+
 #define DEFINE_AND_VALIDATE_HOST_CONNECTION \
     HostConnection *hostCon = HostConnection::get(); \
     if (!hostCon) { \
@@ -595,6 +603,7 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
 
     D("gralloc_unregister_buffer(%p) done\n", cb);
 
+    EXIT_GRALLOCONLY_HOST_CONNECTION;
     return 0;
 }
 

@@ -31,6 +31,7 @@ class HostConnection
 {
 public:
     static HostConnection *get();
+    static void exit();
     ~HostConnection();
 
     GLEncoder *glEncoder();
@@ -43,6 +44,12 @@ public:
             m_stream->flush();
         }
     }
+
+    void setGrallocOnly(bool gralloc_only) {
+        m_grallocOnly = gralloc_only;
+    }
+
+    bool isGrallocOnly() const { return m_grallocOnly; }
 
 private:
     HostConnection();
@@ -60,6 +67,7 @@ private:
     GL2Encoder  *m_gl2Enc;
     renderControl_encoder_context_t *m_rcEnc;
     ChecksumCalculator m_checksumHelper;
+    bool m_grallocOnly;
 };
 
 #endif

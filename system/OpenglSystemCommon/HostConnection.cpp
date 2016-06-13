@@ -33,7 +33,8 @@ HostConnection::HostConnection() :
     m_glEnc(NULL),
     m_gl2Enc(NULL),
     m_rcEnc(NULL),
-    m_checksumHelper()
+    m_checksumHelper(),
+    m_grallocOnly(true)
 {
 }
 
@@ -45,8 +46,8 @@ HostConnection::~HostConnection()
     delete m_rcEnc;
 }
 
-HostConnection *HostConnection::get()
-{
+HostConnection *HostConnection::get() {
+
     /* TODO: Make this configurable with a system property */
     const int useQemuPipe = USE_QEMU_PIPE;
 
@@ -107,6 +108,20 @@ HostConnection *HostConnection::get()
 
     return tinfo->hostConn;
 }
+
+void HostConnection::exit() {
+    EGLThreadInfo *tinfo = getEGLThreadInfo();
+    if (!tinfo) {
+        return;
+    }
+
+    if (tinfo->hostConn) {
+        delete tinfo->hostConn;
+        tinfo->hostConn = NULL;
+    }
+}
+
+
 
 GLEncoder *HostConnection::glEncoder()
 {
