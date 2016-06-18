@@ -219,8 +219,12 @@ static int gralloc_alloc(alloc_device_t* dev,
             glFormat = GL_RGB;
             glType = GL_UNSIGNED_SHORT_5_6_5;
             break;
+#if PLATFORM_SDK_VERSION >= 21
         case HAL_PIXEL_FORMAT_RAW16:
         case HAL_PIXEL_FORMAT_Y16:
+#else
+        case HAL_PIXEL_FORMAT_RAW_SENSOR:
+#endif
             bpp = 2;
             align = 16*bpp;
             if (! ((sw_read || hw_cam_read) && (sw_write || hw_cam_write) ) ) {

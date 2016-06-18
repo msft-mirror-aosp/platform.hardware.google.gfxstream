@@ -20,7 +20,6 @@
 #include <cutils/log.h>
 #include "GLEncoder.h"
 #include "GL2Encoder.h"
-#include <memory>
 
 #define STREAM_BUFFER_SIZE  4*1024*1024
 #define STREAM_PORT_NUM     22468
@@ -172,26 +171,22 @@ gl2_client_context_t *HostConnection::s_getGL2Context()
     return NULL;
 }
 
-std::string HostConnection::queryGLExtensions(renderControl_encoder_context_t *rcEnc) {
-    std::unique_ptr<char[]> glExtensions;
+void HostConnection::setChecksumHelper(renderControl_encoder_context_t *rcEnc) {
+    char *glExtensions = NULL;
     int extensionSize = rcEnc->rcGetGLString(rcEnc, GL_EXTENSIONS, NULL, 0);
     if (extensionSize < 0) {
-        glExtensions.reset(new char[-extensionSize]);
-        extensionSize = rcEnc->rcGetGLString(rcEnc, GL_EXTENSIONS, glExtensions.get(), -extensionSize);
+        glExtensions = new char[-extensionSize];
+        extensionSize = rcEnc->rcGetGLString(rcEnc, GL_EXTENSIONS, glExtensions, -extensionSize);
         if (extensionSize <= 0) {
-            glExtensions.reset();
-            return std::string();
+            delete [] glExtensions;
+            glExtensions = NULL;
         }
     }
-    return std::string(glExtensions.get(), extensionSize);
-}
-
-void HostConnection::setChecksumHelper(renderControl_encoder_context_t *rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
     // check the host supported version
     uint32_t checksumVersion = 0;
     const char* checksumPrefix = ChecksumCalculator::getMaxVersionStrPrefix();
-    const char* glProtocolStr = strstr(glExtensions.c_str(), checksumPrefix);
+    const char* glProtocolStr = glExtensions ?
+            strstr(glExtensions, checksumPrefix) : NULL;
     if (glProtocolStr) {
         uint32_t maxVersion = ChecksumCalculator::getMaxVersion();
         sscanf(glProtocolStr+strlen(checksumPrefix), "%d", &checksumVersion);
@@ -203,4 +198,5 @@ void HostConnection::setChecksumHelper(renderControl_encoder_context_t *rcEnc) {
         rcEnc->rcSelectChecksumHelper(rcEnc, checksumVersion, 0);
         m_checksumHelper.setVersion(checksumVersion);
     }
+    delete [] glExtensions;
 }

@@ -123,6 +123,7 @@
 
 class ChecksumCalculator {
 public:
+    ChecksumCalculator();
     // Get and set current checksum version
     uint32_t getVersion() const { return m_version; }
     // Call setVersion to set a checksum version. It should be called before
@@ -165,17 +166,17 @@ public:
     // Will reset the list of buffers by calling resetChecksum.
     bool validate(const void* expectedChecksum, size_t expectedChecksumLen);
 protected:
-    uint32_t m_version = 0;
+    uint32_t m_version;
     // A temporary state used to compute the total length of a list of buffers,
     // if addBuffer is called.
-    uint32_t m_numRead = 0;
-    uint32_t m_numWrite = 0;
+    uint32_t m_numRead;
+    uint32_t m_numWrite;
     // m_isEncodingChecksum is true when between addBuffer and writeChecksum
-    bool m_isEncodingChecksum = false;
+    bool m_isEncodingChecksum;
 private:
     // Compute a 32bit checksum
     // Used in protocol v1
     uint32_t computeV1Checksum();
     // The buffer used in protocol version 1 to compute checksum.
-    uint32_t m_v1BufferTotalLength = 0;
+    uint32_t m_v1BufferTotalLength;
 };

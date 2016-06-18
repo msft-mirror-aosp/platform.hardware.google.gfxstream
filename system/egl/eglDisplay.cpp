@@ -217,15 +217,15 @@ void eglDisplay::terminate()
     if (m_initialized) {
         // Cannot use the for loop in the following code because
         // eglDestroyContext may erase elements.
-        auto ctxIte = m_contexts.begin();
+        EGLContextSet::iterator ctxIte = m_contexts.begin();
         while (ctxIte != m_contexts.end()) {
-            auto ctxToDelete = ctxIte;
+            EGLContextSet::iterator ctxToDelete = ctxIte;
             ctxIte ++;
             eglDestroyContext(static_cast<EGLDisplay>(this), *ctxToDelete);
         }
-        auto surfaceIte = m_surfaces.begin();
+        EGLSurfaceSet::iterator surfaceIte = m_surfaces.begin();
         while (surfaceIte != m_surfaces.end()) {
-            auto surfaceToDelete = surfaceIte;
+            EGLSurfaceSet::iterator surfaceToDelete = surfaceIte;
             surfaceIte ++;
             eglDestroySurface(static_cast<EGLDisplay>(this), *surfaceToDelete);
         }

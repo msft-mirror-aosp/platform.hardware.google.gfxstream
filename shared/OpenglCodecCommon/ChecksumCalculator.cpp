@@ -16,8 +16,6 @@
 
 #include "ChecksumCalculator.h"
 
-#include <string>
-#include <vector>
 #include <string.h>
 
 // Checklist when implementing new protocol:
@@ -34,7 +32,7 @@
 // as well as modifying the maxChecksumSize function.
 static const size_t kV1ChecksumSize = 8;
 
-static constexpr size_t maxChecksumSize() {
+static size_t maxChecksumSize() {
     return 0 > kV1ChecksumSize ? 0 : kV1ChecksumSize;
 }
 
@@ -84,6 +82,15 @@ size_t ChecksumCalculator::checksumByteSize() const {
         default:
             return 0;
     }
+}
+
+ChecksumCalculator::ChecksumCalculator()
+                : m_version(0)
+                , m_numRead(0)
+                , m_numWrite(0)
+                , m_isEncodingChecksum(false)
+                , m_v1BufferTotalLength(0)
+{
 }
 
 void ChecksumCalculator::addBuffer(const void* buf, size_t packetLen) {

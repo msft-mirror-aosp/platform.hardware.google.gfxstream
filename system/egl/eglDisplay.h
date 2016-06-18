@@ -21,8 +21,14 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include "EGLClientIface.h"
-#include <unordered_set>
 #include <utils/KeyedVector.h>
+
+#if __cplusplus >= 201103L
+#include <unordered_set>
+#else
+#include <hash_set>
+#endif
+
 
 #include <ui/PixelFormat.h>
 
@@ -92,8 +98,15 @@ private:
     char *m_vendorString;
     char *m_extensionString;
 
-    std::unordered_set<EGLContext> m_contexts;
-    std::unordered_set<EGLSurface> m_surfaces;
+#if __cplusplus >= 201103L
+    typedef std::unordered_set<EGLContext> EGLContextSet;
+    typedef std::unordered_set<EGLSurface> EGLSurfaceSet;
+#else
+    typedef std::hash_set<EGLContext> EGLContextSet;
+    typedef std::hash_set<EGLSurface> EGLSurfaceSet;
+#endif
+    EGLContextSet m_contexts;
+    EGLSurfaceSet m_surfaces;
     pthread_mutex_t m_ctxLock;
     pthread_mutex_t m_surfaceLock;
 };

@@ -38,6 +38,10 @@ emugl-begin-module = \
     $(eval _EMUGL_INCLUDE_TYPE := $(BUILD_$2)) \
     $(call _emugl-init-module,$1,$2,$3)
 
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23 && echo PreMarshmallow),PreMarshmallow)
+    emugl-begin-module += $(eval include external/stlport/libstlport.mk)
+endif
+
 # Used to end a module definition, see function definitions above
 emugl-end-module = \
     $(eval include $(_EMUGL_INCLUDE_TYPE))\

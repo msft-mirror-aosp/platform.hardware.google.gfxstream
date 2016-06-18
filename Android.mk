@@ -16,13 +16,13 @@ EMUGL_PATH := $(call my-dir)
 # This is always set to a module's LOCAL_C_INCLUDES
 # See the definition of emugl-begin-module in common.mk
 #
-EMUGL_COMMON_INCLUDES := $(EMUGL_PATH)/host/include/libOpenglRender
+EMUGL_COMMON_INCLUDES := $(EMUGL_PATH)/host/include/libOpenglRender $(EMUGL_PATH)/system/include
 
 # common cflags used by several modules
 # This is always set to a module's LOCAL_CFLAGS
 # See the definition of emugl-begin-module in common.mk
 #
-EMUGL_COMMON_CFLAGS := -DWITH_GLES2
+EMUGL_COMMON_CFLAGS := -DWITH_GLES2 -DPLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION)
 
 # Uncomment the following line if you want to enable debug traces
 # in the GLES emulation libraries.
