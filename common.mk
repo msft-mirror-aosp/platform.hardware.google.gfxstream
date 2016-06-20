@@ -41,6 +41,10 @@ emugl-begin-module = \
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23 && echo PreMarshmallow),PreMarshmallow)
     emugl-begin-module += $(eval include external/stlport/libstlport.mk)
 endif
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 19 && echo PreKitkat),PreKitkat)
+    emugl-begin-module += $(eval LOCAL_MODULE_TAGS := debug)
+    emugl-begin-module += $(eval LOCAL_SHARED_LIBRARIES += libstlport)
+endif
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 21 && echo PreLollipop),PreLollipop)
     emugl-begin-module += $(eval LOCAL_PRELINK_MODULE := false)

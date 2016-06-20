@@ -34,6 +34,12 @@
 
 #include <system/window.h>
 
+#if PLATFORM_SDK_VERSION <= 16
+#define queueBuffer_DEPRECATED queueBuffer
+#define dequeueBuffer_DEPRECATED dequeueBuffer
+#define cancelBuffer_DEPRECATED cancelBuffer
+#endif // PLATFORM_SDK_VERSION <= 16
+
 template<typename T>
 static T setErrorFunc(GLint error, T returnValue) {
     getEGLThreadInfo()->eglError = error;

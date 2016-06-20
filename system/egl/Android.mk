@@ -35,6 +35,10 @@ LOCAL_SRC_FILES := $(LOCAL_MODULE)
 LOCAL_MODULE_PATH := $(TARGET_OUT)/lib/egl
 LOCAL_MODULE_CLASS := ETC
 
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 19 && echo PreKitkat),PreKitkat)
+    LOCAL_MODULE_TAGS := debug
+endif
+
 include $(BUILD_PREBUILT)
 endif # TARGET_PRODUCT in 'full full_x86 full_mips sdk sdk_x86 sdk_mips google_sdk google_sdk_x86 google_sdk_mips')
 

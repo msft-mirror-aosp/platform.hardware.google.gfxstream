@@ -150,14 +150,20 @@ static int gralloc_alloc(alloc_device_t* dev,
     bool sw_write = (0 != (usage & GRALLOC_USAGE_SW_WRITE_MASK));
     bool hw_write = (usage & GRALLOC_USAGE_HW_RENDER);
     bool sw_read = (0 != (usage & GRALLOC_USAGE_SW_READ_MASK));
-    bool hw_cam_write = usage & GRALLOC_USAGE_HW_CAMERA_WRITE;
-    bool hw_cam_read = usage & GRALLOC_USAGE_HW_CAMERA_READ;
+#if PLATFORM_SDK_VERSION >= 17
+    bool hw_cam_write = (usage & GRALLOC_USAGE_HW_CAMERA_WRITE);
+    bool hw_cam_read = (usage & GRALLOC_USAGE_HW_CAMERA_READ);
+#else // PLATFORM_SDK_VERSION >= 17
+    bool hw_cam_write = false;
+    bool hw_cam_read = false;
+#endif // PLATFORM_SDK_VERSION >= 17
     bool hw_vid_enc_read = usage & GRALLOC_USAGE_HW_VIDEO_ENCODER;
 
     // Keep around original requested format for later validation
     int frameworkFormat = format;
     // Pick the right concrete pixel format given the endpoints as encoded in
     // the usage bits.  Every end-point pair needs explicit listing here.
+#if PLATFORM_SDK_VERSION >= 17
     if (format == HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED) {
         // Camera as producer
         if (usage & GRALLOC_USAGE_HW_CAMERA_WRITE) {
@@ -180,7 +186,9 @@ static int gralloc_alloc(alloc_device_t* dev,
                     w, h, usage);
             return -EINVAL;
         }
-    } else if (format == HAL_PIXEL_FORMAT_YCbCr_420_888) {
+    }
+#if PLATFORM_SDK_VERSION >= 18
+    else if (format == HAL_PIXEL_FORMAT_YCbCr_420_888) {
         // Flexible framework-accessible YUV format; map to NV21 for now
         if (usage & GRALLOC_USAGE_HW_CAMERA_WRITE) {
             format = HAL_PIXEL_FORMAT_YCrCb_420_SP;
@@ -191,6 +199,8 @@ static int gralloc_alloc(alloc_device_t* dev,
                     w, h, usage);
         }
     }
+#endif // PLATFORM_SDK_VERSION >= 18
+#endif // PLATFORM_SDK_VERSION >= 17
     bool yuv_format = false;
 
     int ashmem_size = 0;
@@ -235,6 +245,7 @@ static int gralloc_alloc(alloc_device_t* dev,
             glFormat = GL_LUMINANCE;
             glType = GL_UNSIGNED_SHORT;
             break;
+#if PLATFORM_SDK_VERSION >= 17
         case HAL_PIXEL_FORMAT_BLOB:
             bpp = 1;
             if (! (sw_read && hw_cam_write) ) {
@@ -245,6 +256,7 @@ static int gralloc_alloc(alloc_device_t* dev,
             glFormat = GL_LUMINANCE;
             glType = GL_UNSIGNED_BYTE;
             break;
+#endif // PLATFORM_SDK_VERSION >= 17
         case HAL_PIXEL_FORMAT_YCrCb_420_SP:
             align = 1;
             bpp = 1; // per-channel bpp
@@ -360,10 +372,15 @@ static int gralloc_alloc(alloc_device_t* dev,
     pthread_mutex_unlock(&grdev->lock);
 
     *pHandle = cb;
-    if (frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) {
+    switch (frameworkFormat) {
+#if PLATFORM_SDK_VERSION >= 18
+    case HAL_PIXEL_FORMAT_YCbCr_420_888:
         *pStride = 0;
-    } else {
+        break;
+#endif // PLATFORM_SDK_VERSION >= 18
+    default:
         *pStride = stride;
+        break;
     }
     return 0;
 }
@@ -628,10 +645,12 @@ static int gralloc_lock(gralloc_module_t const* module,
     }
 
     // validate format
+#if PLATFORM_SDK_VERSION >= 18
     if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) {
         ALOGE("gralloc_lock can't be used with YCbCr_420_888 format");
         return -EINVAL;
     }
+#endif // PLATFORM_SDK_VERSION >= 18
 
     // Validate usage,
     //   1. cannot be locked for hw access
@@ -642,8 +661,13 @@ static int gralloc_lock(gralloc_module_t const* module,
     bool hw_read = (usage & GRALLOC_USAGE_HW_TEXTURE);
     bool hw_write = (usage & GRALLOC_USAGE_HW_RENDER);
     bool hw_vid_enc_read = (usage & GRALLOC_USAGE_HW_VIDEO_ENCODER);
+#if PLATFORM_SDK_VERSION >= 17
     bool hw_cam_write = (usage & GRALLOC_USAGE_HW_CAMERA_WRITE);
     bool hw_cam_read = (usage & GRALLOC_USAGE_HW_CAMERA_READ);
+#else // PLATFORM_SDK_VERSION >= 17
+    bool hw_cam_write = false;
+    bool hw_cam_read = false;
+#endif // PLATFORM_SDK_VERSION >= 17
     bool sw_read_allowed = (0 != (cb->usage & GRALLOC_USAGE_SW_READ_MASK));
     bool sw_write_allowed = (0 != (cb->usage & GRALLOC_USAGE_SW_WRITE_MASK));
 
@@ -792,6 +816,7 @@ static int gralloc_unlock(gralloc_module_t const* module,
     return 0;
 }
 
+#if PLATFORM_SDK_VERSION >= 18
 static int gralloc_lock_ycbcr(gralloc_module_t const* module,
                         buffer_handle_t handle, int usage,
                         int l, int t, int w, int h,
@@ -895,6 +920,7 @@ static int gralloc_lock_ycbcr(gralloc_module_t const* module,
 
     return 0;
 }
+#endif // PLATFORM_SDK_VERSION >= 18
 
 static int gralloc_device_open(const hw_module_t* module,
                                const char* name,
@@ -1017,7 +1043,11 @@ struct private_module_t HAL_MODULE_INFO_SYM = {
     base: {
         common: {
             tag: HARDWARE_MODULE_TAG,
+#if PLATFORM_SDK_VERSION >= 18
             module_api_version: GRALLOC_MODULE_API_VERSION_0_2,
+#else // PLATFORM_SDK_VERSION >= 18
+            module_api_version: 1,
+#endif // PLATFORM_SDK_VERSION >= 18
             hal_api_version: 0,
             id: GRALLOC_HARDWARE_MODULE_ID,
             name: "Graphics Memory Allocator Module",
@@ -1031,7 +1061,9 @@ struct private_module_t HAL_MODULE_INFO_SYM = {
         lock: gralloc_lock,
         unlock: gralloc_unlock,
         perform: NULL,
+#if PLATFORM_SDK_VERSION >= 18
         lock_ycbcr: gralloc_lock_ycbcr,
+#endif // PLATFORM_SDK_VERSION >= 18
     }
 };
 
