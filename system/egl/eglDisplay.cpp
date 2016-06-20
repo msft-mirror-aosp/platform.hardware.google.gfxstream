@@ -63,11 +63,16 @@ eglDisplay::eglDisplay() :
     m_extensionString(NULL)
 {
     pthread_mutex_init(&m_lock, NULL);
+    pthread_mutex_init(&m_ctxLock, NULL);
+    pthread_mutex_init(&m_surfaceLock, NULL);
 }
 
 eglDisplay::~eglDisplay()
 {
+    terminate();
     pthread_mutex_destroy(&m_lock);
+    pthread_mutex_destroy(&m_ctxLock);
+    pthread_mutex_destroy(&m_surfaceLock);
 }
 
 bool eglDisplay::initialize(EGLClient_eglInterface *eglIface)
@@ -210,6 +215,20 @@ void eglDisplay::terminate()
 {
     pthread_mutex_lock(&m_lock);
     if (m_initialized) {
+        // Cannot use the for loop in the following code because
+        // eglDestroyContext may erase elements.
+        auto ctxIte = m_contexts.begin();
+        while (ctxIte != m_contexts.end()) {
+            auto ctxToDelete = ctxIte;
+            ctxIte ++;
+            eglDestroyContext(static_cast<EGLDisplay>(this), *ctxToDelete);
+        }
+        auto surfaceIte = m_surfaces.begin();
+        while (surfaceIte != m_surfaces.end()) {
+            auto surfaceToDelete = surfaceIte;
+            surfaceIte ++;
+            eglDestroySurface(static_cast<EGLDisplay>(this), *surfaceToDelete);
+        }
         m_initialized = false;
         delete [] m_configs;
         m_configs = NULL;
@@ -484,3 +503,28 @@ EGLBoolean eglDisplay::getConfigGLPixelFormat(EGLConfig config, GLenum * format)
 
     return EGL_TRUE;
 }
+
+void eglDisplay::onCreateContext(EGLContext ctx) {
+    pthread_mutex_lock(&m_ctxLock);
+    m_contexts.insert(ctx);
+    pthread_mutex_unlock(&m_ctxLock);
+}
+
+void eglDisplay::onCreateSurface(EGLSurface surface) {
+    pthread_mutex_lock(&m_surfaceLock);
+    m_surfaces.insert(surface);
+    pthread_mutex_unlock(&m_surfaceLock);
+}
+
+void eglDisplay::onDestroyContext(EGLContext ctx) {
+    pthread_mutex_lock(&m_ctxLock);
+    m_contexts.erase(ctx);
+    pthread_mutex_unlock(&m_ctxLock);
+}
+
+void eglDisplay::onDestroySurface(EGLSurface surface) {
+    pthread_mutex_lock(&m_surfaceLock);
+    m_surfaces.erase(surface);
+    pthread_mutex_unlock(&m_surfaceLock);
+}
+
