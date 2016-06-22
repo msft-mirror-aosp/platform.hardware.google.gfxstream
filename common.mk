@@ -42,6 +42,10 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23 && echo PreMarshmallow),PreMar
     emugl-begin-module += $(eval include external/stlport/libstlport.mk)
 endif
 
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 21 && echo PreLollipop),PreLollipop)
+    emugl-begin-module += $(eval LOCAL_PRELINK_MODULE := false)
+endif
+
 # Used to end a module definition, see function definitions above
 emugl-end-module = \
     $(eval include $(_EMUGL_INCLUDE_TYPE))\
@@ -236,6 +240,16 @@ endef
 # library path (i.e. not under /system/lib
 # $1: library sub-path,relative to /system/lib
 # For example: $(call emugl-set-shared-library-subpath,egl)
-emugl-set-shared-library-subpath = \
-    $(eval LOCAL_MODULE_RELATIVE_PATH := $1)\
-    $(eval _emugl.$(LOCAL_MODULE).moved := true)
+
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 21 && echo PreLollipop),PreLollipop)
+    emugl-set-shared-library-subpath = \
+        $(eval LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/$1)\
+        $(eval LOCAL_UNSTRIPPED_PATH := $(TARGET_OUT_SHARED_LIBRARIES_UNSTRIPPED)/$1)\
+        $(eval _emugl.$(LOCAL_MODULE).moved := true)\
+        $(call emugl-export-outer,ADDITIONAL_DEPENDENCIES,$(LOCAL_MODULE_PATH)/$(LOCAL_MODULE)$(TARGET_SHLIB_SUFFIX))
+else
+    emugl-set-shared-library-subpath = \
+        $(eval LOCAL_MODULE_RELATIVE_PATH := $1)\
+        $(eval _emugl.$(LOCAL_MODULE).moved := true)
+endif
+
