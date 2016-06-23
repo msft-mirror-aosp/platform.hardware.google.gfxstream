@@ -32,7 +32,11 @@
 #include "GL2Encoder.h"
 #endif
 
+#if PLATFORM_SDK_VERSION >= 16
 #include <system/window.h>
+#else // PLATFORM_SDK_VERSION >= 16
+#include <private/ui/android_natives_priv.h>
+#endif // PLATFORM_SDK_VERSION >= 16
 
 #if PLATFORM_SDK_VERSION <= 16
 #define queueBuffer_DEPRECATED queueBuffer

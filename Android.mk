@@ -24,6 +24,16 @@ EMUGL_COMMON_INCLUDES := $(EMUGL_PATH)/host/include/libOpenglRender $(EMUGL_PATH
 #
 EMUGL_COMMON_CFLAGS := -DWITH_GLES2 -DPLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION)
 
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 16 && echo PreJellyBean),PreJellyBean)
+    ifeq ($(ARCH_ARM_HAVE_TLS_REGISTER),true)
+        EMUGL_COMMON_CFLAGS += -DHAVE_ARM_TLS_REGISTER
+    endif
+    EMUGL_COMMON_CFLAGS += -DALOG_ASSERT=LOG_ASSERT
+    EMUGL_COMMON_CFLAGS += -DALOGE=LOGE
+    EMUGL_COMMON_CFLAGS += -DALOGW=LOGW
+    EMUGL_COMMON_CFLAGS += -DALOGD=LOGD
+endif
+
 # Uncomment the following line if you want to enable debug traces
 # in the GLES emulation libraries.
 # EMUGL_COMMON_CFLAGS += -DEMUGL_DEBUG=1
