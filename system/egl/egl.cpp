@@ -967,6 +967,10 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
     }
 
     DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_NO_CONTEXT);
+    // We've created EGL context. Disconnecting
+    // would be dangerous at this point.
+    hostCon->setGrallocOnly(false);
+
     uint32_t rcContext = rcEnc->rcCreateContext(rcEnc, (uintptr_t)config, rcShareCtx, version);
     if (!rcContext) {
         ALOGE("rcCreateContext returned 0");
@@ -1058,6 +1062,9 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
 
     //Now make the local bind
     if (context) {
+        // This is a nontrivial context.
+        // The thread cannot be gralloc-only anymore.
+        hostCon->setGrallocOnly(false);
         context->draw = draw;
         context->read = read;
         context->flags |= EGLContext_t::IS_CURRENT;
