@@ -146,9 +146,7 @@ renderControl_encoder_context_t *HostConnection::rcEncoder()
 {
     if (!m_rcEnc) {
         m_rcEnc = new renderControl_encoder_context_t(m_stream, checksumHelper());
-        // TODO: disable checksum as a workaround in a glTexSubImage2D problem
-        // Uncomment the following line when the root cause is solved
-        //setChecksumHelper(m_rcEnc);
+        setChecksumHelper(m_rcEnc);
     }
     return m_rcEnc;
 }
