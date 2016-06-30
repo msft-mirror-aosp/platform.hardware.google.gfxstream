@@ -157,7 +157,11 @@ static int gralloc_alloc(alloc_device_t* dev,
     bool hw_cam_write = false;
     bool hw_cam_read = false;
 #endif // PLATFORM_SDK_VERSION >= 17
+#if PLATFORM_SDK_VERSION >= 16
     bool hw_vid_enc_read = usage & GRALLOC_USAGE_HW_VIDEO_ENCODER;
+#else // PLATFORM_SDK_VERSION >= 16
+    bool hw_vid_enc_read = false;
+#endif // PLATFORM_SDK_VERSION >= 16
 
     // Keep around original requested format for later validation
     int frameworkFormat = format;
@@ -232,7 +236,7 @@ static int gralloc_alloc(alloc_device_t* dev,
 #if PLATFORM_SDK_VERSION >= 21
         case HAL_PIXEL_FORMAT_RAW16:
         case HAL_PIXEL_FORMAT_Y16:
-#else
+#elif PLATFORM_SDK_VERSION >= 16
         case HAL_PIXEL_FORMAT_RAW_SENSOR:
 #endif
             bpp = 2;
@@ -340,9 +344,15 @@ static int gralloc_alloc(alloc_device_t* dev,
     // rendering will still happen on the host but we also need to be able to
     // read back from the color buffer, which requires that there is a buffer
     //
+#if PLATFORM_SDK_VERSION >= 16
     if (usage & (GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_RENDER |
                     GRALLOC_USAGE_HW_2D | GRALLOC_USAGE_HW_COMPOSER |
                     GRALLOC_USAGE_HW_FB | GRALLOC_USAGE_SW_READ_MASK) ) {
+#else // PLATFORM_SDK_VERSION >= 16
+    if (usage & (GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_RENDER |
+                GRALLOC_USAGE_HW_2D |
+                GRALLOC_USAGE_HW_FB | GRALLOC_USAGE_SW_READ_MASK) ) {
+#endif // PLATFORM_SDK_VERSION >= 16
         DEFINE_HOST_CONNECTION;
         if (hostCon && rcEnc) {
             cb->hostHandle = rcEnc->rcCreateColorBuffer(rcEnc, w, h, glFormat);
@@ -660,7 +670,6 @@ static int gralloc_lock(gralloc_module_t const* module,
     bool sw_write = (0 != (usage & GRALLOC_USAGE_SW_WRITE_MASK));
     bool hw_read = (usage & GRALLOC_USAGE_HW_TEXTURE);
     bool hw_write = (usage & GRALLOC_USAGE_HW_RENDER);
-    bool hw_vid_enc_read = (usage & GRALLOC_USAGE_HW_VIDEO_ENCODER);
 #if PLATFORM_SDK_VERSION >= 17
     bool hw_cam_write = (usage & GRALLOC_USAGE_HW_CAMERA_WRITE);
     bool hw_cam_read = (usage & GRALLOC_USAGE_HW_CAMERA_READ);
@@ -668,6 +677,13 @@ static int gralloc_lock(gralloc_module_t const* module,
     bool hw_cam_write = false;
     bool hw_cam_read = false;
 #endif // PLATFORM_SDK_VERSION >= 17
+
+#if PLATFORM_SDK_VERSION >= 16
+    bool hw_vid_enc_read = (usage & GRALLOC_USAGE_HW_VIDEO_ENCODER);
+#else // PLATFORM_SDK_VERSION >= 16
+    bool hw_vid_enc_read = false;
+#endif // PLATFORM_SDK_VERSION >= 16
+
     bool sw_read_allowed = (0 != (cb->usage & GRALLOC_USAGE_SW_READ_MASK));
     bool sw_write_allowed = (0 != (cb->usage & GRALLOC_USAGE_SW_WRITE_MASK));
 
@@ -1045,10 +1061,14 @@ struct private_module_t HAL_MODULE_INFO_SYM = {
             tag: HARDWARE_MODULE_TAG,
 #if PLATFORM_SDK_VERSION >= 18
             module_api_version: GRALLOC_MODULE_API_VERSION_0_2,
-#else // PLATFORM_SDK_VERSION >= 18
-            module_api_version: 1,
-#endif // PLATFORM_SDK_VERSION >= 18
             hal_api_version: 0,
+#elif PLATFORM_SDK_VERSION >= 16
+            module_api_version: 1,
+            hal_api_version: 0,
+#else // PLATFORM_SDK_VERSION
+            version_major: 1,
+            version_minor: 0,
+#endif // PLATFORM_SDK_VERSION
             id: GRALLOC_HARDWARE_MODULE_ID,
             name: "Graphics Memory Allocator Module",
             author: "The Android Open Source Project",
