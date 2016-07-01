@@ -153,15 +153,15 @@ static int gralloc_alloc(alloc_device_t* dev,
 #if PLATFORM_SDK_VERSION >= 17
     bool hw_cam_write = (usage & GRALLOC_USAGE_HW_CAMERA_WRITE);
     bool hw_cam_read = (usage & GRALLOC_USAGE_HW_CAMERA_READ);
-#else // PLATFORM_SDK_VERSION >= 17
+#else // PLATFORM_SDK_VERSION
     bool hw_cam_write = false;
     bool hw_cam_read = false;
-#endif // PLATFORM_SDK_VERSION >= 17
-#if PLATFORM_SDK_VERSION >= 16
+#endif // PLATFORM_SDK_VERSION
+#if PLATFORM_SDK_VERSION >= 15
     bool hw_vid_enc_read = usage & GRALLOC_USAGE_HW_VIDEO_ENCODER;
-#else // PLATFORM_SDK_VERSION >= 16
+#else // PLATFORM_SDK_VERSION
     bool hw_vid_enc_read = false;
-#endif // PLATFORM_SDK_VERSION >= 16
+#endif // PLATFORM_SDK_VERSION
 
     // Keep around original requested format for later validation
     int frameworkFormat = format;
@@ -344,15 +344,15 @@ static int gralloc_alloc(alloc_device_t* dev,
     // rendering will still happen on the host but we also need to be able to
     // read back from the color buffer, which requires that there is a buffer
     //
-#if PLATFORM_SDK_VERSION >= 16
+#if PLATFORM_SDK_VERSION >= 15
     if (usage & (GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_RENDER |
                     GRALLOC_USAGE_HW_2D | GRALLOC_USAGE_HW_COMPOSER |
                     GRALLOC_USAGE_HW_FB | GRALLOC_USAGE_SW_READ_MASK) ) {
-#else // PLATFORM_SDK_VERSION >= 16
+#else // PLATFORM_SDK_VERSION
     if (usage & (GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_RENDER |
                 GRALLOC_USAGE_HW_2D |
                 GRALLOC_USAGE_HW_FB | GRALLOC_USAGE_SW_READ_MASK) ) {
-#endif // PLATFORM_SDK_VERSION >= 16
+#endif // PLATFORM_SDK_VERSION
         DEFINE_HOST_CONNECTION;
         if (hostCon && rcEnc) {
             cb->hostHandle = rcEnc->rcCreateColorBuffer(rcEnc, w, h, glFormat);
@@ -673,16 +673,16 @@ static int gralloc_lock(gralloc_module_t const* module,
 #if PLATFORM_SDK_VERSION >= 17
     bool hw_cam_write = (usage & GRALLOC_USAGE_HW_CAMERA_WRITE);
     bool hw_cam_read = (usage & GRALLOC_USAGE_HW_CAMERA_READ);
-#else // PLATFORM_SDK_VERSION >= 17
+#else // PLATFORM_SDK_VERSION
     bool hw_cam_write = false;
     bool hw_cam_read = false;
-#endif // PLATFORM_SDK_VERSION >= 17
+#endif // PLATFORM_SDK_VERSION
 
-#if PLATFORM_SDK_VERSION >= 16
+#if PLATFORM_SDK_VERSION >= 15
     bool hw_vid_enc_read = (usage & GRALLOC_USAGE_HW_VIDEO_ENCODER);
-#else // PLATFORM_SDK_VERSION >= 16
+#else // PLATFORM_SDK_VERSION
     bool hw_vid_enc_read = false;
-#endif // PLATFORM_SDK_VERSION >= 16
+#endif // PLATFORM_SDK_VERSION
 
     bool sw_read_allowed = (0 != (cb->usage & GRALLOC_USAGE_SW_READ_MASK));
     bool sw_write_allowed = (0 != (cb->usage & GRALLOC_USAGE_SW_WRITE_MASK));
