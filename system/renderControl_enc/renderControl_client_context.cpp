@@ -39,6 +39,9 @@ int renderControl_client_context_t::initDispatchByName(void *(*getProc)(const ch
 	rcCreateClientImage = (rcCreateClientImage_client_proc_t) getProc("rcCreateClientImage", userData);
 	rcDestroyClientImage = (rcDestroyClientImage_client_proc_t) getProc("rcDestroyClientImage", userData);
 	rcSelectChecksumHelper = (rcSelectChecksumHelper_client_proc_t) getProc("rcSelectChecksumHelper", userData);
+	rcCreateColorBufferPid = (rcCreateColorBufferPid_client_proc_t) getProc("rcCreateColorBufferPid", userData);
+	rcOpenColorBuffer2Pid = (rcOpenColorBuffer2Pid_client_proc_t) getProc("rcOpenColorBuffer2Pid", userData);
+	rcCloseColorBufferPid = (rcCloseColorBufferPid_client_proc_t) getProc("rcCloseColorBufferPid", userData);
 	return 0;
 }
 

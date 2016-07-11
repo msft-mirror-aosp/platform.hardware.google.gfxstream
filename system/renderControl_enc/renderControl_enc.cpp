@@ -1094,6 +1094,116 @@ void rcSelectChecksumHelper_enc(void *self , uint32_t newProtocol, uint32_t rese
 
 }
 
+uint32_t rcCreateColorBufferPid_enc(void *self , uint32_t width, uint32_t height, GLenum internalFormat, uint64_t pid)
+{
+
+	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + 8;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_rcCreateColorBufferPid;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &width, 4); ptr += 4;
+		memcpy(ptr, &height, 4); ptr += 4;
+		memcpy(ptr, &internalFormat, 4); ptr += 4;
+		memcpy(ptr, &pid, 8); ptr += 8;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+
+	uint32_t retval;
+	stream->readback(&retval, 4);
+	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		std::vector<unsigned char> checksumBuf(checksumSize);
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			ALOGE("rcCreateColorBufferPid: GL communication error, please report this issue to b.android.com.\n");
+			abort();
+		}
+	}
+	return retval;
+}
+
+int rcOpenColorBuffer2Pid_enc(void *self , uint32_t colorbuffer, uint64_t pid)
+{
+
+	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + 8;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_rcOpenColorBuffer2Pid;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &colorbuffer, 4); ptr += 4;
+		memcpy(ptr, &pid, 8); ptr += 8;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+
+	int retval;
+	stream->readback(&retval, 4);
+	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		std::vector<unsigned char> checksumBuf(checksumSize);
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			ALOGE("rcOpenColorBuffer2Pid: GL communication error, please report this issue to b.android.com.\n");
+			abort();
+		}
+	}
+	return retval;
+}
+
+void rcCloseColorBufferPid_enc(void *self , uint32_t colorbuffer, uint64_t pid)
+{
+
+	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + 8;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_rcCloseColorBufferPid;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &colorbuffer, 4); ptr += 4;
+		memcpy(ptr, &pid, 8); ptr += 8;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+}
+
 }  // namespace
 
 renderControl_encoder_context_t::renderControl_encoder_context_t(IOStream *stream, ChecksumCalculator *checksumCalculator)
@@ -1130,5 +1240,8 @@ renderControl_encoder_context_t::renderControl_encoder_context_t(IOStream *strea
 	this->rcCreateClientImage = &rcCreateClientImage_enc;
 	this->rcDestroyClientImage = &rcDestroyClientImage_enc;
 	this->rcSelectChecksumHelper = &rcSelectChecksumHelper_enc;
+	this->rcCreateColorBufferPid = &rcCreateColorBufferPid_enc;
+	this->rcOpenColorBuffer2Pid = &rcOpenColorBuffer2Pid_enc;
+	this->rcCloseColorBufferPid = &rcCloseColorBufferPid_enc;
 }
 

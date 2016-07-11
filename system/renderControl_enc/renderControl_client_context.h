@@ -39,7 +39,10 @@ struct renderControl_client_context_t {
 	rcCreateClientImage_client_proc_t rcCreateClientImage;
 	rcDestroyClientImage_client_proc_t rcDestroyClientImage;
 	rcSelectChecksumHelper_client_proc_t rcSelectChecksumHelper;
-	 virtual ~renderControl_client_context_t() {}
+	rcCreateColorBufferPid_client_proc_t rcCreateColorBufferPid;
+	rcOpenColorBuffer2Pid_client_proc_t rcOpenColorBuffer2Pid;
+	rcCloseColorBufferPid_client_proc_t rcCloseColorBufferPid;
+	virtual ~renderControl_client_context_t() {}
 
 	typedef renderControl_client_context_t *CONTEXT_ACCESSOR_TYPE(void);
 	static void setContextAccessor(CONTEXT_ACCESSOR_TYPE *f);

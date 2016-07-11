@@ -301,7 +301,7 @@ struct gl_client_context_t {
 	glExtGetProgramBinarySourceQCOM_client_proc_t glExtGetProgramBinarySourceQCOM;
 	glStartTilingQCOM_client_proc_t glStartTilingQCOM;
 	glEndTilingQCOM_client_proc_t glEndTilingQCOM;
-	 virtual ~gl_client_context_t() {}
+	virtual ~gl_client_context_t() {}
 
 	typedef gl_client_context_t *CONTEXT_ACCESSOR_TYPE(void);
 	static void setContextAccessor(CONTEXT_ACCESSOR_TYPE *f);
