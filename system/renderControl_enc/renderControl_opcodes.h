@@ -35,7 +35,10 @@
 #define OP_rcCreateColorBufferPuid 					10029
 #define OP_rcOpenColorBuffer2Puid 					10030
 #define OP_rcCloseColorBufferPuid 					10031
-#define OP_last 					10032
+#define OP_rcCreateSyncKHR 					10032
+#define OP_rcClientWaitSyncKHR 					10033
+#define OP_rcFlushWindowColorBufferAsync 					10034
+#define OP_last 					10035
 
 
 #endif

@@ -38,6 +38,9 @@ extern "C" {
 	uint32_t rcCreateColorBufferPuid(uint32_t width, uint32_t height, GLenum internalFormat, uint64_t puid);
 	int rcOpenColorBuffer2Puid(uint32_t colorbuffer, uint64_t puid);
 	void rcCloseColorBufferPuid(uint32_t colorbuffer, uint64_t puid);
+	void rcCreateSyncKHR(EGLenum type, EGLint* attribs, uint32_t num_attribs, uint64_t* glsync_out, uint64_t* syncthread_out);
+	EGLint rcClientWaitSyncKHR(uint64_t sync, EGLint flags, uint64_t timeout);
+	void rcFlushWindowColorBufferAsync(uint32_t windowSurface);
 };
 
 #endif
@@ -237,5 +240,23 @@ void rcCloseColorBufferPuid(uint32_t colorbuffer, uint64_t puid)
 {
 	GET_CONTEXT;
 	ctx->rcCloseColorBufferPuid(ctx, colorbuffer, puid);
+}
+
+void rcCreateSyncKHR(EGLenum type, EGLint* attribs, uint32_t num_attribs, uint64_t* glsync_out, uint64_t* syncthread_out)
+{
+	GET_CONTEXT;
+	ctx->rcCreateSyncKHR(ctx, type, attribs, num_attribs, glsync_out, syncthread_out);
+}
+
+EGLint rcClientWaitSyncKHR(uint64_t sync, EGLint flags, uint64_t timeout)
+{
+	GET_CONTEXT;
+	return ctx->rcClientWaitSyncKHR(ctx, sync, flags, timeout);
+}
+
+void rcFlushWindowColorBufferAsync(uint32_t windowSurface)
+{
+	GET_CONTEXT;
+	ctx->rcFlushWindowColorBufferAsync(ctx, windowSurface);
 }
 

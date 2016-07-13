@@ -42,6 +42,9 @@ struct renderControl_client_context_t {
 	rcCreateColorBufferPuid_client_proc_t rcCreateColorBufferPuid;
 	rcOpenColorBuffer2Puid_client_proc_t rcOpenColorBuffer2Puid;
 	rcCloseColorBufferPuid_client_proc_t rcCloseColorBufferPuid;
+	rcCreateSyncKHR_client_proc_t rcCreateSyncKHR;
+	rcClientWaitSyncKHR_client_proc_t rcClientWaitSyncKHR;
+	rcFlushWindowColorBufferAsync_client_proc_t rcFlushWindowColorBufferAsync;
 	virtual ~renderControl_client_context_t() {}
 
 	typedef renderControl_client_context_t *CONTEXT_ACCESSOR_TYPE(void);
