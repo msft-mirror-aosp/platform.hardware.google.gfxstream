@@ -33,6 +33,7 @@ HostConnection::HostConnection() :
     m_gl2Enc(NULL),
     m_rcEnc(NULL),
     m_checksumHelper(),
+    m_glExtensions(),
     m_grallocOnly(true)
 {
 }
@@ -142,11 +143,12 @@ GL2Encoder *HostConnection::gl2Encoder()
     return m_gl2Enc;
 }
 
-renderControl_encoder_context_t *HostConnection::rcEncoder()
+ExtendedRCEncoderContext *HostConnection::rcEncoder()
 {
     if (!m_rcEnc) {
-        m_rcEnc = new renderControl_encoder_context_t(m_stream, checksumHelper());
+        m_rcEnc = new ExtendedRCEncoderContext(m_stream, checksumHelper());
         setChecksumHelper(m_rcEnc);
+        queryAndSetSyncImpl(m_rcEnc);
     }
     return m_rcEnc;
 }
@@ -169,22 +171,35 @@ gl2_client_context_t *HostConnection::s_getGL2Context()
     return NULL;
 }
 
-void HostConnection::setChecksumHelper(renderControl_encoder_context_t *rcEnc) {
-    char *glExtensions = NULL;
+std::string HostConnection::queryGLExtensions(ExtendedRCEncoderContext *rcEnc) {
+    if (m_glExtensions.size() > 0) return m_glExtensions;
+
+    std::string extensions_buffer;
     int extensionSize = rcEnc->rcGetGLString(rcEnc, GL_EXTENSIONS, NULL, 0);
     if (extensionSize < 0) {
-        glExtensions = new char[-extensionSize];
-        extensionSize = rcEnc->rcGetGLString(rcEnc, GL_EXTENSIONS, glExtensions, -extensionSize);
+
+        extensions_buffer.resize(-extensionSize);
+        extensionSize = rcEnc->rcGetGLString(rcEnc, GL_EXTENSIONS,
+                                             &extensions_buffer[0], -extensionSize);
+
         if (extensionSize <= 0) {
-            delete [] glExtensions;
-            glExtensions = NULL;
+            return std::string();
         }
+
+        m_glExtensions += extensions_buffer;
+
+        return m_glExtensions;
     }
+
+    return std::string();
+}
+
+void HostConnection::setChecksumHelper(ExtendedRCEncoderContext *rcEnc) {
+    std::string glExtensions = queryGLExtensions(rcEnc);
     // check the host supported version
     uint32_t checksumVersion = 0;
     const char* checksumPrefix = ChecksumCalculator::getMaxVersionStrPrefix();
-    const char* glProtocolStr = glExtensions ?
-            strstr(glExtensions, checksumPrefix) : NULL;
+    const char* glProtocolStr = strstr(glExtensions.c_str(), checksumPrefix);
     if (glProtocolStr) {
         uint32_t maxVersion = ChecksumCalculator::getMaxVersion();
         sscanf(glProtocolStr+strlen(checksumPrefix), "%d", &checksumVersion);
@@ -196,5 +211,17 @@ void HostConnection::setChecksumHelper(renderControl_encoder_context_t *rcEnc) {
         rcEnc->rcSelectChecksumHelper(rcEnc, checksumVersion, 0);
         m_checksumHelper.setVersion(checksumVersion);
     }
-    delete [] glExtensions;
+}
+
+void HostConnection::queryAndSetSyncImpl(ExtendedRCEncoderContext *rcEnc) {
+    std::string glExtensions = queryGLExtensions(rcEnc);
+#if PLATFORM_SDK_VERSION <= 16
+    rcEnc->setSyncImpl(SYNC_IMPL_NONE);
+#else
+    if (glExtensions.find(kRCNativeSync) != std::string::npos) {
+        rcEnc->setSyncImpl(SYNC_IMPL_NATIVE_SYNC);
+    } else {
+        rcEnc->setSyncImpl(SYNC_IMPL_NONE);
+    }
+#endif
 }

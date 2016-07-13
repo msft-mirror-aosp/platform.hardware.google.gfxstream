@@ -27,6 +27,37 @@ class gl_client_context_t;
 class GL2Encoder;
 class gl2_client_context_t;
 
+// SyncImpl determines the presence of host/guest OpenGL fence sync
+// capabilities. It corresponds exactly to EGL_ANDROID_native_fence_sync
+// capability, but for the emulator, we need to make sure that
+// OpenGL pipe protocols match, so we use a special extension name
+// here.
+// SYNC_IMPL_NONE means that the native fence sync capability is
+// not present, and we will end up using the equivalent of glFinish
+// in order to preserve buffer swapping order.
+// SYNC_IMPL_NATIVE_SYNC means that we do have native fence sync
+// capability, and we will use a fence fd to synchronize buffer swaps.
+enum SyncImpl {
+    SYNC_IMPL_NONE = 0,
+    SYNC_IMPL_NATIVE_SYNC = 1
+};
+// Interface:
+// If this GL extension string shows up, we use
+// SYNC_IMPL_NATIVE_SYNC, otherwise we use SYNC_IMPL_NONE.
+static const char kRCNativeSync[] = "ANDROID_EMU_NATIVE_SYNC";
+
+// ExtendedRCEncoderContext is an extended version of renderControl_encoder_context_t
+// that will be used to track SyncImpl.
+class ExtendedRCEncoderContext : public renderControl_encoder_context_t {
+public:
+    ExtendedRCEncoderContext(IOStream *stream, ChecksumCalculator *checksumCalculator)
+        : renderControl_encoder_context_t(stream, checksumCalculator) { }
+    void setSyncImpl(SyncImpl syncImpl) { m_syncImpl = syncImpl; }
+    bool hasNativeSync() const { return m_syncImpl == SYNC_IMPL_NATIVE_SYNC; }
+private:
+    SyncImpl m_syncImpl;
+};
+
 class HostConnection
 {
 public:
@@ -36,7 +67,7 @@ public:
 
     GLEncoder *glEncoder();
     GL2Encoder *gl2Encoder();
-    renderControl_encoder_context_t *rcEncoder();
+    ExtendedRCEncoderContext *rcEncoder();
     ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
 
     void flush() {
@@ -56,17 +87,19 @@ private:
     static gl_client_context_t  *s_getGLContext();
     static gl2_client_context_t *s_getGL2Context();
 
-    std::string queryGLExtensions(renderControl_encoder_context_t *rcEnc);
+    std::string queryGLExtensions(ExtendedRCEncoderContext *rcEnc);
     // setProtocol initilizes GL communication protocol for checksums
     // should be called when m_rcEnc is created
-    void setChecksumHelper(renderControl_encoder_context_t *rcEnc);
+    void setChecksumHelper(ExtendedRCEncoderContext *rcEnc);
+    void queryAndSetSyncImpl(ExtendedRCEncoderContext *rcEnc);
 
 private:
     IOStream *m_stream;
     GLEncoder   *m_glEnc;
     GL2Encoder  *m_gl2Enc;
-    renderControl_encoder_context_t *m_rcEnc;
+    ExtendedRCEncoderContext *m_rcEnc;
     ChecksumCalculator m_checksumHelper;
+    std::string m_glExtensions;
     bool m_grallocOnly;
 };
 

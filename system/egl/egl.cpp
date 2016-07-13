@@ -115,7 +115,7 @@ const char *  eglStrError(EGLint err)
 
 #define DEFINE_HOST_CONNECTION \
     HostConnection *hostCon = HostConnection::get(); \
-    renderControl_encoder_context_t *rcEnc = (hostCon ? hostCon->rcEncoder() : NULL)
+    ExtendedRCEncoderContext *rcEnc = (hostCon ? hostCon->rcEncoder() : NULL)
 
 #define DEFINE_AND_VALIDATE_HOST_CONNECTION(ret) \
     HostConnection *hostCon = HostConnection::get(); \
@@ -123,7 +123,7 @@ const char *  eglStrError(EGLint err)
         ALOGE("egl: Failed to get host connection\n"); \
         return ret; \
     } \
-    renderControl_encoder_context_t *rcEnc = hostCon->rcEncoder(); \
+    ExtendedRCEncoderContext *rcEnc = hostCon->rcEncoder(); \
     if (!rcEnc) { \
         ALOGE("egl: Failed to get renderControl encoder context\n"); \
         return ret; \
