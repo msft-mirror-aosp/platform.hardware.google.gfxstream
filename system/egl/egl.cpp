@@ -20,6 +20,7 @@
 #include "eglDisplay.h"
 #include "egl_ftable.h"
 #include <cutils/log.h>
+#include "goldfish_sync.h"
 #include "gralloc_cb.h"
 #include "GLClientState.h"
 #include "GLSharedGroup.h"
@@ -156,7 +157,8 @@ EGLContext_t::EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* share
     rendererString(NULL),
     shaderVersionString(NULL),
     extensionString(NULL),
-    deletePending(0)
+    deletePending(0),
+    goldfishSyncFd(-1)
 {
     flags = 0;
     version = 1;
@@ -168,6 +170,13 @@ EGLContext_t::EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* share
     assert(dpy == (EGLDisplay)&s_display);
     s_display.onCreateContext((EGLContext)this);
 };
+
+int EGLContext_t::getGoldfishSyncFd() {
+    if (goldfishSyncFd < 0) {
+        goldfishSyncFd = goldfish_sync_open();
+    }
+    return goldfishSyncFd;
+}
 
 EGLContext_t::~EGLContext_t()
 {
@@ -280,6 +289,7 @@ egl_window_surface_t::egl_window_surface_t (
     // keep a reference on the window
     nativeWindow->common.incRef(&nativeWindow->common);
 }
+
 
 EGLBoolean egl_window_surface_t::init()
 {

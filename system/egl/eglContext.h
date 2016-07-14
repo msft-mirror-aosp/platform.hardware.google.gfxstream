@@ -44,9 +44,11 @@ struct EGLContext_t {
     EGLint              deletePending;
     GLClientState * getClientState(){ return clientState; }
     GLSharedGroupPtr getSharedGroup(){ return sharedGroup; }
+    int getGoldfishSyncFd();
 private:
     GLClientState    *    clientState;
     GLSharedGroupPtr      sharedGroup;
+    int goldfishSyncFd;
 };
 
 #endif
