@@ -45,6 +45,14 @@
 #define cancelBuffer_DEPRECATED cancelBuffer
 #endif // PLATFORM_SDK_VERSION <= 16
 
+#define DEBUG_EGL 0
+
+#if DEBUG_EGL
+#define DPRINT(fmt,...) ALOGD("%s: " fmt, __FUNCTION__, ##__VA_ARGS__);
+#else
+#define DPRINT(...)
+#endif
+
 template<typename T>
 static T setErrorFunc(GLint error, T returnValue) {
     getEGLThreadInfo()->eglError = error;
