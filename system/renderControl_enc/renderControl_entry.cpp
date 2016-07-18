@@ -35,9 +35,9 @@ extern "C" {
 	uint32_t rcCreateClientImage(uint32_t context, EGLenum target, GLuint buffer);
 	int rcDestroyClientImage(uint32_t image);
 	void rcSelectChecksumHelper(uint32_t newProtocol, uint32_t reserved);
-	uint32_t rcCreateColorBufferPid(uint32_t width, uint32_t height, GLenum internalFormat, uint64_t pid);
-	int rcOpenColorBuffer2Pid(uint32_t colorbuffer, uint64_t pid);
-	void rcCloseColorBufferPid(uint32_t colorbuffer, uint64_t pid);
+	uint32_t rcCreateColorBufferPuid(uint32_t width, uint32_t height, GLenum internalFormat, uint64_t puid);
+	int rcOpenColorBuffer2Puid(uint32_t colorbuffer, uint64_t puid);
+	void rcCloseColorBufferPuid(uint32_t colorbuffer, uint64_t puid);
 };
 
 #endif
@@ -221,21 +221,21 @@ void rcSelectChecksumHelper(uint32_t newProtocol, uint32_t reserved)
 	ctx->rcSelectChecksumHelper(ctx, newProtocol, reserved);
 }
 
-uint32_t rcCreateColorBufferPid(uint32_t width, uint32_t height, GLenum internalFormat, uint64_t pid)
+uint32_t rcCreateColorBufferPuid(uint32_t width, uint32_t height, GLenum internalFormat, uint64_t puid)
 {
 	GET_CONTEXT;
-	return ctx->rcCreateColorBufferPid(ctx, width, height, internalFormat, pid);
+	return ctx->rcCreateColorBufferPuid(ctx, width, height, internalFormat, puid);
 }
 
-int rcOpenColorBuffer2Pid(uint32_t colorbuffer, uint64_t pid)
+int rcOpenColorBuffer2Puid(uint32_t colorbuffer, uint64_t puid)
 {
 	GET_CONTEXT;
-	return ctx->rcOpenColorBuffer2Pid(ctx, colorbuffer, pid);
+	return ctx->rcOpenColorBuffer2Puid(ctx, colorbuffer, puid);
 }
 
-void rcCloseColorBufferPid(uint32_t colorbuffer, uint64_t pid)
+void rcCloseColorBufferPuid(uint32_t colorbuffer, uint64_t puid)
 {
 	GET_CONTEXT;
-	ctx->rcCloseColorBufferPid(ctx, colorbuffer, pid);
+	ctx->rcCloseColorBufferPuid(ctx, colorbuffer, puid);
 }
 

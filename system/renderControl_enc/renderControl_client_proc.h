@@ -38,9 +38,9 @@ typedef int (renderControl_APIENTRY *rcOpenColorBuffer2_client_proc_t) (void * c
 typedef uint32_t (renderControl_APIENTRY *rcCreateClientImage_client_proc_t) (void * ctx, uint32_t, EGLenum, GLuint);
 typedef int (renderControl_APIENTRY *rcDestroyClientImage_client_proc_t) (void * ctx, uint32_t);
 typedef void (renderControl_APIENTRY *rcSelectChecksumHelper_client_proc_t) (void * ctx, uint32_t, uint32_t);
-typedef uint32_t (renderControl_APIENTRY *rcCreateColorBufferPid_client_proc_t) (void * ctx, uint32_t, uint32_t, GLenum, uint64_t);
-typedef int (renderControl_APIENTRY *rcOpenColorBuffer2Pid_client_proc_t) (void * ctx, uint32_t, uint64_t);
-typedef void (renderControl_APIENTRY *rcCloseColorBufferPid_client_proc_t) (void * ctx, uint32_t, uint64_t);
+typedef uint32_t (renderControl_APIENTRY *rcCreateColorBufferPuid_client_proc_t) (void * ctx, uint32_t, uint32_t, GLenum, uint64_t);
+typedef int (renderControl_APIENTRY *rcOpenColorBuffer2Puid_client_proc_t) (void * ctx, uint32_t, uint64_t);
+typedef void (renderControl_APIENTRY *rcCloseColorBufferPuid_client_proc_t) (void * ctx, uint32_t, uint64_t);
 
 
 #endif
