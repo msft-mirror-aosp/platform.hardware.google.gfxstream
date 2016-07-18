@@ -218,7 +218,7 @@ struct gl2_client_context_t {
 	glGetCompressedTextureFormats_client_proc_t glGetCompressedTextureFormats;
 	glShaderString_client_proc_t glShaderString;
 	glFinishRoundTrip_client_proc_t glFinishRoundTrip;
-	 virtual ~gl2_client_context_t() {}
+	virtual ~gl2_client_context_t() {}
 
 	typedef gl2_client_context_t *CONTEXT_ACCESSOR_TYPE(void);
 	static void setContextAccessor(CONTEXT_ACCESSOR_TYPE *f);
