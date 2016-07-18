@@ -153,7 +153,7 @@ static int gralloc_alloc(alloc_device_t* dev,
                          int w, int h, int format, int usage,
                          buffer_handle_t* pHandle, int* pStride)
 {
-    D("gralloc_alloc w=%d h=%d usage=0x%x\n", w, h, usage);
+    D("gralloc_alloc w=%d h=%d usage=0x%x format=0x%x\n", w, h, usage, format);
 
     gralloc_device_t *grdev = (gralloc_device_t *)dev;
     if (!grdev || !pHandle || !pStride) {
@@ -290,6 +290,8 @@ static int gralloc_alloc(alloc_device_t* dev,
             align = 16;
             bpp = 1; // per-channel bpp
             yuv_format = true;
+            glFormat = GL_RGB;
+            glType = GL_UNSIGNED_SHORT_5_6_5;
             // Not expecting to actually create any GL surfaces for this
             break;
         default:
@@ -363,27 +365,29 @@ static int gralloc_alloc(alloc_device_t* dev,
     // rendering will still happen on the host but we also need to be able to
     // read back from the color buffer, which requires that there is a buffer
     //
+    if (!yuv_format || frameworkFormat == HAL_PIXEL_FORMAT_YV12) {
 #if PLATFORM_SDK_VERSION >= 15
-    if (usage & (GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_RENDER |
-                    GRALLOC_USAGE_HW_2D | GRALLOC_USAGE_HW_COMPOSER |
-                    GRALLOC_USAGE_HW_FB | GRALLOC_USAGE_SW_READ_MASK) ) {
+        if (usage & (GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_RENDER |
+                     GRALLOC_USAGE_HW_2D | GRALLOC_USAGE_HW_COMPOSER |
+                     GRALLOC_USAGE_HW_FB | GRALLOC_USAGE_SW_READ_MASK) ) {
 #else // PLATFORM_SDK_VERSION
-    if (usage & (GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_RENDER |
-                GRALLOC_USAGE_HW_2D |
-                GRALLOC_USAGE_HW_FB | GRALLOC_USAGE_SW_READ_MASK) ) {
+        if (usage & (GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_RENDER |
+                     GRALLOC_USAGE_HW_2D |
+                     GRALLOC_USAGE_HW_FB | GRALLOC_USAGE_SW_READ_MASK) ) {
 #endif // PLATFORM_SDK_VERSION
-        DEFINE_HOST_CONNECTION;
-        if (hostCon && rcEnc) {
-            pthread_once(&sGrallocProcPipeOnce, gralloc_proc_init);
-            cb->hostHandle = PUID_CMD(rcCreateColorBuffer, w, h, glFormat);
-            D("Created host ColorBuffer 0x%x\n", cb->hostHandle);
-        }
+            DEFINE_HOST_CONNECTION;
+            if (hostCon && rcEnc) {
+                pthread_once(&sGrallocProcPipeOnce, gralloc_proc_init);
+                cb->hostHandle = PUID_CMD(rcCreateColorBuffer, w, h, glFormat);
+                D("Created host ColorBuffer 0x%x\n", cb->hostHandle);
+            }
 
-        if (!cb->hostHandle) {
-           // Could not create colorbuffer on host !!!
-           close(fd);
-           delete cb;
-           return -EIO;
+            if (!cb->hostHandle) {
+              // Could not create colorbuffer on host !!!
+              close(fd);
+              delete cb;
+              return -EIO;
+            }
         }
     }
 
@@ -661,6 +665,55 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
     return 0;
 }
 
+static signed clamp_rgb(signed value) {
+    if (value > 255) {
+        value = 255;
+    } else if (value < 0) {
+        value = 0;
+    }
+    return value;
+}
+
+static void rgb565_to_yv12(char* dest, char* src, int width, int height,
+        int left, int top, int right, int bottom) {
+    int align = 16;
+    int yStride = (width + (align -1)) & ~(align-1);
+    int cStride = (yStride / 2 + (align - 1)) & ~(align-1);
+    int yOffset = 0;
+    int cSize = cStride * height/2;
+
+    uint16_t *rgb_ptr0 = (uint16_t *)src;
+    uint8_t *yv12_y0 = (uint8_t *)dest;
+    uint8_t *yv12_v0 = yv12_y0 + yStride * height;
+    uint8_t *yv12_u0 = yv12_v0 + cSize;
+
+    for (int j = top; j <= bottom; ++j) {
+        uint8_t *yv12_y = yv12_y0 + j * yStride;
+        uint8_t *yv12_v = yv12_v0 + (j/2) * cStride;
+        uint8_t *yv12_u = yv12_v + cSize;
+        uint16_t *rgb_ptr = rgb_ptr0 + j * width;
+        bool jeven = (j & 1) == 0;
+        for (int i = left; i <= right; ++i) {
+            uint8_t r = ((rgb_ptr[i]) >> 11) & 0x01f;
+            uint8_t g = ((rgb_ptr[i]) >> 5) & 0x03f;
+            uint8_t b = (rgb_ptr[i]) & 0x01f;
+            // convert to 8bits
+            // http://stackoverflow.com/questions/2442576/how-does-one-convert-16-bit-rgb565-to-24-bit-rgb888
+            uint8_t R = (r * 527 + 23) >> 6;
+            uint8_t G = (g * 259 + 33) >> 6;
+            uint8_t B = (b * 527 + 23) >> 6;
+            // convert to YV12
+            // frameworks/base/core/jni/android_hardware_camera2_legacy_LegacyCameraDevice.cpp
+            yv12_y[i] = clamp_rgb((77 * R + 150 * G +  29 * B) >> 8);
+            bool ieven = (i & 1) == 0;
+            if (jeven && ieven) {
+                yv12_u[i] = clamp_rgb((( -43 * R - 85 * G + 128 * B) >> 8) + 128);
+                yv12_v[i] = clamp_rgb((( 128 * R - 107 * G - 21 * B) >> 8) + 128);
+            }
+        }
+    }
+}
+
 static int gralloc_lock(gralloc_module_t const* module,
                         buffer_handle_t handle, int usage,
                         int l, int t, int w, int h,
@@ -771,9 +824,19 @@ static int gralloc_lock(gralloc_module_t const* module,
         }
 
         if (sw_read) {
+            void* rgb_addr = cpu_addr;
+            char* tmpBuf = 0;
+            if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12) {
+                tmpBuf = new char[cb->width * cb->height * 2];
+                rgb_addr = tmpBuf;
+            }
             D("gralloc_lock read back color buffer %d %d\n", cb->width, cb->height);
             rcEnc->rcReadColorBuffer(rcEnc, cb->hostHandle,
-                    0, 0, cb->width, cb->height, cb->glFormat, cb->glType, cpu_addr);
+                    0, 0, cb->width, cb->height, cb->glFormat, cb->glType, rgb_addr);
+            if (tmpBuf) {
+                rgb565_to_yv12((char*)cpu_addr, tmpBuf, cb->width, cb->height, l, t, l+w-1, t+h-1);
+                delete [] tmpBuf;
+            }
         }
     }
 
@@ -798,6 +861,51 @@ static int gralloc_lock(gralloc_module_t const* module,
             vaddr, vaddr ? *vaddr : 0, usage, cpu_addr);
 
     return 0;
+}
+
+// YV12 is aka YUV420Planar, or YUV420p; the only difference is that YV12 has
+// certain stride requirements for Y and UV respectively.
+static void yv12_to_rgb565(char* dest, char* src, int width, int height,
+        int left, int top, int right, int bottom) {
+    DD("%s convert %d by %d", __func__, width, height);
+    int align = 16;
+    int yStride = (width + (align -1)) & ~(align-1);
+    int cStride = (yStride / 2 + (align - 1)) & ~(align-1);
+    int yOffset = 0;
+    int cSize = cStride * height/2;
+
+    uint16_t *rgb_ptr0 = (uint16_t *)dest;
+    uint8_t *yv12_y0 = (uint8_t *)src;
+    uint8_t *yv12_v0 = yv12_y0 + yStride * height;
+    uint8_t *yv12_u0 = yv12_v0 + cSize;
+
+    for (int j = top; j <= bottom; ++j) {
+        uint8_t *yv12_y = yv12_y0 + j * yStride;
+        uint8_t *yv12_v = yv12_v0 + (j/2) * cStride;
+        uint8_t *yv12_u = yv12_v + cSize;
+        uint16_t *rgb_ptr = rgb_ptr0 + (j-top) * (right-left+1);
+        for (int i = left; i <= right; ++i) {
+            // convert to rgb
+            // frameworks/av/media/libstagefright/colorconversion/ColorConverter.cpp
+            signed y1 = (signed)yv12_y[i] - 16;
+            signed u = (signed)yv12_u[i / 2] - 128;
+            signed v = (signed)yv12_v[i / 2] - 128;
+
+            signed u_b = u * 517;
+            signed u_g = -u * 100;
+            signed v_g = -v * 208;
+            signed v_r = v * 409;
+
+            signed tmp1 = y1 * 298;
+            signed b1 = clamp_rgb((tmp1 + u_b) / 256);
+            signed g1 = clamp_rgb((tmp1 + v_g + u_g) / 256);
+            signed r1 = clamp_rgb((tmp1 + v_r) / 256);
+
+            uint16_t rgb1 = ((r1 >> 3) << 11) | ((g1 >> 2) << 5) | (b1 >> 3);
+
+            rgb_ptr[i-left] = rgb1;
+        }
+    }
 }
 
 static int gralloc_unlock(gralloc_module_t const* module,
@@ -830,18 +938,24 @@ static int gralloc_unlock(gralloc_module_t const* module,
             cpu_addr = (void *)(cb->ashmemBase);
         }
 
+        char* rgb_addr = (char *)cpu_addr;
         if (cb->lockedWidth < cb->width || cb->lockedHeight < cb->height) {
             int bpp = glUtilsPixelBitSize(cb->glFormat, cb->glType) >> 3;
             char *tmpBuf = new char[cb->lockedWidth * cb->lockedHeight * bpp];
-
-            int dst_line_len = cb->lockedWidth * bpp;
-            int src_line_len = cb->width * bpp;
-            char *src = (char *)cpu_addr + cb->lockedTop*src_line_len + cb->lockedLeft*bpp;
-            char *dst = tmpBuf;
-            for (int y=0; y<cb->lockedHeight; y++) {
-                memcpy(dst, src, dst_line_len);
-                src += src_line_len;
-                dst += dst_line_len;
+            if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12) {
+                // bpp should be 2
+                yv12_to_rgb565(tmpBuf, (char*)cpu_addr, cb->width, cb->height, cb->lockedLeft,
+                               cb->lockedTop, cb->lockedLeft+cb->lockedWidth-1, cb->lockedTop+cb->lockedHeight-1);
+            } else {
+                int dst_line_len = cb->lockedWidth * bpp;
+                int src_line_len = cb->width * bpp;
+                char *src = (char *)rgb_addr + cb->lockedTop*src_line_len + cb->lockedLeft*bpp;
+                char *dst = tmpBuf;
+                for (int y=0; y<cb->lockedHeight; y++) {
+                    memcpy(dst, src, dst_line_len);
+                    src += src_line_len;
+                    dst += dst_line_len;
+                }
             }
 
             rcEnc->rcUpdateColorBuffer(rcEnc, cb->hostHandle,
@@ -853,11 +967,25 @@ static int gralloc_unlock(gralloc_module_t const* module,
             delete [] tmpBuf;
         }
         else {
+            char* rgbBuf = 0;
+            if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12) {
+                // for this format, we need to conver to RGB565 format
+                // before updating host
+                rgbBuf = new char[cb->width * cb->height * 2];
+                yv12_to_rgb565(rgbBuf, (char*)cpu_addr, cb->width, cb->height, 0, 0, cb->width-1, cb->height-1);
+                rgb_addr = rgbBuf;
+            }
+
             rcEnc->rcUpdateColorBuffer(rcEnc, cb->hostHandle, 0, 0,
                                        cb->width, cb->height,
                                        cb->glFormat, cb->glType,
-                                       cpu_addr);
+                                       rgb_addr);
+            if (rgbBuf) {
+                delete [] rgbBuf;
+            }
         }
+
+        DD("gralloc_unlock success. cpu_addr: %p", cpu_addr);
     }
 
     cb->lockedWidth = cb->lockedHeight = 0;
@@ -887,9 +1015,10 @@ static int gralloc_lock_ycbcr(gralloc_module_t const* module,
         return -EINVAL;
     }
 
-    if (cb->frameworkFormat != HAL_PIXEL_FORMAT_YCbCr_420_888) {
+    if (cb->frameworkFormat != HAL_PIXEL_FORMAT_YV12 &&
+        cb->frameworkFormat != HAL_PIXEL_FORMAT_YCbCr_420_888) {
         ALOGE("gralloc_lock_ycbcr can only be used with "
-                "HAL_PIXEL_FORMAT_YCbCr_420_888, got %x instead",
+                "HAL_PIXEL_FORMAT_YCbCr_420_888 or HAL_PIXEL_FORMAT_YV12, got %x instead",
                 cb->frameworkFormat);
         return -EINVAL;
     }
@@ -924,10 +1053,12 @@ static int gralloc_lock_ycbcr(gralloc_module_t const* module,
     // Calculate offsets to underlying YUV data
     size_t yStride;
     size_t cStride;
+    size_t cSize;
     size_t yOffset;
     size_t uOffset;
     size_t vOffset;
     size_t cStep;
+    size_t align;
     switch (cb->format) {
         case HAL_PIXEL_FORMAT_YCrCb_420_SP:
             yStride = cb->width;
@@ -936,6 +1067,17 @@ static int gralloc_lock_ycbcr(gralloc_module_t const* module,
             vOffset = yStride * cb->height;
             uOffset = vOffset + 1;
             cStep = 2;
+            break;
+        case HAL_PIXEL_FORMAT_YV12:
+            // https://developer.android.com/reference/android/graphics/ImageFormat.html#YV12
+            align = 16;
+            yStride = (cb->width + (align -1)) & ~(align-1);
+            cStride = (yStride / 2 + (align - 1)) & ~(align-1);
+            yOffset = 0;
+            cSize = cStride * cb->height/2;
+            vOffset = yStride * cb->height;
+            uOffset = vOffset + cSize;
+            cStep = 1;
             break;
         default:
             ALOGE("gralloc_lock_ycbcr unexpected internal format %x",
