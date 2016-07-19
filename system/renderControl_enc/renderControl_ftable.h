@@ -37,9 +37,9 @@ static const struct _renderControl_funcs_by_name {
 	{"rcCreateClientImage", (void*)rcCreateClientImage},
 	{"rcDestroyClientImage", (void*)rcDestroyClientImage},
 	{"rcSelectChecksumHelper", (void*)rcSelectChecksumHelper},
-	{"rcCreateColorBufferPid", (void*)rcCreateColorBufferPid},
-	{"rcOpenColorBuffer2Pid", (void*)rcOpenColorBuffer2Pid},
-	{"rcCloseColorBufferPid", (void*)rcCloseColorBufferPid},
+	{"rcCreateColorBufferPuid", (void*)rcCreateColorBufferPuid},
+	{"rcOpenColorBuffer2Puid", (void*)rcOpenColorBuffer2Puid},
+	{"rcCloseColorBufferPuid", (void*)rcCloseColorBufferPuid},
 };
 static const int renderControl_num_funcs = sizeof(renderControl_funcs_by_name) / sizeof(struct _renderControl_funcs_by_name);
 

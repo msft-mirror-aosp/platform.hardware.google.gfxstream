@@ -32,9 +32,9 @@
 #define OP_rcCreateClientImage 					10026
 #define OP_rcDestroyClientImage 					10027
 #define OP_rcSelectChecksumHelper 					10028
-#define OP_rcCreateColorBufferPid 					10029
-#define OP_rcOpenColorBuffer2Pid 					10030
-#define OP_rcCloseColorBufferPid 					10031
+#define OP_rcCreateColorBufferPuid 					10029
+#define OP_rcOpenColorBuffer2Puid 					10030
+#define OP_rcCloseColorBufferPuid 					10031
 #define OP_last 					10032
 
 

@@ -46,10 +46,10 @@
 
 #include <hardware/qemu_pipe.h>
 
-// Associate PID with color buffers
+// Associate PUID (process unique ID) with color buffers
 // See the comments in gralloc_proc_init() for more details
-#define PID_CMD(func, ...) \
-    (sGrallocProcPipe ? rcEnc->func##Pid(rcEnc, __VA_ARGS__, sGrallocProcID) \
+#define PUID_CMD(func, ...) \
+    (sGrallocProcPipe ? rcEnc->func##Puid(rcEnc, __VA_ARGS__, sGrallocProcID) \
                      : rcEnc->func(rcEnc, __VA_ARGS__))
 
 //
@@ -372,7 +372,7 @@ static int gralloc_alloc(alloc_device_t* dev,
         DEFINE_HOST_CONNECTION;
         if (hostCon && rcEnc) {
             pthread_once(&sGrallocProcPipeOnce, gralloc_proc_init);
-            cb->hostHandle = PID_CMD(rcCreateColorBuffer, w, h, glFormat);
+            cb->hostHandle = PUID_CMD(rcCreateColorBuffer, w, h, glFormat);
             D("Created host ColorBuffer 0x%x\n", cb->hostHandle);
         }
 
@@ -425,7 +425,7 @@ static int gralloc_free(alloc_device_t* dev,
         DEFINE_AND_VALIDATE_HOST_CONNECTION;
         D("Closing host ColorBuffer 0x%x\n", cb->hostHandle);
         pthread_once(&sGrallocProcPipeOnce, gralloc_proc_init);
-        PID_CMD(rcCloseColorBuffer, cb->hostHandle);
+        PUID_CMD(rcCloseColorBuffer, cb->hostHandle);
     }
 
     //
@@ -596,7 +596,7 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
     if (cb->hostHandle != 0) {
         DEFINE_AND_VALIDATE_HOST_CONNECTION;
         D("Opening host ColorBuffer 0x%x\n", cb->hostHandle);
-        PID_CMD(rcOpenColorBuffer2, cb->hostHandle);
+        PUID_CMD(rcOpenColorBuffer2, cb->hostHandle);
     }
 
     //
@@ -634,7 +634,7 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
         DEFINE_AND_VALIDATE_HOST_CONNECTION;
         D("Closing host ColorBuffer 0x%x\n", cb->hostHandle);
         pthread_once(&sGrallocProcPipeOnce, gralloc_proc_init);
-        PID_CMD(rcCloseColorBuffer, cb->hostHandle);
+        PUID_CMD(rcCloseColorBuffer, cb->hostHandle);
     }
 
     //
@@ -1143,11 +1143,10 @@ fallback_init(void)
     }
 }
 
-// The host associates color buffers with PID for memory cleanup.
-// It will fallback to the default path if host does not support it.
-// We discussed PID reuse issue when designing this component, but we considered
-// it not to be an issue because as new processes fork in, PIDs will increase to
-// a system-dependent limit and then wrap around.
+// The host associates color buffers with processes for memory cleanup.
+// It will fallback to the default path if the host does not support it.
+// Processes are identified by acquiring a per-process 64bit unique ID from the
+// host.
 static void gralloc_proc_init() {
     sGrallocProcPipe = qemu_pipe_open("grallocPipe");
     if (sGrallocProcPipe < 0) {
@@ -1155,25 +1154,28 @@ static void gralloc_proc_init() {
         ALOGW("Gralloc pipe failed");
         return;
     }
-    int32_t pid = static_cast<int32_t>(getpid());
+    // Send a confirmation int to the host
+    int32_t confirmInt = 100;
     ssize_t stat = 0;
     do {
-        stat = ::write(sGrallocProcPipe, (const char*)&pid, sizeof(pid));
+        stat = ::write(sGrallocProcPipe, (const char*)&confirmInt,
+                sizeof(confirmInt));
     } while (stat < 0 && errno == EINTR);
 
-    if (stat != 4) { // failed
+    if (stat != sizeof(confirmInt)) { // failed
         close(sGrallocProcPipe);
         sGrallocProcPipe = 0;
         ALOGW("Gralloc pipe failed");
         return;
     }
 
+    // Ask the host for pre-process unique ID
     do {
         stat = ::read(sGrallocProcPipe, (char*)&sGrallocProcID,
                       sizeof(sGrallocProcID));
     } while (stat < 0 && errno == EINTR);
 
-    if (stat != 8) {
+    if (stat != sizeof(sGrallocProcPipe)) {
         close(sGrallocProcPipe);
         sGrallocProcPipe = 0;
         ALOGW("Gralloc pipe failed");
