@@ -28,6 +28,8 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 18 && echo PreJellyBeanMr2),PreJe
     ifeq ($(ARCH_ARM_HAVE_TLS_REGISTER),true)
         EMUGL_COMMON_CFLAGS += -DHAVE_ARM_TLS_REGISTER
     endif
+endif
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 16 && echo PreJellyBean),PreJellyBean)
     EMUGL_COMMON_CFLAGS += -DALOG_ASSERT=LOG_ASSERT
     EMUGL_COMMON_CFLAGS += -DALOGE=LOGE
     EMUGL_COMMON_CFLAGS += -DALOGW=LOGW
