@@ -24,7 +24,7 @@ EMUGL_COMMON_INCLUDES := $(EMUGL_PATH)/host/include/libOpenglRender $(EMUGL_PATH
 #
 EMUGL_COMMON_CFLAGS := -DWITH_GLES2 -DPLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION)
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 16 && echo PreJellyBean),PreJellyBean)
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 18 && echo PreJellyBeanMr2),PreJellyBeanMr2)
     ifeq ($(ARCH_ARM_HAVE_TLS_REGISTER),true)
         EMUGL_COMMON_CFLAGS += -DHAVE_ARM_TLS_REGISTER
     endif
