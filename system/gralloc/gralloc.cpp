@@ -44,7 +44,7 @@
 
 #define DBG_FUNC DBG("%s\n", __FUNCTION__)
 
-#include <hardware/qemu_pipe.h>
+#include <system/qemu_pipe.h>
 
 // Associate PUID (process unique ID) with color buffers
 // See the comments in gralloc_proc_init() for more details
