@@ -26,6 +26,11 @@
 #include "glUtils.h"
 #include <cutils/log.h>
 #include <cutils/properties.h>
+#if PLATFORM_SDK_VERSION > 24
+#include <system/qemu_pipe.h>
+#else // PLATFORM_SDK_VERSION
+#include <hardware/qemu_pipe.h>
+#endif //PLATFORM_SDK_VERSION
 
 /* Set to 1 or 2 to enable debug traces */
 #define DEBUG  0
@@ -43,8 +48,6 @@
 #endif
 
 #define DBG_FUNC DBG("%s\n", __FUNCTION__)
-
-#include <hardware/qemu_pipe.h>
 
 // Associate PUID (process unique ID) with color buffers
 // See the comments in gralloc_proc_init() for more details
