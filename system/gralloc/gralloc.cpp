@@ -1178,7 +1178,7 @@ static void gralloc_proc_init() {
                       sizeof(sGrallocProcID));
     } while (stat < 0 && errno == EINTR);
 
-    if (stat != sizeof(sGrallocProcPipe)) {
+    if (stat != sizeof(sGrallocProcID)) {
         close(sGrallocProcPipe);
         sGrallocProcPipe = 0;
         ALOGW("Gralloc pipe failed");

@@ -1202,6 +1202,7 @@ void rcCloseColorBufferPuid_enc(void *self , uint32_t colorbuffer, uint64_t puid
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
 
+	stream->flush();
 }
 
 }  // namespace
