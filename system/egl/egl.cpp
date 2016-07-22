@@ -40,12 +40,6 @@
 #include <private/ui/android_natives_priv.h>
 #endif // PLATFORM_SDK_VERSION >= 16
 
-#if PLATFORM_SDK_VERSION <= 16
-#define queueBuffer_DEPRECATED queueBuffer
-#define dequeueBuffer_DEPRECATED dequeueBuffer
-#define cancelBuffer_DEPRECATED cancelBuffer
-#endif // PLATFORM_SDK_VERSION <= 16
-
 #define DEBUG_EGL 0
 
 #if DEBUG_EGL
@@ -356,15 +350,70 @@ void egl_window_surface_t::setSwapInterval(int interval)
 
 EGLBoolean egl_window_surface_t::swapBuffers()
 {
+
     DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
 
-    rcEnc->rcFlushWindowColorBuffer(rcEnc, rcSurface);
+    // Follow up flushWindowColorBuffer with a fence command.
+    // When the fence command finishes,
+    // we're sure that the buffer on the host
+    // has been blitted.
+    //
+    // |presentFenceFd| guards the presentation of the
+    // current frame with a goldfish sync fence fd.
+    //
+    // When |presentFenceFd| is signaled, the recipient
+    // of the buffer that was sent through queueBuffer
+    // can be sure that the buffer is current.
+    //
+    // If we don't take care of this synchronization,
+    // an old frame can be processed by surfaceflinger,
+    // resulting in out of order frames.
 
-    nativeWindow->queueBuffer_DEPRECATED(nativeWindow, buffer);
-    if (nativeWindow->dequeueBuffer_DEPRECATED(nativeWindow, &buffer)) {
+    int presentFenceFd = -1;
+
+#if PLATFORM_SDK_VERSION <= 16
+    rcEnc->rcFlushWindowColorBuffer(rcEnc, rcSurface);
+    // equivalent to glFinish if no native sync
+    eglWaitClient();
+    nativeWindow->queueBuffer(nativeWindow, buffer);
+#else
+    if (rcEnc->hasNativeSync()) {
+        rcEnc->rcFlushWindowColorBufferAsync(rcEnc, rcSurface);
+        EGLSyncKHR sync = eglCreateSyncKHR(dpy,
+                                           EGL_SYNC_NATIVE_FENCE_ANDROID,
+                                           NULL);
+        EGLSync_t* syncObj = (EGLSync_t*)sync;
+        presentFenceFd = syncObj->android_native_fence_fd;
+    } else {
+        rcEnc->rcFlushWindowColorBuffer(rcEnc, rcSurface);
+        // equivalent to glFinish if no native sync
+        eglWaitClient();
+    }
+
+    DPRINT("queueBuffer with fence %d", presentFenceFd);
+    nativeWindow->queueBuffer(nativeWindow, buffer, presentFenceFd);
+#endif
+
+    DPRINT("calling dequeueBuffer...");
+
+#if PLATFORM_SDK_VERSION <= 16
+    if (nativeWindow->dequeueBuffer(nativeWindow, &buffer)) {
         buffer = NULL;
         setErrorReturn(EGL_BAD_SURFACE, EGL_FALSE);
     }
+#else
+    int acquireFenceFd = -1;
+    if (nativeWindow->dequeueBuffer(nativeWindow, &buffer, &acquireFenceFd)) {
+        buffer = NULL;
+        setErrorReturn(EGL_BAD_SURFACE, EGL_FALSE);
+    }
+
+    DPRINT("dequeueBuffer with fence %d", acquireFenceFd);
+
+    if (acquireFenceFd > 0) {
+        close(acquireFenceFd);
+    }
+#endif
 
     rcEnc->rcSetWindowColorBuffer(rcEnc, rcSurface,
             ((cb_handle_t *)(buffer->handle))->hostHandle);
