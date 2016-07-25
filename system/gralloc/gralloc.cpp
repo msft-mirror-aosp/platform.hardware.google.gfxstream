@@ -708,6 +708,15 @@ static int gralloc_lock(gralloc_module_t const* module,
 #endif // PLATFORM_SDK_VERSION
 
     bool sw_read_allowed = (0 != (cb->usage & GRALLOC_USAGE_SW_READ_MASK));
+
+#if PLATFORM_SDK_VERSION >= 15
+    // bug: 30088791
+    // a buffer was created for GRALLOC_USAGE_HW_VIDEO_ENCODER usage but
+    // later a software encoder is reading this buffer: this is actually
+    // legit usage.
+    sw_read_allowed = sw_read_allowed || (cb->usage & GRALLOC_USAGE_HW_VIDEO_ENCODER);
+#endif // PLATFORM_SDK_VERSION >= 15
+
     bool sw_write_allowed = (0 != (cb->usage & GRALLOC_USAGE_SW_WRITE_MASK));
 
     if ( (hw_read || hw_write) ||
