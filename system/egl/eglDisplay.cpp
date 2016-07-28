@@ -17,6 +17,8 @@
 #include "HostConnection.h"
 #include <dlfcn.h>
 
+#include <string>
+
 static const int systemEGLVersionMajor = 1;
 static const int systemEGLVersionMinor = 4;
 static const char systemEGLVendor[] = "Google Android emulator";
@@ -28,6 +30,9 @@ static const char systemStaticEGLExtensions[] =
             "EGL_KHR_fence_sync "
             "EGL_KHR_image_base "
             "EGL_KHR_gl_texture_2d_image ";
+
+// extensions to add dynamically depending on host-side support
+static const char kDynamicEGLExtNativeSync[] = "EGL_ANDROID_native_fence_sync ";
 
 static void *s_gles_lib = NULL;
 static void *s_gles2_lib = NULL;
@@ -278,14 +283,10 @@ static char *queryHostEGLString(EGLint name)
         if (rcEnc) {
             int n = rcEnc->rcQueryEGLString(rcEnc, name, NULL, 0);
             if (n < 0) {
-                // allocate space for the string with additional
-                // space charachter to be suffixed at the end.
-                char *str = (char *)malloc(-n+2);
+                // allocate space for the string.
+                char *str = (char *)malloc(-n);
                 n = rcEnc->rcQueryEGLString(rcEnc, name, str, -n);
                 if (n > 0) {
-                    // add extra space at end of string which will be
-                    // needed later when filtering the extension list.
-                    strcat(str, " ");
                     return str;
                 }
 
@@ -325,10 +326,27 @@ static char *buildExtensionString()
 
     int n = strlen(hostExt);
     if (n > 0) {
-        char *str;
-        asprintf(&str,"%s%s", systemStaticEGLExtensions, hostExt);
+        char *initialEGLExts;
+        char *finalEGLExts;
+
+        HostConnection *hcon = HostConnection::get();
+        // If we got here, we must have succeeded in queryHostEGLString
+        // and we thus should have a valid connection
+        assert(hcon);
+
+        asprintf(&initialEGLExts,"%s%s", systemStaticEGLExtensions, hostExt);
+
+        std::string dynamicEGLExtensions;
+
+        if (hcon->rcEncoder()->hasNativeSync() &&
+            !strstr(initialEGLExts, kDynamicEGLExtNativeSync)) {
+            dynamicEGLExtensions += kDynamicEGLExtNativeSync;
+        }
+
+        asprintf(&finalEGLExts, "%s%s", initialEGLExts, dynamicEGLExtensions.c_str());
+
         free((char*)hostExt);
-        return str;
+        return finalEGLExts;
     }
     else {
         free((char*)hostExt);

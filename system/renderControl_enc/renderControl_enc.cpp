@@ -1205,6 +1205,120 @@ void rcCloseColorBufferPuid_enc(void *self , uint32_t colorbuffer, uint64_t puid
 	stream->flush();
 }
 
+void rcCreateSyncKHR_enc(void *self , EGLenum type, EGLint* attribs, uint32_t num_attribs, uint64_t* glsync_out, uint64_t* syncthread_out)
+{
+
+	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	const unsigned int __size_attribs =  num_attribs;
+	const unsigned int __size_glsync_out =  sizeof(uint64_t);
+	const unsigned int __size_syncthread_out =  sizeof(uint64_t);
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + __size_attribs + 4 + __size_glsync_out + __size_syncthread_out + 3*4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_rcCreateSyncKHR;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &type, 4); ptr += 4;
+	*(unsigned int *)(ptr) = __size_attribs; ptr += 4;
+	memcpy(ptr, attribs, __size_attribs);ptr += __size_attribs;
+		memcpy(ptr, &num_attribs, 4); ptr += 4;
+	*(unsigned int *)(ptr) = __size_glsync_out; ptr += 4;
+	*(unsigned int *)(ptr) = __size_syncthread_out; ptr += 4;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+	stream->readback(glsync_out, __size_glsync_out);
+	if (useChecksum) checksumCalculator->addBuffer(glsync_out, __size_glsync_out);
+	stream->readback(syncthread_out, __size_syncthread_out);
+	if (useChecksum) checksumCalculator->addBuffer(syncthread_out, __size_syncthread_out);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		std::vector<unsigned char> checksumBuf(checksumSize);
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			ALOGE("rcCreateSyncKHR: GL communication error, please report this issue to b.android.com.\n");
+			abort();
+		}
+	}
+}
+
+EGLint rcClientWaitSyncKHR_enc(void *self , uint64_t sync, EGLint flags, uint64_t timeout)
+{
+
+	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 8 + 4 + 8;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_rcClientWaitSyncKHR;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &sync, 8); ptr += 8;
+		memcpy(ptr, &flags, 4); ptr += 4;
+		memcpy(ptr, &timeout, 8); ptr += 8;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+
+	EGLint retval;
+	stream->readback(&retval, 4);
+	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		std::vector<unsigned char> checksumBuf(checksumSize);
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			ALOGE("rcClientWaitSyncKHR: GL communication error, please report this issue to b.android.com.\n");
+			abort();
+		}
+	}
+	return retval;
+}
+
+void rcFlushWindowColorBufferAsync_enc(void *self , uint32_t windowSurface)
+{
+
+	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_rcFlushWindowColorBufferAsync;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &windowSurface, 4); ptr += 4;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+}
+
 }  // namespace
 
 renderControl_encoder_context_t::renderControl_encoder_context_t(IOStream *stream, ChecksumCalculator *checksumCalculator)
@@ -1244,5 +1358,8 @@ renderControl_encoder_context_t::renderControl_encoder_context_t(IOStream *strea
 	this->rcCreateColorBufferPuid = &rcCreateColorBufferPuid_enc;
 	this->rcOpenColorBuffer2Puid = &rcOpenColorBuffer2Puid_enc;
 	this->rcCloseColorBufferPuid = &rcCloseColorBufferPuid_enc;
+	this->rcCreateSyncKHR = &rcCreateSyncKHR_enc;
+	this->rcClientWaitSyncKHR = &rcClientWaitSyncKHR_enc;
+	this->rcFlushWindowColorBufferAsync = &rcFlushWindowColorBufferAsync_enc;
 }
 

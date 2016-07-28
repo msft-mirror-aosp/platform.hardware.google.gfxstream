@@ -40,6 +40,9 @@ static const struct _renderControl_funcs_by_name {
 	{"rcCreateColorBufferPuid", (void*)rcCreateColorBufferPuid},
 	{"rcOpenColorBuffer2Puid", (void*)rcOpenColorBuffer2Puid},
 	{"rcCloseColorBufferPuid", (void*)rcCloseColorBufferPuid},
+	{"rcCreateSyncKHR", (void*)rcCreateSyncKHR},
+	{"rcClientWaitSyncKHR", (void*)rcClientWaitSyncKHR},
+	{"rcFlushWindowColorBufferAsync", (void*)rcFlushWindowColorBufferAsync},
 };
 static const int renderControl_num_funcs = sizeof(renderControl_funcs_by_name) / sizeof(struct _renderControl_funcs_by_name);
 

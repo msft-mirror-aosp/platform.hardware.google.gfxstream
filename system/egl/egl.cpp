@@ -18,8 +18,10 @@
 #include "HostConnection.h"
 #include "ThreadInfo.h"
 #include "eglDisplay.h"
+#include "eglSync.h"
 #include "egl_ftable.h"
 #include <cutils/log.h>
+#include "goldfish_sync.h"
 #include "gralloc_cb.h"
 #include "GLClientState.h"
 #include "GLSharedGroup.h"
@@ -38,11 +40,13 @@
 #include <private/ui/android_natives_priv.h>
 #endif // PLATFORM_SDK_VERSION >= 16
 
-#if PLATFORM_SDK_VERSION <= 16
-#define queueBuffer_DEPRECATED queueBuffer
-#define dequeueBuffer_DEPRECATED dequeueBuffer
-#define cancelBuffer_DEPRECATED cancelBuffer
-#endif // PLATFORM_SDK_VERSION <= 16
+#define DEBUG_EGL 0
+
+#if DEBUG_EGL
+#define DPRINT(fmt,...) ALOGD("%s: " fmt, __FUNCTION__, ##__VA_ARGS__);
+#else
+#define DPRINT(...)
+#endif
 
 template<typename T>
 static T setErrorFunc(GLint error, T returnValue) {
@@ -115,7 +119,7 @@ const char *  eglStrError(EGLint err)
 
 #define DEFINE_HOST_CONNECTION \
     HostConnection *hostCon = HostConnection::get(); \
-    renderControl_encoder_context_t *rcEnc = (hostCon ? hostCon->rcEncoder() : NULL)
+    ExtendedRCEncoderContext *rcEnc = (hostCon ? hostCon->rcEncoder() : NULL)
 
 #define DEFINE_AND_VALIDATE_HOST_CONNECTION(ret) \
     HostConnection *hostCon = HostConnection::get(); \
@@ -123,7 +127,7 @@ const char *  eglStrError(EGLint err)
         ALOGE("egl: Failed to get host connection\n"); \
         return ret; \
     } \
-    renderControl_encoder_context_t *rcEnc = hostCon->rcEncoder(); \
+    ExtendedRCEncoderContext *rcEnc = hostCon->rcEncoder(); \
     if (!rcEnc) { \
         ALOGE("egl: Failed to get renderControl encoder context\n"); \
         return ret; \
@@ -156,7 +160,8 @@ EGLContext_t::EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* share
     rendererString(NULL),
     shaderVersionString(NULL),
     extensionString(NULL),
-    deletePending(0)
+    deletePending(0),
+    goldfishSyncFd(-1)
 {
     flags = 0;
     version = 1;
@@ -169,8 +174,19 @@ EGLContext_t::EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* share
     s_display.onCreateContext((EGLContext)this);
 };
 
+int EGLContext_t::getGoldfishSyncFd() {
+    if (goldfishSyncFd < 0) {
+        goldfishSyncFd = goldfish_sync_open();
+    }
+    return goldfishSyncFd;
+}
+
 EGLContext_t::~EGLContext_t()
 {
+    if (goldfishSyncFd > 0) {
+        goldfish_sync_close(goldfishSyncFd);
+        goldfishSyncFd = -1;
+    }
     assert(dpy == (EGLDisplay)&s_display);
     s_display.onDestroyContext((EGLContext)this);
     delete clientState;
@@ -281,6 +297,7 @@ egl_window_surface_t::egl_window_surface_t (
     nativeWindow->common.incRef(&nativeWindow->common);
 }
 
+
 EGLBoolean egl_window_surface_t::init()
 {
     if (nativeWindow->dequeueBuffer_DEPRECATED(nativeWindow, &buffer) != NO_ERROR) {
@@ -333,15 +350,70 @@ void egl_window_surface_t::setSwapInterval(int interval)
 
 EGLBoolean egl_window_surface_t::swapBuffers()
 {
+
     DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
 
-    rcEnc->rcFlushWindowColorBuffer(rcEnc, rcSurface);
+    // Follow up flushWindowColorBuffer with a fence command.
+    // When the fence command finishes,
+    // we're sure that the buffer on the host
+    // has been blitted.
+    //
+    // |presentFenceFd| guards the presentation of the
+    // current frame with a goldfish sync fence fd.
+    //
+    // When |presentFenceFd| is signaled, the recipient
+    // of the buffer that was sent through queueBuffer
+    // can be sure that the buffer is current.
+    //
+    // If we don't take care of this synchronization,
+    // an old frame can be processed by surfaceflinger,
+    // resulting in out of order frames.
 
-    nativeWindow->queueBuffer_DEPRECATED(nativeWindow, buffer);
-    if (nativeWindow->dequeueBuffer_DEPRECATED(nativeWindow, &buffer)) {
+    int presentFenceFd = -1;
+
+#if PLATFORM_SDK_VERSION <= 16
+    rcEnc->rcFlushWindowColorBuffer(rcEnc, rcSurface);
+    // equivalent to glFinish if no native sync
+    eglWaitClient();
+    nativeWindow->queueBuffer(nativeWindow, buffer);
+#else
+    if (rcEnc->hasNativeSync()) {
+        rcEnc->rcFlushWindowColorBufferAsync(rcEnc, rcSurface);
+        EGLSyncKHR sync = eglCreateSyncKHR(dpy,
+                                           EGL_SYNC_NATIVE_FENCE_ANDROID,
+                                           NULL);
+        EGLSync_t* syncObj = (EGLSync_t*)sync;
+        presentFenceFd = syncObj->android_native_fence_fd;
+    } else {
+        rcEnc->rcFlushWindowColorBuffer(rcEnc, rcSurface);
+        // equivalent to glFinish if no native sync
+        eglWaitClient();
+    }
+
+    DPRINT("queueBuffer with fence %d", presentFenceFd);
+    nativeWindow->queueBuffer(nativeWindow, buffer, presentFenceFd);
+#endif
+
+    DPRINT("calling dequeueBuffer...");
+
+#if PLATFORM_SDK_VERSION <= 16
+    if (nativeWindow->dequeueBuffer(nativeWindow, &buffer)) {
         buffer = NULL;
         setErrorReturn(EGL_BAD_SURFACE, EGL_FALSE);
     }
+#else
+    int acquireFenceFd = -1;
+    if (nativeWindow->dequeueBuffer(nativeWindow, &buffer, &acquireFenceFd)) {
+        buffer = NULL;
+        setErrorReturn(EGL_BAD_SURFACE, EGL_FALSE);
+    }
+
+    DPRINT("dequeueBuffer with fence %d", acquireFenceFd);
+
+    if (acquireFenceFd > 0) {
+        close(acquireFenceFd);
+    }
+#endif
 
     rcEnc->rcSetWindowColorBuffer(rcEnc, rcSurface,
             ((cb_handle_t *)(buffer->handle))->hostHandle);
@@ -1354,19 +1426,21 @@ EGLBoolean eglDestroyImageKHR(EGLDisplay dpy, EGLImageKHR img)
 }
 
 #define FENCE_SYNC_HANDLE (EGLSyncKHR)0xFE4CE
+#define MAX_EGL_SYNC_ATTRIBS 10
+
 
 EGLSyncKHR eglCreateSyncKHR(EGLDisplay dpy, EGLenum type,
         const EGLint *attrib_list)
 {
-    // TODO: This implementation could be faster. We should require the host EGL
-    // to support KHR_fence_sync, or at least pipe the fence command to the host
-    // and wait for it (probably involving a glFinish on the host) in
-    // eglClientWaitSyncKHR.
-
     VALIDATE_DISPLAY(dpy, EGL_NO_SYNC_KHR);
+    DPRINT("type for eglCreateSyncKHR: 0x%x", type);
 
-    if (type != EGL_SYNC_FENCE_KHR ||
-            (attrib_list != NULL && attrib_list[0] != EGL_NONE)) {
+    DEFINE_HOST_CONNECTION;
+
+    if ((type != EGL_SYNC_FENCE_KHR &&
+         type != EGL_SYNC_NATIVE_FENCE_ANDROID) ||
+        (type != EGL_SYNC_FENCE_KHR &&
+         !rcEnc->hasNativeSync())) {
         setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_NO_SYNC_KHR);
     }
 
@@ -1375,55 +1449,175 @@ EGLSyncKHR eglCreateSyncKHR(EGLDisplay dpy, EGLenum type,
         setErrorReturn(EGL_BAD_MATCH, EGL_NO_SYNC_KHR);
     }
 
-    if (tInfo->currentContext->version == 2) {
-        s_display.gles2_iface()->finish();
-    } else {
-        s_display.gles_iface()->finish();
+    int num_actual_attribs = 0;
+
+    // If attrib_list is not NULL,
+    // ensure attrib_list contains (key, value) pairs
+    // followed by a single EGL_NONE.
+    // Also validate attribs.
+    int inputFenceFd = -1;
+    if (attrib_list) {
+        for (int i = 0; i < MAX_EGL_SYNC_ATTRIBS; i += 2) {
+            if (attrib_list[i] == EGL_NONE) {
+                num_actual_attribs = i;
+                break;
+            }
+            if (i + 1 == MAX_EGL_SYNC_ATTRIBS) {
+                DPRINT("ERROR: attrib list without EGL_NONE");
+                setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_NO_SYNC_KHR);
+            }
+        }
+
+        // Validate and input attribs
+        for (int i = 0; i < num_actual_attribs; i += 2) {
+            if (attrib_list[i] == EGL_SYNC_TYPE_KHR) {
+                DPRINT("ERROR: attrib key = EGL_SYNC_TYPE_KHR");
+            }
+            if (attrib_list[i] == EGL_SYNC_STATUS_KHR) {
+                DPRINT("ERROR: attrib key = EGL_SYNC_STATUS_KHR");
+            }
+            if (attrib_list[i] == EGL_SYNC_CONDITION_KHR) {
+                DPRINT("ERROR: attrib key = EGL_SYNC_CONDITION_KHR");
+            }
+            EGLint attrib_key = attrib_list[i];
+            EGLint attrib_val = attrib_list[i + 1];
+            if (attrib_key == EGL_SYNC_NATIVE_FENCE_FD_ANDROID) {
+                if (attrib_val != EGL_NO_NATIVE_FENCE_FD_ANDROID) {
+                    inputFenceFd = attrib_val;
+                }
+            }
+            DPRINT("attrib: 0x%x : 0x%x", attrib_key, attrib_val);
+        }
     }
 
-    return FENCE_SYNC_HANDLE;
+    uint64_t sync_handle = 0;
+    int native_fence_fd = -1;
+
+    EGLContext_t* cxt = getEGLThreadInfo()->currentContext;
+    if (rcEnc->hasNativeSync()) {
+        uint64_t thread_out = 0;
+
+        rcEnc->rcCreateSyncKHR(rcEnc,
+                type,
+                (EGLint*)(num_actual_attribs == 0 ? NULL : attrib_list),
+                num_actual_attribs * sizeof(EGLint),
+                &sync_handle,
+                &thread_out);
+
+        if (sync_handle && thread_out &&
+            (type == EGL_SYNC_NATIVE_FENCE_ANDROID) &&
+            (inputFenceFd < 0)) {
+
+            int goldfish_sync_fd = cxt->getGoldfishSyncFd();
+            int queue_work_err =
+                goldfish_sync_queue_work(goldfish_sync_fd,
+                        sync_handle,
+                        thread_out,
+                        &native_fence_fd);
+
+            DPRINT("got native fence fd=%d queue_work_err=%d",
+                   native_fence_fd, queue_work_err);
+        }
+
+    } else {
+        // Just trigger a glFinish if the native sync on host
+        // is unavailable.
+        eglWaitClient();
+    }
+
+    EGLSync_t* syncRes = new EGLSync_t(sync_handle);
+
+    if (type == EGL_SYNC_NATIVE_FENCE_ANDROID) {
+        syncRes->type = EGL_SYNC_NATIVE_FENCE_ANDROID;
+
+        if (inputFenceFd < 0) {
+            syncRes->android_native_fence_fd = native_fence_fd;
+        } else {
+            DPRINT("has input fence fd %d",
+                    inputFenceFd);
+            syncRes->android_native_fence_fd = inputFenceFd;
+        }
+    } else {
+        syncRes->type = EGL_SYNC_FENCE_KHR;
+        syncRes->android_native_fence_fd = -1;
+    }
+
+    return (EGLSyncKHR)syncRes;
 }
 
-EGLBoolean eglDestroySyncKHR(EGLDisplay dpy, EGLSyncKHR sync)
+EGLBoolean eglDestroySyncKHR(EGLDisplay dpy, EGLSyncKHR eglsync)
 {
     (void)dpy;
 
-    if (sync != FENCE_SYNC_HANDLE) {
-        setErrorReturn(EGL_BAD_PARAMETER, EGL_FALSE);
+    if (!eglsync) {
+        DPRINT("WARNING: null sync object")
+        return EGL_TRUE;
     }
+
+    EGLSync_t* sync = static_cast<EGLSync_t*>(eglsync);
+
+    if (sync && sync->android_native_fence_fd > 0) {
+        close(sync->android_native_fence_fd);
+        sync->android_native_fence_fd = -1;
+    }
+
+    if (sync) delete sync;
 
     return EGL_TRUE;
 }
 
-EGLint eglClientWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags,
+EGLint eglClientWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR eglsync, EGLint flags,
         EGLTimeKHR timeout)
 {
     (void)dpy;
-    (void)flags;
-    (void)timeout;
 
-    if (sync != FENCE_SYNC_HANDLE) {
-        setErrorReturn(EGL_BAD_PARAMETER, EGL_FALSE);
+    if (!eglsync) {
+        DPRINT("WARNING: null sync object");
+        return EGL_CONDITION_SATISFIED_KHR;
     }
 
-    return EGL_CONDITION_SATISFIED_KHR;
+    EGLSync_t* sync = (EGLSync_t*)eglsync;
+
+    DPRINT("sync=0x%lx (handle=0x%lx) flags=0x%x timeout=0x%llx",
+           sync, sync->handle, flags, timeout);
+
+    DEFINE_HOST_CONNECTION;
+
+    EGLint retval;
+    if (rcEnc->hasNativeSync()) {
+        retval = rcEnc->rcClientWaitSyncKHR
+            (rcEnc, sync->handle, flags, timeout);
+    } else {
+        retval = EGL_CONDITION_SATISFIED_KHR;
+    }
+    EGLint res_status;
+    switch (sync->type) {
+        case EGL_SYNC_FENCE_KHR:
+            res_status = EGL_SIGNALED_KHR;
+            break;
+        case EGL_SYNC_NATIVE_FENCE_ANDROID:
+            res_status = EGL_SYNC_NATIVE_FENCE_SIGNALED_ANDROID;
+            break;
+        default:
+            res_status = EGL_SIGNALED_KHR;
+    }
+    sync->status = res_status;
+    return retval;
 }
 
-EGLBoolean eglGetSyncAttribKHR(EGLDisplay dpy, EGLSyncKHR sync,
+EGLBoolean eglGetSyncAttribKHR(EGLDisplay dpy, EGLSyncKHR eglsync,
         EGLint attribute, EGLint *value)
 {
     (void)dpy;
 
-    if (sync != FENCE_SYNC_HANDLE) {
-        setErrorReturn(EGL_BAD_PARAMETER, EGL_FALSE);
-    }
+    EGLSync_t* sync = (EGLSync_t*)eglsync;
 
     switch (attribute) {
     case EGL_SYNC_TYPE_KHR:
-        *value = EGL_SYNC_FENCE_KHR;
+        *value = sync->type;
         return EGL_TRUE;
     case EGL_SYNC_STATUS_KHR:
-        *value = EGL_SIGNALED_KHR;
+        *value = sync->status;
         return EGL_TRUE;
     case EGL_SYNC_CONDITION_KHR:
         *value = EGL_SYNC_PRIOR_COMMANDS_COMPLETE_KHR;
@@ -1431,4 +1625,26 @@ EGLBoolean eglGetSyncAttribKHR(EGLDisplay dpy, EGLSyncKHR sync,
     default:
         setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_FALSE);
     }
+}
+
+int eglDupNativeFenceFDANDROID(EGLDisplay dpy, EGLSyncKHR eglsync) {
+    (void)dpy;
+
+    DPRINT("call");
+
+    EGLSync_t* sync = (EGLSync_t*)eglsync;
+    if (sync && sync->android_native_fence_fd > 0) {
+        int res = dup(sync->android_native_fence_fd);
+        return res;
+    } else {
+        return -1;
+    }
+}
+
+// TODO: Implement EGL_KHR_wait_sync
+EGLint eglWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR eglsync, EGLint flags) {
+    (void)dpy;
+    (void)eglsync;
+    (void)flags;
+    return EGL_TRUE;
 }
