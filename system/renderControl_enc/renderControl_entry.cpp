@@ -41,6 +41,8 @@ extern "C" {
 	void rcCreateSyncKHR(EGLenum type, EGLint* attribs, uint32_t num_attribs, uint64_t* glsync_out, uint64_t* syncthread_out);
 	EGLint rcClientWaitSyncKHR(uint64_t sync, EGLint flags, uint64_t timeout);
 	void rcFlushWindowColorBufferAsync(uint32_t windowSurface);
+	uint32_t rcCreateClientImagePuid(uint32_t context, EGLenum target, GLuint buffer, uint64_t puid);
+	int rcDestroyClientImagePuid(uint32_t image, uint64_t puid);
 };
 
 #endif
@@ -258,5 +260,17 @@ void rcFlushWindowColorBufferAsync(uint32_t windowSurface)
 {
 	GET_CONTEXT;
 	ctx->rcFlushWindowColorBufferAsync(ctx, windowSurface);
+}
+
+uint32_t rcCreateClientImagePuid(uint32_t context, EGLenum target, GLuint buffer, uint64_t puid)
+{
+	GET_CONTEXT;
+	return ctx->rcCreateClientImagePuid(ctx, context, target, buffer, puid);
+}
+
+int rcDestroyClientImagePuid(uint32_t image, uint64_t puid)
+{
+	GET_CONTEXT;
+	return ctx->rcDestroyClientImagePuid(ctx, image, puid);
 }
 

@@ -38,7 +38,9 @@
 #define OP_rcCreateSyncKHR 					10032
 #define OP_rcClientWaitSyncKHR 					10033
 #define OP_rcFlushWindowColorBufferAsync 					10034
-#define OP_last 					10035
+#define OP_rcCreateClientImagePuid 					10035
+#define OP_rcDestroyClientImagePuid 					10036
+#define OP_last 					10037
 
 
 #endif

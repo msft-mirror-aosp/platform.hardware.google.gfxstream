@@ -5,6 +5,7 @@ $(call emugl-import,libGLESv1_enc libGLESv2_enc lib_renderControl_enc)
 
 LOCAL_SRC_FILES := \
     HostConnection.cpp \
+    ProcessPipe.cpp    \
     QemuPipeStream.cpp \
     ThreadInfo.cpp
 
