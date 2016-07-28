@@ -40,6 +40,12 @@
 #include <private/ui/android_natives_priv.h>
 #endif // PLATFORM_SDK_VERSION >= 16
 
+#if PLATFORM_SDK_VERSION <= 16
+#define queueBuffer_DEPRECATED queueBuffer
+#define dequeueBuffer_DEPRECATED dequeueBuffer
+#define cancelBuffer_DEPRECATED cancelBuffer
+#endif // PLATFORM_SDK_VERSION <= 16
+
 #define DEBUG_EGL 0
 
 #if DEBUG_EGL
