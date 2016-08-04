@@ -1106,6 +1106,9 @@ void GL2Encoder::s_glUseProgram(void *self, GLuint program)
     GLClientState* state = ctx->m_state;
     GLSharedGroupPtr shared = ctx->m_shared;
 
+    SET_ERROR_IF(program && !shared->isObject(program), GL_INVALID_VALUE);
+    SET_ERROR_IF(program && !shared->isProgram(program), GL_INVALID_OPERATION);
+
     ctx->m_glUseProgram_enc(self, program);
     ctx->m_state->setCurrentProgram(program);
 
