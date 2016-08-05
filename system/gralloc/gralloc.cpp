@@ -694,7 +694,7 @@ static void rgb565_to_yv12(char* dest, char* src, int width, int height,
     uint8_t *yv12_u0 = yv12_v0 + cSize;
 
     // switchUV allows this function to take care of
-    // cases where the U/V plans need to be switched,
+    // cases where the U/V planes need to be switched,
     // such as with YUV_420_888.
     if (switchUV) {
         yv12_u0 = yv12_y0 + yStride * height;
@@ -891,7 +891,7 @@ static void yv12_to_rgb565(char* dest, char* src, int width, int height,
     uint8_t *yv12_u0 = yv12_v0 + cSize;
 
     // switchUV allows this function to take care of
-    // cases where the U/V plans need to be switched,
+    // cases where the U/V planes need to be switched,
     // such as with YUV_420_888.
     if (switchUV) {
         yv12_u0 = yv12_y0 + yStride * height;
@@ -1095,13 +1095,13 @@ static int gralloc_lock_ycbcr(gralloc_module_t const* module,
             cSize = cStride * cb->height/2;
             vOffset = yStride * cb->height;
             uOffset = vOffset + cSize;
+            cStep = 1;
 
             // 420_888 format will have the U/V switched.
             if (cb->format == HAL_PIXEL_FORMAT_YCbCr_420_888) {
                 uOffset = yStride * cb->height;
                 vOffset = uOffset + cSize;
             }
-            cStep = 1;
             break;
         default:
             ALOGE("gralloc_lock_ycbcr unexpected internal format %x",
