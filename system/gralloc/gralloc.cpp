@@ -680,7 +680,7 @@ static signed clamp_rgb(signed value) {
 }
 
 static void rgb565_to_yv12(char* dest, char* src, int width, int height,
-        int left, int top, int right, int bottom) {
+        int left, int top, int right, int bottom, bool switchUV) {
     int align = 16;
     int yStride = (width + (align -1)) & ~(align-1);
     int cStride = (yStride / 2 + (align - 1)) & ~(align-1);
@@ -689,8 +689,17 @@ static void rgb565_to_yv12(char* dest, char* src, int width, int height,
 
     uint16_t *rgb_ptr0 = (uint16_t *)src;
     uint8_t *yv12_y0 = (uint8_t *)dest;
+
     uint8_t *yv12_v0 = yv12_y0 + yStride * height;
     uint8_t *yv12_u0 = yv12_v0 + cSize;
+
+    // switchUV allows this function to take care of
+    // cases where the U/V plans need to be switched,
+    // such as with YUV_420_888.
+    if (switchUV) {
+        yv12_u0 = yv12_y0 + yStride * height;
+        yv12_v0 = yv12_u0 + cSize;
+    }
 
     for (int j = top; j <= bottom; ++j) {
         uint8_t *yv12_y = yv12_y0 + j * yStride;
@@ -832,7 +841,10 @@ static int gralloc_lock(gralloc_module_t const* module,
             rcEnc->rcReadColorBuffer(rcEnc, cb->hostHandle,
                     0, 0, cb->width, cb->height, cb->glFormat, cb->glType, rgb_addr);
             if (tmpBuf) {
-                rgb565_to_yv12((char*)cpu_addr, tmpBuf, cb->width, cb->height, l, t, l+w-1, t+h-1);
+                // 420_888 format is YV12 with U and V planes switched.
+                bool switchUV = cb->frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888;
+                rgb565_to_yv12((char*)cpu_addr, tmpBuf, cb->width, cb->height, l, t, l+w-1, t+h-1,
+                                switchUV);
                 delete [] tmpBuf;
             }
         }
@@ -864,7 +876,7 @@ static int gralloc_lock(gralloc_module_t const* module,
 // YV12 is aka YUV420Planar, or YUV420p; the only difference is that YV12 has
 // certain stride requirements for Y and UV respectively.
 static void yv12_to_rgb565(char* dest, char* src, int width, int height,
-        int left, int top, int right, int bottom) {
+        int left, int top, int right, int bottom, bool switchUV) {
     DD("%s convert %d by %d", __func__, width, height);
     int align = 16;
     int yStride = (width + (align -1)) & ~(align-1);
@@ -874,8 +886,17 @@ static void yv12_to_rgb565(char* dest, char* src, int width, int height,
 
     uint16_t *rgb_ptr0 = (uint16_t *)dest;
     uint8_t *yv12_y0 = (uint8_t *)src;
+
     uint8_t *yv12_v0 = yv12_y0 + yStride * height;
     uint8_t *yv12_u0 = yv12_v0 + cSize;
+
+    // switchUV allows this function to take care of
+    // cases where the U/V plans need to be switched,
+    // such as with YUV_420_888.
+    if (switchUV) {
+        yv12_u0 = yv12_y0 + yStride * height;
+        yv12_v0 = yv12_u0 + cSize;
+    }
 
     for (int j = top; j <= bottom; ++j) {
         uint8_t *yv12_y = yv12_y0 + j * yStride;
@@ -944,8 +965,11 @@ static int gralloc_unlock(gralloc_module_t const* module,
             if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12 ||
                 cb->frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) {
                 // bpp should be 2
+                // 420_888 format is YV12 with U and V planes switched.
+                bool switchUV = cb->frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888;
                 yv12_to_rgb565(tmpBuf, (char*)cpu_addr, cb->width, cb->height, cb->lockedLeft,
-                               cb->lockedTop, cb->lockedLeft+cb->lockedWidth-1, cb->lockedTop+cb->lockedHeight-1);
+                               cb->lockedTop, cb->lockedLeft+cb->lockedWidth-1, cb->lockedTop+cb->lockedHeight-1,
+                               switchUV);
             } else {
                 int dst_line_len = cb->lockedWidth * bpp;
                 int src_line_len = cb->width * bpp;
@@ -973,7 +997,9 @@ static int gralloc_unlock(gralloc_module_t const* module,
                 // for this format, we need to conver to RGB565 format
                 // before updating host
                 rgbBuf = new char[cb->width * cb->height * 2];
-                yv12_to_rgb565(rgbBuf, (char*)cpu_addr, cb->width, cb->height, 0, 0, cb->width-1, cb->height-1);
+                bool switchUV = cb->frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888;
+                yv12_to_rgb565(rgbBuf, (char*)cpu_addr, cb->width, cb->height, 0, 0, cb->width-1, cb->height-1,
+                               switchUV);
                 rgb_addr = rgbBuf;
             }
 
@@ -1069,6 +1095,12 @@ static int gralloc_lock_ycbcr(gralloc_module_t const* module,
             cSize = cStride * cb->height/2;
             vOffset = yStride * cb->height;
             uOffset = vOffset + cSize;
+
+            // 420_888 format will have the U/V switched.
+            if (cb->format == HAL_PIXEL_FORMAT_YCbCr_420_888) {
+                uOffset = yStride * cb->height;
+                vOffset = uOffset + cSize;
+            }
             cStep = 1;
             break;
         default:
