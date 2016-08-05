@@ -145,6 +145,10 @@ static int map_buffer(cb_handle_t *cb, void **vaddr)
         return -EIO; \
     }
 
+#if PLATFORM_SDK_VERSION < 18
+// On older APIs, just define it as a value no one is going to use.
+#define HAL_PIXEL_FORMAT_YCbCr_420_888 0xFFFFFFFF
+#endif
 
 //
 // gralloc device functions (alloc interface)
@@ -210,13 +214,11 @@ static int gralloc_alloc(alloc_device_t* dev,
             return -EINVAL;
         }
     }
-#if PLATFORM_SDK_VERSION >= 18
     else if (format == HAL_PIXEL_FORMAT_YCbCr_420_888) {
         ALOGW("gralloc_alloc: Requested YCbCr_420_888, taking experimental path. "
                 "usage: %d x %d, usage %x",
                 w, h, usage);
     }
-#endif // PLATFORM_SDK_VERSION >= 18
 #endif // PLATFORM_SDK_VERSION >= 17
     bool yuv_format = false;
 
@@ -412,11 +414,9 @@ static int gralloc_alloc(alloc_device_t* dev,
 
     *pHandle = cb;
     switch (frameworkFormat) {
-#if PLATFORM_SDK_VERSION >= 18
     case HAL_PIXEL_FORMAT_YCbCr_420_888:
         *pStride = 0;
         break;
-#endif // PLATFORM_SDK_VERSION >= 18
     default:
         *pStride = stride;
         break;
