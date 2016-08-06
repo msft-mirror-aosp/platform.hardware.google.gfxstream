@@ -283,12 +283,17 @@ static int gralloc_alloc(alloc_device_t* dev,
             // Not expecting to actually create any GL surfaces for this
             break;
         case HAL_PIXEL_FORMAT_YV12:
-        case HAL_PIXEL_FORMAT_YCbCr_420_888:
-            if (format == HAL_PIXEL_FORMAT_YCbCr_420_888) {
-                ALOGD("%s: 420_888 format experimental path. "
-                      "Initialize rgb565 gl format\n", __FUNCTION__);
-            }
             align = 16;
+            bpp = 1; // per-channel bpp
+            yuv_format = true;
+            // We are going to use RGB888 on the host
+            glFormat = GL_RGB;
+            glType = GL_UNSIGNED_BYTE;
+            break;
+        case HAL_PIXEL_FORMAT_YCbCr_420_888:
+            ALOGD("%s: 420_888 format experimental path. "
+                  "Initialize rgb565 gl format\n", __FUNCTION__);
+            align = 1;
             bpp = 1; // per-channel bpp
             yuv_format = true;
             // We are going to use RGB888 on the host
@@ -756,6 +761,41 @@ static void rgb888_to_yv12(char* dest, char* src, int width, int height,
     }
 }
 
+static void rgb888_to_yuv420p(char* dest, char* src, int width, int height,
+        int left, int top, int right, int bottom) {
+    DD("%s convert %d by %d", __func__, width, height);
+    int yStride = width;
+    int cStride = yStride / 2;
+    int yOffset = 0;
+    int cSize = cStride * height/2;
+    int rgb_stride = 3;
+
+    uint8_t *rgb_ptr0 = (uint8_t *)src;
+    uint8_t *yv12_y0 = (uint8_t *)dest;
+    uint8_t *yv12_u0 = yv12_y0 + yStride * height;
+    uint8_t *yv12_v0 = yv12_u0 + cSize;
+
+    for (int j = top; j <= bottom; ++j) {
+        uint8_t *yv12_y = yv12_y0 + j * yStride;
+        uint8_t *yv12_u = yv12_u0 + (j/2) * cStride;
+        uint8_t *yv12_v = yv12_u + cStride;
+        uint8_t  *rgb_ptr = rgb_ptr0 + j * width*rgb_stride;
+        bool jeven = (j & 1) == 0;
+        for (int i = left; i <= right; ++i) {
+            uint8_t R = rgb_ptr[i*rgb_stride];
+            uint8_t G = rgb_ptr[i*rgb_stride+1];
+            uint8_t B = rgb_ptr[i*rgb_stride+2];
+            // convert to YV12
+            // frameworks/base/core/jni/android_hardware_camera2_legacy_LegacyCameraDevice.cpp
+            yv12_y[i] = clamp_rgb((77 * R + 150 * G +  29 * B) >> 8);
+            bool ieven = (i & 1) == 0;
+            if (jeven && ieven) {
+                yv12_u[i] = clamp_rgb((( -43 * R - 85 * G + 128 * B) >> 8) + 128);
+                yv12_v[i] = clamp_rgb((( 128 * R - 107 * G - 21 * B) >> 8) + 128);
+            }
+        }
+    }
+}
 
 static int gralloc_lock(gralloc_module_t const* module,
                         buffer_handle_t handle, int usage,
@@ -871,7 +911,11 @@ static int gralloc_lock(gralloc_module_t const* module,
             rcEnc->rcReadColorBuffer(rcEnc, cb->hostHandle,
                     0, 0, cb->width, cb->height, cb->glFormat, cb->glType, rgb_addr);
             if (tmpBuf) {
-                rgb888_to_yv12((char*)cpu_addr, tmpBuf, cb->width, cb->height, l, t, l+w-1, t+h-1);
+                if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12) {
+                    rgb888_to_yv12((char*)cpu_addr, tmpBuf, cb->width, cb->height, l, t, l+w-1, t+h-1);
+                } else if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) {
+                    rgb888_to_yuv420p((char*)cpu_addr, tmpBuf, cb->width, cb->height, l, t, l+w-1, t+h-1);
+                }
                 delete [] tmpBuf;
             }
         }
@@ -991,6 +1035,50 @@ static void yv12_to_rgb888(char* dest, char* src, int width, int height,
     }
 }
 
+// YV12 is aka YUV420Planar, or YUV420p; the only difference is that YV12 has
+// certain stride requirements for Y and UV respectively.
+static void yuv420p_to_rgb888(char* dest, char* src, int width, int height,
+        int left, int top, int right, int bottom) {
+    DD("%s convert %d by %d", __func__, width, height);
+    int yStride = width;
+    int cStride = yStride / 2;
+    int yOffset = 0;
+    int cSize = cStride * height/2;
+    int rgb_stride = 3;
+
+    uint8_t *rgb_ptr0 = (uint8_t *)dest;
+    uint8_t *yv12_y0 = (uint8_t *)src;
+    uint8_t *yv12_u0 = yv12_y0 + yStride * height;
+    uint8_t *yv12_v0 = yv12_u0 + cSize;
+
+    for (int j = top; j <= bottom; ++j) {
+        uint8_t *yv12_y = yv12_y0 + j * yStride;
+        uint8_t *yv12_u = yv12_u0 + (j/2) * cStride;
+        uint8_t *yv12_v = yv12_u + cSize;
+        uint8_t *rgb_ptr = rgb_ptr0 + (j-top) * (right-left+1) * rgb_stride;
+        for (int i = left; i <= right; ++i) {
+            // convert to rgb
+            // frameworks/av/media/libstagefright/colorconversion/ColorConverter.cpp
+            signed y1 = (signed)yv12_y[i] - 16;
+            signed u = (signed)yv12_u[i / 2] - 128;
+            signed v = (signed)yv12_v[i / 2] - 128;
+
+            signed u_b = u * 517;
+            signed u_g = -u * 100;
+            signed v_g = -v * 208;
+            signed v_r = v * 409;
+
+            signed tmp1 = y1 * 298;
+            signed b1 = clamp_rgb((tmp1 + u_b) / 256);
+            signed g1 = clamp_rgb((tmp1 + v_g + u_g) / 256);
+            signed r1 = clamp_rgb((tmp1 + v_r) / 256);
+
+            rgb_ptr[(i-left)*rgb_stride] = r1;
+            rgb_ptr[(i-left)*rgb_stride+1] = g1;
+            rgb_ptr[(i-left)*rgb_stride+2] = b1;
+        }
+    }
+}
 
 static int gralloc_unlock(gralloc_module_t const* module,
                           buffer_handle_t handle)
@@ -1027,9 +1115,11 @@ static int gralloc_unlock(gralloc_module_t const* module,
         if (cb->lockedWidth < cb->width || cb->lockedHeight < cb->height) {
             int bpp = glUtilsPixelBitSize(cb->glFormat, cb->glType) >> 3;
             char *tmpBuf = new char[cb->lockedWidth * cb->lockedHeight * bpp];
-            if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12 ||
-                cb->frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) {
+            if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12) {
                 yv12_to_rgb888(tmpBuf, (char*)cpu_addr, cb->width, cb->height, cb->lockedLeft,
+                               cb->lockedTop, cb->lockedLeft+cb->lockedWidth-1, cb->lockedTop+cb->lockedHeight-1);
+            } else if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) {
+                yuv420p_to_rgb888(tmpBuf, (char*)cpu_addr, cb->width, cb->height, cb->lockedLeft,
                                cb->lockedTop, cb->lockedLeft+cb->lockedWidth-1, cb->lockedTop+cb->lockedHeight-1);
             } else {
                 int dst_line_len = cb->lockedWidth * bpp;
@@ -1053,12 +1143,17 @@ static int gralloc_unlock(gralloc_module_t const* module,
         }
         else {
             char* rgbBuf = 0;
-            if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12 ||
-                cb->frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) {
+            if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12) {
                 // for this format, we need to convert to RGB888 format
                 // before updating host
                 rgbBuf = new char[cb->width * cb->height * 3];
                 yv12_to_rgb888(rgbBuf, (char*)cpu_addr, cb->width, cb->height, 0, 0, cb->width-1, cb->height-1);
+                rgb_addr = rgbBuf;
+            } else if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) {
+                // for this format, we need to convert to RGB888 format
+                // before updating host
+                rgbBuf = new char[cb->width * cb->height * 3];
+                yuv420p_to_rgb888(rgbBuf, (char*)cpu_addr, cb->width, cb->height, 0, 0, cb->width-1, cb->height-1);
                 rgb_addr = rgbBuf;
             }
 
@@ -1145,7 +1240,6 @@ static int gralloc_lock_ycbcr(gralloc_module_t const* module,
             cStep = 2;
             break;
         case HAL_PIXEL_FORMAT_YV12:
-        case HAL_PIXEL_FORMAT_YCbCr_420_888:
             // https://developer.android.com/reference/android/graphics/ImageFormat.html#YV12
             align = 16;
             yStride = (cb->width + (align -1)) & ~(align-1);
@@ -1154,6 +1248,16 @@ static int gralloc_lock_ycbcr(gralloc_module_t const* module,
             cSize = cStride * cb->height/2;
             vOffset = yStride * cb->height;
             uOffset = vOffset + cSize;
+            cStep = 1;
+            break;
+        case HAL_PIXEL_FORMAT_YCbCr_420_888:
+            align = 1;
+            yStride = cb->width;
+            cStride = yStride / 2;
+            yOffset = 0;
+            cSize = cStride * cb->height/2;
+            uOffset = yStride * cb->height;
+            vOffset = uOffset + cSize;
             cStep = 1;
             break;
         default:
