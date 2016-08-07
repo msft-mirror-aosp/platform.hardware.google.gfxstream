@@ -377,7 +377,6 @@ static int gralloc_alloc(alloc_device_t* dev,
 #if PLATFORM_SDK_VERSION >= 15
         if (usage & (GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_RENDER |
                      GRALLOC_USAGE_HW_2D | GRALLOC_USAGE_HW_COMPOSER |
-                     GRALLOC_USAGE_HW_VIDEO_ENCODER |
                      GRALLOC_USAGE_HW_FB | GRALLOC_USAGE_SW_READ_MASK) ) {
 #else // PLATFORM_SDK_VERSION
         if (usage & (GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_RENDER |
