@@ -99,7 +99,6 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     OVERRIDE(glGetShaderSource);
     OVERRIDE(glGetShaderInfoLog);
     OVERRIDE(glGetProgramInfoLog);
-    OVERRIDE(glGetProgramiv);
 
     OVERRIDE(glGetUniformLocation);
     OVERRIDE(glUseProgram);
@@ -167,6 +166,7 @@ GLenum GL2Encoder::s_glGetError(void * self)
     }
 
     return ctx->m_glGetError_enc(self);
+
 }
 
 void GL2Encoder::s_glFlush(void *self)
@@ -997,33 +997,6 @@ void GL2Encoder::s_glGetProgramInfoLog(void *self, GLuint program, GLsizei bufsi
     GL2Encoder *ctx = (GL2Encoder*)self;
     SET_ERROR_IF(bufsize < 0, GL_INVALID_VALUE);
     ctx->m_glGetProgramInfoLog_enc(self, program, bufsize, length, infolog);
-}
-
-void GL2Encoder::s_glGetProgramiv(void *self, GLuint program, GLenum pname,
-            GLint* params)
-{
-    // We need to do the validation here because the spec says if an error is
-    // generated, no change is made to the contents of params. Our encoder does
-    // not respect this.
-    GL2Encoder *ctx = (GL2Encoder*)self;
-    switch (pname) {
-        case GL_DELETE_STATUS:
-        case GL_LINK_STATUS:
-        case GL_VALIDATE_STATUS:
-        case GL_INFO_LOG_LENGTH:
-        case GL_ATTACHED_SHADERS:
-        case GL_ACTIVE_ATTRIBUTES:
-        case GL_ACTIVE_ATTRIBUTE_MAX_LENGTH:
-        case GL_ACTIVE_UNIFORMS:
-        case GL_ACTIVE_UNIFORM_MAX_LENGTH:
-            break;
-        default:
-            SET_ERROR_IF(1, GL_INVALID_ENUM);
-            break;
-    }
-    SET_ERROR_IF(!ctx->m_shared->isObject(program), GL_INVALID_VALUE);
-    SET_ERROR_IF(!ctx->m_shared->isProgram(program), GL_INVALID_OPERATION);
-    ctx->m_glGetProgramiv_enc(self, program, pname, params);
 }
 
 void GL2Encoder::s_glDeleteShader(void *self, GLenum shader)
