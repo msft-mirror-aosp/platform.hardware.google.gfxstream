@@ -174,10 +174,6 @@ private:
     static void s_glGetProgramInfoLog(void *self,GLuint program,
             GLsizei bufsize, GLsizei* length, GLchar* infolog);
 
-    glGetProgramiv_client_proc_t m_glGetProgramiv_enc;
-    static void s_glGetProgramiv(void *self, GLuint program, GLenum pname,
-            GLint* params);
-
     glGetUniformLocation_client_proc_t m_glGetUniformLocation_enc;
     static int s_glGetUniformLocation(void *self, GLuint program, const GLchar *name);
     glUseProgram_client_proc_t m_glUseProgram_enc;
