@@ -855,7 +855,9 @@ static int gralloc_lock(gralloc_module_t const* module,
          (sw_write && !sw_write_allowed) ) {
         ALOGE("gralloc_lock usage mismatch usage=0x%x cb->usage=0x%x\n", usage,
                 cb->usage);
-        return -EINVAL;
+        //This is not exactly an error and loose it up.
+        //bug: 30784436
+        //return -EINVAL;
     }
 
     intptr_t postCount = 0;
