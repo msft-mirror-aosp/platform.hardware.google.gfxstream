@@ -23,14 +23,10 @@
 #include <sys/mman.h>
 #include "gralloc_cb.h"
 #include "HostConnection.h"
+#include "ProcessPipe.h"
 #include "glUtils.h"
 #include <cutils/log.h>
 #include <cutils/properties.h>
-#if PLATFORM_SDK_VERSION > 24
-#include <system/qemu_pipe.h>
-#else // PLATFORM_SDK_VERSION
-#include <hardware/qemu_pipe.h>
-#endif //PLATFORM_SDK_VERSION
 
 /* Set to 1 or 2 to enable debug traces */
 #define DEBUG  0
@@ -49,12 +45,6 @@
 
 #define DBG_FUNC DBG("%s\n", __FUNCTION__)
 
-// Associate PUID (process unique ID) with color buffers
-// See the comments in gralloc_proc_init() for more details
-#define PUID_CMD(func, ...) \
-    (sGrallocProcPipe ? rcEnc->func##Puid(rcEnc, __VA_ARGS__, sGrallocProcID) \
-                     : rcEnc->func(rcEnc, __VA_ARGS__))
-
 //
 // our private gralloc module structure
 //
@@ -71,13 +61,6 @@ static pthread_once_t     sFallbackOnce = PTHREAD_ONCE_INIT;
 
 static void fallback_init(void);  // forward
 
-
-static int                sGrallocProcPipe = 0;
-static pthread_once_t     sGrallocProcPipeOnce = PTHREAD_ONCE_INIT;
-// sGrallocProcID is a unique ID pre process assigned by the host.
-// It is different from getpid().
-static uint64_t           sGrallocProcID = 0;
-static void gralloc_proc_init();
 
 typedef struct _alloc_list_node {
     buffer_handle_t handle;
@@ -388,8 +371,7 @@ static int gralloc_alloc(alloc_device_t* dev,
                   __FUNCTION__, frameworkFormat, usage);
             DEFINE_HOST_CONNECTION;
             if (hostCon && rcEnc) {
-                pthread_once(&sGrallocProcPipeOnce, gralloc_proc_init);
-                cb->hostHandle = PUID_CMD(rcCreateColorBuffer, w, h, glFormat);
+                cb->hostHandle = PUID_CMD(rcEnc, rcCreateColorBuffer, w, h, glFormat);
                 D("Created host ColorBuffer 0x%x\n", cb->hostHandle);
             }
 
@@ -441,8 +423,7 @@ static int gralloc_free(alloc_device_t* dev,
     if (cb->hostHandle != 0) {
         DEFINE_AND_VALIDATE_HOST_CONNECTION;
         D("Closing host ColorBuffer 0x%x\n", cb->hostHandle);
-        pthread_once(&sGrallocProcPipeOnce, gralloc_proc_init);
-        PUID_CMD(rcCloseColorBuffer, cb->hostHandle);
+        PUID_CMD(rcEnc, rcCloseColorBuffer, cb->hostHandle);
     }
 
     //
@@ -599,7 +580,6 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
     if (sFallback != NULL) {
         return sFallback->registerBuffer(sFallback, handle);
     }
-    pthread_once(&sGrallocProcPipeOnce, gralloc_proc_init);
 
     D("gralloc_register_buffer(%p) called", handle);
 
@@ -613,7 +593,7 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
     if (cb->hostHandle != 0) {
         DEFINE_AND_VALIDATE_HOST_CONNECTION;
         D("Opening host ColorBuffer 0x%x\n", cb->hostHandle);
-        PUID_CMD(rcOpenColorBuffer2, cb->hostHandle);
+        PUID_CMD(rcEnc, rcOpenColorBuffer2, cb->hostHandle);
     }
 
     //
@@ -650,8 +630,7 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
     if (cb->hostHandle != 0) {
         DEFINE_AND_VALIDATE_HOST_CONNECTION;
         D("Closing host ColorBuffer 0x%x\n", cb->hostHandle);
-        pthread_once(&sGrallocProcPipeOnce, gralloc_proc_init);
-        PUID_CMD(rcCloseColorBuffer, cb->hostHandle);
+        PUID_CMD(rcEnc, rcCloseColorBuffer, cb->hostHandle);
     }
 
     //
@@ -1477,45 +1456,5 @@ fallback_init(void)
     }
     if (sFallback == NULL) {
         ALOGE("Could not find software fallback module!?");
-    }
-}
-
-// The host associates color buffers with processes for memory cleanup.
-// It will fallback to the default path if the host does not support it.
-// Processes are identified by acquiring a per-process 64bit unique ID from the
-// host.
-static void gralloc_proc_init() {
-    sGrallocProcPipe = qemu_pipe_open("grallocPipe");
-    if (sGrallocProcPipe < 0) {
-        sGrallocProcPipe = 0;
-        ALOGW("Gralloc pipe failed");
-        return;
-    }
-    // Send a confirmation int to the host
-    int32_t confirmInt = 100;
-    ssize_t stat = 0;
-    do {
-        stat = ::write(sGrallocProcPipe, (const char*)&confirmInt,
-                sizeof(confirmInt));
-    } while (stat < 0 && errno == EINTR);
-
-    if (stat != sizeof(confirmInt)) { // failed
-        close(sGrallocProcPipe);
-        sGrallocProcPipe = 0;
-        ALOGW("Gralloc pipe failed");
-        return;
-    }
-
-    // Ask the host for pre-process unique ID
-    do {
-        stat = ::read(sGrallocProcPipe, (char*)&sGrallocProcID,
-                      sizeof(sGrallocProcID));
-    } while (stat < 0 && errno == EINTR);
-
-    if (stat != sizeof(sGrallocProcID)) {
-        close(sGrallocProcPipe);
-        sGrallocProcPipe = 0;
-        ALOGW("Gralloc pipe failed");
-        return;
     }
 }

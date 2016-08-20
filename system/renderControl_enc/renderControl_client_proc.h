@@ -44,6 +44,8 @@ typedef void (renderControl_APIENTRY *rcCloseColorBufferPuid_client_proc_t) (voi
 typedef void (renderControl_APIENTRY *rcCreateSyncKHR_client_proc_t) (void * ctx, EGLenum, EGLint*, uint32_t, uint64_t*, uint64_t*);
 typedef EGLint (renderControl_APIENTRY *rcClientWaitSyncKHR_client_proc_t) (void * ctx, uint64_t, EGLint, uint64_t);
 typedef void (renderControl_APIENTRY *rcFlushWindowColorBufferAsync_client_proc_t) (void * ctx, uint32_t);
+typedef uint32_t (renderControl_APIENTRY *rcCreateClientImagePuid_client_proc_t) (void * ctx, uint32_t, EGLenum, GLuint, uint64_t);
+typedef int (renderControl_APIENTRY *rcDestroyClientImagePuid_client_proc_t) (void * ctx, uint32_t, uint64_t);
 
 
 #endif
