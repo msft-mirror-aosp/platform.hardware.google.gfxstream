@@ -45,6 +45,7 @@ static const struct _renderControl_funcs_by_name {
 	{"rcFlushWindowColorBufferAsync", (void*)rcFlushWindowColorBufferAsync},
 	{"rcCreateClientImagePuid", (void*)rcCreateClientImagePuid},
 	{"rcDestroyClientImagePuid", (void*)rcDestroyClientImagePuid},
+	{"rcDestroySyncKHR", (void*)rcDestroySyncKHR},
 };
 static const int renderControl_num_funcs = sizeof(renderControl_funcs_by_name) / sizeof(struct _renderControl_funcs_by_name);
 

@@ -40,7 +40,8 @@
 #define OP_rcFlushWindowColorBufferAsync 					10034
 #define OP_rcCreateClientImagePuid 					10035
 #define OP_rcDestroyClientImagePuid 					10036
-#define OP_last 					10037
+#define OP_rcDestroySyncKHR 					10037
+#define OP_last 					10038
 
 
 #endif

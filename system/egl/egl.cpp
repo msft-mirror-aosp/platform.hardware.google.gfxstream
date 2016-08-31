@@ -355,6 +355,62 @@ void egl_window_surface_t::setSwapInterval(int interval)
     nativeWindow->setSwapInterval(nativeWindow, interval);
 }
 
+// createNativeSync() creates an OpenGL sync object on the host
+// using rcCreateSyncKHR. If necessary, a native fence FD will
+// also be created through the goldfish sync device.
+// Returns a handle to the host-side FenceSync object.
+static uint64_t createNativeSync(EGLenum type,
+                                 const EGLint* attrib_list,
+                                 int num_actual_attribs,
+                                 bool destroy_when_signaled,
+                                 int fd_in,
+                                 int* fd_out) {
+    DEFINE_HOST_CONNECTION;
+
+    uint64_t sync_handle;
+    uint64_t thread_handle;
+
+    EGLint* actual_attribs =
+        (EGLint*)(num_actual_attribs == 0 ? NULL : attrib_list);
+
+    rcEnc->rcCreateSyncKHR(rcEnc, type,
+                           actual_attribs,
+                           num_actual_attribs * sizeof(EGLint),
+                           destroy_when_signaled,
+                           &sync_handle,
+                           &thread_handle);
+
+    if (type == EGL_SYNC_NATIVE_FENCE_ANDROID && fd_in < 0) {
+        int queue_work_err =
+            goldfish_sync_queue_work(
+                    getEGLThreadInfo()->currentContext->getGoldfishSyncFd(),
+                    sync_handle,
+                    thread_handle,
+                    fd_out);
+
+        DPRINT("got native fence fd=%d queue_work_err=%d",
+               *fd_out, queue_work_err);
+    }
+
+    return sync_handle;
+}
+
+// createGoldfishOpenGLNativeSync() is for creating host-only sync objects
+// that are needed by only this goldfish opengl driver,
+// such as in swapBuffers().
+// The guest will not see any of these, and these sync objects will be
+// destroyed on the host when signaled.
+// A native fence FD is possibly returned.
+static void createGoldfishOpenGLNativeSync(int* fd_out) {
+    createNativeSync(EGL_SYNC_NATIVE_FENCE_ANDROID,
+                     NULL /* empty attrib list */,
+                     0 /* 0 attrib count */,
+                     true /* destroy when signaled. this is host-only
+                             and there will only be one waiter */,
+                     -1 /* we want a new fd */,
+                     fd_out);
+}
+
 EGLBoolean egl_window_surface_t::swapBuffers()
 {
 
@@ -386,11 +442,7 @@ EGLBoolean egl_window_surface_t::swapBuffers()
 #else
     if (rcEnc->hasNativeSync()) {
         rcEnc->rcFlushWindowColorBufferAsync(rcEnc, rcSurface);
-        EGLSyncKHR sync = eglCreateSyncKHR(dpy,
-                                           EGL_SYNC_NATIVE_FENCE_ANDROID,
-                                           NULL);
-        EGLSync_t* syncObj = (EGLSync_t*)sync;
-        presentFenceFd = syncObj->android_native_fence_fd;
+        createGoldfishOpenGLNativeSync(&presentFenceFd);
     } else {
         rcEnc->rcFlushWindowColorBuffer(rcEnc, rcSurface);
         // equivalent to glFinish if no native sync
@@ -1436,7 +1488,6 @@ EGLBoolean eglDestroyImageKHR(EGLDisplay dpy, EGLImageKHR img)
 #define FENCE_SYNC_HANDLE (EGLSyncKHR)0xFE4CE
 #define MAX_EGL_SYNC_ATTRIBS 10
 
-
 EGLSyncKHR eglCreateSyncKHR(EGLDisplay dpy, EGLenum type,
         const EGLint *attrib_list)
 {
@@ -1499,33 +1550,16 @@ EGLSyncKHR eglCreateSyncKHR(EGLDisplay dpy, EGLenum type,
     }
 
     uint64_t sync_handle = 0;
-    int native_fence_fd = -1;
+    int newFenceFd = -1;
 
-    EGLContext_t* cxt = getEGLThreadInfo()->currentContext;
     if (rcEnc->hasNativeSync()) {
-        uint64_t thread_out = 0;
-
-        rcEnc->rcCreateSyncKHR(rcEnc,
-                type,
-                (EGLint*)(num_actual_attribs == 0 ? NULL : attrib_list),
-                num_actual_attribs * sizeof(EGLint),
-                &sync_handle,
-                &thread_out);
-
-        if (sync_handle && thread_out &&
-            (type == EGL_SYNC_NATIVE_FENCE_ANDROID) &&
-            (inputFenceFd < 0)) {
-
-            int goldfish_sync_fd = cxt->getGoldfishSyncFd();
-            int queue_work_err =
-                goldfish_sync_queue_work(goldfish_sync_fd,
-                        sync_handle,
-                        thread_out,
-                        &native_fence_fd);
-
-            DPRINT("got native fence fd=%d queue_work_err=%d",
-                   native_fence_fd, queue_work_err);
-        }
+        sync_handle =
+            createNativeSync(type, attrib_list, num_actual_attribs,
+                             false /* don't destroy when signaled on the host;
+                                      let the guest clean this up,
+                                      because the guest called eglCreateSyncKHR. */,
+                             inputFenceFd,
+                             &newFenceFd);
 
     } else {
         // Just trigger a glFinish if the native sync on host
@@ -1539,7 +1573,7 @@ EGLSyncKHR eglCreateSyncKHR(EGLDisplay dpy, EGLenum type,
         syncRes->type = EGL_SYNC_NATIVE_FENCE_ANDROID;
 
         if (inputFenceFd < 0) {
-            syncRes->android_native_fence_fd = native_fence_fd;
+            syncRes->android_native_fence_fd = newFenceFd;
         } else {
             DPRINT("has input fence fd %d",
                     inputFenceFd);
@@ -1569,7 +1603,13 @@ EGLBoolean eglDestroySyncKHR(EGLDisplay dpy, EGLSyncKHR eglsync)
         sync->android_native_fence_fd = -1;
     }
 
-    if (sync) delete sync;
+    if (sync) {
+        DEFINE_HOST_CONNECTION;
+        if (rcEnc->hasNativeSync()) {
+            rcEnc->rcDestroySyncKHR(rcEnc, sync->handle);
+        }
+        delete sync;
+    }
 
     return EGL_TRUE;
 }
