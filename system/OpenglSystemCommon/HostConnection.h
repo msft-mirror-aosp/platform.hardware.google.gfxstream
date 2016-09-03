@@ -44,7 +44,10 @@ enum SyncImpl {
 // Interface:
 // If this GL extension string shows up, we use
 // SYNC_IMPL_NATIVE_SYNC, otherwise we use SYNC_IMPL_NONE.
-static const char kRCNativeSync[] = "ANDROID_EMU_NATIVE_SYNC";
+// This string is always updated to require the _latest_
+// version of Android emulator native sync in this system image;
+// otherwise, we do not use the feature.
+static const char kRCNativeSync[] = "ANDROID_EMU_native_sync_v2";
 
 // ExtendedRCEncoderContext is an extended version of renderControl_encoder_context_t
 // that will be used to track SyncImpl.
