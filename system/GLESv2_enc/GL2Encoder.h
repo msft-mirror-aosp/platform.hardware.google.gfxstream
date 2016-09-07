@@ -44,7 +44,7 @@ public:
     virtual GLenum getError() { return m_error; };
 
     void override2DTextureTarget(GLenum target);
-    void restore2DTextureTarget();
+    void restore2DTextureTarget(GLenum target);
 
 
 private:
@@ -65,6 +65,7 @@ private:
 
     void sendVertexAttributes(GLint first, GLsizei count);
     bool updateHostTexture2DBinding(GLenum texUnit, GLenum newTarget);
+    bool texture2DNeedsOverride(GLenum target) const;
     bool isCompleteFbo(const GLClientState* state, GLenum attachment) const;
 
     glGetError_client_proc_t    m_glGetError_enc;
