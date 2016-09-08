@@ -1315,7 +1315,7 @@ void GL2Encoder::s_glGetTexParameterfv(void* self,
     if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
         ctx->override2DTextureTarget(target);
         ctx->m_glGetTexParameterfv_enc(ctx, GL_TEXTURE_2D, pname, params);
-        ctx->restore2DTextureTarget();
+        ctx->restore2DTextureTarget(target);
     } else {
         ctx->m_glGetTexParameterfv_enc(ctx, target, pname, params);
     }
@@ -1336,7 +1336,7 @@ void GL2Encoder::s_glGetTexParameteriv(void* self,
         if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
             ctx->override2DTextureTarget(target);
             ctx->m_glGetTexParameteriv_enc(ctx, GL_TEXTURE_2D, pname, params);
-            ctx->restore2DTextureTarget();
+            ctx->restore2DTextureTarget(target);
         } else {
             ctx->m_glGetTexParameteriv_enc(ctx, target, pname, params);
         }
@@ -1373,7 +1373,7 @@ void GL2Encoder::s_glTexParameterf(void* self,
     if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
         ctx->override2DTextureTarget(target);
         ctx->m_glTexParameterf_enc(ctx, GL_TEXTURE_2D, pname, param);
-        ctx->restore2DTextureTarget();
+        ctx->restore2DTextureTarget(target);
     } else {
         ctx->m_glTexParameterf_enc(ctx, target, pname, param);
     }
@@ -1392,7 +1392,7 @@ void GL2Encoder::s_glTexParameterfv(void* self,
     if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
         ctx->override2DTextureTarget(target);
         ctx->m_glTexParameterfv_enc(ctx, GL_TEXTURE_2D, pname, params);
-        ctx->restore2DTextureTarget();
+        ctx->restore2DTextureTarget(target);
     } else {
         ctx->m_glTexParameterfv_enc(ctx, target, pname, params);
     }
@@ -1411,7 +1411,7 @@ void GL2Encoder::s_glTexParameteri(void* self,
     if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
         ctx->override2DTextureTarget(target);
         ctx->m_glTexParameteri_enc(ctx, GL_TEXTURE_2D, pname, param);
-        ctx->restore2DTextureTarget();
+        ctx->restore2DTextureTarget(target);
     } else {
         ctx->m_glTexParameteri_enc(ctx, target, pname, param);
     }
@@ -1431,7 +1431,7 @@ void GL2Encoder::s_glTexImage2D(void* self, GLenum target, GLint level,
 
         ctx->m_glTexImage2D_enc(ctx, target, level, internalformat, width,
                 height, border, format, type, pixels);
-        ctx->restore2DTextureTarget();
+        ctx->restore2DTextureTarget(target);
     } else {
         ctx->m_glTexImage2D_enc(ctx, target, level, internalformat, width,
                 height, border, format, type, pixels);
@@ -1448,7 +1448,7 @@ void GL2Encoder::s_glTexSubImage2D(void* self, GLenum target, GLint level,
         ctx->override2DTextureTarget(target);
         ctx->m_glTexSubImage2D_enc(ctx, target, level, xoffset, yoffset, width,
                 height, format, type, pixels);
-        ctx->restore2DTextureTarget();
+        ctx->restore2DTextureTarget(target);
     } else {
         ctx->m_glTexSubImage2D_enc(ctx, target, level, xoffset, yoffset, width,
                 height, format, type, pixels);
@@ -1468,26 +1468,32 @@ void GL2Encoder::s_glTexParameteriv(void* self,
     if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
         ctx->override2DTextureTarget(target);
         ctx->m_glTexParameteriv_enc(ctx, GL_TEXTURE_2D, pname, params);
-        ctx->restore2DTextureTarget();
+        ctx->restore2DTextureTarget(target);
     } else {
         ctx->m_glTexParameteriv_enc(ctx, target, pname, params);
     }
 }
 
+bool GL2Encoder::texture2DNeedsOverride(GLenum target) const {
+    return (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) &&
+           target != m_state->getPriorityEnabledTarget(GL_TEXTURE_2D);
+}
+
 void GL2Encoder::override2DTextureTarget(GLenum target)
 {
-    if ((target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) &&
-        target != m_state->getPriorityEnabledTarget(GL_TEXTURE_2D)) {
-            m_glBindTexture_enc(this, GL_TEXTURE_2D,
-                    m_state->getBoundTexture(target));
+    if (texture2DNeedsOverride(target)) {
+        m_glBindTexture_enc(this, GL_TEXTURE_2D,
+                m_state->getBoundTexture(target));
     }
 }
 
-void GL2Encoder::restore2DTextureTarget()
+void GL2Encoder::restore2DTextureTarget(GLenum target)
 {
-    GLenum priorityTarget = m_state->getPriorityEnabledTarget(GL_TEXTURE_2D);
-    m_glBindTexture_enc(this, GL_TEXTURE_2D,
-            m_state->getBoundTexture(priorityTarget));
+    if (texture2DNeedsOverride(target)) {
+        m_glBindTexture_enc(this, GL_TEXTURE_2D,
+                m_state->getBoundTexture(
+                    m_state->getPriorityEnabledTarget(GL_TEXTURE_2D)));
+    }
 }
 
 void GL2Encoder::s_glGenRenderbuffers(void* self,
