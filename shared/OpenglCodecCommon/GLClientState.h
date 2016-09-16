@@ -33,6 +33,7 @@
 #include "codec_defs.h"
 
 #include <vector>
+#include <set>
 
 // Tracking framebuffer objects:
 // which framebuffer is bound,
@@ -233,6 +234,18 @@ public:
     // Return the texture currently bound to GL_TEXTURE_(2D|EXTERNAL_OES).
     GLuint getBoundTexture(GLenum target) const;
 
+    // For AMD GPUs, it is easy for the emulator to segfault
+    // (esp. in dEQP) when a cube map is defined using glCopyTexImage2D
+    // and uses GL_LUMINANCE as internal format.
+    // In particular, the segfault happens when negative components of
+    // cube maps are defined before positive ones,
+    // This procedure checks internal state to see if we have defined
+    // the positive component of a cube map already. If not, it returns
+    // which positive component needs to be defined first.
+    // If there is no need for the extra definition, 0 is returned.
+    GLenum copyTexImageLuminanceCubeMapAMDWorkaround(GLenum target, GLint level,
+                                                     GLenum internalformat);
+
     // Tracks the format of the currently bound texture.
     // This is to pass dEQP tests for fbo completeness.
     void setBoundTextureInternalFormat(GLenum target, GLint format);
@@ -319,6 +332,32 @@ private:
     };
     TextureState m_tex;
 
+    // State tracking of cube map definitions.
+    // Currently used only for driver workarounds
+    // when using GL_LUMINANCE and defining cube maps with
+    // glCopyTexImage2D.
+    struct CubeMapDef {
+        GLuint id;
+        GLenum target;
+        GLint level;
+        GLenum internalformat;
+    };
+    struct CubeMapDefCompare {
+        bool operator() (const CubeMapDef& a,
+                         const CubeMapDef& b) const {
+            if (a.id != b.id) return a.id < b.id;
+            if (a.target != b.target) return a.target < b.target;
+            if (a.level != b.level) return a.level < b.level;
+            if (a.internalformat != b.internalformat)
+                return a.internalformat < b.internalformat;
+            return false;
+        }
+    };
+    std::set<CubeMapDef, CubeMapDefCompare> m_cubeMapDefs;
+    void writeCopyTexImageState(GLenum target, GLint level,
+                                GLenum internalformat);
+    GLenum copyTexImageNeededTarget(GLenum target, GLint level,
+                                    GLenum internalformat);
 
     struct RboState {
         GLuint boundRenderbuffer;

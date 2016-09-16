@@ -433,6 +433,72 @@ GLuint GLClientState::getBoundTexture(GLenum target) const
     }
 }
 
+// BEGIN driver workarounds-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+// (>' ')><(' '<)(>' ')><(' '<)(>' ')><(' '<)(>' ')><(' '<)(>' ')><(' '<)(>' ')>
+
+static bool unreliableInternalFormat(GLenum internalformat) {
+    switch (internalformat) {
+    case GL_LUMINANCE:
+        return true;
+    default:
+        return false;
+    }
+}
+
+void GLClientState::writeCopyTexImageState
+    (GLenum target, GLint level, GLenum internalformat) {
+    if (unreliableInternalFormat(internalformat)) {
+        CubeMapDef entry;
+        entry.id = getBoundTexture(GL_TEXTURE_2D);
+        entry.target = target;
+        entry.level = level;
+        entry.internalformat = internalformat;
+        m_cubeMapDefs.insert(entry);
+    }
+}
+
+static GLenum identifyPositiveCubeMapComponent(GLenum target) {
+    switch (target) {
+    case GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
+        return GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+    case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
+        return GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
+    case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
+        return GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
+    default:
+        return 0;
+    }
+}
+
+GLenum GLClientState::copyTexImageNeededTarget
+    (GLenum target, GLint level, GLenum internalformat) {
+    if (unreliableInternalFormat(internalformat)) {
+        GLenum positiveComponent =
+            identifyPositiveCubeMapComponent(target);
+        if (positiveComponent) {
+            CubeMapDef query;
+            query.id = getBoundTexture(GL_TEXTURE_2D);
+            query.target = positiveComponent;
+            query.level = level;
+            query.internalformat = internalformat;
+            if (m_cubeMapDefs.find(query) ==
+                m_cubeMapDefs.end()) {
+                return positiveComponent;
+            }
+        }
+    }
+    return 0;
+}
+
+GLenum GLClientState::copyTexImageLuminanceCubeMapAMDWorkaround
+    (GLenum target, GLint level, GLenum internalformat) {
+    writeCopyTexImageState(target, level, internalformat);
+    return copyTexImageNeededTarget(target, level, internalformat);
+}
+
+// (>' ')><(' '<)(>' ')><(' '<)(>' ')><(' '<)(>' ')><(' '<)(>' ')><(' '<)(>' ')>
+// END driver workarounds-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+
 void GLClientState::deleteTextures(GLsizei n, const GLuint* textures)
 {
     // Updating the textures array could be made more efficient when deleting

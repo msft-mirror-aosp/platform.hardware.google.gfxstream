@@ -231,6 +231,7 @@ private:
     glTexParameteriv_client_proc_t m_glTexParameteriv_enc;
     glTexImage2D_client_proc_t m_glTexImage2D_enc;
     glTexSubImage2D_client_proc_t m_glTexSubImage2D_enc;
+    glCopyTexImage2D_client_proc_t m_glCopyTexImage2D_enc;
 
     static void s_glActiveTexture(void* self, GLenum texture);
     static void s_glBindTexture(void* self, GLenum target, GLuint texture);
@@ -247,6 +248,8 @@ private:
     static void s_glTexSubImage2D(void* self, GLenum target, GLint level, GLint xoffset,
             GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type,
             const GLvoid* pixels);
+    static void s_glCopyTexImage2D(void* self, GLenum target, GLint level, GLenum internalformat,
+            GLint x, GLint y, GLsizei width, GLsizei height, GLint border);
 
     glGenRenderbuffers_client_proc_t m_glGenRenderbuffers_enc;
     static void s_glGenRenderbuffers(void* self, GLsizei n, GLuint* renderbuffers);

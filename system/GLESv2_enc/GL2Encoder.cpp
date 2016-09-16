@@ -134,6 +134,7 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     OVERRIDE(glTexParameteriv);
     OVERRIDE(glTexImage2D);
     OVERRIDE(glTexSubImage2D);
+    OVERRIDE(glCopyTexImage2D);
 
     OVERRIDE(glGenRenderbuffers);
     OVERRIDE(glDeleteRenderbuffers);
@@ -1453,6 +1454,30 @@ void GL2Encoder::s_glTexSubImage2D(void* self, GLenum target, GLint level,
         ctx->m_glTexSubImage2D_enc(ctx, target, level, xoffset, yoffset, width,
                 height, format, type, pixels);
     }
+}
+
+void GL2Encoder::s_glCopyTexImage2D(void* self, GLenum target, GLint level,
+        GLenum internalformat, GLint x, GLint y,
+        GLsizei width, GLsizei height, GLint border)
+{
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    GLClientState* state = ctx->m_state;
+
+    // This is needed to work around underlying OpenGL drivers
+    // (such as those feeding some some AMD GPUs) that expect
+    // positive components of cube maps to be defined _before_
+    // the negative components (otherwise a segfault occurs).
+    GLenum extraTarget =
+        state->copyTexImageLuminanceCubeMapAMDWorkaround
+            (target, level, internalformat);
+
+    if (extraTarget) {
+        ctx->m_glCopyTexImage2D_enc(ctx, extraTarget, level, internalformat,
+                                    x, y, width, height, border);
+    }
+
+    ctx->m_glCopyTexImage2D_enc(ctx, target, level, internalformat,
+                                x, y, width, height, border);
 }
 
 void GL2Encoder::s_glTexParameteriv(void* self,
