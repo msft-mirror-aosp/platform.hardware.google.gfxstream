@@ -894,18 +894,38 @@ EGLBoolean eglQuerySurface(EGLDisplay dpy, EGLSurface eglSurface, EGLint attribu
             *value = surface->getHeight();
             break;
         case EGL_TEXTURE_FORMAT:
-            *value = surface->getTextureFormat();
+            if (surface->getSurfaceType() & EGL_PBUFFER_BIT) {
+                *value = surface->getTextureFormat();
+            }
             break;
         case EGL_TEXTURE_TARGET:
-            *value = surface->getTextureTarget();
+            if (surface->getSurfaceType() & EGL_PBUFFER_BIT) {
+                *value = surface->getTextureTarget();
+            }
             break;
         case EGL_SWAP_BEHAVIOR:
-            *value = surface->getSwapBehavior();
+        {
+            EGLint surfaceType;
+            ret = s_display.getConfigAttrib(surface->config, EGL_SURFACE_TYPE,
+                    &surfaceType);
+            if (ret == EGL_TRUE) {
+                if (surfaceType & EGL_SWAP_BEHAVIOR_PRESERVED_BIT) {
+                    *value = EGL_BUFFER_PRESERVED;
+                } else {
+                    *value = EGL_BUFFER_DESTROYED;
+                }
+            }
             break;
+        }
         case EGL_LARGEST_PBUFFER:
             // not modified for a window or pixmap surface
             // and we ignore it when creating a PBuffer surface (default is EGL_FALSE)
             if (surface->getSurfaceType() & EGL_PBUFFER_BIT) *value = EGL_FALSE;
+            break;
+        case EGL_MIPMAP_TEXTURE:
+            // not modified for a window or pixmap surface
+            // and we ignore it when creating a PBuffer surface (default is 0)
+            if (surface->getSurfaceType() & EGL_PBUFFER_BIT) *value = false;
             break;
         case EGL_MIPMAP_LEVEL:
             // not modified for a window or pixmap surface
@@ -915,6 +935,48 @@ EGLBoolean eglQuerySurface(EGLDisplay dpy, EGLSurface eglSurface, EGLint attribu
         case EGL_MULTISAMPLE_RESOLVE:
             // ignored when creating the surface, return default
             *value = EGL_MULTISAMPLE_RESOLVE_DEFAULT;
+            break;
+        case EGL_HORIZONTAL_RESOLUTION:
+            // pixel/mm * EGL_DISPLAY_SCALING
+            // TODO: get the real resolution from avd config
+            *value = 1 * EGL_DISPLAY_SCALING;
+            break;
+        case EGL_VERTICAL_RESOLUTION:
+            // pixel/mm * EGL_DISPLAY_SCALING
+            // TODO: get the real resolution from avd config
+            *value = 1 * EGL_DISPLAY_SCALING;
+            break;
+        case EGL_PIXEL_ASPECT_RATIO:
+            // w / h * EGL_DISPLAY_SCALING
+            // Please don't ask why * EGL_DISPLAY_SCALING, the document says it
+            *value = 1 * EGL_DISPLAY_SCALING;
+            break;
+        case EGL_RENDER_BUFFER:
+            switch (surface->getSurfaceType()) {
+                case EGL_PBUFFER_BIT:
+                    *value = EGL_BACK_BUFFER;
+                    break;
+                case EGL_PIXMAP_BIT:
+                    *value = EGL_SINGLE_BUFFER;
+                    break;
+                case EGL_WINDOW_BIT:
+                    // ignored when creating the surface, return default
+                    *value = EGL_BACK_BUFFER;
+                    break;
+                default:
+                    ALOGE("eglQuerySurface %x unknown surface type %x",
+                            attribute, surface->getSurfaceType());
+                    ret = setErrorFunc(EGL_BAD_ATTRIBUTE, EGL_FALSE);
+                    break;
+            }
+            break;
+        case EGL_VG_COLORSPACE:
+            // ignored when creating the surface, return default
+            *value = EGL_VG_COLORSPACE_sRGB;
+            break;
+        case EGL_VG_ALPHA_FORMAT:
+            // ignored when creating the surface, return default
+            *value = EGL_VG_ALPHA_FORMAT_NONPRE;
             break;
         //TODO: complete other attributes
         default:
