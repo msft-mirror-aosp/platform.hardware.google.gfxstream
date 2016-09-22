@@ -14,6 +14,8 @@
 * limitations under the License.
 */
 
+#include "renderControl_enc.h"
+
 #include <cutils/log.h>
 #include <pthread.h>
 #if PLATFORM_SDK_VERSION > 24
@@ -28,6 +30,7 @@ static pthread_once_t     sProcPipeOnce = PTHREAD_ONCE_INIT;
 // It is different from getpid().
 static uint64_t           sProcUID = 0;
 
+// processPipeInitOnce is used to generate a process unique ID (puid).
 // processPipeInitOnce will only be called at most once per process.
 // Use it with pthread_once for thread safety.
 // The host associates resources with process unique ID (puid) for memory cleanup.
@@ -71,11 +74,9 @@ static void processPipeInitOnce() {
     }
 }
 
-bool processPipeInit() {
+bool processPipeInit(renderControl_encoder_context_t *rcEnc) {
     pthread_once(&sProcPipeOnce, processPipeInitOnce);
-    return sProcPipe != 0;
-}
-
-uint64_t getProcUID() {
-    return sProcUID;
+    if (!sProcPipe) return false;
+    rcEnc->rcSetPuid(rcEnc, sProcUID);
+    return true;
 }

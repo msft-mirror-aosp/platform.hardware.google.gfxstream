@@ -23,9 +23,9 @@
 #include <string>
 
 class GLEncoder;
-class gl_client_context_t;
+struct gl_client_context_t;
 class GL2Encoder;
-class gl2_client_context_t;
+struct gl2_client_context_t;
 
 // SyncImpl determines the presence of host/guest OpenGL fence sync
 // capabilities. It corresponds exactly to EGL_ANDROID_native_fence_sync

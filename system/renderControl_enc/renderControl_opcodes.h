@@ -32,16 +32,12 @@
 #define OP_rcCreateClientImage 					10026
 #define OP_rcDestroyClientImage 					10027
 #define OP_rcSelectChecksumHelper 					10028
-#define OP_rcCreateColorBufferPuid 					10029
-#define OP_rcOpenColorBuffer2Puid 					10030
-#define OP_rcCloseColorBufferPuid 					10031
-#define OP_rcCreateSyncKHR 					10032
-#define OP_rcClientWaitSyncKHR 					10033
-#define OP_rcFlushWindowColorBufferAsync 					10034
-#define OP_rcCreateClientImagePuid 					10035
-#define OP_rcDestroyClientImagePuid 					10036
-#define OP_rcDestroySyncKHR 					10037
-#define OP_last 					10038
+#define OP_rcCreateSyncKHR 					10029
+#define OP_rcClientWaitSyncKHR 					10030
+#define OP_rcFlushWindowColorBufferAsync 					10031
+#define OP_rcDestroySyncKHR 					10032
+#define OP_rcSetPuid 					10033
+#define OP_last 					10034
 
 
 #endif
