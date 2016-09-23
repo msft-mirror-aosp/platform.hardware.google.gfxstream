@@ -227,6 +227,8 @@ struct egl_surface_t {
 
     EGLint      getWidth(){ return width; }
     EGLint      getHeight(){ return height; }
+    EGLint      getNativeWidth(){ return nativeWidth; }
+    EGLint      getNativeHeight(){ return nativeHeight; }
     void        setTextureFormat(EGLint _texFormat) { texFormat = _texFormat; }
     EGLint      getTextureFormat() { return texFormat; }
     void        setTextureTarget(EGLint _texTarget) { texTarget = _texTarget; }
@@ -241,9 +243,16 @@ private:
     EGLint      texFormat;
     EGLint      texTarget;
 
+    // Width of the actual window being presented (not the EGL texture)
+    // Give it some default values.
+    int nativeWidth;
+    int nativeHeight;
+
 protected:
     void        setWidth(EGLint w)  { width = w;  }
     void        setHeight(EGLint h) { height = h; }
+    void        setNativeWidth(int w)  { nativeWidth = w;  }
+    void        setNativeHeight(int h) { nativeHeight = h; }
 
     EGLint      surfaceType;
     uint32_t    rcSurface; //handle to surface created via remote control
@@ -254,6 +263,9 @@ egl_surface_t::egl_surface_t(EGLDisplay dpy, EGLConfig config, EGLint surfaceTyp
 {
     width = 0;
     height = 0;
+    // prevent div by 0 in EGL_(HORIZONTAL|VERTICAL)_RESOLUTION queries.
+    nativeWidth = 1;
+    nativeHeight = 1;
     texFormat = EGL_NO_TEXTURE;
     texTarget = EGL_NO_TEXTURE;
     assert(dpy == (EGLDisplay)&s_display);
@@ -312,6 +324,13 @@ EGLBoolean egl_window_surface_t::init()
     }
     setWidth(buffer->width);
     setHeight(buffer->height);
+
+    int nativeWidth, nativeHeight;
+          nativeWindow->query(nativeWindow, NATIVE_WINDOW_WIDTH, &nativeWidth);
+          nativeWindow->query(nativeWindow, NATIVE_WINDOW_HEIGHT, &nativeHeight);
+
+    setNativeWidth(nativeWidth);
+    setNativeHeight(nativeHeight);
 
     DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
     rcSurface = rcEnc->rcCreateWindowSurface(rcEnc, (uintptr_t)config,
@@ -904,6 +923,11 @@ EGLBoolean eglQuerySurface(EGLDisplay dpy, EGLSurface eglSurface, EGLint attribu
     VALIDATE_SURFACE_RETURN(eglSurface, EGL_FALSE);
 
     egl_surface_t* surface( static_cast<egl_surface_t*>(eglSurface) );
+
+    // Parameters involved in queries of EGL_(HORIZONTAL|VERTICAL)_RESOLUTION
+    // TODO: get the DPI from avd config
+    float fakeNativeDPI = 420.0;
+    float currWidth, currHeight, scaledResolution, effectiveSurfaceDPI;
     EGLBoolean ret = EGL_TRUE;
     switch (attribute) {
         case EGL_CONFIG_ID:
@@ -960,13 +984,21 @@ EGLBoolean eglQuerySurface(EGLDisplay dpy, EGLSurface eglSurface, EGLint attribu
             break;
         case EGL_HORIZONTAL_RESOLUTION:
             // pixel/mm * EGL_DISPLAY_SCALING
-            // TODO: get the real resolution from avd config
-            *value = 1 * EGL_DISPLAY_SCALING;
+            // TODO: get the DPI from avd config
+            currWidth = surface->getWidth();
+            scaledResolution = currWidth / surface->getNativeWidth();
+            effectiveSurfaceDPI =
+                scaledResolution * fakeNativeDPI * EGL_DISPLAY_SCALING;
+            *value = (EGLint)(effectiveSurfaceDPI);
             break;
         case EGL_VERTICAL_RESOLUTION:
             // pixel/mm * EGL_DISPLAY_SCALING
-            // TODO: get the real resolution from avd config
-            *value = 1 * EGL_DISPLAY_SCALING;
+            // TODO: get the real DPI from avd config
+            currHeight = surface->getHeight();
+            scaledResolution = currHeight / surface->getNativeHeight();
+            effectiveSurfaceDPI =
+                scaledResolution * fakeNativeDPI * EGL_DISPLAY_SCALING;
+            *value = (EGLint)(effectiveSurfaceDPI);
             break;
         case EGL_PIXEL_ASPECT_RATIO:
             // w / h * EGL_DISPLAY_SCALING
