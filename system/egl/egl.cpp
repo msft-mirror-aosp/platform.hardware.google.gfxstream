@@ -813,9 +813,11 @@ EGLSurface eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLin
         switch (attrib_list[0]) {
             case EGL_WIDTH:
                 w = attrib_list[1];
+                if (w < 0) setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_SURFACE);
                 break;
             case EGL_HEIGHT:
                 h = attrib_list[1];
+                if (h < 0) setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_SURFACE);
                 break;
             case EGL_TEXTURE_FORMAT:
                 texFormat = attrib_list[1];
@@ -823,8 +825,14 @@ EGLSurface eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLin
             case EGL_TEXTURE_TARGET:
                 texTarget = attrib_list[1];
                 break;
-            default:
+            // the followings are not supported
+            case EGL_LARGEST_PBUFFER:
+            case EGL_MIPMAP_TEXTURE:
+            case EGL_VG_ALPHA_FORMAT:
+            case EGL_VG_COLORSPACE:
                 break;
+            default:
+                setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
         };
         attrib_list+=2;
     }
@@ -1067,14 +1075,36 @@ EGLBoolean eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute
 
     (void)value;
 
+    egl_surface_t* p_surface( static_cast<egl_surface_t*>(surface) );
     switch (attribute) {
     case EGL_MIPMAP_LEVEL:
+        return true;
+        break;
     case EGL_MULTISAMPLE_RESOLVE:
+    {
+        if (value == EGL_MULTISAMPLE_RESOLVE_BOX) {
+            EGLint surface_type;
+            s_display.getConfigAttrib(p_surface->config, EGL_SURFACE_TYPE, &surface_type);
+            if (0 == (surface_type & EGL_MULTISAMPLE_RESOLVE_BOX_BIT)) {
+                setErrorReturn(EGL_BAD_MATCH, EGL_FALSE);
+            }
+        }
+        return true;
+        break;
+    }
     case EGL_SWAP_BEHAVIOR:
+        if (value == EGL_BUFFER_PRESERVED) {
+            EGLint surface_type;
+            s_display.getConfigAttrib(p_surface->config, EGL_SURFACE_TYPE, &surface_type);
+            if (0 == (surface_type & EGL_SWAP_BEHAVIOR_PRESERVED_BIT)) {
+                setErrorReturn(EGL_BAD_MATCH, EGL_FALSE);
+            }
+        }
         return true;
         break;
     default:
         ALOGW("%s: attr=0x%x not implemented", __FUNCTION__, attribute);
+        setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_FALSE);
     }
     return false;
 }
