@@ -14,12 +14,15 @@
 * limitations under the License.
 */
 #include "HostConnection.h"
-#include "TcpStream.h"
-#include "QemuPipeStream.h"
-#include "ThreadInfo.h"
-#include <cutils/log.h>
+
 #include "GLEncoder.h"
 #include "GL2Encoder.h"
+#include "ProcessPipe.h"
+#include "QemuPipeStream.h"
+#include "TcpStream.h"
+#include "ThreadInfo.h"
+
+#include <cutils/log.h>
 
 #define STREAM_BUFFER_SIZE  (4*1024*1024)
 #define STREAM_PORT_NUM     22468
@@ -149,6 +152,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         m_rcEnc = new ExtendedRCEncoderContext(m_stream, checksumHelper());
         setChecksumHelper(m_rcEnc);
         queryAndSetSyncImpl(m_rcEnc);
+        processPipeInit(m_rcEnc);
     }
     return m_rcEnc;
 }

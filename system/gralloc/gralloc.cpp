@@ -371,7 +371,7 @@ static int gralloc_alloc(alloc_device_t* dev,
                   __FUNCTION__, frameworkFormat, usage);
             DEFINE_HOST_CONNECTION;
             if (hostCon && rcEnc) {
-                cb->hostHandle = PUID_CMD(rcEnc, rcCreateColorBuffer, w, h, glFormat);
+                cb->hostHandle = rcEnc->rcCreateColorBuffer(rcEnc, w, h, glFormat);
                 D("Created host ColorBuffer 0x%x\n", cb->hostHandle);
             }
 
@@ -423,7 +423,7 @@ static int gralloc_free(alloc_device_t* dev,
     if (cb->hostHandle != 0) {
         DEFINE_AND_VALIDATE_HOST_CONNECTION;
         D("Closing host ColorBuffer 0x%x\n", cb->hostHandle);
-        PUID_CMD(rcEnc, rcCloseColorBuffer, cb->hostHandle);
+        rcEnc->rcCloseColorBuffer(rcEnc, cb->hostHandle);
     }
 
     //
@@ -593,7 +593,7 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
     if (cb->hostHandle != 0) {
         DEFINE_AND_VALIDATE_HOST_CONNECTION;
         D("Opening host ColorBuffer 0x%x\n", cb->hostHandle);
-        PUID_CMD(rcEnc, rcOpenColorBuffer2, cb->hostHandle);
+        rcEnc->rcOpenColorBuffer2(rcEnc, cb->hostHandle);
     }
 
     //
@@ -630,7 +630,7 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
     if (cb->hostHandle != 0) {
         DEFINE_AND_VALIDATE_HOST_CONNECTION;
         D("Closing host ColorBuffer 0x%x\n", cb->hostHandle);
-        PUID_CMD(rcEnc, rcCloseColorBuffer, cb->hostHandle);
+        rcEnc->rcCloseColorBuffer(rcEnc, cb->hostHandle);
     }
 
     //

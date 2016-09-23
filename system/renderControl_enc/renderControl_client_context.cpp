@@ -39,15 +39,11 @@ int renderControl_client_context_t::initDispatchByName(void *(*getProc)(const ch
 	rcCreateClientImage = (rcCreateClientImage_client_proc_t) getProc("rcCreateClientImage", userData);
 	rcDestroyClientImage = (rcDestroyClientImage_client_proc_t) getProc("rcDestroyClientImage", userData);
 	rcSelectChecksumHelper = (rcSelectChecksumHelper_client_proc_t) getProc("rcSelectChecksumHelper", userData);
-	rcCreateColorBufferPuid = (rcCreateColorBufferPuid_client_proc_t) getProc("rcCreateColorBufferPuid", userData);
-	rcOpenColorBuffer2Puid = (rcOpenColorBuffer2Puid_client_proc_t) getProc("rcOpenColorBuffer2Puid", userData);
-	rcCloseColorBufferPuid = (rcCloseColorBufferPuid_client_proc_t) getProc("rcCloseColorBufferPuid", userData);
 	rcCreateSyncKHR = (rcCreateSyncKHR_client_proc_t) getProc("rcCreateSyncKHR", userData);
 	rcClientWaitSyncKHR = (rcClientWaitSyncKHR_client_proc_t) getProc("rcClientWaitSyncKHR", userData);
 	rcFlushWindowColorBufferAsync = (rcFlushWindowColorBufferAsync_client_proc_t) getProc("rcFlushWindowColorBufferAsync", userData);
-	rcCreateClientImagePuid = (rcCreateClientImagePuid_client_proc_t) getProc("rcCreateClientImagePuid", userData);
-	rcDestroyClientImagePuid = (rcDestroyClientImagePuid_client_proc_t) getProc("rcDestroyClientImagePuid", userData);
 	rcDestroySyncKHR = (rcDestroySyncKHR_client_proc_t) getProc("rcDestroySyncKHR", userData);
+	rcSetPuid = (rcSetPuid_client_proc_t) getProc("rcSetPuid", userData);
 	return 0;
 }
 

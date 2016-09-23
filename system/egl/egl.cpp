@@ -1532,7 +1532,7 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
 
         uint32_t ctxHandle = (context) ? context->rcContext : 0;
         GLuint texture = (GLuint)reinterpret_cast<uintptr_t>(buffer);
-        uint32_t img = PUID_CMD(rcEnc, rcCreateClientImage, ctxHandle, target, texture);
+        uint32_t img = rcEnc->rcCreateClientImage(rcEnc, ctxHandle, target, texture);
         EGLImage_t *image = new EGLImage_t();
         image->dpy = dpy;
         image->target = target;
@@ -1571,7 +1571,7 @@ EGLBoolean eglDestroyImageKHR(EGLDisplay dpy, EGLImageKHR img)
         uint32_t host_egl_image = image->host_egl_image;
         delete image;
         DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
-        return PUID_CMD(rcEnc, rcDestroyClientImage, host_egl_image);
+        return rcEnc->rcDestroyClientImage(rcEnc, host_egl_image);
     }
 
     setErrorReturn(EGL_BAD_PARAMETER, EGL_FALSE);
