@@ -866,8 +866,8 @@ EGLSurface eglCreatePixmapSurface(EGLDisplay dpy, EGLConfig config, EGLNativePix
     //     to s/w rendering -or- let the host render to a buffer that will be
     //     copied back to guest at some sync point. None of those methods not
     //     implemented and pixmaps are not used with OpenGL anyway ...
+    VALIDATE_CONFIG(config, EGL_FALSE);
     (void)dpy;
-    (void)config;
     (void)pixmap;
     (void)attrib_list;
     return EGL_NO_SURFACE;
