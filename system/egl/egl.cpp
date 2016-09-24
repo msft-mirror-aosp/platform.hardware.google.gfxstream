@@ -1720,6 +1720,9 @@ EGLSyncKHR eglCreateSyncKHR(EGLDisplay dpy, EGLenum type,
     } else {
         syncRes->type = EGL_SYNC_FENCE_KHR;
         syncRes->android_native_fence_fd = -1;
+        if (!rcEnc->hasNativeSync()) {
+            syncRes->status = EGL_SIGNALED_KHR;
+        }
     }
 
     return (EGLSyncKHR)syncRes;
