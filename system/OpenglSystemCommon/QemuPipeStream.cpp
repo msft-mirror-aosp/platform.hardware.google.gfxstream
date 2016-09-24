@@ -60,7 +60,10 @@ int QemuPipeStream::connect(void)
 #else // PLATFORM_SDK_VERSION
      m_sock = qemu_pipe_open("opengles");
 #endif // PLATFORM_SDK_VERSION
-    if (!valid()) return -1;
+    if (!valid()) {
+        ALOGE("%s: failed with fd %d errno %d", __FUNCTION__, m_sock, errno);
+        return -1;
+    }
     return 0;
 }
 
@@ -130,6 +133,10 @@ int QemuPipeStream::writeFully(const void *buf, size_t len)
     }
     //DBG("<< QemuPipeStream::writeFully %d\n", len );
     return retval;
+}
+
+int QemuPipeStream::getSocket() const {
+    return m_sock;
 }
 
 const unsigned char *QemuPipeStream::readFully(void *buf, size_t len)

@@ -41,6 +41,7 @@ public:
 
     virtual int writeFully(const void *buf, size_t len);
 
+    int getSocket() const;
 private:
     int m_sock;
     size_t m_bufsize;
