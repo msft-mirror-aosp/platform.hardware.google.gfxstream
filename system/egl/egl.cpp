@@ -757,11 +757,11 @@ EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig 
         attribs_size++; //for the terminating EGL_NONE
     }
 
-    // API 16 passes EGL_SWAP_BEHAVIOR_PRESERVED_BIT to surface type,
+    // API 19 passes EGL_SWAP_BEHAVIOR_PRESERVED_BIT to surface type,
     // while the host never supports it.
     // We remove the bit here.
     EGLint* local_attrib_list = NULL;
-    if (PLATFORM_SDK_VERSION <= 16) {
+    if (PLATFORM_SDK_VERSION <= 19) {
         local_attrib_list = new EGLint[attribs_size];
         memcpy(local_attrib_list, attrib_list, attribs_size * sizeof(EGLint));
         EGLint* local_attrib_p = local_attrib_list;
