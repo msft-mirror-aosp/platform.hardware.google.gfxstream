@@ -21,6 +21,7 @@
 #include "eglSync.h"
 #include "egl_ftable.h"
 #include <cutils/log.h>
+#include <cutils/properties.h>
 #include "goldfish_sync.h"
 #include "gralloc_cb.h"
 #include "GLClientState.h"
@@ -936,6 +937,16 @@ EGLBoolean eglDestroySurface(EGLDisplay dpy, EGLSurface eglSurface)
     return EGL_TRUE;
 }
 
+static float s_getNativeDpi() {
+    float nativeDPI = 560.0f;
+    const char* dpiPropName = "qemu.sf.lcd_density";
+    char dpiProp[PROPERTY_VALUE_MAX];
+    if (property_get(dpiPropName, dpiProp, NULL) > 0) {
+        nativeDPI = atof(dpiProp);
+    }
+    return nativeDPI;
+}
+
 EGLBoolean eglQuerySurface(EGLDisplay dpy, EGLSurface eglSurface, EGLint attribute, EGLint *value)
 {
     VALIDATE_DISPLAY_INIT(dpy, EGL_FALSE);
@@ -944,8 +955,6 @@ EGLBoolean eglQuerySurface(EGLDisplay dpy, EGLSurface eglSurface, EGLint attribu
     egl_surface_t* surface( static_cast<egl_surface_t*>(eglSurface) );
 
     // Parameters involved in queries of EGL_(HORIZONTAL|VERTICAL)_RESOLUTION
-    // TODO: get the DPI from avd config
-    float fakeNativeDPI = 420.0;
     float currWidth, currHeight, scaledResolution, effectiveSurfaceDPI;
     EGLBoolean ret = EGL_TRUE;
     switch (attribute) {
@@ -1007,7 +1016,7 @@ EGLBoolean eglQuerySurface(EGLDisplay dpy, EGLSurface eglSurface, EGLint attribu
             currWidth = surface->getWidth();
             scaledResolution = currWidth / surface->getNativeWidth();
             effectiveSurfaceDPI =
-                scaledResolution * fakeNativeDPI * EGL_DISPLAY_SCALING;
+                scaledResolution * s_getNativeDpi() * EGL_DISPLAY_SCALING;
             *value = (EGLint)(effectiveSurfaceDPI);
             break;
         case EGL_VERTICAL_RESOLUTION:
@@ -1016,7 +1025,7 @@ EGLBoolean eglQuerySurface(EGLDisplay dpy, EGLSurface eglSurface, EGLint attribu
             currHeight = surface->getHeight();
             scaledResolution = currHeight / surface->getNativeHeight();
             effectiveSurfaceDPI =
-                scaledResolution * fakeNativeDPI * EGL_DISPLAY_SCALING;
+                scaledResolution * s_getNativeDpi() * EGL_DISPLAY_SCALING;
             *value = (EGLint)(effectiveSurfaceDPI);
             break;
         case EGL_PIXEL_ASPECT_RATIO:
