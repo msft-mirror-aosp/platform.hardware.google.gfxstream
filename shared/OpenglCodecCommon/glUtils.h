@@ -63,13 +63,31 @@ extern "C" {
 
 namespace GLUtils {
 
-    template <class T> void minmax(T *indices, int count, int *min, int *max) {
+    template <class T> void minmax(const T *indices, int count, int *min, int *max) {
         *min = -1;
         *max = -1;
-        T *ptr = indices;
+        const T *ptr = indices;
         for (int i = 0; i < count; i++) {
             if (*min == -1 || *ptr < *min) *min = *ptr;
             if (*max == -1 || *ptr > *max) *max = *ptr;
+            ptr++;
+        }
+    }
+
+    template <class T> void minmaxExcept
+        (const T *indices, int count, int *min, int *max,
+         bool shouldExclude, T whatExclude) {
+
+        if (!shouldExclude) return minmax(indices, count, min, max);
+
+        *min = -1;
+        *max = -1;
+        const T *ptr = indices;
+        for (int i = 0; i < count; i++) {
+            if (*ptr != whatExclude) {
+                if (*min == -1 || *ptr < *min) *min = *ptr;
+                if (*max == -1 || *ptr > *max) *max = *ptr;
+            }
             ptr++;
         }
     }
@@ -83,10 +101,42 @@ namespace GLUtils {
     }
 
 
-    template <class T> void shiftIndices(T *src, T *dst, int count, int offset)
+    template <class T> void shiftIndices(const T *src, T *dst, int count, int offset)
     {
         for (int i = 0; i < count; i++) {
             *dst = *src + offset;
+            dst++;
+            src++;
+        }
+    }
+
+    template <class T> void shiftIndicesExcept
+        (T *indices, int count, int offset,
+         bool shouldExclude, T whatExclude) {
+
+        if (!shouldExclude) return shiftIndices(indices, count, offset);
+
+        T *ptr = indices;
+        for (int i = 0; i < count; i++) {
+            if (*ptr != whatExclude) {
+                *ptr += offset;
+            }
+            ptr++;
+        }
+    }
+
+    template <class T> void shiftIndicesExcept
+        (const T *src, T *dst, int count, int offset,
+         bool shouldExclude, T whatExclude) {
+
+        if (!shouldExclude) return shiftIndices(src, dst, count, offset);
+
+        for (int i = 0; i < count; i++) {
+            if (*src == whatExclude) {
+                *dst = *src;
+            } else {
+                *dst = *src + offset;
+            }
             dst++;
             src++;
         }

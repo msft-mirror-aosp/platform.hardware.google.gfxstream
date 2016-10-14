@@ -63,7 +63,23 @@ private:
     GLint m_max_textureSize;
     FixedBuffer m_fixedBuffer;
 
+    int m_drawCallFlushCount;
+    // GLES 3 features. Disabled for now.
+    bool m_primitiveRestartEnabled = false;
+    GLuint m_primitiveRestartIndex = 0;
+
+    void calcIndexRange(const void* indices,
+                        GLenum type, GLsizei count,
+                        int* minIndex, int* maxIndex);
+    void* recenterIndices(const void* src,
+                          GLenum type, GLsizei count,
+                          int minIndex);
+    void getBufferIndexRange(BufferData* buf, const void* dataWithOffset,
+                             GLenum type, GLsizei count, GLintptr offset,
+                             int* minIndex_out, int* maxIndex_out);
     void sendVertexAttributes(GLint first, GLsizei count);
+    void flushDrawCall();
+
     bool updateHostTexture2DBinding(GLenum texUnit, GLenum newTarget);
     bool texture2DNeedsOverride(GLenum target) const;
     bool isCompleteFbo(const GLClientState* state, GLenum attachment) const;

@@ -521,6 +521,105 @@ void GL2Encoder::s_glGetVertexAttribPointerv(void *self, GLuint index, GLenum pn
     }
 }
 
+void GL2Encoder::calcIndexRange(const void* indices,
+                                GLenum type,
+                                GLsizei count,
+                                int* minIndex_out,
+                                int* maxIndex_out) {
+    switch(type) {
+    case GL_BYTE:
+    case GL_UNSIGNED_BYTE:
+        GLUtils::minmaxExcept(
+                (unsigned char *)indices, count,
+                minIndex_out, maxIndex_out,
+                m_primitiveRestartEnabled, (unsigned char)m_primitiveRestartIndex);
+        break;
+    case GL_SHORT:
+    case GL_UNSIGNED_SHORT:
+        GLUtils::minmaxExcept(
+                (unsigned short *)indices, count,
+                minIndex_out, maxIndex_out,
+                m_primitiveRestartEnabled, (unsigned short)m_primitiveRestartIndex);
+        break;
+    case GL_INT:
+    case GL_UNSIGNED_INT:
+        GLUtils::minmaxExcept(
+                (unsigned int *)indices, count,
+                minIndex_out, maxIndex_out,
+                m_primitiveRestartEnabled, (unsigned int)m_primitiveRestartIndex);
+        break;
+    default:
+        ALOGE("unsupported index buffer type %d\n", type);
+    }
+}
+
+void* GL2Encoder::recenterIndices(const void* src,
+                                  GLenum type,
+                                  GLsizei count,
+                                  int minIndex) {
+
+    void* adjustedIndices = (void*)src;
+
+    if (minIndex != 0) {
+        adjustedIndices = m_fixedBuffer.alloc(glSizeof(type) * count);
+        switch(type) {
+        case GL_BYTE:
+        case GL_UNSIGNED_BYTE:
+            GLUtils::shiftIndicesExcept(
+                    (unsigned char *)src,
+                    (unsigned char *)adjustedIndices,
+                    count, -minIndex,
+                    m_primitiveRestartEnabled,
+                    (unsigned char)m_primitiveRestartIndex);
+            break;
+        case GL_SHORT:
+        case GL_UNSIGNED_SHORT:
+            GLUtils::shiftIndicesExcept(
+                    (unsigned short *)src,
+                    (unsigned short *)adjustedIndices,
+                    count, -minIndex,
+                    m_primitiveRestartEnabled,
+                    (unsigned short)m_primitiveRestartIndex);
+            break;
+        case GL_INT:
+        case GL_UNSIGNED_INT:
+            GLUtils::shiftIndicesExcept(
+                    (unsigned int *)src,
+                    (unsigned int *)adjustedIndices,
+                    count, -minIndex,
+                    m_primitiveRestartEnabled,
+                    (unsigned int)m_primitiveRestartIndex);
+            break;
+        default:
+            ALOGE("unsupported index buffer type %d\n", type);
+        }
+    }
+
+    return adjustedIndices;
+}
+
+void GL2Encoder::getBufferIndexRange(BufferData* buf,
+                                     const void* dataWithOffset,
+                                     GLenum type,
+                                     GLsizei count,
+                                     GLintptr offset,
+                                     int* minIndex_out,
+                                     int* maxIndex_out) {
+
+    if (buf->m_indexRangeCache.findRange(
+                type, (size_t)offset, count,
+                m_primitiveRestartEnabled,
+                minIndex_out,
+                maxIndex_out)) {
+        return;
+    }
+
+    calcIndexRange(dataWithOffset, type, count, minIndex_out, maxIndex_out);
+
+    buf->m_indexRangeCache.addRange(
+            type, (size_t)offset, count, m_primitiveRestartEnabled,
+            *minIndex_out, *maxIndex_out);
+}
 
 void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count)
 {
@@ -576,6 +675,22 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count)
     if (lastBoundVbo != m_state->currentArrayVbo()) {
         this->m_glBindBuffer_enc(this, GL_ARRAY_BUFFER, m_state->currentArrayVbo());
     }
+}
+
+void GL2Encoder::flushDrawCall() {
+    // The idea is that
+    // commitBuffer / write() to qemu pipe will
+    // take at least ~20-60us, and for cases like
+    // sendVertexAttributes / glDrawElementsOffset,
+    // which sends only around few hundred bytes,
+    // we can get away with sending
+    // two at a time in the same ~20-60us,
+    // reducing average latency and gaining ~1 fps
+    // in Antutu on Linux + Quadro K2200.
+    if (m_drawCallFlushCount % 2 == 0) {
+        m_stream->flush();
+    }
+    m_drawCallFlushCount++;
 }
 
 static bool isValidDrawMode(GLenum mode)
@@ -659,27 +774,35 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
         return;
     }
 
-    if (ctx->m_state->currentIndexVbo() != 0) {
-        offset = (GLintptr)indices;
-        BufferData * buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
-        indices = (void*)((GLintptr)buf->m_fixedBuffer.ptr() + offset);
-    }
+    BufferData* buf = NULL;
     int minIndex = 0, maxIndex = 0;
-    switch(type) {
-    case GL_BYTE:
-    case GL_UNSIGNED_BYTE:
-        GLUtils::minmax<unsigned char>((unsigned char *)indices, count, &minIndex, &maxIndex);
-        break;
-    case GL_SHORT:
-    case GL_UNSIGNED_SHORT:
-        GLUtils::minmax<unsigned short>((unsigned short *)indices, count, &minIndex, &maxIndex);
-        break;
-    case GL_INT:
-    case GL_UNSIGNED_INT:
-        GLUtils::minmax<unsigned int>((unsigned int *)indices, count, &minIndex, &maxIndex);
-        break;
-    default:
-        ALOGE("unsupported index buffer type %d\n", type);
+
+    // For validation/immediate index array purposes,
+    // we need the min/max vertex index of the index array.
+    // If the VBO != 0, this may not be the first time we have
+    // used this particular index buffer. getBufferIndexRange
+    // can more quickly get min/max vertex index by
+    // cachine previous results.
+    if (ctx->m_state->currentIndexVbo() != 0) {
+        buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
+        offset = (GLintptr)indices;
+        indices = (void*)((GLintptr)buf->m_fixedBuffer.ptr() + (GLintptr)indices);
+        ctx->getBufferIndexRange(buf,
+                                 indices,
+                                 type,
+                                 (GLsizei)count,
+                                 (GLintptr)indices, // offset, really
+                                 &minIndex, &maxIndex);
+    } else {
+        // In this case, the |indices| field holds a real
+        // array, so calculate the indices now. They will
+        // also be needed to know how much data to
+        // transfer to host.
+        ctx->calcIndexRange(indices,
+                            type,
+                            count,
+                            &minIndex,
+                            &maxIndex);
     }
 
     bool adjustIndices = true;
@@ -688,7 +811,7 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
             ctx->sendVertexAttributes(0, maxIndex + 1);
             ctx->m_glBindBuffer_enc(self, GL_ELEMENT_ARRAY_BUFFER, ctx->m_state->currentIndexVbo());
             ctx->glDrawElementsOffset(ctx, mode, count, type, offset);
-            ctx->m_stream->flush();
+            ctx->flushDrawCall();
             adjustIndices = false;
         } else {
             BufferData * buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
@@ -696,33 +819,12 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
         }
     }
     if (adjustIndices) {
-        void *adjustedIndices = (void*)indices;
+        void *adjustedIndices =
+            ctx->recenterIndices(indices,
+                                 type,
+                                 count,
+                                 minIndex);
 
-        if (minIndex != 0) {
-            adjustedIndices =  ctx->m_fixedBuffer.alloc(glSizeof(type) * count);
-            switch(type) {
-            case GL_BYTE:
-            case GL_UNSIGNED_BYTE:
-                GLUtils::shiftIndices<unsigned char>((unsigned char *)indices,
-                                                 (unsigned char *)adjustedIndices,
-                                                 count, -minIndex);
-                break;
-            case GL_SHORT:
-            case GL_UNSIGNED_SHORT:
-                GLUtils::shiftIndices<unsigned short>((unsigned short *)indices,
-                                                  (unsigned short *)adjustedIndices,
-                                                  count, -minIndex);
-                break;
-            case GL_INT:
-            case GL_UNSIGNED_INT:
-                GLUtils::shiftIndices<unsigned int>((unsigned int *)indices,
-                                                 (unsigned int *)adjustedIndices,
-                                                 count, -minIndex);
-                break;
-            default:
-                ALOGE("unsupported index buffer type %d\n", type);
-            }
-        }
         if (has_indirect_arrays || 1) {
             ctx->sendVertexAttributes(minIndex, maxIndex - minIndex + 1);
             ctx->glDrawElementsData(ctx, mode, count, type, adjustedIndices,

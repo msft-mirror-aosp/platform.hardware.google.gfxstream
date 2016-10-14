@@ -35,13 +35,15 @@
 #include <utils/String8.h>
 #include <utils/threads.h>
 #include "FixedBuffer.h"
+#include "IndexRangeCache.h"
 #include "SmartPtr.h"
 
 struct BufferData {
     BufferData();
     BufferData(GLsizeiptr size, void * data);
     GLsizeiptr  m_size;
-    FixedBuffer m_fixedBuffer;    
+    FixedBuffer m_fixedBuffer;
+    IndexRangeCache m_indexRangeCache;
 };
 
 class ProgramData {

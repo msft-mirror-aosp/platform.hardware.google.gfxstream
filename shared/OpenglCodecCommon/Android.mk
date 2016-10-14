@@ -8,6 +8,7 @@ commonSources := \
         ChecksumCalculator.cpp \
         GLSharedGroup.cpp \
         glUtils.cpp \
+        IndexRangeCache.cpp \
         SocketStream.cpp \
         TcpStream.cpp \
 

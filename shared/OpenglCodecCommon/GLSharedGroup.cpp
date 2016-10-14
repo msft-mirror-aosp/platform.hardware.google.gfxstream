@@ -278,6 +278,8 @@ GLenum GLSharedGroup::subUpdateBufferData(GLuint bufferId, GLintptr offset, GLsi
 
     //it's safe to update now
     memcpy((char*)buf->m_fixedBuffer.ptr() + offset, data, size);
+
+    buf->m_indexRangeCache.invalidateRange((size_t)offset, (size_t)size);
     return GL_NO_ERROR;
 }
 
