@@ -65,8 +65,8 @@ private:
 
     int m_drawCallFlushCount;
     // GLES 3 features. Disabled for now.
-    bool m_primitiveRestartEnabled = false;
-    GLuint m_primitiveRestartIndex = 0;
+    bool m_primitiveRestartEnabled;
+    GLuint m_primitiveRestartIndex;
 
     void calcIndexRange(const void* indices,
                         GLenum type, GLsizei count,

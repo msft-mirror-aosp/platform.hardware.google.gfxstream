@@ -59,6 +59,10 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     m_max_textureSize = 0;
     m_compressedTextureFormats = NULL;
 
+    m_drawCallFlushCount = 0;
+    m_primitiveRestartEnabled = false;
+    m_primitiveRestartIndex = 0;
+
     //overrides
 #define OVERRIDE(name)  m_##name##_enc = this-> name ; this-> name = &s_##name
 
