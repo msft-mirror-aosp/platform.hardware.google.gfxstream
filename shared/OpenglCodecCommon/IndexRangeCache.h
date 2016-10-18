@@ -34,15 +34,6 @@
 #include <map>
 
 struct IndexRange {
-    IndexRange() : IndexRange(0, 0, 0) {}
-    IndexRange(size_t start_, size_t end_, size_t vertexIndexCount_)
-        : start(start_), end(end_), vertexIndexCount(vertexIndexCount_) {
-        assert(start <= end);
-    }
-
-    // Number of vertices in the range.
-    size_t vertexCount() const { return (end - start) + 1; }
-
     // Inclusive range of indices that are not primitive restart
     int start;
     int end;
