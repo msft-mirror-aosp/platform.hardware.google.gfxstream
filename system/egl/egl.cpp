@@ -1253,6 +1253,10 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
     while (attrib_list && attrib_list[0] != EGL_NONE) {
         if (attrib_list[0] == EGL_CONTEXT_CLIENT_VERSION) {
             version = attrib_list[1];
+        } else if (attrib_list[0] == EGL_CONTEXT_PRIORITY_LEVEL_IMG) {
+            // https://www.khronos.org/registry/egl/extensions/IMG/EGL_IMG_context_priority.txt
+            // It it not yet supported in the emulator.
+            ALOGW("EGL_CONTEXT_PRIORITY_LEVEL_IMG not supported, ignored");
         } else { // Only the attribute EGL_CONTEXT_CLIENT_VERSION may be specified.
             setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_NO_CONTEXT);
         }
