@@ -14,7 +14,11 @@
 * limitations under the License.
 */
 #include "QemuPipeStream.h"
+#if PLATFORM_SDK_VERSION > 24
+#include <system/qemu_pipe.h>
+#else // PLATFORM_SDK_VERSION
 #include <hardware/qemu_pipe.h>
+#endif //PLATFORM_SDK_VERSION
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,7 +55,11 @@ QemuPipeStream::~QemuPipeStream()
 
 int QemuPipeStream::connect(void)
 {
+#if PLATFORM_SDK_VERSION > 24
+     m_sock = qemu_pipe_open("pipe:opengles");
+#else // PLATFORM_SDK_VERSION
      m_sock = qemu_pipe_open("opengles");
+#endif // PLATFORM_SDK_VERSION
     if (!valid()) return -1;
     return 0;
 }
