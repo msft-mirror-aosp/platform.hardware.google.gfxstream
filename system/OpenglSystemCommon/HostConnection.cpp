@@ -219,7 +219,7 @@ void HostConnection::setChecksumHelper(ExtendedRCEncoderContext *rcEnc) {
 
 void HostConnection::queryAndSetSyncImpl(ExtendedRCEncoderContext *rcEnc) {
     std::string glExtensions = queryGLExtensions(rcEnc);
-#if PLATFORM_SDK_VERSION <= 16
+#if PLATFORM_SDK_VERSION <= 16 || (!defined(__i386__) && !defined(__x86_64__))
     rcEnc->setSyncImpl(SYNC_IMPL_NONE);
 #else
     if (glExtensions.find(kRCNativeSync) != std::string::npos) {
