@@ -123,6 +123,11 @@
 
 class ChecksumCalculator {
 public:
+    enum Sizes {
+        kVersion1ChecksumSize = 8,
+        kMaxChecksumSize = kVersion1ChecksumSize
+    };
+
     ChecksumCalculator();
     // Get and set current checksum version
     uint32_t getVersion() const { return m_version; }

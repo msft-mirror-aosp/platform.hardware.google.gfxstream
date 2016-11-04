@@ -20,23 +20,12 @@
 
 // Checklist when implementing new protocol:
 // 1. update CHECKSUMHELPER_MAX_VERSION
-// 2. update maxChecksumSize()
+// 2. update ChecksumCalculator::Sizes enum
 // 3. update checksumByteSize()
 // 4. update addBuffer, writeChecksum, resetChecksum, validate
 
 // change CHECKSUMHELPER_MAX_VERSION when you want to update the protocol version
 #define CHECKSUMHELPER_MAX_VERSION 1
-
-// checksum buffer size
-// Please add a new checksum buffer size when implementing a new protocol,
-// as well as modifying the maxChecksumSize function.
-static const size_t kV1ChecksumSize = 8;
-
-static size_t maxChecksumSize() {
-    return 0 > kV1ChecksumSize ? 0 : kV1ChecksumSize;
-}
-
-static const size_t kMaxChecksumSize = maxChecksumSize();
 
 // utility macros to create checksum string at compilation time
 #define CHECKSUMHELPER_VERSION_STR_PREFIX "ANDROID_EMU_CHECKSUM_HELPER_v"
@@ -134,17 +123,22 @@ bool ChecksumCalculator::validate(const void* expectedChecksum, size_t expectedC
         resetChecksum();
         return false;
     }
-    // buffers for computing the checksum
-    unsigned char sChecksumBuffer[kMaxChecksumSize];
+    bool isValid;
     switch (m_version) {
         case 1: {
-            uint32_t val = computeV1Checksum();
-            memcpy(sChecksumBuffer, &val, sizeof(val));
-            memcpy(sChecksumBuffer+sizeof(val), &m_numRead, sizeof(m_numRead));
+            const uint32_t val = computeV1Checksum();
+            isValid = 0 == memcmp(&val, expectedChecksum, sizeof(val)) &&
+                      0 == memcmp(&m_numRead,
+                                  static_cast<const char*>(expectedChecksum) +
+                                          sizeof(val),
+                                  sizeof(m_numRead));
+
             break;
         }
+        default:
+            isValid = true;  // No checksum is a valid checksum.
+            break;
     }
-    bool isValid = !memcmp(sChecksumBuffer, expectedChecksum, checksumSize);
     m_numRead++;
     resetChecksum();
     return isValid;
