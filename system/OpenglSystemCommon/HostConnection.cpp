@@ -176,7 +176,7 @@ gl2_client_context_t *HostConnection::s_getGL2Context()
 }
 
 const std::string& HostConnection::queryGLExtensions(ExtendedRCEncoderContext *rcEnc) {
-    if (!m_glExtensions.empty() > 0) {
+    if (!m_glExtensions.empty()) {
         return m_glExtensions;
     }
 
