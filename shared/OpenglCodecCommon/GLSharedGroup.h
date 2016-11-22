@@ -135,6 +135,7 @@ public:
     GLint   getNextSamplerUniform(GLuint program, GLint index, GLint* val, GLenum* target) const;
     bool    setSamplerUniform(GLuint program, GLint appLoc, GLint val, GLenum* target);
 
+    bool    isShader(GLuint shader);
     bool    addShaderData(GLuint shader);
     // caller must hold a reference to the shader as long as it holds the pointer
     ShaderData* getShaderData(GLuint shader);

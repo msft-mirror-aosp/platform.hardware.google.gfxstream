@@ -989,6 +989,10 @@ void GL2Encoder::s_glFinish(void *self)
 void GL2Encoder::s_glLinkProgram(void * self, GLuint program)
 {
     GL2Encoder *ctx = (GL2Encoder *)self;
+    bool isProgram = ctx->m_shared->isProgram(program);
+    SET_ERROR_IF(!isProgram && !ctx->m_shared->isShader(program), GL_INVALID_VALUE);
+    SET_ERROR_IF(!isProgram, GL_INVALID_OPERATION);
+
     ctx->m_glLinkProgram_enc(self, program);
 
     GLint linkStatus = 0;

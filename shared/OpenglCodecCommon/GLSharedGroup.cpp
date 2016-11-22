@@ -452,6 +452,13 @@ bool GLSharedGroup::setSamplerUniform(GLuint program, GLint appLoc, GLint val, G
     return pData ? pData->setSamplerUniform(appLoc, val, target) : false;
 }
 
+bool  GLSharedGroup::isShader(GLuint shader)
+{
+    android::AutoMutex _lock(m_lock);
+    ShaderData* pData = m_shaders.valueFor(shader);
+    return (pData!=NULL);
+}
+
 bool GLSharedGroup::addShaderData(GLuint shader)
 {
     android::AutoMutex _lock(m_lock);
