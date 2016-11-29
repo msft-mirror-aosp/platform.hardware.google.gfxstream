@@ -34,6 +34,7 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 16 && echo PreJellyBean),PreJelly
     EMUGL_COMMON_CFLAGS += -DALOGE=LOGE
     EMUGL_COMMON_CFLAGS += -DALOGW=LOGW
     EMUGL_COMMON_CFLAGS += -DALOGD=LOGD
+    EMUGL_COMMON_CFLAGS += -DALOGV=LOGV
 endif
 
 # Uncomment the following line if you want to enable debug traces
