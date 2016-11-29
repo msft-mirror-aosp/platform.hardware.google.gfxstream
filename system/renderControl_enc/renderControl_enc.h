@@ -19,7 +19,6 @@ struct renderControl_encoder_context_t : public renderControl_client_context_t {
 	ChecksumCalculator *m_checksumCalculator;
 
 	renderControl_encoder_context_t(IOStream *stream, ChecksumCalculator *checksumCalculator);
-	virtual uint64_t lockAndWriteDma(void* data, uint32_t sz) { return 0; }
 };
 
 #endif  // GUARD_renderControl_encoder_context_t
