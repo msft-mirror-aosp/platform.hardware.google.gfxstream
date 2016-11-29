@@ -80,7 +80,6 @@ HostConnection *HostConnection::get() {
                 return NULL;
             }
             con->m_stream = stream;
-            con->m_pipeFd = stream->getSocket();
         }
         else /* !useQemuPipe */
         {
@@ -153,7 +152,6 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         m_rcEnc = new ExtendedRCEncoderContext(m_stream, checksumHelper());
         setChecksumHelper(m_rcEnc);
         queryAndSetSyncImpl(m_rcEnc);
-        queryAndSetDmaImpl(m_rcEnc);
         processPipeInit(m_rcEnc);
     }
     return m_rcEnc;
@@ -233,19 +231,6 @@ void HostConnection::queryAndSetSyncImpl(ExtendedRCEncoderContext *rcEnc) {
         rcEnc->setSyncImpl(SYNC_IMPL_NATIVE_SYNC);
     } else {
         rcEnc->setSyncImpl(SYNC_IMPL_NONE);
-    }
-#endif
-}
-
-void HostConnection::queryAndSetDmaImpl(ExtendedRCEncoderContext *rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-#if PLATFORM_SDK_VERSION <= 16 || (!defined(__i386__) && !defined(__x86_64__))
-    rcEnc->setDmaImpl(DMA_IMPL_NONE);
-#else
-    if (glExtensions.find(kDmaExtStr_v1) != std::string::npos) {
-        rcEnc->setDmaImpl(DMA_IMPL_v1);
-    } else {
-        rcEnc->setDmaImpl(DMA_IMPL_NONE);
     }
 #endif
 }
