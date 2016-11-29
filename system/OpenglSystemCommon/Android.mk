@@ -4,6 +4,8 @@ $(call emugl-begin-shared-library,libOpenglSystemCommon)
 $(call emugl-import,libGLESv1_enc libGLESv2_enc lib_renderControl_enc)
 
 LOCAL_SRC_FILES := \
+    goldfish_dma.cpp \
+    FormatConversions.cpp \
     HostConnection.cpp \
     ProcessPipe.cpp    \
     QemuPipeStream.cpp \

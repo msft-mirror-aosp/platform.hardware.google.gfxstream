@@ -554,8 +554,7 @@ EGLBoolean egl_pbuffer_surface_t::init(GLenum pixelFormat)
         return EGL_FALSE;
     }
 
-    rcColorBuffer = rcEnc->rcCreateColorBuffer(rcEnc, getWidth(), getHeight(),
-            pixelFormat);
+    rcColorBuffer = rcEnc->rcCreateColorBuffer(rcEnc, getWidth(), getHeight(), pixelFormat);
     if (!rcColorBuffer) {
         ALOGE("rcCreateColorBuffer returned 0");
         return EGL_FALSE;

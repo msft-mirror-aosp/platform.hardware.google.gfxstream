@@ -21,8 +21,18 @@
 #include <hardware/gralloc.h>
 #include <cutils/native_handle.h>
 
+#include "goldfish_dma.h"
+
 #define BUFFER_HANDLE_MAGIC ((int)0xabfabfab)
 #define CB_HANDLE_NUM_INTS(nfds) (int)((sizeof(cb_handle_t) - (nfds)*sizeof(int)) / sizeof(int))
+
+// Tell the emulator which gralloc formats
+// need special handling.
+enum EmulatorFrameworkFormat {
+    FRAMEWORK_FORMAT_GL_COMPATIBLE = 0,
+    FRAMEWORK_FORMAT_YV12 = 1,
+    FRAMEWORK_FORMAT_YUV_420_888 = 2,
+};
 
 //
 // Our buffer handle structure
@@ -31,7 +41,8 @@ struct cb_handle_t : public native_handle {
 
     cb_handle_t(int p_fd, int p_ashmemSize, int p_usage,
                 int p_width, int p_height, int p_frameworkFormat,
-                int p_format, int p_glFormat, int p_glType) :
+                int p_format, int p_glFormat, int p_glType,
+                EmulatorFrameworkFormat p_emuFrameworkFormat) :
         fd(p_fd),
         magic(BUFFER_HANDLE_MAGIC),
         usage(p_usage),
@@ -49,8 +60,11 @@ struct cb_handle_t : public native_handle {
         lockedTop(0),
         lockedWidth(0),
         lockedHeight(0),
-        hostHandle(0)
+        hostHandle(0),
+        emuFrameworkFormat(p_emuFrameworkFormat)
     {
+        goldfish_dma.fd = -1;
+        dmafd = -1;
         version = sizeof(native_handle);
         numFds = 0;
         numInts = CB_HANDLE_NUM_INTS(numFds);
@@ -62,12 +76,17 @@ struct cb_handle_t : public native_handle {
 
     void setFd(int p_fd) {
         if (p_fd >= 0) {
-            numFds = 1;
-        }
-        else {
-            numFds = 0;
+            numFds++;
         }
         fd = p_fd;
+        numInts = CB_HANDLE_NUM_INTS(numFds);
+    }
+
+    void setDmaFd(int fd) {
+        if (fd >= 0) {
+            numFds++;
+        }
+        dmafd = fd;
         numInts = CB_HANDLE_NUM_INTS(numFds);
     }
 
@@ -84,6 +103,7 @@ struct cb_handle_t : public native_handle {
 
     // file-descriptors
     int fd;  // ashmem fd (-1 of ashmem region did not allocated, i.e. no SW access needed)
+    int dmafd; // goldfish dma fd.
 
     // ints
     int magic;              // magic number in order to validate a pointer to be a cb_handle_t
@@ -108,6 +128,10 @@ struct cb_handle_t : public native_handle {
     int lockedWidth;
     int lockedHeight;
     uint32_t hostHandle;
+
+    goldfish_dma_context goldfish_dma;
+    uint32_t goldfish_dma_buf_size;
+    EmulatorFrameworkFormat emuFrameworkFormat;
 };
 
 

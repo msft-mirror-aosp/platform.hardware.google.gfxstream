@@ -44,6 +44,8 @@ struct renderControl_client_context_t {
 	rcFlushWindowColorBufferAsync_client_proc_t rcFlushWindowColorBufferAsync;
 	rcDestroySyncKHR_client_proc_t rcDestroySyncKHR;
 	rcSetPuid_client_proc_t rcSetPuid;
+	rcUpdateColorBufferDMA_client_proc_t rcUpdateColorBufferDMA;
+	rcCreateColorBufferDMA_client_proc_t rcCreateColorBufferDMA;
 	virtual ~renderControl_client_context_t() {}
 
 	typedef renderControl_client_context_t *CONTEXT_ACCESSOR_TYPE(void);
