@@ -44,6 +44,8 @@ int renderControl_client_context_t::initDispatchByName(void *(*getProc)(const ch
 	rcFlushWindowColorBufferAsync = (rcFlushWindowColorBufferAsync_client_proc_t) getProc("rcFlushWindowColorBufferAsync", userData);
 	rcDestroySyncKHR = (rcDestroySyncKHR_client_proc_t) getProc("rcDestroySyncKHR", userData);
 	rcSetPuid = (rcSetPuid_client_proc_t) getProc("rcSetPuid", userData);
+	rcUpdateColorBufferDMA = (rcUpdateColorBufferDMA_client_proc_t) getProc("rcUpdateColorBufferDMA", userData);
+	rcCreateColorBufferDMA = (rcCreateColorBufferDMA_client_proc_t) getProc("rcCreateColorBufferDMA", userData);
 	return 0;
 }
 

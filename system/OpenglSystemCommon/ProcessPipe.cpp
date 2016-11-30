@@ -15,14 +15,10 @@
 */
 
 #include "renderControl_enc.h"
+#include "qemu_pipe.h"
 
 #include <cutils/log.h>
 #include <pthread.h>
-#if PLATFORM_SDK_VERSION > 24
-#include <system/qemu_pipe.h>
-#else // PLATFORM_SDK_VERSION
-#include <hardware/qemu_pipe.h>
-#endif //PLATFORM_SDK_VERSION
 
 static int                sProcPipe = 0;
 static pthread_once_t     sProcPipeOnce = PTHREAD_ONCE_INIT;

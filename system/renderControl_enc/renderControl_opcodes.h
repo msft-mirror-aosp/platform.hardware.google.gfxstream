@@ -37,7 +37,9 @@
 #define OP_rcFlushWindowColorBufferAsync 					10031
 #define OP_rcDestroySyncKHR 					10032
 #define OP_rcSetPuid 					10033
-#define OP_last 					10034
+#define OP_rcUpdateColorBufferDMA 					10034
+#define OP_rcCreateColorBufferDMA 					10035
+#define OP_last 					10036
 
 
 #endif

@@ -19,6 +19,7 @@
 #include "IOStream.h"
 #include "renderControl_enc.h"
 #include "ChecksumCalculator.h"
+#include "goldfish_dma.h"
 
 #include <string>
 
@@ -41,6 +42,7 @@ enum SyncImpl {
     SYNC_IMPL_NONE = 0,
     SYNC_IMPL_NATIVE_SYNC = 1
 };
+
 // Interface:
 // If this GL extension string shows up, we use
 // SYNC_IMPL_NATIVE_SYNC, otherwise we use SYNC_IMPL_NONE.
@@ -49,16 +51,44 @@ enum SyncImpl {
 // otherwise, we do not use the feature.
 static const char kRCNativeSync[] = "ANDROID_EMU_native_sync_v2";
 
+// DMA for OpenGL
+enum DmaImpl {
+    DMA_IMPL_NONE = 0,
+    DMA_IMPL_v1 = 1,
+};
+
+static const char kDmaExtStr_v1[] = "ANDROID_EMU_dma_v1";
+
 // ExtendedRCEncoderContext is an extended version of renderControl_encoder_context_t
 // that will be used to track SyncImpl.
 class ExtendedRCEncoderContext : public renderControl_encoder_context_t {
 public:
     ExtendedRCEncoderContext(IOStream *stream, ChecksumCalculator *checksumCalculator)
-        : renderControl_encoder_context_t(stream, checksumCalculator) { }
+        : renderControl_encoder_context_t(stream, checksumCalculator) {
+        m_dmaCxt = NULL;
+        }
     void setSyncImpl(SyncImpl syncImpl) { m_syncImpl = syncImpl; }
+    void setDmaImpl(DmaImpl dmaImpl) { m_dmaImpl = dmaImpl; }
     bool hasNativeSync() const { return m_syncImpl == SYNC_IMPL_NATIVE_SYNC; }
+    DmaImpl getDmaVersion() const { return m_dmaImpl; }
+    void bindDmaContext(struct goldfish_dma_context* cxt) { m_dmaCxt = cxt; }
+    virtual uint64_t lockAndWriteDma(void* data, uint32_t size) {
+        ALOGV("%s: call", __FUNCTION__);
+        if (!m_dmaCxt) {
+            ALOGE("%s: ERROR: No DMA context bound!",
+                  __FUNCTION__);
+            return 0;
+        }
+        goldfish_dma_lock(m_dmaCxt);
+        goldfish_dma_write(m_dmaCxt, data, size);
+        uint64_t paddr = goldfish_dma_guest_paddr(m_dmaCxt);
+        ALOGV("%s: paddr=0x%llx", __FUNCTION__, paddr);
+        return paddr;
+    }
 private:
     SyncImpl m_syncImpl;
+    DmaImpl m_dmaImpl;
+    struct goldfish_dma_context* m_dmaCxt;
 };
 
 class HostConnection
@@ -85,6 +115,8 @@ public:
 
     bool isGrallocOnly() const { return m_grallocOnly; }
 
+    int getPipeFd() const { return m_pipeFd; }
+
 private:
     HostConnection();
     static gl_client_context_t  *s_getGLContext();
@@ -95,6 +127,7 @@ private:
     // should be called when m_rcEnc is created
     void setChecksumHelper(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetSyncImpl(ExtendedRCEncoderContext *rcEnc);
+    void queryAndSetDmaImpl(ExtendedRCEncoderContext *rcEnc);
 
 private:
     IOStream *m_stream;
@@ -104,6 +137,7 @@ private:
     ChecksumCalculator m_checksumHelper;
     std::string m_glExtensions;
     bool m_grallocOnly;
+    int m_pipeFd;
 };
 
 #endif
