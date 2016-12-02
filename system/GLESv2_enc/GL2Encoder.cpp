@@ -663,6 +663,12 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count)
             int firstIndex = stride * first;
 
             if (state->bufferObject == 0) {
+                if (state->elementSize == 0) {
+                    // The vertex attribute array is uninitialized. Abandon it.
+                    ALOGE("a vertex attribute array is uninitialized. Skipping corresponding vertex attribute.");
+                    this->m_glDisableVertexAttribArray_enc(this, i);
+                    continue;
+                }
                 m_glEnableVertexAttribArray_enc(this, i);
                 this->glVertexAttribPointerData(this, i, state->size, state->type, state->normalized, state->stride,
                                                 (unsigned char *)state->data + firstIndex, datalen);
@@ -730,22 +736,6 @@ void GL2Encoder::s_glDrawArrays(void *self, GLenum mode, GLint first, GLsizei co
     SET_ERROR_IF(!isValidDrawMode(mode), GL_INVALID_ENUM);
     SET_ERROR_IF(count < 0, GL_INVALID_VALUE);
 
-    bool has_arrays = false;
-    int nLocations = ctx->m_state->nLocations();
-    for (int i = 0; i < nLocations; i++) {
-        const GLClientState::VertexAttribState *state = ctx->m_state->getState(i);
-        if (state->enabled) {
-            if (state->bufferObject || state->data)  {
-                has_arrays = true;
-            }
-            else {
-                ALOGE("glDrawArrays: a vertex attribute array is enabled with no data bound\n");
-                ctx->setError(GL_INVALID_OPERATION);
-                return;
-            }
-        }
-    }
-
     ctx->sendVertexAttributes(first, count);
     ctx->m_glDrawArrays_enc(ctx, mode, 0, count);
     ctx->m_stream->flush();
@@ -773,19 +763,14 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
                 has_indirect_arrays = true;
             } else if (state->data) {
                 has_immediate_arrays = true;
-            } else {
-                ALOGW("glDrawElements: a vertex attribute array is enabled with no data bound\n");
-                ctx->setError(GL_INVALID_OPERATION);
-                return;
             }
         }
     }
 
     if (!has_immediate_arrays && !has_indirect_arrays) {
-        ALOGE("glDrawElements: no data bound to the command - ignoring\n");
+        ALOGW("glDrawElements: no vertex arrays / buffers bound to the command\n");
         GLenum status = ctx->m_glCheckFramebufferStatus_enc(self, GL_FRAMEBUFFER);
         SET_ERROR_IF(status != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
-        return;
     }
 
     BufferData* buf = NULL;
