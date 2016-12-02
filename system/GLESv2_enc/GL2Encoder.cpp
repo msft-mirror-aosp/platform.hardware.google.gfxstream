@@ -296,6 +296,11 @@ void GL2Encoder::s_glVertexAttribPointer(void *self, GLuint indx, GLint size, GL
     SET_ERROR_IF(!isValidVertexAttribType(type), GL_INVALID_ENUM);
     SET_ERROR_IF(stride < 0, GL_INVALID_VALUE);
     ctx->m_state->setState(indx, size, type, normalized, stride, ptr);
+    if (ctx->m_state->currentArrayVbo() != 0) {
+        ctx->glVertexAttribPointerOffset(ctx, indx, size, type, normalized, stride, (uintptr_t)ptr);
+    } else {
+        // TODO: if a nonzero VAO is bound, issue GL_INVALID_OPERATION.
+    }
 }
 
 void GL2Encoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
@@ -471,6 +476,7 @@ void GL2Encoder::s_glEnableVertexAttribArray(void *self, GLuint index)
     GL2Encoder *ctx = (GL2Encoder *)self;
     assert(ctx->m_state);
     SET_ERROR_IF(!isValidVertexAttribIndex(self, index), GL_INVALID_VALUE);
+    ctx->m_glEnableVertexAttribArray_enc(ctx, index);
     ctx->m_state->enable(index, 1);
 }
 
@@ -479,6 +485,7 @@ void GL2Encoder::s_glDisableVertexAttribArray(void *self, GLuint index)
     GL2Encoder *ctx = (GL2Encoder *)self;
     assert(ctx->m_state);
     SET_ERROR_IF(!isValidVertexAttribIndex(self, index), GL_INVALID_VALUE);
+    ctx->m_glDisableVertexAttribArray_enc(ctx, index);
     ctx->m_state->enable(index, 0);
 }
 
@@ -625,7 +632,25 @@ void GL2Encoder::getBufferIndexRange(BufferData* buf,
             *minIndex_out, *maxIndex_out);
 }
 
-void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count)
+// For detecting legacy usage of glVertexAttribPointer
+void GL2Encoder::getVBOUsage(bool* hasClientArrays, bool* hasVBOs) const {
+    if (hasClientArrays) *hasClientArrays = false;
+    if (hasVBOs) *hasVBOs = false;
+
+    for (int i = 0; i < m_state->nLocations(); i++) {
+        const GLClientState::VertexAttribState *state = m_state->getState(i);
+        if (state->enabled) {
+            if (state->bufferObject == 0 && state->data && hasClientArrays) {
+                *hasClientArrays = true;
+            }
+            if (state->bufferObject != 0 && hasVBOs) {
+                *hasVBOs = true;
+            }
+        }
+    }
+}
+
+void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count, bool hasClientArrays)
 {
     assert(m_state);
 
@@ -643,7 +668,7 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count)
         }
 
         if (state->enabled) {
-            if (lastBoundVbo != state->bufferObject) {
+            if (hasClientArrays && lastBoundVbo != state->bufferObject) {
                 this->m_glBindBuffer_enc(this, GL_ARRAY_BUFFER, state->bufferObject);
                 lastBoundVbo = state->bufferObject;
             }
@@ -669,20 +694,24 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count)
                 // So it becomes the current form.
                 unsigned int bufLen = stride * (count - 1) + state->elementSize;
                 if (buf && firstIndex >= 0 && firstIndex + bufLen <= buf->m_size) {
-                    m_glEnableVertexAttribArray_enc(this, i);
-                    this->glVertexAttribPointerOffset(this, i, state->size, state->type, state->normalized, state->stride,
-                                                  (uintptr_t) state->data + firstIndex);
+                    if (hasClientArrays) {
+                        m_glEnableVertexAttribArray_enc(this, i);
+                        this->glVertexAttribPointerOffset(this, i, state->size, state->type, state->normalized, state->stride,
+                                (uintptr_t) state->data + firstIndex);
+                    }
                 } else {
                     ALOGE("a vertex attribute index out of boundary is detected. Skipping corresponding vertex attribute.");
                     m_glDisableVertexAttribArray_enc(this, i);
                 }
             }
         } else {
-            this->m_glDisableVertexAttribArray_enc(this, i);
+            if (hasClientArrays) {
+                this->m_glDisableVertexAttribArray_enc(this, i);
+            }
         }
     }
 
-    if (lastBoundVbo != m_state->currentArrayVbo()) {
+    if (hasClientArrays && lastBoundVbo != m_state->currentArrayVbo()) {
         this->m_glBindBuffer_enc(this, GL_ARRAY_BUFFER, m_state->currentArrayVbo());
     }
 }
@@ -726,8 +755,20 @@ void GL2Encoder::s_glDrawArrays(void *self, GLenum mode, GLint first, GLsizei co
     SET_ERROR_IF(!isValidDrawMode(mode), GL_INVALID_ENUM);
     SET_ERROR_IF(count < 0, GL_INVALID_VALUE);
 
-    ctx->sendVertexAttributes(first, count);
-    ctx->m_glDrawArrays_enc(ctx, mode, 0, count);
+    bool has_client_vertex_arrays = false;
+    bool has_indirect_arrays = false;
+    ctx->getVBOUsage(&has_client_vertex_arrays,
+                     &has_indirect_arrays);
+
+    if (has_client_vertex_arrays ||
+        (!has_client_vertex_arrays &&
+         !has_indirect_arrays)) {
+        ctx->sendVertexAttributes(first, count, true);
+        ctx->m_glDrawArrays_enc(ctx, mode, 0, count);
+    } else {
+        ctx->sendVertexAttributes(0, count, false);
+        ctx->m_glDrawArrays_enc(ctx, mode, first, count);
+    }
     ctx->m_stream->flush();
 }
 
@@ -741,23 +782,14 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
     SET_ERROR_IF(count < 0, GL_INVALID_VALUE);
     SET_ERROR_IF(!(type == GL_UNSIGNED_BYTE || type == GL_UNSIGNED_SHORT || type == GL_UNSIGNED_INT), GL_INVALID_ENUM);
 
-    bool has_immediate_arrays = false;
+    bool has_client_vertex_arrays = false;
     bool has_indirect_arrays = false;
     int nLocations = ctx->m_state->nLocations();
     GLintptr offset = 0;
 
-    for (int i = 0; i < nLocations; i++) {
-        const GLClientState::VertexAttribState *state = ctx->m_state->getState(i);
-        if (state->enabled) {
-            if (state->bufferObject != 0) {
-                has_indirect_arrays = true;
-            } else if (state->data) {
-                has_immediate_arrays = true;
-            }
-        }
-    }
+    ctx->getVBOUsage(&has_client_vertex_arrays, &has_indirect_arrays);
 
-    if (!has_immediate_arrays && !has_indirect_arrays) {
+    if (!has_client_vertex_arrays && !has_indirect_arrays) {
         ALOGW("glDrawElements: no vertex arrays / buffers bound to the command\n");
         GLenum status = ctx->m_glCheckFramebufferStatus_enc(self, GL_FRAMEBUFFER);
         SET_ERROR_IF(status != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
@@ -796,8 +828,8 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
 
     bool adjustIndices = true;
     if (ctx->m_state->currentIndexVbo() != 0) {
-        if (!has_immediate_arrays) {
-            ctx->sendVertexAttributes(0, maxIndex + 1);
+        if (!has_client_vertex_arrays) {
+            ctx->sendVertexAttributes(0, maxIndex + 1, false);
             ctx->m_glBindBuffer_enc(self, GL_ELEMENT_ARRAY_BUFFER, ctx->m_state->currentIndexVbo());
             ctx->glDrawElementsOffset(ctx, mode, count, type, offset);
             ctx->flushDrawCall();
@@ -815,7 +847,7 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
                                  minIndex);
 
         if (has_indirect_arrays || 1) {
-            ctx->sendVertexAttributes(minIndex, maxIndex - minIndex + 1);
+            ctx->sendVertexAttributes(minIndex, maxIndex - minIndex + 1, true);
             ctx->glDrawElementsData(ctx, mode, count, type, adjustedIndices,
                                     count * glSizeof(type));
             ctx->m_stream->flush();
