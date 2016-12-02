@@ -33,14 +33,10 @@ static GLubyte *gRendererString= (GLubyte *) "Android HW-GLES 2.0";
 static GLubyte *gVersionString= (GLubyte *) "OpenGL ES 2.0";
 static GLubyte *gExtensionsString= (GLubyte *) "GL_OES_EGL_image_external ";
 
-#define SET_ERROR(err) {                            \
+#define SET_ERROR_IF(condition,err) if((condition)) {                            \
         ALOGE("%s:%s:%d GL error 0x%x\n", __FILE__, __FUNCTION__, __LINE__, err); \
         ctx->setError(err);                                    \
         return;                                                  \
-    }
-
-#define SET_ERROR_IF(condition,err) if((condition)) {                            \
-        SET_ERROR(err)                                                           \
     }
 
 
@@ -309,12 +305,6 @@ void GL2Encoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
     GLClientState* state = ctx->m_state;
 
     switch (param) {
-    case GL_MAJOR_VERSION:
-    case GL_MINOR_VERSION:
-        // These two parameters are not supported by GLESv2
-        // TODO: Set *ptr appropriately when GLESv3 support is ready
-        SET_ERROR(GL_INVALID_ENUM);
-
     case GL_NUM_SHADER_BINARY_FORMATS:
         *ptr = 0;
         break;
