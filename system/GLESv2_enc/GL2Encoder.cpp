@@ -701,6 +701,9 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count, bool hasClient
                     }
                 } else {
                     ALOGE("a vertex attribute index out of boundary is detected. Skipping corresponding vertex attribute.");
+                    ALOGE("Out of bounds vertex attribute info: "
+                          "attribute %d allocedBufferSize %u bufferDataSpecified? %d wantedStart %u wantedEnd %u",
+                          i, buf->m_size, buf != NULL, firstIndex, firstIndex + bufLen);
                     m_glDisableVertexAttribArray_enc(this, i);
                 }
             }
