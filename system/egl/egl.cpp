@@ -454,6 +454,11 @@ EGLBoolean egl_window_surface_t::swapBuffers()
 
     int presentFenceFd = -1;
 
+    if (buffer == NULL) {
+        ALOGE("egl_window_surface_t::swapBuffers called with NULL buffer");
+        setErrorReturn(EGL_BAD_SURFACE, EGL_FALSE);
+    }
+
 #if PLATFORM_SDK_VERSION <= 16
     rcEnc->rcFlushWindowColorBuffer(rcEnc, rcSurface);
     // equivalent to glFinish if no native sync
@@ -1527,10 +1532,10 @@ EGLBoolean eglSwapBuffers(EGLDisplay dpy, EGLSurface eglSurface)
         setErrorReturn(EGL_BAD_DISPLAY, EGL_FALSE);
 
     // post the surface
-    d->swapBuffers();
+    EGLBoolean ret = d->swapBuffers();
 
     hostCon->flush();
-    return EGL_TRUE;
+    return ret;
 }
 
 EGLBoolean eglCopyBuffers(EGLDisplay dpy, EGLSurface surface, EGLNativePixmapType target)
