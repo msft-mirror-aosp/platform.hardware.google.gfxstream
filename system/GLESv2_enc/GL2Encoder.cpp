@@ -612,13 +612,13 @@ void* GL2Encoder::recenterIndices(const void* src,
 void GL2Encoder::getBufferIndexRange(BufferData* buf,
                                      const void* dataWithOffset,
                                      GLenum type,
-                                     GLsizei count,
-                                     GLintptr offset,
+                                     size_t count,
+                                     size_t offset,
                                      int* minIndex_out,
                                      int* maxIndex_out) {
 
     if (buf->m_indexRangeCache.findRange(
-                type, (size_t)offset, count,
+                type, offset, count,
                 m_primitiveRestartEnabled,
                 minIndex_out,
                 maxIndex_out)) {
@@ -628,7 +628,7 @@ void GL2Encoder::getBufferIndexRange(BufferData* buf,
     calcIndexRange(dataWithOffset, type, count, minIndex_out, maxIndex_out);
 
     buf->m_indexRangeCache.addRange(
-            type, (size_t)offset, count, m_primitiveRestartEnabled,
+            type, offset, count, m_primitiveRestartEnabled,
             *minIndex_out, *maxIndex_out);
 }
 
@@ -814,8 +814,8 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
         ctx->getBufferIndexRange(buf,
                                  indices,
                                  type,
-                                 (GLsizei)count,
-                                 (GLintptr)indices, // offset, really
+                                 (size_t)count,
+                                 (size_t)offset,
                                  &minIndex, &maxIndex);
     } else {
         // In this case, the |indices| field holds a real
