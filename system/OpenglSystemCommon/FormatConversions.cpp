@@ -312,15 +312,18 @@ void yuv420p_to_rgb888(char* dest, char* src, int width, int height,
     }
 }
 
-void copy_rgb_buffer(char* _dst, char* raw_data,
-                            int width, int height, int top, int left,
-                            int bpp) {
+void copy_rgb_buffer_from_unlocked(
+        char* _dst, char* raw_data,
+        int unlockedWidth,
+        int width, int height, int top, int left,
+        int bpp) {
     char* dst = _dst;
     int dst_line_len = width * bpp;
-    int src_line_len = width * bpp;
+    int src_line_len = unlockedWidth * bpp;
     char *src = (char *)raw_data + top*src_line_len + left*bpp;
-    for (int y = 0; y < height; y++)
+    for (int y = 0; y < height; y++) {
         memcpy(dst, src, dst_line_len);
-    src += src_line_len;
-    dst += dst_line_len;
+        src += src_line_len;
+        dst += dst_line_len;
+    }
 }

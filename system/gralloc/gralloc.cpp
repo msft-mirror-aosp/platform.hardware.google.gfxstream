@@ -156,7 +156,10 @@ static void updateHostColorBuffer(cb_handle_t* cb,
     }
 
     if (doLocked && is_rgb_format) {
-        copy_rgb_buffer(to_send, pixels, width, height, top, left, bpp);
+        copy_rgb_buffer_from_unlocked(
+                to_send, pixels,
+                cb->width,
+                width, height, top, left, bpp);
     }
 
     if (cb->goldfish_dma.fd > 0) {

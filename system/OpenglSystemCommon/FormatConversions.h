@@ -39,7 +39,8 @@ void yv12_to_rgb888(char* dest, char* src, int width, int height,
                     int left, int top, int right, int bottom);
 void yuv420p_to_rgb888(char* dest, char* src, int width, int height,
                        int left, int top, int right, int bottom);
-void copy_rgb_buffer(char* _dst, char* raw_data,
-                            int width, int height, int top, int left,
-                            int bpp);
+void copy_rgb_buffer_from_unlocked(char* _dst, char* raw_data,
+                                   int unlockedWidth,
+                                   int width, int height, int top, int left,
+                                   int bpp);
 #endif
