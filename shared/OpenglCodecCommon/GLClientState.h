@@ -377,6 +377,9 @@ public:
     bool attachmentHasObject(GLenum target, GLenum attachment) const;
     GLuint objectOfAttachment(GLenum target, GLenum attachment) const;
 
+    // Transform feedback state
+    void setTransformFeedbackActiveUnpaused(bool activeUnpaused);
+    bool getTransformFeedbackActiveUnpaused() const;
 
     void setTextureData(SharedTextureDataMap* sharedTexData);
     // set eglsurface property on default framebuffer

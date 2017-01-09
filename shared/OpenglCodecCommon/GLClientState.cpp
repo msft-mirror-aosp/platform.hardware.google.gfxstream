@@ -1653,6 +1653,19 @@ GLuint GLClientState::objectOfAttachment(GLenum target, GLenum attachment) const
     }
     return 0;
 }
+
+void GLClientState::setTransformFeedbackActiveUnpaused(bool activeUnpaused) {
+    m_transformFeedbackActiveUnpaused = activeUnpaused;
+}
+
+bool GLClientState::getTransformFeedbackActiveUnpaused() const {
+    return m_transformFeedbackActiveUnpaused;
+}
+
+void GLClientState::setTextureData(SharedTextureDataMap* sharedTexData) {
+    m_tex.textureRecs = sharedTexData;
+}
+
 void GLClientState::fromMakeCurrent() {
     if (mFboState.fboData.find(0) == mFboState.fboData.end()) {
         addFreshFramebuffer(0);
