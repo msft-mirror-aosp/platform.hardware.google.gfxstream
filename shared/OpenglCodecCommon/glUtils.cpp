@@ -18,6 +18,8 @@
 #include "ErrorLog.h"
 #include <IOStream.h>
 
+#include <GLES3/gl31.h>
+
 size_t glSizeof(GLenum type)
 {
     size_t retval = 0;
@@ -28,6 +30,7 @@ size_t glSizeof(GLenum type)
         break;
     case GL_SHORT:
     case GL_UNSIGNED_SHORT:
+    case GL_HALF_FLOAT:
     case GL_HALF_FLOAT_OES:
         retval = 2;
         break;
@@ -45,10 +48,12 @@ size_t glSizeof(GLenum type)
 #endif
     case GL_FLOAT_VEC2:
     case GL_INT_VEC2:
+    case GL_UNSIGNED_INT_VEC2:
     case GL_BOOL_VEC2:
         retval = 8;
         break;
     case GL_INT_VEC3:
+    case GL_UNSIGNED_INT_VEC3:
     case GL_BOOL_VEC3:
     case GL_FLOAT_VEC3:
         retval = 12;
@@ -56,6 +61,7 @@ size_t glSizeof(GLenum type)
     case GL_FLOAT_VEC4:
     case GL_BOOL_VEC4:
     case GL_INT_VEC4:
+    case GL_UNSIGNED_INT_VEC4:
     case GL_FLOAT_MAT2:
         retval = 16;
         break;
@@ -65,9 +71,38 @@ size_t glSizeof(GLenum type)
     case GL_FLOAT_MAT4:
         retval = 64;
         break;
+    case GL_FLOAT_MAT2x3:
+    case GL_FLOAT_MAT3x2:
+        retval = 4 * 6;
+        break;
+    case GL_FLOAT_MAT2x4:
+    case GL_FLOAT_MAT4x2:
+        retval = 4 * 8;
+        break;
+    case GL_FLOAT_MAT3x4:
+    case GL_FLOAT_MAT4x3:
+        retval = 4 * 12;
+        break;
     case GL_SAMPLER_2D:
     case GL_SAMPLER_CUBE:
         retval = 4;
+        break;
+    case GL_UNSIGNED_SHORT_4_4_4_4:
+	case GL_UNSIGNED_SHORT_5_5_5_1:
+	case GL_UNSIGNED_SHORT_5_6_5:
+	case GL_UNSIGNED_SHORT_4_4_4_4_REV_EXT:
+	case GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT:
+        retval = 2;
+        break;
+	case GL_INT_2_10_10_10_REV:
+	case GL_UNSIGNED_INT_10F_11F_11F_REV:
+	case GL_UNSIGNED_INT_5_9_9_9_REV:
+	case GL_UNSIGNED_INT_2_10_10_10_REV:
+	case GL_UNSIGNED_INT_24_8_OES:;
+        retval = 4;
+        break;
+	case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
+		retval = 4 + 4;
         break;
     default:
         ERR("**** ERROR unknown type 0x%x (%s,%d)\n", type, __FUNCTION__,__LINE__);
@@ -285,6 +320,19 @@ size_t glUtilsParamSize(GLenum param)
     case GL_REQUIRED_TEXTURE_IMAGE_UNITS_OES:
     case GL_FRAGMENT_SHADER_DERIVATIVE_HINT_OES:
     case GL_LINE_WIDTH:
+    case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS:
+    case GL_MAX_UNIFORM_BUFFER_BINDINGS:
+    case GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS:
+    case GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS:
+    case GL_UNIFORM_BLOCK_BINDING:
+    case GL_UNIFORM_BLOCK_DATA_SIZE:
+    case GL_UNIFORM_BLOCK_NAME_LENGTH:
+    case GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS:
+    case GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER:
+    case GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER:
+    case GL_CURRENT_QUERY:
+    case GL_QUERY_RESULT:
+    case GL_QUERY_RESULT_AVAILABLE:
         s = 1;
         break;
     case GL_ALIASED_LINE_WIDTH_RANGE:
@@ -293,6 +341,7 @@ size_t glUtilsParamSize(GLenum param)
     case GL_MAX_VIEWPORT_DIMS:
     case GL_SMOOTH_POINT_SIZE_RANGE:
     case GL_SMOOTH_LINE_WIDTH_RANGE:
+    case GL_SAMPLE_POSITION:
         s= 2;
         break;
     case GL_SPOT_DIRECTION:
@@ -337,6 +386,15 @@ void glUtilsPackPointerData(unsigned char *dst, unsigned char *src,
                      unsigned int datalen)
 {
     unsigned int  vsize = size * glSizeof(type);
+    switch (type) {
+    case GL_INT_2_10_10_10_REV:
+    case GL_UNSIGNED_INT_2_10_10_10_REV:
+        vsize = vsize / 4;
+        break;
+    default:
+        break;
+    }
+
     if (stride == 0) stride = vsize;
 
     if (stride == vsize) {
@@ -472,4 +530,86 @@ int glUtilsCalcShaderSourceLen( char **strings,  GLint *length, GLsizei count)
     }
     return len;
 
+}
+
+// helper to get GL_COLOR_ATTACHMENTn names
+GLenum glUtilsColorAttachmentName(int i) {
+#undef COLOR_ATTACHMENT_CASE
+#define COLOR_ATTACHMENT_CASE(i) \
+    case i: \
+        return GL_COLOR_ATTACHMENT##i; \
+
+    switch (i) {
+        COLOR_ATTACHMENT_CASE(0)
+        COLOR_ATTACHMENT_CASE(1)
+        COLOR_ATTACHMENT_CASE(2)
+        COLOR_ATTACHMENT_CASE(3)
+        COLOR_ATTACHMENT_CASE(4)
+        COLOR_ATTACHMENT_CASE(5)
+        COLOR_ATTACHMENT_CASE(6)
+        COLOR_ATTACHMENT_CASE(7)
+        COLOR_ATTACHMENT_CASE(8)
+        COLOR_ATTACHMENT_CASE(9)
+        COLOR_ATTACHMENT_CASE(10)
+        COLOR_ATTACHMENT_CASE(11)
+        COLOR_ATTACHMENT_CASE(12)
+        COLOR_ATTACHMENT_CASE(13)
+        COLOR_ATTACHMENT_CASE(14)
+        COLOR_ATTACHMENT_CASE(15)
+    }
+    return GL_NONE;
+#undef COLOR_ATTACHMENT_CASE
+}
+
+int glUtilsColorAttachmentIndex(GLenum attachment) {
+#undef COLOR_ATTACHMENT_CASE
+#define COLOR_ATTACHMENT_CASE(i) \
+    case GL_COLOR_ATTACHMENT##i: \
+        return i; \
+
+    switch (attachment) {
+        COLOR_ATTACHMENT_CASE(0)
+        COLOR_ATTACHMENT_CASE(1)
+        COLOR_ATTACHMENT_CASE(2)
+        COLOR_ATTACHMENT_CASE(3)
+        COLOR_ATTACHMENT_CASE(4)
+        COLOR_ATTACHMENT_CASE(5)
+        COLOR_ATTACHMENT_CASE(6)
+        COLOR_ATTACHMENT_CASE(7)
+        COLOR_ATTACHMENT_CASE(8)
+        COLOR_ATTACHMENT_CASE(9)
+        COLOR_ATTACHMENT_CASE(10)
+        COLOR_ATTACHMENT_CASE(11)
+        COLOR_ATTACHMENT_CASE(12)
+        COLOR_ATTACHMENT_CASE(13)
+        COLOR_ATTACHMENT_CASE(14)
+        COLOR_ATTACHMENT_CASE(15)
+    }
+    return -1;
+#undef COLOR_ATTACHMENT_CASE
+}
+
+struct glUtilsDrawArraysIndirectCommand {
+    GLuint count;
+    GLuint primCount;
+    GLuint first;
+    GLuint reserved;
+};
+
+struct glUtilsDrawElementsIndirectCommand {
+    GLuint count;
+    GLuint primCount;
+    GLuint first;
+    GLint baseVertex;
+    GLuint reserved;
+};
+
+GLuint glUtilsIndirectStructSize(IndirectCommandType cmdType) {
+    switch (cmdType) {
+    case INDIRECT_COMMAND_DRAWARRAYS:
+        return sizeof(glUtilsDrawArraysIndirectCommand);
+    case INDIRECT_COMMAND_DRAWELEMENTS:
+        return sizeof(glUtilsDrawElementsIndirectCommand);
+    }
+    return 4;
 }

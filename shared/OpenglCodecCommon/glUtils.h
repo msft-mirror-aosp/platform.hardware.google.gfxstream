@@ -46,6 +46,11 @@
 extern "C" {
 #endif
 
+typedef enum {
+    INDIRECT_COMMAND_DRAWARRAYS = 0,
+    INDIRECT_COMMAND_DRAWELEMENTS = 1,
+} IndirectCommandType;
+
     size_t glSizeof(GLenum type);
     size_t glUtilsParamSize(GLenum param);
     void   glUtilsPackPointerData(unsigned char *dst, unsigned char *str,
@@ -57,6 +62,11 @@ extern "C" {
     int glUtilsPixelBitSize(GLenum format, GLenum type);
     void   glUtilsPackStrings(char *ptr, char **strings, GLint *length, GLsizei count);
     int glUtilsCalcShaderSourceLen(char **strings, GLint *length, GLsizei count);
+    GLenum glUtilsColorAttachmentName(int i);
+    int glUtilsColorAttachmentIndex(GLenum attachment);
+
+    GLuint glUtilsIndirectStructSize(IndirectCommandType cmdType);
+
 #ifdef __cplusplus
 };
 #endif
@@ -141,5 +151,10 @@ namespace GLUtils {
             src++;
         }
     }
+
+    template<class T> T primitiveRestartIndex() {
+        return -1;
+    }
+
 }; // namespace GLUtils
 #endif
