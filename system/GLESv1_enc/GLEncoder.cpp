@@ -267,28 +267,28 @@ void GLEncoder::s_glVertexPointer(void *self, int size, GLenum type, GLsizei str
 {
     GLEncoder *ctx = (GLEncoder *)self;
     assert(ctx->m_state != NULL);
-    ctx->m_state->setState(GLClientState::VERTEX_LOCATION, size, type, false, stride, data);
+    ctx->m_state->setVertexAttribState(GLClientState::VERTEX_LOCATION, size, type, false, stride, data);
 }
 
 void GLEncoder::s_glNormalPointer(void *self, GLenum type, GLsizei stride, const void *data)
 {
     GLEncoder *ctx = (GLEncoder *)self;
     assert(ctx->m_state != NULL);
-    ctx->m_state->setState(GLClientState::NORMAL_LOCATION, 3, type, false, stride, data);
+    ctx->m_state->setVertexAttribState(GLClientState::NORMAL_LOCATION, 3, type, false, stride, data);
 }
 
 void GLEncoder::s_glColorPointer(void *self, int size, GLenum type, GLsizei stride, const void *data)
 {
     GLEncoder *ctx = (GLEncoder *)self;
     assert(ctx->m_state != NULL);
-    ctx->m_state->setState(GLClientState::COLOR_LOCATION, size, type, false, stride, data);
+    ctx->m_state->setVertexAttribState(GLClientState::COLOR_LOCATION, size, type, false, stride, data);
 }
 
 void GLEncoder::s_glPointSizePointerOES(void *self, GLenum type, GLsizei stride, const void *data)
 {
     GLEncoder *ctx = (GLEncoder *)self;
     assert(ctx->m_state != NULL);
-    ctx->m_state->setState(GLClientState::POINTSIZE_LOCATION, 1, type, false, stride, data);
+    ctx->m_state->setVertexAttribState(GLClientState::POINTSIZE_LOCATION, 1, type, false, stride, data);
 }
 
 void GLEncoder::s_glClientActiveTexture(void *self, GLenum texture)
@@ -303,7 +303,7 @@ void GLEncoder::s_glTexCoordPointer(void *self, int size, GLenum type, GLsizei s
     GLEncoder *ctx = (GLEncoder *)self;
     assert(ctx->m_state != NULL);
     int loc = ctx->m_state->getLocation(GL_TEXTURE_COORD_ARRAY);
-    ctx->m_state->setState(loc, size, type, false, stride, data);
+    ctx->m_state->setVertexAttribState(loc, size, type, false, stride, data);
 }
 
 void GLEncoder::s_glMatrixIndexPointerOES(void *self, int size, GLenum type, GLsizei stride, const void * data)
@@ -311,7 +311,7 @@ void GLEncoder::s_glMatrixIndexPointerOES(void *self, int size, GLenum type, GLs
     GLEncoder *ctx = (GLEncoder *)self;
     assert(ctx->m_state != NULL);
     int loc = ctx->m_state->getLocation(GL_MATRIX_INDEX_ARRAY_OES);
-    ctx->m_state->setState(loc, size, type, false, stride, data);
+    ctx->m_state->setVertexAttribState(loc, size, type, false, stride, data);
 }
 
 void GLEncoder::s_glWeightPointerOES(void * self, int size, GLenum type, GLsizei stride, const void * data)
@@ -319,7 +319,7 @@ void GLEncoder::s_glWeightPointerOES(void * self, int size, GLenum type, GLsizei
     GLEncoder *ctx = (GLEncoder *)self;
     assert(ctx->m_state != NULL);
     int loc = ctx->m_state->getLocation(GL_WEIGHT_ARRAY_OES);
-    ctx->m_state->setState(loc, size, type, false, stride, data);
+    ctx->m_state->setVertexAttribState(loc, size, type, false, stride, data);
 }
 
 void GLEncoder::s_glEnableClientState(void *self, GLenum state)
@@ -343,12 +343,8 @@ GLboolean GLEncoder::s_glIsEnabled(void *self, GLenum cap)
     GLEncoder *ctx = (GLEncoder *) self;
     assert(ctx->m_state != NULL);
     int loc = ctx->m_state->getLocation(cap);
-    const GLClientState::VertexAttribState *state = ctx->m_state->getState(loc);
-
-    if (state!=NULL)
-      return state->enabled;
-
-    return ctx->m_glIsEnabled_enc(self,cap);
+    const GLClientState::VertexAttribState& state = ctx->m_state->getState(loc);
+    return state.enabled;
 }
 
 void GLEncoder::s_glBindBuffer(void *self, GLenum target, GLuint id)
@@ -399,43 +395,40 @@ void GLEncoder::sendVertexData(unsigned int first, unsigned int count)
     GLenum prevActiveTexUnit = m_state->getActiveTextureUnit();
     for (int i = 0; i < GLClientState::LAST_LOCATION; i++) {
         bool enableDirty;
-        const GLClientState::VertexAttribState *state = m_state->getStateAndEnableDirty(i, &enableDirty);
-
-        // do not process if state not valid
-        if (!state) continue;
+        const GLClientState::VertexAttribState& state = m_state->getStateAndEnableDirty(i, &enableDirty);
 
         // do not send disable state if state was already disabled
-        if (!enableDirty && !state->enabled) continue;
+        if (!enableDirty && !state.enabled) continue;
 
         if ( i >= GLClientState::TEXCOORD0_LOCATION &&
             i <= GLClientState::TEXCOORD7_LOCATION ) {
             m_glClientActiveTexture_enc(this, GL_TEXTURE0 + i - GLClientState::TEXCOORD0_LOCATION);
         }
 
-        if (state->enabled) {
+        if (state.enabled) {
             if (enableDirty)
-                m_glEnableClientState_enc(this, state->glConst);
+                m_glEnableClientState_enc(this, state.glConst);
 
-            unsigned int datalen = state->elementSize * count;
-            int stride = state->stride;
-            if (stride == 0) stride = state->elementSize;
+            unsigned int datalen = state.elementSize * count;
+            int stride = state.stride;
+            if (stride == 0) stride = state.elementSize;
             int firstIndex = stride * first;
 
-            this->m_glBindBuffer_enc(this, GL_ARRAY_BUFFER, state->bufferObject);
-            if (state->bufferObject == 0) {
+            this->m_glBindBuffer_enc(this, GL_ARRAY_BUFFER, state.bufferObject);
+            if (state.bufferObject == 0) {
 
                 switch(i) {
                 case GLClientState::VERTEX_LOCATION:
-                    this->glVertexPointerData(this, state->size, state->type, state->stride,
-                                              (unsigned char *)state->data + firstIndex, datalen);
+                    this->glVertexPointerData(this, state.size, state.type, state.stride,
+                                              (unsigned char *)state.data + firstIndex, datalen);
                     break;
                 case GLClientState::NORMAL_LOCATION:
-                    this->glNormalPointerData(this, state->type, state->stride,
-                                              (unsigned char *)state->data + firstIndex, datalen);
+                    this->glNormalPointerData(this, state.type, state.stride,
+                                              (unsigned char *)state.data + firstIndex, datalen);
                     break;
                 case GLClientState::COLOR_LOCATION:
-                    this->glColorPointerData(this, state->size, state->type, state->stride,
-                                             (unsigned char *)state->data + firstIndex, datalen);
+                    this->glColorPointerData(this, state.size, state.type, state.stride,
+                                             (unsigned char *)state.data + firstIndex, datalen);
                     break;
                 case GLClientState::TEXCOORD0_LOCATION:
                 case GLClientState::TEXCOORD1_LOCATION:
@@ -447,41 +440,41 @@ void GLEncoder::sendVertexData(unsigned int first, unsigned int count)
                 case GLClientState::TEXCOORD7_LOCATION:
                     m_state->setActiveTextureUnit(i - GLClientState::TEXCOORD0_LOCATION + GL_TEXTURE0);
                     if (m_state->getPriorityEnabledTarget(GL_INVALID_ENUM) != GL_INVALID_ENUM) {
-                        this->glTexCoordPointerData(this, i - GLClientState::TEXCOORD0_LOCATION, state->size, state->type, state->stride,
-                                                (unsigned char *)state->data + firstIndex, datalen);
+                        this->glTexCoordPointerData(this, i - GLClientState::TEXCOORD0_LOCATION, state.size, state.type, state.stride,
+                                                (unsigned char *)state.data + firstIndex, datalen);
                     }
                     break;
                 case GLClientState::POINTSIZE_LOCATION:
-                    this->glPointSizePointerData(this, state->type, state->stride,
-                                                 (unsigned char *) state->data + firstIndex, datalen);
+                    this->glPointSizePointerData(this, state.type, state.stride,
+                                                 (unsigned char *) state.data + firstIndex, datalen);
                     break;
                 case GLClientState::WEIGHT_LOCATION:
-                    this->glWeightPointerData(this, state->size, state->type, state->stride,
-                                              (unsigned char * ) state->data + firstIndex, datalen);
+                    this->glWeightPointerData(this, state.size, state.type, state.stride,
+                                              (unsigned char * ) state.data + firstIndex, datalen);
                     break;
                 case GLClientState::MATRIXINDEX_LOCATION:
-                    this->glMatrixIndexPointerData(this, state->size, state->type, state->stride,
-                                                  (unsigned char *)state->data + firstIndex, datalen);
+                    this->glMatrixIndexPointerData(this, state.size, state.type, state.stride,
+                                                  (unsigned char *)state.data + firstIndex, datalen);
                     break;
                 }
             } else {
 
                 switch(i) {
                 case GLClientState::VERTEX_LOCATION:
-                    this->glVertexPointerOffset(this, state->size, state->type, state->stride,
-                                                (uintptr_t)state->data + firstIndex);
+                    this->glVertexPointerOffset(this, state.size, state.type, state.stride,
+                                                (uintptr_t)state.data + firstIndex);
                     break;
                 case GLClientState::NORMAL_LOCATION:
-                    this->glNormalPointerOffset(this, state->type, state->stride,
-                                                (uintptr_t)state->data + firstIndex);
+                    this->glNormalPointerOffset(this, state.type, state.stride,
+                                                (uintptr_t)state.data + firstIndex);
                     break;
                 case GLClientState::POINTSIZE_LOCATION:
-                    this->glPointSizePointerOffset(this, state->type, state->stride,
-                                                   (uintptr_t)state->data + firstIndex);
+                    this->glPointSizePointerOffset(this, state.type, state.stride,
+                                                   (uintptr_t)state.data + firstIndex);
                     break;
                 case GLClientState::COLOR_LOCATION:
-                    this->glColorPointerOffset(this, state->size, state->type, state->stride,
-                                               (uintptr_t)state->data + firstIndex);
+                    this->glColorPointerOffset(this, state.size, state.type, state.stride,
+                                               (uintptr_t)state.data + firstIndex);
                     break;
                 case GLClientState::TEXCOORD0_LOCATION:
                 case GLClientState::TEXCOORD1_LOCATION:
@@ -491,22 +484,22 @@ void GLEncoder::sendVertexData(unsigned int first, unsigned int count)
                 case GLClientState::TEXCOORD5_LOCATION:
                 case GLClientState::TEXCOORD6_LOCATION:
                 case GLClientState::TEXCOORD7_LOCATION:
-                    this->glTexCoordPointerOffset(this, state->size, state->type, state->stride,
-                                                  (uintptr_t)state->data + firstIndex);
+                    this->glTexCoordPointerOffset(this, state.size, state.type, state.stride,
+                                                  (uintptr_t)state.data + firstIndex);
                     break;
                 case GLClientState::WEIGHT_LOCATION:
-                    this->glWeightPointerOffset(this,state->size,state->type,state->stride,
-                                                (uintptr_t)state->data+firstIndex);
+                    this->glWeightPointerOffset(this,state.size,state.type,state.stride,
+                                                (uintptr_t)state.data+firstIndex);
                     break;
                 case GLClientState::MATRIXINDEX_LOCATION:
-                    this->glMatrixIndexPointerOffset(this,state->size,state->type,state->stride,
-                                              (uintptr_t)state->data+firstIndex);
+                    this->glMatrixIndexPointerOffset(this,state.size,state.type,state.stride,
+                                              (uintptr_t)state.data+firstIndex);
                     break;
                 }
             }
             this->m_glBindBuffer_enc(this, GL_ARRAY_BUFFER, m_state->currentArrayVbo());
         } else {
-            this->m_glDisableClientState_enc(this, state->glConst);
+            this->m_glDisableClientState_enc(this, state.glConst);
         }
     }
     m_state->setActiveTextureUnit(prevActiveTexUnit);
@@ -518,9 +511,9 @@ void GLEncoder::s_glDrawArrays(void *self, GLenum mode, GLint first, GLsizei cou
 
     bool has_arrays = false;
     for (int i = 0; i < GLClientState::LAST_LOCATION; i++) {
-        const GLClientState::VertexAttribState *state = ctx->m_state->getState(i);
-        if (state->enabled) {
-            if (state->bufferObject || state->data) {
+        const GLClientState::VertexAttribState& state = ctx->m_state->getState(i);
+        if (state.enabled) {
+            if (state.bufferObject || state.data) {
                 has_arrays = true;
             } else {
                 ALOGE("glDrawArrays: a vertex attribute array is enabled with no data bound\n");
@@ -550,11 +543,11 @@ void GLEncoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum 
     bool has_indirect_arrays = false;
 
     for (int i = 0; i < GLClientState::LAST_LOCATION; i++) {
-        const GLClientState::VertexAttribState *state = ctx->m_state->getState(i);
-        if (state->enabled) {
-            if (state->bufferObject != 0) {
+        const GLClientState::VertexAttribState& state = ctx->m_state->getState(i);
+        if (state.enabled) {
+            if (state.bufferObject != 0) {
                 has_indirect_arrays = true;
-            } else if (state->data) {
+            } else if (state.data) {
                 has_immediate_arrays = true;
             } else {
                 ALOGE("glDrawElements: a vertex attribute array is enabled with no data bound\n");
@@ -998,7 +991,7 @@ void GLEncoder::s_glFramebufferTexture2DOES(void*self,
     GLEncoder* ctx = (GLEncoder*)self;
     GLClientState* state = ctx->m_state;
 
-    state->attachTextureObject(attachment, texture);
+    state->attachTextureObject(target, attachment, texture);
 
     ctx->m_glFramebufferTexture2DOES_enc(self, target, attachment, textarget, texture, level);
 }
@@ -1009,7 +1002,7 @@ void GLEncoder::s_glFramebufferTexture2DMultisampleIMG(void* self,
     GLEncoder* ctx = (GLEncoder*)self;
     GLClientState* state = ctx->m_state;
 
-    state->attachTextureObject(attachment, texture);
+    state->attachTextureObject(target, attachment, texture);
 
     ctx->m_glFramebufferTexture2DMultisampleIMG_enc(self, target, attachment, textarget, texture, level, samples);
 }
@@ -1020,10 +1013,10 @@ void GLEncoder::s_glGetFramebufferAttachmentParameterivOES(void* self,
     GLEncoder* ctx = (GLEncoder*)self;
     const GLClientState* state = ctx->m_state;
 
-    SET_ERROR_IF(state->boundFramebuffer() == 0,
+    SET_ERROR_IF(state->boundFramebuffer(GL_FRAMEBUFFER) == 0,
                  GL_INVALID_OPERATION);
     SET_ERROR_IF((pname != GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE) &&
-                 (!state->attachmentHasObject(attachment)),
+                 (!state->attachmentHasObject(GL_FRAMEBUFFER, attachment)),
                  GL_INVALID_ENUM);
 
     ctx->m_glGetFramebufferAttachmentParameterivOES_enc(self, target, attachment, pname, params);
@@ -1105,7 +1098,7 @@ GLEncoder::~GLEncoder()
 size_t GLEncoder::pixelDataSize(GLsizei width, GLsizei height, GLenum format, GLenum type, int pack)
 {
     assert(m_state != NULL);
-    return m_state->pixelDataSize(width, height, format, type, pack);
+    return m_state->pixelDataSize(width, height, 1, format, type, pack);
 }
 
 void GLEncoder::s_glFinish(void *self)

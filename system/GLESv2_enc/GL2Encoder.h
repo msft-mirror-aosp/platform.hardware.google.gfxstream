@@ -53,7 +53,14 @@ public:
 
     void override2DTextureTarget(GLenum target);
     void restore2DTextureTarget(GLenum target);
+    void associateEGLImage(GLenum target, GLeglImageOES eglImage);
 
+    // Convenience functions for buffers
+    GLuint boundBuffer(GLenum target) const;
+    BufferData* getBufferData(GLenum target) const;
+    BufferData* getBufferDataById(GLuint buffer) const;
+    bool isBufferMapped(GLuint buffer) const;
+    bool isBufferTargetMapped(GLenum target) const;
 
 private:
 
@@ -72,6 +79,11 @@ private:
     GLint m_max_cubeMapTextureSize;
     GLint m_max_renderBufferSize;
     GLint m_max_textureSize;
+    GLint m_max_3d_textureSize;
+
+    GLuint m_ssbo_offset_align;
+    GLuint m_ubo_offset_align;
+
     FixedBuffer m_fixedBuffer;
 
     int m_drawCallFlushCount;
@@ -89,12 +101,14 @@ private:
                              GLenum type, size_t count, size_t offset,
                              int* minIndex_out, int* maxIndex_out);
     void getVBOUsage(bool* hasClientArrays, bool* hasVBOs) const;
-    void sendVertexAttributes(GLint first, GLsizei count, bool hasClientArrays);
+    void sendVertexAttributes(GLint first, GLsizei count, bool hasClientArrays, GLsizei primcount = 0);
     void flushDrawCall();
 
     bool updateHostTexture2DBinding(GLenum texUnit, GLenum newTarget);
+    void updateHostTexture2DBindingsFromProgramData(GLuint program);
     bool texture2DNeedsOverride(GLenum target) const;
-    bool isCompleteFbo(const GLClientState* state, GLenum attachment) const;
+    bool isCompleteFbo(GLenum target, const GLClientState* state, GLenum attachment) const;
+    bool checkFramebufferCompleteness(GLenum target, const GLClientState* state) const;
 
     glGetError_client_proc_t    m_glGetError_enc;
     static GLenum s_glGetError(void * self);
@@ -314,6 +328,299 @@ private:
     static GLenum s_glCheckFramebufferStatus(void* self,
             GLenum target);
 
+    // GLES 3.0-specific custom encoders
+
+    // VAO (+ ES 2 extension)
+    glGenVertexArrays_client_proc_t m_glGenVertexArrays_enc;
+    glDeleteVertexArrays_client_proc_t m_glDeleteVertexArrays_enc;
+    glBindVertexArray_client_proc_t m_glBindVertexArray_enc;
+    glGenVertexArraysOES_client_proc_t m_glGenVertexArraysOES_enc;
+    glDeleteVertexArraysOES_client_proc_t m_glDeleteVertexArraysOES_enc;
+    glBindVertexArrayOES_client_proc_t m_glBindVertexArrayOES_enc;
+    static void s_glGenVertexArrays(void *self, GLsizei n, GLuint* arrays);
+    static void s_glDeleteVertexArrays(void *self , GLsizei n, const GLuint* arrays);
+    static void s_glBindVertexArray(void *self , GLuint array);
+
+    // Mapped buffers
+    static void* s_glMapBufferRange(void* self, GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
+    static GLboolean s_glUnmapBuffer(void* self, GLenum target);
+    static void s_glFlushMappedBufferRange(void* self, GLenum target, GLintptr offset, GLsizeiptr length);
+
+    // Custom encodes for 2D compressed textures b/c we need to account for
+    // nonzero GL_PIXEL_UNPACK_BUFFER
+    glCompressedTexImage2D_client_proc_t m_glCompressedTexImage2D_enc;
+    static void s_glCompressedTexImage2D(void* self, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const GLvoid* data);
+    glCompressedTexSubImage2D_client_proc_t m_glCompressedTexSubImage2D_enc;
+    static void s_glCompressedTexSubImage2D(void* self, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const GLvoid* data);
+
+    // Indexed, range bind
+    glBindBufferRange_client_proc_t m_glBindBufferRange_enc;
+    static void s_glBindBufferRange(void *self , GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
+
+    glBindBufferBase_client_proc_t m_glBindBufferBase_enc;
+    static void s_glBindBufferBase(void *self , GLenum target, GLuint index, GLuint buffer);
+
+    glCopyBufferSubData_client_proc_t m_glCopyBufferSubData_enc;
+    static void s_glCopyBufferSubData(void *self , GLenum readtarget, GLenum writetarget, GLintptr readoffset, GLintptr writeoffset, GLsizeiptr size);
+
+    glGetBufferParameteriv_client_proc_t m_glGetBufferParameteriv_enc;
+    static void s_glGetBufferParameteriv(void* self, GLenum target, GLenum pname, GLint* params);
+
+    glGetBufferParameteri64v_client_proc_t m_glGetBufferParameteri64v_enc;
+    static void s_glGetBufferParameteri64v(void* self, GLenum target, GLenum pname, GLint64* params);
+
+    glGetBufferPointerv_client_proc_t m_glGetBufferPointerv_enc;
+    static void s_glGetBufferPointerv(void* self, GLenum target, GLenum pname, GLvoid** params);
+
+    glGetUniformIndices_client_proc_t m_glGetUniformIndices_enc;
+    static void s_glGetUniformIndices(void* self, GLuint program, GLsizei uniformCount, const GLchar ** uniformNames, GLuint* uniformIndices);
+
+    glUniform1ui_client_proc_t m_glUniform1ui_enc;
+    glUniform1uiv_client_proc_t m_glUniform1uiv_enc;
+    glUniform2ui_client_proc_t m_glUniform2ui_enc;
+    glUniform2uiv_client_proc_t m_glUniform2uiv_enc;
+    glUniform3ui_client_proc_t m_glUniform3ui_enc;
+    glUniform3uiv_client_proc_t m_glUniform3uiv_enc;
+    glUniform4ui_client_proc_t m_glUniform4ui_enc;
+    glUniform4uiv_client_proc_t m_glUniform4uiv_enc;
+    glUniformMatrix2x3fv_client_proc_t m_glUniformMatrix2x3fv_enc;
+    glUniformMatrix2x4fv_client_proc_t m_glUniformMatrix2x4fv_enc;
+    glUniformMatrix3x2fv_client_proc_t m_glUniformMatrix3x2fv_enc;
+    glUniformMatrix3x4fv_client_proc_t m_glUniformMatrix3x4fv_enc;
+    glUniformMatrix4x2fv_client_proc_t m_glUniformMatrix4x2fv_enc;
+    glUniformMatrix4x3fv_client_proc_t m_glUniformMatrix4x3fv_enc;
+
+    static void s_glUniform1ui(void* self, GLint location, GLuint v0);
+    static void s_glUniform2ui(void* self, GLint location, GLuint v0, GLuint v1);
+    static void s_glUniform3ui(void* self, GLint location, GLuint v0, GLuint v1, GLuint v2);
+    static void s_glUniform4ui(void* self, GLint location, GLint v0, GLuint v1, GLuint v2, GLuint v3);
+    static void s_glUniform1uiv(void* self, GLint location, GLsizei count, const GLuint *value);
+    static void s_glUniform2uiv(void* self, GLint location, GLsizei count, const GLuint *value);
+    static void s_glUniform3uiv(void* self, GLint location, GLsizei count, const GLuint *value);
+    static void s_glUniform4uiv(void* self, GLint location, GLsizei count, const GLuint *value);
+    static void s_glUniformMatrix2x3fv(void* self, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+    static void s_glUniformMatrix3x2fv(void* self, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+    static void s_glUniformMatrix2x4fv(void* self, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+    static void s_glUniformMatrix4x2fv(void* self, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+    static void s_glUniformMatrix3x4fv(void* self, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+    static void s_glUniformMatrix4x3fv(void* self, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+
+    glGetUniformuiv_client_proc_t m_glGetUniformuiv_enc;
+    static void s_glGetUniformuiv(void *self, GLuint program, GLint location, GLuint* params);
+
+    glGetActiveUniformBlockiv_client_proc_t m_glGetActiveUniformBlockiv_enc;
+    static void s_glGetActiveUniformBlockiv(void* self, GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint* params);
+
+    glGetVertexAttribIiv_client_proc_t m_glGetVertexAttribIiv_enc;
+    static void s_glGetVertexAttribIiv(void* self, GLuint index, GLenum pname, GLint* params);
+
+    glGetVertexAttribIuiv_client_proc_t m_glGetVertexAttribIuiv_enc;
+    static void s_glGetVertexAttribIuiv(void* self, GLuint index, GLenum pname, GLuint* params);
+
+    static void s_glVertexAttribIPointer(void* self, GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid* pointer);
+
+    glVertexAttribDivisor_client_proc_t m_glVertexAttribDivisor_enc;
+    static void s_glVertexAttribDivisor(void* self, GLuint index, GLuint divisor);
+
+    glRenderbufferStorageMultisample_client_proc_t m_glRenderbufferStorageMultisample_enc;
+    static void s_glRenderbufferStorageMultisample(void* self, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
+
+    glDrawBuffers_client_proc_t m_glDrawBuffers_enc;
+    static void s_glDrawBuffers(void* self, GLsizei n, const GLenum* bufs);
+
+    glReadBuffer_client_proc_t m_glReadBuffer_enc;
+    static void s_glReadBuffer(void* self, GLenum src);
+
+    glFramebufferTextureLayer_client_proc_t m_glFramebufferTextureLayer_enc;
+    static void s_glFramebufferTextureLayer(void* self, GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
+
+    glTexStorage2D_client_proc_t m_glTexStorage2D_enc;
+    static void s_glTexStorage2D(void* self, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+
+    static void s_glTransformFeedbackVaryings(void* self, GLuint program, GLsizei count, const char** varyings, GLenum bufferMode);
+
+    glBeginTransformFeedback_client_proc_t m_glBeginTransformFeedback_enc;
+    static void s_glBeginTransformFeedback(void* self, GLenum primitiveMode);
+
+    glEndTransformFeedback_client_proc_t m_glEndTransformFeedback_enc;
+    static void s_glEndTransformFeedback(void* self);
+
+    glPauseTransformFeedback_client_proc_t m_glPauseTransformFeedback_enc;
+    static void s_glPauseTransformFeedback(void* self);
+
+    glResumeTransformFeedback_client_proc_t m_glResumeTransformFeedback_enc;
+    static void s_glResumeTransformFeedback(void* self);
+
+    glTexImage3D_client_proc_t m_glTexImage3D_enc;
+    static void s_glTexImage3D(void* self, GLenum target, GLint level, GLint internalFormat,
+                               GLsizei width, GLsizei height, GLsizei depth,
+                               GLint border, GLenum format, GLenum type, const GLvoid* data);
+
+    glTexSubImage3D_client_proc_t m_glTexSubImage3D_enc;
+    static void s_glTexSubImage3D(void* self, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const GLvoid* data);
+
+    glCompressedTexImage3D_client_proc_t m_glCompressedTexImage3D_enc;
+    static void s_glCompressedTexImage3D(void* self, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const GLvoid* data);
+    glCompressedTexSubImage3D_client_proc_t m_glCompressedTexSubImage3D_enc;
+    static void s_glCompressedTexSubImage3D(void* self, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const GLvoid* data);
+
+
+    glTexStorage3D_client_proc_t m_glTexStorage3D_enc;
+    static void s_glTexStorage3D(void* self, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+
+    glDrawArraysInstanced_client_proc_t m_glDrawArraysInstanced_enc;
+    static void s_glDrawArraysInstanced(void* self, GLenum mode, GLint first, GLsizei count, GLsizei primcount);
+
+    static void s_glDrawElementsInstanced(void* self, GLenum mode, GLsizei count, GLenum type, const void* indices, GLsizei primcount);
+
+    glDrawRangeElements_client_proc_t m_glDrawRangeElements_enc;
+    static void s_glDrawRangeElements(void* self, GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void* indices);
+
+    static const GLubyte* s_glGetStringi(void* self, GLenum name, GLuint index);
+
+    glGetProgramBinary_client_proc_t m_glGetProgramBinary_enc;
+    static void s_glGetProgramBinary(void* self, GLuint program, GLsizei bufSize, GLsizei* length, GLenum* binaryFormat, void* binary);
+
+    glReadPixels_client_proc_t m_glReadPixels_enc;
+    static void s_glReadPixels(void* self, GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels);
+
+    glEnable_client_proc_t m_glEnable_enc;
+    static void s_glEnable(void* self, GLenum what);
+    glDisable_client_proc_t m_glDisable_enc;
+    static void s_glDisable(void* self, GLenum what);
+
+    glClearBufferiv_client_proc_t m_glClearBufferiv_enc;
+    static void s_glClearBufferiv(void* self, GLenum buffer, GLint drawBuffer, const GLint* value);
+
+    glClearBufferuiv_client_proc_t m_glClearBufferuiv_enc;
+    static void s_glClearBufferuiv(void* self, GLenum buffer, GLint drawBuffer, const GLuint* value);
+
+    glClearBufferfv_client_proc_t m_glClearBufferfv_enc;
+    static void s_glClearBufferfv(void* self, GLenum buffer, GLint drawBuffer, const GLfloat* value);
+
+    glBlitFramebuffer_client_proc_t m_glBlitFramebuffer_enc;
+    static void s_glBlitFramebuffer(void* self, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+
+    static void s_glGetInternalformativ(void* self, GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint *params);
+
+    glGenerateMipmap_client_proc_t m_glGenerateMipmap_enc;
+    static void s_glGenerateMipmap(void* self, GLenum target);
+
+    glBindSampler_client_proc_t m_glBindSampler_enc;
+    static void s_glBindSampler(void* self, GLuint unit, GLuint sampler);
+
+    glDeleteSync_client_proc_t m_glDeleteSync_enc;
+    static void s_glDeleteSync(void* self, GLsync sync);
+
+    glGetIntegeri_v_client_proc_t m_glGetIntegeri_v_enc;
+    static void s_glGetIntegeri_v(void* self, GLenum target, GLuint index, GLint* params);
+
+    glGetInteger64i_v_client_proc_t m_glGetInteger64i_v_enc;
+    static void s_glGetInteger64i_v(void* self, GLenum target, GLuint index, GLint64* params);
+
+    glGetShaderiv_client_proc_t m_glGetShaderiv_enc;
+    static void s_glGetShaderiv(void* self, GLuint shader, GLenum pname, GLint* params);
+
+    // 3.1
+    static GLuint s_glCreateShaderProgramv(void* self, GLenum type, GLsizei count, const char** strings);
+
+    glProgramUniform1f_client_proc_t m_glProgramUniform1f_enc;
+    glProgramUniform1fv_client_proc_t m_glProgramUniform1fv_enc;
+    glProgramUniform1i_client_proc_t m_glProgramUniform1i_enc;
+    glProgramUniform1iv_client_proc_t m_glProgramUniform1iv_enc;
+    glProgramUniform1ui_client_proc_t m_glProgramUniform1ui_enc;
+    glProgramUniform1uiv_client_proc_t m_glProgramUniform1uiv_enc;
+    glProgramUniform2f_client_proc_t m_glProgramUniform2f_enc;
+    glProgramUniform2fv_client_proc_t m_glProgramUniform2fv_enc;
+    glProgramUniform2i_client_proc_t m_glProgramUniform2i_enc;
+    glProgramUniform2iv_client_proc_t m_glProgramUniform2iv_enc;
+    glProgramUniform2ui_client_proc_t m_glProgramUniform2ui_enc;
+    glProgramUniform2uiv_client_proc_t m_glProgramUniform2uiv_enc;
+    glProgramUniform3f_client_proc_t m_glProgramUniform3f_enc;
+    glProgramUniform3fv_client_proc_t m_glProgramUniform3fv_enc;
+    glProgramUniform3i_client_proc_t m_glProgramUniform3i_enc;
+    glProgramUniform3iv_client_proc_t m_glProgramUniform3iv_enc;
+    glProgramUniform3ui_client_proc_t m_glProgramUniform3ui_enc;
+    glProgramUniform3uiv_client_proc_t m_glProgramUniform3uiv_enc;
+    glProgramUniform4f_client_proc_t m_glProgramUniform4f_enc;
+    glProgramUniform4fv_client_proc_t m_glProgramUniform4fv_enc;
+    glProgramUniform4i_client_proc_t m_glProgramUniform4i_enc;
+    glProgramUniform4iv_client_proc_t m_glProgramUniform4iv_enc;
+    glProgramUniform4ui_client_proc_t m_glProgramUniform4ui_enc;
+    glProgramUniform4uiv_client_proc_t m_glProgramUniform4uiv_enc;
+    glProgramUniformMatrix2fv_client_proc_t m_glProgramUniformMatrix2fv_enc;
+    glProgramUniformMatrix2x3fv_client_proc_t m_glProgramUniformMatrix2x3fv_enc;
+    glProgramUniformMatrix2x4fv_client_proc_t m_glProgramUniformMatrix2x4fv_enc;
+    glProgramUniformMatrix3fv_client_proc_t m_glProgramUniformMatrix3fv_enc;
+    glProgramUniformMatrix3x2fv_client_proc_t m_glProgramUniformMatrix3x2fv_enc;
+    glProgramUniformMatrix3x4fv_client_proc_t m_glProgramUniformMatrix3x4fv_enc;
+    glProgramUniformMatrix4fv_client_proc_t m_glProgramUniformMatrix4fv_enc;
+    glProgramUniformMatrix4x2fv_client_proc_t m_glProgramUniformMatrix4x2fv_enc;
+    glProgramUniformMatrix4x3fv_client_proc_t m_glProgramUniformMatrix4x3fv_enc;
+
+    static void s_glProgramUniform1f(void* self, GLuint program, GLint location, GLfloat v0);
+    static void s_glProgramUniform2f(void* self, GLuint program, GLint location, GLfloat v0, GLfloat v1);
+    static void s_glProgramUniform3f(void* self, GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
+    static void s_glProgramUniform4f(void* self, GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
+    static void s_glProgramUniform1i(void* self, GLuint program, GLint location, GLint v0);
+    static void s_glProgramUniform2i(void* self, GLuint program, GLint location, GLint v0, GLint v1);
+    static void s_glProgramUniform3i(void* self, GLuint program, GLint location, GLint v0, GLint v1, GLint v2);
+    static void s_glProgramUniform4i(void* self, GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
+    static void s_glProgramUniform1ui(void* self, GLuint program, GLint location, GLuint v0);
+    static void s_glProgramUniform2ui(void* self, GLuint program, GLint location, GLint v0, GLuint v1);
+    static void s_glProgramUniform3ui(void* self, GLuint program, GLint location, GLint v0, GLint v1, GLuint v2);
+    static void s_glProgramUniform4ui(void* self, GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLuint v3);
+    static void s_glProgramUniform1fv(void* self, GLuint program, GLint location, GLsizei count, const GLfloat *value);
+    static void s_glProgramUniform2fv(void* self, GLuint program, GLint location, GLsizei count, const GLfloat *value);
+    static void s_glProgramUniform3fv(void* self, GLuint program, GLint location, GLsizei count, const GLfloat *value);
+    static void s_glProgramUniform4fv(void* self, GLuint program, GLint location, GLsizei count, const GLfloat *value);
+    static void s_glProgramUniform1iv(void* self, GLuint program, GLint location, GLsizei count, const GLint *value);
+    static void s_glProgramUniform2iv(void* self, GLuint program, GLint location, GLsizei count, const GLint *value);
+    static void s_glProgramUniform3iv(void* self, GLuint program, GLint location, GLsizei count, const GLint *value);
+    static void s_glProgramUniform4iv(void* self, GLuint program, GLint location, GLsizei count, const GLint *value);
+    static void s_glProgramUniform1uiv(void* self, GLuint program, GLint location, GLsizei count, const GLuint *value);
+    static void s_glProgramUniform2uiv(void* self, GLuint program, GLint location, GLsizei count, const GLuint *value);
+    static void s_glProgramUniform3uiv(void* self, GLuint program, GLint location, GLsizei count, const GLuint *value);
+    static void s_glProgramUniform4uiv(void* self, GLuint program, GLint location, GLsizei count, const GLuint *value);
+    static void s_glProgramUniformMatrix2fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+    static void s_glProgramUniformMatrix3fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+    static void s_glProgramUniformMatrix4fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+    static void s_glProgramUniformMatrix2x3fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+    static void s_glProgramUniformMatrix3x2fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+    static void s_glProgramUniformMatrix2x4fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+    static void s_glProgramUniformMatrix4x2fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+    static void s_glProgramUniformMatrix3x4fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+    static void s_glProgramUniformMatrix4x3fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+
+    glUseProgramStages_client_proc_t m_glUseProgramStages_enc;
+    glBindProgramPipeline_client_proc_t m_glBindProgramPipeline_enc;
+
+    static void s_glUseProgramStages(void *self, GLuint pipeline, GLbitfield stages, GLuint program);
+    static void s_glBindProgramPipeline(void *self, GLuint pipeline);
+
+    // TODO: Compute shaders:
+    // make sure it's OK to put memory barriers and compute dispatch
+    // on the default encoding path
+   
+    glVertexAttribFormat_client_proc_t m_glVertexAttribFormat_enc;
+    glVertexAttribIFormat_client_proc_t m_glVertexAttribIFormat_enc;
+    glVertexBindingDivisor_client_proc_t m_glVertexBindingDivisor_enc;
+    glVertexAttribBinding_client_proc_t m_glVertexAttribBinding_enc;
+    glBindVertexBuffer_client_proc_t m_glBindVertexBuffer_enc;
+
+    static void s_glVertexAttribFormat(void* self, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset);
+    static void s_glVertexAttribIFormat(void* self, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
+    static void s_glVertexBindingDivisor(void* self, GLuint bindingindex, GLuint divisor);
+    static void s_glVertexAttribBinding(void* self, GLuint attribindex, GLuint bindingindex);
+    static void s_glBindVertexBuffer(void* self, GLuint bindingindex, GLuint buffer, GLintptr offset, GLintptr stride);
+
+    // Indirect draws
+    static void s_glDrawArraysIndirect(void* self, GLenum mode, const void* indirect);
+    static void s_glDrawElementsIndirect(void* self, GLenum mode, GLenum type, const void* indirect);
+
+    // Multisampled textures
+    glTexStorage2DMultisample_client_proc_t m_glTexStorage2DMultisample_enc;
+    static void s_glTexStorage2DMultisample(void* self, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
 
 public:
     glEGLImageTargetTexture2DOES_client_proc_t m_glEGLImageTargetTexture2DOES_enc;
