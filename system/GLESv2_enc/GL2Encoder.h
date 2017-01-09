@@ -39,6 +39,8 @@ public:
         if (m_state && m_shared.Ptr())
             m_state->setTextureData(m_shared->getTextureData());
     }
+    int majorVersion() const { return m_currMajorVersion; }
+    int minorVersion() const { return m_currMinorVersion; }
     const GLClientState *state() { return m_state; }
     const GLSharedGroupPtr shared() { return m_shared; }
     void flush() { m_stream->flush(); }
