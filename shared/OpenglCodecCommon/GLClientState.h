@@ -43,24 +43,27 @@
 // and which texture names
 // are currently bound to which attachment points.
 struct FboProps {
-    GLenum target;
     GLuint name;
     bool previouslyBound;
-    GLuint colorAttachment0_texture;
+    std::vector<GLuint> colorAttachmenti_textures;
     GLuint depthAttachment_texture;
     GLuint stencilAttachment_texture;
+    GLuint depthstencilAttachment_texture;
 
-    bool colorAttachment0_hasTexObj;
+    std::vector<bool> colorAttachmenti_hasTex;
     bool depthAttachment_hasTexObj;
     bool stencilAttachment_hasTexObj;
+    bool depthstencilAttachment_hasTexObj;
 
-    GLuint colorAttachment0_rbo;
+    std::vector<GLuint> colorAttachmenti_rbos;
     GLuint depthAttachment_rbo;
     GLuint stencilAttachment_rbo;
+    GLuint depthstencilAttachment_rbo;
 
-    bool colorAttachment0_hasRbo;
+    std::vector<bool> colorAttachmenti_hasRbo;
     bool depthAttachment_hasRbo;
     bool stencilAttachment_hasRbo;
+    bool depthstencilAttachment_hasRbo;
 };
 
 // Same for Rbo's
@@ -68,6 +71,7 @@ struct RboProps {
     GLenum target;
     GLuint name;
     GLenum format;
+    GLsizei multisamples;
     bool previouslyBound;
 };
 
@@ -83,6 +87,8 @@ enum FboAttachmentType {
 struct FboFormatInfo {
     FboAttachmentType type;
     GLenum rb_format;
+    GLsizei rb_multisamples;
+
     GLint tex_internalformat;
     GLenum tex_format;
     GLenum tex_type;
@@ -339,26 +345,31 @@ public:
     void bindRenderbuffer(GLenum target, GLuint name);
     GLuint boundRenderbuffer() const;
     void setBoundRenderbufferFormat(GLenum format);
+    void setBoundRenderbufferSamples(GLsizei samples);
 
     // Frame buffer objects
     void addFramebuffers(GLsizei n, GLuint* framebuffers);
     void removeFramebuffers(GLsizei n, const GLuint* framebuffers);
     bool usedFramebufferName(GLuint name) const;
     void bindFramebuffer(GLenum target, GLuint name);
-    void setCheckFramebufferStatus(GLenum status);
-    GLenum getCheckFramebufferStatus() const;
-    GLuint boundFramebuffer() const;
+    void setCheckFramebufferStatus(GLenum target, GLenum status);
+    GLenum getCheckFramebufferStatus(GLenum target) const;
+    GLuint boundFramebuffer(GLenum target) const;
 
     // Texture object -> FBO
-    void attachTextureObject(GLenum attachment, GLuint texture);
-    GLuint getFboAttachmentTextureId(GLenum attachment) const;
+    void attachTextureObject(GLenum target, GLenum attachment, GLuint texture);
+    GLuint getFboAttachmentTextureId(GLenum target, GLenum attachment) const;
 
     // RBO -> FBO
-    void attachRbo(GLenum attachment, GLuint renderbuffer);
-    GLuint getFboAttachmentRboId(GLenum attachment) const;
+    void detachRbo(GLuint renderbuffer);
+    void detachRboFromFbo(GLenum target, GLenum attachment, GLuint renderbuffer);
+    void attachRbo(GLenum target, GLenum attachment, GLuint renderbuffer);
+    GLuint getFboAttachmentRboId(GLenum target, GLenum attachment) const;
 
     // FBO attachments in general
-    bool attachmentHasObject(GLenum attachment) const;
+    bool attachmentHasObject(GLenum target, GLenum attachment) const;
+    GLuint objectOfAttachment(GLenum target, GLenum attachment) const;
+
 
     void setTextureData(SharedTextureDataMap* sharedTexData);
     // set eglsurface property on default framebuffer
@@ -382,8 +393,14 @@ public:
     // Type differs depending on whether the attachment
     // is a texture or renderbuffer.
     void getBoundFramebufferFormat(
-            GLenum attachment, FboFormatInfo* res_info) const;
-
+            GLenum target,
+            GLenum attachment,
+            FboFormatInfo* res_info) const;
+    FboAttachmentType getBoundFramebufferAttachmentType(
+            GLenum target,
+            GLenum attachment) const;
+    int getMaxColorAttachments() const;
+    int getMaxDrawBuffers() const;
 private:
     void init();
     bool m_initialized;
@@ -477,6 +494,8 @@ private:
     GLenum copyTexImageNeededTarget(GLenum target, GLint level,
                                     GLenum internalformat);
 
+    int m_max_color_attachments;
+    int m_max_draw_buffers;
     struct RboState {
         GLuint boundRenderbuffer;
         size_t boundRenderbufferIndex;
@@ -490,20 +509,21 @@ private:
     const RboProps& boundRboProps_const() const;
 
     struct FboState {
-        GLuint boundFramebuffer;
+        GLuint boundDrawFramebuffer;
+        GLuint boundReadFramebuffer;
         size_t boundFramebufferIndex;
-        std::vector<FboProps> fboData;
-        GLenum fboCheckStatus;
+        std::map<GLuint, FboProps> fboData;
+        GLenum drawFboCheckStatus;
+        GLenum readFboCheckStatus;
     };
     FboState mFboState;
     void addFreshFramebuffer(GLuint name);
-    void setBoundFramebufferIndex();
-    size_t getFboIndex(GLuint name) const;
-    FboProps& boundFboProps();
-    const FboProps& boundFboProps_const() const;
+    FboProps& boundFboProps(GLenum target);
+    const FboProps& boundFboProps_const(GLenum target) const;
 
     // Querying framebuffer format
     GLenum queryRboFormat(GLuint name) const;
+    GLsizei queryRboSamples(GLuint name) const;
     GLenum queryTexType(GLuint name) const;
     GLsizei queryTexSamples(GLuint name) const;
 

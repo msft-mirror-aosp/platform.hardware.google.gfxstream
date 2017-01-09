@@ -95,12 +95,11 @@ void GLClientState::init() {
 
     mRboState.boundRenderbuffer = 0;
     mRboState.boundRenderbufferIndex = 0;
-    addFreshRenderbuffer(0);
 
-    mFboState.boundFramebuffer = 0;
-    mFboState.boundFramebufferIndex = 0;
-    mFboState.fboCheckStatus = GL_NONE;
-    addFreshFramebuffer(0);
+    mFboState.boundDrawFramebuffer = 0;
+    mFboState.boundReadFramebuffer = 0;
+    mFboState.drawFboCheckStatus = GL_NONE;
+    mFboState.readFboCheckStatus = GL_NONE;
 
     m_maxVertexAttribsDirty = true;
 }
@@ -983,12 +982,20 @@ void GLClientState::deleteTextures(GLsizei n, const GLuint* textures)
 // RBO//////////////////////////////////////////////////////////////////////////
 
 void GLClientState::addFreshRenderbuffer(GLuint name) {
-    mRboState.rboData.push_back(RboProps());
-    RboProps& props = mRboState.rboData.back();
+    // if underlying opengl says these are fresh names,
+    // but we are keeping a stale one, reset it.
+    RboProps props;
     props.target = GL_RENDERBUFFER;
     props.name = name;
     props.format = GL_NONE;
+    props.multisamples = 0;
     props.previouslyBound = false;
+
+    if (usedRenderbufferName(name)) {
+        mRboState.rboData[getRboIndex(name)] = props;
+    } else {
+        mRboState.rboData.push_back(props);
+    }
 }
 
 void GLClientState::addRenderbuffers(GLsizei n, GLuint* renderbuffers) {
@@ -1073,12 +1080,20 @@ void GLClientState::setBoundRenderbufferFormat(GLenum format) {
     boundRboProps().format = format;
 }
 
+void GLClientState::setBoundRenderbufferSamples(GLsizei samples) {
+    boundRboProps().multisamples = samples;
+}
+
 // FBO//////////////////////////////////////////////////////////////////////////
 
 // Format querying
 
 GLenum GLClientState::queryRboFormat(GLuint rbo_name) const {
     return mRboState.rboData[getRboIndex(rbo_name)].format;
+}
+
+GLsizei GLClientState::queryRboSamples(GLuint rbo_name) const {
+    return mRboState.rboData[getRboIndex(rbo_name)].multisamples;
 }
 
 GLint GLClientState::queryTexInternalFormat(GLuint tex_name) const {
@@ -1138,38 +1153,62 @@ GLenum GLClientState::queryTexLastBoundTarget(GLuint tex_name) const {
 }
 
 void GLClientState::getBoundFramebufferFormat(
+        GLenum target,
         GLenum attachment, FboFormatInfo* res_info) const {
-    const FboProps& props = boundFboProps_const();
+    const FboProps& props = boundFboProps_const(target);
 
     res_info->type = FBO_ATTACHMENT_NONE;
     res_info->rb_format = GL_NONE;
+    res_info->rb_multisamples = 0;
     res_info->tex_internalformat = -1;
     res_info->tex_format = GL_NONE;
     res_info->tex_type = GL_NONE;
+    res_info->tex_multisamples = 0;
 
-    switch (attachment) {
-    case GL_COLOR_ATTACHMENT0:
-        if (props.colorAttachment0_hasRbo) {
+    int colorAttachmentIndex =
+        glUtilsColorAttachmentIndex(attachment);
+
+    if (colorAttachmentIndex != -1) {
+        if (props.colorAttachmenti_hasRbo[colorAttachmentIndex]) {
             res_info->type = FBO_ATTACHMENT_RENDERBUFFER;
-            res_info->rb_format = queryRboFormat(props.colorAttachment0_rbo);
-        } else if (props.colorAttachment0_hasTexObj) {
+            res_info->rb_format =
+                queryRboFormat(
+                        props.colorAttachmenti_rbos[colorAttachmentIndex]);
+            res_info->rb_multisamples =
+                queryRboSamples(
+                        props.colorAttachmenti_rbos[colorAttachmentIndex]);
+        } else if (props.colorAttachmenti_hasTex[colorAttachmentIndex]) {
             res_info->type = FBO_ATTACHMENT_TEXTURE;
-            res_info->tex_internalformat = queryTexInternalFormat(props.colorAttachment0_texture);
-            res_info->tex_format = queryTexFormat(props.colorAttachment0_texture);
-            res_info->tex_type = queryTexType(props.colorAttachment0_texture);
+            res_info->tex_internalformat =
+                queryTexInternalFormat(
+                        props.colorAttachmenti_textures[colorAttachmentIndex]);
+            res_info->tex_format =
+                queryTexFormat(
+                        props.colorAttachmenti_textures[colorAttachmentIndex]);
+            res_info->tex_type =
+                queryTexType(props.colorAttachmenti_textures[colorAttachmentIndex]);
+            res_info->tex_multisamples =
+                queryTexSamples(props.colorAttachmenti_textures[colorAttachmentIndex]);
         } else {
             res_info->type = FBO_ATTACHMENT_NONE;
         }
-        break;
+    }
+
+    switch (attachment) {
     case GL_DEPTH_ATTACHMENT:
         if (props.depthAttachment_hasRbo) {
             res_info->type = FBO_ATTACHMENT_RENDERBUFFER;
             res_info->rb_format = queryRboFormat(props.depthAttachment_rbo);
+            res_info->rb_multisamples =
+                queryRboSamples(
+                        props.colorAttachmenti_rbos[colorAttachmentIndex]);
         } else if (props.depthAttachment_hasTexObj) {
             res_info->type = FBO_ATTACHMENT_TEXTURE;
             res_info->tex_internalformat = queryTexInternalFormat(props.depthAttachment_texture);
             res_info->tex_format = queryTexFormat(props.depthAttachment_texture);
             res_info->tex_type = queryTexType(props.depthAttachment_texture);
+            res_info->tex_multisamples =
+                queryTexSamples(props.colorAttachmenti_textures[colorAttachmentIndex]);
         } else {
             res_info->type = FBO_ATTACHMENT_NONE;
         }
@@ -1178,43 +1217,81 @@ void GLClientState::getBoundFramebufferFormat(
         if (props.stencilAttachment_hasRbo) {
             res_info->type = FBO_ATTACHMENT_RENDERBUFFER;
             res_info->rb_format = queryRboFormat(props.stencilAttachment_rbo);
+            res_info->rb_multisamples =
+                queryRboSamples(
+                        props.colorAttachmenti_rbos[colorAttachmentIndex]);
         } else if (props.stencilAttachment_hasTexObj) {
             res_info->type = FBO_ATTACHMENT_TEXTURE;
             res_info->tex_internalformat = queryTexInternalFormat(props.stencilAttachment_texture);
             res_info->tex_format = queryTexFormat(props.stencilAttachment_texture);
             res_info->tex_type = queryTexType(props.stencilAttachment_texture);
+            res_info->tex_multisamples =
+                queryTexSamples(props.colorAttachmenti_textures[colorAttachmentIndex]);
         } else {
             res_info->type = FBO_ATTACHMENT_NONE;
         }
         break;
-    default:
-        res_info->type = FBO_ATTACHMENT_NONE;
+    case GL_DEPTH_STENCIL_ATTACHMENT:
+        if (props.depthstencilAttachment_hasRbo) {
+            res_info->type = FBO_ATTACHMENT_RENDERBUFFER;
+            res_info->rb_format = queryRboFormat(props.depthstencilAttachment_rbo);
+            res_info->rb_multisamples =
+                queryRboSamples(
+                        props.colorAttachmenti_rbos[colorAttachmentIndex]);
+        } else if (props.depthstencilAttachment_hasTexObj) {
+            res_info->type = FBO_ATTACHMENT_TEXTURE;
+            res_info->tex_internalformat = queryTexInternalFormat(props.depthstencilAttachment_texture);
+            res_info->tex_format = queryTexFormat(props.depthstencilAttachment_texture);
+            res_info->tex_type = queryTexType(props.depthstencilAttachment_texture);
+            res_info->tex_multisamples =
+                queryTexSamples(props.colorAttachmenti_textures[colorAttachmentIndex]);
+        } else {
+            res_info->type = FBO_ATTACHMENT_NONE;
+        }
         break;
     }
 }
 
+FboAttachmentType GLClientState::getBoundFramebufferAttachmentType(GLenum target, GLenum attachment) const {
+    FboFormatInfo info;
+    getBoundFramebufferFormat(target, attachment, &info);
+    return info.type;
+}
+
+
+int GLClientState::getMaxColorAttachments() const {
+    return m_max_color_attachments;
+}
+
+int GLClientState::getMaxDrawBuffers() const {
+    return m_max_draw_buffers;
+}
+
 void GLClientState::addFreshFramebuffer(GLuint name) {
-    mFboState.fboData.push_back(FboProps());
-    FboProps& props = mFboState.fboData.back();
-    props.target = GL_FRAMEBUFFER;
+    FboProps props;
     props.name = name;
     props.previouslyBound = false;
 
-    props.colorAttachment0_texture = 0;
+    props.colorAttachmenti_textures.resize(m_max_color_attachments, 0);
     props.depthAttachment_texture = 0;
     props.stencilAttachment_texture = 0;
+    props.depthstencilAttachment_texture = 0;
 
-    props.colorAttachment0_hasTexObj = false;
+    props.colorAttachmenti_hasTex.resize(m_max_color_attachments, false);
     props.depthAttachment_hasTexObj = false;
     props.stencilAttachment_hasTexObj = false;
+    props.depthstencilAttachment_hasTexObj = false;
 
-    props.colorAttachment0_rbo = 0;
+    props.colorAttachmenti_rbos.resize(m_max_color_attachments, 0);
     props.depthAttachment_rbo = 0;
     props.stencilAttachment_rbo = 0;
+    props.depthstencilAttachment_rbo = 0;
 
-    props.colorAttachment0_hasRbo = false;
+    props.colorAttachmenti_hasRbo.resize(m_max_color_attachments, false);
     props.depthAttachment_hasRbo = false;
     props.stencilAttachment_hasRbo = false;
+    props.depthstencilAttachment_hasRbo = false;
+    mFboState.fboData[name] = props;
 }
 
 void GLClientState::addFramebuffers(GLsizei n, GLuint* framebuffers) {
@@ -1223,62 +1300,46 @@ void GLClientState::addFramebuffers(GLsizei n, GLuint* framebuffers) {
     }
 }
 
-size_t GLClientState::getFboIndex(GLuint name) const {
-    for (size_t i = 0; i < mFboState.fboData.size(); i++) {
-        if (mFboState.fboData[i].name == name) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-
 void GLClientState::removeFramebuffers(GLsizei n, const GLuint* framebuffers) {
-    size_t bound_fbo_idx = getFboIndex(boundFboProps_const().name);
-
-    std::vector<GLuint> to_remove;
     for (size_t i = 0; i < n; i++) {
         if (framebuffers[i] != 0) { // Never remove the zero fb.
-            to_remove.push_back(getFboIndex(framebuffers[i]));
+            if (framebuffers[i] == mFboState.boundDrawFramebuffer) {
+                bindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+            }
+            if (framebuffers[i] == mFboState.boundReadFramebuffer) {
+                bindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+            }
+            mFboState.fboData.erase(framebuffers[i]);
         }
-    }
-
-    for (size_t i = 0; i < to_remove.size(); i++) {
-        mFboState.fboData[to_remove[i]] = mFboState.fboData.back();
-        mFboState.fboData.pop_back();
-    }
-
-    // If we just deleted the currently bound fb<
-    // bind the zero fb
-    if (getFboIndex(boundFboProps_const().name) != bound_fbo_idx) {
-        bindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 }
 
 bool GLClientState::usedFramebufferName(GLuint name) const {
-    for (size_t i = 0; i < mFboState.fboData.size(); i++) {
-        if (mFboState.fboData[i].name == name) {
-            return true;
-        }
+    return mFboState.fboData.find(name) != mFboState.fboData.end();
+}
+
+FboProps& GLClientState::boundFboProps(GLenum target) {
+    switch (target) {
+    case GL_DRAW_FRAMEBUFFER:
+        return mFboState.fboData[mFboState.boundDrawFramebuffer];
+    case GL_READ_FRAMEBUFFER:
+        return mFboState.fboData[mFboState.boundReadFramebuffer];
+    case GL_FRAMEBUFFER:
+        return mFboState.fboData[mFboState.boundDrawFramebuffer];
     }
-    return false;
+    return mFboState.fboData[mFboState.boundDrawFramebuffer];
 }
 
-void GLClientState::setBoundFramebufferIndex() {
-    for (size_t i = 0; i < mFboState.fboData.size(); i++) {
-        if (mFboState.fboData[i].name == mFboState.boundFramebuffer) {
-            mFboState.boundFramebufferIndex = i;
-            break;
-        }
+const FboProps& GLClientState::boundFboProps_const(GLenum target) const {
+    switch (target) {
+    case GL_DRAW_FRAMEBUFFER:
+        return mFboState.fboData.at(mFboState.boundDrawFramebuffer);
+    case GL_READ_FRAMEBUFFER:
+        return mFboState.fboData.at(mFboState.boundReadFramebuffer);
+    case GL_FRAMEBUFFER:
+        return mFboState.fboData.at(mFboState.boundDrawFramebuffer);
     }
-}
-
-FboProps& GLClientState::boundFboProps() {
-    return mFboState.fboData[mFboState.boundFramebufferIndex];
-}
-
-const FboProps& GLClientState::boundFboProps_const() const {
-    return mFboState.fboData[mFboState.boundFramebufferIndex];
+    return mFboState.fboData.at(mFboState.boundDrawFramebuffer);
 }
 
 void GLClientState::bindFramebuffer(GLenum target, GLuint name) {
@@ -1286,128 +1347,311 @@ void GLClientState::bindFramebuffer(GLenum target, GLuint name) {
     if (!usedFramebufferName(name)) {
         addFreshFramebuffer(name);
     }
-    mFboState.boundFramebuffer = name;
-    setBoundFramebufferIndex();
-    boundFboProps().target = target;
-    boundFboProps().previouslyBound = true;
+    switch (target) {
+        case GL_DRAW_FRAMEBUFFER:
+            mFboState.boundDrawFramebuffer = name;
+            break;
+        case GL_READ_FRAMEBUFFER:
+            mFboState.boundReadFramebuffer = name;
+            break;
+        default: // case GL_FRAMEBUFFER:
+            mFboState.boundDrawFramebuffer = name;
+            mFboState.boundReadFramebuffer = name;
+            break;
+    }
+    boundFboProps(target).previouslyBound = true;
 }
 
-void GLClientState::setCheckFramebufferStatus(GLenum status) {
-    mFboState.fboCheckStatus = status;
+void GLClientState::setCheckFramebufferStatus(GLenum target, GLenum status) {
+    switch (target) {
+        case GL_DRAW_FRAMEBUFFER:
+            mFboState.drawFboCheckStatus = status;
+            break;
+        case GL_READ_FRAMEBUFFER:
+            mFboState.readFboCheckStatus = status;
+            break;
+        case GL_FRAMEBUFFER:
+            mFboState.drawFboCheckStatus = status;
+            break;
+    }
 }
 
-GLenum GLClientState::getCheckFramebufferStatus() const {
-    return mFboState.fboCheckStatus;
+GLenum GLClientState::getCheckFramebufferStatus(GLenum target) const {
+    switch (target) {
+    case GL_DRAW_FRAMEBUFFER:
+        return mFboState.drawFboCheckStatus;
+    case GL_READ_FRAMEBUFFER:
+        return mFboState.readFboCheckStatus;
+    case GL_FRAMEBUFFER:
+        return mFboState.drawFboCheckStatus;
+    }
+    return mFboState.drawFboCheckStatus;
 }
 
-GLuint GLClientState::boundFramebuffer() const {
-    return boundFboProps_const().name;
+GLuint GLClientState::boundFramebuffer(GLenum target) const {
+    return boundFboProps_const(target).name;
 }
 
 // Texture objects for FBOs/////////////////////////////////////////////////////
 
-void GLClientState::attachTextureObject(GLenum attachment, GLuint texture) {
+void GLClientState::attachTextureObject(
+        GLenum target,
+        GLenum attachment, GLuint texture) {
+
+    int colorAttachmentIndex =
+        glUtilsColorAttachmentIndex(attachment);
+
+    if (colorAttachmentIndex != -1) {
+        boundFboProps(target).colorAttachmenti_textures[colorAttachmentIndex] = texture;
+        boundFboProps(target).colorAttachmenti_hasTex[colorAttachmentIndex] = true;
+    }
+
     switch (attachment) {
-    case GL_COLOR_ATTACHMENT0:
-        boundFboProps().colorAttachment0_texture = texture;
-        boundFboProps().colorAttachment0_hasTexObj = true;
-        break;
     case GL_DEPTH_ATTACHMENT:
-        boundFboProps().depthAttachment_texture = texture;
-        boundFboProps().depthAttachment_hasTexObj = true;
+        boundFboProps(target).depthAttachment_texture = texture;
+        boundFboProps(target).depthAttachment_hasTexObj = true;
         break;
     case GL_STENCIL_ATTACHMENT:
-        boundFboProps().stencilAttachment_texture = texture;
-        boundFboProps().stencilAttachment_hasTexObj = true;
+        boundFboProps(target).stencilAttachment_texture = texture;
+        boundFboProps(target).stencilAttachment_hasTexObj = true;
         break;
-    default:
+    case GL_DEPTH_STENCIL_ATTACHMENT:
+        boundFboProps(target).depthstencilAttachment_texture = texture;
+        boundFboProps(target).depthstencilAttachment_hasTexObj = true;
+        boundFboProps(target).stencilAttachment_texture = texture;
+        boundFboProps(target).stencilAttachment_hasTexObj = true;
+        boundFboProps(target).depthAttachment_texture = texture;
+        boundFboProps(target).depthAttachment_hasTexObj = true;
         break;
     }
 }
 
-GLuint GLClientState::getFboAttachmentTextureId(GLenum attachment) const {
-    GLuint res;
+GLuint GLClientState::getFboAttachmentTextureId(GLenum target, GLenum attachment) const {
+    GLuint res = 0; // conservative
+
+    int colorAttachmentIndex =
+        glUtilsColorAttachmentIndex(attachment);
+
+    if (colorAttachmentIndex != -1) {
+        res = boundFboProps_const(target).colorAttachmenti_textures[colorAttachmentIndex];
+    }
+
     switch (attachment) {
-    case GL_COLOR_ATTACHMENT0:
-        res = boundFboProps_const().colorAttachment0_texture;
-        break;
     case GL_DEPTH_ATTACHMENT:
-        res = boundFboProps_const().depthAttachment_texture;
+        res = boundFboProps_const(target).depthAttachment_texture;
         break;
     case GL_STENCIL_ATTACHMENT:
-        res = boundFboProps_const().stencilAttachment_texture;
+        res = boundFboProps_const(target).stencilAttachment_texture;
         break;
-    default:
-        res = 0; // conservative validation for now
+    case GL_DEPTH_STENCIL_ATTACHMENT:
+        res = boundFboProps_const(target).depthstencilAttachment_texture;
+        break;
     }
     return res;
 }
 
 // RBOs for FBOs////////////////////////////////////////////////////////////////
 
-void GLClientState::attachRbo(GLenum attachment, GLuint renderbuffer) {
+void GLClientState::detachRbo(GLuint renderbuffer) {
+    for (int i = 0; i < m_max_color_attachments; i++) {
+        detachRboFromFbo(GL_DRAW_FRAMEBUFFER, glUtilsColorAttachmentName(i), renderbuffer);
+        detachRboFromFbo(GL_READ_FRAMEBUFFER, glUtilsColorAttachmentName(i), renderbuffer);
+    }
+
+    detachRboFromFbo(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, renderbuffer);
+    detachRboFromFbo(GL_READ_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, renderbuffer);
+
+    detachRboFromFbo(GL_DRAW_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, renderbuffer);
+    detachRboFromFbo(GL_READ_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, renderbuffer);
+
+    detachRboFromFbo(GL_DRAW_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, renderbuffer);
+    detachRboFromFbo(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, renderbuffer);
+}
+
+void GLClientState::detachRboFromFbo(GLenum target, GLenum attachment, GLuint renderbuffer) {
+    int colorAttachmentIndex =
+        glUtilsColorAttachmentIndex(attachment);
+
+    if (colorAttachmentIndex != -1) {
+        if (boundFboProps(target).colorAttachmenti_hasRbo[colorAttachmentIndex] &&
+            boundFboProps(target).colorAttachmenti_rbos[colorAttachmentIndex] == renderbuffer) {
+            boundFboProps(target).colorAttachmenti_rbos[colorAttachmentIndex] = 0;
+            boundFboProps(target).colorAttachmenti_hasRbo[colorAttachmentIndex] = false;
+        }
+    }
+
     switch (attachment) {
-    case GL_COLOR_ATTACHMENT0:
-        boundFboProps().colorAttachment0_rbo = renderbuffer;
-        boundFboProps().colorAttachment0_hasRbo = true;
-        break;
     case GL_DEPTH_ATTACHMENT:
-        boundFboProps().depthAttachment_rbo = renderbuffer;
-        boundFboProps().depthAttachment_hasRbo = true;
+        if (boundFboProps(target).depthAttachment_rbo == renderbuffer &&
+            boundFboProps(target).depthAttachment_hasRbo) {
+            boundFboProps(target).depthAttachment_rbo = 0;
+            boundFboProps(target).depthAttachment_hasRbo = false;
+        }
         break;
     case GL_STENCIL_ATTACHMENT:
-        boundFboProps().stencilAttachment_rbo = renderbuffer;
-        boundFboProps().stencilAttachment_hasRbo = true;
+        if (boundFboProps(target).stencilAttachment_rbo == renderbuffer &&
+            boundFboProps(target).stencilAttachment_hasRbo) {
+            boundFboProps(target).stencilAttachment_rbo = 0;
+            boundFboProps(target).stencilAttachment_hasRbo = false;
+        }
         break;
-    default:
+    case GL_DEPTH_STENCIL_ATTACHMENT:
+        if (boundFboProps(target).depthAttachment_rbo == renderbuffer &&
+            boundFboProps(target).depthAttachment_hasRbo) {
+            boundFboProps(target).depthAttachment_rbo = 0;
+            boundFboProps(target).depthAttachment_hasRbo = false;
+        }
+        if (boundFboProps(target).stencilAttachment_rbo == renderbuffer &&
+            boundFboProps(target).stencilAttachment_hasRbo) {
+            boundFboProps(target).stencilAttachment_rbo = 0;
+            boundFboProps(target).stencilAttachment_hasRbo = false;
+        }
+        if (boundFboProps(target).depthstencilAttachment_rbo == renderbuffer &&
+            boundFboProps(target).depthstencilAttachment_hasRbo) {
+            boundFboProps(target).depthstencilAttachment_rbo = 0;
+            boundFboProps(target).depthstencilAttachment_hasRbo = false;
+        }
         break;
     }
 }
 
-GLuint GLClientState::getFboAttachmentRboId(GLenum attachment) const {
-    GLuint res;
+void GLClientState::attachRbo(GLenum target, GLenum attachment, GLuint renderbuffer) {
+
+    int colorAttachmentIndex =
+        glUtilsColorAttachmentIndex(attachment);
+
+    if (colorAttachmentIndex != -1) {
+        boundFboProps(target).colorAttachmenti_rbos[colorAttachmentIndex] = renderbuffer;
+        boundFboProps(target).colorAttachmenti_hasRbo[colorAttachmentIndex] = true;
+    }
+
     switch (attachment) {
-    case GL_COLOR_ATTACHMENT0:
-        res = boundFboProps_const().colorAttachment0_rbo;
-        break;
     case GL_DEPTH_ATTACHMENT:
-        res = boundFboProps_const().depthAttachment_rbo;
+        boundFboProps(target).depthAttachment_rbo = renderbuffer;
+        boundFboProps(target).depthAttachment_hasRbo = true;
         break;
     case GL_STENCIL_ATTACHMENT:
-        res = boundFboProps_const().stencilAttachment_rbo;
+        boundFboProps(target).stencilAttachment_rbo = renderbuffer;
+        boundFboProps(target).stencilAttachment_hasRbo = true;
         break;
-    default:
-        res = 0; // conservative validation for now
+    case GL_DEPTH_STENCIL_ATTACHMENT:
+        boundFboProps(target).depthAttachment_rbo = renderbuffer;
+        boundFboProps(target).depthAttachment_hasRbo = true;
+        boundFboProps(target).stencilAttachment_rbo = renderbuffer;
+        boundFboProps(target).stencilAttachment_hasRbo = true;
+        boundFboProps(target).depthstencilAttachment_rbo = renderbuffer;
+        boundFboProps(target).depthstencilAttachment_hasRbo = true;
+        break;
+    }
+}
+
+GLuint GLClientState::getFboAttachmentRboId(GLenum target, GLenum attachment) const {
+    GLuint res = 0; // conservative
+
+    int colorAttachmentIndex =
+        glUtilsColorAttachmentIndex(attachment);
+
+    if (colorAttachmentIndex != -1) {
+        res = boundFboProps_const(target).colorAttachmenti_rbos[colorAttachmentIndex];
+    }
+
+    switch (attachment) {
+    case GL_DEPTH_ATTACHMENT:
+        res = boundFboProps_const(target).depthAttachment_rbo;
+        break;
+    case GL_STENCIL_ATTACHMENT:
+        res = boundFboProps_const(target).stencilAttachment_rbo;
+        break;
+    case GL_DEPTH_STENCIL_ATTACHMENT:
+        res = boundFboProps_const(target).depthstencilAttachment_rbo;
+        break;
     }
     return res;
 }
 
-bool GLClientState::attachmentHasObject(GLenum attachment) const {
-    bool res;
+bool GLClientState::attachmentHasObject(GLenum target, GLenum attachment) const {
+    bool res = true; // liberal
+
+    int colorAttachmentIndex =
+        glUtilsColorAttachmentIndex(attachment);
+
+    if (colorAttachmentIndex != -1) {
+        res = boundFboProps_const(target).colorAttachmenti_hasTex[colorAttachmentIndex] ||
+              boundFboProps_const(target).colorAttachmenti_hasRbo[colorAttachmentIndex];
+    }
+
     switch (attachment) {
-    case GL_COLOR_ATTACHMENT0:
-        res = (boundFboProps_const().colorAttachment0_hasTexObj) ||
-              (boundFboProps_const().colorAttachment0_hasRbo);
-        break;
     case GL_DEPTH_ATTACHMENT:
-        res = (boundFboProps_const().depthAttachment_hasTexObj) ||
-              (boundFboProps_const().depthAttachment_hasRbo);
+        res = (boundFboProps_const(target).depthAttachment_hasTexObj) ||
+              (boundFboProps_const(target).depthAttachment_hasRbo);
         break;
     case GL_STENCIL_ATTACHMENT:
-        res = (boundFboProps_const().stencilAttachment_hasTexObj) ||
-              (boundFboProps_const().stencilAttachment_hasRbo);
+        res = (boundFboProps_const(target).stencilAttachment_hasTexObj) ||
+              (boundFboProps_const(target).stencilAttachment_hasRbo);
         break;
-    default:
-        res = true; // liberal validation for now
+    case GL_DEPTH_STENCIL_ATTACHMENT:
+        res = (boundFboProps_const(target).depthstencilAttachment_hasTexObj) ||
+              (boundFboProps_const(target).depthstencilAttachment_hasRbo);
+        break;
     }
     return res;
 }
 
+GLuint GLClientState::objectOfAttachment(GLenum target, GLenum attachment) const {
+    const FboProps& props = boundFboProps_const(target);
+
+    int colorAttachmentIndex =
+        glUtilsColorAttachmentIndex(attachment);
+
+    if (colorAttachmentIndex != -1) {
+        if (props.colorAttachmenti_hasTex[colorAttachmentIndex]) {
+            return props.colorAttachmenti_textures[colorAttachmentIndex];
+        } else if (props.colorAttachmenti_hasRbo[colorAttachmentIndex]) {
+            return props.colorAttachmenti_rbos[colorAttachmentIndex];
+        } else {
+            return 0;
+        }
+    }
+
+    switch (attachment) {
+    case GL_DEPTH_ATTACHMENT:
+        if (props.depthAttachment_hasTexObj) {
+            return props.depthAttachment_texture;
+        } else if (props.depthAttachment_hasRbo) {
+            return props.depthAttachment_rbo;
+        } else {
+            return 0;
+        }
+        break;
+    case GL_STENCIL_ATTACHMENT:
+        if (props.stencilAttachment_hasTexObj) {
+            return props.stencilAttachment_texture;
+        } else if (props.stencilAttachment_hasRbo) {
+            return props.stencilAttachment_rbo;
+        } else {
+            return 0;
+        }
+    case GL_DEPTH_STENCIL_ATTACHMENT:
+        if (props.depthstencilAttachment_hasTexObj) {
+            return props.depthstencilAttachment_texture;
+        } else if (props.depthstencilAttachment_hasRbo) {
+            return props.depthstencilAttachment_rbo;
+        } else {
+            return 0;
+        }
+        break;
+    }
+    return 0;
+}
 void GLClientState::fromMakeCurrent() {
-    FboProps& default_fb_props = mFboState.fboData[getFboIndex(0)];
-    default_fb_props.colorAttachment0_hasRbo = true;
+    if (mFboState.fboData.find(0) == mFboState.fboData.end()) {
+        addFreshFramebuffer(0);
+    }
+    FboProps& default_fb_props = mFboState.fboData[0];
+    default_fb_props.colorAttachmenti_hasRbo[0] = true;
     default_fb_props.depthAttachment_hasRbo = true;
     default_fb_props.stencilAttachment_hasRbo = true;
+    default_fb_props.depthstencilAttachment_hasRbo = true;
 }
 
 void GLClientState::initFromCaps(
