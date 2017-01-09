@@ -29,35 +29,50 @@
 // Don't include these in the .h file, or we get weird compile errors.
 #include <GLES3/gl3.h>
 #include <GLES3/gl31.h>
-GLClientState::GLClientState(int nLocations)
-{
-    if (nLocations < LAST_LOCATION) {
-        nLocations = LAST_LOCATION;
-    }
-    m_nLocations = nLocations;
-    m_states = new VertexAttribState[m_nLocations];
-    for (int i = 0; i < m_nLocations; i++) {
-        m_states[i].enabled = 0;
-        m_states[i].enableDirty = false;
-        m_states[i].data = 0;
-    }
-    m_currentArrayVbo = 0;
-    m_currentIndexVbo = 0;
+
+void GLClientState::init() {
+    m_initialized = false;
+    m_nLocations = CODEC_MAX_VERTEX_ATTRIBUTES;
+
+    m_arrayBuffer = 0;
+    m_max_vertex_attrib_bindings = m_nLocations;
+    addVertexArrayObject(0);
+    setVertexArrayObject(0);
     // init gl constans;
-    m_states[VERTEX_LOCATION].glConst = GL_VERTEX_ARRAY;
-    m_states[NORMAL_LOCATION].glConst = GL_NORMAL_ARRAY;
-    m_states[COLOR_LOCATION].glConst = GL_COLOR_ARRAY;
-    m_states[POINTSIZE_LOCATION].glConst = GL_POINT_SIZE_ARRAY_OES;
-    m_states[TEXCOORD0_LOCATION].glConst = GL_TEXTURE_COORD_ARRAY;
-    m_states[TEXCOORD1_LOCATION].glConst = GL_TEXTURE_COORD_ARRAY;
-    m_states[TEXCOORD2_LOCATION].glConst = GL_TEXTURE_COORD_ARRAY;
-    m_states[TEXCOORD3_LOCATION].glConst = GL_TEXTURE_COORD_ARRAY;
-    m_states[TEXCOORD4_LOCATION].glConst = GL_TEXTURE_COORD_ARRAY;
-    m_states[TEXCOORD5_LOCATION].glConst = GL_TEXTURE_COORD_ARRAY;
-    m_states[TEXCOORD6_LOCATION].glConst = GL_TEXTURE_COORD_ARRAY;
-    m_states[TEXCOORD7_LOCATION].glConst = GL_TEXTURE_COORD_ARRAY;
-    m_states[MATRIXINDEX_LOCATION].glConst = GL_MATRIX_INDEX_ARRAY_OES;
-    m_states[WEIGHT_LOCATION].glConst = GL_WEIGHT_ARRAY_OES;
+    m_currVaoState[VERTEX_LOCATION].glConst = GL_VERTEX_ARRAY;
+    m_currVaoState[NORMAL_LOCATION].glConst = GL_NORMAL_ARRAY;
+    m_currVaoState[COLOR_LOCATION].glConst = GL_COLOR_ARRAY;
+    m_currVaoState[POINTSIZE_LOCATION].glConst = GL_POINT_SIZE_ARRAY_OES;
+    m_currVaoState[TEXCOORD0_LOCATION].glConst = GL_TEXTURE_COORD_ARRAY;
+    m_currVaoState[TEXCOORD1_LOCATION].glConst = GL_TEXTURE_COORD_ARRAY;
+    m_currVaoState[TEXCOORD2_LOCATION].glConst = GL_TEXTURE_COORD_ARRAY;
+    m_currVaoState[TEXCOORD3_LOCATION].glConst = GL_TEXTURE_COORD_ARRAY;
+    m_currVaoState[TEXCOORD4_LOCATION].glConst = GL_TEXTURE_COORD_ARRAY;
+    m_currVaoState[TEXCOORD5_LOCATION].glConst = GL_TEXTURE_COORD_ARRAY;
+    m_currVaoState[TEXCOORD6_LOCATION].glConst = GL_TEXTURE_COORD_ARRAY;
+    m_currVaoState[TEXCOORD7_LOCATION].glConst = GL_TEXTURE_COORD_ARRAY;
+    m_currVaoState[MATRIXINDEX_LOCATION].glConst = GL_MATRIX_INDEX_ARRAY_OES;
+    m_currVaoState[WEIGHT_LOCATION].glConst = GL_WEIGHT_ARRAY_OES;
+
+    m_copyReadBuffer = 0;
+    m_copyWriteBuffer = 0;
+    m_pixelPackBuffer = 0;
+    m_pixelUnpackBuffer = 0;
+    m_transformFeedbackBuffer = 0;
+    m_uniformBuffer = 0;
+    m_atomicCounterBuffer = 0;
+    m_dispatchIndirectBuffer = 0;
+    m_drawIndirectBuffer = 0;
+    m_shaderStorageBuffer = 0;
+
+    m_transformFeedbackActiveUnpaused = false;
+
+    // to be modified later when these are queried from host.
+    m_max_transform_feedback_separate_attribs = 0;
+    m_max_uniform_buffer_bindings = 0;
+    m_max_atomic_counter_buffer_bindings = 0;
+    m_max_shader_storage_buffer_bindings = 0;
+
     m_activeTexture = 0;
     m_currentProgram = 0;
 
@@ -90,64 +105,174 @@ GLClientState::GLClientState(int nLocations)
     m_maxVertexAttribsDirty = true;
 }
 
+GLClientState::GLClientState()
+{
+    init();
+}
+
+GLClientState::GLClientState(int majorVersion, int minorVersion) :
+    m_glesMajorVersion(majorVersion),
+    m_glesMinorVersion(minorVersion) {
+    init();
+}
+
 GLClientState::~GLClientState()
 {
-    delete m_states;
 }
 
 void GLClientState::enable(int location, int state)
 {
-    if (!validLocation(location)) {
+    m_currVaoState[location].enableDirty |= (state != m_currVaoState[location].enabled);
+    m_currVaoState[location].enabled = state;
+}
+
+void GLClientState::setVertexAttribState(int location, int size, GLenum type, GLboolean normalized, GLsizei stride, const void *data, bool isInt)
+{
+    m_currVaoState[location].size = size;
+    m_currVaoState[location].type = type;
+    m_currVaoState[location].stride = stride;
+    m_currVaoState[location].data = (void*)data;
+    m_currVaoState[location].bufferObject = m_arrayBuffer;
+    m_currVaoState[location].elementSize = size ? (glSizeof(type) * size) : 0;
+    switch (type) {
+        case GL_INT_2_10_10_10_REV:
+        case GL_UNSIGNED_INT_2_10_10_10_REV:
+            m_currVaoState[location].elementSize =
+                m_currVaoState[location].elementSize / 4;
+            break;
+        default:
+            break;
+    }
+    m_currVaoState[location].normalized = normalized;
+    m_currVaoState[location].isInt = isInt;
+}
+
+void GLClientState::setVertexBindingDivisor(int bindingindex, GLuint divisor) {
+    m_currVaoState.bufferBinding(bindingindex).divisor = divisor;
+}
+
+const GLClientState::BufferBinding& GLClientState::getCurrAttributeBindingInfo(int attribindex) {
+    return m_currVaoState.bufferBindings_const().at(m_currVaoState[attribindex].bindingindex);
+}
+
+void GLClientState::setVertexAttribBinding(int attribindex, int bindingindex) {
+    m_currVaoState[attribindex].bindingindex = bindingindex;
+}
+
+void GLClientState::setVertexAttribFormat(int location, int size, GLenum type, GLboolean normalized, GLuint reloffset, bool isInt) {
+    m_currVaoState[location].size = size;
+    m_currVaoState[location].type = type;
+    m_currVaoState[location].normalized = normalized;
+    m_currVaoState[location].reloffset = reloffset;
+    m_currVaoState[location].elementSize = size ? (glSizeof(type) * size) : 0;
+    switch (type) {
+        case GL_INT_2_10_10_10_REV:
+        case GL_UNSIGNED_INT_2_10_10_10_REV:
+            m_currVaoState[location].elementSize =
+                m_currVaoState[location].elementSize / 4;
+            break;
+        default:
+            break;
+    }
+    m_currVaoState[location].isInt = isInt;
+}
+
+void GLClientState::addVertexArrayObjects(GLsizei n, GLuint* arrays) {
+    for (GLsizei i = 0; i < n; i++) {
+        addVertexArrayObject(arrays[i]);
+    }
+}
+
+void GLClientState::removeVertexArrayObjects(GLsizei n, const GLuint* arrays) {
+    for (GLsizei i = 0; i < n; i++) {
+        if (arrays[i] && m_currVaoState.vaoId() == arrays[i]) {
+            setVertexArrayObject(0);
+        }
+        removeVertexArrayObject(arrays[i]);
+    }
+}
+
+void GLClientState::addVertexArrayObject(GLuint name) {
+    if (m_vaoMap.find(name) !=
+        m_vaoMap.end()) {
+        ALOGE("%s: ERROR: %u already part of current VAO state!",
+              __FUNCTION__, name);
         return;
     }
 
-    m_states[location].enableDirty |= (state != m_states[location].enabled);
-    m_states[location].enabled = state;
+    m_vaoMap.insert(
+            VAOStateMap::value_type(
+                name,
+                VAOState(0, m_nLocations, std::max(m_nLocations, m_max_vertex_attrib_bindings))));
+    VertexAttribStateVector& attribState =
+        m_vaoMap.at(name).attribState;
+    for (int i = 0; i < m_nLocations; i++) {
+        attribState[i].enabled = 0;
+        attribState[i].enableDirty = false;
+        attribState[i].data = 0;
+        attribState[i].reloffset = 0;
+        attribState[i].bindingindex = i;
+        attribState[i].divisor = 0;
+        attribState[i].size = 4; // 4 is the default size
+        attribState[i].type = GL_FLOAT; // GL_FLOAT is the default type
+    }
 }
 
-void GLClientState::setState(int location, int size, GLenum type, GLboolean normalized, GLsizei stride, const void *data)
-{
-    if (!validLocation(location)) {
+void GLClientState::removeVertexArrayObject(GLuint name) {
+    if (name == 0) {
+        ALOGE("%s: ERROR: cannot delete VAO 0!",
+              __FUNCTION__);
         return;
     }
-    m_states[location].size = size;
-    m_states[location].type = type;
-    m_states[location].stride = stride;
-    m_states[location].data = (void*)data;
-    m_states[location].bufferObject = m_currentArrayVbo;
-    m_states[location].elementSize = size ? (glSizeof(type) * size) : 0;
-    m_states[location].normalized = normalized;
+    if (m_vaoMap.find(name) ==
+        m_vaoMap.end()) {
+        ALOGE("%s: ERROR: %u not found in VAO state!",
+              __FUNCTION__, name);
+        return;
+    }
+    m_vaoMap.erase(name);
 }
 
-void GLClientState::setBufferObject(int location, GLuint id)
-{
-    if (!validLocation(location)) {
+void GLClientState::setVertexArrayObject(GLuint name) {
+    if (m_vaoMap.find(name) ==
+        m_vaoMap.end()) {
+        ALOGE("%s: ERROR: %u not found in VAO state!",
+              __FUNCTION__, name);
         return;
     }
 
-    m_states[location].bufferObject = id;
-}
-
-const GLClientState::VertexAttribState * GLClientState::getState(int location)
-{
-    if (!validLocation(location)) {
-        return NULL;
-    }
-    return & m_states[location];
-}
-
-const GLClientState::VertexAttribState * GLClientState::getStateAndEnableDirty(int location, bool *enableChanged)
-{
-    if (!validLocation(location)) {
-        return NULL;
+    if (name && m_currVaoState.vaoId() == name) {
+        ALOGV("%s: set vao to self, no-op (%u)",
+              __FUNCTION__, name);
+        return;
     }
 
+    m_currVaoState =
+        VAOStateRef(m_vaoMap.find(name));
+    ALOGV("%s: set vao to %u (%u) %u %u", __FUNCTION__,
+            name,
+            m_currVaoState.vaoId(),
+            m_arrayBuffer,
+            m_currVaoState.iboId());
+}
+
+bool GLClientState::isVertexArrayObject(GLuint vao) const {
+    return m_vaoMap.find(vao) != m_vaoMap.end();
+}
+
+const GLClientState::VertexAttribState& GLClientState::getState(int location)
+{
+    return m_currVaoState[location];
+}
+
+const GLClientState::VertexAttribState& GLClientState::getStateAndEnableDirty(int location, bool *enableChanged)
+{
     if (enableChanged) {
-        *enableChanged = m_states[location].enableDirty;
+        *enableChanged = m_currVaoState[location].enableDirty;
     }
 
-    m_states[location].enableDirty = false;
-    return & m_states[location];
+    m_currVaoState[location].enableDirty = false;
+    return m_currVaoState[location];
 }
 
 int GLClientState::getLocation(GLenum loc)
@@ -182,41 +307,208 @@ int GLClientState::getLocation(GLenum loc)
     return retval;
 }
 
+void GLClientState::unBindBuffer(GLuint id) {
+    if (m_arrayBuffer == id) m_arrayBuffer = 0;
+    if (m_currVaoState.iboId() == id) m_currVaoState.iboId() = 0;
+    if (m_copyReadBuffer == id)
+        m_copyReadBuffer = 0;
+    if (m_copyWriteBuffer == id)
+        m_copyWriteBuffer = 0;
+    if (m_pixelPackBuffer == id)
+        m_pixelPackBuffer = 0;
+    if (m_pixelUnpackBuffer == id)
+        m_pixelUnpackBuffer = 0;
+    if (m_transformFeedbackBuffer == id)
+        m_transformFeedbackBuffer = 0;
+    if (m_uniformBuffer == id)
+        m_uniformBuffer = 0;
+    if (m_atomicCounterBuffer == id)
+        m_atomicCounterBuffer = 0;
+    if (m_dispatchIndirectBuffer == id)
+        m_dispatchIndirectBuffer = 0;
+    if (m_drawIndirectBuffer == id)
+        m_drawIndirectBuffer = 0;
+    if (m_shaderStorageBuffer == id)
+        m_shaderStorageBuffer = 0;
+}
+
+int GLClientState::bindBuffer(GLenum target, GLuint id)
+{
+    int err = 0;
+    switch(target) {
+    case GL_ARRAY_BUFFER:
+        m_arrayBuffer = id;
+        break;
+    case GL_ELEMENT_ARRAY_BUFFER:
+        m_currVaoState.iboId() = id;
+        break;
+    case GL_COPY_READ_BUFFER:
+        m_copyReadBuffer = id;
+        break;
+    case GL_COPY_WRITE_BUFFER:
+        m_copyWriteBuffer = id;
+        break;
+    case GL_PIXEL_PACK_BUFFER:
+        m_pixelPackBuffer = id;
+        break;
+    case GL_PIXEL_UNPACK_BUFFER:
+        m_pixelUnpackBuffer = id;
+        break;
+    case GL_TRANSFORM_FEEDBACK_BUFFER:
+        m_transformFeedbackBuffer = id;
+        break;
+    case GL_UNIFORM_BUFFER:
+        m_uniformBuffer = id;
+        break;
+    case GL_ATOMIC_COUNTER_BUFFER:
+        m_atomicCounterBuffer = id;
+        break;
+    case GL_DISPATCH_INDIRECT_BUFFER:
+        m_dispatchIndirectBuffer = id;
+        break;
+    case GL_DRAW_INDIRECT_BUFFER:
+        m_drawIndirectBuffer = id;
+        break;
+    case GL_SHADER_STORAGE_BUFFER:
+        m_shaderStorageBuffer = id;
+        break;
+    default:
+        err = -1;
+    }
+    return err;
+}
+
+void GLClientState::bindIndexedBuffer(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size, GLintptr stride, GLintptr effectiveStride) {
+    switch (target) {
+    case GL_TRANSFORM_FEEDBACK_BUFFER:
+        m_indexedTransformFeedbackBuffers[index].buffer = buffer;
+        m_indexedTransformFeedbackBuffers[index].offset = offset;
+        m_indexedTransformFeedbackBuffers[index].size = size;
+        m_indexedTransformFeedbackBuffers[index].stride = stride;
+        break;
+    case GL_UNIFORM_BUFFER:
+        m_indexedUniformBuffers[index].buffer = buffer;
+        m_indexedUniformBuffers[index].offset = offset;
+        m_indexedUniformBuffers[index].size = size;
+        m_indexedUniformBuffers[index].stride = stride;
+        break;
+    case GL_ATOMIC_COUNTER_BUFFER:
+        m_indexedAtomicCounterBuffers[index].buffer = buffer;
+        m_indexedAtomicCounterBuffers[index].offset = offset;
+        m_indexedAtomicCounterBuffers[index].size = size;
+        m_indexedAtomicCounterBuffers[index].stride = stride;
+        break;
+    case GL_SHADER_STORAGE_BUFFER:
+        m_indexedShaderStorageBuffers[index].buffer = buffer;
+        m_indexedShaderStorageBuffers[index].offset = offset;
+        m_indexedShaderStorageBuffers[index].size = size;
+        m_indexedShaderStorageBuffers[index].stride = stride;
+        break;
+    default:
+        m_currVaoState.bufferBinding(index).buffer = buffer;
+        m_currVaoState.bufferBinding(index).offset = offset;
+        m_currVaoState.bufferBinding(index).size = size;
+        m_currVaoState.bufferBinding(index).stride = stride;
+        m_currVaoState.bufferBinding(index).effectiveStride = effectiveStride;
+        return;
+    }
+}
+
+int GLClientState::getMaxIndexedBufferBindings(GLenum target) const {
+    switch (target) {
+    case GL_TRANSFORM_FEEDBACK_BUFFER:
+        return m_indexedTransformFeedbackBuffers.size();
+    case GL_UNIFORM_BUFFER:
+        return m_indexedUniformBuffers.size();
+    case GL_ATOMIC_COUNTER_BUFFER:
+        return m_indexedAtomicCounterBuffers.size();
+    case GL_SHADER_STORAGE_BUFFER:
+        return m_indexedShaderStorageBuffers.size();
+    default:
+        return m_currVaoState.bufferBindings_const().size();
+    }
+}
+
+int GLClientState::getBuffer(GLenum target) {
+    int ret=0;
+    switch (target) {
+        case GL_ARRAY_BUFFER:
+            ret = m_arrayBuffer;
+            break;
+        case GL_ELEMENT_ARRAY_BUFFER:
+            ret = m_currVaoState.iboId();
+            break;
+        case GL_COPY_READ_BUFFER:
+            ret = m_copyReadBuffer;
+            break;
+        case GL_COPY_WRITE_BUFFER:
+            ret = m_copyWriteBuffer;
+            break;
+        case GL_PIXEL_PACK_BUFFER:
+            ret = m_pixelPackBuffer;
+            break;
+        case GL_PIXEL_UNPACK_BUFFER:
+            ret = m_pixelUnpackBuffer;
+            break;
+        case GL_TRANSFORM_FEEDBACK_BUFFER:
+            ret = m_transformFeedbackBuffer;
+            break;
+        case GL_UNIFORM_BUFFER:
+            ret = m_uniformBuffer;
+            break;
+        case GL_ATOMIC_COUNTER_BUFFER:
+            ret = m_atomicCounterBuffer;
+            break;
+        case GL_DISPATCH_INDIRECT_BUFFER:
+            ret = m_dispatchIndirectBuffer;
+            break;
+        case GL_DRAW_INDIRECT_BUFFER:
+            ret = m_drawIndirectBuffer;
+            break;
+        case GL_SHADER_STORAGE_BUFFER:
+            ret = m_shaderStorageBuffer;
+            break;
+        default:
+            ret = -1;
+    }
+    return ret;
+}
+
 void GLClientState::getClientStatePointer(GLenum pname, GLvoid** params)
 {
-    const GLClientState::VertexAttribState *state = NULL;
+    GLenum which_state = -1;
     switch (pname) {
     case GL_VERTEX_ARRAY_POINTER: {
-        state = getState(GLClientState::VERTEX_LOCATION);
+        which_state = GLClientState::VERTEX_LOCATION;
         break;
         }
     case GL_NORMAL_ARRAY_POINTER: {
-        state = getState(GLClientState::NORMAL_LOCATION);
+        which_state = GLClientState::NORMAL_LOCATION;
         break;
         }
     case GL_COLOR_ARRAY_POINTER: {
-        state = getState(GLClientState::COLOR_LOCATION);
+        which_state = GLClientState::COLOR_LOCATION;
         break;
         }
     case GL_TEXTURE_COORD_ARRAY_POINTER: {
-        state = getState(getActiveTexture() + GLClientState::TEXCOORD0_LOCATION);
+        which_state = getActiveTexture() + GLClientState::TEXCOORD0_LOCATION;
         break;
         }
     case GL_POINT_SIZE_ARRAY_POINTER_OES: {
-        state = getState(GLClientState::POINTSIZE_LOCATION);
+        which_state = GLClientState::POINTSIZE_LOCATION;
         break;
         }
     case GL_MATRIX_INDEX_ARRAY_POINTER_OES: {
-        state = getState(GLClientState::MATRIXINDEX_LOCATION);
+        which_state = GLClientState::MATRIXINDEX_LOCATION;
         break;
         }
     case GL_WEIGHT_ARRAY_POINTER_OES: {
-        state = getState(GLClientState::WEIGHT_LOCATION);
+        which_state = GLClientState::WEIGHT_LOCATION;
         break;
         }
     }
-    if (state && params)
-        *params = state->data;
+    if (which_state != -1)
+        *params = getState(which_state).data;
 }
 
 int GLClientState::setPixelStore(GLenum param, GLint value)
@@ -1116,4 +1408,60 @@ void GLClientState::fromMakeCurrent() {
     default_fb_props.colorAttachment0_hasRbo = true;
     default_fb_props.depthAttachment_hasRbo = true;
     default_fb_props.stencilAttachment_hasRbo = true;
+}
+
+void GLClientState::initFromCaps(
+    int max_transform_feedback_separate_attribs,
+    int max_uniform_buffer_bindings,
+    int max_atomic_counter_buffer_bindings,
+    int max_shader_storage_buffer_bindings,
+    int max_vertex_attrib_bindings,
+    int max_color_attachments,
+    int max_draw_buffers) {
+
+    m_max_vertex_attrib_bindings = max_vertex_attrib_bindings;
+
+    if (m_glesMajorVersion >= 3) {
+        m_max_transform_feedback_separate_attribs = max_transform_feedback_separate_attribs;
+        m_max_uniform_buffer_bindings = max_uniform_buffer_bindings;
+        m_max_atomic_counter_buffer_bindings = max_atomic_counter_buffer_bindings;
+        m_max_shader_storage_buffer_bindings = max_shader_storage_buffer_bindings;
+
+        if (m_max_transform_feedback_separate_attribs)
+            m_indexedTransformFeedbackBuffers.resize(m_max_transform_feedback_separate_attribs);
+        if (m_max_uniform_buffer_bindings)
+            m_indexedUniformBuffers.resize(m_max_uniform_buffer_bindings);
+        if (m_max_atomic_counter_buffer_bindings)
+            m_indexedAtomicCounterBuffers.resize(m_max_atomic_counter_buffer_bindings);
+        if (m_max_shader_storage_buffer_bindings)
+            m_indexedShaderStorageBuffers.resize(m_max_shader_storage_buffer_bindings);
+
+        BufferBinding buf0Binding;
+        buf0Binding.buffer = 0;
+        buf0Binding.offset = 0;
+        buf0Binding.size = 0;
+        buf0Binding.stride = 0;
+        buf0Binding.effectiveStride = 0;
+
+        for (size_t i = 0; i < m_indexedTransformFeedbackBuffers.size(); ++i)
+            m_indexedTransformFeedbackBuffers[i] = buf0Binding;
+        for (size_t i = 0; i < m_indexedUniformBuffers.size(); ++i)
+            m_indexedUniformBuffers[i] = buf0Binding;
+        for (size_t i = 0; i < m_indexedAtomicCounterBuffers.size(); ++i)
+            m_indexedAtomicCounterBuffers[i] = buf0Binding;
+        for (size_t i = 0; i < m_indexedShaderStorageBuffers.size(); ++i)
+            m_indexedShaderStorageBuffers[i] = buf0Binding;
+    }
+
+    m_max_color_attachments = max_color_attachments;
+    m_max_draw_buffers = max_draw_buffers;
+
+    addFreshRenderbuffer(0);
+    addFreshFramebuffer(0);
+
+    m_initialized = true;
+}
+
+bool GLClientState::needsInitFromCaps() const {
+    return !m_initialized;
 }

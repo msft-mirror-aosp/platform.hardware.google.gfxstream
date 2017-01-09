@@ -115,12 +115,52 @@ public:
         GLenum type;
         GLsizei stride;
         void *data;
+        GLuint reloffset;
         GLuint bufferObject;
         GLenum glConst;
         unsigned int elementSize;
         bool enableDirty;  // true if any enable state has changed since last draw
         bool normalized;
+        GLuint divisor;
+        bool isInt;
+        int bindingindex;
     } VertexAttribState;
+
+    struct BufferBinding {
+        GLintptr offset;
+        GLintptr stride;
+        GLintptr effectiveStride;
+        GLsizeiptr size;
+        GLuint buffer;
+        GLuint divisor;
+    };
+
+    typedef std::vector<VertexAttribState> VertexAttribStateVector;
+    typedef std::vector<BufferBinding> VertexAttribBindingVector;
+
+    struct VAOState {
+        VAOState(GLuint ibo, int nLoc, int nBindings) :
+            element_array_buffer_binding(ibo),
+            attribState(nLoc),
+            bindingState(nBindings) { }
+        VertexAttribStateVector attribState;
+        VertexAttribBindingVector bindingState;
+        GLuint element_array_buffer_binding;
+    };
+
+    typedef std::map<GLuint, VAOState> VAOStateMap;
+    struct VAOStateRef {
+        VAOStateRef() { }
+        VAOStateRef(
+                VAOStateMap::iterator iter) : it(iter) { }
+        VertexAttribState& operator[](size_t k) { return it->second.attribState[k]; }
+        BufferBinding& bufferBinding(size_t k) { return it->second.bindingState[k]; }
+        VertexAttribBindingVector& bufferBindings() { return it->second.bindingState; }
+        const VertexAttribBindingVector& bufferBindings_const() const { return it->second.bindingState; }
+        GLuint vaoId() const { return it->first; }
+        GLuint& iboId() { return it->second.element_array_buffer_binding; }
+        VAOStateMap::iterator it;
+    };
 
     typedef struct {
         int unpack_alignment;
@@ -143,18 +183,30 @@ public:
     };
 
 public:
-    GLClientState(int nLocations = CODEC_MAX_VERTEX_ATTRIBUTES);
+    GLClientState();
+    GLClientState(int majorVersion, int minorVersion);
     ~GLClientState();
     int nLocations() { return m_nLocations; }
     const PixelStoreState *pixelStoreState() { return &m_pixelStore; }
     int setPixelStore(GLenum param, GLint value);
-    GLuint currentArrayVbo() { return m_currentArrayVbo; }
-    GLuint currentIndexVbo() { return m_currentIndexVbo; }
+    GLuint currentVertexArrayObject() const { return m_currVaoState.vaoId(); }
+    GLuint currentArrayVbo() { return m_arrayBuffer; }
+    GLuint currentIndexVbo() { return m_currVaoState.iboId(); }
     void enable(int location, int state);
-    void setState(int  location, int size, GLenum type, GLboolean normalized, GLsizei stride, const void *data);
-    void setBufferObject(int location, GLuint id);
-    const VertexAttribState  *getState(int location);
-    const VertexAttribState  *getStateAndEnableDirty(int location, bool *enableChanged);
+    // Vertex array objects and vertex attributes
+    void addVertexArrayObjects(GLsizei n, GLuint* arrays);
+    void removeVertexArrayObjects(GLsizei n, const GLuint* arrays);
+    void addVertexArrayObject(GLuint name);
+    void removeVertexArrayObject(GLuint name);
+    void setVertexArrayObject(GLuint vao);
+    bool isVertexArrayObject(GLuint vao) const;
+    void setVertexAttribState(int  location, int size, GLenum type, GLboolean normalized, GLsizei stride, const void *data, bool isInt = false);
+    void setVertexBindingDivisor(int bindingindex, GLuint divisor);
+    const BufferBinding& getCurrAttributeBindingInfo(int attribindex);
+    void setVertexAttribBinding(int attribindex, int bindingindex);
+    void setVertexAttribFormat(int location, int size, GLenum type, GLboolean normalized, GLuint reloffset, bool isInt = false);
+    const VertexAttribState& getState(int location);
+    const VertexAttribState& getStateAndEnableDirty(int location, bool *enableChanged);
     int getLocation(GLenum loc);
     void setActiveTexture(int texUnit) {m_activeTexture = texUnit; };
     int getActiveTexture() const { return m_activeTexture; }
@@ -163,49 +215,39 @@ public:
         m_maxVertexAttribsDirty = false;
     }
 
-    void unBindBuffer(GLuint id)
-    {
-        if (m_currentArrayVbo == id) m_currentArrayVbo = 0;
-        else if (m_currentIndexVbo == id) m_currentIndexVbo = 0;
-    }
+    void unBindBuffer(GLuint id);
 
-    int bindBuffer(GLenum target, GLuint id)
-    {
-        int err = 0;
-        switch(target) {
-        case GL_ARRAY_BUFFER:
-            m_currentArrayVbo = id;
-            break;
-        case GL_ELEMENT_ARRAY_BUFFER:
-            m_currentIndexVbo = id;
-            break;
-        default:
-            err = -1;
-        }
-        return err;
-    }
+    int bindBuffer(GLenum target, GLuint id);
+    void bindIndexedBuffer(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size, GLintptr stride, GLintptr effectiveStride);
+    int getMaxIndexedBufferBindings(GLenum target) const;
 
-    int getBuffer(GLenum target)
-    {
-      int ret=0;
-      switch (target) {
-      case GL_ARRAY_BUFFER:
-          ret = m_currentArrayVbo;
-          break;
-      case GL_ELEMENT_ARRAY_BUFFER:
-          ret = m_currentIndexVbo;
-          break;
-      default:
-          ret = -1;
-      }
-      return ret;
-    }
+    int getBuffer(GLenum target);
+
     size_t pixelDataSize(GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, int pack) const;
     size_t pboNeededDataSize(GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, int pack) const;
     size_t clearBufferNumElts(GLenum buffer) const;
 
     void setCurrentProgram(GLint program) { m_currentProgram = program; }
     GLint currentProgram() const { return m_currentProgram; }
+
+    struct UniformBlockInfoKey {
+        GLuint program;
+        GLuint uniformBlockIndex;
+    };
+    struct UniformBlockInfoKeyCompare {
+        bool operator() (const UniformBlockInfoKey& a,
+                         const UniformBlockInfoKey& b) const {
+            if (a.program != b.program) return a.program < b.program;
+            if (a.uniformBlockIndex != b.uniformBlockIndex) return a.uniformBlockIndex < b.uniformBlockIndex;
+            return false;
+        }
+    };
+    struct UniformBlockUniformInfo {
+        size_t numActiveUniforms;
+    };
+
+    typedef std::map<UniformBlockInfoKey, UniformBlockUniformInfo, UniformBlockInfoKeyCompare> UniformBlockInfoMap;
+    UniformBlockInfoMap m_uniformBlockInfoMap;
 
     void setNumActiveUniformsInUniformBlock(GLuint program, GLuint uniformBlockIndex, GLint numActiveUniforms);
     size_t numActiveUniformsInUniformBlock(GLuint program, GLuint uniformBlockIndex) const;
@@ -322,6 +364,19 @@ public:
     // set eglsurface property on default framebuffer
     // if coming from eglMakeCurrent
     void fromMakeCurrent();
+    // set indexed buffer state.
+    // We need to query the underlying OpenGL to get
+    // accurate values for indexed buffers
+    // and # render targets.
+    void initFromCaps(
+        int max_transform_feedback_separate_attribs,
+        int max_uniform_buffer_bindings,
+        int max_atomic_counter_buffer_bindings,
+        int max_shader_storage_buffer_bindings,
+        int max_vertex_attrib_bindings,
+        int max_color_attachments,
+        int max_draw_buffers);
+    bool needsInitFromCaps() const;
 
     // Queries the format backing the current framebuffer.
     // Type differs depending on whether the attachment
@@ -330,19 +385,49 @@ public:
             GLenum attachment, FboFormatInfo* res_info) const;
 
 private:
+    void init();
+    bool m_initialized;
     PixelStoreState m_pixelStore;
-    VertexAttribState *m_states;
+
+    // GL_ARRAY_BUFFER_BINDING is separate from VAO state
+    GLuint m_arrayBuffer;
+    VAOStateMap m_vaoMap;
+    VAOStateRef m_currVaoState;
+
+    // Other buffer id's, other targets
+    GLuint m_copyReadBuffer;
+    GLuint m_copyWriteBuffer;
+
+    GLuint m_pixelPackBuffer;
+    GLuint m_pixelUnpackBuffer;
+
+    GLuint m_transformFeedbackBuffer;
+    GLuint m_uniformBuffer;
+
+    GLuint m_atomicCounterBuffer;
+    GLuint m_dispatchIndirectBuffer;
+    GLuint m_drawIndirectBuffer;
+    GLuint m_shaderStorageBuffer;
+
+    bool m_transformFeedbackActiveUnpaused;
+
+    int m_max_transform_feedback_separate_attribs;
+    int m_max_uniform_buffer_bindings;
+    int m_max_atomic_counter_buffer_bindings;
+    int m_max_shader_storage_buffer_bindings;
+    int m_max_vertex_attrib_bindings;
+    std::vector<BufferBinding> m_indexedTransformFeedbackBuffers;
+    std::vector<BufferBinding> m_indexedUniformBuffers;
+    std::vector<BufferBinding> m_indexedAtomicCounterBuffers;
+    std::vector<BufferBinding> m_indexedShaderStorageBuffers;
+
     int m_glesMajorVersion;
     int m_glesMinorVersion;
     int m_maxVertexAttribs;
     bool m_maxVertexAttribsDirty;
     int m_nLocations;
-    GLuint m_currentArrayVbo;
-    GLuint m_currentIndexVbo;
     int m_activeTexture;
     GLint m_currentProgram;
-
-    bool validLocation(int location) { return (location >= 0 && location < m_nLocations); }
 
     enum TextureTarget {
         TEXTURE_2D = 0,
@@ -433,31 +518,32 @@ public:
     int getVertexAttribParameter(GLuint index, GLenum param, T *ptr)
     {
         bool handled = true;
-        const VertexAttribState *vertexAttrib = getState(index);
-        if (vertexAttrib == NULL) {
-            ERR("getVeterxAttriParameter for non existant index %d\n", index);
-            // set gl error;
-            return handled;
-        }
+        const VertexAttribState& vertexAttrib = getState(index);
+        const BufferBinding& vertexAttribBufferBinding =
+            m_currVaoState.bufferBindings_const()[vertexAttrib.bindingindex];
 
         switch(param) {
         case GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING:
-            *ptr = (T)(vertexAttrib->bufferObject);
+            *ptr = (T)(vertexAttribBufferBinding.buffer);
             break;
         case GL_VERTEX_ATTRIB_ARRAY_ENABLED:
-            *ptr = (T)(vertexAttrib->enabled);
+            *ptr = (T)(vertexAttrib.enabled);
+            break;
+#define GL_VERTEX_ATTRIB_ARRAY_INTEGER 0x88FD
+        case GL_VERTEX_ATTRIB_ARRAY_INTEGER:
+            *ptr = (T)(vertexAttrib.isInt);
             break;
         case GL_VERTEX_ATTRIB_ARRAY_SIZE:
-            *ptr = (T)(vertexAttrib->size);
+            *ptr = (T)(vertexAttrib.size);
             break;
         case GL_VERTEX_ATTRIB_ARRAY_STRIDE:
-            *ptr = (T)(vertexAttrib->stride);
+            *ptr = (T)(vertexAttribBufferBinding.stride);
             break;
         case GL_VERTEX_ATTRIB_ARRAY_TYPE:
-            *ptr = (T)(vertexAttrib->type);
+            *ptr = (T)(vertexAttrib.type);
             break;
         case GL_VERTEX_ATTRIB_ARRAY_NORMALIZED:
-            *ptr = (T)(vertexAttrib->normalized);
+            *ptr = (T)(vertexAttrib.normalized);
             break;
         case GL_CURRENT_VERTEX_ATTRIB:
             handled = false;
@@ -470,181 +556,181 @@ public:
     }
 
     template <class T>
-    bool getClientStateParameter(GLenum param, T* ptr)
+    bool getClientStateParameter(GLenum param, T* out)
     {
         bool isClientStateParam = false;
         switch (param) {
         case GL_CLIENT_ACTIVE_TEXTURE: {
             GLint tex = getActiveTexture() + GL_TEXTURE0;
-            *ptr = tex;
+            *out = tex;
             isClientStateParam = true;
             break;
             }
         case GL_VERTEX_ARRAY_SIZE: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::VERTEX_LOCATION);
-            *ptr = state->size;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::VERTEX_LOCATION);
+            *out = state.size;
             isClientStateParam = true;
             break;
             }
         case GL_VERTEX_ARRAY_TYPE: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::VERTEX_LOCATION);
-            *ptr = state->type;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::VERTEX_LOCATION);
+            *out = state.type;
             isClientStateParam = true;
             break;
             }
         case GL_VERTEX_ARRAY_STRIDE: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::VERTEX_LOCATION);
-            *ptr = state->stride;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::VERTEX_LOCATION);
+            *out = state.stride;
             isClientStateParam = true;
             break;
             }
         case GL_COLOR_ARRAY_SIZE: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::COLOR_LOCATION);
-            *ptr = state->size;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::COLOR_LOCATION);
+            *out = state.size;
             isClientStateParam = true;
             break;
             }
         case GL_COLOR_ARRAY_TYPE: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::COLOR_LOCATION);
-            *ptr = state->type;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::COLOR_LOCATION);
+            *out = state.type;
             isClientStateParam = true;
             break;
             }
         case GL_COLOR_ARRAY_STRIDE: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::COLOR_LOCATION);
-            *ptr = state->stride;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::COLOR_LOCATION);
+            *out = state.stride;
             isClientStateParam = true;
             break;
             }
         case GL_NORMAL_ARRAY_TYPE: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::NORMAL_LOCATION);
-            *ptr = state->type;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::NORMAL_LOCATION);
+            *out = state.type;
             isClientStateParam = true;
             break;
             }
         case GL_NORMAL_ARRAY_STRIDE: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::NORMAL_LOCATION);
-            *ptr = state->stride;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::NORMAL_LOCATION);
+            *out = state.stride;
             isClientStateParam = true;
             break;
             }
         case GL_TEXTURE_COORD_ARRAY_SIZE: {
-            const GLClientState::VertexAttribState *state = getState(getActiveTexture() + GLClientState::TEXCOORD0_LOCATION);
-            *ptr = state->size;
+            const GLClientState::VertexAttribState& state = getState(getActiveTexture() + GLClientState::TEXCOORD0_LOCATION);
+            *out = state.size;
             isClientStateParam = true;
             break;
             }
         case GL_TEXTURE_COORD_ARRAY_TYPE: {
-            const GLClientState::VertexAttribState *state = getState(getActiveTexture() + GLClientState::TEXCOORD0_LOCATION);
-            *ptr = state->type;
+            const GLClientState::VertexAttribState& state = getState(getActiveTexture() + GLClientState::TEXCOORD0_LOCATION);
+            *out = state.type;
             isClientStateParam = true;
             break;
             }
         case GL_TEXTURE_COORD_ARRAY_STRIDE: {
-            const GLClientState::VertexAttribState *state = getState(getActiveTexture() + GLClientState::TEXCOORD0_LOCATION);
-            *ptr = state->stride;
+            const GLClientState::VertexAttribState& state = getState(getActiveTexture() + GLClientState::TEXCOORD0_LOCATION);
+            *out = state.stride;
             isClientStateParam = true;
             break;
             }
         case GL_POINT_SIZE_ARRAY_TYPE_OES: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::POINTSIZE_LOCATION);
-            *ptr = state->type;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::POINTSIZE_LOCATION);
+            *out = state.type;
             isClientStateParam = true;
             break;
             }
         case GL_POINT_SIZE_ARRAY_STRIDE_OES: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::POINTSIZE_LOCATION);
-            *ptr = state->stride;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::POINTSIZE_LOCATION);
+            *out = state.stride;
             isClientStateParam = true;
             break;
             }
         case GL_MATRIX_INDEX_ARRAY_SIZE_OES: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::MATRIXINDEX_LOCATION);
-            *ptr = state->size;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::MATRIXINDEX_LOCATION);
+            *out = state.size;
             isClientStateParam = true;
             break;
             }
         case GL_MATRIX_INDEX_ARRAY_TYPE_OES: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::MATRIXINDEX_LOCATION);
-            *ptr = state->type;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::MATRIXINDEX_LOCATION);
+            *out = state.type;
             isClientStateParam = true;
             break;
             }
         case GL_MATRIX_INDEX_ARRAY_STRIDE_OES: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::MATRIXINDEX_LOCATION);
-            *ptr = state->stride;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::MATRIXINDEX_LOCATION);
+            *out = state.stride;
             isClientStateParam = true;
             break;
             }
         case GL_WEIGHT_ARRAY_SIZE_OES: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::WEIGHT_LOCATION);
-            *ptr = state->size;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::WEIGHT_LOCATION);
+            *out = state.size;
             isClientStateParam = true;
             break;
             }
         case GL_WEIGHT_ARRAY_TYPE_OES: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::WEIGHT_LOCATION);
-            *ptr = state->type;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::WEIGHT_LOCATION);
+            *out = state.type;
             isClientStateParam = true;
             break;
             }
         case GL_WEIGHT_ARRAY_STRIDE_OES: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::WEIGHT_LOCATION);
-            *ptr = state->stride;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::WEIGHT_LOCATION);
+            *out = state.stride;
             isClientStateParam = true;
             break;
             }
         case GL_VERTEX_ARRAY_BUFFER_BINDING: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::VERTEX_LOCATION);
-            *ptr = state->bufferObject;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::VERTEX_LOCATION);
+            *out = state.bufferObject;
             isClientStateParam = true;
             break;
             }
         case GL_NORMAL_ARRAY_BUFFER_BINDING: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::NORMAL_LOCATION);
-            *ptr = state->bufferObject;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::NORMAL_LOCATION);
+            *out = state.bufferObject;
             isClientStateParam = true;
             break;
             }
         case GL_COLOR_ARRAY_BUFFER_BINDING: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::COLOR_LOCATION);
-            *ptr = state->bufferObject;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::COLOR_LOCATION);
+            *out = state.bufferObject;
             isClientStateParam = true;
             break;
             }
         case GL_TEXTURE_COORD_ARRAY_BUFFER_BINDING: {
-            const GLClientState::VertexAttribState *state = getState(getActiveTexture()+GLClientState::TEXCOORD0_LOCATION);
-            *ptr = state->bufferObject;
+            const GLClientState::VertexAttribState& state = getState(getActiveTexture()+GLClientState::TEXCOORD0_LOCATION);
+            *out = state.bufferObject;
             isClientStateParam = true;
             break;
             }
         case GL_POINT_SIZE_ARRAY_BUFFER_BINDING_OES: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::POINTSIZE_LOCATION);
-            *ptr = state->bufferObject;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::POINTSIZE_LOCATION);
+            *out = state.bufferObject;
             isClientStateParam = true;
             break;
             }
         case GL_MATRIX_INDEX_ARRAY_BUFFER_BINDING_OES: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::MATRIXINDEX_LOCATION);
-            *ptr = state->bufferObject;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::MATRIXINDEX_LOCATION);
+            *out = state.bufferObject;
             isClientStateParam = true;
             break;
             }
         case GL_WEIGHT_ARRAY_BUFFER_BINDING_OES: {
-            const GLClientState::VertexAttribState *state = getState(GLClientState::WEIGHT_LOCATION);
-            *ptr = state->bufferObject;
+            const GLClientState::VertexAttribState& state = getState(GLClientState::WEIGHT_LOCATION);
+            *out = state.bufferObject;
             isClientStateParam = true;
             break;
             }
         case GL_ARRAY_BUFFER_BINDING: {
             int buffer = getBuffer(GL_ARRAY_BUFFER);
-            *ptr = buffer;
+            *out = buffer;
             isClientStateParam = true;
             break;
             }
         case GL_ELEMENT_ARRAY_BUFFER_BINDING: {
             int buffer = getBuffer(GL_ELEMENT_ARRAY_BUFFER);
-            *ptr = buffer;
+            *out = buffer;
             isClientStateParam = true;
             break;
             }
@@ -652,11 +738,11 @@ public:
             if (m_maxVertexAttribsDirty) {
                 isClientStateParam = false;
             } else {
-                *ptr = m_maxVertexAttribs;
+                *out = m_maxVertexAttribs;
                 isClientStateParam = true;
             }
             break;
-            }
+        }
         }
         return isClientStateParam;
     }

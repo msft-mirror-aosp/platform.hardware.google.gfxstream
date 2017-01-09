@@ -44,8 +44,19 @@
 struct BufferData {
     BufferData();
     BufferData(GLsizeiptr size, void * data);
-    GLsizeiptr  m_size;
-    FixedBuffer m_fixedBuffer;
+
+    // General buffer state
+    GLsizeiptr m_size;
+    GLenum m_usage;
+
+    // Mapped buffer state
+    bool m_mapped;
+    GLbitfield m_mappedAccess;
+    GLintptr m_mappedOffset;
+    GLsizeiptr m_mappedLength;
+
+    // Internal bookkeeping
+    FixedBuffer m_fixedBuffer; // actual buffer is shadowed here
     IndexRangeCache m_indexRangeCache;
 };
 
@@ -121,6 +132,10 @@ public:
     SharedTextureDataMap* getTextureData();
     void    addBufferData(GLuint bufferId, GLsizeiptr size, void * data);
     void    updateBufferData(GLuint bufferId, GLsizeiptr size, void * data);
+    void    setBufferUsage(GLuint bufferId, GLenum usage);
+    void    setBufferMapped(GLuint bufferId, bool mapped);
+    GLenum    getBufferUsage(GLuint bufferId);
+    bool    isBufferMapped(GLuint bufferId);
     GLenum  subUpdateBufferData(GLuint bufferId, GLintptr offset, GLsizeiptr size, void * data);
     void    deleteBufferData(GLuint);
 

@@ -27,8 +27,8 @@ static void clearObjectMap(android::DefaultKeyedVector<GLuint, T>& v) {
 
 /**** BufferData ****/
 
-BufferData::BufferData() : m_size(0) {};
-BufferData::BufferData(GLsizeiptr size, void * data) : m_size(size)
+BufferData::BufferData() : m_size(0), m_usage(0), m_mapped(false) {};
+BufferData::BufferData(GLsizeiptr size, void * data) : m_size(size), m_usage(0), m_mapped(false)
 {
     void * buffer = NULL;
     if (size>0) buffer = m_fixedBuffer.alloc(size);
@@ -272,6 +272,32 @@ void GLSharedGroup::updateBufferData(GLuint bufferId, GLsizeiptr size, void * da
     } else {
         m_buffers.add(bufferId, new BufferData(size, data));
     }
+}
+
+void GLSharedGroup::setBufferUsage(GLuint bufferId, GLenum usage) {
+    android::AutoMutex _lock(m_lock);
+    ssize_t idx = m_buffers.indexOfKey(bufferId);
+    if (idx >= 0) {
+        m_buffers.editValueAt(idx)->m_usage = usage;
+    }
+}
+
+void GLSharedGroup::setBufferMapped(GLuint bufferId, bool mapped) {
+    BufferData * buf = m_buffers.valueFor(bufferId);
+    if (!buf) return;
+    buf->m_mapped = mapped;
+}
+
+GLenum GLSharedGroup::getBufferUsage(GLuint bufferId) {
+    BufferData * buf = m_buffers.valueFor(bufferId);
+    if (!buf) return 0;
+    return buf->m_usage;
+}
+
+bool GLSharedGroup::isBufferMapped(GLuint bufferId) {
+    BufferData * buf = m_buffers.valueFor(bufferId);
+    if (!buf) return false;
+    return buf->m_mapped;
 }
 
 GLenum GLSharedGroup::subUpdateBufferData(GLuint bufferId, GLintptr offset, GLsizeiptr size, void * data)
