@@ -26,7 +26,7 @@ struct EGLContext_t {
         NEVER_CURRENT   =   0x00020000
     };
 
-    EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* shareCtx);
+    EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* shareCtx, int maj, int min);
     ~EGLContext_t();
     uint32_t            flags;
     EGLDisplay          dpy;
@@ -34,9 +34,10 @@ struct EGLContext_t {
     EGLSurface          read;
     EGLSurface          draw;
     EGLContext_t    *   shareCtx;
-    EGLint                version;
-    uint32_t             rcContext;
+    uint32_t            rcContext;
     const char*         versionString;
+    EGLint              majorVersion;
+    EGLint              minorVersion;
     const char*         vendorString;
     const char*         rendererString;
     const char*         shaderVersionString;

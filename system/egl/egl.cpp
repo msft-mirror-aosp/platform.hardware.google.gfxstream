@@ -36,6 +36,8 @@
 #include "GL2Encoder.h"
 #endif
 
+#include <GLES3/gl31.h>
+
 #if PLATFORM_SDK_VERSION >= 16
 #include <system/window.h>
 #else // PLATFORM_SDK_VERSION >= 16
@@ -156,7 +158,7 @@ const char *  eglStrError(EGLint err)
 // The one and only supported display object.
 static eglDisplay s_display;
 
-EGLContext_t::EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* shareCtx) :
+EGLContext_t::EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* shareCtx, int maj, int min) :
     dpy(dpy),
     config(config),
     read(EGL_NO_SURFACE),
@@ -164,6 +166,8 @@ EGLContext_t::EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* share
     shareCtx(shareCtx),
     rcContext(0),
     versionString(NULL),
+    majorVersion(maj),
+    minorVersion(min),
     vendorString(NULL),
     rendererString(NULL),
     shaderVersionString(NULL),
@@ -172,9 +176,8 @@ EGLContext_t::EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* share
     goldfishSyncFd(-1)
 {
     flags = 0;
-    version = 1;
-    clientState = new GLClientState();
-    if (shareCtx)
+    clientState = new GLClientState(majorVersion, minorVersion);
+     if (shareCtx)
         sharedGroup = shareCtx->getSharedGroup();
     else
         sharedGroup = GLSharedGroupPtr(new GLSharedGroup());
@@ -618,13 +621,6 @@ static const char *getGLString(int glEnum)
 
     if (!strPtr) {
         return NULL;
-    }
-
-    if (*strPtr != NULL) {
-        //
-        // string is already cached
-        //
-        return *strPtr;
     }
 
     //
@@ -1103,7 +1099,7 @@ EGLBoolean eglReleaseThread()
             // with the only issue that we do not require a valid display here.
             DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
             rcEnc->rcMakeCurrent(rcEnc, 0, 0, 0);
-             if (context->version == 2) {
+             if (context->majorVersion > 1) {
                 hostCon->gl2Encoder()->setClientState(NULL);
                 hostCon->gl2Encoder()->setSharedGroup(GLSharedGroupPtr());
             }
@@ -1253,22 +1249,86 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
     VALIDATE_DISPLAY_INIT(dpy, EGL_NO_CONTEXT);
     VALIDATE_CONFIG(config, EGL_NO_CONTEXT);
 
-    EGLint version = 1; //default
+    EGLint majorVersion = 1; //default
+    EGLint minorVersion = 0;
+    EGLint context_flags = 0;
+    EGLint profile_mask = 0;
+    EGLint reset_notification_strategy = 0;
     while (attrib_list && attrib_list[0] != EGL_NONE) {
-        if (attrib_list[0] == EGL_CONTEXT_CLIENT_VERSION) {
-            version = attrib_list[1];
-        } else if (attrib_list[0] == EGL_CONTEXT_PRIORITY_LEVEL_IMG) {
-            // https://www.khronos.org/registry/egl/extensions/IMG/EGL_IMG_context_priority.txt
-            // It it not yet supported in the emulator.
-            ALOGW("EGL_CONTEXT_PRIORITY_LEVEL_IMG not supported, ignored");
-        } else { // Only the attribute EGL_CONTEXT_CLIENT_VERSION may be specified.
+           EGLint attrib_val = attrib_list[1];
+        switch(attrib_list[0]) {
+        case EGL_CONTEXT_MAJOR_VERSION_KHR:
+            majorVersion = attrib_val;
+            break;
+        case EGL_CONTEXT_MINOR_VERSION_KHR:
+            minorVersion = attrib_val;
+            break;
+        case EGL_CONTEXT_FLAGS_KHR:
+            if ((attrib_val | EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR) ||
+                (attrib_val | EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE_BIT_KHR)  ||
+                (attrib_val | EGL_CONTEXT_OPENGL_ROBUST_ACCESS_BIT_KHR)) {
+                context_flags = attrib_val;
+            } else {
+                RETURN_ERROR(EGL_NO_CONTEXT,EGL_BAD_ATTRIBUTE);
+            }
+            break;
+        case EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR:
+            if ((attrib_val | EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT_KHR) ||
+                (attrib_val | EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT_KHR)) {
+                profile_mask = attrib_val;
+            } else {
+                RETURN_ERROR(EGL_NO_CONTEXT,EGL_BAD_ATTRIBUTE);
+            }
+            break;
+        case EGL_CONTEXT_OPENGL_RESET_NOTIFICATION_STRATEGY_KHR:
+            switch (attrib_val) {
+            case EGL_NO_RESET_NOTIFICATION_KHR:
+            case EGL_LOSE_CONTEXT_ON_RESET_KHR:
+                break;
+            default:
+                RETURN_ERROR(EGL_NO_CONTEXT,EGL_BAD_ATTRIBUTE);
+            }
+            reset_notification_strategy = attrib_val;
+            break;
+        default:
             setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_NO_CONTEXT);
         }
         attrib_list+=2;
     }
 
-    // Currently only support GLES1 and 2
-    if (version != 1 && version != 2) {
+    // Support up to GLES 3.2 depending on advertised version from the host system.
+    DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_NO_CONTEXT);
+    switch (majorVersion) {
+    case 1:
+    case 2:
+        break;
+    case 3:
+        if (rcEnc->getGLESMaxVersion() < GLES_MAX_VERSION_3_0) {
+            ALOGE("%s: EGL_BAD_CONFIG: no ES 3 support", __FUNCTION__);
+            setErrorReturn(EGL_BAD_CONFIG, EGL_NO_CONTEXT);
+        }
+        switch (minorVersion) {
+            case 0:
+                break;
+            case 1:
+                if (rcEnc->getGLESMaxVersion() < GLES_MAX_VERSION_3_1) {
+                    ALOGE("%s: EGL_BAD_CONFIG: no ES 3.1 support", __FUNCTION__);
+                    setErrorReturn(EGL_BAD_CONFIG, EGL_NO_CONTEXT);
+                }
+                break;
+            case 2:
+                if (rcEnc->getGLESMaxVersion() < GLES_MAX_VERSION_3_2) {
+                    ALOGE("%s: EGL_BAD_CONFIG: no ES 3.2 support", __FUNCTION__);
+                    setErrorReturn(EGL_BAD_CONFIG, EGL_NO_CONTEXT);
+                }
+                break;
+            default:
+                ALOGE("%s: EGL_BAD_CONFIG: Unknown ES version %d.%d",
+                      __FUNCTION__, majorVersion, minorVersion);
+                setErrorReturn(EGL_BAD_CONFIG, EGL_NO_CONTEXT);
+        }
+        break;
+    default:
         setErrorReturn(EGL_BAD_CONFIG, EGL_NO_CONTEXT);
     }
 
@@ -1281,25 +1341,31 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
             setErrorReturn(EGL_BAD_MATCH, EGL_NO_CONTEXT);
     }
 
-    DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_NO_CONTEXT);
     // We've created EGL context. Disconnecting
     // would be dangerous at this point.
     hostCon->setGrallocOnly(false);
 
-    uint32_t rcContext = rcEnc->rcCreateContext(rcEnc, (uintptr_t)config, rcShareCtx, version);
+    int rcMajorVersion = majorVersion;
+    if (majorVersion == 3 && minorVersion == 1) {
+        rcMajorVersion = 4;
+    }
+    if (majorVersion == 3 && minorVersion == 2) {
+        rcMajorVersion = 4;
+    }
+    ALOGD("%s: maj %d min %d rcv %d", __FUNCTION__, majorVersion, minorVersion, rcMajorVersion);
+    uint32_t rcContext = rcEnc->rcCreateContext(rcEnc, (uintptr_t)config, rcShareCtx, rcMajorVersion);
     if (!rcContext) {
         ALOGE("rcCreateContext returned 0");
         setErrorReturn(EGL_BAD_ALLOC, EGL_NO_CONTEXT);
     }
 
-    EGLContext_t * context = new EGLContext_t(dpy, config, shareCtx);
-    if (!context)
+    EGLContext_t * context = new EGLContext_t(dpy, config, shareCtx, majorVersion, minorVersion);
+    if (!context) {
+        ALOGE("could not alloc egl context!");
         setErrorReturn(EGL_BAD_ALLOC, EGL_NO_CONTEXT);
+    }
 
-    context->version = version;
     context->rcContext = rcContext;
-
-
     return context;
 }
 
@@ -1383,9 +1449,58 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
         context->draw = draw;
         context->read = read;
         context->flags |= EGLContext_t::IS_CURRENT;
+        GLClientState* contextState =
+            context->getClientState();
+
+        if (!hostCon->gl2Encoder()->isInitialized()) {
+            s_display.gles2_iface()->init();
+            hostCon->gl2Encoder()->setInitialized();
+            ClientAPIExts::initClientFuncs(s_display.gles2_iface(), 1);
+        }
+        if (contextState->needsInitFromCaps()) {
+            // Get caps for indexed buffers from host.
+            // Some need a current context.
+            int max_transform_feedback_separate_attribs = 0;
+            int max_uniform_buffer_bindings = 0;
+            int max_atomic_counter_buffer_bindings = 0;
+            int max_shader_storage_buffer_bindings = 0;
+            int max_vertex_attrib_bindings = 0;
+            int max_color_attachments = 1;
+            int max_draw_buffers = 1;
+            if (context->majorVersion > 2) {
+                s_display.gles2_iface()->getIntegerv(
+                        GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS, &max_transform_feedback_separate_attribs);
+                s_display.gles2_iface()->getIntegerv(
+                        GL_MAX_UNIFORM_BUFFER_BINDINGS, &max_uniform_buffer_bindings);
+                if (context->minorVersion > 0) {
+                    s_display.gles2_iface()->getIntegerv(
+                            GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS, &max_atomic_counter_buffer_bindings);
+                    s_display.gles2_iface()->getIntegerv(
+                            GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &max_shader_storage_buffer_bindings);
+                    s_display.gles2_iface()->getIntegerv(
+                            GL_MAX_VERTEX_ATTRIB_BINDINGS, &max_vertex_attrib_bindings);
+                }
+                s_display.gles2_iface()->getIntegerv(
+                        GL_MAX_COLOR_ATTACHMENTS, &max_color_attachments);
+                s_display.gles2_iface()->getIntegerv(
+                        GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
+            }
+            contextState->initFromCaps(
+                    max_transform_feedback_separate_attribs,
+                    max_uniform_buffer_bindings,
+                    max_atomic_counter_buffer_bindings,
+                    max_shader_storage_buffer_bindings,
+                    max_vertex_attrib_bindings,
+                    max_color_attachments,
+                    max_draw_buffers);
+        }
+
         //set the client state
-        if (context->version == 2) {
-            hostCon->gl2Encoder()->setClientStateMakeCurrent(context->getClientState());
+        if (context->majorVersion > 1) {
+            hostCon->gl2Encoder()->setClientStateMakeCurrent(
+                    contextState,
+                    context->majorVersion,
+                    context->minorVersion);
             hostCon->gl2Encoder()->setSharedGroup(context->getSharedGroup());
         }
         else {
@@ -1395,7 +1510,7 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
     }
     else if (tInfo->currentContext) {
         //release ClientState & SharedGroup
-        if (tInfo->currentContext->version == 2) {
+        if (tInfo->currentContext->majorVersion > 1) {
             hostCon->gl2Encoder()->setClientState(NULL);
             hostCon->gl2Encoder()->setSharedGroup(GLSharedGroupPtr(NULL));
         }
@@ -1414,7 +1529,7 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
 
     //Check maybe we need to init the encoder, if it's first eglMakeCurrent
     if (tInfo->currentContext) {
-        if (tInfo->currentContext->version == 2) {
+        if (tInfo->currentContext->majorVersion  > 1) {
             if (!hostCon->gl2Encoder()->isInitialized()) {
                 s_display.gles2_iface()->init();
                 hostCon->gl2Encoder()->setInitialized();
@@ -1479,7 +1594,7 @@ EGLBoolean eglQueryContext(EGLDisplay dpy, EGLContext ctx, EGLint attribute, EGL
             *value = EGL_OPENGL_ES_API;
             break;
         case EGL_CONTEXT_CLIENT_VERSION:
-            *value = context->version;
+            *value = context->majorVersion;
             break;
         case EGL_RENDER_BUFFER:
             if (!context->draw)
@@ -1503,7 +1618,7 @@ EGLBoolean eglWaitGL()
         return EGL_FALSE;
     }
 
-    if (tInfo->currentContext->version == 2) {
+    if (tInfo->currentContext->majorVersion > 1) {
         s_display.gles2_iface()->finish();
     }
     else {
@@ -1622,7 +1737,7 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
 
         return (EGLImageKHR)image;
     }
-    
+
     setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
 }
 

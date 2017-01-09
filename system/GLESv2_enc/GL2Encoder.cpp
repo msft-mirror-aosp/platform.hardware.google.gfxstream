@@ -50,6 +50,8 @@ static GLubyte *gExtensionsString= (GLubyte *) "GL_OES_EGL_image_external ";
 GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
         : gl2_encoder_context_t(stream, protocol)
 {
+    m_currMajorVersion = 2;
+    m_currMinorVersion = 0;
     m_initialized = false;
     m_state = NULL;
     m_error = GL_NO_ERROR;
@@ -65,6 +67,12 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
 
     //overrides
 #define OVERRIDE(name)  m_##name##_enc = this-> name ; this-> name = &s_##name
+#define OVERRIDE_CUSTOM(name)  this-> name = &s_##name
+#define OVERRIDEWITH(name, target)  do { \
+    m_##target##_enc = this-> target; \
+    this-> target = &s_##name; \
+} while(0)
+#define OVERRIDEOES(name) OVERRIDEWITH(name, name##OES)
 
     OVERRIDE(glFlush);
     OVERRIDE(glPixelStorei);

@@ -28,6 +28,7 @@ typedef struct {
     void* (*getProcAddress)(const char *funcName);
     void (*init)();
     void (*finish)();
+    void (*getIntegerv)(unsigned int pname, int* param);
 } EGLClient_glesInterface;
 
 //

@@ -81,6 +81,7 @@ void glEGLImageTargetTexture2DOES(void * self, GLenum target, GLeglImageOES img)
         GET_CONTEXT;
         ctx->override2DTextureTarget(target);
         GLeglImageOES hostImage = reinterpret_cast<GLeglImageOES>((intptr_t)image->host_egl_image);
+        ctx->associateEGLImage(target, hostImage);
         ctx->m_glEGLImageTargetTexture2DOES_enc(self, target, hostImage);
         ctx->restore2DTextureTarget(target);
     }
@@ -125,6 +126,11 @@ void finish()
     glFinish();
 }
 
+void getIntegerv(unsigned int pname, int* param)
+{
+    glGetIntegerv((GLenum)pname, (GLint*)param);
+}
+
 const GLubyte *my_glGetString (void *self, GLenum name)
 {
     (void)self;
@@ -157,7 +163,6 @@ void init()
     ctx->glEGLImageTargetRenderbufferStorageOES = &glEGLImageTargetRenderbufferStorageOES;
     ctx->glGetString = &my_glGetString;
 }
-
 extern "C" {
 EGLClient_glesInterface * init_emul_gles(EGLClient_eglInterface *eglIface)
 {
@@ -168,10 +173,9 @@ EGLClient_glesInterface * init_emul_gles(EGLClient_eglInterface *eglIface)
         s_gl->getProcAddress = getProcAddress;
         s_gl->finish = finish;
         s_gl->init = init;
+        s_gl->getIntegerv = getIntegerv;
     }
 
     return s_gl;
 }
 } //extern
-
-

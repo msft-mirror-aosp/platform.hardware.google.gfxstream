@@ -127,6 +127,11 @@ void finish()
     glFinish();
 }
 
+void getIntegerv(unsigned int pname, int* param)
+{
+    glGetIntegerv((GLenum)pname, (GLint*)param);
+}
+
 const GLubyte *my_glGetString (void *self, GLenum name)
 {
     (void)self;
@@ -170,6 +175,7 @@ EGLClient_glesInterface * init_emul_gles(EGLClient_eglInterface *eglIface)
         s_gl->getProcAddress = getProcAddress;
         s_gl->finish = finish;
         s_gl->init = init;
+        s_gl->getIntegerv = getIntegerv;
     }
 
     return s_gl;

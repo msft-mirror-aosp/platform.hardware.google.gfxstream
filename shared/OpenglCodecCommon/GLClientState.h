@@ -190,6 +190,8 @@ public:
     void setCurrentProgram(GLint program) { m_currentProgram = program; }
     GLint currentProgram() const { return m_currentProgram; }
 
+    void setNumActiveUniformsInUniformBlock(GLuint program, GLuint uniformBlockIndex, GLint numActiveUniforms);
+    size_t numActiveUniformsInUniformBlock(GLuint program, GLuint uniformBlockIndex) const;
     /* OES_EGL_image_external
      *
      * These functions manipulate GL state which interacts with the

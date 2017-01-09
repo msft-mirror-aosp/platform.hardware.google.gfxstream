@@ -59,6 +59,19 @@ enum DmaImpl {
 
 static const char kDmaExtStr_v1[] = "ANDROID_EMU_dma_v1";
 
+// OpenGL ES max supported version
+enum GLESMaxVersion {
+    GLES_MAX_VERSION_2 = 0,
+    GLES_MAX_VERSION_3_0 = 1,
+    GLES_MAX_VERSION_3_1 = 2,
+    GLES_MAX_VERSION_3_2 = 3,
+};
+
+static const char kGLESMaxVersion_2[] = "ANDROID_EMU_gles_max_version_2";
+static const char kGLESMaxVersion_3_0[] = "ANDROID_EMU_gles_max_version_3_0";
+static const char kGLESMaxVersion_3_1[] = "ANDROID_EMU_gles_max_version_3_1";
+static const char kGLESMaxVersion_3_2[] = "ANDROID_EMU_gles_max_version_3_2";
+
 // ExtendedRCEncoderContext is an extended version of renderControl_encoder_context_t
 // that will be used to track SyncImpl.
 class ExtendedRCEncoderContext : public renderControl_encoder_context_t {
@@ -85,10 +98,13 @@ public:
         ALOGV("%s: paddr=0x%llx", __FUNCTION__, paddr);
         return paddr;
     }
+    void setGLESMaxVersion(GLESMaxVersion ver) { m_glesMaxVersion = ver; }
+    GLESMaxVersion getGLESMaxVersion() const { return m_glesMaxVersion; }
 private:
     SyncImpl m_syncImpl;
     DmaImpl m_dmaImpl;
     struct goldfish_dma_context* m_dmaCxt;
+    GLESMaxVersion m_glesMaxVersion;
 };
 
 class HostConnection
@@ -128,6 +144,7 @@ private:
     void setChecksumHelper(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetSyncImpl(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetDmaImpl(ExtendedRCEncoderContext *rcEnc);
+    void queryAndSetGLESMaxVersion(ExtendedRCEncoderContext *rcEnc);
 
 private:
     IOStream *m_stream;

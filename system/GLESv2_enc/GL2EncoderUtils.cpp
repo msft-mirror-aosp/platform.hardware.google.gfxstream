@@ -18,19 +18,22 @@
 #include "GL2Encoder.h"
 #include <assert.h>
 
+#include <GLES3/gl31.h>
+
 namespace glesv2_enc {
 
 size_t pixelDataSize(void *self, GLsizei width, GLsizei height, GLenum format, GLenum type, int pack)
 {
     GL2Encoder *ctx = (GL2Encoder *)self;
     assert (ctx->state() != NULL);
-    return ctx->state()->pixelDataSize(width, height, format, type, pack);
+    return ctx->state()->pixelDataSize(width, height, 1, format, type, pack);
 }
 
 size_t pixelDataSize3D(void *self, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, int pack)
 {
-    size_t layerSize = pixelDataSize(self, width, height, format, type, pack);
-    return layerSize * depth;
+    GL2Encoder *ctx = (GL2Encoder *)self;
+    assert (ctx->state() != NULL);
+    return ctx->state()->pixelDataSize(width, height, depth, format, type, pack);
 }
 
 GLenum uniformType(void * self, GLuint program, GLint location)
@@ -38,6 +41,29 @@ GLenum uniformType(void * self, GLuint program, GLint location)
     GL2Encoder * ctx = (GL2Encoder *) self;
     assert (ctx->shared() != NULL);
     return ctx->shared()->getProgramUniformType(program, location);
+}
+
+size_t clearBufferNumElts(void* self, GLenum buffer) {
+    GL2Encoder *ctx = (GL2Encoder *)self;
+    assert (ctx->state() != NULL);
+    return ctx->state()->clearBufferNumElts(buffer);
+}
+
+size_t numActiveUniformsInUniformBlock(void* self, GLuint program, GLuint blockIndex) {
+    GL2Encoder *ctx = (GL2Encoder *)self;
+    assert (ctx->state() != NULL);
+    return ctx->state()->numActiveUniformsInUniformBlock(program, blockIndex);
+}
+
+size_t glActiveUniformBlockivParamSize(void* self, GLuint program, GLuint blockIndex, GLenum pname) {
+    GL2Encoder *ctx = (GL2Encoder *)self;
+    assert (ctx->state() != NULL);
+
+    if (pname == GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES) {
+        return ctx->state()->numActiveUniformsInUniformBlock(program, blockIndex);
+    } else {
+        return glUtilsParamSize(pname);
+    }
 }
 
 }  // namespace glesv2_enc

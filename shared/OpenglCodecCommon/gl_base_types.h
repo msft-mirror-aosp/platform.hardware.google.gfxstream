@@ -18,12 +18,12 @@
 
 #include <KHR/khrplatform.h>
 
-#ifndef gl_APIENTRY
-#define gl_APIENTRY KHRONOS_APIENTRY
+#ifndef gles1_APIENTRY
+#define gles1_APIENTRY KHRONOS_APIENTRY
 #endif
 
-#ifndef gl2_APIENTRY
-#define gl2_APIENTRY KHRONOS_APIENTRY
+#ifndef gles2_APIENTRY
+#define gles2_APIENTRY KHRONOS_APIENTRY
 #endif
 
 typedef void             GLvoid;
@@ -47,6 +47,9 @@ typedef khronos_ssize_t  GLsizeiptr;
 typedef char *GLstr;
 /* JR XXX Treating this as an in handle - is this correct? */
 typedef void * GLeglImageOES;
+typedef struct __GLsync *GLsync;
+typedef khronos_int64_t GLint64;
+typedef khronos_uint64_t GLuint64;
 
 /* ErrorCode */
 #ifndef GL_INVALID_ENUM

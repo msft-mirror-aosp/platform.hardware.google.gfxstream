@@ -28,9 +28,12 @@ public:
     void setClientState(GLClientState *state) {
         m_state = state;
     }
-    void setClientStateMakeCurrent(GLClientState *state) {
+    void setClientStateMakeCurrent(GLClientState *state, int majorVersion, int minorVersion) {
         m_state = state;
         m_state->fromMakeCurrent();
+        m_currMajorVersion = majorVersion;
+        m_currMinorVersion = minorVersion;
+    }
     }
     void setSharedGroup(GLSharedGroupPtr shared){ m_shared = shared; }
     const GLClientState *state() { return m_state; }
@@ -49,6 +52,9 @@ public:
 
 private:
 
+    int m_currMajorVersion;
+    int m_currMinorVersion;
+
     bool    m_initialized;
     GLClientState *m_state;
     GLSharedGroupPtr m_shared;
@@ -64,7 +70,7 @@ private:
     FixedBuffer m_fixedBuffer;
 
     int m_drawCallFlushCount;
-    // GLES 3 features. Disabled for now.
+
     bool m_primitiveRestartEnabled;
     GLuint m_primitiveRestartIndex;
 

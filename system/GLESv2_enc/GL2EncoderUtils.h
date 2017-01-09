@@ -21,6 +21,9 @@ namespace glesv2_enc {
 size_t pixelDataSize(void *self, GLsizei width, GLsizei height, GLenum format, GLenum type, int pack);
 size_t pixelDataSize3D(void *self, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, int pack);
 GLenum uniformType(void * self, GLuint program, GLint location);
+size_t clearBufferNumElts(void* self, GLenum buffer);
+size_t numActiveUniformsInUniformBlock(void* self, GLuint program, GLuint blockIndex);
+size_t glActiveUniformBlockivParamSize(void* self, GLuint program, GLuint blockIndex, GLenum pname);
 
 }  // namespace glesv2_enc
 
