@@ -647,6 +647,16 @@ size_t GLClientState::numActiveUniformsInUniformBlock(GLuint program, GLuint uni
     return it->second.numActiveUniforms;
 }
 
+void GLClientState::associateProgramWithPipeline(GLuint program, GLuint pipeline) {
+    m_programPipelines[program] = pipeline;
+}
+
+GLClientState::ProgramPipelineIterator GLClientState::programPipelineBegin() {
+    return m_programPipelines.begin();
+}
+
+GLClientState::ProgramPipelineIterator GLClientState::programPipelineEnd() {
+    return m_programPipelines.end();
 }
 
 GLenum GLClientState::setActiveTextureUnit(GLenum texture)

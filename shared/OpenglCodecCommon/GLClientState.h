@@ -257,6 +257,13 @@ public:
 
     void setNumActiveUniformsInUniformBlock(GLuint program, GLuint uniformBlockIndex, GLint numActiveUniforms);
     size_t numActiveUniformsInUniformBlock(GLuint program, GLuint uniformBlockIndex) const;
+
+    typedef std::map<GLuint, GLuint> ProgramPipelineMap;
+    typedef ProgramPipelineMap::iterator ProgramPipelineIterator;
+    void associateProgramWithPipeline(GLuint program, GLuint pipeline);
+    ProgramPipelineIterator programPipelineBegin();
+    ProgramPipelineIterator programPipelineEnd();
+
     /* OES_EGL_image_external
      *
      * These functions manipulate GL state which interacts with the
@@ -445,6 +452,7 @@ private:
     int m_nLocations;
     int m_activeTexture;
     GLint m_currentProgram;
+    ProgramPipelineMap m_programPipelines;
 
     enum TextureTarget {
         TEXTURE_2D = 0,
