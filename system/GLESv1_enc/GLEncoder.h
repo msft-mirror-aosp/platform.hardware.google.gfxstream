@@ -30,7 +30,11 @@ public:
     void setClientState(GLClientState *state) {
         m_state = state;
     }
-    void setSharedGroup(GLSharedGroupPtr shared) { m_shared = shared; }
+    void setSharedGroup(GLSharedGroupPtr shared) {
+        m_shared = shared;
+        if (m_state && m_shared.Ptr())
+            m_state->setTextureData(m_shared->getTextureData());
+    }
     void flush() { m_stream->flush(); }
     size_t pixelDataSize(GLsizei width, GLsizei height, GLenum format, GLenum type, int pack);
 

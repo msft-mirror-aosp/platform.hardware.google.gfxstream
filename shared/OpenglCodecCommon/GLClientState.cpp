@@ -14,6 +14,7 @@
 * limitations under the License.
 */
 #include "GLClientState.h"
+#include "GLESTextureUtils.h"
 #include "ErrorLog.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,6 +26,9 @@
 #define MAX(a, b) ((a) < (b) ? (b) : (a))
 #endif
 
+// Don't include these in the .h file, or we get weird compile errors.
+#include <GLES3/gl3.h>
+#include <GLES3/gl31.h>
 GLClientState::GLClientState(int nLocations)
 {
     if (nLocations < LAST_LOCATION) {
@@ -60,11 +64,19 @@ GLClientState::GLClientState(int nLocations)
     m_pixelStore.unpack_alignment = 4;
     m_pixelStore.pack_alignment = 4;
 
+    m_pixelStore.unpack_row_length = 0;
+    m_pixelStore.unpack_image_height = 0;
+    m_pixelStore.unpack_skip_pixels = 0;
+    m_pixelStore.unpack_skip_rows = 0;
+    m_pixelStore.unpack_skip_images = 0;
+
+    m_pixelStore.pack_row_length = 0;
+    m_pixelStore.pack_skip_pixels = 0;
+    m_pixelStore.pack_skip_rows = 0;
+
     memset(m_tex.unit, 0, sizeof(m_tex.unit));
     m_tex.activeUnit = &m_tex.unit[0];
-    m_tex.textures = NULL;
-    m_tex.numTextures = 0;
-    m_tex.allocTextures = 0;
+    m_tex.textureRecs = NULL;
 
     mRboState.boundRenderbuffer = 0;
     mRboState.boundRenderbufferIndex = 0;
@@ -212,46 +224,138 @@ int GLClientState::setPixelStore(GLenum param, GLint value)
     int retval = 0;
     switch(param) {
     case GL_UNPACK_ALIGNMENT:
-        if (value == 1 || value == 2 || value == 4 || value == 8) {
-            m_pixelStore.unpack_alignment = value;
-        } else {
-            retval =  GL_INVALID_VALUE;
-        }
+        m_pixelStore.unpack_alignment = value;
         break;
     case GL_PACK_ALIGNMENT:
-        if (value == 1 || value == 2 || value == 4 || value == 8) {
-            m_pixelStore.pack_alignment = value;
-        } else {
-            retval =  GL_INVALID_VALUE;
-        }
+        m_pixelStore.pack_alignment = value;
         break;
-        default:
-            retval = GL_INVALID_ENUM;
+    case GL_UNPACK_ROW_LENGTH:
+        m_pixelStore.unpack_row_length = value;
+        break;
+    case GL_UNPACK_IMAGE_HEIGHT:
+        m_pixelStore.unpack_image_height = value;
+        break;
+    case GL_UNPACK_SKIP_PIXELS:
+        m_pixelStore.unpack_skip_pixels = value;
+        break;
+    case GL_UNPACK_SKIP_ROWS:
+        m_pixelStore.unpack_skip_rows = value;
+        break;
+    case GL_UNPACK_SKIP_IMAGES:
+        m_pixelStore.unpack_skip_images = value;
+        break;
+    case GL_PACK_ROW_LENGTH:
+        m_pixelStore.pack_row_length = value;
+        break;
+    case GL_PACK_SKIP_PIXELS:
+        m_pixelStore.pack_skip_pixels = value;
+        break;
+    case GL_PACK_SKIP_ROWS:
+        m_pixelStore.pack_skip_rows = value;
+        break;
+    default:
+        retval = GL_INVALID_ENUM;
     }
     return retval;
 }
 
 
-
-
-size_t GLClientState::pixelDataSize(GLsizei width, GLsizei height, GLenum format, GLenum type, int pack) const
+size_t GLClientState::pixelDataSize(GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, int pack) const
 {
-    if (width <= 0 || height <= 0) return 0;
+    if (width <= 0 || height <= 0 || depth <= 0) return 0;
 
-    int pixelsize = glUtilsPixelBitSize(format, type) >> 3;
-
-    int alignment = pack ? m_pixelStore.pack_alignment : m_pixelStore.unpack_alignment;
-
-    if (pixelsize == 0 ) {
-        ERR("unknown pixel size: width: %d height: %d format: %d type: %d pack: %d align: %d\n",
-             width, height, format, type, pack, alignment);
+    ALOGV("%s: pack? %d", __FUNCTION__, pack);
+    if (pack) {
+        ALOGV("%s: pack stats", __FUNCTION__);
+        ALOGV("%s: pack align %d", __FUNCTION__, m_pixelStore.pack_alignment);
+        ALOGV("%s: pack rowlen %d", __FUNCTION__, m_pixelStore.pack_row_length);
+        ALOGV("%s: pack skippixels %d", __FUNCTION__, m_pixelStore.pack_skip_pixels);
+        ALOGV("%s: pack skiprows %d", __FUNCTION__, m_pixelStore.pack_skip_rows);
+    } else {
+        ALOGV("%s: unpack stats", __FUNCTION__);
+        ALOGV("%s: unpack align %d", __FUNCTION__, m_pixelStore.unpack_alignment);
+        ALOGV("%s: unpack rowlen %d", __FUNCTION__, m_pixelStore.unpack_row_length);
+        ALOGV("%s: unpack imgheight %d", __FUNCTION__, m_pixelStore.unpack_image_height);
+        ALOGV("%s: unpack skippixels %d", __FUNCTION__, m_pixelStore.unpack_skip_pixels);
+        ALOGV("%s: unpack skiprows %d", __FUNCTION__, m_pixelStore.unpack_skip_rows);
+        ALOGV("%s: unpack skipimages %d", __FUNCTION__, m_pixelStore.unpack_skip_images);
     }
-    size_t linesize = pixelsize * width;
-    size_t aligned_linesize = int(linesize / alignment) * alignment;
-    if (aligned_linesize < linesize) {
-        aligned_linesize += alignment;
+    return GLESTextureUtils::computeTotalImageSize(
+            width, height, depth,
+            format, type,
+            pack ? m_pixelStore.pack_alignment : m_pixelStore.unpack_alignment,
+            pack ? m_pixelStore.pack_row_length : m_pixelStore.unpack_row_length,
+            pack ? 0 : m_pixelStore.unpack_image_height,
+            pack ? m_pixelStore.pack_skip_pixels : m_pixelStore.unpack_skip_pixels,
+            pack ? m_pixelStore.pack_skip_rows : m_pixelStore.unpack_skip_rows,
+            pack ? 0 : m_pixelStore.unpack_skip_images);
+}
+
+size_t GLClientState::pboNeededDataSize(GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, int pack) const
+{
+    if (width <= 0 || height <= 0 || depth <= 0) return 0;
+
+    ALOGV("%s: pack? %d", __FUNCTION__, pack);
+    if (pack) {
+        ALOGV("%s: pack stats", __FUNCTION__);
+        ALOGV("%s: pack align %d", __FUNCTION__, m_pixelStore.pack_alignment);
+        ALOGV("%s: pack rowlen %d", __FUNCTION__, m_pixelStore.pack_row_length);
+        ALOGV("%s: pack skippixels %d", __FUNCTION__, m_pixelStore.pack_skip_pixels);
+        ALOGV("%s: pack skiprows %d", __FUNCTION__, m_pixelStore.pack_skip_rows);
+    } else {
+        ALOGV("%s: unpack stats", __FUNCTION__);
+        ALOGV("%s: unpack align %d", __FUNCTION__, m_pixelStore.unpack_alignment);
+        ALOGV("%s: unpack rowlen %d", __FUNCTION__, m_pixelStore.unpack_row_length);
+        ALOGV("%s: unpack imgheight %d", __FUNCTION__, m_pixelStore.unpack_image_height);
+        ALOGV("%s: unpack skippixels %d", __FUNCTION__, m_pixelStore.unpack_skip_pixels);
+        ALOGV("%s: unpack skiprows %d", __FUNCTION__, m_pixelStore.unpack_skip_rows);
+        ALOGV("%s: unpack skipimages %d", __FUNCTION__, m_pixelStore.unpack_skip_images);
     }
-    return aligned_linesize * height;
+    return GLESTextureUtils::computeNeededBufferSize(
+            width, height, depth,
+            format, type,
+            pack ? m_pixelStore.pack_alignment : m_pixelStore.unpack_alignment,
+            pack ? m_pixelStore.pack_row_length : m_pixelStore.unpack_row_length,
+            pack ? 0 : m_pixelStore.unpack_image_height,
+            pack ? m_pixelStore.pack_skip_pixels : m_pixelStore.unpack_skip_pixels,
+            pack ? m_pixelStore.pack_skip_rows : m_pixelStore.unpack_skip_rows,
+            pack ? 0 : m_pixelStore.unpack_skip_images);
+}
+
+
+size_t GLClientState::clearBufferNumElts(GLenum buffer) const
+{
+    switch (buffer) {
+    case GL_COLOR:
+        return 4;
+    case GL_DEPTH:
+    case GL_STENCIL:
+        return 1;
+    }
+    return 1;
+}
+
+void GLClientState::setNumActiveUniformsInUniformBlock(GLuint program, GLuint uniformBlockIndex, GLint numActiveUniforms) {
+    UniformBlockInfoKey key;
+    key.program = program;
+    key.uniformBlockIndex = uniformBlockIndex;
+
+    UniformBlockUniformInfo info;
+    info.numActiveUniforms = (size_t)numActiveUniforms;
+
+    m_uniformBlockInfoMap[key] = info;
+}
+
+size_t GLClientState::numActiveUniformsInUniformBlock(GLuint program, GLuint uniformBlockIndex) const {
+    UniformBlockInfoKey key;
+    key.program = program;
+    key.uniformBlockIndex = uniformBlockIndex;
+    UniformBlockInfoMap::const_iterator it =
+        m_uniformBlockInfoMap.find(key);
+    if (it == m_uniformBlockInfoMap.end()) return 0;
+    return it->second.numActiveUniforms;
+}
+
 }
 
 GLenum GLClientState::setActiveTextureUnit(GLenum texture)
@@ -315,22 +419,18 @@ int GLClientState::compareTexId(const void* pid, const void* prec)
 GLenum GLClientState::bindTexture(GLenum target, GLuint texture,
         GLboolean* firstUse)
 {
+    assert(m_tex.textureRecs);
     GLboolean first = GL_FALSE;
-    TextureRec* texrec = NULL;
-    if (texture != 0) {
-        if (m_tex.textures) {
-            texrec = (TextureRec*)bsearch(&texture, m_tex.textures,
-                    m_tex.numTextures, sizeof(TextureRec), compareTexId);
-        }
-        if (!texrec) {
-            if (!(texrec = addTextureRec(texture, target))) {
-                return GL_OUT_OF_MEMORY;
-            }
-            first = GL_TRUE;
-        }
-        if (target != texrec->target) {
-            return GL_INVALID_OPERATION;
-        }
+
+    TextureRec* texrec = getTextureRec(texture);
+    if (!texrec) {
+        texrec = addTextureRec(texture, target);
+    }
+
+    if (texture && target != texrec->target &&
+        (target != GL_TEXTURE_EXTERNAL_OES &&
+         texrec->target != GL_TEXTURE_EXTERNAL_OES)) {
+        ALOGD("%s: issue GL_INVALID_OPERATION: target 0x%x texrectarget 0x%x texture %u", __FUNCTION__, target, texrec->target, texture);
     }
 
     switch (target) {
@@ -339,6 +439,18 @@ GLenum GLClientState::bindTexture(GLenum target, GLuint texture,
         break;
     case GL_TEXTURE_EXTERNAL_OES:
         m_tex.activeUnit->texture[TEXTURE_EXTERNAL] = texture;
+        break;
+    case GL_TEXTURE_CUBE_MAP:
+        m_tex.activeUnit->texture[TEXTURE_CUBE_MAP] = texture;
+        break;
+    case GL_TEXTURE_2D_ARRAY:
+        m_tex.activeUnit->texture[TEXTURE_2D_ARRAY] = texture;
+        break;
+    case GL_TEXTURE_3D:
+        m_tex.activeUnit->texture[TEXTURE_3D] = texture;
+        break;
+    case GL_TEXTURE_2D_MULTISAMPLE:
+        m_tex.activeUnit->texture[TEXTURE_2D_MULTISAMPLE] = texture;
         break;
     }
 
@@ -349,76 +461,115 @@ GLenum GLClientState::bindTexture(GLenum target, GLuint texture,
     return GL_NO_ERROR;
 }
 
-GLClientState::TextureRec* GLClientState::addTextureRec(GLuint id,
-        GLenum target)
+void GLClientState::setBoundEGLImage(GLenum target, GLeglImageOES image) {
+    GLuint texture = getBoundTexture(target);
+    TextureRec* texrec = getTextureRec(texture);
+    if (!texrec) return;
+    texrec->boundEGLImage = true;
+}
+
+TextureRec* GLClientState::addTextureRec(GLuint id, GLenum target)
 {
-    if (m_tex.numTextures == m_tex.allocTextures) {
-        const GLuint MAX_TEXTURES = 0xFFFFFFFFu;
-
-        GLuint newAlloc;
-        if (MAX_TEXTURES - m_tex.allocTextures >= m_tex.allocTextures) {
-            newAlloc = MAX(4, 2 * m_tex.allocTextures);
-        } else {
-            if (m_tex.allocTextures == MAX_TEXTURES) {
-                return NULL;
-            }
-            newAlloc = MAX_TEXTURES;
-        }
-
-        TextureRec* newTextures = (TextureRec*)realloc(m_tex.textures,
-                newAlloc * sizeof(TextureRec));
-        if (!newTextures) {
-            return NULL;
-        }
-
-        m_tex.textures = newTextures;
-        m_tex.allocTextures = newAlloc;
-    }
-
-    TextureRec* tex = m_tex.textures + m_tex.numTextures;
-    TextureRec* prev = tex - 1;
-    while (tex != m_tex.textures && id < prev->id) {
-        *tex-- = *prev--;
-    }
+    TextureRec* tex = new TextureRec;
     tex->id = id;
     tex->target = target;
     tex->format = -1;
-    m_tex.numTextures++;
+    tex->multisamples = 0;
+    tex->immutable = false;
+    tex->boundEGLImage = false;
+    tex->dims = new TextureDims;
 
+    (*(m_tex.textureRecs))[id] = tex;
     return tex;
+}
+
+TextureRec* GLClientState::getTextureRec(GLuint id) const {
+    SharedTextureDataMap::const_iterator it =
+        m_tex.textureRecs->find(id);
+    if (it == m_tex.textureRecs->end()) {
+        return NULL;
+    }
+    return it->second;
 }
 
 void GLClientState::setBoundTextureInternalFormat(GLenum target, GLint internalformat) {
     GLuint texture = getBoundTexture(target);
-    TextureRec* texrec = NULL;
-    texrec = (TextureRec*)bsearch(&texture, m_tex.textures,
-                                  m_tex.numTextures,
-                                  sizeof(TextureRec),
-                                  compareTexId);
+    TextureRec* texrec = getTextureRec(texture);
     if (!texrec) return;
     texrec->internalformat = internalformat;
 }
 
 void GLClientState::setBoundTextureFormat(GLenum target, GLenum format) {
     GLuint texture = getBoundTexture(target);
-    TextureRec* texrec = NULL;
-    texrec = (TextureRec*)bsearch(&texture, m_tex.textures,
-                                  m_tex.numTextures,
-                                  sizeof(TextureRec),
-                                  compareTexId);
+    TextureRec* texrec = getTextureRec(texture);
     if (!texrec) return;
     texrec->format = format;
 }
 
 void GLClientState::setBoundTextureType(GLenum target, GLenum type) {
     GLuint texture = getBoundTexture(target);
-    TextureRec* texrec = NULL;
-    texrec = (TextureRec*)bsearch(&texture, m_tex.textures,
-                                  m_tex.numTextures,
-                                  sizeof(TextureRec),
-                                  compareTexId);
+    TextureRec* texrec = getTextureRec(texture);
     if (!texrec) return;
     texrec->type = type;
+}
+
+void GLClientState::setBoundTextureDims(GLenum target, GLsizei level, GLsizei width, GLsizei height, GLsizei depth) {
+    GLuint texture = getBoundTexture(target);
+    TextureRec* texrec = getTextureRec(texture);
+    if (!texrec) {
+        return;
+    }
+
+    if (level == -1) {
+        GLsizei curr_width = width;
+        GLsizei curr_height = height;
+        GLsizei curr_depth = depth;
+        GLsizei curr_level = 0;
+
+        while (true) {
+            texrec->dims->widths[curr_level] = curr_width;
+            texrec->dims->heights[curr_level] = curr_height;
+            texrec->dims->depths[curr_level] = curr_depth;
+            if (curr_width >> 1 == 0 &&
+                curr_height >> 1 == 0 &&
+                ((target == GL_TEXTURE_3D && curr_depth == 0) ||
+                 true)) {
+                break;
+            }
+            curr_width = (curr_width >> 1) ? (curr_width >> 1) : 1;
+            curr_height = (curr_height >> 1) ? (curr_height >> 1) : 1;
+            if (target == GL_TEXTURE_3D) {
+                curr_depth = (curr_depth >> 1) ? (curr_depth >> 1) : 1;
+            }
+            curr_level++;
+        }
+
+    } else {
+        texrec->dims->widths[level] = width;
+        texrec->dims->heights[level] = height;
+        texrec->dims->depths[level] = depth;
+    }
+}
+
+void GLClientState::setBoundTextureSamples(GLenum target, GLsizei samples) {
+    GLuint texture = getBoundTexture(target);
+    TextureRec* texrec = getTextureRec(texture);
+    if (!texrec) return;
+    texrec->multisamples = samples;
+}
+
+void GLClientState::setBoundTextureImmutableFormat(GLenum target) {
+    GLuint texture = getBoundTexture(target);
+    TextureRec* texrec = getTextureRec(texture);
+    if (!texrec) return;
+    texrec->immutable = true;
+}
+
+bool GLClientState::isBoundTextureImmutableFormat(GLenum target) const {
+    GLuint texture = getBoundTexture(target);
+    TextureRec* texrec = getTextureRec(texture);
+    if (!texrec) return false;
+    return texrec->immutable;
 }
 
 GLuint GLClientState::getBoundTexture(GLenum target) const
@@ -428,6 +579,14 @@ GLuint GLClientState::getBoundTexture(GLenum target) const
         return m_tex.activeUnit->texture[TEXTURE_2D];
     case GL_TEXTURE_EXTERNAL_OES:
         return m_tex.activeUnit->texture[TEXTURE_EXTERNAL];
+    case GL_TEXTURE_CUBE_MAP:
+        return m_tex.activeUnit->texture[TEXTURE_CUBE_MAP];
+    case GL_TEXTURE_2D_ARRAY:
+        return m_tex.activeUnit->texture[TEXTURE_2D_ARRAY];
+    case GL_TEXTURE_3D:
+        return m_tex.activeUnit->texture[TEXTURE_3D];
+    case GL_TEXTURE_2D_MULTISAMPLE:
+        return m_tex.activeUnit->texture[TEXTURE_2D_MULTISAMPLE];
     default:
         return 0;
     }
@@ -508,14 +667,13 @@ void GLClientState::deleteTextures(GLsizei n, const GLuint* textures)
     // - could swap deleted textures to the end and re-sort.
     TextureRec* texrec;
     for (const GLuint* texture = textures; texture != textures + n; texture++) {
-        texrec = (TextureRec*)bsearch(texture, m_tex.textures,
-                m_tex.numTextures, sizeof(TextureRec), compareTexId);
+        texrec = getTextureRec(*texture);
+        if (texrec && texrec->dims) {
+            delete texrec->dims;
+        }
         if (texrec) {
-            const TextureRec* end = m_tex.textures + m_tex.numTextures;
-            memmove(texrec, texrec + 1,
-                    (end - texrec - 1) * sizeof(TextureRec));
-            m_tex.numTextures--;
-
+            m_tex.textureRecs->erase(*texture);
+            delete texrec;
             for (TextureUnit* unit = m_tex.unit;
                  unit != m_tex.unit + MAX_TEXTURE_UNITS;
                  unit++)
@@ -632,27 +790,59 @@ GLenum GLClientState::queryRboFormat(GLuint rbo_name) const {
 }
 
 GLint GLClientState::queryTexInternalFormat(GLuint tex_name) const {
-    TextureRec* texrec = NULL;
-    texrec = (TextureRec*)bsearch(&tex_name, m_tex.textures,
-                                  m_tex.numTextures, sizeof(TextureRec), compareTexId);
+    TextureRec* texrec = getTextureRec(tex_name);
     if (!texrec) return -1;
     return texrec->internalformat;
 }
 
+GLsizei GLClientState::queryTexWidth(GLsizei level, GLuint tex_name) const {
+    TextureRec* texrec = getTextureRec(tex_name);
+    if (!texrec) {
+        return 0;
+    }
+    return texrec->dims->widths[level];
+}
+
+GLsizei GLClientState::queryTexHeight(GLsizei level, GLuint tex_name) const {
+    TextureRec* texrec = getTextureRec(tex_name);
+    if (!texrec) return 0;
+    return texrec->dims->heights[level];
+}
+
+GLsizei GLClientState::queryTexDepth(GLsizei level, GLuint tex_name) const {
+    TextureRec* texrec = getTextureRec(tex_name);
+    if (!texrec) return 0;
+    return texrec->dims->depths[level];
+}
+
+bool GLClientState::queryTexEGLImageBacked(GLuint tex_name) const {
+    TextureRec* texrec = getTextureRec(tex_name);
+    if (!texrec) return false;
+    return texrec->boundEGLImage;
+}
+
 GLenum GLClientState::queryTexFormat(GLuint tex_name) const {
-    TextureRec* texrec = NULL;
-    texrec = (TextureRec*)bsearch(&tex_name, m_tex.textures,
-                                  m_tex.numTextures, sizeof(TextureRec), compareTexId);
+    TextureRec* texrec = getTextureRec(tex_name);
     if (!texrec) return -1;
     return texrec->format;
 }
 
 GLenum GLClientState::queryTexType(GLuint tex_name) const {
-    TextureRec* texrec = NULL;
-    texrec = (TextureRec*)bsearch(&tex_name, m_tex.textures,
-                                  m_tex.numTextures, sizeof(TextureRec), compareTexId);
+    TextureRec* texrec = getTextureRec(tex_name);
     if (!texrec) return -1;
     return texrec->type;
+}
+
+GLsizei GLClientState::queryTexSamples(GLuint tex_name) const {
+    TextureRec* texrec = getTextureRec(tex_name);
+    if (!texrec) return 0;
+    return texrec->multisamples;
+}
+
+GLenum GLClientState::queryTexLastBoundTarget(GLuint tex_name) const {
+    TextureRec* texrec = getTextureRec(tex_name);
+    if (!texrec) return GL_NONE;
+    return texrec->target;
 }
 
 void GLClientState::getBoundFramebufferFormat(

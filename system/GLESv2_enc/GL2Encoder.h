@@ -34,8 +34,11 @@ public:
         m_currMajorVersion = majorVersion;
         m_currMinorVersion = minorVersion;
     }
+    void setSharedGroup(GLSharedGroupPtr shared) {
+        m_shared = shared;
+        if (m_state && m_shared.Ptr())
+            m_state->setTextureData(m_shared->getTextureData());
     }
-    void setSharedGroup(GLSharedGroupPtr shared){ m_shared = shared; }
     const GLClientState *state() { return m_state; }
     const GLSharedGroupPtr shared() { return m_shared; }
     void flush() { m_stream->flush(); }

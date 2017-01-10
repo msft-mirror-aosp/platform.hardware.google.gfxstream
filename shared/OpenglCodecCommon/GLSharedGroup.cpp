@@ -252,6 +252,10 @@ BufferData * GLSharedGroup::getBufferData(GLuint bufferId)
     return m_buffers.valueFor(bufferId);
 }
 
+SharedTextureDataMap* GLSharedGroup::getTextureData() {
+    return &m_textureRecs;
+}
+
 void GLSharedGroup::addBufferData(GLuint bufferId, GLsizeiptr size, void * data)
 {
     android::AutoMutex _lock(m_lock);

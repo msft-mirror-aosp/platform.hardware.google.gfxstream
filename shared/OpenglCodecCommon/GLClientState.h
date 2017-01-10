@@ -22,6 +22,8 @@
 #define GL_APIENTRYP
 #endif
 
+#include "TextureSharedData.h"
+
 #include <GLES/gl.h>
 #include <GLES/glext.h>
 #include <GLES2/gl2.h>
@@ -33,6 +35,7 @@
 #include "codec_defs.h"
 
 #include <vector>
+#include <map>
 #include <set>
 
 // Tracking framebuffer objects:
@@ -83,6 +86,7 @@ struct FboFormatInfo {
     GLint tex_internalformat;
     GLenum tex_format;
     GLenum tex_type;
+    GLsizei tex_multisamples;
 };
 
 class GLClientState {
@@ -120,11 +124,22 @@ public:
 
     typedef struct {
         int unpack_alignment;
+
+        int unpack_row_length;
+        int unpack_image_height;
+        int unpack_skip_pixels;
+        int unpack_skip_rows;
+        int unpack_skip_images;
+
         int pack_alignment;
+
+        int pack_row_length;
+        int pack_skip_pixels;
+        int pack_skip_rows;
     } PixelStoreState;
 
     enum {
-        MAX_TEXTURE_UNITS = 32,
+        MAX_TEXTURE_UNITS = 256,
     };
 
 public:
@@ -185,7 +200,9 @@ public:
       }
       return ret;
     }
-    size_t pixelDataSize(GLsizei width, GLsizei height, GLenum format, GLenum type, int pack) const;
+    size_t pixelDataSize(GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, int pack) const;
+    size_t pboNeededDataSize(GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, int pack) const;
+    size_t clearBufferNumElts(GLenum buffer) const;
 
     void setCurrentProgram(GLint program) { m_currentProgram = program; }
     GLint currentProgram() const { return m_currentProgram; }
@@ -232,9 +249,18 @@ public:
     // For accurate error detection, bindTexture should be called for *all*
     // targets, not just 2D and EXTERNAL_OES.
     GLenum bindTexture(GLenum target, GLuint texture, GLboolean* firstUse);
+    void setBoundEGLImage(GLenum target, GLeglImageOES image);
 
     // Return the texture currently bound to GL_TEXTURE_(2D|EXTERNAL_OES).
     GLuint getBoundTexture(GLenum target) const;
+    // Other publicly-visible texture queries
+    GLenum queryTexLastBoundTarget(GLuint name) const;
+    GLenum queryTexFormat(GLuint name) const;
+    GLint queryTexInternalFormat(GLuint name) const;
+    GLsizei queryTexWidth(GLsizei level, GLuint name) const;
+    GLsizei queryTexHeight(GLsizei level, GLuint name) const;
+    GLsizei queryTexDepth(GLsizei level, GLuint name) const;
+    bool queryTexEGLImageBacked(GLuint name) const;
 
     // For AMD GPUs, it is easy for the emulator to segfault
     // (esp. in dEQP) when a cube map is defined using glCopyTexImage2D
@@ -253,6 +279,12 @@ public:
     void setBoundTextureInternalFormat(GLenum target, GLint format);
     void setBoundTextureFormat(GLenum target, GLenum format);
     void setBoundTextureType(GLenum target, GLenum type);
+    void setBoundTextureDims(GLenum target, GLsizei level, GLsizei width, GLsizei height, GLsizei depth);
+    void setBoundTextureSamples(GLenum target, GLsizei samples);
+
+    // glTexStorage2D disallows any change in texture format after it is set for a particular texture.
+    void setBoundTextureImmutableFormat(GLenum target);
+    bool isBoundTextureImmutableFormat(GLenum target) const;
 
     // glDeleteTextures(...)
     // Remove references to the to-be-deleted textures.
@@ -286,6 +318,7 @@ public:
     // FBO attachments in general
     bool attachmentHasObject(GLenum attachment) const;
 
+    void setTextureData(SharedTextureDataMap* sharedTexData);
     // set eglsurface property on default framebuffer
     // if coming from eglMakeCurrent
     void fromMakeCurrent();
@@ -299,6 +332,8 @@ public:
 private:
     PixelStoreState m_pixelStore;
     VertexAttribState *m_states;
+    int m_glesMajorVersion;
+    int m_glesMinorVersion;
     int m_maxVertexAttribs;
     bool m_maxVertexAttribsDirty;
     int m_nLocations;
@@ -312,25 +347,21 @@ private:
     enum TextureTarget {
         TEXTURE_2D = 0,
         TEXTURE_EXTERNAL = 1,
+        TEXTURE_CUBE_MAP = 2,
+        TEXTURE_2D_ARRAY = 3,
+        TEXTURE_3D = 4,
+        TEXTURE_2D_MULTISAMPLE = 5,
         TEXTURE_TARGET_COUNT
     };
     struct TextureUnit {
         unsigned int enables;
         GLuint texture[TEXTURE_TARGET_COUNT];
     };
-    struct TextureRec {
-        GLuint id;
-        GLenum target;
-        GLint internalformat;
-        GLenum format;
-        GLenum type;
-    };
     struct TextureState {
         TextureUnit unit[MAX_TEXTURE_UNITS];
         TextureUnit* activeUnit;
-        TextureRec* textures;
-        GLuint numTextures;
-        GLuint allocTextures;
+        // Initialized from shared group.
+        SharedTextureDataMap* textureRecs;
     };
     TextureState m_tex;
 
@@ -388,12 +419,12 @@ private:
 
     // Querying framebuffer format
     GLenum queryRboFormat(GLuint name) const;
-    GLint queryTexInternalFormat(GLuint name) const;
-    GLenum queryTexFormat(GLuint name) const;
     GLenum queryTexType(GLuint name) const;
+    GLsizei queryTexSamples(GLuint name) const;
 
     static int compareTexId(const void* pid, const void* prec);
     TextureRec* addTextureRec(GLuint id, GLenum target);
+    TextureRec* getTextureRec(GLuint id) const;
 
 public:
     void getClientStatePointer(GLenum pname, GLvoid** params);

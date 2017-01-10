@@ -22,11 +22,14 @@
 #define GL_APIENTRYP
 #endif
 
+#include "TextureSharedData.h"
+
 #include <GLES/gl.h>
 #include <GLES/glext.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 
+#include <map>
 #include <stdio.h>
 #include <stdlib.h>
 #include "ErrorLog.h"
@@ -101,6 +104,7 @@ struct ShaderData {
 
 class GLSharedGroup {
 private:
+    SharedTextureDataMap m_textureRecs;
     android::DefaultKeyedVector<GLuint, BufferData*> m_buffers;
     android::DefaultKeyedVector<GLuint, ProgramData*> m_programs;
     android::DefaultKeyedVector<GLuint, ShaderData*> m_shaders;
@@ -114,6 +118,7 @@ public:
     ~GLSharedGroup();
     bool isObject(GLuint obj);
     BufferData * getBufferData(GLuint bufferId);
+    SharedTextureDataMap* getTextureData();
     void    addBufferData(GLuint bufferId, GLsizeiptr size, void * data);
     void    updateBufferData(GLuint bufferId, GLsizeiptr size, void * data);
     GLenum  subUpdateBufferData(GLuint bufferId, GLintptr offset, GLsizeiptr size, void * data);
