@@ -509,8 +509,12 @@ private:
     glBindSampler_client_proc_t m_glBindSampler_enc;
     static void s_glBindSampler(void* self, GLuint unit, GLuint sampler);
 
-    glDeleteSync_client_proc_t m_glDeleteSync_enc;
-    static void s_glDeleteSync(void* self, GLsync sync);
+    static GLsync s_glFenceSync(void* self, GLenum condition, GLbitfield flags);
+    static GLenum s_glClientWaitSync(void* self, GLsync wait_on, GLbitfield flags, GLuint64 timeout);
+    static void s_glWaitSync(void* self, GLsync wait_on, GLbitfield flags, GLuint64 timeout);
+    static void s_glDeleteSync(void* self, GLsync to_delete);
+    static GLboolean s_glIsSync(void* self, GLsync sync);
+    static void s_glGetSynciv(void* self, GLsync sync, GLenum pname, GLsizei bufSize, GLsizei *length, GLint *values);
 
     glGetIntegeri_v_client_proc_t m_glGetIntegeri_v_enc;
     static void s_glGetIntegeri_v(void* self, GLenum target, GLuint index, GLint* params);

@@ -287,6 +287,12 @@ struct gl2_client_context_t {
 	glDeleteSync_client_proc_t glDeleteSync;
 	glIsSync_client_proc_t glIsSync;
 	glGetSynciv_client_proc_t glGetSynciv;
+	glFenceSyncAEMU_client_proc_t glFenceSyncAEMU;
+	glClientWaitSyncAEMU_client_proc_t glClientWaitSyncAEMU;
+	glWaitSyncAEMU_client_proc_t glWaitSyncAEMU;
+	glDeleteSyncAEMU_client_proc_t glDeleteSyncAEMU;
+	glIsSyncAEMU_client_proc_t glIsSyncAEMU;
+	glGetSyncivAEMU_client_proc_t glGetSyncivAEMU;
 	glDrawBuffers_client_proc_t glDrawBuffers;
 	glReadBuffer_client_proc_t glReadBuffer;
 	glBlitFramebuffer_client_proc_t glBlitFramebuffer;

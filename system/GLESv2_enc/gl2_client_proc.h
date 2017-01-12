@@ -286,6 +286,12 @@ typedef void (gl2_APIENTRY *glWaitSync_client_proc_t) (void * ctx, GLsync, GLbit
 typedef void (gl2_APIENTRY *glDeleteSync_client_proc_t) (void * ctx, GLsync);
 typedef GLboolean (gl2_APIENTRY *glIsSync_client_proc_t) (void * ctx, GLsync);
 typedef void (gl2_APIENTRY *glGetSynciv_client_proc_t) (void * ctx, GLsync, GLenum, GLsizei, GLsizei*, GLint*);
+typedef uint64_t (gl2_APIENTRY *glFenceSyncAEMU_client_proc_t) (void * ctx, GLenum, GLbitfield);
+typedef GLenum (gl2_APIENTRY *glClientWaitSyncAEMU_client_proc_t) (void * ctx, uint64_t, GLbitfield, GLuint64);
+typedef void (gl2_APIENTRY *glWaitSyncAEMU_client_proc_t) (void * ctx, uint64_t, GLbitfield, GLuint64);
+typedef void (gl2_APIENTRY *glDeleteSyncAEMU_client_proc_t) (void * ctx, uint64_t);
+typedef GLboolean (gl2_APIENTRY *glIsSyncAEMU_client_proc_t) (void * ctx, uint64_t);
+typedef void (gl2_APIENTRY *glGetSyncivAEMU_client_proc_t) (void * ctx, uint64_t, GLenum, GLsizei, GLsizei*, GLint*);
 typedef void (gl2_APIENTRY *glDrawBuffers_client_proc_t) (void * ctx, GLsizei, const GLenum*);
 typedef void (gl2_APIENTRY *glReadBuffer_client_proc_t) (void * ctx, GLenum);
 typedef void (gl2_APIENTRY *glBlitFramebuffer_client_proc_t) (void * ctx, GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLbitfield, GLenum);

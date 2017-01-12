@@ -261,7 +261,12 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
 
     OVERRIDE(glBindSampler);
 
-    OVERRIDE(glDeleteSync);
+    OVERRIDE_CUSTOM(glFenceSync);
+    OVERRIDE_CUSTOM(glClientWaitSync);
+    OVERRIDE_CUSTOM(glWaitSync);
+    OVERRIDE_CUSTOM(glDeleteSync);
+    OVERRIDE_CUSTOM(glIsSync);
+    OVERRIDE_CUSTOM(glGetSynciv);
 
     OVERRIDE(glGetIntegeri_v);
     OVERRIDE(glGetInteger64i_v);
@@ -3925,12 +3930,38 @@ void GL2Encoder::s_glBindSampler(void* self, GLuint unit, GLuint sampler) {
     ctx->m_glBindSampler_enc(ctx, unit, sampler);
 }
 
+GLsync GL2Encoder::s_glFenceSync(void* self, GLenum condition, GLbitfield flags) {
+    GL2Encoder *ctx = (GL2Encoder *)self;
+    uint64_t syncHandle = ctx->glFenceSyncAEMU(ctx, condition, flags);
+    return (GLsync)(uintptr_t)syncHandle;
+}
+
+GLenum GL2Encoder::s_glClientWaitSync(void* self, GLsync wait_on, GLbitfield flags, GLuint64 timeout) {
+    GL2Encoder *ctx = (GL2Encoder *)self;
+    return ctx->glClientWaitSyncAEMU(ctx, (uint64_t)(uintptr_t)wait_on, flags, timeout);
+}
+
+void GL2Encoder::s_glWaitSync(void* self, GLsync wait_on, GLbitfield flags, GLuint64 timeout) {
+    GL2Encoder *ctx = (GL2Encoder *)self;
+    ctx->glWaitSyncAEMU(ctx, (uint64_t)(uintptr_t)wait_on, flags, timeout);
+}
+
 void GL2Encoder::s_glDeleteSync(void* self, GLsync sync) {
     GL2Encoder *ctx = (GL2Encoder *)self;
 
     if (!sync) return;
 
-    ctx->m_glDeleteSync_enc(ctx, sync);
+    ctx->glDeleteSyncAEMU(ctx, (uint64_t)(uintptr_t)sync);
+}
+
+GLboolean GL2Encoder::s_glIsSync(void* self, GLsync sync) {
+    GL2Encoder *ctx = (GL2Encoder *)self;
+    return ctx->glIsSyncAEMU(ctx, (uint64_t)(uintptr_t)sync);
+}
+
+void GL2Encoder::s_glGetSynciv(void* self, GLsync sync, GLenum pname, GLsizei bufSize, GLsizei *length, GLint *values) {
+    GL2Encoder *ctx = (GL2Encoder *)self;
+    return ctx->glGetSyncivAEMU(ctx, (uint64_t)(uintptr_t)sync, pname, bufSize, length, values);
 }
 
 #define LIMIT_CASE(target, lim) \

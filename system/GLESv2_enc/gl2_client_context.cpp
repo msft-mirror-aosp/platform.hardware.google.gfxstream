@@ -287,6 +287,12 @@ int gl2_client_context_t::initDispatchByName(void *(*getProc)(const char *, void
 	glDeleteSync = (glDeleteSync_client_proc_t) getProc("glDeleteSync", userData);
 	glIsSync = (glIsSync_client_proc_t) getProc("glIsSync", userData);
 	glGetSynciv = (glGetSynciv_client_proc_t) getProc("glGetSynciv", userData);
+	glFenceSyncAEMU = (glFenceSyncAEMU_client_proc_t) getProc("glFenceSyncAEMU", userData);
+	glClientWaitSyncAEMU = (glClientWaitSyncAEMU_client_proc_t) getProc("glClientWaitSyncAEMU", userData);
+	glWaitSyncAEMU = (glWaitSyncAEMU_client_proc_t) getProc("glWaitSyncAEMU", userData);
+	glDeleteSyncAEMU = (glDeleteSyncAEMU_client_proc_t) getProc("glDeleteSyncAEMU", userData);
+	glIsSyncAEMU = (glIsSyncAEMU_client_proc_t) getProc("glIsSyncAEMU", userData);
+	glGetSyncivAEMU = (glGetSyncivAEMU_client_proc_t) getProc("glGetSyncivAEMU", userData);
 	glDrawBuffers = (glDrawBuffers_client_proc_t) getProc("glDrawBuffers", userData);
 	glReadBuffer = (glReadBuffer_client_proc_t) getProc("glReadBuffer", userData);
 	glBlitFramebuffer = (glBlitFramebuffer_client_proc_t) getProc("glBlitFramebuffer", userData);

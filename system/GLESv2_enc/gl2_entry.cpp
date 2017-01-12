@@ -283,6 +283,12 @@ extern "C" {
 	void glDeleteSync(GLsync to_delete);
 	GLboolean glIsSync(GLsync sync);
 	void glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSize, GLsizei* length, GLint* values);
+	uint64_t glFenceSyncAEMU(GLenum condition, GLbitfield flags);
+	GLenum glClientWaitSyncAEMU(uint64_t wait_on, GLbitfield flags, GLuint64 timeout);
+	void glWaitSyncAEMU(uint64_t wait_on, GLbitfield flags, GLuint64 timeout);
+	void glDeleteSyncAEMU(uint64_t to_delete);
+	GLboolean glIsSyncAEMU(uint64_t sync);
+	void glGetSyncivAEMU(uint64_t sync, GLenum pname, GLsizei bufSize, GLsizei* length, GLint* values);
 	void glDrawBuffers(GLsizei n, const GLenum* bufs);
 	void glReadBuffer(GLenum src);
 	void glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
@@ -2100,8 +2106,44 @@ GLboolean glIsSync(GLsync sync)
 void glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSize, GLsizei* length, GLint* values)
 {
 	GET_CONTEXT;
-	 if(bufSize<0){ ctx->setError(GL_INVALID_VALUE); return; }
 	ctx->glGetSynciv(ctx, sync, pname, bufSize, length, values);
+}
+
+uint64_t glFenceSyncAEMU(GLenum condition, GLbitfield flags)
+{
+	GET_CONTEXT;
+	return ctx->glFenceSyncAEMU(ctx, condition, flags);
+}
+
+GLenum glClientWaitSyncAEMU(uint64_t wait_on, GLbitfield flags, GLuint64 timeout)
+{
+	GET_CONTEXT;
+	return ctx->glClientWaitSyncAEMU(ctx, wait_on, flags, timeout);
+}
+
+void glWaitSyncAEMU(uint64_t wait_on, GLbitfield flags, GLuint64 timeout)
+{
+	GET_CONTEXT;
+	ctx->glWaitSyncAEMU(ctx, wait_on, flags, timeout);
+}
+
+void glDeleteSyncAEMU(uint64_t to_delete)
+{
+	GET_CONTEXT;
+	ctx->glDeleteSyncAEMU(ctx, to_delete);
+}
+
+GLboolean glIsSyncAEMU(uint64_t sync)
+{
+	GET_CONTEXT;
+	return ctx->glIsSyncAEMU(ctx, sync);
+}
+
+void glGetSyncivAEMU(uint64_t sync, GLenum pname, GLsizei bufSize, GLsizei* length, GLint* values)
+{
+	GET_CONTEXT;
+	 if(bufSize<0){ ctx->setError(GL_INVALID_VALUE); return; }
+	ctx->glGetSyncivAEMU(ctx, sync, pname, bufSize, length, values);
 }
 
 void glDrawBuffers(GLsizei n, const GLenum* bufs)

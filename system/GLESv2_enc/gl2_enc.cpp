@@ -6801,7 +6801,7 @@ void glDrawRangeElementsOffsetAEMU_enc(void *self , GLenum mode, GLuint start, G
 
 }
 
-GLsync glFenceSync_enc(void *self , GLenum condition, GLbitfield flags)
+uint64_t glFenceSyncAEMU_enc(void *self , GLenum condition, GLbitfield flags)
 {
 
 	gl2_encoder_context_t *ctx = (gl2_encoder_context_t *)self;
@@ -6816,7 +6816,7 @@ GLsync glFenceSync_enc(void *self , GLenum condition, GLbitfield flags)
 	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
 	buf = stream->alloc(totalSize);
 	ptr = buf;
-	int tmp = OP_glFenceSync;memcpy(ptr, &tmp, 4); ptr += 4;
+	int tmp = OP_glFenceSyncAEMU;memcpy(ptr, &tmp, 4); ptr += 4;
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &condition, 4); ptr += 4;
@@ -6826,7 +6826,7 @@ GLsync glFenceSync_enc(void *self , GLenum condition, GLbitfield flags)
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
 
 
-	GLsync retval;
+	uint64_t retval;
 	stream->readback(&retval, 8);
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 8);
 	if (useChecksum) {
@@ -6835,14 +6835,14 @@ GLsync glFenceSync_enc(void *self , GLenum condition, GLbitfield flags)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("glFenceSync: GL communication error, please report this issue to b.android.com.\n");
+			ALOGE("glFenceSyncAEMU: GL communication error, please report this issue to b.android.com.\n");
 			abort();
 		}
 	}
 	return retval;
 }
 
-GLenum glClientWaitSync_enc(void *self , GLsync wait_on, GLbitfield flags, GLuint64 timeout)
+GLenum glClientWaitSyncAEMU_enc(void *self , uint64_t wait_on, GLbitfield flags, GLuint64 timeout)
 {
 
 	gl2_encoder_context_t *ctx = (gl2_encoder_context_t *)self;
@@ -6857,7 +6857,7 @@ GLenum glClientWaitSync_enc(void *self , GLsync wait_on, GLbitfield flags, GLuin
 	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
 	buf = stream->alloc(totalSize);
 	ptr = buf;
-	int tmp = OP_glClientWaitSync;memcpy(ptr, &tmp, 4); ptr += 4;
+	int tmp = OP_glClientWaitSyncAEMU;memcpy(ptr, &tmp, 4); ptr += 4;
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &wait_on, 8); ptr += 8;
@@ -6877,14 +6877,14 @@ GLenum glClientWaitSync_enc(void *self , GLsync wait_on, GLbitfield flags, GLuin
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("glClientWaitSync: GL communication error, please report this issue to b.android.com.\n");
+			ALOGE("glClientWaitSyncAEMU: GL communication error, please report this issue to b.android.com.\n");
 			abort();
 		}
 	}
 	return retval;
 }
 
-void glWaitSync_enc(void *self , GLsync wait_on, GLbitfield flags, GLuint64 timeout)
+void glWaitSyncAEMU_enc(void *self , uint64_t wait_on, GLbitfield flags, GLuint64 timeout)
 {
 
 	gl2_encoder_context_t *ctx = (gl2_encoder_context_t *)self;
@@ -6899,7 +6899,7 @@ void glWaitSync_enc(void *self , GLsync wait_on, GLbitfield flags, GLuint64 time
 	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
 	buf = stream->alloc(totalSize);
 	ptr = buf;
-	int tmp = OP_glWaitSync;memcpy(ptr, &tmp, 4); ptr += 4;
+	int tmp = OP_glWaitSyncAEMU;memcpy(ptr, &tmp, 4); ptr += 4;
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &wait_on, 8); ptr += 8;
@@ -6911,7 +6911,7 @@ void glWaitSync_enc(void *self , GLsync wait_on, GLbitfield flags, GLuint64 time
 
 }
 
-void glDeleteSync_enc(void *self , GLsync to_delete)
+void glDeleteSyncAEMU_enc(void *self , uint64_t to_delete)
 {
 
 	gl2_encoder_context_t *ctx = (gl2_encoder_context_t *)self;
@@ -6926,7 +6926,7 @@ void glDeleteSync_enc(void *self , GLsync to_delete)
 	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
 	buf = stream->alloc(totalSize);
 	ptr = buf;
-	int tmp = OP_glDeleteSync;memcpy(ptr, &tmp, 4); ptr += 4;
+	int tmp = OP_glDeleteSyncAEMU;memcpy(ptr, &tmp, 4); ptr += 4;
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &to_delete, 8); ptr += 8;
@@ -6936,7 +6936,7 @@ void glDeleteSync_enc(void *self , GLsync to_delete)
 
 }
 
-GLboolean glIsSync_enc(void *self , GLsync sync)
+GLboolean glIsSyncAEMU_enc(void *self , uint64_t sync)
 {
 
 	gl2_encoder_context_t *ctx = (gl2_encoder_context_t *)self;
@@ -6951,7 +6951,7 @@ GLboolean glIsSync_enc(void *self , GLsync sync)
 	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
 	buf = stream->alloc(totalSize);
 	ptr = buf;
-	int tmp = OP_glIsSync;memcpy(ptr, &tmp, 4); ptr += 4;
+	int tmp = OP_glIsSyncAEMU;memcpy(ptr, &tmp, 4); ptr += 4;
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &sync, 8); ptr += 8;
@@ -6969,14 +6969,14 @@ GLboolean glIsSync_enc(void *self , GLsync sync)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("glIsSync: GL communication error, please report this issue to b.android.com.\n");
+			ALOGE("glIsSyncAEMU: GL communication error, please report this issue to b.android.com.\n");
 			abort();
 		}
 	}
 	return retval;
 }
 
-void glGetSynciv_enc(void *self , GLsync sync, GLenum pname, GLsizei bufSize, GLsizei* length, GLint* values)
+void glGetSyncivAEMU_enc(void *self , uint64_t sync, GLenum pname, GLsizei bufSize, GLsizei* length, GLint* values)
 {
 
 	gl2_encoder_context_t *ctx = (gl2_encoder_context_t *)self;
@@ -6993,7 +6993,7 @@ void glGetSynciv_enc(void *self , GLsync sync, GLenum pname, GLsizei bufSize, GL
 	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
 	buf = stream->alloc(totalSize);
 	ptr = buf;
-	int tmp = OP_glGetSynciv;memcpy(ptr, &tmp, 4); ptr += 4;
+	int tmp = OP_glGetSyncivAEMU;memcpy(ptr, &tmp, 4); ptr += 4;
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &sync, 8); ptr += 8;
@@ -7015,7 +7015,7 @@ void glGetSynciv_enc(void *self , GLsync sync, GLenum pname, GLsizei bufSize, GL
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("glGetSynciv: GL communication error, please report this issue to b.android.com.\n");
+			ALOGE("glGetSyncivAEMU: GL communication error, please report this issue to b.android.com.\n");
 			abort();
 		}
 	}
@@ -11288,12 +11288,18 @@ gl2_encoder_context_t::gl2_encoder_context_t(IOStream *stream, ChecksumCalculato
 	this->glDrawRangeElements = (glDrawRangeElements_client_proc_t) &enc_unsupported;
 	this->glDrawRangeElementsDataAEMU = &glDrawRangeElementsDataAEMU_enc;
 	this->glDrawRangeElementsOffsetAEMU = &glDrawRangeElementsOffsetAEMU_enc;
-	this->glFenceSync = &glFenceSync_enc;
-	this->glClientWaitSync = &glClientWaitSync_enc;
-	this->glWaitSync = &glWaitSync_enc;
-	this->glDeleteSync = &glDeleteSync_enc;
-	this->glIsSync = &glIsSync_enc;
-	this->glGetSynciv = &glGetSynciv_enc;
+	this->glFenceSync = (glFenceSync_client_proc_t) &enc_unsupported;
+	this->glClientWaitSync = (glClientWaitSync_client_proc_t) &enc_unsupported;
+	this->glWaitSync = (glWaitSync_client_proc_t) &enc_unsupported;
+	this->glDeleteSync = (glDeleteSync_client_proc_t) &enc_unsupported;
+	this->glIsSync = (glIsSync_client_proc_t) &enc_unsupported;
+	this->glGetSynciv = (glGetSynciv_client_proc_t) &enc_unsupported;
+	this->glFenceSyncAEMU = &glFenceSyncAEMU_enc;
+	this->glClientWaitSyncAEMU = &glClientWaitSyncAEMU_enc;
+	this->glWaitSyncAEMU = &glWaitSyncAEMU_enc;
+	this->glDeleteSyncAEMU = &glDeleteSyncAEMU_enc;
+	this->glIsSyncAEMU = &glIsSyncAEMU_enc;
+	this->glGetSyncivAEMU = &glGetSyncivAEMU_enc;
 	this->glDrawBuffers = &glDrawBuffers_enc;
 	this->glReadBuffer = &glReadBuffer_enc;
 	this->glBlitFramebuffer = &glBlitFramebuffer_enc;
