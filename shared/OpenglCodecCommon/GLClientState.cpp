@@ -151,7 +151,7 @@ void GLClientState::setVertexBindingDivisor(int bindingindex, GLuint divisor) {
 }
 
 const GLClientState::BufferBinding& GLClientState::getCurrAttributeBindingInfo(int attribindex) {
-    return m_currVaoState.bufferBindings_const().at(m_currVaoState[attribindex].bindingindex);
+    return m_currVaoState.bufferBindings_const()[m_currVaoState[attribindex].bindingindex];
 }
 
 void GLClientState::setVertexAttribBinding(int attribindex, int bindingindex) {
@@ -204,7 +204,7 @@ void GLClientState::addVertexArrayObject(GLuint name) {
                 name,
                 VAOState(0, m_nLocations, std::max(m_nLocations, m_max_vertex_attrib_bindings))));
     VertexAttribStateVector& attribState =
-        m_vaoMap.at(name).attribState;
+        m_vaoMap.find(name)->second.attribState;
     for (int i = 0; i < m_nLocations; i++) {
         attribState[i].enabled = 0;
         attribState[i].enableDirty = false;
@@ -720,7 +720,6 @@ int GLClientState::compareTexId(const void* pid, const void* prec)
 GLenum GLClientState::bindTexture(GLenum target, GLuint texture,
         GLboolean* firstUse)
 {
-    assert(m_tex.textureRecs);
     GLboolean first = GL_FALSE;
 
     TextureRec* texrec = getTextureRec(texture);
@@ -1343,13 +1342,13 @@ FboProps& GLClientState::boundFboProps(GLenum target) {
 const FboProps& GLClientState::boundFboProps_const(GLenum target) const {
     switch (target) {
     case GL_DRAW_FRAMEBUFFER:
-        return mFboState.fboData.at(mFboState.boundDrawFramebuffer);
+        return mFboState.fboData.find(mFboState.boundDrawFramebuffer)->second;
     case GL_READ_FRAMEBUFFER:
-        return mFboState.fboData.at(mFboState.boundReadFramebuffer);
+        return mFboState.fboData.find(mFboState.boundReadFramebuffer)->second;
     case GL_FRAMEBUFFER:
-        return mFboState.fboData.at(mFboState.boundDrawFramebuffer);
+        return mFboState.fboData.find(mFboState.boundDrawFramebuffer)->second;
     }
-    return mFboState.fboData.at(mFboState.boundDrawFramebuffer);
+    return mFboState.fboData.find(mFboState.boundDrawFramebuffer)->second;
 }
 
 void GLClientState::bindFramebuffer(GLenum target, GLuint name) {

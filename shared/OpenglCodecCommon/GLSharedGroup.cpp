@@ -511,7 +511,7 @@ GLint GLSharedGroup::getNextSamplerUniform(GLuint program, GLint index, GLint* v
     ProgramData* pData = m_programs.valueFor(program);
     if (pData) return pData->getNextSamplerUniform(index, val, target);
     if (m_shaderProgramIdMap.find(program) == m_shaderProgramIdMap.end()) return -1;
-    ShaderProgramData* spData = m_shaderPrograms.valueFor(m_shaderProgramIdMap.at(program));
+    ShaderProgramData* spData = m_shaderPrograms.valueFor(m_shaderProgramIdMap.find(program)->second);
     if (spData) return spData->programData->getNextSamplerUniform(index, val, target);
     return -1;
 }
