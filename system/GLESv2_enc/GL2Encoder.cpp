@@ -918,10 +918,10 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count, bool hasClient
                 // The following expression actually means bufLen = stride*count;
                 // But the last element doesn't have to fill up the whole stride.
                 // So it becomes the current form.
-                unsigned int bufLen = effectiveStride * (count - 1) + state.elementSize;
+                unsigned int bufLen = effectiveStride * (count ? (count - 1) : 0) + state.elementSize;
                 if (divisor && primcount) {
                     int actual_count = std::max(1, (int)((primcount + divisor - 1) / divisor));
-                    bufLen = effectiveStride * (actual_count - 1) + state.elementSize;
+                    bufLen = effectiveStride * (actual_count ? (actual_count - 1) : 0) + state.elementSize;
                 }
                 if (buf && firstIndex >= 0 && firstIndex + bufLen <= buf->m_size) {
                     if (hasClientArrays) {
