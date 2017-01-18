@@ -2442,6 +2442,15 @@ GLboolean GL2Encoder::s_glUnmapBuffer(void* self, GLenum target) {
     RET_AND_SET_ERROR_IF(!buf, GL_INVALID_VALUE, GL_FALSE);
     RET_AND_SET_ERROR_IF(!buf->m_mapped, GL_INVALID_OPERATION, GL_FALSE);
 
+    if (buf->m_mappedAccess & GL_MAP_WRITE_BIT) {
+        // invalide index range cache here
+        if (buf->m_mappedAccess & GL_MAP_INVALIDATE_BUFFER_BIT) {
+            buf->m_indexRangeCache.invalidateRange(0, buf->m_size);
+        } else {
+            buf->m_indexRangeCache.invalidateRange(buf->m_mappedOffset, buf->m_mappedLength);
+        }
+    }
+
     GLboolean host_res = GL_TRUE;
 
     ctx->glUnmapBufferAEMU(
@@ -2479,6 +2488,9 @@ void GL2Encoder::s_glFlushMappedBufferRange(void* self, GLenum target, GLintptr 
     SET_ERROR_IF(offset + length > buf->m_mappedLength, GL_INVALID_VALUE);
 
     GLintptr totalOffset = buf->m_mappedOffset + offset;
+
+    buf->m_indexRangeCache.invalidateRange(totalOffset, length);
+
     ctx->glFlushMappedBufferRangeAEMU(
             ctx, target,
             totalOffset,
