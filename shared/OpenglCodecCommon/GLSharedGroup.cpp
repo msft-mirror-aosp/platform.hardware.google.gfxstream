@@ -584,6 +584,7 @@ uint32_t GLSharedGroup::addNewShaderProgramData() {
     android::AutoMutex _lock(m_lock);
     ShaderProgramData* data = new ShaderProgramData;
     uint32_t currId = m_shaderProgramId;
+    ALOGD("%s: new data %p id %u", __FUNCTION__, data, currId);
     m_shaderPrograms.add(currId, data);
     m_shaderProgramId++;
     return currId;
@@ -596,12 +597,14 @@ void GLSharedGroup::associateGLShaderProgram(GLuint shaderProgramName, uint32_t 
 
 ShaderProgramData* GLSharedGroup::getShaderProgramDataById(uint32_t id) {
     android::AutoMutex _lock(m_lock);
-    return m_shaderPrograms.editValueAt(id);
+    ShaderProgramData* res = m_shaderPrograms.valueFor(id);
+    ALOGD("%s: id=%u res=%p", __FUNCTION__, id, res);
+    return res;
 }
 
 ShaderProgramData* GLSharedGroup::getShaderProgramData(GLuint shaderProgramName) {
     android::AutoMutex _lock(m_lock);
-    return m_shaderPrograms.editValueAt(m_shaderProgramIdMap[shaderProgramName]);
+    return m_shaderPrograms.valueFor(m_shaderProgramIdMap[shaderProgramName]);
 }
 
 void GLSharedGroup::deleteShaderProgramDataById(uint32_t id) {

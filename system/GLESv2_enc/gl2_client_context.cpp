@@ -359,6 +359,7 @@ int gl2_client_context_t::initDispatchByName(void *(*getProc)(const char *, void
 	glValidateProgramPipeline = (glValidateProgramPipeline_client_proc_t) getProc("glValidateProgramPipeline", userData);
 	glIsProgramPipeline = (glIsProgramPipeline_client_proc_t) getProc("glIsProgramPipeline", userData);
 	glUseProgramStages = (glUseProgramStages_client_proc_t) getProc("glUseProgramStages", userData);
+	glActiveShaderProgram = (glActiveShaderProgram_client_proc_t) getProc("glActiveShaderProgram", userData);
 	glCreateShaderProgramv = (glCreateShaderProgramv_client_proc_t) getProc("glCreateShaderProgramv", userData);
 	glCreateShaderProgramvAEMU = (glCreateShaderProgramvAEMU_client_proc_t) getProc("glCreateShaderProgramvAEMU", userData);
 	glProgramUniform1f = (glProgramUniform1f_client_proc_t) getProc("glProgramUniform1f", userData);

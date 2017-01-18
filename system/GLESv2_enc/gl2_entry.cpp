@@ -355,6 +355,7 @@ extern "C" {
 	void glValidateProgramPipeline(GLuint pipeline);
 	GLboolean glIsProgramPipeline(GLuint pipeline);
 	void glUseProgramStages(GLuint pipeline, GLbitfield stages, GLuint program);
+	void glActiveShaderProgram(GLuint pipeline, GLuint program);
 	GLuint glCreateShaderProgramv(GLenum type, GLsizei count, const char** strings);
 	GLuint glCreateShaderProgramvAEMU(GLenum type, GLsizei count, const char* packedStrings, GLuint packedLen);
 	void glProgramUniform1f(GLuint program, GLint location, GLfloat v0);
@@ -2552,6 +2553,12 @@ void glUseProgramStages(GLuint pipeline, GLbitfield stages, GLuint program)
 {
 	GET_CONTEXT;
 	ctx->glUseProgramStages(ctx, pipeline, stages, program);
+}
+
+void glActiveShaderProgram(GLuint pipeline, GLuint program)
+{
+	GET_CONTEXT;
+	ctx->glActiveShaderProgram(ctx, pipeline, program);
 }
 
 GLuint glCreateShaderProgramv(GLenum type, GLsizei count, const char** strings)

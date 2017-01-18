@@ -68,6 +68,9 @@ bool pixelFormat(GL2Encoder* ctx, GLenum format);
 bool pixelInternalFormat(GLenum internalformat);
 
 bool shaderType(GL2Encoder* ctx, GLenum type);
+
+bool internalFormatTarget(GL2Encoder* ctx, GLenum target);
+
 } // namespace GLESv2Validation
 
 #endif

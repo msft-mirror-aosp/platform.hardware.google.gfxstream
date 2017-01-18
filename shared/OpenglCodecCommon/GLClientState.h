@@ -196,6 +196,10 @@ public:
     const PixelStoreState *pixelStoreState() { return &m_pixelStore; }
     int setPixelStore(GLenum param, GLint value);
     GLuint currentVertexArrayObject() const { return m_currVaoState.vaoId(); }
+    const VertexAttribBindingVector& currentVertexBufferBindings() const {
+        return m_currVaoState.bufferBindings_const();
+    }
+
     GLuint currentArrayVbo() { return m_arrayBuffer; }
     GLuint currentIndexVbo() { return m_currVaoState.iboId(); }
     void enable(int location, int state);
@@ -221,6 +225,9 @@ public:
         m_maxVertexAttribsDirty = false;
     }
 
+    void addBuffer(GLuint id);
+    void removeBuffer(GLuint id);
+    bool bufferIdExists(GLuint id) const;
     void unBindBuffer(GLuint id);
 
     int bindBuffer(GLenum target, GLuint id);
@@ -234,7 +241,9 @@ public:
     size_t clearBufferNumElts(GLenum buffer) const;
 
     void setCurrentProgram(GLint program) { m_currentProgram = program; }
+    void setCurrentShaderProgram(GLint program) { m_currentShaderProgram = program; }
     GLint currentProgram() const { return m_currentProgram; }
+    GLint currentShaderProgram() const { return m_currentShaderProgram; }
 
     struct UniformBlockInfoKey {
         GLuint program;
@@ -416,6 +425,8 @@ private:
     bool m_initialized;
     PixelStoreState m_pixelStore;
 
+    std::set<GLuint> mBufferIds;
+
     // GL_ARRAY_BUFFER_BINDING is separate from VAO state
     GLuint m_arrayBuffer;
     VAOStateMap m_vaoMap;
@@ -455,6 +466,7 @@ private:
     int m_nLocations;
     int m_activeTexture;
     GLint m_currentProgram;
+    GLint m_currentShaderProgram;
     ProgramPipelineMap m_programPipelines;
 
     enum TextureTarget {
@@ -554,6 +566,14 @@ public:
             m_currVaoState.bufferBindings_const()[vertexAttrib.bindingindex];
 
         switch(param) {
+#define GL_VERTEX_ATTRIB_BINDING 0x82D4
+        case GL_VERTEX_ATTRIB_BINDING:
+            *ptr = (T)vertexAttrib.bindingindex;
+            break;
+#define GL_VERTEX_ATTRIB_RELATIVE_OFFSET 0x82D5
+        case GL_VERTEX_ATTRIB_RELATIVE_OFFSET:
+            *ptr = (T)vertexAttrib.reloffset;
+            break;
         case GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING:
             *ptr = (T)(vertexAttribBufferBinding.buffer);
             break;

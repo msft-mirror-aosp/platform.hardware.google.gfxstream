@@ -358,6 +358,7 @@ typedef void (gl2_APIENTRY *glGetProgramPipelineInfoLog_client_proc_t) (void * c
 typedef void (gl2_APIENTRY *glValidateProgramPipeline_client_proc_t) (void * ctx, GLuint);
 typedef GLboolean (gl2_APIENTRY *glIsProgramPipeline_client_proc_t) (void * ctx, GLuint);
 typedef void (gl2_APIENTRY *glUseProgramStages_client_proc_t) (void * ctx, GLuint, GLbitfield, GLuint);
+typedef void (gl2_APIENTRY *glActiveShaderProgram_client_proc_t) (void * ctx, GLuint, GLuint);
 typedef GLuint (gl2_APIENTRY *glCreateShaderProgramv_client_proc_t) (void * ctx, GLenum, GLsizei, const char**);
 typedef GLuint (gl2_APIENTRY *glCreateShaderProgramvAEMU_client_proc_t) (void * ctx, GLenum, GLsizei, const char*, GLuint);
 typedef void (gl2_APIENTRY *glProgramUniform1f_client_proc_t) (void * ctx, GLuint, GLint, GLfloat);

@@ -2013,7 +2013,7 @@ void glGetProgramiv_enc(void *self , GLuint program, GLenum pname, GLint* params
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_params =  sizeof(GLint);
+	const unsigned int __size_params =  (glUtilsParamSize(pname) * sizeof(GLint));
 	 unsigned char *ptr;
 	 unsigned char *buf;
 	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 0 + 1*4;
@@ -6984,8 +6984,8 @@ void glGetSyncivAEMU_enc(void *self , uint64_t sync, GLenum pname, GLsizei bufSi
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_length =  (sizeof(GLsizei));
-	const unsigned int __size_values =  bufSize;
+	const unsigned int __size_length = ((length != NULL) ?  (sizeof(GLsizei)) : 0);
+	const unsigned int __size_values =  (bufSize * sizeof(GLint));
 	 unsigned char *ptr;
 	 unsigned char *buf;
 	 const size_t sizeWithoutChecksum = 8 + 8 + 4 + 4 + 0 + 0 + 2*4;
@@ -7005,8 +7005,10 @@ void glGetSyncivAEMU_enc(void *self , uint64_t sync, GLenum pname, GLsizei bufSi
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
 
-	stream->readback(length, __size_length);
-	if (useChecksum) checksumCalculator->addBuffer(length, __size_length);
+	if (length != NULL) {
+		stream->readback(length, __size_length);
+		if (useChecksum) checksumCalculator->addBuffer(length, __size_length);
+	}
 	stream->readback(values, __size_values);
 	if (useChecksum) checksumCalculator->addBuffer(values, __size_values);
 	if (useChecksum) {
@@ -8247,7 +8249,7 @@ void glGetProgramBinary_enc(void *self , GLuint program, GLsizei bufSize, GLsize
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_length =  (sizeof(GLsizei));
+	const unsigned int __size_length = ((length != NULL) ?  (sizeof(GLsizei)) : 0);
 	const unsigned int __size_binaryFormat =  (sizeof(GLenum));
 	const unsigned int __size_binary =  bufSize;
 	 unsigned char *ptr;
@@ -8269,8 +8271,10 @@ void glGetProgramBinary_enc(void *self , GLuint program, GLsizei bufSize, GLsize
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
 
-	stream->readback(length, __size_length);
-	if (useChecksum) checksumCalculator->addBuffer(length, __size_length);
+	if (length != NULL) {
+		stream->readback(length, __size_length);
+		if (useChecksum) checksumCalculator->addBuffer(length, __size_length);
+	}
 	stream->readback(binaryFormat, __size_binaryFormat);
 	if (useChecksum) checksumCalculator->addBuffer(binaryFormat, __size_binaryFormat);
 	stream->readback(binary, __size_binary);
@@ -9178,6 +9182,32 @@ void glUseProgramStages_enc(void *self , GLuint pipeline, GLbitfield stages, GLu
 
 }
 
+void glActiveShaderProgram_enc(void *self , GLuint pipeline, GLuint program)
+{
+
+	gl2_encoder_context_t *ctx = (gl2_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + 4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_glActiveShaderProgram;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &pipeline, 4); ptr += 4;
+		memcpy(ptr, &program, 4); ptr += 4;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+}
+
 GLuint glCreateShaderProgramvAEMU_enc(void *self , GLenum type, GLsizei count, const char* packedStrings, GLuint packedLen)
 {
 
@@ -9603,7 +9633,7 @@ void glProgramUniform2fv_enc(void *self , GLuint program, GLint location, GLsize
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_value =  (count * sizeof(GLfloat));
+	const unsigned int __size_value =  (count * 2 * sizeof(GLfloat));
 	 unsigned char *ptr;
 	 unsigned char *buf;
 	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + __size_value + 1*4;
@@ -9633,7 +9663,7 @@ void glProgramUniform3fv_enc(void *self , GLuint program, GLint location, GLsize
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_value =  (count * sizeof(GLfloat));
+	const unsigned int __size_value =  (count * 3 * sizeof(GLfloat));
 	 unsigned char *ptr;
 	 unsigned char *buf;
 	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + __size_value + 1*4;
@@ -9663,7 +9693,7 @@ void glProgramUniform4fv_enc(void *self , GLuint program, GLint location, GLsize
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_value =  (count * sizeof(GLfloat));
+	const unsigned int __size_value =  (count * 4 * sizeof(GLfloat));
 	 unsigned char *ptr;
 	 unsigned char *buf;
 	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + __size_value + 1*4;
@@ -9723,7 +9753,7 @@ void glProgramUniform2iv_enc(void *self , GLuint program, GLint location, GLsize
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_value =  (count * sizeof(GLint));
+	const unsigned int __size_value =  (count * 2 * sizeof(GLint));
 	 unsigned char *ptr;
 	 unsigned char *buf;
 	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + __size_value + 1*4;
@@ -9753,7 +9783,7 @@ void glProgramUniform3iv_enc(void *self , GLuint program, GLint location, GLsize
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_value =  (count * sizeof(GLint));
+	const unsigned int __size_value =  (count * 3 * sizeof(GLint));
 	 unsigned char *ptr;
 	 unsigned char *buf;
 	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + __size_value + 1*4;
@@ -9783,7 +9813,7 @@ void glProgramUniform4iv_enc(void *self , GLuint program, GLint location, GLsize
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_value =  (count * sizeof(GLint));
+	const unsigned int __size_value =  (count * 4 * sizeof(GLint));
 	 unsigned char *ptr;
 	 unsigned char *buf;
 	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + __size_value + 1*4;
@@ -9843,7 +9873,7 @@ void glProgramUniform2uiv_enc(void *self , GLuint program, GLint location, GLsiz
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_value =  (count * sizeof(GLuint));
+	const unsigned int __size_value =  (count * 2 * sizeof(GLuint));
 	 unsigned char *ptr;
 	 unsigned char *buf;
 	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + __size_value + 1*4;
@@ -9873,7 +9903,7 @@ void glProgramUniform3uiv_enc(void *self , GLuint program, GLint location, GLsiz
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_value =  (count * sizeof(GLuint));
+	const unsigned int __size_value =  (count * 3 * sizeof(GLuint));
 	 unsigned char *ptr;
 	 unsigned char *buf;
 	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + __size_value + 1*4;
@@ -9903,7 +9933,7 @@ void glProgramUniform4uiv_enc(void *self , GLuint program, GLint location, GLsiz
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_value =  (count * sizeof(GLuint));
+	const unsigned int __size_value =  (count * 4 * sizeof(GLuint));
 	 unsigned char *ptr;
 	 unsigned char *buf;
 	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + __size_value + 1*4;
@@ -11366,6 +11396,7 @@ gl2_encoder_context_t::gl2_encoder_context_t(IOStream *stream, ChecksumCalculato
 	this->glValidateProgramPipeline = &glValidateProgramPipeline_enc;
 	this->glIsProgramPipeline = &glIsProgramPipeline_enc;
 	this->glUseProgramStages = &glUseProgramStages_enc;
+	this->glActiveShaderProgram = &glActiveShaderProgram_enc;
 	this->glCreateShaderProgramv = (glCreateShaderProgramv_client_proc_t) &enc_unsupported;
 	this->glCreateShaderProgramvAEMU = &glCreateShaderProgramvAEMU_enc;
 	this->glProgramUniform1f = &glProgramUniform1f_enc;

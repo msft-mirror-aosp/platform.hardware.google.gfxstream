@@ -34,6 +34,8 @@ size_t glSizeof(GLenum type)
     case GL_HALF_FLOAT_OES:
         retval = 2;
         break;
+    case GL_IMAGE_2D:
+    case GL_IMAGE_3D:
     case GL_UNSIGNED_INT:
     case GL_INT:
     case GL_FLOAT:
@@ -84,6 +86,7 @@ size_t glSizeof(GLenum type)
         retval = 4 * 12;
         break;
     case GL_SAMPLER_2D:
+    case GL_SAMPLER_3D:
     case GL_SAMPLER_CUBE:
         retval = 4;
         break;
@@ -105,7 +108,8 @@ size_t glSizeof(GLenum type)
 		retval = 4 + 4;
         break;
     default:
-        ERR("**** ERROR unknown type 0x%x (%s,%d)\n", type, __FUNCTION__,__LINE__);
+        ALOGE("**** ERROR unknown type 0x%x (%s,%d)\n", type, __FUNCTION__,__LINE__);
+        retval = 4;
     }
     return retval;
 
@@ -295,16 +299,9 @@ size_t glUtilsParamSize(GLenum param)
     case GL_BLEND_SRC_ALPHA_OES:
     case GL_MAX_LIGHTS:
     case GL_SHADER_TYPE:
-    case GL_DELETE_STATUS:
     case GL_COMPILE_STATUS:
-    case GL_INFO_LOG_LENGTH:
     case GL_SHADER_SOURCE_LENGTH:
     case GL_CURRENT_PROGRAM:
-    case GL_LINK_STATUS:
-    case GL_VALIDATE_STATUS:
-    case GL_ATTACHED_SHADERS:
-    case GL_ACTIVE_UNIFORMS:
-    case GL_ACTIVE_ATTRIBUTES:
     case GL_SUBPIXEL_BITS:
     case GL_MAX_CUBE_MAP_TEXTURE_SIZE:
     case GL_NUM_SHADER_BINARY_FORMATS:
@@ -333,6 +330,25 @@ size_t glUtilsParamSize(GLenum param)
     case GL_CURRENT_QUERY:
     case GL_QUERY_RESULT:
     case GL_QUERY_RESULT_AVAILABLE:
+    case GL_READ_BUFFER:
+
+    case GL_ACTIVE_ATOMIC_COUNTER_BUFFERS:
+    case GL_ACTIVE_ATTRIBUTES:
+    case GL_ACTIVE_ATTRIBUTE_MAX_LENGTH:
+    case GL_ACTIVE_UNIFORM_BLOCKS:
+    case GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH:
+    case GL_ACTIVE_UNIFORMS:
+    case GL_ACTIVE_UNIFORM_MAX_LENGTH:
+    case GL_ATTACHED_SHADERS:
+    case GL_DELETE_STATUS:
+    case GL_INFO_LOG_LENGTH:
+    case GL_LINK_STATUS:
+    case GL_PROGRAM_BINARY_RETRIEVABLE_HINT:
+    case GL_PROGRAM_SEPARABLE:
+    case GL_TRANSFORM_FEEDBACK_BUFFER_MODE:
+    case GL_TRANSFORM_FEEDBACK_VARYINGS:
+    case GL_TRANSFORM_FEEDBACK_VARYING_MAX_LENGTH:
+    case GL_VALIDATE_STATUS:
         s = 1;
         break;
     case GL_ALIASED_LINE_WIDTH_RANGE:
@@ -347,6 +363,7 @@ size_t glUtilsParamSize(GLenum param)
     case GL_SPOT_DIRECTION:
     case GL_POINT_DISTANCE_ATTENUATION:
     case GL_CURRENT_NORMAL:
+    case GL_COMPUTE_WORK_GROUP_SIZE:
         s =  3;
         break;
     case GL_CURRENT_VERTEX_ATTRIB:

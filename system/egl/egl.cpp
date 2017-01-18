@@ -812,6 +812,7 @@ EGLBoolean eglGetConfigAttrib(EGLDisplay dpy, EGLConfig config, EGLint attribute
     }
     else
     {
+        ALOGD("%s: bad attrib 0x%x", __FUNCTION__, attribute);
         RETURN_ERROR(EGL_FALSE, EGL_BAD_ATTRIBUTE);
     }
 }
@@ -1254,14 +1255,20 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
     EGLint context_flags = 0;
     EGLint profile_mask = 0;
     EGLint reset_notification_strategy = 0;
+
+    bool wantedMajorVersion = false;
+    bool wantedMinorVersion = false;
+
     while (attrib_list && attrib_list[0] != EGL_NONE) {
            EGLint attrib_val = attrib_list[1];
         switch(attrib_list[0]) {
         case EGL_CONTEXT_MAJOR_VERSION_KHR:
             majorVersion = attrib_val;
+            wantedMajorVersion = true;
             break;
         case EGL_CONTEXT_MINOR_VERSION_KHR:
             minorVersion = attrib_val;
+            wantedMinorVersion = true;
             break;
         case EGL_CONTEXT_FLAGS_KHR:
             if ((attrib_val | EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR) ||
@@ -1294,6 +1301,10 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
             setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_NO_CONTEXT);
         }
         attrib_list+=2;
+    }
+
+    if (!wantedMajorVersion) {
+        majorVersion = 1;
     }
 
     // Support up to GLES 3.2 depending on advertised version from the host system.
@@ -1352,7 +1363,6 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
     if (majorVersion == 3 && minorVersion == 2) {
         rcMajorVersion = 4;
     }
-    ALOGD("%s: maj %d min %d rcv %d", __FUNCTION__, majorVersion, minorVersion, rcMajorVersion);
     uint32_t rcContext = rcEnc->rcCreateContext(rcEnc, (uintptr_t)config, rcShareCtx, rcMajorVersion);
     if (!rcContext) {
         ALOGE("rcCreateContext returned 0");
@@ -1360,6 +1370,7 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
     }
 
     EGLContext_t * context = new EGLContext_t(dpy, config, shareCtx, majorVersion, minorVersion);
+    ALOGD("%s: %p: maj %d min %d rcv %d", __FUNCTION__, context, majorVersion, minorVersion, rcMajorVersion);
     if (!context) {
         ALOGE("could not alloc egl context!");
         setErrorReturn(EGL_BAD_ALLOC, EGL_NO_CONTEXT);
@@ -1443,6 +1454,8 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
 
     //Now make the local bind
     if (context) {
+
+        ALOGD("%s: %p: ver %d %d", __FUNCTION__, context, context->majorVersion, context->minorVersion);
         // This is a nontrivial context.
         // The thread cannot be gralloc-only anymore.
         hostCon->setGrallocOnly(false);

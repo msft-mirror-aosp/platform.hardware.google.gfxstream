@@ -429,6 +429,19 @@ EGLBoolean eglDisplay::getAttribValue(EGLConfig config, EGLint attribIdx, EGLint
 
 EGLBoolean eglDisplay::getConfigAttrib(EGLConfig config, EGLint attrib, EGLint * value)
 {
+    if (attrib == EGL_FRAMEBUFFER_TARGET_ANDROID) {
+        *value = EGL_TRUE;
+        return EGL_TRUE;
+    }
+    if (attrib == EGL_COVERAGE_SAMPLES_NV ||
+        attrib == EGL_COVERAGE_BUFFERS_NV) {
+        *value = 0;
+        return EGL_TRUE;
+    }
+    if (attrib == EGL_DEPTH_ENCODING_NV) {
+        *value = EGL_DEPTH_ENCODING_NONE_NV;
+        return EGL_TRUE;
+    }
     //Though it seems that valueFor() is thread-safe, we don't take chanses
     pthread_mutex_lock(&m_lock);
     EGLBoolean ret = getAttribValue(config, m_attribs.valueFor(attrib), value);

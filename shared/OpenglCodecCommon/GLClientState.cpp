@@ -75,6 +75,7 @@ void GLClientState::init() {
 
     m_activeTexture = 0;
     m_currentProgram = 0;
+    m_currentShaderProgram = 0;
 
     m_pixelStore.unpack_alignment = 4;
     m_pixelStore.pack_alignment = 4;
@@ -215,6 +216,12 @@ void GLClientState::addVertexArrayObject(GLuint name) {
         attribState[i].size = 4; // 4 is the default size
         attribState[i].type = GL_FLOAT; // GL_FLOAT is the default type
     }
+
+    VertexAttribBindingVector& bindingState =
+        m_vaoMap.find(name)->second.bindingState;
+    for (int i = 0; i < bindingState.size(); i++) {
+        bindingState[i].effectiveStride = 16;
+    }
 }
 
 void GLClientState::removeVertexArrayObject(GLuint name) {
@@ -306,6 +313,31 @@ int GLClientState::getLocation(GLenum loc)
     return retval;
 }
 
+static void sClearIndexedBufferBinding(GLuint id, std::vector<GLClientState::BufferBinding>& bindings) {
+    for (size_t i = 0; i < bindings.size(); i++) {
+        if (bindings[i].buffer == id) {
+            bindings[i].offset = 0;
+            bindings[i].stride = 0;
+            bindings[i].effectiveStride = 16;
+            bindings[i].size = 0;
+            bindings[i].buffer = 0;
+            bindings[i].divisor = 0;
+        }
+    }
+}
+
+void GLClientState::addBuffer(GLuint id) {
+    mBufferIds.insert(id);
+}
+
+void GLClientState::removeBuffer(GLuint id) {
+    mBufferIds.erase(id);
+}
+
+bool GLClientState::bufferIdExists(GLuint id) const {
+    return mBufferIds.find(id) != mBufferIds.end();
+}
+
 void GLClientState::unBindBuffer(GLuint id) {
     if (m_arrayBuffer == id) m_arrayBuffer = 0;
     if (m_currVaoState.iboId() == id) m_currVaoState.iboId() = 0;
@@ -329,6 +361,12 @@ void GLClientState::unBindBuffer(GLuint id) {
         m_drawIndirectBuffer = 0;
     if (m_shaderStorageBuffer == id)
         m_shaderStorageBuffer = 0;
+
+    sClearIndexedBufferBinding(id, m_indexedTransformFeedbackBuffers);
+    sClearIndexedBufferBinding(id, m_indexedUniformBuffers);
+    sClearIndexedBufferBinding(id, m_indexedAtomicCounterBuffers);
+    sClearIndexedBufferBinding(id, m_indexedShaderStorageBuffers);
+    sClearIndexedBufferBinding(id, m_currVaoState.bufferBindings());
 }
 
 int GLClientState::bindBuffer(GLenum target, GLuint id)

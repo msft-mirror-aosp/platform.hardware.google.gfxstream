@@ -798,4 +798,16 @@ bool shaderType(GL2Encoder* ctx, GLenum type) {
     return false;
 }
 
+bool internalFormatTarget(GL2Encoder* ctx, GLenum target) {
+    int glesMajorVersion = ctx->majorVersion();
+    int glesMinorVersion = ctx->minorVersion();
+    switch (target) {
+    case GL_RENDERBUFFER:
+        return true;
+    case GL_TEXTURE_2D_MULTISAMPLE:
+        return glesMajorVersion >= 3 && glesMinorVersion >= 1;
+    }
+    return false;
+}
+
 } // namespace GLESv2Validation

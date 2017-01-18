@@ -80,6 +80,7 @@ private:
     GLint m_max_renderBufferSize;
     GLint m_max_textureSize;
     GLint m_max_3d_textureSize;
+    GLint m_max_vertexAttribStride;
 
     GLuint m_ssbo_offset_align;
     GLuint m_ubo_offset_align;
@@ -130,6 +131,10 @@ private:
     static void s_glBufferData(void *self, GLenum target, GLsizeiptr size, const GLvoid * data, GLenum usage);
     glBufferSubData_client_proc_t m_glBufferSubData_enc;
     static void s_glBufferSubData(void *self, GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid * data);
+
+    glGenBuffers_client_proc_t m_glGenBuffers_enc;
+    static void s_glGenBuffers(void *self, GLsizei n, GLuint * buffers);
+
     glDeleteBuffers_client_proc_t m_glDeleteBuffers_enc;
     static void s_glDeleteBuffers(void *self, GLsizei n, const GLuint * buffers);
 
@@ -526,6 +531,8 @@ private:
     static void s_glGetShaderiv(void* self, GLuint shader, GLenum pname, GLint* params);
 
     // 3.1
+    glActiveShaderProgram_client_proc_t m_glActiveShaderProgram_enc;
+    static void s_glActiveShaderProgram(void* self, GLuint pipeline, GLuint program);
     static GLuint s_glCreateShaderProgramv(void* self, GLenum type, GLsizei count, const char** strings);
 
     glProgramUniform1f_client_proc_t m_glProgramUniform1f_enc;
@@ -596,11 +603,26 @@ private:
     static void s_glProgramUniformMatrix3x4fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
     static void s_glProgramUniformMatrix4x3fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
 
+    glProgramParameteri_client_proc_t m_glProgramParameteri_enc;
     glUseProgramStages_client_proc_t m_glUseProgramStages_enc;
     glBindProgramPipeline_client_proc_t m_glBindProgramPipeline_enc;
 
+    static void s_glProgramParameteri(void* self, GLuint program, GLenum pname, GLint value);
     static void s_glUseProgramStages(void *self, GLuint pipeline, GLbitfield stages, GLuint program);
     static void s_glBindProgramPipeline(void *self, GLuint pipeline);
+
+    glGetProgramResourceiv_client_proc_t m_glGetProgramResourceiv_enc;
+    glGetProgramResourceIndex_client_proc_t m_glGetProgramResourceIndex_enc;
+    glGetProgramResourceLocation_client_proc_t m_glGetProgramResourceLocation_enc;
+    glGetProgramResourceName_client_proc_t m_glGetProgramResourceName_enc;
+    glGetProgramPipelineInfoLog_client_proc_t m_glGetProgramPipelineInfoLog_enc;
+
+    static void s_glGetProgramResourceiv(void* self, GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum * props, GLsizei bufSize, GLsizei * length, GLint * params);
+    static GLuint s_glGetProgramResourceIndex(void* self, GLuint program, GLenum programInterface, const char* name);
+    static GLint s_glGetProgramResourceLocation(void* self, GLuint program, GLenum programInterface, const char* name);
+    static void s_glGetProgramResourceName(void* self, GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei* length, char* name);
+
+    static void s_glGetProgramPipelineInfoLog(void* self, GLuint pipeline, GLsizei bufSize, GLsizei* length, GLchar* infoLog);
 
     // TODO: Compute shaders:
     // make sure it's OK to put memory barriers and compute dispatch

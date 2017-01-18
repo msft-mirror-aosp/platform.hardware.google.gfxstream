@@ -324,6 +324,7 @@ static const struct _gl2_funcs_by_name {
 	{"glValidateProgramPipeline", (void*)glValidateProgramPipeline},
 	{"glIsProgramPipeline", (void*)glIsProgramPipeline},
 	{"glUseProgramStages", (void*)glUseProgramStages},
+	{"glActiveShaderProgram", (void*)glActiveShaderProgram},
 	{"glCreateShaderProgramv", (void*)glCreateShaderProgramv},
 	{"glProgramUniform1f", (void*)glProgramUniform1f},
 	{"glProgramUniform2f", (void*)glProgramUniform2f},

@@ -16,6 +16,8 @@
 #ifndef _FIXED_BUFFER_H
 #define _FIXED_BUFFER_H
 
+#include <cutils/log.h>
+
 class FixedBuffer {
 public:
     FixedBuffer(size_t initialSize = 0) {

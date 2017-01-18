@@ -359,6 +359,7 @@ struct gl2_client_context_t {
 	glValidateProgramPipeline_client_proc_t glValidateProgramPipeline;
 	glIsProgramPipeline_client_proc_t glIsProgramPipeline;
 	glUseProgramStages_client_proc_t glUseProgramStages;
+	glActiveShaderProgram_client_proc_t glActiveShaderProgram;
 	glCreateShaderProgramv_client_proc_t glCreateShaderProgramv;
 	glCreateShaderProgramvAEMU_client_proc_t glCreateShaderProgramvAEMU;
 	glProgramUniform1f_client_proc_t glProgramUniform1f;
