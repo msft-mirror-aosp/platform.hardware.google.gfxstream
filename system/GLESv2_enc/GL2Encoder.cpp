@@ -955,16 +955,11 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count, bool hasClient
 }
 
 void GL2Encoder::flushDrawCall() {
-    // The idea is that
-    // commitBuffer / write() to qemu pipe will
-    // take at least ~20-60us, and for cases like
-    // sendVertexAttributes / glDrawElementsOffset,
-    // which sends only around few hundred bytes,
-    // we can get away with sending
-    // two at a time in the same ~20-60us,
-    // reducing average latency and gaining ~1 fps
-    // in Antutu on Linux + Quadro K2200.
-    if (m_drawCallFlushCount % 2 == 0) {
+    // This used to be every other draw call, but
+    // now that we are using real GPU buffers on host,
+    // set this to every 200 draw calls
+    // (tuned on z840 linux NVIDIA Quadro K2200)
+    if (m_drawCallFlushCount % 200 == 0) {
         m_stream->flush();
     }
     m_drawCallFlushCount++;
