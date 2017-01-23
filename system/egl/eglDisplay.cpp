@@ -33,6 +33,7 @@ static const char systemStaticEGLExtensions[] =
 
 // extensions to add dynamically depending on host-side support
 static const char kDynamicEGLExtNativeSync[] = "EGL_ANDROID_native_fence_sync ";
+static const char kDynamicEGLExtWaitSync[] = "EGL_KHR_wait_sync ";
 
 static void *s_gles_lib = NULL;
 static void *s_gles2_lib = NULL;
@@ -347,6 +348,10 @@ static char *buildExtensionString()
         if (hcon->rcEncoder()->hasNativeSync() &&
             !strstr(initialEGLExts, kDynamicEGLExtNativeSync)) {
             dynamicEGLExtensions += kDynamicEGLExtNativeSync;
+
+            if (hcon->rcEncoder()->hasNativeSyncV3()) {
+                dynamicEGLExtensions += kDynamicEGLExtWaitSync;
+            }
         }
 
         asprintf(&finalEGLExts, "%s%s", initialEGLExts, dynamicEGLExtensions.c_str());
