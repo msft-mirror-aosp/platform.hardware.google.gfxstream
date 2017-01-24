@@ -1276,7 +1276,6 @@ void GL2Encoder::s_glFinish(void *self)
 
 void GL2Encoder::s_glLinkProgram(void * self, GLuint program)
 {
-    ALOGD("%s: link %u\n", __FUNCTION__, program);
     GL2Encoder *ctx = (GL2Encoder *)self;
     bool isProgram = ctx->m_shared->isProgram(program);
     SET_ERROR_IF(!isProgram && !ctx->m_shared->isShader(program), GL_INVALID_VALUE);
@@ -1355,7 +1354,6 @@ GLuint GL2Encoder::s_glCreateProgram(void * self)
 
 GLuint GL2Encoder::s_glCreateShader(void *self, GLenum shaderType)
 {
-    ALOGD("%s: create shader of type 0x%x\n", __FUNCTION__, shaderType);
     GL2Encoder *ctx = (GL2Encoder*)self;
     RET_AND_SET_ERROR_IF(!GLESv2Validation::shaderType(ctx, shaderType), GL_INVALID_ENUM, 0);
     GLuint shader = ctx->m_glCreateShader_enc(self, shaderType);
@@ -1423,7 +1421,6 @@ void GL2Encoder::s_glDeleteShader(void *self, GLenum shader)
 
 void GL2Encoder::s_glAttachShader(void *self, GLuint program, GLuint shader)
 {
-    ALOGD("%s: attach shader %u to %u\n", __FUNCTION__, shader, program);
     GL2Encoder *ctx = (GL2Encoder*)self;
     ctx->m_glAttachShader_enc(self, program, shader);
     ctx->m_shared->attachShader(program, shader);
@@ -3949,7 +3946,6 @@ void GL2Encoder::s_glGetInternalformativ(void* self, GLenum target, GLenum inter
     SET_ERROR_IF(pname != GL_NUM_SAMPLE_COUNTS &&
                  pname != GL_SAMPLES,
                  GL_INVALID_ENUM);
-    ALOGD("%s: maj min %d %d", __FUNCTION__, ctx->majorVersion(), ctx->minorVersion());
     SET_ERROR_IF(!GLESv2Validation::internalFormatTarget(ctx, target), GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::unsizedFormat(internalformat) &&
                  !GLESv2Validation::colorRenderableFormat(internalformat) &&
@@ -4184,16 +4180,12 @@ void GL2Encoder::s_glActiveShaderProgram(void* self, GLuint pipeline, GLuint pro
 
 GLuint GL2Encoder::s_glCreateShaderProgramv(void* self, GLenum type, GLsizei count, const char** strings) {
 
-    ALOGD("%s: entry firststr %s", __FUNCTION__, strings[0]);
-
     GLint* length = NULL;
     GL2Encoder* ctx = (GL2Encoder*)self;
 
     int len = glUtilsCalcShaderSourceLen((char**)strings, length, count);
-    ALOGD("%s: len %d\n", __FUNCTION__, len);
     char *str = new char[len + 1];
     glUtilsPackStrings(str, (char**)strings, (GLint*)length, count);
-    ALOGD("%s: packed %s", __FUNCTION__, str);
    
     // Do GLSharedGroup and location WorkARound-specific initialization 
     // Phase 1: create a ShaderData and initialize with replaceSamplerExternalWith2D()
@@ -4202,7 +4194,6 @@ GLuint GL2Encoder::s_glCreateShaderProgramv(void* self, GLenum type, GLsizei cou
     ShaderData* sData = spData->shaderData;
 
     if (!replaceSamplerExternalWith2D(str, sData)) {
-        ALOGD("%s: failed to do stuf\n", __FUNCTION__);
         delete [] str;
         ctx->setError(GL_OUT_OF_MEMORY);
         ctx->m_shared->deleteShaderProgramDataById(spDataId);
@@ -4210,14 +4201,12 @@ GLuint GL2Encoder::s_glCreateShaderProgramv(void* self, GLenum type, GLsizei cou
     }
 
     GLuint res = ctx->glCreateShaderProgramvAEMU(ctx, type, count, str, len + 1);
-        ALOGD("%s: return from glcreateshaderprogramv. res %u\n", __FUNCTION__, res);
     delete [] str;
 
     // Phase 2: do glLinkProgram-related initialization for locationWorkARound
     GLint linkStatus = 0;
     ctx->glGetProgramiv(self, res, GL_LINK_STATUS ,&linkStatus);
     if (!linkStatus) {
-        ALOGD("%s: no link status :(\n", __FUNCTION__);
         ctx->m_shared->deleteShaderProgramDataById(spDataId);
         return -1;
     }
