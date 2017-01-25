@@ -939,6 +939,11 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count, bool hasClient
                     continue;
                 }
                 m_glEnableVertexAttribArray_enc(this, i);
+
+                if (datalen && (!offset || !((unsigned char*)offset + firstIndex))) {
+                    ALOGD("%s: bad offset / len!!!!!", __FUNCTION__);
+                    continue;
+                }
                 if (state.isInt) {
                     this->glVertexAttribIPointerDataAEMU(this, i, state.size, state.type, stride, (unsigned char *)offset + firstIndex, datalen);
                 } else {
@@ -1033,7 +1038,6 @@ void GL2Encoder::s_glDrawArrays(void *self, GLenum mode, GLint first, GLsizei co
         ctx->sendVertexAttributes(0, count, false);
         ctx->m_glDrawArrays_enc(ctx, mode, first, count);
     }
-    // ctx->m_stream->flush();
 }
 
 
@@ -1115,7 +1119,6 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
             ctx->sendVertexAttributes(minIndex, maxIndex - minIndex + 1, true);
             ctx->glDrawElementsData(ctx, mode, count, type, adjustedIndices,
                                     count * glSizeof(type));
-            // ctx->m_stream->flush();
             // XXX - OPTIMIZATION (see the other else branch) should be implemented
             if(!has_indirect_arrays) {
                 //ALOGD("unoptimized drawelements !!!\n");
