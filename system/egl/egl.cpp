@@ -1303,12 +1303,42 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
         attrib_list+=2;
     }
 
-    if (!wantedMajorVersion) {
-        majorVersion = 1;
-    }
-
     // Support up to GLES 3.2 depending on advertised version from the host system.
     DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_NO_CONTEXT);
+    if (rcEnc->getGLESMaxVersion() >= GLES_MAX_VERSION_3_0) {
+        if (!wantedMajorVersion) {
+            majorVersion = 1;
+            wantedMinorVersion = false;
+        }
+
+        if (wantedMajorVersion &&
+            majorVersion == 2) {
+            majorVersion = 3;
+            wantedMinorVersion = false;
+        }
+
+        if (majorVersion == 3 && !wantedMinorVersion) {
+            switch (rcEnc->getGLESMaxVersion()) {
+                case GLES_MAX_VERSION_3_0:
+                    minorVersion = 0;
+                    break;
+                case GLES_MAX_VERSION_3_1:
+                    minorVersion = 1;
+                    break;
+                case GLES_MAX_VERSION_3_2:
+                    minorVersion = 2;
+                    break;
+                default:
+                    minorVersion = 0;
+                    break;
+            }
+        }
+    } else {
+        if (!wantedMajorVersion) {
+            majorVersion = 1;
+        }
+    }
+
     switch (majorVersion) {
     case 1:
     case 2:

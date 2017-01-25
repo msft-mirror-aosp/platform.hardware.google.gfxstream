@@ -628,6 +628,7 @@ bool isCubeMapTarget(GLenum target) {
     f(GL_FLOAT) \
     f(GL_FLOAT_32_UNSIGNED_INT_24_8_REV) \
     f(GL_HALF_FLOAT) \
+    f(GL_HALF_FLOAT_OES) \
     f(GL_INT) \
     f(GL_SHORT) \
     f(GL_UNSIGNED_BYTE) \
