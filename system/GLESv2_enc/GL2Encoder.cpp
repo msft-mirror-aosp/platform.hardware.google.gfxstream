@@ -39,19 +39,33 @@ static GLubyte *gRendererString= (GLubyte *) "Android HW-GLES 3.0";
 static GLubyte *gVersionString= (GLubyte *) "OpenGL ES 3.0";
 static GLubyte *gExtensionsString= (GLubyte *) "GL_OES_EGL_image_external ";
 
-#define SET_ERROR_IF(condition,err) if((condition)) {                            \
+#define SET_ERROR_IF(condition, err) if((condition)) { \
         ALOGE("%s:%s:%d GL error 0x%x\n", __FILE__, __FUNCTION__, __LINE__, err); \
-        ctx->setError(err);                                    \
-        return;                                                  \
+        ctx->setError(err); \
+        return; \
     }
 
+#define SET_ERROR_WITH_MESSAGE_IF(condition, err, generator, genargs) if ((condition)) { \
+        std::string msg = generator genargs; \
+        ALOGE("%s:%s:%d GL error 0x%x\n" \
+              "Info: %s\n", __FILE__, __FUNCTION__, __LINE__, err, msg.c_str()); \
+        ctx->setError(err); \
+        return; \
+    } \
 
-#define RET_AND_SET_ERROR_IF(condition,err,ret) if((condition)) {                \
+#define RET_AND_SET_ERROR_IF(condition, err, ret) if((condition)) { \
         ALOGE("%s:%s:%d GL error 0x%x\n", __FILE__, __FUNCTION__, __LINE__, err); \
-        ctx->setError(err);                                    \
-        return ret;                                              \
-    }
+        ctx->setError(err);  \
+        return ret; \
+    } \
 
+#define RET_AND_SET_ERROR_WITH_MESSAGE_IF(condition, err, ret, generator, genargs) if((condition)) { \
+        std::string msg = generator genargs; \
+        ALOGE("%s:%s:%d GL error 0x%x\n" \
+              "Info: %s\n", __FILE__, __FUNCTION__, __LINE__, err, msg.c_str()); \
+        ctx->setError(err);   \
+        return ret; \
+    } \
 
 GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
         : gl2_encoder_context_t(stream, protocol)
@@ -76,7 +90,7 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     m_primitiveRestartEnabled = false;
     m_primitiveRestartIndex = 0;
 
-    //overrides
+    // overrides
 #define OVERRIDE(name)  m_##name##_enc = this-> name ; this-> name = &s_##name
 #define OVERRIDE_CUSTOM(name)  this-> name = &s_##name
 #define OVERRIDEWITH(name, target)  do { \
@@ -457,17 +471,22 @@ void GL2Encoder::s_glDeleteBuffers(void * self, GLsizei n, const GLuint * buffer
 
 static bool isValidVertexAttribIndex(void *self, GLuint indx)
 {
-    GL2Encoder *ctx = (GL2Encoder *) self;
+    GL2Encoder *ctx = (GL2Encoder *)self;
     GLint maxIndex;
     ctx->glGetIntegerv(self, GL_MAX_VERTEX_ATTRIBS, &maxIndex);
     return indx < maxIndex;
 }
 
+#define VALIDATE_VERTEX_ATTRIB_INDEX(index) \
+    SET_ERROR_WITH_MESSAGE_IF( \
+            !isValidVertexAttribIndex(self, index), GL_INVALID_VALUE, \
+            GLESv2Validation::vertexAttribIndexRangeErrorMsg, (ctx, index)); \
+
 void GL2Encoder::s_glVertexAttribPointer(void *self, GLuint indx, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid * ptr)
 {
     GL2Encoder *ctx = (GL2Encoder *)self;
     assert(ctx->m_state != NULL);
-    SET_ERROR_IF(!isValidVertexAttribIndex(self, indx), GL_INVALID_VALUE);
+    VALIDATE_VERTEX_ATTRIB_INDEX(indx);
     SET_ERROR_IF((size < 1 || size > 4), GL_INVALID_VALUE);
     SET_ERROR_IF(!GLESv2Validation::vertexAttribType(ctx, type), GL_INVALID_ENUM);
     SET_ERROR_IF(stride < 0, GL_INVALID_VALUE);
@@ -719,7 +738,7 @@ void GL2Encoder::s_glEnableVertexAttribArray(void *self, GLuint index)
 {
     GL2Encoder *ctx = (GL2Encoder *)self;
     assert(ctx->m_state);
-    SET_ERROR_IF(!isValidVertexAttribIndex(self, index), GL_INVALID_VALUE);
+    VALIDATE_VERTEX_ATTRIB_INDEX(index);
     ctx->m_glEnableVertexAttribArray_enc(ctx, index);
     ctx->m_state->enable(index, 1);
 }
@@ -728,7 +747,7 @@ void GL2Encoder::s_glDisableVertexAttribArray(void *self, GLuint index)
 {
     GL2Encoder *ctx = (GL2Encoder *)self;
     assert(ctx->m_state);
-    SET_ERROR_IF(!isValidVertexAttribIndex(self, index), GL_INVALID_VALUE);
+    VALIDATE_VERTEX_ATTRIB_INDEX(index);
     ctx->m_glDisableVertexAttribArray_enc(ctx, index);
     ctx->m_state->enable(index, 0);
 }
@@ -3070,7 +3089,7 @@ void GL2Encoder::s_glGetVertexAttribIuiv(void* self, GLuint index, GLenum pname,
 void GL2Encoder::s_glVertexAttribIPointer(void* self, GLuint index, GLint size, GLenum type, GLsizei stride, const GLvoid* pointer) {
     GL2Encoder *ctx = (GL2Encoder *)self;
     assert(ctx->m_state != NULL);
-    SET_ERROR_IF(!isValidVertexAttribIndex(self, index), GL_INVALID_VALUE);
+    VALIDATE_VERTEX_ATTRIB_INDEX(index);
     SET_ERROR_IF((size < 1 || size > 4), GL_INVALID_VALUE);
     SET_ERROR_IF(
         !(type == GL_BYTE ||
@@ -3101,7 +3120,7 @@ void GL2Encoder::s_glVertexAttribIPointer(void* self, GLuint index, GLint size, 
 void GL2Encoder::s_glVertexAttribDivisor(void* self, GLuint index, GLuint divisor) {
     GL2Encoder *ctx = (GL2Encoder *)self;
     assert(ctx->m_state != NULL);
-    SET_ERROR_IF(!isValidVertexAttribIndex(self, index), GL_INVALID_VALUE);
+    VALIDATE_VERTEX_ATTRIB_INDEX(index);
     ctx->m_state->setVertexAttribBinding(index, index);
     ctx->m_state->setVertexBindingDivisor(index, divisor);
     ctx->m_glVertexAttribDivisor_enc(ctx, index, divisor);
@@ -4630,7 +4649,7 @@ void GL2Encoder::s_glVertexAttribFormat(void* self, GLuint attribindex, GLint si
     GL2Encoder *ctx = (GL2Encoder*)self;
     GLClientState* state = ctx->m_state;
 
-    SET_ERROR_IF(!isValidVertexAttribIndex(self, attribindex), GL_INVALID_VALUE);
+    VALIDATE_VERTEX_ATTRIB_INDEX(attribindex);
     SET_ERROR_IF(!state->currentVertexArrayObject(), GL_INVALID_OPERATION);
 
     state->setVertexAttribFormat(attribindex, size, type, normalized, relativeoffset, false);
@@ -4641,7 +4660,7 @@ void GL2Encoder::s_glVertexAttribIFormat(void* self, GLuint attribindex, GLint s
     GL2Encoder *ctx = (GL2Encoder*)self;
     GLClientState* state = ctx->m_state;
 
-    SET_ERROR_IF(!isValidVertexAttribIndex(self, attribindex), GL_INVALID_VALUE);
+    VALIDATE_VERTEX_ATTRIB_INDEX(attribindex);
     SET_ERROR_IF(!state->currentVertexArrayObject(), GL_INVALID_OPERATION);
 
     state->setVertexAttribFormat(attribindex, size, type, GL_FALSE, relativeoffset, true);
@@ -4661,7 +4680,7 @@ void GL2Encoder::s_glVertexBindingDivisor(void* self, GLuint bindingindex, GLuin
 void GL2Encoder::s_glVertexAttribBinding(void* self, GLuint attribindex, GLuint bindingindex) {
     GL2Encoder *ctx = (GL2Encoder*)self;
     GLClientState* state = ctx->m_state;
-    SET_ERROR_IF(!isValidVertexAttribIndex(self, attribindex), GL_INVALID_VALUE);
+    VALIDATE_VERTEX_ATTRIB_INDEX(attribindex);
     SET_ERROR_IF(!state->currentVertexArrayObject(), GL_INVALID_OPERATION);
 
     state->setVertexAttribBinding(attribindex, bindingindex);

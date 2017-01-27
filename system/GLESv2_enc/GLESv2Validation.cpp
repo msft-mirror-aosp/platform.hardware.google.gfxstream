@@ -16,6 +16,8 @@
 
 #include "GLESv2Validation.h"
 
+#include <sstream>
+
 namespace GLESv2Validation {
 
 GLbitfield allBufferMapAccessFlags =
@@ -825,6 +827,14 @@ bool internalFormatTarget(GL2Encoder* ctx, GLenum target) {
         return glesMajorVersion >= 3 && glesMinorVersion >= 1;
     }
     return false;
+}
+
+std::string vertexAttribIndexRangeErrorMsg(GL2Encoder* ctx, GLuint index) {
+    std::stringstream ss;
+    GLint maxIndex;
+    ctx->glGetIntegerv(ctx, GL_MAX_VERTEX_ATTRIBS, &maxIndex);
+    ss << "Invalid vertex attribute index. Wanted index: " << index << ". Max index: " << maxIndex;
+    return ss.str();
 }
 
 } // namespace GLESv2Validation

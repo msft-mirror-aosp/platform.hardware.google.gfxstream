@@ -26,6 +26,8 @@
 
 #include "GL2Encoder.h"
 
+#include <string>
+
 namespace GLESv2Validation {
 
 extern GLbitfield allBufferMapAccessFlags;
@@ -72,6 +74,8 @@ bool pixelInternalFormat(GLenum internalformat);
 bool shaderType(GL2Encoder* ctx, GLenum type);
 
 bool internalFormatTarget(GL2Encoder* ctx, GLenum target);
+
+std::string vertexAttribIndexRangeErrorMsg(GL2Encoder* ctx, GLuint index);
 
 } // namespace GLESv2Validation
 
