@@ -1538,7 +1538,7 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
                     max_draw_buffers);
         }
 
-        //set the client state
+        // set the client state and share group
         if (context->majorVersion > 1) {
             hostCon->gl2Encoder()->setClientStateMakeCurrent(
                     contextState,
@@ -1577,6 +1577,10 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
                 s_display.gles2_iface()->init();
                 hostCon->gl2Encoder()->setInitialized();
                 ClientAPIExts::initClientFuncs(s_display.gles2_iface(), 1);
+            }
+            const char* exts = getGLString(GL_EXTENSIONS);
+            if (exts) {
+                hostCon->gl2Encoder()->setExtensions(exts);
             }
         }
         else {

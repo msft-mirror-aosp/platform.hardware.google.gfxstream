@@ -2280,9 +2280,15 @@ bool GL2Encoder::isCompleteFbo(GLenum target, const GLClientState* state,
         switch (fbo_format_info.rb_format) {
         case GL_R16F:
         case GL_RG16F:
-        case GL_RGB16F:
         case GL_RGBA16F:
-            res = false;
+        case GL_R32F:
+        case GL_RG32F:
+        case GL_RGBA32F:
+        case GL_R11F_G11F_B10F:
+            res = hasExtension("GL_EXT_color_buffer_float");
+            break;
+        case GL_RGB16F:
+            res = hasExtension("GL_EXT_color_buffer_half_float");
             break;
         case GL_STENCIL_INDEX8:
             if (attachment == GL_STENCIL_ATTACHMENT) {
@@ -2297,16 +2303,20 @@ bool GL2Encoder::isCompleteFbo(GLenum target, const GLClientState* state,
         break;
     case FBO_ATTACHMENT_TEXTURE:
         switch (fbo_format_info.tex_internalformat) {
-        case GL_RED:
-        case GL_RG:
         case GL_R16F:
         case GL_RG16F:
         case GL_RGBA16F:
-        case GL_RGB16F:
-        case GL_R11F_G11F_B10F:
         case GL_R32F:
         case GL_RG32F:
         case GL_RGBA32F:
+        case GL_R11F_G11F_B10F:
+            res = hasExtension("GL_EXT_color_buffer_float");
+            break;
+        case GL_RGB16F:
+            res = hasExtension("GL_EXT_color_buffer_half_float");
+            break;
+        case GL_RED:
+        case GL_RG:
         case GL_SRGB8:
         case GL_RGB32UI:
         case GL_RGB16UI:
@@ -3951,9 +3961,9 @@ void GL2Encoder::s_glGetInternalformativ(void* self, GLenum target, GLenum inter
                  GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::internalFormatTarget(ctx, target), GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::unsizedFormat(internalformat) &&
-                 !GLESv2Validation::colorRenderableFormat(internalformat) &&
-                 !GLESv2Validation::depthRenderableFormat(internalformat) &&
-                 !GLESv2Validation::stencilRenderableFormat(internalformat),
+                 !GLESv2Validation::colorRenderableFormat(ctx, internalformat) &&
+                 !GLESv2Validation::depthRenderableFormat(ctx, internalformat) &&
+                 !GLESv2Validation::stencilRenderableFormat(ctx, internalformat),
                  GL_INVALID_ENUM);
     SET_ERROR_IF(bufSize < 0, GL_INVALID_VALUE);
 
@@ -3992,8 +4002,8 @@ void GL2Encoder::s_glGenerateMipmap(void* self, GLenum target) {
                  GL_INVALID_OPERATION);
     SET_ERROR_IF(tex &&
                  !GLESv2Validation::unsizedFormat(internalformat) &&
-                 (!GLESv2Validation::colorRenderableFormat(internalformat) ||
-                  !GLESv2Validation::filterableTexFormat(internalformat)),
+                 !(GLESv2Validation::colorRenderableFormat(ctx, internalformat) &&
+                   GLESv2Validation::filterableTexFormat(ctx, internalformat)),
                  GL_INVALID_OPERATION);
 
     ctx->m_glGenerateMipmap_enc(ctx, target);

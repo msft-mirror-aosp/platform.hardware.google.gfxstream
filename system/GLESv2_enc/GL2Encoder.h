@@ -21,6 +21,8 @@
 #include "GLSharedGroup.h"
 #include "FixedBuffer.h"
 
+#include <string>
+
 class GL2Encoder : public gl2_encoder_context_t {
 public:
     GL2Encoder(IOStream *stream, ChecksumCalculator* protocol);
@@ -41,6 +43,12 @@ public:
     }
     int majorVersion() const { return m_currMajorVersion; }
     int minorVersion() const { return m_currMinorVersion; }
+    void setExtensions(const char* exts) {
+        m_currExtensions = std::string(exts);
+    }
+    bool hasExtension(const char* ext) const {
+        return m_currExtensions.find(ext) != std::string::npos;
+    }
     const GLClientState *state() { return m_state; }
     const GLSharedGroupPtr shared() { return m_shared; }
     void flush() { m_stream->flush(); }
@@ -66,6 +74,7 @@ private:
 
     int m_currMajorVersion;
     int m_currMinorVersion;
+    std::string m_currExtensions;
 
     bool    m_initialized;
     GLClientState *m_state;

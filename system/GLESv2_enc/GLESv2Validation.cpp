@@ -109,6 +109,7 @@ bool pixelStoreValue(GLenum param, GLint value) {
 
 bool rboFormat(GL2Encoder* ctx, GLenum internalformat) {
     int glesMajorVersion = ctx->majorVersion();
+
     switch (internalformat) {
     // Funny internal formats
     // that will cause an incomplete framebuffer
@@ -139,24 +140,26 @@ bool rboFormat(GL2Encoder* ctx, GLenum internalformat) {
     case GL_RGBA16I:
     case GL_RGBA32I:
     case GL_RGBA32UI:
-    // case GL_R11F_G11F_B10F:
-    // case GL_R32F:
-    // case GL_RG32F:
     case GL_RGB32F:
-    // case GL_RGBA32F:
         return glesMajorVersion >= 3;
         // These 4 formats are still not OK,
         // but dEQP expects GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT or
-        // GL_FRAMEBUFFER_UNSUPPORTED,
+        // GL_FRAMEBUFFER_UNSUPPORTED if the extension is not present,
         // not a GL_INVALID_ENUM from earlier on.
         // So let's forward these to the rest of
         // FBO initialization
+        // In GLES 3, these are rejected immediately if not
+        // supported.
     case GL_R16F:
     case GL_RG16F:
-    case GL_RGB16F:
     case GL_RGBA16F:
-        // But in GLES 3, these are rejected immediately.
-        return glesMajorVersion < 3;
+    case GL_R32F:
+    case GL_RG32F:
+    case GL_RGBA32F:
+    case GL_R11F_G11F_B10F:
+        return glesMajorVersion < 3 || ctx->hasExtension("GL_EXT_color_buffer_float");
+    case GL_RGB16F:
+        return glesMajorVersion < 3 || ctx->hasExtension("GL_EXT_color_buffer_half_float");
         // dEQP expects GL_FRAMEBUFFER_UNSUPPORTED or GL_FRAMEBUFFER_COMPLETE
         // for this format
         // These formats are OK
@@ -480,15 +483,34 @@ bool supportedCompressedFormat(GL2Encoder* ctx, GLenum internalformat) {
     return true;
 }
 
+bool unsizedFormat(GLenum format) {
+    switch (format) {
+    case GL_RED:
+    case GL_RED_INTEGER:
+    case GL_DEPTH_COMPONENT:
+    case GL_DEPTH_STENCIL:
+    case GL_RG:
+    case GL_RG_INTEGER:
+    case GL_RGB:
+    case GL_RGB_INTEGER:
+    case GL_RGBA:
+    case GL_RGBA_INTEGER:
+    case GL_ALPHA:
+    case GL_LUMINANCE:
+    case GL_LUMINANCE_ALPHA:
+        return true;
+    }
+    return false;
+}
+
 // TODO: fix this
-bool filterableTexFormat(GLenum internalformat) {
+bool filterableTexFormat(GL2Encoder* ctx, GLenum internalformat) {
     switch (internalformat) {
-    // 32F's are not filterable.
     case GL_R32F:
     case GL_RG32F:
     case GL_RGB32F:
     case GL_RGBA32F:
-    // No integer textures are filterable.
+        return ctx->hasExtension("GL_OES_texture_float");
     case GL_R8UI:
     case GL_R8I:
     case GL_R16UI:
@@ -513,26 +535,8 @@ bool filterableTexFormat(GLenum internalformat) {
     return true;
 }
 
-bool unsizedFormat(GLenum format) {
-    switch (format) {
-    case GL_RED:
-    case GL_RED_INTEGER:
-    case GL_DEPTH_COMPONENT:
-    case GL_DEPTH_STENCIL:
-    case GL_RG:
-    case GL_RG_INTEGER:
-    case GL_RGB:
-    case GL_RGB_INTEGER:
-    case GL_RGBA:
-    case GL_RGBA_INTEGER:
-    case GL_ALPHA:
-    case GL_LUMINANCE:
-    case GL_LUMINANCE_ALPHA:
-        return true;
-    }
-    return false;
-}
-bool colorRenderableFormat(GLenum internalformat) {
+
+bool colorRenderableFormat(GL2Encoder* ctx, GLenum internalformat) {
     switch (internalformat) {
     case GL_R8:
     case GL_RG8:
@@ -563,11 +567,23 @@ bool colorRenderableFormat(GLenum internalformat) {
     case GL_RGBA32I:
     case GL_RGBA32UI:
         return true;
+    case GL_R16F:
+    case GL_RG16F:
+    case GL_RGBA16F:
+    case GL_R32F:
+    case GL_RG32F:
+    case GL_RGBA32F:
+    case GL_R11F_G11F_B10F:
+        return ctx->hasExtension("GL_EXT_color_buffer_float");
+        break;
+    case GL_RGB16F:
+        return ctx->hasExtension("GL_EXT_color_buffer_half_float");
+        break;
     }
     return false;
 }
 
-bool depthRenderableFormat(GLenum internalformat) {
+bool depthRenderableFormat(GL2Encoder* ctx, GLenum internalformat) {
     switch (internalformat) {
     case GL_DEPTH_COMPONENT:
     case GL_DEPTH_STENCIL:
@@ -581,7 +597,7 @@ bool depthRenderableFormat(GLenum internalformat) {
     return false;
 }
 
-bool stencilRenderableFormat(GLenum internalformat) {
+bool stencilRenderableFormat(GL2Encoder* ctx, GLenum internalformat) {
     switch (internalformat) {
     case GL_DEPTH_STENCIL:
     case GL_STENCIL_INDEX8:

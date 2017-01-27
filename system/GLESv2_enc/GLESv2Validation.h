@@ -54,11 +54,13 @@ GLsizei compressedTexImageSize(GLenum internalformat, GLsizei width, GLsizei hei
 
 bool isCompressedFormat(GLenum internalformat);
 bool supportedCompressedFormat(GL2Encoder* ctx, GLenum internalformat);
-bool filterableTexFormat(GLenum internalformat);
+
 bool unsizedFormat(GLenum format);
-bool colorRenderableFormat(GLenum internalformat);
-bool depthRenderableFormat(GLenum internalformat);
-bool stencilRenderableFormat(GLenum internalformat);
+
+bool filterableTexFormat(GL2Encoder* ctx, GLenum internalformat);
+bool colorRenderableFormat(GL2Encoder* ctx, GLenum internalformat);
+bool depthRenderableFormat(GL2Encoder* ctx, GLenum internalformat);
+bool stencilRenderableFormat(GL2Encoder* ctx, GLenum internalformat);
 
 bool isCubeMapTarget(GLenum target);
 
