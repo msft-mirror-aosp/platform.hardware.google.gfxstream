@@ -2304,10 +2304,10 @@ bool GL2Encoder::isCompleteFbo(GLenum target, const GLClientState* state,
         case GL_RG32F:
         case GL_RGBA32F:
         case GL_R11F_G11F_B10F:
-            res = hasExtension("GL_EXT_color_buffer_float");
+            res = majorVersion() >= 3 && hasExtension("GL_EXT_color_buffer_float");
             break;
         case GL_RGB16F:
-            res = hasExtension("GL_EXT_color_buffer_half_float");
+            res = majorVersion() >= 3 && hasExtension("GL_EXT_color_buffer_half_float");
             break;
         case GL_STENCIL_INDEX8:
             if (attachment == GL_STENCIL_ATTACHMENT) {
@@ -2329,10 +2329,10 @@ bool GL2Encoder::isCompleteFbo(GLenum target, const GLClientState* state,
         case GL_RG32F:
         case GL_RGBA32F:
         case GL_R11F_G11F_B10F:
-            res = hasExtension("GL_EXT_color_buffer_float");
+            res = majorVersion() >= 3 && hasExtension("GL_EXT_color_buffer_float");
             break;
         case GL_RGB16F:
-            res = hasExtension("GL_EXT_color_buffer_half_float");
+            res = majorVersion() >= 3 && hasExtension("GL_EXT_color_buffer_half_float");
             break;
         case GL_RED:
         case GL_RG:

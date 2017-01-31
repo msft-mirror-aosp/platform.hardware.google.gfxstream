@@ -159,9 +159,9 @@ bool rboFormat(GL2Encoder* ctx, GLenum internalformat) {
     case GL_RG32F:
     case GL_RGBA32F:
     case GL_R11F_G11F_B10F:
-        return glesMajorVersion < 3 || ctx->hasExtension("GL_EXT_color_buffer_float");
+        return glesMajorVersion >= 3 && ctx->hasExtension("GL_EXT_color_buffer_float");
     case GL_RGB16F:
-        return glesMajorVersion < 3 || ctx->hasExtension("GL_EXT_color_buffer_half_float");
+        return glesMajorVersion >= 3 && ctx->hasExtension("GL_EXT_color_buffer_half_float");
         // dEQP expects GL_FRAMEBUFFER_UNSUPPORTED or GL_FRAMEBUFFER_COMPLETE
         // for this format
         // These formats are OK
@@ -539,6 +539,7 @@ bool filterableTexFormat(GL2Encoder* ctx, GLenum internalformat) {
 
 
 bool colorRenderableFormat(GL2Encoder* ctx, GLenum internalformat) {
+    int glesMajorVersion = ctx->majorVersion();
     switch (internalformat) {
     case GL_R8:
     case GL_RG8:
@@ -576,10 +577,10 @@ bool colorRenderableFormat(GL2Encoder* ctx, GLenum internalformat) {
     case GL_RG32F:
     case GL_RGBA32F:
     case GL_R11F_G11F_B10F:
-        return ctx->hasExtension("GL_EXT_color_buffer_float");
+        return glesMajorVersion >= 3 && ctx->hasExtension("GL_EXT_color_buffer_float");
         break;
     case GL_RGB16F:
-        return ctx->hasExtension("GL_EXT_color_buffer_half_float");
+        return glesMajorVersion >= 3 && ctx->hasExtension("GL_EXT_color_buffer_half_float");
         break;
     }
     return false;
