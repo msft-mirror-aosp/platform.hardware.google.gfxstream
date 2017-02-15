@@ -940,7 +940,14 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count, bool hasClient
             int stride = curr_binding.stride;
             int effectiveStride = curr_binding.effectiveStride;
             uintptr_t offset = curr_binding.offset;
+
             int firstIndex = effectiveStride * first;
+            if (firstIndex && divisor && !primcount) {
+                // If firstIndex != 0 according to effectiveStride * first,
+                // it needs to be adjusted if a divisor has been specified,
+                // even if we are not in glDraw***Instanced.
+                firstIndex = 0;
+            }
 
             if (bufferObject == 0) {
                 unsigned int datalen = state.elementSize * count;
