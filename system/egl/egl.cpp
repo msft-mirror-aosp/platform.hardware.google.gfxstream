@@ -175,6 +175,27 @@ EGLContext_t::EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* share
     deletePending(0),
     goldfishSyncFd(-1)
 {
+
+    DEFINE_HOST_CONNECTION;
+    switch (rcEnc->getGLESMaxVersion()) {
+        case GLES_MAX_VERSION_3_0:
+            deviceMajorVersion = 3;
+            deviceMinorVersion = 0;
+            break;
+        case GLES_MAX_VERSION_3_1:
+            deviceMajorVersion = 3;
+            deviceMinorVersion = 1;
+            break;
+        case GLES_MAX_VERSION_3_2:
+            deviceMajorVersion = 3;
+            deviceMinorVersion = 2;
+            break;
+        default:
+            deviceMajorVersion = 2;
+            deviceMinorVersion = 0;
+            break;
+    }
+
     flags = 0;
     clientState = new GLClientState(majorVersion, minorVersion);
      if (shareCtx)
@@ -1543,7 +1564,9 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
             hostCon->gl2Encoder()->setClientStateMakeCurrent(
                     contextState,
                     context->majorVersion,
-                    context->minorVersion);
+                    context->minorVersion,
+                    context->deviceMajorVersion,
+                    context->deviceMinorVersion);
             hostCon->gl2Encoder()->setSharedGroup(context->getSharedGroup());
         }
         else {

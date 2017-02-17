@@ -30,11 +30,17 @@ public:
     void setClientState(GLClientState *state) {
         m_state = state;
     }
-    void setClientStateMakeCurrent(GLClientState *state, int majorVersion, int minorVersion) {
+    void setClientStateMakeCurrent(GLClientState *state,
+                                   int majorVersion,
+                                   int minorVersion,
+                                   int deviceMajorVersion,
+                                   int deviceMinorVersion) {
         m_state = state;
         m_state->fromMakeCurrent();
         m_currMajorVersion = majorVersion;
         m_currMinorVersion = minorVersion;
+        m_deviceMajorVersion = deviceMajorVersion;
+        m_deviceMinorVersion = deviceMinorVersion;
     }
     void setSharedGroup(GLSharedGroupPtr shared) {
         m_shared = shared;
@@ -74,6 +80,8 @@ private:
 
     int m_currMajorVersion;
     int m_currMinorVersion;
+    int m_deviceMajorVersion;
+    int m_deviceMinorVersion;
     std::string m_currExtensions;
 
     bool    m_initialized;

@@ -528,10 +528,10 @@ void GL2Encoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
 
     switch (param) {
     case GL_MAJOR_VERSION:
-        *ptr = ctx->m_currMajorVersion;
+        *ptr = ctx->m_deviceMajorVersion;
         break;
     case GL_MINOR_VERSION:
-        *ptr = ctx->m_currMinorVersion;
+        *ptr = ctx->m_deviceMinorVersion;
         break;
     case GL_NUM_SHADER_BINARY_FORMATS:
         *ptr = 0;
