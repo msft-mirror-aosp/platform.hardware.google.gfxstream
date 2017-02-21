@@ -43,7 +43,7 @@ struct goldfish_dma_ioctl_info {
 // userspace interface
 struct goldfish_dma_context {
     void* mapped;
-#if !defined(__x86_64__)
+#if !defined(__x86_64__) || !defined(__aarch64__) || !defined(__mips64__)
     int mapped_padding;
 #endif
     uint64_t sz; // size of reservation
