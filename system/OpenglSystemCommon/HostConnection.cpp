@@ -253,9 +253,6 @@ void HostConnection::queryAndSetDmaImpl(ExtendedRCEncoderContext *rcEnc) {
 
 void HostConnection::queryAndSetGLESMaxVersion(ExtendedRCEncoderContext* rcEnc) {
     std::string glExtensions = queryGLExtensions(rcEnc);
-#if PLATFORM_SDK_VERSION <= 22 || (!defined(__i386__) && !defined(__x86_64__))
-    rcEnc->setGLESMaxVersion(GLES_MAX_VERSION_2);
-#else
     if (glExtensions.find(kGLESMaxVersion_2) != std::string::npos) {
         rcEnc->setGLESMaxVersion(GLES_MAX_VERSION_2);
     } else if (glExtensions.find(kGLESMaxVersion_3_0) != std::string::npos) {
@@ -269,5 +266,4 @@ void HostConnection::queryAndSetGLESMaxVersion(ExtendedRCEncoderContext* rcEnc) 
               glExtensions.c_str());
         rcEnc->setGLESMaxVersion(GLES_MAX_VERSION_2);
     }
-#endif
 }
