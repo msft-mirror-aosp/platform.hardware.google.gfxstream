@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include "renderControl_client_context.h"
 
-#ifndef GL_TRUE
 extern "C" {
 	GLint rcGetRendererVersion();
 	EGLint rcGetEGLVersion(EGLint* major, EGLint* minor);
@@ -44,7 +43,6 @@ extern "C" {
 	uint32_t rcCreateColorBufferDMA(uint32_t width, uint32_t height, GLenum internalFormat, int frameworkFormat);
 };
 
-#endif
 #ifndef GET_CONTEXT
 static renderControl_client_context_t::CONTEXT_ACCESSOR_TYPE *getCurrentContext = NULL;
 void renderControl_client_context_t::setContextAccessor(CONTEXT_ACCESSOR_TYPE *f) { getCurrentContext = f; }
