@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include "gl2_client_context.h"
 
-#ifndef GL_TRUE
 extern "C" {
 	void glActiveTexture(GLenum texture);
 	void glAttachShader(GLuint program, GLuint shader);
@@ -419,7 +418,6 @@ extern "C" {
 	void glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint* params);
 };
 
-#endif
 #ifndef GET_CONTEXT
 static gl2_client_context_t::CONTEXT_ACCESSOR_TYPE *getCurrentContext = NULL;
 void gl2_client_context_t::setContextAccessor(CONTEXT_ACCESSOR_TYPE *f) { getCurrentContext = f; }

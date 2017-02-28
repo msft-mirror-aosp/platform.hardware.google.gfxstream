@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include "gl_client_context.h"
 
-#ifndef GL_TRUE
 extern "C" {
 	void glAlphaFunc(GLenum func, GLclampf ref);
 	void glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
@@ -299,7 +298,6 @@ extern "C" {
 	void glEndTilingQCOM(GLbitfield preserveMask);
 };
 
-#endif
 #ifndef GET_CONTEXT
 static gl_client_context_t::CONTEXT_ACCESSOR_TYPE *getCurrentContext = NULL;
 void gl_client_context_t::setContextAccessor(CONTEXT_ACCESSOR_TYPE *f) { getCurrentContext = f; }
