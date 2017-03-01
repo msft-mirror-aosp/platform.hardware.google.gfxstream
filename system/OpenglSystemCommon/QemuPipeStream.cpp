@@ -15,7 +15,7 @@
 */
 #include "QemuPipeStream.h"
 #if PLATFORM_SDK_VERSION > 24
-#include <system/qemu_pipe.h>
+#include <qemu_pipe.h>
 #else // PLATFORM_SDK_VERSION
 #include <hardware/qemu_pipe.h>
 #endif //PLATFORM_SDK_VERSION

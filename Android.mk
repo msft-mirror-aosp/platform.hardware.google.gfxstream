@@ -16,7 +16,8 @@ EMUGL_PATH := $(call my-dir)
 # This is always set to a module's LOCAL_C_INCLUDES
 # See the definition of emugl-begin-module in common.mk
 #
-EMUGL_COMMON_INCLUDES := $(EMUGL_PATH)/host/include/libOpenglRender $(EMUGL_PATH)/system/include
+EMUGL_COMMON_INCLUDES := $(EMUGL_PATH)/host/include/libOpenglRender $(EMUGL_PATH)/system/include \
+                         system/core/qemu_pipe/include
 
 # common cflags used by several modules
 # This is always set to a module's LOCAL_CFLAGS
