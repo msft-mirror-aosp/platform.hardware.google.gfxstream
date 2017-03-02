@@ -52,11 +52,7 @@ QemuPipeStream::~QemuPipeStream()
 
 int QemuPipeStream::connect(void)
 {
-#if PLATFORM_SDK_VERSION > 24
-     m_sock = qemu_pipe_open("pipe:opengles");
-#else // PLATFORM_SDK_VERSION
      m_sock = qemu_pipe_open("opengles");
-#endif // PLATFORM_SDK_VERSION
     if (!valid()) {
         ALOGE("%s: failed with fd %d errno %d", __FUNCTION__, m_sock, errno);
         return -1;
