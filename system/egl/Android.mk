@@ -13,8 +13,12 @@ LOCAL_SRC_FILES := \
     egl.cpp \
     ClientAPIExts.cpp
 
-LOCAL_SHARED_LIBRARIES += libdl
+ifeq ($(TARGET_USES_HWC2), true)
+    LOCAL_CFLAGS += -DUSE_HWC2
+    LOCAL_STATIC_LIBRARIES += libsurfaceInterface
+endif
 
+LOCAL_SHARED_LIBRARIES += libdl
 # Used to access the Bionic private OpenGL TLS slot
 LOCAL_C_INCLUDES += bionic/libc/private
 

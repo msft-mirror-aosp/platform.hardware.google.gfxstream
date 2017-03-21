@@ -15,6 +15,8 @@
 */
 #include "eglDisplay.h"
 #include "HostConnection.h"
+#include "goldfishHwc2.h"
+
 #include <dlfcn.h>
 
 #include <string>
@@ -70,6 +72,7 @@ eglDisplay::eglDisplay() :
     pthread_mutex_init(&m_lock, NULL);
     pthread_mutex_init(&m_ctxLock, NULL);
     pthread_mutex_init(&m_surfaceLock, NULL);
+    surfaceInterface_init();
 }
 
 eglDisplay::~eglDisplay()

@@ -1,0 +1,13 @@
+ifneq (false,$(BUILD_EMULATOR_OPENGL_DRIVER))
+
+LOCAL_PATH := $(call my-dir)
+
+$(call emugl-begin-static-library,libsurfaceInterface)
+$(call emugl-import,libOpenglSystemCommon)
+
+LOCAL_SRC_FILES := surfaceInterface.cpp
+LOCAL_SHARED_LIBRARIES := libgui
+
+$(call emugl-end-module)
+
+endif # BUILD_EMULATOR_OPENGL_DRIVER != false
