@@ -57,6 +57,7 @@ void glEGLImageTargetTexture2DOES(void * self, GLenum target, GLeglImageOES img)
     DBG("glEGLImageTargetTexture2DOES v2 target=%#x img=%p\n", target, img);
 
     EGLImage_t *image = (EGLImage_t*)img;
+    GLeglImageOES hostImage = reinterpret_cast<GLeglImageOES>((intptr_t)image->host_egl_image);
 
     if (image->target == EGL_NATIVE_BUFFER_ANDROID) {
         //TODO: check error - we don't have a way to set gl error
@@ -74,13 +75,13 @@ void glEGLImageTargetTexture2DOES(void * self, GLenum target, GLeglImageOES img)
         DEFINE_AND_VALIDATE_HOST_CONNECTION();
 
         ctx->override2DTextureTarget(target);
+        ctx->associateEGLImage(target, hostImage);
         rcEnc->rcBindTexture(rcEnc, ((cb_handle_t *)(native_buffer->handle))->hostHandle);
         ctx->restore2DTextureTarget(target);
     }
     else if (image->target == EGL_GL_TEXTURE_2D_KHR) {
         GET_CONTEXT;
         ctx->override2DTextureTarget(target);
-        GLeglImageOES hostImage = reinterpret_cast<GLeglImageOES>((intptr_t)image->host_egl_image);
         ctx->associateEGLImage(target, hostImage);
         ctx->m_glEGLImageTargetTexture2DOES_enc(self, target, hostImage);
         ctx->restore2DTextureTarget(target);
