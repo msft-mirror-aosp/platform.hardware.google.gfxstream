@@ -107,10 +107,13 @@ private:
     GLESMaxVersion m_glesMaxVersion;
 };
 
+struct EGLThreadInfo;
+
 class HostConnection
 {
 public:
     static HostConnection *get();
+    static HostConnection *getWithThreadInfo(EGLThreadInfo* tInfo);
     static void exit();
     ~HostConnection();
 

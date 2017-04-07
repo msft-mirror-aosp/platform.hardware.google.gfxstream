@@ -18,19 +18,30 @@
 
 thread_store_t s_tls = THREAD_STORE_INITIALIZER;
 
+static bool sDefaultTlsDestructorCallback(void* ptr) { return true; }
+static bool (*sTlsDestructorCallback)(void*) = sDefaultTlsDestructorCallback;
+
 static void tlsDestruct(void *ptr)
 {
+    sTlsDestructorCallback(ptr);
     if (ptr) {
         EGLThreadInfo *ti = (EGLThreadInfo *)ptr;
         delete ti->hostConn;
         delete ti;
+#ifdef __ANDROID__
         ((void **)__get_tls())[TLS_SLOT_OPENGL] = NULL;
+#endif
     }
 }
 
-EGLThreadInfo *slow_getEGLThreadInfo()
+void setTlsDestructor(tlsDtorCallback func) {
+    sTlsDestructorCallback = func;
+}
+
+EGLThreadInfo *goldfish_get_egl_tls()
 {
-    EGLThreadInfo *ti = (EGLThreadInfo *)thread_store_get(&s_tls);
+    EGLThreadInfo* ti = (EGLThreadInfo*)thread_store_get(&s_tls);
+
     if (ti) return ti;
 
     ti = new EGLThreadInfo();
