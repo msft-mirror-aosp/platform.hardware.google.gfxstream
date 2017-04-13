@@ -1286,6 +1286,7 @@ static int gralloc_device_open(const hw_module_t* module,
         if (NULL == dev) {
             return -ENOMEM;
         }
+        memset(dev, 0, sizeof(gralloc_device_t));
 
         // Initialize our device structure
         //
