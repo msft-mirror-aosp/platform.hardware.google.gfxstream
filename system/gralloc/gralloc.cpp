@@ -677,6 +677,12 @@ static int gralloc_free(alloc_device_t* dev,
     D("%s: for buf %p ptr %p size %d\n",
       __FUNCTION__, handle, cb->ashmemBase, cb->ashmemSize);
 
+    if (cb->hostHandle) {
+        DEFINE_AND_VALIDATE_HOST_CONNECTION;
+        D("Closing host ColorBuffer 0x%x\n", cb->hostHandle);
+        rcEnc->rcCloseColorBuffer(rcEnc, cb->hostHandle);
+    }
+
     //
     // detach and unmap ashmem area if present
     //
