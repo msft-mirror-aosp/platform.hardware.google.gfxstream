@@ -79,7 +79,7 @@ struct MemRegionInfo {
 };
 
 struct MemRegionInfoCmp {
-    bool operator()(const MemRegionInfo& a, const MemRegionInfo& b) {
+    bool operator()(const MemRegionInfo& a, const MemRegionInfo& b) const {
         return a.ashmemBase < b.ashmemBase;
     }
 };
@@ -111,8 +111,8 @@ struct gralloc_dmaregion_t {
 };
 
 // global device instance
-static gralloc_memregions_t* s_grdev = nullptr;
-static gralloc_dmaregion_t* s_grdma = nullptr;
+static gralloc_memregions_t* s_grdev = NULL;
+static gralloc_dmaregion_t* s_grdma = NULL;
 
 void init_gralloc_memregions() {
     if (s_grdev) return;
