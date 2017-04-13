@@ -134,6 +134,7 @@ void init_gralloc_dmaregion() {
 }
 
 void get_gralloc_dmaregion() {
+    if (!s_grdma) return;
     pthread_mutex_lock(&s_grdma->lock);
     s_grdma->refcount++;
     D("%s: call. refcount: %u\n", __FUNCTION__, s_grdma->refcount);
@@ -141,6 +142,7 @@ void get_gralloc_dmaregion() {
 }
 
 static void resize_gralloc_dmaregion_locked(uint32_t new_sz) {
+    if (!s_grdma) return;
     if (s_grdma->goldfish_dma.mapped) {
         goldfish_dma_unmap(&s_grdma->goldfish_dma);
     }
@@ -150,6 +152,7 @@ static void resize_gralloc_dmaregion_locked(uint32_t new_sz) {
 }
 
 bool put_gralloc_dmaregion() {
+    if (!s_grdma) return false;
     pthread_mutex_lock(&s_grdma->lock);
     D("%s: call. refcount before: %u\n", __FUNCTION__, s_grdma->refcount);
     s_grdma->refcount--;
@@ -165,6 +168,7 @@ bool put_gralloc_dmaregion() {
 }
 
 void gralloc_dmaregion_register_ashmem(uint32_t sz) {
+    if (!s_grdma) return;
     pthread_mutex_lock(&s_grdma->lock);
     D("%s: for sz %u, refcount %u", __FUNCTION__, sz, s_grdma->refcount);
     uint32_t new_sz = std::max(s_grdma->sz, sz);
@@ -315,7 +319,7 @@ static void updateHostColorBuffer(cb_handle_t* cb,
 
     char* convertedBuf = NULL;
     if ((doLocked && is_rgb_format) ||
-        (s_grdma->goldfish_dma.fd < 0 &&
+        (!s_grdma &&
          (doLocked || !is_rgb_format))) {
         convertedBuf = new char[rgbSz];
         to_send = convertedBuf;
@@ -329,7 +333,7 @@ static void updateHostColorBuffer(cb_handle_t* cb,
                 width, height, top, left, bpp);
     }
 
-    if (s_grdma->goldfish_dma.fd > 0) {
+    if (s_grdma) {
         if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12) {
             get_yv12_offsets(width, height, NULL, NULL,
                              &send_buffer_size);
@@ -615,7 +619,7 @@ static int gralloc_alloc(alloc_device_t* dev,
                      GRALLOC_USAGE_HW_FB | GRALLOC_USAGE_SW_READ_MASK) ) {
 #endif // PLATFORM_SDK_VERSION
             if (hostCon && rcEnc) {
-                if (s_grdma->goldfish_dma.fd > 0) {
+                if (s_grdma) {
                     cb->hostHandle = rcEnc->rcCreateColorBufferDMA(rcEnc, w, h, glFormat, cb->emuFrameworkFormat);
                 } else {
                     cb->hostHandle = rcEnc->rcCreateColorBuffer(rcEnc, w, h, glFormat);
@@ -857,11 +861,13 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
         }
         cb->mappedPid = getpid();
 
-        init_gralloc_dmaregion();
-        gralloc_dmaregion_register_ashmem(cb->ashmemSize);
+        DEFINE_AND_VALIDATE_HOST_CONNECTION;
+        if (rcEnc->getDmaVersion() > 0) {
+            init_gralloc_dmaregion();
+            gralloc_dmaregion_register_ashmem(cb->ashmemSize);
+        }
 
         if (cb->hostHandle != 0) {
-            DEFINE_AND_VALIDATE_HOST_CONNECTION;
             D("Opening host ColorBuffer 0x%x\n", cb->hostHandle);
             rcEnc->rcOpenColorBuffer2(rcEnc, cb->hostHandle);
         }
