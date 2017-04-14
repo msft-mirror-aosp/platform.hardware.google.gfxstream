@@ -28,7 +28,7 @@
 #include <ws2tcpip.h>
 #endif
 
-static int socket_loopback_server(int port, int type)
+static int _socket_loopback_server(int port, int type)
 {
     struct sockaddr_in addr;
 
@@ -81,7 +81,7 @@ TcpStream::TcpStream(int sock, size_t bufSize) :
 
 int TcpStream::listen(unsigned short port)
 {
-    m_sock = socket_loopback_server(port, SOCK_STREAM);
+    m_sock = _socket_loopback_server(port, SOCK_STREAM);
     if (!valid()) return int(ERR_INVALID_SOCKET);
 
     return 0;
