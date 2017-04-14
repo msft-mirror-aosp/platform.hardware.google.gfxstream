@@ -854,6 +854,12 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
         return -EINVAL;
     }
 
+    if (cb->hostHandle != 0) {
+        DEFINE_AND_VALIDATE_HOST_CONNECTION;
+        D("Opening host ColorBuffer 0x%x\n", cb->hostHandle);
+        rcEnc->rcOpenColorBuffer2(rcEnc, cb->hostHandle);
+    }
+
     //
     // if the color buffer has ashmem region and it is not mapped in this
     // process map it now.
@@ -873,10 +879,6 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
             gralloc_dmaregion_register_ashmem(cb->ashmemSize);
         }
 
-        if (cb->hostHandle != 0) {
-            D("Opening host ColorBuffer 0x%x\n", cb->hostHandle);
-            rcEnc->rcOpenColorBuffer2(rcEnc, cb->hostHandle);
-        }
     }
 
     if (cb->ashmemSize > 0) {
@@ -903,6 +905,12 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
     }
 
 
+    if (cb->hostHandle) {
+        D("Closing host ColorBuffer 0x%x\n", cb->hostHandle);
+        DEFINE_AND_VALIDATE_HOST_CONNECTION;
+        rcEnc->rcCloseColorBuffer(rcEnc, cb->hostHandle);
+    }
+
     //
     // unmap ashmem region if it was previously mapped in this process
     // (through register_buffer)
@@ -915,9 +923,6 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
         if (!SHOULD_UNMAP) goto done;
 
         DEFINE_AND_VALIDATE_HOST_CONNECTION;
-
-        D("Closing host ColorBuffer 0x%x\n", cb->hostHandle);
-        rcEnc->rcCloseColorBuffer(rcEnc, cb->hostHandle);
 
         void *vaddr;
         int err = munmap((void *)cb->ashmemBase, cb->ashmemSize);
