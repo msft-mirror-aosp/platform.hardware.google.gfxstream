@@ -28,6 +28,38 @@
 #include <ws2tcpip.h>
 #endif
 
+static int socket_loopback_server(int port, int type)
+{
+    struct sockaddr_in addr;
+
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+
+
+    int s = socket(AF_INET, type, 0);
+    if (s < 0)
+        return -1;
+
+    int n = 1;
+    setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (const char *) &n, sizeof(n));
+
+    if (bind(s, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
+        close(s);
+        return -1;
+    }
+
+    if (type == SOCK_STREAM) {
+        if (listen(s, 4) < 0) {
+            close(s);
+            return -1;
+        }
+    }
+
+    return s;
+}
+
 TcpStream::TcpStream(size_t bufSize) :
     SocketStream(bufSize)
 {
