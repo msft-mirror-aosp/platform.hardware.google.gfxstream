@@ -430,6 +430,9 @@ EGLBoolean eglDisplay::getAttribValue(EGLConfig config, EGLint attribIdx, EGLint
     return EGL_TRUE;
 }
 
+#define EGL_COLOR_COMPONENT_TYPE_EXT 0x3339
+#define EGL_COLOR_COMPONENT_TYPE_FIXED_EXT 0x333A
+
 EGLBoolean eglDisplay::getConfigAttrib(EGLConfig config, EGLint attrib, EGLint * value)
 {
     if (attrib == EGL_FRAMEBUFFER_TARGET_ANDROID) {
@@ -443,6 +446,10 @@ EGLBoolean eglDisplay::getConfigAttrib(EGLConfig config, EGLint attrib, EGLint *
     }
     if (attrib == EGL_DEPTH_ENCODING_NV) {
         *value = EGL_DEPTH_ENCODING_NONE_NV;
+        return EGL_TRUE;
+    }
+    if  (attrib == EGL_COLOR_COMPONENT_TYPE_EXT) {
+        *value = EGL_COLOR_COMPONENT_TYPE_FIXED_EXT;
         return EGL_TRUE;
     }
     //Though it seems that valueFor() is thread-safe, we don't take chanses

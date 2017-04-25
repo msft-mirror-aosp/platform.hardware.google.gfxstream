@@ -144,6 +144,18 @@ const char *  eglStrError(EGLint err)
         return ret; \
     }
 
+#define DEFINE_AND_VALIDATE_HOST_CONNECTION_FOR_TLS(ret, tls) \
+    HostConnection *hostCon = HostConnection::getWithThreadInfo(tls); \
+    if (!hostCon) { \
+        ALOGE("egl: Failed to get host connection\n"); \
+        return ret; \
+    } \
+    ExtendedRCEncoderContext *rcEnc = hostCon->rcEncoder(); \
+    if (!rcEnc) { \
+        ALOGE("egl: Failed to get renderControl encoder context\n"); \
+        return ret; \
+    }
+
 #define VALIDATE_CONTEXT_RETURN(context,ret)  \
     if (!(context)) {                         \
         RETURN_ERROR(ret,EGL_BAD_CONTEXT);    \
@@ -1112,39 +1124,38 @@ EGLBoolean eglWaitClient()
     return eglWaitGL();
 }
 
+// We may need to trigger this directly from the TLS destructor.
+static EGLBoolean s_eglReleaseThreadImpl(EGLThreadInfo* tInfo) {
+    if (!tInfo) return EGL_TRUE;
+
+    tInfo->eglError = EGL_SUCCESS;
+    EGLContext_t* context = tInfo->currentContext;
+
+    if (!context) return EGL_TRUE;
+
+    // The following code is doing pretty much the same thing as
+    // eglMakeCurrent(&s_display, EGL_NO_CONTEXT, EGL_NO_SURFACE, EGL_NO_SURFACE)
+    // with the only issue that we do not require a valid display here.
+    DEFINE_AND_VALIDATE_HOST_CONNECTION_FOR_TLS(EGL_FALSE, tInfo);
+    // We are going to call makeCurrent on the null context and surface
+    // anyway once we are on the host, so skip rcMakeCurrent here.
+    // rcEnc->rcMakeCurrent(rcEnc, 0, 0, 0);
+    context->flags &= ~EGLContext_t::IS_CURRENT;
+    if (context->deletePending) {
+        if (context->rcContext) {
+            rcEnc->rcDestroyContext(rcEnc, context->rcContext);
+            context->rcContext = 0;
+        }
+        delete context;
+    }
+    tInfo->currentContext = 0;
+
+    return EGL_TRUE;
+}
+
 EGLBoolean eglReleaseThread()
 {
-    EGLThreadInfo *tInfo = getEGLThreadInfo();
-    if (tInfo) {
-        tInfo->eglError = EGL_SUCCESS;
-        EGLContext_t* context = tInfo->currentContext;
-        if (context) {
-            // The following code is doing pretty much the same thing as
-            // eglMakeCurrent(&s_display, EGL_NO_CONTEXT, EGL_NO_SURFACE, EGL_NO_SURFACE)
-            // with the only issue that we do not require a valid display here.
-            DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
-            rcEnc->rcMakeCurrent(rcEnc, 0, 0, 0);
-             if (context->majorVersion > 1) {
-                hostCon->gl2Encoder()->setClientState(NULL);
-                hostCon->gl2Encoder()->setSharedGroup(GLSharedGroupPtr());
-            }
-            else {
-                hostCon->glEncoder()->setClientState(NULL);
-                hostCon->glEncoder()->setSharedGroup(GLSharedGroupPtr());
-            }
-            context->flags &= ~EGLContext_t::IS_CURRENT;
-
-            if (context->deletePending) {
-                if (context->rcContext) {
-                    rcEnc->rcDestroyContext(rcEnc, context->rcContext);
-                    context->rcContext = 0;
-                }
-                delete context;
-            }
-            tInfo->currentContext = 0;
-        }
-    }
-    return EGL_TRUE;
+    return s_eglReleaseThreadImpl(getEGLThreadInfo());
 }
 
 EGLSurface eglCreatePbufferFromClientBuffer(EGLDisplay dpy, EGLenum buftype, EGLClientBuffer buffer, EGLConfig config, const EGLint *attrib_list)
@@ -1464,6 +1475,10 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
     VALIDATE_SURFACE_RETURN(draw, EGL_FALSE);
     VALIDATE_SURFACE_RETURN(read, EGL_FALSE);
 
+    // Only place to initialize the TLS destructor; any
+    // thread can suddenly jump in any eglMakeCurrent
+    setTlsDestructor((tlsDtorCallback)s_eglReleaseThreadImpl);
+
     if ((read == EGL_NO_SURFACE && draw == EGL_NO_SURFACE) && (ctx != EGL_NO_CONTEXT))
         setErrorReturn(EGL_BAD_MATCH, EGL_FALSE);
     if ((read != EGL_NO_SURFACE || draw != EGL_NO_SURFACE) && (ctx == EGL_NO_CONTEXT))
@@ -1496,7 +1511,8 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
     }
 
     if (context && (context->flags & EGLContext_t::IS_CURRENT) && (context != tInfo->currentContext)) {
-        //context is current to another thread
+        // context is current to another thread
+        ALOGE("%s: error: EGL_BAD_ACCESS: context %p current to another thread!\n", __FUNCTION__, context);
         setErrorReturn(EGL_BAD_ACCESS, EGL_FALSE);
     }
 
@@ -1509,7 +1525,7 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
     //Now make the local bind
     if (context) {
 
-        ALOGD("%s: %p: ver %d %d", __FUNCTION__, context, context->majorVersion, context->minorVersion);
+        ALOGD("%s: %p: ver %d %d (tinfo %p)", __FUNCTION__, context, context->majorVersion, context->minorVersion, tInfo);
         // This is a nontrivial context.
         // The thread cannot be gralloc-only anymore.
         hostCon->setGrallocOnly(false);
