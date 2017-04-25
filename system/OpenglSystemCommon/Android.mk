@@ -5,7 +5,6 @@ $(call emugl-import,libGLESv1_enc libGLESv2_enc lib_renderControl_enc)
 
 LOCAL_SRC_FILES := \
     goldfish_dma.cpp \
-    goldfishHwc2.cpp \
     FormatConversions.cpp \
     HostConnection.cpp \
     ProcessPipe.cpp    \

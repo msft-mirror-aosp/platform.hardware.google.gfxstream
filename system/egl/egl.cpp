@@ -29,7 +29,6 @@
 #include "eglContext.h"
 #include "ClientAPIExts.h"
 #include "EGLImage.h"
-#include "goldfishHwc2.h"
 #include "ProcessPipe.h"
 
 #include "GLEncoder.h"
@@ -379,8 +378,6 @@ EGLBoolean egl_window_surface_t::init()
     }
     rcEnc->rcSetWindowColorBuffer(rcEnc, rcSurface,
             ((cb_handle_t*)(buffer->handle))->hostHandle);
-
-    surfaceInterface_setAsyncModeForWindow((void*)nativeWindow);
 
     return EGL_TRUE;
 }
