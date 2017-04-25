@@ -2095,9 +2095,16 @@ void GL2Encoder::override2DTextureTarget(GLenum target)
 void GL2Encoder::restore2DTextureTarget(GLenum target)
 {
     if (texture2DNeedsOverride(target)) {
-        m_glBindTexture_enc(this, GL_TEXTURE_2D,
+        GLuint priorityEnabledBoundTexture =
                 m_state->getBoundTexture(
-                    m_state->getPriorityEnabledTarget(GL_TEXTURE_2D)));
+                    m_state->getPriorityEnabledTarget(GL_TEXTURE_2D));
+        GLuint texture2DBoundTexture =
+                m_state->getBoundTexture(GL_TEXTURE_2D);
+        if (!priorityEnabledBoundTexture) {
+            m_glBindTexture_enc(this, GL_TEXTURE_2D, texture2DBoundTexture);
+        } else {
+            m_glBindTexture_enc(this, GL_TEXTURE_2D, priorityEnabledBoundTexture);
+        }
     }
 }
 
