@@ -170,6 +170,11 @@ const char *  eglStrError(EGLint err)
 // The one and only supported display object.
 static eglDisplay s_display;
 
+// Extra defines not in the official EGL spec yet,
+// but required in Android CTS.
+
+#define EGL_TIMESTAMPS_ANDROID 0x314D
+
 EGLContext_t::EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* shareCtx, int maj, int min) :
     dpy(dpy),
     config(config),
@@ -180,7 +185,7 @@ EGLContext_t::EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* share
     versionString(NULL),
     majorVersion(maj),
     minorVersion(min),
-    vendorString(NULL),
+    vendorString(NULL) ,
     rendererString(NULL),
     shaderVersionString(NULL),
     extensionString(NULL),
@@ -271,6 +276,9 @@ struct egl_surface_t {
     void        setTextureTarget(EGLint _texTarget) { texTarget = _texTarget; }
     EGLint      getTextureTarget() { return texTarget; }
 
+    virtual     void setCollectingTimestamps(EGLint collect) { }
+    virtual     EGLint isCollectingTimestamps() const { return EGL_FALSE; }
+
 private:
     //
     //Surface attributes
@@ -332,6 +340,11 @@ struct egl_window_surface_t : public egl_surface_t {
     virtual void       setSwapInterval(int interval);
     virtual EGLBoolean swapBuffers();
 
+    virtual     void        setCollectingTimestamps(EGLint collect)
+        override { ALOGD("%s: override!", __func__); collectingTimestamps = (collect == EGL_TRUE) ? true : false; }
+    virtual     EGLint isCollectingTimestamps() const override { return collectingTimestamps ? EGL_TRUE : EGL_FALSE; }
+
+
 private:
     egl_window_surface_t(
             EGLDisplay dpy, EGLConfig config, EGLint surfType,
@@ -340,6 +353,7 @@ private:
 
     ANativeWindow*              nativeWindow;
     android_native_buffer_t*    buffer;
+    bool collectingTimestamps;
 };
 
 egl_window_surface_t::egl_window_surface_t (
@@ -347,7 +361,8 @@ egl_window_surface_t::egl_window_surface_t (
         ANativeWindow* window)
 :   egl_surface_t(dpy, config, surfType),
     nativeWindow(window),
-    buffer(NULL)
+    buffer(NULL),
+    collectingTimestamps(false)
 {
     // keep a reference on the window
     nativeWindow->common.incRef(&nativeWindow->common);
@@ -1094,6 +1109,9 @@ EGLBoolean eglQuerySurface(EGLDisplay dpy, EGLSurface eglSurface, EGLint attribu
             // ignored when creating the surface, return default
             *value = EGL_VG_ALPHA_FORMAT_NONPRE;
             break;
+        case EGL_TIMESTAMPS_ANDROID:
+            *value = surface->isCollectingTimestamps();
+            break;
         //TODO: complete other attributes
         default:
             ALOGE("eglQuerySurface %x  EGL_BAD_ATTRIBUTE", attribute);
@@ -1186,7 +1204,6 @@ EGLBoolean eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute
     switch (attribute) {
     case EGL_MIPMAP_LEVEL:
         return true;
-        break;
     case EGL_MULTISAMPLE_RESOLVE:
     {
         if (value == EGL_MULTISAMPLE_RESOLVE_BOX) {
@@ -1197,7 +1214,6 @@ EGLBoolean eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute
             }
         }
         return true;
-        break;
     }
     case EGL_SWAP_BEHAVIOR:
         if (value == EGL_BUFFER_PRESERVED) {
@@ -1208,7 +1224,10 @@ EGLBoolean eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute
             }
         }
         return true;
-        break;
+    case EGL_TIMESTAMPS_ANDROID:
+        ALOGD("%s: set frame timestamps collecting %d\n", __func__, value);
+        p_surface->setCollectingTimestamps(value);
+        return true;
     default:
         ALOGW("%s: attr=0x%x not implemented", __FUNCTION__, attribute);
         setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_FALSE);
