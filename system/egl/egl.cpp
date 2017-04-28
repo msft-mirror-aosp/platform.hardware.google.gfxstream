@@ -42,6 +42,7 @@
 #include <system/window.h>
 #else // PLATFORM_SDK_VERSION >= 16
 #include <private/ui/android_natives_priv.h>
+#define override
 #endif // PLATFORM_SDK_VERSION >= 16
 
 #if PLATFORM_SDK_VERSION <= 16
@@ -341,7 +342,7 @@ struct egl_window_surface_t : public egl_surface_t {
     virtual EGLBoolean swapBuffers();
 
     virtual     void        setCollectingTimestamps(EGLint collect)
-        override { ALOGD("%s: override!", __func__); collectingTimestamps = (collect == EGL_TRUE) ? true : false; }
+        override { collectingTimestamps = (collect == EGL_TRUE) ? true : false; }
     virtual     EGLint isCollectingTimestamps() const override { return collectingTimestamps ? EGL_TRUE : EGL_FALSE; }
 
 
