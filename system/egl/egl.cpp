@@ -38,11 +38,14 @@
 
 #include <GLES3/gl31.h>
 
+#if PLATFORM_SDK_VERSION < 18
+#define override
+#endif
+
 #if PLATFORM_SDK_VERSION >= 16
 #include <system/window.h>
 #else // PLATFORM_SDK_VERSION >= 16
 #include <private/ui/android_natives_priv.h>
-#define override
 #endif // PLATFORM_SDK_VERSION >= 16
 
 #if PLATFORM_SDK_VERSION <= 16
