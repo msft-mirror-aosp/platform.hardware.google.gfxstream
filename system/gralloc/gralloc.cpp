@@ -478,6 +478,7 @@ static int gralloc_alloc(alloc_device_t* dev,
             glFormat = GL_RGB;
             glType = GL_UNSIGNED_SHORT_5_6_5;
             break;
+#if PLATFORM_SDK_VERSION >= 26
         case HAL_PIXEL_FORMAT_RGBA_FP16:
             bpp = 16;
             glFormat = GL_RGBA16F;
@@ -488,6 +489,7 @@ static int gralloc_alloc(alloc_device_t* dev,
             glFormat = GL_RGBA;
             glType = GL_UNSIGNED_INT_10_10_10_2;
             break;
+#endif // PLATFORM_SDK_VERSION >= 26
 #if PLATFORM_SDK_VERSION >= 21
         case HAL_PIXEL_FORMAT_RAW16:
         case HAL_PIXEL_FORMAT_Y16:
