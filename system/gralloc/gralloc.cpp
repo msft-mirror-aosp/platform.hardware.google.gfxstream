@@ -480,7 +480,7 @@ static int gralloc_alloc(alloc_device_t* dev,
             break;
 #if PLATFORM_SDK_VERSION >= 26
         case HAL_PIXEL_FORMAT_RGBA_FP16:
-            bpp = 16;
+            bpp = 8;
             glFormat = GL_RGBA16F;
             glType = GL_HALF_FLOAT;
             break;
