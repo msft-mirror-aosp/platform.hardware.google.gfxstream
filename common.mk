@@ -100,6 +100,7 @@ EMUGL_EXPORT_TYPES := \
     C_INCLUDES \
     SHARED_LIBRARIES \
     STATIC_LIBRARIES \
+    HEADER_LIBRARIES \
     ADDITIONAL_DEPENDENCIES
 
 # Initialize a module in our database
