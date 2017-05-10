@@ -21,7 +21,7 @@
 #include <GLES/gl.h>
 
 #if PLATFORM_SDK_VERSION >= 16
-#include <system/window.h>
+#include <cutils/native_handle.h>
 #else // PLATFORM_SDK_VERSION >= 16
 #include <private/ui/android_natives_priv.h>
 #endif // PLATFORM_SDK_VERSION >= 16
