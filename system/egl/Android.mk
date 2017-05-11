@@ -13,7 +13,11 @@ LOCAL_SRC_FILES := \
     egl.cpp \
     ClientAPIExts.cpp
 
+ifeq ($(PLATFORM_VERSION_CODENAME.PPR1),P)
 LOCAL_SHARED_LIBRARIES += libdl libnativewindow
+else
+LOCAL_SHARED_LIBRARIES += libdl
+endif
 
 # Used to access the Bionic private OpenGL TLS slot
 LOCAL_C_INCLUDES += bionic/libc/private

@@ -21,7 +21,9 @@
 #include <GLES/gl.h>
 
 #if PLATFORM_SDK_VERSION >= 16
+#if EMULATOR_OPENGL_POST_O >= 1
 #include <nativebase/nativebase.h>
+#endif
 #include <cutils/native_handle.h>
 #else // PLATFORM_SDK_VERSION >= 16
 #include <private/ui/android_natives_priv.h>

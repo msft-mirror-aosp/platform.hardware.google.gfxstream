@@ -11,9 +11,12 @@ LOCAL_SRC_FILES := \
     QemuPipeStream.cpp \
     ThreadInfo.cpp
 
+ifeq ($(PLATFORM_VERSION_CODENAME.PPR1),P)
 LOCAL_HEADER_LIBRARIES += libnativebase_headers
 
 $(call emugl-export,HEADER_LIBRARIES,libnativebase_headers)
+endif
+
 $(call emugl-export,C_INCLUDES,$(LOCAL_PATH) bionic/libc/private)
 
 $(call emugl-end-module)
