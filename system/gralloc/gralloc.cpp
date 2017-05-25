@@ -27,6 +27,7 @@
 #include "HostConnection.h"
 #include "ProcessPipe.h"
 #include "glUtils.h"
+#include <utils/CallStack.h>
 #include <cutils/log.h>
 #include <cutils/properties.h>
 
@@ -604,7 +605,11 @@ static int gralloc_alloc(alloc_device_t* dev,
         }
     }
 
-    if (sw_read || sw_write || hw_cam_write || hw_vid_enc_read) {
+    // API26 always expect at least one file descriptor is associated with
+    // one color buffer
+    // BUG: 37719038
+    if (PLATFORM_SDK_VERSION >= 26 ||
+        sw_read || sw_write || hw_cam_write || hw_vid_enc_read) {
         // keep space for image on guest memory if SW access is needed
         // or if the camera is doing writing
         if (yuv_format) {
