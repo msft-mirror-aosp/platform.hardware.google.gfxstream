@@ -19,6 +19,11 @@ else
 LOCAL_SHARED_LIBRARIES += libdl
 endif
 
+ifdef IS_AT_LEAST_OPD1
+LOCAL_SHARED_LIBRARIES += libui
+LOCAL_HEADER_LIBRARIES += libnativebase_headers
+endif
+
 # Used to access the Bionic private OpenGL TLS slot
 LOCAL_C_INCLUDES += bionic/libc/private
 
