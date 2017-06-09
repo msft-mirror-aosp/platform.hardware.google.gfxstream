@@ -11,7 +11,7 @@ LOCAL_SRC_FILES := \
     QemuPipeStream.cpp \
     ThreadInfo.cpp
 
-ifeq ($(PLATFORM_VERSION_CODENAME.PPR1),P)
+ifdef IS_AT_LEAST_OPD1
 LOCAL_HEADER_LIBRARIES += libnativebase_headers
 
 $(call emugl-export,HEADER_LIBRARIES,libnativebase_headers)
