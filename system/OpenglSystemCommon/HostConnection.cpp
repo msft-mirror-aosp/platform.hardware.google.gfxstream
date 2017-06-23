@@ -50,12 +50,15 @@ HostConnection::~HostConnection()
 }
 
 HostConnection *HostConnection::get() {
+    return getWithThreadInfo(getEGLThreadInfo());
+}
+
+HostConnection *HostConnection::getWithThreadInfo(EGLThreadInfo* tinfo) {
 
     /* TODO: Make this configurable with a system property */
     const int useQemuPipe = USE_QEMU_PIPE;
 
     // Get thread info
-    EGLThreadInfo *tinfo = getEGLThreadInfo();
     if (!tinfo) {
         return NULL;
     }

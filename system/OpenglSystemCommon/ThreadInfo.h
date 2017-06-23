@@ -18,15 +18,14 @@
 
 #include "HostConnection.h"
 #include <pthread.h>
-#ifdef __ANDROID__
-#include <bionic_tls.h>
-#endif
 
+#include <bionic_tls.h>
 struct EGLContext_t;
+struct HostConnection;
 
 struct EGLThreadInfo
 {
-    EGLThreadInfo() : currentContext(NULL), hostConn(NULL), eglError(EGL_SUCCESS) {}
+    EGLThreadInfo() : currentContext(NULL), hostConn(NULL), eglError(EGL_SUCCESS) { }
 
     EGLContext_t *currentContext;
     HostConnection *hostConn;
@@ -34,26 +33,23 @@ struct EGLThreadInfo
 };
 
 
-EGLThreadInfo *slow_getEGLThreadInfo();
+typedef bool (*tlsDtorCallback)(void*);
+void setTlsDestructor(tlsDtorCallback);
 
+extern "C" __attribute__((visibility("default"))) EGLThreadInfo *goldfish_get_egl_tls();
+
+inline EGLThreadInfo* getEGLThreadInfo() {
 #ifdef __ANDROID__
-    // We have a dedicated TLS slot in bionic
-    inline EGLThreadInfo* getEGLThreadInfo() {
-        EGLThreadInfo *tInfo =
-             (EGLThreadInfo *)(((uintptr_t *)__get_tls())[TLS_SLOT_OPENGL]);
-        if (!tInfo) {
-            tInfo = slow_getEGLThreadInfo();
-            ((uintptr_t *)__get_tls())[TLS_SLOT_OPENGL] = (uintptr_t)tInfo;
-        }
-        return tInfo;
+    EGLThreadInfo *tInfo =
+        (EGLThreadInfo *)(((uintptr_t *)__get_tls())[TLS_SLOT_OPENGL]);
+    if (!tInfo) {
+        tInfo = goldfish_get_egl_tls();
+        ((uintptr_t *)__get_tls())[TLS_SLOT_OPENGL] = (uintptr_t)tInfo;
     }
+    return tInfo;
 #else
-    inline EGLThreadInfo* getEGLThreadInfo() {
-        return slow_getEGLThreadInfo();
-    }
+    return goldfish_get_egl_tls();
 #endif
-
-
-
+}
 
 #endif // of _THREAD_INFO_H
