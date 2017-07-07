@@ -1486,6 +1486,15 @@ struct private_module_t HAL_MODULE_INFO_SYM = {
  *
  * If not, then load gralloc.default instead as a fallback.
  */
+
+#if __LP64__
+static const char kGrallocDefaultSystemPath[] = "/system/lib64/hw/gralloc.default.so";
+static const char kGrallocDefaultVendorPath[] = "/vendor/lib64/hw/gralloc.default.so";
+#else
+static const char kGrallocDefaultSystemPath[] = "/system/lib/hw/gralloc.default.so";
+static const char kGrallocDefaultVendorPath[] = "/vendor/lib/hw/gralloc.default.so";
+#endif
+
 static void
 fallback_init(void)
 {
@@ -1499,12 +1508,17 @@ fallback_init(void)
     if (atoi(prop) == 1) {
         return;
     }
-    ALOGD("Emulator without host-side GPU emulation detected.");
-#if __LP64__
-    module = dlopen("/vendor/lib64/hw/gralloc.default.so", RTLD_LAZY|RTLD_LOCAL);
-#else
-    module = dlopen("/vendor/lib/hw/gralloc.default.so", RTLD_LAZY|RTLD_LOCAL);
-#endif
+    ALOGD("Emulator without host-side GPU emulation detected. "
+          "Loading gralloc.default.so from %s...",
+          kGrallocDefaultVendorPath);
+    module = dlopen(kGrallocDefaultVendorPath, RTLD_LAZY | RTLD_LOCAL);
+    if (!module) {
+        // vendor folder didn't work. try system
+        ALOGD("gralloc.default.so not found in /vendor. Trying %s...",
+              kGrallocDefaultSystemPath);
+        module = dlopen(kGrallocDefaultSystemPath, RTLD_LAZY | RTLD_LOCAL);
+    }
+
     if (module != NULL) {
         sFallback = reinterpret_cast<gralloc_module_t*>(dlsym(module, HAL_MODULE_INFO_SYM_AS_STR));
         if (sFallback == NULL) {
@@ -1512,6 +1526,6 @@ fallback_init(void)
         }
     }
     if (sFallback == NULL) {
-        ALOGE("Could not find software fallback module!?");
+        ALOGE("FATAL: Could not find gralloc.default.so!");
     }
 }
