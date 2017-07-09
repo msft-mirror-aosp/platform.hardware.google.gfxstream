@@ -30,6 +30,14 @@ public:
     void setClientState(GLClientState *state) {
         m_state = state;
     }
+    void setVersion(int major, int minor,
+                    int deviceMajor, int deviceMinor) {
+        m_currMajorVersion = major;
+        m_currMinorVersion = minor;
+        m_deviceMajorVersion = deviceMajor;
+        m_deviceMinorVersion = deviceMinor;
+        ALOGD("%s: maj min %d %d\n", __FUNCTION__, major, minor);
+    }
     void setClientStateMakeCurrent(GLClientState *state,
                                    int majorVersion,
                                    int minorVersion,

@@ -634,6 +634,28 @@ void GL2Encoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
     case GL_MAX_DEPTH_TEXTURE_SAMPLES:
         *ptr = 4;
         break;
+    // Checks for version-incompatible enums.
+    // Not allowed in vanilla ES 2.0.
+    case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS:
+    case GL_MAX_UNIFORM_BUFFER_BINDINGS:
+        SET_ERROR_IF(ctx->majorVersion() < 3, GL_INVALID_ENUM);
+        ctx->m_glGetIntegerv_enc(self, param, ptr);
+        break;
+    case GL_MAX_COLOR_ATTACHMENTS:
+    case GL_MAX_DRAW_BUFFERS:
+        SET_ERROR_IF(ctx->majorVersion() < 3 &&
+                     !ctx->hasExtension("GL_EXT_draw_buffers"), GL_INVALID_ENUM);
+        ctx->m_glGetIntegerv_enc(self, param, ptr);
+        break;
+    // Not allowed in ES 3.0.
+    case GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS:
+    case GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS:
+    case GL_MAX_VERTEX_ATTRIB_BINDINGS:
+        SET_ERROR_IF(ctx->majorVersion() < 3 ||
+                     (ctx->majorVersion() == 3 &&
+                      ctx->minorVersion() == 0), GL_INVALID_ENUM);
+        ctx->m_glGetIntegerv_enc(self, param, ptr);
+        break;
     default:
         if (!ctx->m_state->getClientStateParameter<GLint>(param, ptr)) {
             ctx->m_glGetIntegerv_enc(self, param, ptr);
