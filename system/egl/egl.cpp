@@ -1516,11 +1516,14 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
     //
     EGLThreadInfo *tInfo = getEGLThreadInfo();
 
-    if (tInfo->currentContext == context &&
-        (context == NULL ||
-        (context && context->draw == draw && context->read == read))) {
-        return EGL_TRUE;
-    }
+    // we cannot use the following code block because of this bug:
+    // b/63918908
+
+    //if (tInfo->currentContext == context &&
+    //    (context == NULL ||
+    //    (context && context->draw == draw && context->read == read))) {
+    //    return EGL_TRUE;
+    //}
 
     if (tInfo->currentContext && tInfo->currentContext->deletePending) {
         if (tInfo->currentContext != context) {
