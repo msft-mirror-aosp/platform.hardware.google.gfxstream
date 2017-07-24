@@ -282,7 +282,7 @@ struct egl_surface_t {
 
     virtual     void setCollectingTimestamps(EGLint collect) { }
     virtual     EGLint isCollectingTimestamps() const { return EGL_FALSE; }
-
+    EGLint      deletePending;
 private:
     //
     //Surface attributes
@@ -296,7 +296,6 @@ private:
     // Give it some default values.
     int nativeWidth;
     int nativeHeight;
-
 protected:
     void        setWidth(EGLint w)  { width = w;  }
     void        setHeight(EGLint h) { height = h; }
@@ -308,7 +307,8 @@ protected:
 };
 
 egl_surface_t::egl_surface_t(EGLDisplay dpy, EGLConfig config, EGLint surfaceType)
-    : dpy(dpy), config(config), surfaceType(surfaceType), rcSurface(0)
+    : dpy(dpy), config(config), surfaceType(surfaceType), rcSurface(0),
+      deletePending(0)
 {
     width = 0;
     height = 0;
@@ -600,6 +600,29 @@ egl_pbuffer_surface_t::~egl_pbuffer_surface_t()
     if (rcEnc) {
         if (rcColorBuffer) rcEnc->rcCloseColorBuffer(rcEnc, rcColorBuffer);
         if (rcSurface)     rcEnc->rcDestroyWindowSurface(rcEnc, rcSurface);
+    }
+}
+
+// Destroy a pending surface and set it to NULL.
+
+static void s_destroyPendingSurfaceAndSetNull(EGLSurface* surface) {
+    egl_surface_t* surf = static_cast<egl_surface_t *>(*surface);
+    if (surf && surf->deletePending) {
+        delete surf;
+        *surface = NULL;
+    }
+}
+
+static void s_destroyPendingSurfacesInContext(EGLContext_t* context) {
+    if (context->read == context->draw) {
+        // If they are the same, delete it only once
+        s_destroyPendingSurfaceAndSetNull(&context->draw);
+        if (context->draw == NULL) {
+            context->read = NULL;
+        }
+    } else {
+        s_destroyPendingSurfaceAndSetNull(&context->draw);
+        s_destroyPendingSurfaceAndSetNull(&context->read);
     }
 }
 
@@ -984,8 +1007,15 @@ EGLBoolean eglDestroySurface(EGLDisplay dpy, EGLSurface eglSurface)
     VALIDATE_DISPLAY_INIT(dpy, EGL_FALSE);
     VALIDATE_SURFACE_RETURN(eglSurface, EGL_FALSE);
 
+    EGLThreadInfo* tInfo = getEGLThreadInfo();
     egl_surface_t* surface(static_cast<egl_surface_t*>(eglSurface));
-    delete surface;
+    if (tInfo->currentContext
+        && (tInfo->currentContext->draw == eglSurface
+        || tInfo->currentContext->read == eglSurface)) {
+        surface->deletePending = 1;
+    } else {
+        delete surface;
+    }
 
     return EGL_TRUE;
 }
@@ -1160,6 +1190,9 @@ static EGLBoolean s_eglReleaseThreadImpl(EGLThreadInfo* tInfo) {
     // anyway once we are on the host, so skip rcMakeCurrent here.
     // rcEnc->rcMakeCurrent(rcEnc, 0, 0, 0);
     context->flags &= ~EGLContext_t::IS_CURRENT;
+
+    s_destroyPendingSurfacesInContext(context);
+
     if (context->deletePending) {
         if (context->rcContext) {
             rcEnc->rcDestroyContext(rcEnc, context->rcContext);
@@ -1516,20 +1549,20 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
     //
     EGLThreadInfo *tInfo = getEGLThreadInfo();
 
-    // we cannot use the following code block because of this bug:
-    // b/63918908
+    if (tInfo->currentContext == context &&
+        (context == NULL ||
+        (context && context->draw == draw && context->read == read))) {
+        return EGL_TRUE;
+    }
 
-    //if (tInfo->currentContext == context &&
-    //    (context == NULL ||
-    //    (context && context->draw == draw && context->read == read))) {
-    //    return EGL_TRUE;
-    //}
+    if (tInfo->currentContext) {
+        EGLContext_t* prevCtx = tInfo->currentContext;
 
-    if (tInfo->currentContext && tInfo->currentContext->deletePending) {
-        if (tInfo->currentContext != context) {
-            EGLContext_t * contextToDelete = tInfo->currentContext;
+        s_destroyPendingSurfacesInContext(tInfo->currentContext);
+
+        if (prevCtx->deletePending && prevCtx != context) {
             tInfo->currentContext = 0;
-            eglDestroyContext(dpy, contextToDelete);
+            eglDestroyContext(dpy, prevCtx);
         }
     }
 
