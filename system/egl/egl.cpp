@@ -283,6 +283,8 @@ struct egl_surface_t {
     virtual     void setCollectingTimestamps(EGLint collect) { }
     virtual     EGLint isCollectingTimestamps() const { return EGL_FALSE; }
     EGLint      deletePending;
+    void        setIsCurrent(bool isCurrent) { mIsCurrent = isCurrent; }
+    bool        isCurrent() const { return mIsCurrent;}
 private:
     //
     //Surface attributes
@@ -296,6 +298,7 @@ private:
     // Give it some default values.
     int nativeWidth;
     int nativeHeight;
+    bool mIsCurrent;
 protected:
     void        setWidth(EGLint w)  { width = w;  }
     void        setHeight(EGLint h) { height = h; }
@@ -308,7 +311,7 @@ protected:
 
 egl_surface_t::egl_surface_t(EGLDisplay dpy, EGLConfig config, EGLint surfaceType)
     : dpy(dpy), config(config), surfaceType(surfaceType), rcSurface(0),
-      deletePending(0)
+      deletePending(0), mIsCurrent(false)
 {
     width = 0;
     height = 0;
@@ -1009,9 +1012,7 @@ EGLBoolean eglDestroySurface(EGLDisplay dpy, EGLSurface eglSurface)
 
     EGLThreadInfo* tInfo = getEGLThreadInfo();
     egl_surface_t* surface(static_cast<egl_surface_t*>(eglSurface));
-    if (tInfo->currentContext
-        && (tInfo->currentContext->draw == eglSurface
-        || tInfo->currentContext->read == eglSurface)) {
+    if (surface->isCurrent()) {
         surface->deletePending = 1;
     } else {
         delete surface;
@@ -1507,8 +1508,8 @@ EGLBoolean eglDestroyContext(EGLDisplay dpy, EGLContext ctx)
 
     if (!context) return EGL_TRUE;
 
-    if (getEGLThreadInfo()->currentContext == context) {
-        getEGLThreadInfo()->currentContext->deletePending = 1;
+    if (context->flags & EGLContext_t::IS_CURRENT) {
+        context->deletePending = 1;
         return EGL_TRUE;
     }
 
@@ -1558,6 +1559,12 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
     if (tInfo->currentContext) {
         EGLContext_t* prevCtx = tInfo->currentContext;
 
+        if (prevCtx->draw) {
+            static_cast<egl_surface_t *>(prevCtx->draw)->setIsCurrent(false);
+        }
+        if (prevCtx->read) {
+            static_cast<egl_surface_t *>(prevCtx->read)->setIsCurrent(false);
+        }
         s_destroyPendingSurfacesInContext(tInfo->currentContext);
 
         if (prevCtx->deletePending && prevCtx != context) {
@@ -1587,6 +1594,12 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
         hostCon->setGrallocOnly(false);
         context->draw = draw;
         context->read = read;
+        if (drawSurf) {
+            drawSurf->setIsCurrent(true);
+        }
+        if (readSurf) {
+            readSurf->setIsCurrent(true);
+        }
         context->flags |= EGLContext_t::IS_CURRENT;
         GLClientState* contextState =
             context->getClientState();
