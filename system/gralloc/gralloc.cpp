@@ -126,6 +126,7 @@ struct gralloc_dmaregion_t {
     uint32_t sz;
     uint32_t refcount;
     pthread_mutex_t lock;
+    uint32_t bigbufCount;
 };
 
 // global device instance
@@ -144,6 +145,7 @@ void init_gralloc_dmaregion() {
     s_grdma = new gralloc_dmaregion_t;
     s_grdma->sz = INITIAL_DMA_REGION_SIZE;
     s_grdma->refcount = 0;
+    s_grdma->bigbufCount = 0;
 
     pthread_mutex_init(&s_grdma->lock, NULL);
     pthread_mutex_lock(&s_grdma->lock);
@@ -169,11 +171,18 @@ static void resize_gralloc_dmaregion_locked(uint32_t new_sz) {
     s_grdma->sz = new_sz;
 }
 
-bool put_gralloc_dmaregion() {
+// max dma size: 2x 4K rgba8888
+#define MAX_DMA_SIZE 66355200
+
+bool put_gralloc_dmaregion(uint32_t sz) {
     if (!s_grdma) return false;
     pthread_mutex_lock(&s_grdma->lock);
     D("%s: call. refcount before: %u\n", __FUNCTION__, s_grdma->refcount);
     s_grdma->refcount--;
+    if (sz > MAX_DMA_SIZE &&
+        s_grdma->bigbufCount) {
+        s_grdma->bigbufCount--;
+    }
     bool shouldDelete = !s_grdma->refcount;
     if (shouldDelete) {
         D("%s: should delete!\n", __FUNCTION__);
@@ -191,8 +200,14 @@ void gralloc_dmaregion_register_ashmem(uint32_t sz) {
     D("%s: for sz %u, refcount %u", __FUNCTION__, sz, s_grdma->refcount);
     uint32_t new_sz = std::max(s_grdma->sz, sz);
     if (new_sz != s_grdma->sz) {
-        D("%s: change sz from %u to %u", __FUNCTION__, s_grdma->sz, sz);
-        resize_gralloc_dmaregion_locked(new_sz);
+        if (new_sz > MAX_DMA_SIZE)  {
+            D("%s: requested sz %u too large (limit %u), set to fallback.",
+              __FUNCTION__, sz, MAX_DMA_SIZE);
+            s_grdma->bigbufCount++;
+        } else {
+            D("%s: change sz from %u to %u", __FUNCTION__, s_grdma->sz, sz);
+            resize_gralloc_dmaregion_locked(new_sz);
+        }
     }
     if (!s_grdma->goldfish_dma.mapped) {
         goldfish_dma_map(&s_grdma->goldfish_dma);
@@ -354,7 +369,12 @@ static void updateHostColorBuffer(cb_handle_t* cb,
                 width, height, top, left, bpp);
     }
 
-    if (s_grdma) {
+    if (s_grdma->bigbufCount) {
+        D("%s: there are big buffers alive, use fallback (count %u)", __FUNCTION__,
+          s_grdma->bigbufCount);
+    }
+
+    if (s_grdma && !s_grdma->bigbufCount) {
         if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12) {
             get_yv12_offsets(width, height, NULL, NULL,
                              &send_buffer_size);
@@ -760,7 +780,7 @@ static int gralloc_free(alloc_device_t* dev,
         if (cb->ashmemSize > 0 && cb->ashmemBase) {
             D("%s: unmapped %p", __FUNCTION__, cb->ashmemBase);
             munmap((void *)cb->ashmemBase, cb->ashmemSize);
-            put_gralloc_dmaregion();
+            put_gralloc_dmaregion(cb->ashmemSize);
         }
         close(cb->fd);
     }
@@ -1006,7 +1026,7 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
     if (cb->ashmemSize > 0 && cb->mappedPid == getpid()) {
 
         PUT_ASHMEM_REGION(cb);
-        put_gralloc_dmaregion();
+        put_gralloc_dmaregion(cb->ashmemSize);
 
         if (!SHOULD_UNMAP) goto done;
 

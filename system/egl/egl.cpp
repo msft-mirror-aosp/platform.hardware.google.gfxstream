@@ -2146,10 +2146,24 @@ int eglDupNativeFenceFDANDROID(EGLDisplay dpy, EGLSyncKHR eglsync) {
     }
 }
 
-// TODO: Implement EGL_KHR_wait_sync
 EGLint eglWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR eglsync, EGLint flags) {
     (void)dpy;
-    (void)eglsync;
-    (void)flags;
+
+    if (!eglsync) {
+        ALOGE("%s: null sync object!", __FUNCTION__);
+        return EGL_FALSE;
+    }
+
+    if (flags) {
+        ALOGE("%s: flags must be 0, got 0x%x", __FUNCTION__, flags);
+        return EGL_FALSE;
+    }
+
+    DEFINE_HOST_CONNECTION;
+    if (rcEnc->hasNativeSyncV3()) {
+        EGLSync_t* sync = (EGLSync_t*)eglsync;
+        rcEnc->rcWaitSyncKHR(rcEnc, sync->handle, flags);
+    }
+
     return EGL_TRUE;
 }
