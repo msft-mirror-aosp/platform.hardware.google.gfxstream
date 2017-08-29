@@ -1561,6 +1561,13 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
             ClientAPIExts::initClientFuncs(s_display.gles2_iface(), 1);
         }
         if (contextState->needsInitFromCaps()) {
+            // Need to set the version first if
+            // querying caps, or validation will trip incorrectly.
+            hostCon->gl2Encoder()->setVersion(
+                context->majorVersion,
+                context->minorVersion,
+                context->deviceMajorVersion,
+                context->deviceMinorVersion);
             // Get caps for indexed buffers from host.
             // Some need a current context.
             int max_transform_feedback_separate_attribs = 0;
@@ -1598,7 +1605,7 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
                     max_draw_buffers);
         }
 
-        // set the client state and share group
+        // update the client state, share group, and version
         if (context->majorVersion > 1) {
             hostCon->gl2Encoder()->setClientStateMakeCurrent(
                     contextState,

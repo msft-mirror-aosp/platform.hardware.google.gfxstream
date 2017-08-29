@@ -27,6 +27,7 @@
 #include "HostConnection.h"
 #include "ProcessPipe.h"
 #include "glUtils.h"
+#include <utils/CallStack.h>
 #include <cutils/log.h>
 #include <cutils/properties.h>
 
@@ -604,7 +605,11 @@ static int gralloc_alloc(alloc_device_t* dev,
         }
     }
 
-    if (sw_read || sw_write || hw_cam_write || hw_vid_enc_read) {
+    // API26 always expect at least one file descriptor is associated with
+    // one color buffer
+    // BUG: 37719038
+    if (PLATFORM_SDK_VERSION >= 26 ||
+        sw_read || sw_write || hw_cam_write || hw_vid_enc_read) {
         // keep space for image on guest memory if SW access is needed
         // or if the camera is doing writing
         if (yuv_format) {
@@ -1481,6 +1486,15 @@ struct private_module_t HAL_MODULE_INFO_SYM = {
  *
  * If not, then load gralloc.default instead as a fallback.
  */
+
+#if __LP64__
+static const char kGrallocDefaultSystemPath[] = "/system/lib64/hw/gralloc.default.so";
+static const char kGrallocDefaultVendorPath[] = "/vendor/lib64/hw/gralloc.default.so";
+#else
+static const char kGrallocDefaultSystemPath[] = "/system/lib/hw/gralloc.default.so";
+static const char kGrallocDefaultVendorPath[] = "/vendor/lib/hw/gralloc.default.so";
+#endif
+
 static void
 fallback_init(void)
 {
@@ -1494,12 +1508,17 @@ fallback_init(void)
     if (atoi(prop) == 1) {
         return;
     }
-    ALOGD("Emulator without host-side GPU emulation detected.");
-#if __LP64__
-    module = dlopen("/vendor/lib64/hw/gralloc.default.so", RTLD_LAZY|RTLD_LOCAL);
-#else
-    module = dlopen("/vendor/lib/hw/gralloc.default.so", RTLD_LAZY|RTLD_LOCAL);
-#endif
+    ALOGD("Emulator without host-side GPU emulation detected. "
+          "Loading gralloc.default.so from %s...",
+          kGrallocDefaultVendorPath);
+    module = dlopen(kGrallocDefaultVendorPath, RTLD_LAZY | RTLD_LOCAL);
+    if (!module) {
+        // vendor folder didn't work. try system
+        ALOGD("gralloc.default.so not found in /vendor. Trying %s...",
+              kGrallocDefaultSystemPath);
+        module = dlopen(kGrallocDefaultSystemPath, RTLD_LAZY | RTLD_LOCAL);
+    }
+
     if (module != NULL) {
         sFallback = reinterpret_cast<gralloc_module_t*>(dlsym(module, HAL_MODULE_INFO_SYM_AS_STR));
         if (sFallback == NULL) {
@@ -1507,6 +1526,6 @@ fallback_init(void)
         }
     }
     if (sFallback == NULL) {
-        ALOGE("Could not find software fallback module!?");
+        ALOGE("FATAL: Could not find gralloc.default.so!");
     }
 }
