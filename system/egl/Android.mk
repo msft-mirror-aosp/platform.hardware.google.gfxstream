@@ -14,7 +14,7 @@ LOCAL_SRC_FILES := \
     ClientAPIExts.cpp
 
 ifdef IS_AT_LEAST_OPD1
-LOCAL_SHARED_LIBRARIES += libdl libnativewindow
+LOCAL_SHARED_LIBRARIES += libdl libnativewindow libui
 else
 LOCAL_SHARED_LIBRARIES += libdl
 endif
