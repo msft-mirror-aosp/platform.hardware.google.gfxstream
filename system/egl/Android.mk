@@ -19,6 +19,10 @@ else
 LOCAL_SHARED_LIBRARIES += libdl
 endif
 
+LOCAL_STATIC_LIBRARIES += libarect
+
+LOCAL_HEADER_LIBRARIES += libui_headers
+
 ifdef IS_AT_LEAST_OPD1
 LOCAL_HEADER_LIBRARIES += libnativebase_headers
 endif
