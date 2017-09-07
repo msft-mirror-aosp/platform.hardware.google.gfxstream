@@ -391,6 +391,8 @@ private:
     static void s_glBindVertexArray(void *self , GLuint array);
 
     // Mapped buffers
+    static void* s_glMapBufferOES(void* self, GLenum target, GLenum access);
+    static GLboolean s_glUnmapBufferOES(void* self, GLenum target);
     static void* s_glMapBufferRange(void* self, GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
     static GLboolean s_glUnmapBuffer(void* self, GLenum target);
     static void s_glFlushMappedBufferRange(void* self, GLenum target, GLintptr offset, GLsizeiptr length);

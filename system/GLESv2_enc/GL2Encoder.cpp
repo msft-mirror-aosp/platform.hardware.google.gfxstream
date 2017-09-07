@@ -195,6 +195,8 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     OVERRIDEOES(glDeleteVertexArrays);
     OVERRIDEOES(glBindVertexArray);
 
+    OVERRIDE_CUSTOM(glMapBufferOES);
+    OVERRIDE_CUSTOM(glUnmapBufferOES);
     OVERRIDE_CUSTOM(glMapBufferRange);
     OVERRIDE_CUSTOM(glUnmapBuffer);
     OVERRIDE_CUSTOM(glFlushMappedBufferRange);
@@ -2577,6 +2579,27 @@ void GL2Encoder::s_glBindVertexArray(void* self, GLuint array) {
     SET_ERROR_IF(!state->isVertexArrayObject(array), GL_INVALID_OPERATION);
     ctx->m_glBindVertexArray_enc(self, array);
     state->setVertexArrayObject(array);
+}
+
+void* GL2Encoder::s_glMapBufferOES(void* self, GLenum target, GLenum access) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+
+    RET_AND_SET_ERROR_IF(!GLESv2Validation::bufferTarget(ctx, target), GL_INVALID_ENUM, NULL);
+
+    GLuint boundBuffer = ctx->m_state->getBuffer(target);
+
+    RET_AND_SET_ERROR_IF(boundBuffer == 0, GL_INVALID_OPERATION, NULL);
+
+    BufferData* buf = ctx->m_shared->getBufferData(boundBuffer);
+    RET_AND_SET_ERROR_IF(!buf, GL_INVALID_VALUE, NULL);
+
+    return ctx->glMapBufferRange(ctx, target, 0, buf->m_size, access);
+}
+
+GLboolean GL2Encoder::s_glUnmapBufferOES(void* self, GLenum target) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+
+    return ctx->glUnmapBuffer(ctx, target);
 }
 
 void* GL2Encoder::s_glMapBufferRange(void* self, GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
