@@ -600,7 +600,7 @@ static int gralloc_alloc(alloc_device_t* dev,
     // rendering will still happen on the host but we also need to be able to
     // read back from the color buffer, which requires that there is a buffer
     //
-    bool needHostCb = (!yuv_format ||
+    bool needHostCb = ((!yuv_format && frameworkFormat != HAL_PIXEL_FORMAT_BLOB) ||
                        frameworkFormat == HAL_PIXEL_FORMAT_YV12 ||
                        frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) &&
 #if PLATFORM_SDK_VERSION >= 15
@@ -937,8 +937,6 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
         return sFallback->registerBuffer(sFallback, handle);
     }
 
-    D("gralloc_register_buffer(%p) called", handle);
-
     private_module_t *gr = (private_module_t *)module;
     cb_handle_t *cb = (cb_handle_t *)handle;
 
@@ -946,6 +944,9 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
         ERR("gralloc_register_buffer(%p): invalid buffer", cb);
         return -EINVAL;
     }
+
+    D("gralloc_register_buffer(%p) w %d h %d format 0x%x framworkFormat 0x%x",
+        handle, cb->width, cb->height, cb->format, cb->frameworkFormat);
 
     if (cb->hostHandle != 0) {
         DEFINE_AND_VALIDATE_HOST_CONNECTION;
@@ -1192,8 +1193,8 @@ static int gralloc_lock(gralloc_module_t const* module,
         cb->lockedHeight = h;
     }
 
-    DD("gralloc_lock success. vaddr: %p, *vaddr: %p, usage: %x, cpu_addr: %p",
-            vaddr, vaddr ? *vaddr : 0, usage, cpu_addr);
+    DD("gralloc_lock success. vaddr: %p, *vaddr: %p, usage: %x, cpu_addr: %p, base: %p",
+            vaddr, vaddr ? *vaddr : 0, usage, cpu_addr, cb->ashmemBase);
 
     return 0;
 }
@@ -1311,14 +1312,12 @@ static int gralloc_lock_ycbcr(gralloc_module_t const* module,
             cStep = 1;
             break;
         case HAL_PIXEL_FORMAT_YCbCr_420_888:
-            align = 1;
             yStride = cb->width;
-            cStride = yStride / 2;
+            cStride = cb->width;
             yOffset = 0;
-            cSize = cStride * cb->height/2;
-            uOffset = yStride * cb->height;
-            vOffset = uOffset + cSize;
-            cStep = 1;
+            vOffset = yStride * cb->height;
+            uOffset = vOffset + 1;
+            cStep = 2;
             break;
         default:
             ALOGE("gralloc_lock_ycbcr unexpected internal format %x",
@@ -1345,9 +1344,9 @@ static int gralloc_lock_ycbcr(gralloc_module_t const* module,
     cb->lockedHeight = h;
 
     DD("gralloc_lock_ycbcr success. usage: %x, ycbcr.y: %p, .cb: %p, .cr: %p, "
-            ".ystride: %d , .cstride: %d, .chroma_step: %d", usage,
+            ".ystride: %d , .cstride: %d, .chroma_step: %d, base: %p", usage,
             ycbcr->y, ycbcr->cb, ycbcr->cr, ycbcr->ystride, ycbcr->cstride,
-            ycbcr->chroma_step);
+            ycbcr->chroma_step, cb->ashmemBase);
 
     return 0;
 }
