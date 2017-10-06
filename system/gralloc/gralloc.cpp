@@ -600,7 +600,11 @@ static int gralloc_alloc(alloc_device_t* dev,
     // rendering will still happen on the host but we also need to be able to
     // read back from the color buffer, which requires that there is a buffer
     //
+#if PLATFORM_SDK_VERSION >= 17
     bool needHostCb = ((!yuv_format && frameworkFormat != HAL_PIXEL_FORMAT_BLOB) ||
+#else
+    bool needHostCb = (!yuv_format ||
+#endif
                        frameworkFormat == HAL_PIXEL_FORMAT_YV12 ||
                        frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) &&
 #if PLATFORM_SDK_VERSION >= 15
