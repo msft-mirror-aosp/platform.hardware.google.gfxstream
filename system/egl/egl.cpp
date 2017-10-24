@@ -1386,7 +1386,12 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
             }
             reset_notification_strategy = attrib_val;
             break;
+        case EGL_CONTEXT_PRIORITY_LEVEL_IMG:
+            // According to the spec, we are allowed not to honor this hint.
+            // https://www.khronos.org/registry/EGL/extensions/IMG/EGL_IMG_context_priority.txt
+            break;
         default:
+            ALOGV("eglCreateContext unsupported attrib 0x%x", attrib_list[0]);
             setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_NO_CONTEXT);
         }
         attrib_list+=2;
