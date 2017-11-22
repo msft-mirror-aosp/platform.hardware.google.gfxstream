@@ -1488,11 +1488,11 @@ struct private_module_t HAL_MODULE_INFO_SYM = {
  */
 
 #if __LP64__
-static const char kGrallocDefaultSystemPath[] = "/system/lib64/hw/gralloc.default.so";
-static const char kGrallocDefaultVendorPath[] = "/vendor/lib64/hw/gralloc.default.so";
+static const char kGrallocDefaultSystemPath[] = "/system/lib64/hw/gralloc.goldfish.default.so";
+static const char kGrallocDefaultVendorPath[] = "/vendor/lib64/hw/gralloc.goldfish.default.so";
 #else
-static const char kGrallocDefaultSystemPath[] = "/system/lib/hw/gralloc.default.so";
-static const char kGrallocDefaultVendorPath[] = "/vendor/lib/hw/gralloc.default.so";
+static const char kGrallocDefaultSystemPath[] = "/system/lib/hw/gralloc.goldfish.default.so";
+static const char kGrallocDefaultVendorPath[] = "/vendor/lib/hw/gralloc.goldfish.default.so";
 #endif
 
 static void
