@@ -1523,9 +1523,13 @@ struct private_module_t HAL_MODULE_INFO_SYM = {
 #if __LP64__
 static const char kGrallocDefaultSystemPath[] = "/system/lib64/hw/gralloc.goldfish.default.so";
 static const char kGrallocDefaultVendorPath[] = "/vendor/lib64/hw/gralloc.goldfish.default.so";
+static const char kGrallocDefaultSystemPathPreP[] = "/system/lib64/hw/gralloc.default.so";
+static const char kGrallocDefaultVendorPathPreP[] = "/vendor/lib64/hw/gralloc.default.so";
 #else
 static const char kGrallocDefaultSystemPath[] = "/system/lib/hw/gralloc.goldfish.default.so";
 static const char kGrallocDefaultVendorPath[] = "/vendor/lib/hw/gralloc.goldfish.default.so";
+static const char kGrallocDefaultSystemPathPreP[] = "/system/lib/hw/gralloc.default.so";
+static const char kGrallocDefaultVendorPathPreP[] = "/vendor/lib/hw/gralloc.default.so";
 #endif
 
 static void
@@ -1546,10 +1550,16 @@ fallback_init(void)
           kGrallocDefaultVendorPath);
     module = dlopen(kGrallocDefaultVendorPath, RTLD_LAZY | RTLD_LOCAL);
     if (!module) {
+      module = dlopen(kGrallocDefaultVendorPathPreP, RTLD_LAZY | RTLD_LOCAL);
+    }
+    if (!module) {
         // vendor folder didn't work. try system
         ALOGD("gralloc.default.so not found in /vendor. Trying %s...",
               kGrallocDefaultSystemPath);
         module = dlopen(kGrallocDefaultSystemPath, RTLD_LAZY | RTLD_LOCAL);
+        if (!module) {
+          module = dlopen(kGrallocDefaultSystemPathPreP, RTLD_LAZY | RTLD_LOCAL);
+        }
     }
 
     if (module != NULL) {
