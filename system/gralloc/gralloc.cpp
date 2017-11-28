@@ -232,7 +232,7 @@ void get_mem_region(void* ashmemBase) {
     } else {
         handle->refCount++;
     }
-    pthread_mutex_unlock(&s_s_memregions->lock);
+    pthread_mutex_unlock(&s_memregions->lock);
 }
 
 bool put_mem_region(void* ashmemBase) {
@@ -240,7 +240,7 @@ bool put_mem_region(void* ashmemBase) {
     D("%s: call for %p", __FUNCTION__, ashmemBase);
     MemRegionInfo lookup;
     lookup.ashmemBase = ashmemBase;
-    pthread_mutex_lock(&s_s_memregions->lock);
+    pthread_mutex_lock(&s_memregions->lock);
     mem_region_handle_t handle = s_memregions->ashmemRegions.find(lookup);
     if (handle == s_memregions->ashmemRegions.end()) {
         ALOGE("%s: error: tried to put nonexistent mem region!", __FUNCTION__);
