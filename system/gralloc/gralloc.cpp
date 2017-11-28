@@ -118,6 +118,7 @@ struct gralloc_device_t {
 
 struct gralloc_memregions_t {
     MemRegionSet ashmemRegions;
+    pthread_mutex_t lock;
 };
 
 #define INITIAL_DMA_REGION_SIZE 4096
@@ -130,12 +131,13 @@ struct gralloc_dmaregion_t {
 };
 
 // global device instance
-static gralloc_memregions_t* s_grdev = NULL;
+static gralloc_memregions_t* s_memregions = NULL;
 static gralloc_dmaregion_t* s_grdma = NULL;
 
 void init_gralloc_memregions() {
-    if (s_grdev) return;
-    s_grdev = new gralloc_memregions_t;
+    if (s_memregions) return;
+    s_memregions = new gralloc_memregions_t;
+    pthread_mutex_init(&s_memregions->lock, NULL);
 }
 
 void init_gralloc_dmaregion() {
@@ -220,15 +222,17 @@ void get_mem_region(void* ashmemBase) {
     D("%s: call for %p", __FUNCTION__, ashmemBase);
     MemRegionInfo lookup;
     lookup.ashmemBase = ashmemBase;
-    mem_region_handle_t handle = s_grdev->ashmemRegions.find(lookup);
-    if (handle == s_grdev->ashmemRegions.end()) {
+    pthread_mutex_lock(&s_grdma->lock);
+    mem_region_handle_t handle = s_memregions->ashmemRegions.find(lookup);
+    if (handle == s_memregions->ashmemRegions.end()) {
         MemRegionInfo newRegion;
         newRegion.ashmemBase = ashmemBase;
         newRegion.refCount = 1;
-        s_grdev->ashmemRegions.insert(newRegion);
+        s_memregions->ashmemRegions.insert(newRegion);
     } else {
         handle->refCount++;
     }
+    pthread_mutex_unlock(&s_grdma->lock);
 }
 
 bool put_mem_region(void* ashmemBase) {
@@ -236,25 +240,28 @@ bool put_mem_region(void* ashmemBase) {
     D("%s: call for %p", __FUNCTION__, ashmemBase);
     MemRegionInfo lookup;
     lookup.ashmemBase = ashmemBase;
-    mem_region_handle_t handle = s_grdev->ashmemRegions.find(lookup);
-    if (handle == s_grdev->ashmemRegions.end()) {
+    pthread_mutex_lock(&s_grdma->lock);
+    mem_region_handle_t handle = s_memregions->ashmemRegions.find(lookup);
+    if (handle == s_memregions->ashmemRegions.end()) {
         ALOGE("%s: error: tried to put nonexistent mem region!", __FUNCTION__);
+        pthread_mutex_unlock(&s_grdma->lock);
         return true;
     } else {
         handle->refCount--;
         bool shouldRemove = !handle->refCount;
         if (shouldRemove) {
-            s_grdev->ashmemRegions.erase(lookup);
+            s_memregions->ashmemRegions.erase(lookup);
         }
+        pthread_mutex_unlock(&s_grdma->lock);
         return shouldRemove;
     }
 }
 
 void dump_regions() {
     init_gralloc_memregions();
-    mem_region_handle_t curr = s_grdev->ashmemRegions.begin();
+    mem_region_handle_t curr = s_memregions->ashmemRegions.begin();
     std::stringstream res;
-    for (; curr != s_grdev->ashmemRegions.end(); curr++) {
+    for (; curr != s_memregions->ashmemRegions.end(); curr++) {
         res << "\tashmem base " << curr->ashmemBase << " refcount " << curr->refCount << "\n";
     }
     ALOGD("ashmem region dump [\n%s]", res.str().c_str());
@@ -1514,11 +1521,15 @@ struct private_module_t HAL_MODULE_INFO_SYM = {
  */
 
 #if __LP64__
-static const char kGrallocDefaultSystemPath[] = "/system/lib64/hw/gralloc.default.so";
-static const char kGrallocDefaultVendorPath[] = "/vendor/lib64/hw/gralloc.default.so";
+static const char kGrallocDefaultSystemPath[] = "/system/lib64/hw/gralloc.goldfish.default.so";
+static const char kGrallocDefaultVendorPath[] = "/vendor/lib64/hw/gralloc.goldfish.default.so";
+static const char kGrallocDefaultSystemPathPreP[] = "/system/lib64/hw/gralloc.default.so";
+static const char kGrallocDefaultVendorPathPreP[] = "/vendor/lib64/hw/gralloc.default.so";
 #else
-static const char kGrallocDefaultSystemPath[] = "/system/lib/hw/gralloc.default.so";
-static const char kGrallocDefaultVendorPath[] = "/vendor/lib/hw/gralloc.default.so";
+static const char kGrallocDefaultSystemPath[] = "/system/lib/hw/gralloc.goldfish.default.so";
+static const char kGrallocDefaultVendorPath[] = "/vendor/lib/hw/gralloc.goldfish.default.so";
+static const char kGrallocDefaultSystemPathPreP[] = "/system/lib/hw/gralloc.default.so";
+static const char kGrallocDefaultVendorPathPreP[] = "/vendor/lib/hw/gralloc.default.so";
 #endif
 
 static void
@@ -1539,10 +1550,16 @@ fallback_init(void)
           kGrallocDefaultVendorPath);
     module = dlopen(kGrallocDefaultVendorPath, RTLD_LAZY | RTLD_LOCAL);
     if (!module) {
+      module = dlopen(kGrallocDefaultVendorPathPreP, RTLD_LAZY | RTLD_LOCAL);
+    }
+    if (!module) {
         // vendor folder didn't work. try system
         ALOGD("gralloc.default.so not found in /vendor. Trying %s...",
               kGrallocDefaultSystemPath);
         module = dlopen(kGrallocDefaultSystemPath, RTLD_LAZY | RTLD_LOCAL);
+        if (!module) {
+          module = dlopen(kGrallocDefaultSystemPathPreP, RTLD_LAZY | RTLD_LOCAL);
+        }
     }
 
     if (module != NULL) {
