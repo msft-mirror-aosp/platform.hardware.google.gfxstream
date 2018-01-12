@@ -27,6 +27,9 @@ class GL2Encoder : public gl2_encoder_context_t {
 public:
     GL2Encoder(IOStream *stream, ChecksumCalculator* protocol);
     virtual ~GL2Encoder();
+    void setNoHostError(bool noHostError) {
+        m_noHostError = noHostError;
+    }
     void setClientState(GLClientState *state) {
         m_state = state;
     }
@@ -92,6 +95,7 @@ private:
     std::string m_currExtensions;
 
     bool    m_initialized;
+    bool    m_noHostError;
     GLClientState *m_state;
     GLSharedGroupPtr m_shared;
     GLenum  m_error;

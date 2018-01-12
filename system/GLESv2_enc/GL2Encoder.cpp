@@ -73,6 +73,7 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     m_currMajorVersion = 2;
     m_currMinorVersion = 0;
     m_initialized = false;
+    m_noHostError = false;
     m_state = NULL;
     m_error = GL_NO_ERROR;
     m_num_compressedTextureFormats = 0;
@@ -365,7 +366,11 @@ GLenum GL2Encoder::s_glGetError(void * self)
         return err;
     }
 
-    return ctx->m_glGetError_enc(self);
+    if (ctx->m_noHostError) {
+        return GL_NO_ERROR;
+    } else {
+        return ctx->m_glGetError_enc(self);
+    }
 }
 
 class GL2Encoder::ErrorUpdater {
