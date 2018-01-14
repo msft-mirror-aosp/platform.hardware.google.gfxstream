@@ -71,6 +71,9 @@ static const char kGLESMaxVersion_3_0[] = "ANDROID_EMU_gles_max_version_3_0";
 static const char kGLESMaxVersion_3_1[] = "ANDROID_EMU_gles_max_version_3_1";
 static const char kGLESMaxVersion_3_2[] = "ANDROID_EMU_gles_max_version_3_2";
 
+// No querying errors from host extension
+static const char kGLESNoHostError[] = "ANDROID_EMU_gles_no_host_error";
+
 // ExtendedRCEncoderContext is an extended version of renderControl_encoder_context_t
 // that will be used to track SyncImpl.
 class ExtendedRCEncoderContext : public renderControl_encoder_context_t {
@@ -148,6 +151,7 @@ private:
     void queryAndSetSyncImpl(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetDmaImpl(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetGLESMaxVersion(ExtendedRCEncoderContext *rcEnc);
+    void queryAndSetNoErrorState(ExtendedRCEncoderContext *rcEnc);
 
 private:
     IOStream *m_stream;
@@ -158,6 +162,7 @@ private:
     std::string m_glExtensions;
     bool m_grallocOnly;
     int m_pipeFd;
+    bool m_noHostError;
 };
 
 #endif
