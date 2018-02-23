@@ -723,11 +723,56 @@ static const char *getGLString(int glEnum)
     return hostStr;
 }
 
+static std::vector<std::string> getExtStringArray() {
+    std::vector<std::string> res;
+
+    EGLThreadInfo *tInfo = getEGLThreadInfo();
+    if (!tInfo || !tInfo->currentContext) {
+        return res;
+    }
+
+#define GL_EXTENSIONS                     0x1F03
+
+    DEFINE_AND_VALIDATE_HOST_CONNECTION(res);
+
+    char *hostStr = NULL;
+    int n = rcEnc->rcGetGLString(rcEnc, GL_EXTENSIONS, NULL, 0);
+    if (n < 0) {
+        hostStr = new char[-n+1];
+        n = rcEnc->rcGetGLString(rcEnc, GL_EXTENSIONS, hostStr, -n);
+        if (n <= 0) {
+            delete [] hostStr;
+            hostStr = NULL;
+        }
+    }
+
+    if (!hostStr || !strlen(hostStr)) { return res; }
+
+    // find the number of extensions
+    int extStart = 0;
+    int extEnd = 0;
+    int currentExtIndex = 0;
+    int numExts = 0;
+
+    while (extEnd < strlen(hostStr)) {
+        if (hostStr[extEnd] == ' ') {
+            int extSz = extEnd - extStart;
+            res.push_back(std::string(hostStr + extStart, extSz));
+            currentExtIndex++;
+            extStart = extEnd + 1;
+        }
+        extEnd++;
+    }
+
+    delete [] hostStr;
+    return res;
+}
+
 // ----------------------------------------------------------------------------
 
 static EGLClient_eglInterface s_eglIface = {
     getThreadInfo: getEGLThreadInfo,
-    getGLString: getGLString
+    getGLString: getGLString,
 };
 
 #define DBG_FUNC DBG("%s\n", __FUNCTION__)
@@ -1703,7 +1748,7 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
             }
             const char* exts = getGLString(GL_EXTENSIONS);
             if (exts) {
-                hostCon->gl2Encoder()->setExtensions(exts);
+                hostCon->gl2Encoder()->setExtensions(exts, getExtStringArray());
             }
         }
         else {
