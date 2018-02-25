@@ -636,6 +636,9 @@ void GL2Encoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
     GLClientState* state = ctx->m_state;
 
     switch (param) {
+    case GL_NUM_EXTENSIONS:
+        *ptr = (int)ctx->m_currExtensionsArray.size();
+        break;
     case GL_MAJOR_VERSION:
         *ptr = ctx->m_deviceMajorVersion;
         break;
@@ -3901,7 +3904,7 @@ void GL2Encoder::s_glDrawRangeElements(void* self, GLenum mode, GLuint start, GL
 
 const GLubyte* GL2Encoder::s_glGetStringi(void* self, GLenum name, GLuint index) {
     GL2Encoder *ctx = (GL2Encoder *)self;
-    GLubyte *retval =  (GLubyte *) "";
+    const GLubyte *retval =  (GLubyte *) "";
 
     RET_AND_SET_ERROR_IF(
         name != GL_VENDOR &&
@@ -3915,8 +3918,13 @@ const GLubyte* GL2Encoder::s_glGetStringi(void* self, GLenum name, GLuint index)
         name == GL_VENDOR ||
         name == GL_RENDERER ||
         name == GL_VERSION ||
-        name == GL_EXTENSIONS &&
         index != 0,
+        GL_INVALID_VALUE,
+        retval);
+
+    RET_AND_SET_ERROR_IF(
+        name == GL_EXTENSIONS &&
+        index >= ctx->m_currExtensionsArray.size(),
         GL_INVALID_VALUE,
         retval);
 
@@ -3931,7 +3939,7 @@ const GLubyte* GL2Encoder::s_glGetStringi(void* self, GLenum name, GLuint index)
         retval = gVersionString;
         break;
     case GL_EXTENSIONS:
-        retval = gExtensionsString;
+        retval = (const GLubyte*)(ctx->m_currExtensionsArray[index].c_str());
         break;
     }
 

@@ -22,6 +22,7 @@
 #include "FixedBuffer.h"
 
 #include <string>
+#include <vector>
 
 class GL2Encoder : public gl2_encoder_context_t {
 public:
@@ -59,8 +60,10 @@ public:
     }
     int majorVersion() const { return m_currMajorVersion; }
     int minorVersion() const { return m_currMinorVersion; }
-    void setExtensions(const char* exts) {
+    void setExtensions(const char* exts,
+                       const std::vector<std::string>& extArray) {
         m_currExtensions = std::string(exts);
+        m_currExtensionsArray = extArray;
     }
     bool hasExtension(const char* ext) const {
         return m_currExtensions.find(ext) != std::string::npos;
@@ -93,6 +96,7 @@ private:
     int m_deviceMajorVersion;
     int m_deviceMinorVersion;
     std::string m_currExtensions;
+    std::vector<std::string> m_currExtensionsArray;
 
     bool    m_initialized;
     bool    m_noHostError;
