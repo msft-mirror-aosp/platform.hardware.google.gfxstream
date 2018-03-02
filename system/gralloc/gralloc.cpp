@@ -636,7 +636,7 @@ static int gralloc_alloc(alloc_device_t* dev,
         // round to page size;
         ashmem_size = (ashmem_size + (PAGE_SIZE-1)) & ~(PAGE_SIZE-1);
 
-        ALOGD("%s: Creating ashmem region of size %lu\n", __FUNCTION__, ashmem_size);
+        ALOGD("%s: Creating ashmem region of size %d\n", __FUNCTION__, ashmem_size);
         fd = ashmem_create_region("gralloc-buffer", ashmem_size);
         if (fd < 0) {
             ALOGE("gralloc_alloc failed to create ashmem region: %s\n",
