@@ -160,12 +160,14 @@ const char *  eglStrError(EGLint err)
     }
 
 #define VALIDATE_CONTEXT_RETURN(context,ret)  \
-    if (!(context)) {                         \
+    if (!(context) || !s_display.isContext((context))) {                         \
         RETURN_ERROR(ret,EGL_BAD_CONTEXT);    \
     }
 
 #define VALIDATE_SURFACE_RETURN(surface, ret)    \
     if ((surface) != EGL_NO_SURFACE) {    \
+        if (!s_display.isSurface((surface))) \
+            setErrorReturn(EGL_BAD_SURFACE, EGL_FALSE); \
         egl_surface_t* s( static_cast<egl_surface_t*>(surface) );    \
         if (s->dpy != (EGLDisplay)&s_display)    \
             setErrorReturn(EGL_BAD_DISPLAY, EGL_FALSE);    \
@@ -609,6 +611,11 @@ egl_pbuffer_surface_t::~egl_pbuffer_surface_t()
 // Destroy a pending surface and set it to NULL.
 
 static void s_destroyPendingSurfaceAndSetNull(EGLSurface* surface) {
+    if (!s_display.isSurface(surface)) {
+        *surface = NULL;
+        return;
+    }
+
     egl_surface_t* surf = static_cast<egl_surface_t *>(*surface);
     if (surf && surf->deletePending) {
         delete surf;
@@ -1226,7 +1233,7 @@ static EGLBoolean s_eglReleaseThreadImpl(EGLThreadInfo* tInfo) {
     tInfo->eglError = EGL_SUCCESS;
     EGLContext_t* context = tInfo->currentContext;
 
-    if (!context) return EGL_TRUE;
+    if (!context || !s_display.isContext(context)) return EGL_TRUE;
 
     // The following code is doing pretty much the same thing as
     // eglMakeCurrent(&s_display, EGL_NO_CONTEXT, EGL_NO_SURFACE, EGL_NO_SURFACE)
@@ -1556,8 +1563,6 @@ EGLBoolean eglDestroyContext(EGLDisplay dpy, EGLContext ctx)
 
     EGLContext_t * context = static_cast<EGLContext_t*>(ctx);
 
-    if (!context) return EGL_TRUE;
-
     if (context->flags & EGLContext_t::IS_CURRENT) {
         context->deletePending = 1;
         return EGL_TRUE;
@@ -1602,7 +1607,7 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
 
     if (tInfo->currentContext == context &&
         (context == NULL ||
-        (context && context->draw == draw && context->read == read))) {
+        (context && (context->draw == draw) && (context->read == read)))) {
         return EGL_TRUE;
     }
 
@@ -1732,8 +1737,9 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
 
     }
 
-    if (tInfo->currentContext)
+    if (tInfo->currentContext && (tInfo->currentContext != context)) {
         tInfo->currentContext->flags &= ~EGLContext_t::IS_CURRENT;
+    }
 
     //Now make current
     tInfo->currentContext = context;
