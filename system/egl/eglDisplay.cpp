@@ -577,3 +577,16 @@ void eglDisplay::onDestroySurface(EGLSurface surface) {
     pthread_mutex_unlock(&m_surfaceLock);
 }
 
+bool eglDisplay::isContext(EGLContext ctx) {
+    pthread_mutex_lock(&m_ctxLock);
+    bool res = m_contexts.find(ctx) != m_contexts.end();
+    pthread_mutex_unlock(&m_ctxLock);
+    return res;
+}
+
+bool eglDisplay::isSurface(EGLSurface surface) {
+    pthread_mutex_lock(&m_surfaceLock);
+    bool res = m_surfaces.find(surface) != m_surfaces.end();
+    pthread_mutex_unlock(&m_surfaceLock);
+    return res;
+}
