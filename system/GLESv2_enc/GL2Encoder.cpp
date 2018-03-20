@@ -2770,6 +2770,10 @@ void GL2Encoder::s_glCompressedTexImage2D(void* self, GLenum target, GLint level
     state->setBoundTextureInternalFormat(stateTarget, (GLint)internalformat);
     state->setBoundTextureDims(stateTarget, level, width, height, 1);
 
+    if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
+        ctx->override2DTextureTarget(target);
+    }
+
     if (ctx->boundBuffer(GL_PIXEL_UNPACK_BUFFER)) {
         ctx->glCompressedTexImage2DOffsetAEMU(
                 ctx, target, level, internalformat,
@@ -2780,6 +2784,10 @@ void GL2Encoder::s_glCompressedTexImage2D(void* self, GLenum target, GLint level
                 ctx, target, level, internalformat,
                 width, height, border,
                 imageSize, data);
+    }
+
+    if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
+        ctx->restore2DTextureTarget(target);
     }
 }
 
@@ -2805,6 +2813,10 @@ void GL2Encoder::s_glCompressedTexSubImage2D(void* self, GLenum target, GLint le
                  GL_INVALID_OPERATION);
     SET_ERROR_IF(xoffset < 0 || yoffset < 0, GL_INVALID_VALUE);
 
+    if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
+        ctx->override2DTextureTarget(target);
+    }
+
     if (ctx->boundBuffer(GL_PIXEL_UNPACK_BUFFER)) {
         ctx->glCompressedTexSubImage2DOffsetAEMU(
                 ctx, target, level,
@@ -2817,6 +2829,10 @@ void GL2Encoder::s_glCompressedTexSubImage2D(void* self, GLenum target, GLint le
                 xoffset, yoffset,
                 width, height, format,
                 imageSize, data);
+    }
+
+    if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
+        ctx->restore2DTextureTarget(target);
     }
 }
 
@@ -3414,7 +3430,16 @@ void GL2Encoder::s_glTexStorage2D(void* self, GLenum target, GLsizei levels, GLe
     state->setBoundTextureInternalFormat(target, internalformat);
     state->setBoundTextureDims(target, -1, width, height, 1);
     state->setBoundTextureImmutableFormat(target);
+
+    if (target == GL_TEXTURE_2D) {
+        ctx->override2DTextureTarget(target);
+    }
+
     ctx->m_glTexStorage2D_enc(ctx, target, levels, internalformat, width, height);
+
+    if (target == GL_TEXTURE_2D) {
+        ctx->restore2DTextureTarget(target);
+    }
 }
 
 void GL2Encoder::s_glTransformFeedbackVaryings(void* self, GLuint program, GLsizei count, const char** varyings, GLenum bufferMode) {
@@ -4199,7 +4224,15 @@ void GL2Encoder::s_glGenerateMipmap(void* self, GLenum target) {
                    GLESv2Validation::filterableTexFormat(ctx, internalformat)),
                  GL_INVALID_OPERATION);
 
+    if (target == GL_TEXTURE_2D) {
+        ctx->override2DTextureTarget(target);
+    }
+
     ctx->m_glGenerateMipmap_enc(ctx, target);
+
+    if (target == GL_TEXTURE_2D) {
+        ctx->restore2DTextureTarget(target);
+    }
 }
 
 void GL2Encoder::s_glBindSampler(void* self, GLuint unit, GLuint sampler) {
