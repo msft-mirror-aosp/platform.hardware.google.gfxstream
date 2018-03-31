@@ -21,14 +21,47 @@
 #include "QemuPipeStream.h"
 #include "TcpStream.h"
 #include "ThreadInfo.h"
+#include "gralloc_cb.h"
+#ifdef VIRTIO_GPU
+#include "VirtioGpuStream.h"
+#endif
 
 #include <cutils/log.h>
 
 #define STREAM_BUFFER_SIZE  (4*1024*1024)
 #define STREAM_PORT_NUM     22468
 
-/* Set to 1 to use a QEMU pipe, or 0 for a TCP connection */
-#define  USE_QEMU_PIPE  1
+enum HostConnectionType {
+    HOST_CONNECTION_TCP = 0,
+    HOST_CONNECTION_QEMU_PIPE = 1,
+    HOST_CONNECTION_VIRTIO_GPU = 2,
+};
+
+class GoldfishGralloc : public Gralloc
+{
+public:
+    uint32_t getHostHandle(native_handle_t const* handle)
+    {
+        return ((cb_handle_t *)handle)->hostHandle;
+    }
+
+    int getFormat(native_handle_t const* handle)
+    {
+        return ((cb_handle_t *)handle)->format;
+    }
+};
+
+class GoldfishProcessPipe : public ProcessPipe
+{
+public:
+    bool processPipeInit(renderControl_encoder_context_t *rcEnc)
+    {
+        return ::processPipeInit(rcEnc);
+    }
+};
+
+static GoldfishGralloc m_goldfishGralloc;
+static GoldfishProcessPipe m_goldfishProcessPipe;
 
 HostConnection::HostConnection() :
     m_stream(NULL),
@@ -57,7 +90,7 @@ HostConnection *HostConnection::get() {
 HostConnection *HostConnection::getWithThreadInfo(EGLThreadInfo* tinfo) {
 
     /* TODO: Make this configurable with a system property */
-    const int useQemuPipe = USE_QEMU_PIPE;
+    const enum HostConnectionType connType = HOST_CONNECTION_VIRTIO_GPU;
 
     // Get thread info
     if (!tinfo) {
@@ -70,38 +103,66 @@ HostConnection *HostConnection::getWithThreadInfo(EGLThreadInfo* tinfo) {
             return NULL;
         }
 
-        if (useQemuPipe) {
-            QemuPipeStream *stream = new QemuPipeStream(STREAM_BUFFER_SIZE);
-            if (!stream) {
-                ALOGE("Failed to create QemuPipeStream for host connection!!!\n");
-                delete con;
-                return NULL;
+        switch (connType) {
+            default:
+            case HOST_CONNECTION_QEMU_PIPE: {
+                QemuPipeStream *stream = new QemuPipeStream(STREAM_BUFFER_SIZE);
+                if (!stream) {
+                    ALOGE("Failed to create QemuPipeStream for host connection!!!\n");
+                    delete con;
+                    return NULL;
+                }
+                if (stream->connect() < 0) {
+                    ALOGE("Failed to connect to host (QemuPipeStream)!!!\n");
+                    delete stream;
+                    delete con;
+                    return NULL;
+                }
+                con->m_stream = stream;
+                con->m_pipeFd = stream->getSocket();
+                con->m_grallocHelper = &m_goldfishGralloc;
+                con->m_processPipe = &m_goldfishProcessPipe;
+                break;
             }
-            if (stream->connect() < 0) {
-                ALOGE("Failed to connect to host (QemuPipeStream)!!!\n");
-                delete stream;
-                delete con;
-                return NULL;
-            }
-            con->m_stream = stream;
-            con->m_pipeFd = stream->getSocket();
-        }
-        else /* !useQemuPipe */
-        {
-            TcpStream *stream = new TcpStream(STREAM_BUFFER_SIZE);
-            if (!stream) {
-                ALOGE("Failed to create TcpStream for host connection!!!\n");
-                delete con;
-                return NULL;
-            }
+            case HOST_CONNECTION_TCP: {
+                TcpStream *stream = new TcpStream(STREAM_BUFFER_SIZE);
+                if (!stream) {
+                    ALOGE("Failed to create TcpStream for host connection!!!\n");
+                    delete con;
+                    return NULL;
+                }
 
-            if (stream->connect("10.0.2.2", STREAM_PORT_NUM) < 0) {
-                ALOGE("Failed to connect to host (TcpStream)!!!\n");
-                delete stream;
-                delete con;
-                return NULL;
+                if (stream->connect("10.0.2.2", STREAM_PORT_NUM) < 0) {
+                    ALOGE("Failed to connect to host (TcpStream)!!!\n");
+                    delete stream;
+                    delete con;
+                    return NULL;
+                }
+                con->m_stream = stream;
+                con->m_grallocHelper = &m_goldfishGralloc;
+                con->m_processPipe = &m_goldfishProcessPipe;
+                break;
             }
-            con->m_stream = stream;
+#ifdef VIRTIO_GPU
+            case HOST_CONNECTION_VIRTIO_GPU: {
+                VirtioGpuStream *stream = new VirtioGpuStream(STREAM_BUFFER_SIZE);
+                if (!stream) {
+                    ALOGE("Failed to create VirtioGpu for host connection!!!\n");
+                    delete con;
+                    return NULL;
+                }
+                if (stream->connect() < 0) {
+                    ALOGE("Failed to connect to host (VirtioGpu)!!!\n");
+                    delete stream;
+                    delete con;
+                    return NULL;
+                }
+                con->m_stream = stream;
+                con->m_grallocHelper = stream->getGralloc();
+                con->m_processPipe = stream->getProcessPipe();
+                break;
+            }
+#endif
         }
 
         // send zero 'clientFlags' to the host.
@@ -161,7 +222,9 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetDmaImpl(m_rcEnc);
         queryAndSetGLESMaxVersion(m_rcEnc);
         queryAndSetNoErrorState(m_rcEnc);
-        processPipeInit(m_rcEnc);
+        if (m_processPipe) {
+            m_processPipe->processPipeInit(m_rcEnc);
+        }
     }
     return m_rcEnc;
 }

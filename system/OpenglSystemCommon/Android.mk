@@ -11,6 +11,13 @@ LOCAL_SRC_FILES := \
     QemuPipeStream.cpp \
     ThreadInfo.cpp
 
+ifneq ($(filter virgl, $(BOARD_GPU_DRIVERS)),)
+LOCAL_CFLAGS += -DVIRTIO_GPU
+LOCAL_SRC_FILES += VirtioGpuStream.cpp
+LOCAL_C_INCLUDES += external/libdrm external/minigbm/cros_gralloc
+LOCAL_SHARED_LIBRARIES += libdrm
+endif
+
 ifdef IS_AT_LEAST_OPD1
 LOCAL_HEADER_LIBRARIES += libnativebase_headers
 
