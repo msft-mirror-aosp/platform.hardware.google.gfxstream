@@ -671,6 +671,68 @@ egl_pbuffer_surface_t* egl_pbuffer_surface_t::create(EGLDisplay dpy,
     return pb;
 }
 
+// Required for Skia.
+static const char kOESEGLImageExternalEssl3[] = "GL_OES_EGL_image_external_essl3";
+
+static bool sWantES30OrAbove(const char* exts) {
+    if (strstr(exts, kGLESMaxVersion_3_0) ||
+        strstr(exts, kGLESMaxVersion_3_1) ||
+        strstr(exts, kGLESMaxVersion_3_2)) {
+        return true;
+    }
+    return false;
+}
+
+static std::vector<std::string> getExtStringArray() {
+    std::vector<std::string> res;
+
+    EGLThreadInfo *tInfo = getEGLThreadInfo();
+    if (!tInfo || !tInfo->currentContext) {
+        return res;
+    }
+
+#define GL_EXTENSIONS                     0x1F03
+
+    DEFINE_AND_VALIDATE_HOST_CONNECTION(res);
+
+    char *hostStr = NULL;
+    int n = rcEnc->rcGetGLString(rcEnc, GL_EXTENSIONS, NULL, 0);
+    if (n < 0) {
+        hostStr = new char[-n+1];
+        n = rcEnc->rcGetGLString(rcEnc, GL_EXTENSIONS, hostStr, -n);
+        if (n <= 0) {
+            delete [] hostStr;
+            hostStr = NULL;
+        }
+    }
+
+    if (!hostStr || !strlen(hostStr)) { return res; }
+
+    // find the number of extensions
+    int extStart = 0;
+    int extEnd = 0;
+    int currentExtIndex = 0;
+    int numExts = 0;
+
+    if (sWantES30OrAbove(hostStr) &&
+        !strstr(hostStr, kOESEGLImageExternalEssl3)) {
+        res.push_back(kOESEGLImageExternalEssl3);
+    }
+
+    while (extEnd < strlen(hostStr)) {
+        if (hostStr[extEnd] == ' ') {
+            int extSz = extEnd - extStart;
+            res.push_back(std::string(hostStr + extStart, extSz));
+            currentExtIndex++;
+            extStart = extEnd + 1;
+        }
+        extEnd++;
+    }
+
+    delete [] hostStr;
+    return res;
+}
+
 static const char *getGLString(int glEnum)
 {
     EGLThreadInfo *tInfo = getEGLThreadInfo();
@@ -708,18 +770,42 @@ static const char *getGLString(int glEnum)
         return NULL;
     }
 
-    //
-    // first query of that string - need to query host
-    //
-    DEFINE_AND_VALIDATE_HOST_CONNECTION(NULL);
-    char *hostStr = NULL;
-    int n = rcEnc->rcGetGLString(rcEnc, glEnum, NULL, 0);
-    if (n < 0) {
-        hostStr = new char[-n+1];
-        n = rcEnc->rcGetGLString(rcEnc, glEnum, hostStr, -n);
-        if (n <= 0) {
-            delete [] hostStr;
-            hostStr = NULL;
+    char* hostStr = NULL;
+
+    if (glEnum == GL_EXTENSIONS) {
+
+        std::vector<std::string> exts = getExtStringArray();
+
+        int totalSz = 1; // null terminator
+        for (int i = 0; i < exts.size(); i++) {
+            totalSz += exts[i].size() + 1; // for space
+        }
+
+        if (totalSz == 1) return NULL;
+
+        hostStr = new char[totalSz];
+        memset(hostStr, 0, totalSz);
+
+        char* current = hostStr;
+        for (int i = 0; i < exts.size(); i++) {
+            memcpy(current, exts[i].c_str(), exts[i].size());
+            current += exts[i].size();
+            *current = ' ';
+            ++current;
+        }
+    } else {
+        //
+        // first query of that string - need to query host
+        //
+        DEFINE_AND_VALIDATE_HOST_CONNECTION(NULL);
+        int n = rcEnc->rcGetGLString(rcEnc, glEnum, NULL, 0);
+        if (n < 0) {
+            hostStr = new char[-n+1];
+            n = rcEnc->rcGetGLString(rcEnc, glEnum, hostStr, -n);
+            if (n <= 0) {
+                delete [] hostStr;
+                hostStr = NULL;
+            }
         }
     }
 
@@ -728,51 +814,6 @@ static const char *getGLString(int glEnum)
     //
     *strPtr = hostStr;
     return hostStr;
-}
-
-static std::vector<std::string> getExtStringArray() {
-    std::vector<std::string> res;
-
-    EGLThreadInfo *tInfo = getEGLThreadInfo();
-    if (!tInfo || !tInfo->currentContext) {
-        return res;
-    }
-
-#define GL_EXTENSIONS                     0x1F03
-
-    DEFINE_AND_VALIDATE_HOST_CONNECTION(res);
-
-    char *hostStr = NULL;
-    int n = rcEnc->rcGetGLString(rcEnc, GL_EXTENSIONS, NULL, 0);
-    if (n < 0) {
-        hostStr = new char[-n+1];
-        n = rcEnc->rcGetGLString(rcEnc, GL_EXTENSIONS, hostStr, -n);
-        if (n <= 0) {
-            delete [] hostStr;
-            hostStr = NULL;
-        }
-    }
-
-    if (!hostStr || !strlen(hostStr)) { return res; }
-
-    // find the number of extensions
-    int extStart = 0;
-    int extEnd = 0;
-    int currentExtIndex = 0;
-    int numExts = 0;
-
-    while (extEnd < strlen(hostStr)) {
-        if (hostStr[extEnd] == ' ') {
-            int extSz = extEnd - extStart;
-            res.push_back(std::string(hostStr + extStart, extSz));
-            currentExtIndex++;
-            extStart = extEnd + 1;
-        }
-        extEnd++;
-    }
-
-    delete [] hostStr;
-    return res;
 }
 
 // ----------------------------------------------------------------------------

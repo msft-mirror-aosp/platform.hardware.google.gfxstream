@@ -1335,6 +1335,7 @@ static bool replaceSamplerExternalWith2D(char* const str, ShaderData* const data
 {
     static const char STR_HASH_EXTENSION[] = "#extension";
     static const char STR_GL_OES_EGL_IMAGE_EXTERNAL[] = "GL_OES_EGL_image_external";
+    static const char STR_GL_OES_EGL_IMAGE_EXTERNAL_ESSL3[] = "GL_OES_EGL_image_external_essl3";
     static const char STR_SAMPLER_EXTERNAL_OES[] = "samplerExternalOES";
     static const char STR_SAMPLER2D_SPACE[]      = "sampler2D         ";
 
@@ -1346,8 +1347,15 @@ static bool replaceSamplerExternalWith2D(char* const str, ShaderData* const data
         while (isspace(*c) && *c != '\0') {
             c++;
         }
-        if (strncmp(c, STR_GL_OES_EGL_IMAGE_EXTERNAL,
-                sizeof(STR_GL_OES_EGL_IMAGE_EXTERNAL)-1) == 0)
+
+        bool hasBaseImageExternal =
+            !strncmp(c, STR_GL_OES_EGL_IMAGE_EXTERNAL,
+                     sizeof(STR_GL_OES_EGL_IMAGE_EXTERNAL) - 1);
+        bool hasEssl3ImageExternal =
+            !strncmp(c, STR_GL_OES_EGL_IMAGE_EXTERNAL_ESSL3,
+                     sizeof(STR_GL_OES_EGL_IMAGE_EXTERNAL_ESSL3) - 1);
+
+        if (hasBaseImageExternal || hasEssl3ImageExternal)
         {
             // #extension statements are terminated by end of line
             c = start;
