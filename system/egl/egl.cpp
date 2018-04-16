@@ -1969,6 +1969,8 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
             case HAL_PIXEL_FORMAT_RGB_565:
             case HAL_PIXEL_FORMAT_YV12:
             case HAL_PIXEL_FORMAT_BGRA_8888:
+            case HAL_PIXEL_FORMAT_RGBA_FP16:
+            case HAL_PIXEL_FORMAT_RGBA_1010102:
                 break;
             default:
                 setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
