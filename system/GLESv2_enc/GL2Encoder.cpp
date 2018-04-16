@@ -4217,7 +4217,8 @@ void GL2Encoder::s_glGenerateMipmap(void* self, GLenum target) {
 
     SET_ERROR_IF(target != GL_TEXTURE_2D &&
                  target != GL_TEXTURE_3D &&
-                 target != GL_TEXTURE_CUBE_MAP,
+                 target != GL_TEXTURE_CUBE_MAP &&
+                 target != GL_TEXTURE_2D_ARRAY,
                  GL_INVALID_ENUM);
 
     GLuint tex = state->getBoundTexture(target);
