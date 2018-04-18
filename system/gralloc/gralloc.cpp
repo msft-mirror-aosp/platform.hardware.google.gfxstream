@@ -510,12 +510,12 @@ static int gralloc_alloc(alloc_device_t* dev,
     int align = 1;
     switch (format) {
         case HAL_PIXEL_FORMAT_RGBA_8888:
-        case HAL_PIXEL_FORMAT_RGBX_8888:
         case HAL_PIXEL_FORMAT_BGRA_8888:
             bpp = 4;
             glFormat = GL_RGBA;
             glType = GL_UNSIGNED_BYTE;
             break;
+        case HAL_PIXEL_FORMAT_RGBX_8888:
         case HAL_PIXEL_FORMAT_RGB_888:
             bpp = 3;
             glFormat = GL_RGB;
@@ -1174,8 +1174,12 @@ static int gralloc_lock(gralloc_module_t const* module,
             }
             D("gralloc_lock read back color buffer %d %d ashmem base %p sz %d\n",
               cb->width, cb->height, cb->ashmemBase, cb->ashmemSize);
+            GLenum readbackFormat = cb->glFormat;
+            if (cb->format == HAL_PIXEL_FORMAT_RGBX_8888) {
+                readbackFormat = GL_RGBA;
+            }
             rcEnc->rcReadColorBuffer(rcEnc, cb->hostHandle,
-                    0, 0, cb->width, cb->height, cb->glFormat, cb->glType, rgb_addr);
+                    0, 0, cb->width, cb->height, readbackFormat, cb->glType, rgb_addr);
             if (tmpBuf) {
                 if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12) {
                     rgb888_to_yv12((char*)cpu_addr, tmpBuf, cb->width, cb->height, l, t, l+w-1, t+h-1);
