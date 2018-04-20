@@ -94,7 +94,7 @@ void glEGLImageTargetRenderbufferStorageOES(void *self, GLenum target, GLeglImag
     DBG("glEGLImageTargetRenderbufferStorageOES v1 target=%#x image=%p",
             target, image);
     //TODO: check error - we don't have a way to set gl error
-    android_native_buffer_t* native_buffer = (android_native_buffer_t*)image;
+    android_native_buffer_t* native_buffer = ((EGLImage_t*)image)->native_buffer;
 
     if (native_buffer->common.magic != ANDROID_NATIVE_BUFFER_MAGIC) {
         return;
