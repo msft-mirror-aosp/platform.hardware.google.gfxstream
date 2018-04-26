@@ -16,7 +16,7 @@
 #include "GLEncoder.h"
 #include "glUtils.h"
 #include "FixedBuffer.h"
-#include <cutils/log.h>
+#include <log/log.h>
 #include <assert.h>
 
 #ifndef MIN

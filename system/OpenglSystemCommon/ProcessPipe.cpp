@@ -17,7 +17,7 @@
 #include "renderControl_enc.h"
 #include "qemu_pipe.h"
 
-#include <cutils/log.h>
+#include <log/log.h>
 #include <pthread.h>
 
 static int                sProcPipe = 0;

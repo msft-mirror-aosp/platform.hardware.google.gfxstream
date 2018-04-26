@@ -14,7 +14,7 @@
 
 #include "FormatConversions.h"
 
-#include <cutils/log.h>
+#include <log/log.h>
 #include <string.h>
 
 #define DEBUG 0
