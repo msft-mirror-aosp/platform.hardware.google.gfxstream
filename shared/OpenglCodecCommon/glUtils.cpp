@@ -463,6 +463,10 @@ void glUtilsWritePackPointerData(void* _stream, unsigned char *src,
     }
 }
 
+#ifndef GL_RGBA16F
+#define GL_RGBA16F                        0x881A
+#endif // GL_RGBA16F
+
 int glUtilsPixelBitSize(GLenum format, GLenum type)
 {
     int components = 0;
@@ -474,7 +478,16 @@ int glUtilsPixelBitSize(GLenum format, GLenum type)
         componentsize = 8;
         break;
     case GL_SHORT:
+    case GL_HALF_FLOAT:
     case GL_UNSIGNED_SHORT:
+        componentsize = 16;
+        break;
+    case GL_INT:
+    case GL_UNSIGNED_INT:
+    case GL_FLOAT:
+    case GL_FIXED:
+        componentsize = 32;
+        break;
     case GL_UNSIGNED_SHORT_5_6_5:
     case GL_UNSIGNED_SHORT_4_4_4_4:
     case GL_UNSIGNED_SHORT_5_5_5_1:
@@ -483,15 +496,12 @@ int glUtilsPixelBitSize(GLenum format, GLenum type)
     case GL_RGBA4_OES:
         pixelsize = 16;
         break;
-    case GL_INT:
-    case GL_UNSIGNED_INT:
-    case GL_FLOAT:
-    case GL_FIXED:
+    case GL_UNSIGNED_INT_2_10_10_10_REV:
     case GL_UNSIGNED_INT_24_8_OES:
         pixelsize = 32;
         break;
     default:
-        ERR("glUtilsPixelBitSize: unknown pixel type - assuming pixel data 0\n");
+        ERR("glUtilsPixelBitSize: unknown pixel type %d - assuming pixel data 0\n", type);
         componentsize = 0;
     }
 
@@ -521,11 +531,16 @@ int glUtilsPixelBitSize(GLenum format, GLenum type)
         case GL_BGRA_EXT:
             components = 4;
             break;
+        case GL_RGBA16F:
+            pixelsize = 64;
+            break;
         default:
-            ERR("glUtilsPixelBitSize: unknown pixel format...\n");
+            ERR("glUtilsPixelBitSize: unknown pixel format %d\n", format);
             components = 0;
         }
-        pixelsize = components * componentsize;
+        if (pixelsize == 0) {
+            pixelsize = components * componentsize;
+        }
     }
 
     return pixelsize;
