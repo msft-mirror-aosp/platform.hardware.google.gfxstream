@@ -715,10 +715,19 @@ static int gralloc_alloc(alloc_device_t* dev,
 
     if (needHostCb) {
         if (hostCon && rcEnc) {
+            GLenum allocFormat = glFormat;
+            // The handling of RGBX_8888 is very subtle. Most of the time
+            // we want it to be treated as RGBA_8888, with the exception
+            // that alpha is always ignored and treated as 1. The solution
+            // is to create 3 channel RGB texture instead and host GL will
+            // handle the Alpha channel.
+            if (HAL_PIXEL_FORMAT_RGBX_8888 == format) {
+                allocFormat = GL_RGB;
+            }
             if (s_grdma) {
-                cb->hostHandle = rcEnc->rcCreateColorBufferDMA(rcEnc, w, h, glFormat, cb->emuFrameworkFormat);
+                cb->hostHandle = rcEnc->rcCreateColorBufferDMA(rcEnc, w, h, allocFormat, cb->emuFrameworkFormat);
             } else {
-                cb->hostHandle = rcEnc->rcCreateColorBuffer(rcEnc, w, h, glFormat);
+                cb->hostHandle = rcEnc->rcCreateColorBuffer(rcEnc, w, h, allocFormat);
             }
             D("Created host ColorBuffer 0x%x\n", cb->hostHandle);
         }
