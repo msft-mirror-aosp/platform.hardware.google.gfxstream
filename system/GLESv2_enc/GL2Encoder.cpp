@@ -1331,13 +1331,110 @@ GLint * GL2Encoder::getCompressedTextureFormats()
 //      #define SAMPLER(TYPE, NAME) uniform sampler#TYPE NAME
 //      SAMPLER(ExternalOES, mySampler);
 //
+
+static const char STR_SAMPLER_EXTERNAL_OES[] = "samplerExternalOES";
+static const char STR_SAMPLER2D_SPACE[]      = "sampler2D         ";
+static const char STR_DEFINE[] = "#define";
+
+static std::vector<std::string> getSamplerExternalAliases(char* str) {
+    std::vector<std::string> res;
+
+    res.push_back(STR_SAMPLER_EXTERNAL_OES);
+
+    // -- capture #define x samplerExternalOES
+    char* c = str;
+    while ((c = strstr(c, STR_DEFINE))) {
+        // Don't push it if samplerExternalOES is not even there.
+        char* samplerExternalOES_next = strstr(c, STR_SAMPLER_EXTERNAL_OES);
+        if (!samplerExternalOES_next) break;
+
+        bool prevIdent = false;
+
+        std::vector<std::string> idents;
+        std::string curr;
+
+        while (*c != '\0') {
+
+            if (isspace(*c)) {
+                if (prevIdent) {
+                    idents.push_back(curr);
+                    curr = "";
+                }
+            }
+
+            if (*c == '\n' || idents.size() == 3) break;
+
+            if (isalpha(*c) || *c == '_') {
+                curr.push_back(*c);
+                prevIdent = true;
+            }
+
+            ++c;
+        }
+
+        if (idents.size() != 3) continue;
+
+        const std::string& defineLhs = idents[1];
+        const std::string& defineRhs = idents[2];
+
+        if (defineRhs == STR_SAMPLER_EXTERNAL_OES) {
+            res.push_back(defineLhs);
+        }
+
+        if (*c == '\0') break;
+    }
+
+    return res;
+}
+
+static bool replaceExternalSamplerUniformDefinition(char* str, const std::string& samplerExternalType, ShaderData* data) {
+    // -- replace "samplerExternalOES" with "sampler2D" and record name
+    char* c = str;
+    while ((c = strstr(c, samplerExternalType.c_str()))) {
+        // Make sure "samplerExternalOES" isn't a substring of a larger token
+        if (c == str || !isspace(*(c-1))) {
+            c++;
+            continue;
+        }
+        char* sampler_start = c;
+        c += samplerExternalType.size();
+        if (!isspace(*c) && *c != '\0') {
+            continue;
+        }
+
+        // capture sampler name
+        while (isspace(*c) && *c != '\0') {
+            c++;
+        }
+        if (!isalpha(*c) && *c != '_') {
+            // not an identifier
+            return false;
+        }
+        char* name_start = c;
+        do {
+            c++;
+        } while (isalnum(*c) || *c == '_');
+        data->samplerExternalNames.push_back(
+                android::String8(name_start, c - name_start));
+
+        // We only need to perform a string replacement for the original
+        // occurrence of samplerExternalOES if a #define was used.
+        //
+        // The important part was to record the name in
+        // |data->samplerExternalNames|.
+        if (samplerExternalType == STR_SAMPLER_EXTERNAL_OES) {
+            memcpy(sampler_start, STR_SAMPLER2D_SPACE, sizeof(STR_SAMPLER2D_SPACE)-1);
+        }
+    }
+
+    return true;
+}
+
 static bool replaceSamplerExternalWith2D(char* const str, ShaderData* const data)
 {
     static const char STR_HASH_EXTENSION[] = "#extension";
     static const char STR_GL_OES_EGL_IMAGE_EXTERNAL[] = "GL_OES_EGL_image_external";
     static const char STR_GL_OES_EGL_IMAGE_EXTERNAL_ESSL3[] = "GL_OES_EGL_image_external_essl3";
-    static const char STR_SAMPLER_EXTERNAL_OES[] = "samplerExternalOES";
-    static const char STR_SAMPLER2D_SPACE[]      = "sampler2D         ";
 
     // -- overwrite all "#extension GL_OES_EGL_image_external : xxx" statements
     char* c = str;
@@ -1365,37 +1462,13 @@ static bool replaceSamplerExternalWith2D(char* const str, ShaderData* const data
         }
     }
 
-    // -- replace "samplerExternalOES" with "sampler2D" and record name
-    c = str;
-    while ((c = strstr(c, STR_SAMPLER_EXTERNAL_OES))) {
-        // Make sure "samplerExternalOES" isn't a substring of a larger token
-        if (c == str || !isspace(*(c-1))) {
-            c++;
-            continue;
-        }
-        char* sampler_start = c;
-        c += sizeof(STR_SAMPLER_EXTERNAL_OES)-1;
-        if (!isspace(*c) && *c != '\0') {
-            continue;
-        }
+    std::vector<std::string> samplerExternalAliases =
+        getSamplerExternalAliases(str);
 
-        // capture sampler name
-        while (isspace(*c) && *c != '\0') {
-            c++;
-        }
-        if (!isalpha(*c) && *c != '_') {
-            // not an identifier
+    for (size_t i = 0; i < samplerExternalAliases.size(); i++) {
+        if (!replaceExternalSamplerUniformDefinition(
+                str, samplerExternalAliases[i], data))
             return false;
-        }
-        char* name_start = c;
-        do {
-            c++;
-        } while (isalnum(*c) || *c == '_');
-        data->samplerExternalNames.push_back(
-                android::String8(name_start, c - name_start));
-
-        // memcpy instead of strcpy since we don't want the NUL terminator
-        memcpy(sampler_start, STR_SAMPLER2D_SPACE, sizeof(STR_SAMPLER2D_SPACE)-1);
     }
 
     return true;
