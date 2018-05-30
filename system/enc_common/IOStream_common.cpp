@@ -32,14 +32,14 @@ void IOStream::readbackPixels(void* context, int width, int height, unsigned int
     } else if (pixelRowSize == totalRowSize) {
         // fast path but with skip in the beginning
         std::vector<char> paddingToDiscard(startOffset, 0);
-        readback(paddingToDiscard.data(), startOffset);
+        readback(&paddingToDiscard[0], startOffset);
         readback((char*)pixels + startOffset, pixelDataSize - startOffset);
     } else {
         int totalReadback = 0;
 
         if (startOffset > 0) {
             std::vector<char> paddingToDiscard(startOffset, 0);
-            readback(paddingToDiscard.data(), startOffset);
+            readback(&paddingToDiscard[0], startOffset);
             totalReadback += startOffset;
         }
         // need to read back row by row
@@ -51,7 +51,7 @@ void IOStream::readbackPixels(void* context, int width, int height, unsigned int
         for (int i = 0; i < height; i++) {
             readback(start, pixelRowSize);
             totalReadback += pixelRowSize;
-            readback(paddingToDiscard.data(), paddingSize);
+            readback(&paddingToDiscard[0], paddingSize);
             totalReadback += paddingSize;
             start += totalRowSize;
         }
