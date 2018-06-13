@@ -83,7 +83,7 @@ void glEGLImageTargetTexture2DOES(void * self, GLenum target, GLeglImageOES img)
         GET_CONTEXT;
         ctx->override2DTextureTarget(target);
         ctx->associateEGLImage(target, hostImage);
-        ctx->m_glEGLImageTargetTexture2DOES_enc(self, target, hostImage);
+        ctx->m_glEGLImageTargetTexture2DOES_enc(self, GL_TEXTURE_2D, hostImage);
         ctx->restore2DTextureTarget(target);
     }
 }
