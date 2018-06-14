@@ -42,13 +42,9 @@ struct goldfish_dma_ioctl_info {
 
 // userspace interface
 struct goldfish_dma_context {
-    void* mapped;
-#if !defined(__LP64__)
-    int mapped_padding;
-#endif
-    uint64_t sz; // size of reservation
-    int fd;
-    int fd_padding;
+	uint64_t mapped_addr;
+	uint32_t size;
+	int32_t fd;
 };
 
 int goldfish_dma_lock(struct goldfish_dma_context* cxt);
@@ -59,7 +55,7 @@ void* goldfish_dma_map(struct goldfish_dma_context* cxt);
 int goldfish_dma_unmap(struct goldfish_dma_context* cxt);
 
 void goldfish_dma_write(struct goldfish_dma_context* cxt,
-                        void* to_write,
+                        const void* to_write,
                         uint32_t sz);
 
 void goldfish_dma_free(goldfish_dma_context* cxt);
