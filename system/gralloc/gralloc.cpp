@@ -165,7 +165,7 @@ void get_gralloc_dmaregion() {
 
 static void resize_gralloc_dmaregion_locked(uint32_t new_sz) {
     if (!s_grdma) return;
-    if (s_grdma->goldfish_dma.mapped) {
+    if (s_grdma->goldfish_dma.mapped_addr) {
         goldfish_dma_unmap(&s_grdma->goldfish_dma);
     }
     close(s_grdma->goldfish_dma.fd);
@@ -211,7 +211,7 @@ void gralloc_dmaregion_register_ashmem(uint32_t sz) {
             resize_gralloc_dmaregion_locked(new_sz);
         }
     }
-    if (!s_grdma->goldfish_dma.mapped) {
+    if (!s_grdma->goldfish_dma.mapped_addr) {
         goldfish_dma_map(&s_grdma->goldfish_dma);
     }
     pthread_mutex_unlock(&s_grdma->lock);
