@@ -1642,9 +1642,9 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
         return EGL_TRUE;
     }
 
+    // Destroy surfaces while the previous context is still current.
+    EGLContext_t* prevCtx = tInfo->currentContext;
     if (tInfo->currentContext) {
-        EGLContext_t* prevCtx = tInfo->currentContext;
-
         if (prevCtx->draw) {
             static_cast<egl_surface_t *>(prevCtx->draw)->setIsCurrent(false);
         }
@@ -1652,11 +1652,6 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
             static_cast<egl_surface_t *>(prevCtx->read)->setIsCurrent(false);
         }
         s_destroyPendingSurfacesInContext(tInfo->currentContext);
-
-        if (prevCtx->deletePending && prevCtx != context) {
-            tInfo->currentContext = 0;
-            eglDestroyContext(dpy, prevCtx);
-        }
     }
 
     if (context && (context->flags & EGLContext_t::IS_CURRENT) && (context != tInfo->currentContext)) {
@@ -1768,11 +1763,15 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
 
     }
 
+    // Delete the previous context here
     if (tInfo->currentContext && (tInfo->currentContext != context)) {
         tInfo->currentContext->flags &= ~EGLContext_t::IS_CURRENT;
+        if (tInfo->currentContext->deletePending && tInfo->currentContext != context) {
+            eglDestroyContext(dpy, tInfo->currentContext);
+        }
     }
 
-    //Now make current
+    // Now the new context is current in tInfo
     tInfo->currentContext = context;
 
     //Check maybe we need to init the encoder, if it's first eglMakeCurrent
