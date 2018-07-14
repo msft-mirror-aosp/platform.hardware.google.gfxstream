@@ -44,7 +44,7 @@ static __inline__ void mutex_unlock(mutex_t* lock) {
 }
 
 static __inline__ int mutex_init(mutex_t* lock) {
-  return pthread_mutex_init(lock, nullptr);
+  return pthread_mutex_init(lock, NULL);
 }
 
 static __inline__ void mutex_destroy(mutex_t* lock) {
