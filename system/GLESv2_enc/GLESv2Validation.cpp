@@ -55,7 +55,6 @@ bool bufferTarget(GL2Encoder* ctx, GLenum target) {
 
 bool bufferParam(GL2Encoder* ctx, GLenum pname) {
     int glesMajorVersion = ctx->majorVersion();
-    int glesMinorVersion = ctx->minorVersion();
     switch (pname) {
     case GL_BUFFER_SIZE:
     case GL_BUFFER_USAGE:
@@ -289,7 +288,7 @@ bool vertexAttribType(GL2Encoder* ctx, GLenum type)
     return retval;
 }
 
-bool readPixelsFboFormatMatch(GLenum format, GLenum type, GLenum fboTexType) {
+bool readPixelsFboFormatMatch(GLenum, GLenum type, GLenum fboTexType) {
 #define INVALID_TYPE_MATCH(x, y) \
     if (type == x && fboTexType == y) return false; \
     if (type == y && fboTexType == x) return false; \
@@ -591,7 +590,7 @@ bool colorRenderableFormat(GL2Encoder* ctx, GLenum internalformat) {
     return false;
 }
 
-bool depthRenderableFormat(GL2Encoder* ctx, GLenum internalformat) {
+bool depthRenderableFormat(GL2Encoder*, GLenum internalformat) {
     switch (internalformat) {
     case GL_DEPTH_COMPONENT:
     case GL_DEPTH_STENCIL:
@@ -605,7 +604,7 @@ bool depthRenderableFormat(GL2Encoder* ctx, GLenum internalformat) {
     return false;
 }
 
-bool stencilRenderableFormat(GL2Encoder* ctx, GLenum internalformat) {
+bool stencilRenderableFormat(GL2Encoder*, GLenum internalformat) {
     switch (internalformat) {
     case GL_DEPTH_STENCIL:
     case GL_STENCIL_INDEX8:
