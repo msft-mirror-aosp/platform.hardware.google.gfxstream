@@ -75,10 +75,8 @@ private:
             primitiveRestartEnabled(_primitiveRestart) { }
 
         bool operator<(const IndexRangeKey& rhs) const {
-            size_t start = offset;
             size_t start_other = rhs.offset;
             size_t end = offset + count * glSizeof(type);
-            size_t end_other = rhs.offset + rhs.count * glSizeof(rhs.type);
 
             if (end <= start_other) {
                 return true;

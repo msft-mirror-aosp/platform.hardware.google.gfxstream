@@ -146,9 +146,9 @@ public:
 
     struct VAOState {
         VAOState(GLuint ibo, int nLoc, int nBindings) :
-            element_array_buffer_binding(ibo),
             attribState(nLoc),
-            bindingState(nBindings) { }
+            bindingState(nBindings),
+            element_array_buffer_binding(ibo) { }
         VertexAttribStateVector attribState;
         VertexAttribBindingVector bindingState;
         GLuint element_array_buffer_binding;
