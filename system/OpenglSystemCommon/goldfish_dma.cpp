@@ -35,8 +35,8 @@ int goldfish_dma_unlock(struct goldfish_dma_context* cxt) {
 int goldfish_dma_create_region(uint32_t sz, struct goldfish_dma_context* res) {
 
     res->fd = qemu_pipe_open("opengles");
-    res->mapped = NULL;
-    res->sz = 0;
+    res->mapped_addr = 0;
+    res->size = 0;
 
     if (res->fd > 0) {
         // now alloc
@@ -52,9 +52,9 @@ int goldfish_dma_create_region(uint32_t sz, struct goldfish_dma_context* res) {
             return alloc_res;
         }
 
-        res->sz = sz;
-        ALOGV("%s: successfully allocated goldfish DMA region with size %lu cxt=%p",
-              __FUNCTION__, sz, res);
+        res->size = sz;
+        ALOGV("%s: successfully allocated goldfish DMA region with size %lu cxt=%p fd=%d",
+              __FUNCTION__, sz, res, res->fd);
         return 0;
     } else {
         ALOGE("%s: could not obtain fd to device! fd %d errno=%d\n",
@@ -65,27 +65,32 @@ int goldfish_dma_create_region(uint32_t sz, struct goldfish_dma_context* res) {
 
 void* goldfish_dma_map(struct goldfish_dma_context* cxt) {
     ALOGV("%s: on fd %d errno=%d", __FUNCTION__, cxt->fd, errno);
-    cxt->mapped = mmap(0, cxt->sz, PROT_WRITE, MAP_SHARED, cxt->fd, 0);
-    ALOGV("%s: mapped addr=%p errno=%d", __FUNCTION__, cxt->mapped, errno);
+    void *mapped = mmap(0, cxt->size, PROT_WRITE, MAP_SHARED, cxt->fd, 0);
+    ALOGV("%s: cxt=%p mapped=%p size=%lu errno=%d",
+        __FUNCTION__, cxt, mapped, cxt->size, errno);
 
-    if (cxt->mapped == MAP_FAILED) {
-        cxt->mapped = NULL;
+    if (mapped == MAP_FAILED) {
+        mapped = NULL;
     }
-    return cxt->mapped;
+
+    cxt->mapped_addr = reinterpret_cast<uint64_t>(mapped);
+    return mapped;
 }
 
 int goldfish_dma_unmap(struct goldfish_dma_context* cxt) {
-    munmap(cxt->mapped, cxt->sz);
-    cxt->mapped = NULL;
-    cxt->sz = 0;
+    ALOGV("%s: cxt=%p mapped=0x%08llx", __FUNCTION__, cxt, cxt->mapped_addr);
+    munmap(reinterpret_cast<void *>(cxt->mapped_addr), cxt->size);
+    cxt->mapped_addr = 0;
+    cxt->size = 0;
     return 0;
 }
 
 void goldfish_dma_write(struct goldfish_dma_context* cxt,
-                               void* to_write,
+                               const void* to_write,
                                uint32_t sz) {
-    ALOGV("%s: mapped addr=%p", __FUNCTION__, cxt->mapped);
-    memcpy(cxt->mapped, to_write, sz);
+    ALOGV("%s: cxt=%p mapped=0x%08llx to_write=%p size=%lu",
+        __FUNCTION__, cxt, cxt->mapped_addr, to_write);
+    memcpy(reinterpret_cast<void *>(cxt->mapped_addr), to_write, sz);
 }
 
 void goldfish_dma_free(goldfish_dma_context* cxt) {
