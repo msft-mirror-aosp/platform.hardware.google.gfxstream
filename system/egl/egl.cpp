@@ -282,7 +282,7 @@ struct egl_surface_t {
     void        setTextureTarget(EGLint _texTarget) { texTarget = _texTarget; }
     EGLint      getTextureTarget() { return texTarget; }
 
-    virtual     void setCollectingTimestamps(EGLint collect) { }
+    virtual     void setCollectingTimestamps(EGLint) { }
     virtual     EGLint isCollectingTimestamps() const { return EGL_FALSE; }
     EGLint      deletePending;
     void        setIsCurrent(bool isCurrent) { mIsCurrent = isCurrent; }
@@ -312,8 +312,8 @@ protected:
 };
 
 egl_surface_t::egl_surface_t(EGLDisplay dpy, EGLConfig config, EGLint surfaceType)
-    : dpy(dpy), config(config), surfaceType(surfaceType), rcSurface(0),
-      deletePending(0), mIsCurrent(false)
+    : dpy(dpy), config(config), deletePending(0), mIsCurrent(false),
+      surfaceType(surfaceType), rcSurface(0)
 {
     width = 0;
     height = 0;
@@ -712,14 +712,14 @@ static std::vector<std::string> getExtStringArray() {
     int extStart = 0;
     int extEnd = 0;
     int currentExtIndex = 0;
-    int numExts = 0;
 
     if (sWantES30OrAbove(hostStr) &&
         !strstr(hostStr, kOESEGLImageExternalEssl3)) {
         res.push_back(kOESEGLImageExternalEssl3);
     }
 
-    while (extEnd < strlen(hostStr)) {
+    const int hostStrLen = strlen(hostStr);
+    while (extEnd < hostStrLen) {
         if (hostStr[extEnd] == ' ') {
             int extSz = extEnd - extStart;
             res.push_back(std::string(hostStr + extStart, extSz));
@@ -777,7 +777,7 @@ static const char *getGLString(int glEnum)
         std::vector<std::string> exts = getExtStringArray();
 
         int totalSz = 1; // null terminator
-        for (int i = 0; i < exts.size(); i++) {
+        for (unsigned int i = 0; i < exts.size(); i++) {
             totalSz += exts[i].size() + 1; // for space
         }
 
@@ -787,7 +787,7 @@ static const char *getGLString(int glEnum)
         memset(hostStr, 0, totalSz);
 
         char* current = hostStr;
-        for (int i = 0; i < exts.size(); i++) {
+        for (unsigned int i = 0; i < exts.size(); i++) {
             memcpy(current, exts[i].c_str(), exts[i].size());
             current += exts[i].size();
             *current = ' ';
@@ -819,8 +819,8 @@ static const char *getGLString(int glEnum)
 // ----------------------------------------------------------------------------
 
 static EGLClient_eglInterface s_eglIface = {
-    getThreadInfo: getEGLThreadInfo,
-    getGLString: getGLString,
+    .getThreadInfo = getEGLThreadInfo,
+    .getGLString = getGLString,
 };
 
 #define DBG_FUNC DBG("%s\n", __FUNCTION__)
@@ -1103,7 +1103,6 @@ EGLBoolean eglDestroySurface(EGLDisplay dpy, EGLSurface eglSurface)
     VALIDATE_DISPLAY_INIT(dpy, EGL_FALSE);
     VALIDATE_SURFACE_RETURN(eglSurface, EGL_FALSE);
 
-    EGLThreadInfo* tInfo = getEGLThreadInfo();
     egl_surface_t* surface(static_cast<egl_surface_t*>(eglSurface));
     if (surface->isCurrent()) {
         surface->deletePending = 1;
@@ -1436,7 +1435,6 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
     EGLint minorVersion = 0;
     EGLint context_flags = 0;
     EGLint profile_mask = 0;
-    EGLint reset_notification_strategy = 0;
 
     bool wantedMajorVersion = false;
     bool wantedMinorVersion = false;
