@@ -818,9 +818,10 @@ static const char *getGLString(int glEnum)
 
 // ----------------------------------------------------------------------------
 
+// Note: C99 syntax was tried here but does not work for all compilers.
 static EGLClient_eglInterface s_eglIface = {
-    .getThreadInfo = getEGLThreadInfo,
-    .getGLString = getGLString,
+    getThreadInfo: getEGLThreadInfo,
+    getGLString: getGLString,
 };
 
 #define DBG_FUNC DBG("%s\n", __FUNCTION__)
