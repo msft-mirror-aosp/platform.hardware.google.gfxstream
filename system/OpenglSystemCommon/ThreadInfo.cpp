@@ -18,7 +18,9 @@
 
 thread_store_t s_tls = THREAD_STORE_INITIALIZER;
 
-static bool sDefaultTlsDestructorCallback(void* ptr) { return true; }
+static bool sDefaultTlsDestructorCallback(__attribute__((__unused__)) void* ptr) {
+  return true;
+}
 static bool (*sTlsDestructorCallback)(void*) = sDefaultTlsDestructorCallback;
 
 static void tlsDestruct(void *ptr)
