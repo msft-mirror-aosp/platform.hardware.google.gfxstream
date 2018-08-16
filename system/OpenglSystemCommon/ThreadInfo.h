@@ -21,7 +21,6 @@
 
 #include <bionic_tls.h>
 struct EGLContext_t;
-struct HostConnection;
 
 struct EGLThreadInfo
 {
