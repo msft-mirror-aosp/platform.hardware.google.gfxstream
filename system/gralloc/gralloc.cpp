@@ -339,6 +339,13 @@ static int map_buffer(cb_handle_t *cb, void **vaddr)
         return -EIO; \
     }
 
+#define EXIT_GRALLOCONLY_HOST_CONNECTION \
+    if (hostCon && hostCon->isGrallocOnly()) { \
+        ALOGD("%s: exiting HostConnection (is buffer-handling thread)", \
+              __FUNCTION__); \
+        HostConnection::exit(); \
+    }
+
 #if PLATFORM_SDK_VERSION < 18
 // On older APIs, just define it as a value no one is going to use.
 #define HAL_PIXEL_FORMAT_YCbCr_420_888 0xFFFFFFFF
@@ -1046,6 +1053,8 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
                 }
             }
         }
+        EXIT_GRALLOCONLY_HOST_CONNECTION;
+
     }
 
     //
@@ -1070,6 +1079,7 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
         cb->ashmemBase = 0;
         cb->mappedPid = 0;
         D("%s: Unregister buffer previous mapped to pid %d", __FUNCTION__, getpid());
+        EXIT_GRALLOCONLY_HOST_CONNECTION;
     }
 
 done:
