@@ -611,7 +611,10 @@ egl_pbuffer_surface_t::~egl_pbuffer_surface_t()
 // Destroy a pending surface and set it to NULL.
 
 static void s_destroyPendingSurfaceAndSetNull(EGLSurface* surface) {
-    if (!s_display.isSurface(surface)) {
+    if (!surface)
+        return;
+
+    if (!s_display.isSurface(*surface)) {
         *surface = NULL;
         return;
     }
