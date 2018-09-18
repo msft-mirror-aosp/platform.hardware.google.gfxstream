@@ -48,6 +48,11 @@ public:
     void *ptr() { return m_buffer; }
     size_t len() { return m_bufferLen; }
 private:
+    FixedBuffer(const FixedBuffer &rhs);
+    FixedBuffer &operator=(const FixedBuffer &rhs);
+    FixedBuffer(FixedBuffer &&rhs);
+    FixedBuffer &operator=(FixedBuffer &&rhs);
+
     unsigned char *m_buffer;
     size_t m_bufferLen;
 };
