@@ -536,7 +536,7 @@ void GL2Encoder::s_glBufferData(void * self, GLenum target, GLsizeiptr size, con
     SET_ERROR_IF(bufferId==0, GL_INVALID_OPERATION);
     SET_ERROR_IF(size<0, GL_INVALID_VALUE);
 
-    ctx->m_shared->updateBufferData(bufferId, size, (void*)data);
+    ctx->m_shared->updateBufferData(bufferId, size, data);
     ctx->m_shared->setBufferUsage(bufferId, usage);
     ctx->m_glBufferData_enc(self, target, size, data, usage);
 }
@@ -549,7 +549,7 @@ void GL2Encoder::s_glBufferSubData(void * self, GLenum target, GLintptr offset, 
     SET_ERROR_IF(bufferId==0, GL_INVALID_OPERATION);
     SET_ERROR_IF(ctx->isBufferTargetMapped(target), GL_INVALID_OPERATION);
 
-    GLenum res = ctx->m_shared->subUpdateBufferData(bufferId, offset, size, (void*)data);
+    GLenum res = ctx->m_shared->subUpdateBufferData(bufferId, offset, size, data);
     SET_ERROR_IF(res, res);
 
     ctx->m_glBufferSubData_enc(self, target, offset, size, data);

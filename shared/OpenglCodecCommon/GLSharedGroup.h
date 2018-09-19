@@ -46,7 +46,7 @@
 
 struct BufferData {
     BufferData();
-    BufferData(GLsizeiptr size, void * data);
+    BufferData(GLsizeiptr size, const void* data);
 
     // General buffer state
     GLsizeiptr m_size;
@@ -153,13 +153,13 @@ public:
     bool isShaderOrProgramObject(GLuint obj);
     BufferData * getBufferData(GLuint bufferId);
     SharedTextureDataMap* getTextureData();
-    void    addBufferData(GLuint bufferId, GLsizeiptr size, void * data);
-    void    updateBufferData(GLuint bufferId, GLsizeiptr size, void * data);
+    void    addBufferData(GLuint bufferId, GLsizeiptr size, const void* data);
+    void    updateBufferData(GLuint bufferId, GLsizeiptr size, const void* data);
     void    setBufferUsage(GLuint bufferId, GLenum usage);
     void    setBufferMapped(GLuint bufferId, bool mapped);
     GLenum    getBufferUsage(GLuint bufferId);
     bool    isBufferMapped(GLuint bufferId);
-    GLenum  subUpdateBufferData(GLuint bufferId, GLintptr offset, GLsizeiptr size, void * data);
+    GLenum  subUpdateBufferData(GLuint bufferId, GLintptr offset, GLsizeiptr size, const void* data);
     void    deleteBufferData(GLuint);
 
     bool    isProgram(GLuint program);
