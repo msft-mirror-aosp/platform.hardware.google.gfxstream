@@ -23,7 +23,6 @@
 #include <cutils/log.h>
 #include <cutils/properties.h>
 #include "goldfish_sync.h"
-#include "gralloc_cb.h"
 #include "GLClientState.h"
 #include "GLSharedGroup.h"
 #include "eglContext.h"
@@ -145,6 +144,11 @@ const char *  eglStrError(EGLint err)
     if (!rcEnc) { \
         ALOGE("egl: Failed to get renderControl encoder context\n"); \
         return ret; \
+    } \
+    Gralloc *grallocHelper = hostCon->grallocHelper(); \
+    if (!grallocHelper) { \
+        ALOGE("egl: Failed to get grallocHelper\n"); \
+        return ret; \
     }
 
 #define DEFINE_AND_VALIDATE_HOST_CONNECTION_FOR_TLS(ret, tls) \
@@ -156,6 +160,11 @@ const char *  eglStrError(EGLint err)
     ExtendedRCEncoderContext *rcEnc = hostCon->rcEncoder(); \
     if (!rcEnc) { \
         ALOGE("egl: Failed to get renderControl encoder context\n"); \
+        return ret; \
+    } \
+    Gralloc const* grallocHelper = hostCon->grallocHelper(); \
+    if (!grallocHelper) { \
+        ALOGE("egl: Failed to get grallocHelper\n"); \
         return ret; \
     }
 
@@ -401,7 +410,7 @@ EGLBoolean egl_window_surface_t::init()
         return EGL_FALSE;
     }
     rcEnc->rcSetWindowColorBuffer(rcEnc, rcSurface,
-            ((cb_handle_t*)(buffer->handle))->hostHandle);
+            grallocHelper->getHostHandle(buffer->handle));
 
     return EGL_TRUE;
 }
@@ -560,7 +569,7 @@ EGLBoolean egl_window_surface_t::swapBuffers()
 #endif
 
     rcEnc->rcSetWindowColorBuffer(rcEnc, rcSurface,
-            ((cb_handle_t *)(buffer->handle))->hostHandle);
+            grallocHelper->getHostHandle(buffer->handle));
 
     setWidth(buffer->width);
     setHeight(buffer->height);
@@ -1951,9 +1960,9 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
         if (native_buffer->common.version != sizeof(android_native_buffer_t))
             setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
 
-        cb_handle_t *cb = (cb_handle_t *)(native_buffer->handle);
-
-        switch (cb->format) {
+        DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
+        int format = grallocHelper->getFormat(native_buffer->handle);
+        switch (format) {
             case HAL_PIXEL_FORMAT_RGBA_8888:
             case HAL_PIXEL_FORMAT_RGBX_8888:
             case HAL_PIXEL_FORMAT_RGB_888:

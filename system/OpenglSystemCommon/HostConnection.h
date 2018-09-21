@@ -21,6 +21,7 @@
 #include "ChecksumCalculator.h"
 #include "goldfish_dma.h"
 
+#include <cutils/native_handle.h>
 #include <string>
 
 class GLEncoder;
@@ -110,6 +111,21 @@ private:
     GLESMaxVersion m_glesMaxVersion;
 };
 
+// Abstraction for gralloc handle conversion
+class Gralloc {
+public:
+    virtual uint32_t getHostHandle(native_handle_t const* handle) = 0;
+    virtual int getFormat(native_handle_t const* handle) = 0;
+    virtual ~Gralloc() {}
+};
+
+// Abstraction for process pipe helper
+class ProcessPipe {
+public:
+    virtual bool processPipeInit(renderControl_encoder_context_t *rcEnc) = 0;
+    virtual ~ProcessPipe() {}
+};
+
 struct EGLThreadInfo;
 
 class HostConnection
@@ -124,6 +140,7 @@ public:
     GL2Encoder *gl2Encoder();
     ExtendedRCEncoderContext *rcEncoder();
     ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
+    Gralloc *grallocHelper() { return m_grallocHelper; }
 
     void flush() {
         if (m_stream) {
@@ -159,6 +176,8 @@ private:
     GL2Encoder  *m_gl2Enc;
     ExtendedRCEncoderContext *m_rcEnc;
     ChecksumCalculator m_checksumHelper;
+    Gralloc *m_grallocHelper;
+    ProcessPipe *m_processPipe;
     std::string m_glExtensions;
     bool m_grallocOnly;
     int m_pipeFd;
