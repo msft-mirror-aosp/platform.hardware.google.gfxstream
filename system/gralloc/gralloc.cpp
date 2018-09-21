@@ -27,9 +27,9 @@
 #include "HostConnection.h"
 #include "ProcessPipe.h"
 #include "glUtils.h"
-#include <cutils/properties.h>
-#include <log/log.h>
 #include <utils/CallStack.h>
+#include <cutils/log.h>
+#include <cutils/properties.h>
 
 #include <set>
 #include <string>
