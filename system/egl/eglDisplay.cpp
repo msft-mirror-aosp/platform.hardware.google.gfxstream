@@ -19,6 +19,8 @@
 
 #include <string>
 
+#include "KeyedVectorUtils.h"
+
 static const int systemEGLVersionMajor = 1;
 static const int systemEGLVersionMinor = 4;
 static const char systemEGLVendor[] = "Google Android emulator";
@@ -60,7 +62,7 @@ eglDisplay::eglDisplay() :
     m_hostRendererVersion(0),
     m_numConfigs(0),
     m_numConfigAttribs(0),
-    m_attribs(DefaultKeyedVector<EGLint, EGLint>(ATTRIBUTE_NONE)),
+    m_attribs(),
     m_configs(NULL),
     m_gles_iface(NULL),
     m_gles2_iface(NULL),
@@ -186,21 +188,20 @@ bool eglDisplay::initialize(EGLClient_eglInterface *eglIface)
             return false;
         }
 
-        //EGLint n = rcEnc->rcGetConfigs(rcEnc, nInts*sizeof(EGLint), m_configs);
         EGLint n = rcEnc->rcGetConfigs(rcEnc, nInts*sizeof(EGLint), (GLuint*)tmp_buf);
         if (n != m_numConfigs) {
             pthread_mutex_unlock(&m_lock);
             return false;
         }
 
-        //Fill the attributes vector.
-        //The first m_numConfigAttribs values of tmp_buf are the actual attributes enums.
+        // Fill the attributes vector.
+        // The first m_numConfigAttribs values of tmp_buf are the actual attributes enums.
         for (int i=0; i<m_numConfigAttribs; i++) {
-            m_attribs.add(tmp_buf[i], i);
+            m_attribs[tmp_buf[i]] = i;
         }
 
-        //Copy the actual configs data to m_configs
-        memcpy(m_configs, tmp_buf + m_numConfigAttribs, m_numConfigs*m_numConfigAttribs*sizeof(EGLint));
+        memcpy(m_configs, tmp_buf + m_numConfigAttribs,
+               m_numConfigs*m_numConfigAttribs*sizeof(EGLint));
 
         m_initialized = true;
     }
@@ -215,7 +216,6 @@ void eglDisplay::processConfigs()
 {
     for (intptr_t i=0; i<m_numConfigs; i++) {
         EGLConfig config = (EGLConfig)i;
-        //Setup the EGL_NATIVE_VISUAL_ID attribute
         PixelFormat format;
         if (getConfigNativePixelFormat(config, &format)) {
             setConfigAttrib(config, EGL_NATIVE_VISUAL_ID, format);
@@ -462,7 +462,12 @@ EGLBoolean eglDisplay::getConfigAttrib(EGLConfig config, EGLint attrib, EGLint *
     }
     //Though it seems that valueFor() is thread-safe, we don't take chanses
     pthread_mutex_lock(&m_lock);
-    EGLBoolean ret = getAttribValue(config, m_attribs.valueFor(attrib), value);
+    EGLBoolean ret =
+        getAttribValue(
+            config,
+            findObjectOrDefault(
+                m_attribs, attrib, EGL_DONT_CARE),
+            value);
     pthread_mutex_unlock(&m_lock);
     return ret;
 }
@@ -495,7 +500,14 @@ EGLBoolean eglDisplay::setConfigAttrib(EGLConfig config, EGLint attrib, EGLint v
 {
     //Though it seems that valueFor() is thread-safe, we don't take chanses
     pthread_mutex_lock(&m_lock);
-    EGLBoolean ret = setAttribValue(config, m_attribs.valueFor(attrib), value);
+    EGLBoolean ret =
+        setAttribValue(
+            config,
+            findObjectOrDefault(
+                m_attribs,
+                attrib,
+                EGL_DONT_CARE),
+            value);
     pthread_mutex_unlock(&m_lock);
     return ret;
 }
@@ -505,11 +517,23 @@ EGLBoolean eglDisplay::getConfigNativePixelFormat(EGLConfig config, PixelFormat 
 {
     EGLint redSize, blueSize, greenSize, alphaSize;
 
-    if ( !(getAttribValue(config, m_attribs.valueFor(EGL_RED_SIZE), &redSize) &&
-        getAttribValue(config, m_attribs.valueFor(EGL_BLUE_SIZE), &blueSize) &&
-        getAttribValue(config, m_attribs.valueFor(EGL_GREEN_SIZE), &greenSize) &&
-        getAttribValue(config, m_attribs.valueFor(EGL_ALPHA_SIZE), &alphaSize)) )
-    {
+    if (!(
+            getAttribValue(
+                config,
+                findObjectOrDefault(m_attribs, EGL_RED_SIZE, EGL_DONT_CARE),
+                &redSize) &&
+            getAttribValue(
+                config,
+                findObjectOrDefault(m_attribs, EGL_BLUE_SIZE, EGL_DONT_CARE),
+                &blueSize) &&
+            getAttribValue(
+                config,
+                findObjectOrDefault(m_attribs, EGL_GREEN_SIZE, EGL_DONT_CARE),
+                &greenSize) &&
+            getAttribValue(
+                config,
+                findObjectOrDefault(m_attribs, EGL_ALPHA_SIZE, EGL_DONT_CARE),
+                &alphaSize))) {
         ALOGE("Couldn't find value for one of the pixel format attributes");
         return EGL_FALSE;
     }
@@ -529,11 +553,23 @@ EGLBoolean eglDisplay::getConfigGLPixelFormat(EGLConfig config, GLenum * format)
 {
     EGLint redSize, blueSize, greenSize, alphaSize;
 
-    if ( !(getAttribValue(config, m_attribs.valueFor(EGL_RED_SIZE), &redSize) &&
-        getAttribValue(config, m_attribs.valueFor(EGL_BLUE_SIZE), &blueSize) &&
-        getAttribValue(config, m_attribs.valueFor(EGL_GREEN_SIZE), &greenSize) &&
-        getAttribValue(config, m_attribs.valueFor(EGL_ALPHA_SIZE), &alphaSize)) )
-    {
+    if (!(
+            getAttribValue(
+                config,
+                findObjectOrDefault(m_attribs, EGL_RED_SIZE, EGL_DONT_CARE),
+                &redSize) &&
+            getAttribValue(
+                config,
+                findObjectOrDefault(m_attribs, EGL_BLUE_SIZE, EGL_DONT_CARE),
+                &blueSize) &&
+            getAttribValue(
+                config,
+                findObjectOrDefault(m_attribs, EGL_GREEN_SIZE, EGL_DONT_CARE),
+                &greenSize) &&
+            getAttribValue(
+                config,
+                findObjectOrDefault(m_attribs, EGL_ALPHA_SIZE, EGL_DONT_CARE),
+                &alphaSize))) {
         ALOGE("Couldn't find value for one of the pixel format attributes");
         return EGL_FALSE;
     }
