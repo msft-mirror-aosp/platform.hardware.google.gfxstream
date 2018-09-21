@@ -15,7 +15,7 @@
 #include "goldfish_dma.h"
 #include "qemu_pipe.h"
 
-#include <cutils/log.h>
+#include <log/log.h>
 #include <sys/mman.h>
 #include <stdlib.h>
 #include <string.h>

@@ -20,8 +20,8 @@
 #include "eglDisplay.h"
 #include "eglSync.h"
 #include "egl_ftable.h"
-#include <cutils/log.h>
 #include <cutils/properties.h>
+#include <log/log.h>
 #include "goldfish_sync.h"
 #include "gralloc_cb.h"
 #include "GLClientState.h"
