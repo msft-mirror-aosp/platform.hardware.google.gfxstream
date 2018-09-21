@@ -16,7 +16,7 @@
 #ifndef _FIXED_BUFFER_H
 #define _FIXED_BUFFER_H
 
-#include <cutils/log.h>
+#include <log/log.h>
 
 class FixedBuffer {
 public:
