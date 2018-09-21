@@ -2,7 +2,7 @@
 
 #include "glUtils.h"
 
-#include <log/log.h>
+#include <cutils/log.h>
 
 namespace GLESTextureUtils {
 

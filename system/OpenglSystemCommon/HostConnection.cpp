@@ -22,7 +22,7 @@
 #include "TcpStream.h"
 #include "ThreadInfo.h"
 
-#include <log/log.h>
+#include <cutils/log.h>
 
 #define STREAM_BUFFER_SIZE  (4*1024*1024)
 #define STREAM_PORT_NUM     22468
