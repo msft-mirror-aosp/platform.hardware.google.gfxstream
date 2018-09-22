@@ -16,6 +16,7 @@
 #ifndef _SYSTEM_EGL_DISPLAY_H
 #define _SYSTEM_EGL_DISPLAY_H
 
+#include <assert.h>
 #include <pthread.h>
 #include "glUtils.h"
 #include <EGL/egl.h>
