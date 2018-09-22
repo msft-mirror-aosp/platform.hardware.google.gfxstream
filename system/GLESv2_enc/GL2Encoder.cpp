@@ -1414,8 +1414,10 @@ static bool replaceExternalSamplerUniformDefinition(char* str, const std::string
         do {
             c++;
         } while (isalnum(*c) || *c == '_');
+
+        size_t len = (size_t)(c - name_start);
         data->samplerExternalNames.push_back(
-                android::String8(name_start, c - name_start));
+            std::string(name_start, len));
 
         // We only need to perform a string replacement for the original
         // occurrence of samplerExternalOES if a #define was used.
@@ -4021,9 +4023,9 @@ const GLubyte* GL2Encoder::s_glGetStringi(void* self, GLenum name, GLuint index)
         retval);
 
     RET_AND_SET_ERROR_IF(
-        name == GL_VENDOR ||
-        name == GL_RENDERER ||
-        name == GL_VERSION ||
+        (name == GL_VENDOR ||
+         name == GL_RENDERER ||
+         name == GL_VERSION) &&
         index != 0,
         GL_INVALID_VALUE,
         retval);
@@ -4522,9 +4524,8 @@ GLuint GL2Encoder::s_glCreateShaderProgramv(void* self, GLenum type, GLsizei cou
     // Phase 1: create a ShaderData and initialize with replaceSamplerExternalWith2D()
     uint32_t spDataId = ctx->m_shared->addNewShaderProgramData();
     ShaderProgramData* spData = ctx->m_shared->getShaderProgramDataById(spDataId);
-    ShaderData* sData = spData->shaderData;
 
-    if (!replaceSamplerExternalWith2D(str, sData)) {
+    if (!replaceSamplerExternalWith2D(str, &spData->shaderData)) {
         delete [] str;
         ctx->setError(GL_OUT_OF_MEMORY);
         ctx->m_shared->deleteShaderProgramDataById(spDataId);

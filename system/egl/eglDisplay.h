@@ -21,7 +21,6 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include "EGLClientIface.h"
-#include <utils/KeyedVector.h>
 
 #if __cplusplus >= 201103L
 #include <unordered_set>
@@ -29,6 +28,7 @@
 #include <hash_set>
 #endif
 
+#include <map>
 
 #include <ui/PixelFormat.h>
 
@@ -88,7 +88,7 @@ private:
     int  m_numConfigAttribs;
 
     /* This is the mapping between an attribute name to it's index in any given config */
-    DefaultKeyedVector<EGLint, EGLint>    m_attribs;
+    std::map<EGLint, EGLint>    m_attribs;
     /* This is an array of all config's attributes values stored in the following sequencial fasion (read: v[c,a] = the value of attribute <a> of config <c>)
      * v[0,0],..,v[0,m_numConfigAttribs-1],
      *...
