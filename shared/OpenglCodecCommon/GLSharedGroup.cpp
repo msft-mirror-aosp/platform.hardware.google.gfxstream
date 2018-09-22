@@ -28,7 +28,7 @@ static void clearObjectMap(android::DefaultKeyedVector<GLuint, T>& v) {
 /**** BufferData ****/
 
 BufferData::BufferData() : m_size(0), m_usage(0), m_mapped(false) {};
-BufferData::BufferData(GLsizeiptr size, void * data) : m_size(size), m_usage(0), m_mapped(false)
+BufferData::BufferData(GLsizeiptr size, const void *data) : m_size(size), m_usage(0), m_mapped(false)
 {
     void * buffer = NULL;
     if (size>0) buffer = m_fixedBuffer.alloc(size);
@@ -260,13 +260,13 @@ SharedTextureDataMap* GLSharedGroup::getTextureData() {
     return &m_textureRecs;
 }
 
-void GLSharedGroup::addBufferData(GLuint bufferId, GLsizeiptr size, void * data)
+void GLSharedGroup::addBufferData(GLuint bufferId, GLsizeiptr size, const void* data)
 {
     android::AutoMutex _lock(m_lock);
     m_buffers.add(bufferId, new BufferData(size, data));
 }
 
-void GLSharedGroup::updateBufferData(GLuint bufferId, GLsizeiptr size, void * data)
+void GLSharedGroup::updateBufferData(GLuint bufferId, GLsizeiptr size, const void* data)
 {
     android::AutoMutex _lock(m_lock);
     ssize_t idx = m_buffers.indexOfKey(bufferId);
@@ -304,7 +304,7 @@ bool GLSharedGroup::isBufferMapped(GLuint bufferId) {
     return buf->m_mapped;
 }
 
-GLenum GLSharedGroup::subUpdateBufferData(GLuint bufferId, GLintptr offset, GLsizeiptr size, void * data)
+GLenum GLSharedGroup::subUpdateBufferData(GLuint bufferId, GLintptr offset, GLsizeiptr size, const void* data)
 {
     android::AutoMutex _lock(m_lock);
     BufferData * buf = m_buffers.valueFor(bufferId);
