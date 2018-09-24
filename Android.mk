@@ -56,6 +56,7 @@ EMUGL_COMMON_CFLAGS += \
     -DHOST_BUILD \
     -DANDROID \
     -DGL_GLEXT_PROTOTYPES \
+    -fvisibility=default \
 
 endif # GOLDFISH_OPENGL_BUILD_FOR_HOST
 
@@ -129,9 +130,9 @@ include $(GOLDFISH_OPENGL_PATH)/system/renderControl_enc/Android.mk
 # goldfish_dma
 # sockets
 # etc.
-ifneq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
-
 include $(GOLDFISH_OPENGL_PATH)/system/OpenglSystemCommon/Android.mk
+
+ifneq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 
 # System shared libraries
 include $(GOLDFISH_OPENGL_PATH)/system/GLESv1/Android.mk

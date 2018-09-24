@@ -23,6 +23,8 @@
 #include <stdlib.h>
 #include "IOStream.h"
 
+#include "qemu_pipe.h"
+
 class QemuPipeStream : public IOStream {
 public:
     typedef enum { ERR_INVALID_SOCKET = -1000 } QemuPipeStreamError;
@@ -36,17 +38,17 @@ public:
     virtual const unsigned char *readFully( void *buf, size_t len);
     virtual const unsigned char *read( void *buf, size_t *inout_len);
 
-    bool valid() { return m_sock >= 0; }
+    bool valid() { return qemu_pipe_valid(m_sock); }
     int recv(void *buf, size_t len);
 
     virtual int writeFully(const void *buf, size_t len);
 
-    int getSocket() const;
+    QEMU_PIPE_HANDLE getSocket() const;
 private:
-    int m_sock;
+    QEMU_PIPE_HANDLE m_sock;
     size_t m_bufsize;
     unsigned char *m_buf;
-    QemuPipeStream(int sock, size_t bufSize);
+    QemuPipeStream(QEMU_PIPE_HANDLE sock, size_t bufSize);
 };
 
 #endif

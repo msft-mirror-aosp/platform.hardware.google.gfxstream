@@ -16,6 +16,9 @@
 #include "ThreadInfo.h"
 #include "cutils/threads.h"
 
+#include <bionic_tls.h>
+#include <pthread.h>
+
 thread_store_t s_tls = THREAD_STORE_INITIALIZER;
 
 static bool sDefaultTlsDestructorCallback(__attribute__((__unused__)) void* ptr) {
@@ -50,4 +53,22 @@ EGLThreadInfo *goldfish_get_egl_tls()
     thread_store_set(&s_tls, ti, tlsDestruct);
 
     return ti;
+}
+
+EGLThreadInfo* getEGLThreadInfo() {
+#ifdef __ANDROID__
+    EGLThreadInfo *tInfo =
+        (EGLThreadInfo *)(((uintptr_t *)__get_tls())[TLS_SLOT_OPENGL]);
+    if (!tInfo) {
+        tInfo = goldfish_get_egl_tls();
+        ((uintptr_t *)__get_tls())[TLS_SLOT_OPENGL] = (uintptr_t)tInfo;
+    }
+    return tInfo;
+#else
+    return goldfish_get_egl_tls();
+#endif
+}
+
+int32_t getCurrentThreadId() {
+    return (int32_t)gettid();
 }
