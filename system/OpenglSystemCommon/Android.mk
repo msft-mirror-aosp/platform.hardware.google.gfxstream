@@ -12,14 +12,11 @@ LOCAL_SRC_FILES := \
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 
 LOCAL_SRC_FILES += \
-    goldfish_dma_host.cpp \
     ThreadInfo_host.cpp \
-    qemu_pipe_host.cpp \
 
 else
 
 LOCAL_SRC_FILES += \
-    goldfish_dma.cpp \
     ThreadInfo.cpp \
 
 endif

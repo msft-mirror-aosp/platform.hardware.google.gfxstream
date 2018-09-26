@@ -13,6 +13,19 @@ commonSources := \
         SocketStream.cpp \
         TcpStream.cpp \
 
+ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
+
+commonSources += \
+        goldfish_dma_host.cpp \
+        qemu_pipe_host.cpp \
+
+else
+
+commonSources += \
+        goldfish_dma.cpp \
+
+endif
+
 ### CodecCommon  guest ##############################################
 $(call emugl-begin-static-library,libOpenglCodecCommon$(GOLDFISH_OPENGL_LIB_SUFFIX))
 
