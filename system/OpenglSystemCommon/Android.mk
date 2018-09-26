@@ -4,12 +4,25 @@ $(call emugl-begin-shared-library,libOpenglSystemCommon)
 $(call emugl-import,libGLESv1_enc libGLESv2_enc lib_renderControl_enc)
 
 LOCAL_SRC_FILES := \
-    goldfish_dma.cpp \
     FormatConversions.cpp \
     HostConnection.cpp \
-    ProcessPipe.cpp    \
     QemuPipeStream.cpp \
-    ThreadInfo.cpp
+    ProcessPipe.cpp    \
+
+ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
+
+LOCAL_SRC_FILES += \
+    goldfish_dma_host.cpp \
+    ThreadInfo_host.cpp \
+    qemu_pipe_host.cpp \
+
+else
+
+LOCAL_SRC_FILES += \
+    goldfish_dma.cpp \
+    ThreadInfo.cpp \
+
+endif
 
 ifneq ($(filter virgl, $(BOARD_GPU_DRIVERS)),)
 LOCAL_CFLAGS += -DVIRTIO_GPU
@@ -30,5 +43,9 @@ $(call emugl-export,HEADER_LIBRARIES,libhardware_headers)
 endif
 
 $(call emugl-export,C_INCLUDES,$(LOCAL_PATH) bionic/libc/private)
+
+ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
+$(call emugl-export,SHARED_LIBRARIES,android-emu-shared)
+endif
 
 $(call emugl-end-module)

@@ -95,12 +95,12 @@ const char *  eglStrError(EGLint err)
 
 #define setErrorReturn(error, retVal)     \
     {                                                \
-        ALOGE("tid %d: %s(%d): error 0x%x (%s)", gettid(), __FUNCTION__, __LINE__, error, eglStrError(error));     \
+        ALOGE("tid %d: %s(%d): error 0x%x (%s)", getCurrentThreadId(), __FUNCTION__, __LINE__, error, eglStrError(error));     \
         return setErrorFunc(error, retVal);            \
     }
 
 #define RETURN_ERROR(ret,err)           \
-    ALOGE("tid %d: %s(%d): error 0x%x (%s)", gettid(), __FUNCTION__, __LINE__, err, eglStrError(err));    \
+    ALOGE("tid %d: %s(%d): error 0x%x (%s)", getCurrentThreadId(), __FUNCTION__, __LINE__, err, eglStrError(err));    \
     getEGLThreadInfo()->eglError = err;    \
     return ret;
 
@@ -476,6 +476,8 @@ static uint64_t createNativeSync(EGLenum type,
                     sync_handle,
                     thread_handle,
                     fd_out);
+
+        (void)queue_work_err;
 
         DPRINT("got native fence fd=%d queue_work_err=%d",
                *fd_out, queue_work_err);

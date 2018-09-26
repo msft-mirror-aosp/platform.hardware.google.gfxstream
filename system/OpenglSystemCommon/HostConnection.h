@@ -99,7 +99,7 @@ public:
         goldfish_dma_lock(m_dmaCxt);
         goldfish_dma_write(m_dmaCxt, data, size);
         uint64_t paddr = goldfish_dma_guest_paddr(m_dmaCxt);
-        ALOGV("%s: paddr=0x%llx", __FUNCTION__, paddr);
+        ALOGV("%s: paddr=0x%llx", __FUNCTION__, (unsigned long long)paddr);
         return paddr;
     }
     void setGLESMaxVersion(GLESMaxVersion ver) { m_glesMaxVersion = ver; }
@@ -154,8 +154,6 @@ public:
 
     bool isGrallocOnly() const { return m_grallocOnly; }
 
-    int getPipeFd() const { return m_pipeFd; }
-
 private:
     HostConnection();
     static gl_client_context_t  *s_getGLContext();
@@ -180,7 +178,6 @@ private:
     ProcessPipe *m_processPipe;
     std::string m_glExtensions;
     bool m_grallocOnly;
-    int m_pipeFd;
     bool m_noHostError;
 };
 
