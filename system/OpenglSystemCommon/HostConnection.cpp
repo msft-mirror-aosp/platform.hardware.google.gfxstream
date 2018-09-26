@@ -119,7 +119,6 @@ HostConnection *HostConnection::getWithThreadInfo(EGLThreadInfo* tinfo) {
                     return NULL;
                 }
                 con->m_stream = stream;
-                con->m_pipeFd = stream->getSocket();
                 con->m_grallocHelper = &m_goldfishGralloc;
                 con->m_processPipe = &m_goldfishProcessPipe;
                 break;
@@ -171,7 +170,8 @@ HostConnection *HostConnection::getWithThreadInfo(EGLThreadInfo* tinfo) {
         *pClientFlags = 0;
         con->m_stream->commitBuffer(sizeof(unsigned int));
 
-        ALOGD("HostConnection::get() New Host Connection established %p, tid %d\n", con, gettid());
+        ALOGD("HostConnection::get() New Host Connection established %p, tid %d\n",
+              con, getCurrentThreadId());
         tinfo->hostConn = con;
     }
 
@@ -196,7 +196,8 @@ GLEncoder *HostConnection::glEncoder()
 {
     if (!m_glEnc) {
         m_glEnc = new GLEncoder(m_stream, checksumHelper());
-        DBG("HostConnection::glEncoder new encoder %p, tid %d", m_glEnc, gettid());
+        DBG("HostConnection::glEncoder new encoder %p, tid %d",
+            m_glEnc, getCurrentThreadId());
         m_glEnc->setContextAccessor(s_getGLContext);
     }
     return m_glEnc;
@@ -206,7 +207,8 @@ GL2Encoder *HostConnection::gl2Encoder()
 {
     if (!m_gl2Enc) {
         m_gl2Enc = new GL2Encoder(m_stream, checksumHelper());
-        DBG("HostConnection::gl2Encoder new encoder %p, tid %d", m_gl2Enc, gettid());
+        DBG("HostConnection::gl2Encoder new encoder %p, tid %d",
+            m_gl2Enc, getCurrentThreadId());
         m_gl2Enc->setContextAccessor(s_getGL2Context);
         m_gl2Enc->setNoHostError(m_noHostError);
     }

@@ -15,30 +15,7 @@
 #ifndef ANDROID_INCLUDE_HARDWARE_GOLDFISH_DMA_H
 #define ANDROID_INCLUDE_HARDWARE_GOLDFISH_DMA_H
 
-#include <errno.h>
-#include <linux/ioctl.h>
-#include <linux/types.h>
-#include <sys/cdefs.h>
-#include <fcntl.h>
-#include <stdlib.h>
-
-/* There is an ioctl associated with goldfish dma driver.
- * Make it conflict with ioctls that are not likely to be used
- * in the emulator.
- * 'G'	00-3F	drivers/misc/sgi-gru/grulib.h	conflict!
- * 'G'	00-0F	linux/gigaset_dev.h	conflict!
- */
-#define GOLDFISH_DMA_IOC_MAGIC	'G'
-
-#define GOLDFISH_DMA_IOC_LOCK			_IOWR(GOLDFISH_DMA_IOC_MAGIC, 0, struct goldfish_dma_ioctl_info)
-#define GOLDFISH_DMA_IOC_UNLOCK			_IOWR(GOLDFISH_DMA_IOC_MAGIC, 1, struct goldfish_dma_ioctl_info)
-#define GOLDFISH_DMA_IOC_GETOFF			_IOWR(GOLDFISH_DMA_IOC_MAGIC, 2, struct goldfish_dma_ioctl_info)
-#define GOLDFISH_DMA_IOC_CREATE_REGION	_IOWR(GOLDFISH_DMA_IOC_MAGIC, 3, struct goldfish_dma_ioctl_info)
-
-struct goldfish_dma_ioctl_info {
-    uint64_t phys_begin;
-    uint64_t size;
-};
+#include <inttypes.h>
 
 // userspace interface
 struct goldfish_dma_context {

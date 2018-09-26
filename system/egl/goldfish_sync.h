@@ -15,6 +15,7 @@
 #ifndef ANDROID_INCLUDE_HARDWARE_GOLDFISH_SYNC_H
 #define ANDROID_INCLUDE_HARDWARE_GOLDFISH_SYNC_H
 
+#include <errno.h>
 #include <linux/ioctl.h>
 #include <linux/types.h>
 #include <sys/cdefs.h>

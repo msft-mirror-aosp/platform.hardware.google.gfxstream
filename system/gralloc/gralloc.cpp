@@ -26,6 +26,7 @@
 #include "FormatConversions.h"
 #include "HostConnection.h"
 #include "ProcessPipe.h"
+#include "ThreadInfo.h"
 #include "glUtils.h"
 #include <utils/CallStack.h>
 #include <cutils/log.h>
@@ -672,7 +673,7 @@ static int gralloc_alloc(alloc_device_t* dev,
     }
 
     D("gralloc_alloc format=%d, ashmem_size=%d, stride=%d, tid %d\n", format,
-            ashmem_size, stride, gettid());
+      ashmem_size, stride, getCurrentThreadId());
 
     //
     // Allocate space in ashmem if needed
