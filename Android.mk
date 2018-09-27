@@ -57,6 +57,7 @@ EMUGL_COMMON_CFLAGS += \
     -DANDROID \
     -DGL_GLEXT_PROTOTYPES \
     -fvisibility=default \
+    -DPAGE_SIZE=4096 \
 
 endif # GOLDFISH_OPENGL_BUILD_FOR_HOST
 
@@ -136,9 +137,10 @@ include $(GOLDFISH_OPENGL_PATH)/system/OpenglSystemCommon/Android.mk
 include $(GOLDFISH_OPENGL_PATH)/system/GLESv1/Android.mk
 include $(GOLDFISH_OPENGL_PATH)/system/GLESv2/Android.mk
 
+include $(GOLDFISH_OPENGL_PATH)/system/gralloc/Android.mk
+
 ifneq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 
-include $(GOLDFISH_OPENGL_PATH)/system/gralloc/Android.mk
 include $(GOLDFISH_OPENGL_PATH)/system/egl/Android.mk
 
 endif # !GOLDFISH_OPENGL_BUILD_FOR_HOST
