@@ -15,6 +15,15 @@
 
 #include "android/base/threads/Thread.h"
 
+static bool sDefaultTlsDestructorCallback(__attribute__((__unused__)) void* ptr) {
+  return true;
+}
+static bool (*sTlsDestructorCallback)(void*) = sDefaultTlsDestructorCallback;
+
+void setTlsDestructor(tlsDtorCallback func) {
+    sTlsDestructorCallback = func;
+}
+
 EGLThreadInfo *goldfish_get_egl_tls()
 {
     return 0;
