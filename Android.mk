@@ -125,12 +125,6 @@ include $(GOLDFISH_OPENGL_PATH)/system/GLESv1_enc/Android.mk
 include $(GOLDFISH_OPENGL_PATH)/system/GLESv2_enc/Android.mk
 include $(GOLDFISH_OPENGL_PATH)/system/renderControl_enc/Android.mk
 
-# TODO: Get the rest of the libraries to build on host
-# From here, we require more android framework
-# reimplementations on host:
-# goldfish_dma
-# sockets
-# etc.
 include $(GOLDFISH_OPENGL_PATH)/system/OpenglSystemCommon/Android.mk
 
 # System shared libraries
@@ -139,10 +133,6 @@ include $(GOLDFISH_OPENGL_PATH)/system/GLESv2/Android.mk
 
 include $(GOLDFISH_OPENGL_PATH)/system/gralloc/Android.mk
 
-ifneq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
-
 include $(GOLDFISH_OPENGL_PATH)/system/egl/Android.mk
-
-endif # !GOLDFISH_OPENGL_BUILD_FOR_HOST
 
 endif
