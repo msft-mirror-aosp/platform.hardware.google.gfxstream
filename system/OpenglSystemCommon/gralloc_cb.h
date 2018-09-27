@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
-#if PLATFORM_SDK_VERSION < 23
+#if PLATFORM_SDK_VERSION < 28
 
 #ifndef __GRALLOC_CB_H__
 #define __GRALLOC_CB_H__
