@@ -34,7 +34,6 @@
 #include "ProcessPipe.h"
 #include "ThreadInfo.h"
 #include "glUtils.h"
-#include <utils/CallStack.h>
 #include <cutils/log.h>
 #include <cutils/properties.h>
 

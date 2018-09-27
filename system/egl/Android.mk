@@ -13,16 +13,17 @@ LOCAL_SRC_FILES := \
     egl.cpp \
     ClientAPIExts.cpp
 
-ifdef IS_AT_LEAST_OPD1
-LOCAL_SHARED_LIBRARIES += libdl libnativewindow
-else
+ifneq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
+
 LOCAL_SHARED_LIBRARIES += libdl
 endif
 
 ifdef IS_AT_LEAST_OPD1
+LOCAL_SHARED_LIBRARIES += libnativewindow
 LOCAL_STATIC_LIBRARIES += libarect
 endif
 
+ifneq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 ifdef IS_AT_LEAST_OPM1
 LOCAL_HEADER_LIBRARIES += libui_headers
 endif
@@ -33,6 +34,8 @@ endif
 
 # Used to access the Bionic private OpenGL TLS slot
 LOCAL_C_INCLUDES += bionic/libc/private
+
+endif # !GOLDFISH_OPENGL_BUILD_FOR_HOST
 
 $(call emugl-end-module)
 
