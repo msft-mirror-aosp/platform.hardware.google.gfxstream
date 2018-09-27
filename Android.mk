@@ -132,11 +132,11 @@ include $(GOLDFISH_OPENGL_PATH)/system/renderControl_enc/Android.mk
 # etc.
 include $(GOLDFISH_OPENGL_PATH)/system/OpenglSystemCommon/Android.mk
 
-ifneq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
-
 # System shared libraries
 include $(GOLDFISH_OPENGL_PATH)/system/GLESv1/Android.mk
 include $(GOLDFISH_OPENGL_PATH)/system/GLESv2/Android.mk
+
+ifneq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 
 include $(GOLDFISH_OPENGL_PATH)/system/gralloc/Android.mk
 include $(GOLDFISH_OPENGL_PATH)/system/egl/Android.mk
