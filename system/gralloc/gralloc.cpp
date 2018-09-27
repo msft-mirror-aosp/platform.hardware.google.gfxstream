@@ -21,7 +21,13 @@
 #include <errno.h>
 #include <dlfcn.h>
 #include <sys/mman.h>
+
+#if PLATFORM_SDK_VERSION < 28
 #include "gralloc_cb.h"
+#else
+#include "../../shared/OpenglCodecCommon/gralloc_cb.h"
+#endif
+
 #include "goldfish_dma.h"
 #include "FormatConversions.h"
 #include "HostConnection.h"
