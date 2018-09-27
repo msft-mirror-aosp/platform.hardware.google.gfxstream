@@ -1189,7 +1189,7 @@ static int gralloc_lock(gralloc_module_t const* module,
             // host failed the color buffer sync - probably since it was already
             // locked for write access. fail the lock.
             ALOGE("gralloc_lock cacheFlush failed postCount=%d sw_read=%d\n",
-                 postCount, sw_read);
+                 (int)postCount, sw_read);
             return -EBUSY;
         }
 
