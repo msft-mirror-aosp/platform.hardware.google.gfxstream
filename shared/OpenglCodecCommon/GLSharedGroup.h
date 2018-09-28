@@ -58,6 +58,10 @@ struct BufferData {
     // Internal bookkeeping
     FixedBuffer m_fixedBuffer; // actual buffer is shadowed here
     IndexRangeCache m_indexRangeCache;
+
+    // DMA support
+
+
 };
 
 class ProgramData {
