@@ -12,6 +12,7 @@ commonSources := \
         IndexRangeCache.cpp \
         SocketStream.cpp \
         TcpStream.cpp \
+        auto_goldfish_dma_context.cpp \
 
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 
