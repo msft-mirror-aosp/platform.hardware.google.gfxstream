@@ -28,7 +28,7 @@ commonSources += \
 endif
 
 ### CodecCommon  guest ##############################################
-$(call emugl-begin-static-library,libOpenglCodecCommon$(GOLDFISH_OPENGL_LIB_SUFFIX))
+$(call emugl-begin-shared-library,libOpenglCodecCommon$(GOLDFISH_OPENGL_LIB_SUFFIX))
 
 LOCAL_SRC_FILES := $(commonSources)
 
