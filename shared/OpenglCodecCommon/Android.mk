@@ -34,6 +34,11 @@ LOCAL_SRC_FILES := $(commonSources)
 
 LOCAL_CFLAGS += -DLOG_TAG=\"eglCodecCommon\"
 
-$(call emugl-export,SHARED_LIBRARIES,libcutils libutils liblog android-emu-shared)
+$(call emugl-export,SHARED_LIBRARIES,libcutils libutils liblog)
+
+ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
+$(call emugl-export,SHARED_LIBRARIES,android-emu-shared)
+endif
+
 $(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
 $(call emugl-end-module)
