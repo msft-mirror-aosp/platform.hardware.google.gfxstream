@@ -117,7 +117,7 @@ int QemuPipeStream::writeFully(const void *buf, size_t len)
             retval = -1;
             break;
         }
-        if (errno == EINTR) {
+        if (qemu_pipe_try_again()) {
             continue;
         }
         retval =  stat;
@@ -154,7 +154,7 @@ const unsigned char *QemuPipeStream::readFully(void *buf, size_t len)
             // client shutdown;
             return NULL;
         } else if (stat < 0) {
-            if (errno == EINTR) {
+            if (qemu_pipe_try_again()) {
                 continue;
             } else {
                 ERR("QemuPipeStream::readFully failed (buf %p, len %zu"
@@ -206,7 +206,7 @@ int QemuPipeStream::recv(void *buf, size_t len)
         if (res == 0) { /* EOF */
              break;
         }
-        if (errno == EINTR)
+        if (qemu_pipe_try_again())
             continue;
 
         /* A real error */

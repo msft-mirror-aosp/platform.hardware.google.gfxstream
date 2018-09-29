@@ -15,11 +15,16 @@
 */
 #include "eglDisplay.h"
 #include "HostConnection.h"
-#include <dlfcn.h>
+#include "KeyedVectorUtils.h"
+
+#ifdef HOST_BUILD
+#include "android/base/files/PathUtils.cpp"
+#include "android/base/system/System.cpp"
+#endif
 
 #include <string>
 
-#include "KeyedVectorUtils.h"
+#include <dlfcn.h>
 
 static const int systemEGLVersionMajor = 1;
 static const int systemEGLVersionMinor = 4;
@@ -83,11 +88,7 @@ eglDisplay::~eglDisplay()
     pthread_mutex_destroy(&m_surfaceLock);
 }
 
-#if PLATFORM_SDK_VERSION >= 26
-#define PARTITION "/vendor"
-#else
-#define PARTITION "/system"
-#endif
+
 
 bool eglDisplay::initialize(EGLClient_eglInterface *eglIface)
 {
@@ -97,15 +98,9 @@ bool eglDisplay::initialize(EGLClient_eglInterface *eglIface)
         //
         // load GLES client API
         //
-#if __LP64__
-        m_gles_iface = loadGLESClientAPI(PARTITION "/lib64/egl/libGLESv1_CM_emulation.so",
+        m_gles_iface = loadGLESClientAPI("libGLESv1_CM_emulation",
                                          eglIface,
                                          &s_gles_lib);
-#else
-        m_gles_iface = loadGLESClientAPI(PARTITION "/lib/egl/libGLESv1_CM_emulation.so",
-                                         eglIface,
-                                         &s_gles_lib);
-#endif
         if (!m_gles_iface) {
             pthread_mutex_unlock(&m_lock);
             ALOGE("Failed to load gles1 iface");
@@ -113,15 +108,9 @@ bool eglDisplay::initialize(EGLClient_eglInterface *eglIface)
         }
 
 #ifdef WITH_GLES2
-#if __LP64__
-        m_gles2_iface = loadGLESClientAPI(PARTITION "/lib64/egl/libGLESv2_emulation.so",
+        m_gles2_iface = loadGLESClientAPI("libGLESv2_emulation",
                                           eglIface,
                                           &s_gles2_lib);
-#else
-        m_gles2_iface = loadGLESClientAPI(PARTITION "/lib/egl/libGLESv2_emulation.so",
-                                          eglIface,
-                                          &s_gles2_lib);
-#endif
         // Note that if loading gles2 failed, we can still run with no
         // GLES2 support, having GLES2 is not mandatory.
 #endif
@@ -261,13 +250,50 @@ void eglDisplay::terminate()
     pthread_mutex_unlock(&m_lock);
 }
 
-EGLClient_glesInterface *eglDisplay::loadGLESClientAPI(const char *libName,
+#ifdef __APPLE__
+#define LIBSUFFIX ".dylib"
+#else
+#ifdef _WIN32
+#define LIBSUFFIX ".dll"
+#else
+#define LIBSUFFIX ".so"
+#endif // !_WIN32 (linux)
+#endif // !__APPLE__
+
+#ifndef HOST_BUILD
+#if PLATFORM_SDK_VERSION >= 26
+#define PARTITION "/vendor"
+#else
+#define PARTITION "/system"
+#endif // !PLATFORM_SDK_VERSION >= 26
+#if __LP64__
+#define LIBDIR "/lib64/egl/"
+#else
+#define LIBDIR "/lib/egl/"
+#endif // !__LP64__
+#endif // !HOST_BUILD
+
+EGLClient_glesInterface *eglDisplay::loadGLESClientAPI(const char *basename,
                                                        EGLClient_eglInterface *eglIface,
                                                        void **libHandle)
 {
-    void *lib = dlopen(libName, RTLD_NOW);
+#ifdef HOST_BUILD
+    std::string baseDir =
+        android::base::System::get()->getProgramDirectory();
+    std::string path =
+        android::base::pj(
+            baseDir, "lib64", std::string(basename) + LIBSUFFIX);
+    void *lib = dlopen(path.c_str(), RTLD_NOW);
+#else
+    std::string path(PARTITION);
+    path += LIBDIR;
+    path += basename;
+    path += LIBSUFFIX;
+    void *lib = dlopen(path.c_str(), RTLD_NOW);
+#endif
+
     if (!lib) {
-        ALOGE("Failed to dlopen %s", libName);
+        ALOGE("Failed to dlopen %s", basename);
         return NULL;
     }
 
