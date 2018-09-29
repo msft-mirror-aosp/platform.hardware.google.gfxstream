@@ -13,7 +13,12 @@
 // limitations under the License.
 #include "ThreadInfo.h"
 
+#include "android/base/memory/LazyInstance.h"
 #include "android/base/threads/Thread.h"
+#include "android/base/threads/ThreadStore.h"
+
+using android::base::LazyInstance;
+using android::base::ThreadStoreBase;
 
 static bool sDefaultTlsDestructorCallback(__attribute__((__unused__)) void* ptr) {
   return true;
@@ -24,17 +29,32 @@ void setTlsDestructor(tlsDtorCallback func) {
     sTlsDestructorCallback = func;
 }
 
+static void doTlsDestruct(void* obj) {
+    sTlsDestructorCallback(obj);
+}
+
+class ThreadInfoStore : public ThreadStoreBase {
+public:
+    ThreadInfoStore() : ThreadStoreBase(NULL) { }
+    ~ThreadInfoStore();
+};
+
+static LazyInstance<ThreadInfoStore> sTls = LAZY_INSTANCE_INIT;
+
+ThreadInfoStore::~ThreadInfoStore() {
+    doTlsDestruct(sTls->get());
+}
+
 EGLThreadInfo *goldfish_get_egl_tls()
 {
-    return 0;
-    // EGLThreadInfo* ti = (EGLThreadInfo*)thread_store_get(&s_tls);
+    EGLThreadInfo* ti = (EGLThreadInfo*)sTls->get();
 
-    // if (ti) return ti;
+    if (ti) return ti;
 
-    // ti = new EGLThreadInfo();
-    // thread_store_set(&s_tls, ti, tlsDestruct);
+    ti = new EGLThreadInfo();
+    sTls->set(ti);
 
-    // return ti;
+    return ti;
 }
 
 EGLThreadInfo* getEGLThreadInfo() {
