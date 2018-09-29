@@ -22,11 +22,7 @@
 #include "TcpStream.h"
 #include "ThreadInfo.h"
 
-#if PLATFORM_SDK_VERSION < 28
 #include "gralloc_cb.h"
-#else
-#include "../../shared/OpenglCodecCommon/gralloc_cb.h"
-#endif
 
 #ifdef VIRTIO_GPU
 #include "VirtioGpuStream.h"
