@@ -29,7 +29,10 @@ static bool (*sTlsDestructorCallback)(void*) = sDefaultTlsDestructorCallback;
 static void tlsDestruct(void *ptr)
 {
     sTlsDestructorCallback(ptr);
-    if (ptr) {
+    if (ptr
+#ifdef __ANDROID__
+         && ((void **)__get_tls())[TLS_SLOT_OPENGL]) {
+#endif
         EGLThreadInfo *ti = (EGLThreadInfo *)ptr;
         delete ti->hostConn;
         delete ti;
