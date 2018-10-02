@@ -956,7 +956,7 @@ static int fb_close(struct hw_device_t *dev)
 {
     fb_device_t *fbdev = (fb_device_t *)dev;
 
-    delete fbdev;
+    free(fbdev);
 
     return 0;
 }
