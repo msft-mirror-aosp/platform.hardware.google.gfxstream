@@ -1288,7 +1288,10 @@ static EGLBoolean s_eglReleaseThreadImpl(EGLThreadInfo* tInfo) {
     tInfo->eglError = EGL_SUCCESS;
     EGLContext_t* context = tInfo->currentContext;
 
-    if (!context || !s_display.isContext(context)) return EGL_TRUE;
+    if (!context || !s_display.isContext(context)) {
+        HostConnection::exit();
+        return EGL_TRUE;
+    }
 
     // The following code is doing pretty much the same thing as
     // eglMakeCurrent(&s_display, EGL_NO_CONTEXT, EGL_NO_SURFACE, EGL_NO_SURFACE)
@@ -1309,6 +1312,8 @@ static EGLBoolean s_eglReleaseThreadImpl(EGLThreadInfo* tInfo) {
         delete context;
     }
     tInfo->currentContext = 0;
+
+    HostConnection::exit();
 
     return EGL_TRUE;
 }
