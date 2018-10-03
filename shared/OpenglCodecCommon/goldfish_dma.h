@@ -36,6 +36,6 @@ void goldfish_dma_write(struct goldfish_dma_context* cxt,
                         uint32_t sz);
 
 void goldfish_dma_free(goldfish_dma_context* cxt);
-uint64_t goldfish_dma_guest_paddr(struct goldfish_dma_context* cxt);
+uint64_t goldfish_dma_guest_paddr(const struct goldfish_dma_context* cxt);
 
 #endif

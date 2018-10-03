@@ -420,6 +420,8 @@ typedef void (gl2_APIENTRY *glFramebufferParameteri_client_proc_t) (void * ctx, 
 typedef void (gl2_APIENTRY *glGetFramebufferParameteriv_client_proc_t) (void * ctx, GLenum, GLenum, GLint*);
 typedef void (gl2_APIENTRY *glGetTexLevelParameterfv_client_proc_t) (void * ctx, GLenum, GLint, GLenum, GLfloat*);
 typedef void (gl2_APIENTRY *glGetTexLevelParameteriv_client_proc_t) (void * ctx, GLenum, GLint, GLenum, GLint*);
+typedef void (gl2_APIENTRY *glMapBufferRangeDMA_client_proc_t) (void * ctx, GLenum, GLintptr, GLsizeiptr, GLbitfield, uint64_t);
+typedef void (gl2_APIENTRY *glUnmapBufferDMA_client_proc_t) (void * ctx, GLenum, GLintptr, GLsizeiptr, GLbitfield, uint64_t, GLboolean*);
 
 
 #endif

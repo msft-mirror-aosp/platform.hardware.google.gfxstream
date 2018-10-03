@@ -2818,6 +2818,20 @@ GLboolean GL2Encoder::s_glUnmapBufferOES(void* self, GLenum target) {
     return ctx->glUnmapBuffer(ctx, target);
 }
 
+void* GL2Encoder::s_glMapBufferRangeAEMUImpl(GL2Encoder* ctx, GLenum target,
+                                             GLintptr offset, GLsizeiptr length,
+                                             GLbitfield access, BufferData* buf) {
+    char* bits = (char*)buf->m_fixedBuffer.ptr() + offset;
+
+    ctx->glMapBufferRangeAEMU(
+            ctx, target,
+            offset, length,
+            access,
+            bits);
+
+    return bits;
+}
+
 void* GL2Encoder::s_glMapBufferRange(void* self, GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
     GL2Encoder* ctx = (GL2Encoder*)self;
     GLClientState* state = ctx->m_state;
@@ -2856,14 +2870,37 @@ void* GL2Encoder::s_glMapBufferRange(void* self, GLenum target, GLintptr offset,
     buf->m_mappedOffset = offset;
     buf->m_mappedLength = length;
 
-    char* todo = (char*)buf->m_fixedBuffer.ptr() + offset;
-    ctx->glMapBufferRangeAEMU(
-            ctx, target,
-            offset, length,
-            access,
-            todo);
+    if (ctx->hasExtension("ANDROID_EMU_dma_v2")) {
+        if (buf->dma_buffer.get().size < length) {
+            goldfish_dma_context region;
 
-    return todo;
+            const int PAGE_BITS = 12;
+            GLsizeiptr aligned_length = (length + (1 << PAGE_BITS) - 1) & ~((1 << PAGE_BITS) - 1);
+
+            if (goldfish_dma_create_region(aligned_length, &region)) {
+                buf->dma_buffer.reset(NULL);
+                return s_glMapBufferRangeAEMUImpl(ctx, target, offset, length, access, buf);
+            }
+
+            if (!goldfish_dma_map(&region)) {
+                buf->dma_buffer.reset(NULL);
+                return s_glMapBufferRangeAEMUImpl(ctx, target, offset, length, access, buf);
+            }
+
+            buf->m_guest_paddr = goldfish_dma_guest_paddr(&region);
+            buf->dma_buffer.reset(&region);
+        }
+
+        ctx->glMapBufferRangeDMA(
+                ctx, target,
+                offset, length,
+                access,
+                buf->m_guest_paddr);
+
+        return reinterpret_cast<void*>(buf->dma_buffer.get().mapped_addr);
+    } else {
+        return s_glMapBufferRangeAEMUImpl(ctx, target, offset, length, access, buf);
+    }
 }
 
 GLboolean GL2Encoder::s_glUnmapBuffer(void* self, GLenum target) {
@@ -2891,13 +2928,27 @@ GLboolean GL2Encoder::s_glUnmapBuffer(void* self, GLenum target) {
 
     GLboolean host_res = GL_TRUE;
 
-    ctx->glUnmapBufferAEMU(
-            ctx, target,
-            buf->m_mappedOffset,
-            buf->m_mappedLength,
-            buf->m_mappedAccess,
-            (void*)((char*)buf->m_fixedBuffer.ptr() + buf->m_mappedOffset),
-            &host_res);
+    if (buf->dma_buffer.get().mapped_addr) {
+        memcpy(static_cast<char*>(buf->m_fixedBuffer.ptr()) + buf->m_mappedOffset,
+               reinterpret_cast<void*>(buf->dma_buffer.get().mapped_addr),
+               buf->m_mappedLength);
+
+        ctx->glUnmapBufferDMA(
+                ctx, target,
+                buf->m_mappedOffset,
+                buf->m_mappedLength,
+                buf->m_mappedAccess,
+                goldfish_dma_guest_paddr(&buf->dma_buffer.get()),
+                &host_res);
+    } else {
+        ctx->glUnmapBufferAEMU(
+                ctx, target,
+                buf->m_mappedOffset,
+                buf->m_mappedLength,
+                buf->m_mappedAccess,
+                (void*)((char*)buf->m_fixedBuffer.ptr() + buf->m_mappedOffset),
+                &host_res);
+    }
 
     buf->m_mapped = false;
     buf->m_mappedAccess = 0;
