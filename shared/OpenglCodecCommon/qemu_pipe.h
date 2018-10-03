@@ -22,6 +22,8 @@
 
 typedef void* QEMU_PIPE_HANDLE;
 
+#define QEMU_PIPE_INVALID_HANDLE NULL
+
 QEMU_PIPE_HANDLE qemu_pipe_open(const char* pipeName);
 void qemu_pipe_close(QEMU_PIPE_HANDLE pipe);
 
@@ -36,6 +38,8 @@ void qemu_pipe_print_error(QEMU_PIPE_HANDLE pipe);
 #else
 
 typedef int QEMU_PIPE_HANDLE;
+
+#define QEMU_PIPE_INVALID_HANDLE (-1)
 
 #include <cutils/log.h>
 #include <sys/cdefs.h>
