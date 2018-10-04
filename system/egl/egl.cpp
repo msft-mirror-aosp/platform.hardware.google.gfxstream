@@ -29,6 +29,7 @@
 #include "ClientAPIExts.h"
 #include "EGLImage.h"
 #include "ProcessPipe.h"
+#include "qemu_pipe.h"
 
 #include "GLEncoder.h"
 #ifdef WITH_GLES2
@@ -405,6 +406,7 @@ EGLBoolean egl_window_surface_t::init()
     DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
     rcSurface = rcEnc->rcCreateWindowSurface(rcEnc, (uintptr_t)config,
             getWidth(), getHeight());
+
     if (!rcSurface) {
         ALOGE("rcCreateWindowSurface returned 0");
         return EGL_FALSE;
@@ -433,6 +435,7 @@ egl_window_surface_t::~egl_window_surface_t() {
     if (rcSurface && rcEnc) {
         rcEnc->rcDestroyWindowSurface(rcEnc, rcSurface);
     }
+
     if (buffer) {
         nativeWindow->cancelBuffer_DEPRECATED(nativeWindow, buffer);
     }
@@ -599,12 +602,13 @@ private:
     EGLBoolean init(GLenum format);
 
     uint32_t rcColorBuffer;
+    QEMU_PIPE_HANDLE refcountPipeFd;
 };
 
 egl_pbuffer_surface_t::egl_pbuffer_surface_t(EGLDisplay dpy, EGLConfig config,
         EGLint surfType, int32_t w, int32_t h)
 :   egl_surface_t(dpy, config, surfType),
-    rcColorBuffer(0)
+    rcColorBuffer(0), refcountPipeFd(QEMU_PIPE_INVALID_HANDLE)
 {
     setWidth(w);
     setHeight(h);
@@ -614,7 +618,13 @@ egl_pbuffer_surface_t::~egl_pbuffer_surface_t()
 {
     DEFINE_HOST_CONNECTION;
     if (rcEnc) {
-        if (rcColorBuffer) rcEnc->rcCloseColorBuffer(rcEnc, rcColorBuffer);
+        if (rcColorBuffer){
+            if(qemu_pipe_valid(refcountPipeFd)) {
+                qemu_pipe_close(refcountPipeFd);
+            } else {
+                rcEnc->rcCloseColorBuffer(rcEnc, rcColorBuffer);
+            }
+        }
         if (rcSurface)     rcEnc->rcDestroyWindowSurface(rcEnc, rcSurface);
     }
 }
@@ -665,6 +675,12 @@ EGLBoolean egl_pbuffer_surface_t::init(GLenum pixelFormat)
     if (!rcColorBuffer) {
         ALOGE("rcCreateColorBuffer returned 0");
         return EGL_FALSE;
+    } else {
+        refcountPipeFd = qemu_pipe_open("refcount");
+        //Send color buffer handle in case RefCountPipe feature is turned on.
+        if (qemu_pipe_valid(refcountPipeFd)) {
+            qemu_pipe_write(refcountPipeFd, &rcColorBuffer, 4);
+        }
     }
 
     rcEnc->rcSetWindowColorBuffer(rcEnc, rcSurface, rcColorBuffer);

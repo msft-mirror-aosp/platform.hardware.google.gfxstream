@@ -34,6 +34,8 @@
 #include "ProcessPipe.h"
 #include "ThreadInfo.h"
 #include "glUtils.h"
+#include "qemu_pipe.h"
+
 #include <cutils/log.h>
 #include <cutils/properties.h>
 
@@ -744,7 +746,6 @@ static int gralloc_alloc(alloc_device_t* dev,
             } else {
                 cb->hostHandle = rcEnc->rcCreateColorBuffer(rcEnc, w, h, allocFormat);
             }
-            D("Created host ColorBuffer 0x%x\n", cb->hostHandle);
         }
 
         if (!cb->hostHandle) {
@@ -753,6 +754,13 @@ static int gralloc_alloc(alloc_device_t* dev,
             delete cb;
             ALOGD("%s: failed to create host cb! -EIO", __FUNCTION__);
             return -EIO;
+        } else {
+            QEMU_PIPE_HANDLE refcountPipeFd = qemu_pipe_open("refcount");
+            if(qemu_pipe_valid(refcountPipeFd)) {
+                cb->setRefcountPipeFd(refcountPipeFd);
+                qemu_pipe_write(refcountPipeFd, &cb->hostHandle, 4);
+            }
+            D("Created host ColorBuffer 0x%x\n", cb->hostHandle);
         }
 
         if (isHidlGralloc) { *getOpenCountPtr(cb) = 0; }
@@ -798,7 +806,7 @@ static int gralloc_free(alloc_device_t* dev,
     D("%s: for buf %p ptr %p size %d\n",
       __FUNCTION__, handle, cb->ashmemBase, cb->ashmemSize);
 
-    if (cb->hostHandle) {
+    if (cb->hostHandle && !cb->hasRefcountPipe()) {
         int32_t openCount = 1;
         int32_t* openCountPtr = &openCount;
 
@@ -828,6 +836,9 @@ static int gralloc_free(alloc_device_t* dev,
         close(cb->fd);
     }
 
+    if(qemu_pipe_valid(cb->refcount_pipe_fd)) {
+        qemu_pipe_close(cb->refcount_pipe_fd);
+    }
     D("%s: done", __FUNCTION__);
     // remove it from the allocated list
     gralloc_device_t *grdev = (gralloc_device_t *)dev;
@@ -988,7 +999,7 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
     D("gralloc_register_buffer(%p) w %d h %d format 0x%x framworkFormat 0x%x",
         handle, cb->width, cb->height, cb->format, cb->frameworkFormat);
 
-    if (cb->hostHandle != 0) {
+    if (cb->hostHandle != 0 && !cb->hasRefcountPipe()) {
         DEFINE_AND_VALIDATE_HOST_CONNECTION;
         D("Opening host ColorBuffer 0x%x\n", cb->hostHandle);
         rcEnc->rcOpenColorBuffer2(rcEnc, cb->hostHandle);
@@ -1044,7 +1055,7 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
     }
 
 
-    if (cb->hostHandle) {
+    if (cb->hostHandle && !cb->hasRefcountPipe()) {
         D("Closing host ColorBuffer 0x%x\n", cb->hostHandle);
         DEFINE_AND_VALIDATE_HOST_CONNECTION;
         rcEnc->rcCloseColorBuffer(rcEnc, cb->hostHandle);

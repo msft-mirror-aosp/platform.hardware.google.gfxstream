@@ -22,6 +22,7 @@
 #include <cutils/native_handle.h>
 
 #include "goldfish_dma.h"
+#include "qemu_pipe.h"
 
 #define BUFFER_HANDLE_MAGIC ((int)0xabfabfab)
 #define CB_HANDLE_NUM_INTS(nfds) (int)((sizeof(cb_handle_t) - (nfds)*sizeof(int)) / sizeof(int))
@@ -64,7 +65,7 @@ struct cb_handle_t : public native_handle {
         emuFrameworkFormat(p_emuFrameworkFormat)
     {
         goldfish_dma.fd = -1;
-        dmafd = -1;
+        refcount_pipe_fd = QEMU_PIPE_INVALID_HANDLE;
         version = sizeof(native_handle);
         numFds = 0;
         numInts = CB_HANDLE_NUM_INTS(numFds);
@@ -82,11 +83,15 @@ struct cb_handle_t : public native_handle {
         numInts = CB_HANDLE_NUM_INTS(numFds);
     }
 
-    void setDmaFd(int fd) {
-        if (fd >= 0) {
+    bool hasRefcountPipe() {
+        return qemu_pipe_valid(refcount_pipe_fd);
+    }
+
+    void setRefcountPipeFd(QEMU_PIPE_HANDLE fd) {
+        if (qemu_pipe_valid(fd)) {
             numFds++;
         }
-        dmafd = fd;
+        refcount_pipe_fd = fd;
         numInts = CB_HANDLE_NUM_INTS(numFds);
     }
 
@@ -103,7 +108,7 @@ struct cb_handle_t : public native_handle {
 
     // file-descriptors
     int fd;  // ashmem fd (-1 of ashmem region did not allocated, i.e. no SW access needed)
-    int dmafd; // goldfish dma fd.
+    QEMU_PIPE_HANDLE refcount_pipe_fd; // goldfish pipe service for gralloc refcounting fd.
 
     // ints
     int magic;              // magic number in order to validate a pointer to be a cb_handle_t
