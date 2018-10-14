@@ -1255,6 +1255,8 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
                             &maxIndex);
     }
 
+    if (count == 0) return;
+
     bool adjustIndices = true;
     if (ctx->m_state->currentIndexVbo() != 0) {
         if (!has_client_vertex_arrays) {
@@ -3864,6 +3866,8 @@ void GL2Encoder::s_glDrawElementsInstanced(void* self, GLenum mode, GLsizei coun
                             &maxIndex);
     }
 
+    if (count == 0) return;
+
     bool adjustIndices = true;
     if (ctx->m_state->currentIndexVbo() != 0) {
         if (!has_client_vertex_arrays) {
@@ -3954,6 +3958,8 @@ void GL2Encoder::s_glDrawRangeElements(void* self, GLenum mode, GLuint start, GL
                             &minIndex,
                             &maxIndex);
     }
+
+    if (count == 0) return;
 
     bool adjustIndices = true;
     if (ctx->m_state->currentIndexVbo() != 0) {
