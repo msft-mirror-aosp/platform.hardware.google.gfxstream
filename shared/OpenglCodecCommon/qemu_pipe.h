@@ -16,6 +16,32 @@
 #ifndef ANDROID_INCLUDE_HARDWARE_QEMU_PIPE_H
 #define ANDROID_INCLUDE_HARDWARE_QEMU_PIPE_H
 
+#ifdef HOST_BUILD
+
+#include <sys/types.h>
+
+typedef void* QEMU_PIPE_HANDLE;
+
+#define QEMU_PIPE_INVALID_HANDLE NULL
+
+QEMU_PIPE_HANDLE qemu_pipe_open(const char* pipeName);
+void qemu_pipe_close(QEMU_PIPE_HANDLE pipe);
+
+ssize_t qemu_pipe_read(QEMU_PIPE_HANDLE pipe, void* buffer, size_t len);
+ssize_t qemu_pipe_write(QEMU_PIPE_HANDLE pipe, const void* buffer, size_t len);
+
+bool qemu_pipe_try_again();
+bool qemu_pipe_valid(QEMU_PIPE_HANDLE pipe);
+
+void qemu_pipe_print_error(QEMU_PIPE_HANDLE pipe);
+
+#else
+
+typedef int QEMU_PIPE_HANDLE;
+
+#define QEMU_PIPE_INVALID_HANDLE (-1)
+
+#include <cutils/log.h>
 #include <sys/cdefs.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -30,7 +56,7 @@
 #  define  D(...)   do{}while(0)
 #endif
 
-static bool WriteFully(int fd, const void* data, size_t byte_count) {
+static bool WriteFully(QEMU_PIPE_HANDLE fd, const void* data, size_t byte_count) {
   const uint8_t* p = (const uint8_t*)(data);
   size_t remaining = byte_count;
   while (remaining > 0) {
@@ -64,12 +90,11 @@ static bool WriteFully(int fd, const void* data, size_t byte_count) {
  * except for a few special cases (e.g. GSM modem), where EBUSY will be
  * returned if more than one client tries to connect to it.
  */
-static __inline__ int
-qemu_pipe_open(const char*  pipeName)
-{
+static __inline__ QEMU_PIPE_HANDLE
+qemu_pipe_open(const char* pipeName) {
     char  buff[256];
     int   buffLen;
-    int   fd, ret;
+    QEMU_PIPE_HANDLE   fd;
 
     if (pipeName == NULL || pipeName[0] == '\0') {
         errno = EINVAL;
@@ -96,5 +121,37 @@ qemu_pipe_open(const char*  pipeName)
 
     return fd;
 }
+
+static __inline__ void
+qemu_pipe_close(QEMU_PIPE_HANDLE pipe) {
+    close(pipe);
+}
+
+static __inline__ ssize_t
+qemu_pipe_read(QEMU_PIPE_HANDLE pipe, void* buffer, size_t len) {
+    return read(pipe, buffer, len);
+}
+
+static __inline__ ssize_t
+qemu_pipe_write(QEMU_PIPE_HANDLE pipe, const void* buffer, size_t len) {
+    return write(pipe, buffer, len);
+}
+
+static __inline__ bool
+qemu_pipe_try_again() {
+    return errno == EINTR;
+}
+
+static __inline__ bool
+qemu_pipe_valid(QEMU_PIPE_HANDLE pipe) {
+    return pipe >= 0;
+}
+
+static __inline__ void
+qemu_pipe_print_error(QEMU_PIPE_HANDLE pipe) {
+    ALOGE("pipe error: fd %d errno %d", pipe, errno);
+}
+
+#endif // !HOST_BUILD
 
 #endif /* ANDROID_INCLUDE_HARDWARE_QEMU_PIPE_H */

@@ -21,6 +21,7 @@
 #include "ChecksumCalculator.h"
 #include "goldfish_dma.h"
 
+#include <cutils/native_handle.h>
 #include <string>
 
 class GLEncoder;
@@ -98,7 +99,7 @@ public:
         goldfish_dma_lock(m_dmaCxt);
         goldfish_dma_write(m_dmaCxt, data, size);
         uint64_t paddr = goldfish_dma_guest_paddr(m_dmaCxt);
-        ALOGV("%s: paddr=0x%llx", __FUNCTION__, paddr);
+        ALOGV("%s: paddr=0x%llx", __FUNCTION__, (unsigned long long)paddr);
         return paddr;
     }
     void setGLESMaxVersion(GLESMaxVersion ver) { m_glesMaxVersion = ver; }
@@ -108,6 +109,21 @@ private:
     DmaImpl m_dmaImpl;
     struct goldfish_dma_context* m_dmaCxt;
     GLESMaxVersion m_glesMaxVersion;
+};
+
+// Abstraction for gralloc handle conversion
+class Gralloc {
+public:
+    virtual uint32_t getHostHandle(native_handle_t const* handle) = 0;
+    virtual int getFormat(native_handle_t const* handle) = 0;
+    virtual ~Gralloc() {}
+};
+
+// Abstraction for process pipe helper
+class ProcessPipe {
+public:
+    virtual bool processPipeInit(renderControl_encoder_context_t *rcEnc) = 0;
+    virtual ~ProcessPipe() {}
 };
 
 struct EGLThreadInfo;
@@ -124,6 +140,7 @@ public:
     GL2Encoder *gl2Encoder();
     ExtendedRCEncoderContext *rcEncoder();
     ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
+    Gralloc *grallocHelper() { return m_grallocHelper; }
 
     void flush() {
         if (m_stream) {
@@ -136,8 +153,6 @@ public:
     }
 
     bool isGrallocOnly() const { return m_grallocOnly; }
-
-    int getPipeFd() const { return m_pipeFd; }
 
 private:
     HostConnection();
@@ -159,9 +174,10 @@ private:
     GL2Encoder  *m_gl2Enc;
     ExtendedRCEncoderContext *m_rcEnc;
     ChecksumCalculator m_checksumHelper;
+    Gralloc *m_grallocHelper;
+    ProcessPipe *m_processPipe;
     std::string m_glExtensions;
     bool m_grallocOnly;
-    int m_pipeFd;
     bool m_noHostError;
 };
 

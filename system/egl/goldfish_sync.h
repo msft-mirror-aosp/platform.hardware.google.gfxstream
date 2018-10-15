@@ -15,6 +15,26 @@
 #ifndef ANDROID_INCLUDE_HARDWARE_GOLDFISH_SYNC_H
 #define ANDROID_INCLUDE_HARDWARE_GOLDFISH_SYNC_H
 
+#ifdef HOST_BUILD
+
+static __inline__ int goldfish_sync_open() {
+    return 0;
+}
+
+static __inline__ int goldfish_sync_close(int sync_fd) {
+    return 0;
+}
+
+static __inline__ int goldfish_sync_queue_work(int goldfish_sync_fd,
+                                                uint64_t host_glsync,
+                                                uint64_t host_thread,
+                                                int* fd_out) {
+    return 0;
+}
+
+#else
+
+#include <errno.h>
 #include <linux/ioctl.h>
 #include <linux/types.h>
 #include <sys/cdefs.h>
@@ -78,5 +98,7 @@ static __inline__ int goldfish_sync_queue_work(int goldfish_sync_fd,
 
     return err;
 }
+
+#endif // !HOST_BUILD
 
 #endif

@@ -21,13 +21,21 @@
 #include <errno.h>
 #include <dlfcn.h>
 #include <sys/mman.h>
+
+#if PLATFORM_SDK_VERSION < 28
 #include "gralloc_cb.h"
+#else
+#include "../../shared/OpenglCodecCommon/gralloc_cb.h"
+#endif
+
 #include "goldfish_dma.h"
 #include "FormatConversions.h"
 #include "HostConnection.h"
 #include "ProcessPipe.h"
+#include "ThreadInfo.h"
 #include "glUtils.h"
-#include <utils/CallStack.h>
+#include "qemu_pipe.h"
+
 #include <cutils/log.h>
 #include <cutils/properties.h>
 
@@ -52,6 +60,8 @@
 
 #define DBG_FUNC DBG("%s\n", __FUNCTION__)
 
+#define GOLDFISH_OFFSET_UNIT 8
+
 #ifdef GOLDFISH_HIDL_GRALLOC
 static bool isHidlGralloc = true;
 #else
@@ -64,8 +74,8 @@ int32_t* getOpenCountPtr(cb_handle_t* cb) {
 
 uint32_t getAshmemColorOffset(cb_handle_t* cb) {
     uint32_t res = 0;
-    if (cb->canBePosted()) res = sizeof(intptr_t);
-    if (isHidlGralloc) res = sizeof(intptr_t) * 2;
+    if (cb->canBePosted()) res = GOLDFISH_OFFSET_UNIT;
+    if (isHidlGralloc) res = GOLDFISH_OFFSET_UNIT * 2;
     return res;
 }
 
@@ -165,7 +175,7 @@ void get_gralloc_dmaregion() {
 
 static void resize_gralloc_dmaregion_locked(uint32_t new_sz) {
     if (!s_grdma) return;
-    if (s_grdma->goldfish_dma.mapped) {
+    if (s_grdma->goldfish_dma.mapped_addr) {
         goldfish_dma_unmap(&s_grdma->goldfish_dma);
     }
     close(s_grdma->goldfish_dma.fd);
@@ -211,7 +221,7 @@ void gralloc_dmaregion_register_ashmem(uint32_t sz) {
             resize_gralloc_dmaregion_locked(new_sz);
         }
     }
-    if (!s_grdma->goldfish_dma.mapped) {
+    if (!s_grdma->goldfish_dma.mapped_addr) {
         goldfish_dma_map(&s_grdma->goldfish_dma);
     }
     pthread_mutex_unlock(&s_grdma->lock);
@@ -335,6 +345,13 @@ static int map_buffer(cb_handle_t *cb, void **vaddr)
     if (!rcEnc) { \
         ALOGE("gralloc: Failed to get renderControl encoder context\n"); \
         return -EIO; \
+    }
+
+#define EXIT_GRALLOCONLY_HOST_CONNECTION \
+    if (hostCon && hostCon->isGrallocOnly()) { \
+        ALOGD("%s: exiting HostConnection (is buffer-handling thread)", \
+              __FUNCTION__); \
+        HostConnection::exit(); \
     }
 
 #if PLATFORM_SDK_VERSION < 18
@@ -633,12 +650,12 @@ static int gralloc_alloc(alloc_device_t* dev,
         if (needHostCb || (usage & GRALLOC_USAGE_HW_FB)) {
             // keep space for postCounter
             // AND openCounter for all host cb
-            ashmem_size += sizeof(uint32_t) * 2;
+            ashmem_size += GOLDFISH_OFFSET_UNIT * 2;
         }
     } else {
         if (usage & GRALLOC_USAGE_HW_FB) {
             // keep space for postCounter
-            ashmem_size += sizeof(uint32_t) * 1;
+            ashmem_size += GOLDFISH_OFFSET_UNIT * 1;
         }
     }
 
@@ -663,7 +680,7 @@ static int gralloc_alloc(alloc_device_t* dev,
     }
 
     D("gralloc_alloc format=%d, ashmem_size=%d, stride=%d, tid %d\n", format,
-            ashmem_size, stride, gettid());
+      ashmem_size, stride, getCurrentThreadId());
 
     //
     // Allocate space in ashmem if needed
@@ -729,7 +746,6 @@ static int gralloc_alloc(alloc_device_t* dev,
             } else {
                 cb->hostHandle = rcEnc->rcCreateColorBuffer(rcEnc, w, h, allocFormat);
             }
-            D("Created host ColorBuffer 0x%x\n", cb->hostHandle);
         }
 
         if (!cb->hostHandle) {
@@ -738,6 +754,13 @@ static int gralloc_alloc(alloc_device_t* dev,
             delete cb;
             ALOGD("%s: failed to create host cb! -EIO", __FUNCTION__);
             return -EIO;
+        } else {
+            QEMU_PIPE_HANDLE refcountPipeFd = qemu_pipe_open("refcount");
+            if(qemu_pipe_valid(refcountPipeFd)) {
+                cb->setRefcountPipeFd(refcountPipeFd);
+                qemu_pipe_write(refcountPipeFd, &cb->hostHandle, 4);
+            }
+            D("Created host ColorBuffer 0x%x\n", cb->hostHandle);
         }
 
         if (isHidlGralloc) { *getOpenCountPtr(cb) = 0; }
@@ -783,11 +806,13 @@ static int gralloc_free(alloc_device_t* dev,
     D("%s: for buf %p ptr %p size %d\n",
       __FUNCTION__, handle, cb->ashmemBase, cb->ashmemSize);
 
-    if (cb->hostHandle) {
+    if (cb->hostHandle && !cb->hasRefcountPipe()) {
         int32_t openCount = 1;
         int32_t* openCountPtr = &openCount;
 
-        if (isHidlGralloc) { openCountPtr = getOpenCountPtr(cb); }
+        if (isHidlGralloc && cb->ashmemBase) {
+            openCountPtr = getOpenCountPtr(cb);
+        }
 
         if (*openCountPtr > 0) {
             DEFINE_AND_VALIDATE_HOST_CONNECTION;
@@ -811,6 +836,9 @@ static int gralloc_free(alloc_device_t* dev,
         close(cb->fd);
     }
 
+    if(qemu_pipe_valid(cb->refcount_pipe_fd)) {
+        qemu_pipe_close(cb->refcount_pipe_fd);
+    }
     D("%s: done", __FUNCTION__);
     // remove it from the allocated list
     gralloc_device_t *grdev = (gralloc_device_t *)dev;
@@ -941,7 +969,7 @@ static int fb_close(struct hw_device_t *dev)
 {
     fb_device_t *fbdev = (fb_device_t *)dev;
 
-    delete fbdev;
+    free(fbdev);
 
     return 0;
 }
@@ -971,7 +999,7 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
     D("gralloc_register_buffer(%p) w %d h %d format 0x%x framworkFormat 0x%x",
         handle, cb->width, cb->height, cb->format, cb->frameworkFormat);
 
-    if (cb->hostHandle != 0) {
+    if (cb->hostHandle != 0 && !cb->hasRefcountPipe()) {
         DEFINE_AND_VALIDATE_HOST_CONNECTION;
         D("Opening host ColorBuffer 0x%x\n", cb->hostHandle);
         rcEnc->rcOpenColorBuffer2(rcEnc, cb->hostHandle);
@@ -1027,7 +1055,7 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
     }
 
 
-    if (cb->hostHandle) {
+    if (cb->hostHandle && !cb->hasRefcountPipe()) {
         D("Closing host ColorBuffer 0x%x\n", cb->hostHandle);
         DEFINE_AND_VALIDATE_HOST_CONNECTION;
         rcEnc->rcCloseColorBuffer(rcEnc, cb->hostHandle);
@@ -1044,6 +1072,8 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
                 }
             }
         }
+        EXIT_GRALLOCONLY_HOST_CONNECTION;
+
     }
 
     //
@@ -1068,6 +1098,7 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
         cb->ashmemBase = 0;
         cb->mappedPid = 0;
         D("%s: Unregister buffer previous mapped to pid %d", __FUNCTION__, getpid());
+        EXIT_GRALLOCONLY_HOST_CONNECTION;
     }
 
 done:
@@ -1171,7 +1202,7 @@ static int gralloc_lock(gralloc_module_t const* module,
             // host failed the color buffer sync - probably since it was already
             // locked for write access. fail the lock.
             ALOGE("gralloc_lock cacheFlush failed postCount=%d sw_read=%d\n",
-                 postCount, sw_read);
+                 (int)postCount, sw_read);
             return -EBUSY;
         }
 

@@ -19,8 +19,9 @@
 
 #include <cutils/log.h>
 #include <pthread.h>
+#include <errno.h>
 
-static int                sProcPipe = 0;
+static QEMU_PIPE_HANDLE   sProcPipe = 0;
 static pthread_once_t     sProcPipeOnce = PTHREAD_ONCE_INIT;
 // sProcUID is a unique ID per process assigned by the host.
 // It is different from getpid().
@@ -35,7 +36,7 @@ static uint64_t           sProcUID = 0;
 // host.
 static void processPipeInitOnce() {
     sProcPipe = qemu_pipe_open("GLProcessPipe");
-    if (sProcPipe < 0) {
+    if (!qemu_pipe_valid(sProcPipe)) {
         sProcPipe = 0;
         ALOGW("Process pipe failed");
         return;
@@ -44,12 +45,13 @@ static void processPipeInitOnce() {
     int32_t confirmInt = 100;
     ssize_t stat = 0;
     do {
-        stat = ::write(sProcPipe, (const char*)&confirmInt,
+        stat =
+            qemu_pipe_write(sProcPipe, (const char*)&confirmInt,
                 sizeof(confirmInt));
     } while (stat < 0 && errno == EINTR);
 
     if (stat != sizeof(confirmInt)) { // failed
-        close(sProcPipe);
+        qemu_pipe_close(sProcPipe);
         sProcPipe = 0;
         ALOGW("Process pipe failed");
         return;
@@ -57,12 +59,13 @@ static void processPipeInitOnce() {
 
     // Ask the host for per-process unique ID
     do {
-        stat = ::read(sProcPipe, (char*)&sProcUID,
-                      sizeof(sProcUID));
+        stat =
+            qemu_pipe_read(sProcPipe, (char*)&sProcUID,
+                sizeof(sProcUID));
     } while (stat < 0 && errno == EINTR);
 
     if (stat != sizeof(sProcUID)) {
-        close(sProcPipe);
+        qemu_pipe_close(sProcPipe);
         sProcPipe = 0;
         sProcUID = 0;
         ALOGW("Process pipe failed");

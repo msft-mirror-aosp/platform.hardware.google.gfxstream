@@ -536,7 +536,7 @@ void GL2Encoder::s_glBufferData(void * self, GLenum target, GLsizeiptr size, con
     SET_ERROR_IF(bufferId==0, GL_INVALID_OPERATION);
     SET_ERROR_IF(size<0, GL_INVALID_VALUE);
 
-    ctx->m_shared->updateBufferData(bufferId, size, (void*)data);
+    ctx->m_shared->updateBufferData(bufferId, size, data);
     ctx->m_shared->setBufferUsage(bufferId, usage);
     ctx->m_glBufferData_enc(self, target, size, data, usage);
 }
@@ -549,7 +549,7 @@ void GL2Encoder::s_glBufferSubData(void * self, GLenum target, GLintptr offset, 
     SET_ERROR_IF(bufferId==0, GL_INVALID_OPERATION);
     SET_ERROR_IF(ctx->isBufferTargetMapped(target), GL_INVALID_OPERATION);
 
-    GLenum res = ctx->m_shared->subUpdateBufferData(bufferId, offset, size, (void*)data);
+    GLenum res = ctx->m_shared->subUpdateBufferData(bufferId, offset, size, data);
     SET_ERROR_IF(res, res);
 
     ctx->m_glBufferSubData_enc(self, target, offset, size, data);
@@ -1133,7 +1133,7 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count, bool hasClient
                     if (buf) {
                         ALOGE("Out of bounds vertex attribute info: "
                                 "clientArray? %d attribute %d vbo %u allocedBufferSize %u bufferDataSpecified? %d wantedStart %u wantedEnd %u",
-                                hasClientArrays, i, bufferObject, buf->m_size, buf != NULL, firstIndex, firstIndex + bufLen);
+                                hasClientArrays, i, bufferObject, (unsigned int)buf->m_size, buf != NULL, firstIndex, firstIndex + bufLen);
                     }
                     m_glDisableVertexAttribArray_enc(this, i);
                 }
@@ -1254,6 +1254,8 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
                             &minIndex,
                             &maxIndex);
     }
+
+    if (count == 0) return;
 
     bool adjustIndices = true;
     if (ctx->m_state->currentIndexVbo() != 0) {
@@ -1414,8 +1416,10 @@ static bool replaceExternalSamplerUniformDefinition(char* str, const std::string
         do {
             c++;
         } while (isalnum(*c) || *c == '_');
+
+        size_t len = (size_t)(c - name_start);
         data->samplerExternalNames.push_back(
-                android::String8(name_start, c - name_start));
+            std::string(name_start, len));
 
         // We only need to perform a string replacement for the original
         // occurrence of samplerExternalOES if a #define was used.
@@ -3862,6 +3866,8 @@ void GL2Encoder::s_glDrawElementsInstanced(void* self, GLenum mode, GLsizei coun
                             &maxIndex);
     }
 
+    if (count == 0) return;
+
     bool adjustIndices = true;
     if (ctx->m_state->currentIndexVbo() != 0) {
         if (!has_client_vertex_arrays) {
@@ -3953,6 +3959,8 @@ void GL2Encoder::s_glDrawRangeElements(void* self, GLenum mode, GLuint start, GL
                             &maxIndex);
     }
 
+    if (count == 0) return;
+
     bool adjustIndices = true;
     if (ctx->m_state->currentIndexVbo() != 0) {
         if (!has_client_vertex_arrays) {
@@ -4021,9 +4029,9 @@ const GLubyte* GL2Encoder::s_glGetStringi(void* self, GLenum name, GLuint index)
         retval);
 
     RET_AND_SET_ERROR_IF(
-        name == GL_VENDOR ||
-        name == GL_RENDERER ||
-        name == GL_VERSION ||
+        (name == GL_VENDOR ||
+         name == GL_RENDERER ||
+         name == GL_VERSION) &&
         index != 0,
         GL_INVALID_VALUE,
         retval);
@@ -4522,9 +4530,8 @@ GLuint GL2Encoder::s_glCreateShaderProgramv(void* self, GLenum type, GLsizei cou
     // Phase 1: create a ShaderData and initialize with replaceSamplerExternalWith2D()
     uint32_t spDataId = ctx->m_shared->addNewShaderProgramData();
     ShaderProgramData* spData = ctx->m_shared->getShaderProgramDataById(spDataId);
-    ShaderData* sData = spData->shaderData;
 
-    if (!replaceSamplerExternalWith2D(str, sData)) {
+    if (!replaceSamplerExternalWith2D(str, &spData->shaderData)) {
         delete [] str;
         ctx->setError(GL_OUT_OF_MEMORY);
         ctx->m_shared->deleteShaderProgramDataById(spDataId);
