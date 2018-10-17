@@ -632,7 +632,6 @@ void GL2Encoder::s_glVertexAttribPointer(void *self, GLuint indx, GLint size, GL
 void GL2Encoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
 {
     GL2Encoder *ctx = (GL2Encoder *) self;
-    assert(ctx->m_state != NULL);
     GLClientState* state = ctx->m_state;
 
     switch (param) {
@@ -670,16 +669,19 @@ void GL2Encoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
         break;
 
     case GL_TEXTURE_BINDING_2D:
+        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
         *ptr = state->getBoundTexture(GL_TEXTURE_2D);
         break;
     case GL_TEXTURE_BINDING_EXTERNAL_OES:
+        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
         *ptr = state->getBoundTexture(GL_TEXTURE_EXTERNAL_OES);
         break;
 
     case GL_MAX_VERTEX_ATTRIBS:
-        if (!ctx->m_state->getClientStateParameter<GLint>(param, ptr)) {
+        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
+        if (!state->getClientStateParameter<GLint>(param, ptr)) {
             ctx->safe_glGetIntegerv(param, ptr);
-            ctx->m_state->setMaxVertexAttribs(*ptr);
+            state->setMaxVertexAttribs(*ptr);
         }
         break;
     case GL_MAX_VERTEX_ATTRIB_STRIDE:
@@ -769,7 +771,8 @@ void GL2Encoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
         ctx->safe_glGetIntegerv(param, ptr);
         break;
     default:
-        if (!ctx->m_state->getClientStateParameter<GLint>(param, ptr)) {
+        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
+        if (!state->getClientStateParameter<GLint>(param, ptr)) {
             ctx->safe_glGetIntegerv(param, ptr);
         }
         break;
@@ -780,7 +783,6 @@ void GL2Encoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
 void GL2Encoder::s_glGetFloatv(void *self, GLenum param, GLfloat *ptr)
 {
     GL2Encoder *ctx = (GL2Encoder *)self;
-    assert(ctx->m_state != NULL);
     GLClientState* state = ctx->m_state;
 
     switch (param) {
@@ -810,14 +812,17 @@ void GL2Encoder::s_glGetFloatv(void *self, GLenum param, GLfloat *ptr)
         break;
 
     case GL_TEXTURE_BINDING_2D:
+        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
         *ptr = (GLfloat)state->getBoundTexture(GL_TEXTURE_2D);
         break;
     case GL_TEXTURE_BINDING_EXTERNAL_OES:
+        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
         *ptr = (GLfloat)state->getBoundTexture(GL_TEXTURE_EXTERNAL_OES);
         break;
 
     default:
-        if (!ctx->m_state->getClientStateParameter<GLfloat>(param, ptr)) {
+        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
+        if (!state->getClientStateParameter<GLfloat>(param, ptr)) {
             ctx->safe_glGetFloatv(param, ptr);
         }
         break;
@@ -828,7 +833,6 @@ void GL2Encoder::s_glGetFloatv(void *self, GLenum param, GLfloat *ptr)
 void GL2Encoder::s_glGetBooleanv(void *self, GLenum param, GLboolean *ptr)
 {
     GL2Encoder *ctx = (GL2Encoder *)self;
-    assert(ctx->m_state != NULL);
     GLClientState* state = ctx->m_state;
 
     switch (param) {
@@ -851,15 +855,18 @@ void GL2Encoder::s_glGetBooleanv(void *self, GLenum param, GLboolean *ptr)
     }
 
     case GL_TEXTURE_BINDING_2D:
+        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
         *ptr = state->getBoundTexture(GL_TEXTURE_2D) != 0 ? GL_TRUE : GL_FALSE;
         break;
     case GL_TEXTURE_BINDING_EXTERNAL_OES:
+        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
         *ptr = state->getBoundTexture(GL_TEXTURE_EXTERNAL_OES) != 0
                 ? GL_TRUE : GL_FALSE;
         break;
 
     default:
-        if (!ctx->m_state->getClientStateParameter<GLboolean>(param, ptr)) {
+        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
+        if (!state->getClientStateParameter<GLboolean>(param, ptr)) {
             ctx->safe_glGetBooleanv(param, ptr);
         }
         *ptr = (*ptr != 0) ? GL_TRUE : GL_FALSE;
