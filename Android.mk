@@ -135,4 +135,6 @@ include $(GOLDFISH_OPENGL_PATH)/system/gralloc/Android.mk
 
 include $(GOLDFISH_OPENGL_PATH)/system/egl/Android.mk
 
+include $(GOLDFISH_OPENGL_PATH)/system/vulkan/Android.mk
+
 endif
