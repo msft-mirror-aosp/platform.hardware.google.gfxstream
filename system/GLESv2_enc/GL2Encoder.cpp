@@ -78,11 +78,23 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     m_error = GL_NO_ERROR;
     m_num_compressedTextureFormats = 0;
     m_max_combinedTextureImageUnits = 0;
+    m_max_vertexTextureImageUnits = 0;
+    m_max_textureImageUnits = 0;
     m_max_cubeMapTextureSize = 0;
     m_max_renderBufferSize = 0;
     m_max_textureSize = 0;
     m_max_3d_textureSize = 0;
     m_max_vertexAttribStride = 0;
+
+    m_max_transformFeedbackSeparateAttribs = 0;
+    m_max_uniformBufferBindings = 0;
+    m_max_colorAttachments = 0;
+    m_max_drawBuffers = 0;
+
+    m_max_atomicCounterBufferBindings = 0;
+    m_max_shaderStorageBufferBindings = 0;
+    m_max_vertexAttribBindings = 0;
+
     m_compressedTextureFormats = NULL;
 
     m_ssbo_offset_align = 0;
@@ -671,11 +683,21 @@ void GL2Encoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
         }
         break;
     case GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS:
-    case GL_MAX_TEXTURE_IMAGE_UNITS:
-        ctx->safe_glGetIntegerv(param, ptr);
-        *ptr = MIN(*ptr, GLClientState::MAX_TEXTURE_UNITS);
+        if (ctx->m_max_vertexTextureImageUnits != 0) {
+            *ptr = ctx->m_max_vertexTextureImageUnits;
+        } else {
+            ctx->safe_glGetIntegerv(param, ptr);
+            ctx->m_max_vertexTextureImageUnits = *ptr;
+        }
         break;
-
+    case GL_MAX_TEXTURE_IMAGE_UNITS:
+        if (ctx->m_max_textureImageUnits != 0) {
+            *ptr = ctx->m_max_textureImageUnits;
+        } else {
+            ctx->safe_glGetIntegerv(param, ptr);
+            ctx->m_max_textureImageUnits = *ptr;
+        }
+        break;
     case GL_TEXTURE_BINDING_2D:
         SET_ERROR_IF(!state, GL_INVALID_OPERATION);
         *ptr = state->getBoundTexture(GL_TEXTURE_2D);
@@ -759,24 +781,76 @@ void GL2Encoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
     // Checks for version-incompatible enums.
     // Not allowed in vanilla ES 2.0.
     case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS:
+        SET_ERROR_IF(ctx->majorVersion() < 3, GL_INVALID_ENUM);
+        if (ctx->m_max_transformFeedbackSeparateAttribs != 0) {
+            *ptr = ctx->m_max_transformFeedbackSeparateAttribs;
+        } else {
+            ctx->safe_glGetIntegerv(param, ptr);
+            ctx->m_max_transformFeedbackSeparateAttribs = *ptr;
+        }
+        break;
     case GL_MAX_UNIFORM_BUFFER_BINDINGS:
         SET_ERROR_IF(ctx->majorVersion() < 3, GL_INVALID_ENUM);
-        ctx->safe_glGetIntegerv(param, ptr);
+        if (ctx->m_max_uniformBufferBindings != 0) {
+            *ptr = ctx->m_max_uniformBufferBindings;
+        } else {
+            ctx->safe_glGetIntegerv(param, ptr);
+            ctx->m_max_uniformBufferBindings = *ptr;
+        }
         break;
     case GL_MAX_COLOR_ATTACHMENTS:
+        SET_ERROR_IF(ctx->majorVersion() < 3 &&
+                     !ctx->hasExtension("GL_EXT_draw_buffers"), GL_INVALID_ENUM);
+        if (ctx->m_max_colorAttachments != 0) {
+            *ptr = ctx->m_max_colorAttachments;
+        } else {
+            ctx->safe_glGetIntegerv(param, ptr);
+            ctx->m_max_colorAttachments = *ptr;
+        }
+        break;
     case GL_MAX_DRAW_BUFFERS:
         SET_ERROR_IF(ctx->majorVersion() < 3 &&
                      !ctx->hasExtension("GL_EXT_draw_buffers"), GL_INVALID_ENUM);
-        ctx->safe_glGetIntegerv(param, ptr);
+        if (ctx->m_max_drawBuffers != 0) {
+            *ptr = ctx->m_max_drawBuffers;
+        } else {
+            ctx->safe_glGetIntegerv(param, ptr);
+            ctx->m_max_drawBuffers = *ptr;
+        }
         break;
     // Not allowed in ES 3.0.
     case GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS:
+        SET_ERROR_IF(ctx->majorVersion() < 3 ||
+                     (ctx->majorVersion() == 3 &&
+                      ctx->minorVersion() == 0), GL_INVALID_ENUM);
+        if (ctx->m_max_atomicCounterBufferBindings != 0) {
+            *ptr = ctx->m_max_atomicCounterBufferBindings;
+        } else {
+            ctx->safe_glGetIntegerv(param, ptr);
+            ctx->m_max_atomicCounterBufferBindings = *ptr;
+        }
+        break;
     case GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS:
+        SET_ERROR_IF(ctx->majorVersion() < 3 ||
+                     (ctx->majorVersion() == 3 &&
+                      ctx->minorVersion() == 0), GL_INVALID_ENUM);
+        if (ctx->m_max_shaderStorageBufferBindings != 0) {
+            *ptr = ctx->m_max_shaderStorageBufferBindings;
+        } else {
+            ctx->safe_glGetIntegerv(param, ptr);
+            ctx->m_max_shaderStorageBufferBindings = *ptr;
+        }
+        break;
     case GL_MAX_VERTEX_ATTRIB_BINDINGS:
         SET_ERROR_IF(ctx->majorVersion() < 3 ||
                      (ctx->majorVersion() == 3 &&
                       ctx->minorVersion() == 0), GL_INVALID_ENUM);
-        ctx->safe_glGetIntegerv(param, ptr);
+        if (ctx->m_max_vertexAttribBindings != 0) {
+            *ptr = ctx->m_max_vertexAttribBindings;
+        } else {
+            ctx->safe_glGetIntegerv(param, ptr);
+            ctx->m_max_vertexAttribBindings = *ptr;
+        }
         break;
     default:
         SET_ERROR_IF(!state, GL_INVALID_OPERATION);
@@ -815,18 +889,32 @@ void GL2Encoder::s_glGetFloatv(void *self, GLenum param, GLfloat *ptr)
     case GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS:
     case GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS:
     case GL_MAX_TEXTURE_IMAGE_UNITS:
-        ctx->safe_glGetFloatv(param, ptr);
-        *ptr = MIN(*ptr, (GLfloat)GLClientState::MAX_TEXTURE_UNITS);
-        break;
-
+    case GL_MAX_VERTEX_ATTRIBS:
+    case GL_MAX_VERTEX_ATTRIB_STRIDE:
+    case GL_MAX_CUBE_MAP_TEXTURE_SIZE:
+    case GL_MAX_RENDERBUFFER_SIZE:
+    case GL_MAX_TEXTURE_SIZE:
+    case GL_MAX_3D_TEXTURE_SIZE:
+    case GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT:
+    case GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT:
+    case GL_MAX_SAMPLES:
+    case GL_MAX_COLOR_TEXTURE_SAMPLES:
+    case GL_MAX_INTEGER_SAMPLES:
+    case GL_MAX_DEPTH_TEXTURE_SAMPLES:
+    case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS:
+    case GL_MAX_UNIFORM_BUFFER_BINDINGS:
+    case GL_MAX_COLOR_ATTACHMENTS:
+    case GL_MAX_DRAW_BUFFERS:
+    case GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS:
+    case GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS:
+    case GL_MAX_VERTEX_ATTRIB_BINDINGS:
     case GL_TEXTURE_BINDING_2D:
-        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
-        *ptr = (GLfloat)state->getBoundTexture(GL_TEXTURE_2D);
+    case GL_TEXTURE_BINDING_EXTERNAL_OES: {
+        GLint res;
+        s_glGetIntegerv(ctx, param, &res);
+        *ptr = (GLfloat)res;
         break;
-    case GL_TEXTURE_BINDING_EXTERNAL_OES:
-        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
-        *ptr = (GLfloat)state->getBoundTexture(GL_TEXTURE_EXTERNAL_OES);
-        break;
+    }
 
     default:
         SET_ERROR_IF(!state, GL_INVALID_OPERATION);
@@ -862,15 +950,35 @@ void GL2Encoder::s_glGetBooleanv(void *self, GLenum param, GLboolean *ptr)
         break;
     }
 
+    case GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS:
+    case GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS:
+    case GL_MAX_TEXTURE_IMAGE_UNITS:
+    case GL_MAX_VERTEX_ATTRIBS:
+    case GL_MAX_VERTEX_ATTRIB_STRIDE:
+    case GL_MAX_CUBE_MAP_TEXTURE_SIZE:
+    case GL_MAX_RENDERBUFFER_SIZE:
+    case GL_MAX_TEXTURE_SIZE:
+    case GL_MAX_3D_TEXTURE_SIZE:
+    case GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT:
+    case GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT:
+    case GL_MAX_SAMPLES:
+    case GL_MAX_COLOR_TEXTURE_SAMPLES:
+    case GL_MAX_INTEGER_SAMPLES:
+    case GL_MAX_DEPTH_TEXTURE_SAMPLES:
+    case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS:
+    case GL_MAX_UNIFORM_BUFFER_BINDINGS:
+    case GL_MAX_COLOR_ATTACHMENTS:
+    case GL_MAX_DRAW_BUFFERS:
+    case GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS:
+    case GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS:
+    case GL_MAX_VERTEX_ATTRIB_BINDINGS:
     case GL_TEXTURE_BINDING_2D:
-        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
-        *ptr = state->getBoundTexture(GL_TEXTURE_2D) != 0 ? GL_TRUE : GL_FALSE;
+    case GL_TEXTURE_BINDING_EXTERNAL_OES: {
+        GLint res;
+        s_glGetIntegerv(ctx, param, &res);
+        *ptr = res == 0 ? GL_FALSE : GL_TRUE;
         break;
-    case GL_TEXTURE_BINDING_EXTERNAL_OES:
-        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
-        *ptr = state->getBoundTexture(GL_TEXTURE_EXTERNAL_OES) != 0
-                ? GL_TRUE : GL_FALSE;
-        break;
+    }
 
     default:
         SET_ERROR_IF(!state, GL_INVALID_OPERATION);
