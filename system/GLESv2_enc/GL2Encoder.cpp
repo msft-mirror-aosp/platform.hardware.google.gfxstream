@@ -77,6 +77,7 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     m_state = NULL;
     m_error = GL_NO_ERROR;
     m_num_compressedTextureFormats = 0;
+    m_max_combinedTextureImageUnits = 0;
     m_max_cubeMapTextureSize = 0;
     m_max_renderBufferSize = 0;
     m_max_textureSize = 0;
@@ -662,6 +663,13 @@ void GL2Encoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
     }
 
     case GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS:
+        if (ctx->m_max_combinedTextureImageUnits != 0) {
+            *ptr = ctx->m_max_combinedTextureImageUnits;
+        } else {
+            ctx->safe_glGetIntegerv(param, ptr);
+            ctx->m_max_combinedTextureImageUnits = *ptr;
+        }
+        break;
     case GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS:
     case GL_MAX_TEXTURE_IMAGE_UNITS:
         ctx->safe_glGetIntegerv(param, ptr);
