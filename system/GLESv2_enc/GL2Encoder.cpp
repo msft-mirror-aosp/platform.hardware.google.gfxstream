@@ -426,7 +426,7 @@ public:
     }
     ~ScopedQueryUpdate() {
         GLint hostError = mErrorUpdater.getHostErrorAndUpdate();
-        if (hostError == GL_NO_ERROR) {
+        if (hostError == GL_NO_ERROR && mTarget) {
             memcpy(mTarget, &mBuf[0], mBuf.size());
         }
         mErrorUpdater.updateGuestErrorState();
