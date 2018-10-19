@@ -109,11 +109,22 @@ private:
     GLint *getCompressedTextureFormats();
 
     GLint m_max_combinedTextureImageUnits;
+    GLint m_max_vertexTextureImageUnits;
+    GLint m_max_textureImageUnits;
     GLint m_max_cubeMapTextureSize;
     GLint m_max_renderBufferSize;
     GLint m_max_textureSize;
     GLint m_max_3d_textureSize;
     GLint m_max_vertexAttribStride;
+
+    GLint m_max_transformFeedbackSeparateAttribs;
+    GLint m_max_uniformBufferBindings;
+    GLint m_max_colorAttachments;
+    GLint m_max_drawBuffers;
+
+    GLint m_max_atomicCounterBufferBindings;
+    GLint m_max_shaderStorageBufferBindings;
+    GLint m_max_vertexAttribBindings;
 
     GLuint m_ssbo_offset_align;
     GLuint m_ubo_offset_align;
