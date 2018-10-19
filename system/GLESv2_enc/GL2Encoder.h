@@ -108,6 +108,7 @@ private:
     GLint m_num_compressedTextureFormats;
     GLint *getCompressedTextureFormats();
 
+    GLint m_max_combinedTextureImageUnits;
     GLint m_max_cubeMapTextureSize;
     GLint m_max_renderBufferSize;
     GLint m_max_textureSize;
