@@ -421,6 +421,8 @@ int gl2_client_context_t::initDispatchByName(void *(*getProc)(const char *, void
 	glGetFramebufferParameteriv = (glGetFramebufferParameteriv_client_proc_t) getProc("glGetFramebufferParameteriv", userData);
 	glGetTexLevelParameterfv = (glGetTexLevelParameterfv_client_proc_t) getProc("glGetTexLevelParameterfv", userData);
 	glGetTexLevelParameteriv = (glGetTexLevelParameteriv_client_proc_t) getProc("glGetTexLevelParameteriv", userData);
+	glMapBufferRangeDMA = (glMapBufferRangeDMA_client_proc_t) getProc("glMapBufferRangeDMA", userData);
+	glUnmapBufferDMA = (glUnmapBufferDMA_client_proc_t) getProc("glUnmapBufferDMA", userData);
 	return 0;
 }
 

@@ -16,13 +16,22 @@
 
 namespace {
 goldfish_dma_context empty() {
-    goldfish_dma_context ctx = {};
+    goldfish_dma_context ctx;
+
+    ctx.mapped_addr = 0;
+    ctx.size = 0;
+    ctx.fd = -1;
+
     return ctx;
 }
 
 void destroy(goldfish_dma_context *ctx) {
-    goldfish_dma_unmap(ctx);
-    goldfish_dma_free(ctx);
+    if (ctx->mapped_addr) {
+        goldfish_dma_unmap(ctx);
+    }
+    if (ctx->fd > 0) {
+        goldfish_dma_free(ctx);
+    }
 }
 }  // namespace
 
@@ -39,8 +48,12 @@ AutoGoldfishDmaContext::~AutoGoldfishDmaContext() {
 
 void AutoGoldfishDmaContext::reset(goldfish_dma_context *ctx) {
     destroy(&m_ctx);
-    m_ctx = *ctx;
-    *ctx = empty();
+    if (ctx) {
+        m_ctx = *ctx;
+        *ctx = empty();
+    } else {
+        m_ctx = empty();
+    }
 }
 
 goldfish_dma_context AutoGoldfishDmaContext::release() {
