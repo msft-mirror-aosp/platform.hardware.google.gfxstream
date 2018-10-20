@@ -421,6 +421,8 @@ struct gl2_client_context_t {
 	glGetFramebufferParameteriv_client_proc_t glGetFramebufferParameteriv;
 	glGetTexLevelParameterfv_client_proc_t glGetTexLevelParameterfv;
 	glGetTexLevelParameteriv_client_proc_t glGetTexLevelParameteriv;
+	glMapBufferRangeDMA_client_proc_t glMapBufferRangeDMA;
+	glUnmapBufferDMA_client_proc_t glUnmapBufferDMA;
 	virtual ~gl2_client_context_t() {}
 
 	typedef gl2_client_context_t *CONTEXT_ACCESSOR_TYPE(void);

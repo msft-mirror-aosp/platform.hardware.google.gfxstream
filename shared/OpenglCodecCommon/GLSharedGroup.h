@@ -38,6 +38,7 @@
 #include "ErrorLog.h"
 #include <utils/threads.h>
 #include "FixedBuffer.h"
+#include "auto_goldfish_dma_context.h"
 #include "IndexRangeCache.h"
 #include "SmartPtr.h"
 
@@ -54,14 +55,14 @@ struct BufferData {
     GLbitfield m_mappedAccess;
     GLintptr m_mappedOffset;
     GLsizeiptr m_mappedLength;
+    uint64_t m_guest_paddr;
 
     // Internal bookkeeping
     FixedBuffer m_fixedBuffer; // actual buffer is shadowed here
     IndexRangeCache m_indexRangeCache;
 
     // DMA support
-
-
+    AutoGoldfishDmaContext dma_buffer;
 };
 
 class ProgramData {
