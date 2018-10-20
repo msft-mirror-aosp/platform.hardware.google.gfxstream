@@ -416,6 +416,8 @@ extern "C" {
 	void glGetFramebufferParameteriv(GLenum target, GLenum pname, GLint* params);
 	void glGetTexLevelParameterfv(GLenum target, GLint level, GLenum pname, GLfloat* params);
 	void glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint* params);
+	void glMapBufferRangeDMA(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access, uint64_t paddr);
+	void glUnmapBufferDMA(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access, uint64_t paddr, GLboolean* out_res);
 };
 
 #ifndef GET_CONTEXT
@@ -2925,5 +2927,17 @@ void glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint* p
 {
 	GET_CONTEXT;
 	ctx->glGetTexLevelParameteriv(ctx, target, level, pname, params);
+}
+
+void glMapBufferRangeDMA(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access, uint64_t paddr)
+{
+	GET_CONTEXT;
+	ctx->glMapBufferRangeDMA(ctx, target, offset, length, access, paddr);
+}
+
+void glUnmapBufferDMA(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access, uint64_t paddr, GLboolean* out_res)
+{
+	GET_CONTEXT;
+	ctx->glUnmapBufferDMA(ctx, target, offset, length, access, paddr, out_res);
 }
 

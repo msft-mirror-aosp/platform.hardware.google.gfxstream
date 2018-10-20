@@ -121,7 +121,7 @@ void goldfish_dma_free(goldfish_dma_context* cxt) {
     close(cxt->fd);
 }
 
-uint64_t goldfish_dma_guest_paddr(struct goldfish_dma_context* cxt) {
+uint64_t goldfish_dma_guest_paddr(const struct goldfish_dma_context* cxt) {
     struct goldfish_dma_ioctl_info info;
     ioctl(cxt->fd, GOLDFISH_DMA_IOC_GETOFF, &info);
     return info.phys_begin;

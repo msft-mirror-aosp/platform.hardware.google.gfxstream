@@ -414,6 +414,9 @@ private:
     static void* s_glMapBufferOES(void* self, GLenum target, GLenum access);
     static GLboolean s_glUnmapBufferOES(void* self, GLenum target);
     static void* s_glMapBufferRange(void* self, GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
+    static void* s_glMapBufferRangeAEMUImpl(GL2Encoder* ctx, GLenum target,
+                                            GLintptr offset, GLsizeiptr length,
+                                            GLbitfield access, BufferData* buf);
     static GLboolean s_glUnmapBuffer(void* self, GLenum target);
     static void s_glFlushMappedBufferRange(void* self, GLenum target, GLintptr offset, GLsizeiptr length);
 
