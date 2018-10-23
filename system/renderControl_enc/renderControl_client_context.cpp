@@ -47,6 +47,7 @@ int renderControl_client_context_t::initDispatchByName(void *(*getProc)(const ch
 	rcUpdateColorBufferDMA = (rcUpdateColorBufferDMA_client_proc_t) getProc("rcUpdateColorBufferDMA", userData);
 	rcCreateColorBufferDMA = (rcCreateColorBufferDMA_client_proc_t) getProc("rcCreateColorBufferDMA", userData);
 	rcWaitSyncKHR = (rcWaitSyncKHR_client_proc_t) getProc("rcWaitSyncKHR", userData);
+	rcCompose = (rcCompose_client_proc_t) getProc("rcCompose", userData);
 	return 0;
 }
 

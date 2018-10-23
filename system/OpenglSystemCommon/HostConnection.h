@@ -72,6 +72,12 @@ static const char kGLESMaxVersion_3_0[] = "ANDROID_EMU_gles_max_version_3_0";
 static const char kGLESMaxVersion_3_1[] = "ANDROID_EMU_gles_max_version_3_1";
 static const char kGLESMaxVersion_3_2[] = "ANDROID_EMU_gles_max_version_3_2";
 
+enum HostComposition {
+    HOST_COMPOSITION_NONE = 0,
+    HOST_COMPOSITION_V1,
+};
+static const char kHostCompositionV1[] = "ANDROID_EMU_host_composition_v1";
+
 // No querying errors from host extension
 static const char kGLESNoHostError[] = "ANDROID_EMU_gles_no_host_error";
 
@@ -85,8 +91,12 @@ public:
         }
     void setSyncImpl(SyncImpl syncImpl) { m_syncImpl = syncImpl; }
     void setDmaImpl(DmaImpl dmaImpl) { m_dmaImpl = dmaImpl; }
+    void setHostComposition(HostComposition hostComposition) {
+        m_hostComposition = hostComposition; }
     bool hasNativeSync() const { return m_syncImpl >= SYNC_IMPL_NATIVE_SYNC_V2; }
     bool hasNativeSyncV3() const { return m_syncImpl >= SYNC_IMPL_NATIVE_SYNC_V3; }
+    bool hasHostCompositionV1() const {
+        return m_hostComposition == HOST_COMPOSITION_V1; }
     DmaImpl getDmaVersion() const { return m_dmaImpl; }
     void bindDmaContext(struct goldfish_dma_context* cxt) { m_dmaCxt = cxt; }
     virtual uint64_t lockAndWriteDma(void* data, uint32_t size) {
@@ -107,6 +117,7 @@ public:
 private:
     SyncImpl m_syncImpl;
     DmaImpl m_dmaImpl;
+    HostComposition m_hostComposition;
     struct goldfish_dma_context* m_dmaCxt;
     GLESMaxVersion m_glesMaxVersion;
 };
@@ -167,6 +178,7 @@ private:
     void queryAndSetDmaImpl(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetGLESMaxVersion(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetNoErrorState(ExtendedRCEncoderContext *rcEnc);
+    void queryAndSetHostCompositionImpl(ExtendedRCEncoderContext *rcEnc);
 
 private:
     IOStream *m_stream;
