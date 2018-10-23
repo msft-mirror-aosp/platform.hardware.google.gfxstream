@@ -137,4 +137,9 @@ include $(GOLDFISH_OPENGL_PATH)/system/egl/Android.mk
 
 include $(GOLDFISH_OPENGL_PATH)/system/vulkan/Android.mk
 
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 28 -o $(IS_AT_LEAST_QPR1) = true && echo isApi29OrHigher),isApi29OrHigher)
+    # HWC2 enabled after P
+    include $(GOLDFISH_OPENGL_PATH)/system/hwc2/Android.mk
+endif
+
 endif

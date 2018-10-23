@@ -47,6 +47,7 @@ struct renderControl_client_context_t {
 	rcUpdateColorBufferDMA_client_proc_t rcUpdateColorBufferDMA;
 	rcCreateColorBufferDMA_client_proc_t rcCreateColorBufferDMA;
 	rcWaitSyncKHR_client_proc_t rcWaitSyncKHR;
+	rcCompose_client_proc_t rcCompose;
 	virtual ~renderControl_client_context_t() {}
 
 	typedef renderControl_client_context_t *CONTEXT_ACCESSOR_TYPE(void);
