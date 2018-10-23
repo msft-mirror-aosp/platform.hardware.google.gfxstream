@@ -40,7 +40,8 @@
 #define OP_rcUpdateColorBufferDMA 					10034
 #define OP_rcCreateColorBufferDMA 					10035
 #define OP_rcWaitSyncKHR 					10036
-#define OP_last 					10037
+#define OP_rcCompose 					10037
+#define OP_last 					10038
 
 
 #endif

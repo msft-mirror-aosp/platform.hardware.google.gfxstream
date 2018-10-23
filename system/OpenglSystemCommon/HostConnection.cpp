@@ -226,6 +226,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetDmaImpl(m_rcEnc);
         queryAndSetGLESMaxVersion(m_rcEnc);
         queryAndSetNoErrorState(m_rcEnc);
+        queryAndSetHostCompositionImpl(m_rcEnc);
         if (m_processPipe) {
             m_processPipe->processPipeInit(m_rcEnc);
         }
@@ -277,6 +278,17 @@ const std::string& HostConnection::queryGLExtensions(ExtendedRCEncoderContext *r
     }
 
     return m_glExtensions;
+}
+
+void HostConnection::queryAndSetHostCompositionImpl(ExtendedRCEncoderContext *rcEnc) {
+    const std::string& glExtensions = queryGLExtensions(rcEnc);
+    ALOGD("HostComposition ext %s", glExtensions.c_str());
+    if (glExtensions.find(kHostCompositionV1) != std::string::npos) {
+        rcEnc->setHostComposition(HOST_COMPOSITION_V1);
+    }
+    else {
+        rcEnc->setHostComposition(HOST_COMPOSITION_NONE);
+    }
 }
 
 void HostConnection::setChecksumHelper(ExtendedRCEncoderContext *rcEnc) {

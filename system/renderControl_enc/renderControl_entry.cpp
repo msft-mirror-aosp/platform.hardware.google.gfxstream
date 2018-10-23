@@ -42,6 +42,7 @@ extern "C" {
 	int rcUpdateColorBufferDMA(uint32_t colorbuffer, GLint x, GLint y, GLint width, GLint height, GLenum format, GLenum type, void* pixels, uint32_t pixels_size);
 	uint32_t rcCreateColorBufferDMA(uint32_t width, uint32_t height, GLenum internalFormat, int frameworkFormat);
 	void rcWaitSyncKHR(uint64_t sync, EGLint flags);
+	GLint rcCompose(uint32_t bufferSize, void* buffer);
 };
 
 #ifndef GET_CONTEXT
@@ -270,5 +271,11 @@ void rcWaitSyncKHR(uint64_t sync, EGLint flags)
 {
 	GET_CONTEXT;
 	ctx->rcWaitSyncKHR(ctx, sync, flags);
+}
+
+GLint rcCompose(uint32_t bufferSize, void* buffer)
+{
+	GET_CONTEXT;
+	return ctx->rcCompose(ctx, bufferSize, buffer);
 }
 

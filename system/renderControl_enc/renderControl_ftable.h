@@ -45,6 +45,7 @@ static const struct _renderControl_funcs_by_name {
 	{"rcUpdateColorBufferDMA", (void*)rcUpdateColorBufferDMA},
 	{"rcCreateColorBufferDMA", (void*)rcCreateColorBufferDMA},
 	{"rcWaitSyncKHR", (void*)rcWaitSyncKHR},
+	{"rcCompose", (void*)rcCompose},
 };
 static const int renderControl_num_funcs = sizeof(renderControl_funcs_by_name) / sizeof(struct _renderControl_funcs_by_name);
 
