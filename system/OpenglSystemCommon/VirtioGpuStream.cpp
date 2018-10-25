@@ -23,7 +23,7 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 
-#include <cassert>
+#include <errno.h>
 #include <unistd.h>
 
 #ifndef PAGE_SIZE
@@ -157,7 +157,13 @@ int VirtioGpuStream::connect()
             return -1;
         }
         m_cmdResp_rh = create.res_handle;
-        assert(create.size == MAX_CMDRESPBUF_SIZE && "Command response buffer wrongly sized");
+        if (create.size != MAX_CMDRESPBUF_SIZE) {
+	    ERR("%s: command response buffer wrongly sized, create.size=%zu "
+		"!= %zu", __func__,
+		static_cast<size_t>(create.size),
+		static_cast<size_t>(MAX_CMDRESPBUF_SIZE));
+	    abort();
+	}
     }
 
     if (!m_cmdResp) {
