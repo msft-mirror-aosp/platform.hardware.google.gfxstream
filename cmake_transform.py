@@ -76,6 +76,8 @@ def generate_module(module):
     make.append('set(%s_src %s)' % (name, ' '.join(module['src'])))
     if module['type'] == 'SHARED_LIBRARY':
         make.append('android_add_shared_library(%s)' % name)
+    elif module['type'] == 'STATIC_LIBRARY':
+        make.append('android_add_library(%s)' % name)
     else:
         raise ValueError('Unexpected module type: %s' % module['type'])
 
