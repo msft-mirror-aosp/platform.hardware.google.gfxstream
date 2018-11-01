@@ -22,7 +22,6 @@ namespace goldfish_vk {
 
 class VulkanStream : public android::base::Stream {
 public:
-    // Constructor/destructor also perform connection/disconnection.
     VulkanStream();
     ~VulkanStream() = default;
 
