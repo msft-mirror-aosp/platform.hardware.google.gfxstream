@@ -135,7 +135,10 @@ include $(GOLDFISH_OPENGL_PATH)/system/gralloc/Android.mk
 
 include $(GOLDFISH_OPENGL_PATH)/system/egl/Android.mk
 
-include $(GOLDFISH_OPENGL_PATH)/system/vulkan/Android.mk
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 23 && echo isApi24OrHigher),isApi24OrHigher)
+    include $(GOLDFISH_OPENGL_PATH)/android-emu/Android.mk
+    include $(GOLDFISH_OPENGL_PATH)/system/vulkan/Android.mk
+endif
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 28 -o $(IS_AT_LEAST_QPR1) = true && echo isApi29OrHigher),isApi29OrHigher)
     # HWC2 enabled after P
