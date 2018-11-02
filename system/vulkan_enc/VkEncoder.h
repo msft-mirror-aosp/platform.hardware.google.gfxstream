@@ -16,12 +16,17 @@
 #ifdef GOLDFISH_VULKAN
 #pragma once
 
-#include "IOStream.h"
+#include <memory>
+
+class IOStream;
 
 class VkEncoder {
 public:
-    VkEncoder(IOStream*) { }
-    ~VkEncoder() { }
+    VkEncoder(IOStream* stream);
+    ~VkEncoder();
+private:
+    class Impl;
+    std::unique_ptr<Impl> mImpl;
 };
 
 #else
