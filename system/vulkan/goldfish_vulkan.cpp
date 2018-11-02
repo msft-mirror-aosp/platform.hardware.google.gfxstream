@@ -65,6 +65,7 @@ VkResult CreateInstance(const VkInstanceCreateInfo* create_info,
                         const VkAllocationCallbacks* allocator,
                         VkInstance* out_instance) {
     ALOGD("%s: goldfish vkCreateInstance\n", __func__);
+
     return VK_ERROR_OUT_OF_HOST_MEMORY;
 }
 
