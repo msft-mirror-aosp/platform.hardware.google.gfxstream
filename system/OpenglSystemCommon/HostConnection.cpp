@@ -17,7 +17,16 @@
 
 #include "GLEncoder.h"
 #include "GL2Encoder.h"
+
+#ifdef GOLDFISH_VULKAN
 #include "VkEncoder.h"
+#else
+struct VkEncoder {
+    VkEncoder(IOStream*) { }
+    int placeholder;
+};
+#endif
+
 #include "ProcessPipe.h"
 #include "QemuPipeStream.h"
 #include "TcpStream.h"
