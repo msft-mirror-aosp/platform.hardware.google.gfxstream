@@ -11,8 +11,9 @@
 
 #pragma once
 
-#include "android/base/Log.h"
 #include "android/base/TypeTraits.h"
+
+#include <log/log.h>
 
 #include <cassert>
 #include <initializer_list>
@@ -348,11 +349,17 @@ public:
     using base_flag::hasValue;
 
     T& value() {
-        CHECK(constructed()) << "Optional not constructed";
+        if (!constructed()) {
+            ALOGE("Optional not constructed");
+            abort();
+        }
         return get();
     }
     constexpr const T& value() const {
-        CHECK(constructed()) << "Optional not constructed";
+        if (!constructed()) {
+            ALOGE("Optional not constructed");
+            abort();
+        }
         return get();
     }
 
@@ -372,20 +379,32 @@ public:
 
     // Pointer-like operators
     T& operator*() {
-        CHECK(constructed()) << "Optional not constructed";
+        if (!constructed()) {
+            ALOGE("Optional not constructed");
+            abort();
+        }
         return get();
     }
     constexpr const T& operator*() const {
-        CHECK(constructed()) << "Optional not constructed";
+        if (!constructed()) {
+            ALOGE("Optional not constructed");
+            abort();
+        }
         return get();
     }
 
     T* operator->() {
-        CHECK(constructed()) << "Optional not constructed";
+        if (!constructed()) {
+            ALOGE("Optional not constructed");
+            abort();
+        }
         return &get();
     }
     constexpr const T* operator->() const {
-        CHECK(constructed()) << "Optional not constructed";
+        if (!constructed()) {
+            ALOGE("Optional not constructed");
+            abort();
+        }
         return &get();
     }
 
