@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <vulkan.h>
+#include <vulkan/vulkan.h>
 
 
 #include "goldfish_vk_marshaling_guest.h"

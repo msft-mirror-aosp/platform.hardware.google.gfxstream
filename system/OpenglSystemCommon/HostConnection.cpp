@@ -17,6 +17,7 @@
 
 #include "GLEncoder.h"
 #include "GL2Encoder.h"
+#include "VkEncoder.h"
 #include "ProcessPipe.h"
 #include "QemuPipeStream.h"
 #include "TcpStream.h"
@@ -69,6 +70,7 @@ HostConnection::HostConnection() :
     m_stream(NULL),
     m_glEnc(NULL),
     m_gl2Enc(NULL),
+    m_vkEnc(NULL),
     m_rcEnc(NULL),
     m_checksumHelper(),
     m_glExtensions(),

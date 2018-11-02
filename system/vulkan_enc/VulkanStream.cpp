@@ -15,8 +15,6 @@
 
 #include "android/base/Pool.h"
 
-#include "qemu_pipe.h"
-
 #include <vector>
 
 #include <cutils/log.h>
@@ -26,15 +24,11 @@ namespace goldfish_vk {
 
 class VulkanStream::Impl : public android::base::Stream {
 public:
-    Impl() {
-        mPipeHandle = qemu_pipe_open("opengles");
-    }
+    Impl() { }
 
-    ~Impl() {
-        qemu_pipe_close(mPipeHandle);
-    }
+    ~Impl() { }
 
-    bool valid() { return qemu_pipe_valid(mPipeHandle); }
+    bool valid() { return true; }
 
     void alloc(void **ptrAddr, size_t bytes) {
         if (!bytes) {
@@ -99,33 +93,6 @@ private:
             abort();
         }
 
-        size_t len = mWriteBuffer.size();
-        size_t res = len;
-        uint8_t* buf = mWriteBuffer.data();
-
-        while (res > 0) {
-
-            ssize_t stat =
-                qemu_pipe_write(mPipeHandle, buf + len - res, res);
-
-            if (stat > 0) {
-                res -= stat;
-                continue;
-            }
-
-            if (stat == 0) {
-                break;
-            }
-
-            if (qemu_pipe_try_again()) {
-                continue;
-            }
-
-            ALOGE("commitWriteBuffer: lethal error: %s, exiting.\n",
-                  strerror(errno));
-            abort();
-        }
-
         mWritePos = 0;
     }
 
@@ -135,46 +102,14 @@ private:
         }
         memcpy(mWriteBuffer.data() + mWritePos, buffer, size);
         mWritePos += size;
-        return 0;
+        return size;
     }
 
     ssize_t readFully(void *buffer, size_t size) {
-        if (!valid()) {
-            ALOGE("FATAL: Tried to commit write to "
-                  "vulkan pipe with invalid handle!");
-            abort();
-        }
-
-        size_t len = size;
-        size_t res = len;
-
-        while (res > 0) {
-
-            ssize_t stat =
-                qemu_pipe_read(mPipeHandle, (char *)(buffer) + len - res, res);
-
-            if (stat == 0) {
-                return res;
-            } else if (stat < 0) {
-                if (qemu_pipe_try_again()) {
-                    continue;
-                } else {
-                    ALOGE("readFully failed (buffer %p, len %zu"
-                          ", res %zu): %s, lethal error, exiting.",
-                          buffer, len, res,
-                          strerror(errno));
-                    abort();
-                }
-            } else {
-                res -= stat;
-            }
-        }
-
-        return res;
+        return size;
     }
 
     android::base::Pool mPool { 8, 4096, 64 };
-    QEMU_PIPE_HANDLE mPipeHandle = QEMU_PIPE_INVALID_HANDLE;
 
     size_t mWritePos = 0;
     std::vector<uint8_t> mWriteBuffer;

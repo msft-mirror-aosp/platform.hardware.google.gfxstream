@@ -2,7 +2,7 @@ LOCAL_PATH := $(call my-dir)
 
 $(call emugl-begin-shared-library,vulkan.ranchu)
 $(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
-$(call emugl-import,libOpenglSystemCommon)
+$(call emugl-import,libOpenglSystemCommon libvulkan_enc lib_renderControl_enc)
 $(call emugl-import,libOpenglCodecCommon$(GOLDFISH_OPENGL_LIB_SUFFIX))
 
 # Vulkan include dir
@@ -33,6 +33,5 @@ LOCAL_CFLAGS += \
 
 LOCAL_SRC_FILES := \
     goldfish_vulkan.cpp \
-    VulkanStream_QemuPipe.cpp \
 
 $(call emugl-end-module)
