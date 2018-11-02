@@ -4,6 +4,6 @@
 set(GLESv1_enc_src GLEncoder.cpp GLEncoderUtils.cpp gl_client_context.cpp gl_enc.cpp gl_entry.cpp)
 android_add_shared_library(GLESv1_enc)
 target_include_directories(GLESv1_enc PRIVATE ${GOLDFISH_DEVICE_ROOT}/system/GLESv1_enc ${GOLDFISH_DEVICE_ROOT}/shared/OpenglCodecCommon ${GOLDFISH_DEVICE_ROOT}/./host/include/libOpenglRender ${GOLDFISH_DEVICE_ROOT}/./system/include ${GOLDFISH_DEVICE_ROOT}/./../../../external/qemu/android/android-emugl/guest)
-target_compile_definitions(GLESv1_enc PRIVATE "-DWITH_GLES2" "-DPLATFORM_SDK_VERSION=29" "-DGOLDFISH_HIDL_GRALLOC" "-DEMULATOR_OPENGL_POST_O=1" "-DHOST_BUILD" "-DANDROID" "-DGL_GLEXT_PROTOTYPES" "-DPAGE_SIZE=4096" "-DLOG_TAG=\"emuglGLESv1_enc\"")
+target_compile_definitions(GLESv1_enc PRIVATE "-DWITH_GLES2" "-DPLATFORM_SDK_VERSION=29" "-DGOLDFISH_HIDL_GRALLOC" "-DEMULATOR_OPENGL_POST_O=1" "-DHOST_BUILD" "-DANDROID" "-DGL_GLEXT_PROTOTYPES" "-DPAGE_SIZE=4096" "-DGOLDFISH_VULKAN" "-DLOG_TAG=\"emuglGLESv1_enc\"")
 target_compile_options(GLESv1_enc PRIVATE "-fvisibility=default")
 target_link_libraries(GLESv1_enc PRIVATE OpenglCodecCommon_host cutils utils log android-emu-shared)
