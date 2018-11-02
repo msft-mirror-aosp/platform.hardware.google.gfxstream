@@ -137,6 +137,7 @@ include $(GOLDFISH_OPENGL_PATH)/system/egl/Android.mk
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 23 && echo isApi24OrHigher),isApi24OrHigher)
     include $(GOLDFISH_OPENGL_PATH)/android-emu/Android.mk
+    include $(GOLDFISH_OPENGL_PATH)/system/vulkan/cereal/Android.mk
     include $(GOLDFISH_OPENGL_PATH)/system/vulkan/Android.mk
 endif
 
