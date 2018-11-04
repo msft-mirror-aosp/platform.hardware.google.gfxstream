@@ -46,4 +46,21 @@ private:
     std::unique_ptr<Impl> mImpl;
 };
 
+class VulkanCountingStream : public VulkanStream {
+public:
+    VulkanCountingStream();
+    ~VulkanCountingStream();
+
+    ssize_t read(void *buffer, size_t size) override;
+    ssize_t write(const void *buffer, size_t size) override;
+
+    size_t bytesWritten() const { return m_written; }
+    size_t bytesRead() const { return m_read; }
+
+    void rewind();
+private:
+    size_t m_written = 0;
+    size_t m_read = 0;
+};
+
 } // namespace goldfish_vk
