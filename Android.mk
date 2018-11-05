@@ -138,7 +138,6 @@ include $(GOLDFISH_OPENGL_PATH)/system/renderControl_enc/Android.mk
 
 ifeq (true,$(BUILD_EMULATOR_VULKAN)) # Vulkan libs
     include $(GOLDFISH_OPENGL_PATH)/android-emu/Android.mk
-    include $(GOLDFISH_OPENGL_PATH)/system/vulkan_cereal/Android.mk
     include $(GOLDFISH_OPENGL_PATH)/system/vulkan_enc/Android.mk
 endif
 
