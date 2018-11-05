@@ -145,4 +145,22 @@ ssize_t VulkanStream::write(const void *buffer, size_t size) {
     return mImpl->write(buffer, size);
 }
 
+VulkanCountingStream::VulkanCountingStream() : VulkanStream(nullptr) { }
+VulkanCountingStream::~VulkanCountingStream() = default;
+
+ssize_t VulkanCountingStream::read(void *buffer, size_t size) {
+    m_read += size;
+    return size;
+}
+
+ssize_t VulkanCountingStream::write(const void *buffer, size_t size) {
+    m_written += size;
+    return size;
+}
+
+void VulkanCountingStream::rewind() {
+    m_written = 0;
+    m_read = 0;
+}
+
 } // namespace goldfish_vk
