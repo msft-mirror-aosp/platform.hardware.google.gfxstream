@@ -11,6 +11,19 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#include "VkEncoder.h"
 
-// TODO
-void placeholder() { }
+#include "IOStream.h"
+#include "VulkanStream.h"
+
+class VkEncoder::Impl {
+public:
+    Impl(IOStream* stream) : m_stream(stream) {
+
+    }
+private:
+    goldfish_vk::VulkanStream m_stream;
+};
+
+VkEncoder::VkEncoder(IOStream *stream) :
+    mImpl(new VkEncoder::Impl(stream)) { }
