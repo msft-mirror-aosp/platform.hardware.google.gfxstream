@@ -18,12 +18,14 @@
 
 #include <memory>
 
+class IOStream;
+
 namespace goldfish_vk {
 
 class VulkanStream : public android::base::Stream {
 public:
-    VulkanStream();
-    ~VulkanStream() = default;
+    VulkanStream(IOStream* stream);
+    ~VulkanStream();
 
     // Returns whether the connection is valid.
     bool valid();

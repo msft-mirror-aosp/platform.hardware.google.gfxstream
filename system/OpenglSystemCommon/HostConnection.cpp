@@ -228,6 +228,14 @@ GL2Encoder *HostConnection::gl2Encoder()
     return m_gl2Enc;
 }
 
+VkEncoder *HostConnection::vkEncoder()
+{
+    if (!m_vkEnc) {
+        m_vkEnc = new VkEncoder(m_stream);
+    }
+    return m_vkEnc;
+}
+
 ExtendedRCEncoderContext *HostConnection::rcEncoder()
 {
     if (!m_rcEnc) {

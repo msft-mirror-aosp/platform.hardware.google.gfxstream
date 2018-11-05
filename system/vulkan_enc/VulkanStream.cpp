@@ -13,6 +13,8 @@
 // limitations under the License.
 #include "VulkanStream.h"
 
+#include "IOStream.h"
+
 #include "android/base/Pool.h"
 
 #include <vector>
@@ -24,7 +26,7 @@ namespace goldfish_vk {
 
 class VulkanStream::Impl : public android::base::Stream {
 public:
-    Impl() { }
+    Impl(IOStream* stream) : mStream(stream) { }
 
     ~Impl() { }
 
@@ -75,7 +77,11 @@ public:
 
     ssize_t read(void *buffer, size_t size) override {
         commitWrite();
-        return readFully(buffer, size);
+        if (!mStream->readback(buffer, size)) {
+            ALOGE("FATAL: Could not read back %zu bytes", size);
+            abort();
+        }
+        return size;
     }
 
 private:
@@ -93,6 +99,14 @@ private:
             abort();
         }
 
+        int written =
+            mStream->writeFully(mWriteBuffer.data(), mWritePos);
+
+        if (written != mWritePos) {
+            ALOGE("FATAL: Did not write exactly %zu bytes! (Got %d)",
+                  mWritePos, written);
+            abort();
+        }
         mWritePos = 0;
     }
 
@@ -105,17 +119,17 @@ private:
         return size;
     }
 
-    ssize_t readFully(void *buffer, size_t size) {
-        return size;
-    }
-
     android::base::Pool mPool { 8, 4096, 64 };
 
     size_t mWritePos = 0;
     std::vector<uint8_t> mWriteBuffer;
+    IOStream* mStream = nullptr;
 };
 
-VulkanStream::VulkanStream() : mImpl(new VulkanStream::Impl()) {}
+VulkanStream::VulkanStream(IOStream *stream) :
+    mImpl(new VulkanStream::Impl(stream)) { }
+
+VulkanStream::~VulkanStream() = default;
 
 bool VulkanStream::valid() {
     return mImpl->valid();
