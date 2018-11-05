@@ -45,7 +45,6 @@ LOCAL_CFLAGS += \
     -DVK_NO_PROTOTYPES \
 
 LOCAL_SRC_FILES := goldfish_vk_marshaling_guest.cpp \
-goldfish_vk_frontend.cpp \
 
 
 $(call emugl-end-module)
