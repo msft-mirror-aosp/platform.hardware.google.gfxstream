@@ -16,11 +16,16 @@
 #include "IOStream.h"
 #include "VulkanStream.h"
 
+#include "goldfish_vk_marshaling_guest.h"
+
 class VkEncoder::Impl {
 public:
     Impl(IOStream* stream) : m_stream(stream) {
 
     }
+
+    // do the api calls here
+
 private:
     goldfish_vk::VulkanStream m_stream;
 };
