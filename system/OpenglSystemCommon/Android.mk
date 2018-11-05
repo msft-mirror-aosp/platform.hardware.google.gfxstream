@@ -20,6 +20,12 @@ LOCAL_SRC_FILES += \
 
 else
 
+ifeq (true,$(BUILD_EMULATOR_VULKAN))
+
+LOCAL_HEADER_LIBRARIES += vulkan_headers
+
+endif
+
 LOCAL_SRC_FILES += \
     ThreadInfo.cpp \
 
