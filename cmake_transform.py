@@ -94,14 +94,22 @@ def generate_module(module):
 
     # Make sure we remove the lib prefix from all our dependencies.
     libs = [remove_lib_prefix(l) for l in module['libs']]
+    staticlibs = [remove_lib_prefix(l) for l in
+                      module.get('staticlibs', [])
+                      if l != "libandroidemu"]
 
     # Configure the target.
     make.append('target_compile_definitions(%s PRIVATE %s)' %
                 (name, ' '.join(defs)))
     make.append('target_compile_options(%s PRIVATE %s)' %
                 (name, ' '.join(flags)))
-    make.append('target_link_libraries(%s PRIVATE %s)' %
-                (name, ' '.join(libs)))
+
+    if len(staticlibs) > 0:
+        make.append('target_link_libraries(%s PRIVATE %s PRIVATE %s)' %
+                    (name, ' '.join(libs), " ".join(staticlibs)))
+    else:
+        make.append('target_link_libraries(%s PRIVATE %s)' %
+                    (name, ' '.join(libs)))
     return make
 
 

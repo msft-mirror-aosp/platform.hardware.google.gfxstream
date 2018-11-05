@@ -34,6 +34,7 @@ dump-json-module = \
 	$(call dump-property-list,includes,LOCAL_C_INCLUDES) \
 	$(call dump-property-list,cflags,LOCAL_CFLAGS) \
 	$(call dump-property-list,libs,LOCAL_SHARED_LIBRARIES) \
+	$(call dump-property-list,staticlibs,LOCAL_STATIC_LIBRARIES) \
 	$(call dump-property-list,src,LOCAL_SRC_FILES) \
     $(eval JSON_DUMP += } )\
 
