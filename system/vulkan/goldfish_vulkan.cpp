@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include "HostConnection.h"
+#include "VkEncoder.h"
 
 namespace {
 
@@ -55,7 +56,12 @@ int CloseDevice(struct hw_device_t* /*device*/) {
     if (!rcEnc) { \
         ALOGE("vulkan: Failed to get renderControl encoder context\n"); \
         return VK_ERROR_DEVICE_LOST; \
-    }
+    } \
+    VkEncoder *vkEnc = hostCon->vkEncoder(); \
+    if (!vkEnc) { \
+        ALOGE("vulkan: Failed to get Vulkan encoder\n"); \
+        return VK_ERROR_DEVICE_LOST; \
+    } \
 
 VKAPI_ATTR
 VkResult EnumerateInstanceExtensionProperties(
@@ -66,6 +72,12 @@ VkResult EnumerateInstanceExtensionProperties(
     ALOGD("%s: call from goldfish_vulkan\n", __func__);
     VK_HOST_CONNECTION;
 
+    ALOGD("%s: yolo this call as a test.\n", __func__);
+    VkResult res = vkEnc->vkEnumerateInstanceExtensionProperties(nullptr, count, properties);
+    ALOGD("%s: yolo done. res == VK_SUCCESS? %d count: %u\n",
+          __func__, res == VK_SUCCESS,
+          *count);
+
     if (layer_name) {
         ALOGW(
             "Driver vkEnumerateInstanceExtensionProperties shouldn't be called "
@@ -73,7 +85,6 @@ VkResult EnumerateInstanceExtensionProperties(
             layer_name);
     }
 
-    *count = 0;
     return VK_SUCCESS;
 }
 
