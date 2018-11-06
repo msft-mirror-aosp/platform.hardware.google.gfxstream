@@ -32,6 +32,7 @@ LOCAL_CFLAGS += \
     -DVK_NO_PROTOTYPES \
 
 LOCAL_SRC_FILES := \
+    func_table.cpp \
     goldfish_vulkan.cpp \
 
 $(call emugl-end-module)
