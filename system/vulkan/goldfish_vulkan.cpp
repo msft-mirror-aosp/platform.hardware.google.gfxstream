@@ -21,6 +21,8 @@
 #include "HostConnection.h"
 #include "VkEncoder.h"
 
+#include "func_table.h"
+
 namespace {
 
 int OpenDevice(const hw_module_t* module, const char* id, hw_device_t** device);
@@ -95,12 +97,22 @@ VkResult CreateInstance(const VkInstanceCreateInfo* create_info,
     ALOGD("%s: goldfish vkCreateInstance\n", __func__);
     VK_HOST_CONNECTION;
 
-    return VK_ERROR_OUT_OF_HOST_MEMORY;
+    VkResult res = vkEnc->vkCreateInstance(create_info, nullptr, out_instance);
+
+    return res;
 }
 
 VKAPI_ATTR
 PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* name) {
-    return nullptr;
+    (void)instance;
+
+    if (!strcmp(name, "vkEnumerateInstanceExtensionProperties")) {
+        return (PFN_vkVoidFunction)EnumerateInstanceExtensionProperties;
+    }
+    if (!strcmp(name, "vkCreateInstance")) {
+        return (PFN_vkVoidFunction)CreateInstance;
+    }
+    return (PFN_vkVoidFunction)(goldfish_vk::goldfish_vulkan_get_proc_address(name));
 }
 
 hwvulkan_device_t goldfish_vulkan_device = {
