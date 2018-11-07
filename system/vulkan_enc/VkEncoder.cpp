@@ -28,6 +28,8 @@
 #include "IOStream.h"
 #include "VulkanStream.h"
 
+#include "android/base/AlignedBuf.h"
+
 #include "goldfish_vk_marshaling_guest.h"
 
 
@@ -37,6 +39,9 @@
 
 using goldfish_vk::VulkanCountingStream;
 using goldfish_vk::VulkanStream;
+
+using android::aligned_buf_alloc;
+using android::aligned_buf_free;
 
 class VkEncoder::Impl {
 public:
