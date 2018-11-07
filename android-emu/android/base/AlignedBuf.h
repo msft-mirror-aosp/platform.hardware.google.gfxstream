@@ -142,4 +142,8 @@ private:
     size_t mSize = 0;
 };
 
+// Convenience function for aligned malloc across platforms
+void* aligned_buf_alloc(size_t align, size_t size);
+void aligned_buf_free(void* buf);
+
 }  // namespace android

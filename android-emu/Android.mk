@@ -11,6 +11,7 @@ LOCAL_CFLAGS += \
     -fstrict-aliasing \
 
 LOCAL_SRC_FILES := \
+    android/base/AlignedBuf.cpp \
     android/base/files/MemStream.cpp \
     android/base/files/Stream.cpp \
     android/base/files/StreamSerializing.cpp \
