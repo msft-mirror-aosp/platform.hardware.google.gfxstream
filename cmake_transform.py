@@ -1,5 +1,6 @@
 #!/bin/python
 import argparse
+import hashlib
 import json
 import logging
 import os
@@ -69,10 +70,22 @@ def header():
     ]
 
 
+def checksum(fname):
+    """Calculates a SHA256 digest of the given file name."""
+    m = hashlib.sha256()
+    with open(fname, 'r') as mk:
+        m.update(mk.read())
+    return m.hexdigest()
+
+
 def generate_module(module):
     """Generates a cmake module."""
     name = remove_lib_prefix(module['module'])
     make = header()
+    mkfile = os.path.join(module['path'], 'Android.mk')
+    sha256 = checksum(mkfile)
+    make.append(
+        'android_validate_sha256("${GOLDFISH_DEVICE_ROOT}/%s" "%s")' % (mkfile, sha256))
     make.append('set(%s_src %s)' % (name, ' '.join(module['src'])))
     if module['type'] == 'SHARED_LIBRARY':
         make.append('android_add_shared_library(%s)' % name)
@@ -149,8 +162,12 @@ def main(argv=None):
 
     # The root, it will basically just include all the generated files.
     root = os.path.join(args.outdir, 'CMakeLists.txt')
+    mkfile = os.path.join(args.outdir, 'Android.mk')
+    sha256 = checksum(mkfile)
     cmake[root] = header()
     cmake[root].append('set(GOLDFISH_DEVICE_ROOT ${CMAKE_CURRENT_SOURCE_DIR})')
+    cmake[root].append(
+        'android_validate_sha256("${GOLDFISH_DEVICE_ROOT}/%s" "%s")' % (mkfile, sha256))
 
     # Generate the modules.
     for module in modules:
