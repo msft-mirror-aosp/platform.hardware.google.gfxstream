@@ -39,9 +39,12 @@ LOCAL_CFLAGS += \
     -DVK_USE_PLATFORM_ANDROID_KHR \
     -DVK_NO_PROTOTYPES \
 
-LOCAL_SRC_FILES := VulkanStream.cpp HandleWrappers.cpp \
-    VkEncoder.cpp \
+LOCAL_SRC_FILES := Resources.cpp VulkanStream.cpp \
+    ResourceTracker.cpp \
+VkEncoder.cpp \
 goldfish_vk_marshaling_guest.cpp \
+goldfish_vk_deepcopy_guest.cpp \
+goldfish_vk_handlemap_guest.cpp \
 
 
 $(call emugl-end-module)
