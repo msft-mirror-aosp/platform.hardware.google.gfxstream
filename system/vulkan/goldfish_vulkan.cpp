@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include "HostConnection.h"
+#include "ResourceTracker.h"
 #include "VkEncoder.h"
 
 #include "func_table.h"
@@ -132,6 +133,7 @@ int OpenDevice(const hw_module_t* /*module*/,
                hw_device_t** device) {
     if (strcmp(id, HWVULKAN_DEVICE_0) == 0) {
         *device = &goldfish_vulkan_device.common;
+        goldfish_vk::ResourceTracker::get();
         return 0;
     }
     return -ENOENT;
