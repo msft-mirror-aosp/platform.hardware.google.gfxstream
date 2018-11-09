@@ -14650,6 +14650,7 @@ VkResult VkEncoder::vkRegisterObjectsNVX(
     uint32_t local_objectCount;
     local_objectCount = objectCount;
     VkObjectTableEntryNVX** local_ppObjectTableEntries;
+    (void)ppObjectTableEntries;
     uint32_t* local_pObjectIndices;
     local_pObjectIndices = nullptr;
     if (pObjectIndices)
@@ -14661,6 +14662,7 @@ VkResult VkEncoder::vkRegisterObjectsNVX(
         countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
         countingStream->write((VkObjectTableNVX*)&local_objectTable, sizeof(VkObjectTableNVX));
         countingStream->write((uint32_t*)&local_objectCount, sizeof(uint32_t));
+        (void)local_ppObjectTableEntries;
         countingStream->write((uint32_t*)local_pObjectIndices, ((objectCount)) * sizeof(uint32_t));
     }
     uint32_t packetSize_vkRegisterObjectsNVX = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -14671,6 +14673,7 @@ VkResult VkEncoder::vkRegisterObjectsNVX(
     stream->write((VkDevice*)&local_device, sizeof(VkDevice));
     stream->write((VkObjectTableNVX*)&local_objectTable, sizeof(VkObjectTableNVX));
     stream->write((uint32_t*)&local_objectCount, sizeof(uint32_t));
+    (void)local_ppObjectTableEntries;
     stream->write((uint32_t*)local_pObjectIndices, ((objectCount)) * sizeof(uint32_t));
     pool->freeAll();
     VkResult vkRegisterObjectsNVX_VkResult_return = (VkResult)0;
