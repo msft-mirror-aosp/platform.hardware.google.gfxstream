@@ -102,27 +102,54 @@ void delete_goldfish_VkDeviceMemory(VkDeviceMemory mem) {
     free(goldfish_mem);
 }
 
-void goldfish_VkDeviceMemory_allocate(
-    struct goldfish_VkDeviceMemory *mem,
-    VkDeviceSize size) {
+VkResult goldfish_vkAllocateMemory(
+    VkDevice,
+    const VkMemoryAllocateInfo* pAllocateInfo,
+    const VkAllocationCallbacks*,
+    VkDeviceMemory* pMemory) {
+
+    // Assumes pMemory has already been allocated.
+    goldfish_VkDeviceMemory* mem = as_goldfish_VkDeviceMemory(*pMemory);
+
+    VkDeviceSize size = pAllocateInfo->allocationSize;
+
     // This is a strict alignment; we do not expect any
     // actual device to have more stringent requirements
     // than this.
-    mem->ptr = aligned_buf_alloc(4096, size);
+    mem->ptr = (uint8_t*)aligned_buf_alloc(4096, size);
     mem->size = size;
-    // TODO: Use goldfish_address_space to obtain the pointer.
+
+    return VK_SUCCESS;
 }
 
-void* goldfish_VkDeviceMemory_map(
-    struct goldfish_VkDeviceMemory *mem,
-    VkDeviceSize offset, VkDeviceSize size) {
+VkResult goldfish_vkMapMemory(
+    VkDevice,
+    VkDeviceMemory memory,
+    VkDeviceSize offset,
+    VkDeviceSize size,
+    VkMemoryMapFlags,
+    void** ppData) {
 
-    if (!mem->ptr) abort();
-    if (mem->size < offset + size) abort();
+    goldfish_VkDeviceMemory* mem = as_goldfish_VkDeviceMemory(memory);
 
-    uint8_t* asBytes = (uint8_t*)mem->ptr;
+    if (!mem->ptr) {
+        ALOGE("%s: Did not allocate host pointer for device memory!", __func__);
+        abort();
+    }
 
-    return asBytes + offset;
+    if (mem->ptr + offset >= mem->ptr + size) {
+        return VK_ERROR_MEMORY_MAP_FAILED;
+    }
+
+    *ppData = mem->ptr + offset;
+
+    return VK_SUCCESS;
+}
+
+void goldfish_vkUnmapMemory(
+    VkDevice,
+    VkDeviceMemory) {
+    // no-op
 }
 
 } // extern "C"
