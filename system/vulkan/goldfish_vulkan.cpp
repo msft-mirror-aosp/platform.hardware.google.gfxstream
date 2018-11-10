@@ -72,14 +72,7 @@ VkResult EnumerateInstanceExtensionProperties(
     uint32_t* count,
     VkExtensionProperties* properties) {
 
-    ALOGD("%s: call from goldfish_vulkan\n", __func__);
     VK_HOST_CONNECTION;
-
-    ALOGD("%s: yolo this call as a test.\n", __func__);
-    VkResult res = vkEnc->vkEnumerateInstanceExtensionProperties(nullptr, count, properties);
-    ALOGD("%s: yolo done. res == VK_SUCCESS? %d count: %u\n",
-          __func__, res == VK_SUCCESS,
-          *count);
 
     if (layer_name) {
         ALOGW(
@@ -87,6 +80,10 @@ VkResult EnumerateInstanceExtensionProperties(
             "with a layer name ('%s')",
             layer_name);
     }
+
+    // For now, let's not expose any extensions;
+    // add them one at a time as needed.
+    *count = 0;
 
     return VK_SUCCESS;
 }
@@ -104,13 +101,15 @@ VkResult CreateInstance(const VkInstanceCreateInfo* create_info,
 }
 
 static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice, const char* name) {
+    if (!strcmp(name, "vkGetDeviceProcAddr")) {
+        return (PFN_vkVoidFunction)(GetDeviceProcAddr);
+    }
     return (PFN_vkVoidFunction)(goldfish_vk::goldfish_vulkan_get_proc_address(name));
 }
 
 VKAPI_ATTR
 PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* name) {
     (void)instance;
-
     if (!strcmp(name, "vkEnumerateInstanceExtensionProperties")) {
         return (PFN_vkVoidFunction)EnumerateInstanceExtensionProperties;
     }

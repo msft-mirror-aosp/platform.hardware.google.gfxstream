@@ -99,6 +99,16 @@ GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_DEFINE_TRIVIA
 
 // Custom definitions///////////////////////////////////////////////////////////
 
+VkResult goldfish_vkEnumerateInstanceVersion(uint32_t* apiVersion);
+
+VkResult goldfish_vkEnumerateDeviceExtensionProperties(
+    VkPhysicalDevice physicalDevice, const char *pLayerName,
+    uint32_t *pPropertyCount, VkExtensionProperties *pProperties);
+
+void goldfish_vkGetPhysicalDeviceProperties2(
+    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceProperties2* pProperties);
+
 struct goldfish_VkDeviceMemory {
     VkDeviceMemory underlying;
     uint8_t* ptr;
