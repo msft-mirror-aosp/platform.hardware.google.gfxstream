@@ -103,6 +103,10 @@ VkResult CreateInstance(const VkInstanceCreateInfo* create_info,
     return res;
 }
 
+static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice, const char* name) {
+    return (PFN_vkVoidFunction)(goldfish_vk::goldfish_vulkan_get_proc_address(name));
+}
+
 VKAPI_ATTR
 PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* name) {
     (void)instance;
@@ -112,6 +116,9 @@ PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* name) {
     }
     if (!strcmp(name, "vkCreateInstance")) {
         return (PFN_vkVoidFunction)CreateInstance;
+    }
+    if (!strcmp(name, "vkGetDeviceProcAddr")) {
+        return (PFN_vkVoidFunction)(GetDeviceProcAddr);
     }
     return (PFN_vkVoidFunction)(goldfish_vk::goldfish_vulkan_get_proc_address(name));
 }
