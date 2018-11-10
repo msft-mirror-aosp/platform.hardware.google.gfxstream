@@ -148,12 +148,12 @@ ssize_t VulkanStream::write(const void *buffer, size_t size) {
 VulkanCountingStream::VulkanCountingStream() : VulkanStream(nullptr) { }
 VulkanCountingStream::~VulkanCountingStream() = default;
 
-ssize_t VulkanCountingStream::read(void *buffer, size_t size) {
+ssize_t VulkanCountingStream::read(void*, size_t size) {
     m_read += size;
     return size;
 }
 
-ssize_t VulkanCountingStream::write(const void *buffer, size_t size) {
+ssize_t VulkanCountingStream::write(const void*, size_t size) {
     m_written += size;
     return size;
 }
