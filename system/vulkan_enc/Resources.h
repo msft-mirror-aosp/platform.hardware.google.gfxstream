@@ -101,17 +101,26 @@ GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_DEFINE_TRIVIA
 
 struct goldfish_VkDeviceMemory {
     VkDeviceMemory underlying;
-    void* ptr;
+    uint8_t* ptr;
     VkDeviceSize size;
 };
 
-void goldfish_VkDeviceMemory_allocate(
-    struct goldfish_VkDeviceMemory *mem,
-    VkDeviceSize size);
+VkResult goldfish_vkAllocateMemory(
+    VkDevice device,
+    const VkMemoryAllocateInfo* pAllocateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDeviceMemory* pMemory);
 
-void* goldfish_VkDeviceMemory_map(
-    struct goldfish_VkDeviceMemory *mem,
+VkResult goldfish_vkMapMemory(
+    VkDevice device,
+    VkDeviceMemory memory,
     VkDeviceSize offset,
-    VkDeviceSize size);
+    VkDeviceSize size,
+    VkMemoryMapFlags flags,
+    void** ppData);
+
+void goldfish_vkUnmapMemory(
+    VkDevice device,
+    VkDeviceMemory memory);
 
 } // extern "C"
