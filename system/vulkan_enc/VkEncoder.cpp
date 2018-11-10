@@ -26,6 +26,7 @@
 
 
 #include "IOStream.h"
+#include "Resources.h"
 #include "ResourceTracker.h"
 #include "VulkanStream.h"
 
@@ -231,6 +232,10 @@ VkResult VkEncoder::vkEnumeratePhysicalDevices(
             fprintf(stderr, "fatal: pPhysicalDevices inconsistent between guest and host\n");
         }
         stream->read((VkPhysicalDevice*)pPhysicalDevices, (*(pPhysicalDeviceCount)) * sizeof(VkPhysicalDevice));
+    }
+    if (pPhysicalDevices)
+    {
+        resources->createMapping()->mapHandles_VkPhysicalDevice((VkPhysicalDevice*)pPhysicalDevices, (*(pPhysicalDeviceCount)));
     }
     pool->freeAll();
     VkResult vkEnumeratePhysicalDevices_VkResult_return = (VkResult)0;
@@ -1197,6 +1202,7 @@ VkResult VkEncoder::vkAllocateMemory(
     {
         resources->createMapping()->mapHandles_VkDeviceMemory((VkDeviceMemory*)pMemory, 1);
     }
+    goldfish_vkAllocateMemory(device, pAllocateInfo, pAllocator, pMemory);
     pool->freeAll();
     VkResult vkAllocateMemory_VkResult_return = (VkResult)0;
     stream->read(&vkAllocateMemory_VkResult_return, sizeof(VkResult));
@@ -1260,68 +1266,8 @@ VkResult VkEncoder::vkMapMemory(
     VkMemoryMapFlags flags,
     void** ppData)
 {
-    auto stream = mImpl->stream();
-    auto countingStream = mImpl->countingStream();
-    auto resources = mImpl->resources();
-    auto pool = mImpl->pool();
-    VkDevice local_device;
-    local_device = device;
-    resources->unwrapMapping()->mapHandles_VkDevice((VkDevice*)&local_device);
-    VkDeviceMemory local_memory;
-    local_memory = memory;
-    resources->unwrapMapping()->mapHandles_VkDeviceMemory((VkDeviceMemory*)&local_memory);
-    VkDeviceSize local_offset;
-    local_offset = offset;
-    VkDeviceSize local_size;
-    local_size = size;
-    VkMemoryMapFlags local_flags;
-    local_flags = flags;
-    countingStream->rewind();
-    {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkDeviceMemory*)&local_memory, sizeof(VkDeviceMemory));
-        countingStream->write((VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
-        countingStream->write((VkDeviceSize*)&local_size, sizeof(VkDeviceSize));
-        countingStream->write((VkMemoryMapFlags*)&local_flags, sizeof(VkMemoryMapFlags));
-        countingStream->write((void***)&ppData, sizeof(void**));
-        if (ppData)
-        {
-            countingStream->write((void**)ppData, sizeof(void*));
-        }
-    }
-    uint32_t packetSize_vkMapMemory = 4 + 4 + (uint32_t)countingStream->bytesWritten();
-    countingStream->rewind();
-    uint32_t opcode_vkMapMemory = OP_vkMapMemory;
-    stream->write(&opcode_vkMapMemory, sizeof(uint32_t));
-    stream->write(&packetSize_vkMapMemory, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkDeviceMemory*)&local_memory, sizeof(VkDeviceMemory));
-    stream->write((VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
-    stream->write((VkDeviceSize*)&local_size, sizeof(VkDeviceSize));
-    stream->write((VkMemoryMapFlags*)&local_flags, sizeof(VkMemoryMapFlags));
-    stream->write((void***)&ppData, sizeof(void**));
-    if (ppData)
-    {
-        stream->write((void**)ppData, sizeof(void*));
-    }
-    void** check_ppData;
-    stream->read((void***)&check_ppData, sizeof(void**));
-    if (ppData)
-    {
-        if (!(check_ppData))
-        {
-            fprintf(stderr, "fatal: ppData inconsistent between guest and host\n");
-        }
-        stream->read((void**)ppData, sizeof(void*));
-    }
-    pool->freeAll();
     VkResult vkMapMemory_VkResult_return = (VkResult)0;
-    stream->read(&vkMapMemory_VkResult_return, sizeof(VkResult));
-    if (((vkMapMemory_VkResult_return == VK_SUCCESS) && ppData && size > 0))
-    {
-        *ppData = aligned_buf_alloc(1024 /* pick large alignment */, size);;
-        stream->read(*ppData, size);
-    }
+    vkMapMemory_VkResult_return = goldfish_vkMapMemory(device, memory, offset, size, flags, ppData);
     return vkMapMemory_VkResult_return;
 }
 
@@ -1329,29 +1275,7 @@ void VkEncoder::vkUnmapMemory(
     VkDevice device,
     VkDeviceMemory memory)
 {
-    auto stream = mImpl->stream();
-    auto countingStream = mImpl->countingStream();
-    auto resources = mImpl->resources();
-    auto pool = mImpl->pool();
-    VkDevice local_device;
-    local_device = device;
-    resources->unwrapMapping()->mapHandles_VkDevice((VkDevice*)&local_device);
-    VkDeviceMemory local_memory;
-    local_memory = memory;
-    resources->unwrapMapping()->mapHandles_VkDeviceMemory((VkDeviceMemory*)&local_memory);
-    countingStream->rewind();
-    {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkDeviceMemory*)&local_memory, sizeof(VkDeviceMemory));
-    }
-    uint32_t packetSize_vkUnmapMemory = 4 + 4 + (uint32_t)countingStream->bytesWritten();
-    countingStream->rewind();
-    uint32_t opcode_vkUnmapMemory = OP_vkUnmapMemory;
-    stream->write(&opcode_vkUnmapMemory, sizeof(uint32_t));
-    stream->write(&packetSize_vkUnmapMemory, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkDeviceMemory*)&local_memory, sizeof(VkDeviceMemory));
-    pool->freeAll();
+    goldfish_vkUnmapMemory(device, memory);
 }
 
 VkResult VkEncoder::vkFlushMappedMemoryRanges(
@@ -1394,6 +1318,22 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
             marshal_VkMappedMemoryRange(countingStream, (VkMappedMemoryRange*)(local_pMemoryRanges + i));
         }
     }
+    for (uint32_t i = 0; i < memoryRangeCount; ++i)
+    {
+        auto range = pMemoryRanges[i];
+        auto memory = pMemoryRanges[i].memory;
+        auto size = pMemoryRanges[i].size;
+        auto offset = pMemoryRanges[i].offset;
+        auto goldfishMem = as_goldfish_VkDeviceMemory(memory);
+        size_t streamSize = 0;
+        if (!goldfishMem) { countingStream->write(&streamSize, sizeof(size_t)); continue; };
+        auto hostPtr = goldfishMem->ptr;
+        if (!hostPtr) { countingStream->write(&streamSize, sizeof(size_t)); continue; };
+        streamSize = size;
+        countingStream->write(&streamSize, sizeof(size_t));
+        uint8_t* targetRange = hostPtr + offset;
+        countingStream->write(targetRange, size);
+    }
     uint32_t packetSize_vkFlushMappedMemoryRanges = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
     uint32_t opcode_vkFlushMappedMemoryRanges = OP_vkFlushMappedMemoryRanges;
@@ -1404,6 +1344,22 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
     for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i)
     {
         marshal_VkMappedMemoryRange(stream, (VkMappedMemoryRange*)(local_pMemoryRanges + i));
+    }
+    for (uint32_t i = 0; i < memoryRangeCount; ++i)
+    {
+        auto range = pMemoryRanges[i];
+        auto memory = pMemoryRanges[i].memory;
+        auto size = pMemoryRanges[i].size;
+        auto offset = pMemoryRanges[i].offset;
+        auto goldfishMem = as_goldfish_VkDeviceMemory(memory);
+        size_t streamSize = 0;
+        if (!goldfishMem) { stream->write(&streamSize, sizeof(size_t)); continue; };
+        auto hostPtr = goldfishMem->ptr;
+        if (!hostPtr) { stream->write(&streamSize, sizeof(size_t)); continue; };
+        streamSize = size;
+        stream->write(&streamSize, sizeof(size_t));
+        uint8_t* targetRange = hostPtr + offset;
+        stream->write(targetRange, size);
     }
     pool->freeAll();
     VkResult vkFlushMappedMemoryRanges_VkResult_return = (VkResult)0;
