@@ -161,7 +161,7 @@ VkResult goldfish_vkMapMemory(
     }
 
     if (size != VK_WHOLE_SIZE &&
-        (mem->ptr + offset >= mem->ptr + size)) {
+        (mem->ptr + offset + size > mem->ptr + mem->size)) {
         return VK_ERROR_MEMORY_MAP_FAILED;
     }
 
