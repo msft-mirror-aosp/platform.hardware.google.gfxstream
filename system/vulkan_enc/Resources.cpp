@@ -74,6 +74,27 @@ GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_DELETE_GOLDFI
 
 // Custom definitions///////////////////////////////////////////////////////////
 
+VkResult goldfish_vkEnumerateInstanceVersion(uint32_t* apiVersion) {
+    if (apiVersion) {
+        *apiVersion = VK_MAKE_VERSION(1, 0, 0);
+    }
+    return VK_SUCCESS;
+}
+
+VkResult goldfish_vkEnumerateDeviceExtensionProperties(
+    VkPhysicalDevice, const char*,
+    uint32_t *pPropertyCount, VkExtensionProperties *) {
+    *pPropertyCount = 0;
+    return VK_SUCCESS;
+}
+
+void goldfish_vkGetPhysicalDeviceProperties2(
+    VkPhysicalDevice,
+    VkPhysicalDeviceProperties2*)
+{
+    // no-op
+}
+
 VkDeviceMemory new_from_host_VkDeviceMemory(VkDeviceMemory mem) {
     struct goldfish_VkDeviceMemory *res =
         (struct goldfish_VkDeviceMemory *)malloc(sizeof(goldfish_VkDeviceMemory));
@@ -93,6 +114,8 @@ VkDeviceMemory new_from_host_VkDeviceMemory(VkDeviceMemory mem) {
 void delete_goldfish_VkDeviceMemory(VkDeviceMemory mem) {
     struct goldfish_VkDeviceMemory* goldfish_mem =
         as_goldfish_VkDeviceMemory(mem);
+
+    if (!goldfish_mem) return;
 
     if (goldfish_mem->ptr) {
         // TODO: unmap the pointer with address space device
@@ -137,7 +160,8 @@ VkResult goldfish_vkMapMemory(
         abort();
     }
 
-    if (mem->ptr + offset >= mem->ptr + size) {
+    if (size != VK_WHOLE_SIZE &&
+        (mem->ptr + offset >= mem->ptr + size)) {
         return VK_ERROR_MEMORY_MAP_FAILED;
     }
 
