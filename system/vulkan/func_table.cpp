@@ -3859,7 +3859,7 @@ void* goldfish_vulkan_get_proc_address(const char* name){
     }
     if (!strcmp(name, "vkEnumeratePhysicalDeviceGroups"))
     {
-        return (void*)entry_vkEnumeratePhysicalDeviceGroups;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetImageMemoryRequirements2"))
     {
