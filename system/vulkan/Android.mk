@@ -1,6 +1,7 @@
 LOCAL_PATH := $(call my-dir)
 
 $(call emugl-begin-shared-library,vulkan.ranchu)
+$(call emugl-set-shared-library-subpath,hw)
 $(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
 $(call emugl-import,libOpenglSystemCommon libvulkan_enc lib_renderControl_enc)
 $(call emugl-import,libOpenglCodecCommon$(GOLDFISH_OPENGL_LIB_SUFFIX))
