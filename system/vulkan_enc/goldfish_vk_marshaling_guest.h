@@ -30,6 +30,7 @@
 #include "vk_platform_compat.h"
 
 #include "goldfish_vk_marshaling_guest.h"
+#include "goldfish_vk_private_defs.h"
 #include "VulkanStream.h"
 
 // Stuff we are not going to use but if included,
@@ -2333,6 +2334,19 @@ void unmarshal_VkPhysicalDevice8BitStorageFeaturesKHR(
     VkPhysicalDevice8BitStorageFeaturesKHR* forUnmarshaling);
 
 #endif
+#ifdef VK_ANDROID_native_buffer
+void marshal_VkNativeBufferANDROID(
+    VulkanStream* vkStream,
+    const VkNativeBufferANDROID* forMarshaling);
+
+void unmarshal_VkNativeBufferANDROID(
+    VulkanStream* vkStream,
+    VkNativeBufferANDROID* forUnmarshaling);
+
+#define OP_vkGetSwapchainGrallocUsageANDROID 20251
+#define OP_vkAcquireImageANDROID 20252
+#define OP_vkQueueSignalReleaseImageANDROID 20253
+#endif
 #ifdef VK_EXT_debug_report
 void marshal_VkDebugReportCallbackCreateInfoEXT(
     VulkanStream* vkStream,
@@ -2342,9 +2356,9 @@ void unmarshal_VkDebugReportCallbackCreateInfoEXT(
     VulkanStream* vkStream,
     VkDebugReportCallbackCreateInfoEXT* forUnmarshaling);
 
-#define OP_vkCreateDebugReportCallbackEXT 20251
-#define OP_vkDestroyDebugReportCallbackEXT 20252
-#define OP_vkDebugReportMessageEXT 20253
+#define OP_vkCreateDebugReportCallbackEXT 20254
+#define OP_vkDestroyDebugReportCallbackEXT 20255
+#define OP_vkDebugReportMessageEXT 20256
 #endif
 #ifdef VK_NV_glsl_shader
 #endif
@@ -2391,11 +2405,11 @@ void unmarshal_VkDebugMarkerMarkerInfoEXT(
     VulkanStream* vkStream,
     VkDebugMarkerMarkerInfoEXT* forUnmarshaling);
 
-#define OP_vkDebugMarkerSetObjectTagEXT 20254
-#define OP_vkDebugMarkerSetObjectNameEXT 20255
-#define OP_vkCmdDebugMarkerBeginEXT 20256
-#define OP_vkCmdDebugMarkerEndEXT 20257
-#define OP_vkCmdDebugMarkerInsertEXT 20258
+#define OP_vkDebugMarkerSetObjectTagEXT 20257
+#define OP_vkDebugMarkerSetObjectNameEXT 20258
+#define OP_vkCmdDebugMarkerBeginEXT 20259
+#define OP_vkCmdDebugMarkerEndEXT 20260
+#define OP_vkCmdDebugMarkerInsertEXT 20261
 #endif
 #ifdef VK_AMD_gcn_shader
 #endif
@@ -2426,8 +2440,8 @@ void unmarshal_VkDedicatedAllocationMemoryAllocateInfoNV(
 
 #endif
 #ifdef VK_AMD_draw_indirect_count
-#define OP_vkCmdDrawIndirectCountAMD 20259
-#define OP_vkCmdDrawIndexedIndirectCountAMD 20260
+#define OP_vkCmdDrawIndirectCountAMD 20262
+#define OP_vkCmdDrawIndexedIndirectCountAMD 20263
 #endif
 #ifdef VK_AMD_negative_viewport_height
 #endif
@@ -2462,7 +2476,7 @@ void unmarshal_VkShaderStatisticsInfoAMD(
     VulkanStream* vkStream,
     VkShaderStatisticsInfoAMD* forUnmarshaling);
 
-#define OP_vkGetShaderInfoAMD 20261
+#define OP_vkGetShaderInfoAMD 20264
 #endif
 #ifdef VK_AMD_shader_image_load_store_lod
 #endif
@@ -2477,7 +2491,7 @@ void unmarshal_VkExternalImageFormatPropertiesNV(
     VulkanStream* vkStream,
     VkExternalImageFormatPropertiesNV* forUnmarshaling);
 
-#define OP_vkGetPhysicalDeviceExternalImageFormatPropertiesNV 20262
+#define OP_vkGetPhysicalDeviceExternalImageFormatPropertiesNV 20265
 #endif
 #ifdef VK_NV_external_memory
 void marshal_VkExternalMemoryImageCreateInfoNV(
@@ -2514,7 +2528,7 @@ void unmarshal_VkExportMemoryWin32HandleInfoNV(
     VulkanStream* vkStream,
     VkExportMemoryWin32HandleInfoNV* forUnmarshaling);
 
-#define OP_vkGetMemoryWin32HandleNV 20263
+#define OP_vkGetMemoryWin32HandleNV 20266
 #endif
 #ifdef VK_NV_win32_keyed_mutex
 void marshal_VkWin32KeyedMutexAcquireReleaseInfoNV(
@@ -2545,7 +2559,7 @@ void unmarshal_VkViSurfaceCreateInfoNN(
     VulkanStream* vkStream,
     VkViSurfaceCreateInfoNN* forUnmarshaling);
 
-#define OP_vkCreateViSurfaceNN 20264
+#define OP_vkCreateViSurfaceNN 20267
 #endif
 #ifdef VK_EXT_shader_subgroup_ballot
 #endif
@@ -2576,8 +2590,8 @@ void unmarshal_VkCommandBufferInheritanceConditionalRenderingInfoEXT(
     VulkanStream* vkStream,
     VkCommandBufferInheritanceConditionalRenderingInfoEXT* forUnmarshaling);
 
-#define OP_vkCmdBeginConditionalRenderingEXT 20265
-#define OP_vkCmdEndConditionalRenderingEXT 20266
+#define OP_vkCmdBeginConditionalRenderingEXT 20268
+#define OP_vkCmdEndConditionalRenderingEXT 20269
 #endif
 #ifdef VK_NVX_device_generated_commands
 void marshal_VkDeviceGeneratedCommandsFeaturesNVX(
@@ -2692,15 +2706,15 @@ void unmarshal_VkObjectTablePushConstantEntryNVX(
     VulkanStream* vkStream,
     VkObjectTablePushConstantEntryNVX* forUnmarshaling);
 
-#define OP_vkCmdProcessCommandsNVX 20267
-#define OP_vkCmdReserveSpaceForCommandsNVX 20268
-#define OP_vkCreateIndirectCommandsLayoutNVX 20269
-#define OP_vkDestroyIndirectCommandsLayoutNVX 20270
-#define OP_vkCreateObjectTableNVX 20271
-#define OP_vkDestroyObjectTableNVX 20272
-#define OP_vkRegisterObjectsNVX 20273
-#define OP_vkUnregisterObjectsNVX 20274
-#define OP_vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX 20275
+#define OP_vkCmdProcessCommandsNVX 20270
+#define OP_vkCmdReserveSpaceForCommandsNVX 20271
+#define OP_vkCreateIndirectCommandsLayoutNVX 20272
+#define OP_vkDestroyIndirectCommandsLayoutNVX 20273
+#define OP_vkCreateObjectTableNVX 20274
+#define OP_vkDestroyObjectTableNVX 20275
+#define OP_vkRegisterObjectsNVX 20276
+#define OP_vkUnregisterObjectsNVX 20277
+#define OP_vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX 20278
 #endif
 #ifdef VK_NV_clip_space_w_scaling
 void marshal_VkViewportWScalingNV(
@@ -2719,14 +2733,14 @@ void unmarshal_VkPipelineViewportWScalingStateCreateInfoNV(
     VulkanStream* vkStream,
     VkPipelineViewportWScalingStateCreateInfoNV* forUnmarshaling);
 
-#define OP_vkCmdSetViewportWScalingNV 20276
+#define OP_vkCmdSetViewportWScalingNV 20279
 #endif
 #ifdef VK_EXT_direct_mode_display
-#define OP_vkReleaseDisplayEXT 20277
+#define OP_vkReleaseDisplayEXT 20280
 #endif
 #ifdef VK_EXT_acquire_xlib_display
-#define OP_vkAcquireXlibDisplayEXT 20278
-#define OP_vkGetRandROutputDisplayEXT 20279
+#define OP_vkAcquireXlibDisplayEXT 20281
+#define OP_vkGetRandROutputDisplayEXT 20282
 #endif
 #ifdef VK_EXT_display_surface_counter
 void marshal_VkSurfaceCapabilities2EXT(
@@ -2737,7 +2751,7 @@ void unmarshal_VkSurfaceCapabilities2EXT(
     VulkanStream* vkStream,
     VkSurfaceCapabilities2EXT* forUnmarshaling);
 
-#define OP_vkGetPhysicalDeviceSurfaceCapabilities2EXT 20280
+#define OP_vkGetPhysicalDeviceSurfaceCapabilities2EXT 20283
 #endif
 #ifdef VK_EXT_display_control
 void marshal_VkDisplayPowerInfoEXT(
@@ -2772,10 +2786,10 @@ void unmarshal_VkSwapchainCounterCreateInfoEXT(
     VulkanStream* vkStream,
     VkSwapchainCounterCreateInfoEXT* forUnmarshaling);
 
-#define OP_vkDisplayPowerControlEXT 20281
-#define OP_vkRegisterDeviceEventEXT 20282
-#define OP_vkRegisterDisplayEventEXT 20283
-#define OP_vkGetSwapchainCounterEXT 20284
+#define OP_vkDisplayPowerControlEXT 20284
+#define OP_vkRegisterDeviceEventEXT 20285
+#define OP_vkRegisterDisplayEventEXT 20286
+#define OP_vkGetSwapchainCounterEXT 20287
 #endif
 #ifdef VK_GOOGLE_display_timing
 void marshal_VkRefreshCycleDurationGOOGLE(
@@ -2810,8 +2824,8 @@ void unmarshal_VkPresentTimesInfoGOOGLE(
     VulkanStream* vkStream,
     VkPresentTimesInfoGOOGLE* forUnmarshaling);
 
-#define OP_vkGetRefreshCycleDurationGOOGLE 20285
-#define OP_vkGetPastPresentationTimingGOOGLE 20286
+#define OP_vkGetRefreshCycleDurationGOOGLE 20288
+#define OP_vkGetPastPresentationTimingGOOGLE 20289
 #endif
 #ifdef VK_NV_sample_mask_override_coverage
 #endif
@@ -2864,7 +2878,7 @@ void unmarshal_VkPipelineDiscardRectangleStateCreateInfoEXT(
     VulkanStream* vkStream,
     VkPipelineDiscardRectangleStateCreateInfoEXT* forUnmarshaling);
 
-#define OP_vkCmdSetDiscardRectangleEXT 20287
+#define OP_vkCmdSetDiscardRectangleEXT 20290
 #endif
 #ifdef VK_EXT_conservative_rasterization
 void marshal_VkPhysicalDeviceConservativeRasterizationPropertiesEXT(
@@ -2903,7 +2917,7 @@ void unmarshal_VkHdrMetadataEXT(
     VulkanStream* vkStream,
     VkHdrMetadataEXT* forUnmarshaling);
 
-#define OP_vkSetHdrMetadataEXT 20288
+#define OP_vkSetHdrMetadataEXT 20291
 #endif
 #ifdef VK_MVK_ios_surface
 void marshal_VkIOSSurfaceCreateInfoMVK(
@@ -2914,7 +2928,7 @@ void unmarshal_VkIOSSurfaceCreateInfoMVK(
     VulkanStream* vkStream,
     VkIOSSurfaceCreateInfoMVK* forUnmarshaling);
 
-#define OP_vkCreateIOSSurfaceMVK 20289
+#define OP_vkCreateIOSSurfaceMVK 20292
 #endif
 #ifdef VK_MVK_macos_surface
 void marshal_VkMacOSSurfaceCreateInfoMVK(
@@ -2925,7 +2939,7 @@ void unmarshal_VkMacOSSurfaceCreateInfoMVK(
     VulkanStream* vkStream,
     VkMacOSSurfaceCreateInfoMVK* forUnmarshaling);
 
-#define OP_vkCreateMacOSSurfaceMVK 20290
+#define OP_vkCreateMacOSSurfaceMVK 20293
 #endif
 #ifdef VK_EXT_external_memory_dma_buf
 #endif
@@ -2972,17 +2986,17 @@ void unmarshal_VkDebugUtilsMessengerCreateInfoEXT(
     VulkanStream* vkStream,
     VkDebugUtilsMessengerCreateInfoEXT* forUnmarshaling);
 
-#define OP_vkSetDebugUtilsObjectNameEXT 20291
-#define OP_vkSetDebugUtilsObjectTagEXT 20292
-#define OP_vkQueueBeginDebugUtilsLabelEXT 20293
-#define OP_vkQueueEndDebugUtilsLabelEXT 20294
-#define OP_vkQueueInsertDebugUtilsLabelEXT 20295
-#define OP_vkCmdBeginDebugUtilsLabelEXT 20296
-#define OP_vkCmdEndDebugUtilsLabelEXT 20297
-#define OP_vkCmdInsertDebugUtilsLabelEXT 20298
-#define OP_vkCreateDebugUtilsMessengerEXT 20299
-#define OP_vkDestroyDebugUtilsMessengerEXT 20300
-#define OP_vkSubmitDebugUtilsMessageEXT 20301
+#define OP_vkSetDebugUtilsObjectNameEXT 20294
+#define OP_vkSetDebugUtilsObjectTagEXT 20295
+#define OP_vkQueueBeginDebugUtilsLabelEXT 20296
+#define OP_vkQueueEndDebugUtilsLabelEXT 20297
+#define OP_vkQueueInsertDebugUtilsLabelEXT 20298
+#define OP_vkCmdBeginDebugUtilsLabelEXT 20299
+#define OP_vkCmdEndDebugUtilsLabelEXT 20300
+#define OP_vkCmdInsertDebugUtilsLabelEXT 20301
+#define OP_vkCreateDebugUtilsMessengerEXT 20302
+#define OP_vkDestroyDebugUtilsMessengerEXT 20303
+#define OP_vkSubmitDebugUtilsMessageEXT 20304
 #endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
 void marshal_VkAndroidHardwareBufferUsageANDROID(
@@ -3033,8 +3047,8 @@ void unmarshal_VkExternalFormatANDROID(
     VulkanStream* vkStream,
     VkExternalFormatANDROID* forUnmarshaling);
 
-#define OP_vkGetAndroidHardwareBufferPropertiesANDROID 20302
-#define OP_vkGetMemoryAndroidHardwareBufferANDROID 20303
+#define OP_vkGetAndroidHardwareBufferPropertiesANDROID 20305
+#define OP_vkGetMemoryAndroidHardwareBufferANDROID 20306
 #endif
 #ifdef VK_EXT_sampler_filter_minmax
 void marshal_VkSamplerReductionModeCreateInfoEXT(
@@ -3127,8 +3141,8 @@ void unmarshal_VkMultisamplePropertiesEXT(
     VulkanStream* vkStream,
     VkMultisamplePropertiesEXT* forUnmarshaling);
 
-#define OP_vkCmdSetSampleLocationsEXT 20304
-#define OP_vkGetPhysicalDeviceMultisamplePropertiesEXT 20305
+#define OP_vkCmdSetSampleLocationsEXT 20307
+#define OP_vkGetPhysicalDeviceMultisamplePropertiesEXT 20308
 #endif
 #ifdef VK_EXT_blend_operation_advanced
 void marshal_VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT(
@@ -3197,10 +3211,10 @@ void unmarshal_VkShaderModuleValidationCacheCreateInfoEXT(
     VulkanStream* vkStream,
     VkShaderModuleValidationCacheCreateInfoEXT* forUnmarshaling);
 
-#define OP_vkCreateValidationCacheEXT 20306
-#define OP_vkDestroyValidationCacheEXT 20307
-#define OP_vkMergeValidationCachesEXT 20308
-#define OP_vkGetValidationCacheDataEXT 20309
+#define OP_vkCreateValidationCacheEXT 20309
+#define OP_vkDestroyValidationCacheEXT 20310
+#define OP_vkMergeValidationCachesEXT 20311
+#define OP_vkGetValidationCacheDataEXT 20312
 #endif
 #ifdef VK_EXT_descriptor_indexing
 void marshal_VkDescriptorSetLayoutBindingFlagsCreateInfoEXT(
@@ -3281,10 +3295,10 @@ void unmarshal_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
     VulkanStream* vkStream,
     VkPhysicalDeviceExternalMemoryHostPropertiesEXT* forUnmarshaling);
 
-#define OP_vkGetMemoryHostPointerPropertiesEXT 20310
+#define OP_vkGetMemoryHostPointerPropertiesEXT 20313
 #endif
 #ifdef VK_AMD_buffer_marker
-#define OP_vkCmdWriteBufferMarkerAMD 20311
+#define OP_vkCmdWriteBufferMarkerAMD 20314
 #endif
 #ifdef VK_AMD_shader_core_properties
 void marshal_VkPhysicalDeviceShaderCorePropertiesAMD(
@@ -3341,8 +3355,8 @@ void unmarshal_VkCheckpointDataNV(
     VulkanStream* vkStream,
     VkCheckpointDataNV* forUnmarshaling);
 
-#define OP_vkCmdSetCheckpointNV 20312
-#define OP_vkGetQueueCheckpointDataNV 20313
+#define OP_vkCmdSetCheckpointNV 20315
+#define OP_vkGetQueueCheckpointDataNV 20316
 #endif
 
 } // namespace goldfish_vk
