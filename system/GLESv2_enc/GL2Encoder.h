@@ -104,6 +104,8 @@ private:
     GLSharedGroupPtr m_shared;
     GLenum  m_error;
 
+    GoldfishAddressSpaceBlockProvider m_goldfish_address_block_provider;
+
     GLint *m_compressedTextureFormats;
     GLint m_num_compressedTextureFormats;
     GLint *getCompressedTextureFormats();

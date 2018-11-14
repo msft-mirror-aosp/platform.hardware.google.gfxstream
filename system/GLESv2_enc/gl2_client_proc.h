@@ -6,6 +6,9 @@
 
 
 #include "gl2_types.h"
+#ifdef _MSC_VER
+#include <stdint.h>
+#endif
 #ifndef gl2_APIENTRY
 #define gl2_APIENTRY 
 #endif
@@ -422,6 +425,9 @@ typedef void (gl2_APIENTRY *glGetTexLevelParameterfv_client_proc_t) (void * ctx,
 typedef void (gl2_APIENTRY *glGetTexLevelParameteriv_client_proc_t) (void * ctx, GLenum, GLint, GLenum, GLint*);
 typedef void (gl2_APIENTRY *glMapBufferRangeDMA_client_proc_t) (void * ctx, GLenum, GLintptr, GLsizeiptr, GLbitfield, uint64_t);
 typedef void (gl2_APIENTRY *glUnmapBufferDMA_client_proc_t) (void * ctx, GLenum, GLintptr, GLsizeiptr, GLbitfield, uint64_t, GLboolean*);
+typedef uint64_t (gl2_APIENTRY *glMapBufferRangeDirect_client_proc_t) (void * ctx, GLenum, GLintptr, GLsizeiptr, GLbitfield, uint64_t);
+typedef void (gl2_APIENTRY *glUnmapBufferDirect_client_proc_t) (void * ctx, GLenum, GLintptr, GLsizeiptr, GLbitfield, uint64_t, uint64_t, GLboolean*);
+typedef void (gl2_APIENTRY *glFlushMappedBufferRangeDirect_client_proc_t) (void * ctx, GLenum, GLintptr, GLsizeiptr, GLbitfield);
 
 
 #endif
