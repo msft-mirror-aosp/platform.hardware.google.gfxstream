@@ -86,13 +86,13 @@ VkResult VkEncoder::vkCreateInstance(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstanceCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkInstanceCreateInfo*)pool->alloc(sizeof(const VkInstanceCreateInfo));
         deepcopy_VkInstanceCreateInfo(pool, pCreateInfo, (VkInstanceCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -155,8 +155,8 @@ void VkEncoder::vkDestroyInstance(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstance local_instance;
-    local_instance = instance;
     VkAllocationCallbacks* local_pAllocator;
+    local_instance = instance;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -342,8 +342,8 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkFormat local_format;
+    local_physicalDevice = physicalDevice;
     local_format = format;
     countingStream->rewind();
     {
@@ -381,16 +381,16 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkFormat local_format;
-    local_format = format;
     VkImageType local_type;
-    local_type = type;
     VkImageTiling local_tiling;
-    local_tiling = tiling;
     VkImageUsageFlags local_usage;
-    local_usage = usage;
     VkImageCreateFlags local_flags;
+    local_physicalDevice = physicalDevice;
+    local_format = format;
+    local_type = type;
+    local_tiling = tiling;
+    local_usage = usage;
     local_flags = flags;
     countingStream->rewind();
     {
@@ -584,8 +584,8 @@ PFN_vkVoidFunction VkEncoder::vkGetInstanceProcAddr(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstance local_instance;
-    local_instance = instance;
     char* local_pName;
+    local_instance = instance;
     local_pName = nullptr;
     if (pName)
     {
@@ -625,8 +625,8 @@ PFN_vkVoidFunction VkEncoder::vkGetDeviceProcAddr(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     char* local_pName;
+    local_device = device;
     local_pName = nullptr;
     if (pName)
     {
@@ -668,15 +668,15 @@ VkResult VkEncoder::vkCreateDevice(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkDeviceCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_physicalDevice = physicalDevice;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDeviceCreateInfo*)pool->alloc(sizeof(const VkDeviceCreateInfo));
         deepcopy_VkDeviceCreateInfo(pool, pCreateInfo, (VkDeviceCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -746,8 +746,8 @@ void VkEncoder::vkDestroyDevice(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -1079,10 +1079,10 @@ void VkEncoder::vkGetDeviceQueue(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     uint32_t local_queueFamilyIndex;
-    local_queueFamilyIndex = queueFamilyIndex;
     uint32_t local_queueIndex;
+    local_device = device;
+    local_queueFamilyIndex = queueFamilyIndex;
     local_queueIndex = queueIndex;
     countingStream->rewind();
     {
@@ -1129,10 +1129,11 @@ VkResult VkEncoder::vkQueueSubmit(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkQueue local_queue;
-    local_queue = queue;
     uint32_t local_submitCount;
-    local_submitCount = submitCount;
     VkSubmitInfo* local_pSubmits;
+    VkFence local_fence;
+    local_queue = queue;
+    local_submitCount = submitCount;
     local_pSubmits = nullptr;
     if (pSubmits)
     {
@@ -1142,7 +1143,6 @@ VkResult VkEncoder::vkQueueSubmit(
             deepcopy_VkSubmitInfo(pool, pSubmits + i, (VkSubmitInfo*)(local_pSubmits + i));
         }
     }
-    VkFence local_fence;
     local_fence = fence;
     countingStream->rewind();
     {
@@ -1258,15 +1258,15 @@ VkResult VkEncoder::vkAllocateMemory(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkMemoryAllocateInfo* local_pAllocateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pAllocateInfo = nullptr;
     if (pAllocateInfo)
     {
         local_pAllocateInfo = (VkMemoryAllocateInfo*)pool->alloc(sizeof(const VkMemoryAllocateInfo));
         deepcopy_VkMemoryAllocateInfo(pool, pAllocateInfo, (VkMemoryAllocateInfo*)(local_pAllocateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -1337,10 +1337,10 @@ void VkEncoder::vkFreeMemory(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDeviceMemory local_memory;
-    local_memory = memory;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_memory = memory;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -1417,10 +1417,10 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     uint32_t local_memoryRangeCount;
-    local_memoryRangeCount = memoryRangeCount;
     VkMappedMemoryRange* local_pMemoryRanges;
+    local_device = device;
+    local_memoryRangeCount = memoryRangeCount;
     local_pMemoryRanges = nullptr;
     if (pMemoryRanges)
     {
@@ -1508,10 +1508,10 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     uint32_t local_memoryRangeCount;
-    local_memoryRangeCount = memoryRangeCount;
     VkMappedMemoryRange* local_pMemoryRanges;
+    local_device = device;
+    local_memoryRangeCount = memoryRangeCount;
     local_pMemoryRanges = nullptr;
     if (pMemoryRanges)
     {
@@ -1581,8 +1581,8 @@ void VkEncoder::vkGetDeviceMemoryCommitment(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDeviceMemory local_memory;
+    local_device = device;
     local_memory = memory;
     countingStream->rewind();
     {
@@ -1621,12 +1621,12 @@ VkResult VkEncoder::vkBindBufferMemory(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkBuffer local_buffer;
-    local_buffer = buffer;
     VkDeviceMemory local_memory;
-    local_memory = memory;
     VkDeviceSize local_memoryOffset;
+    local_device = device;
+    local_buffer = buffer;
+    local_memory = memory;
     local_memoryOffset = memoryOffset;
     countingStream->rewind();
     {
@@ -1676,12 +1676,12 @@ VkResult VkEncoder::vkBindImageMemory(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkImage local_image;
-    local_image = image;
     VkDeviceMemory local_memory;
-    local_memory = memory;
     VkDeviceSize local_memoryOffset;
+    local_device = device;
+    local_image = image;
+    local_memory = memory;
     local_memoryOffset = memoryOffset;
     countingStream->rewind();
     {
@@ -1730,8 +1730,8 @@ void VkEncoder::vkGetBufferMemoryRequirements(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkBuffer local_buffer;
+    local_device = device;
     local_buffer = buffer;
     countingStream->rewind();
     {
@@ -1769,8 +1769,8 @@ void VkEncoder::vkGetImageMemoryRequirements(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkImage local_image;
+    local_device = device;
     local_image = image;
     countingStream->rewind();
     {
@@ -1809,8 +1809,8 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkImage local_image;
+    local_device = device;
     local_image = image;
     countingStream->rewind();
     {
@@ -1909,16 +1909,16 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkFormat local_format;
-    local_format = format;
     VkImageType local_type;
-    local_type = type;
     VkSampleCountFlagBits local_samples;
-    local_samples = samples;
     VkImageUsageFlags local_usage;
-    local_usage = usage;
     VkImageTiling local_tiling;
+    local_physicalDevice = physicalDevice;
+    local_format = format;
+    local_type = type;
+    local_samples = samples;
+    local_usage = usage;
     local_tiling = tiling;
     countingStream->rewind();
     {
@@ -2017,10 +2017,11 @@ VkResult VkEncoder::vkQueueBindSparse(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkQueue local_queue;
-    local_queue = queue;
     uint32_t local_bindInfoCount;
-    local_bindInfoCount = bindInfoCount;
     VkBindSparseInfo* local_pBindInfo;
+    VkFence local_fence;
+    local_queue = queue;
+    local_bindInfoCount = bindInfoCount;
     local_pBindInfo = nullptr;
     if (pBindInfo)
     {
@@ -2030,7 +2031,6 @@ VkResult VkEncoder::vkQueueBindSparse(
             deepcopy_VkBindSparseInfo(pool, pBindInfo + i, (VkBindSparseInfo*)(local_pBindInfo + i));
         }
     }
-    VkFence local_fence;
     local_fence = fence;
     countingStream->rewind();
     {
@@ -2082,15 +2082,15 @@ VkResult VkEncoder::vkCreateFence(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkFenceCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkFenceCreateInfo*)pool->alloc(sizeof(const VkFenceCreateInfo));
         deepcopy_VkFenceCreateInfo(pool, pCreateInfo, (VkFenceCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -2160,10 +2160,10 @@ void VkEncoder::vkDestroyFence(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkFence local_fence;
-    local_fence = fence;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_fence = fence;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -2219,10 +2219,10 @@ VkResult VkEncoder::vkResetFences(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     uint32_t local_fenceCount;
-    local_fenceCount = fenceCount;
     VkFence* local_pFences;
+    local_device = device;
+    local_fenceCount = fenceCount;
     local_pFences = nullptr;
     if (pFences)
     {
@@ -2276,8 +2276,8 @@ VkResult VkEncoder::vkGetFenceStatus(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkFence local_fence;
+    local_device = device;
     local_fence = fence;
     countingStream->rewind();
     {
@@ -2320,18 +2320,18 @@ VkResult VkEncoder::vkWaitForFences(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     uint32_t local_fenceCount;
-    local_fenceCount = fenceCount;
     VkFence* local_pFences;
+    VkBool32 local_waitAll;
+    uint64_t local_timeout;
+    local_device = device;
+    local_fenceCount = fenceCount;
     local_pFences = nullptr;
     if (pFences)
     {
         local_pFences = (VkFence*)pool->dupArray(pFences, ((fenceCount)) * sizeof(const VkFence));
     }
-    VkBool32 local_waitAll;
     local_waitAll = waitAll;
-    uint64_t local_timeout;
     local_timeout = timeout;
     countingStream->rewind();
     {
@@ -2387,15 +2387,15 @@ VkResult VkEncoder::vkCreateSemaphore(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkSemaphoreCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkSemaphoreCreateInfo*)pool->alloc(sizeof(const VkSemaphoreCreateInfo));
         deepcopy_VkSemaphoreCreateInfo(pool, pCreateInfo, (VkSemaphoreCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -2465,10 +2465,10 @@ void VkEncoder::vkDestroySemaphore(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkSemaphore local_semaphore;
-    local_semaphore = semaphore;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_semaphore = semaphore;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -2525,15 +2525,15 @@ VkResult VkEncoder::vkCreateEvent(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkEventCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkEventCreateInfo*)pool->alloc(sizeof(const VkEventCreateInfo));
         deepcopy_VkEventCreateInfo(pool, pCreateInfo, (VkEventCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -2603,10 +2603,10 @@ void VkEncoder::vkDestroyEvent(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkEvent local_event;
-    local_event = event;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_event = event;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -2661,8 +2661,8 @@ VkResult VkEncoder::vkGetEventStatus(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkEvent local_event;
+    local_device = device;
     local_event = event;
     countingStream->rewind();
     {
@@ -2702,8 +2702,8 @@ VkResult VkEncoder::vkSetEvent(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkEvent local_event;
+    local_device = device;
     local_event = event;
     countingStream->rewind();
     {
@@ -2743,8 +2743,8 @@ VkResult VkEncoder::vkResetEvent(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkEvent local_event;
+    local_device = device;
     local_event = event;
     countingStream->rewind();
     {
@@ -2786,15 +2786,15 @@ VkResult VkEncoder::vkCreateQueryPool(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkQueryPoolCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkQueryPoolCreateInfo*)pool->alloc(sizeof(const VkQueryPoolCreateInfo));
         deepcopy_VkQueryPoolCreateInfo(pool, pCreateInfo, (VkQueryPoolCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -2864,10 +2864,10 @@ void VkEncoder::vkDestroyQueryPool(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkQueryPool local_queryPool;
-    local_queryPool = queryPool;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_queryPool = queryPool;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -2928,18 +2928,18 @@ VkResult VkEncoder::vkGetQueryPoolResults(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkQueryPool local_queryPool;
-    local_queryPool = queryPool;
     uint32_t local_firstQuery;
-    local_firstQuery = firstQuery;
     uint32_t local_queryCount;
-    local_queryCount = queryCount;
     size_t local_dataSize;
-    local_dataSize = dataSize;
     VkDeviceSize local_stride;
-    local_stride = stride;
     VkQueryResultFlags local_flags;
+    local_device = device;
+    local_queryPool = queryPool;
+    local_firstQuery = firstQuery;
+    local_queryCount = queryCount;
+    local_dataSize = dataSize;
+    local_stride = stride;
     local_flags = flags;
     countingStream->rewind();
     {
@@ -2996,15 +2996,15 @@ VkResult VkEncoder::vkCreateBuffer(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkBufferCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkBufferCreateInfo*)pool->alloc(sizeof(const VkBufferCreateInfo));
         deepcopy_VkBufferCreateInfo(pool, pCreateInfo, (VkBufferCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -3074,10 +3074,10 @@ void VkEncoder::vkDestroyBuffer(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkBuffer local_buffer;
-    local_buffer = buffer;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_buffer = buffer;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -3134,15 +3134,15 @@ VkResult VkEncoder::vkCreateBufferView(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkBufferViewCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkBufferViewCreateInfo*)pool->alloc(sizeof(const VkBufferViewCreateInfo));
         deepcopy_VkBufferViewCreateInfo(pool, pCreateInfo, (VkBufferViewCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -3212,10 +3212,10 @@ void VkEncoder::vkDestroyBufferView(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkBufferView local_bufferView;
-    local_bufferView = bufferView;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_bufferView = bufferView;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -3272,21 +3272,22 @@ VkResult VkEncoder::vkCreateImage(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkImageCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkImageCreateInfo*)pool->alloc(sizeof(const VkImageCreateInfo));
         deepcopy_VkImageCreateInfo(pool, pCreateInfo, (VkImageCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    goldfish_unwrap_VkNativeBufferANDROID(pCreateInfo, local_pCreateInfo);
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
@@ -3350,10 +3351,10 @@ void VkEncoder::vkDestroyImage(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkImage local_image;
-    local_image = image;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_image = image;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -3410,10 +3411,10 @@ void VkEncoder::vkGetImageSubresourceLayout(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkImage local_image;
-    local_image = image;
     VkImageSubresource* local_pSubresource;
+    local_device = device;
+    local_image = image;
     local_pSubresource = nullptr;
     if (pSubresource)
     {
@@ -3459,15 +3460,15 @@ VkResult VkEncoder::vkCreateImageView(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkImageViewCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkImageViewCreateInfo*)pool->alloc(sizeof(const VkImageViewCreateInfo));
         deepcopy_VkImageViewCreateInfo(pool, pCreateInfo, (VkImageViewCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -3537,10 +3538,10 @@ void VkEncoder::vkDestroyImageView(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkImageView local_imageView;
-    local_imageView = imageView;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_imageView = imageView;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -3597,15 +3598,15 @@ VkResult VkEncoder::vkCreateShaderModule(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkShaderModuleCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkShaderModuleCreateInfo*)pool->alloc(sizeof(const VkShaderModuleCreateInfo));
         deepcopy_VkShaderModuleCreateInfo(pool, pCreateInfo, (VkShaderModuleCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -3675,10 +3676,10 @@ void VkEncoder::vkDestroyShaderModule(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkShaderModule local_shaderModule;
-    local_shaderModule = shaderModule;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_shaderModule = shaderModule;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -3735,15 +3736,15 @@ VkResult VkEncoder::vkCreatePipelineCache(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkPipelineCacheCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkPipelineCacheCreateInfo*)pool->alloc(sizeof(const VkPipelineCacheCreateInfo));
         deepcopy_VkPipelineCacheCreateInfo(pool, pCreateInfo, (VkPipelineCacheCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -3813,10 +3814,10 @@ void VkEncoder::vkDestroyPipelineCache(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkPipelineCache local_pipelineCache;
-    local_pipelineCache = pipelineCache;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_pipelineCache = pipelineCache;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -3873,8 +3874,8 @@ VkResult VkEncoder::vkGetPipelineCacheData(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkPipelineCache local_pipelineCache;
+    local_device = device;
     local_pipelineCache = pipelineCache;
     countingStream->rewind();
     {
@@ -3968,12 +3969,12 @@ VkResult VkEncoder::vkMergePipelineCaches(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkPipelineCache local_dstCache;
-    local_dstCache = dstCache;
     uint32_t local_srcCacheCount;
-    local_srcCacheCount = srcCacheCount;
     VkPipelineCache* local_pSrcCaches;
+    local_device = device;
+    local_dstCache = dstCache;
+    local_srcCacheCount = srcCacheCount;
     local_pSrcCaches = nullptr;
     if (pSrcCaches)
     {
@@ -4037,12 +4038,13 @@ VkResult VkEncoder::vkCreateGraphicsPipelines(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkPipelineCache local_pipelineCache;
-    local_pipelineCache = pipelineCache;
     uint32_t local_createInfoCount;
-    local_createInfoCount = createInfoCount;
     VkGraphicsPipelineCreateInfo* local_pCreateInfos;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_pipelineCache = pipelineCache;
+    local_createInfoCount = createInfoCount;
     local_pCreateInfos = nullptr;
     if (pCreateInfos)
     {
@@ -4052,7 +4054,6 @@ VkResult VkEncoder::vkCreateGraphicsPipelines(
             deepcopy_VkGraphicsPipelineCreateInfo(pool, pCreateInfos + i, (VkGraphicsPipelineCreateInfo*)(local_pCreateInfos + i));
         }
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -4151,12 +4152,13 @@ VkResult VkEncoder::vkCreateComputePipelines(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkPipelineCache local_pipelineCache;
-    local_pipelineCache = pipelineCache;
     uint32_t local_createInfoCount;
-    local_createInfoCount = createInfoCount;
     VkComputePipelineCreateInfo* local_pCreateInfos;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_pipelineCache = pipelineCache;
+    local_createInfoCount = createInfoCount;
     local_pCreateInfos = nullptr;
     if (pCreateInfos)
     {
@@ -4166,7 +4168,6 @@ VkResult VkEncoder::vkCreateComputePipelines(
             deepcopy_VkComputePipelineCreateInfo(pool, pCreateInfos + i, (VkComputePipelineCreateInfo*)(local_pCreateInfos + i));
         }
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -4262,10 +4263,10 @@ void VkEncoder::vkDestroyPipeline(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkPipeline local_pipeline;
-    local_pipeline = pipeline;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_pipeline = pipeline;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -4322,15 +4323,15 @@ VkResult VkEncoder::vkCreatePipelineLayout(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkPipelineLayoutCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkPipelineLayoutCreateInfo*)pool->alloc(sizeof(const VkPipelineLayoutCreateInfo));
         deepcopy_VkPipelineLayoutCreateInfo(pool, pCreateInfo, (VkPipelineLayoutCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -4400,10 +4401,10 @@ void VkEncoder::vkDestroyPipelineLayout(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkPipelineLayout local_pipelineLayout;
-    local_pipelineLayout = pipelineLayout;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_pipelineLayout = pipelineLayout;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -4460,15 +4461,15 @@ VkResult VkEncoder::vkCreateSampler(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkSamplerCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkSamplerCreateInfo*)pool->alloc(sizeof(const VkSamplerCreateInfo));
         deepcopy_VkSamplerCreateInfo(pool, pCreateInfo, (VkSamplerCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -4538,10 +4539,10 @@ void VkEncoder::vkDestroySampler(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkSampler local_sampler;
-    local_sampler = sampler;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_sampler = sampler;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -4598,15 +4599,15 @@ VkResult VkEncoder::vkCreateDescriptorSetLayout(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDescriptorSetLayoutCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDescriptorSetLayoutCreateInfo*)pool->alloc(sizeof(const VkDescriptorSetLayoutCreateInfo));
         deepcopy_VkDescriptorSetLayoutCreateInfo(pool, pCreateInfo, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -4676,10 +4677,10 @@ void VkEncoder::vkDestroyDescriptorSetLayout(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDescriptorSetLayout local_descriptorSetLayout;
-    local_descriptorSetLayout = descriptorSetLayout;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_descriptorSetLayout = descriptorSetLayout;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -4736,15 +4737,15 @@ VkResult VkEncoder::vkCreateDescriptorPool(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDescriptorPoolCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDescriptorPoolCreateInfo*)pool->alloc(sizeof(const VkDescriptorPoolCreateInfo));
         deepcopy_VkDescriptorPoolCreateInfo(pool, pCreateInfo, (VkDescriptorPoolCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -4814,10 +4815,10 @@ void VkEncoder::vkDestroyDescriptorPool(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDescriptorPool local_descriptorPool;
-    local_descriptorPool = descriptorPool;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_descriptorPool = descriptorPool;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -4873,10 +4874,10 @@ VkResult VkEncoder::vkResetDescriptorPool(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDescriptorPool local_descriptorPool;
-    local_descriptorPool = descriptorPool;
     VkDescriptorPoolResetFlags local_flags;
+    local_device = device;
+    local_descriptorPool = descriptorPool;
     local_flags = flags;
     countingStream->rewind();
     {
@@ -4919,8 +4920,8 @@ VkResult VkEncoder::vkAllocateDescriptorSets(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDescriptorSetAllocateInfo* local_pAllocateInfo;
+    local_device = device;
     local_pAllocateInfo = nullptr;
     if (pAllocateInfo)
     {
@@ -4988,12 +4989,12 @@ VkResult VkEncoder::vkFreeDescriptorSets(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDescriptorPool local_descriptorPool;
-    local_descriptorPool = descriptorPool;
     uint32_t local_descriptorSetCount;
-    local_descriptorSetCount = descriptorSetCount;
     VkDescriptorSet* local_pDescriptorSets;
+    local_device = device;
+    local_descriptorPool = descriptorPool;
+    local_descriptorSetCount = descriptorSetCount;
     local_pDescriptorSets = nullptr;
     if (pDescriptorSets)
     {
@@ -5072,10 +5073,12 @@ void VkEncoder::vkUpdateDescriptorSets(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     uint32_t local_descriptorWriteCount;
-    local_descriptorWriteCount = descriptorWriteCount;
     VkWriteDescriptorSet* local_pDescriptorWrites;
+    uint32_t local_descriptorCopyCount;
+    VkCopyDescriptorSet* local_pDescriptorCopies;
+    local_device = device;
+    local_descriptorWriteCount = descriptorWriteCount;
     local_pDescriptorWrites = nullptr;
     if (pDescriptorWrites)
     {
@@ -5085,9 +5088,7 @@ void VkEncoder::vkUpdateDescriptorSets(
             deepcopy_VkWriteDescriptorSet(pool, pDescriptorWrites + i, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i));
         }
     }
-    uint32_t local_descriptorCopyCount;
     local_descriptorCopyCount = descriptorCopyCount;
-    VkCopyDescriptorSet* local_pDescriptorCopies;
     local_pDescriptorCopies = nullptr;
     if (pDescriptorCopies)
     {
@@ -5145,15 +5146,15 @@ VkResult VkEncoder::vkCreateFramebuffer(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkFramebufferCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkFramebufferCreateInfo*)pool->alloc(sizeof(const VkFramebufferCreateInfo));
         deepcopy_VkFramebufferCreateInfo(pool, pCreateInfo, (VkFramebufferCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -5223,10 +5224,10 @@ void VkEncoder::vkDestroyFramebuffer(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkFramebuffer local_framebuffer;
-    local_framebuffer = framebuffer;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_framebuffer = framebuffer;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -5283,15 +5284,15 @@ VkResult VkEncoder::vkCreateRenderPass(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkRenderPassCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkRenderPassCreateInfo*)pool->alloc(sizeof(const VkRenderPassCreateInfo));
         deepcopy_VkRenderPassCreateInfo(pool, pCreateInfo, (VkRenderPassCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -5361,10 +5362,10 @@ void VkEncoder::vkDestroyRenderPass(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkRenderPass local_renderPass;
-    local_renderPass = renderPass;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_renderPass = renderPass;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -5420,8 +5421,8 @@ void VkEncoder::vkGetRenderAreaGranularity(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkRenderPass local_renderPass;
+    local_device = device;
     local_renderPass = renderPass;
     countingStream->rewind();
     {
@@ -5460,15 +5461,15 @@ VkResult VkEncoder::vkCreateCommandPool(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkCommandPoolCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkCommandPoolCreateInfo*)pool->alloc(sizeof(const VkCommandPoolCreateInfo));
         deepcopy_VkCommandPoolCreateInfo(pool, pCreateInfo, (VkCommandPoolCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -5538,10 +5539,10 @@ void VkEncoder::vkDestroyCommandPool(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkCommandPool local_commandPool;
-    local_commandPool = commandPool;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_commandPool = commandPool;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -5597,10 +5598,10 @@ VkResult VkEncoder::vkResetCommandPool(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkCommandPool local_commandPool;
-    local_commandPool = commandPool;
     VkCommandPoolResetFlags local_flags;
+    local_device = device;
+    local_commandPool = commandPool;
     local_flags = flags;
     countingStream->rewind();
     {
@@ -5643,8 +5644,8 @@ VkResult VkEncoder::vkAllocateCommandBuffers(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkCommandBufferAllocateInfo* local_pAllocateInfo;
+    local_device = device;
     local_pAllocateInfo = nullptr;
     if (pAllocateInfo)
     {
@@ -5712,12 +5713,12 @@ void VkEncoder::vkFreeCommandBuffers(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkCommandPool local_commandPool;
-    local_commandPool = commandPool;
     uint32_t local_commandBufferCount;
-    local_commandBufferCount = commandBufferCount;
     VkCommandBuffer* local_pCommandBuffers;
+    local_device = device;
+    local_commandPool = commandPool;
+    local_commandBufferCount = commandBufferCount;
     local_pCommandBuffers = nullptr;
     if (pCommandBuffers)
     {
@@ -5787,8 +5788,8 @@ VkResult VkEncoder::vkBeginCommandBuffer(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkCommandBufferBeginInfo* local_pBeginInfo;
+    local_commandBuffer = commandBuffer;
     local_pBeginInfo = nullptr;
     if (pBeginInfo)
     {
@@ -5861,8 +5862,8 @@ VkResult VkEncoder::vkResetCommandBuffer(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkCommandBufferResetFlags local_flags;
+    local_commandBuffer = commandBuffer;
     local_flags = flags;
     countingStream->rewind();
     {
@@ -5899,10 +5900,10 @@ void VkEncoder::vkCmdBindPipeline(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkPipelineBindPoint local_pipelineBindPoint;
-    local_pipelineBindPoint = pipelineBindPoint;
     VkPipeline local_pipeline;
+    local_commandBuffer = commandBuffer;
+    local_pipelineBindPoint = pipelineBindPoint;
     local_pipeline = pipeline;
     countingStream->rewind();
     {
@@ -5940,12 +5941,12 @@ void VkEncoder::vkCmdSetViewport(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     uint32_t local_firstViewport;
-    local_firstViewport = firstViewport;
     uint32_t local_viewportCount;
-    local_viewportCount = viewportCount;
     VkViewport* local_pViewports;
+    local_commandBuffer = commandBuffer;
+    local_firstViewport = firstViewport;
+    local_viewportCount = viewportCount;
     local_pViewports = nullptr;
     if (pViewports)
     {
@@ -5995,12 +5996,12 @@ void VkEncoder::vkCmdSetScissor(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     uint32_t local_firstScissor;
-    local_firstScissor = firstScissor;
     uint32_t local_scissorCount;
-    local_scissorCount = scissorCount;
     VkRect2D* local_pScissors;
+    local_commandBuffer = commandBuffer;
+    local_firstScissor = firstScissor;
+    local_scissorCount = scissorCount;
     local_pScissors = nullptr;
     if (pScissors)
     {
@@ -6048,8 +6049,8 @@ void VkEncoder::vkCmdSetLineWidth(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     float local_lineWidth;
+    local_commandBuffer = commandBuffer;
     local_lineWidth = lineWidth;
     countingStream->rewind();
     {
@@ -6081,12 +6082,12 @@ void VkEncoder::vkCmdSetDepthBias(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     float local_depthBiasConstantFactor;
-    local_depthBiasConstantFactor = depthBiasConstantFactor;
     float local_depthBiasClamp;
-    local_depthBiasClamp = depthBiasClamp;
     float local_depthBiasSlopeFactor;
+    local_commandBuffer = commandBuffer;
+    local_depthBiasConstantFactor = depthBiasConstantFactor;
+    local_depthBiasClamp = depthBiasClamp;
     local_depthBiasSlopeFactor = depthBiasSlopeFactor;
     countingStream->rewind();
     {
@@ -6120,8 +6121,8 @@ void VkEncoder::vkCmdSetBlendConstants(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     float local_blendConstants[4];
+    local_commandBuffer = commandBuffer;
     memcpy(&local_blendConstants, &blendConstants, 4 * sizeof(const float));
     countingStream->rewind();
     {
@@ -6152,10 +6153,10 @@ void VkEncoder::vkCmdSetDepthBounds(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     float local_minDepthBounds;
-    local_minDepthBounds = minDepthBounds;
     float local_maxDepthBounds;
+    local_commandBuffer = commandBuffer;
+    local_minDepthBounds = minDepthBounds;
     local_maxDepthBounds = maxDepthBounds;
     countingStream->rewind();
     {
@@ -6188,10 +6189,10 @@ void VkEncoder::vkCmdSetStencilCompareMask(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkStencilFaceFlags local_faceMask;
-    local_faceMask = faceMask;
     uint32_t local_compareMask;
+    local_commandBuffer = commandBuffer;
+    local_faceMask = faceMask;
     local_compareMask = compareMask;
     countingStream->rewind();
     {
@@ -6224,10 +6225,10 @@ void VkEncoder::vkCmdSetStencilWriteMask(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkStencilFaceFlags local_faceMask;
-    local_faceMask = faceMask;
     uint32_t local_writeMask;
+    local_commandBuffer = commandBuffer;
+    local_faceMask = faceMask;
     local_writeMask = writeMask;
     countingStream->rewind();
     {
@@ -6260,10 +6261,10 @@ void VkEncoder::vkCmdSetStencilReference(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkStencilFaceFlags local_faceMask;
-    local_faceMask = faceMask;
     uint32_t local_reference;
+    local_commandBuffer = commandBuffer;
+    local_faceMask = faceMask;
     local_reference = reference;
     countingStream->rewind();
     {
@@ -6301,24 +6302,24 @@ void VkEncoder::vkCmdBindDescriptorSets(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkPipelineBindPoint local_pipelineBindPoint;
-    local_pipelineBindPoint = pipelineBindPoint;
     VkPipelineLayout local_layout;
-    local_layout = layout;
     uint32_t local_firstSet;
-    local_firstSet = firstSet;
     uint32_t local_descriptorSetCount;
-    local_descriptorSetCount = descriptorSetCount;
     VkDescriptorSet* local_pDescriptorSets;
+    uint32_t local_dynamicOffsetCount;
+    uint32_t* local_pDynamicOffsets;
+    local_commandBuffer = commandBuffer;
+    local_pipelineBindPoint = pipelineBindPoint;
+    local_layout = layout;
+    local_firstSet = firstSet;
+    local_descriptorSetCount = descriptorSetCount;
     local_pDescriptorSets = nullptr;
     if (pDescriptorSets)
     {
         local_pDescriptorSets = (VkDescriptorSet*)pool->dupArray(pDescriptorSets, ((descriptorSetCount)) * sizeof(const VkDescriptorSet));
     }
-    uint32_t local_dynamicOffsetCount;
     local_dynamicOffsetCount = dynamicOffsetCount;
-    uint32_t* local_pDynamicOffsets;
     local_pDynamicOffsets = nullptr;
     if (pDynamicOffsets)
     {
@@ -6382,12 +6383,12 @@ void VkEncoder::vkCmdBindIndexBuffer(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkBuffer local_buffer;
-    local_buffer = buffer;
     VkDeviceSize local_offset;
-    local_offset = offset;
     VkIndexType local_indexType;
+    local_commandBuffer = commandBuffer;
+    local_buffer = buffer;
+    local_offset = offset;
     local_indexType = indexType;
     countingStream->rewind();
     {
@@ -6428,18 +6429,18 @@ void VkEncoder::vkCmdBindVertexBuffers(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     uint32_t local_firstBinding;
-    local_firstBinding = firstBinding;
     uint32_t local_bindingCount;
-    local_bindingCount = bindingCount;
     VkBuffer* local_pBuffers;
+    VkDeviceSize* local_pOffsets;
+    local_commandBuffer = commandBuffer;
+    local_firstBinding = firstBinding;
+    local_bindingCount = bindingCount;
     local_pBuffers = nullptr;
     if (pBuffers)
     {
         local_pBuffers = (VkBuffer*)pool->dupArray(pBuffers, ((bindingCount)) * sizeof(const VkBuffer));
     }
-    VkDeviceSize* local_pOffsets;
     local_pOffsets = nullptr;
     if (pOffsets)
     {
@@ -6494,14 +6495,14 @@ void VkEncoder::vkCmdDraw(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     uint32_t local_vertexCount;
-    local_vertexCount = vertexCount;
     uint32_t local_instanceCount;
-    local_instanceCount = instanceCount;
     uint32_t local_firstVertex;
-    local_firstVertex = firstVertex;
     uint32_t local_firstInstance;
+    local_commandBuffer = commandBuffer;
+    local_vertexCount = vertexCount;
+    local_instanceCount = instanceCount;
+    local_firstVertex = firstVertex;
     local_firstInstance = firstInstance;
     countingStream->rewind();
     {
@@ -6541,16 +6542,16 @@ void VkEncoder::vkCmdDrawIndexed(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     uint32_t local_indexCount;
-    local_indexCount = indexCount;
     uint32_t local_instanceCount;
-    local_instanceCount = instanceCount;
     uint32_t local_firstIndex;
-    local_firstIndex = firstIndex;
     int32_t local_vertexOffset;
-    local_vertexOffset = vertexOffset;
     uint32_t local_firstInstance;
+    local_commandBuffer = commandBuffer;
+    local_indexCount = indexCount;
+    local_instanceCount = instanceCount;
+    local_firstIndex = firstIndex;
+    local_vertexOffset = vertexOffset;
     local_firstInstance = firstInstance;
     countingStream->rewind();
     {
@@ -6591,14 +6592,14 @@ void VkEncoder::vkCmdDrawIndirect(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkBuffer local_buffer;
-    local_buffer = buffer;
     VkDeviceSize local_offset;
-    local_offset = offset;
     uint32_t local_drawCount;
-    local_drawCount = drawCount;
     uint32_t local_stride;
+    local_commandBuffer = commandBuffer;
+    local_buffer = buffer;
+    local_offset = offset;
+    local_drawCount = drawCount;
     local_stride = stride;
     countingStream->rewind();
     {
@@ -6641,14 +6642,14 @@ void VkEncoder::vkCmdDrawIndexedIndirect(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkBuffer local_buffer;
-    local_buffer = buffer;
     VkDeviceSize local_offset;
-    local_offset = offset;
     uint32_t local_drawCount;
-    local_drawCount = drawCount;
     uint32_t local_stride;
+    local_commandBuffer = commandBuffer;
+    local_buffer = buffer;
+    local_offset = offset;
+    local_drawCount = drawCount;
     local_stride = stride;
     countingStream->rewind();
     {
@@ -6690,12 +6691,12 @@ void VkEncoder::vkCmdDispatch(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     uint32_t local_groupCountX;
-    local_groupCountX = groupCountX;
     uint32_t local_groupCountY;
-    local_groupCountY = groupCountY;
     uint32_t local_groupCountZ;
+    local_commandBuffer = commandBuffer;
+    local_groupCountX = groupCountX;
+    local_groupCountY = groupCountY;
     local_groupCountZ = groupCountZ;
     countingStream->rewind();
     {
@@ -6730,10 +6731,10 @@ void VkEncoder::vkCmdDispatchIndirect(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkBuffer local_buffer;
-    local_buffer = buffer;
     VkDeviceSize local_offset;
+    local_commandBuffer = commandBuffer;
+    local_buffer = buffer;
     local_offset = offset;
     countingStream->rewind();
     {
@@ -6772,14 +6773,14 @@ void VkEncoder::vkCmdCopyBuffer(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkBuffer local_srcBuffer;
-    local_srcBuffer = srcBuffer;
     VkBuffer local_dstBuffer;
-    local_dstBuffer = dstBuffer;
     uint32_t local_regionCount;
-    local_regionCount = regionCount;
     VkBufferCopy* local_pRegions;
+    local_commandBuffer = commandBuffer;
+    local_srcBuffer = srcBuffer;
+    local_dstBuffer = dstBuffer;
+    local_regionCount = regionCount;
     local_pRegions = nullptr;
     if (pRegions)
     {
@@ -6842,18 +6843,18 @@ void VkEncoder::vkCmdCopyImage(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkImage local_srcImage;
-    local_srcImage = srcImage;
     VkImageLayout local_srcImageLayout;
-    local_srcImageLayout = srcImageLayout;
     VkImage local_dstImage;
-    local_dstImage = dstImage;
     VkImageLayout local_dstImageLayout;
-    local_dstImageLayout = dstImageLayout;
     uint32_t local_regionCount;
-    local_regionCount = regionCount;
     VkImageCopy* local_pRegions;
+    local_commandBuffer = commandBuffer;
+    local_srcImage = srcImage;
+    local_srcImageLayout = srcImageLayout;
+    local_dstImage = dstImage;
+    local_dstImageLayout = dstImageLayout;
+    local_regionCount = regionCount;
     local_pRegions = nullptr;
     if (pRegions)
     {
@@ -6921,18 +6922,19 @@ void VkEncoder::vkCmdBlitImage(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkImage local_srcImage;
-    local_srcImage = srcImage;
     VkImageLayout local_srcImageLayout;
-    local_srcImageLayout = srcImageLayout;
     VkImage local_dstImage;
-    local_dstImage = dstImage;
     VkImageLayout local_dstImageLayout;
-    local_dstImageLayout = dstImageLayout;
     uint32_t local_regionCount;
-    local_regionCount = regionCount;
     VkImageBlit* local_pRegions;
+    VkFilter local_filter;
+    local_commandBuffer = commandBuffer;
+    local_srcImage = srcImage;
+    local_srcImageLayout = srcImageLayout;
+    local_dstImage = dstImage;
+    local_dstImageLayout = dstImageLayout;
+    local_regionCount = regionCount;
     local_pRegions = nullptr;
     if (pRegions)
     {
@@ -6942,7 +6944,6 @@ void VkEncoder::vkCmdBlitImage(
             deepcopy_VkImageBlit(pool, pRegions + i, (VkImageBlit*)(local_pRegions + i));
         }
     }
-    VkFilter local_filter;
     local_filter = filter;
     countingStream->rewind();
     {
@@ -7002,16 +7003,16 @@ void VkEncoder::vkCmdCopyBufferToImage(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkBuffer local_srcBuffer;
-    local_srcBuffer = srcBuffer;
     VkImage local_dstImage;
-    local_dstImage = dstImage;
     VkImageLayout local_dstImageLayout;
-    local_dstImageLayout = dstImageLayout;
     uint32_t local_regionCount;
-    local_regionCount = regionCount;
     VkBufferImageCopy* local_pRegions;
+    local_commandBuffer = commandBuffer;
+    local_srcBuffer = srcBuffer;
+    local_dstImage = dstImage;
+    local_dstImageLayout = dstImageLayout;
+    local_regionCount = regionCount;
     local_pRegions = nullptr;
     if (pRegions)
     {
@@ -7075,16 +7076,16 @@ void VkEncoder::vkCmdCopyImageToBuffer(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkImage local_srcImage;
-    local_srcImage = srcImage;
     VkImageLayout local_srcImageLayout;
-    local_srcImageLayout = srcImageLayout;
     VkBuffer local_dstBuffer;
-    local_dstBuffer = dstBuffer;
     uint32_t local_regionCount;
-    local_regionCount = regionCount;
     VkBufferImageCopy* local_pRegions;
+    local_commandBuffer = commandBuffer;
+    local_srcImage = srcImage;
+    local_srcImageLayout = srcImageLayout;
+    local_dstBuffer = dstBuffer;
+    local_regionCount = regionCount;
     local_pRegions = nullptr;
     if (pRegions)
     {
@@ -7147,14 +7148,14 @@ void VkEncoder::vkCmdUpdateBuffer(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkBuffer local_dstBuffer;
-    local_dstBuffer = dstBuffer;
     VkDeviceSize local_dstOffset;
-    local_dstOffset = dstOffset;
     VkDeviceSize local_dataSize;
-    local_dataSize = dataSize;
     void* local_pData;
+    local_commandBuffer = commandBuffer;
+    local_dstBuffer = dstBuffer;
+    local_dstOffset = dstOffset;
+    local_dataSize = dataSize;
     local_pData = nullptr;
     if (pData)
     {
@@ -7201,14 +7202,14 @@ void VkEncoder::vkCmdFillBuffer(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkBuffer local_dstBuffer;
-    local_dstBuffer = dstBuffer;
     VkDeviceSize local_dstOffset;
-    local_dstOffset = dstOffset;
     VkDeviceSize local_size;
-    local_size = size;
     uint32_t local_data;
+    local_commandBuffer = commandBuffer;
+    local_dstBuffer = dstBuffer;
+    local_dstOffset = dstOffset;
+    local_size = size;
     local_data = data;
     countingStream->rewind();
     {
@@ -7252,21 +7253,21 @@ void VkEncoder::vkCmdClearColorImage(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkImage local_image;
-    local_image = image;
     VkImageLayout local_imageLayout;
-    local_imageLayout = imageLayout;
     VkClearColorValue* local_pColor;
+    uint32_t local_rangeCount;
+    VkImageSubresourceRange* local_pRanges;
+    local_commandBuffer = commandBuffer;
+    local_image = image;
+    local_imageLayout = imageLayout;
     local_pColor = nullptr;
     if (pColor)
     {
         local_pColor = (VkClearColorValue*)pool->alloc(sizeof(const VkClearColorValue));
         deepcopy_VkClearColorValue(pool, pColor, (VkClearColorValue*)(local_pColor));
     }
-    uint32_t local_rangeCount;
     local_rangeCount = rangeCount;
-    VkImageSubresourceRange* local_pRanges;
     local_pRanges = nullptr;
     if (pRanges)
     {
@@ -7326,21 +7327,21 @@ void VkEncoder::vkCmdClearDepthStencilImage(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkImage local_image;
-    local_image = image;
     VkImageLayout local_imageLayout;
-    local_imageLayout = imageLayout;
     VkClearDepthStencilValue* local_pDepthStencil;
+    uint32_t local_rangeCount;
+    VkImageSubresourceRange* local_pRanges;
+    local_commandBuffer = commandBuffer;
+    local_image = image;
+    local_imageLayout = imageLayout;
     local_pDepthStencil = nullptr;
     if (pDepthStencil)
     {
         local_pDepthStencil = (VkClearDepthStencilValue*)pool->alloc(sizeof(const VkClearDepthStencilValue));
         deepcopy_VkClearDepthStencilValue(pool, pDepthStencil, (VkClearDepthStencilValue*)(local_pDepthStencil));
     }
-    uint32_t local_rangeCount;
     local_rangeCount = rangeCount;
-    VkImageSubresourceRange* local_pRanges;
     local_pRanges = nullptr;
     if (pRanges)
     {
@@ -7399,10 +7400,12 @@ void VkEncoder::vkCmdClearAttachments(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     uint32_t local_attachmentCount;
-    local_attachmentCount = attachmentCount;
     VkClearAttachment* local_pAttachments;
+    uint32_t local_rectCount;
+    VkClearRect* local_pRects;
+    local_commandBuffer = commandBuffer;
+    local_attachmentCount = attachmentCount;
     local_pAttachments = nullptr;
     if (pAttachments)
     {
@@ -7412,9 +7415,7 @@ void VkEncoder::vkCmdClearAttachments(
             deepcopy_VkClearAttachment(pool, pAttachments + i, (VkClearAttachment*)(local_pAttachments + i));
         }
     }
-    uint32_t local_rectCount;
     local_rectCount = rectCount;
-    VkClearRect* local_pRects;
     local_pRects = nullptr;
     if (pRects)
     {
@@ -7475,18 +7476,18 @@ void VkEncoder::vkCmdResolveImage(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkImage local_srcImage;
-    local_srcImage = srcImage;
     VkImageLayout local_srcImageLayout;
-    local_srcImageLayout = srcImageLayout;
     VkImage local_dstImage;
-    local_dstImage = dstImage;
     VkImageLayout local_dstImageLayout;
-    local_dstImageLayout = dstImageLayout;
     uint32_t local_regionCount;
-    local_regionCount = regionCount;
     VkImageResolve* local_pRegions;
+    local_commandBuffer = commandBuffer;
+    local_srcImage = srcImage;
+    local_srcImageLayout = srcImageLayout;
+    local_dstImage = dstImage;
+    local_dstImageLayout = dstImageLayout;
+    local_regionCount = regionCount;
     local_pRegions = nullptr;
     if (pRegions)
     {
@@ -7549,10 +7550,10 @@ void VkEncoder::vkCmdSetEvent(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkEvent local_event;
-    local_event = event;
     VkPipelineStageFlags local_stageMask;
+    local_commandBuffer = commandBuffer;
+    local_event = event;
     local_stageMask = stageMask;
     countingStream->rewind();
     {
@@ -7589,10 +7590,10 @@ void VkEncoder::vkCmdResetEvent(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkEvent local_event;
-    local_event = event;
     VkPipelineStageFlags local_stageMask;
+    local_commandBuffer = commandBuffer;
+    local_event = event;
     local_stageMask = stageMask;
     countingStream->rewind();
     {
@@ -7637,22 +7638,26 @@ void VkEncoder::vkCmdWaitEvents(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     uint32_t local_eventCount;
-    local_eventCount = eventCount;
     VkEvent* local_pEvents;
+    VkPipelineStageFlags local_srcStageMask;
+    VkPipelineStageFlags local_dstStageMask;
+    uint32_t local_memoryBarrierCount;
+    VkMemoryBarrier* local_pMemoryBarriers;
+    uint32_t local_bufferMemoryBarrierCount;
+    VkBufferMemoryBarrier* local_pBufferMemoryBarriers;
+    uint32_t local_imageMemoryBarrierCount;
+    VkImageMemoryBarrier* local_pImageMemoryBarriers;
+    local_commandBuffer = commandBuffer;
+    local_eventCount = eventCount;
     local_pEvents = nullptr;
     if (pEvents)
     {
         local_pEvents = (VkEvent*)pool->dupArray(pEvents, ((eventCount)) * sizeof(const VkEvent));
     }
-    VkPipelineStageFlags local_srcStageMask;
     local_srcStageMask = srcStageMask;
-    VkPipelineStageFlags local_dstStageMask;
     local_dstStageMask = dstStageMask;
-    uint32_t local_memoryBarrierCount;
     local_memoryBarrierCount = memoryBarrierCount;
-    VkMemoryBarrier* local_pMemoryBarriers;
     local_pMemoryBarriers = nullptr;
     if (pMemoryBarriers)
     {
@@ -7662,9 +7667,7 @@ void VkEncoder::vkCmdWaitEvents(
             deepcopy_VkMemoryBarrier(pool, pMemoryBarriers + i, (VkMemoryBarrier*)(local_pMemoryBarriers + i));
         }
     }
-    uint32_t local_bufferMemoryBarrierCount;
     local_bufferMemoryBarrierCount = bufferMemoryBarrierCount;
-    VkBufferMemoryBarrier* local_pBufferMemoryBarriers;
     local_pBufferMemoryBarriers = nullptr;
     if (pBufferMemoryBarriers)
     {
@@ -7674,9 +7677,7 @@ void VkEncoder::vkCmdWaitEvents(
             deepcopy_VkBufferMemoryBarrier(pool, pBufferMemoryBarriers + i, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i));
         }
     }
-    uint32_t local_imageMemoryBarrierCount;
     local_imageMemoryBarrierCount = imageMemoryBarrierCount;
-    VkImageMemoryBarrier* local_pImageMemoryBarriers;
     local_pImageMemoryBarriers = nullptr;
     if (pImageMemoryBarriers)
     {
@@ -7770,16 +7771,20 @@ void VkEncoder::vkCmdPipelineBarrier(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkPipelineStageFlags local_srcStageMask;
-    local_srcStageMask = srcStageMask;
     VkPipelineStageFlags local_dstStageMask;
-    local_dstStageMask = dstStageMask;
     VkDependencyFlags local_dependencyFlags;
-    local_dependencyFlags = dependencyFlags;
     uint32_t local_memoryBarrierCount;
-    local_memoryBarrierCount = memoryBarrierCount;
     VkMemoryBarrier* local_pMemoryBarriers;
+    uint32_t local_bufferMemoryBarrierCount;
+    VkBufferMemoryBarrier* local_pBufferMemoryBarriers;
+    uint32_t local_imageMemoryBarrierCount;
+    VkImageMemoryBarrier* local_pImageMemoryBarriers;
+    local_commandBuffer = commandBuffer;
+    local_srcStageMask = srcStageMask;
+    local_dstStageMask = dstStageMask;
+    local_dependencyFlags = dependencyFlags;
+    local_memoryBarrierCount = memoryBarrierCount;
     local_pMemoryBarriers = nullptr;
     if (pMemoryBarriers)
     {
@@ -7789,9 +7794,7 @@ void VkEncoder::vkCmdPipelineBarrier(
             deepcopy_VkMemoryBarrier(pool, pMemoryBarriers + i, (VkMemoryBarrier*)(local_pMemoryBarriers + i));
         }
     }
-    uint32_t local_bufferMemoryBarrierCount;
     local_bufferMemoryBarrierCount = bufferMemoryBarrierCount;
-    VkBufferMemoryBarrier* local_pBufferMemoryBarriers;
     local_pBufferMemoryBarriers = nullptr;
     if (pBufferMemoryBarriers)
     {
@@ -7801,9 +7804,7 @@ void VkEncoder::vkCmdPipelineBarrier(
             deepcopy_VkBufferMemoryBarrier(pool, pBufferMemoryBarriers + i, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i));
         }
     }
-    uint32_t local_imageMemoryBarrierCount;
     local_imageMemoryBarrierCount = imageMemoryBarrierCount;
-    VkImageMemoryBarrier* local_pImageMemoryBarriers;
     local_pImageMemoryBarriers = nullptr;
     if (pImageMemoryBarriers)
     {
@@ -7877,12 +7878,12 @@ void VkEncoder::vkCmdBeginQuery(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkQueryPool local_queryPool;
-    local_queryPool = queryPool;
     uint32_t local_query;
-    local_query = query;
     VkQueryControlFlags local_flags;
+    local_commandBuffer = commandBuffer;
+    local_queryPool = queryPool;
+    local_query = query;
     local_flags = flags;
     countingStream->rewind();
     {
@@ -7921,10 +7922,10 @@ void VkEncoder::vkCmdEndQuery(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkQueryPool local_queryPool;
-    local_queryPool = queryPool;
     uint32_t local_query;
+    local_commandBuffer = commandBuffer;
+    local_queryPool = queryPool;
     local_query = query;
     countingStream->rewind();
     {
@@ -7962,12 +7963,12 @@ void VkEncoder::vkCmdResetQueryPool(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkQueryPool local_queryPool;
-    local_queryPool = queryPool;
     uint32_t local_firstQuery;
-    local_firstQuery = firstQuery;
     uint32_t local_queryCount;
+    local_commandBuffer = commandBuffer;
+    local_queryPool = queryPool;
+    local_firstQuery = firstQuery;
     local_queryCount = queryCount;
     countingStream->rewind();
     {
@@ -8007,12 +8008,12 @@ void VkEncoder::vkCmdWriteTimestamp(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkPipelineStageFlagBits local_pipelineStage;
-    local_pipelineStage = pipelineStage;
     VkQueryPool local_queryPool;
-    local_queryPool = queryPool;
     uint32_t local_query;
+    local_commandBuffer = commandBuffer;
+    local_pipelineStage = pipelineStage;
+    local_queryPool = queryPool;
     local_query = query;
     countingStream->rewind();
     {
@@ -8056,20 +8057,20 @@ void VkEncoder::vkCmdCopyQueryPoolResults(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkQueryPool local_queryPool;
-    local_queryPool = queryPool;
     uint32_t local_firstQuery;
-    local_firstQuery = firstQuery;
     uint32_t local_queryCount;
-    local_queryCount = queryCount;
     VkBuffer local_dstBuffer;
-    local_dstBuffer = dstBuffer;
     VkDeviceSize local_dstOffset;
-    local_dstOffset = dstOffset;
     VkDeviceSize local_stride;
-    local_stride = stride;
     VkQueryResultFlags local_flags;
+    local_commandBuffer = commandBuffer;
+    local_queryPool = queryPool;
+    local_firstQuery = firstQuery;
+    local_queryCount = queryCount;
+    local_dstBuffer = dstBuffer;
+    local_dstOffset = dstOffset;
+    local_stride = stride;
     local_flags = flags;
     countingStream->rewind();
     {
@@ -8123,16 +8124,16 @@ void VkEncoder::vkCmdPushConstants(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkPipelineLayout local_layout;
-    local_layout = layout;
     VkShaderStageFlags local_stageFlags;
-    local_stageFlags = stageFlags;
     uint32_t local_offset;
-    local_offset = offset;
     uint32_t local_size;
-    local_size = size;
     void* local_pValues;
+    local_commandBuffer = commandBuffer;
+    local_layout = layout;
+    local_stageFlags = stageFlags;
+    local_offset = offset;
+    local_size = size;
     local_pValues = nullptr;
     if (pValues)
     {
@@ -8179,15 +8180,15 @@ void VkEncoder::vkCmdBeginRenderPass(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkRenderPassBeginInfo* local_pRenderPassBegin;
+    VkSubpassContents local_contents;
+    local_commandBuffer = commandBuffer;
     local_pRenderPassBegin = nullptr;
     if (pRenderPassBegin)
     {
         local_pRenderPassBegin = (VkRenderPassBeginInfo*)pool->alloc(sizeof(const VkRenderPassBeginInfo));
         deepcopy_VkRenderPassBeginInfo(pool, pRenderPassBegin, (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
     }
-    VkSubpassContents local_contents;
     local_contents = contents;
     countingStream->rewind();
     {
@@ -8219,8 +8220,8 @@ void VkEncoder::vkCmdNextSubpass(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkSubpassContents local_contents;
+    local_commandBuffer = commandBuffer;
     local_contents = contents;
     countingStream->rewind();
     {
@@ -8277,10 +8278,10 @@ void VkEncoder::vkCmdExecuteCommands(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     uint32_t local_commandBufferCount;
-    local_commandBufferCount = commandBufferCount;
     VkCommandBuffer* local_pCommandBuffers;
+    local_commandBuffer = commandBuffer;
+    local_commandBufferCount = commandBufferCount;
     local_pCommandBuffers = nullptr;
     if (pCommandBuffers)
     {
@@ -8339,10 +8340,10 @@ VkResult VkEncoder::vkBindBufferMemory2(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     uint32_t local_bindInfoCount;
-    local_bindInfoCount = bindInfoCount;
     VkBindBufferMemoryInfo* local_pBindInfos;
+    local_device = device;
+    local_bindInfoCount = bindInfoCount;
     local_pBindInfos = nullptr;
     if (pBindInfos)
     {
@@ -8395,10 +8396,10 @@ VkResult VkEncoder::vkBindImageMemory2(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     uint32_t local_bindInfoCount;
-    local_bindInfoCount = bindInfoCount;
     VkBindImageMemoryInfo* local_pBindInfos;
+    local_device = device;
+    local_bindInfoCount = bindInfoCount;
     local_pBindInfos = nullptr;
     if (pBindInfos)
     {
@@ -8453,12 +8454,12 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeatures(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     uint32_t local_heapIndex;
-    local_heapIndex = heapIndex;
     uint32_t local_localDeviceIndex;
-    local_localDeviceIndex = localDeviceIndex;
     uint32_t local_remoteDeviceIndex;
+    local_device = device;
+    local_heapIndex = heapIndex;
+    local_localDeviceIndex = localDeviceIndex;
     local_remoteDeviceIndex = remoteDeviceIndex;
     countingStream->rewind();
     {
@@ -8495,8 +8496,8 @@ void VkEncoder::vkCmdSetDeviceMask(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     uint32_t local_deviceMask;
+    local_commandBuffer = commandBuffer;
     local_deviceMask = deviceMask;
     countingStream->rewind();
     {
@@ -8531,18 +8532,18 @@ void VkEncoder::vkCmdDispatchBase(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     uint32_t local_baseGroupX;
-    local_baseGroupX = baseGroupX;
     uint32_t local_baseGroupY;
-    local_baseGroupY = baseGroupY;
     uint32_t local_baseGroupZ;
-    local_baseGroupZ = baseGroupZ;
     uint32_t local_groupCountX;
-    local_groupCountX = groupCountX;
     uint32_t local_groupCountY;
-    local_groupCountY = groupCountY;
     uint32_t local_groupCountZ;
+    local_commandBuffer = commandBuffer;
+    local_baseGroupX = baseGroupX;
+    local_baseGroupY = baseGroupY;
+    local_baseGroupZ = baseGroupZ;
+    local_groupCountX = groupCountX;
+    local_groupCountY = groupCountY;
     local_groupCountZ = groupCountZ;
     countingStream->rewind();
     {
@@ -8676,8 +8677,8 @@ void VkEncoder::vkGetImageMemoryRequirements2(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkImageMemoryRequirementsInfo2* local_pInfo;
+    local_device = device;
     local_pInfo = nullptr;
     if (pInfo)
     {
@@ -8716,8 +8717,8 @@ void VkEncoder::vkGetBufferMemoryRequirements2(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkBufferMemoryRequirementsInfo2* local_pInfo;
+    local_device = device;
     local_pInfo = nullptr;
     if (pInfo)
     {
@@ -8757,8 +8758,8 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkImageSparseMemoryRequirementsInfo2* local_pInfo;
+    local_device = device;
     local_pInfo = nullptr;
     if (pInfo)
     {
@@ -8890,8 +8891,8 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkFormat local_format;
+    local_physicalDevice = physicalDevice;
     local_format = format;
     countingStream->rewind();
     {
@@ -8925,8 +8926,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkPhysicalDeviceImageFormatInfo2* local_pImageFormatInfo;
+    local_physicalDevice = physicalDevice;
     local_pImageFormatInfo = nullptr;
     if (pImageFormatInfo)
     {
@@ -9089,8 +9090,8 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkPhysicalDeviceSparseImageFormatInfo2* local_pFormatInfo;
+    local_physicalDevice = physicalDevice;
     local_pFormatInfo = nullptr;
     if (pFormatInfo)
     {
@@ -9185,10 +9186,10 @@ void VkEncoder::vkTrimCommandPool(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkCommandPool local_commandPool;
-    local_commandPool = commandPool;
     VkCommandPoolTrimFlags local_flags;
+    local_device = device;
+    local_commandPool = commandPool;
     local_flags = flags;
     countingStream->rewind();
     {
@@ -9225,8 +9226,8 @@ void VkEncoder::vkGetDeviceQueue2(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDeviceQueueInfo2* local_pQueueInfo;
+    local_device = device;
     local_pQueueInfo = nullptr;
     if (pQueueInfo)
     {
@@ -9274,15 +9275,15 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversion(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkSamplerYcbcrConversionCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkSamplerYcbcrConversionCreateInfo*)pool->alloc(sizeof(const VkSamplerYcbcrConversionCreateInfo));
         deepcopy_VkSamplerYcbcrConversionCreateInfo(pool, pCreateInfo, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -9352,10 +9353,10 @@ void VkEncoder::vkDestroySamplerYcbcrConversion(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkSamplerYcbcrConversion local_ycbcrConversion;
-    local_ycbcrConversion = ycbcrConversion;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_ycbcrConversion = ycbcrConversion;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -9412,15 +9413,15 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplate(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDescriptorUpdateTemplateCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDescriptorUpdateTemplateCreateInfo*)pool->alloc(sizeof(const VkDescriptorUpdateTemplateCreateInfo));
         deepcopy_VkDescriptorUpdateTemplateCreateInfo(pool, pCreateInfo, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -9490,10 +9491,10 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplate(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDescriptorUpdateTemplate local_descriptorUpdateTemplate;
-    local_descriptorUpdateTemplate = descriptorUpdateTemplate;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_descriptorUpdateTemplate = descriptorUpdateTemplate;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -9550,12 +9551,12 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplate(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDescriptorSet local_descriptorSet;
-    local_descriptorSet = descriptorSet;
     VkDescriptorUpdateTemplate local_descriptorUpdateTemplate;
-    local_descriptorUpdateTemplate = descriptorUpdateTemplate;
     void* local_pData;
+    local_device = device;
+    local_descriptorSet = descriptorSet;
+    local_descriptorUpdateTemplate = descriptorUpdateTemplate;
     local_pData = nullptr;
     if (pData)
     {
@@ -9614,8 +9615,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkPhysicalDeviceExternalBufferInfo* local_pExternalBufferInfo;
+    local_physicalDevice = physicalDevice;
     local_pExternalBufferInfo = nullptr;
     if (pExternalBufferInfo)
     {
@@ -9654,8 +9655,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalFenceProperties(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkPhysicalDeviceExternalFenceInfo* local_pExternalFenceInfo;
+    local_physicalDevice = physicalDevice;
     local_pExternalFenceInfo = nullptr;
     if (pExternalFenceInfo)
     {
@@ -9694,8 +9695,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphoreProperties(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkPhysicalDeviceExternalSemaphoreInfo* local_pExternalSemaphoreInfo;
+    local_physicalDevice = physicalDevice;
     local_pExternalSemaphoreInfo = nullptr;
     if (pExternalSemaphoreInfo)
     {
@@ -9734,8 +9735,8 @@ void VkEncoder::vkGetDescriptorSetLayoutSupport(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDescriptorSetLayoutCreateInfo* local_pCreateInfo;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
@@ -9776,10 +9777,10 @@ void VkEncoder::vkDestroySurfaceKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstance local_instance;
-    local_instance = instance;
     VkSurfaceKHR local_surface;
-    local_surface = surface;
     VkAllocationCallbacks* local_pAllocator;
+    local_instance = instance;
+    local_surface = surface;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -9836,10 +9837,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceSupportKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     uint32_t local_queueFamilyIndex;
-    local_queueFamilyIndex = queueFamilyIndex;
     VkSurfaceKHR local_surface;
+    local_physicalDevice = physicalDevice;
+    local_queueFamilyIndex = queueFamilyIndex;
     local_surface = surface;
     countingStream->rewind();
     {
@@ -9885,8 +9886,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkSurfaceKHR local_surface;
+    local_physicalDevice = physicalDevice;
     local_surface = surface;
     countingStream->rewind();
     {
@@ -9931,8 +9932,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkSurfaceKHR local_surface;
+    local_physicalDevice = physicalDevice;
     local_surface = surface;
     countingStream->rewind();
     {
@@ -10033,8 +10034,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModesKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkSurfaceKHR local_surface;
+    local_physicalDevice = physicalDevice;
     local_surface = surface;
     countingStream->rewind();
     {
@@ -10128,15 +10129,15 @@ VkResult VkEncoder::vkCreateSwapchainKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkSwapchainCreateInfoKHR* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkSwapchainCreateInfoKHR*)pool->alloc(sizeof(const VkSwapchainCreateInfoKHR));
         deepcopy_VkSwapchainCreateInfoKHR(pool, pCreateInfo, (VkSwapchainCreateInfoKHR*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -10206,10 +10207,10 @@ void VkEncoder::vkDestroySwapchainKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkSwapchainKHR local_swapchain;
-    local_swapchain = swapchain;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_swapchain = swapchain;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -10266,8 +10267,8 @@ VkResult VkEncoder::vkGetSwapchainImagesKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkSwapchainKHR local_swapchain;
+    local_device = device;
     local_swapchain = swapchain;
     countingStream->rewind();
     {
@@ -10381,14 +10382,14 @@ VkResult VkEncoder::vkAcquireNextImageKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkSwapchainKHR local_swapchain;
-    local_swapchain = swapchain;
     uint64_t local_timeout;
-    local_timeout = timeout;
     VkSemaphore local_semaphore;
-    local_semaphore = semaphore;
     VkFence local_fence;
+    local_device = device;
+    local_swapchain = swapchain;
+    local_timeout = timeout;
+    local_semaphore = semaphore;
     local_fence = fence;
     countingStream->rewind();
     {
@@ -10445,8 +10446,8 @@ VkResult VkEncoder::vkQueuePresentKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkQueue local_queue;
-    local_queue = queue;
     VkPresentInfoKHR* local_pPresentInfo;
+    local_queue = queue;
     local_pPresentInfo = nullptr;
     if (pPresentInfo)
     {
@@ -10524,8 +10525,8 @@ VkResult VkEncoder::vkGetDeviceGroupSurfacePresentModesKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkSurfaceKHR local_surface;
+    local_device = device;
     local_surface = surface;
     countingStream->rewind();
     {
@@ -10592,8 +10593,8 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkSurfaceKHR local_surface;
+    local_physicalDevice = physicalDevice;
     local_surface = surface;
     countingStream->rewind();
     {
@@ -10693,8 +10694,8 @@ VkResult VkEncoder::vkAcquireNextImage2KHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkAcquireNextImageInfoKHR* local_pAcquireInfo;
+    local_device = device;
     local_pAcquireInfo = nullptr;
     if (pAcquireInfo)
     {
@@ -10928,8 +10929,8 @@ VkResult VkEncoder::vkGetDisplayPlaneSupportedDisplaysKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     uint32_t local_planeIndex;
+    local_physicalDevice = physicalDevice;
     local_planeIndex = planeIndex;
     countingStream->rewind();
     {
@@ -11037,8 +11038,8 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkDisplayKHR local_display;
+    local_physicalDevice = physicalDevice;
     local_display = display;
     countingStream->rewind();
     {
@@ -11140,17 +11141,17 @@ VkResult VkEncoder::vkCreateDisplayModeKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkDisplayKHR local_display;
-    local_display = display;
     VkDisplayModeCreateInfoKHR* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_physicalDevice = physicalDevice;
+    local_display = display;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDisplayModeCreateInfoKHR*)pool->alloc(sizeof(const VkDisplayModeCreateInfoKHR));
         deepcopy_VkDisplayModeCreateInfoKHR(pool, pCreateInfo, (VkDisplayModeCreateInfoKHR*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -11227,10 +11228,10 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilitiesKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkDisplayModeKHR local_mode;
-    local_mode = mode;
     uint32_t local_planeIndex;
+    local_physicalDevice = physicalDevice;
+    local_mode = mode;
     local_planeIndex = planeIndex;
     countingStream->rewind();
     {
@@ -11277,15 +11278,15 @@ VkResult VkEncoder::vkCreateDisplayPlaneSurfaceKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstance local_instance;
-    local_instance = instance;
     VkDisplaySurfaceCreateInfoKHR* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDisplaySurfaceCreateInfoKHR*)pool->alloc(sizeof(const VkDisplaySurfaceCreateInfoKHR));
         deepcopy_VkDisplaySurfaceCreateInfoKHR(pool, pCreateInfo, (VkDisplaySurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -11357,10 +11358,11 @@ VkResult VkEncoder::vkCreateSharedSwapchainsKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     uint32_t local_swapchainCount;
-    local_swapchainCount = swapchainCount;
     VkSwapchainCreateInfoKHR* local_pCreateInfos;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_swapchainCount = swapchainCount;
     local_pCreateInfos = nullptr;
     if (pCreateInfos)
     {
@@ -11370,7 +11372,6 @@ VkResult VkEncoder::vkCreateSharedSwapchainsKHR(
             deepcopy_VkSwapchainCreateInfoKHR(pool, pCreateInfos + i, (VkSwapchainCreateInfoKHR*)(local_pCreateInfos + i));
         }
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -11461,15 +11462,15 @@ VkResult VkEncoder::vkCreateXlibSurfaceKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstance local_instance;
-    local_instance = instance;
     VkXlibSurfaceCreateInfoKHR* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkXlibSurfaceCreateInfoKHR*)pool->alloc(sizeof(const VkXlibSurfaceCreateInfoKHR));
         deepcopy_VkXlibSurfaceCreateInfoKHR(pool, pCreateInfo, (VkXlibSurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -11538,10 +11539,10 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceXlibPresentationSupportKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     uint32_t local_queueFamilyIndex;
-    local_queueFamilyIndex = queueFamilyIndex;
     VisualID local_visualID;
+    local_physicalDevice = physicalDevice;
+    local_queueFamilyIndex = queueFamilyIndex;
     local_visualID = visualID;
     countingStream->rewind();
     {
@@ -11586,15 +11587,15 @@ VkResult VkEncoder::vkCreateXcbSurfaceKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstance local_instance;
-    local_instance = instance;
     VkXcbSurfaceCreateInfoKHR* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkXcbSurfaceCreateInfoKHR*)pool->alloc(sizeof(const VkXcbSurfaceCreateInfoKHR));
         deepcopy_VkXcbSurfaceCreateInfoKHR(pool, pCreateInfo, (VkXcbSurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -11663,10 +11664,10 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceXcbPresentationSupportKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     uint32_t local_queueFamilyIndex;
-    local_queueFamilyIndex = queueFamilyIndex;
     xcb_visualid_t local_visual_id;
+    local_physicalDevice = physicalDevice;
+    local_queueFamilyIndex = queueFamilyIndex;
     local_visual_id = visual_id;
     countingStream->rewind();
     {
@@ -11711,15 +11712,15 @@ VkResult VkEncoder::vkCreateWaylandSurfaceKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstance local_instance;
-    local_instance = instance;
     VkWaylandSurfaceCreateInfoKHR* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkWaylandSurfaceCreateInfoKHR*)pool->alloc(sizeof(const VkWaylandSurfaceCreateInfoKHR));
         deepcopy_VkWaylandSurfaceCreateInfoKHR(pool, pCreateInfo, (VkWaylandSurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -11787,8 +11788,8 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceWaylandPresentationSupportKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     uint32_t local_queueFamilyIndex;
+    local_physicalDevice = physicalDevice;
     local_queueFamilyIndex = queueFamilyIndex;
     countingStream->rewind();
     {
@@ -11831,15 +11832,15 @@ VkResult VkEncoder::vkCreateMirSurfaceKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstance local_instance;
-    local_instance = instance;
     VkMirSurfaceCreateInfoKHR* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkMirSurfaceCreateInfoKHR*)pool->alloc(sizeof(const VkMirSurfaceCreateInfoKHR));
         deepcopy_VkMirSurfaceCreateInfoKHR(pool, pCreateInfo, (VkMirSurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -11907,8 +11908,8 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceMirPresentationSupportKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     uint32_t local_queueFamilyIndex;
+    local_physicalDevice = physicalDevice;
     local_queueFamilyIndex = queueFamilyIndex;
     countingStream->rewind();
     {
@@ -11951,15 +11952,15 @@ VkResult VkEncoder::vkCreateAndroidSurfaceKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstance local_instance;
-    local_instance = instance;
     VkAndroidSurfaceCreateInfoKHR* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkAndroidSurfaceCreateInfoKHR*)pool->alloc(sizeof(const VkAndroidSurfaceCreateInfoKHR));
         deepcopy_VkAndroidSurfaceCreateInfoKHR(pool, pCreateInfo, (VkAndroidSurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -12030,15 +12031,15 @@ VkResult VkEncoder::vkCreateWin32SurfaceKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstance local_instance;
-    local_instance = instance;
     VkWin32SurfaceCreateInfoKHR* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkWin32SurfaceCreateInfoKHR*)pool->alloc(sizeof(const VkWin32SurfaceCreateInfoKHR));
         deepcopy_VkWin32SurfaceCreateInfoKHR(pool, pCreateInfo, (VkWin32SurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -12105,8 +12106,8 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceWin32PresentationSupportKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     uint32_t local_queueFamilyIndex;
+    local_physicalDevice = physicalDevice;
     local_queueFamilyIndex = queueFamilyIndex;
     countingStream->rewind();
     {
@@ -12209,8 +12210,8 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2KHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkFormat local_format;
+    local_physicalDevice = physicalDevice;
     local_format = format;
     countingStream->rewind();
     {
@@ -12244,8 +12245,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2KHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkPhysicalDeviceImageFormatInfo2* local_pImageFormatInfo;
+    local_physicalDevice = physicalDevice;
     local_pImageFormatInfo = nullptr;
     if (pImageFormatInfo)
     {
@@ -12408,8 +12409,8 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkPhysicalDeviceSparseImageFormatInfo2* local_pFormatInfo;
+    local_physicalDevice = physicalDevice;
     local_pFormatInfo = nullptr;
     if (pFormatInfo)
     {
@@ -12508,12 +12509,12 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeaturesKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     uint32_t local_heapIndex;
-    local_heapIndex = heapIndex;
     uint32_t local_localDeviceIndex;
-    local_localDeviceIndex = localDeviceIndex;
     uint32_t local_remoteDeviceIndex;
+    local_device = device;
+    local_heapIndex = heapIndex;
+    local_localDeviceIndex = localDeviceIndex;
     local_remoteDeviceIndex = remoteDeviceIndex;
     countingStream->rewind();
     {
@@ -12550,8 +12551,8 @@ void VkEncoder::vkCmdSetDeviceMaskKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     uint32_t local_deviceMask;
+    local_commandBuffer = commandBuffer;
     local_deviceMask = deviceMask;
     countingStream->rewind();
     {
@@ -12586,18 +12587,18 @@ void VkEncoder::vkCmdDispatchBaseKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     uint32_t local_baseGroupX;
-    local_baseGroupX = baseGroupX;
     uint32_t local_baseGroupY;
-    local_baseGroupY = baseGroupY;
     uint32_t local_baseGroupZ;
-    local_baseGroupZ = baseGroupZ;
     uint32_t local_groupCountX;
-    local_groupCountX = groupCountX;
     uint32_t local_groupCountY;
-    local_groupCountY = groupCountY;
     uint32_t local_groupCountZ;
+    local_commandBuffer = commandBuffer;
+    local_baseGroupX = baseGroupX;
+    local_baseGroupY = baseGroupY;
+    local_baseGroupZ = baseGroupZ;
+    local_groupCountX = groupCountX;
+    local_groupCountY = groupCountY;
     local_groupCountZ = groupCountZ;
     countingStream->rewind();
     {
@@ -12642,10 +12643,10 @@ void VkEncoder::vkTrimCommandPoolKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkCommandPool local_commandPool;
-    local_commandPool = commandPool;
     VkCommandPoolTrimFlags local_flags;
+    local_device = device;
+    local_commandPool = commandPool;
     local_flags = flags;
     countingStream->rewind();
     {
@@ -12779,8 +12780,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkPhysicalDeviceExternalBufferInfo* local_pExternalBufferInfo;
+    local_physicalDevice = physicalDevice;
     local_pExternalBufferInfo = nullptr;
     if (pExternalBufferInfo)
     {
@@ -12823,8 +12824,8 @@ VkResult VkEncoder::vkGetMemoryWin32HandleKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkMemoryGetWin32HandleInfoKHR* local_pGetWin32HandleInfo;
+    local_device = device;
     local_pGetWin32HandleInfo = nullptr;
     if (pGetWin32HandleInfo)
     {
@@ -12870,10 +12871,10 @@ VkResult VkEncoder::vkGetMemoryWin32HandlePropertiesKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkExternalMemoryHandleTypeFlagBits local_handleType;
-    local_handleType = handleType;
     HANDLE local_handle;
+    local_device = device;
+    local_handleType = handleType;
     local_handle = handle;
     countingStream->rewind();
     {
@@ -12917,8 +12918,8 @@ VkResult VkEncoder::vkGetMemoryFdKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkMemoryGetFdInfoKHR* local_pGetFdInfo;
+    local_device = device;
     local_pGetFdInfo = nullptr;
     if (pGetFdInfo)
     {
@@ -12964,10 +12965,10 @@ VkResult VkEncoder::vkGetMemoryFdPropertiesKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkExternalMemoryHandleTypeFlagBits local_handleType;
-    local_handleType = handleType;
     int local_fd;
+    local_device = device;
+    local_handleType = handleType;
     local_fd = fd;
     countingStream->rewind();
     {
@@ -13013,8 +13014,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkPhysicalDeviceExternalSemaphoreInfo* local_pExternalSemaphoreInfo;
+    local_physicalDevice = physicalDevice;
     local_pExternalSemaphoreInfo = nullptr;
     if (pExternalSemaphoreInfo)
     {
@@ -13056,8 +13057,8 @@ VkResult VkEncoder::vkImportSemaphoreWin32HandleKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkImportSemaphoreWin32HandleInfoKHR* local_pImportSemaphoreWin32HandleInfo;
+    local_device = device;
     local_pImportSemaphoreWin32HandleInfo = nullptr;
     if (pImportSemaphoreWin32HandleInfo)
     {
@@ -13099,8 +13100,8 @@ VkResult VkEncoder::vkGetSemaphoreWin32HandleKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkSemaphoreGetWin32HandleInfoKHR* local_pGetWin32HandleInfo;
+    local_device = device;
     local_pGetWin32HandleInfo = nullptr;
     if (pGetWin32HandleInfo)
     {
@@ -13146,8 +13147,8 @@ VkResult VkEncoder::vkImportSemaphoreFdKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkImportSemaphoreFdInfoKHR* local_pImportSemaphoreFdInfo;
+    local_device = device;
     local_pImportSemaphoreFdInfo = nullptr;
     if (pImportSemaphoreFdInfo)
     {
@@ -13189,8 +13190,8 @@ VkResult VkEncoder::vkGetSemaphoreFdKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkSemaphoreGetFdInfoKHR* local_pGetFdInfo;
+    local_device = device;
     local_pGetFdInfo = nullptr;
     if (pGetFdInfo)
     {
@@ -13240,16 +13241,16 @@ void VkEncoder::vkCmdPushDescriptorSetKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkPipelineBindPoint local_pipelineBindPoint;
-    local_pipelineBindPoint = pipelineBindPoint;
     VkPipelineLayout local_layout;
-    local_layout = layout;
     uint32_t local_set;
-    local_set = set;
     uint32_t local_descriptorWriteCount;
-    local_descriptorWriteCount = descriptorWriteCount;
     VkWriteDescriptorSet* local_pDescriptorWrites;
+    local_commandBuffer = commandBuffer;
+    local_pipelineBindPoint = pipelineBindPoint;
+    local_layout = layout;
+    local_set = set;
+    local_descriptorWriteCount = descriptorWriteCount;
     local_pDescriptorWrites = nullptr;
     if (pDescriptorWrites)
     {
@@ -13308,14 +13309,14 @@ void VkEncoder::vkCmdPushDescriptorSetWithTemplateKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkDescriptorUpdateTemplate local_descriptorUpdateTemplate;
-    local_descriptorUpdateTemplate = descriptorUpdateTemplate;
     VkPipelineLayout local_layout;
-    local_layout = layout;
     uint32_t local_set;
-    local_set = set;
     void* local_pData;
+    local_commandBuffer = commandBuffer;
+    local_descriptorUpdateTemplate = descriptorUpdateTemplate;
+    local_layout = layout;
+    local_set = set;
     local_pData = nullptr;
     if (pData)
     {
@@ -13383,15 +13384,15 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDescriptorUpdateTemplateCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDescriptorUpdateTemplateCreateInfo*)pool->alloc(sizeof(const VkDescriptorUpdateTemplateCreateInfo));
         deepcopy_VkDescriptorUpdateTemplateCreateInfo(pool, pCreateInfo, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -13459,10 +13460,10 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplateKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDescriptorUpdateTemplate local_descriptorUpdateTemplate;
-    local_descriptorUpdateTemplate = descriptorUpdateTemplate;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_descriptorUpdateTemplate = descriptorUpdateTemplate;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -13518,12 +13519,12 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDescriptorSet local_descriptorSet;
-    local_descriptorSet = descriptorSet;
     VkDescriptorUpdateTemplate local_descriptorUpdateTemplate;
-    local_descriptorUpdateTemplate = descriptorUpdateTemplate;
     void* local_pData;
+    local_device = device;
+    local_descriptorSet = descriptorSet;
+    local_descriptorUpdateTemplate = descriptorUpdateTemplate;
     local_pData = nullptr;
     if (pData)
     {
@@ -13585,15 +13586,15 @@ VkResult VkEncoder::vkCreateRenderPass2KHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkRenderPassCreateInfo2KHR* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkRenderPassCreateInfo2KHR*)pool->alloc(sizeof(const VkRenderPassCreateInfo2KHR));
         deepcopy_VkRenderPassCreateInfo2KHR(pool, pCreateInfo, (VkRenderPassCreateInfo2KHR*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -13661,15 +13662,15 @@ void VkEncoder::vkCmdBeginRenderPass2KHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkRenderPassBeginInfo* local_pRenderPassBegin;
+    VkSubpassBeginInfoKHR* local_pSubpassBeginInfo;
+    local_commandBuffer = commandBuffer;
     local_pRenderPassBegin = nullptr;
     if (pRenderPassBegin)
     {
         local_pRenderPassBegin = (VkRenderPassBeginInfo*)pool->alloc(sizeof(const VkRenderPassBeginInfo));
         deepcopy_VkRenderPassBeginInfo(pool, pRenderPassBegin, (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
     }
-    VkSubpassBeginInfoKHR* local_pSubpassBeginInfo;
     local_pSubpassBeginInfo = nullptr;
     if (pSubpassBeginInfo)
     {
@@ -13707,15 +13708,15 @@ void VkEncoder::vkCmdNextSubpass2KHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkSubpassBeginInfoKHR* local_pSubpassBeginInfo;
+    VkSubpassEndInfoKHR* local_pSubpassEndInfo;
+    local_commandBuffer = commandBuffer;
     local_pSubpassBeginInfo = nullptr;
     if (pSubpassBeginInfo)
     {
         local_pSubpassBeginInfo = (VkSubpassBeginInfoKHR*)pool->alloc(sizeof(const VkSubpassBeginInfoKHR));
         deepcopy_VkSubpassBeginInfoKHR(pool, pSubpassBeginInfo, (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo));
     }
-    VkSubpassEndInfoKHR* local_pSubpassEndInfo;
     local_pSubpassEndInfo = nullptr;
     if (pSubpassEndInfo)
     {
@@ -13752,8 +13753,8 @@ void VkEncoder::vkCmdEndRenderPass2KHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkSubpassEndInfoKHR* local_pSubpassEndInfo;
+    local_commandBuffer = commandBuffer;
     local_pSubpassEndInfo = nullptr;
     if (pSubpassEndInfo)
     {
@@ -13790,8 +13791,8 @@ VkResult VkEncoder::vkGetSwapchainStatusKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkSwapchainKHR local_swapchain;
+    local_device = device;
     local_swapchain = swapchain;
     countingStream->rewind();
     {
@@ -13834,8 +13835,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalFencePropertiesKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkPhysicalDeviceExternalFenceInfo* local_pExternalFenceInfo;
+    local_physicalDevice = physicalDevice;
     local_pExternalFenceInfo = nullptr;
     if (pExternalFenceInfo)
     {
@@ -13877,8 +13878,8 @@ VkResult VkEncoder::vkImportFenceWin32HandleKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkImportFenceWin32HandleInfoKHR* local_pImportFenceWin32HandleInfo;
+    local_device = device;
     local_pImportFenceWin32HandleInfo = nullptr;
     if (pImportFenceWin32HandleInfo)
     {
@@ -13920,8 +13921,8 @@ VkResult VkEncoder::vkGetFenceWin32HandleKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkFenceGetWin32HandleInfoKHR* local_pGetWin32HandleInfo;
+    local_device = device;
     local_pGetWin32HandleInfo = nullptr;
     if (pGetWin32HandleInfo)
     {
@@ -13967,8 +13968,8 @@ VkResult VkEncoder::vkImportFenceFdKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkImportFenceFdInfoKHR* local_pImportFenceFdInfo;
+    local_device = device;
     local_pImportFenceFdInfo = nullptr;
     if (pImportFenceFdInfo)
     {
@@ -14010,8 +14011,8 @@ VkResult VkEncoder::vkGetFenceFdKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkFenceGetFdInfoKHR* local_pGetFdInfo;
+    local_device = device;
     local_pGetFdInfo = nullptr;
     if (pGetFdInfo)
     {
@@ -14060,8 +14061,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2KHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkPhysicalDeviceSurfaceInfo2KHR* local_pSurfaceInfo;
+    local_physicalDevice = physicalDevice;
     local_pSurfaceInfo = nullptr;
     if (pSurfaceInfo)
     {
@@ -14107,8 +14108,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkPhysicalDeviceSurfaceInfo2KHR* local_pSurfaceInfo;
+    local_physicalDevice = physicalDevice;
     local_pSurfaceInfo = nullptr;
     if (pSurfaceInfo)
     {
@@ -14400,8 +14401,8 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkDisplayKHR local_display;
+    local_physicalDevice = physicalDevice;
     local_display = display;
     countingStream->rewind();
     {
@@ -14501,8 +14502,8 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilities2KHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkDisplayPlaneInfo2KHR* local_pDisplayPlaneInfo;
+    local_physicalDevice = physicalDevice;
     local_pDisplayPlaneInfo = nullptr;
     if (pDisplayPlaneInfo)
     {
@@ -14555,8 +14556,8 @@ void VkEncoder::vkGetImageMemoryRequirements2KHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkImageMemoryRequirementsInfo2* local_pInfo;
+    local_device = device;
     local_pInfo = nullptr;
     if (pInfo)
     {
@@ -14595,8 +14596,8 @@ void VkEncoder::vkGetBufferMemoryRequirements2KHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkBufferMemoryRequirementsInfo2* local_pInfo;
+    local_device = device;
     local_pInfo = nullptr;
     if (pInfo)
     {
@@ -14636,8 +14637,8 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkImageSparseMemoryRequirementsInfo2* local_pInfo;
+    local_device = device;
     local_pInfo = nullptr;
     if (pInfo)
     {
@@ -14737,15 +14738,15 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkSamplerYcbcrConversionCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkSamplerYcbcrConversionCreateInfo*)pool->alloc(sizeof(const VkSamplerYcbcrConversionCreateInfo));
         deepcopy_VkSamplerYcbcrConversionCreateInfo(pool, pCreateInfo, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -14813,10 +14814,10 @@ void VkEncoder::vkDestroySamplerYcbcrConversionKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkSamplerYcbcrConversion local_ycbcrConversion;
-    local_ycbcrConversion = ycbcrConversion;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_ycbcrConversion = ycbcrConversion;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -14873,10 +14874,10 @@ VkResult VkEncoder::vkBindBufferMemory2KHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     uint32_t local_bindInfoCount;
-    local_bindInfoCount = bindInfoCount;
     VkBindBufferMemoryInfo* local_pBindInfos;
+    local_device = device;
+    local_bindInfoCount = bindInfoCount;
     local_pBindInfos = nullptr;
     if (pBindInfos)
     {
@@ -14929,10 +14930,10 @@ VkResult VkEncoder::vkBindImageMemory2KHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     uint32_t local_bindInfoCount;
-    local_bindInfoCount = bindInfoCount;
     VkBindImageMemoryInfo* local_pBindInfos;
+    local_device = device;
+    local_bindInfoCount = bindInfoCount;
     local_pBindInfos = nullptr;
     if (pBindInfos)
     {
@@ -14987,8 +14988,8 @@ void VkEncoder::vkGetDescriptorSetLayoutSupportKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDescriptorSetLayoutCreateInfo* local_pCreateInfo;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
@@ -15033,18 +15034,18 @@ void VkEncoder::vkCmdDrawIndirectCountKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkBuffer local_buffer;
-    local_buffer = buffer;
     VkDeviceSize local_offset;
-    local_offset = offset;
     VkBuffer local_countBuffer;
-    local_countBuffer = countBuffer;
     VkDeviceSize local_countBufferOffset;
-    local_countBufferOffset = countBufferOffset;
     uint32_t local_maxDrawCount;
-    local_maxDrawCount = maxDrawCount;
     uint32_t local_stride;
+    local_commandBuffer = commandBuffer;
+    local_buffer = buffer;
+    local_offset = offset;
+    local_countBuffer = countBuffer;
+    local_countBufferOffset = countBufferOffset;
+    local_maxDrawCount = maxDrawCount;
     local_stride = stride;
     countingStream->rewind();
     {
@@ -15097,18 +15098,18 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountKHR(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkBuffer local_buffer;
-    local_buffer = buffer;
     VkDeviceSize local_offset;
-    local_offset = offset;
     VkBuffer local_countBuffer;
-    local_countBuffer = countBuffer;
     VkDeviceSize local_countBufferOffset;
-    local_countBufferOffset = countBufferOffset;
     uint32_t local_maxDrawCount;
-    local_maxDrawCount = maxDrawCount;
     uint32_t local_stride;
+    local_commandBuffer = commandBuffer;
+    local_buffer = buffer;
+    local_offset = offset;
+    local_countBuffer = countBuffer;
+    local_countBufferOffset = countBufferOffset;
+    local_maxDrawCount = maxDrawCount;
     local_stride = stride;
     countingStream->rewind();
     {
@@ -15162,10 +15163,10 @@ VkResult VkEncoder::vkGetSwapchainGrallocUsageANDROID(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkFormat local_format;
-    local_format = format;
     VkImageUsageFlags local_imageUsage;
+    local_device = device;
+    local_format = format;
     local_imageUsage = imageUsage;
     countingStream->rewind();
     {
@@ -15209,15 +15210,16 @@ VkResult VkEncoder::vkAcquireImageANDROID(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkImage local_image;
-    local_image = image;
     int local_nativeFenceFd;
-    local_nativeFenceFd = nativeFenceFd;
     VkSemaphore local_semaphore;
-    local_semaphore = semaphore;
     VkFence local_fence;
+    local_device = device;
+    local_image = image;
+    local_nativeFenceFd = nativeFenceFd;
+    local_semaphore = semaphore;
     local_fence = fence;
+    goldfish_unwrap_vkAcquireImageANDROID_nativeFenceFd(nativeFenceFd, &local_nativeFenceFd);
     countingStream->rewind();
     {
         uint64_t cgen_var_1170;
@@ -15273,16 +15275,16 @@ VkResult VkEncoder::vkQueueSignalReleaseImageANDROID(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkQueue local_queue;
-    local_queue = queue;
     uint32_t local_waitSemaphoreCount;
-    local_waitSemaphoreCount = waitSemaphoreCount;
     VkSemaphore* local_pWaitSemaphores;
+    VkImage local_image;
+    local_queue = queue;
+    local_waitSemaphoreCount = waitSemaphoreCount;
     local_pWaitSemaphores = nullptr;
     if (pWaitSemaphores)
     {
         local_pWaitSemaphores = (VkSemaphore*)pool->dupArray(pWaitSemaphores, sizeof(const VkSemaphore));
     }
-    VkImage local_image;
     local_image = image;
     countingStream->rewind();
     {
@@ -15337,15 +15339,15 @@ VkResult VkEncoder::vkCreateDebugReportCallbackEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstance local_instance;
-    local_instance = instance;
     VkDebugReportCallbackCreateInfoEXT* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDebugReportCallbackCreateInfoEXT*)pool->alloc(sizeof(const VkDebugReportCallbackCreateInfoEXT));
         deepcopy_VkDebugReportCallbackCreateInfoEXT(pool, pCreateInfo, (VkDebugReportCallbackCreateInfoEXT*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -15415,10 +15417,10 @@ void VkEncoder::vkDestroyDebugReportCallbackEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstance local_instance;
-    local_instance = instance;
     VkDebugReportCallbackEXT local_callback;
-    local_callback = callback;
     VkAllocationCallbacks* local_pAllocator;
+    local_instance = instance;
+    local_callback = callback;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -15479,24 +15481,24 @@ void VkEncoder::vkDebugReportMessageEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstance local_instance;
-    local_instance = instance;
     VkDebugReportFlagsEXT local_flags;
-    local_flags = flags;
     VkDebugReportObjectTypeEXT local_objectType;
-    local_objectType = objectType;
     uint64_t local_object;
-    local_object = object;
     size_t local_location;
-    local_location = location;
     int32_t local_messageCode;
-    local_messageCode = messageCode;
     char* local_pLayerPrefix;
+    char* local_pMessage;
+    local_instance = instance;
+    local_flags = flags;
+    local_objectType = objectType;
+    local_object = object;
+    local_location = location;
+    local_messageCode = messageCode;
     local_pLayerPrefix = nullptr;
     if (pLayerPrefix)
     {
         local_pLayerPrefix = pool->strDup(pLayerPrefix);
     }
-    char* local_pMessage;
     local_pMessage = nullptr;
     if (pMessage)
     {
@@ -15558,8 +15560,8 @@ VkResult VkEncoder::vkDebugMarkerSetObjectTagEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDebugMarkerObjectTagInfoEXT* local_pTagInfo;
+    local_device = device;
     local_pTagInfo = nullptr;
     if (pTagInfo)
     {
@@ -15600,8 +15602,8 @@ VkResult VkEncoder::vkDebugMarkerSetObjectNameEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDebugMarkerObjectNameInfoEXT* local_pNameInfo;
+    local_device = device;
     local_pNameInfo = nullptr;
     if (pNameInfo)
     {
@@ -15642,8 +15644,8 @@ void VkEncoder::vkCmdDebugMarkerBeginEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkDebugMarkerMarkerInfoEXT* local_pMarkerInfo;
+    local_commandBuffer = commandBuffer;
     local_pMarkerInfo = nullptr;
     if (pMarkerInfo)
     {
@@ -15704,8 +15706,8 @@ void VkEncoder::vkCmdDebugMarkerInsertEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkDebugMarkerMarkerInfoEXT* local_pMarkerInfo;
+    local_commandBuffer = commandBuffer;
     local_pMarkerInfo = nullptr;
     if (pMarkerInfo)
     {
@@ -15751,18 +15753,18 @@ void VkEncoder::vkCmdDrawIndirectCountAMD(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkBuffer local_buffer;
-    local_buffer = buffer;
     VkDeviceSize local_offset;
-    local_offset = offset;
     VkBuffer local_countBuffer;
-    local_countBuffer = countBuffer;
     VkDeviceSize local_countBufferOffset;
-    local_countBufferOffset = countBufferOffset;
     uint32_t local_maxDrawCount;
-    local_maxDrawCount = maxDrawCount;
     uint32_t local_stride;
+    local_commandBuffer = commandBuffer;
+    local_buffer = buffer;
+    local_offset = offset;
+    local_countBuffer = countBuffer;
+    local_countBufferOffset = countBufferOffset;
+    local_maxDrawCount = maxDrawCount;
     local_stride = stride;
     countingStream->rewind();
     {
@@ -15815,18 +15817,18 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountAMD(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkBuffer local_buffer;
-    local_buffer = buffer;
     VkDeviceSize local_offset;
-    local_offset = offset;
     VkBuffer local_countBuffer;
-    local_countBuffer = countBuffer;
     VkDeviceSize local_countBufferOffset;
-    local_countBufferOffset = countBufferOffset;
     uint32_t local_maxDrawCount;
-    local_maxDrawCount = maxDrawCount;
     uint32_t local_stride;
+    local_commandBuffer = commandBuffer;
+    local_buffer = buffer;
+    local_offset = offset;
+    local_countBuffer = countBuffer;
+    local_countBufferOffset = countBufferOffset;
+    local_maxDrawCount = maxDrawCount;
     local_stride = stride;
     countingStream->rewind();
     {
@@ -15888,12 +15890,12 @@ VkResult VkEncoder::vkGetShaderInfoAMD(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkPipeline local_pipeline;
-    local_pipeline = pipeline;
     VkShaderStageFlagBits local_shaderStage;
-    local_shaderStage = shaderStage;
     VkShaderInfoTypeAMD local_infoType;
+    local_device = device;
+    local_pipeline = pipeline;
+    local_shaderStage = shaderStage;
     local_infoType = infoType;
     countingStream->rewind();
     {
@@ -16001,18 +16003,18 @@ VkResult VkEncoder::vkGetPhysicalDeviceExternalImageFormatPropertiesNV(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkFormat local_format;
-    local_format = format;
     VkImageType local_type;
-    local_type = type;
     VkImageTiling local_tiling;
-    local_tiling = tiling;
     VkImageUsageFlags local_usage;
-    local_usage = usage;
     VkImageCreateFlags local_flags;
-    local_flags = flags;
     VkExternalMemoryHandleTypeFlagsNV local_externalHandleType;
+    local_physicalDevice = physicalDevice;
+    local_format = format;
+    local_type = type;
+    local_tiling = tiling;
+    local_usage = usage;
+    local_flags = flags;
     local_externalHandleType = externalHandleType;
     countingStream->rewind();
     {
@@ -16067,10 +16069,10 @@ VkResult VkEncoder::vkGetMemoryWin32HandleNV(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDeviceMemory local_memory;
-    local_memory = memory;
     VkExternalMemoryHandleTypeFlagsNV local_handleType;
+    local_device = device;
+    local_memory = memory;
     local_handleType = handleType;
     countingStream->rewind();
     {
@@ -16123,15 +16125,15 @@ VkResult VkEncoder::vkCreateViSurfaceNN(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstance local_instance;
-    local_instance = instance;
     VkViSurfaceCreateInfoNN* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkViSurfaceCreateInfoNN*)pool->alloc(sizeof(const VkViSurfaceCreateInfoNN));
         deepcopy_VkViSurfaceCreateInfoNN(pool, pCreateInfo, (VkViSurfaceCreateInfoNN*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -16204,8 +16206,8 @@ void VkEncoder::vkCmdBeginConditionalRenderingEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkConditionalRenderingBeginInfoEXT* local_pConditionalRenderingBegin;
+    local_commandBuffer = commandBuffer;
     local_pConditionalRenderingBegin = nullptr;
     if (pConditionalRenderingBegin)
     {
@@ -16268,8 +16270,8 @@ void VkEncoder::vkCmdProcessCommandsNVX(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkCmdProcessCommandsInfoNVX* local_pProcessCommandsInfo;
+    local_commandBuffer = commandBuffer;
     local_pProcessCommandsInfo = nullptr;
     if (pProcessCommandsInfo)
     {
@@ -16304,8 +16306,8 @@ void VkEncoder::vkCmdReserveSpaceForCommandsNVX(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkCmdReserveSpaceForCommandsInfoNVX* local_pReserveSpaceInfo;
+    local_commandBuffer = commandBuffer;
     local_pReserveSpaceInfo = nullptr;
     if (pReserveSpaceInfo)
     {
@@ -16342,15 +16344,15 @@ VkResult VkEncoder::vkCreateIndirectCommandsLayoutNVX(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkIndirectCommandsLayoutCreateInfoNVX* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkIndirectCommandsLayoutCreateInfoNVX*)pool->alloc(sizeof(const VkIndirectCommandsLayoutCreateInfoNVX));
         deepcopy_VkIndirectCommandsLayoutCreateInfoNVX(pool, pCreateInfo, (VkIndirectCommandsLayoutCreateInfoNVX*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -16420,10 +16422,10 @@ void VkEncoder::vkDestroyIndirectCommandsLayoutNVX(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkIndirectCommandsLayoutNVX local_indirectCommandsLayout;
-    local_indirectCommandsLayout = indirectCommandsLayout;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_indirectCommandsLayout = indirectCommandsLayout;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -16480,15 +16482,15 @@ VkResult VkEncoder::vkCreateObjectTableNVX(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkObjectTableCreateInfoNVX* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkObjectTableCreateInfoNVX*)pool->alloc(sizeof(const VkObjectTableCreateInfoNVX));
         deepcopy_VkObjectTableCreateInfoNVX(pool, pCreateInfo, (VkObjectTableCreateInfoNVX*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -16558,10 +16560,10 @@ void VkEncoder::vkDestroyObjectTableNVX(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkObjectTableNVX local_objectTable;
-    local_objectTable = objectTable;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_objectTable = objectTable;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -16619,14 +16621,14 @@ VkResult VkEncoder::vkRegisterObjectsNVX(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkObjectTableNVX local_objectTable;
-    local_objectTable = objectTable;
     uint32_t local_objectCount;
-    local_objectCount = objectCount;
     VkObjectTableEntryNVX** local_ppObjectTableEntries;
-    (void)ppObjectTableEntries;
     uint32_t* local_pObjectIndices;
+    local_device = device;
+    local_objectTable = objectTable;
+    local_objectCount = objectCount;
+    (void)ppObjectTableEntries;
     local_pObjectIndices = nullptr;
     if (pObjectIndices)
     {
@@ -16679,18 +16681,18 @@ VkResult VkEncoder::vkUnregisterObjectsNVX(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkObjectTableNVX local_objectTable;
-    local_objectTable = objectTable;
     uint32_t local_objectCount;
-    local_objectCount = objectCount;
     VkObjectEntryTypeNVX* local_pObjectEntryTypes;
+    uint32_t* local_pObjectIndices;
+    local_device = device;
+    local_objectTable = objectTable;
+    local_objectCount = objectCount;
     local_pObjectEntryTypes = nullptr;
     if (pObjectEntryTypes)
     {
         local_pObjectEntryTypes = (VkObjectEntryTypeNVX*)pool->dupArray(pObjectEntryTypes, ((objectCount)) * sizeof(const VkObjectEntryTypeNVX));
     }
-    uint32_t* local_pObjectIndices;
     local_pObjectIndices = nullptr;
     if (pObjectIndices)
     {
@@ -16778,12 +16780,12 @@ void VkEncoder::vkCmdSetViewportWScalingNV(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     uint32_t local_firstViewport;
-    local_firstViewport = firstViewport;
     uint32_t local_viewportCount;
-    local_viewportCount = viewportCount;
     VkViewportWScalingNV* local_pViewportWScalings;
+    local_commandBuffer = commandBuffer;
+    local_firstViewport = firstViewport;
+    local_viewportCount = viewportCount;
     local_pViewportWScalings = nullptr;
     if (pViewportWScalings)
     {
@@ -16833,8 +16835,8 @@ VkResult VkEncoder::vkReleaseDisplayEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkDisplayKHR local_display;
+    local_physicalDevice = physicalDevice;
     local_display = display;
     countingStream->rewind();
     {
@@ -16877,8 +16879,8 @@ VkResult VkEncoder::vkAcquireXlibDisplayEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkDisplayKHR local_display;
+    local_physicalDevice = physicalDevice;
     local_display = display;
     countingStream->rewind();
     {
@@ -16923,8 +16925,8 @@ VkResult VkEncoder::vkGetRandROutputDisplayEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     RROutput local_rrOutput;
+    local_physicalDevice = physicalDevice;
     local_rrOutput = rrOutput;
     countingStream->rewind();
     {
@@ -16977,8 +16979,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2EXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkSurfaceKHR local_surface;
+    local_physicalDevice = physicalDevice;
     local_surface = surface;
     countingStream->rewind();
     {
@@ -17024,10 +17026,10 @@ VkResult VkEncoder::vkDisplayPowerControlEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDisplayKHR local_display;
-    local_display = display;
     VkDisplayPowerInfoEXT* local_pDisplayPowerInfo;
+    local_device = device;
+    local_display = display;
     local_pDisplayPowerInfo = nullptr;
     if (pDisplayPowerInfo)
     {
@@ -17076,15 +17078,15 @@ VkResult VkEncoder::vkRegisterDeviceEventEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDeviceEventInfoEXT* local_pDeviceEventInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pDeviceEventInfo = nullptr;
     if (pDeviceEventInfo)
     {
         local_pDeviceEventInfo = (VkDeviceEventInfoEXT*)pool->alloc(sizeof(const VkDeviceEventInfoEXT));
         deepcopy_VkDeviceEventInfoEXT(pool, pDeviceEventInfo, (VkDeviceEventInfoEXT*)(local_pDeviceEventInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -17154,17 +17156,17 @@ VkResult VkEncoder::vkRegisterDisplayEventEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDisplayKHR local_display;
-    local_display = display;
     VkDisplayEventInfoEXT* local_pDisplayEventInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_display = display;
     local_pDisplayEventInfo = nullptr;
     if (pDisplayEventInfo)
     {
         local_pDisplayEventInfo = (VkDisplayEventInfoEXT*)pool->alloc(sizeof(const VkDisplayEventInfoEXT));
         deepcopy_VkDisplayEventInfoEXT(pool, pDisplayEventInfo, (VkDisplayEventInfoEXT*)(local_pDisplayEventInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -17239,10 +17241,10 @@ VkResult VkEncoder::vkGetSwapchainCounterEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkSwapchainKHR local_swapchain;
-    local_swapchain = swapchain;
     VkSurfaceCounterFlagBitsEXT local_counter;
+    local_device = device;
+    local_swapchain = swapchain;
     local_counter = counter;
     countingStream->rewind();
     {
@@ -17290,8 +17292,8 @@ VkResult VkEncoder::vkGetRefreshCycleDurationGOOGLE(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkSwapchainKHR local_swapchain;
+    local_device = device;
     local_swapchain = swapchain;
     countingStream->rewind();
     {
@@ -17336,8 +17338,8 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkSwapchainKHR local_swapchain;
+    local_device = device;
     local_swapchain = swapchain;
     countingStream->rewind();
     {
@@ -17450,12 +17452,12 @@ void VkEncoder::vkCmdSetDiscardRectangleEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     uint32_t local_firstDiscardRectangle;
-    local_firstDiscardRectangle = firstDiscardRectangle;
     uint32_t local_discardRectangleCount;
-    local_discardRectangleCount = discardRectangleCount;
     VkRect2D* local_pDiscardRectangles;
+    local_commandBuffer = commandBuffer;
+    local_firstDiscardRectangle = firstDiscardRectangle;
+    local_discardRectangleCount = discardRectangleCount;
     local_pDiscardRectangles = nullptr;
     if (pDiscardRectangles)
     {
@@ -17511,16 +17513,16 @@ void VkEncoder::vkSetHdrMetadataEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     uint32_t local_swapchainCount;
-    local_swapchainCount = swapchainCount;
     VkSwapchainKHR* local_pSwapchains;
+    VkHdrMetadataEXT* local_pMetadata;
+    local_device = device;
+    local_swapchainCount = swapchainCount;
     local_pSwapchains = nullptr;
     if (pSwapchains)
     {
         local_pSwapchains = (VkSwapchainKHR*)pool->dupArray(pSwapchains, ((swapchainCount)) * sizeof(const VkSwapchainKHR));
     }
-    VkHdrMetadataEXT* local_pMetadata;
     local_pMetadata = nullptr;
     if (pMetadata)
     {
@@ -17584,15 +17586,15 @@ VkResult VkEncoder::vkCreateIOSSurfaceMVK(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstance local_instance;
-    local_instance = instance;
     VkIOSSurfaceCreateInfoMVK* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkIOSSurfaceCreateInfoMVK*)pool->alloc(sizeof(const VkIOSSurfaceCreateInfoMVK));
         deepcopy_VkIOSSurfaceCreateInfoMVK(pool, pCreateInfo, (VkIOSSurfaceCreateInfoMVK*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -17663,15 +17665,15 @@ VkResult VkEncoder::vkCreateMacOSSurfaceMVK(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstance local_instance;
-    local_instance = instance;
     VkMacOSSurfaceCreateInfoMVK* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkMacOSSurfaceCreateInfoMVK*)pool->alloc(sizeof(const VkMacOSSurfaceCreateInfoMVK));
         deepcopy_VkMacOSSurfaceCreateInfoMVK(pool, pCreateInfo, (VkMacOSSurfaceCreateInfoMVK*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -17744,8 +17746,8 @@ VkResult VkEncoder::vkSetDebugUtilsObjectNameEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDebugUtilsObjectNameInfoEXT* local_pNameInfo;
+    local_device = device;
     local_pNameInfo = nullptr;
     if (pNameInfo)
     {
@@ -17786,8 +17788,8 @@ VkResult VkEncoder::vkSetDebugUtilsObjectTagEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkDebugUtilsObjectTagInfoEXT* local_pTagInfo;
+    local_device = device;
     local_pTagInfo = nullptr;
     if (pTagInfo)
     {
@@ -17828,8 +17830,8 @@ void VkEncoder::vkQueueBeginDebugUtilsLabelEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkQueue local_queue;
-    local_queue = queue;
     VkDebugUtilsLabelEXT* local_pLabelInfo;
+    local_queue = queue;
     local_pLabelInfo = nullptr;
     if (pLabelInfo)
     {
@@ -17890,8 +17892,8 @@ void VkEncoder::vkQueueInsertDebugUtilsLabelEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkQueue local_queue;
-    local_queue = queue;
     VkDebugUtilsLabelEXT* local_pLabelInfo;
+    local_queue = queue;
     local_pLabelInfo = nullptr;
     if (pLabelInfo)
     {
@@ -17926,8 +17928,8 @@ void VkEncoder::vkCmdBeginDebugUtilsLabelEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkDebugUtilsLabelEXT* local_pLabelInfo;
+    local_commandBuffer = commandBuffer;
     local_pLabelInfo = nullptr;
     if (pLabelInfo)
     {
@@ -17988,8 +17990,8 @@ void VkEncoder::vkCmdInsertDebugUtilsLabelEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkDebugUtilsLabelEXT* local_pLabelInfo;
+    local_commandBuffer = commandBuffer;
     local_pLabelInfo = nullptr;
     if (pLabelInfo)
     {
@@ -18026,15 +18028,15 @@ VkResult VkEncoder::vkCreateDebugUtilsMessengerEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstance local_instance;
-    local_instance = instance;
     VkDebugUtilsMessengerCreateInfoEXT* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDebugUtilsMessengerCreateInfoEXT*)pool->alloc(sizeof(const VkDebugUtilsMessengerCreateInfoEXT));
         deepcopy_VkDebugUtilsMessengerCreateInfoEXT(pool, pCreateInfo, (VkDebugUtilsMessengerCreateInfoEXT*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -18104,10 +18106,10 @@ void VkEncoder::vkDestroyDebugUtilsMessengerEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstance local_instance;
-    local_instance = instance;
     VkDebugUtilsMessengerEXT local_messenger;
-    local_messenger = messenger;
     VkAllocationCallbacks* local_pAllocator;
+    local_instance = instance;
+    local_messenger = messenger;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -18164,12 +18166,12 @@ void VkEncoder::vkSubmitDebugUtilsMessageEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkInstance local_instance;
-    local_instance = instance;
     VkDebugUtilsMessageSeverityFlagBitsEXT local_messageSeverity;
-    local_messageSeverity = messageSeverity;
     VkDebugUtilsMessageTypeFlagsEXT local_messageTypes;
-    local_messageTypes = messageTypes;
     VkDebugUtilsMessengerCallbackDataEXT* local_pCallbackData;
+    local_instance = instance;
+    local_messageSeverity = messageSeverity;
+    local_messageTypes = messageTypes;
     local_pCallbackData = nullptr;
     if (pCallbackData)
     {
@@ -18211,8 +18213,8 @@ VkResult VkEncoder::vkGetAndroidHardwareBufferPropertiesANDROID(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     AHardwareBuffer* local_buffer;
+    local_device = device;
     local_buffer = nullptr;
     if (buffer)
     {
@@ -18256,8 +18258,8 @@ VkResult VkEncoder::vkGetMemoryAndroidHardwareBufferANDROID(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkMemoryGetAndroidHardwareBufferInfoANDROID* local_pInfo;
+    local_device = device;
     local_pInfo = nullptr;
     if (pInfo)
     {
@@ -18313,8 +18315,8 @@ void VkEncoder::vkCmdSetSampleLocationsEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkSampleLocationsInfoEXT* local_pSampleLocationsInfo;
+    local_commandBuffer = commandBuffer;
     local_pSampleLocationsInfo = nullptr;
     if (pSampleLocationsInfo)
     {
@@ -18350,8 +18352,8 @@ void VkEncoder::vkGetPhysicalDeviceMultisamplePropertiesEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkPhysicalDevice local_physicalDevice;
-    local_physicalDevice = physicalDevice;
     VkSampleCountFlagBits local_samples;
+    local_physicalDevice = physicalDevice;
     local_samples = samples;
     countingStream->rewind();
     {
@@ -18398,15 +18400,15 @@ VkResult VkEncoder::vkCreateValidationCacheEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkValidationCacheCreateInfoEXT* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkValidationCacheCreateInfoEXT*)pool->alloc(sizeof(const VkValidationCacheCreateInfoEXT));
         deepcopy_VkValidationCacheCreateInfoEXT(pool, pCreateInfo, (VkValidationCacheCreateInfoEXT*)(local_pCreateInfo));
     }
-    VkAllocationCallbacks* local_pAllocator;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -18476,10 +18478,10 @@ void VkEncoder::vkDestroyValidationCacheEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkValidationCacheEXT local_validationCache;
-    local_validationCache = validationCache;
     VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_validationCache = validationCache;
     local_pAllocator = nullptr;
     if (pAllocator)
     {
@@ -18536,12 +18538,12 @@ VkResult VkEncoder::vkMergeValidationCachesEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkValidationCacheEXT local_dstCache;
-    local_dstCache = dstCache;
     uint32_t local_srcCacheCount;
-    local_srcCacheCount = srcCacheCount;
     VkValidationCacheEXT* local_pSrcCaches;
+    local_device = device;
+    local_dstCache = dstCache;
+    local_srcCacheCount = srcCacheCount;
     local_pSrcCaches = nullptr;
     if (pSrcCaches)
     {
@@ -18603,8 +18605,8 @@ VkResult VkEncoder::vkGetValidationCacheDataEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkValidationCacheEXT local_validationCache;
+    local_device = device;
     local_validationCache = validationCache;
     countingStream->rewind();
     {
@@ -18706,10 +18708,10 @@ VkResult VkEncoder::vkGetMemoryHostPointerPropertiesEXT(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkDevice local_device;
-    local_device = device;
     VkExternalMemoryHandleTypeFlagBits local_handleType;
-    local_handleType = handleType;
     void* local_pHostPointer;
+    local_device = device;
+    local_handleType = handleType;
     local_pHostPointer = nullptr;
     if (pHostPointer)
     {
@@ -18771,14 +18773,14 @@ void VkEncoder::vkCmdWriteBufferMarkerAMD(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     VkPipelineStageFlagBits local_pipelineStage;
-    local_pipelineStage = pipelineStage;
     VkBuffer local_dstBuffer;
-    local_dstBuffer = dstBuffer;
     VkDeviceSize local_dstOffset;
-    local_dstOffset = dstOffset;
     uint32_t local_marker;
+    local_commandBuffer = commandBuffer;
+    local_pipelineStage = pipelineStage;
+    local_dstBuffer = dstBuffer;
+    local_dstOffset = dstOffset;
     local_marker = marker;
     countingStream->rewind();
     {
@@ -18826,8 +18828,8 @@ void VkEncoder::vkCmdSetCheckpointNV(
     auto pool = mImpl->pool();
     stream->setHandleMapping(resources->unwrapMapping());
     VkCommandBuffer local_commandBuffer;
-    local_commandBuffer = commandBuffer;
     void* local_pCheckpointMarker;
+    local_commandBuffer = commandBuffer;
     local_pCheckpointMarker = nullptr;
     if (pCheckpointMarker)
     {

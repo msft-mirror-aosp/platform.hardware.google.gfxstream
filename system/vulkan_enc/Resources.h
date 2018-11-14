@@ -128,4 +128,11 @@ void goldfish_vkUnmapMemory(
     void* opaque,
     VkDevice device,
     VkDeviceMemory memory);
+
+void goldfish_unwrap_VkNativeBufferANDROID(
+    const VkImageCreateInfo* pCreateInfo,
+    VkImageCreateInfo* local_pCreateInfo);
+
+void goldfish_unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int* fd_out);
+
 } // extern "C"
