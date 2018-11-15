@@ -43,6 +43,7 @@ LOCAL_CFLAGS += \
 LOCAL_SRC_FILES := Resources.cpp VulkanStream.cpp \
     ResourceTracker.cpp \
 VkEncoder.cpp \
+goldfish_vk_extension_structs_guest.cpp \
 goldfish_vk_marshaling_guest.cpp \
 goldfish_vk_deepcopy_guest.cpp \
 goldfish_vk_handlemap_guest.cpp \
