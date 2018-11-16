@@ -27,6 +27,8 @@
 #include <vulkan/vulkan.h>
 
 
+#include "vk_platform_compat.h"
+
 #include "android/base/Pool.h"
 using android::base::Pool;
 // Stuff we are not going to use but if included,
