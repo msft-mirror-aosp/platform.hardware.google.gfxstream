@@ -27,6 +27,8 @@
 #include <vulkan/vulkan.h>
 
 
+#include "vk_platform_compat.h"
+
 #include "goldfish_vk_marshaling_guest.h"
 #include "VulkanStream.h"
 
