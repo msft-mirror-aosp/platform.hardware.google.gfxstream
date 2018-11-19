@@ -16,14 +16,9 @@
 #include <hardware/hwvulkan.h>
 #include <vulkan/vulkan.h>
 
-extern "C" {
+#include "VulkanHandles.h"
 
-#define GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(f) \
-    f(VkInstance) \
-    f(VkPhysicalDevice) \
-    f(VkDevice) \
-    f(VkQueue) \
-    f(VkCommandBuffer) \
+extern "C" {
 
 #define GOLDFISH_VK_DEFINE_DISPATCHABLE_HANDLE_STRUCT(type) \
     struct goldfish_##type { \
@@ -35,42 +30,6 @@ extern "C" {
     struct goldfish_##type { \
         type underlying; \
     }; \
-
-#define GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(f) \
-    f(VkBuffer) \
-    f(VkBufferView) \
-    f(VkImage) \
-    f(VkImageView) \
-    f(VkShaderModule) \
-    f(VkDescriptorPool) \
-    f(VkDescriptorSetLayout) \
-    f(VkDescriptorSet) \
-    f(VkSampler) \
-    f(VkPipeline) \
-    f(VkPipelineCache) \
-    f(VkPipelineLayout) \
-    f(VkRenderPass) \
-    f(VkFramebuffer) \
-    f(VkCommandPool) \
-    f(VkFence) \
-    f(VkSemaphore) \
-    f(VkEvent) \
-    f(VkQueryPool) \
-    f(VkSamplerYcbcrConversion) \
-    f(VkDescriptorUpdateTemplate) \
-    f(VkSurfaceKHR) \
-    f(VkSwapchainKHR) \
-    f(VkDisplayKHR) \
-    f(VkDisplayModeKHR) \
-    f(VkObjectTableNVX) \
-    f(VkIndirectCommandsLayoutNVX) \
-    f(VkValidationCacheEXT) \
-    f(VkDebugReportCallbackEXT) \
-    f(VkDebugUtilsMessengerEXT) \
-
-#define GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(f) \
-    f(VkDeviceMemory) \
-    GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(f) \
 
 #define GOLDFISH_VK_NEW_FROM_HOST_DECL(type) \
     type new_from_host_##type(type);
@@ -84,16 +43,21 @@ extern "C" {
 #define GOLDFISH_VK_DELETE_GOLDFISH_DECL(type) \
     void delete_goldfish_##type(type);
 
+#define GOLDFISH_VK_IDENTITY_DECL(type) \
+    type vk_handle_identity_##type(type);
+
 GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_DEFINE_DISPATCHABLE_HANDLE_STRUCT)
 GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_NEW_FROM_HOST_DECL)
 GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_AS_GOLDFISH_DECL)
 GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_GET_HOST_DECL)
 GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_DELETE_GOLDFISH_DECL)
+GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_IDENTITY_DECL)
 
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_NEW_FROM_HOST_DECL)
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_AS_GOLDFISH_DECL)
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_GET_HOST_DECL)
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_DELETE_GOLDFISH_DECL)
+GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_IDENTITY_DECL)
 
 GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_DEFINE_TRIVIAL_NON_DISPATCHABLE_HANDLE_STRUCT)
 
