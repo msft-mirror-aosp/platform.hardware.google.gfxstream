@@ -99,11 +99,14 @@ VkResult VkEncoder::vkCreateInstance(
     countingStream->rewind();
     {
         marshal_VkInstanceCreateInfo(countingStream, (VkInstanceCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_0 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_0);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkInstance*)pInstance, sizeof(VkInstance));
     }
     uint32_t packetSize_vkCreateInstance = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -112,12 +115,16 @@ VkResult VkEncoder::vkCreateInstance(
     stream->write(&opcode_vkCreateInstance, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateInstance, sizeof(uint32_t));
     marshal_VkInstanceCreateInfo(stream, (VkInstanceCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_1);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkInstance*)pInstance, sizeof(VkInstance));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkInstance*)pInstance, sizeof(VkInstance));
     if (pInstance)
     {
@@ -154,8 +161,11 @@ void VkEncoder::vkDestroyInstance(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_2 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_2);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_3 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_3);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -166,8 +176,11 @@ void VkEncoder::vkDestroyInstance(
     uint32_t opcode_vkDestroyInstance = OP_vkDestroyInstance;
     stream->write(&opcode_vkDestroyInstance, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyInstance, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_4 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_4);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_5 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_5);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -190,15 +203,21 @@ VkResult VkEncoder::vkEnumeratePhysicalDevices(
     resources->unwrapMapping()->mapHandles_VkInstance((VkInstance*)&local_instance);
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
-        countingStream->write((uint32_t**)&pPhysicalDeviceCount, sizeof(uint32_t*));
+        uint64_t cgen_var_6 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_6);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_7 = (uint64_t)(uintptr_t)pPhysicalDeviceCount;
+        countingStream->putBe64(cgen_var_7);
         if (pPhysicalDeviceCount)
         {
             countingStream->write((uint32_t*)pPhysicalDeviceCount, sizeof(uint32_t));
         }
-        countingStream->write((VkPhysicalDevice**)&pPhysicalDevices, sizeof(VkPhysicalDevice*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_8 = (uint64_t)(uintptr_t)pPhysicalDevices;
+        countingStream->putBe64(cgen_var_8);
         if (pPhysicalDevices)
         {
+            // WARNING HANDLE TYPE POINTER
             countingStream->write((VkPhysicalDevice*)pPhysicalDevices, (*(pPhysicalDeviceCount)) * sizeof(VkPhysicalDevice));
         }
     }
@@ -207,19 +226,26 @@ VkResult VkEncoder::vkEnumeratePhysicalDevices(
     uint32_t opcode_vkEnumeratePhysicalDevices = OP_vkEnumeratePhysicalDevices;
     stream->write(&opcode_vkEnumeratePhysicalDevices, sizeof(uint32_t));
     stream->write(&packetSize_vkEnumeratePhysicalDevices, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
-    stream->write((uint32_t**)&pPhysicalDeviceCount, sizeof(uint32_t*));
+    uint64_t cgen_var_9 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_9);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_10 = (uint64_t)(uintptr_t)pPhysicalDeviceCount;
+    stream->putBe64(cgen_var_10);
     if (pPhysicalDeviceCount)
     {
         stream->write((uint32_t*)pPhysicalDeviceCount, sizeof(uint32_t));
     }
-    stream->write((VkPhysicalDevice**)&pPhysicalDevices, sizeof(VkPhysicalDevice*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_11 = (uint64_t)(uintptr_t)pPhysicalDevices;
+    stream->putBe64(cgen_var_11);
     if (pPhysicalDevices)
     {
+        // WARNING HANDLE TYPE POINTER
         stream->write((VkPhysicalDevice*)pPhysicalDevices, (*(pPhysicalDeviceCount)) * sizeof(VkPhysicalDevice));
     }
+    // WARNING PTR CHECK
     uint32_t* check_pPhysicalDeviceCount;
-    stream->read((uint32_t**)&check_pPhysicalDeviceCount, sizeof(uint32_t*));
+    check_pPhysicalDeviceCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pPhysicalDeviceCount)
     {
         if (!(check_pPhysicalDeviceCount))
@@ -228,14 +254,16 @@ VkResult VkEncoder::vkEnumeratePhysicalDevices(
         }
         stream->read((uint32_t*)pPhysicalDeviceCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkPhysicalDevice* check_pPhysicalDevices;
-    stream->read((VkPhysicalDevice**)&check_pPhysicalDevices, sizeof(VkPhysicalDevice*));
+    check_pPhysicalDevices = (VkPhysicalDevice*)(uintptr_t)stream->getBe64();
     if (pPhysicalDevices)
     {
         if (!(check_pPhysicalDevices))
         {
             fprintf(stderr, "fatal: pPhysicalDevices inconsistent between guest and host\n");
         }
+        // WARNING HANDLE TYPE POINTER
         stream->read((VkPhysicalDevice*)pPhysicalDevices, (*(pPhysicalDeviceCount)) * sizeof(VkPhysicalDevice));
     }
     if (pPhysicalDevices)
@@ -261,7 +289,8 @@ void VkEncoder::vkGetPhysicalDeviceFeatures(
     resources->unwrapMapping()->mapHandles_VkPhysicalDevice((VkPhysicalDevice*)&local_physicalDevice);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_14 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_14);
         marshal_VkPhysicalDeviceFeatures(countingStream, (VkPhysicalDeviceFeatures*)(pFeatures));
     }
     uint32_t packetSize_vkGetPhysicalDeviceFeatures = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -269,7 +298,8 @@ void VkEncoder::vkGetPhysicalDeviceFeatures(
     uint32_t opcode_vkGetPhysicalDeviceFeatures = OP_vkGetPhysicalDeviceFeatures;
     stream->write(&opcode_vkGetPhysicalDeviceFeatures, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceFeatures, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_15 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_15);
     marshal_VkPhysicalDeviceFeatures(stream, (VkPhysicalDeviceFeatures*)(pFeatures));
     unmarshal_VkPhysicalDeviceFeatures(stream, (VkPhysicalDeviceFeatures*)(pFeatures));
     pool->freeAll();
@@ -291,7 +321,8 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties(
     local_format = format;
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_16 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_16);
         countingStream->write((VkFormat*)&local_format, sizeof(VkFormat));
         marshal_VkFormatProperties(countingStream, (VkFormatProperties*)(pFormatProperties));
     }
@@ -300,7 +331,8 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties(
     uint32_t opcode_vkGetPhysicalDeviceFormatProperties = OP_vkGetPhysicalDeviceFormatProperties;
     stream->write(&opcode_vkGetPhysicalDeviceFormatProperties, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceFormatProperties, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_17 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_17);
     stream->write((VkFormat*)&local_format, sizeof(VkFormat));
     marshal_VkFormatProperties(stream, (VkFormatProperties*)(pFormatProperties));
     unmarshal_VkFormatProperties(stream, (VkFormatProperties*)(pFormatProperties));
@@ -335,7 +367,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties(
     local_flags = flags;
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_18 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_18);
         countingStream->write((VkFormat*)&local_format, sizeof(VkFormat));
         countingStream->write((VkImageType*)&local_type, sizeof(VkImageType));
         countingStream->write((VkImageTiling*)&local_tiling, sizeof(VkImageTiling));
@@ -348,7 +381,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties(
     uint32_t opcode_vkGetPhysicalDeviceImageFormatProperties = OP_vkGetPhysicalDeviceImageFormatProperties;
     stream->write(&opcode_vkGetPhysicalDeviceImageFormatProperties, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceImageFormatProperties, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_19 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_19);
     stream->write((VkFormat*)&local_format, sizeof(VkFormat));
     stream->write((VkImageType*)&local_type, sizeof(VkImageType));
     stream->write((VkImageTiling*)&local_tiling, sizeof(VkImageTiling));
@@ -375,7 +409,8 @@ void VkEncoder::vkGetPhysicalDeviceProperties(
     resources->unwrapMapping()->mapHandles_VkPhysicalDevice((VkPhysicalDevice*)&local_physicalDevice);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_20 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_20);
         marshal_VkPhysicalDeviceProperties(countingStream, (VkPhysicalDeviceProperties*)(pProperties));
     }
     uint32_t packetSize_vkGetPhysicalDeviceProperties = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -383,7 +418,8 @@ void VkEncoder::vkGetPhysicalDeviceProperties(
     uint32_t opcode_vkGetPhysicalDeviceProperties = OP_vkGetPhysicalDeviceProperties;
     stream->write(&opcode_vkGetPhysicalDeviceProperties, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceProperties, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_21 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_21);
     marshal_VkPhysicalDeviceProperties(stream, (VkPhysicalDeviceProperties*)(pProperties));
     unmarshal_VkPhysicalDeviceProperties(stream, (VkPhysicalDeviceProperties*)(pProperties));
     pool->freeAll();
@@ -403,13 +439,18 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
     resources->unwrapMapping()->mapHandles_VkPhysicalDevice((VkPhysicalDevice*)&local_physicalDevice);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-        countingStream->write((uint32_t**)&pQueueFamilyPropertyCount, sizeof(uint32_t*));
+        uint64_t cgen_var_22 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_22);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_23 = (uint64_t)(uintptr_t)pQueueFamilyPropertyCount;
+        countingStream->putBe64(cgen_var_23);
         if (pQueueFamilyPropertyCount)
         {
             countingStream->write((uint32_t*)pQueueFamilyPropertyCount, sizeof(uint32_t));
         }
-        countingStream->write((VkQueueFamilyProperties**)&pQueueFamilyProperties, sizeof(VkQueueFamilyProperties*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_24 = (uint64_t)(uintptr_t)pQueueFamilyProperties;
+        countingStream->putBe64(cgen_var_24);
         if (pQueueFamilyProperties)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
@@ -423,13 +464,18 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
     uint32_t opcode_vkGetPhysicalDeviceQueueFamilyProperties = OP_vkGetPhysicalDeviceQueueFamilyProperties;
     stream->write(&opcode_vkGetPhysicalDeviceQueueFamilyProperties, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceQueueFamilyProperties, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-    stream->write((uint32_t**)&pQueueFamilyPropertyCount, sizeof(uint32_t*));
+    uint64_t cgen_var_25 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_25);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_26 = (uint64_t)(uintptr_t)pQueueFamilyPropertyCount;
+    stream->putBe64(cgen_var_26);
     if (pQueueFamilyPropertyCount)
     {
         stream->write((uint32_t*)pQueueFamilyPropertyCount, sizeof(uint32_t));
     }
-    stream->write((VkQueueFamilyProperties**)&pQueueFamilyProperties, sizeof(VkQueueFamilyProperties*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_27 = (uint64_t)(uintptr_t)pQueueFamilyProperties;
+    stream->putBe64(cgen_var_27);
     if (pQueueFamilyProperties)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
@@ -437,8 +483,9 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
             marshal_VkQueueFamilyProperties(stream, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pQueueFamilyPropertyCount;
-    stream->read((uint32_t**)&check_pQueueFamilyPropertyCount, sizeof(uint32_t*));
+    check_pQueueFamilyPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pQueueFamilyPropertyCount)
     {
         if (!(check_pQueueFamilyPropertyCount))
@@ -447,8 +494,9 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
         }
         stream->read((uint32_t*)pQueueFamilyPropertyCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkQueueFamilyProperties* check_pQueueFamilyProperties;
-    stream->read((VkQueueFamilyProperties**)&check_pQueueFamilyProperties, sizeof(VkQueueFamilyProperties*));
+    check_pQueueFamilyProperties = (VkQueueFamilyProperties*)(uintptr_t)stream->getBe64();
     if (pQueueFamilyProperties)
     {
         if (!(check_pQueueFamilyProperties))
@@ -476,7 +524,8 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties(
     resources->unwrapMapping()->mapHandles_VkPhysicalDevice((VkPhysicalDevice*)&local_physicalDevice);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_30 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_30);
         marshal_VkPhysicalDeviceMemoryProperties(countingStream, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties));
     }
     uint32_t packetSize_vkGetPhysicalDeviceMemoryProperties = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -484,7 +533,8 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties(
     uint32_t opcode_vkGetPhysicalDeviceMemoryProperties = OP_vkGetPhysicalDeviceMemoryProperties;
     stream->write(&opcode_vkGetPhysicalDeviceMemoryProperties, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceMemoryProperties, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_31 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_31);
     marshal_VkPhysicalDeviceMemoryProperties(stream, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties));
     unmarshal_VkPhysicalDeviceMemoryProperties(stream, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties));
     pool->freeAll();
@@ -509,7 +559,8 @@ PFN_vkVoidFunction VkEncoder::vkGetInstanceProcAddr(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+        uint64_t cgen_var_32 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_32);
         countingStream->putString(local_pName);
     }
     uint32_t packetSize_vkGetInstanceProcAddr = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -517,7 +568,8 @@ PFN_vkVoidFunction VkEncoder::vkGetInstanceProcAddr(
     uint32_t opcode_vkGetInstanceProcAddr = OP_vkGetInstanceProcAddr;
     stream->write(&opcode_vkGetInstanceProcAddr, sizeof(uint32_t));
     stream->write(&packetSize_vkGetInstanceProcAddr, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+    uint64_t cgen_var_33 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_33);
     stream->putString(local_pName);
     pool->freeAll();
     PFN_vkVoidFunction vkGetInstanceProcAddr_PFN_vkVoidFunction_return = (PFN_vkVoidFunction)0;
@@ -544,7 +596,8 @@ PFN_vkVoidFunction VkEncoder::vkGetDeviceProcAddr(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_34 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_34);
         countingStream->putString(local_pName);
     }
     uint32_t packetSize_vkGetDeviceProcAddr = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -552,7 +605,8 @@ PFN_vkVoidFunction VkEncoder::vkGetDeviceProcAddr(
     uint32_t opcode_vkGetDeviceProcAddr = OP_vkGetDeviceProcAddr;
     stream->write(&opcode_vkGetDeviceProcAddr, sizeof(uint32_t));
     stream->write(&packetSize_vkGetDeviceProcAddr, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_35 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_35);
     stream->putString(local_pName);
     pool->freeAll();
     PFN_vkVoidFunction vkGetDeviceProcAddr_PFN_vkVoidFunction_return = (PFN_vkVoidFunction)0;
@@ -598,13 +652,17 @@ VkResult VkEncoder::vkCreateDevice(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_36 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_36);
         marshal_VkDeviceCreateInfo(countingStream, (VkDeviceCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_37 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_37);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkDevice*)pDevice, sizeof(VkDevice));
     }
     uint32_t packetSize_vkCreateDevice = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -612,14 +670,19 @@ VkResult VkEncoder::vkCreateDevice(
     uint32_t opcode_vkCreateDevice = OP_vkCreateDevice;
     stream->write(&opcode_vkCreateDevice, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateDevice, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_38 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_38);
     marshal_VkDeviceCreateInfo(stream, (VkDeviceCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_39 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_39);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkDevice*)pDevice, sizeof(VkDevice));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkDevice*)pDevice, sizeof(VkDevice));
     if (pDevice)
     {
@@ -656,8 +719,11 @@ void VkEncoder::vkDestroyDevice(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_40 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_40);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_41 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_41);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -668,8 +734,11 @@ void VkEncoder::vkDestroyDevice(
     uint32_t opcode_vkDestroyDevice = OP_vkDestroyDevice;
     stream->write(&opcode_vkDestroyDevice, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyDevice, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_42 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_42);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_43 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_43);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -696,12 +765,16 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
     countingStream->rewind();
     {
         countingStream->putString(local_pLayerName);
-        countingStream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_44 = (uint64_t)(uintptr_t)pPropertyCount;
+        countingStream->putBe64(cgen_var_44);
         if (pPropertyCount)
         {
             countingStream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
         }
-        countingStream->write((VkExtensionProperties**)&pProperties, sizeof(VkExtensionProperties*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_45 = (uint64_t)(uintptr_t)pProperties;
+        countingStream->putBe64(cgen_var_45);
         if (pProperties)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -716,12 +789,16 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
     stream->write(&opcode_vkEnumerateInstanceExtensionProperties, sizeof(uint32_t));
     stream->write(&packetSize_vkEnumerateInstanceExtensionProperties, sizeof(uint32_t));
     stream->putString(local_pLayerName);
-    stream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_46 = (uint64_t)(uintptr_t)pPropertyCount;
+    stream->putBe64(cgen_var_46);
     if (pPropertyCount)
     {
         stream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
-    stream->write((VkExtensionProperties**)&pProperties, sizeof(VkExtensionProperties*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_47 = (uint64_t)(uintptr_t)pProperties;
+    stream->putBe64(cgen_var_47);
     if (pProperties)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -729,8 +806,9 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
             marshal_VkExtensionProperties(stream, (VkExtensionProperties*)(pProperties + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
-    stream->read((uint32_t**)&check_pPropertyCount, sizeof(uint32_t*));
+    check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pPropertyCount)
     {
         if (!(check_pPropertyCount))
@@ -739,8 +817,9 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
         }
         stream->read((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkExtensionProperties* check_pProperties;
-    stream->read((VkExtensionProperties**)&check_pProperties, sizeof(VkExtensionProperties*));
+    check_pProperties = (VkExtensionProperties*)(uintptr_t)stream->getBe64();
     if (pProperties)
     {
         if (!(check_pProperties))
@@ -779,12 +858,16 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
     auto pool = mImpl->pool();
     countingStream->rewind();
     {
-        countingStream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_50 = (uint64_t)(uintptr_t)pPropertyCount;
+        countingStream->putBe64(cgen_var_50);
         if (pPropertyCount)
         {
             countingStream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
         }
-        countingStream->write((VkLayerProperties**)&pProperties, sizeof(VkLayerProperties*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_51 = (uint64_t)(uintptr_t)pProperties;
+        countingStream->putBe64(cgen_var_51);
         if (pProperties)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -798,12 +881,16 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
     uint32_t opcode_vkEnumerateInstanceLayerProperties = OP_vkEnumerateInstanceLayerProperties;
     stream->write(&opcode_vkEnumerateInstanceLayerProperties, sizeof(uint32_t));
     stream->write(&packetSize_vkEnumerateInstanceLayerProperties, sizeof(uint32_t));
-    stream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_52 = (uint64_t)(uintptr_t)pPropertyCount;
+    stream->putBe64(cgen_var_52);
     if (pPropertyCount)
     {
         stream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
-    stream->write((VkLayerProperties**)&pProperties, sizeof(VkLayerProperties*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_53 = (uint64_t)(uintptr_t)pProperties;
+    stream->putBe64(cgen_var_53);
     if (pProperties)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -811,8 +898,9 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
             marshal_VkLayerProperties(stream, (VkLayerProperties*)(pProperties + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
-    stream->read((uint32_t**)&check_pPropertyCount, sizeof(uint32_t*));
+    check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pPropertyCount)
     {
         if (!(check_pPropertyCount))
@@ -821,8 +909,9 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
         }
         stream->read((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkLayerProperties* check_pProperties;
-    stream->read((VkLayerProperties**)&check_pProperties, sizeof(VkLayerProperties*));
+    check_pProperties = (VkLayerProperties*)(uintptr_t)stream->getBe64();
     if (pProperties)
     {
         if (!(check_pProperties))
@@ -854,13 +943,18 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
     resources->unwrapMapping()->mapHandles_VkPhysicalDevice((VkPhysicalDevice*)&local_physicalDevice);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-        countingStream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+        uint64_t cgen_var_56 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_56);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_57 = (uint64_t)(uintptr_t)pPropertyCount;
+        countingStream->putBe64(cgen_var_57);
         if (pPropertyCount)
         {
             countingStream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
         }
-        countingStream->write((VkLayerProperties**)&pProperties, sizeof(VkLayerProperties*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_58 = (uint64_t)(uintptr_t)pProperties;
+        countingStream->putBe64(cgen_var_58);
         if (pProperties)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -874,13 +968,18 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
     uint32_t opcode_vkEnumerateDeviceLayerProperties = OP_vkEnumerateDeviceLayerProperties;
     stream->write(&opcode_vkEnumerateDeviceLayerProperties, sizeof(uint32_t));
     stream->write(&packetSize_vkEnumerateDeviceLayerProperties, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-    stream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+    uint64_t cgen_var_59 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_59);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_60 = (uint64_t)(uintptr_t)pPropertyCount;
+    stream->putBe64(cgen_var_60);
     if (pPropertyCount)
     {
         stream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
-    stream->write((VkLayerProperties**)&pProperties, sizeof(VkLayerProperties*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_61 = (uint64_t)(uintptr_t)pProperties;
+    stream->putBe64(cgen_var_61);
     if (pProperties)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -888,8 +987,9 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
             marshal_VkLayerProperties(stream, (VkLayerProperties*)(pProperties + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
-    stream->read((uint32_t**)&check_pPropertyCount, sizeof(uint32_t*));
+    check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pPropertyCount)
     {
         if (!(check_pPropertyCount))
@@ -898,8 +998,9 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
         }
         stream->read((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkLayerProperties* check_pProperties;
-    stream->read((VkLayerProperties**)&check_pProperties, sizeof(VkLayerProperties*));
+    check_pProperties = (VkLayerProperties*)(uintptr_t)stream->getBe64();
     if (pProperties)
     {
         if (!(check_pProperties))
@@ -936,9 +1037,11 @@ void VkEncoder::vkGetDeviceQueue(
     local_queueIndex = queueIndex;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_64 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_64);
         countingStream->write((uint32_t*)&local_queueFamilyIndex, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_queueIndex, sizeof(uint32_t));
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkQueue*)pQueue, sizeof(VkQueue));
     }
     uint32_t packetSize_vkGetDeviceQueue = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -946,10 +1049,13 @@ void VkEncoder::vkGetDeviceQueue(
     uint32_t opcode_vkGetDeviceQueue = OP_vkGetDeviceQueue;
     stream->write(&opcode_vkGetDeviceQueue, sizeof(uint32_t));
     stream->write(&packetSize_vkGetDeviceQueue, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_65 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_65);
     stream->write((uint32_t*)&local_queueFamilyIndex, sizeof(uint32_t));
     stream->write((uint32_t*)&local_queueIndex, sizeof(uint32_t));
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkQueue*)pQueue, sizeof(VkQueue));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkQueue*)pQueue, sizeof(VkQueue));
     if (pQueue)
     {
@@ -995,26 +1101,30 @@ VkResult VkEncoder::vkQueueSubmit(
     resources->unwrapMapping()->mapHandles_VkFence((VkFence*)&local_fence);
     countingStream->rewind();
     {
-        countingStream->write((VkQueue*)&local_queue, sizeof(VkQueue));
+        uint64_t cgen_var_66 = (uint64_t)local_queue;
+        countingStream->putBe64(cgen_var_66);
         countingStream->write((uint32_t*)&local_submitCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i)
         {
             marshal_VkSubmitInfo(countingStream, (VkSubmitInfo*)(local_pSubmits + i));
         }
-        countingStream->write((VkFence*)&local_fence, sizeof(VkFence));
+        uint64_t cgen_var_67 = (uint64_t)local_fence;
+        countingStream->putBe64(cgen_var_67);
     }
     uint32_t packetSize_vkQueueSubmit = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
     uint32_t opcode_vkQueueSubmit = OP_vkQueueSubmit;
     stream->write(&opcode_vkQueueSubmit, sizeof(uint32_t));
     stream->write(&packetSize_vkQueueSubmit, sizeof(uint32_t));
-    stream->write((VkQueue*)&local_queue, sizeof(VkQueue));
+    uint64_t cgen_var_68 = (uint64_t)local_queue;
+    stream->putBe64(cgen_var_68);
     stream->write((uint32_t*)&local_submitCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i)
     {
         marshal_VkSubmitInfo(stream, (VkSubmitInfo*)(local_pSubmits + i));
     }
-    stream->write((VkFence*)&local_fence, sizeof(VkFence));
+    uint64_t cgen_var_69 = (uint64_t)local_fence;
+    stream->putBe64(cgen_var_69);
     pool->freeAll();
     VkResult vkQueueSubmit_VkResult_return = (VkResult)0;
     stream->read(&vkQueueSubmit_VkResult_return, sizeof(VkResult));
@@ -1033,14 +1143,16 @@ VkResult VkEncoder::vkQueueWaitIdle(
     resources->unwrapMapping()->mapHandles_VkQueue((VkQueue*)&local_queue);
     countingStream->rewind();
     {
-        countingStream->write((VkQueue*)&local_queue, sizeof(VkQueue));
+        uint64_t cgen_var_70 = (uint64_t)local_queue;
+        countingStream->putBe64(cgen_var_70);
     }
     uint32_t packetSize_vkQueueWaitIdle = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
     uint32_t opcode_vkQueueWaitIdle = OP_vkQueueWaitIdle;
     stream->write(&opcode_vkQueueWaitIdle, sizeof(uint32_t));
     stream->write(&packetSize_vkQueueWaitIdle, sizeof(uint32_t));
-    stream->write((VkQueue*)&local_queue, sizeof(VkQueue));
+    uint64_t cgen_var_71 = (uint64_t)local_queue;
+    stream->putBe64(cgen_var_71);
     pool->freeAll();
     VkResult vkQueueWaitIdle_VkResult_return = (VkResult)0;
     stream->read(&vkQueueWaitIdle_VkResult_return, sizeof(VkResult));
@@ -1059,14 +1171,16 @@ VkResult VkEncoder::vkDeviceWaitIdle(
     resources->unwrapMapping()->mapHandles_VkDevice((VkDevice*)&local_device);
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_72 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_72);
     }
     uint32_t packetSize_vkDeviceWaitIdle = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
     uint32_t opcode_vkDeviceWaitIdle = OP_vkDeviceWaitIdle;
     stream->write(&opcode_vkDeviceWaitIdle, sizeof(uint32_t));
     stream->write(&packetSize_vkDeviceWaitIdle, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_73 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_73);
     pool->freeAll();
     VkResult vkDeviceWaitIdle_VkResult_return = (VkResult)0;
     stream->read(&vkDeviceWaitIdle_VkResult_return, sizeof(VkResult));
@@ -1111,13 +1225,17 @@ VkResult VkEncoder::vkAllocateMemory(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_74 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_74);
         marshal_VkMemoryAllocateInfo(countingStream, (VkMemoryAllocateInfo*)(local_pAllocateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_75 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_75);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkDeviceMemory*)pMemory, sizeof(VkDeviceMemory));
     }
     uint32_t packetSize_vkAllocateMemory = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -1125,14 +1243,19 @@ VkResult VkEncoder::vkAllocateMemory(
     uint32_t opcode_vkAllocateMemory = OP_vkAllocateMemory;
     stream->write(&opcode_vkAllocateMemory, sizeof(uint32_t));
     stream->write(&packetSize_vkAllocateMemory, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_76 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_76);
     marshal_VkMemoryAllocateInfo(stream, (VkMemoryAllocateInfo*)(local_pAllocateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_77 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_77);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkDeviceMemory*)pMemory, sizeof(VkDeviceMemory));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkDeviceMemory*)pMemory, sizeof(VkDeviceMemory));
     if (pMemory)
     {
@@ -1174,9 +1297,13 @@ void VkEncoder::vkFreeMemory(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkDeviceMemory*)&local_memory, sizeof(VkDeviceMemory));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_78 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_78);
+        uint64_t cgen_var_79 = (uint64_t)local_memory;
+        countingStream->putBe64(cgen_var_79);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_80 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_80);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -1187,9 +1314,13 @@ void VkEncoder::vkFreeMemory(
     uint32_t opcode_vkFreeMemory = OP_vkFreeMemory;
     stream->write(&opcode_vkFreeMemory, sizeof(uint32_t));
     stream->write(&packetSize_vkFreeMemory, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkDeviceMemory*)&local_memory, sizeof(VkDeviceMemory));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_81 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_81);
+    uint64_t cgen_var_82 = (uint64_t)local_memory;
+    stream->putBe64(cgen_var_82);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_83 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_83);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -1251,7 +1382,8 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_84 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_84);
         countingStream->write((uint32_t*)&local_memoryRangeCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i)
         {
@@ -1280,7 +1412,8 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
     uint32_t opcode_vkFlushMappedMemoryRanges = OP_vkFlushMappedMemoryRanges;
     stream->write(&opcode_vkFlushMappedMemoryRanges, sizeof(uint32_t));
     stream->write(&packetSize_vkFlushMappedMemoryRanges, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_85 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_85);
     stream->write((uint32_t*)&local_memoryRangeCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i)
     {
@@ -1342,7 +1475,8 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_86 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_86);
         countingStream->write((uint32_t*)&local_memoryRangeCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i)
         {
@@ -1354,7 +1488,8 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
     uint32_t opcode_vkInvalidateMappedMemoryRanges = OP_vkInvalidateMappedMemoryRanges;
     stream->write(&opcode_vkInvalidateMappedMemoryRanges, sizeof(uint32_t));
     stream->write(&packetSize_vkInvalidateMappedMemoryRanges, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_87 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_87);
     stream->write((uint32_t*)&local_memoryRangeCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i)
     {
@@ -1400,8 +1535,10 @@ void VkEncoder::vkGetDeviceMemoryCommitment(
     resources->unwrapMapping()->mapHandles_VkDeviceMemory((VkDeviceMemory*)&local_memory);
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkDeviceMemory*)&local_memory, sizeof(VkDeviceMemory));
+        uint64_t cgen_var_88 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_88);
+        uint64_t cgen_var_89 = (uint64_t)local_memory;
+        countingStream->putBe64(cgen_var_89);
         countingStream->write((VkDeviceSize*)pCommittedMemoryInBytes, sizeof(VkDeviceSize));
     }
     uint32_t packetSize_vkGetDeviceMemoryCommitment = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -1409,8 +1546,10 @@ void VkEncoder::vkGetDeviceMemoryCommitment(
     uint32_t opcode_vkGetDeviceMemoryCommitment = OP_vkGetDeviceMemoryCommitment;
     stream->write(&opcode_vkGetDeviceMemoryCommitment, sizeof(uint32_t));
     stream->write(&packetSize_vkGetDeviceMemoryCommitment, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkDeviceMemory*)&local_memory, sizeof(VkDeviceMemory));
+    uint64_t cgen_var_90 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_90);
+    uint64_t cgen_var_91 = (uint64_t)local_memory;
+    stream->putBe64(cgen_var_91);
     stream->write((VkDeviceSize*)pCommittedMemoryInBytes, sizeof(VkDeviceSize));
     stream->read((VkDeviceSize*)pCommittedMemoryInBytes, sizeof(VkDeviceSize));
     pool->freeAll();
@@ -1439,9 +1578,12 @@ VkResult VkEncoder::vkBindBufferMemory(
     local_memoryOffset = memoryOffset;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
-        countingStream->write((VkDeviceMemory*)&local_memory, sizeof(VkDeviceMemory));
+        uint64_t cgen_var_92 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_92);
+        uint64_t cgen_var_93 = (uint64_t)local_buffer;
+        countingStream->putBe64(cgen_var_93);
+        uint64_t cgen_var_94 = (uint64_t)local_memory;
+        countingStream->putBe64(cgen_var_94);
         countingStream->write((VkDeviceSize*)&local_memoryOffset, sizeof(VkDeviceSize));
     }
     uint32_t packetSize_vkBindBufferMemory = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -1449,9 +1591,12 @@ VkResult VkEncoder::vkBindBufferMemory(
     uint32_t opcode_vkBindBufferMemory = OP_vkBindBufferMemory;
     stream->write(&opcode_vkBindBufferMemory, sizeof(uint32_t));
     stream->write(&packetSize_vkBindBufferMemory, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
-    stream->write((VkDeviceMemory*)&local_memory, sizeof(VkDeviceMemory));
+    uint64_t cgen_var_95 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_95);
+    uint64_t cgen_var_96 = (uint64_t)local_buffer;
+    stream->putBe64(cgen_var_96);
+    uint64_t cgen_var_97 = (uint64_t)local_memory;
+    stream->putBe64(cgen_var_97);
     stream->write((VkDeviceSize*)&local_memoryOffset, sizeof(VkDeviceSize));
     pool->freeAll();
     VkResult vkBindBufferMemory_VkResult_return = (VkResult)0;
@@ -1482,9 +1627,12 @@ VkResult VkEncoder::vkBindImageMemory(
     local_memoryOffset = memoryOffset;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkImage*)&local_image, sizeof(VkImage));
-        countingStream->write((VkDeviceMemory*)&local_memory, sizeof(VkDeviceMemory));
+        uint64_t cgen_var_98 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_98);
+        uint64_t cgen_var_99 = (uint64_t)local_image;
+        countingStream->putBe64(cgen_var_99);
+        uint64_t cgen_var_100 = (uint64_t)local_memory;
+        countingStream->putBe64(cgen_var_100);
         countingStream->write((VkDeviceSize*)&local_memoryOffset, sizeof(VkDeviceSize));
     }
     uint32_t packetSize_vkBindImageMemory = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -1492,9 +1640,12 @@ VkResult VkEncoder::vkBindImageMemory(
     uint32_t opcode_vkBindImageMemory = OP_vkBindImageMemory;
     stream->write(&opcode_vkBindImageMemory, sizeof(uint32_t));
     stream->write(&packetSize_vkBindImageMemory, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkImage*)&local_image, sizeof(VkImage));
-    stream->write((VkDeviceMemory*)&local_memory, sizeof(VkDeviceMemory));
+    uint64_t cgen_var_101 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_101);
+    uint64_t cgen_var_102 = (uint64_t)local_image;
+    stream->putBe64(cgen_var_102);
+    uint64_t cgen_var_103 = (uint64_t)local_memory;
+    stream->putBe64(cgen_var_103);
     stream->write((VkDeviceSize*)&local_memoryOffset, sizeof(VkDeviceSize));
     pool->freeAll();
     VkResult vkBindImageMemory_VkResult_return = (VkResult)0;
@@ -1519,8 +1670,10 @@ void VkEncoder::vkGetBufferMemoryRequirements(
     resources->unwrapMapping()->mapHandles_VkBuffer((VkBuffer*)&local_buffer);
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
+        uint64_t cgen_var_104 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_104);
+        uint64_t cgen_var_105 = (uint64_t)local_buffer;
+        countingStream->putBe64(cgen_var_105);
         marshal_VkMemoryRequirements(countingStream, (VkMemoryRequirements*)(pMemoryRequirements));
     }
     uint32_t packetSize_vkGetBufferMemoryRequirements = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -1528,8 +1681,10 @@ void VkEncoder::vkGetBufferMemoryRequirements(
     uint32_t opcode_vkGetBufferMemoryRequirements = OP_vkGetBufferMemoryRequirements;
     stream->write(&opcode_vkGetBufferMemoryRequirements, sizeof(uint32_t));
     stream->write(&packetSize_vkGetBufferMemoryRequirements, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
+    uint64_t cgen_var_106 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_106);
+    uint64_t cgen_var_107 = (uint64_t)local_buffer;
+    stream->putBe64(cgen_var_107);
     marshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
     unmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
     pool->freeAll();
@@ -1552,8 +1707,10 @@ void VkEncoder::vkGetImageMemoryRequirements(
     resources->unwrapMapping()->mapHandles_VkImage((VkImage*)&local_image);
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkImage*)&local_image, sizeof(VkImage));
+        uint64_t cgen_var_108 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_108);
+        uint64_t cgen_var_109 = (uint64_t)local_image;
+        countingStream->putBe64(cgen_var_109);
         marshal_VkMemoryRequirements(countingStream, (VkMemoryRequirements*)(pMemoryRequirements));
     }
     uint32_t packetSize_vkGetImageMemoryRequirements = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -1561,8 +1718,10 @@ void VkEncoder::vkGetImageMemoryRequirements(
     uint32_t opcode_vkGetImageMemoryRequirements = OP_vkGetImageMemoryRequirements;
     stream->write(&opcode_vkGetImageMemoryRequirements, sizeof(uint32_t));
     stream->write(&packetSize_vkGetImageMemoryRequirements, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkImage*)&local_image, sizeof(VkImage));
+    uint64_t cgen_var_110 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_110);
+    uint64_t cgen_var_111 = (uint64_t)local_image;
+    stream->putBe64(cgen_var_111);
     marshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
     unmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
     pool->freeAll();
@@ -1586,14 +1745,20 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
     resources->unwrapMapping()->mapHandles_VkImage((VkImage*)&local_image);
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkImage*)&local_image, sizeof(VkImage));
-        countingStream->write((uint32_t**)&pSparseMemoryRequirementCount, sizeof(uint32_t*));
+        uint64_t cgen_var_112 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_112);
+        uint64_t cgen_var_113 = (uint64_t)local_image;
+        countingStream->putBe64(cgen_var_113);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_114 = (uint64_t)(uintptr_t)pSparseMemoryRequirementCount;
+        countingStream->putBe64(cgen_var_114);
         if (pSparseMemoryRequirementCount)
         {
             countingStream->write((uint32_t*)pSparseMemoryRequirementCount, sizeof(uint32_t));
         }
-        countingStream->write((VkSparseImageMemoryRequirements**)&pSparseMemoryRequirements, sizeof(VkSparseImageMemoryRequirements*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_115 = (uint64_t)(uintptr_t)pSparseMemoryRequirements;
+        countingStream->putBe64(cgen_var_115);
         if (pSparseMemoryRequirements)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
@@ -1607,14 +1772,20 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
     uint32_t opcode_vkGetImageSparseMemoryRequirements = OP_vkGetImageSparseMemoryRequirements;
     stream->write(&opcode_vkGetImageSparseMemoryRequirements, sizeof(uint32_t));
     stream->write(&packetSize_vkGetImageSparseMemoryRequirements, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkImage*)&local_image, sizeof(VkImage));
-    stream->write((uint32_t**)&pSparseMemoryRequirementCount, sizeof(uint32_t*));
+    uint64_t cgen_var_116 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_116);
+    uint64_t cgen_var_117 = (uint64_t)local_image;
+    stream->putBe64(cgen_var_117);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_118 = (uint64_t)(uintptr_t)pSparseMemoryRequirementCount;
+    stream->putBe64(cgen_var_118);
     if (pSparseMemoryRequirementCount)
     {
         stream->write((uint32_t*)pSparseMemoryRequirementCount, sizeof(uint32_t));
     }
-    stream->write((VkSparseImageMemoryRequirements**)&pSparseMemoryRequirements, sizeof(VkSparseImageMemoryRequirements*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_119 = (uint64_t)(uintptr_t)pSparseMemoryRequirements;
+    stream->putBe64(cgen_var_119);
     if (pSparseMemoryRequirements)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
@@ -1622,8 +1793,9 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
             marshal_VkSparseImageMemoryRequirements(stream, (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pSparseMemoryRequirementCount;
-    stream->read((uint32_t**)&check_pSparseMemoryRequirementCount, sizeof(uint32_t*));
+    check_pSparseMemoryRequirementCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pSparseMemoryRequirementCount)
     {
         if (!(check_pSparseMemoryRequirementCount))
@@ -1632,8 +1804,9 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
         }
         stream->read((uint32_t*)pSparseMemoryRequirementCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkSparseImageMemoryRequirements* check_pSparseMemoryRequirements;
-    stream->read((VkSparseImageMemoryRequirements**)&check_pSparseMemoryRequirements, sizeof(VkSparseImageMemoryRequirements*));
+    check_pSparseMemoryRequirements = (VkSparseImageMemoryRequirements*)(uintptr_t)stream->getBe64();
     if (pSparseMemoryRequirements)
     {
         if (!(check_pSparseMemoryRequirements))
@@ -1677,18 +1850,23 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
     local_tiling = tiling;
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_122 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_122);
         countingStream->write((VkFormat*)&local_format, sizeof(VkFormat));
         countingStream->write((VkImageType*)&local_type, sizeof(VkImageType));
         countingStream->write((VkSampleCountFlagBits*)&local_samples, sizeof(VkSampleCountFlagBits));
         countingStream->write((VkImageUsageFlags*)&local_usage, sizeof(VkImageUsageFlags));
         countingStream->write((VkImageTiling*)&local_tiling, sizeof(VkImageTiling));
-        countingStream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_123 = (uint64_t)(uintptr_t)pPropertyCount;
+        countingStream->putBe64(cgen_var_123);
         if (pPropertyCount)
         {
             countingStream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
         }
-        countingStream->write((VkSparseImageFormatProperties**)&pProperties, sizeof(VkSparseImageFormatProperties*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_124 = (uint64_t)(uintptr_t)pProperties;
+        countingStream->putBe64(cgen_var_124);
         if (pProperties)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -1702,18 +1880,23 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
     uint32_t opcode_vkGetPhysicalDeviceSparseImageFormatProperties = OP_vkGetPhysicalDeviceSparseImageFormatProperties;
     stream->write(&opcode_vkGetPhysicalDeviceSparseImageFormatProperties, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceSparseImageFormatProperties, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_125 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_125);
     stream->write((VkFormat*)&local_format, sizeof(VkFormat));
     stream->write((VkImageType*)&local_type, sizeof(VkImageType));
     stream->write((VkSampleCountFlagBits*)&local_samples, sizeof(VkSampleCountFlagBits));
     stream->write((VkImageUsageFlags*)&local_usage, sizeof(VkImageUsageFlags));
     stream->write((VkImageTiling*)&local_tiling, sizeof(VkImageTiling));
-    stream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_126 = (uint64_t)(uintptr_t)pPropertyCount;
+    stream->putBe64(cgen_var_126);
     if (pPropertyCount)
     {
         stream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
-    stream->write((VkSparseImageFormatProperties**)&pProperties, sizeof(VkSparseImageFormatProperties*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_127 = (uint64_t)(uintptr_t)pProperties;
+    stream->putBe64(cgen_var_127);
     if (pProperties)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -1721,8 +1904,9 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
             marshal_VkSparseImageFormatProperties(stream, (VkSparseImageFormatProperties*)(pProperties + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
-    stream->read((uint32_t**)&check_pPropertyCount, sizeof(uint32_t*));
+    check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pPropertyCount)
     {
         if (!(check_pPropertyCount))
@@ -1731,8 +1915,9 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
         }
         stream->read((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkSparseImageFormatProperties* check_pProperties;
-    stream->read((VkSparseImageFormatProperties**)&check_pProperties, sizeof(VkSparseImageFormatProperties*));
+    check_pProperties = (VkSparseImageFormatProperties*)(uintptr_t)stream->getBe64();
     if (pProperties)
     {
         if (!(check_pProperties))
@@ -1784,26 +1969,30 @@ VkResult VkEncoder::vkQueueBindSparse(
     resources->unwrapMapping()->mapHandles_VkFence((VkFence*)&local_fence);
     countingStream->rewind();
     {
-        countingStream->write((VkQueue*)&local_queue, sizeof(VkQueue));
+        uint64_t cgen_var_130 = (uint64_t)local_queue;
+        countingStream->putBe64(cgen_var_130);
         countingStream->write((uint32_t*)&local_bindInfoCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
             marshal_VkBindSparseInfo(countingStream, (VkBindSparseInfo*)(local_pBindInfo + i));
         }
-        countingStream->write((VkFence*)&local_fence, sizeof(VkFence));
+        uint64_t cgen_var_131 = (uint64_t)local_fence;
+        countingStream->putBe64(cgen_var_131);
     }
     uint32_t packetSize_vkQueueBindSparse = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
     uint32_t opcode_vkQueueBindSparse = OP_vkQueueBindSparse;
     stream->write(&opcode_vkQueueBindSparse, sizeof(uint32_t));
     stream->write(&packetSize_vkQueueBindSparse, sizeof(uint32_t));
-    stream->write((VkQueue*)&local_queue, sizeof(VkQueue));
+    uint64_t cgen_var_132 = (uint64_t)local_queue;
+    stream->putBe64(cgen_var_132);
     stream->write((uint32_t*)&local_bindInfoCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
     {
         marshal_VkBindSparseInfo(stream, (VkBindSparseInfo*)(local_pBindInfo + i));
     }
-    stream->write((VkFence*)&local_fence, sizeof(VkFence));
+    uint64_t cgen_var_133 = (uint64_t)local_fence;
+    stream->putBe64(cgen_var_133);
     pool->freeAll();
     VkResult vkQueueBindSparse_VkResult_return = (VkResult)0;
     stream->read(&vkQueueBindSparse_VkResult_return, sizeof(VkResult));
@@ -1848,13 +2037,17 @@ VkResult VkEncoder::vkCreateFence(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_134 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_134);
         marshal_VkFenceCreateInfo(countingStream, (VkFenceCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_135 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_135);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkFence*)pFence, sizeof(VkFence));
     }
     uint32_t packetSize_vkCreateFence = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -1862,14 +2055,19 @@ VkResult VkEncoder::vkCreateFence(
     uint32_t opcode_vkCreateFence = OP_vkCreateFence;
     stream->write(&opcode_vkCreateFence, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateFence, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_136 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_136);
     marshal_VkFenceCreateInfo(stream, (VkFenceCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_137 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_137);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkFence*)pFence, sizeof(VkFence));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkFence*)pFence, sizeof(VkFence));
     if (pFence)
     {
@@ -1910,9 +2108,13 @@ void VkEncoder::vkDestroyFence(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkFence*)&local_fence, sizeof(VkFence));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_138 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_138);
+        uint64_t cgen_var_139 = (uint64_t)local_fence;
+        countingStream->putBe64(cgen_var_139);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_140 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_140);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -1923,9 +2125,13 @@ void VkEncoder::vkDestroyFence(
     uint32_t opcode_vkDestroyFence = OP_vkDestroyFence;
     stream->write(&opcode_vkDestroyFence, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyFence, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkFence*)&local_fence, sizeof(VkFence));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_141 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_141);
+    uint64_t cgen_var_142 = (uint64_t)local_fence;
+    stream->putBe64(cgen_var_142);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_143 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_143);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -1960,8 +2166,10 @@ VkResult VkEncoder::vkResetFences(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_144 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_144);
         countingStream->write((uint32_t*)&local_fenceCount, sizeof(uint32_t));
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkFence*)local_pFences, ((fenceCount)) * sizeof(VkFence));
     }
     uint32_t packetSize_vkResetFences = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -1969,8 +2177,10 @@ VkResult VkEncoder::vkResetFences(
     uint32_t opcode_vkResetFences = OP_vkResetFences;
     stream->write(&opcode_vkResetFences, sizeof(uint32_t));
     stream->write(&packetSize_vkResetFences, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_145 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_145);
     stream->write((uint32_t*)&local_fenceCount, sizeof(uint32_t));
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkFence*)local_pFences, ((fenceCount)) * sizeof(VkFence));
     pool->freeAll();
     VkResult vkResetFences_VkResult_return = (VkResult)0;
@@ -1994,16 +2204,20 @@ VkResult VkEncoder::vkGetFenceStatus(
     resources->unwrapMapping()->mapHandles_VkFence((VkFence*)&local_fence);
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkFence*)&local_fence, sizeof(VkFence));
+        uint64_t cgen_var_146 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_146);
+        uint64_t cgen_var_147 = (uint64_t)local_fence;
+        countingStream->putBe64(cgen_var_147);
     }
     uint32_t packetSize_vkGetFenceStatus = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
     uint32_t opcode_vkGetFenceStatus = OP_vkGetFenceStatus;
     stream->write(&opcode_vkGetFenceStatus, sizeof(uint32_t));
     stream->write(&packetSize_vkGetFenceStatus, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkFence*)&local_fence, sizeof(VkFence));
+    uint64_t cgen_var_148 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_148);
+    uint64_t cgen_var_149 = (uint64_t)local_fence;
+    stream->putBe64(cgen_var_149);
     pool->freeAll();
     VkResult vkGetFenceStatus_VkResult_return = (VkResult)0;
     stream->read(&vkGetFenceStatus_VkResult_return, sizeof(VkResult));
@@ -2042,8 +2256,10 @@ VkResult VkEncoder::vkWaitForFences(
     local_timeout = timeout;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_150 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_150);
         countingStream->write((uint32_t*)&local_fenceCount, sizeof(uint32_t));
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkFence*)local_pFences, ((fenceCount)) * sizeof(VkFence));
         countingStream->write((VkBool32*)&local_waitAll, sizeof(VkBool32));
         countingStream->write((uint64_t*)&local_timeout, sizeof(uint64_t));
@@ -2053,8 +2269,10 @@ VkResult VkEncoder::vkWaitForFences(
     uint32_t opcode_vkWaitForFences = OP_vkWaitForFences;
     stream->write(&opcode_vkWaitForFences, sizeof(uint32_t));
     stream->write(&packetSize_vkWaitForFences, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_151 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_151);
     stream->write((uint32_t*)&local_fenceCount, sizeof(uint32_t));
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkFence*)local_pFences, ((fenceCount)) * sizeof(VkFence));
     stream->write((VkBool32*)&local_waitAll, sizeof(VkBool32));
     stream->write((uint64_t*)&local_timeout, sizeof(uint64_t));
@@ -2102,13 +2320,17 @@ VkResult VkEncoder::vkCreateSemaphore(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_152 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_152);
         marshal_VkSemaphoreCreateInfo(countingStream, (VkSemaphoreCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_153 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_153);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkSemaphore*)pSemaphore, sizeof(VkSemaphore));
     }
     uint32_t packetSize_vkCreateSemaphore = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -2116,14 +2338,19 @@ VkResult VkEncoder::vkCreateSemaphore(
     uint32_t opcode_vkCreateSemaphore = OP_vkCreateSemaphore;
     stream->write(&opcode_vkCreateSemaphore, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateSemaphore, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_154 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_154);
     marshal_VkSemaphoreCreateInfo(stream, (VkSemaphoreCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_155 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_155);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkSemaphore*)pSemaphore, sizeof(VkSemaphore));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkSemaphore*)pSemaphore, sizeof(VkSemaphore));
     if (pSemaphore)
     {
@@ -2164,9 +2391,13 @@ void VkEncoder::vkDestroySemaphore(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkSemaphore*)&local_semaphore, sizeof(VkSemaphore));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_156 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_156);
+        uint64_t cgen_var_157 = (uint64_t)local_semaphore;
+        countingStream->putBe64(cgen_var_157);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_158 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_158);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -2177,9 +2408,13 @@ void VkEncoder::vkDestroySemaphore(
     uint32_t opcode_vkDestroySemaphore = OP_vkDestroySemaphore;
     stream->write(&opcode_vkDestroySemaphore, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroySemaphore, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkSemaphore*)&local_semaphore, sizeof(VkSemaphore));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_159 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_159);
+    uint64_t cgen_var_160 = (uint64_t)local_semaphore;
+    stream->putBe64(cgen_var_160);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_161 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_161);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -2226,13 +2461,17 @@ VkResult VkEncoder::vkCreateEvent(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_162 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_162);
         marshal_VkEventCreateInfo(countingStream, (VkEventCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_163 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_163);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkEvent*)pEvent, sizeof(VkEvent));
     }
     uint32_t packetSize_vkCreateEvent = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -2240,14 +2479,19 @@ VkResult VkEncoder::vkCreateEvent(
     uint32_t opcode_vkCreateEvent = OP_vkCreateEvent;
     stream->write(&opcode_vkCreateEvent, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateEvent, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_164 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_164);
     marshal_VkEventCreateInfo(stream, (VkEventCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_165 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_165);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkEvent*)pEvent, sizeof(VkEvent));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkEvent*)pEvent, sizeof(VkEvent));
     if (pEvent)
     {
@@ -2288,9 +2532,13 @@ void VkEncoder::vkDestroyEvent(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkEvent*)&local_event, sizeof(VkEvent));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_166 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_166);
+        uint64_t cgen_var_167 = (uint64_t)local_event;
+        countingStream->putBe64(cgen_var_167);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_168 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_168);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -2301,9 +2549,13 @@ void VkEncoder::vkDestroyEvent(
     uint32_t opcode_vkDestroyEvent = OP_vkDestroyEvent;
     stream->write(&opcode_vkDestroyEvent, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyEvent, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkEvent*)&local_event, sizeof(VkEvent));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_169 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_169);
+    uint64_t cgen_var_170 = (uint64_t)local_event;
+    stream->putBe64(cgen_var_170);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_171 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_171);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -2328,16 +2580,20 @@ VkResult VkEncoder::vkGetEventStatus(
     resources->unwrapMapping()->mapHandles_VkEvent((VkEvent*)&local_event);
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkEvent*)&local_event, sizeof(VkEvent));
+        uint64_t cgen_var_172 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_172);
+        uint64_t cgen_var_173 = (uint64_t)local_event;
+        countingStream->putBe64(cgen_var_173);
     }
     uint32_t packetSize_vkGetEventStatus = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
     uint32_t opcode_vkGetEventStatus = OP_vkGetEventStatus;
     stream->write(&opcode_vkGetEventStatus, sizeof(uint32_t));
     stream->write(&packetSize_vkGetEventStatus, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkEvent*)&local_event, sizeof(VkEvent));
+    uint64_t cgen_var_174 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_174);
+    uint64_t cgen_var_175 = (uint64_t)local_event;
+    stream->putBe64(cgen_var_175);
     pool->freeAll();
     VkResult vkGetEventStatus_VkResult_return = (VkResult)0;
     stream->read(&vkGetEventStatus_VkResult_return, sizeof(VkResult));
@@ -2360,16 +2616,20 @@ VkResult VkEncoder::vkSetEvent(
     resources->unwrapMapping()->mapHandles_VkEvent((VkEvent*)&local_event);
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkEvent*)&local_event, sizeof(VkEvent));
+        uint64_t cgen_var_176 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_176);
+        uint64_t cgen_var_177 = (uint64_t)local_event;
+        countingStream->putBe64(cgen_var_177);
     }
     uint32_t packetSize_vkSetEvent = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
     uint32_t opcode_vkSetEvent = OP_vkSetEvent;
     stream->write(&opcode_vkSetEvent, sizeof(uint32_t));
     stream->write(&packetSize_vkSetEvent, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkEvent*)&local_event, sizeof(VkEvent));
+    uint64_t cgen_var_178 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_178);
+    uint64_t cgen_var_179 = (uint64_t)local_event;
+    stream->putBe64(cgen_var_179);
     pool->freeAll();
     VkResult vkSetEvent_VkResult_return = (VkResult)0;
     stream->read(&vkSetEvent_VkResult_return, sizeof(VkResult));
@@ -2392,16 +2652,20 @@ VkResult VkEncoder::vkResetEvent(
     resources->unwrapMapping()->mapHandles_VkEvent((VkEvent*)&local_event);
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkEvent*)&local_event, sizeof(VkEvent));
+        uint64_t cgen_var_180 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_180);
+        uint64_t cgen_var_181 = (uint64_t)local_event;
+        countingStream->putBe64(cgen_var_181);
     }
     uint32_t packetSize_vkResetEvent = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
     uint32_t opcode_vkResetEvent = OP_vkResetEvent;
     stream->write(&opcode_vkResetEvent, sizeof(uint32_t));
     stream->write(&packetSize_vkResetEvent, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkEvent*)&local_event, sizeof(VkEvent));
+    uint64_t cgen_var_182 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_182);
+    uint64_t cgen_var_183 = (uint64_t)local_event;
+    stream->putBe64(cgen_var_183);
     pool->freeAll();
     VkResult vkResetEvent_VkResult_return = (VkResult)0;
     stream->read(&vkResetEvent_VkResult_return, sizeof(VkResult));
@@ -2446,13 +2710,17 @@ VkResult VkEncoder::vkCreateQueryPool(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_184 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_184);
         marshal_VkQueryPoolCreateInfo(countingStream, (VkQueryPoolCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_185 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_185);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkQueryPool*)pQueryPool, sizeof(VkQueryPool));
     }
     uint32_t packetSize_vkCreateQueryPool = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -2460,14 +2728,19 @@ VkResult VkEncoder::vkCreateQueryPool(
     uint32_t opcode_vkCreateQueryPool = OP_vkCreateQueryPool;
     stream->write(&opcode_vkCreateQueryPool, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateQueryPool, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_186 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_186);
     marshal_VkQueryPoolCreateInfo(stream, (VkQueryPoolCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_187 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_187);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkQueryPool*)pQueryPool, sizeof(VkQueryPool));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkQueryPool*)pQueryPool, sizeof(VkQueryPool));
     if (pQueryPool)
     {
@@ -2508,9 +2781,13 @@ void VkEncoder::vkDestroyQueryPool(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkQueryPool*)&local_queryPool, sizeof(VkQueryPool));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_188 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_188);
+        uint64_t cgen_var_189 = (uint64_t)local_queryPool;
+        countingStream->putBe64(cgen_var_189);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_190 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_190);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -2521,9 +2798,13 @@ void VkEncoder::vkDestroyQueryPool(
     uint32_t opcode_vkDestroyQueryPool = OP_vkDestroyQueryPool;
     stream->write(&opcode_vkDestroyQueryPool, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyQueryPool, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkQueryPool*)&local_queryPool, sizeof(VkQueryPool));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_191 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_191);
+    uint64_t cgen_var_192 = (uint64_t)local_queryPool;
+    stream->putBe64(cgen_var_192);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_193 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_193);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -2564,8 +2845,10 @@ VkResult VkEncoder::vkGetQueryPoolResults(
     local_flags = flags;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkQueryPool*)&local_queryPool, sizeof(VkQueryPool));
+        uint64_t cgen_var_194 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_194);
+        uint64_t cgen_var_195 = (uint64_t)local_queryPool;
+        countingStream->putBe64(cgen_var_195);
         countingStream->write((uint32_t*)&local_firstQuery, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_queryCount, sizeof(uint32_t));
         countingStream->write((size_t*)&local_dataSize, sizeof(size_t));
@@ -2578,8 +2861,10 @@ VkResult VkEncoder::vkGetQueryPoolResults(
     uint32_t opcode_vkGetQueryPoolResults = OP_vkGetQueryPoolResults;
     stream->write(&opcode_vkGetQueryPoolResults, sizeof(uint32_t));
     stream->write(&packetSize_vkGetQueryPoolResults, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkQueryPool*)&local_queryPool, sizeof(VkQueryPool));
+    uint64_t cgen_var_196 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_196);
+    uint64_t cgen_var_197 = (uint64_t)local_queryPool;
+    stream->putBe64(cgen_var_197);
     stream->write((uint32_t*)&local_firstQuery, sizeof(uint32_t));
     stream->write((uint32_t*)&local_queryCount, sizeof(uint32_t));
     stream->write((size_t*)&local_dataSize, sizeof(size_t));
@@ -2631,13 +2916,17 @@ VkResult VkEncoder::vkCreateBuffer(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_198 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_198);
         marshal_VkBufferCreateInfo(countingStream, (VkBufferCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_199 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_199);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkBuffer*)pBuffer, sizeof(VkBuffer));
     }
     uint32_t packetSize_vkCreateBuffer = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -2645,14 +2934,19 @@ VkResult VkEncoder::vkCreateBuffer(
     uint32_t opcode_vkCreateBuffer = OP_vkCreateBuffer;
     stream->write(&opcode_vkCreateBuffer, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateBuffer, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_200 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_200);
     marshal_VkBufferCreateInfo(stream, (VkBufferCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_201 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_201);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkBuffer*)pBuffer, sizeof(VkBuffer));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkBuffer*)pBuffer, sizeof(VkBuffer));
     if (pBuffer)
     {
@@ -2693,9 +2987,13 @@ void VkEncoder::vkDestroyBuffer(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_202 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_202);
+        uint64_t cgen_var_203 = (uint64_t)local_buffer;
+        countingStream->putBe64(cgen_var_203);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_204 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_204);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -2706,9 +3004,13 @@ void VkEncoder::vkDestroyBuffer(
     uint32_t opcode_vkDestroyBuffer = OP_vkDestroyBuffer;
     stream->write(&opcode_vkDestroyBuffer, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyBuffer, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_205 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_205);
+    uint64_t cgen_var_206 = (uint64_t)local_buffer;
+    stream->putBe64(cgen_var_206);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_207 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_207);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -2755,13 +3057,17 @@ VkResult VkEncoder::vkCreateBufferView(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_208 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_208);
         marshal_VkBufferViewCreateInfo(countingStream, (VkBufferViewCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_209 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_209);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkBufferView*)pView, sizeof(VkBufferView));
     }
     uint32_t packetSize_vkCreateBufferView = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -2769,14 +3075,19 @@ VkResult VkEncoder::vkCreateBufferView(
     uint32_t opcode_vkCreateBufferView = OP_vkCreateBufferView;
     stream->write(&opcode_vkCreateBufferView, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateBufferView, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_210 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_210);
     marshal_VkBufferViewCreateInfo(stream, (VkBufferViewCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_211 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_211);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkBufferView*)pView, sizeof(VkBufferView));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkBufferView*)pView, sizeof(VkBufferView));
     if (pView)
     {
@@ -2817,9 +3128,13 @@ void VkEncoder::vkDestroyBufferView(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkBufferView*)&local_bufferView, sizeof(VkBufferView));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_212 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_212);
+        uint64_t cgen_var_213 = (uint64_t)local_bufferView;
+        countingStream->putBe64(cgen_var_213);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_214 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_214);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -2830,9 +3145,13 @@ void VkEncoder::vkDestroyBufferView(
     uint32_t opcode_vkDestroyBufferView = OP_vkDestroyBufferView;
     stream->write(&opcode_vkDestroyBufferView, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyBufferView, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkBufferView*)&local_bufferView, sizeof(VkBufferView));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_215 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_215);
+    uint64_t cgen_var_216 = (uint64_t)local_bufferView;
+    stream->putBe64(cgen_var_216);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_217 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_217);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -2879,13 +3198,17 @@ VkResult VkEncoder::vkCreateImage(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_218 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_218);
         marshal_VkImageCreateInfo(countingStream, (VkImageCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_219 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_219);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkImage*)pImage, sizeof(VkImage));
     }
     uint32_t packetSize_vkCreateImage = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -2893,14 +3216,19 @@ VkResult VkEncoder::vkCreateImage(
     uint32_t opcode_vkCreateImage = OP_vkCreateImage;
     stream->write(&opcode_vkCreateImage, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateImage, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_220 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_220);
     marshal_VkImageCreateInfo(stream, (VkImageCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_221 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_221);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkImage*)pImage, sizeof(VkImage));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkImage*)pImage, sizeof(VkImage));
     if (pImage)
     {
@@ -2941,9 +3269,13 @@ void VkEncoder::vkDestroyImage(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkImage*)&local_image, sizeof(VkImage));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_222 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_222);
+        uint64_t cgen_var_223 = (uint64_t)local_image;
+        countingStream->putBe64(cgen_var_223);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_224 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_224);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -2954,9 +3286,13 @@ void VkEncoder::vkDestroyImage(
     uint32_t opcode_vkDestroyImage = OP_vkDestroyImage;
     stream->write(&opcode_vkDestroyImage, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyImage, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkImage*)&local_image, sizeof(VkImage));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_225 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_225);
+    uint64_t cgen_var_226 = (uint64_t)local_image;
+    stream->putBe64(cgen_var_226);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_227 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_227);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -2994,8 +3330,10 @@ void VkEncoder::vkGetImageSubresourceLayout(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkImage*)&local_image, sizeof(VkImage));
+        uint64_t cgen_var_228 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_228);
+        uint64_t cgen_var_229 = (uint64_t)local_image;
+        countingStream->putBe64(cgen_var_229);
         marshal_VkImageSubresource(countingStream, (VkImageSubresource*)(local_pSubresource));
         marshal_VkSubresourceLayout(countingStream, (VkSubresourceLayout*)(pLayout));
     }
@@ -3004,8 +3342,10 @@ void VkEncoder::vkGetImageSubresourceLayout(
     uint32_t opcode_vkGetImageSubresourceLayout = OP_vkGetImageSubresourceLayout;
     stream->write(&opcode_vkGetImageSubresourceLayout, sizeof(uint32_t));
     stream->write(&packetSize_vkGetImageSubresourceLayout, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkImage*)&local_image, sizeof(VkImage));
+    uint64_t cgen_var_230 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_230);
+    uint64_t cgen_var_231 = (uint64_t)local_image;
+    stream->putBe64(cgen_var_231);
     marshal_VkImageSubresource(stream, (VkImageSubresource*)(local_pSubresource));
     marshal_VkSubresourceLayout(stream, (VkSubresourceLayout*)(pLayout));
     unmarshal_VkSubresourceLayout(stream, (VkSubresourceLayout*)(pLayout));
@@ -3050,13 +3390,17 @@ VkResult VkEncoder::vkCreateImageView(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_232 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_232);
         marshal_VkImageViewCreateInfo(countingStream, (VkImageViewCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_233 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_233);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkImageView*)pView, sizeof(VkImageView));
     }
     uint32_t packetSize_vkCreateImageView = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -3064,14 +3408,19 @@ VkResult VkEncoder::vkCreateImageView(
     uint32_t opcode_vkCreateImageView = OP_vkCreateImageView;
     stream->write(&opcode_vkCreateImageView, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateImageView, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_234 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_234);
     marshal_VkImageViewCreateInfo(stream, (VkImageViewCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_235 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_235);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkImageView*)pView, sizeof(VkImageView));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkImageView*)pView, sizeof(VkImageView));
     if (pView)
     {
@@ -3112,9 +3461,13 @@ void VkEncoder::vkDestroyImageView(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkImageView*)&local_imageView, sizeof(VkImageView));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_236 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_236);
+        uint64_t cgen_var_237 = (uint64_t)local_imageView;
+        countingStream->putBe64(cgen_var_237);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_238 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_238);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -3125,9 +3478,13 @@ void VkEncoder::vkDestroyImageView(
     uint32_t opcode_vkDestroyImageView = OP_vkDestroyImageView;
     stream->write(&opcode_vkDestroyImageView, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyImageView, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkImageView*)&local_imageView, sizeof(VkImageView));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_239 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_239);
+    uint64_t cgen_var_240 = (uint64_t)local_imageView;
+    stream->putBe64(cgen_var_240);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_241 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_241);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -3174,13 +3531,17 @@ VkResult VkEncoder::vkCreateShaderModule(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_242 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_242);
         marshal_VkShaderModuleCreateInfo(countingStream, (VkShaderModuleCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_243 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_243);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkShaderModule*)pShaderModule, sizeof(VkShaderModule));
     }
     uint32_t packetSize_vkCreateShaderModule = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -3188,14 +3549,19 @@ VkResult VkEncoder::vkCreateShaderModule(
     uint32_t opcode_vkCreateShaderModule = OP_vkCreateShaderModule;
     stream->write(&opcode_vkCreateShaderModule, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateShaderModule, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_244 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_244);
     marshal_VkShaderModuleCreateInfo(stream, (VkShaderModuleCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_245 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_245);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkShaderModule*)pShaderModule, sizeof(VkShaderModule));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkShaderModule*)pShaderModule, sizeof(VkShaderModule));
     if (pShaderModule)
     {
@@ -3236,9 +3602,13 @@ void VkEncoder::vkDestroyShaderModule(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkShaderModule*)&local_shaderModule, sizeof(VkShaderModule));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_246 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_246);
+        uint64_t cgen_var_247 = (uint64_t)local_shaderModule;
+        countingStream->putBe64(cgen_var_247);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_248 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_248);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -3249,9 +3619,13 @@ void VkEncoder::vkDestroyShaderModule(
     uint32_t opcode_vkDestroyShaderModule = OP_vkDestroyShaderModule;
     stream->write(&opcode_vkDestroyShaderModule, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyShaderModule, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkShaderModule*)&local_shaderModule, sizeof(VkShaderModule));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_249 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_249);
+    uint64_t cgen_var_250 = (uint64_t)local_shaderModule;
+    stream->putBe64(cgen_var_250);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_251 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_251);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -3298,13 +3672,17 @@ VkResult VkEncoder::vkCreatePipelineCache(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_252 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_252);
         marshal_VkPipelineCacheCreateInfo(countingStream, (VkPipelineCacheCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_253 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_253);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkPipelineCache*)pPipelineCache, sizeof(VkPipelineCache));
     }
     uint32_t packetSize_vkCreatePipelineCache = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -3312,14 +3690,19 @@ VkResult VkEncoder::vkCreatePipelineCache(
     uint32_t opcode_vkCreatePipelineCache = OP_vkCreatePipelineCache;
     stream->write(&opcode_vkCreatePipelineCache, sizeof(uint32_t));
     stream->write(&packetSize_vkCreatePipelineCache, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_254 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_254);
     marshal_VkPipelineCacheCreateInfo(stream, (VkPipelineCacheCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_255 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_255);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkPipelineCache*)pPipelineCache, sizeof(VkPipelineCache));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkPipelineCache*)pPipelineCache, sizeof(VkPipelineCache));
     if (pPipelineCache)
     {
@@ -3360,9 +3743,13 @@ void VkEncoder::vkDestroyPipelineCache(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkPipelineCache*)&local_pipelineCache, sizeof(VkPipelineCache));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_256 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_256);
+        uint64_t cgen_var_257 = (uint64_t)local_pipelineCache;
+        countingStream->putBe64(cgen_var_257);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_258 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_258);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -3373,9 +3760,13 @@ void VkEncoder::vkDestroyPipelineCache(
     uint32_t opcode_vkDestroyPipelineCache = OP_vkDestroyPipelineCache;
     stream->write(&opcode_vkDestroyPipelineCache, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyPipelineCache, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkPipelineCache*)&local_pipelineCache, sizeof(VkPipelineCache));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_259 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_259);
+    uint64_t cgen_var_260 = (uint64_t)local_pipelineCache;
+    stream->putBe64(cgen_var_260);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_261 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_261);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -3402,14 +3793,20 @@ VkResult VkEncoder::vkGetPipelineCacheData(
     resources->unwrapMapping()->mapHandles_VkPipelineCache((VkPipelineCache*)&local_pipelineCache);
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkPipelineCache*)&local_pipelineCache, sizeof(VkPipelineCache));
-        countingStream->write((size_t**)&pDataSize, sizeof(size_t*));
+        uint64_t cgen_var_262 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_262);
+        uint64_t cgen_var_263 = (uint64_t)local_pipelineCache;
+        countingStream->putBe64(cgen_var_263);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_264 = (uint64_t)(uintptr_t)pDataSize;
+        countingStream->putBe64(cgen_var_264);
         if (pDataSize)
         {
             countingStream->write((size_t*)pDataSize, sizeof(size_t));
         }
-        countingStream->write((void**)&pData, sizeof(void*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_265 = (uint64_t)(uintptr_t)pData;
+        countingStream->putBe64(cgen_var_265);
         if (pData)
         {
             countingStream->write((void*)pData, (*(pDataSize)) * sizeof(uint8_t));
@@ -3420,20 +3817,27 @@ VkResult VkEncoder::vkGetPipelineCacheData(
     uint32_t opcode_vkGetPipelineCacheData = OP_vkGetPipelineCacheData;
     stream->write(&opcode_vkGetPipelineCacheData, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPipelineCacheData, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkPipelineCache*)&local_pipelineCache, sizeof(VkPipelineCache));
-    stream->write((size_t**)&pDataSize, sizeof(size_t*));
+    uint64_t cgen_var_266 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_266);
+    uint64_t cgen_var_267 = (uint64_t)local_pipelineCache;
+    stream->putBe64(cgen_var_267);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_268 = (uint64_t)(uintptr_t)pDataSize;
+    stream->putBe64(cgen_var_268);
     if (pDataSize)
     {
         stream->write((size_t*)pDataSize, sizeof(size_t));
     }
-    stream->write((void**)&pData, sizeof(void*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_269 = (uint64_t)(uintptr_t)pData;
+    stream->putBe64(cgen_var_269);
     if (pData)
     {
         stream->write((void*)pData, (*(pDataSize)) * sizeof(uint8_t));
     }
+    // WARNING PTR CHECK
     size_t* check_pDataSize;
-    stream->read((size_t**)&check_pDataSize, sizeof(size_t*));
+    check_pDataSize = (size_t*)(uintptr_t)stream->getBe64();
     if (pDataSize)
     {
         if (!(check_pDataSize))
@@ -3442,8 +3846,9 @@ VkResult VkEncoder::vkGetPipelineCacheData(
         }
         stream->read((size_t*)pDataSize, sizeof(size_t));
     }
+    // WARNING PTR CHECK
     void* check_pData;
-    stream->read((void**)&check_pData, sizeof(void*));
+    check_pData = (void*)(uintptr_t)stream->getBe64();
     if (pData)
     {
         if (!(check_pData))
@@ -3488,9 +3893,12 @@ VkResult VkEncoder::vkMergePipelineCaches(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkPipelineCache*)&local_dstCache, sizeof(VkPipelineCache));
+        uint64_t cgen_var_272 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_272);
+        uint64_t cgen_var_273 = (uint64_t)local_dstCache;
+        countingStream->putBe64(cgen_var_273);
         countingStream->write((uint32_t*)&local_srcCacheCount, sizeof(uint32_t));
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkPipelineCache*)local_pSrcCaches, ((srcCacheCount)) * sizeof(VkPipelineCache));
     }
     uint32_t packetSize_vkMergePipelineCaches = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -3498,9 +3906,12 @@ VkResult VkEncoder::vkMergePipelineCaches(
     uint32_t opcode_vkMergePipelineCaches = OP_vkMergePipelineCaches;
     stream->write(&opcode_vkMergePipelineCaches, sizeof(uint32_t));
     stream->write(&packetSize_vkMergePipelineCaches, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkPipelineCache*)&local_dstCache, sizeof(VkPipelineCache));
+    uint64_t cgen_var_274 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_274);
+    uint64_t cgen_var_275 = (uint64_t)local_dstCache;
+    stream->putBe64(cgen_var_275);
     stream->write((uint32_t*)&local_srcCacheCount, sizeof(uint32_t));
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkPipelineCache*)local_pSrcCaches, ((srcCacheCount)) * sizeof(VkPipelineCache));
     pool->freeAll();
     VkResult vkMergePipelineCaches_VkResult_return = (VkResult)0;
@@ -3559,18 +3970,23 @@ VkResult VkEncoder::vkCreateGraphicsPipelines(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkPipelineCache*)&local_pipelineCache, sizeof(VkPipelineCache));
+        uint64_t cgen_var_276 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_276);
+        uint64_t cgen_var_277 = (uint64_t)local_pipelineCache;
+        countingStream->putBe64(cgen_var_277);
         countingStream->write((uint32_t*)&local_createInfoCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
         {
             marshal_VkGraphicsPipelineCreateInfo(countingStream, (VkGraphicsPipelineCreateInfo*)(local_pCreateInfos + i));
         }
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_278 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_278);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkPipeline*)pPipelines, ((createInfoCount)) * sizeof(VkPipeline));
     }
     uint32_t packetSize_vkCreateGraphicsPipelines = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -3578,19 +3994,25 @@ VkResult VkEncoder::vkCreateGraphicsPipelines(
     uint32_t opcode_vkCreateGraphicsPipelines = OP_vkCreateGraphicsPipelines;
     stream->write(&opcode_vkCreateGraphicsPipelines, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateGraphicsPipelines, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkPipelineCache*)&local_pipelineCache, sizeof(VkPipelineCache));
+    uint64_t cgen_var_279 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_279);
+    uint64_t cgen_var_280 = (uint64_t)local_pipelineCache;
+    stream->putBe64(cgen_var_280);
     stream->write((uint32_t*)&local_createInfoCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
     {
         marshal_VkGraphicsPipelineCreateInfo(stream, (VkGraphicsPipelineCreateInfo*)(local_pCreateInfos + i));
     }
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_281 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_281);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkPipeline*)pPipelines, ((createInfoCount)) * sizeof(VkPipeline));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkPipeline*)pPipelines, ((createInfoCount)) * sizeof(VkPipeline));
     if (pPipelines)
     {
@@ -3653,18 +4075,23 @@ VkResult VkEncoder::vkCreateComputePipelines(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkPipelineCache*)&local_pipelineCache, sizeof(VkPipelineCache));
+        uint64_t cgen_var_282 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_282);
+        uint64_t cgen_var_283 = (uint64_t)local_pipelineCache;
+        countingStream->putBe64(cgen_var_283);
         countingStream->write((uint32_t*)&local_createInfoCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
         {
             marshal_VkComputePipelineCreateInfo(countingStream, (VkComputePipelineCreateInfo*)(local_pCreateInfos + i));
         }
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_284 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_284);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkPipeline*)pPipelines, ((createInfoCount)) * sizeof(VkPipeline));
     }
     uint32_t packetSize_vkCreateComputePipelines = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -3672,19 +4099,25 @@ VkResult VkEncoder::vkCreateComputePipelines(
     uint32_t opcode_vkCreateComputePipelines = OP_vkCreateComputePipelines;
     stream->write(&opcode_vkCreateComputePipelines, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateComputePipelines, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkPipelineCache*)&local_pipelineCache, sizeof(VkPipelineCache));
+    uint64_t cgen_var_285 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_285);
+    uint64_t cgen_var_286 = (uint64_t)local_pipelineCache;
+    stream->putBe64(cgen_var_286);
     stream->write((uint32_t*)&local_createInfoCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
     {
         marshal_VkComputePipelineCreateInfo(stream, (VkComputePipelineCreateInfo*)(local_pCreateInfos + i));
     }
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_287 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_287);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkPipeline*)pPipelines, ((createInfoCount)) * sizeof(VkPipeline));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkPipeline*)pPipelines, ((createInfoCount)) * sizeof(VkPipeline));
     if (pPipelines)
     {
@@ -3725,9 +4158,13 @@ void VkEncoder::vkDestroyPipeline(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkPipeline*)&local_pipeline, sizeof(VkPipeline));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_288 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_288);
+        uint64_t cgen_var_289 = (uint64_t)local_pipeline;
+        countingStream->putBe64(cgen_var_289);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_290 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_290);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -3738,9 +4175,13 @@ void VkEncoder::vkDestroyPipeline(
     uint32_t opcode_vkDestroyPipeline = OP_vkDestroyPipeline;
     stream->write(&opcode_vkDestroyPipeline, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyPipeline, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkPipeline*)&local_pipeline, sizeof(VkPipeline));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_291 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_291);
+    uint64_t cgen_var_292 = (uint64_t)local_pipeline;
+    stream->putBe64(cgen_var_292);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_293 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_293);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -3787,13 +4228,17 @@ VkResult VkEncoder::vkCreatePipelineLayout(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_294 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_294);
         marshal_VkPipelineLayoutCreateInfo(countingStream, (VkPipelineLayoutCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_295 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_295);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkPipelineLayout*)pPipelineLayout, sizeof(VkPipelineLayout));
     }
     uint32_t packetSize_vkCreatePipelineLayout = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -3801,14 +4246,19 @@ VkResult VkEncoder::vkCreatePipelineLayout(
     uint32_t opcode_vkCreatePipelineLayout = OP_vkCreatePipelineLayout;
     stream->write(&opcode_vkCreatePipelineLayout, sizeof(uint32_t));
     stream->write(&packetSize_vkCreatePipelineLayout, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_296 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_296);
     marshal_VkPipelineLayoutCreateInfo(stream, (VkPipelineLayoutCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_297 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_297);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkPipelineLayout*)pPipelineLayout, sizeof(VkPipelineLayout));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkPipelineLayout*)pPipelineLayout, sizeof(VkPipelineLayout));
     if (pPipelineLayout)
     {
@@ -3849,9 +4299,13 @@ void VkEncoder::vkDestroyPipelineLayout(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkPipelineLayout*)&local_pipelineLayout, sizeof(VkPipelineLayout));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_298 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_298);
+        uint64_t cgen_var_299 = (uint64_t)local_pipelineLayout;
+        countingStream->putBe64(cgen_var_299);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_300 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_300);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -3862,9 +4316,13 @@ void VkEncoder::vkDestroyPipelineLayout(
     uint32_t opcode_vkDestroyPipelineLayout = OP_vkDestroyPipelineLayout;
     stream->write(&opcode_vkDestroyPipelineLayout, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyPipelineLayout, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkPipelineLayout*)&local_pipelineLayout, sizeof(VkPipelineLayout));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_301 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_301);
+    uint64_t cgen_var_302 = (uint64_t)local_pipelineLayout;
+    stream->putBe64(cgen_var_302);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_303 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_303);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -3911,13 +4369,17 @@ VkResult VkEncoder::vkCreateSampler(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_304 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_304);
         marshal_VkSamplerCreateInfo(countingStream, (VkSamplerCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_305 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_305);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkSampler*)pSampler, sizeof(VkSampler));
     }
     uint32_t packetSize_vkCreateSampler = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -3925,14 +4387,19 @@ VkResult VkEncoder::vkCreateSampler(
     uint32_t opcode_vkCreateSampler = OP_vkCreateSampler;
     stream->write(&opcode_vkCreateSampler, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateSampler, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_306 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_306);
     marshal_VkSamplerCreateInfo(stream, (VkSamplerCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_307 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_307);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkSampler*)pSampler, sizeof(VkSampler));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkSampler*)pSampler, sizeof(VkSampler));
     if (pSampler)
     {
@@ -3973,9 +4440,13 @@ void VkEncoder::vkDestroySampler(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkSampler*)&local_sampler, sizeof(VkSampler));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_308 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_308);
+        uint64_t cgen_var_309 = (uint64_t)local_sampler;
+        countingStream->putBe64(cgen_var_309);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_310 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_310);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -3986,9 +4457,13 @@ void VkEncoder::vkDestroySampler(
     uint32_t opcode_vkDestroySampler = OP_vkDestroySampler;
     stream->write(&opcode_vkDestroySampler, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroySampler, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkSampler*)&local_sampler, sizeof(VkSampler));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_311 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_311);
+    uint64_t cgen_var_312 = (uint64_t)local_sampler;
+    stream->putBe64(cgen_var_312);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_313 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_313);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -4035,13 +4510,17 @@ VkResult VkEncoder::vkCreateDescriptorSetLayout(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_314 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_314);
         marshal_VkDescriptorSetLayoutCreateInfo(countingStream, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_315 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_315);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkDescriptorSetLayout*)pSetLayout, sizeof(VkDescriptorSetLayout));
     }
     uint32_t packetSize_vkCreateDescriptorSetLayout = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -4049,14 +4528,19 @@ VkResult VkEncoder::vkCreateDescriptorSetLayout(
     uint32_t opcode_vkCreateDescriptorSetLayout = OP_vkCreateDescriptorSetLayout;
     stream->write(&opcode_vkCreateDescriptorSetLayout, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateDescriptorSetLayout, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_316 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_316);
     marshal_VkDescriptorSetLayoutCreateInfo(stream, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_317 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_317);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkDescriptorSetLayout*)pSetLayout, sizeof(VkDescriptorSetLayout));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkDescriptorSetLayout*)pSetLayout, sizeof(VkDescriptorSetLayout));
     if (pSetLayout)
     {
@@ -4097,9 +4581,13 @@ void VkEncoder::vkDestroyDescriptorSetLayout(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkDescriptorSetLayout*)&local_descriptorSetLayout, sizeof(VkDescriptorSetLayout));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_318 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_318);
+        uint64_t cgen_var_319 = (uint64_t)local_descriptorSetLayout;
+        countingStream->putBe64(cgen_var_319);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_320 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_320);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -4110,9 +4598,13 @@ void VkEncoder::vkDestroyDescriptorSetLayout(
     uint32_t opcode_vkDestroyDescriptorSetLayout = OP_vkDestroyDescriptorSetLayout;
     stream->write(&opcode_vkDestroyDescriptorSetLayout, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyDescriptorSetLayout, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkDescriptorSetLayout*)&local_descriptorSetLayout, sizeof(VkDescriptorSetLayout));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_321 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_321);
+    uint64_t cgen_var_322 = (uint64_t)local_descriptorSetLayout;
+    stream->putBe64(cgen_var_322);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_323 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_323);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -4159,13 +4651,17 @@ VkResult VkEncoder::vkCreateDescriptorPool(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_324 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_324);
         marshal_VkDescriptorPoolCreateInfo(countingStream, (VkDescriptorPoolCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_325 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_325);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkDescriptorPool*)pDescriptorPool, sizeof(VkDescriptorPool));
     }
     uint32_t packetSize_vkCreateDescriptorPool = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -4173,14 +4669,19 @@ VkResult VkEncoder::vkCreateDescriptorPool(
     uint32_t opcode_vkCreateDescriptorPool = OP_vkCreateDescriptorPool;
     stream->write(&opcode_vkCreateDescriptorPool, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateDescriptorPool, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_326 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_326);
     marshal_VkDescriptorPoolCreateInfo(stream, (VkDescriptorPoolCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_327 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_327);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkDescriptorPool*)pDescriptorPool, sizeof(VkDescriptorPool));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkDescriptorPool*)pDescriptorPool, sizeof(VkDescriptorPool));
     if (pDescriptorPool)
     {
@@ -4221,9 +4722,13 @@ void VkEncoder::vkDestroyDescriptorPool(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkDescriptorPool*)&local_descriptorPool, sizeof(VkDescriptorPool));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_328 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_328);
+        uint64_t cgen_var_329 = (uint64_t)local_descriptorPool;
+        countingStream->putBe64(cgen_var_329);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_330 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_330);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -4234,9 +4739,13 @@ void VkEncoder::vkDestroyDescriptorPool(
     uint32_t opcode_vkDestroyDescriptorPool = OP_vkDestroyDescriptorPool;
     stream->write(&opcode_vkDestroyDescriptorPool, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyDescriptorPool, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkDescriptorPool*)&local_descriptorPool, sizeof(VkDescriptorPool));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_331 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_331);
+    uint64_t cgen_var_332 = (uint64_t)local_descriptorPool;
+    stream->putBe64(cgen_var_332);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_333 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_333);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -4264,8 +4773,10 @@ VkResult VkEncoder::vkResetDescriptorPool(
     local_flags = flags;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkDescriptorPool*)&local_descriptorPool, sizeof(VkDescriptorPool));
+        uint64_t cgen_var_334 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_334);
+        uint64_t cgen_var_335 = (uint64_t)local_descriptorPool;
+        countingStream->putBe64(cgen_var_335);
         countingStream->write((VkDescriptorPoolResetFlags*)&local_flags, sizeof(VkDescriptorPoolResetFlags));
     }
     uint32_t packetSize_vkResetDescriptorPool = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -4273,8 +4784,10 @@ VkResult VkEncoder::vkResetDescriptorPool(
     uint32_t opcode_vkResetDescriptorPool = OP_vkResetDescriptorPool;
     stream->write(&opcode_vkResetDescriptorPool, sizeof(uint32_t));
     stream->write(&packetSize_vkResetDescriptorPool, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkDescriptorPool*)&local_descriptorPool, sizeof(VkDescriptorPool));
+    uint64_t cgen_var_336 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_336);
+    uint64_t cgen_var_337 = (uint64_t)local_descriptorPool;
+    stream->putBe64(cgen_var_337);
     stream->write((VkDescriptorPoolResetFlags*)&local_flags, sizeof(VkDescriptorPoolResetFlags));
     pool->freeAll();
     VkResult vkResetDescriptorPool_VkResult_return = (VkResult)0;
@@ -4307,8 +4820,10 @@ VkResult VkEncoder::vkAllocateDescriptorSets(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_338 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_338);
         marshal_VkDescriptorSetAllocateInfo(countingStream, (VkDescriptorSetAllocateInfo*)(local_pAllocateInfo));
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkDescriptorSet*)pDescriptorSets, pAllocateInfo->descriptorSetCount * sizeof(VkDescriptorSet));
     }
     uint32_t packetSize_vkAllocateDescriptorSets = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -4316,9 +4831,12 @@ VkResult VkEncoder::vkAllocateDescriptorSets(
     uint32_t opcode_vkAllocateDescriptorSets = OP_vkAllocateDescriptorSets;
     stream->write(&opcode_vkAllocateDescriptorSets, sizeof(uint32_t));
     stream->write(&packetSize_vkAllocateDescriptorSets, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_339 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_339);
     marshal_VkDescriptorSetAllocateInfo(stream, (VkDescriptorSetAllocateInfo*)(local_pAllocateInfo));
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkDescriptorSet*)pDescriptorSets, pAllocateInfo->descriptorSetCount * sizeof(VkDescriptorSet));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkDescriptorSet*)pDescriptorSets, pAllocateInfo->descriptorSetCount * sizeof(VkDescriptorSet));
     if (pDescriptorSets)
     {
@@ -4360,12 +4878,17 @@ VkResult VkEncoder::vkFreeDescriptorSets(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkDescriptorPool*)&local_descriptorPool, sizeof(VkDescriptorPool));
+        uint64_t cgen_var_340 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_340);
+        uint64_t cgen_var_341 = (uint64_t)local_descriptorPool;
+        countingStream->putBe64(cgen_var_341);
         countingStream->write((uint32_t*)&local_descriptorSetCount, sizeof(uint32_t));
-        countingStream->write((VkDescriptorSet**)&local_pDescriptorSets, sizeof(VkDescriptorSet*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_342 = (uint64_t)(uintptr_t)local_pDescriptorSets;
+        countingStream->putBe64(cgen_var_342);
         if (local_pDescriptorSets)
         {
+            // WARNING HANDLE TYPE POINTER
             countingStream->write((VkDescriptorSet*)local_pDescriptorSets, ((descriptorSetCount)) * sizeof(VkDescriptorSet));
         }
     }
@@ -4374,12 +4897,17 @@ VkResult VkEncoder::vkFreeDescriptorSets(
     uint32_t opcode_vkFreeDescriptorSets = OP_vkFreeDescriptorSets;
     stream->write(&opcode_vkFreeDescriptorSets, sizeof(uint32_t));
     stream->write(&packetSize_vkFreeDescriptorSets, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkDescriptorPool*)&local_descriptorPool, sizeof(VkDescriptorPool));
+    uint64_t cgen_var_343 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_343);
+    uint64_t cgen_var_344 = (uint64_t)local_descriptorPool;
+    stream->putBe64(cgen_var_344);
     stream->write((uint32_t*)&local_descriptorSetCount, sizeof(uint32_t));
-    stream->write((VkDescriptorSet**)&local_pDescriptorSets, sizeof(VkDescriptorSet*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_345 = (uint64_t)(uintptr_t)local_pDescriptorSets;
+    stream->putBe64(cgen_var_345);
     if (local_pDescriptorSets)
     {
+        // WARNING HANDLE TYPE POINTER
         stream->write((VkDescriptorSet*)local_pDescriptorSets, ((descriptorSetCount)) * sizeof(VkDescriptorSet));
     }
     if (pDescriptorSets)
@@ -4446,7 +4974,8 @@ void VkEncoder::vkUpdateDescriptorSets(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_346 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_346);
         countingStream->write((uint32_t*)&local_descriptorWriteCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i)
         {
@@ -4463,7 +4992,8 @@ void VkEncoder::vkUpdateDescriptorSets(
     uint32_t opcode_vkUpdateDescriptorSets = OP_vkUpdateDescriptorSets;
     stream->write(&opcode_vkUpdateDescriptorSets, sizeof(uint32_t));
     stream->write(&packetSize_vkUpdateDescriptorSets, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_347 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_347);
     stream->write((uint32_t*)&local_descriptorWriteCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i)
     {
@@ -4515,13 +5045,17 @@ VkResult VkEncoder::vkCreateFramebuffer(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_348 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_348);
         marshal_VkFramebufferCreateInfo(countingStream, (VkFramebufferCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_349 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_349);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkFramebuffer*)pFramebuffer, sizeof(VkFramebuffer));
     }
     uint32_t packetSize_vkCreateFramebuffer = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -4529,14 +5063,19 @@ VkResult VkEncoder::vkCreateFramebuffer(
     uint32_t opcode_vkCreateFramebuffer = OP_vkCreateFramebuffer;
     stream->write(&opcode_vkCreateFramebuffer, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateFramebuffer, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_350 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_350);
     marshal_VkFramebufferCreateInfo(stream, (VkFramebufferCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_351 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_351);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkFramebuffer*)pFramebuffer, sizeof(VkFramebuffer));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkFramebuffer*)pFramebuffer, sizeof(VkFramebuffer));
     if (pFramebuffer)
     {
@@ -4577,9 +5116,13 @@ void VkEncoder::vkDestroyFramebuffer(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkFramebuffer*)&local_framebuffer, sizeof(VkFramebuffer));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_352 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_352);
+        uint64_t cgen_var_353 = (uint64_t)local_framebuffer;
+        countingStream->putBe64(cgen_var_353);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_354 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_354);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -4590,9 +5133,13 @@ void VkEncoder::vkDestroyFramebuffer(
     uint32_t opcode_vkDestroyFramebuffer = OP_vkDestroyFramebuffer;
     stream->write(&opcode_vkDestroyFramebuffer, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyFramebuffer, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkFramebuffer*)&local_framebuffer, sizeof(VkFramebuffer));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_355 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_355);
+    uint64_t cgen_var_356 = (uint64_t)local_framebuffer;
+    stream->putBe64(cgen_var_356);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_357 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_357);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -4639,13 +5186,17 @@ VkResult VkEncoder::vkCreateRenderPass(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_358 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_358);
         marshal_VkRenderPassCreateInfo(countingStream, (VkRenderPassCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_359 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_359);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkRenderPass*)pRenderPass, sizeof(VkRenderPass));
     }
     uint32_t packetSize_vkCreateRenderPass = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -4653,14 +5204,19 @@ VkResult VkEncoder::vkCreateRenderPass(
     uint32_t opcode_vkCreateRenderPass = OP_vkCreateRenderPass;
     stream->write(&opcode_vkCreateRenderPass, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateRenderPass, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_360 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_360);
     marshal_VkRenderPassCreateInfo(stream, (VkRenderPassCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_361 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_361);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkRenderPass*)pRenderPass, sizeof(VkRenderPass));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkRenderPass*)pRenderPass, sizeof(VkRenderPass));
     if (pRenderPass)
     {
@@ -4701,9 +5257,13 @@ void VkEncoder::vkDestroyRenderPass(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkRenderPass*)&local_renderPass, sizeof(VkRenderPass));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_362 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_362);
+        uint64_t cgen_var_363 = (uint64_t)local_renderPass;
+        countingStream->putBe64(cgen_var_363);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_364 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_364);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -4714,9 +5274,13 @@ void VkEncoder::vkDestroyRenderPass(
     uint32_t opcode_vkDestroyRenderPass = OP_vkDestroyRenderPass;
     stream->write(&opcode_vkDestroyRenderPass, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyRenderPass, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkRenderPass*)&local_renderPass, sizeof(VkRenderPass));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_365 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_365);
+    uint64_t cgen_var_366 = (uint64_t)local_renderPass;
+    stream->putBe64(cgen_var_366);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_367 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_367);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -4742,8 +5306,10 @@ void VkEncoder::vkGetRenderAreaGranularity(
     resources->unwrapMapping()->mapHandles_VkRenderPass((VkRenderPass*)&local_renderPass);
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkRenderPass*)&local_renderPass, sizeof(VkRenderPass));
+        uint64_t cgen_var_368 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_368);
+        uint64_t cgen_var_369 = (uint64_t)local_renderPass;
+        countingStream->putBe64(cgen_var_369);
         marshal_VkExtent2D(countingStream, (VkExtent2D*)(pGranularity));
     }
     uint32_t packetSize_vkGetRenderAreaGranularity = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -4751,8 +5317,10 @@ void VkEncoder::vkGetRenderAreaGranularity(
     uint32_t opcode_vkGetRenderAreaGranularity = OP_vkGetRenderAreaGranularity;
     stream->write(&opcode_vkGetRenderAreaGranularity, sizeof(uint32_t));
     stream->write(&packetSize_vkGetRenderAreaGranularity, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkRenderPass*)&local_renderPass, sizeof(VkRenderPass));
+    uint64_t cgen_var_370 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_370);
+    uint64_t cgen_var_371 = (uint64_t)local_renderPass;
+    stream->putBe64(cgen_var_371);
     marshal_VkExtent2D(stream, (VkExtent2D*)(pGranularity));
     unmarshal_VkExtent2D(stream, (VkExtent2D*)(pGranularity));
     pool->freeAll();
@@ -4796,13 +5364,17 @@ VkResult VkEncoder::vkCreateCommandPool(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_372 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_372);
         marshal_VkCommandPoolCreateInfo(countingStream, (VkCommandPoolCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_373 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_373);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkCommandPool*)pCommandPool, sizeof(VkCommandPool));
     }
     uint32_t packetSize_vkCreateCommandPool = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -4810,14 +5382,19 @@ VkResult VkEncoder::vkCreateCommandPool(
     uint32_t opcode_vkCreateCommandPool = OP_vkCreateCommandPool;
     stream->write(&opcode_vkCreateCommandPool, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateCommandPool, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_374 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_374);
     marshal_VkCommandPoolCreateInfo(stream, (VkCommandPoolCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_375 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_375);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkCommandPool*)pCommandPool, sizeof(VkCommandPool));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkCommandPool*)pCommandPool, sizeof(VkCommandPool));
     if (pCommandPool)
     {
@@ -4858,9 +5435,13 @@ void VkEncoder::vkDestroyCommandPool(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkCommandPool*)&local_commandPool, sizeof(VkCommandPool));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_376 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_376);
+        uint64_t cgen_var_377 = (uint64_t)local_commandPool;
+        countingStream->putBe64(cgen_var_377);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_378 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_378);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -4871,9 +5452,13 @@ void VkEncoder::vkDestroyCommandPool(
     uint32_t opcode_vkDestroyCommandPool = OP_vkDestroyCommandPool;
     stream->write(&opcode_vkDestroyCommandPool, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyCommandPool, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkCommandPool*)&local_commandPool, sizeof(VkCommandPool));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_379 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_379);
+    uint64_t cgen_var_380 = (uint64_t)local_commandPool;
+    stream->putBe64(cgen_var_380);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_381 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_381);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -4901,8 +5486,10 @@ VkResult VkEncoder::vkResetCommandPool(
     local_flags = flags;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkCommandPool*)&local_commandPool, sizeof(VkCommandPool));
+        uint64_t cgen_var_382 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_382);
+        uint64_t cgen_var_383 = (uint64_t)local_commandPool;
+        countingStream->putBe64(cgen_var_383);
         countingStream->write((VkCommandPoolResetFlags*)&local_flags, sizeof(VkCommandPoolResetFlags));
     }
     uint32_t packetSize_vkResetCommandPool = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -4910,8 +5497,10 @@ VkResult VkEncoder::vkResetCommandPool(
     uint32_t opcode_vkResetCommandPool = OP_vkResetCommandPool;
     stream->write(&opcode_vkResetCommandPool, sizeof(uint32_t));
     stream->write(&packetSize_vkResetCommandPool, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkCommandPool*)&local_commandPool, sizeof(VkCommandPool));
+    uint64_t cgen_var_384 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_384);
+    uint64_t cgen_var_385 = (uint64_t)local_commandPool;
+    stream->putBe64(cgen_var_385);
     stream->write((VkCommandPoolResetFlags*)&local_flags, sizeof(VkCommandPoolResetFlags));
     pool->freeAll();
     VkResult vkResetCommandPool_VkResult_return = (VkResult)0;
@@ -4944,8 +5533,10 @@ VkResult VkEncoder::vkAllocateCommandBuffers(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_386 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_386);
         marshal_VkCommandBufferAllocateInfo(countingStream, (VkCommandBufferAllocateInfo*)(local_pAllocateInfo));
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkCommandBuffer*)pCommandBuffers, pAllocateInfo->commandBufferCount * sizeof(VkCommandBuffer));
     }
     uint32_t packetSize_vkAllocateCommandBuffers = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -4953,9 +5544,12 @@ VkResult VkEncoder::vkAllocateCommandBuffers(
     uint32_t opcode_vkAllocateCommandBuffers = OP_vkAllocateCommandBuffers;
     stream->write(&opcode_vkAllocateCommandBuffers, sizeof(uint32_t));
     stream->write(&packetSize_vkAllocateCommandBuffers, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_387 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_387);
     marshal_VkCommandBufferAllocateInfo(stream, (VkCommandBufferAllocateInfo*)(local_pAllocateInfo));
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkCommandBuffer*)pCommandBuffers, pAllocateInfo->commandBufferCount * sizeof(VkCommandBuffer));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkCommandBuffer*)pCommandBuffers, pAllocateInfo->commandBufferCount * sizeof(VkCommandBuffer));
     if (pCommandBuffers)
     {
@@ -4997,12 +5591,17 @@ void VkEncoder::vkFreeCommandBuffers(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkCommandPool*)&local_commandPool, sizeof(VkCommandPool));
+        uint64_t cgen_var_388 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_388);
+        uint64_t cgen_var_389 = (uint64_t)local_commandPool;
+        countingStream->putBe64(cgen_var_389);
         countingStream->write((uint32_t*)&local_commandBufferCount, sizeof(uint32_t));
-        countingStream->write((VkCommandBuffer**)&local_pCommandBuffers, sizeof(VkCommandBuffer*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_390 = (uint64_t)(uintptr_t)local_pCommandBuffers;
+        countingStream->putBe64(cgen_var_390);
         if (local_pCommandBuffers)
         {
+            // WARNING HANDLE TYPE POINTER
             countingStream->write((VkCommandBuffer*)local_pCommandBuffers, ((commandBufferCount)) * sizeof(VkCommandBuffer));
         }
     }
@@ -5011,12 +5610,17 @@ void VkEncoder::vkFreeCommandBuffers(
     uint32_t opcode_vkFreeCommandBuffers = OP_vkFreeCommandBuffers;
     stream->write(&opcode_vkFreeCommandBuffers, sizeof(uint32_t));
     stream->write(&packetSize_vkFreeCommandBuffers, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkCommandPool*)&local_commandPool, sizeof(VkCommandPool));
+    uint64_t cgen_var_391 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_391);
+    uint64_t cgen_var_392 = (uint64_t)local_commandPool;
+    stream->putBe64(cgen_var_392);
     stream->write((uint32_t*)&local_commandBufferCount, sizeof(uint32_t));
-    stream->write((VkCommandBuffer**)&local_pCommandBuffers, sizeof(VkCommandBuffer*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_393 = (uint64_t)(uintptr_t)local_pCommandBuffers;
+    stream->putBe64(cgen_var_393);
     if (local_pCommandBuffers)
     {
+        // WARNING HANDLE TYPE POINTER
         stream->write((VkCommandBuffer*)local_pCommandBuffers, ((commandBufferCount)) * sizeof(VkCommandBuffer));
     }
     if (pCommandBuffers)
@@ -5050,7 +5654,8 @@ VkResult VkEncoder::vkBeginCommandBuffer(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_394 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_394);
         marshal_VkCommandBufferBeginInfo(countingStream, (VkCommandBufferBeginInfo*)(local_pBeginInfo));
     }
     uint32_t packetSize_vkBeginCommandBuffer = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -5058,7 +5663,8 @@ VkResult VkEncoder::vkBeginCommandBuffer(
     uint32_t opcode_vkBeginCommandBuffer = OP_vkBeginCommandBuffer;
     stream->write(&opcode_vkBeginCommandBuffer, sizeof(uint32_t));
     stream->write(&packetSize_vkBeginCommandBuffer, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_395 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_395);
     marshal_VkCommandBufferBeginInfo(stream, (VkCommandBufferBeginInfo*)(local_pBeginInfo));
     pool->freeAll();
     VkResult vkBeginCommandBuffer_VkResult_return = (VkResult)0;
@@ -5078,14 +5684,16 @@ VkResult VkEncoder::vkEndCommandBuffer(
     resources->unwrapMapping()->mapHandles_VkCommandBuffer((VkCommandBuffer*)&local_commandBuffer);
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_396 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_396);
     }
     uint32_t packetSize_vkEndCommandBuffer = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
     uint32_t opcode_vkEndCommandBuffer = OP_vkEndCommandBuffer;
     stream->write(&opcode_vkEndCommandBuffer, sizeof(uint32_t));
     stream->write(&packetSize_vkEndCommandBuffer, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_397 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_397);
     pool->freeAll();
     VkResult vkEndCommandBuffer_VkResult_return = (VkResult)0;
     stream->read(&vkEndCommandBuffer_VkResult_return, sizeof(VkResult));
@@ -5107,7 +5715,8 @@ VkResult VkEncoder::vkResetCommandBuffer(
     local_flags = flags;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_398 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_398);
         countingStream->write((VkCommandBufferResetFlags*)&local_flags, sizeof(VkCommandBufferResetFlags));
     }
     uint32_t packetSize_vkResetCommandBuffer = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -5115,7 +5724,8 @@ VkResult VkEncoder::vkResetCommandBuffer(
     uint32_t opcode_vkResetCommandBuffer = OP_vkResetCommandBuffer;
     stream->write(&opcode_vkResetCommandBuffer, sizeof(uint32_t));
     stream->write(&packetSize_vkResetCommandBuffer, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_399 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_399);
     stream->write((VkCommandBufferResetFlags*)&local_flags, sizeof(VkCommandBufferResetFlags));
     pool->freeAll();
     VkResult vkResetCommandBuffer_VkResult_return = (VkResult)0;
@@ -5142,18 +5752,22 @@ void VkEncoder::vkCmdBindPipeline(
     resources->unwrapMapping()->mapHandles_VkPipeline((VkPipeline*)&local_pipeline);
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_400 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_400);
         countingStream->write((VkPipelineBindPoint*)&local_pipelineBindPoint, sizeof(VkPipelineBindPoint));
-        countingStream->write((VkPipeline*)&local_pipeline, sizeof(VkPipeline));
+        uint64_t cgen_var_401 = (uint64_t)local_pipeline;
+        countingStream->putBe64(cgen_var_401);
     }
     uint32_t packetSize_vkCmdBindPipeline = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
     uint32_t opcode_vkCmdBindPipeline = OP_vkCmdBindPipeline;
     stream->write(&opcode_vkCmdBindPipeline, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdBindPipeline, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_402 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_402);
     stream->write((VkPipelineBindPoint*)&local_pipelineBindPoint, sizeof(VkPipelineBindPoint));
-    stream->write((VkPipeline*)&local_pipeline, sizeof(VkPipeline));
+    uint64_t cgen_var_403 = (uint64_t)local_pipeline;
+    stream->putBe64(cgen_var_403);
     pool->freeAll();
 }
 
@@ -5193,7 +5807,8 @@ void VkEncoder::vkCmdSetViewport(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_404 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_404);
         countingStream->write((uint32_t*)&local_firstViewport, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_viewportCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
@@ -5206,7 +5821,8 @@ void VkEncoder::vkCmdSetViewport(
     uint32_t opcode_vkCmdSetViewport = OP_vkCmdSetViewport;
     stream->write(&opcode_vkCmdSetViewport, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdSetViewport, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_405 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_405);
     stream->write((uint32_t*)&local_firstViewport, sizeof(uint32_t));
     stream->write((uint32_t*)&local_viewportCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
@@ -5252,7 +5868,8 @@ void VkEncoder::vkCmdSetScissor(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_406 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_406);
         countingStream->write((uint32_t*)&local_firstScissor, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_scissorCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((scissorCount)); ++i)
@@ -5265,7 +5882,8 @@ void VkEncoder::vkCmdSetScissor(
     uint32_t opcode_vkCmdSetScissor = OP_vkCmdSetScissor;
     stream->write(&opcode_vkCmdSetScissor, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdSetScissor, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_407 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_407);
     stream->write((uint32_t*)&local_firstScissor, sizeof(uint32_t));
     stream->write((uint32_t*)&local_scissorCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((scissorCount)); ++i)
@@ -5290,7 +5908,8 @@ void VkEncoder::vkCmdSetLineWidth(
     local_lineWidth = lineWidth;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_408 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_408);
         countingStream->write((float*)&local_lineWidth, sizeof(float));
     }
     uint32_t packetSize_vkCmdSetLineWidth = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -5298,7 +5917,8 @@ void VkEncoder::vkCmdSetLineWidth(
     uint32_t opcode_vkCmdSetLineWidth = OP_vkCmdSetLineWidth;
     stream->write(&opcode_vkCmdSetLineWidth, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdSetLineWidth, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_409 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_409);
     stream->write((float*)&local_lineWidth, sizeof(float));
     pool->freeAll();
 }
@@ -5324,7 +5944,8 @@ void VkEncoder::vkCmdSetDepthBias(
     local_depthBiasSlopeFactor = depthBiasSlopeFactor;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_410 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_410);
         countingStream->write((float*)&local_depthBiasConstantFactor, sizeof(float));
         countingStream->write((float*)&local_depthBiasClamp, sizeof(float));
         countingStream->write((float*)&local_depthBiasSlopeFactor, sizeof(float));
@@ -5334,7 +5955,8 @@ void VkEncoder::vkCmdSetDepthBias(
     uint32_t opcode_vkCmdSetDepthBias = OP_vkCmdSetDepthBias;
     stream->write(&opcode_vkCmdSetDepthBias, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdSetDepthBias, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_411 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_411);
     stream->write((float*)&local_depthBiasConstantFactor, sizeof(float));
     stream->write((float*)&local_depthBiasClamp, sizeof(float));
     stream->write((float*)&local_depthBiasSlopeFactor, sizeof(float));
@@ -5356,7 +5978,8 @@ void VkEncoder::vkCmdSetBlendConstants(
     memcpy(&local_blendConstants, &blendConstants, 4 * sizeof(const float));
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_412 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_412);
         countingStream->write((float*)&local_blendConstants, 4 * sizeof(float));
     }
     uint32_t packetSize_vkCmdSetBlendConstants = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -5364,7 +5987,8 @@ void VkEncoder::vkCmdSetBlendConstants(
     uint32_t opcode_vkCmdSetBlendConstants = OP_vkCmdSetBlendConstants;
     stream->write(&opcode_vkCmdSetBlendConstants, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdSetBlendConstants, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_413 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_413);
     stream->write((float*)&local_blendConstants, 4 * sizeof(float));
     pool->freeAll();
 }
@@ -5387,7 +6011,8 @@ void VkEncoder::vkCmdSetDepthBounds(
     local_maxDepthBounds = maxDepthBounds;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_414 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_414);
         countingStream->write((float*)&local_minDepthBounds, sizeof(float));
         countingStream->write((float*)&local_maxDepthBounds, sizeof(float));
     }
@@ -5396,7 +6021,8 @@ void VkEncoder::vkCmdSetDepthBounds(
     uint32_t opcode_vkCmdSetDepthBounds = OP_vkCmdSetDepthBounds;
     stream->write(&opcode_vkCmdSetDepthBounds, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdSetDepthBounds, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_415 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_415);
     stream->write((float*)&local_minDepthBounds, sizeof(float));
     stream->write((float*)&local_maxDepthBounds, sizeof(float));
     pool->freeAll();
@@ -5420,7 +6046,8 @@ void VkEncoder::vkCmdSetStencilCompareMask(
     local_compareMask = compareMask;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_416 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_416);
         countingStream->write((VkStencilFaceFlags*)&local_faceMask, sizeof(VkStencilFaceFlags));
         countingStream->write((uint32_t*)&local_compareMask, sizeof(uint32_t));
     }
@@ -5429,7 +6056,8 @@ void VkEncoder::vkCmdSetStencilCompareMask(
     uint32_t opcode_vkCmdSetStencilCompareMask = OP_vkCmdSetStencilCompareMask;
     stream->write(&opcode_vkCmdSetStencilCompareMask, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdSetStencilCompareMask, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_417 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_417);
     stream->write((VkStencilFaceFlags*)&local_faceMask, sizeof(VkStencilFaceFlags));
     stream->write((uint32_t*)&local_compareMask, sizeof(uint32_t));
     pool->freeAll();
@@ -5453,7 +6081,8 @@ void VkEncoder::vkCmdSetStencilWriteMask(
     local_writeMask = writeMask;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_418 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_418);
         countingStream->write((VkStencilFaceFlags*)&local_faceMask, sizeof(VkStencilFaceFlags));
         countingStream->write((uint32_t*)&local_writeMask, sizeof(uint32_t));
     }
@@ -5462,7 +6091,8 @@ void VkEncoder::vkCmdSetStencilWriteMask(
     uint32_t opcode_vkCmdSetStencilWriteMask = OP_vkCmdSetStencilWriteMask;
     stream->write(&opcode_vkCmdSetStencilWriteMask, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdSetStencilWriteMask, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_419 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_419);
     stream->write((VkStencilFaceFlags*)&local_faceMask, sizeof(VkStencilFaceFlags));
     stream->write((uint32_t*)&local_writeMask, sizeof(uint32_t));
     pool->freeAll();
@@ -5486,7 +6116,8 @@ void VkEncoder::vkCmdSetStencilReference(
     local_reference = reference;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_420 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_420);
         countingStream->write((VkStencilFaceFlags*)&local_faceMask, sizeof(VkStencilFaceFlags));
         countingStream->write((uint32_t*)&local_reference, sizeof(uint32_t));
     }
@@ -5495,7 +6126,8 @@ void VkEncoder::vkCmdSetStencilReference(
     uint32_t opcode_vkCmdSetStencilReference = OP_vkCmdSetStencilReference;
     stream->write(&opcode_vkCmdSetStencilReference, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdSetStencilReference, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_421 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_421);
     stream->write((VkStencilFaceFlags*)&local_faceMask, sizeof(VkStencilFaceFlags));
     stream->write((uint32_t*)&local_reference, sizeof(uint32_t));
     pool->freeAll();
@@ -5547,11 +6179,14 @@ void VkEncoder::vkCmdBindDescriptorSets(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_422 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_422);
         countingStream->write((VkPipelineBindPoint*)&local_pipelineBindPoint, sizeof(VkPipelineBindPoint));
-        countingStream->write((VkPipelineLayout*)&local_layout, sizeof(VkPipelineLayout));
+        uint64_t cgen_var_423 = (uint64_t)local_layout;
+        countingStream->putBe64(cgen_var_423);
         countingStream->write((uint32_t*)&local_firstSet, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_descriptorSetCount, sizeof(uint32_t));
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkDescriptorSet*)local_pDescriptorSets, ((descriptorSetCount)) * sizeof(VkDescriptorSet));
         countingStream->write((uint32_t*)&local_dynamicOffsetCount, sizeof(uint32_t));
         countingStream->write((uint32_t*)local_pDynamicOffsets, ((dynamicOffsetCount)) * sizeof(uint32_t));
@@ -5561,11 +6196,14 @@ void VkEncoder::vkCmdBindDescriptorSets(
     uint32_t opcode_vkCmdBindDescriptorSets = OP_vkCmdBindDescriptorSets;
     stream->write(&opcode_vkCmdBindDescriptorSets, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdBindDescriptorSets, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_424 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_424);
     stream->write((VkPipelineBindPoint*)&local_pipelineBindPoint, sizeof(VkPipelineBindPoint));
-    stream->write((VkPipelineLayout*)&local_layout, sizeof(VkPipelineLayout));
+    uint64_t cgen_var_425 = (uint64_t)local_layout;
+    stream->putBe64(cgen_var_425);
     stream->write((uint32_t*)&local_firstSet, sizeof(uint32_t));
     stream->write((uint32_t*)&local_descriptorSetCount, sizeof(uint32_t));
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkDescriptorSet*)local_pDescriptorSets, ((descriptorSetCount)) * sizeof(VkDescriptorSet));
     stream->write((uint32_t*)&local_dynamicOffsetCount, sizeof(uint32_t));
     stream->write((uint32_t*)local_pDynamicOffsets, ((dynamicOffsetCount)) * sizeof(uint32_t));
@@ -5594,8 +6232,10 @@ void VkEncoder::vkCmdBindIndexBuffer(
     local_indexType = indexType;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
+        uint64_t cgen_var_426 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_426);
+        uint64_t cgen_var_427 = (uint64_t)local_buffer;
+        countingStream->putBe64(cgen_var_427);
         countingStream->write((VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
         countingStream->write((VkIndexType*)&local_indexType, sizeof(VkIndexType));
     }
@@ -5604,8 +6244,10 @@ void VkEncoder::vkCmdBindIndexBuffer(
     uint32_t opcode_vkCmdBindIndexBuffer = OP_vkCmdBindIndexBuffer;
     stream->write(&opcode_vkCmdBindIndexBuffer, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdBindIndexBuffer, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
+    uint64_t cgen_var_428 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_428);
+    uint64_t cgen_var_429 = (uint64_t)local_buffer;
+    stream->putBe64(cgen_var_429);
     stream->write((VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
     stream->write((VkIndexType*)&local_indexType, sizeof(VkIndexType));
     pool->freeAll();
@@ -5647,9 +6289,11 @@ void VkEncoder::vkCmdBindVertexBuffers(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_430 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_430);
         countingStream->write((uint32_t*)&local_firstBinding, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_bindingCount, sizeof(uint32_t));
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkBuffer*)local_pBuffers, ((bindingCount)) * sizeof(VkBuffer));
         countingStream->write((VkDeviceSize*)local_pOffsets, ((bindingCount)) * sizeof(VkDeviceSize));
     }
@@ -5658,9 +6302,11 @@ void VkEncoder::vkCmdBindVertexBuffers(
     uint32_t opcode_vkCmdBindVertexBuffers = OP_vkCmdBindVertexBuffers;
     stream->write(&opcode_vkCmdBindVertexBuffers, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdBindVertexBuffers, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_431 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_431);
     stream->write((uint32_t*)&local_firstBinding, sizeof(uint32_t));
     stream->write((uint32_t*)&local_bindingCount, sizeof(uint32_t));
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkBuffer*)local_pBuffers, ((bindingCount)) * sizeof(VkBuffer));
     stream->write((VkDeviceSize*)local_pOffsets, ((bindingCount)) * sizeof(VkDeviceSize));
     pool->freeAll();
@@ -5690,7 +6336,8 @@ void VkEncoder::vkCmdDraw(
     local_firstInstance = firstInstance;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_432 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_432);
         countingStream->write((uint32_t*)&local_vertexCount, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_instanceCount, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_firstVertex, sizeof(uint32_t));
@@ -5701,7 +6348,8 @@ void VkEncoder::vkCmdDraw(
     uint32_t opcode_vkCmdDraw = OP_vkCmdDraw;
     stream->write(&opcode_vkCmdDraw, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdDraw, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_433 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_433);
     stream->write((uint32_t*)&local_vertexCount, sizeof(uint32_t));
     stream->write((uint32_t*)&local_instanceCount, sizeof(uint32_t));
     stream->write((uint32_t*)&local_firstVertex, sizeof(uint32_t));
@@ -5736,7 +6384,8 @@ void VkEncoder::vkCmdDrawIndexed(
     local_firstInstance = firstInstance;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_434 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_434);
         countingStream->write((uint32_t*)&local_indexCount, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_instanceCount, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_firstIndex, sizeof(uint32_t));
@@ -5748,7 +6397,8 @@ void VkEncoder::vkCmdDrawIndexed(
     uint32_t opcode_vkCmdDrawIndexed = OP_vkCmdDrawIndexed;
     stream->write(&opcode_vkCmdDrawIndexed, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdDrawIndexed, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_435 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_435);
     stream->write((uint32_t*)&local_indexCount, sizeof(uint32_t));
     stream->write((uint32_t*)&local_instanceCount, sizeof(uint32_t));
     stream->write((uint32_t*)&local_firstIndex, sizeof(uint32_t));
@@ -5782,8 +6432,10 @@ void VkEncoder::vkCmdDrawIndirect(
     local_stride = stride;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
+        uint64_t cgen_var_436 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_436);
+        uint64_t cgen_var_437 = (uint64_t)local_buffer;
+        countingStream->putBe64(cgen_var_437);
         countingStream->write((VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
         countingStream->write((uint32_t*)&local_drawCount, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_stride, sizeof(uint32_t));
@@ -5793,8 +6445,10 @@ void VkEncoder::vkCmdDrawIndirect(
     uint32_t opcode_vkCmdDrawIndirect = OP_vkCmdDrawIndirect;
     stream->write(&opcode_vkCmdDrawIndirect, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdDrawIndirect, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
+    uint64_t cgen_var_438 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_438);
+    uint64_t cgen_var_439 = (uint64_t)local_buffer;
+    stream->putBe64(cgen_var_439);
     stream->write((VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
     stream->write((uint32_t*)&local_drawCount, sizeof(uint32_t));
     stream->write((uint32_t*)&local_stride, sizeof(uint32_t));
@@ -5826,8 +6480,10 @@ void VkEncoder::vkCmdDrawIndexedIndirect(
     local_stride = stride;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
+        uint64_t cgen_var_440 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_440);
+        uint64_t cgen_var_441 = (uint64_t)local_buffer;
+        countingStream->putBe64(cgen_var_441);
         countingStream->write((VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
         countingStream->write((uint32_t*)&local_drawCount, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_stride, sizeof(uint32_t));
@@ -5837,8 +6493,10 @@ void VkEncoder::vkCmdDrawIndexedIndirect(
     uint32_t opcode_vkCmdDrawIndexedIndirect = OP_vkCmdDrawIndexedIndirect;
     stream->write(&opcode_vkCmdDrawIndexedIndirect, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdDrawIndexedIndirect, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
+    uint64_t cgen_var_442 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_442);
+    uint64_t cgen_var_443 = (uint64_t)local_buffer;
+    stream->putBe64(cgen_var_443);
     stream->write((VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
     stream->write((uint32_t*)&local_drawCount, sizeof(uint32_t));
     stream->write((uint32_t*)&local_stride, sizeof(uint32_t));
@@ -5866,7 +6524,8 @@ void VkEncoder::vkCmdDispatch(
     local_groupCountZ = groupCountZ;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_444 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_444);
         countingStream->write((uint32_t*)&local_groupCountX, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_groupCountY, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_groupCountZ, sizeof(uint32_t));
@@ -5876,7 +6535,8 @@ void VkEncoder::vkCmdDispatch(
     uint32_t opcode_vkCmdDispatch = OP_vkCmdDispatch;
     stream->write(&opcode_vkCmdDispatch, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdDispatch, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_445 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_445);
     stream->write((uint32_t*)&local_groupCountX, sizeof(uint32_t));
     stream->write((uint32_t*)&local_groupCountY, sizeof(uint32_t));
     stream->write((uint32_t*)&local_groupCountZ, sizeof(uint32_t));
@@ -5902,8 +6562,10 @@ void VkEncoder::vkCmdDispatchIndirect(
     local_offset = offset;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
+        uint64_t cgen_var_446 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_446);
+        uint64_t cgen_var_447 = (uint64_t)local_buffer;
+        countingStream->putBe64(cgen_var_447);
         countingStream->write((VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
     }
     uint32_t packetSize_vkCmdDispatchIndirect = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -5911,8 +6573,10 @@ void VkEncoder::vkCmdDispatchIndirect(
     uint32_t opcode_vkCmdDispatchIndirect = OP_vkCmdDispatchIndirect;
     stream->write(&opcode_vkCmdDispatchIndirect, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdDispatchIndirect, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
+    uint64_t cgen_var_448 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_448);
+    uint64_t cgen_var_449 = (uint64_t)local_buffer;
+    stream->putBe64(cgen_var_449);
     stream->write((VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
     pool->freeAll();
 }
@@ -5958,9 +6622,12 @@ void VkEncoder::vkCmdCopyBuffer(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkBuffer*)&local_srcBuffer, sizeof(VkBuffer));
-        countingStream->write((VkBuffer*)&local_dstBuffer, sizeof(VkBuffer));
+        uint64_t cgen_var_450 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_450);
+        uint64_t cgen_var_451 = (uint64_t)local_srcBuffer;
+        countingStream->putBe64(cgen_var_451);
+        uint64_t cgen_var_452 = (uint64_t)local_dstBuffer;
+        countingStream->putBe64(cgen_var_452);
         countingStream->write((uint32_t*)&local_regionCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
@@ -5972,9 +6639,12 @@ void VkEncoder::vkCmdCopyBuffer(
     uint32_t opcode_vkCmdCopyBuffer = OP_vkCmdCopyBuffer;
     stream->write(&opcode_vkCmdCopyBuffer, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdCopyBuffer, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkBuffer*)&local_srcBuffer, sizeof(VkBuffer));
-    stream->write((VkBuffer*)&local_dstBuffer, sizeof(VkBuffer));
+    uint64_t cgen_var_453 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_453);
+    uint64_t cgen_var_454 = (uint64_t)local_srcBuffer;
+    stream->putBe64(cgen_var_454);
+    uint64_t cgen_var_455 = (uint64_t)local_dstBuffer;
+    stream->putBe64(cgen_var_455);
     stream->write((uint32_t*)&local_regionCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
     {
@@ -6030,10 +6700,13 @@ void VkEncoder::vkCmdCopyImage(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkImage*)&local_srcImage, sizeof(VkImage));
+        uint64_t cgen_var_456 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_456);
+        uint64_t cgen_var_457 = (uint64_t)local_srcImage;
+        countingStream->putBe64(cgen_var_457);
         countingStream->write((VkImageLayout*)&local_srcImageLayout, sizeof(VkImageLayout));
-        countingStream->write((VkImage*)&local_dstImage, sizeof(VkImage));
+        uint64_t cgen_var_458 = (uint64_t)local_dstImage;
+        countingStream->putBe64(cgen_var_458);
         countingStream->write((VkImageLayout*)&local_dstImageLayout, sizeof(VkImageLayout));
         countingStream->write((uint32_t*)&local_regionCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
@@ -6046,10 +6719,13 @@ void VkEncoder::vkCmdCopyImage(
     uint32_t opcode_vkCmdCopyImage = OP_vkCmdCopyImage;
     stream->write(&opcode_vkCmdCopyImage, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdCopyImage, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkImage*)&local_srcImage, sizeof(VkImage));
+    uint64_t cgen_var_459 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_459);
+    uint64_t cgen_var_460 = (uint64_t)local_srcImage;
+    stream->putBe64(cgen_var_460);
     stream->write((VkImageLayout*)&local_srcImageLayout, sizeof(VkImageLayout));
-    stream->write((VkImage*)&local_dstImage, sizeof(VkImage));
+    uint64_t cgen_var_461 = (uint64_t)local_dstImage;
+    stream->putBe64(cgen_var_461);
     stream->write((VkImageLayout*)&local_dstImageLayout, sizeof(VkImageLayout));
     stream->write((uint32_t*)&local_regionCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
@@ -6109,10 +6785,13 @@ void VkEncoder::vkCmdBlitImage(
     local_filter = filter;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkImage*)&local_srcImage, sizeof(VkImage));
+        uint64_t cgen_var_462 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_462);
+        uint64_t cgen_var_463 = (uint64_t)local_srcImage;
+        countingStream->putBe64(cgen_var_463);
         countingStream->write((VkImageLayout*)&local_srcImageLayout, sizeof(VkImageLayout));
-        countingStream->write((VkImage*)&local_dstImage, sizeof(VkImage));
+        uint64_t cgen_var_464 = (uint64_t)local_dstImage;
+        countingStream->putBe64(cgen_var_464);
         countingStream->write((VkImageLayout*)&local_dstImageLayout, sizeof(VkImageLayout));
         countingStream->write((uint32_t*)&local_regionCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
@@ -6126,10 +6805,13 @@ void VkEncoder::vkCmdBlitImage(
     uint32_t opcode_vkCmdBlitImage = OP_vkCmdBlitImage;
     stream->write(&opcode_vkCmdBlitImage, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdBlitImage, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkImage*)&local_srcImage, sizeof(VkImage));
+    uint64_t cgen_var_465 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_465);
+    uint64_t cgen_var_466 = (uint64_t)local_srcImage;
+    stream->putBe64(cgen_var_466);
     stream->write((VkImageLayout*)&local_srcImageLayout, sizeof(VkImageLayout));
-    stream->write((VkImage*)&local_dstImage, sizeof(VkImage));
+    uint64_t cgen_var_467 = (uint64_t)local_dstImage;
+    stream->putBe64(cgen_var_467);
     stream->write((VkImageLayout*)&local_dstImageLayout, sizeof(VkImageLayout));
     stream->write((uint32_t*)&local_regionCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
@@ -6184,9 +6866,12 @@ void VkEncoder::vkCmdCopyBufferToImage(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkBuffer*)&local_srcBuffer, sizeof(VkBuffer));
-        countingStream->write((VkImage*)&local_dstImage, sizeof(VkImage));
+        uint64_t cgen_var_468 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_468);
+        uint64_t cgen_var_469 = (uint64_t)local_srcBuffer;
+        countingStream->putBe64(cgen_var_469);
+        uint64_t cgen_var_470 = (uint64_t)local_dstImage;
+        countingStream->putBe64(cgen_var_470);
         countingStream->write((VkImageLayout*)&local_dstImageLayout, sizeof(VkImageLayout));
         countingStream->write((uint32_t*)&local_regionCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
@@ -6199,9 +6884,12 @@ void VkEncoder::vkCmdCopyBufferToImage(
     uint32_t opcode_vkCmdCopyBufferToImage = OP_vkCmdCopyBufferToImage;
     stream->write(&opcode_vkCmdCopyBufferToImage, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdCopyBufferToImage, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkBuffer*)&local_srcBuffer, sizeof(VkBuffer));
-    stream->write((VkImage*)&local_dstImage, sizeof(VkImage));
+    uint64_t cgen_var_471 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_471);
+    uint64_t cgen_var_472 = (uint64_t)local_srcBuffer;
+    stream->putBe64(cgen_var_472);
+    uint64_t cgen_var_473 = (uint64_t)local_dstImage;
+    stream->putBe64(cgen_var_473);
     stream->write((VkImageLayout*)&local_dstImageLayout, sizeof(VkImageLayout));
     stream->write((uint32_t*)&local_regionCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
@@ -6255,10 +6943,13 @@ void VkEncoder::vkCmdCopyImageToBuffer(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkImage*)&local_srcImage, sizeof(VkImage));
+        uint64_t cgen_var_474 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_474);
+        uint64_t cgen_var_475 = (uint64_t)local_srcImage;
+        countingStream->putBe64(cgen_var_475);
         countingStream->write((VkImageLayout*)&local_srcImageLayout, sizeof(VkImageLayout));
-        countingStream->write((VkBuffer*)&local_dstBuffer, sizeof(VkBuffer));
+        uint64_t cgen_var_476 = (uint64_t)local_dstBuffer;
+        countingStream->putBe64(cgen_var_476);
         countingStream->write((uint32_t*)&local_regionCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
@@ -6270,10 +6961,13 @@ void VkEncoder::vkCmdCopyImageToBuffer(
     uint32_t opcode_vkCmdCopyImageToBuffer = OP_vkCmdCopyImageToBuffer;
     stream->write(&opcode_vkCmdCopyImageToBuffer, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdCopyImageToBuffer, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkImage*)&local_srcImage, sizeof(VkImage));
+    uint64_t cgen_var_477 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_477);
+    uint64_t cgen_var_478 = (uint64_t)local_srcImage;
+    stream->putBe64(cgen_var_478);
     stream->write((VkImageLayout*)&local_srcImageLayout, sizeof(VkImageLayout));
-    stream->write((VkBuffer*)&local_dstBuffer, sizeof(VkBuffer));
+    uint64_t cgen_var_479 = (uint64_t)local_dstBuffer;
+    stream->putBe64(cgen_var_479);
     stream->write((uint32_t*)&local_regionCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
     {
@@ -6311,8 +7005,10 @@ void VkEncoder::vkCmdUpdateBuffer(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkBuffer*)&local_dstBuffer, sizeof(VkBuffer));
+        uint64_t cgen_var_480 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_480);
+        uint64_t cgen_var_481 = (uint64_t)local_dstBuffer;
+        countingStream->putBe64(cgen_var_481);
         countingStream->write((VkDeviceSize*)&local_dstOffset, sizeof(VkDeviceSize));
         countingStream->write((VkDeviceSize*)&local_dataSize, sizeof(VkDeviceSize));
         countingStream->write((void*)local_pData, ((dataSize)) * sizeof(uint8_t));
@@ -6322,8 +7018,10 @@ void VkEncoder::vkCmdUpdateBuffer(
     uint32_t opcode_vkCmdUpdateBuffer = OP_vkCmdUpdateBuffer;
     stream->write(&opcode_vkCmdUpdateBuffer, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdUpdateBuffer, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkBuffer*)&local_dstBuffer, sizeof(VkBuffer));
+    uint64_t cgen_var_482 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_482);
+    uint64_t cgen_var_483 = (uint64_t)local_dstBuffer;
+    stream->putBe64(cgen_var_483);
     stream->write((VkDeviceSize*)&local_dstOffset, sizeof(VkDeviceSize));
     stream->write((VkDeviceSize*)&local_dataSize, sizeof(VkDeviceSize));
     stream->write((void*)local_pData, ((dataSize)) * sizeof(uint8_t));
@@ -6355,8 +7053,10 @@ void VkEncoder::vkCmdFillBuffer(
     local_data = data;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkBuffer*)&local_dstBuffer, sizeof(VkBuffer));
+        uint64_t cgen_var_484 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_484);
+        uint64_t cgen_var_485 = (uint64_t)local_dstBuffer;
+        countingStream->putBe64(cgen_var_485);
         countingStream->write((VkDeviceSize*)&local_dstOffset, sizeof(VkDeviceSize));
         countingStream->write((VkDeviceSize*)&local_size, sizeof(VkDeviceSize));
         countingStream->write((uint32_t*)&local_data, sizeof(uint32_t));
@@ -6366,8 +7066,10 @@ void VkEncoder::vkCmdFillBuffer(
     uint32_t opcode_vkCmdFillBuffer = OP_vkCmdFillBuffer;
     stream->write(&opcode_vkCmdFillBuffer, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdFillBuffer, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkBuffer*)&local_dstBuffer, sizeof(VkBuffer));
+    uint64_t cgen_var_486 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_486);
+    uint64_t cgen_var_487 = (uint64_t)local_dstBuffer;
+    stream->putBe64(cgen_var_487);
     stream->write((VkDeviceSize*)&local_dstOffset, sizeof(VkDeviceSize));
     stream->write((VkDeviceSize*)&local_size, sizeof(VkDeviceSize));
     stream->write((uint32_t*)&local_data, sizeof(uint32_t));
@@ -6426,8 +7128,10 @@ void VkEncoder::vkCmdClearColorImage(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkImage*)&local_image, sizeof(VkImage));
+        uint64_t cgen_var_488 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_488);
+        uint64_t cgen_var_489 = (uint64_t)local_image;
+        countingStream->putBe64(cgen_var_489);
         countingStream->write((VkImageLayout*)&local_imageLayout, sizeof(VkImageLayout));
         marshal_VkClearColorValue(countingStream, (VkClearColorValue*)(local_pColor));
         countingStream->write((uint32_t*)&local_rangeCount, sizeof(uint32_t));
@@ -6441,8 +7145,10 @@ void VkEncoder::vkCmdClearColorImage(
     uint32_t opcode_vkCmdClearColorImage = OP_vkCmdClearColorImage;
     stream->write(&opcode_vkCmdClearColorImage, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdClearColorImage, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkImage*)&local_image, sizeof(VkImage));
+    uint64_t cgen_var_490 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_490);
+    uint64_t cgen_var_491 = (uint64_t)local_image;
+    stream->putBe64(cgen_var_491);
     stream->write((VkImageLayout*)&local_imageLayout, sizeof(VkImageLayout));
     marshal_VkClearColorValue(stream, (VkClearColorValue*)(local_pColor));
     stream->write((uint32_t*)&local_rangeCount, sizeof(uint32_t));
@@ -6505,8 +7211,10 @@ void VkEncoder::vkCmdClearDepthStencilImage(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkImage*)&local_image, sizeof(VkImage));
+        uint64_t cgen_var_492 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_492);
+        uint64_t cgen_var_493 = (uint64_t)local_image;
+        countingStream->putBe64(cgen_var_493);
         countingStream->write((VkImageLayout*)&local_imageLayout, sizeof(VkImageLayout));
         marshal_VkClearDepthStencilValue(countingStream, (VkClearDepthStencilValue*)(local_pDepthStencil));
         countingStream->write((uint32_t*)&local_rangeCount, sizeof(uint32_t));
@@ -6520,8 +7228,10 @@ void VkEncoder::vkCmdClearDepthStencilImage(
     uint32_t opcode_vkCmdClearDepthStencilImage = OP_vkCmdClearDepthStencilImage;
     stream->write(&opcode_vkCmdClearDepthStencilImage, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdClearDepthStencilImage, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkImage*)&local_image, sizeof(VkImage));
+    uint64_t cgen_var_494 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_494);
+    uint64_t cgen_var_495 = (uint64_t)local_image;
+    stream->putBe64(cgen_var_495);
     stream->write((VkImageLayout*)&local_imageLayout, sizeof(VkImageLayout));
     marshal_VkClearDepthStencilValue(stream, (VkClearDepthStencilValue*)(local_pDepthStencil));
     stream->write((uint32_t*)&local_rangeCount, sizeof(uint32_t));
@@ -6586,7 +7296,8 @@ void VkEncoder::vkCmdClearAttachments(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_496 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_496);
         countingStream->write((uint32_t*)&local_attachmentCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((attachmentCount)); ++i)
         {
@@ -6603,7 +7314,8 @@ void VkEncoder::vkCmdClearAttachments(
     uint32_t opcode_vkCmdClearAttachments = OP_vkCmdClearAttachments;
     stream->write(&opcode_vkCmdClearAttachments, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdClearAttachments, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_497 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_497);
     stream->write((uint32_t*)&local_attachmentCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((attachmentCount)); ++i)
     {
@@ -6664,10 +7376,13 @@ void VkEncoder::vkCmdResolveImage(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkImage*)&local_srcImage, sizeof(VkImage));
+        uint64_t cgen_var_498 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_498);
+        uint64_t cgen_var_499 = (uint64_t)local_srcImage;
+        countingStream->putBe64(cgen_var_499);
         countingStream->write((VkImageLayout*)&local_srcImageLayout, sizeof(VkImageLayout));
-        countingStream->write((VkImage*)&local_dstImage, sizeof(VkImage));
+        uint64_t cgen_var_500 = (uint64_t)local_dstImage;
+        countingStream->putBe64(cgen_var_500);
         countingStream->write((VkImageLayout*)&local_dstImageLayout, sizeof(VkImageLayout));
         countingStream->write((uint32_t*)&local_regionCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
@@ -6680,10 +7395,13 @@ void VkEncoder::vkCmdResolveImage(
     uint32_t opcode_vkCmdResolveImage = OP_vkCmdResolveImage;
     stream->write(&opcode_vkCmdResolveImage, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdResolveImage, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkImage*)&local_srcImage, sizeof(VkImage));
+    uint64_t cgen_var_501 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_501);
+    uint64_t cgen_var_502 = (uint64_t)local_srcImage;
+    stream->putBe64(cgen_var_502);
     stream->write((VkImageLayout*)&local_srcImageLayout, sizeof(VkImageLayout));
-    stream->write((VkImage*)&local_dstImage, sizeof(VkImage));
+    uint64_t cgen_var_503 = (uint64_t)local_dstImage;
+    stream->putBe64(cgen_var_503);
     stream->write((VkImageLayout*)&local_dstImageLayout, sizeof(VkImageLayout));
     stream->write((uint32_t*)&local_regionCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
@@ -6712,8 +7430,10 @@ void VkEncoder::vkCmdSetEvent(
     local_stageMask = stageMask;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkEvent*)&local_event, sizeof(VkEvent));
+        uint64_t cgen_var_504 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_504);
+        uint64_t cgen_var_505 = (uint64_t)local_event;
+        countingStream->putBe64(cgen_var_505);
         countingStream->write((VkPipelineStageFlags*)&local_stageMask, sizeof(VkPipelineStageFlags));
     }
     uint32_t packetSize_vkCmdSetEvent = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -6721,8 +7441,10 @@ void VkEncoder::vkCmdSetEvent(
     uint32_t opcode_vkCmdSetEvent = OP_vkCmdSetEvent;
     stream->write(&opcode_vkCmdSetEvent, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdSetEvent, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkEvent*)&local_event, sizeof(VkEvent));
+    uint64_t cgen_var_506 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_506);
+    uint64_t cgen_var_507 = (uint64_t)local_event;
+    stream->putBe64(cgen_var_507);
     stream->write((VkPipelineStageFlags*)&local_stageMask, sizeof(VkPipelineStageFlags));
     pool->freeAll();
 }
@@ -6746,8 +7468,10 @@ void VkEncoder::vkCmdResetEvent(
     local_stageMask = stageMask;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkEvent*)&local_event, sizeof(VkEvent));
+        uint64_t cgen_var_508 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_508);
+        uint64_t cgen_var_509 = (uint64_t)local_event;
+        countingStream->putBe64(cgen_var_509);
         countingStream->write((VkPipelineStageFlags*)&local_stageMask, sizeof(VkPipelineStageFlags));
     }
     uint32_t packetSize_vkCmdResetEvent = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -6755,8 +7479,10 @@ void VkEncoder::vkCmdResetEvent(
     uint32_t opcode_vkCmdResetEvent = OP_vkCmdResetEvent;
     stream->write(&opcode_vkCmdResetEvent, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdResetEvent, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkEvent*)&local_event, sizeof(VkEvent));
+    uint64_t cgen_var_510 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_510);
+    uint64_t cgen_var_511 = (uint64_t)local_event;
+    stream->putBe64(cgen_var_511);
     stream->write((VkPipelineStageFlags*)&local_stageMask, sizeof(VkPipelineStageFlags));
     pool->freeAll();
 }
@@ -6856,8 +7582,10 @@ void VkEncoder::vkCmdWaitEvents(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_512 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_512);
         countingStream->write((uint32_t*)&local_eventCount, sizeof(uint32_t));
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkEvent*)local_pEvents, ((eventCount)) * sizeof(VkEvent));
         countingStream->write((VkPipelineStageFlags*)&local_srcStageMask, sizeof(VkPipelineStageFlags));
         countingStream->write((VkPipelineStageFlags*)&local_dstStageMask, sizeof(VkPipelineStageFlags));
@@ -6882,8 +7610,10 @@ void VkEncoder::vkCmdWaitEvents(
     uint32_t opcode_vkCmdWaitEvents = OP_vkCmdWaitEvents;
     stream->write(&opcode_vkCmdWaitEvents, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdWaitEvents, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_513 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_513);
     stream->write((uint32_t*)&local_eventCount, sizeof(uint32_t));
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkEvent*)local_pEvents, ((eventCount)) * sizeof(VkEvent));
     stream->write((VkPipelineStageFlags*)&local_srcStageMask, sizeof(VkPipelineStageFlags));
     stream->write((VkPipelineStageFlags*)&local_dstStageMask, sizeof(VkPipelineStageFlags));
@@ -6989,7 +7719,8 @@ void VkEncoder::vkCmdPipelineBarrier(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_514 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_514);
         countingStream->write((VkPipelineStageFlags*)&local_srcStageMask, sizeof(VkPipelineStageFlags));
         countingStream->write((VkPipelineStageFlags*)&local_dstStageMask, sizeof(VkPipelineStageFlags));
         countingStream->write((VkDependencyFlags*)&local_dependencyFlags, sizeof(VkDependencyFlags));
@@ -7014,7 +7745,8 @@ void VkEncoder::vkCmdPipelineBarrier(
     uint32_t opcode_vkCmdPipelineBarrier = OP_vkCmdPipelineBarrier;
     stream->write(&opcode_vkCmdPipelineBarrier, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdPipelineBarrier, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_515 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_515);
     stream->write((VkPipelineStageFlags*)&local_srcStageMask, sizeof(VkPipelineStageFlags));
     stream->write((VkPipelineStageFlags*)&local_dstStageMask, sizeof(VkPipelineStageFlags));
     stream->write((VkDependencyFlags*)&local_dependencyFlags, sizeof(VkDependencyFlags));
@@ -7058,8 +7790,10 @@ void VkEncoder::vkCmdBeginQuery(
     local_flags = flags;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkQueryPool*)&local_queryPool, sizeof(VkQueryPool));
+        uint64_t cgen_var_516 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_516);
+        uint64_t cgen_var_517 = (uint64_t)local_queryPool;
+        countingStream->putBe64(cgen_var_517);
         countingStream->write((uint32_t*)&local_query, sizeof(uint32_t));
         countingStream->write((VkQueryControlFlags*)&local_flags, sizeof(VkQueryControlFlags));
     }
@@ -7068,8 +7802,10 @@ void VkEncoder::vkCmdBeginQuery(
     uint32_t opcode_vkCmdBeginQuery = OP_vkCmdBeginQuery;
     stream->write(&opcode_vkCmdBeginQuery, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdBeginQuery, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkQueryPool*)&local_queryPool, sizeof(VkQueryPool));
+    uint64_t cgen_var_518 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_518);
+    uint64_t cgen_var_519 = (uint64_t)local_queryPool;
+    stream->putBe64(cgen_var_519);
     stream->write((uint32_t*)&local_query, sizeof(uint32_t));
     stream->write((VkQueryControlFlags*)&local_flags, sizeof(VkQueryControlFlags));
     pool->freeAll();
@@ -7094,8 +7830,10 @@ void VkEncoder::vkCmdEndQuery(
     local_query = query;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkQueryPool*)&local_queryPool, sizeof(VkQueryPool));
+        uint64_t cgen_var_520 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_520);
+        uint64_t cgen_var_521 = (uint64_t)local_queryPool;
+        countingStream->putBe64(cgen_var_521);
         countingStream->write((uint32_t*)&local_query, sizeof(uint32_t));
     }
     uint32_t packetSize_vkCmdEndQuery = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -7103,8 +7841,10 @@ void VkEncoder::vkCmdEndQuery(
     uint32_t opcode_vkCmdEndQuery = OP_vkCmdEndQuery;
     stream->write(&opcode_vkCmdEndQuery, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdEndQuery, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkQueryPool*)&local_queryPool, sizeof(VkQueryPool));
+    uint64_t cgen_var_522 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_522);
+    uint64_t cgen_var_523 = (uint64_t)local_queryPool;
+    stream->putBe64(cgen_var_523);
     stream->write((uint32_t*)&local_query, sizeof(uint32_t));
     pool->freeAll();
 }
@@ -7131,8 +7871,10 @@ void VkEncoder::vkCmdResetQueryPool(
     local_queryCount = queryCount;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkQueryPool*)&local_queryPool, sizeof(VkQueryPool));
+        uint64_t cgen_var_524 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_524);
+        uint64_t cgen_var_525 = (uint64_t)local_queryPool;
+        countingStream->putBe64(cgen_var_525);
         countingStream->write((uint32_t*)&local_firstQuery, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_queryCount, sizeof(uint32_t));
     }
@@ -7141,8 +7883,10 @@ void VkEncoder::vkCmdResetQueryPool(
     uint32_t opcode_vkCmdResetQueryPool = OP_vkCmdResetQueryPool;
     stream->write(&opcode_vkCmdResetQueryPool, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdResetQueryPool, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkQueryPool*)&local_queryPool, sizeof(VkQueryPool));
+    uint64_t cgen_var_526 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_526);
+    uint64_t cgen_var_527 = (uint64_t)local_queryPool;
+    stream->putBe64(cgen_var_527);
     stream->write((uint32_t*)&local_firstQuery, sizeof(uint32_t));
     stream->write((uint32_t*)&local_queryCount, sizeof(uint32_t));
     pool->freeAll();
@@ -7170,9 +7914,11 @@ void VkEncoder::vkCmdWriteTimestamp(
     local_query = query;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_528 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_528);
         countingStream->write((VkPipelineStageFlagBits*)&local_pipelineStage, sizeof(VkPipelineStageFlagBits));
-        countingStream->write((VkQueryPool*)&local_queryPool, sizeof(VkQueryPool));
+        uint64_t cgen_var_529 = (uint64_t)local_queryPool;
+        countingStream->putBe64(cgen_var_529);
         countingStream->write((uint32_t*)&local_query, sizeof(uint32_t));
     }
     uint32_t packetSize_vkCmdWriteTimestamp = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -7180,9 +7926,11 @@ void VkEncoder::vkCmdWriteTimestamp(
     uint32_t opcode_vkCmdWriteTimestamp = OP_vkCmdWriteTimestamp;
     stream->write(&opcode_vkCmdWriteTimestamp, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdWriteTimestamp, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_530 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_530);
     stream->write((VkPipelineStageFlagBits*)&local_pipelineStage, sizeof(VkPipelineStageFlagBits));
-    stream->write((VkQueryPool*)&local_queryPool, sizeof(VkQueryPool));
+    uint64_t cgen_var_531 = (uint64_t)local_queryPool;
+    stream->putBe64(cgen_var_531);
     stream->write((uint32_t*)&local_query, sizeof(uint32_t));
     pool->freeAll();
 }
@@ -7222,11 +7970,14 @@ void VkEncoder::vkCmdCopyQueryPoolResults(
     local_flags = flags;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkQueryPool*)&local_queryPool, sizeof(VkQueryPool));
+        uint64_t cgen_var_532 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_532);
+        uint64_t cgen_var_533 = (uint64_t)local_queryPool;
+        countingStream->putBe64(cgen_var_533);
         countingStream->write((uint32_t*)&local_firstQuery, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_queryCount, sizeof(uint32_t));
-        countingStream->write((VkBuffer*)&local_dstBuffer, sizeof(VkBuffer));
+        uint64_t cgen_var_534 = (uint64_t)local_dstBuffer;
+        countingStream->putBe64(cgen_var_534);
         countingStream->write((VkDeviceSize*)&local_dstOffset, sizeof(VkDeviceSize));
         countingStream->write((VkDeviceSize*)&local_stride, sizeof(VkDeviceSize));
         countingStream->write((VkQueryResultFlags*)&local_flags, sizeof(VkQueryResultFlags));
@@ -7236,11 +7987,14 @@ void VkEncoder::vkCmdCopyQueryPoolResults(
     uint32_t opcode_vkCmdCopyQueryPoolResults = OP_vkCmdCopyQueryPoolResults;
     stream->write(&opcode_vkCmdCopyQueryPoolResults, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdCopyQueryPoolResults, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkQueryPool*)&local_queryPool, sizeof(VkQueryPool));
+    uint64_t cgen_var_535 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_535);
+    uint64_t cgen_var_536 = (uint64_t)local_queryPool;
+    stream->putBe64(cgen_var_536);
     stream->write((uint32_t*)&local_firstQuery, sizeof(uint32_t));
     stream->write((uint32_t*)&local_queryCount, sizeof(uint32_t));
-    stream->write((VkBuffer*)&local_dstBuffer, sizeof(VkBuffer));
+    uint64_t cgen_var_537 = (uint64_t)local_dstBuffer;
+    stream->putBe64(cgen_var_537);
     stream->write((VkDeviceSize*)&local_dstOffset, sizeof(VkDeviceSize));
     stream->write((VkDeviceSize*)&local_stride, sizeof(VkDeviceSize));
     stream->write((VkQueryResultFlags*)&local_flags, sizeof(VkQueryResultFlags));
@@ -7279,8 +8033,10 @@ void VkEncoder::vkCmdPushConstants(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkPipelineLayout*)&local_layout, sizeof(VkPipelineLayout));
+        uint64_t cgen_var_538 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_538);
+        uint64_t cgen_var_539 = (uint64_t)local_layout;
+        countingStream->putBe64(cgen_var_539);
         countingStream->write((VkShaderStageFlags*)&local_stageFlags, sizeof(VkShaderStageFlags));
         countingStream->write((uint32_t*)&local_offset, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_size, sizeof(uint32_t));
@@ -7291,8 +8047,10 @@ void VkEncoder::vkCmdPushConstants(
     uint32_t opcode_vkCmdPushConstants = OP_vkCmdPushConstants;
     stream->write(&opcode_vkCmdPushConstants, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdPushConstants, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkPipelineLayout*)&local_layout, sizeof(VkPipelineLayout));
+    uint64_t cgen_var_540 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_540);
+    uint64_t cgen_var_541 = (uint64_t)local_layout;
+    stream->putBe64(cgen_var_541);
     stream->write((VkShaderStageFlags*)&local_stageFlags, sizeof(VkShaderStageFlags));
     stream->write((uint32_t*)&local_offset, sizeof(uint32_t));
     stream->write((uint32_t*)&local_size, sizeof(uint32_t));
@@ -7327,7 +8085,8 @@ void VkEncoder::vkCmdBeginRenderPass(
     local_contents = contents;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_542 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_542);
         marshal_VkRenderPassBeginInfo(countingStream, (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
         countingStream->write((VkSubpassContents*)&local_contents, sizeof(VkSubpassContents));
     }
@@ -7336,7 +8095,8 @@ void VkEncoder::vkCmdBeginRenderPass(
     uint32_t opcode_vkCmdBeginRenderPass = OP_vkCmdBeginRenderPass;
     stream->write(&opcode_vkCmdBeginRenderPass, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdBeginRenderPass, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_543 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_543);
     marshal_VkRenderPassBeginInfo(stream, (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
     stream->write((VkSubpassContents*)&local_contents, sizeof(VkSubpassContents));
     pool->freeAll();
@@ -7357,7 +8117,8 @@ void VkEncoder::vkCmdNextSubpass(
     local_contents = contents;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_544 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_544);
         countingStream->write((VkSubpassContents*)&local_contents, sizeof(VkSubpassContents));
     }
     uint32_t packetSize_vkCmdNextSubpass = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -7365,7 +8126,8 @@ void VkEncoder::vkCmdNextSubpass(
     uint32_t opcode_vkCmdNextSubpass = OP_vkCmdNextSubpass;
     stream->write(&opcode_vkCmdNextSubpass, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdNextSubpass, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_545 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_545);
     stream->write((VkSubpassContents*)&local_contents, sizeof(VkSubpassContents));
     pool->freeAll();
 }
@@ -7382,14 +8144,16 @@ void VkEncoder::vkCmdEndRenderPass(
     resources->unwrapMapping()->mapHandles_VkCommandBuffer((VkCommandBuffer*)&local_commandBuffer);
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_546 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_546);
     }
     uint32_t packetSize_vkCmdEndRenderPass = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
     uint32_t opcode_vkCmdEndRenderPass = OP_vkCmdEndRenderPass;
     stream->write(&opcode_vkCmdEndRenderPass, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdEndRenderPass, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_547 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_547);
     pool->freeAll();
 }
 
@@ -7419,8 +8183,10 @@ void VkEncoder::vkCmdExecuteCommands(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_548 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_548);
         countingStream->write((uint32_t*)&local_commandBufferCount, sizeof(uint32_t));
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkCommandBuffer*)local_pCommandBuffers, ((commandBufferCount)) * sizeof(VkCommandBuffer));
     }
     uint32_t packetSize_vkCmdExecuteCommands = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -7428,8 +8194,10 @@ void VkEncoder::vkCmdExecuteCommands(
     uint32_t opcode_vkCmdExecuteCommands = OP_vkCmdExecuteCommands;
     stream->write(&opcode_vkCmdExecuteCommands, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdExecuteCommands, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_549 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_549);
     stream->write((uint32_t*)&local_commandBufferCount, sizeof(uint32_t));
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkCommandBuffer*)local_pCommandBuffers, ((commandBufferCount)) * sizeof(VkCommandBuffer));
     pool->freeAll();
 }
@@ -7477,7 +8245,8 @@ VkResult VkEncoder::vkBindBufferMemory2(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_550 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_550);
         countingStream->write((uint32_t*)&local_bindInfoCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
@@ -7489,7 +8258,8 @@ VkResult VkEncoder::vkBindBufferMemory2(
     uint32_t opcode_vkBindBufferMemory2 = OP_vkBindBufferMemory2;
     stream->write(&opcode_vkBindBufferMemory2, sizeof(uint32_t));
     stream->write(&packetSize_vkBindBufferMemory2, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_551 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_551);
     stream->write((uint32_t*)&local_bindInfoCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
     {
@@ -7534,7 +8304,8 @@ VkResult VkEncoder::vkBindImageMemory2(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_552 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_552);
         countingStream->write((uint32_t*)&local_bindInfoCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
@@ -7546,7 +8317,8 @@ VkResult VkEncoder::vkBindImageMemory2(
     uint32_t opcode_vkBindImageMemory2 = OP_vkBindImageMemory2;
     stream->write(&opcode_vkBindImageMemory2, sizeof(uint32_t));
     stream->write(&packetSize_vkBindImageMemory2, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_553 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_553);
     stream->write((uint32_t*)&local_bindInfoCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
     {
@@ -7580,7 +8352,8 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeatures(
     local_remoteDeviceIndex = remoteDeviceIndex;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_554 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_554);
         countingStream->write((uint32_t*)&local_heapIndex, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_localDeviceIndex, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_remoteDeviceIndex, sizeof(uint32_t));
@@ -7591,7 +8364,8 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeatures(
     uint32_t opcode_vkGetDeviceGroupPeerMemoryFeatures = OP_vkGetDeviceGroupPeerMemoryFeatures;
     stream->write(&opcode_vkGetDeviceGroupPeerMemoryFeatures, sizeof(uint32_t));
     stream->write(&packetSize_vkGetDeviceGroupPeerMemoryFeatures, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_555 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_555);
     stream->write((uint32_t*)&local_heapIndex, sizeof(uint32_t));
     stream->write((uint32_t*)&local_localDeviceIndex, sizeof(uint32_t));
     stream->write((uint32_t*)&local_remoteDeviceIndex, sizeof(uint32_t));
@@ -7615,7 +8389,8 @@ void VkEncoder::vkCmdSetDeviceMask(
     local_deviceMask = deviceMask;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_556 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_556);
         countingStream->write((uint32_t*)&local_deviceMask, sizeof(uint32_t));
     }
     uint32_t packetSize_vkCmdSetDeviceMask = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -7623,7 +8398,8 @@ void VkEncoder::vkCmdSetDeviceMask(
     uint32_t opcode_vkCmdSetDeviceMask = OP_vkCmdSetDeviceMask;
     stream->write(&opcode_vkCmdSetDeviceMask, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdSetDeviceMask, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_557 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_557);
     stream->write((uint32_t*)&local_deviceMask, sizeof(uint32_t));
     pool->freeAll();
 }
@@ -7658,7 +8434,8 @@ void VkEncoder::vkCmdDispatchBase(
     local_groupCountZ = groupCountZ;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_558 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_558);
         countingStream->write((uint32_t*)&local_baseGroupX, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_baseGroupY, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_baseGroupZ, sizeof(uint32_t));
@@ -7671,7 +8448,8 @@ void VkEncoder::vkCmdDispatchBase(
     uint32_t opcode_vkCmdDispatchBase = OP_vkCmdDispatchBase;
     stream->write(&opcode_vkCmdDispatchBase, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdDispatchBase, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_559 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_559);
     stream->write((uint32_t*)&local_baseGroupX, sizeof(uint32_t));
     stream->write((uint32_t*)&local_baseGroupY, sizeof(uint32_t));
     stream->write((uint32_t*)&local_baseGroupZ, sizeof(uint32_t));
@@ -7695,13 +8473,18 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
     resources->unwrapMapping()->mapHandles_VkInstance((VkInstance*)&local_instance);
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
-        countingStream->write((uint32_t**)&pPhysicalDeviceGroupCount, sizeof(uint32_t*));
+        uint64_t cgen_var_560 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_560);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_561 = (uint64_t)(uintptr_t)pPhysicalDeviceGroupCount;
+        countingStream->putBe64(cgen_var_561);
         if (pPhysicalDeviceGroupCount)
         {
             countingStream->write((uint32_t*)pPhysicalDeviceGroupCount, sizeof(uint32_t));
         }
-        countingStream->write((VkPhysicalDeviceGroupProperties**)&pPhysicalDeviceGroupProperties, sizeof(VkPhysicalDeviceGroupProperties*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_562 = (uint64_t)(uintptr_t)pPhysicalDeviceGroupProperties;
+        countingStream->putBe64(cgen_var_562);
         if (pPhysicalDeviceGroupProperties)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
@@ -7715,13 +8498,18 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
     uint32_t opcode_vkEnumeratePhysicalDeviceGroups = OP_vkEnumeratePhysicalDeviceGroups;
     stream->write(&opcode_vkEnumeratePhysicalDeviceGroups, sizeof(uint32_t));
     stream->write(&packetSize_vkEnumeratePhysicalDeviceGroups, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
-    stream->write((uint32_t**)&pPhysicalDeviceGroupCount, sizeof(uint32_t*));
+    uint64_t cgen_var_563 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_563);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_564 = (uint64_t)(uintptr_t)pPhysicalDeviceGroupCount;
+    stream->putBe64(cgen_var_564);
     if (pPhysicalDeviceGroupCount)
     {
         stream->write((uint32_t*)pPhysicalDeviceGroupCount, sizeof(uint32_t));
     }
-    stream->write((VkPhysicalDeviceGroupProperties**)&pPhysicalDeviceGroupProperties, sizeof(VkPhysicalDeviceGroupProperties*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_565 = (uint64_t)(uintptr_t)pPhysicalDeviceGroupProperties;
+    stream->putBe64(cgen_var_565);
     if (pPhysicalDeviceGroupProperties)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
@@ -7729,8 +8517,9 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
             marshal_VkPhysicalDeviceGroupProperties(stream, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pPhysicalDeviceGroupCount;
-    stream->read((uint32_t**)&check_pPhysicalDeviceGroupCount, sizeof(uint32_t*));
+    check_pPhysicalDeviceGroupCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pPhysicalDeviceGroupCount)
     {
         if (!(check_pPhysicalDeviceGroupCount))
@@ -7739,8 +8528,9 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
         }
         stream->read((uint32_t*)pPhysicalDeviceGroupCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkPhysicalDeviceGroupProperties* check_pPhysicalDeviceGroupProperties;
-    stream->read((VkPhysicalDeviceGroupProperties**)&check_pPhysicalDeviceGroupProperties, sizeof(VkPhysicalDeviceGroupProperties*));
+    check_pPhysicalDeviceGroupProperties = (VkPhysicalDeviceGroupProperties*)(uintptr_t)stream->getBe64();
     if (pPhysicalDeviceGroupProperties)
     {
         if (!(check_pPhysicalDeviceGroupProperties))
@@ -7783,7 +8573,8 @@ void VkEncoder::vkGetImageMemoryRequirements2(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_568 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_568);
         marshal_VkImageMemoryRequirementsInfo2(countingStream, (VkImageMemoryRequirementsInfo2*)(local_pInfo));
         marshal_VkMemoryRequirements2(countingStream, (VkMemoryRequirements2*)(pMemoryRequirements));
     }
@@ -7792,7 +8583,8 @@ void VkEncoder::vkGetImageMemoryRequirements2(
     uint32_t opcode_vkGetImageMemoryRequirements2 = OP_vkGetImageMemoryRequirements2;
     stream->write(&opcode_vkGetImageMemoryRequirements2, sizeof(uint32_t));
     stream->write(&packetSize_vkGetImageMemoryRequirements2, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_569 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_569);
     marshal_VkImageMemoryRequirementsInfo2(stream, (VkImageMemoryRequirementsInfo2*)(local_pInfo));
     marshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
     unmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
@@ -7824,7 +8616,8 @@ void VkEncoder::vkGetBufferMemoryRequirements2(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_570 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_570);
         marshal_VkBufferMemoryRequirementsInfo2(countingStream, (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
         marshal_VkMemoryRequirements2(countingStream, (VkMemoryRequirements2*)(pMemoryRequirements));
     }
@@ -7833,7 +8626,8 @@ void VkEncoder::vkGetBufferMemoryRequirements2(
     uint32_t opcode_vkGetBufferMemoryRequirements2 = OP_vkGetBufferMemoryRequirements2;
     stream->write(&opcode_vkGetBufferMemoryRequirements2, sizeof(uint32_t));
     stream->write(&packetSize_vkGetBufferMemoryRequirements2, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_571 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_571);
     marshal_VkBufferMemoryRequirementsInfo2(stream, (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
     marshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
     unmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
@@ -7866,14 +8660,19 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_572 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_572);
         marshal_VkImageSparseMemoryRequirementsInfo2(countingStream, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo));
-        countingStream->write((uint32_t**)&pSparseMemoryRequirementCount, sizeof(uint32_t*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_573 = (uint64_t)(uintptr_t)pSparseMemoryRequirementCount;
+        countingStream->putBe64(cgen_var_573);
         if (pSparseMemoryRequirementCount)
         {
             countingStream->write((uint32_t*)pSparseMemoryRequirementCount, sizeof(uint32_t));
         }
-        countingStream->write((VkSparseImageMemoryRequirements2**)&pSparseMemoryRequirements, sizeof(VkSparseImageMemoryRequirements2*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_574 = (uint64_t)(uintptr_t)pSparseMemoryRequirements;
+        countingStream->putBe64(cgen_var_574);
         if (pSparseMemoryRequirements)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
@@ -7887,14 +8686,19 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
     uint32_t opcode_vkGetImageSparseMemoryRequirements2 = OP_vkGetImageSparseMemoryRequirements2;
     stream->write(&opcode_vkGetImageSparseMemoryRequirements2, sizeof(uint32_t));
     stream->write(&packetSize_vkGetImageSparseMemoryRequirements2, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_575 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_575);
     marshal_VkImageSparseMemoryRequirementsInfo2(stream, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo));
-    stream->write((uint32_t**)&pSparseMemoryRequirementCount, sizeof(uint32_t*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_576 = (uint64_t)(uintptr_t)pSparseMemoryRequirementCount;
+    stream->putBe64(cgen_var_576);
     if (pSparseMemoryRequirementCount)
     {
         stream->write((uint32_t*)pSparseMemoryRequirementCount, sizeof(uint32_t));
     }
-    stream->write((VkSparseImageMemoryRequirements2**)&pSparseMemoryRequirements, sizeof(VkSparseImageMemoryRequirements2*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_577 = (uint64_t)(uintptr_t)pSparseMemoryRequirements;
+    stream->putBe64(cgen_var_577);
     if (pSparseMemoryRequirements)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
@@ -7902,8 +8706,9 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
             marshal_VkSparseImageMemoryRequirements2(stream, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pSparseMemoryRequirementCount;
-    stream->read((uint32_t**)&check_pSparseMemoryRequirementCount, sizeof(uint32_t*));
+    check_pSparseMemoryRequirementCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pSparseMemoryRequirementCount)
     {
         if (!(check_pSparseMemoryRequirementCount))
@@ -7912,8 +8717,9 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
         }
         stream->read((uint32_t*)pSparseMemoryRequirementCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkSparseImageMemoryRequirements2* check_pSparseMemoryRequirements;
-    stream->read((VkSparseImageMemoryRequirements2**)&check_pSparseMemoryRequirements, sizeof(VkSparseImageMemoryRequirements2*));
+    check_pSparseMemoryRequirements = (VkSparseImageMemoryRequirements2*)(uintptr_t)stream->getBe64();
     if (pSparseMemoryRequirements)
     {
         if (!(check_pSparseMemoryRequirements))
@@ -7941,7 +8747,8 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2(
     resources->unwrapMapping()->mapHandles_VkPhysicalDevice((VkPhysicalDevice*)&local_physicalDevice);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_580 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_580);
         marshal_VkPhysicalDeviceFeatures2(countingStream, (VkPhysicalDeviceFeatures2*)(pFeatures));
     }
     uint32_t packetSize_vkGetPhysicalDeviceFeatures2 = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -7949,7 +8756,8 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2(
     uint32_t opcode_vkGetPhysicalDeviceFeatures2 = OP_vkGetPhysicalDeviceFeatures2;
     stream->write(&opcode_vkGetPhysicalDeviceFeatures2, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceFeatures2, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_581 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_581);
     marshal_VkPhysicalDeviceFeatures2(stream, (VkPhysicalDeviceFeatures2*)(pFeatures));
     unmarshal_VkPhysicalDeviceFeatures2(stream, (VkPhysicalDeviceFeatures2*)(pFeatures));
     pool->freeAll();
@@ -7978,7 +8786,8 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2(
     local_format = format;
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_582 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_582);
         countingStream->write((VkFormat*)&local_format, sizeof(VkFormat));
         marshal_VkFormatProperties2(countingStream, (VkFormatProperties2*)(pFormatProperties));
     }
@@ -7987,7 +8796,8 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2(
     uint32_t opcode_vkGetPhysicalDeviceFormatProperties2 = OP_vkGetPhysicalDeviceFormatProperties2;
     stream->write(&opcode_vkGetPhysicalDeviceFormatProperties2, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceFormatProperties2, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_583 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_583);
     stream->write((VkFormat*)&local_format, sizeof(VkFormat));
     marshal_VkFormatProperties2(stream, (VkFormatProperties2*)(pFormatProperties));
     unmarshal_VkFormatProperties2(stream, (VkFormatProperties2*)(pFormatProperties));
@@ -8019,7 +8829,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_584 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_584);
         marshal_VkPhysicalDeviceImageFormatInfo2(countingStream, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
         marshal_VkImageFormatProperties2(countingStream, (VkImageFormatProperties2*)(pImageFormatProperties));
     }
@@ -8028,7 +8839,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2(
     uint32_t opcode_vkGetPhysicalDeviceImageFormatProperties2 = OP_vkGetPhysicalDeviceImageFormatProperties2;
     stream->write(&opcode_vkGetPhysicalDeviceImageFormatProperties2, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceImageFormatProperties2, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_585 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_585);
     marshal_VkPhysicalDeviceImageFormatInfo2(stream, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
     marshal_VkImageFormatProperties2(stream, (VkImageFormatProperties2*)(pImageFormatProperties));
     unmarshal_VkImageFormatProperties2(stream, (VkImageFormatProperties2*)(pImageFormatProperties));
@@ -8052,13 +8864,18 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
     resources->unwrapMapping()->mapHandles_VkPhysicalDevice((VkPhysicalDevice*)&local_physicalDevice);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-        countingStream->write((uint32_t**)&pQueueFamilyPropertyCount, sizeof(uint32_t*));
+        uint64_t cgen_var_586 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_586);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_587 = (uint64_t)(uintptr_t)pQueueFamilyPropertyCount;
+        countingStream->putBe64(cgen_var_587);
         if (pQueueFamilyPropertyCount)
         {
             countingStream->write((uint32_t*)pQueueFamilyPropertyCount, sizeof(uint32_t));
         }
-        countingStream->write((VkQueueFamilyProperties2**)&pQueueFamilyProperties, sizeof(VkQueueFamilyProperties2*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_588 = (uint64_t)(uintptr_t)pQueueFamilyProperties;
+        countingStream->putBe64(cgen_var_588);
         if (pQueueFamilyProperties)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
@@ -8072,13 +8889,18 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
     uint32_t opcode_vkGetPhysicalDeviceQueueFamilyProperties2 = OP_vkGetPhysicalDeviceQueueFamilyProperties2;
     stream->write(&opcode_vkGetPhysicalDeviceQueueFamilyProperties2, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceQueueFamilyProperties2, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-    stream->write((uint32_t**)&pQueueFamilyPropertyCount, sizeof(uint32_t*));
+    uint64_t cgen_var_589 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_589);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_590 = (uint64_t)(uintptr_t)pQueueFamilyPropertyCount;
+    stream->putBe64(cgen_var_590);
     if (pQueueFamilyPropertyCount)
     {
         stream->write((uint32_t*)pQueueFamilyPropertyCount, sizeof(uint32_t));
     }
-    stream->write((VkQueueFamilyProperties2**)&pQueueFamilyProperties, sizeof(VkQueueFamilyProperties2*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_591 = (uint64_t)(uintptr_t)pQueueFamilyProperties;
+    stream->putBe64(cgen_var_591);
     if (pQueueFamilyProperties)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
@@ -8086,8 +8908,9 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
             marshal_VkQueueFamilyProperties2(stream, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pQueueFamilyPropertyCount;
-    stream->read((uint32_t**)&check_pQueueFamilyPropertyCount, sizeof(uint32_t*));
+    check_pQueueFamilyPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pQueueFamilyPropertyCount)
     {
         if (!(check_pQueueFamilyPropertyCount))
@@ -8096,8 +8919,9 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
         }
         stream->read((uint32_t*)pQueueFamilyPropertyCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkQueueFamilyProperties2* check_pQueueFamilyProperties;
-    stream->read((VkQueueFamilyProperties2**)&check_pQueueFamilyProperties, sizeof(VkQueueFamilyProperties2*));
+    check_pQueueFamilyProperties = (VkQueueFamilyProperties2*)(uintptr_t)stream->getBe64();
     if (pQueueFamilyProperties)
     {
         if (!(check_pQueueFamilyProperties))
@@ -8125,7 +8949,8 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2(
     resources->unwrapMapping()->mapHandles_VkPhysicalDevice((VkPhysicalDevice*)&local_physicalDevice);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_594 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_594);
         marshal_VkPhysicalDeviceMemoryProperties2(countingStream, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     }
     uint32_t packetSize_vkGetPhysicalDeviceMemoryProperties2 = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -8133,7 +8958,8 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2(
     uint32_t opcode_vkGetPhysicalDeviceMemoryProperties2 = OP_vkGetPhysicalDeviceMemoryProperties2;
     stream->write(&opcode_vkGetPhysicalDeviceMemoryProperties2, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceMemoryProperties2, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_595 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_595);
     marshal_VkPhysicalDeviceMemoryProperties2(stream, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     unmarshal_VkPhysicalDeviceMemoryProperties2(stream, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     pool->freeAll();
@@ -8165,14 +8991,19 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_596 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_596);
         marshal_VkPhysicalDeviceSparseImageFormatInfo2(countingStream, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo));
-        countingStream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_597 = (uint64_t)(uintptr_t)pPropertyCount;
+        countingStream->putBe64(cgen_var_597);
         if (pPropertyCount)
         {
             countingStream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
         }
-        countingStream->write((VkSparseImageFormatProperties2**)&pProperties, sizeof(VkSparseImageFormatProperties2*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_598 = (uint64_t)(uintptr_t)pProperties;
+        countingStream->putBe64(cgen_var_598);
         if (pProperties)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -8186,14 +9017,19 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
     uint32_t opcode_vkGetPhysicalDeviceSparseImageFormatProperties2 = OP_vkGetPhysicalDeviceSparseImageFormatProperties2;
     stream->write(&opcode_vkGetPhysicalDeviceSparseImageFormatProperties2, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceSparseImageFormatProperties2, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_599 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_599);
     marshal_VkPhysicalDeviceSparseImageFormatInfo2(stream, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo));
-    stream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_600 = (uint64_t)(uintptr_t)pPropertyCount;
+    stream->putBe64(cgen_var_600);
     if (pPropertyCount)
     {
         stream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
-    stream->write((VkSparseImageFormatProperties2**)&pProperties, sizeof(VkSparseImageFormatProperties2*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_601 = (uint64_t)(uintptr_t)pProperties;
+    stream->putBe64(cgen_var_601);
     if (pProperties)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -8201,8 +9037,9 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
             marshal_VkSparseImageFormatProperties2(stream, (VkSparseImageFormatProperties2*)(pProperties + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
-    stream->read((uint32_t**)&check_pPropertyCount, sizeof(uint32_t*));
+    check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pPropertyCount)
     {
         if (!(check_pPropertyCount))
@@ -8211,8 +9048,9 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
         }
         stream->read((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkSparseImageFormatProperties2* check_pProperties;
-    stream->read((VkSparseImageFormatProperties2**)&check_pProperties, sizeof(VkSparseImageFormatProperties2*));
+    check_pProperties = (VkSparseImageFormatProperties2*)(uintptr_t)stream->getBe64();
     if (pProperties)
     {
         if (!(check_pProperties))
@@ -8246,8 +9084,10 @@ void VkEncoder::vkTrimCommandPool(
     local_flags = flags;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkCommandPool*)&local_commandPool, sizeof(VkCommandPool));
+        uint64_t cgen_var_604 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_604);
+        uint64_t cgen_var_605 = (uint64_t)local_commandPool;
+        countingStream->putBe64(cgen_var_605);
         countingStream->write((VkCommandPoolTrimFlags*)&local_flags, sizeof(VkCommandPoolTrimFlags));
     }
     uint32_t packetSize_vkTrimCommandPool = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -8255,8 +9095,10 @@ void VkEncoder::vkTrimCommandPool(
     uint32_t opcode_vkTrimCommandPool = OP_vkTrimCommandPool;
     stream->write(&opcode_vkTrimCommandPool, sizeof(uint32_t));
     stream->write(&packetSize_vkTrimCommandPool, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkCommandPool*)&local_commandPool, sizeof(VkCommandPool));
+    uint64_t cgen_var_606 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_606);
+    uint64_t cgen_var_607 = (uint64_t)local_commandPool;
+    stream->putBe64(cgen_var_607);
     stream->write((VkCommandPoolTrimFlags*)&local_flags, sizeof(VkCommandPoolTrimFlags));
     pool->freeAll();
 }
@@ -8286,8 +9128,10 @@ void VkEncoder::vkGetDeviceQueue2(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_608 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_608);
         marshal_VkDeviceQueueInfo2(countingStream, (VkDeviceQueueInfo2*)(local_pQueueInfo));
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkQueue*)pQueue, sizeof(VkQueue));
     }
     uint32_t packetSize_vkGetDeviceQueue2 = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -8295,9 +9139,12 @@ void VkEncoder::vkGetDeviceQueue2(
     uint32_t opcode_vkGetDeviceQueue2 = OP_vkGetDeviceQueue2;
     stream->write(&opcode_vkGetDeviceQueue2, sizeof(uint32_t));
     stream->write(&packetSize_vkGetDeviceQueue2, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_609 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_609);
     marshal_VkDeviceQueueInfo2(stream, (VkDeviceQueueInfo2*)(local_pQueueInfo));
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkQueue*)pQueue, sizeof(VkQueue));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkQueue*)pQueue, sizeof(VkQueue));
     pool->freeAll();
 }
@@ -8340,13 +9187,17 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversion(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_610 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_610);
         marshal_VkSamplerYcbcrConversionCreateInfo(countingStream, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_611 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_611);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkSamplerYcbcrConversion*)pYcbcrConversion, sizeof(VkSamplerYcbcrConversion));
     }
     uint32_t packetSize_vkCreateSamplerYcbcrConversion = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -8354,14 +9205,19 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversion(
     uint32_t opcode_vkCreateSamplerYcbcrConversion = OP_vkCreateSamplerYcbcrConversion;
     stream->write(&opcode_vkCreateSamplerYcbcrConversion, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateSamplerYcbcrConversion, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_612 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_612);
     marshal_VkSamplerYcbcrConversionCreateInfo(stream, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_613 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_613);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkSamplerYcbcrConversion*)pYcbcrConversion, sizeof(VkSamplerYcbcrConversion));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkSamplerYcbcrConversion*)pYcbcrConversion, sizeof(VkSamplerYcbcrConversion));
     if (pYcbcrConversion)
     {
@@ -8402,9 +9258,13 @@ void VkEncoder::vkDestroySamplerYcbcrConversion(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkSamplerYcbcrConversion*)&local_ycbcrConversion, sizeof(VkSamplerYcbcrConversion));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_614 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_614);
+        uint64_t cgen_var_615 = (uint64_t)local_ycbcrConversion;
+        countingStream->putBe64(cgen_var_615);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_616 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_616);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -8415,9 +9275,13 @@ void VkEncoder::vkDestroySamplerYcbcrConversion(
     uint32_t opcode_vkDestroySamplerYcbcrConversion = OP_vkDestroySamplerYcbcrConversion;
     stream->write(&opcode_vkDestroySamplerYcbcrConversion, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroySamplerYcbcrConversion, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkSamplerYcbcrConversion*)&local_ycbcrConversion, sizeof(VkSamplerYcbcrConversion));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_617 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_617);
+    uint64_t cgen_var_618 = (uint64_t)local_ycbcrConversion;
+    stream->putBe64(cgen_var_618);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_619 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_619);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -8464,13 +9328,17 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplate(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_620 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_620);
         marshal_VkDescriptorUpdateTemplateCreateInfo(countingStream, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_621 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_621);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkDescriptorUpdateTemplate*)pDescriptorUpdateTemplate, sizeof(VkDescriptorUpdateTemplate));
     }
     uint32_t packetSize_vkCreateDescriptorUpdateTemplate = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -8478,14 +9346,19 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplate(
     uint32_t opcode_vkCreateDescriptorUpdateTemplate = OP_vkCreateDescriptorUpdateTemplate;
     stream->write(&opcode_vkCreateDescriptorUpdateTemplate, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateDescriptorUpdateTemplate, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_622 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_622);
     marshal_VkDescriptorUpdateTemplateCreateInfo(stream, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_623 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_623);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkDescriptorUpdateTemplate*)pDescriptorUpdateTemplate, sizeof(VkDescriptorUpdateTemplate));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkDescriptorUpdateTemplate*)pDescriptorUpdateTemplate, sizeof(VkDescriptorUpdateTemplate));
     if (pDescriptorUpdateTemplate)
     {
@@ -8526,9 +9399,13 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplate(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkDescriptorUpdateTemplate*)&local_descriptorUpdateTemplate, sizeof(VkDescriptorUpdateTemplate));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_624 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_624);
+        uint64_t cgen_var_625 = (uint64_t)local_descriptorUpdateTemplate;
+        countingStream->putBe64(cgen_var_625);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_626 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_626);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -8539,9 +9416,13 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplate(
     uint32_t opcode_vkDestroyDescriptorUpdateTemplate = OP_vkDestroyDescriptorUpdateTemplate;
     stream->write(&opcode_vkDestroyDescriptorUpdateTemplate, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyDescriptorUpdateTemplate, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkDescriptorUpdateTemplate*)&local_descriptorUpdateTemplate, sizeof(VkDescriptorUpdateTemplate));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_627 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_627);
+    uint64_t cgen_var_628 = (uint64_t)local_descriptorUpdateTemplate;
+    stream->putBe64(cgen_var_628);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_629 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_629);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -8577,10 +9458,15 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplate(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkDescriptorSet*)&local_descriptorSet, sizeof(VkDescriptorSet));
-        countingStream->write((VkDescriptorUpdateTemplate*)&local_descriptorUpdateTemplate, sizeof(VkDescriptorUpdateTemplate));
-        countingStream->write((void**)&local_pData, sizeof(void*));
+        uint64_t cgen_var_630 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_630);
+        uint64_t cgen_var_631 = (uint64_t)local_descriptorSet;
+        countingStream->putBe64(cgen_var_631);
+        uint64_t cgen_var_632 = (uint64_t)local_descriptorUpdateTemplate;
+        countingStream->putBe64(cgen_var_632);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_633 = (uint64_t)(uintptr_t)local_pData;
+        countingStream->putBe64(cgen_var_633);
         if (local_pData)
         {
             countingStream->write((void*)local_pData, sizeof(uint8_t));
@@ -8591,10 +9477,15 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplate(
     uint32_t opcode_vkUpdateDescriptorSetWithTemplate = OP_vkUpdateDescriptorSetWithTemplate;
     stream->write(&opcode_vkUpdateDescriptorSetWithTemplate, sizeof(uint32_t));
     stream->write(&packetSize_vkUpdateDescriptorSetWithTemplate, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkDescriptorSet*)&local_descriptorSet, sizeof(VkDescriptorSet));
-    stream->write((VkDescriptorUpdateTemplate*)&local_descriptorUpdateTemplate, sizeof(VkDescriptorUpdateTemplate));
-    stream->write((void**)&local_pData, sizeof(void*));
+    uint64_t cgen_var_634 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_634);
+    uint64_t cgen_var_635 = (uint64_t)local_descriptorSet;
+    stream->putBe64(cgen_var_635);
+    uint64_t cgen_var_636 = (uint64_t)local_descriptorUpdateTemplate;
+    stream->putBe64(cgen_var_636);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_637 = (uint64_t)(uintptr_t)local_pData;
+    stream->putBe64(cgen_var_637);
     if (local_pData)
     {
         stream->write((void*)local_pData, sizeof(uint8_t));
@@ -8627,7 +9518,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_638 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_638);
         marshal_VkPhysicalDeviceExternalBufferInfo(countingStream, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
         marshal_VkExternalBufferProperties(countingStream, (VkExternalBufferProperties*)(pExternalBufferProperties));
     }
@@ -8636,7 +9528,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
     uint32_t opcode_vkGetPhysicalDeviceExternalBufferProperties = OP_vkGetPhysicalDeviceExternalBufferProperties;
     stream->write(&opcode_vkGetPhysicalDeviceExternalBufferProperties, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceExternalBufferProperties, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_639 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_639);
     marshal_VkPhysicalDeviceExternalBufferInfo(stream, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
     marshal_VkExternalBufferProperties(stream, (VkExternalBufferProperties*)(pExternalBufferProperties));
     unmarshal_VkExternalBufferProperties(stream, (VkExternalBufferProperties*)(pExternalBufferProperties));
@@ -8668,7 +9561,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalFenceProperties(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_640 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_640);
         marshal_VkPhysicalDeviceExternalFenceInfo(countingStream, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
         marshal_VkExternalFenceProperties(countingStream, (VkExternalFenceProperties*)(pExternalFenceProperties));
     }
@@ -8677,7 +9571,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalFenceProperties(
     uint32_t opcode_vkGetPhysicalDeviceExternalFenceProperties = OP_vkGetPhysicalDeviceExternalFenceProperties;
     stream->write(&opcode_vkGetPhysicalDeviceExternalFenceProperties, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceExternalFenceProperties, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_641 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_641);
     marshal_VkPhysicalDeviceExternalFenceInfo(stream, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
     marshal_VkExternalFenceProperties(stream, (VkExternalFenceProperties*)(pExternalFenceProperties));
     unmarshal_VkExternalFenceProperties(stream, (VkExternalFenceProperties*)(pExternalFenceProperties));
@@ -8709,7 +9604,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphoreProperties(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_642 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_642);
         marshal_VkPhysicalDeviceExternalSemaphoreInfo(countingStream, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
         marshal_VkExternalSemaphoreProperties(countingStream, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
     }
@@ -8718,7 +9614,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphoreProperties(
     uint32_t opcode_vkGetPhysicalDeviceExternalSemaphoreProperties = OP_vkGetPhysicalDeviceExternalSemaphoreProperties;
     stream->write(&opcode_vkGetPhysicalDeviceExternalSemaphoreProperties, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceExternalSemaphoreProperties, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_643 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_643);
     marshal_VkPhysicalDeviceExternalSemaphoreInfo(stream, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
     marshal_VkExternalSemaphoreProperties(stream, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
     unmarshal_VkExternalSemaphoreProperties(stream, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
@@ -8750,7 +9647,8 @@ void VkEncoder::vkGetDescriptorSetLayoutSupport(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_644 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_644);
         marshal_VkDescriptorSetLayoutCreateInfo(countingStream, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
         marshal_VkDescriptorSetLayoutSupport(countingStream, (VkDescriptorSetLayoutSupport*)(pSupport));
     }
@@ -8759,7 +9657,8 @@ void VkEncoder::vkGetDescriptorSetLayoutSupport(
     uint32_t opcode_vkGetDescriptorSetLayoutSupport = OP_vkGetDescriptorSetLayoutSupport;
     stream->write(&opcode_vkGetDescriptorSetLayoutSupport, sizeof(uint32_t));
     stream->write(&packetSize_vkGetDescriptorSetLayoutSupport, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_645 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_645);
     marshal_VkDescriptorSetLayoutCreateInfo(stream, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
     marshal_VkDescriptorSetLayoutSupport(stream, (VkDescriptorSetLayoutSupport*)(pSupport));
     unmarshal_VkDescriptorSetLayoutSupport(stream, (VkDescriptorSetLayoutSupport*)(pSupport));
@@ -8797,9 +9696,13 @@ void VkEncoder::vkDestroySurfaceKHR(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
-        countingStream->write((VkSurfaceKHR*)&local_surface, sizeof(VkSurfaceKHR));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_646 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_646);
+        uint64_t cgen_var_647 = (uint64_t)local_surface;
+        countingStream->putBe64(cgen_var_647);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_648 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_648);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -8810,9 +9713,13 @@ void VkEncoder::vkDestroySurfaceKHR(
     uint32_t opcode_vkDestroySurfaceKHR = OP_vkDestroySurfaceKHR;
     stream->write(&opcode_vkDestroySurfaceKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroySurfaceKHR, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
-    stream->write((VkSurfaceKHR*)&local_surface, sizeof(VkSurfaceKHR));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_649 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_649);
+    uint64_t cgen_var_650 = (uint64_t)local_surface;
+    stream->putBe64(cgen_var_650);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_651 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_651);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -8841,9 +9748,11 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceSupportKHR(
     resources->unwrapMapping()->mapHandles_VkSurfaceKHR((VkSurfaceKHR*)&local_surface);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_652 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_652);
         countingStream->write((uint32_t*)&local_queueFamilyIndex, sizeof(uint32_t));
-        countingStream->write((VkSurfaceKHR*)&local_surface, sizeof(VkSurfaceKHR));
+        uint64_t cgen_var_653 = (uint64_t)local_surface;
+        countingStream->putBe64(cgen_var_653);
         countingStream->write((VkBool32*)pSupported, sizeof(VkBool32));
     }
     uint32_t packetSize_vkGetPhysicalDeviceSurfaceSupportKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -8851,9 +9760,11 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceSupportKHR(
     uint32_t opcode_vkGetPhysicalDeviceSurfaceSupportKHR = OP_vkGetPhysicalDeviceSurfaceSupportKHR;
     stream->write(&opcode_vkGetPhysicalDeviceSurfaceSupportKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceSurfaceSupportKHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_654 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_654);
     stream->write((uint32_t*)&local_queueFamilyIndex, sizeof(uint32_t));
-    stream->write((VkSurfaceKHR*)&local_surface, sizeof(VkSurfaceKHR));
+    uint64_t cgen_var_655 = (uint64_t)local_surface;
+    stream->putBe64(cgen_var_655);
     stream->write((VkBool32*)pSupported, sizeof(VkBool32));
     stream->read((VkBool32*)pSupported, sizeof(VkBool32));
     pool->freeAll();
@@ -8879,8 +9790,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
     resources->unwrapMapping()->mapHandles_VkSurfaceKHR((VkSurfaceKHR*)&local_surface);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-        countingStream->write((VkSurfaceKHR*)&local_surface, sizeof(VkSurfaceKHR));
+        uint64_t cgen_var_656 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_656);
+        uint64_t cgen_var_657 = (uint64_t)local_surface;
+        countingStream->putBe64(cgen_var_657);
         marshal_VkSurfaceCapabilitiesKHR(countingStream, (VkSurfaceCapabilitiesKHR*)(pSurfaceCapabilities));
     }
     uint32_t packetSize_vkGetPhysicalDeviceSurfaceCapabilitiesKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -8888,8 +9801,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
     uint32_t opcode_vkGetPhysicalDeviceSurfaceCapabilitiesKHR = OP_vkGetPhysicalDeviceSurfaceCapabilitiesKHR;
     stream->write(&opcode_vkGetPhysicalDeviceSurfaceCapabilitiesKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceSurfaceCapabilitiesKHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-    stream->write((VkSurfaceKHR*)&local_surface, sizeof(VkSurfaceKHR));
+    uint64_t cgen_var_658 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_658);
+    uint64_t cgen_var_659 = (uint64_t)local_surface;
+    stream->putBe64(cgen_var_659);
     marshal_VkSurfaceCapabilitiesKHR(stream, (VkSurfaceCapabilitiesKHR*)(pSurfaceCapabilities));
     unmarshal_VkSurfaceCapabilitiesKHR(stream, (VkSurfaceCapabilitiesKHR*)(pSurfaceCapabilities));
     pool->freeAll();
@@ -8916,14 +9831,20 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
     resources->unwrapMapping()->mapHandles_VkSurfaceKHR((VkSurfaceKHR*)&local_surface);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-        countingStream->write((VkSurfaceKHR*)&local_surface, sizeof(VkSurfaceKHR));
-        countingStream->write((uint32_t**)&pSurfaceFormatCount, sizeof(uint32_t*));
+        uint64_t cgen_var_660 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_660);
+        uint64_t cgen_var_661 = (uint64_t)local_surface;
+        countingStream->putBe64(cgen_var_661);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_662 = (uint64_t)(uintptr_t)pSurfaceFormatCount;
+        countingStream->putBe64(cgen_var_662);
         if (pSurfaceFormatCount)
         {
             countingStream->write((uint32_t*)pSurfaceFormatCount, sizeof(uint32_t));
         }
-        countingStream->write((VkSurfaceFormatKHR**)&pSurfaceFormats, sizeof(VkSurfaceFormatKHR*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_663 = (uint64_t)(uintptr_t)pSurfaceFormats;
+        countingStream->putBe64(cgen_var_663);
         if (pSurfaceFormats)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
@@ -8937,14 +9858,20 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
     uint32_t opcode_vkGetPhysicalDeviceSurfaceFormatsKHR = OP_vkGetPhysicalDeviceSurfaceFormatsKHR;
     stream->write(&opcode_vkGetPhysicalDeviceSurfaceFormatsKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceSurfaceFormatsKHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-    stream->write((VkSurfaceKHR*)&local_surface, sizeof(VkSurfaceKHR));
-    stream->write((uint32_t**)&pSurfaceFormatCount, sizeof(uint32_t*));
+    uint64_t cgen_var_664 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_664);
+    uint64_t cgen_var_665 = (uint64_t)local_surface;
+    stream->putBe64(cgen_var_665);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_666 = (uint64_t)(uintptr_t)pSurfaceFormatCount;
+    stream->putBe64(cgen_var_666);
     if (pSurfaceFormatCount)
     {
         stream->write((uint32_t*)pSurfaceFormatCount, sizeof(uint32_t));
     }
-    stream->write((VkSurfaceFormatKHR**)&pSurfaceFormats, sizeof(VkSurfaceFormatKHR*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_667 = (uint64_t)(uintptr_t)pSurfaceFormats;
+    stream->putBe64(cgen_var_667);
     if (pSurfaceFormats)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
@@ -8952,8 +9879,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
             marshal_VkSurfaceFormatKHR(stream, (VkSurfaceFormatKHR*)(pSurfaceFormats + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pSurfaceFormatCount;
-    stream->read((uint32_t**)&check_pSurfaceFormatCount, sizeof(uint32_t*));
+    check_pSurfaceFormatCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pSurfaceFormatCount)
     {
         if (!(check_pSurfaceFormatCount))
@@ -8962,8 +9890,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
         }
         stream->read((uint32_t*)pSurfaceFormatCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkSurfaceFormatKHR* check_pSurfaceFormats;
-    stream->read((VkSurfaceFormatKHR**)&check_pSurfaceFormats, sizeof(VkSurfaceFormatKHR*));
+    check_pSurfaceFormats = (VkSurfaceFormatKHR*)(uintptr_t)stream->getBe64();
     if (pSurfaceFormats)
     {
         if (!(check_pSurfaceFormats))
@@ -8999,14 +9928,20 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModesKHR(
     resources->unwrapMapping()->mapHandles_VkSurfaceKHR((VkSurfaceKHR*)&local_surface);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-        countingStream->write((VkSurfaceKHR*)&local_surface, sizeof(VkSurfaceKHR));
-        countingStream->write((uint32_t**)&pPresentModeCount, sizeof(uint32_t*));
+        uint64_t cgen_var_670 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_670);
+        uint64_t cgen_var_671 = (uint64_t)local_surface;
+        countingStream->putBe64(cgen_var_671);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_672 = (uint64_t)(uintptr_t)pPresentModeCount;
+        countingStream->putBe64(cgen_var_672);
         if (pPresentModeCount)
         {
             countingStream->write((uint32_t*)pPresentModeCount, sizeof(uint32_t));
         }
-        countingStream->write((VkPresentModeKHR**)&pPresentModes, sizeof(VkPresentModeKHR*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_673 = (uint64_t)(uintptr_t)pPresentModes;
+        countingStream->putBe64(cgen_var_673);
         if (pPresentModes)
         {
             countingStream->write((VkPresentModeKHR*)pPresentModes, (*(pPresentModeCount)) * sizeof(VkPresentModeKHR));
@@ -9017,20 +9952,27 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModesKHR(
     uint32_t opcode_vkGetPhysicalDeviceSurfacePresentModesKHR = OP_vkGetPhysicalDeviceSurfacePresentModesKHR;
     stream->write(&opcode_vkGetPhysicalDeviceSurfacePresentModesKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceSurfacePresentModesKHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-    stream->write((VkSurfaceKHR*)&local_surface, sizeof(VkSurfaceKHR));
-    stream->write((uint32_t**)&pPresentModeCount, sizeof(uint32_t*));
+    uint64_t cgen_var_674 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_674);
+    uint64_t cgen_var_675 = (uint64_t)local_surface;
+    stream->putBe64(cgen_var_675);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_676 = (uint64_t)(uintptr_t)pPresentModeCount;
+    stream->putBe64(cgen_var_676);
     if (pPresentModeCount)
     {
         stream->write((uint32_t*)pPresentModeCount, sizeof(uint32_t));
     }
-    stream->write((VkPresentModeKHR**)&pPresentModes, sizeof(VkPresentModeKHR*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_677 = (uint64_t)(uintptr_t)pPresentModes;
+    stream->putBe64(cgen_var_677);
     if (pPresentModes)
     {
         stream->write((VkPresentModeKHR*)pPresentModes, (*(pPresentModeCount)) * sizeof(VkPresentModeKHR));
     }
+    // WARNING PTR CHECK
     uint32_t* check_pPresentModeCount;
-    stream->read((uint32_t**)&check_pPresentModeCount, sizeof(uint32_t*));
+    check_pPresentModeCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pPresentModeCount)
     {
         if (!(check_pPresentModeCount))
@@ -9039,8 +9981,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModesKHR(
         }
         stream->read((uint32_t*)pPresentModeCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkPresentModeKHR* check_pPresentModes;
-    stream->read((VkPresentModeKHR**)&check_pPresentModes, sizeof(VkPresentModeKHR*));
+    check_pPresentModes = (VkPresentModeKHR*)(uintptr_t)stream->getBe64();
     if (pPresentModes)
     {
         if (!(check_pPresentModes))
@@ -9095,13 +10038,17 @@ VkResult VkEncoder::vkCreateSwapchainKHR(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_680 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_680);
         marshal_VkSwapchainCreateInfoKHR(countingStream, (VkSwapchainCreateInfoKHR*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_681 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_681);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkSwapchainKHR*)pSwapchain, sizeof(VkSwapchainKHR));
     }
     uint32_t packetSize_vkCreateSwapchainKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -9109,14 +10056,19 @@ VkResult VkEncoder::vkCreateSwapchainKHR(
     uint32_t opcode_vkCreateSwapchainKHR = OP_vkCreateSwapchainKHR;
     stream->write(&opcode_vkCreateSwapchainKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateSwapchainKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_682 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_682);
     marshal_VkSwapchainCreateInfoKHR(stream, (VkSwapchainCreateInfoKHR*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_683 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_683);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkSwapchainKHR*)pSwapchain, sizeof(VkSwapchainKHR));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkSwapchainKHR*)pSwapchain, sizeof(VkSwapchainKHR));
     if (pSwapchain)
     {
@@ -9157,9 +10109,13 @@ void VkEncoder::vkDestroySwapchainKHR(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkSwapchainKHR*)&local_swapchain, sizeof(VkSwapchainKHR));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_684 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_684);
+        uint64_t cgen_var_685 = (uint64_t)local_swapchain;
+        countingStream->putBe64(cgen_var_685);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_686 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_686);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -9170,9 +10126,13 @@ void VkEncoder::vkDestroySwapchainKHR(
     uint32_t opcode_vkDestroySwapchainKHR = OP_vkDestroySwapchainKHR;
     stream->write(&opcode_vkDestroySwapchainKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroySwapchainKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkSwapchainKHR*)&local_swapchain, sizeof(VkSwapchainKHR));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_687 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_687);
+    uint64_t cgen_var_688 = (uint64_t)local_swapchain;
+    stream->putBe64(cgen_var_688);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_689 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_689);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -9199,16 +10159,23 @@ VkResult VkEncoder::vkGetSwapchainImagesKHR(
     resources->unwrapMapping()->mapHandles_VkSwapchainKHR((VkSwapchainKHR*)&local_swapchain);
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkSwapchainKHR*)&local_swapchain, sizeof(VkSwapchainKHR));
-        countingStream->write((uint32_t**)&pSwapchainImageCount, sizeof(uint32_t*));
+        uint64_t cgen_var_690 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_690);
+        uint64_t cgen_var_691 = (uint64_t)local_swapchain;
+        countingStream->putBe64(cgen_var_691);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_692 = (uint64_t)(uintptr_t)pSwapchainImageCount;
+        countingStream->putBe64(cgen_var_692);
         if (pSwapchainImageCount)
         {
             countingStream->write((uint32_t*)pSwapchainImageCount, sizeof(uint32_t));
         }
-        countingStream->write((VkImage**)&pSwapchainImages, sizeof(VkImage*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_693 = (uint64_t)(uintptr_t)pSwapchainImages;
+        countingStream->putBe64(cgen_var_693);
         if (pSwapchainImages)
         {
+            // WARNING HANDLE TYPE POINTER
             countingStream->write((VkImage*)pSwapchainImages, (*(pSwapchainImageCount)) * sizeof(VkImage));
         }
     }
@@ -9217,20 +10184,28 @@ VkResult VkEncoder::vkGetSwapchainImagesKHR(
     uint32_t opcode_vkGetSwapchainImagesKHR = OP_vkGetSwapchainImagesKHR;
     stream->write(&opcode_vkGetSwapchainImagesKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetSwapchainImagesKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkSwapchainKHR*)&local_swapchain, sizeof(VkSwapchainKHR));
-    stream->write((uint32_t**)&pSwapchainImageCount, sizeof(uint32_t*));
+    uint64_t cgen_var_694 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_694);
+    uint64_t cgen_var_695 = (uint64_t)local_swapchain;
+    stream->putBe64(cgen_var_695);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_696 = (uint64_t)(uintptr_t)pSwapchainImageCount;
+    stream->putBe64(cgen_var_696);
     if (pSwapchainImageCount)
     {
         stream->write((uint32_t*)pSwapchainImageCount, sizeof(uint32_t));
     }
-    stream->write((VkImage**)&pSwapchainImages, sizeof(VkImage*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_697 = (uint64_t)(uintptr_t)pSwapchainImages;
+    stream->putBe64(cgen_var_697);
     if (pSwapchainImages)
     {
+        // WARNING HANDLE TYPE POINTER
         stream->write((VkImage*)pSwapchainImages, (*(pSwapchainImageCount)) * sizeof(VkImage));
     }
+    // WARNING PTR CHECK
     uint32_t* check_pSwapchainImageCount;
-    stream->read((uint32_t**)&check_pSwapchainImageCount, sizeof(uint32_t*));
+    check_pSwapchainImageCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pSwapchainImageCount)
     {
         if (!(check_pSwapchainImageCount))
@@ -9239,14 +10214,16 @@ VkResult VkEncoder::vkGetSwapchainImagesKHR(
         }
         stream->read((uint32_t*)pSwapchainImageCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkImage* check_pSwapchainImages;
-    stream->read((VkImage**)&check_pSwapchainImages, sizeof(VkImage*));
+    check_pSwapchainImages = (VkImage*)(uintptr_t)stream->getBe64();
     if (pSwapchainImages)
     {
         if (!(check_pSwapchainImages))
         {
             fprintf(stderr, "fatal: pSwapchainImages inconsistent between guest and host\n");
         }
+        // WARNING HANDLE TYPE POINTER
         stream->read((VkImage*)pSwapchainImages, (*(pSwapchainImageCount)) * sizeof(VkImage));
     }
     pool->freeAll();
@@ -9283,11 +10260,15 @@ VkResult VkEncoder::vkAcquireNextImageKHR(
     resources->unwrapMapping()->mapHandles_VkFence((VkFence*)&local_fence);
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkSwapchainKHR*)&local_swapchain, sizeof(VkSwapchainKHR));
+        uint64_t cgen_var_700 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_700);
+        uint64_t cgen_var_701 = (uint64_t)local_swapchain;
+        countingStream->putBe64(cgen_var_701);
         countingStream->write((uint64_t*)&local_timeout, sizeof(uint64_t));
-        countingStream->write((VkSemaphore*)&local_semaphore, sizeof(VkSemaphore));
-        countingStream->write((VkFence*)&local_fence, sizeof(VkFence));
+        uint64_t cgen_var_702 = (uint64_t)local_semaphore;
+        countingStream->putBe64(cgen_var_702);
+        uint64_t cgen_var_703 = (uint64_t)local_fence;
+        countingStream->putBe64(cgen_var_703);
         countingStream->write((uint32_t*)pImageIndex, sizeof(uint32_t));
     }
     uint32_t packetSize_vkAcquireNextImageKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -9295,11 +10276,15 @@ VkResult VkEncoder::vkAcquireNextImageKHR(
     uint32_t opcode_vkAcquireNextImageKHR = OP_vkAcquireNextImageKHR;
     stream->write(&opcode_vkAcquireNextImageKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkAcquireNextImageKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkSwapchainKHR*)&local_swapchain, sizeof(VkSwapchainKHR));
+    uint64_t cgen_var_704 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_704);
+    uint64_t cgen_var_705 = (uint64_t)local_swapchain;
+    stream->putBe64(cgen_var_705);
     stream->write((uint64_t*)&local_timeout, sizeof(uint64_t));
-    stream->write((VkSemaphore*)&local_semaphore, sizeof(VkSemaphore));
-    stream->write((VkFence*)&local_fence, sizeof(VkFence));
+    uint64_t cgen_var_706 = (uint64_t)local_semaphore;
+    stream->putBe64(cgen_var_706);
+    uint64_t cgen_var_707 = (uint64_t)local_fence;
+    stream->putBe64(cgen_var_707);
     stream->write((uint32_t*)pImageIndex, sizeof(uint32_t));
     stream->read((uint32_t*)pImageIndex, sizeof(uint32_t));
     pool->freeAll();
@@ -9332,7 +10317,8 @@ VkResult VkEncoder::vkQueuePresentKHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkQueue*)&local_queue, sizeof(VkQueue));
+        uint64_t cgen_var_708 = (uint64_t)local_queue;
+        countingStream->putBe64(cgen_var_708);
         marshal_VkPresentInfoKHR(countingStream, (VkPresentInfoKHR*)(local_pPresentInfo));
     }
     uint32_t packetSize_vkQueuePresentKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -9340,7 +10326,8 @@ VkResult VkEncoder::vkQueuePresentKHR(
     uint32_t opcode_vkQueuePresentKHR = OP_vkQueuePresentKHR;
     stream->write(&opcode_vkQueuePresentKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkQueuePresentKHR, sizeof(uint32_t));
-    stream->write((VkQueue*)&local_queue, sizeof(VkQueue));
+    uint64_t cgen_var_709 = (uint64_t)local_queue;
+    stream->putBe64(cgen_var_709);
     marshal_VkPresentInfoKHR(stream, (VkPresentInfoKHR*)(local_pPresentInfo));
     pool->freeAll();
     VkResult vkQueuePresentKHR_VkResult_return = (VkResult)0;
@@ -9361,7 +10348,8 @@ VkResult VkEncoder::vkGetDeviceGroupPresentCapabilitiesKHR(
     resources->unwrapMapping()->mapHandles_VkDevice((VkDevice*)&local_device);
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_710 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_710);
         marshal_VkDeviceGroupPresentCapabilitiesKHR(countingStream, (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities));
     }
     uint32_t packetSize_vkGetDeviceGroupPresentCapabilitiesKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -9369,7 +10357,8 @@ VkResult VkEncoder::vkGetDeviceGroupPresentCapabilitiesKHR(
     uint32_t opcode_vkGetDeviceGroupPresentCapabilitiesKHR = OP_vkGetDeviceGroupPresentCapabilitiesKHR;
     stream->write(&opcode_vkGetDeviceGroupPresentCapabilitiesKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetDeviceGroupPresentCapabilitiesKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_711 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_711);
     marshal_VkDeviceGroupPresentCapabilitiesKHR(stream, (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities));
     unmarshal_VkDeviceGroupPresentCapabilitiesKHR(stream, (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities));
     pool->freeAll();
@@ -9395,9 +10384,13 @@ VkResult VkEncoder::vkGetDeviceGroupSurfacePresentModesKHR(
     resources->unwrapMapping()->mapHandles_VkSurfaceKHR((VkSurfaceKHR*)&local_surface);
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkSurfaceKHR*)&local_surface, sizeof(VkSurfaceKHR));
-        countingStream->write((VkDeviceGroupPresentModeFlagsKHR**)&pModes, sizeof(VkDeviceGroupPresentModeFlagsKHR*));
+        uint64_t cgen_var_712 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_712);
+        uint64_t cgen_var_713 = (uint64_t)local_surface;
+        countingStream->putBe64(cgen_var_713);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_714 = (uint64_t)(uintptr_t)pModes;
+        countingStream->putBe64(cgen_var_714);
         if (pModes)
         {
             countingStream->write((VkDeviceGroupPresentModeFlagsKHR*)pModes, sizeof(VkDeviceGroupPresentModeFlagsKHR));
@@ -9408,15 +10401,20 @@ VkResult VkEncoder::vkGetDeviceGroupSurfacePresentModesKHR(
     uint32_t opcode_vkGetDeviceGroupSurfacePresentModesKHR = OP_vkGetDeviceGroupSurfacePresentModesKHR;
     stream->write(&opcode_vkGetDeviceGroupSurfacePresentModesKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetDeviceGroupSurfacePresentModesKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkSurfaceKHR*)&local_surface, sizeof(VkSurfaceKHR));
-    stream->write((VkDeviceGroupPresentModeFlagsKHR**)&pModes, sizeof(VkDeviceGroupPresentModeFlagsKHR*));
+    uint64_t cgen_var_715 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_715);
+    uint64_t cgen_var_716 = (uint64_t)local_surface;
+    stream->putBe64(cgen_var_716);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_717 = (uint64_t)(uintptr_t)pModes;
+    stream->putBe64(cgen_var_717);
     if (pModes)
     {
         stream->write((VkDeviceGroupPresentModeFlagsKHR*)pModes, sizeof(VkDeviceGroupPresentModeFlagsKHR));
     }
+    // WARNING PTR CHECK
     VkDeviceGroupPresentModeFlagsKHR* check_pModes;
-    stream->read((VkDeviceGroupPresentModeFlagsKHR**)&check_pModes, sizeof(VkDeviceGroupPresentModeFlagsKHR*));
+    check_pModes = (VkDeviceGroupPresentModeFlagsKHR*)(uintptr_t)stream->getBe64();
     if (pModes)
     {
         if (!(check_pModes))
@@ -9449,14 +10447,20 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
     resources->unwrapMapping()->mapHandles_VkSurfaceKHR((VkSurfaceKHR*)&local_surface);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-        countingStream->write((VkSurfaceKHR*)&local_surface, sizeof(VkSurfaceKHR));
-        countingStream->write((uint32_t**)&pRectCount, sizeof(uint32_t*));
+        uint64_t cgen_var_719 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_719);
+        uint64_t cgen_var_720 = (uint64_t)local_surface;
+        countingStream->putBe64(cgen_var_720);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_721 = (uint64_t)(uintptr_t)pRectCount;
+        countingStream->putBe64(cgen_var_721);
         if (pRectCount)
         {
             countingStream->write((uint32_t*)pRectCount, sizeof(uint32_t));
         }
-        countingStream->write((VkRect2D**)&pRects, sizeof(VkRect2D*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_722 = (uint64_t)(uintptr_t)pRects;
+        countingStream->putBe64(cgen_var_722);
         if (pRects)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i)
@@ -9470,14 +10474,20 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
     uint32_t opcode_vkGetPhysicalDevicePresentRectanglesKHR = OP_vkGetPhysicalDevicePresentRectanglesKHR;
     stream->write(&opcode_vkGetPhysicalDevicePresentRectanglesKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDevicePresentRectanglesKHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-    stream->write((VkSurfaceKHR*)&local_surface, sizeof(VkSurfaceKHR));
-    stream->write((uint32_t**)&pRectCount, sizeof(uint32_t*));
+    uint64_t cgen_var_723 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_723);
+    uint64_t cgen_var_724 = (uint64_t)local_surface;
+    stream->putBe64(cgen_var_724);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_725 = (uint64_t)(uintptr_t)pRectCount;
+    stream->putBe64(cgen_var_725);
     if (pRectCount)
     {
         stream->write((uint32_t*)pRectCount, sizeof(uint32_t));
     }
-    stream->write((VkRect2D**)&pRects, sizeof(VkRect2D*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_726 = (uint64_t)(uintptr_t)pRects;
+    stream->putBe64(cgen_var_726);
     if (pRects)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i)
@@ -9485,8 +10495,9 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
             marshal_VkRect2D(stream, (VkRect2D*)(pRects + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pRectCount;
-    stream->read((uint32_t**)&check_pRectCount, sizeof(uint32_t*));
+    check_pRectCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pRectCount)
     {
         if (!(check_pRectCount))
@@ -9495,8 +10506,9 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
         }
         stream->read((uint32_t*)pRectCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkRect2D* check_pRects;
-    stream->read((VkRect2D**)&check_pRects, sizeof(VkRect2D*));
+    check_pRects = (VkRect2D*)(uintptr_t)stream->getBe64();
     if (pRects)
     {
         if (!(check_pRects))
@@ -9539,7 +10551,8 @@ VkResult VkEncoder::vkAcquireNextImage2KHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_729 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_729);
         marshal_VkAcquireNextImageInfoKHR(countingStream, (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo));
         countingStream->write((uint32_t*)pImageIndex, sizeof(uint32_t));
     }
@@ -9548,7 +10561,8 @@ VkResult VkEncoder::vkAcquireNextImage2KHR(
     uint32_t opcode_vkAcquireNextImage2KHR = OP_vkAcquireNextImage2KHR;
     stream->write(&opcode_vkAcquireNextImage2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkAcquireNextImage2KHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_730 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_730);
     marshal_VkAcquireNextImageInfoKHR(stream, (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo));
     stream->write((uint32_t*)pImageIndex, sizeof(uint32_t));
     stream->read((uint32_t*)pImageIndex, sizeof(uint32_t));
@@ -9574,13 +10588,18 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
     resources->unwrapMapping()->mapHandles_VkPhysicalDevice((VkPhysicalDevice*)&local_physicalDevice);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-        countingStream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+        uint64_t cgen_var_731 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_731);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_732 = (uint64_t)(uintptr_t)pPropertyCount;
+        countingStream->putBe64(cgen_var_732);
         if (pPropertyCount)
         {
             countingStream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
         }
-        countingStream->write((VkDisplayPropertiesKHR**)&pProperties, sizeof(VkDisplayPropertiesKHR*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_733 = (uint64_t)(uintptr_t)pProperties;
+        countingStream->putBe64(cgen_var_733);
         if (pProperties)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -9594,13 +10613,18 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
     uint32_t opcode_vkGetPhysicalDeviceDisplayPropertiesKHR = OP_vkGetPhysicalDeviceDisplayPropertiesKHR;
     stream->write(&opcode_vkGetPhysicalDeviceDisplayPropertiesKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceDisplayPropertiesKHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-    stream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+    uint64_t cgen_var_734 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_734);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_735 = (uint64_t)(uintptr_t)pPropertyCount;
+    stream->putBe64(cgen_var_735);
     if (pPropertyCount)
     {
         stream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
-    stream->write((VkDisplayPropertiesKHR**)&pProperties, sizeof(VkDisplayPropertiesKHR*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_736 = (uint64_t)(uintptr_t)pProperties;
+    stream->putBe64(cgen_var_736);
     if (pProperties)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -9608,8 +10632,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
             marshal_VkDisplayPropertiesKHR(stream, (VkDisplayPropertiesKHR*)(pProperties + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
-    stream->read((uint32_t**)&check_pPropertyCount, sizeof(uint32_t*));
+    check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pPropertyCount)
     {
         if (!(check_pPropertyCount))
@@ -9618,8 +10643,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
         }
         stream->read((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkDisplayPropertiesKHR* check_pProperties;
-    stream->read((VkDisplayPropertiesKHR**)&check_pProperties, sizeof(VkDisplayPropertiesKHR*));
+    check_pProperties = (VkDisplayPropertiesKHR*)(uintptr_t)stream->getBe64();
     if (pProperties)
     {
         if (!(check_pProperties))
@@ -9651,13 +10677,18 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
     resources->unwrapMapping()->mapHandles_VkPhysicalDevice((VkPhysicalDevice*)&local_physicalDevice);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-        countingStream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+        uint64_t cgen_var_739 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_739);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_740 = (uint64_t)(uintptr_t)pPropertyCount;
+        countingStream->putBe64(cgen_var_740);
         if (pPropertyCount)
         {
             countingStream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
         }
-        countingStream->write((VkDisplayPlanePropertiesKHR**)&pProperties, sizeof(VkDisplayPlanePropertiesKHR*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_741 = (uint64_t)(uintptr_t)pProperties;
+        countingStream->putBe64(cgen_var_741);
         if (pProperties)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -9671,13 +10702,18 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
     uint32_t opcode_vkGetPhysicalDeviceDisplayPlanePropertiesKHR = OP_vkGetPhysicalDeviceDisplayPlanePropertiesKHR;
     stream->write(&opcode_vkGetPhysicalDeviceDisplayPlanePropertiesKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceDisplayPlanePropertiesKHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-    stream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+    uint64_t cgen_var_742 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_742);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_743 = (uint64_t)(uintptr_t)pPropertyCount;
+    stream->putBe64(cgen_var_743);
     if (pPropertyCount)
     {
         stream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
-    stream->write((VkDisplayPlanePropertiesKHR**)&pProperties, sizeof(VkDisplayPlanePropertiesKHR*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_744 = (uint64_t)(uintptr_t)pProperties;
+    stream->putBe64(cgen_var_744);
     if (pProperties)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -9685,8 +10721,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
             marshal_VkDisplayPlanePropertiesKHR(stream, (VkDisplayPlanePropertiesKHR*)(pProperties + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
-    stream->read((uint32_t**)&check_pPropertyCount, sizeof(uint32_t*));
+    check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pPropertyCount)
     {
         if (!(check_pPropertyCount))
@@ -9695,8 +10732,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
         }
         stream->read((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkDisplayPlanePropertiesKHR* check_pProperties;
-    stream->read((VkDisplayPlanePropertiesKHR**)&check_pProperties, sizeof(VkDisplayPlanePropertiesKHR*));
+    check_pProperties = (VkDisplayPlanePropertiesKHR*)(uintptr_t)stream->getBe64();
     if (pProperties)
     {
         if (!(check_pProperties))
@@ -9731,16 +10769,22 @@ VkResult VkEncoder::vkGetDisplayPlaneSupportedDisplaysKHR(
     local_planeIndex = planeIndex;
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_747 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_747);
         countingStream->write((uint32_t*)&local_planeIndex, sizeof(uint32_t));
-        countingStream->write((uint32_t**)&pDisplayCount, sizeof(uint32_t*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_748 = (uint64_t)(uintptr_t)pDisplayCount;
+        countingStream->putBe64(cgen_var_748);
         if (pDisplayCount)
         {
             countingStream->write((uint32_t*)pDisplayCount, sizeof(uint32_t));
         }
-        countingStream->write((VkDisplayKHR**)&pDisplays, sizeof(VkDisplayKHR*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_749 = (uint64_t)(uintptr_t)pDisplays;
+        countingStream->putBe64(cgen_var_749);
         if (pDisplays)
         {
+            // WARNING HANDLE TYPE POINTER
             countingStream->write((VkDisplayKHR*)pDisplays, (*(pDisplayCount)) * sizeof(VkDisplayKHR));
         }
     }
@@ -9749,20 +10793,27 @@ VkResult VkEncoder::vkGetDisplayPlaneSupportedDisplaysKHR(
     uint32_t opcode_vkGetDisplayPlaneSupportedDisplaysKHR = OP_vkGetDisplayPlaneSupportedDisplaysKHR;
     stream->write(&opcode_vkGetDisplayPlaneSupportedDisplaysKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetDisplayPlaneSupportedDisplaysKHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_750 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_750);
     stream->write((uint32_t*)&local_planeIndex, sizeof(uint32_t));
-    stream->write((uint32_t**)&pDisplayCount, sizeof(uint32_t*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_751 = (uint64_t)(uintptr_t)pDisplayCount;
+    stream->putBe64(cgen_var_751);
     if (pDisplayCount)
     {
         stream->write((uint32_t*)pDisplayCount, sizeof(uint32_t));
     }
-    stream->write((VkDisplayKHR**)&pDisplays, sizeof(VkDisplayKHR*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_752 = (uint64_t)(uintptr_t)pDisplays;
+    stream->putBe64(cgen_var_752);
     if (pDisplays)
     {
+        // WARNING HANDLE TYPE POINTER
         stream->write((VkDisplayKHR*)pDisplays, (*(pDisplayCount)) * sizeof(VkDisplayKHR));
     }
+    // WARNING PTR CHECK
     uint32_t* check_pDisplayCount;
-    stream->read((uint32_t**)&check_pDisplayCount, sizeof(uint32_t*));
+    check_pDisplayCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pDisplayCount)
     {
         if (!(check_pDisplayCount))
@@ -9771,14 +10822,16 @@ VkResult VkEncoder::vkGetDisplayPlaneSupportedDisplaysKHR(
         }
         stream->read((uint32_t*)pDisplayCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkDisplayKHR* check_pDisplays;
-    stream->read((VkDisplayKHR**)&check_pDisplays, sizeof(VkDisplayKHR*));
+    check_pDisplays = (VkDisplayKHR*)(uintptr_t)stream->getBe64();
     if (pDisplays)
     {
         if (!(check_pDisplays))
         {
             fprintf(stderr, "fatal: pDisplays inconsistent between guest and host\n");
         }
+        // WARNING HANDLE TYPE POINTER
         stream->read((VkDisplayKHR*)pDisplays, (*(pDisplayCount)) * sizeof(VkDisplayKHR));
     }
     pool->freeAll();
@@ -9805,14 +10858,20 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
     resources->unwrapMapping()->mapHandles_VkDisplayKHR((VkDisplayKHR*)&local_display);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-        countingStream->write((VkDisplayKHR*)&local_display, sizeof(VkDisplayKHR));
-        countingStream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+        uint64_t cgen_var_755 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_755);
+        uint64_t cgen_var_756 = (uint64_t)local_display;
+        countingStream->putBe64(cgen_var_756);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_757 = (uint64_t)(uintptr_t)pPropertyCount;
+        countingStream->putBe64(cgen_var_757);
         if (pPropertyCount)
         {
             countingStream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
         }
-        countingStream->write((VkDisplayModePropertiesKHR**)&pProperties, sizeof(VkDisplayModePropertiesKHR*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_758 = (uint64_t)(uintptr_t)pProperties;
+        countingStream->putBe64(cgen_var_758);
         if (pProperties)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -9826,14 +10885,20 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
     uint32_t opcode_vkGetDisplayModePropertiesKHR = OP_vkGetDisplayModePropertiesKHR;
     stream->write(&opcode_vkGetDisplayModePropertiesKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetDisplayModePropertiesKHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-    stream->write((VkDisplayKHR*)&local_display, sizeof(VkDisplayKHR));
-    stream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+    uint64_t cgen_var_759 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_759);
+    uint64_t cgen_var_760 = (uint64_t)local_display;
+    stream->putBe64(cgen_var_760);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_761 = (uint64_t)(uintptr_t)pPropertyCount;
+    stream->putBe64(cgen_var_761);
     if (pPropertyCount)
     {
         stream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
-    stream->write((VkDisplayModePropertiesKHR**)&pProperties, sizeof(VkDisplayModePropertiesKHR*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_762 = (uint64_t)(uintptr_t)pProperties;
+    stream->putBe64(cgen_var_762);
     if (pProperties)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -9841,8 +10906,9 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
             marshal_VkDisplayModePropertiesKHR(stream, (VkDisplayModePropertiesKHR*)(pProperties + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
-    stream->read((uint32_t**)&check_pPropertyCount, sizeof(uint32_t*));
+    check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pPropertyCount)
     {
         if (!(check_pPropertyCount))
@@ -9851,8 +10917,9 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
         }
         stream->read((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkDisplayModePropertiesKHR* check_pProperties;
-    stream->read((VkDisplayModePropertiesKHR**)&check_pProperties, sizeof(VkDisplayModePropertiesKHR*));
+    check_pProperties = (VkDisplayModePropertiesKHR*)(uintptr_t)stream->getBe64();
     if (pProperties)
     {
         if (!(check_pProperties))
@@ -9912,14 +10979,19 @@ VkResult VkEncoder::vkCreateDisplayModeKHR(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-        countingStream->write((VkDisplayKHR*)&local_display, sizeof(VkDisplayKHR));
+        uint64_t cgen_var_765 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_765);
+        uint64_t cgen_var_766 = (uint64_t)local_display;
+        countingStream->putBe64(cgen_var_766);
         marshal_VkDisplayModeCreateInfoKHR(countingStream, (VkDisplayModeCreateInfoKHR*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_767 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_767);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkDisplayModeKHR*)pMode, sizeof(VkDisplayModeKHR));
     }
     uint32_t packetSize_vkCreateDisplayModeKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -9927,15 +10999,21 @@ VkResult VkEncoder::vkCreateDisplayModeKHR(
     uint32_t opcode_vkCreateDisplayModeKHR = OP_vkCreateDisplayModeKHR;
     stream->write(&opcode_vkCreateDisplayModeKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateDisplayModeKHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-    stream->write((VkDisplayKHR*)&local_display, sizeof(VkDisplayKHR));
+    uint64_t cgen_var_768 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_768);
+    uint64_t cgen_var_769 = (uint64_t)local_display;
+    stream->putBe64(cgen_var_769);
     marshal_VkDisplayModeCreateInfoKHR(stream, (VkDisplayModeCreateInfoKHR*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_770 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_770);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkDisplayModeKHR*)pMode, sizeof(VkDisplayModeKHR));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkDisplayModeKHR*)pMode, sizeof(VkDisplayModeKHR));
     if (pMode)
     {
@@ -9967,8 +11045,10 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilitiesKHR(
     local_planeIndex = planeIndex;
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-        countingStream->write((VkDisplayModeKHR*)&local_mode, sizeof(VkDisplayModeKHR));
+        uint64_t cgen_var_771 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_771);
+        uint64_t cgen_var_772 = (uint64_t)local_mode;
+        countingStream->putBe64(cgen_var_772);
         countingStream->write((uint32_t*)&local_planeIndex, sizeof(uint32_t));
         marshal_VkDisplayPlaneCapabilitiesKHR(countingStream, (VkDisplayPlaneCapabilitiesKHR*)(pCapabilities));
     }
@@ -9977,8 +11057,10 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilitiesKHR(
     uint32_t opcode_vkGetDisplayPlaneCapabilitiesKHR = OP_vkGetDisplayPlaneCapabilitiesKHR;
     stream->write(&opcode_vkGetDisplayPlaneCapabilitiesKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetDisplayPlaneCapabilitiesKHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-    stream->write((VkDisplayModeKHR*)&local_mode, sizeof(VkDisplayModeKHR));
+    uint64_t cgen_var_773 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_773);
+    uint64_t cgen_var_774 = (uint64_t)local_mode;
+    stream->putBe64(cgen_var_774);
     stream->write((uint32_t*)&local_planeIndex, sizeof(uint32_t));
     marshal_VkDisplayPlaneCapabilitiesKHR(stream, (VkDisplayPlaneCapabilitiesKHR*)(pCapabilities));
     unmarshal_VkDisplayPlaneCapabilitiesKHR(stream, (VkDisplayPlaneCapabilitiesKHR*)(pCapabilities));
@@ -10026,13 +11108,17 @@ VkResult VkEncoder::vkCreateDisplayPlaneSurfaceKHR(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+        uint64_t cgen_var_775 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_775);
         marshal_VkDisplaySurfaceCreateInfoKHR(countingStream, (VkDisplaySurfaceCreateInfoKHR*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_776 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_776);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     }
     uint32_t packetSize_vkCreateDisplayPlaneSurfaceKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -10040,14 +11126,19 @@ VkResult VkEncoder::vkCreateDisplayPlaneSurfaceKHR(
     uint32_t opcode_vkCreateDisplayPlaneSurfaceKHR = OP_vkCreateDisplayPlaneSurfaceKHR;
     stream->write(&opcode_vkCreateDisplayPlaneSurfaceKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateDisplayPlaneSurfaceKHR, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+    uint64_t cgen_var_777 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_777);
     marshal_VkDisplaySurfaceCreateInfoKHR(stream, (VkDisplaySurfaceCreateInfoKHR*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_778 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_778);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     pool->freeAll();
     VkResult vkCreateDisplayPlaneSurfaceKHR_VkResult_return = (VkResult)0;
@@ -10104,17 +11195,21 @@ VkResult VkEncoder::vkCreateSharedSwapchainsKHR(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_779 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_779);
         countingStream->write((uint32_t*)&local_swapchainCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((swapchainCount)); ++i)
         {
             marshal_VkSwapchainCreateInfoKHR(countingStream, (VkSwapchainCreateInfoKHR*)(local_pCreateInfos + i));
         }
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_780 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_780);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkSwapchainKHR*)pSwapchains, ((swapchainCount)) * sizeof(VkSwapchainKHR));
     }
     uint32_t packetSize_vkCreateSharedSwapchainsKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -10122,18 +11217,23 @@ VkResult VkEncoder::vkCreateSharedSwapchainsKHR(
     uint32_t opcode_vkCreateSharedSwapchainsKHR = OP_vkCreateSharedSwapchainsKHR;
     stream->write(&opcode_vkCreateSharedSwapchainsKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateSharedSwapchainsKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_781 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_781);
     stream->write((uint32_t*)&local_swapchainCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((swapchainCount)); ++i)
     {
         marshal_VkSwapchainCreateInfoKHR(stream, (VkSwapchainCreateInfoKHR*)(local_pCreateInfos + i));
     }
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_782 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_782);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkSwapchainKHR*)pSwapchains, ((swapchainCount)) * sizeof(VkSwapchainKHR));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkSwapchainKHR*)pSwapchains, ((swapchainCount)) * sizeof(VkSwapchainKHR));
     pool->freeAll();
     VkResult vkCreateSharedSwapchainsKHR_VkResult_return = (VkResult)0;
@@ -10181,13 +11281,17 @@ VkResult VkEncoder::vkCreateXlibSurfaceKHR(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+        uint64_t cgen_var_783 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_783);
         marshal_VkXlibSurfaceCreateInfoKHR(countingStream, (VkXlibSurfaceCreateInfoKHR*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_784 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_784);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     }
     uint32_t packetSize_vkCreateXlibSurfaceKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -10195,14 +11299,19 @@ VkResult VkEncoder::vkCreateXlibSurfaceKHR(
     uint32_t opcode_vkCreateXlibSurfaceKHR = OP_vkCreateXlibSurfaceKHR;
     stream->write(&opcode_vkCreateXlibSurfaceKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateXlibSurfaceKHR, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+    uint64_t cgen_var_785 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_785);
     marshal_VkXlibSurfaceCreateInfoKHR(stream, (VkXlibSurfaceCreateInfoKHR*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_786 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_786);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     pool->freeAll();
     VkResult vkCreateXlibSurfaceKHR_VkResult_return = (VkResult)0;
@@ -10229,7 +11338,8 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceXlibPresentationSupportKHR(
     local_visualID = visualID;
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_787 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_787);
         countingStream->write((uint32_t*)&local_queueFamilyIndex, sizeof(uint32_t));
         countingStream->write((Display*)dpy, sizeof(Display));
         countingStream->write((VisualID*)&local_visualID, sizeof(VisualID));
@@ -10239,7 +11349,8 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceXlibPresentationSupportKHR(
     uint32_t opcode_vkGetPhysicalDeviceXlibPresentationSupportKHR = OP_vkGetPhysicalDeviceXlibPresentationSupportKHR;
     stream->write(&opcode_vkGetPhysicalDeviceXlibPresentationSupportKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceXlibPresentationSupportKHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_788 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_788);
     stream->write((uint32_t*)&local_queueFamilyIndex, sizeof(uint32_t));
     stream->write((Display*)dpy, sizeof(Display));
     stream->write((VisualID*)&local_visualID, sizeof(VisualID));
@@ -10290,13 +11401,17 @@ VkResult VkEncoder::vkCreateXcbSurfaceKHR(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+        uint64_t cgen_var_789 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_789);
         marshal_VkXcbSurfaceCreateInfoKHR(countingStream, (VkXcbSurfaceCreateInfoKHR*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_790 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_790);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     }
     uint32_t packetSize_vkCreateXcbSurfaceKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -10304,14 +11419,19 @@ VkResult VkEncoder::vkCreateXcbSurfaceKHR(
     uint32_t opcode_vkCreateXcbSurfaceKHR = OP_vkCreateXcbSurfaceKHR;
     stream->write(&opcode_vkCreateXcbSurfaceKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateXcbSurfaceKHR, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+    uint64_t cgen_var_791 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_791);
     marshal_VkXcbSurfaceCreateInfoKHR(stream, (VkXcbSurfaceCreateInfoKHR*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_792 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_792);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     pool->freeAll();
     VkResult vkCreateXcbSurfaceKHR_VkResult_return = (VkResult)0;
@@ -10338,7 +11458,8 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceXcbPresentationSupportKHR(
     local_visual_id = visual_id;
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_793 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_793);
         countingStream->write((uint32_t*)&local_queueFamilyIndex, sizeof(uint32_t));
         countingStream->write((xcb_connection_t*)connection, sizeof(xcb_connection_t));
         countingStream->write((xcb_visualid_t*)&local_visual_id, sizeof(xcb_visualid_t));
@@ -10348,7 +11469,8 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceXcbPresentationSupportKHR(
     uint32_t opcode_vkGetPhysicalDeviceXcbPresentationSupportKHR = OP_vkGetPhysicalDeviceXcbPresentationSupportKHR;
     stream->write(&opcode_vkGetPhysicalDeviceXcbPresentationSupportKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceXcbPresentationSupportKHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_794 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_794);
     stream->write((uint32_t*)&local_queueFamilyIndex, sizeof(uint32_t));
     stream->write((xcb_connection_t*)connection, sizeof(xcb_connection_t));
     stream->write((xcb_visualid_t*)&local_visual_id, sizeof(xcb_visualid_t));
@@ -10399,13 +11521,17 @@ VkResult VkEncoder::vkCreateWaylandSurfaceKHR(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+        uint64_t cgen_var_795 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_795);
         marshal_VkWaylandSurfaceCreateInfoKHR(countingStream, (VkWaylandSurfaceCreateInfoKHR*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_796 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_796);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     }
     uint32_t packetSize_vkCreateWaylandSurfaceKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -10413,14 +11539,19 @@ VkResult VkEncoder::vkCreateWaylandSurfaceKHR(
     uint32_t opcode_vkCreateWaylandSurfaceKHR = OP_vkCreateWaylandSurfaceKHR;
     stream->write(&opcode_vkCreateWaylandSurfaceKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateWaylandSurfaceKHR, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+    uint64_t cgen_var_797 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_797);
     marshal_VkWaylandSurfaceCreateInfoKHR(stream, (VkWaylandSurfaceCreateInfoKHR*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_798 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_798);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     pool->freeAll();
     VkResult vkCreateWaylandSurfaceKHR_VkResult_return = (VkResult)0;
@@ -10444,7 +11575,8 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceWaylandPresentationSupportKHR(
     local_queueFamilyIndex = queueFamilyIndex;
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_799 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_799);
         countingStream->write((uint32_t*)&local_queueFamilyIndex, sizeof(uint32_t));
         countingStream->write((wl_display*)display, sizeof(wl_display));
     }
@@ -10453,7 +11585,8 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceWaylandPresentationSupportKHR(
     uint32_t opcode_vkGetPhysicalDeviceWaylandPresentationSupportKHR = OP_vkGetPhysicalDeviceWaylandPresentationSupportKHR;
     stream->write(&opcode_vkGetPhysicalDeviceWaylandPresentationSupportKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceWaylandPresentationSupportKHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_800 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_800);
     stream->write((uint32_t*)&local_queueFamilyIndex, sizeof(uint32_t));
     stream->write((wl_display*)display, sizeof(wl_display));
     stream->read((wl_display*)display, sizeof(wl_display));
@@ -10503,13 +11636,17 @@ VkResult VkEncoder::vkCreateMirSurfaceKHR(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+        uint64_t cgen_var_801 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_801);
         marshal_VkMirSurfaceCreateInfoKHR(countingStream, (VkMirSurfaceCreateInfoKHR*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_802 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_802);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     }
     uint32_t packetSize_vkCreateMirSurfaceKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -10517,14 +11654,19 @@ VkResult VkEncoder::vkCreateMirSurfaceKHR(
     uint32_t opcode_vkCreateMirSurfaceKHR = OP_vkCreateMirSurfaceKHR;
     stream->write(&opcode_vkCreateMirSurfaceKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateMirSurfaceKHR, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+    uint64_t cgen_var_803 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_803);
     marshal_VkMirSurfaceCreateInfoKHR(stream, (VkMirSurfaceCreateInfoKHR*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_804 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_804);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     pool->freeAll();
     VkResult vkCreateMirSurfaceKHR_VkResult_return = (VkResult)0;
@@ -10548,7 +11690,8 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceMirPresentationSupportKHR(
     local_queueFamilyIndex = queueFamilyIndex;
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_805 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_805);
         countingStream->write((uint32_t*)&local_queueFamilyIndex, sizeof(uint32_t));
         countingStream->write((MirConnection*)connection, sizeof(MirConnection));
     }
@@ -10557,7 +11700,8 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceMirPresentationSupportKHR(
     uint32_t opcode_vkGetPhysicalDeviceMirPresentationSupportKHR = OP_vkGetPhysicalDeviceMirPresentationSupportKHR;
     stream->write(&opcode_vkGetPhysicalDeviceMirPresentationSupportKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceMirPresentationSupportKHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_806 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_806);
     stream->write((uint32_t*)&local_queueFamilyIndex, sizeof(uint32_t));
     stream->write((MirConnection*)connection, sizeof(MirConnection));
     stream->read((MirConnection*)connection, sizeof(MirConnection));
@@ -10607,13 +11751,17 @@ VkResult VkEncoder::vkCreateAndroidSurfaceKHR(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+        uint64_t cgen_var_807 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_807);
         marshal_VkAndroidSurfaceCreateInfoKHR(countingStream, (VkAndroidSurfaceCreateInfoKHR*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_808 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_808);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     }
     uint32_t packetSize_vkCreateAndroidSurfaceKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -10621,14 +11769,19 @@ VkResult VkEncoder::vkCreateAndroidSurfaceKHR(
     uint32_t opcode_vkCreateAndroidSurfaceKHR = OP_vkCreateAndroidSurfaceKHR;
     stream->write(&opcode_vkCreateAndroidSurfaceKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateAndroidSurfaceKHR, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+    uint64_t cgen_var_809 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_809);
     marshal_VkAndroidSurfaceCreateInfoKHR(stream, (VkAndroidSurfaceCreateInfoKHR*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_810 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_810);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     pool->freeAll();
     VkResult vkCreateAndroidSurfaceKHR_VkResult_return = (VkResult)0;
@@ -10676,13 +11829,17 @@ VkResult VkEncoder::vkCreateWin32SurfaceKHR(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+        uint64_t cgen_var_811 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_811);
         marshal_VkWin32SurfaceCreateInfoKHR(countingStream, (VkWin32SurfaceCreateInfoKHR*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_812 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_812);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     }
     uint32_t packetSize_vkCreateWin32SurfaceKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -10690,14 +11847,19 @@ VkResult VkEncoder::vkCreateWin32SurfaceKHR(
     uint32_t opcode_vkCreateWin32SurfaceKHR = OP_vkCreateWin32SurfaceKHR;
     stream->write(&opcode_vkCreateWin32SurfaceKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateWin32SurfaceKHR, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+    uint64_t cgen_var_813 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_813);
     marshal_VkWin32SurfaceCreateInfoKHR(stream, (VkWin32SurfaceCreateInfoKHR*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_814 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_814);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     pool->freeAll();
     VkResult vkCreateWin32SurfaceKHR_VkResult_return = (VkResult)0;
@@ -10720,7 +11882,8 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceWin32PresentationSupportKHR(
     local_queueFamilyIndex = queueFamilyIndex;
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_815 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_815);
         countingStream->write((uint32_t*)&local_queueFamilyIndex, sizeof(uint32_t));
     }
     uint32_t packetSize_vkGetPhysicalDeviceWin32PresentationSupportKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -10728,7 +11891,8 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceWin32PresentationSupportKHR(
     uint32_t opcode_vkGetPhysicalDeviceWin32PresentationSupportKHR = OP_vkGetPhysicalDeviceWin32PresentationSupportKHR;
     stream->write(&opcode_vkGetPhysicalDeviceWin32PresentationSupportKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceWin32PresentationSupportKHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_816 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_816);
     stream->write((uint32_t*)&local_queueFamilyIndex, sizeof(uint32_t));
     pool->freeAll();
     VkBool32 vkGetPhysicalDeviceWin32PresentationSupportKHR_VkBool32_return = (VkBool32)0;
@@ -10755,7 +11919,8 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2KHR(
     resources->unwrapMapping()->mapHandles_VkPhysicalDevice((VkPhysicalDevice*)&local_physicalDevice);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_817 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_817);
         marshal_VkPhysicalDeviceFeatures2(countingStream, (VkPhysicalDeviceFeatures2*)(pFeatures));
     }
     uint32_t packetSize_vkGetPhysicalDeviceFeatures2KHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -10763,7 +11928,8 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2KHR(
     uint32_t opcode_vkGetPhysicalDeviceFeatures2KHR = OP_vkGetPhysicalDeviceFeatures2KHR;
     stream->write(&opcode_vkGetPhysicalDeviceFeatures2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceFeatures2KHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_818 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_818);
     marshal_VkPhysicalDeviceFeatures2(stream, (VkPhysicalDeviceFeatures2*)(pFeatures));
     unmarshal_VkPhysicalDeviceFeatures2(stream, (VkPhysicalDeviceFeatures2*)(pFeatures));
     pool->freeAll();
@@ -10782,7 +11948,8 @@ void VkEncoder::vkGetPhysicalDeviceProperties2KHR(
     resources->unwrapMapping()->mapHandles_VkPhysicalDevice((VkPhysicalDevice*)&local_physicalDevice);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_819 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_819);
         marshal_VkPhysicalDeviceProperties2(countingStream, (VkPhysicalDeviceProperties2*)(pProperties));
     }
     uint32_t packetSize_vkGetPhysicalDeviceProperties2KHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -10790,7 +11957,8 @@ void VkEncoder::vkGetPhysicalDeviceProperties2KHR(
     uint32_t opcode_vkGetPhysicalDeviceProperties2KHR = OP_vkGetPhysicalDeviceProperties2KHR;
     stream->write(&opcode_vkGetPhysicalDeviceProperties2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceProperties2KHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_820 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_820);
     marshal_VkPhysicalDeviceProperties2(stream, (VkPhysicalDeviceProperties2*)(pProperties));
     unmarshal_VkPhysicalDeviceProperties2(stream, (VkPhysicalDeviceProperties2*)(pProperties));
     pool->freeAll();
@@ -10812,7 +11980,8 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2KHR(
     local_format = format;
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_821 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_821);
         countingStream->write((VkFormat*)&local_format, sizeof(VkFormat));
         marshal_VkFormatProperties2(countingStream, (VkFormatProperties2*)(pFormatProperties));
     }
@@ -10821,7 +11990,8 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2KHR(
     uint32_t opcode_vkGetPhysicalDeviceFormatProperties2KHR = OP_vkGetPhysicalDeviceFormatProperties2KHR;
     stream->write(&opcode_vkGetPhysicalDeviceFormatProperties2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceFormatProperties2KHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_822 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_822);
     stream->write((VkFormat*)&local_format, sizeof(VkFormat));
     marshal_VkFormatProperties2(stream, (VkFormatProperties2*)(pFormatProperties));
     unmarshal_VkFormatProperties2(stream, (VkFormatProperties2*)(pFormatProperties));
@@ -10853,7 +12023,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2KHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_823 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_823);
         marshal_VkPhysicalDeviceImageFormatInfo2(countingStream, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
         marshal_VkImageFormatProperties2(countingStream, (VkImageFormatProperties2*)(pImageFormatProperties));
     }
@@ -10862,7 +12033,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2KHR(
     uint32_t opcode_vkGetPhysicalDeviceImageFormatProperties2KHR = OP_vkGetPhysicalDeviceImageFormatProperties2KHR;
     stream->write(&opcode_vkGetPhysicalDeviceImageFormatProperties2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceImageFormatProperties2KHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_824 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_824);
     marshal_VkPhysicalDeviceImageFormatInfo2(stream, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
     marshal_VkImageFormatProperties2(stream, (VkImageFormatProperties2*)(pImageFormatProperties));
     unmarshal_VkImageFormatProperties2(stream, (VkImageFormatProperties2*)(pImageFormatProperties));
@@ -10886,13 +12058,18 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
     resources->unwrapMapping()->mapHandles_VkPhysicalDevice((VkPhysicalDevice*)&local_physicalDevice);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-        countingStream->write((uint32_t**)&pQueueFamilyPropertyCount, sizeof(uint32_t*));
+        uint64_t cgen_var_825 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_825);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_826 = (uint64_t)(uintptr_t)pQueueFamilyPropertyCount;
+        countingStream->putBe64(cgen_var_826);
         if (pQueueFamilyPropertyCount)
         {
             countingStream->write((uint32_t*)pQueueFamilyPropertyCount, sizeof(uint32_t));
         }
-        countingStream->write((VkQueueFamilyProperties2**)&pQueueFamilyProperties, sizeof(VkQueueFamilyProperties2*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_827 = (uint64_t)(uintptr_t)pQueueFamilyProperties;
+        countingStream->putBe64(cgen_var_827);
         if (pQueueFamilyProperties)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
@@ -10906,13 +12083,18 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
     uint32_t opcode_vkGetPhysicalDeviceQueueFamilyProperties2KHR = OP_vkGetPhysicalDeviceQueueFamilyProperties2KHR;
     stream->write(&opcode_vkGetPhysicalDeviceQueueFamilyProperties2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceQueueFamilyProperties2KHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-    stream->write((uint32_t**)&pQueueFamilyPropertyCount, sizeof(uint32_t*));
+    uint64_t cgen_var_828 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_828);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_829 = (uint64_t)(uintptr_t)pQueueFamilyPropertyCount;
+    stream->putBe64(cgen_var_829);
     if (pQueueFamilyPropertyCount)
     {
         stream->write((uint32_t*)pQueueFamilyPropertyCount, sizeof(uint32_t));
     }
-    stream->write((VkQueueFamilyProperties2**)&pQueueFamilyProperties, sizeof(VkQueueFamilyProperties2*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_830 = (uint64_t)(uintptr_t)pQueueFamilyProperties;
+    stream->putBe64(cgen_var_830);
     if (pQueueFamilyProperties)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
@@ -10920,8 +12102,9 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
             marshal_VkQueueFamilyProperties2(stream, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pQueueFamilyPropertyCount;
-    stream->read((uint32_t**)&check_pQueueFamilyPropertyCount, sizeof(uint32_t*));
+    check_pQueueFamilyPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pQueueFamilyPropertyCount)
     {
         if (!(check_pQueueFamilyPropertyCount))
@@ -10930,8 +12113,9 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
         }
         stream->read((uint32_t*)pQueueFamilyPropertyCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkQueueFamilyProperties2* check_pQueueFamilyProperties;
-    stream->read((VkQueueFamilyProperties2**)&check_pQueueFamilyProperties, sizeof(VkQueueFamilyProperties2*));
+    check_pQueueFamilyProperties = (VkQueueFamilyProperties2*)(uintptr_t)stream->getBe64();
     if (pQueueFamilyProperties)
     {
         if (!(check_pQueueFamilyProperties))
@@ -10959,7 +12143,8 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2KHR(
     resources->unwrapMapping()->mapHandles_VkPhysicalDevice((VkPhysicalDevice*)&local_physicalDevice);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_833 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_833);
         marshal_VkPhysicalDeviceMemoryProperties2(countingStream, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     }
     uint32_t packetSize_vkGetPhysicalDeviceMemoryProperties2KHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -10967,7 +12152,8 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2KHR(
     uint32_t opcode_vkGetPhysicalDeviceMemoryProperties2KHR = OP_vkGetPhysicalDeviceMemoryProperties2KHR;
     stream->write(&opcode_vkGetPhysicalDeviceMemoryProperties2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceMemoryProperties2KHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_834 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_834);
     marshal_VkPhysicalDeviceMemoryProperties2(stream, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     unmarshal_VkPhysicalDeviceMemoryProperties2(stream, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     pool->freeAll();
@@ -10999,14 +12185,19 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_835 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_835);
         marshal_VkPhysicalDeviceSparseImageFormatInfo2(countingStream, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo));
-        countingStream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_836 = (uint64_t)(uintptr_t)pPropertyCount;
+        countingStream->putBe64(cgen_var_836);
         if (pPropertyCount)
         {
             countingStream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
         }
-        countingStream->write((VkSparseImageFormatProperties2**)&pProperties, sizeof(VkSparseImageFormatProperties2*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_837 = (uint64_t)(uintptr_t)pProperties;
+        countingStream->putBe64(cgen_var_837);
         if (pProperties)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -11020,14 +12211,19 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
     uint32_t opcode_vkGetPhysicalDeviceSparseImageFormatProperties2KHR = OP_vkGetPhysicalDeviceSparseImageFormatProperties2KHR;
     stream->write(&opcode_vkGetPhysicalDeviceSparseImageFormatProperties2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceSparseImageFormatProperties2KHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_838 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_838);
     marshal_VkPhysicalDeviceSparseImageFormatInfo2(stream, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo));
-    stream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_839 = (uint64_t)(uintptr_t)pPropertyCount;
+    stream->putBe64(cgen_var_839);
     if (pPropertyCount)
     {
         stream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
-    stream->write((VkSparseImageFormatProperties2**)&pProperties, sizeof(VkSparseImageFormatProperties2*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_840 = (uint64_t)(uintptr_t)pProperties;
+    stream->putBe64(cgen_var_840);
     if (pProperties)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -11035,8 +12231,9 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
             marshal_VkSparseImageFormatProperties2(stream, (VkSparseImageFormatProperties2*)(pProperties + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
-    stream->read((uint32_t**)&check_pPropertyCount, sizeof(uint32_t*));
+    check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pPropertyCount)
     {
         if (!(check_pPropertyCount))
@@ -11045,8 +12242,9 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
         }
         stream->read((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkSparseImageFormatProperties2* check_pProperties;
-    stream->read((VkSparseImageFormatProperties2**)&check_pProperties, sizeof(VkSparseImageFormatProperties2*));
+    check_pProperties = (VkSparseImageFormatProperties2*)(uintptr_t)stream->getBe64();
     if (pProperties)
     {
         if (!(check_pProperties))
@@ -11085,7 +12283,8 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeaturesKHR(
     local_remoteDeviceIndex = remoteDeviceIndex;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_843 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_843);
         countingStream->write((uint32_t*)&local_heapIndex, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_localDeviceIndex, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_remoteDeviceIndex, sizeof(uint32_t));
@@ -11096,7 +12295,8 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeaturesKHR(
     uint32_t opcode_vkGetDeviceGroupPeerMemoryFeaturesKHR = OP_vkGetDeviceGroupPeerMemoryFeaturesKHR;
     stream->write(&opcode_vkGetDeviceGroupPeerMemoryFeaturesKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetDeviceGroupPeerMemoryFeaturesKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_844 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_844);
     stream->write((uint32_t*)&local_heapIndex, sizeof(uint32_t));
     stream->write((uint32_t*)&local_localDeviceIndex, sizeof(uint32_t));
     stream->write((uint32_t*)&local_remoteDeviceIndex, sizeof(uint32_t));
@@ -11120,7 +12320,8 @@ void VkEncoder::vkCmdSetDeviceMaskKHR(
     local_deviceMask = deviceMask;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_845 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_845);
         countingStream->write((uint32_t*)&local_deviceMask, sizeof(uint32_t));
     }
     uint32_t packetSize_vkCmdSetDeviceMaskKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -11128,7 +12329,8 @@ void VkEncoder::vkCmdSetDeviceMaskKHR(
     uint32_t opcode_vkCmdSetDeviceMaskKHR = OP_vkCmdSetDeviceMaskKHR;
     stream->write(&opcode_vkCmdSetDeviceMaskKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdSetDeviceMaskKHR, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_846 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_846);
     stream->write((uint32_t*)&local_deviceMask, sizeof(uint32_t));
     pool->freeAll();
 }
@@ -11163,7 +12365,8 @@ void VkEncoder::vkCmdDispatchBaseKHR(
     local_groupCountZ = groupCountZ;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_847 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_847);
         countingStream->write((uint32_t*)&local_baseGroupX, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_baseGroupY, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_baseGroupZ, sizeof(uint32_t));
@@ -11176,7 +12379,8 @@ void VkEncoder::vkCmdDispatchBaseKHR(
     uint32_t opcode_vkCmdDispatchBaseKHR = OP_vkCmdDispatchBaseKHR;
     stream->write(&opcode_vkCmdDispatchBaseKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdDispatchBaseKHR, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_848 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_848);
     stream->write((uint32_t*)&local_baseGroupX, sizeof(uint32_t));
     stream->write((uint32_t*)&local_baseGroupY, sizeof(uint32_t));
     stream->write((uint32_t*)&local_baseGroupZ, sizeof(uint32_t));
@@ -11209,8 +12413,10 @@ void VkEncoder::vkTrimCommandPoolKHR(
     local_flags = flags;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkCommandPool*)&local_commandPool, sizeof(VkCommandPool));
+        uint64_t cgen_var_849 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_849);
+        uint64_t cgen_var_850 = (uint64_t)local_commandPool;
+        countingStream->putBe64(cgen_var_850);
         countingStream->write((VkCommandPoolTrimFlags*)&local_flags, sizeof(VkCommandPoolTrimFlags));
     }
     uint32_t packetSize_vkTrimCommandPoolKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -11218,8 +12424,10 @@ void VkEncoder::vkTrimCommandPoolKHR(
     uint32_t opcode_vkTrimCommandPoolKHR = OP_vkTrimCommandPoolKHR;
     stream->write(&opcode_vkTrimCommandPoolKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkTrimCommandPoolKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkCommandPool*)&local_commandPool, sizeof(VkCommandPool));
+    uint64_t cgen_var_851 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_851);
+    uint64_t cgen_var_852 = (uint64_t)local_commandPool;
+    stream->putBe64(cgen_var_852);
     stream->write((VkCommandPoolTrimFlags*)&local_flags, sizeof(VkCommandPoolTrimFlags));
     pool->freeAll();
 }
@@ -11240,13 +12448,18 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
     resources->unwrapMapping()->mapHandles_VkInstance((VkInstance*)&local_instance);
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
-        countingStream->write((uint32_t**)&pPhysicalDeviceGroupCount, sizeof(uint32_t*));
+        uint64_t cgen_var_853 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_853);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_854 = (uint64_t)(uintptr_t)pPhysicalDeviceGroupCount;
+        countingStream->putBe64(cgen_var_854);
         if (pPhysicalDeviceGroupCount)
         {
             countingStream->write((uint32_t*)pPhysicalDeviceGroupCount, sizeof(uint32_t));
         }
-        countingStream->write((VkPhysicalDeviceGroupProperties**)&pPhysicalDeviceGroupProperties, sizeof(VkPhysicalDeviceGroupProperties*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_855 = (uint64_t)(uintptr_t)pPhysicalDeviceGroupProperties;
+        countingStream->putBe64(cgen_var_855);
         if (pPhysicalDeviceGroupProperties)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
@@ -11260,13 +12473,18 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
     uint32_t opcode_vkEnumeratePhysicalDeviceGroupsKHR = OP_vkEnumeratePhysicalDeviceGroupsKHR;
     stream->write(&opcode_vkEnumeratePhysicalDeviceGroupsKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkEnumeratePhysicalDeviceGroupsKHR, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
-    stream->write((uint32_t**)&pPhysicalDeviceGroupCount, sizeof(uint32_t*));
+    uint64_t cgen_var_856 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_856);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_857 = (uint64_t)(uintptr_t)pPhysicalDeviceGroupCount;
+    stream->putBe64(cgen_var_857);
     if (pPhysicalDeviceGroupCount)
     {
         stream->write((uint32_t*)pPhysicalDeviceGroupCount, sizeof(uint32_t));
     }
-    stream->write((VkPhysicalDeviceGroupProperties**)&pPhysicalDeviceGroupProperties, sizeof(VkPhysicalDeviceGroupProperties*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_858 = (uint64_t)(uintptr_t)pPhysicalDeviceGroupProperties;
+    stream->putBe64(cgen_var_858);
     if (pPhysicalDeviceGroupProperties)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
@@ -11274,8 +12492,9 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
             marshal_VkPhysicalDeviceGroupProperties(stream, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pPhysicalDeviceGroupCount;
-    stream->read((uint32_t**)&check_pPhysicalDeviceGroupCount, sizeof(uint32_t*));
+    check_pPhysicalDeviceGroupCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pPhysicalDeviceGroupCount)
     {
         if (!(check_pPhysicalDeviceGroupCount))
@@ -11284,8 +12503,9 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
         }
         stream->read((uint32_t*)pPhysicalDeviceGroupCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkPhysicalDeviceGroupProperties* check_pPhysicalDeviceGroupProperties;
-    stream->read((VkPhysicalDeviceGroupProperties**)&check_pPhysicalDeviceGroupProperties, sizeof(VkPhysicalDeviceGroupProperties*));
+    check_pPhysicalDeviceGroupProperties = (VkPhysicalDeviceGroupProperties*)(uintptr_t)stream->getBe64();
     if (pPhysicalDeviceGroupProperties)
     {
         if (!(check_pPhysicalDeviceGroupProperties))
@@ -11330,7 +12550,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_861 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_861);
         marshal_VkPhysicalDeviceExternalBufferInfo(countingStream, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
         marshal_VkExternalBufferProperties(countingStream, (VkExternalBufferProperties*)(pExternalBufferProperties));
     }
@@ -11339,7 +12560,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
     uint32_t opcode_vkGetPhysicalDeviceExternalBufferPropertiesKHR = OP_vkGetPhysicalDeviceExternalBufferPropertiesKHR;
     stream->write(&opcode_vkGetPhysicalDeviceExternalBufferPropertiesKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceExternalBufferPropertiesKHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_862 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_862);
     marshal_VkPhysicalDeviceExternalBufferInfo(stream, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
     marshal_VkExternalBufferProperties(stream, (VkExternalBufferProperties*)(pExternalBufferProperties));
     unmarshal_VkExternalBufferProperties(stream, (VkExternalBufferProperties*)(pExternalBufferProperties));
@@ -11375,7 +12597,8 @@ VkResult VkEncoder::vkGetMemoryWin32HandleKHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_863 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_863);
         marshal_VkMemoryGetWin32HandleInfoKHR(countingStream, (VkMemoryGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
         countingStream->write((HANDLE*)pHandle, sizeof(HANDLE));
     }
@@ -11384,7 +12607,8 @@ VkResult VkEncoder::vkGetMemoryWin32HandleKHR(
     uint32_t opcode_vkGetMemoryWin32HandleKHR = OP_vkGetMemoryWin32HandleKHR;
     stream->write(&opcode_vkGetMemoryWin32HandleKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetMemoryWin32HandleKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_864 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_864);
     marshal_VkMemoryGetWin32HandleInfoKHR(stream, (VkMemoryGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
     stream->write((HANDLE*)pHandle, sizeof(HANDLE));
     stream->read((HANDLE*)pHandle, sizeof(HANDLE));
@@ -11413,7 +12637,8 @@ VkResult VkEncoder::vkGetMemoryWin32HandlePropertiesKHR(
     local_handle = handle;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_865 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_865);
         countingStream->write((VkExternalMemoryHandleTypeFlagBits*)&local_handleType, sizeof(VkExternalMemoryHandleTypeFlagBits));
         countingStream->write((HANDLE*)&local_handle, sizeof(HANDLE));
         marshal_VkMemoryWin32HandlePropertiesKHR(countingStream, (VkMemoryWin32HandlePropertiesKHR*)(pMemoryWin32HandleProperties));
@@ -11423,7 +12648,8 @@ VkResult VkEncoder::vkGetMemoryWin32HandlePropertiesKHR(
     uint32_t opcode_vkGetMemoryWin32HandlePropertiesKHR = OP_vkGetMemoryWin32HandlePropertiesKHR;
     stream->write(&opcode_vkGetMemoryWin32HandlePropertiesKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetMemoryWin32HandlePropertiesKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_866 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_866);
     stream->write((VkExternalMemoryHandleTypeFlagBits*)&local_handleType, sizeof(VkExternalMemoryHandleTypeFlagBits));
     stream->write((HANDLE*)&local_handle, sizeof(HANDLE));
     marshal_VkMemoryWin32HandlePropertiesKHR(stream, (VkMemoryWin32HandlePropertiesKHR*)(pMemoryWin32HandleProperties));
@@ -11461,7 +12687,8 @@ VkResult VkEncoder::vkGetMemoryFdKHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_867 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_867);
         marshal_VkMemoryGetFdInfoKHR(countingStream, (VkMemoryGetFdInfoKHR*)(local_pGetFdInfo));
         countingStream->write((int*)pFd, sizeof(int));
     }
@@ -11470,7 +12697,8 @@ VkResult VkEncoder::vkGetMemoryFdKHR(
     uint32_t opcode_vkGetMemoryFdKHR = OP_vkGetMemoryFdKHR;
     stream->write(&opcode_vkGetMemoryFdKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetMemoryFdKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_868 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_868);
     marshal_VkMemoryGetFdInfoKHR(stream, (VkMemoryGetFdInfoKHR*)(local_pGetFdInfo));
     stream->write((int*)pFd, sizeof(int));
     stream->read((int*)pFd, sizeof(int));
@@ -11499,7 +12727,8 @@ VkResult VkEncoder::vkGetMemoryFdPropertiesKHR(
     local_fd = fd;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_869 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_869);
         countingStream->write((VkExternalMemoryHandleTypeFlagBits*)&local_handleType, sizeof(VkExternalMemoryHandleTypeFlagBits));
         countingStream->write((int*)&local_fd, sizeof(int));
         marshal_VkMemoryFdPropertiesKHR(countingStream, (VkMemoryFdPropertiesKHR*)(pMemoryFdProperties));
@@ -11509,7 +12738,8 @@ VkResult VkEncoder::vkGetMemoryFdPropertiesKHR(
     uint32_t opcode_vkGetMemoryFdPropertiesKHR = OP_vkGetMemoryFdPropertiesKHR;
     stream->write(&opcode_vkGetMemoryFdPropertiesKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetMemoryFdPropertiesKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_870 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_870);
     stream->write((VkExternalMemoryHandleTypeFlagBits*)&local_handleType, sizeof(VkExternalMemoryHandleTypeFlagBits));
     stream->write((int*)&local_fd, sizeof(int));
     marshal_VkMemoryFdPropertiesKHR(stream, (VkMemoryFdPropertiesKHR*)(pMemoryFdProperties));
@@ -11549,7 +12779,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_871 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_871);
         marshal_VkPhysicalDeviceExternalSemaphoreInfo(countingStream, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
         marshal_VkExternalSemaphoreProperties(countingStream, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
     }
@@ -11558,7 +12789,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
     uint32_t opcode_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR = OP_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR;
     stream->write(&opcode_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_872 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_872);
     marshal_VkPhysicalDeviceExternalSemaphoreInfo(stream, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
     marshal_VkExternalSemaphoreProperties(stream, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
     unmarshal_VkExternalSemaphoreProperties(stream, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
@@ -11593,7 +12825,8 @@ VkResult VkEncoder::vkImportSemaphoreWin32HandleKHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_873 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_873);
         marshal_VkImportSemaphoreWin32HandleInfoKHR(countingStream, (VkImportSemaphoreWin32HandleInfoKHR*)(local_pImportSemaphoreWin32HandleInfo));
     }
     uint32_t packetSize_vkImportSemaphoreWin32HandleKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -11601,7 +12834,8 @@ VkResult VkEncoder::vkImportSemaphoreWin32HandleKHR(
     uint32_t opcode_vkImportSemaphoreWin32HandleKHR = OP_vkImportSemaphoreWin32HandleKHR;
     stream->write(&opcode_vkImportSemaphoreWin32HandleKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkImportSemaphoreWin32HandleKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_874 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_874);
     marshal_VkImportSemaphoreWin32HandleInfoKHR(stream, (VkImportSemaphoreWin32HandleInfoKHR*)(local_pImportSemaphoreWin32HandleInfo));
     pool->freeAll();
     VkResult vkImportSemaphoreWin32HandleKHR_VkResult_return = (VkResult)0;
@@ -11634,7 +12868,8 @@ VkResult VkEncoder::vkGetSemaphoreWin32HandleKHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_875 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_875);
         marshal_VkSemaphoreGetWin32HandleInfoKHR(countingStream, (VkSemaphoreGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
         countingStream->write((HANDLE*)pHandle, sizeof(HANDLE));
     }
@@ -11643,7 +12878,8 @@ VkResult VkEncoder::vkGetSemaphoreWin32HandleKHR(
     uint32_t opcode_vkGetSemaphoreWin32HandleKHR = OP_vkGetSemaphoreWin32HandleKHR;
     stream->write(&opcode_vkGetSemaphoreWin32HandleKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetSemaphoreWin32HandleKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_876 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_876);
     marshal_VkSemaphoreGetWin32HandleInfoKHR(stream, (VkSemaphoreGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
     stream->write((HANDLE*)pHandle, sizeof(HANDLE));
     stream->read((HANDLE*)pHandle, sizeof(HANDLE));
@@ -11679,7 +12915,8 @@ VkResult VkEncoder::vkImportSemaphoreFdKHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_877 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_877);
         marshal_VkImportSemaphoreFdInfoKHR(countingStream, (VkImportSemaphoreFdInfoKHR*)(local_pImportSemaphoreFdInfo));
     }
     uint32_t packetSize_vkImportSemaphoreFdKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -11687,7 +12924,8 @@ VkResult VkEncoder::vkImportSemaphoreFdKHR(
     uint32_t opcode_vkImportSemaphoreFdKHR = OP_vkImportSemaphoreFdKHR;
     stream->write(&opcode_vkImportSemaphoreFdKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkImportSemaphoreFdKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_878 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_878);
     marshal_VkImportSemaphoreFdInfoKHR(stream, (VkImportSemaphoreFdInfoKHR*)(local_pImportSemaphoreFdInfo));
     pool->freeAll();
     VkResult vkImportSemaphoreFdKHR_VkResult_return = (VkResult)0;
@@ -11720,7 +12958,8 @@ VkResult VkEncoder::vkGetSemaphoreFdKHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_879 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_879);
         marshal_VkSemaphoreGetFdInfoKHR(countingStream, (VkSemaphoreGetFdInfoKHR*)(local_pGetFdInfo));
         countingStream->write((int*)pFd, sizeof(int));
     }
@@ -11729,7 +12968,8 @@ VkResult VkEncoder::vkGetSemaphoreFdKHR(
     uint32_t opcode_vkGetSemaphoreFdKHR = OP_vkGetSemaphoreFdKHR;
     stream->write(&opcode_vkGetSemaphoreFdKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetSemaphoreFdKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_880 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_880);
     marshal_VkSemaphoreGetFdInfoKHR(stream, (VkSemaphoreGetFdInfoKHR*)(local_pGetFdInfo));
     stream->write((int*)pFd, sizeof(int));
     stream->read((int*)pFd, sizeof(int));
@@ -11784,9 +13024,11 @@ void VkEncoder::vkCmdPushDescriptorSetKHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_881 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_881);
         countingStream->write((VkPipelineBindPoint*)&local_pipelineBindPoint, sizeof(VkPipelineBindPoint));
-        countingStream->write((VkPipelineLayout*)&local_layout, sizeof(VkPipelineLayout));
+        uint64_t cgen_var_882 = (uint64_t)local_layout;
+        countingStream->putBe64(cgen_var_882);
         countingStream->write((uint32_t*)&local_set, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_descriptorWriteCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i)
@@ -11799,9 +13041,11 @@ void VkEncoder::vkCmdPushDescriptorSetKHR(
     uint32_t opcode_vkCmdPushDescriptorSetKHR = OP_vkCmdPushDescriptorSetKHR;
     stream->write(&opcode_vkCmdPushDescriptorSetKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdPushDescriptorSetKHR, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_883 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_883);
     stream->write((VkPipelineBindPoint*)&local_pipelineBindPoint, sizeof(VkPipelineBindPoint));
-    stream->write((VkPipelineLayout*)&local_layout, sizeof(VkPipelineLayout));
+    uint64_t cgen_var_884 = (uint64_t)local_layout;
+    stream->putBe64(cgen_var_884);
     stream->write((uint32_t*)&local_set, sizeof(uint32_t));
     stream->write((uint32_t*)&local_descriptorWriteCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i)
@@ -11841,11 +13085,16 @@ void VkEncoder::vkCmdPushDescriptorSetWithTemplateKHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkDescriptorUpdateTemplate*)&local_descriptorUpdateTemplate, sizeof(VkDescriptorUpdateTemplate));
-        countingStream->write((VkPipelineLayout*)&local_layout, sizeof(VkPipelineLayout));
+        uint64_t cgen_var_885 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_885);
+        uint64_t cgen_var_886 = (uint64_t)local_descriptorUpdateTemplate;
+        countingStream->putBe64(cgen_var_886);
+        uint64_t cgen_var_887 = (uint64_t)local_layout;
+        countingStream->putBe64(cgen_var_887);
         countingStream->write((uint32_t*)&local_set, sizeof(uint32_t));
-        countingStream->write((void**)&local_pData, sizeof(void*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_888 = (uint64_t)(uintptr_t)local_pData;
+        countingStream->putBe64(cgen_var_888);
         if (local_pData)
         {
             countingStream->write((void*)local_pData, sizeof(uint8_t));
@@ -11856,11 +13105,16 @@ void VkEncoder::vkCmdPushDescriptorSetWithTemplateKHR(
     uint32_t opcode_vkCmdPushDescriptorSetWithTemplateKHR = OP_vkCmdPushDescriptorSetWithTemplateKHR;
     stream->write(&opcode_vkCmdPushDescriptorSetWithTemplateKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdPushDescriptorSetWithTemplateKHR, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkDescriptorUpdateTemplate*)&local_descriptorUpdateTemplate, sizeof(VkDescriptorUpdateTemplate));
-    stream->write((VkPipelineLayout*)&local_layout, sizeof(VkPipelineLayout));
+    uint64_t cgen_var_889 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_889);
+    uint64_t cgen_var_890 = (uint64_t)local_descriptorUpdateTemplate;
+    stream->putBe64(cgen_var_890);
+    uint64_t cgen_var_891 = (uint64_t)local_layout;
+    stream->putBe64(cgen_var_891);
     stream->write((uint32_t*)&local_set, sizeof(uint32_t));
-    stream->write((void**)&local_pData, sizeof(void*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_892 = (uint64_t)(uintptr_t)local_pData;
+    stream->putBe64(cgen_var_892);
     if (local_pData)
     {
         stream->write((void*)local_pData, sizeof(uint8_t));
@@ -11912,13 +13166,17 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_893 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_893);
         marshal_VkDescriptorUpdateTemplateCreateInfo(countingStream, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_894 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_894);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkDescriptorUpdateTemplate*)pDescriptorUpdateTemplate, sizeof(VkDescriptorUpdateTemplate));
     }
     uint32_t packetSize_vkCreateDescriptorUpdateTemplateKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -11926,14 +13184,19 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
     uint32_t opcode_vkCreateDescriptorUpdateTemplateKHR = OP_vkCreateDescriptorUpdateTemplateKHR;
     stream->write(&opcode_vkCreateDescriptorUpdateTemplateKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateDescriptorUpdateTemplateKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_895 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_895);
     marshal_VkDescriptorUpdateTemplateCreateInfo(stream, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_896 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_896);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkDescriptorUpdateTemplate*)pDescriptorUpdateTemplate, sizeof(VkDescriptorUpdateTemplate));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkDescriptorUpdateTemplate*)pDescriptorUpdateTemplate, sizeof(VkDescriptorUpdateTemplate));
     pool->freeAll();
     VkResult vkCreateDescriptorUpdateTemplateKHR_VkResult_return = (VkResult)0;
@@ -11970,9 +13233,13 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplateKHR(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkDescriptorUpdateTemplate*)&local_descriptorUpdateTemplate, sizeof(VkDescriptorUpdateTemplate));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_897 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_897);
+        uint64_t cgen_var_898 = (uint64_t)local_descriptorUpdateTemplate;
+        countingStream->putBe64(cgen_var_898);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_899 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_899);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -11983,9 +13250,13 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplateKHR(
     uint32_t opcode_vkDestroyDescriptorUpdateTemplateKHR = OP_vkDestroyDescriptorUpdateTemplateKHR;
     stream->write(&opcode_vkDestroyDescriptorUpdateTemplateKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyDescriptorUpdateTemplateKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkDescriptorUpdateTemplate*)&local_descriptorUpdateTemplate, sizeof(VkDescriptorUpdateTemplate));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_900 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_900);
+    uint64_t cgen_var_901 = (uint64_t)local_descriptorUpdateTemplate;
+    stream->putBe64(cgen_var_901);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_902 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_902);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -12020,10 +13291,15 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateKHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkDescriptorSet*)&local_descriptorSet, sizeof(VkDescriptorSet));
-        countingStream->write((VkDescriptorUpdateTemplate*)&local_descriptorUpdateTemplate, sizeof(VkDescriptorUpdateTemplate));
-        countingStream->write((void**)&local_pData, sizeof(void*));
+        uint64_t cgen_var_903 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_903);
+        uint64_t cgen_var_904 = (uint64_t)local_descriptorSet;
+        countingStream->putBe64(cgen_var_904);
+        uint64_t cgen_var_905 = (uint64_t)local_descriptorUpdateTemplate;
+        countingStream->putBe64(cgen_var_905);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_906 = (uint64_t)(uintptr_t)local_pData;
+        countingStream->putBe64(cgen_var_906);
         if (local_pData)
         {
             countingStream->write((void*)local_pData, sizeof(uint8_t));
@@ -12034,10 +13310,15 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateKHR(
     uint32_t opcode_vkUpdateDescriptorSetWithTemplateKHR = OP_vkUpdateDescriptorSetWithTemplateKHR;
     stream->write(&opcode_vkUpdateDescriptorSetWithTemplateKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkUpdateDescriptorSetWithTemplateKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkDescriptorSet*)&local_descriptorSet, sizeof(VkDescriptorSet));
-    stream->write((VkDescriptorUpdateTemplate*)&local_descriptorUpdateTemplate, sizeof(VkDescriptorUpdateTemplate));
-    stream->write((void**)&local_pData, sizeof(void*));
+    uint64_t cgen_var_907 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_907);
+    uint64_t cgen_var_908 = (uint64_t)local_descriptorSet;
+    stream->putBe64(cgen_var_908);
+    uint64_t cgen_var_909 = (uint64_t)local_descriptorUpdateTemplate;
+    stream->putBe64(cgen_var_909);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_910 = (uint64_t)(uintptr_t)local_pData;
+    stream->putBe64(cgen_var_910);
     if (local_pData)
     {
         stream->write((void*)local_pData, sizeof(uint8_t));
@@ -12085,13 +13366,17 @@ VkResult VkEncoder::vkCreateRenderPass2KHR(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_911 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_911);
         marshal_VkRenderPassCreateInfo2KHR(countingStream, (VkRenderPassCreateInfo2KHR*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_912 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_912);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkRenderPass*)pRenderPass, sizeof(VkRenderPass));
     }
     uint32_t packetSize_vkCreateRenderPass2KHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -12099,14 +13384,19 @@ VkResult VkEncoder::vkCreateRenderPass2KHR(
     uint32_t opcode_vkCreateRenderPass2KHR = OP_vkCreateRenderPass2KHR;
     stream->write(&opcode_vkCreateRenderPass2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateRenderPass2KHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_913 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_913);
     marshal_VkRenderPassCreateInfo2KHR(stream, (VkRenderPassCreateInfo2KHR*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_914 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_914);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkRenderPass*)pRenderPass, sizeof(VkRenderPass));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkRenderPass*)pRenderPass, sizeof(VkRenderPass));
     pool->freeAll();
     VkResult vkCreateRenderPass2KHR_VkResult_return = (VkResult)0;
@@ -12150,7 +13440,8 @@ void VkEncoder::vkCmdBeginRenderPass2KHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_915 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_915);
         marshal_VkRenderPassBeginInfo(countingStream, (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
         marshal_VkSubpassBeginInfoKHR(countingStream, (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo));
     }
@@ -12159,7 +13450,8 @@ void VkEncoder::vkCmdBeginRenderPass2KHR(
     uint32_t opcode_vkCmdBeginRenderPass2KHR = OP_vkCmdBeginRenderPass2KHR;
     stream->write(&opcode_vkCmdBeginRenderPass2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdBeginRenderPass2KHR, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_916 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_916);
     marshal_VkRenderPassBeginInfo(stream, (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
     marshal_VkSubpassBeginInfoKHR(stream, (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo));
     pool->freeAll();
@@ -12201,7 +13493,8 @@ void VkEncoder::vkCmdNextSubpass2KHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_917 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_917);
         marshal_VkSubpassBeginInfoKHR(countingStream, (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo));
         marshal_VkSubpassEndInfoKHR(countingStream, (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo));
     }
@@ -12210,7 +13503,8 @@ void VkEncoder::vkCmdNextSubpass2KHR(
     uint32_t opcode_vkCmdNextSubpass2KHR = OP_vkCmdNextSubpass2KHR;
     stream->write(&opcode_vkCmdNextSubpass2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdNextSubpass2KHR, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_918 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_918);
     marshal_VkSubpassBeginInfoKHR(stream, (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo));
     marshal_VkSubpassEndInfoKHR(stream, (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo));
     pool->freeAll();
@@ -12240,7 +13534,8 @@ void VkEncoder::vkCmdEndRenderPass2KHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_919 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_919);
         marshal_VkSubpassEndInfoKHR(countingStream, (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo));
     }
     uint32_t packetSize_vkCmdEndRenderPass2KHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -12248,7 +13543,8 @@ void VkEncoder::vkCmdEndRenderPass2KHR(
     uint32_t opcode_vkCmdEndRenderPass2KHR = OP_vkCmdEndRenderPass2KHR;
     stream->write(&opcode_vkCmdEndRenderPass2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdEndRenderPass2KHR, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_920 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_920);
     marshal_VkSubpassEndInfoKHR(stream, (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo));
     pool->freeAll();
 }
@@ -12271,16 +13567,20 @@ VkResult VkEncoder::vkGetSwapchainStatusKHR(
     resources->unwrapMapping()->mapHandles_VkSwapchainKHR((VkSwapchainKHR*)&local_swapchain);
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkSwapchainKHR*)&local_swapchain, sizeof(VkSwapchainKHR));
+        uint64_t cgen_var_921 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_921);
+        uint64_t cgen_var_922 = (uint64_t)local_swapchain;
+        countingStream->putBe64(cgen_var_922);
     }
     uint32_t packetSize_vkGetSwapchainStatusKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
     uint32_t opcode_vkGetSwapchainStatusKHR = OP_vkGetSwapchainStatusKHR;
     stream->write(&opcode_vkGetSwapchainStatusKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetSwapchainStatusKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkSwapchainKHR*)&local_swapchain, sizeof(VkSwapchainKHR));
+    uint64_t cgen_var_923 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_923);
+    uint64_t cgen_var_924 = (uint64_t)local_swapchain;
+    stream->putBe64(cgen_var_924);
     pool->freeAll();
     VkResult vkGetSwapchainStatusKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetSwapchainStatusKHR_VkResult_return, sizeof(VkResult));
@@ -12314,7 +13614,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalFencePropertiesKHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_925 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_925);
         marshal_VkPhysicalDeviceExternalFenceInfo(countingStream, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
         marshal_VkExternalFenceProperties(countingStream, (VkExternalFenceProperties*)(pExternalFenceProperties));
     }
@@ -12323,7 +13624,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalFencePropertiesKHR(
     uint32_t opcode_vkGetPhysicalDeviceExternalFencePropertiesKHR = OP_vkGetPhysicalDeviceExternalFencePropertiesKHR;
     stream->write(&opcode_vkGetPhysicalDeviceExternalFencePropertiesKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceExternalFencePropertiesKHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_926 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_926);
     marshal_VkPhysicalDeviceExternalFenceInfo(stream, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
     marshal_VkExternalFenceProperties(stream, (VkExternalFenceProperties*)(pExternalFenceProperties));
     unmarshal_VkExternalFenceProperties(stream, (VkExternalFenceProperties*)(pExternalFenceProperties));
@@ -12358,7 +13660,8 @@ VkResult VkEncoder::vkImportFenceWin32HandleKHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_927 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_927);
         marshal_VkImportFenceWin32HandleInfoKHR(countingStream, (VkImportFenceWin32HandleInfoKHR*)(local_pImportFenceWin32HandleInfo));
     }
     uint32_t packetSize_vkImportFenceWin32HandleKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -12366,7 +13669,8 @@ VkResult VkEncoder::vkImportFenceWin32HandleKHR(
     uint32_t opcode_vkImportFenceWin32HandleKHR = OP_vkImportFenceWin32HandleKHR;
     stream->write(&opcode_vkImportFenceWin32HandleKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkImportFenceWin32HandleKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_928 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_928);
     marshal_VkImportFenceWin32HandleInfoKHR(stream, (VkImportFenceWin32HandleInfoKHR*)(local_pImportFenceWin32HandleInfo));
     pool->freeAll();
     VkResult vkImportFenceWin32HandleKHR_VkResult_return = (VkResult)0;
@@ -12399,7 +13703,8 @@ VkResult VkEncoder::vkGetFenceWin32HandleKHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_929 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_929);
         marshal_VkFenceGetWin32HandleInfoKHR(countingStream, (VkFenceGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
         countingStream->write((HANDLE*)pHandle, sizeof(HANDLE));
     }
@@ -12408,7 +13713,8 @@ VkResult VkEncoder::vkGetFenceWin32HandleKHR(
     uint32_t opcode_vkGetFenceWin32HandleKHR = OP_vkGetFenceWin32HandleKHR;
     stream->write(&opcode_vkGetFenceWin32HandleKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetFenceWin32HandleKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_930 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_930);
     marshal_VkFenceGetWin32HandleInfoKHR(stream, (VkFenceGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
     stream->write((HANDLE*)pHandle, sizeof(HANDLE));
     stream->read((HANDLE*)pHandle, sizeof(HANDLE));
@@ -12444,7 +13750,8 @@ VkResult VkEncoder::vkImportFenceFdKHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_931 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_931);
         marshal_VkImportFenceFdInfoKHR(countingStream, (VkImportFenceFdInfoKHR*)(local_pImportFenceFdInfo));
     }
     uint32_t packetSize_vkImportFenceFdKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -12452,7 +13759,8 @@ VkResult VkEncoder::vkImportFenceFdKHR(
     uint32_t opcode_vkImportFenceFdKHR = OP_vkImportFenceFdKHR;
     stream->write(&opcode_vkImportFenceFdKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkImportFenceFdKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_932 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_932);
     marshal_VkImportFenceFdInfoKHR(stream, (VkImportFenceFdInfoKHR*)(local_pImportFenceFdInfo));
     pool->freeAll();
     VkResult vkImportFenceFdKHR_VkResult_return = (VkResult)0;
@@ -12485,7 +13793,8 @@ VkResult VkEncoder::vkGetFenceFdKHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_933 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_933);
         marshal_VkFenceGetFdInfoKHR(countingStream, (VkFenceGetFdInfoKHR*)(local_pGetFdInfo));
         countingStream->write((int*)pFd, sizeof(int));
     }
@@ -12494,7 +13803,8 @@ VkResult VkEncoder::vkGetFenceFdKHR(
     uint32_t opcode_vkGetFenceFdKHR = OP_vkGetFenceFdKHR;
     stream->write(&opcode_vkGetFenceFdKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetFenceFdKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_934 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_934);
     marshal_VkFenceGetFdInfoKHR(stream, (VkFenceGetFdInfoKHR*)(local_pGetFdInfo));
     stream->write((int*)pFd, sizeof(int));
     stream->read((int*)pFd, sizeof(int));
@@ -12533,7 +13843,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2KHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_935 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_935);
         marshal_VkPhysicalDeviceSurfaceInfo2KHR(countingStream, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
         marshal_VkSurfaceCapabilities2KHR(countingStream, (VkSurfaceCapabilities2KHR*)(pSurfaceCapabilities));
     }
@@ -12542,7 +13853,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2KHR(
     uint32_t opcode_vkGetPhysicalDeviceSurfaceCapabilities2KHR = OP_vkGetPhysicalDeviceSurfaceCapabilities2KHR;
     stream->write(&opcode_vkGetPhysicalDeviceSurfaceCapabilities2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceSurfaceCapabilities2KHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_936 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_936);
     marshal_VkPhysicalDeviceSurfaceInfo2KHR(stream, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
     marshal_VkSurfaceCapabilities2KHR(stream, (VkSurfaceCapabilities2KHR*)(pSurfaceCapabilities));
     unmarshal_VkSurfaceCapabilities2KHR(stream, (VkSurfaceCapabilities2KHR*)(pSurfaceCapabilities));
@@ -12578,14 +13890,19 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_937 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_937);
         marshal_VkPhysicalDeviceSurfaceInfo2KHR(countingStream, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
-        countingStream->write((uint32_t**)&pSurfaceFormatCount, sizeof(uint32_t*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_938 = (uint64_t)(uintptr_t)pSurfaceFormatCount;
+        countingStream->putBe64(cgen_var_938);
         if (pSurfaceFormatCount)
         {
             countingStream->write((uint32_t*)pSurfaceFormatCount, sizeof(uint32_t));
         }
-        countingStream->write((VkSurfaceFormat2KHR**)&pSurfaceFormats, sizeof(VkSurfaceFormat2KHR*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_939 = (uint64_t)(uintptr_t)pSurfaceFormats;
+        countingStream->putBe64(cgen_var_939);
         if (pSurfaceFormats)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
@@ -12599,14 +13916,19 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
     uint32_t opcode_vkGetPhysicalDeviceSurfaceFormats2KHR = OP_vkGetPhysicalDeviceSurfaceFormats2KHR;
     stream->write(&opcode_vkGetPhysicalDeviceSurfaceFormats2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceSurfaceFormats2KHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_940 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_940);
     marshal_VkPhysicalDeviceSurfaceInfo2KHR(stream, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
-    stream->write((uint32_t**)&pSurfaceFormatCount, sizeof(uint32_t*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_941 = (uint64_t)(uintptr_t)pSurfaceFormatCount;
+    stream->putBe64(cgen_var_941);
     if (pSurfaceFormatCount)
     {
         stream->write((uint32_t*)pSurfaceFormatCount, sizeof(uint32_t));
     }
-    stream->write((VkSurfaceFormat2KHR**)&pSurfaceFormats, sizeof(VkSurfaceFormat2KHR*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_942 = (uint64_t)(uintptr_t)pSurfaceFormats;
+    stream->putBe64(cgen_var_942);
     if (pSurfaceFormats)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
@@ -12614,8 +13936,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
             marshal_VkSurfaceFormat2KHR(stream, (VkSurfaceFormat2KHR*)(pSurfaceFormats + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pSurfaceFormatCount;
-    stream->read((uint32_t**)&check_pSurfaceFormatCount, sizeof(uint32_t*));
+    check_pSurfaceFormatCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pSurfaceFormatCount)
     {
         if (!(check_pSurfaceFormatCount))
@@ -12624,8 +13947,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
         }
         stream->read((uint32_t*)pSurfaceFormatCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkSurfaceFormat2KHR* check_pSurfaceFormats;
-    stream->read((VkSurfaceFormat2KHR**)&check_pSurfaceFormats, sizeof(VkSurfaceFormat2KHR*));
+    check_pSurfaceFormats = (VkSurfaceFormat2KHR*)(uintptr_t)stream->getBe64();
     if (pSurfaceFormats)
     {
         if (!(check_pSurfaceFormats))
@@ -12661,13 +13985,18 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
     resources->unwrapMapping()->mapHandles_VkPhysicalDevice((VkPhysicalDevice*)&local_physicalDevice);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-        countingStream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+        uint64_t cgen_var_945 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_945);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_946 = (uint64_t)(uintptr_t)pPropertyCount;
+        countingStream->putBe64(cgen_var_946);
         if (pPropertyCount)
         {
             countingStream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
         }
-        countingStream->write((VkDisplayProperties2KHR**)&pProperties, sizeof(VkDisplayProperties2KHR*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_947 = (uint64_t)(uintptr_t)pProperties;
+        countingStream->putBe64(cgen_var_947);
         if (pProperties)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -12681,13 +14010,18 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
     uint32_t opcode_vkGetPhysicalDeviceDisplayProperties2KHR = OP_vkGetPhysicalDeviceDisplayProperties2KHR;
     stream->write(&opcode_vkGetPhysicalDeviceDisplayProperties2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceDisplayProperties2KHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-    stream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+    uint64_t cgen_var_948 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_948);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_949 = (uint64_t)(uintptr_t)pPropertyCount;
+    stream->putBe64(cgen_var_949);
     if (pPropertyCount)
     {
         stream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
-    stream->write((VkDisplayProperties2KHR**)&pProperties, sizeof(VkDisplayProperties2KHR*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_950 = (uint64_t)(uintptr_t)pProperties;
+    stream->putBe64(cgen_var_950);
     if (pProperties)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -12695,8 +14029,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
             marshal_VkDisplayProperties2KHR(stream, (VkDisplayProperties2KHR*)(pProperties + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
-    stream->read((uint32_t**)&check_pPropertyCount, sizeof(uint32_t*));
+    check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pPropertyCount)
     {
         if (!(check_pPropertyCount))
@@ -12705,8 +14040,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
         }
         stream->read((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkDisplayProperties2KHR* check_pProperties;
-    stream->read((VkDisplayProperties2KHR**)&check_pProperties, sizeof(VkDisplayProperties2KHR*));
+    check_pProperties = (VkDisplayProperties2KHR*)(uintptr_t)stream->getBe64();
     if (pProperties)
     {
         if (!(check_pProperties))
@@ -12738,13 +14074,18 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
     resources->unwrapMapping()->mapHandles_VkPhysicalDevice((VkPhysicalDevice*)&local_physicalDevice);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-        countingStream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+        uint64_t cgen_var_953 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_953);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_954 = (uint64_t)(uintptr_t)pPropertyCount;
+        countingStream->putBe64(cgen_var_954);
         if (pPropertyCount)
         {
             countingStream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
         }
-        countingStream->write((VkDisplayPlaneProperties2KHR**)&pProperties, sizeof(VkDisplayPlaneProperties2KHR*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_955 = (uint64_t)(uintptr_t)pProperties;
+        countingStream->putBe64(cgen_var_955);
         if (pProperties)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -12758,13 +14099,18 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
     uint32_t opcode_vkGetPhysicalDeviceDisplayPlaneProperties2KHR = OP_vkGetPhysicalDeviceDisplayPlaneProperties2KHR;
     stream->write(&opcode_vkGetPhysicalDeviceDisplayPlaneProperties2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceDisplayPlaneProperties2KHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-    stream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+    uint64_t cgen_var_956 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_956);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_957 = (uint64_t)(uintptr_t)pPropertyCount;
+    stream->putBe64(cgen_var_957);
     if (pPropertyCount)
     {
         stream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
-    stream->write((VkDisplayPlaneProperties2KHR**)&pProperties, sizeof(VkDisplayPlaneProperties2KHR*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_958 = (uint64_t)(uintptr_t)pProperties;
+    stream->putBe64(cgen_var_958);
     if (pProperties)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -12772,8 +14118,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
             marshal_VkDisplayPlaneProperties2KHR(stream, (VkDisplayPlaneProperties2KHR*)(pProperties + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
-    stream->read((uint32_t**)&check_pPropertyCount, sizeof(uint32_t*));
+    check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pPropertyCount)
     {
         if (!(check_pPropertyCount))
@@ -12782,8 +14129,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
         }
         stream->read((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkDisplayPlaneProperties2KHR* check_pProperties;
-    stream->read((VkDisplayPlaneProperties2KHR**)&check_pProperties, sizeof(VkDisplayPlaneProperties2KHR*));
+    check_pProperties = (VkDisplayPlaneProperties2KHR*)(uintptr_t)stream->getBe64();
     if (pProperties)
     {
         if (!(check_pProperties))
@@ -12819,14 +14167,20 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
     resources->unwrapMapping()->mapHandles_VkDisplayKHR((VkDisplayKHR*)&local_display);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-        countingStream->write((VkDisplayKHR*)&local_display, sizeof(VkDisplayKHR));
-        countingStream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+        uint64_t cgen_var_961 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_961);
+        uint64_t cgen_var_962 = (uint64_t)local_display;
+        countingStream->putBe64(cgen_var_962);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_963 = (uint64_t)(uintptr_t)pPropertyCount;
+        countingStream->putBe64(cgen_var_963);
         if (pPropertyCount)
         {
             countingStream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
         }
-        countingStream->write((VkDisplayModeProperties2KHR**)&pProperties, sizeof(VkDisplayModeProperties2KHR*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_964 = (uint64_t)(uintptr_t)pProperties;
+        countingStream->putBe64(cgen_var_964);
         if (pProperties)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -12840,14 +14194,20 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
     uint32_t opcode_vkGetDisplayModeProperties2KHR = OP_vkGetDisplayModeProperties2KHR;
     stream->write(&opcode_vkGetDisplayModeProperties2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetDisplayModeProperties2KHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-    stream->write((VkDisplayKHR*)&local_display, sizeof(VkDisplayKHR));
-    stream->write((uint32_t**)&pPropertyCount, sizeof(uint32_t*));
+    uint64_t cgen_var_965 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_965);
+    uint64_t cgen_var_966 = (uint64_t)local_display;
+    stream->putBe64(cgen_var_966);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_967 = (uint64_t)(uintptr_t)pPropertyCount;
+    stream->putBe64(cgen_var_967);
     if (pPropertyCount)
     {
         stream->write((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
-    stream->write((VkDisplayModeProperties2KHR**)&pProperties, sizeof(VkDisplayModeProperties2KHR*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_968 = (uint64_t)(uintptr_t)pProperties;
+    stream->putBe64(cgen_var_968);
     if (pProperties)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
@@ -12855,8 +14215,9 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
             marshal_VkDisplayModeProperties2KHR(stream, (VkDisplayModeProperties2KHR*)(pProperties + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
-    stream->read((uint32_t**)&check_pPropertyCount, sizeof(uint32_t*));
+    check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pPropertyCount)
     {
         if (!(check_pPropertyCount))
@@ -12865,8 +14226,9 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
         }
         stream->read((uint32_t*)pPropertyCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkDisplayModeProperties2KHR* check_pProperties;
-    stream->read((VkDisplayModeProperties2KHR**)&check_pProperties, sizeof(VkDisplayModeProperties2KHR*));
+    check_pProperties = (VkDisplayModeProperties2KHR*)(uintptr_t)stream->getBe64();
     if (pProperties)
     {
         if (!(check_pProperties))
@@ -12909,7 +14271,8 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilities2KHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_971 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_971);
         marshal_VkDisplayPlaneInfo2KHR(countingStream, (VkDisplayPlaneInfo2KHR*)(local_pDisplayPlaneInfo));
         marshal_VkDisplayPlaneCapabilities2KHR(countingStream, (VkDisplayPlaneCapabilities2KHR*)(pCapabilities));
     }
@@ -12918,7 +14281,8 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilities2KHR(
     uint32_t opcode_vkGetDisplayPlaneCapabilities2KHR = OP_vkGetDisplayPlaneCapabilities2KHR;
     stream->write(&opcode_vkGetDisplayPlaneCapabilities2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetDisplayPlaneCapabilities2KHR, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_972 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_972);
     marshal_VkDisplayPlaneInfo2KHR(stream, (VkDisplayPlaneInfo2KHR*)(local_pDisplayPlaneInfo));
     marshal_VkDisplayPlaneCapabilities2KHR(stream, (VkDisplayPlaneCapabilities2KHR*)(pCapabilities));
     unmarshal_VkDisplayPlaneCapabilities2KHR(stream, (VkDisplayPlaneCapabilities2KHR*)(pCapabilities));
@@ -12961,7 +14325,8 @@ void VkEncoder::vkGetImageMemoryRequirements2KHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_973 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_973);
         marshal_VkImageMemoryRequirementsInfo2(countingStream, (VkImageMemoryRequirementsInfo2*)(local_pInfo));
         marshal_VkMemoryRequirements2(countingStream, (VkMemoryRequirements2*)(pMemoryRequirements));
     }
@@ -12970,7 +14335,8 @@ void VkEncoder::vkGetImageMemoryRequirements2KHR(
     uint32_t opcode_vkGetImageMemoryRequirements2KHR = OP_vkGetImageMemoryRequirements2KHR;
     stream->write(&opcode_vkGetImageMemoryRequirements2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetImageMemoryRequirements2KHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_974 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_974);
     marshal_VkImageMemoryRequirementsInfo2(stream, (VkImageMemoryRequirementsInfo2*)(local_pInfo));
     marshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
     unmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
@@ -13002,7 +14368,8 @@ void VkEncoder::vkGetBufferMemoryRequirements2KHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_975 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_975);
         marshal_VkBufferMemoryRequirementsInfo2(countingStream, (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
         marshal_VkMemoryRequirements2(countingStream, (VkMemoryRequirements2*)(pMemoryRequirements));
     }
@@ -13011,7 +14378,8 @@ void VkEncoder::vkGetBufferMemoryRequirements2KHR(
     uint32_t opcode_vkGetBufferMemoryRequirements2KHR = OP_vkGetBufferMemoryRequirements2KHR;
     stream->write(&opcode_vkGetBufferMemoryRequirements2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetBufferMemoryRequirements2KHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_976 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_976);
     marshal_VkBufferMemoryRequirementsInfo2(stream, (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
     marshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
     unmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
@@ -13044,14 +14412,19 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_977 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_977);
         marshal_VkImageSparseMemoryRequirementsInfo2(countingStream, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo));
-        countingStream->write((uint32_t**)&pSparseMemoryRequirementCount, sizeof(uint32_t*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_978 = (uint64_t)(uintptr_t)pSparseMemoryRequirementCount;
+        countingStream->putBe64(cgen_var_978);
         if (pSparseMemoryRequirementCount)
         {
             countingStream->write((uint32_t*)pSparseMemoryRequirementCount, sizeof(uint32_t));
         }
-        countingStream->write((VkSparseImageMemoryRequirements2**)&pSparseMemoryRequirements, sizeof(VkSparseImageMemoryRequirements2*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_979 = (uint64_t)(uintptr_t)pSparseMemoryRequirements;
+        countingStream->putBe64(cgen_var_979);
         if (pSparseMemoryRequirements)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
@@ -13065,14 +14438,19 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
     uint32_t opcode_vkGetImageSparseMemoryRequirements2KHR = OP_vkGetImageSparseMemoryRequirements2KHR;
     stream->write(&opcode_vkGetImageSparseMemoryRequirements2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetImageSparseMemoryRequirements2KHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_980 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_980);
     marshal_VkImageSparseMemoryRequirementsInfo2(stream, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo));
-    stream->write((uint32_t**)&pSparseMemoryRequirementCount, sizeof(uint32_t*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_981 = (uint64_t)(uintptr_t)pSparseMemoryRequirementCount;
+    stream->putBe64(cgen_var_981);
     if (pSparseMemoryRequirementCount)
     {
         stream->write((uint32_t*)pSparseMemoryRequirementCount, sizeof(uint32_t));
     }
-    stream->write((VkSparseImageMemoryRequirements2**)&pSparseMemoryRequirements, sizeof(VkSparseImageMemoryRequirements2*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_982 = (uint64_t)(uintptr_t)pSparseMemoryRequirements;
+    stream->putBe64(cgen_var_982);
     if (pSparseMemoryRequirements)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
@@ -13080,8 +14458,9 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
             marshal_VkSparseImageMemoryRequirements2(stream, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pSparseMemoryRequirementCount;
-    stream->read((uint32_t**)&check_pSparseMemoryRequirementCount, sizeof(uint32_t*));
+    check_pSparseMemoryRequirementCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pSparseMemoryRequirementCount)
     {
         if (!(check_pSparseMemoryRequirementCount))
@@ -13090,8 +14469,9 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
         }
         stream->read((uint32_t*)pSparseMemoryRequirementCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkSparseImageMemoryRequirements2* check_pSparseMemoryRequirements;
-    stream->read((VkSparseImageMemoryRequirements2**)&check_pSparseMemoryRequirements, sizeof(VkSparseImageMemoryRequirements2*));
+    check_pSparseMemoryRequirements = (VkSparseImageMemoryRequirements2*)(uintptr_t)stream->getBe64();
     if (pSparseMemoryRequirements)
     {
         if (!(check_pSparseMemoryRequirements))
@@ -13148,13 +14528,17 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_985 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_985);
         marshal_VkSamplerYcbcrConversionCreateInfo(countingStream, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_986 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_986);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkSamplerYcbcrConversion*)pYcbcrConversion, sizeof(VkSamplerYcbcrConversion));
     }
     uint32_t packetSize_vkCreateSamplerYcbcrConversionKHR = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -13162,14 +14546,19 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
     uint32_t opcode_vkCreateSamplerYcbcrConversionKHR = OP_vkCreateSamplerYcbcrConversionKHR;
     stream->write(&opcode_vkCreateSamplerYcbcrConversionKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateSamplerYcbcrConversionKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_987 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_987);
     marshal_VkSamplerYcbcrConversionCreateInfo(stream, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_988 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_988);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkSamplerYcbcrConversion*)pYcbcrConversion, sizeof(VkSamplerYcbcrConversion));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkSamplerYcbcrConversion*)pYcbcrConversion, sizeof(VkSamplerYcbcrConversion));
     pool->freeAll();
     VkResult vkCreateSamplerYcbcrConversionKHR_VkResult_return = (VkResult)0;
@@ -13206,9 +14595,13 @@ void VkEncoder::vkDestroySamplerYcbcrConversionKHR(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkSamplerYcbcrConversion*)&local_ycbcrConversion, sizeof(VkSamplerYcbcrConversion));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_989 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_989);
+        uint64_t cgen_var_990 = (uint64_t)local_ycbcrConversion;
+        countingStream->putBe64(cgen_var_990);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_991 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_991);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -13219,9 +14612,13 @@ void VkEncoder::vkDestroySamplerYcbcrConversionKHR(
     uint32_t opcode_vkDestroySamplerYcbcrConversionKHR = OP_vkDestroySamplerYcbcrConversionKHR;
     stream->write(&opcode_vkDestroySamplerYcbcrConversionKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroySamplerYcbcrConversionKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkSamplerYcbcrConversion*)&local_ycbcrConversion, sizeof(VkSamplerYcbcrConversion));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_992 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_992);
+    uint64_t cgen_var_993 = (uint64_t)local_ycbcrConversion;
+    stream->putBe64(cgen_var_993);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_994 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_994);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -13264,7 +14661,8 @@ VkResult VkEncoder::vkBindBufferMemory2KHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_995 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_995);
         countingStream->write((uint32_t*)&local_bindInfoCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
@@ -13276,7 +14674,8 @@ VkResult VkEncoder::vkBindBufferMemory2KHR(
     uint32_t opcode_vkBindBufferMemory2KHR = OP_vkBindBufferMemory2KHR;
     stream->write(&opcode_vkBindBufferMemory2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkBindBufferMemory2KHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_996 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_996);
     stream->write((uint32_t*)&local_bindInfoCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
     {
@@ -13321,7 +14720,8 @@ VkResult VkEncoder::vkBindImageMemory2KHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_997 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_997);
         countingStream->write((uint32_t*)&local_bindInfoCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
@@ -13333,7 +14733,8 @@ VkResult VkEncoder::vkBindImageMemory2KHR(
     uint32_t opcode_vkBindImageMemory2KHR = OP_vkBindImageMemory2KHR;
     stream->write(&opcode_vkBindImageMemory2KHR, sizeof(uint32_t));
     stream->write(&packetSize_vkBindImageMemory2KHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_998 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_998);
     stream->write((uint32_t*)&local_bindInfoCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
     {
@@ -13372,7 +14773,8 @@ void VkEncoder::vkGetDescriptorSetLayoutSupportKHR(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_999 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_999);
         marshal_VkDescriptorSetLayoutCreateInfo(countingStream, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
         marshal_VkDescriptorSetLayoutSupport(countingStream, (VkDescriptorSetLayoutSupport*)(pSupport));
     }
@@ -13381,7 +14783,8 @@ void VkEncoder::vkGetDescriptorSetLayoutSupportKHR(
     uint32_t opcode_vkGetDescriptorSetLayoutSupportKHR = OP_vkGetDescriptorSetLayoutSupportKHR;
     stream->write(&opcode_vkGetDescriptorSetLayoutSupportKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkGetDescriptorSetLayoutSupportKHR, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_1000 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1000);
     marshal_VkDescriptorSetLayoutCreateInfo(stream, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
     marshal_VkDescriptorSetLayoutSupport(stream, (VkDescriptorSetLayoutSupport*)(pSupport));
     unmarshal_VkDescriptorSetLayoutSupport(stream, (VkDescriptorSetLayoutSupport*)(pSupport));
@@ -13422,10 +14825,13 @@ void VkEncoder::vkCmdDrawIndirectCountKHR(
     local_stride = stride;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
+        uint64_t cgen_var_1001 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_1001);
+        uint64_t cgen_var_1002 = (uint64_t)local_buffer;
+        countingStream->putBe64(cgen_var_1002);
         countingStream->write((VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
-        countingStream->write((VkBuffer*)&local_countBuffer, sizeof(VkBuffer));
+        uint64_t cgen_var_1003 = (uint64_t)local_countBuffer;
+        countingStream->putBe64(cgen_var_1003);
         countingStream->write((VkDeviceSize*)&local_countBufferOffset, sizeof(VkDeviceSize));
         countingStream->write((uint32_t*)&local_maxDrawCount, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_stride, sizeof(uint32_t));
@@ -13435,10 +14841,13 @@ void VkEncoder::vkCmdDrawIndirectCountKHR(
     uint32_t opcode_vkCmdDrawIndirectCountKHR = OP_vkCmdDrawIndirectCountKHR;
     stream->write(&opcode_vkCmdDrawIndirectCountKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdDrawIndirectCountKHR, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
+    uint64_t cgen_var_1004 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_1004);
+    uint64_t cgen_var_1005 = (uint64_t)local_buffer;
+    stream->putBe64(cgen_var_1005);
     stream->write((VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
-    stream->write((VkBuffer*)&local_countBuffer, sizeof(VkBuffer));
+    uint64_t cgen_var_1006 = (uint64_t)local_countBuffer;
+    stream->putBe64(cgen_var_1006);
     stream->write((VkDeviceSize*)&local_countBufferOffset, sizeof(VkDeviceSize));
     stream->write((uint32_t*)&local_maxDrawCount, sizeof(uint32_t));
     stream->write((uint32_t*)&local_stride, sizeof(uint32_t));
@@ -13477,10 +14886,13 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountKHR(
     local_stride = stride;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
+        uint64_t cgen_var_1007 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_1007);
+        uint64_t cgen_var_1008 = (uint64_t)local_buffer;
+        countingStream->putBe64(cgen_var_1008);
         countingStream->write((VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
-        countingStream->write((VkBuffer*)&local_countBuffer, sizeof(VkBuffer));
+        uint64_t cgen_var_1009 = (uint64_t)local_countBuffer;
+        countingStream->putBe64(cgen_var_1009);
         countingStream->write((VkDeviceSize*)&local_countBufferOffset, sizeof(VkDeviceSize));
         countingStream->write((uint32_t*)&local_maxDrawCount, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_stride, sizeof(uint32_t));
@@ -13490,10 +14902,13 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountKHR(
     uint32_t opcode_vkCmdDrawIndexedIndirectCountKHR = OP_vkCmdDrawIndexedIndirectCountKHR;
     stream->write(&opcode_vkCmdDrawIndexedIndirectCountKHR, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdDrawIndexedIndirectCountKHR, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
+    uint64_t cgen_var_1010 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_1010);
+    uint64_t cgen_var_1011 = (uint64_t)local_buffer;
+    stream->putBe64(cgen_var_1011);
     stream->write((VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
-    stream->write((VkBuffer*)&local_countBuffer, sizeof(VkBuffer));
+    uint64_t cgen_var_1012 = (uint64_t)local_countBuffer;
+    stream->putBe64(cgen_var_1012);
     stream->write((VkDeviceSize*)&local_countBufferOffset, sizeof(VkDeviceSize));
     stream->write((uint32_t*)&local_maxDrawCount, sizeof(uint32_t));
     stream->write((uint32_t*)&local_stride, sizeof(uint32_t));
@@ -13542,13 +14957,17 @@ VkResult VkEncoder::vkCreateDebugReportCallbackEXT(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+        uint64_t cgen_var_1013 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_1013);
         marshal_VkDebugReportCallbackCreateInfoEXT(countingStream, (VkDebugReportCallbackCreateInfoEXT*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1014 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_1014);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkDebugReportCallbackEXT*)pCallback, sizeof(VkDebugReportCallbackEXT));
     }
     uint32_t packetSize_vkCreateDebugReportCallbackEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -13556,14 +14975,19 @@ VkResult VkEncoder::vkCreateDebugReportCallbackEXT(
     uint32_t opcode_vkCreateDebugReportCallbackEXT = OP_vkCreateDebugReportCallbackEXT;
     stream->write(&opcode_vkCreateDebugReportCallbackEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateDebugReportCallbackEXT, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+    uint64_t cgen_var_1015 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_1015);
     marshal_VkDebugReportCallbackCreateInfoEXT(stream, (VkDebugReportCallbackCreateInfoEXT*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1016 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_1016);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkDebugReportCallbackEXT*)pCallback, sizeof(VkDebugReportCallbackEXT));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkDebugReportCallbackEXT*)pCallback, sizeof(VkDebugReportCallbackEXT));
     if (pCallback)
     {
@@ -13604,9 +15028,13 @@ void VkEncoder::vkDestroyDebugReportCallbackEXT(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
-        countingStream->write((VkDebugReportCallbackEXT*)&local_callback, sizeof(VkDebugReportCallbackEXT));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_1017 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_1017);
+        uint64_t cgen_var_1018 = (uint64_t)local_callback;
+        countingStream->putBe64(cgen_var_1018);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1019 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_1019);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -13617,9 +15045,13 @@ void VkEncoder::vkDestroyDebugReportCallbackEXT(
     uint32_t opcode_vkDestroyDebugReportCallbackEXT = OP_vkDestroyDebugReportCallbackEXT;
     stream->write(&opcode_vkDestroyDebugReportCallbackEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyDebugReportCallbackEXT, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
-    stream->write((VkDebugReportCallbackEXT*)&local_callback, sizeof(VkDebugReportCallbackEXT));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_1020 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_1020);
+    uint64_t cgen_var_1021 = (uint64_t)local_callback;
+    stream->putBe64(cgen_var_1021);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1022 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_1022);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -13669,7 +15101,8 @@ void VkEncoder::vkDebugReportMessageEXT(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+        uint64_t cgen_var_1023 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_1023);
         countingStream->write((VkDebugReportFlagsEXT*)&local_flags, sizeof(VkDebugReportFlagsEXT));
         countingStream->write((VkDebugReportObjectTypeEXT*)&local_objectType, sizeof(VkDebugReportObjectTypeEXT));
         countingStream->write((uint64_t*)&local_object, sizeof(uint64_t));
@@ -13683,7 +15116,8 @@ void VkEncoder::vkDebugReportMessageEXT(
     uint32_t opcode_vkDebugReportMessageEXT = OP_vkDebugReportMessageEXT;
     stream->write(&opcode_vkDebugReportMessageEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkDebugReportMessageEXT, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+    uint64_t cgen_var_1024 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_1024);
     stream->write((VkDebugReportFlagsEXT*)&local_flags, sizeof(VkDebugReportFlagsEXT));
     stream->write((VkDebugReportObjectTypeEXT*)&local_objectType, sizeof(VkDebugReportObjectTypeEXT));
     stream->write((uint64_t*)&local_object, sizeof(uint64_t));
@@ -13732,7 +15166,8 @@ VkResult VkEncoder::vkDebugMarkerSetObjectTagEXT(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_1025 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1025);
         marshal_VkDebugMarkerObjectTagInfoEXT(countingStream, (VkDebugMarkerObjectTagInfoEXT*)(local_pTagInfo));
     }
     uint32_t packetSize_vkDebugMarkerSetObjectTagEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -13740,7 +15175,8 @@ VkResult VkEncoder::vkDebugMarkerSetObjectTagEXT(
     uint32_t opcode_vkDebugMarkerSetObjectTagEXT = OP_vkDebugMarkerSetObjectTagEXT;
     stream->write(&opcode_vkDebugMarkerSetObjectTagEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkDebugMarkerSetObjectTagEXT, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_1026 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1026);
     marshal_VkDebugMarkerObjectTagInfoEXT(stream, (VkDebugMarkerObjectTagInfoEXT*)(local_pTagInfo));
     pool->freeAll();
     VkResult vkDebugMarkerSetObjectTagEXT_VkResult_return = (VkResult)0;
@@ -13772,7 +15208,8 @@ VkResult VkEncoder::vkDebugMarkerSetObjectNameEXT(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_1027 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1027);
         marshal_VkDebugMarkerObjectNameInfoEXT(countingStream, (VkDebugMarkerObjectNameInfoEXT*)(local_pNameInfo));
     }
     uint32_t packetSize_vkDebugMarkerSetObjectNameEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -13780,7 +15217,8 @@ VkResult VkEncoder::vkDebugMarkerSetObjectNameEXT(
     uint32_t opcode_vkDebugMarkerSetObjectNameEXT = OP_vkDebugMarkerSetObjectNameEXT;
     stream->write(&opcode_vkDebugMarkerSetObjectNameEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkDebugMarkerSetObjectNameEXT, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_1028 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1028);
     marshal_VkDebugMarkerObjectNameInfoEXT(stream, (VkDebugMarkerObjectNameInfoEXT*)(local_pNameInfo));
     pool->freeAll();
     VkResult vkDebugMarkerSetObjectNameEXT_VkResult_return = (VkResult)0;
@@ -13812,7 +15250,8 @@ void VkEncoder::vkCmdDebugMarkerBeginEXT(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_1029 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_1029);
         marshal_VkDebugMarkerMarkerInfoEXT(countingStream, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
     }
     uint32_t packetSize_vkCmdDebugMarkerBeginEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -13820,7 +15259,8 @@ void VkEncoder::vkCmdDebugMarkerBeginEXT(
     uint32_t opcode_vkCmdDebugMarkerBeginEXT = OP_vkCmdDebugMarkerBeginEXT;
     stream->write(&opcode_vkCmdDebugMarkerBeginEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdDebugMarkerBeginEXT, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_1030 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_1030);
     marshal_VkDebugMarkerMarkerInfoEXT(stream, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
     pool->freeAll();
 }
@@ -13837,14 +15277,16 @@ void VkEncoder::vkCmdDebugMarkerEndEXT(
     resources->unwrapMapping()->mapHandles_VkCommandBuffer((VkCommandBuffer*)&local_commandBuffer);
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_1031 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_1031);
     }
     uint32_t packetSize_vkCmdDebugMarkerEndEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
     uint32_t opcode_vkCmdDebugMarkerEndEXT = OP_vkCmdDebugMarkerEndEXT;
     stream->write(&opcode_vkCmdDebugMarkerEndEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdDebugMarkerEndEXT, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_1032 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_1032);
     pool->freeAll();
 }
 
@@ -13872,7 +15314,8 @@ void VkEncoder::vkCmdDebugMarkerInsertEXT(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_1033 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_1033);
         marshal_VkDebugMarkerMarkerInfoEXT(countingStream, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
     }
     uint32_t packetSize_vkCmdDebugMarkerInsertEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -13880,7 +15323,8 @@ void VkEncoder::vkCmdDebugMarkerInsertEXT(
     uint32_t opcode_vkCmdDebugMarkerInsertEXT = OP_vkCmdDebugMarkerInsertEXT;
     stream->write(&opcode_vkCmdDebugMarkerInsertEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdDebugMarkerInsertEXT, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_1034 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_1034);
     marshal_VkDebugMarkerMarkerInfoEXT(stream, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
     pool->freeAll();
 }
@@ -13923,10 +15367,13 @@ void VkEncoder::vkCmdDrawIndirectCountAMD(
     local_stride = stride;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
+        uint64_t cgen_var_1035 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_1035);
+        uint64_t cgen_var_1036 = (uint64_t)local_buffer;
+        countingStream->putBe64(cgen_var_1036);
         countingStream->write((VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
-        countingStream->write((VkBuffer*)&local_countBuffer, sizeof(VkBuffer));
+        uint64_t cgen_var_1037 = (uint64_t)local_countBuffer;
+        countingStream->putBe64(cgen_var_1037);
         countingStream->write((VkDeviceSize*)&local_countBufferOffset, sizeof(VkDeviceSize));
         countingStream->write((uint32_t*)&local_maxDrawCount, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_stride, sizeof(uint32_t));
@@ -13936,10 +15383,13 @@ void VkEncoder::vkCmdDrawIndirectCountAMD(
     uint32_t opcode_vkCmdDrawIndirectCountAMD = OP_vkCmdDrawIndirectCountAMD;
     stream->write(&opcode_vkCmdDrawIndirectCountAMD, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdDrawIndirectCountAMD, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
+    uint64_t cgen_var_1038 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_1038);
+    uint64_t cgen_var_1039 = (uint64_t)local_buffer;
+    stream->putBe64(cgen_var_1039);
     stream->write((VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
-    stream->write((VkBuffer*)&local_countBuffer, sizeof(VkBuffer));
+    uint64_t cgen_var_1040 = (uint64_t)local_countBuffer;
+    stream->putBe64(cgen_var_1040);
     stream->write((VkDeviceSize*)&local_countBufferOffset, sizeof(VkDeviceSize));
     stream->write((uint32_t*)&local_maxDrawCount, sizeof(uint32_t));
     stream->write((uint32_t*)&local_stride, sizeof(uint32_t));
@@ -13978,10 +15428,13 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountAMD(
     local_stride = stride;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
+        uint64_t cgen_var_1041 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_1041);
+        uint64_t cgen_var_1042 = (uint64_t)local_buffer;
+        countingStream->putBe64(cgen_var_1042);
         countingStream->write((VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
-        countingStream->write((VkBuffer*)&local_countBuffer, sizeof(VkBuffer));
+        uint64_t cgen_var_1043 = (uint64_t)local_countBuffer;
+        countingStream->putBe64(cgen_var_1043);
         countingStream->write((VkDeviceSize*)&local_countBufferOffset, sizeof(VkDeviceSize));
         countingStream->write((uint32_t*)&local_maxDrawCount, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_stride, sizeof(uint32_t));
@@ -13991,10 +15444,13 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountAMD(
     uint32_t opcode_vkCmdDrawIndexedIndirectCountAMD = OP_vkCmdDrawIndexedIndirectCountAMD;
     stream->write(&opcode_vkCmdDrawIndexedIndirectCountAMD, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdDrawIndexedIndirectCountAMD, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((VkBuffer*)&local_buffer, sizeof(VkBuffer));
+    uint64_t cgen_var_1044 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_1044);
+    uint64_t cgen_var_1045 = (uint64_t)local_buffer;
+    stream->putBe64(cgen_var_1045);
     stream->write((VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
-    stream->write((VkBuffer*)&local_countBuffer, sizeof(VkBuffer));
+    uint64_t cgen_var_1046 = (uint64_t)local_countBuffer;
+    stream->putBe64(cgen_var_1046);
     stream->write((VkDeviceSize*)&local_countBufferOffset, sizeof(VkDeviceSize));
     stream->write((uint32_t*)&local_maxDrawCount, sizeof(uint32_t));
     stream->write((uint32_t*)&local_stride, sizeof(uint32_t));
@@ -14035,16 +15491,22 @@ VkResult VkEncoder::vkGetShaderInfoAMD(
     local_infoType = infoType;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkPipeline*)&local_pipeline, sizeof(VkPipeline));
+        uint64_t cgen_var_1047 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1047);
+        uint64_t cgen_var_1048 = (uint64_t)local_pipeline;
+        countingStream->putBe64(cgen_var_1048);
         countingStream->write((VkShaderStageFlagBits*)&local_shaderStage, sizeof(VkShaderStageFlagBits));
         countingStream->write((VkShaderInfoTypeAMD*)&local_infoType, sizeof(VkShaderInfoTypeAMD));
-        countingStream->write((size_t**)&pInfoSize, sizeof(size_t*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1049 = (uint64_t)(uintptr_t)pInfoSize;
+        countingStream->putBe64(cgen_var_1049);
         if (pInfoSize)
         {
             countingStream->write((size_t*)pInfoSize, sizeof(size_t));
         }
-        countingStream->write((void**)&pInfo, sizeof(void*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1050 = (uint64_t)(uintptr_t)pInfo;
+        countingStream->putBe64(cgen_var_1050);
         if (pInfo)
         {
             countingStream->write((void*)pInfo, (*(pInfoSize)) * sizeof(uint8_t));
@@ -14055,22 +15517,29 @@ VkResult VkEncoder::vkGetShaderInfoAMD(
     uint32_t opcode_vkGetShaderInfoAMD = OP_vkGetShaderInfoAMD;
     stream->write(&opcode_vkGetShaderInfoAMD, sizeof(uint32_t));
     stream->write(&packetSize_vkGetShaderInfoAMD, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkPipeline*)&local_pipeline, sizeof(VkPipeline));
+    uint64_t cgen_var_1051 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1051);
+    uint64_t cgen_var_1052 = (uint64_t)local_pipeline;
+    stream->putBe64(cgen_var_1052);
     stream->write((VkShaderStageFlagBits*)&local_shaderStage, sizeof(VkShaderStageFlagBits));
     stream->write((VkShaderInfoTypeAMD*)&local_infoType, sizeof(VkShaderInfoTypeAMD));
-    stream->write((size_t**)&pInfoSize, sizeof(size_t*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1053 = (uint64_t)(uintptr_t)pInfoSize;
+    stream->putBe64(cgen_var_1053);
     if (pInfoSize)
     {
         stream->write((size_t*)pInfoSize, sizeof(size_t));
     }
-    stream->write((void**)&pInfo, sizeof(void*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1054 = (uint64_t)(uintptr_t)pInfo;
+    stream->putBe64(cgen_var_1054);
     if (pInfo)
     {
         stream->write((void*)pInfo, (*(pInfoSize)) * sizeof(uint8_t));
     }
+    // WARNING PTR CHECK
     size_t* check_pInfoSize;
-    stream->read((size_t**)&check_pInfoSize, sizeof(size_t*));
+    check_pInfoSize = (size_t*)(uintptr_t)stream->getBe64();
     if (pInfoSize)
     {
         if (!(check_pInfoSize))
@@ -14079,8 +15548,9 @@ VkResult VkEncoder::vkGetShaderInfoAMD(
         }
         stream->read((size_t*)pInfoSize, sizeof(size_t));
     }
+    // WARNING PTR CHECK
     void* check_pInfo;
-    stream->read((void**)&check_pInfo, sizeof(void*));
+    check_pInfo = (void*)(uintptr_t)stream->getBe64();
     if (pInfo)
     {
         if (!(check_pInfo))
@@ -14132,7 +15602,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceExternalImageFormatPropertiesNV(
     local_externalHandleType = externalHandleType;
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_1057 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_1057);
         countingStream->write((VkFormat*)&local_format, sizeof(VkFormat));
         countingStream->write((VkImageType*)&local_type, sizeof(VkImageType));
         countingStream->write((VkImageTiling*)&local_tiling, sizeof(VkImageTiling));
@@ -14146,7 +15617,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceExternalImageFormatPropertiesNV(
     uint32_t opcode_vkGetPhysicalDeviceExternalImageFormatPropertiesNV = OP_vkGetPhysicalDeviceExternalImageFormatPropertiesNV;
     stream->write(&opcode_vkGetPhysicalDeviceExternalImageFormatPropertiesNV, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceExternalImageFormatPropertiesNV, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_1058 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_1058);
     stream->write((VkFormat*)&local_format, sizeof(VkFormat));
     stream->write((VkImageType*)&local_type, sizeof(VkImageType));
     stream->write((VkImageTiling*)&local_tiling, sizeof(VkImageTiling));
@@ -14185,8 +15657,10 @@ VkResult VkEncoder::vkGetMemoryWin32HandleNV(
     local_handleType = handleType;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkDeviceMemory*)&local_memory, sizeof(VkDeviceMemory));
+        uint64_t cgen_var_1059 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1059);
+        uint64_t cgen_var_1060 = (uint64_t)local_memory;
+        countingStream->putBe64(cgen_var_1060);
         countingStream->write((VkExternalMemoryHandleTypeFlagsNV*)&local_handleType, sizeof(VkExternalMemoryHandleTypeFlagsNV));
         countingStream->write((HANDLE*)pHandle, sizeof(HANDLE));
     }
@@ -14195,8 +15669,10 @@ VkResult VkEncoder::vkGetMemoryWin32HandleNV(
     uint32_t opcode_vkGetMemoryWin32HandleNV = OP_vkGetMemoryWin32HandleNV;
     stream->write(&opcode_vkGetMemoryWin32HandleNV, sizeof(uint32_t));
     stream->write(&packetSize_vkGetMemoryWin32HandleNV, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkDeviceMemory*)&local_memory, sizeof(VkDeviceMemory));
+    uint64_t cgen_var_1061 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1061);
+    uint64_t cgen_var_1062 = (uint64_t)local_memory;
+    stream->putBe64(cgen_var_1062);
     stream->write((VkExternalMemoryHandleTypeFlagsNV*)&local_handleType, sizeof(VkExternalMemoryHandleTypeFlagsNV));
     stream->write((HANDLE*)pHandle, sizeof(HANDLE));
     stream->read((HANDLE*)pHandle, sizeof(HANDLE));
@@ -14250,13 +15726,17 @@ VkResult VkEncoder::vkCreateViSurfaceNN(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+        uint64_t cgen_var_1063 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_1063);
         marshal_VkViSurfaceCreateInfoNN(countingStream, (VkViSurfaceCreateInfoNN*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1064 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_1064);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     }
     uint32_t packetSize_vkCreateViSurfaceNN = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -14264,14 +15744,19 @@ VkResult VkEncoder::vkCreateViSurfaceNN(
     uint32_t opcode_vkCreateViSurfaceNN = OP_vkCreateViSurfaceNN;
     stream->write(&opcode_vkCreateViSurfaceNN, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateViSurfaceNN, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+    uint64_t cgen_var_1065 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_1065);
     marshal_VkViSurfaceCreateInfoNN(stream, (VkViSurfaceCreateInfoNN*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1066 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_1066);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     pool->freeAll();
     VkResult vkCreateViSurfaceNN_VkResult_return = (VkResult)0;
@@ -14309,7 +15794,8 @@ void VkEncoder::vkCmdBeginConditionalRenderingEXT(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_1067 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_1067);
         marshal_VkConditionalRenderingBeginInfoEXT(countingStream, (VkConditionalRenderingBeginInfoEXT*)(local_pConditionalRenderingBegin));
     }
     uint32_t packetSize_vkCmdBeginConditionalRenderingEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -14317,7 +15803,8 @@ void VkEncoder::vkCmdBeginConditionalRenderingEXT(
     uint32_t opcode_vkCmdBeginConditionalRenderingEXT = OP_vkCmdBeginConditionalRenderingEXT;
     stream->write(&opcode_vkCmdBeginConditionalRenderingEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdBeginConditionalRenderingEXT, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_1068 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_1068);
     marshal_VkConditionalRenderingBeginInfoEXT(stream, (VkConditionalRenderingBeginInfoEXT*)(local_pConditionalRenderingBegin));
     pool->freeAll();
 }
@@ -14334,14 +15821,16 @@ void VkEncoder::vkCmdEndConditionalRenderingEXT(
     resources->unwrapMapping()->mapHandles_VkCommandBuffer((VkCommandBuffer*)&local_commandBuffer);
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_1069 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_1069);
     }
     uint32_t packetSize_vkCmdEndConditionalRenderingEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
     uint32_t opcode_vkCmdEndConditionalRenderingEXT = OP_vkCmdEndConditionalRenderingEXT;
     stream->write(&opcode_vkCmdEndConditionalRenderingEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdEndConditionalRenderingEXT, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_1070 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_1070);
     pool->freeAll();
 }
 
@@ -14371,7 +15860,8 @@ void VkEncoder::vkCmdProcessCommandsNVX(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_1071 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_1071);
         marshal_VkCmdProcessCommandsInfoNVX(countingStream, (VkCmdProcessCommandsInfoNVX*)(local_pProcessCommandsInfo));
     }
     uint32_t packetSize_vkCmdProcessCommandsNVX = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -14379,7 +15869,8 @@ void VkEncoder::vkCmdProcessCommandsNVX(
     uint32_t opcode_vkCmdProcessCommandsNVX = OP_vkCmdProcessCommandsNVX;
     stream->write(&opcode_vkCmdProcessCommandsNVX, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdProcessCommandsNVX, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_1072 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_1072);
     marshal_VkCmdProcessCommandsInfoNVX(stream, (VkCmdProcessCommandsInfoNVX*)(local_pProcessCommandsInfo));
     pool->freeAll();
 }
@@ -14408,7 +15899,8 @@ void VkEncoder::vkCmdReserveSpaceForCommandsNVX(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_1073 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_1073);
         marshal_VkCmdReserveSpaceForCommandsInfoNVX(countingStream, (VkCmdReserveSpaceForCommandsInfoNVX*)(local_pReserveSpaceInfo));
     }
     uint32_t packetSize_vkCmdReserveSpaceForCommandsNVX = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -14416,7 +15908,8 @@ void VkEncoder::vkCmdReserveSpaceForCommandsNVX(
     uint32_t opcode_vkCmdReserveSpaceForCommandsNVX = OP_vkCmdReserveSpaceForCommandsNVX;
     stream->write(&opcode_vkCmdReserveSpaceForCommandsNVX, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdReserveSpaceForCommandsNVX, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_1074 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_1074);
     marshal_VkCmdReserveSpaceForCommandsInfoNVX(stream, (VkCmdReserveSpaceForCommandsInfoNVX*)(local_pReserveSpaceInfo));
     pool->freeAll();
 }
@@ -14459,13 +15952,17 @@ VkResult VkEncoder::vkCreateIndirectCommandsLayoutNVX(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_1075 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1075);
         marshal_VkIndirectCommandsLayoutCreateInfoNVX(countingStream, (VkIndirectCommandsLayoutCreateInfoNVX*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1076 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_1076);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkIndirectCommandsLayoutNVX*)pIndirectCommandsLayout, sizeof(VkIndirectCommandsLayoutNVX));
     }
     uint32_t packetSize_vkCreateIndirectCommandsLayoutNVX = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -14473,14 +15970,19 @@ VkResult VkEncoder::vkCreateIndirectCommandsLayoutNVX(
     uint32_t opcode_vkCreateIndirectCommandsLayoutNVX = OP_vkCreateIndirectCommandsLayoutNVX;
     stream->write(&opcode_vkCreateIndirectCommandsLayoutNVX, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateIndirectCommandsLayoutNVX, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_1077 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1077);
     marshal_VkIndirectCommandsLayoutCreateInfoNVX(stream, (VkIndirectCommandsLayoutCreateInfoNVX*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1078 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_1078);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkIndirectCommandsLayoutNVX*)pIndirectCommandsLayout, sizeof(VkIndirectCommandsLayoutNVX));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkIndirectCommandsLayoutNVX*)pIndirectCommandsLayout, sizeof(VkIndirectCommandsLayoutNVX));
     if (pIndirectCommandsLayout)
     {
@@ -14521,9 +16023,13 @@ void VkEncoder::vkDestroyIndirectCommandsLayoutNVX(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkIndirectCommandsLayoutNVX*)&local_indirectCommandsLayout, sizeof(VkIndirectCommandsLayoutNVX));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_1079 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1079);
+        uint64_t cgen_var_1080 = (uint64_t)local_indirectCommandsLayout;
+        countingStream->putBe64(cgen_var_1080);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1081 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_1081);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -14534,9 +16040,13 @@ void VkEncoder::vkDestroyIndirectCommandsLayoutNVX(
     uint32_t opcode_vkDestroyIndirectCommandsLayoutNVX = OP_vkDestroyIndirectCommandsLayoutNVX;
     stream->write(&opcode_vkDestroyIndirectCommandsLayoutNVX, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyIndirectCommandsLayoutNVX, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkIndirectCommandsLayoutNVX*)&local_indirectCommandsLayout, sizeof(VkIndirectCommandsLayoutNVX));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_1082 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1082);
+    uint64_t cgen_var_1083 = (uint64_t)local_indirectCommandsLayout;
+    stream->putBe64(cgen_var_1083);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1084 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_1084);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -14583,13 +16093,17 @@ VkResult VkEncoder::vkCreateObjectTableNVX(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_1085 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1085);
         marshal_VkObjectTableCreateInfoNVX(countingStream, (VkObjectTableCreateInfoNVX*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1086 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_1086);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkObjectTableNVX*)pObjectTable, sizeof(VkObjectTableNVX));
     }
     uint32_t packetSize_vkCreateObjectTableNVX = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -14597,14 +16111,19 @@ VkResult VkEncoder::vkCreateObjectTableNVX(
     uint32_t opcode_vkCreateObjectTableNVX = OP_vkCreateObjectTableNVX;
     stream->write(&opcode_vkCreateObjectTableNVX, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateObjectTableNVX, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_1087 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1087);
     marshal_VkObjectTableCreateInfoNVX(stream, (VkObjectTableCreateInfoNVX*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1088 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_1088);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkObjectTableNVX*)pObjectTable, sizeof(VkObjectTableNVX));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkObjectTableNVX*)pObjectTable, sizeof(VkObjectTableNVX));
     if (pObjectTable)
     {
@@ -14645,9 +16164,13 @@ void VkEncoder::vkDestroyObjectTableNVX(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkObjectTableNVX*)&local_objectTable, sizeof(VkObjectTableNVX));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_1089 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1089);
+        uint64_t cgen_var_1090 = (uint64_t)local_objectTable;
+        countingStream->putBe64(cgen_var_1090);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1091 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_1091);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -14658,9 +16181,13 @@ void VkEncoder::vkDestroyObjectTableNVX(
     uint32_t opcode_vkDestroyObjectTableNVX = OP_vkDestroyObjectTableNVX;
     stream->write(&opcode_vkDestroyObjectTableNVX, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyObjectTableNVX, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkObjectTableNVX*)&local_objectTable, sizeof(VkObjectTableNVX));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_1092 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1092);
+    uint64_t cgen_var_1093 = (uint64_t)local_objectTable;
+    stream->putBe64(cgen_var_1093);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1094 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_1094);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -14698,8 +16225,10 @@ VkResult VkEncoder::vkRegisterObjectsNVX(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkObjectTableNVX*)&local_objectTable, sizeof(VkObjectTableNVX));
+        uint64_t cgen_var_1095 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1095);
+        uint64_t cgen_var_1096 = (uint64_t)local_objectTable;
+        countingStream->putBe64(cgen_var_1096);
         countingStream->write((uint32_t*)&local_objectCount, sizeof(uint32_t));
         (void)local_ppObjectTableEntries;
         countingStream->write((uint32_t*)local_pObjectIndices, ((objectCount)) * sizeof(uint32_t));
@@ -14709,8 +16238,10 @@ VkResult VkEncoder::vkRegisterObjectsNVX(
     uint32_t opcode_vkRegisterObjectsNVX = OP_vkRegisterObjectsNVX;
     stream->write(&opcode_vkRegisterObjectsNVX, sizeof(uint32_t));
     stream->write(&packetSize_vkRegisterObjectsNVX, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkObjectTableNVX*)&local_objectTable, sizeof(VkObjectTableNVX));
+    uint64_t cgen_var_1097 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1097);
+    uint64_t cgen_var_1098 = (uint64_t)local_objectTable;
+    stream->putBe64(cgen_var_1098);
     stream->write((uint32_t*)&local_objectCount, sizeof(uint32_t));
     (void)local_ppObjectTableEntries;
     stream->write((uint32_t*)local_pObjectIndices, ((objectCount)) * sizeof(uint32_t));
@@ -14753,8 +16284,10 @@ VkResult VkEncoder::vkUnregisterObjectsNVX(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkObjectTableNVX*)&local_objectTable, sizeof(VkObjectTableNVX));
+        uint64_t cgen_var_1099 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1099);
+        uint64_t cgen_var_1100 = (uint64_t)local_objectTable;
+        countingStream->putBe64(cgen_var_1100);
         countingStream->write((uint32_t*)&local_objectCount, sizeof(uint32_t));
         countingStream->write((VkObjectEntryTypeNVX*)local_pObjectEntryTypes, ((objectCount)) * sizeof(VkObjectEntryTypeNVX));
         countingStream->write((uint32_t*)local_pObjectIndices, ((objectCount)) * sizeof(uint32_t));
@@ -14764,8 +16297,10 @@ VkResult VkEncoder::vkUnregisterObjectsNVX(
     uint32_t opcode_vkUnregisterObjectsNVX = OP_vkUnregisterObjectsNVX;
     stream->write(&opcode_vkUnregisterObjectsNVX, sizeof(uint32_t));
     stream->write(&packetSize_vkUnregisterObjectsNVX, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkObjectTableNVX*)&local_objectTable, sizeof(VkObjectTableNVX));
+    uint64_t cgen_var_1101 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1101);
+    uint64_t cgen_var_1102 = (uint64_t)local_objectTable;
+    stream->putBe64(cgen_var_1102);
     stream->write((uint32_t*)&local_objectCount, sizeof(uint32_t));
     stream->write((VkObjectEntryTypeNVX*)local_pObjectEntryTypes, ((objectCount)) * sizeof(VkObjectEntryTypeNVX));
     stream->write((uint32_t*)local_pObjectIndices, ((objectCount)) * sizeof(uint32_t));
@@ -14789,7 +16324,8 @@ void VkEncoder::vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX(
     resources->unwrapMapping()->mapHandles_VkPhysicalDevice((VkPhysicalDevice*)&local_physicalDevice);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_1103 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_1103);
         marshal_VkDeviceGeneratedCommandsFeaturesNVX(countingStream, (VkDeviceGeneratedCommandsFeaturesNVX*)(pFeatures));
         marshal_VkDeviceGeneratedCommandsLimitsNVX(countingStream, (VkDeviceGeneratedCommandsLimitsNVX*)(pLimits));
     }
@@ -14798,7 +16334,8 @@ void VkEncoder::vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX(
     uint32_t opcode_vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX = OP_vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX;
     stream->write(&opcode_vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_1104 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_1104);
     marshal_VkDeviceGeneratedCommandsFeaturesNVX(stream, (VkDeviceGeneratedCommandsFeaturesNVX*)(pFeatures));
     marshal_VkDeviceGeneratedCommandsLimitsNVX(stream, (VkDeviceGeneratedCommandsLimitsNVX*)(pLimits));
     unmarshal_VkDeviceGeneratedCommandsFeaturesNVX(stream, (VkDeviceGeneratedCommandsFeaturesNVX*)(pFeatures));
@@ -14844,7 +16381,8 @@ void VkEncoder::vkCmdSetViewportWScalingNV(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_1105 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_1105);
         countingStream->write((uint32_t*)&local_firstViewport, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_viewportCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
@@ -14857,7 +16395,8 @@ void VkEncoder::vkCmdSetViewportWScalingNV(
     uint32_t opcode_vkCmdSetViewportWScalingNV = OP_vkCmdSetViewportWScalingNV;
     stream->write(&opcode_vkCmdSetViewportWScalingNV, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdSetViewportWScalingNV, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_1106 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_1106);
     stream->write((uint32_t*)&local_firstViewport, sizeof(uint32_t));
     stream->write((uint32_t*)&local_viewportCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
@@ -14885,16 +16424,20 @@ VkResult VkEncoder::vkReleaseDisplayEXT(
     resources->unwrapMapping()->mapHandles_VkDisplayKHR((VkDisplayKHR*)&local_display);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-        countingStream->write((VkDisplayKHR*)&local_display, sizeof(VkDisplayKHR));
+        uint64_t cgen_var_1107 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_1107);
+        uint64_t cgen_var_1108 = (uint64_t)local_display;
+        countingStream->putBe64(cgen_var_1108);
     }
     uint32_t packetSize_vkReleaseDisplayEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
     uint32_t opcode_vkReleaseDisplayEXT = OP_vkReleaseDisplayEXT;
     stream->write(&opcode_vkReleaseDisplayEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkReleaseDisplayEXT, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-    stream->write((VkDisplayKHR*)&local_display, sizeof(VkDisplayKHR));
+    uint64_t cgen_var_1109 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_1109);
+    uint64_t cgen_var_1110 = (uint64_t)local_display;
+    stream->putBe64(cgen_var_1110);
     pool->freeAll();
     VkResult vkReleaseDisplayEXT_VkResult_return = (VkResult)0;
     stream->read(&vkReleaseDisplayEXT_VkResult_return, sizeof(VkResult));
@@ -14920,18 +16463,22 @@ VkResult VkEncoder::vkAcquireXlibDisplayEXT(
     resources->unwrapMapping()->mapHandles_VkDisplayKHR((VkDisplayKHR*)&local_display);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_1111 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_1111);
         countingStream->write((Display*)dpy, sizeof(Display));
-        countingStream->write((VkDisplayKHR*)&local_display, sizeof(VkDisplayKHR));
+        uint64_t cgen_var_1112 = (uint64_t)local_display;
+        countingStream->putBe64(cgen_var_1112);
     }
     uint32_t packetSize_vkAcquireXlibDisplayEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
     uint32_t opcode_vkAcquireXlibDisplayEXT = OP_vkAcquireXlibDisplayEXT;
     stream->write(&opcode_vkAcquireXlibDisplayEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkAcquireXlibDisplayEXT, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_1113 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_1113);
     stream->write((Display*)dpy, sizeof(Display));
-    stream->write((VkDisplayKHR*)&local_display, sizeof(VkDisplayKHR));
+    uint64_t cgen_var_1114 = (uint64_t)local_display;
+    stream->putBe64(cgen_var_1114);
     stream->read((Display*)dpy, sizeof(Display));
     pool->freeAll();
     VkResult vkAcquireXlibDisplayEXT_VkResult_return = (VkResult)0;
@@ -14956,9 +16503,11 @@ VkResult VkEncoder::vkGetRandROutputDisplayEXT(
     local_rrOutput = rrOutput;
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_1115 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_1115);
         countingStream->write((Display*)dpy, sizeof(Display));
         countingStream->write((RROutput*)&local_rrOutput, sizeof(RROutput));
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkDisplayKHR*)pDisplay, sizeof(VkDisplayKHR));
     }
     uint32_t packetSize_vkGetRandROutputDisplayEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -14966,11 +16515,14 @@ VkResult VkEncoder::vkGetRandROutputDisplayEXT(
     uint32_t opcode_vkGetRandROutputDisplayEXT = OP_vkGetRandROutputDisplayEXT;
     stream->write(&opcode_vkGetRandROutputDisplayEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkGetRandROutputDisplayEXT, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_1116 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_1116);
     stream->write((Display*)dpy, sizeof(Display));
     stream->write((RROutput*)&local_rrOutput, sizeof(RROutput));
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkDisplayKHR*)pDisplay, sizeof(VkDisplayKHR));
     stream->read((Display*)dpy, sizeof(Display));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkDisplayKHR*)pDisplay, sizeof(VkDisplayKHR));
     pool->freeAll();
     VkResult vkGetRandROutputDisplayEXT_VkResult_return = (VkResult)0;
@@ -14997,8 +16549,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2EXT(
     resources->unwrapMapping()->mapHandles_VkSurfaceKHR((VkSurfaceKHR*)&local_surface);
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-        countingStream->write((VkSurfaceKHR*)&local_surface, sizeof(VkSurfaceKHR));
+        uint64_t cgen_var_1117 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_1117);
+        uint64_t cgen_var_1118 = (uint64_t)local_surface;
+        countingStream->putBe64(cgen_var_1118);
         marshal_VkSurfaceCapabilities2EXT(countingStream, (VkSurfaceCapabilities2EXT*)(pSurfaceCapabilities));
     }
     uint32_t packetSize_vkGetPhysicalDeviceSurfaceCapabilities2EXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -15006,8 +16560,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2EXT(
     uint32_t opcode_vkGetPhysicalDeviceSurfaceCapabilities2EXT = OP_vkGetPhysicalDeviceSurfaceCapabilities2EXT;
     stream->write(&opcode_vkGetPhysicalDeviceSurfaceCapabilities2EXT, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceSurfaceCapabilities2EXT, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
-    stream->write((VkSurfaceKHR*)&local_surface, sizeof(VkSurfaceKHR));
+    uint64_t cgen_var_1119 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_1119);
+    uint64_t cgen_var_1120 = (uint64_t)local_surface;
+    stream->putBe64(cgen_var_1120);
     marshal_VkSurfaceCapabilities2EXT(stream, (VkSurfaceCapabilities2EXT*)(pSurfaceCapabilities));
     unmarshal_VkSurfaceCapabilities2EXT(stream, (VkSurfaceCapabilities2EXT*)(pSurfaceCapabilities));
     pool->freeAll();
@@ -15046,8 +16602,10 @@ VkResult VkEncoder::vkDisplayPowerControlEXT(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkDisplayKHR*)&local_display, sizeof(VkDisplayKHR));
+        uint64_t cgen_var_1121 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1121);
+        uint64_t cgen_var_1122 = (uint64_t)local_display;
+        countingStream->putBe64(cgen_var_1122);
         marshal_VkDisplayPowerInfoEXT(countingStream, (VkDisplayPowerInfoEXT*)(local_pDisplayPowerInfo));
     }
     uint32_t packetSize_vkDisplayPowerControlEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -15055,8 +16613,10 @@ VkResult VkEncoder::vkDisplayPowerControlEXT(
     uint32_t opcode_vkDisplayPowerControlEXT = OP_vkDisplayPowerControlEXT;
     stream->write(&opcode_vkDisplayPowerControlEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkDisplayPowerControlEXT, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkDisplayKHR*)&local_display, sizeof(VkDisplayKHR));
+    uint64_t cgen_var_1123 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1123);
+    uint64_t cgen_var_1124 = (uint64_t)local_display;
+    stream->putBe64(cgen_var_1124);
     marshal_VkDisplayPowerInfoEXT(stream, (VkDisplayPowerInfoEXT*)(local_pDisplayPowerInfo));
     pool->freeAll();
     VkResult vkDisplayPowerControlEXT_VkResult_return = (VkResult)0;
@@ -15102,13 +16662,17 @@ VkResult VkEncoder::vkRegisterDeviceEventEXT(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_1125 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1125);
         marshal_VkDeviceEventInfoEXT(countingStream, (VkDeviceEventInfoEXT*)(local_pDeviceEventInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1126 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_1126);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkFence*)pFence, sizeof(VkFence));
     }
     uint32_t packetSize_vkRegisterDeviceEventEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -15116,14 +16680,19 @@ VkResult VkEncoder::vkRegisterDeviceEventEXT(
     uint32_t opcode_vkRegisterDeviceEventEXT = OP_vkRegisterDeviceEventEXT;
     stream->write(&opcode_vkRegisterDeviceEventEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkRegisterDeviceEventEXT, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_1127 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1127);
     marshal_VkDeviceEventInfoEXT(stream, (VkDeviceEventInfoEXT*)(local_pDeviceEventInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1128 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_1128);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkFence*)pFence, sizeof(VkFence));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkFence*)pFence, sizeof(VkFence));
     pool->freeAll();
     VkResult vkRegisterDeviceEventEXT_VkResult_return = (VkResult)0;
@@ -15173,14 +16742,19 @@ VkResult VkEncoder::vkRegisterDisplayEventEXT(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkDisplayKHR*)&local_display, sizeof(VkDisplayKHR));
+        uint64_t cgen_var_1129 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1129);
+        uint64_t cgen_var_1130 = (uint64_t)local_display;
+        countingStream->putBe64(cgen_var_1130);
         marshal_VkDisplayEventInfoEXT(countingStream, (VkDisplayEventInfoEXT*)(local_pDisplayEventInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1131 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_1131);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkFence*)pFence, sizeof(VkFence));
     }
     uint32_t packetSize_vkRegisterDisplayEventEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -15188,15 +16762,21 @@ VkResult VkEncoder::vkRegisterDisplayEventEXT(
     uint32_t opcode_vkRegisterDisplayEventEXT = OP_vkRegisterDisplayEventEXT;
     stream->write(&opcode_vkRegisterDisplayEventEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkRegisterDisplayEventEXT, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkDisplayKHR*)&local_display, sizeof(VkDisplayKHR));
+    uint64_t cgen_var_1132 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1132);
+    uint64_t cgen_var_1133 = (uint64_t)local_display;
+    stream->putBe64(cgen_var_1133);
     marshal_VkDisplayEventInfoEXT(stream, (VkDisplayEventInfoEXT*)(local_pDisplayEventInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1134 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_1134);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkFence*)pFence, sizeof(VkFence));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkFence*)pFence, sizeof(VkFence));
     pool->freeAll();
     VkResult vkRegisterDisplayEventEXT_VkResult_return = (VkResult)0;
@@ -15224,8 +16804,10 @@ VkResult VkEncoder::vkGetSwapchainCounterEXT(
     local_counter = counter;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkSwapchainKHR*)&local_swapchain, sizeof(VkSwapchainKHR));
+        uint64_t cgen_var_1135 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1135);
+        uint64_t cgen_var_1136 = (uint64_t)local_swapchain;
+        countingStream->putBe64(cgen_var_1136);
         countingStream->write((VkSurfaceCounterFlagBitsEXT*)&local_counter, sizeof(VkSurfaceCounterFlagBitsEXT));
         countingStream->write((uint64_t*)pCounterValue, sizeof(uint64_t));
     }
@@ -15234,8 +16816,10 @@ VkResult VkEncoder::vkGetSwapchainCounterEXT(
     uint32_t opcode_vkGetSwapchainCounterEXT = OP_vkGetSwapchainCounterEXT;
     stream->write(&opcode_vkGetSwapchainCounterEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkGetSwapchainCounterEXT, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkSwapchainKHR*)&local_swapchain, sizeof(VkSwapchainKHR));
+    uint64_t cgen_var_1137 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1137);
+    uint64_t cgen_var_1138 = (uint64_t)local_swapchain;
+    stream->putBe64(cgen_var_1138);
     stream->write((VkSurfaceCounterFlagBitsEXT*)&local_counter, sizeof(VkSurfaceCounterFlagBitsEXT));
     stream->write((uint64_t*)pCounterValue, sizeof(uint64_t));
     stream->read((uint64_t*)pCounterValue, sizeof(uint64_t));
@@ -15264,8 +16848,10 @@ VkResult VkEncoder::vkGetRefreshCycleDurationGOOGLE(
     resources->unwrapMapping()->mapHandles_VkSwapchainKHR((VkSwapchainKHR*)&local_swapchain);
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkSwapchainKHR*)&local_swapchain, sizeof(VkSwapchainKHR));
+        uint64_t cgen_var_1139 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1139);
+        uint64_t cgen_var_1140 = (uint64_t)local_swapchain;
+        countingStream->putBe64(cgen_var_1140);
         marshal_VkRefreshCycleDurationGOOGLE(countingStream, (VkRefreshCycleDurationGOOGLE*)(pDisplayTimingProperties));
     }
     uint32_t packetSize_vkGetRefreshCycleDurationGOOGLE = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -15273,8 +16859,10 @@ VkResult VkEncoder::vkGetRefreshCycleDurationGOOGLE(
     uint32_t opcode_vkGetRefreshCycleDurationGOOGLE = OP_vkGetRefreshCycleDurationGOOGLE;
     stream->write(&opcode_vkGetRefreshCycleDurationGOOGLE, sizeof(uint32_t));
     stream->write(&packetSize_vkGetRefreshCycleDurationGOOGLE, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkSwapchainKHR*)&local_swapchain, sizeof(VkSwapchainKHR));
+    uint64_t cgen_var_1141 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1141);
+    uint64_t cgen_var_1142 = (uint64_t)local_swapchain;
+    stream->putBe64(cgen_var_1142);
     marshal_VkRefreshCycleDurationGOOGLE(stream, (VkRefreshCycleDurationGOOGLE*)(pDisplayTimingProperties));
     unmarshal_VkRefreshCycleDurationGOOGLE(stream, (VkRefreshCycleDurationGOOGLE*)(pDisplayTimingProperties));
     pool->freeAll();
@@ -15301,14 +16889,20 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
     resources->unwrapMapping()->mapHandles_VkSwapchainKHR((VkSwapchainKHR*)&local_swapchain);
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkSwapchainKHR*)&local_swapchain, sizeof(VkSwapchainKHR));
-        countingStream->write((uint32_t**)&pPresentationTimingCount, sizeof(uint32_t*));
+        uint64_t cgen_var_1143 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1143);
+        uint64_t cgen_var_1144 = (uint64_t)local_swapchain;
+        countingStream->putBe64(cgen_var_1144);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1145 = (uint64_t)(uintptr_t)pPresentationTimingCount;
+        countingStream->putBe64(cgen_var_1145);
         if (pPresentationTimingCount)
         {
             countingStream->write((uint32_t*)pPresentationTimingCount, sizeof(uint32_t));
         }
-        countingStream->write((VkPastPresentationTimingGOOGLE**)&pPresentationTimings, sizeof(VkPastPresentationTimingGOOGLE*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1146 = (uint64_t)(uintptr_t)pPresentationTimings;
+        countingStream->putBe64(cgen_var_1146);
         if (pPresentationTimings)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPresentationTimingCount)); ++i)
@@ -15322,14 +16916,20 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
     uint32_t opcode_vkGetPastPresentationTimingGOOGLE = OP_vkGetPastPresentationTimingGOOGLE;
     stream->write(&opcode_vkGetPastPresentationTimingGOOGLE, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPastPresentationTimingGOOGLE, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkSwapchainKHR*)&local_swapchain, sizeof(VkSwapchainKHR));
-    stream->write((uint32_t**)&pPresentationTimingCount, sizeof(uint32_t*));
+    uint64_t cgen_var_1147 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1147);
+    uint64_t cgen_var_1148 = (uint64_t)local_swapchain;
+    stream->putBe64(cgen_var_1148);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1149 = (uint64_t)(uintptr_t)pPresentationTimingCount;
+    stream->putBe64(cgen_var_1149);
     if (pPresentationTimingCount)
     {
         stream->write((uint32_t*)pPresentationTimingCount, sizeof(uint32_t));
     }
-    stream->write((VkPastPresentationTimingGOOGLE**)&pPresentationTimings, sizeof(VkPastPresentationTimingGOOGLE*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1150 = (uint64_t)(uintptr_t)pPresentationTimings;
+    stream->putBe64(cgen_var_1150);
     if (pPresentationTimings)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPresentationTimingCount)); ++i)
@@ -15337,8 +16937,9 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
             marshal_VkPastPresentationTimingGOOGLE(stream, (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pPresentationTimingCount;
-    stream->read((uint32_t**)&check_pPresentationTimingCount, sizeof(uint32_t*));
+    check_pPresentationTimingCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pPresentationTimingCount)
     {
         if (!(check_pPresentationTimingCount))
@@ -15347,8 +16948,9 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
         }
         stream->read((uint32_t*)pPresentationTimingCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkPastPresentationTimingGOOGLE* check_pPresentationTimings;
-    stream->read((VkPastPresentationTimingGOOGLE**)&check_pPresentationTimings, sizeof(VkPastPresentationTimingGOOGLE*));
+    check_pPresentationTimings = (VkPastPresentationTimingGOOGLE*)(uintptr_t)stream->getBe64();
     if (pPresentationTimings)
     {
         if (!(check_pPresentationTimings))
@@ -15414,7 +17016,8 @@ void VkEncoder::vkCmdSetDiscardRectangleEXT(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_1153 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_1153);
         countingStream->write((uint32_t*)&local_firstDiscardRectangle, sizeof(uint32_t));
         countingStream->write((uint32_t*)&local_discardRectangleCount, sizeof(uint32_t));
         for (uint32_t i = 0; i < (uint32_t)((discardRectangleCount)); ++i)
@@ -15427,7 +17030,8 @@ void VkEncoder::vkCmdSetDiscardRectangleEXT(
     uint32_t opcode_vkCmdSetDiscardRectangleEXT = OP_vkCmdSetDiscardRectangleEXT;
     stream->write(&opcode_vkCmdSetDiscardRectangleEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdSetDiscardRectangleEXT, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_1154 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_1154);
     stream->write((uint32_t*)&local_firstDiscardRectangle, sizeof(uint32_t));
     stream->write((uint32_t*)&local_discardRectangleCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)((discardRectangleCount)); ++i)
@@ -15487,8 +17091,10 @@ void VkEncoder::vkSetHdrMetadataEXT(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_1155 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1155);
         countingStream->write((uint32_t*)&local_swapchainCount, sizeof(uint32_t));
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkSwapchainKHR*)local_pSwapchains, ((swapchainCount)) * sizeof(VkSwapchainKHR));
         for (uint32_t i = 0; i < (uint32_t)((swapchainCount)); ++i)
         {
@@ -15500,8 +17106,10 @@ void VkEncoder::vkSetHdrMetadataEXT(
     uint32_t opcode_vkSetHdrMetadataEXT = OP_vkSetHdrMetadataEXT;
     stream->write(&opcode_vkSetHdrMetadataEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkSetHdrMetadataEXT, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_1156 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1156);
     stream->write((uint32_t*)&local_swapchainCount, sizeof(uint32_t));
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkSwapchainKHR*)local_pSwapchains, ((swapchainCount)) * sizeof(VkSwapchainKHR));
     for (uint32_t i = 0; i < (uint32_t)((swapchainCount)); ++i)
     {
@@ -15550,13 +17158,17 @@ VkResult VkEncoder::vkCreateIOSSurfaceMVK(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+        uint64_t cgen_var_1157 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_1157);
         marshal_VkIOSSurfaceCreateInfoMVK(countingStream, (VkIOSSurfaceCreateInfoMVK*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1158 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_1158);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     }
     uint32_t packetSize_vkCreateIOSSurfaceMVK = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -15564,14 +17176,19 @@ VkResult VkEncoder::vkCreateIOSSurfaceMVK(
     uint32_t opcode_vkCreateIOSSurfaceMVK = OP_vkCreateIOSSurfaceMVK;
     stream->write(&opcode_vkCreateIOSSurfaceMVK, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateIOSSurfaceMVK, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+    uint64_t cgen_var_1159 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_1159);
     marshal_VkIOSSurfaceCreateInfoMVK(stream, (VkIOSSurfaceCreateInfoMVK*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1160 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_1160);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     pool->freeAll();
     VkResult vkCreateIOSSurfaceMVK_VkResult_return = (VkResult)0;
@@ -15619,13 +17236,17 @@ VkResult VkEncoder::vkCreateMacOSSurfaceMVK(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+        uint64_t cgen_var_1161 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_1161);
         marshal_VkMacOSSurfaceCreateInfoMVK(countingStream, (VkMacOSSurfaceCreateInfoMVK*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1162 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_1162);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     }
     uint32_t packetSize_vkCreateMacOSSurfaceMVK = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -15633,14 +17254,19 @@ VkResult VkEncoder::vkCreateMacOSSurfaceMVK(
     uint32_t opcode_vkCreateMacOSSurfaceMVK = OP_vkCreateMacOSSurfaceMVK;
     stream->write(&opcode_vkCreateMacOSSurfaceMVK, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateMacOSSurfaceMVK, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+    uint64_t cgen_var_1163 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_1163);
     marshal_VkMacOSSurfaceCreateInfoMVK(stream, (VkMacOSSurfaceCreateInfoMVK*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1164 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_1164);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkSurfaceKHR*)pSurface, sizeof(VkSurfaceKHR));
     pool->freeAll();
     VkResult vkCreateMacOSSurfaceMVK_VkResult_return = (VkResult)0;
@@ -15678,7 +17304,8 @@ VkResult VkEncoder::vkSetDebugUtilsObjectNameEXT(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_1165 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1165);
         marshal_VkDebugUtilsObjectNameInfoEXT(countingStream, (VkDebugUtilsObjectNameInfoEXT*)(local_pNameInfo));
     }
     uint32_t packetSize_vkSetDebugUtilsObjectNameEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -15686,7 +17313,8 @@ VkResult VkEncoder::vkSetDebugUtilsObjectNameEXT(
     uint32_t opcode_vkSetDebugUtilsObjectNameEXT = OP_vkSetDebugUtilsObjectNameEXT;
     stream->write(&opcode_vkSetDebugUtilsObjectNameEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkSetDebugUtilsObjectNameEXT, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_1166 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1166);
     marshal_VkDebugUtilsObjectNameInfoEXT(stream, (VkDebugUtilsObjectNameInfoEXT*)(local_pNameInfo));
     pool->freeAll();
     VkResult vkSetDebugUtilsObjectNameEXT_VkResult_return = (VkResult)0;
@@ -15718,7 +17346,8 @@ VkResult VkEncoder::vkSetDebugUtilsObjectTagEXT(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_1167 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1167);
         marshal_VkDebugUtilsObjectTagInfoEXT(countingStream, (VkDebugUtilsObjectTagInfoEXT*)(local_pTagInfo));
     }
     uint32_t packetSize_vkSetDebugUtilsObjectTagEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -15726,7 +17355,8 @@ VkResult VkEncoder::vkSetDebugUtilsObjectTagEXT(
     uint32_t opcode_vkSetDebugUtilsObjectTagEXT = OP_vkSetDebugUtilsObjectTagEXT;
     stream->write(&opcode_vkSetDebugUtilsObjectTagEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkSetDebugUtilsObjectTagEXT, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_1168 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1168);
     marshal_VkDebugUtilsObjectTagInfoEXT(stream, (VkDebugUtilsObjectTagInfoEXT*)(local_pTagInfo));
     pool->freeAll();
     VkResult vkSetDebugUtilsObjectTagEXT_VkResult_return = (VkResult)0;
@@ -15758,7 +17388,8 @@ void VkEncoder::vkQueueBeginDebugUtilsLabelEXT(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkQueue*)&local_queue, sizeof(VkQueue));
+        uint64_t cgen_var_1169 = (uint64_t)local_queue;
+        countingStream->putBe64(cgen_var_1169);
         marshal_VkDebugUtilsLabelEXT(countingStream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
     uint32_t packetSize_vkQueueBeginDebugUtilsLabelEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -15766,7 +17397,8 @@ void VkEncoder::vkQueueBeginDebugUtilsLabelEXT(
     uint32_t opcode_vkQueueBeginDebugUtilsLabelEXT = OP_vkQueueBeginDebugUtilsLabelEXT;
     stream->write(&opcode_vkQueueBeginDebugUtilsLabelEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkQueueBeginDebugUtilsLabelEXT, sizeof(uint32_t));
-    stream->write((VkQueue*)&local_queue, sizeof(VkQueue));
+    uint64_t cgen_var_1170 = (uint64_t)local_queue;
+    stream->putBe64(cgen_var_1170);
     marshal_VkDebugUtilsLabelEXT(stream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     pool->freeAll();
 }
@@ -15783,14 +17415,16 @@ void VkEncoder::vkQueueEndDebugUtilsLabelEXT(
     resources->unwrapMapping()->mapHandles_VkQueue((VkQueue*)&local_queue);
     countingStream->rewind();
     {
-        countingStream->write((VkQueue*)&local_queue, sizeof(VkQueue));
+        uint64_t cgen_var_1171 = (uint64_t)local_queue;
+        countingStream->putBe64(cgen_var_1171);
     }
     uint32_t packetSize_vkQueueEndDebugUtilsLabelEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
     uint32_t opcode_vkQueueEndDebugUtilsLabelEXT = OP_vkQueueEndDebugUtilsLabelEXT;
     stream->write(&opcode_vkQueueEndDebugUtilsLabelEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkQueueEndDebugUtilsLabelEXT, sizeof(uint32_t));
-    stream->write((VkQueue*)&local_queue, sizeof(VkQueue));
+    uint64_t cgen_var_1172 = (uint64_t)local_queue;
+    stream->putBe64(cgen_var_1172);
     pool->freeAll();
 }
 
@@ -15818,7 +17452,8 @@ void VkEncoder::vkQueueInsertDebugUtilsLabelEXT(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkQueue*)&local_queue, sizeof(VkQueue));
+        uint64_t cgen_var_1173 = (uint64_t)local_queue;
+        countingStream->putBe64(cgen_var_1173);
         marshal_VkDebugUtilsLabelEXT(countingStream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
     uint32_t packetSize_vkQueueInsertDebugUtilsLabelEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -15826,7 +17461,8 @@ void VkEncoder::vkQueueInsertDebugUtilsLabelEXT(
     uint32_t opcode_vkQueueInsertDebugUtilsLabelEXT = OP_vkQueueInsertDebugUtilsLabelEXT;
     stream->write(&opcode_vkQueueInsertDebugUtilsLabelEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkQueueInsertDebugUtilsLabelEXT, sizeof(uint32_t));
-    stream->write((VkQueue*)&local_queue, sizeof(VkQueue));
+    uint64_t cgen_var_1174 = (uint64_t)local_queue;
+    stream->putBe64(cgen_var_1174);
     marshal_VkDebugUtilsLabelEXT(stream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     pool->freeAll();
 }
@@ -15855,7 +17491,8 @@ void VkEncoder::vkCmdBeginDebugUtilsLabelEXT(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_1175 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_1175);
         marshal_VkDebugUtilsLabelEXT(countingStream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
     uint32_t packetSize_vkCmdBeginDebugUtilsLabelEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -15863,7 +17500,8 @@ void VkEncoder::vkCmdBeginDebugUtilsLabelEXT(
     uint32_t opcode_vkCmdBeginDebugUtilsLabelEXT = OP_vkCmdBeginDebugUtilsLabelEXT;
     stream->write(&opcode_vkCmdBeginDebugUtilsLabelEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdBeginDebugUtilsLabelEXT, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_1176 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_1176);
     marshal_VkDebugUtilsLabelEXT(stream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     pool->freeAll();
 }
@@ -15880,14 +17518,16 @@ void VkEncoder::vkCmdEndDebugUtilsLabelEXT(
     resources->unwrapMapping()->mapHandles_VkCommandBuffer((VkCommandBuffer*)&local_commandBuffer);
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_1177 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_1177);
     }
     uint32_t packetSize_vkCmdEndDebugUtilsLabelEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
     uint32_t opcode_vkCmdEndDebugUtilsLabelEXT = OP_vkCmdEndDebugUtilsLabelEXT;
     stream->write(&opcode_vkCmdEndDebugUtilsLabelEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdEndDebugUtilsLabelEXT, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_1178 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_1178);
     pool->freeAll();
 }
 
@@ -15915,7 +17555,8 @@ void VkEncoder::vkCmdInsertDebugUtilsLabelEXT(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_1179 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_1179);
         marshal_VkDebugUtilsLabelEXT(countingStream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
     uint32_t packetSize_vkCmdInsertDebugUtilsLabelEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -15923,7 +17564,8 @@ void VkEncoder::vkCmdInsertDebugUtilsLabelEXT(
     uint32_t opcode_vkCmdInsertDebugUtilsLabelEXT = OP_vkCmdInsertDebugUtilsLabelEXT;
     stream->write(&opcode_vkCmdInsertDebugUtilsLabelEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdInsertDebugUtilsLabelEXT, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_1180 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_1180);
     marshal_VkDebugUtilsLabelEXT(stream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     pool->freeAll();
 }
@@ -15966,13 +17608,17 @@ VkResult VkEncoder::vkCreateDebugUtilsMessengerEXT(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+        uint64_t cgen_var_1181 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_1181);
         marshal_VkDebugUtilsMessengerCreateInfoEXT(countingStream, (VkDebugUtilsMessengerCreateInfoEXT*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1182 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_1182);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkDebugUtilsMessengerEXT*)pMessenger, sizeof(VkDebugUtilsMessengerEXT));
     }
     uint32_t packetSize_vkCreateDebugUtilsMessengerEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -15980,14 +17626,19 @@ VkResult VkEncoder::vkCreateDebugUtilsMessengerEXT(
     uint32_t opcode_vkCreateDebugUtilsMessengerEXT = OP_vkCreateDebugUtilsMessengerEXT;
     stream->write(&opcode_vkCreateDebugUtilsMessengerEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateDebugUtilsMessengerEXT, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+    uint64_t cgen_var_1183 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_1183);
     marshal_VkDebugUtilsMessengerCreateInfoEXT(stream, (VkDebugUtilsMessengerCreateInfoEXT*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1184 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_1184);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkDebugUtilsMessengerEXT*)pMessenger, sizeof(VkDebugUtilsMessengerEXT));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkDebugUtilsMessengerEXT*)pMessenger, sizeof(VkDebugUtilsMessengerEXT));
     if (pMessenger)
     {
@@ -16028,9 +17679,13 @@ void VkEncoder::vkDestroyDebugUtilsMessengerEXT(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
-        countingStream->write((VkDebugUtilsMessengerEXT*)&local_messenger, sizeof(VkDebugUtilsMessengerEXT));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_1185 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_1185);
+        uint64_t cgen_var_1186 = (uint64_t)local_messenger;
+        countingStream->putBe64(cgen_var_1186);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1187 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_1187);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -16041,9 +17696,13 @@ void VkEncoder::vkDestroyDebugUtilsMessengerEXT(
     uint32_t opcode_vkDestroyDebugUtilsMessengerEXT = OP_vkDestroyDebugUtilsMessengerEXT;
     stream->write(&opcode_vkDestroyDebugUtilsMessengerEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyDebugUtilsMessengerEXT, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
-    stream->write((VkDebugUtilsMessengerEXT*)&local_messenger, sizeof(VkDebugUtilsMessengerEXT));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_1188 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_1188);
+    uint64_t cgen_var_1189 = (uint64_t)local_messenger;
+    stream->putBe64(cgen_var_1189);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1190 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_1190);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -16082,7 +17741,8 @@ void VkEncoder::vkSubmitDebugUtilsMessageEXT(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+        uint64_t cgen_var_1191 = (uint64_t)local_instance;
+        countingStream->putBe64(cgen_var_1191);
         countingStream->write((VkDebugUtilsMessageSeverityFlagBitsEXT*)&local_messageSeverity, sizeof(VkDebugUtilsMessageSeverityFlagBitsEXT));
         countingStream->write((VkDebugUtilsMessageTypeFlagsEXT*)&local_messageTypes, sizeof(VkDebugUtilsMessageTypeFlagsEXT));
         marshal_VkDebugUtilsMessengerCallbackDataEXT(countingStream, (VkDebugUtilsMessengerCallbackDataEXT*)(local_pCallbackData));
@@ -16092,7 +17752,8 @@ void VkEncoder::vkSubmitDebugUtilsMessageEXT(
     uint32_t opcode_vkSubmitDebugUtilsMessageEXT = OP_vkSubmitDebugUtilsMessageEXT;
     stream->write(&opcode_vkSubmitDebugUtilsMessageEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkSubmitDebugUtilsMessageEXT, sizeof(uint32_t));
-    stream->write((VkInstance*)&local_instance, sizeof(VkInstance));
+    uint64_t cgen_var_1192 = (uint64_t)local_instance;
+    stream->putBe64(cgen_var_1192);
     stream->write((VkDebugUtilsMessageSeverityFlagBitsEXT*)&local_messageSeverity, sizeof(VkDebugUtilsMessageSeverityFlagBitsEXT));
     stream->write((VkDebugUtilsMessageTypeFlagsEXT*)&local_messageTypes, sizeof(VkDebugUtilsMessageTypeFlagsEXT));
     marshal_VkDebugUtilsMessengerCallbackDataEXT(stream, (VkDebugUtilsMessengerCallbackDataEXT*)(local_pCallbackData));
@@ -16121,7 +17782,8 @@ VkResult VkEncoder::vkGetAndroidHardwareBufferPropertiesANDROID(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_1193 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1193);
         countingStream->write((AHardwareBuffer*)local_buffer, sizeof(AHardwareBuffer));
         marshal_VkAndroidHardwareBufferPropertiesANDROID(countingStream, (VkAndroidHardwareBufferPropertiesANDROID*)(pProperties));
     }
@@ -16130,7 +17792,8 @@ VkResult VkEncoder::vkGetAndroidHardwareBufferPropertiesANDROID(
     uint32_t opcode_vkGetAndroidHardwareBufferPropertiesANDROID = OP_vkGetAndroidHardwareBufferPropertiesANDROID;
     stream->write(&opcode_vkGetAndroidHardwareBufferPropertiesANDROID, sizeof(uint32_t));
     stream->write(&packetSize_vkGetAndroidHardwareBufferPropertiesANDROID, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_1194 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1194);
     stream->write((AHardwareBuffer*)local_buffer, sizeof(AHardwareBuffer));
     marshal_VkAndroidHardwareBufferPropertiesANDROID(stream, (VkAndroidHardwareBufferPropertiesANDROID*)(pProperties));
     unmarshal_VkAndroidHardwareBufferPropertiesANDROID(stream, (VkAndroidHardwareBufferPropertiesANDROID*)(pProperties));
@@ -16165,7 +17828,8 @@ VkResult VkEncoder::vkGetMemoryAndroidHardwareBufferANDROID(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_1195 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1195);
         marshal_VkMemoryGetAndroidHardwareBufferInfoANDROID(countingStream, (VkMemoryGetAndroidHardwareBufferInfoANDROID*)(local_pInfo));
         countingStream->write((AHardwareBuffer**)pBuffer, sizeof(AHardwareBuffer*));
     }
@@ -16174,7 +17838,8 @@ VkResult VkEncoder::vkGetMemoryAndroidHardwareBufferANDROID(
     uint32_t opcode_vkGetMemoryAndroidHardwareBufferANDROID = OP_vkGetMemoryAndroidHardwareBufferANDROID;
     stream->write(&opcode_vkGetMemoryAndroidHardwareBufferANDROID, sizeof(uint32_t));
     stream->write(&packetSize_vkGetMemoryAndroidHardwareBufferANDROID, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_1196 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1196);
     marshal_VkMemoryGetAndroidHardwareBufferInfoANDROID(stream, (VkMemoryGetAndroidHardwareBufferInfoANDROID*)(local_pInfo));
     stream->write((AHardwareBuffer**)pBuffer, sizeof(AHardwareBuffer*));
     stream->read((AHardwareBuffer**)pBuffer, sizeof(AHardwareBuffer*));
@@ -16220,7 +17885,8 @@ void VkEncoder::vkCmdSetSampleLocationsEXT(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_1197 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_1197);
         marshal_VkSampleLocationsInfoEXT(countingStream, (VkSampleLocationsInfoEXT*)(local_pSampleLocationsInfo));
     }
     uint32_t packetSize_vkCmdSetSampleLocationsEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -16228,7 +17894,8 @@ void VkEncoder::vkCmdSetSampleLocationsEXT(
     uint32_t opcode_vkCmdSetSampleLocationsEXT = OP_vkCmdSetSampleLocationsEXT;
     stream->write(&opcode_vkCmdSetSampleLocationsEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdSetSampleLocationsEXT, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_1198 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_1198);
     marshal_VkSampleLocationsInfoEXT(stream, (VkSampleLocationsInfoEXT*)(local_pSampleLocationsInfo));
     pool->freeAll();
 }
@@ -16249,7 +17916,8 @@ void VkEncoder::vkGetPhysicalDeviceMultisamplePropertiesEXT(
     local_samples = samples;
     countingStream->rewind();
     {
-        countingStream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+        uint64_t cgen_var_1199 = (uint64_t)local_physicalDevice;
+        countingStream->putBe64(cgen_var_1199);
         countingStream->write((VkSampleCountFlagBits*)&local_samples, sizeof(VkSampleCountFlagBits));
         marshal_VkMultisamplePropertiesEXT(countingStream, (VkMultisamplePropertiesEXT*)(pMultisampleProperties));
     }
@@ -16258,7 +17926,8 @@ void VkEncoder::vkGetPhysicalDeviceMultisamplePropertiesEXT(
     uint32_t opcode_vkGetPhysicalDeviceMultisamplePropertiesEXT = OP_vkGetPhysicalDeviceMultisamplePropertiesEXT;
     stream->write(&opcode_vkGetPhysicalDeviceMultisamplePropertiesEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkGetPhysicalDeviceMultisamplePropertiesEXT, sizeof(uint32_t));
-    stream->write((VkPhysicalDevice*)&local_physicalDevice, sizeof(VkPhysicalDevice));
+    uint64_t cgen_var_1200 = (uint64_t)local_physicalDevice;
+    stream->putBe64(cgen_var_1200);
     stream->write((VkSampleCountFlagBits*)&local_samples, sizeof(VkSampleCountFlagBits));
     marshal_VkMultisamplePropertiesEXT(stream, (VkMultisamplePropertiesEXT*)(pMultisampleProperties));
     unmarshal_VkMultisamplePropertiesEXT(stream, (VkMultisamplePropertiesEXT*)(pMultisampleProperties));
@@ -16315,13 +17984,17 @@ VkResult VkEncoder::vkCreateValidationCacheEXT(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_1201 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1201);
         marshal_VkValidationCacheCreateInfoEXT(countingStream, (VkValidationCacheCreateInfoEXT*)(local_pCreateInfo));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1202 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_1202);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
         }
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkValidationCacheEXT*)pValidationCache, sizeof(VkValidationCacheEXT));
     }
     uint32_t packetSize_vkCreateValidationCacheEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -16329,14 +18002,19 @@ VkResult VkEncoder::vkCreateValidationCacheEXT(
     uint32_t opcode_vkCreateValidationCacheEXT = OP_vkCreateValidationCacheEXT;
     stream->write(&opcode_vkCreateValidationCacheEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkCreateValidationCacheEXT, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_1203 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1203);
     marshal_VkValidationCacheCreateInfoEXT(stream, (VkValidationCacheCreateInfoEXT*)(local_pCreateInfo));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1204 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_1204);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkValidationCacheEXT*)pValidationCache, sizeof(VkValidationCacheEXT));
+    // WARNING HANDLE TYPE POINTER
     stream->read((VkValidationCacheEXT*)pValidationCache, sizeof(VkValidationCacheEXT));
     if (pValidationCache)
     {
@@ -16377,9 +18055,13 @@ void VkEncoder::vkDestroyValidationCacheEXT(
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkValidationCacheEXT*)&local_validationCache, sizeof(VkValidationCacheEXT));
-        countingStream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+        uint64_t cgen_var_1205 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1205);
+        uint64_t cgen_var_1206 = (uint64_t)local_validationCache;
+        countingStream->putBe64(cgen_var_1206);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1207 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_1207);
         if (local_pAllocator)
         {
             marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -16390,9 +18072,13 @@ void VkEncoder::vkDestroyValidationCacheEXT(
     uint32_t opcode_vkDestroyValidationCacheEXT = OP_vkDestroyValidationCacheEXT;
     stream->write(&opcode_vkDestroyValidationCacheEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkDestroyValidationCacheEXT, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkValidationCacheEXT*)&local_validationCache, sizeof(VkValidationCacheEXT));
-    stream->write((VkAllocationCallbacks**)&local_pAllocator, sizeof(VkAllocationCallbacks*));
+    uint64_t cgen_var_1208 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1208);
+    uint64_t cgen_var_1209 = (uint64_t)local_validationCache;
+    stream->putBe64(cgen_var_1209);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1210 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_1210);
     if (local_pAllocator)
     {
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
@@ -16431,9 +18117,12 @@ VkResult VkEncoder::vkMergeValidationCachesEXT(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkValidationCacheEXT*)&local_dstCache, sizeof(VkValidationCacheEXT));
+        uint64_t cgen_var_1211 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1211);
+        uint64_t cgen_var_1212 = (uint64_t)local_dstCache;
+        countingStream->putBe64(cgen_var_1212);
         countingStream->write((uint32_t*)&local_srcCacheCount, sizeof(uint32_t));
+        // WARNING HANDLE TYPE POINTER
         countingStream->write((VkValidationCacheEXT*)local_pSrcCaches, ((srcCacheCount)) * sizeof(VkValidationCacheEXT));
     }
     uint32_t packetSize_vkMergeValidationCachesEXT = 4 + 4 + (uint32_t)countingStream->bytesWritten();
@@ -16441,9 +18130,12 @@ VkResult VkEncoder::vkMergeValidationCachesEXT(
     uint32_t opcode_vkMergeValidationCachesEXT = OP_vkMergeValidationCachesEXT;
     stream->write(&opcode_vkMergeValidationCachesEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkMergeValidationCachesEXT, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkValidationCacheEXT*)&local_dstCache, sizeof(VkValidationCacheEXT));
+    uint64_t cgen_var_1213 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1213);
+    uint64_t cgen_var_1214 = (uint64_t)local_dstCache;
+    stream->putBe64(cgen_var_1214);
     stream->write((uint32_t*)&local_srcCacheCount, sizeof(uint32_t));
+    // WARNING HANDLE TYPE POINTER
     stream->write((VkValidationCacheEXT*)local_pSrcCaches, ((srcCacheCount)) * sizeof(VkValidationCacheEXT));
     pool->freeAll();
     VkResult vkMergeValidationCachesEXT_VkResult_return = (VkResult)0;
@@ -16469,14 +18161,20 @@ VkResult VkEncoder::vkGetValidationCacheDataEXT(
     resources->unwrapMapping()->mapHandles_VkValidationCacheEXT((VkValidationCacheEXT*)&local_validationCache);
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
-        countingStream->write((VkValidationCacheEXT*)&local_validationCache, sizeof(VkValidationCacheEXT));
-        countingStream->write((size_t**)&pDataSize, sizeof(size_t*));
+        uint64_t cgen_var_1215 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1215);
+        uint64_t cgen_var_1216 = (uint64_t)local_validationCache;
+        countingStream->putBe64(cgen_var_1216);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1217 = (uint64_t)(uintptr_t)pDataSize;
+        countingStream->putBe64(cgen_var_1217);
         if (pDataSize)
         {
             countingStream->write((size_t*)pDataSize, sizeof(size_t));
         }
-        countingStream->write((void**)&pData, sizeof(void*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1218 = (uint64_t)(uintptr_t)pData;
+        countingStream->putBe64(cgen_var_1218);
         if (pData)
         {
             countingStream->write((void*)pData, (*(pDataSize)) * sizeof(uint8_t));
@@ -16487,20 +18185,27 @@ VkResult VkEncoder::vkGetValidationCacheDataEXT(
     uint32_t opcode_vkGetValidationCacheDataEXT = OP_vkGetValidationCacheDataEXT;
     stream->write(&opcode_vkGetValidationCacheDataEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkGetValidationCacheDataEXT, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
-    stream->write((VkValidationCacheEXT*)&local_validationCache, sizeof(VkValidationCacheEXT));
-    stream->write((size_t**)&pDataSize, sizeof(size_t*));
+    uint64_t cgen_var_1219 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1219);
+    uint64_t cgen_var_1220 = (uint64_t)local_validationCache;
+    stream->putBe64(cgen_var_1220);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1221 = (uint64_t)(uintptr_t)pDataSize;
+    stream->putBe64(cgen_var_1221);
     if (pDataSize)
     {
         stream->write((size_t*)pDataSize, sizeof(size_t));
     }
-    stream->write((void**)&pData, sizeof(void*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1222 = (uint64_t)(uintptr_t)pData;
+    stream->putBe64(cgen_var_1222);
     if (pData)
     {
         stream->write((void*)pData, (*(pDataSize)) * sizeof(uint8_t));
     }
+    // WARNING PTR CHECK
     size_t* check_pDataSize;
-    stream->read((size_t**)&check_pDataSize, sizeof(size_t*));
+    check_pDataSize = (size_t*)(uintptr_t)stream->getBe64();
     if (pDataSize)
     {
         if (!(check_pDataSize))
@@ -16509,8 +18214,9 @@ VkResult VkEncoder::vkGetValidationCacheDataEXT(
         }
         stream->read((size_t*)pDataSize, sizeof(size_t));
     }
+    // WARNING PTR CHECK
     void* check_pData;
-    stream->read((void**)&check_pData, sizeof(void*));
+    check_pData = (void*)(uintptr_t)stream->getBe64();
     if (pData)
     {
         if (!(check_pData))
@@ -16556,9 +18262,12 @@ VkResult VkEncoder::vkGetMemoryHostPointerPropertiesEXT(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkDevice*)&local_device, sizeof(VkDevice));
+        uint64_t cgen_var_1225 = (uint64_t)local_device;
+        countingStream->putBe64(cgen_var_1225);
         countingStream->write((VkExternalMemoryHandleTypeFlagBits*)&local_handleType, sizeof(VkExternalMemoryHandleTypeFlagBits));
-        countingStream->write((void**)&local_pHostPointer, sizeof(void*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1226 = (uint64_t)(uintptr_t)local_pHostPointer;
+        countingStream->putBe64(cgen_var_1226);
         if (local_pHostPointer)
         {
             countingStream->write((void*)local_pHostPointer, sizeof(uint8_t));
@@ -16570,9 +18279,12 @@ VkResult VkEncoder::vkGetMemoryHostPointerPropertiesEXT(
     uint32_t opcode_vkGetMemoryHostPointerPropertiesEXT = OP_vkGetMemoryHostPointerPropertiesEXT;
     stream->write(&opcode_vkGetMemoryHostPointerPropertiesEXT, sizeof(uint32_t));
     stream->write(&packetSize_vkGetMemoryHostPointerPropertiesEXT, sizeof(uint32_t));
-    stream->write((VkDevice*)&local_device, sizeof(VkDevice));
+    uint64_t cgen_var_1227 = (uint64_t)local_device;
+    stream->putBe64(cgen_var_1227);
     stream->write((VkExternalMemoryHandleTypeFlagBits*)&local_handleType, sizeof(VkExternalMemoryHandleTypeFlagBits));
-    stream->write((void**)&local_pHostPointer, sizeof(void*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1228 = (uint64_t)(uintptr_t)local_pHostPointer;
+    stream->putBe64(cgen_var_1228);
     if (local_pHostPointer)
     {
         stream->write((void*)local_pHostPointer, sizeof(uint8_t));
@@ -16612,9 +18324,11 @@ void VkEncoder::vkCmdWriteBufferMarkerAMD(
     local_marker = marker;
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+        uint64_t cgen_var_1229 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_1229);
         countingStream->write((VkPipelineStageFlagBits*)&local_pipelineStage, sizeof(VkPipelineStageFlagBits));
-        countingStream->write((VkBuffer*)&local_dstBuffer, sizeof(VkBuffer));
+        uint64_t cgen_var_1230 = (uint64_t)local_dstBuffer;
+        countingStream->putBe64(cgen_var_1230);
         countingStream->write((VkDeviceSize*)&local_dstOffset, sizeof(VkDeviceSize));
         countingStream->write((uint32_t*)&local_marker, sizeof(uint32_t));
     }
@@ -16623,9 +18337,11 @@ void VkEncoder::vkCmdWriteBufferMarkerAMD(
     uint32_t opcode_vkCmdWriteBufferMarkerAMD = OP_vkCmdWriteBufferMarkerAMD;
     stream->write(&opcode_vkCmdWriteBufferMarkerAMD, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdWriteBufferMarkerAMD, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
+    uint64_t cgen_var_1231 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_1231);
     stream->write((VkPipelineStageFlagBits*)&local_pipelineStage, sizeof(VkPipelineStageFlagBits));
-    stream->write((VkBuffer*)&local_dstBuffer, sizeof(VkBuffer));
+    uint64_t cgen_var_1232 = (uint64_t)local_dstBuffer;
+    stream->putBe64(cgen_var_1232);
     stream->write((VkDeviceSize*)&local_dstOffset, sizeof(VkDeviceSize));
     stream->write((uint32_t*)&local_marker, sizeof(uint32_t));
     pool->freeAll();
@@ -16658,8 +18374,11 @@ void VkEncoder::vkCmdSetCheckpointNV(
     }
     countingStream->rewind();
     {
-        countingStream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-        countingStream->write((void**)&local_pCheckpointMarker, sizeof(void*));
+        uint64_t cgen_var_1233 = (uint64_t)local_commandBuffer;
+        countingStream->putBe64(cgen_var_1233);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1234 = (uint64_t)(uintptr_t)local_pCheckpointMarker;
+        countingStream->putBe64(cgen_var_1234);
         if (local_pCheckpointMarker)
         {
             countingStream->write((void*)local_pCheckpointMarker, sizeof(uint8_t));
@@ -16670,8 +18389,11 @@ void VkEncoder::vkCmdSetCheckpointNV(
     uint32_t opcode_vkCmdSetCheckpointNV = OP_vkCmdSetCheckpointNV;
     stream->write(&opcode_vkCmdSetCheckpointNV, sizeof(uint32_t));
     stream->write(&packetSize_vkCmdSetCheckpointNV, sizeof(uint32_t));
-    stream->write((VkCommandBuffer*)&local_commandBuffer, sizeof(VkCommandBuffer));
-    stream->write((void**)&local_pCheckpointMarker, sizeof(void*));
+    uint64_t cgen_var_1235 = (uint64_t)local_commandBuffer;
+    stream->putBe64(cgen_var_1235);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1236 = (uint64_t)(uintptr_t)local_pCheckpointMarker;
+    stream->putBe64(cgen_var_1236);
     if (local_pCheckpointMarker)
     {
         stream->write((void*)local_pCheckpointMarker, sizeof(uint8_t));
@@ -16693,13 +18415,18 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
     resources->unwrapMapping()->mapHandles_VkQueue((VkQueue*)&local_queue);
     countingStream->rewind();
     {
-        countingStream->write((VkQueue*)&local_queue, sizeof(VkQueue));
-        countingStream->write((uint32_t**)&pCheckpointDataCount, sizeof(uint32_t*));
+        uint64_t cgen_var_1237 = (uint64_t)local_queue;
+        countingStream->putBe64(cgen_var_1237);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1238 = (uint64_t)(uintptr_t)pCheckpointDataCount;
+        countingStream->putBe64(cgen_var_1238);
         if (pCheckpointDataCount)
         {
             countingStream->write((uint32_t*)pCheckpointDataCount, sizeof(uint32_t));
         }
-        countingStream->write((VkCheckpointDataNV**)&pCheckpointData, sizeof(VkCheckpointDataNV*));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1239 = (uint64_t)(uintptr_t)pCheckpointData;
+        countingStream->putBe64(cgen_var_1239);
         if (pCheckpointData)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i)
@@ -16713,13 +18440,18 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
     uint32_t opcode_vkGetQueueCheckpointDataNV = OP_vkGetQueueCheckpointDataNV;
     stream->write(&opcode_vkGetQueueCheckpointDataNV, sizeof(uint32_t));
     stream->write(&packetSize_vkGetQueueCheckpointDataNV, sizeof(uint32_t));
-    stream->write((VkQueue*)&local_queue, sizeof(VkQueue));
-    stream->write((uint32_t**)&pCheckpointDataCount, sizeof(uint32_t*));
+    uint64_t cgen_var_1240 = (uint64_t)local_queue;
+    stream->putBe64(cgen_var_1240);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1241 = (uint64_t)(uintptr_t)pCheckpointDataCount;
+    stream->putBe64(cgen_var_1241);
     if (pCheckpointDataCount)
     {
         stream->write((uint32_t*)pCheckpointDataCount, sizeof(uint32_t));
     }
-    stream->write((VkCheckpointDataNV**)&pCheckpointData, sizeof(VkCheckpointDataNV*));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1242 = (uint64_t)(uintptr_t)pCheckpointData;
+    stream->putBe64(cgen_var_1242);
     if (pCheckpointData)
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i)
@@ -16727,8 +18459,9 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
             marshal_VkCheckpointDataNV(stream, (VkCheckpointDataNV*)(pCheckpointData + i));
         }
     }
+    // WARNING PTR CHECK
     uint32_t* check_pCheckpointDataCount;
-    stream->read((uint32_t**)&check_pCheckpointDataCount, sizeof(uint32_t*));
+    check_pCheckpointDataCount = (uint32_t*)(uintptr_t)stream->getBe64();
     if (pCheckpointDataCount)
     {
         if (!(check_pCheckpointDataCount))
@@ -16737,8 +18470,9 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
         }
         stream->read((uint32_t*)pCheckpointDataCount, sizeof(uint32_t));
     }
+    // WARNING PTR CHECK
     VkCheckpointDataNV* check_pCheckpointData;
-    stream->read((VkCheckpointDataNV**)&check_pCheckpointData, sizeof(VkCheckpointDataNV*));
+    check_pCheckpointData = (VkCheckpointDataNV*)(uintptr_t)stream->getBe64();
     if (pCheckpointData)
     {
         if (!(check_pCheckpointData))
