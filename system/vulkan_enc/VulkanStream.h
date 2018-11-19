@@ -16,6 +16,8 @@
 #include "android/base/files/Stream.h"
 #include "android/base/files/StreamSerializing.h"
 
+#include "VulkanHandleMapping.h"
+
 #include <memory>
 
 class IOStream;
@@ -40,6 +42,13 @@ public:
 
     ssize_t read(void *buffer, size_t size) override;
     ssize_t write(const void *buffer, size_t size) override;
+
+    // Frees everything that got alloc'ed.
+    void clearPool();
+
+    void setHandleMapping(VulkanHandleMapping* mapping);
+    void unsetHandleMapping();
+    VulkanHandleMapping* handleMapping() const;
 
 private:
     class Impl;
