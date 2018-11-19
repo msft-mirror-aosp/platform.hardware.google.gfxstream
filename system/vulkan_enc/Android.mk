@@ -40,9 +40,11 @@ LOCAL_CFLAGS += \
     -DVK_USE_PLATFORM_ANDROID_KHR \
     -DVK_NO_PROTOTYPES \
 
-LOCAL_SRC_FILES := Resources.cpp VulkanStream.cpp \
+LOCAL_SRC_FILES := Resources.cpp \
+    VulkanStream.cpp \
+    VulkanHandleMapping.cpp \
     ResourceTracker.cpp \
-VkEncoder.cpp \
+    VkEncoder.cpp \
 goldfish_vk_extension_structs_guest.cpp \
 goldfish_vk_marshaling_guest.cpp \
 goldfish_vk_deepcopy_guest.cpp \
