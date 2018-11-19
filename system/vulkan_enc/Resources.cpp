@@ -21,6 +21,14 @@
 using android::aligned_buf_alloc;
 using android::aligned_buf_free;
 
+#define GOLDFISH_VK_OBJECT_DEBUG 0
+
+#if GOLDFISH_VK_OBJECT_DEBUG
+#define D(fmt,...) ALOGD("%s: " fmt, __func__, ##__VA_ARGS__);
+#else
+#define D(fmt,...)
+#endif
+
 extern "C" {
 
 #define GOLDFISH_VK_NEW_DISPATCHABLE_FROM_HOST_IMPL(type) \
@@ -32,7 +40,7 @@ extern "C" {
             abort(); \
         } \
         res->dispatch.magic = HWVULKAN_DISPATCH_MAGIC; \
-        res->underlying = underlying; \
+        res->underlying = (uint64_t)(uintptr_t)underlying; \
         return reinterpret_cast<type>(res); \
     } \
 
@@ -40,7 +48,7 @@ extern "C" {
     type new_from_host_##type(type underlying) { \
         struct goldfish_##type* res = \
             static_cast<goldfish_##type*>(malloc(sizeof(goldfish_##type))); \
-        res->underlying = underlying; \
+        res->underlying = (uint64_t)(uintptr_t)underlying; \
         return reinterpret_cast<type>(res); \
     } \
 
@@ -53,11 +61,12 @@ extern "C" {
     type get_host_##type(type toUnwrap) { \
         if (!toUnwrap) return VK_NULL_HANDLE; \
         auto as_goldfish = as_goldfish_##type(toUnwrap); \
-        return as_goldfish->underlying; \
+        return (type)(uintptr_t)(as_goldfish->underlying); \
     } \
 
 #define GOLDFISH_VK_DELETE_GOLDFISH_IMPL(type) \
     void delete_goldfish_##type(type toDelete) { \
+        D("guest %p", toDelete); \
         free(as_goldfish_##type(toDelete)); \
     } \
 
@@ -66,17 +75,52 @@ extern "C" {
         return handle; \
     } \
 
+#define GOLDFISH_VK_NEW_DISPATCHABLE_FROM_HOST_U64_IMPL(type) \
+    type new_from_host_u64_##type(uint64_t underlying) { \
+        struct goldfish_##type* res = \
+            static_cast<goldfish_##type*>(malloc(sizeof(goldfish_##type))); \
+        if (!res) { \
+            ALOGE("FATAL: Failed to alloc " #type " handle"); \
+            abort(); \
+        } \
+        res->dispatch.magic = HWVULKAN_DISPATCH_MAGIC; \
+        res->underlying = underlying; \
+        return reinterpret_cast<type>(res); \
+    } \
+
+#define GOLDFISH_VK_NEW_TRIVIAL_NON_DISPATCHABLE_FROM_HOST_U64_IMPL(type) \
+    type new_from_host_u64_##type(uint64_t underlying) { \
+        struct goldfish_##type* res = \
+            static_cast<goldfish_##type*>(malloc(sizeof(goldfish_##type))); \
+        res->underlying = underlying; \
+        D("guest %p: host u64: 0x%llx", res, (unsigned long long)res->underlying); \
+        return reinterpret_cast<type>(res); \
+    } \
+
+#define GOLDFISH_VK_GET_HOST_U64_IMPL(type) \
+    uint64_t get_host_u64_##type(type toUnwrap) { \
+        if (!toUnwrap) return 0; \
+        auto as_goldfish = as_goldfish_##type(toUnwrap); \
+        D("guest %p: host u64: 0x%llx", toUnwrap, (unsigned long long)as_goldfish->underlying); \
+        return as_goldfish->underlying; \
+    } \
+
+
 GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_NEW_DISPATCHABLE_FROM_HOST_IMPL)
 GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_AS_GOLDFISH_IMPL)
 GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_GET_HOST_IMPL)
 GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_DELETE_GOLDFISH_IMPL)
 GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_IDENTITY_IMPL)
+GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_NEW_DISPATCHABLE_FROM_HOST_U64_IMPL)
+GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_GET_HOST_U64_IMPL)
 
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_AS_GOLDFISH_IMPL)
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_GET_HOST_IMPL)
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_IDENTITY_IMPL)
+GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_GET_HOST_U64_IMPL)
 
 GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_NEW_TRIVIAL_NON_DISPATCHABLE_FROM_HOST_IMPL)
+GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_NEW_TRIVIAL_NON_DISPATCHABLE_FROM_HOST_U64_IMPL)
 GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_DELETE_GOLDFISH_IMPL)
 
 // Custom definitions///////////////////////////////////////////////////////////
@@ -103,6 +147,22 @@ void goldfish_vkGetPhysicalDeviceProperties2(
 }
 
 VkDeviceMemory new_from_host_VkDeviceMemory(VkDeviceMemory mem) {
+    struct goldfish_VkDeviceMemory *res =
+        (struct goldfish_VkDeviceMemory *)malloc(sizeof(goldfish_VkDeviceMemory));
+
+    if (!res) {
+        ALOGE("FATAL: Failed to alloc VkDeviceMemory handle");
+        abort();
+    }
+
+    memset(res, 0x0, sizeof(goldfish_VkDeviceMemory));
+
+    res->underlying = (uint64_t)(uintptr_t)mem;
+
+    return reinterpret_cast<VkDeviceMemory>(res);
+}
+
+VkDeviceMemory new_from_host_u64_VkDeviceMemory(uint64_t mem) {
     struct goldfish_VkDeviceMemory *res =
         (struct goldfish_VkDeviceMemory *)malloc(sizeof(goldfish_VkDeviceMemory));
 
