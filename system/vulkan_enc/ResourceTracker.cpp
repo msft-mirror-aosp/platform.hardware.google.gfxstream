@@ -40,11 +40,25 @@ public:
             handles[i] = new_from_host_VkBuffer(handles[i]);
         }
     }
+    void mapHandles_VkBuffer_u64(const VkBuffer* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkBuffer(handles[i]);
+        }
+    }
     void mapHandles_VkBufferView(VkBufferView* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = new_from_host_VkBufferView(handles[i]);
+        }
+    }
+    void mapHandles_VkBufferView_u64(const VkBufferView* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkBufferView(handles[i]);
         }
     }
     void mapHandles_VkCommandBuffer(VkCommandBuffer* handles, size_t count) override
@@ -54,11 +68,25 @@ public:
             handles[i] = new_from_host_VkCommandBuffer(handles[i]);
         }
     }
+    void mapHandles_VkCommandBuffer_u64(const VkCommandBuffer* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkCommandBuffer(handles[i]);
+        }
+    }
     void mapHandles_VkCommandPool(VkCommandPool* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = new_from_host_VkCommandPool(handles[i]);
+        }
+    }
+    void mapHandles_VkCommandPool_u64(const VkCommandPool* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkCommandPool(handles[i]);
         }
     }
     void mapHandles_VkDebugReportCallbackEXT(VkDebugReportCallbackEXT* handles, size_t count) override
@@ -68,11 +96,25 @@ public:
             handles[i] = new_from_host_VkDebugReportCallbackEXT(handles[i]);
         }
     }
+    void mapHandles_VkDebugReportCallbackEXT_u64(const VkDebugReportCallbackEXT* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkDebugReportCallbackEXT(handles[i]);
+        }
+    }
     void mapHandles_VkDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = new_from_host_VkDebugUtilsMessengerEXT(handles[i]);
+        }
+    }
+    void mapHandles_VkDebugUtilsMessengerEXT_u64(const VkDebugUtilsMessengerEXT* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkDebugUtilsMessengerEXT(handles[i]);
         }
     }
     void mapHandles_VkDescriptorPool(VkDescriptorPool* handles, size_t count) override
@@ -82,11 +124,25 @@ public:
             handles[i] = new_from_host_VkDescriptorPool(handles[i]);
         }
     }
+    void mapHandles_VkDescriptorPool_u64(const VkDescriptorPool* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkDescriptorPool(handles[i]);
+        }
+    }
     void mapHandles_VkDescriptorSet(VkDescriptorSet* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = new_from_host_VkDescriptorSet(handles[i]);
+        }
+    }
+    void mapHandles_VkDescriptorSet_u64(const VkDescriptorSet* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkDescriptorSet(handles[i]);
         }
     }
     void mapHandles_VkDescriptorSetLayout(VkDescriptorSetLayout* handles, size_t count) override
@@ -96,11 +152,25 @@ public:
             handles[i] = new_from_host_VkDescriptorSetLayout(handles[i]);
         }
     }
+    void mapHandles_VkDescriptorSetLayout_u64(const VkDescriptorSetLayout* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkDescriptorSetLayout(handles[i]);
+        }
+    }
     void mapHandles_VkDescriptorUpdateTemplate(VkDescriptorUpdateTemplate* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = new_from_host_VkDescriptorUpdateTemplate(handles[i]);
+        }
+    }
+    void mapHandles_VkDescriptorUpdateTemplate_u64(const VkDescriptorUpdateTemplate* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkDescriptorUpdateTemplate(handles[i]);
         }
     }
     void mapHandles_VkDevice(VkDevice* handles, size_t count) override
@@ -110,11 +180,25 @@ public:
             handles[i] = new_from_host_VkDevice(handles[i]);
         }
     }
+    void mapHandles_VkDevice_u64(const VkDevice* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkDevice(handles[i]);
+        }
+    }
     void mapHandles_VkDeviceMemory(VkDeviceMemory* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = new_from_host_VkDeviceMemory(handles[i]);
+        }
+    }
+    void mapHandles_VkDeviceMemory_u64(const VkDeviceMemory* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkDeviceMemory(handles[i]);
         }
     }
     void mapHandles_VkDisplayKHR(VkDisplayKHR* handles, size_t count) override
@@ -124,11 +208,25 @@ public:
             handles[i] = new_from_host_VkDisplayKHR(handles[i]);
         }
     }
+    void mapHandles_VkDisplayKHR_u64(const VkDisplayKHR* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkDisplayKHR(handles[i]);
+        }
+    }
     void mapHandles_VkDisplayModeKHR(VkDisplayModeKHR* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = new_from_host_VkDisplayModeKHR(handles[i]);
+        }
+    }
+    void mapHandles_VkDisplayModeKHR_u64(const VkDisplayModeKHR* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkDisplayModeKHR(handles[i]);
         }
     }
     void mapHandles_VkEvent(VkEvent* handles, size_t count) override
@@ -138,11 +236,25 @@ public:
             handles[i] = new_from_host_VkEvent(handles[i]);
         }
     }
+    void mapHandles_VkEvent_u64(const VkEvent* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkEvent(handles[i]);
+        }
+    }
     void mapHandles_VkFence(VkFence* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = new_from_host_VkFence(handles[i]);
+        }
+    }
+    void mapHandles_VkFence_u64(const VkFence* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkFence(handles[i]);
         }
     }
     void mapHandles_VkFramebuffer(VkFramebuffer* handles, size_t count) override
@@ -152,11 +264,25 @@ public:
             handles[i] = new_from_host_VkFramebuffer(handles[i]);
         }
     }
+    void mapHandles_VkFramebuffer_u64(const VkFramebuffer* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkFramebuffer(handles[i]);
+        }
+    }
     void mapHandles_VkImage(VkImage* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = new_from_host_VkImage(handles[i]);
+        }
+    }
+    void mapHandles_VkImage_u64(const VkImage* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkImage(handles[i]);
         }
     }
     void mapHandles_VkImageView(VkImageView* handles, size_t count) override
@@ -166,11 +292,25 @@ public:
             handles[i] = new_from_host_VkImageView(handles[i]);
         }
     }
+    void mapHandles_VkImageView_u64(const VkImageView* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkImageView(handles[i]);
+        }
+    }
     void mapHandles_VkIndirectCommandsLayoutNVX(VkIndirectCommandsLayoutNVX* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = new_from_host_VkIndirectCommandsLayoutNVX(handles[i]);
+        }
+    }
+    void mapHandles_VkIndirectCommandsLayoutNVX_u64(const VkIndirectCommandsLayoutNVX* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkIndirectCommandsLayoutNVX(handles[i]);
         }
     }
     void mapHandles_VkInstance(VkInstance* handles, size_t count) override
@@ -180,11 +320,25 @@ public:
             handles[i] = new_from_host_VkInstance(handles[i]);
         }
     }
+    void mapHandles_VkInstance_u64(const VkInstance* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkInstance(handles[i]);
+        }
+    }
     void mapHandles_VkObjectTableNVX(VkObjectTableNVX* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = new_from_host_VkObjectTableNVX(handles[i]);
+        }
+    }
+    void mapHandles_VkObjectTableNVX_u64(const VkObjectTableNVX* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkObjectTableNVX(handles[i]);
         }
     }
     void mapHandles_VkPhysicalDevice(VkPhysicalDevice* handles, size_t count) override
@@ -194,11 +348,25 @@ public:
             handles[i] = new_from_host_VkPhysicalDevice(handles[i]);
         }
     }
+    void mapHandles_VkPhysicalDevice_u64(const VkPhysicalDevice* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkPhysicalDevice(handles[i]);
+        }
+    }
     void mapHandles_VkPipeline(VkPipeline* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = new_from_host_VkPipeline(handles[i]);
+        }
+    }
+    void mapHandles_VkPipeline_u64(const VkPipeline* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkPipeline(handles[i]);
         }
     }
     void mapHandles_VkPipelineCache(VkPipelineCache* handles, size_t count) override
@@ -208,11 +376,25 @@ public:
             handles[i] = new_from_host_VkPipelineCache(handles[i]);
         }
     }
+    void mapHandles_VkPipelineCache_u64(const VkPipelineCache* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkPipelineCache(handles[i]);
+        }
+    }
     void mapHandles_VkPipelineLayout(VkPipelineLayout* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = new_from_host_VkPipelineLayout(handles[i]);
+        }
+    }
+    void mapHandles_VkPipelineLayout_u64(const VkPipelineLayout* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkPipelineLayout(handles[i]);
         }
     }
     void mapHandles_VkQueryPool(VkQueryPool* handles, size_t count) override
@@ -222,11 +404,25 @@ public:
             handles[i] = new_from_host_VkQueryPool(handles[i]);
         }
     }
+    void mapHandles_VkQueryPool_u64(const VkQueryPool* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkQueryPool(handles[i]);
+        }
+    }
     void mapHandles_VkQueue(VkQueue* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = new_from_host_VkQueue(handles[i]);
+        }
+    }
+    void mapHandles_VkQueue_u64(const VkQueue* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkQueue(handles[i]);
         }
     }
     void mapHandles_VkRenderPass(VkRenderPass* handles, size_t count) override
@@ -236,11 +432,25 @@ public:
             handles[i] = new_from_host_VkRenderPass(handles[i]);
         }
     }
+    void mapHandles_VkRenderPass_u64(const VkRenderPass* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkRenderPass(handles[i]);
+        }
+    }
     void mapHandles_VkSampler(VkSampler* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = new_from_host_VkSampler(handles[i]);
+        }
+    }
+    void mapHandles_VkSampler_u64(const VkSampler* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkSampler(handles[i]);
         }
     }
     void mapHandles_VkSamplerYcbcrConversion(VkSamplerYcbcrConversion* handles, size_t count) override
@@ -250,11 +460,25 @@ public:
             handles[i] = new_from_host_VkSamplerYcbcrConversion(handles[i]);
         }
     }
+    void mapHandles_VkSamplerYcbcrConversion_u64(const VkSamplerYcbcrConversion* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkSamplerYcbcrConversion(handles[i]);
+        }
+    }
     void mapHandles_VkSemaphore(VkSemaphore* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = new_from_host_VkSemaphore(handles[i]);
+        }
+    }
+    void mapHandles_VkSemaphore_u64(const VkSemaphore* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkSemaphore(handles[i]);
         }
     }
     void mapHandles_VkShaderModule(VkShaderModule* handles, size_t count) override
@@ -264,11 +488,25 @@ public:
             handles[i] = new_from_host_VkShaderModule(handles[i]);
         }
     }
+    void mapHandles_VkShaderModule_u64(const VkShaderModule* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkShaderModule(handles[i]);
+        }
+    }
     void mapHandles_VkSurfaceKHR(VkSurfaceKHR* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = new_from_host_VkSurfaceKHR(handles[i]);
+        }
+    }
+    void mapHandles_VkSurfaceKHR_u64(const VkSurfaceKHR* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkSurfaceKHR(handles[i]);
         }
     }
     void mapHandles_VkSwapchainKHR(VkSwapchainKHR* handles, size_t count) override
@@ -278,11 +516,25 @@ public:
             handles[i] = new_from_host_VkSwapchainKHR(handles[i]);
         }
     }
+    void mapHandles_VkSwapchainKHR_u64(const VkSwapchainKHR* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkSwapchainKHR(handles[i]);
+        }
+    }
     void mapHandles_VkValidationCacheEXT(VkValidationCacheEXT* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = new_from_host_VkValidationCacheEXT(handles[i]);
+        }
+    }
+    void mapHandles_VkValidationCacheEXT_u64(const VkValidationCacheEXT* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_VkValidationCacheEXT(handles[i]);
         }
     }
 };
@@ -296,11 +548,25 @@ public:
             handles[i] = get_host_VkBuffer(handles[i]);
         }
     }
+    void mapHandles_VkBuffer_u64(const VkBuffer* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkBuffer(handles[i]);
+        }
+    }
     void mapHandles_VkBufferView(VkBufferView* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = get_host_VkBufferView(handles[i]);
+        }
+    }
+    void mapHandles_VkBufferView_u64(const VkBufferView* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkBufferView(handles[i]);
         }
     }
     void mapHandles_VkCommandBuffer(VkCommandBuffer* handles, size_t count) override
@@ -310,11 +576,25 @@ public:
             handles[i] = get_host_VkCommandBuffer(handles[i]);
         }
     }
+    void mapHandles_VkCommandBuffer_u64(const VkCommandBuffer* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkCommandBuffer(handles[i]);
+        }
+    }
     void mapHandles_VkCommandPool(VkCommandPool* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = get_host_VkCommandPool(handles[i]);
+        }
+    }
+    void mapHandles_VkCommandPool_u64(const VkCommandPool* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkCommandPool(handles[i]);
         }
     }
     void mapHandles_VkDebugReportCallbackEXT(VkDebugReportCallbackEXT* handles, size_t count) override
@@ -324,11 +604,25 @@ public:
             handles[i] = get_host_VkDebugReportCallbackEXT(handles[i]);
         }
     }
+    void mapHandles_VkDebugReportCallbackEXT_u64(const VkDebugReportCallbackEXT* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkDebugReportCallbackEXT(handles[i]);
+        }
+    }
     void mapHandles_VkDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = get_host_VkDebugUtilsMessengerEXT(handles[i]);
+        }
+    }
+    void mapHandles_VkDebugUtilsMessengerEXT_u64(const VkDebugUtilsMessengerEXT* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkDebugUtilsMessengerEXT(handles[i]);
         }
     }
     void mapHandles_VkDescriptorPool(VkDescriptorPool* handles, size_t count) override
@@ -338,11 +632,25 @@ public:
             handles[i] = get_host_VkDescriptorPool(handles[i]);
         }
     }
+    void mapHandles_VkDescriptorPool_u64(const VkDescriptorPool* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkDescriptorPool(handles[i]);
+        }
+    }
     void mapHandles_VkDescriptorSet(VkDescriptorSet* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = get_host_VkDescriptorSet(handles[i]);
+        }
+    }
+    void mapHandles_VkDescriptorSet_u64(const VkDescriptorSet* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkDescriptorSet(handles[i]);
         }
     }
     void mapHandles_VkDescriptorSetLayout(VkDescriptorSetLayout* handles, size_t count) override
@@ -352,11 +660,25 @@ public:
             handles[i] = get_host_VkDescriptorSetLayout(handles[i]);
         }
     }
+    void mapHandles_VkDescriptorSetLayout_u64(const VkDescriptorSetLayout* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkDescriptorSetLayout(handles[i]);
+        }
+    }
     void mapHandles_VkDescriptorUpdateTemplate(VkDescriptorUpdateTemplate* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = get_host_VkDescriptorUpdateTemplate(handles[i]);
+        }
+    }
+    void mapHandles_VkDescriptorUpdateTemplate_u64(const VkDescriptorUpdateTemplate* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkDescriptorUpdateTemplate(handles[i]);
         }
     }
     void mapHandles_VkDevice(VkDevice* handles, size_t count) override
@@ -366,11 +688,25 @@ public:
             handles[i] = get_host_VkDevice(handles[i]);
         }
     }
+    void mapHandles_VkDevice_u64(const VkDevice* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkDevice(handles[i]);
+        }
+    }
     void mapHandles_VkDeviceMemory(VkDeviceMemory* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = get_host_VkDeviceMemory(handles[i]);
+        }
+    }
+    void mapHandles_VkDeviceMemory_u64(const VkDeviceMemory* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkDeviceMemory(handles[i]);
         }
     }
     void mapHandles_VkDisplayKHR(VkDisplayKHR* handles, size_t count) override
@@ -380,11 +716,25 @@ public:
             handles[i] = get_host_VkDisplayKHR(handles[i]);
         }
     }
+    void mapHandles_VkDisplayKHR_u64(const VkDisplayKHR* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkDisplayKHR(handles[i]);
+        }
+    }
     void mapHandles_VkDisplayModeKHR(VkDisplayModeKHR* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = get_host_VkDisplayModeKHR(handles[i]);
+        }
+    }
+    void mapHandles_VkDisplayModeKHR_u64(const VkDisplayModeKHR* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkDisplayModeKHR(handles[i]);
         }
     }
     void mapHandles_VkEvent(VkEvent* handles, size_t count) override
@@ -394,11 +744,25 @@ public:
             handles[i] = get_host_VkEvent(handles[i]);
         }
     }
+    void mapHandles_VkEvent_u64(const VkEvent* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkEvent(handles[i]);
+        }
+    }
     void mapHandles_VkFence(VkFence* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = get_host_VkFence(handles[i]);
+        }
+    }
+    void mapHandles_VkFence_u64(const VkFence* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkFence(handles[i]);
         }
     }
     void mapHandles_VkFramebuffer(VkFramebuffer* handles, size_t count) override
@@ -408,11 +772,25 @@ public:
             handles[i] = get_host_VkFramebuffer(handles[i]);
         }
     }
+    void mapHandles_VkFramebuffer_u64(const VkFramebuffer* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkFramebuffer(handles[i]);
+        }
+    }
     void mapHandles_VkImage(VkImage* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = get_host_VkImage(handles[i]);
+        }
+    }
+    void mapHandles_VkImage_u64(const VkImage* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkImage(handles[i]);
         }
     }
     void mapHandles_VkImageView(VkImageView* handles, size_t count) override
@@ -422,11 +800,25 @@ public:
             handles[i] = get_host_VkImageView(handles[i]);
         }
     }
+    void mapHandles_VkImageView_u64(const VkImageView* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkImageView(handles[i]);
+        }
+    }
     void mapHandles_VkIndirectCommandsLayoutNVX(VkIndirectCommandsLayoutNVX* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = get_host_VkIndirectCommandsLayoutNVX(handles[i]);
+        }
+    }
+    void mapHandles_VkIndirectCommandsLayoutNVX_u64(const VkIndirectCommandsLayoutNVX* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkIndirectCommandsLayoutNVX(handles[i]);
         }
     }
     void mapHandles_VkInstance(VkInstance* handles, size_t count) override
@@ -436,11 +828,25 @@ public:
             handles[i] = get_host_VkInstance(handles[i]);
         }
     }
+    void mapHandles_VkInstance_u64(const VkInstance* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkInstance(handles[i]);
+        }
+    }
     void mapHandles_VkObjectTableNVX(VkObjectTableNVX* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = get_host_VkObjectTableNVX(handles[i]);
+        }
+    }
+    void mapHandles_VkObjectTableNVX_u64(const VkObjectTableNVX* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkObjectTableNVX(handles[i]);
         }
     }
     void mapHandles_VkPhysicalDevice(VkPhysicalDevice* handles, size_t count) override
@@ -450,11 +856,25 @@ public:
             handles[i] = get_host_VkPhysicalDevice(handles[i]);
         }
     }
+    void mapHandles_VkPhysicalDevice_u64(const VkPhysicalDevice* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkPhysicalDevice(handles[i]);
+        }
+    }
     void mapHandles_VkPipeline(VkPipeline* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = get_host_VkPipeline(handles[i]);
+        }
+    }
+    void mapHandles_VkPipeline_u64(const VkPipeline* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkPipeline(handles[i]);
         }
     }
     void mapHandles_VkPipelineCache(VkPipelineCache* handles, size_t count) override
@@ -464,11 +884,25 @@ public:
             handles[i] = get_host_VkPipelineCache(handles[i]);
         }
     }
+    void mapHandles_VkPipelineCache_u64(const VkPipelineCache* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkPipelineCache(handles[i]);
+        }
+    }
     void mapHandles_VkPipelineLayout(VkPipelineLayout* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = get_host_VkPipelineLayout(handles[i]);
+        }
+    }
+    void mapHandles_VkPipelineLayout_u64(const VkPipelineLayout* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkPipelineLayout(handles[i]);
         }
     }
     void mapHandles_VkQueryPool(VkQueryPool* handles, size_t count) override
@@ -478,11 +912,25 @@ public:
             handles[i] = get_host_VkQueryPool(handles[i]);
         }
     }
+    void mapHandles_VkQueryPool_u64(const VkQueryPool* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkQueryPool(handles[i]);
+        }
+    }
     void mapHandles_VkQueue(VkQueue* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = get_host_VkQueue(handles[i]);
+        }
+    }
+    void mapHandles_VkQueue_u64(const VkQueue* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkQueue(handles[i]);
         }
     }
     void mapHandles_VkRenderPass(VkRenderPass* handles, size_t count) override
@@ -492,11 +940,25 @@ public:
             handles[i] = get_host_VkRenderPass(handles[i]);
         }
     }
+    void mapHandles_VkRenderPass_u64(const VkRenderPass* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkRenderPass(handles[i]);
+        }
+    }
     void mapHandles_VkSampler(VkSampler* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = get_host_VkSampler(handles[i]);
+        }
+    }
+    void mapHandles_VkSampler_u64(const VkSampler* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkSampler(handles[i]);
         }
     }
     void mapHandles_VkSamplerYcbcrConversion(VkSamplerYcbcrConversion* handles, size_t count) override
@@ -506,11 +968,25 @@ public:
             handles[i] = get_host_VkSamplerYcbcrConversion(handles[i]);
         }
     }
+    void mapHandles_VkSamplerYcbcrConversion_u64(const VkSamplerYcbcrConversion* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkSamplerYcbcrConversion(handles[i]);
+        }
+    }
     void mapHandles_VkSemaphore(VkSemaphore* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = get_host_VkSemaphore(handles[i]);
+        }
+    }
+    void mapHandles_VkSemaphore_u64(const VkSemaphore* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkSemaphore(handles[i]);
         }
     }
     void mapHandles_VkShaderModule(VkShaderModule* handles, size_t count) override
@@ -520,11 +996,25 @@ public:
             handles[i] = get_host_VkShaderModule(handles[i]);
         }
     }
+    void mapHandles_VkShaderModule_u64(const VkShaderModule* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkShaderModule(handles[i]);
+        }
+    }
     void mapHandles_VkSurfaceKHR(VkSurfaceKHR* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = get_host_VkSurfaceKHR(handles[i]);
+        }
+    }
+    void mapHandles_VkSurfaceKHR_u64(const VkSurfaceKHR* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkSurfaceKHR(handles[i]);
         }
     }
     void mapHandles_VkSwapchainKHR(VkSwapchainKHR* handles, size_t count) override
@@ -534,11 +1024,25 @@ public:
             handles[i] = get_host_VkSwapchainKHR(handles[i]);
         }
     }
+    void mapHandles_VkSwapchainKHR_u64(const VkSwapchainKHR* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkSwapchainKHR(handles[i]);
+        }
+    }
     void mapHandles_VkValidationCacheEXT(VkValidationCacheEXT* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             handles[i] = get_host_VkValidationCacheEXT(handles[i]);
+        }
+    }
+    void mapHandles_VkValidationCacheEXT_u64(const VkValidationCacheEXT* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            handle_u64s[i] = (uint64_t)(uintptr_t)get_host_VkValidationCacheEXT(handles[i]);
         }
     }
 };
@@ -552,11 +1056,25 @@ public:
             delete_goldfish_VkBuffer(handles[i]);
         }
     }
+    void mapHandles_VkBuffer_u64(const VkBuffer* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkBuffer(handles[i]);
+        }
+    }
     void mapHandles_VkBufferView(VkBufferView* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             delete_goldfish_VkBufferView(handles[i]);
+        }
+    }
+    void mapHandles_VkBufferView_u64(const VkBufferView* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkBufferView(handles[i]);
         }
     }
     void mapHandles_VkCommandBuffer(VkCommandBuffer* handles, size_t count) override
@@ -566,11 +1084,25 @@ public:
             delete_goldfish_VkCommandBuffer(handles[i]);
         }
     }
+    void mapHandles_VkCommandBuffer_u64(const VkCommandBuffer* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkCommandBuffer(handles[i]);
+        }
+    }
     void mapHandles_VkCommandPool(VkCommandPool* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             delete_goldfish_VkCommandPool(handles[i]);
+        }
+    }
+    void mapHandles_VkCommandPool_u64(const VkCommandPool* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkCommandPool(handles[i]);
         }
     }
     void mapHandles_VkDebugReportCallbackEXT(VkDebugReportCallbackEXT* handles, size_t count) override
@@ -580,11 +1112,25 @@ public:
             delete_goldfish_VkDebugReportCallbackEXT(handles[i]);
         }
     }
+    void mapHandles_VkDebugReportCallbackEXT_u64(const VkDebugReportCallbackEXT* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkDebugReportCallbackEXT(handles[i]);
+        }
+    }
     void mapHandles_VkDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             delete_goldfish_VkDebugUtilsMessengerEXT(handles[i]);
+        }
+    }
+    void mapHandles_VkDebugUtilsMessengerEXT_u64(const VkDebugUtilsMessengerEXT* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkDebugUtilsMessengerEXT(handles[i]);
         }
     }
     void mapHandles_VkDescriptorPool(VkDescriptorPool* handles, size_t count) override
@@ -594,11 +1140,25 @@ public:
             delete_goldfish_VkDescriptorPool(handles[i]);
         }
     }
+    void mapHandles_VkDescriptorPool_u64(const VkDescriptorPool* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkDescriptorPool(handles[i]);
+        }
+    }
     void mapHandles_VkDescriptorSet(VkDescriptorSet* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             delete_goldfish_VkDescriptorSet(handles[i]);
+        }
+    }
+    void mapHandles_VkDescriptorSet_u64(const VkDescriptorSet* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkDescriptorSet(handles[i]);
         }
     }
     void mapHandles_VkDescriptorSetLayout(VkDescriptorSetLayout* handles, size_t count) override
@@ -608,11 +1168,25 @@ public:
             delete_goldfish_VkDescriptorSetLayout(handles[i]);
         }
     }
+    void mapHandles_VkDescriptorSetLayout_u64(const VkDescriptorSetLayout* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkDescriptorSetLayout(handles[i]);
+        }
+    }
     void mapHandles_VkDescriptorUpdateTemplate(VkDescriptorUpdateTemplate* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             delete_goldfish_VkDescriptorUpdateTemplate(handles[i]);
+        }
+    }
+    void mapHandles_VkDescriptorUpdateTemplate_u64(const VkDescriptorUpdateTemplate* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkDescriptorUpdateTemplate(handles[i]);
         }
     }
     void mapHandles_VkDevice(VkDevice* handles, size_t count) override
@@ -622,11 +1196,25 @@ public:
             delete_goldfish_VkDevice(handles[i]);
         }
     }
+    void mapHandles_VkDevice_u64(const VkDevice* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkDevice(handles[i]);
+        }
+    }
     void mapHandles_VkDeviceMemory(VkDeviceMemory* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             delete_goldfish_VkDeviceMemory(handles[i]);
+        }
+    }
+    void mapHandles_VkDeviceMemory_u64(const VkDeviceMemory* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkDeviceMemory(handles[i]);
         }
     }
     void mapHandles_VkDisplayKHR(VkDisplayKHR* handles, size_t count) override
@@ -636,11 +1224,25 @@ public:
             delete_goldfish_VkDisplayKHR(handles[i]);
         }
     }
+    void mapHandles_VkDisplayKHR_u64(const VkDisplayKHR* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkDisplayKHR(handles[i]);
+        }
+    }
     void mapHandles_VkDisplayModeKHR(VkDisplayModeKHR* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             delete_goldfish_VkDisplayModeKHR(handles[i]);
+        }
+    }
+    void mapHandles_VkDisplayModeKHR_u64(const VkDisplayModeKHR* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkDisplayModeKHR(handles[i]);
         }
     }
     void mapHandles_VkEvent(VkEvent* handles, size_t count) override
@@ -650,11 +1252,25 @@ public:
             delete_goldfish_VkEvent(handles[i]);
         }
     }
+    void mapHandles_VkEvent_u64(const VkEvent* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkEvent(handles[i]);
+        }
+    }
     void mapHandles_VkFence(VkFence* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             delete_goldfish_VkFence(handles[i]);
+        }
+    }
+    void mapHandles_VkFence_u64(const VkFence* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkFence(handles[i]);
         }
     }
     void mapHandles_VkFramebuffer(VkFramebuffer* handles, size_t count) override
@@ -664,11 +1280,25 @@ public:
             delete_goldfish_VkFramebuffer(handles[i]);
         }
     }
+    void mapHandles_VkFramebuffer_u64(const VkFramebuffer* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkFramebuffer(handles[i]);
+        }
+    }
     void mapHandles_VkImage(VkImage* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             delete_goldfish_VkImage(handles[i]);
+        }
+    }
+    void mapHandles_VkImage_u64(const VkImage* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkImage(handles[i]);
         }
     }
     void mapHandles_VkImageView(VkImageView* handles, size_t count) override
@@ -678,11 +1308,25 @@ public:
             delete_goldfish_VkImageView(handles[i]);
         }
     }
+    void mapHandles_VkImageView_u64(const VkImageView* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkImageView(handles[i]);
+        }
+    }
     void mapHandles_VkIndirectCommandsLayoutNVX(VkIndirectCommandsLayoutNVX* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             delete_goldfish_VkIndirectCommandsLayoutNVX(handles[i]);
+        }
+    }
+    void mapHandles_VkIndirectCommandsLayoutNVX_u64(const VkIndirectCommandsLayoutNVX* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkIndirectCommandsLayoutNVX(handles[i]);
         }
     }
     void mapHandles_VkInstance(VkInstance* handles, size_t count) override
@@ -692,11 +1336,25 @@ public:
             delete_goldfish_VkInstance(handles[i]);
         }
     }
+    void mapHandles_VkInstance_u64(const VkInstance* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkInstance(handles[i]);
+        }
+    }
     void mapHandles_VkObjectTableNVX(VkObjectTableNVX* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             delete_goldfish_VkObjectTableNVX(handles[i]);
+        }
+    }
+    void mapHandles_VkObjectTableNVX_u64(const VkObjectTableNVX* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkObjectTableNVX(handles[i]);
         }
     }
     void mapHandles_VkPhysicalDevice(VkPhysicalDevice* handles, size_t count) override
@@ -706,11 +1364,25 @@ public:
             delete_goldfish_VkPhysicalDevice(handles[i]);
         }
     }
+    void mapHandles_VkPhysicalDevice_u64(const VkPhysicalDevice* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkPhysicalDevice(handles[i]);
+        }
+    }
     void mapHandles_VkPipeline(VkPipeline* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             delete_goldfish_VkPipeline(handles[i]);
+        }
+    }
+    void mapHandles_VkPipeline_u64(const VkPipeline* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkPipeline(handles[i]);
         }
     }
     void mapHandles_VkPipelineCache(VkPipelineCache* handles, size_t count) override
@@ -720,11 +1392,25 @@ public:
             delete_goldfish_VkPipelineCache(handles[i]);
         }
     }
+    void mapHandles_VkPipelineCache_u64(const VkPipelineCache* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkPipelineCache(handles[i]);
+        }
+    }
     void mapHandles_VkPipelineLayout(VkPipelineLayout* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             delete_goldfish_VkPipelineLayout(handles[i]);
+        }
+    }
+    void mapHandles_VkPipelineLayout_u64(const VkPipelineLayout* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkPipelineLayout(handles[i]);
         }
     }
     void mapHandles_VkQueryPool(VkQueryPool* handles, size_t count) override
@@ -734,11 +1420,25 @@ public:
             delete_goldfish_VkQueryPool(handles[i]);
         }
     }
+    void mapHandles_VkQueryPool_u64(const VkQueryPool* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkQueryPool(handles[i]);
+        }
+    }
     void mapHandles_VkQueue(VkQueue* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             delete_goldfish_VkQueue(handles[i]);
+        }
+    }
+    void mapHandles_VkQueue_u64(const VkQueue* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkQueue(handles[i]);
         }
     }
     void mapHandles_VkRenderPass(VkRenderPass* handles, size_t count) override
@@ -748,11 +1448,25 @@ public:
             delete_goldfish_VkRenderPass(handles[i]);
         }
     }
+    void mapHandles_VkRenderPass_u64(const VkRenderPass* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkRenderPass(handles[i]);
+        }
+    }
     void mapHandles_VkSampler(VkSampler* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             delete_goldfish_VkSampler(handles[i]);
+        }
+    }
+    void mapHandles_VkSampler_u64(const VkSampler* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkSampler(handles[i]);
         }
     }
     void mapHandles_VkSamplerYcbcrConversion(VkSamplerYcbcrConversion* handles, size_t count) override
@@ -762,11 +1476,25 @@ public:
             delete_goldfish_VkSamplerYcbcrConversion(handles[i]);
         }
     }
+    void mapHandles_VkSamplerYcbcrConversion_u64(const VkSamplerYcbcrConversion* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkSamplerYcbcrConversion(handles[i]);
+        }
+    }
     void mapHandles_VkSemaphore(VkSemaphore* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             delete_goldfish_VkSemaphore(handles[i]);
+        }
+    }
+    void mapHandles_VkSemaphore_u64(const VkSemaphore* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkSemaphore(handles[i]);
         }
     }
     void mapHandles_VkShaderModule(VkShaderModule* handles, size_t count) override
@@ -776,11 +1504,25 @@ public:
             delete_goldfish_VkShaderModule(handles[i]);
         }
     }
+    void mapHandles_VkShaderModule_u64(const VkShaderModule* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkShaderModule(handles[i]);
+        }
+    }
     void mapHandles_VkSurfaceKHR(VkSurfaceKHR* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             delete_goldfish_VkSurfaceKHR(handles[i]);
+        }
+    }
+    void mapHandles_VkSurfaceKHR_u64(const VkSurfaceKHR* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkSurfaceKHR(handles[i]);
         }
     }
     void mapHandles_VkSwapchainKHR(VkSwapchainKHR* handles, size_t count) override
@@ -790,11 +1532,25 @@ public:
             delete_goldfish_VkSwapchainKHR(handles[i]);
         }
     }
+    void mapHandles_VkSwapchainKHR_u64(const VkSwapchainKHR* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkSwapchainKHR(handles[i]);
+        }
+    }
     void mapHandles_VkValidationCacheEXT(VkValidationCacheEXT* handles, size_t count) override
     {
         for (size_t i = 0; i < count; ++i)
         {
             delete_goldfish_VkValidationCacheEXT(handles[i]);
+        }
+    }
+    void mapHandles_VkValidationCacheEXT_u64(const VkValidationCacheEXT* handles, uint64_t* handle_u64s, size_t count) override
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            (void)handle_u64s[i]; delete_goldfish_VkValidationCacheEXT(handles[i]);
         }
     }
 };
