@@ -47,12 +47,12 @@ public: \
     MAKE_HANDLE_MAPPING_FOREACH(type_name, \
         handles[i] = new_from_host_##type_name(handles[i]), \
         handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_##type_name(handles[i]), \
-        handles[i] = (type_name)(uintptr_t)new_from_host_##type_name((type_name)(uintptr_t)handle_u64s[i]))
+        handles[i] = (type_name)(uintptr_t)new_from_host_u64_##type_name(handle_u64s[i]))
 
 #define UNWRAP_MAPPING_IMPL_FOR_TYPE(type_name) \
     MAKE_HANDLE_MAPPING_FOREACH(type_name, \
         handles[i] = get_host_##type_name(handles[i]), \
-        handle_u64s[i] = (uint64_t)(uintptr_t)get_host_##type_name(handles[i]), \
+        handle_u64s[i] = (uint64_t)(uintptr_t)get_host_u64_##type_name(handles[i]), \
         handles[i] = (type_name)(uintptr_t)get_host_##type_name((type_name)(uintptr_t)handle_u64s[i]))
 
 #define DESTROY_MAPPING_IMPL_FOR_TYPE(type_name) \
