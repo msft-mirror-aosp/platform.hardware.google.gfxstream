@@ -17,6 +17,13 @@
 
 #include "Resources.h"
 
+#include "android/base/synchronization/AndroidLock.h"
+
+#include <unordered_map>
+
+using android::base::guest::AutoLock;
+using android::base::guest::Lock;
+
 namespace goldfish_vk {
 
 #define MAKE_HANDLE_MAPPING_FOREACH(type_name, map_impl, map_to_u64_impl, map_from_u64_impl) \
@@ -45,9 +52,9 @@ public: \
 
 #define CREATE_MAPPING_IMPL_FOR_TYPE(type_name) \
     MAKE_HANDLE_MAPPING_FOREACH(type_name, \
-        handles[i] = new_from_host_##type_name(handles[i]), \
+        handles[i] = new_from_host_##type_name(handles[i]); ResourceTracker::get()->register_##type_name(handles[i]);, \
         handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_##type_name(handles[i]), \
-        handles[i] = (type_name)(uintptr_t)new_from_host_u64_##type_name(handle_u64s[i]))
+        handles[i] = (type_name)(uintptr_t)new_from_host_u64_##type_name(handle_u64s[i]); ResourceTracker::get()->register_##type_name(handles[i]);)
 
 #define UNWRAP_MAPPING_IMPL_FOR_TYPE(type_name) \
     MAKE_HANDLE_MAPPING_FOREACH(type_name, \
@@ -57,7 +64,7 @@ public: \
 
 #define DESTROY_MAPPING_IMPL_FOR_TYPE(type_name) \
     MAKE_HANDLE_MAPPING_FOREACH(type_name, \
-        delete_goldfish_##type_name(handles[i]), \
+        ResourceTracker::get()->unregister_##type_name(handles[i]); delete_goldfish_##type_name(handles[i]), \
         (void)handle_u64s[i]; delete_goldfish_##type_name(handles[i]), \
         (void)handles[i]; delete_goldfish_##type_name((type_name)(uintptr_t)handle_u64s[i]))
 
@@ -72,6 +79,76 @@ public:
     UnwrapMapping unwrapMapping;
     DestroyMapping destroyMapping;
     DefaultHandleMapping defaultMapping;
+
+#define HANDLE_DEFINE_TRIVIAL_INFO_STRUCT(type) \
+    struct type##_Info { \
+        uint32_t unused; \
+    }; \
+
+    GOLDFISH_VK_LIST_TRIVIAL_HANDLE_TYPES(HANDLE_DEFINE_TRIVIAL_INFO_STRUCT)
+
+    struct VkDevice_Info {
+        VkPhysicalDevice physdev;
+        VkPhysicalDeviceProperties props;
+        VkPhysicalDeviceMemoryProperties memProps;
+    };
+
+    struct VkDeviceMemory_Info {
+        VkDeviceSize allocationSize;
+        uint32_t memoryTypeIndex;
+    };
+
+#define HANDLE_REGISTER_IMPL_IMPL(type) \
+    std::unordered_map<type, type##_Info> info_##type; \
+    void register_##type(type obj) { \
+        AutoLock lock(mLock); \
+        info_##type[obj] = type##_Info(); \
+    } \
+    void unregister_##type(type obj) { \
+        AutoLock lock(mLock); \
+        info_##type.erase(obj); \
+    } \
+
+    GOLDFISH_VK_LIST_HANDLE_TYPES(HANDLE_REGISTER_IMPL_IMPL)
+
+    void setDeviceInfo(VkDevice device,
+                       VkPhysicalDevice physdev,
+                       VkPhysicalDeviceProperties props,
+                       VkPhysicalDeviceMemoryProperties memProps) {
+        AutoLock lock(mLock);
+        auto& info = info_VkDevice[device];
+        info.physdev = physdev;
+        info.props = props;
+        info.memProps = memProps;
+    }
+
+    bool isMemoryTypeHostVisible(VkDevice device, uint32_t typeIndex) const {
+        AutoLock lock(mLock);
+        const auto it = info_VkDevice.find(device);
+
+        if (it == info_VkDevice.end()) return false;
+
+        const auto& info = it->second;
+        return info.memProps.memoryTypes[typeIndex].propertyFlags & 
+               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+    }
+
+    VkDeviceSize getNonCoherentExtendedSize(VkDevice device, VkDeviceSize basicSize) const {
+        AutoLock lock(mLock);
+        const auto it = info_VkDevice.find(device);
+        if (it == info_VkDevice.end()) return basicSize;
+        const auto& info = it->second;
+
+        VkDeviceSize nonCoherentAtomSize =
+            info.props.limits.nonCoherentAtomSize;
+        VkDeviceSize atoms =
+            (basicSize + nonCoherentAtomSize - 1) / nonCoherentAtomSize;
+        return atoms * nonCoherentAtomSize;
+    }
+
+private:
+    mutable Lock mLock;
+
 };
 ResourceTracker::ResourceTracker() : mImpl(new ResourceTracker::Impl()) { }
 ResourceTracker::~ResourceTracker() { }
@@ -95,6 +172,33 @@ ResourceTracker* ResourceTracker::get() {
         sTracker = new ResourceTracker;
     }
     return sTracker;
+}
+
+#define HANDLE_REGISTER_IMPL(type) \
+    void ResourceTracker::register_##type(type obj) { \
+        mImpl->register_##type(obj); \
+    } \
+    void ResourceTracker::unregister_##type(type obj) { \
+        mImpl->unregister_##type(obj); \
+    } \
+
+GOLDFISH_VK_LIST_HANDLE_TYPES(HANDLE_REGISTER_IMPL)
+
+void ResourceTracker::setDeviceInfo(
+    VkDevice device,
+    VkPhysicalDevice physdev,
+    VkPhysicalDeviceProperties props,
+    VkPhysicalDeviceMemoryProperties memProps) {
+    mImpl->setDeviceInfo(device, physdev, props, memProps);
+}
+
+bool ResourceTracker::isMemoryTypeHostVisible(
+    VkDevice device, uint32_t typeIndex) const {
+    return mImpl->isMemoryTypeHostVisible(device, typeIndex);
+}
+
+VkDeviceSize ResourceTracker::getNonCoherentExtendedSize(VkDevice device, VkDeviceSize basicSize) const {
+    return mImpl->getNonCoherentExtendedSize(device, basicSize);
 }
 
 } // namespace goldfish_vk

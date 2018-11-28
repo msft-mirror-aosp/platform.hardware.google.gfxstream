@@ -75,29 +75,48 @@ GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_DEFINE_TRIVIA
 
 // Custom definitions///////////////////////////////////////////////////////////
 
-VkResult goldfish_vkEnumerateInstanceVersion(uint32_t* apiVersion);
+VkResult goldfish_vkEnumerateInstanceVersion(
+    void* opaque,
+    VkResult host_return,
+    uint32_t* apiVersion);
 
 VkResult goldfish_vkEnumerateDeviceExtensionProperties(
+    void* opaque,
+    VkResult host_return,
     VkPhysicalDevice physicalDevice, const char *pLayerName,
     uint32_t *pPropertyCount, VkExtensionProperties *pProperties);
 
 void goldfish_vkGetPhysicalDeviceProperties2(
+    void* opaque,
     VkPhysicalDevice physicalDevice,
     VkPhysicalDeviceProperties2* pProperties);
+
+VkResult goldfish_vkCreateDevice(
+    void* opaque,
+    VkResult host_return,
+    VkPhysicalDevice physicalDevice,
+    const VkDeviceCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDevice* pDevice);
 
 struct goldfish_VkDeviceMemory {
     uint64_t underlying;
     uint8_t* ptr;
     VkDeviceSize size;
+    VkDeviceSize mappedSize;
 };
 
 VkResult goldfish_vkAllocateMemory(
+    void* opaque,
+    VkResult host_return,
     VkDevice device,
     const VkMemoryAllocateInfo* pAllocateInfo,
     const VkAllocationCallbacks* pAllocator,
     VkDeviceMemory* pMemory);
 
 VkResult goldfish_vkMapMemory(
+    void* opaque,
+    VkResult host_return,
     VkDevice device,
     VkDeviceMemory memory,
     VkDeviceSize offset,
@@ -106,7 +125,7 @@ VkResult goldfish_vkMapMemory(
     void** ppData);
 
 void goldfish_vkUnmapMemory(
+    void* opaque,
     VkDevice device,
     VkDeviceMemory memory);
-
 } // extern "C"
