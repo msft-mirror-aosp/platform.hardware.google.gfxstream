@@ -28,6 +28,7 @@
 #include "IOStream.h"
 #include "Resources.h"
 #include "ResourceTracker.h"
+#include "Validation.h"
 #include "VulkanStream.h"
 
 #include "android/base/AlignedBuf.h"
@@ -63,6 +64,15 @@ private:
 
 VkEncoder::VkEncoder(IOStream *stream) :
     mImpl(new VkEncoder::Impl(stream)) { }
+
+#define VALIDATE_RET(retType, success, validate) \
+    retType goldfish_vk_validateResult = validate; \
+    if (goldfish_vk_validateResult != success) return goldfish_vk_validateResult; \
+
+#define VALIDATE_VOID(validate) \
+    VkResult goldfish_vk_validateResult = validate; \
+    if (goldfish_vk_validateResult != VK_SUCCESS) return; \
+
 #ifdef VK_VERSION_1_0
 VkResult VkEncoder::vkCreateInstance(
     const VkInstanceCreateInfo* pCreateInfo,
@@ -1399,6 +1409,7 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
     uint32_t memoryRangeCount,
     const VkMappedMemoryRange* pMemoryRanges)
 {
+    VALIDATE_RET(VkResult, VK_SUCCESS, validate_vkFlushMappedMemoryRanges(device, memoryRangeCount, pMemoryRanges));
     auto stream = mImpl->stream();
     auto countingStream = mImpl->countingStream();
     auto resources = mImpl->resources();
@@ -1489,6 +1500,7 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
     uint32_t memoryRangeCount,
     const VkMappedMemoryRange* pMemoryRanges)
 {
+    VALIDATE_RET(VkResult, VK_SUCCESS, validate_vkInvalidateMappedMemoryRanges(device, memoryRangeCount, pMemoryRanges));
     auto stream = mImpl->stream();
     auto countingStream = mImpl->countingStream();
     auto resources = mImpl->resources();
