@@ -41,6 +41,7 @@ LOCAL_CFLAGS += \
     -DVK_NO_PROTOTYPES \
 
 LOCAL_SRC_FILES := Resources.cpp \
+    Validation.cpp \
     VulkanStream.cpp \
     VulkanHandleMapping.cpp \
     ResourceTracker.cpp \
