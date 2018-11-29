@@ -41,6 +41,9 @@ public:
     void setDeviceInfo(VkDevice device, VkPhysicalDevice physdev, VkPhysicalDeviceProperties props, VkPhysicalDeviceMemoryProperties memProps);
     bool isMemoryTypeHostVisible(VkDevice device, uint32_t typeIndex) const;
     VkDeviceSize getNonCoherentExtendedSize(VkDevice device, VkDeviceSize basicSize) const;
+    bool isValidMemoryRange(
+        VkDevice device,
+        const VkMappedMemoryRange& range) const;
 
   private:
     class Impl;
