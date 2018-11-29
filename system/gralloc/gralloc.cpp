@@ -52,6 +52,8 @@
 
 #define DBG_FUNC DBG("%s\n", __FUNCTION__)
 
+#define GOLDFISH_OFFSET_UNIT 8
+
 #ifdef GOLDFISH_HIDL_GRALLOC
 static bool isHidlGralloc = true;
 #else
@@ -64,8 +66,8 @@ int32_t* getOpenCountPtr(cb_handle_t* cb) {
 
 uint32_t getAshmemColorOffset(cb_handle_t* cb) {
     uint32_t res = 0;
-    if (cb->canBePosted()) res = sizeof(intptr_t);
-    if (isHidlGralloc) res = sizeof(intptr_t) * 2;
+    if (cb->canBePosted()) res = GOLDFISH_OFFSET_UNIT;
+    if (isHidlGralloc) res = GOLDFISH_OFFSET_UNIT * 2;
     return res;
 }
 
@@ -165,7 +167,7 @@ void get_gralloc_dmaregion() {
 
 static void resize_gralloc_dmaregion_locked(uint32_t new_sz) {
     if (!s_grdma) return;
-    if (s_grdma->goldfish_dma.mapped) {
+    if (s_grdma->goldfish_dma.mapped_addr) {
         goldfish_dma_unmap(&s_grdma->goldfish_dma);
     }
     close(s_grdma->goldfish_dma.fd);
@@ -211,7 +213,7 @@ void gralloc_dmaregion_register_ashmem(uint32_t sz) {
             resize_gralloc_dmaregion_locked(new_sz);
         }
     }
-    if (!s_grdma->goldfish_dma.mapped) {
+    if (!s_grdma->goldfish_dma.mapped_addr) {
         goldfish_dma_map(&s_grdma->goldfish_dma);
     }
     pthread_mutex_unlock(&s_grdma->lock);
@@ -633,12 +635,12 @@ static int gralloc_alloc(alloc_device_t* dev,
         if (needHostCb || (usage & GRALLOC_USAGE_HW_FB)) {
             // keep space for postCounter
             // AND openCounter for all host cb
-            ashmem_size += sizeof(uint32_t) * 2;
+            ashmem_size += GOLDFISH_OFFSET_UNIT * 2;
         }
     } else {
         if (usage & GRALLOC_USAGE_HW_FB) {
             // keep space for postCounter
-            ashmem_size += sizeof(uint32_t) * 1;
+            ashmem_size += GOLDFISH_OFFSET_UNIT * 1;
         }
     }
 
