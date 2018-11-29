@@ -17,6 +17,7 @@
 #include <vulkan/vulkan.h>
 
 #include "VulkanHandleMapping.h"
+#include "VulkanHandles.h"
 #include <memory>
 
 namespace goldfish_vk {
@@ -30,7 +31,18 @@ public:
     VulkanHandleMapping* unwrapMapping();
     VulkanHandleMapping* destroyMapping();
     VulkanHandleMapping* defaultMapping();
-private:
+
+#define HANDLE_REGISTER_DECL(type) \
+    void register_##type(type); \
+    void unregister_##type(type); \
+
+    GOLDFISH_VK_LIST_HANDLE_TYPES(HANDLE_REGISTER_DECL)
+
+    void setDeviceInfo(VkDevice device, VkPhysicalDevice physdev, VkPhysicalDeviceProperties props, VkPhysicalDeviceMemoryProperties memProps);
+    bool isMemoryTypeHostVisible(VkDevice device, uint32_t typeIndex) const;
+    VkDeviceSize getNonCoherentExtendedSize(VkDevice device, VkDeviceSize basicSize) const;
+
+  private:
     class Impl;
     std::unique_ptr<Impl> mImpl;
 };

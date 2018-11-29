@@ -721,6 +721,7 @@ VkResult VkEncoder::vkCreateDevice(
     countingStream->clearPool();
     stream->clearPool();
     pool->freeAll();
+    goldfish_vkCreateDevice(this, vkCreateDevice_VkResult_return, physicalDevice, pCreateInfo, pAllocator, pDevice);
     return vkCreateDevice_VkResult_return;
 }
 
@@ -874,7 +875,7 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
     VkExtensionProperties* pProperties)
 {
     VkResult vkEnumerateDeviceExtensionProperties_VkResult_return = (VkResult)0;
-    vkEnumerateDeviceExtensionProperties_VkResult_return = goldfish_vkEnumerateDeviceExtensionProperties(physicalDevice, pLayerName, pPropertyCount, pProperties);
+    vkEnumerateDeviceExtensionProperties_VkResult_return = goldfish_vkEnumerateDeviceExtensionProperties(this, vkEnumerateDeviceExtensionProperties_VkResult_return, physicalDevice, pLayerName, pPropertyCount, pProperties);
     return vkEnumerateDeviceExtensionProperties_VkResult_return;
 }
 
@@ -1305,12 +1306,12 @@ VkResult VkEncoder::vkAllocateMemory(
     stream->read((uint64_t*)&cgen_var_92, 8);
     stream->handleMapping()->mapHandles_u64_VkDeviceMemory(&cgen_var_92, (VkDeviceMemory*)pMemory, 1);
     stream->unsetHandleMapping();
-    goldfish_vkAllocateMemory(device, pAllocateInfo, pAllocator, pMemory);
     VkResult vkAllocateMemory_VkResult_return = (VkResult)0;
     stream->read(&vkAllocateMemory_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
     stream->clearPool();
     pool->freeAll();
+    goldfish_vkAllocateMemory(this, vkAllocateMemory_VkResult_return, device, pAllocateInfo, pAllocator, pMemory);
     return vkAllocateMemory_VkResult_return;
 }
 
@@ -1382,7 +1383,7 @@ VkResult VkEncoder::vkMapMemory(
     void** ppData)
 {
     VkResult vkMapMemory_VkResult_return = (VkResult)0;
-    vkMapMemory_VkResult_return = goldfish_vkMapMemory(device, memory, offset, size, flags, ppData);
+    vkMapMemory_VkResult_return = goldfish_vkMapMemory(this, vkMapMemory_VkResult_return, device, memory, offset, size, flags, ppData);
     return vkMapMemory_VkResult_return;
 }
 
@@ -1390,7 +1391,7 @@ void VkEncoder::vkUnmapMemory(
     VkDevice device,
     VkDeviceMemory memory)
 {
-    goldfish_vkUnmapMemory(device, memory);
+    goldfish_vkUnmapMemory(this, device, memory);
 }
 
 VkResult VkEncoder::vkFlushMappedMemoryRanges(
@@ -5033,15 +5034,15 @@ VkResult VkEncoder::vkFreeDescriptorSets(
             stream->write((uint64_t*)cgen_var_424, ((descriptorSetCount)) * 8);
         }
     }
-    if (pDescriptorSets)
-    {
-        resources->destroyMapping()->mapHandles_VkDescriptorSet((VkDescriptorSet*)pDescriptorSets, ((descriptorSetCount)));
-    }
     VkResult vkFreeDescriptorSets_VkResult_return = (VkResult)0;
     stream->read(&vkFreeDescriptorSets_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
     stream->clearPool();
     pool->freeAll();
+    if (pDescriptorSets)
+    {
+        resources->destroyMapping()->mapHandles_VkDescriptorSet((VkDescriptorSet*)pDescriptorSets, ((descriptorSetCount)));
+    }
     return vkFreeDescriptorSets_VkResult_return;
 }
 
@@ -8310,7 +8311,7 @@ VkResult VkEncoder::vkEnumerateInstanceVersion(
     uint32_t* pApiVersion)
 {
     VkResult vkEnumerateInstanceVersion_VkResult_return = (VkResult)0;
-    vkEnumerateInstanceVersion_VkResult_return = goldfish_vkEnumerateInstanceVersion(pApiVersion);
+    vkEnumerateInstanceVersion_VkResult_return = goldfish_vkEnumerateInstanceVersion(this, vkEnumerateInstanceVersion_VkResult_return, pApiVersion);
     return vkEnumerateInstanceVersion_VkResult_return;
 }
 
@@ -8862,7 +8863,7 @@ void VkEncoder::vkGetPhysicalDeviceProperties2(
     VkPhysicalDevice physicalDevice,
     VkPhysicalDeviceProperties2* pProperties)
 {
-    goldfish_vkGetPhysicalDeviceProperties2(physicalDevice, pProperties);
+    goldfish_vkGetPhysicalDeviceProperties2(this, physicalDevice, pProperties);
 }
 
 void VkEncoder::vkGetPhysicalDeviceFormatProperties2(
