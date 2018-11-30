@@ -38,6 +38,7 @@ using android::aligned_buf_free;
 #endif
 
 using goldfish_vk::ResourceTracker;
+using goldfish_vk::VkEncoder;
 
 extern "C" {
 

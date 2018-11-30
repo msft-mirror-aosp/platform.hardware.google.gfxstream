@@ -40,7 +40,7 @@
 #include "goldfish_vk_private_defs.h"
 
 
-
+namespace goldfish_vk {
 
 
 
@@ -18954,4 +18954,4 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
 
 #endif
 
-
+} // namespace goldfish_vk
