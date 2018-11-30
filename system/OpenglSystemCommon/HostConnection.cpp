@@ -21,11 +21,15 @@
 #ifdef GOLDFISH_VULKAN
 #include "VkEncoder.h"
 #else
+namespace goldfish_vk {
 struct VkEncoder {
     VkEncoder(IOStream*) { }
     int placeholder;
 };
+} // namespace goldfish_vk
 #endif
+
+using goldfish_vk::VkEncoder;
 
 #include "ProcessPipe.h"
 #include "QemuPipeStream.h"

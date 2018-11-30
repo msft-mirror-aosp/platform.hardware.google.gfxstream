@@ -47,6 +47,7 @@ LOCAL_SRC_FILES := Resources.cpp \
     VulkanHandleMapping.cpp \
     ResourceTracker.cpp \
     VkEncoder.cpp \
+VkEventHandler.cpp \
 goldfish_vk_extension_structs_guest.cpp \
 goldfish_vk_marshaling_guest.cpp \
 goldfish_vk_deepcopy_guest.cpp \
