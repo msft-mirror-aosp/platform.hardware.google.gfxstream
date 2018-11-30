@@ -28,6 +28,8 @@
 #include "VkEncoder.h"
 #include "HostConnection.h"
 
+#include "goldfish_vk_private_defs.h"
+
 // Stuff we are not going to use but if included,
 // will cause compile errors. These are Android Vulkan
 // required extensions, but the approach will be to
@@ -2548,6 +2550,43 @@ static void entry_vkCmdDrawIndexedIndirectCountKHR(
 #endif
 #ifdef VK_KHR_8bit_storage
 #endif
+#ifdef VK_ANDROID_native_buffer
+static VkResult entry_vkGetSwapchainGrallocUsageANDROID(
+    VkDevice device,
+    VkFormat format,
+    VkImageUsageFlags imageUsage,
+    int* grallocUsage)
+{
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetSwapchainGrallocUsageANDROID_VkResult_return = (VkResult)0;
+    vkGetSwapchainGrallocUsageANDROID_VkResult_return = vkEnc->vkGetSwapchainGrallocUsageANDROID(device, format, imageUsage, grallocUsage);
+    return vkGetSwapchainGrallocUsageANDROID_VkResult_return;
+}
+static VkResult entry_vkAcquireImageANDROID(
+    VkDevice device,
+    VkImage image,
+    int nativeFenceFd,
+    VkSemaphore semaphore,
+    VkFence fence)
+{
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkAcquireImageANDROID_VkResult_return = (VkResult)0;
+    vkAcquireImageANDROID_VkResult_return = vkEnc->vkAcquireImageANDROID(device, image, nativeFenceFd, semaphore, fence);
+    return vkAcquireImageANDROID_VkResult_return;
+}
+static VkResult entry_vkQueueSignalReleaseImageANDROID(
+    VkQueue queue,
+    uint32_t waitSemaphoreCount,
+    const VkSemaphore* pWaitSemaphores,
+    VkImage image,
+    int* pNativeFenceFd)
+{
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkQueueSignalReleaseImageANDROID_VkResult_return = (VkResult)0;
+    vkQueueSignalReleaseImageANDROID_VkResult_return = vkEnc->vkQueueSignalReleaseImageANDROID(queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd);
+    return vkQueueSignalReleaseImageANDROID_VkResult_return;
+}
+#endif
 #ifdef VK_EXT_debug_report
 static VkResult entry_vkCreateDebugReportCallbackEXT(
     VkInstance instance,
@@ -4356,6 +4395,20 @@ void* goldfish_vulkan_get_proc_address(const char* name){
     if (!strcmp(name, "vkCmdDrawIndexedIndirectCountKHR"))
     {
         return (void*)entry_vkCmdDrawIndexedIndirectCountKHR;
+    }
+#endif
+#ifdef VK_ANDROID_native_buffer
+    if (!strcmp(name, "vkGetSwapchainGrallocUsageANDROID"))
+    {
+        return (void*)entry_vkGetSwapchainGrallocUsageANDROID;
+    }
+    if (!strcmp(name, "vkAcquireImageANDROID"))
+    {
+        return (void*)entry_vkAcquireImageANDROID;
+    }
+    if (!strcmp(name, "vkQueueSignalReleaseImageANDROID"))
+    {
+        return (void*)entry_vkQueueSignalReleaseImageANDROID;
     }
 #endif
 #ifdef VK_EXT_debug_report

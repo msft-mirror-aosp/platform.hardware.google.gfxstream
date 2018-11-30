@@ -34,6 +34,7 @@ endif
 
 LOCAL_CFLAGS += \
     -DLOG_TAG=\"goldfish_vulkan\" \
+    -DVK_ANDROID_native_buffer \
     -Wno-missing-field-initializers \
     -Werror \
     -fstrict-aliasing \

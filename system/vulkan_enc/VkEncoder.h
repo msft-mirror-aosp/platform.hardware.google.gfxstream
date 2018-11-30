@@ -27,6 +27,7 @@
 #include <vulkan/vulkan.h>
 
 
+#include "goldfish_vk_private_defs.h"
 #include <memory>
 class IOStream;
 
@@ -1303,6 +1304,25 @@ public:
         uint32_t stride);
 #endif
 #ifdef VK_KHR_8bit_storage
+#endif
+#ifdef VK_ANDROID_native_buffer
+    VkResult vkGetSwapchainGrallocUsageANDROID(
+    VkDevice device,
+        VkFormat format,
+        VkImageUsageFlags imageUsage,
+        int* grallocUsage);
+    VkResult vkAcquireImageANDROID(
+    VkDevice device,
+        VkImage image,
+        int nativeFenceFd,
+        VkSemaphore semaphore,
+        VkFence fence);
+    VkResult vkQueueSignalReleaseImageANDROID(
+    VkQueue queue,
+        uint32_t waitSemaphoreCount,
+        const VkSemaphore* pWaitSemaphores,
+        VkImage image,
+        int* pNativeFenceFd);
 #endif
 #ifdef VK_EXT_debug_report
     VkResult vkCreateDebugReportCallbackEXT(
