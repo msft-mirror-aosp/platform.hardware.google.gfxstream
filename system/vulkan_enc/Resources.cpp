@@ -15,10 +15,14 @@
 #include "ResourceTracker.h"
 #include "VkEncoder.h"
 
+#include "gralloc_cb.h"
+#include "goldfish_vk_private_defs.h"
+
 #include "android/base/AlignedBuf.h"
 
 #include <log/log.h>
 #include <stdlib.h>
+#include <sync/sync.h>
 
 using android::aligned_buf_alloc;
 using android::aligned_buf_free;
@@ -28,7 +32,9 @@ using android::aligned_buf_free;
 #if GOLDFISH_VK_OBJECT_DEBUG
 #define D(fmt,...) ALOGD("%s: " fmt, __func__, ##__VA_ARGS__);
 #else
+#ifndef D
 #define D(fmt,...)
+#endif
 #endif
 
 using goldfish_vk::ResourceTracker;
@@ -291,6 +297,41 @@ void goldfish_vkUnmapMemory(
     VkDevice,
     VkDeviceMemory) {
     // no-op
+}
+
+void goldfish_unwrap_VkNativeBufferANDROID(
+    const VkImageCreateInfo* pCreateInfo,
+    VkImageCreateInfo* local_pCreateInfo) {
+
+    if (!pCreateInfo->pNext) return;
+
+    const VkNativeBufferANDROID* nativeInfo =
+        reinterpret_cast<const VkNativeBufferANDROID*>(pCreateInfo->pNext);
+
+    if (VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID != nativeInfo->sType) {
+        return;
+    }
+
+    const cb_handle_t* cb_handle =
+        reinterpret_cast<const cb_handle_t*>(nativeInfo->handle);
+
+    if (!cb_handle) return;
+
+    VkNativeBufferANDROID* nativeInfoOut =
+        reinterpret_cast<VkNativeBufferANDROID*>(local_pCreateInfo);
+
+    if (!nativeInfoOut->handle) {
+        ALOGE("FATAL: Local native buffer info not properly allocated!");
+        abort();
+    }
+
+    *(uint32_t*)(nativeInfoOut->handle) = cb_handle->hostHandle;
+}
+
+void goldfish_unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int*) {
+    if (fd != -1) {
+        sync_wait(fd, 3000);
+    }
 }
 
 } // extern "C"
