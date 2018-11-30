@@ -28,6 +28,7 @@
 
 
 #include "vk_platform_compat.h"
+#include "goldfish_vk_private_defs.h"
 // Stuff we are not going to use but if included,
 // will cause compile errors. These are Android Vulkan
 // required extensions, but the approach will be to
@@ -38,7 +39,7 @@
 
 namespace goldfish_vk {
 
-VkStructureType goldfish_vk_struct_type(
+uint32_t goldfish_vk_struct_type(
     const void* structExtension);
 
 size_t goldfish_vk_extension_struct_size(
@@ -147,6 +148,8 @@ size_t goldfish_vk_extension_struct_size(
 #ifdef VK_KHR_draw_indirect_count
 #endif
 #ifdef VK_KHR_8bit_storage
+#endif
+#ifdef VK_ANDROID_native_buffer
 #endif
 #ifdef VK_EXT_debug_report
 #endif
