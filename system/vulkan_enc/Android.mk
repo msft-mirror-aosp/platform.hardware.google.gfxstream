@@ -53,5 +53,11 @@ goldfish_vk_deepcopy_guest.cpp \
 goldfish_vk_handlemap_guest.cpp \
 
 
+ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
+$(call emugl-export,SHARED_LIBRARIES,libgui)
+else
+$(call emugl-export,SHARED_LIBRARIES,libsync)
+endif
+
 $(call emugl-end-module)
 
