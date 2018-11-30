@@ -28,7 +28,10 @@ class GLEncoder;
 struct gl_client_context_t;
 class GL2Encoder;
 struct gl2_client_context_t;
+
+namespace goldfish_vk {
 class VkEncoder;
+}
 
 // SyncImpl determines the presence of host/guest OpenGL fence sync
 // capabilities. It corresponds exactly to EGL_ANDROID_native_fence_sync
@@ -150,7 +153,7 @@ public:
 
     GLEncoder *glEncoder();
     GL2Encoder *gl2Encoder();
-    VkEncoder *vkEncoder();
+    goldfish_vk::VkEncoder *vkEncoder();
     ExtendedRCEncoderContext *rcEncoder();
     ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
     Gralloc *grallocHelper() { return m_grallocHelper; }
@@ -186,7 +189,7 @@ private:
     IOStream *m_stream;
     GLEncoder   *m_glEnc;
     GL2Encoder  *m_gl2Enc;
-    VkEncoder  *m_vkEnc;
+    goldfish_vk::VkEncoder  *m_vkEnc;
     ExtendedRCEncoderContext *m_rcEnc;
     ChecksumCalculator m_checksumHelper;
     Gralloc *m_grallocHelper;

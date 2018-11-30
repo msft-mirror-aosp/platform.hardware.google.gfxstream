@@ -18,14 +18,15 @@
 
 #include "VulkanHandleMapping.h"
 #include "VulkanHandles.h"
+#include "VkEventHandler.h"
 #include <memory>
 
 namespace goldfish_vk {
 
-class ResourceTracker {
+class ResourceTracker : public VkEventHandler {
 public:
     ResourceTracker();
-    ~ResourceTracker();
+    virtual ~ResourceTracker();
     static ResourceTracker* get();
     VulkanHandleMapping* createMapping();
     VulkanHandleMapping* unwrapMapping();
@@ -44,7 +45,6 @@ public:
     bool isValidMemoryRange(
         VkDevice device,
         const VkMappedMemoryRange& range) const;
-
   private:
     class Impl;
     std::unique_ptr<Impl> mImpl;
