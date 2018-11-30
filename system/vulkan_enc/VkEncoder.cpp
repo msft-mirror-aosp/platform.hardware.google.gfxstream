@@ -57,10 +57,13 @@ public:
     VulkanStream* stream() { return &m_stream; }
     Pool* pool() { return &m_pool; }
     ResourceTracker* resources() { return ResourceTracker::get(); }
+    Validation* validation() { return &m_validation; }
 private:
     VulkanCountingStream m_countingStream;
     VulkanStream m_stream;
     Pool m_pool { 8, 4096, 64 };
+
+    Validation m_validation;
 };
 
 VkEncoder::VkEncoder(IOStream *stream) :
@@ -1410,7 +1413,7 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
     uint32_t memoryRangeCount,
     const VkMappedMemoryRange* pMemoryRanges)
 {
-    VALIDATE_RET(VkResult, VK_SUCCESS, validate_vkFlushMappedMemoryRanges(device, memoryRangeCount, pMemoryRanges));
+    VALIDATE_RET(VkResult, VK_SUCCESS, mImpl->validation()->on_vkFlushMappedMemoryRanges(this, VK_SUCCESS, device, memoryRangeCount, pMemoryRanges));
     auto stream = mImpl->stream();
     auto countingStream = mImpl->countingStream();
     auto resources = mImpl->resources();
@@ -1501,7 +1504,7 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
     uint32_t memoryRangeCount,
     const VkMappedMemoryRange* pMemoryRanges)
 {
-    VALIDATE_RET(VkResult, VK_SUCCESS, validate_vkInvalidateMappedMemoryRanges(device, memoryRangeCount, pMemoryRanges));
+    VALIDATE_RET(VkResult, VK_SUCCESS, mImpl->validation()->on_vkInvalidateMappedMemoryRanges(this, VK_SUCCESS, device, memoryRangeCount, pMemoryRanges));
     auto stream = mImpl->stream();
     auto countingStream = mImpl->countingStream();
     auto resources = mImpl->resources();

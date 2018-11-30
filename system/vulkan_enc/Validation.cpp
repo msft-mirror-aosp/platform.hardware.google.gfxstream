@@ -35,7 +35,9 @@ static bool is_range_good(const VkMappedMemoryRange& range) {
     return offset + size <= mem->mappedSize;
 }
 
-VkResult validate_vkFlushMappedMemoryRanges(
+VkResult Validation::on_vkFlushMappedMemoryRanges(
+    void*,
+    VkResult,
     VkDevice,
     uint32_t memoryRangeCount,
     const VkMappedMemoryRange* pMemoryRanges) {
@@ -49,7 +51,9 @@ VkResult validate_vkFlushMappedMemoryRanges(
     return VK_SUCCESS;
 }
 
-VkResult validate_vkInvalidateMappedMemoryRanges(
+VkResult Validation::on_vkInvalidateMappedMemoryRanges(
+    void*,
+    VkResult,
     VkDevice,
     uint32_t memoryRangeCount,
     const VkMappedMemoryRange* pMemoryRanges) {
