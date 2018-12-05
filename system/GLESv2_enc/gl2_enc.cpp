@@ -11116,6 +11116,122 @@ void glUnmapBufferDMA_enc(void *self , GLenum target, GLintptr offset, GLsizeipt
 	}
 }
 
+uint64_t glMapBufferRangeDirect_enc(void *self , GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access, uint64_t paddr)
+{
+
+	gl2_encoder_context_t *ctx = (gl2_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + 4 + 8;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_glMapBufferRangeDirect;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &target, 4); ptr += 4;
+		memcpy(ptr, &offset, 4); ptr += 4;
+		memcpy(ptr, &length, 4); ptr += 4;
+		memcpy(ptr, &access, 4); ptr += 4;
+		memcpy(ptr, &paddr, 8); ptr += 8;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+
+	uint64_t retval;
+	stream->readback(&retval, 8);
+	if (useChecksum) checksumCalculator->addBuffer(&retval, 8);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			ALOGE("glMapBufferRangeDirect: GL communication error, please report this issue to b.android.com.\n");
+			abort();
+		}
+	}
+	return retval;
+}
+
+void glUnmapBufferDirect_enc(void *self , GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access, uint64_t paddr, uint64_t guest_ptr, GLboolean* out_res)
+{
+
+	gl2_encoder_context_t *ctx = (gl2_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	const unsigned int __size_out_res =  (sizeof(GLboolean));
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + 4 + 8 + 8 + 0 + 1*4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_glUnmapBufferDirect;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &target, 4); ptr += 4;
+		memcpy(ptr, &offset, 4); ptr += 4;
+		memcpy(ptr, &length, 4); ptr += 4;
+		memcpy(ptr, &access, 4); ptr += 4;
+		memcpy(ptr, &paddr, 8); ptr += 8;
+		memcpy(ptr, &guest_ptr, 8); ptr += 8;
+	*(unsigned int *)(ptr) = __size_out_res; ptr += 4;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+	stream->readback(out_res, __size_out_res);
+	if (useChecksum) checksumCalculator->addBuffer(out_res, __size_out_res);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			ALOGE("glUnmapBufferDirect: GL communication error, please report this issue to b.android.com.\n");
+			abort();
+		}
+	}
+}
+
+void glFlushMappedBufferRangeDirect_enc(void *self , GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access)
+{
+
+	gl2_encoder_context_t *ctx = (gl2_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + 4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_glFlushMappedBufferRangeDirect;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &target, 4); ptr += 4;
+		memcpy(ptr, &offset, 4); ptr += 4;
+		memcpy(ptr, &length, 4); ptr += 4;
+		memcpy(ptr, &access, 4); ptr += 4;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+}
+
 }  // namespace
 
 gl2_encoder_context_t::gl2_encoder_context_t(IOStream *stream, ChecksumCalculator *checksumCalculator)
@@ -11536,5 +11652,8 @@ gl2_encoder_context_t::gl2_encoder_context_t(IOStream *stream, ChecksumCalculato
 	this->glGetTexLevelParameteriv = &glGetTexLevelParameteriv_enc;
 	this->glMapBufferRangeDMA = &glMapBufferRangeDMA_enc;
 	this->glUnmapBufferDMA = &glUnmapBufferDMA_enc;
+	this->glMapBufferRangeDirect = &glMapBufferRangeDirect_enc;
+	this->glUnmapBufferDirect = &glUnmapBufferDirect_enc;
+	this->glFlushMappedBufferRangeDirect = &glFlushMappedBufferRangeDirect_enc;
 }
 
