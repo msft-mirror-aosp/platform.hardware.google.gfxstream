@@ -416,7 +416,10 @@
 #define OP_glGetTexLevelParameteriv 					2458
 #define OP_glMapBufferRangeDMA 					2459
 #define OP_glUnmapBufferDMA 					2460
-#define OP_last 					2461
+#define OP_glMapBufferRangeDirect 					2461
+#define OP_glUnmapBufferDirect 					2462
+#define OP_glFlushMappedBufferRangeDirect 					2463
+#define OP_last 					2464
 
 
 #endif

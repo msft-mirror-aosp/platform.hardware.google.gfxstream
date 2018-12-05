@@ -6,6 +6,9 @@
 
 
 #include "gl_types.h"
+#ifdef _MSC_VER
+#include <stdint.h>
+#endif
 #ifndef gl_APIENTRY
 #define gl_APIENTRY 
 #endif

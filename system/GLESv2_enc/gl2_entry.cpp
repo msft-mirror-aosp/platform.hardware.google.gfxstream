@@ -418,6 +418,9 @@ extern "C" {
 	void glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint* params);
 	void glMapBufferRangeDMA(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access, uint64_t paddr);
 	void glUnmapBufferDMA(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access, uint64_t paddr, GLboolean* out_res);
+	uint64_t glMapBufferRangeDirect(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access, uint64_t paddr);
+	void glUnmapBufferDirect(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access, uint64_t paddr, uint64_t guest_ptr, GLboolean* out_res);
+	void glFlushMappedBufferRangeDirect(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
 };
 
 #ifndef GET_CONTEXT
@@ -2939,5 +2942,23 @@ void glUnmapBufferDMA(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfi
 {
 	GET_CONTEXT;
 	ctx->glUnmapBufferDMA(ctx, target, offset, length, access, paddr, out_res);
+}
+
+uint64_t glMapBufferRangeDirect(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access, uint64_t paddr)
+{
+	GET_CONTEXT;
+	return ctx->glMapBufferRangeDirect(ctx, target, offset, length, access, paddr);
+}
+
+void glUnmapBufferDirect(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access, uint64_t paddr, uint64_t guest_ptr, GLboolean* out_res)
+{
+	GET_CONTEXT;
+	ctx->glUnmapBufferDirect(ctx, target, offset, length, access, paddr, guest_ptr, out_res);
+}
+
+void glFlushMappedBufferRangeDirect(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access)
+{
+	GET_CONTEXT;
+	ctx->glFlushMappedBufferRangeDirect(ctx, target, offset, length, access);
 }
 
