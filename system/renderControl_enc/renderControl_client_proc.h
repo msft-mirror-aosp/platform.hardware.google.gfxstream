@@ -6,6 +6,9 @@
 
 
 #include "renderControl_types.h"
+#ifdef _MSC_VER
+#include <stdint.h>
+#endif
 #ifndef renderControl_APIENTRY
 #define renderControl_APIENTRY 
 #endif
