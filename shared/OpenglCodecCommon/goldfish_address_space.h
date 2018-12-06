@@ -19,7 +19,7 @@
 
 class GoldfishAddressSpaceBlock;
 
-#ifdef GOLDFISH_OPENGL_BUILD_FOR_HOST
+#ifdef HOST_BUILD
 class GoldfishAddressSpaceBlockProvider {};
 #else
 class GoldfishAddressSpaceBlockProvider {
@@ -54,7 +54,7 @@ private:
     void destroy();
     GoldfishAddressSpaceBlock &operator=(const GoldfishAddressSpaceBlock &);
 
-#ifdef GOLDFISH_OPENGL_BUILD_FOR_HOST
+#ifdef HOST_BUILD
     void     *m_guest_ptr;
 #else
     void     *m_mmaped_ptr;
