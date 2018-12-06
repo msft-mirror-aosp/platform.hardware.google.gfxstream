@@ -1,8 +1,9 @@
 #include <log/log.h>
 #include "goldfish_address_space.h"
 
-#ifdef GOLDFISH_OPENGL_BUILD_FOR_HOST
+#ifdef HOST_BUILD
 GoldfishAddressSpaceBlock::GoldfishAddressSpaceBlock() : m_guest_ptr(NULL) {}
+GoldfishAddressSpaceBlock::~GoldfishAddressSpaceBlock() {}
 
 bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *provider, size_t size)
 {
