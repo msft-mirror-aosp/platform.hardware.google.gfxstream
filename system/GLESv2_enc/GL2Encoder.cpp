@@ -1209,7 +1209,7 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count, bool hasClient
 
             if (bufferObject == 0) {
                 unsigned int datalen = state.elementSize * count;
-                if (divisor && primcount) {
+                if (divisor) {
                     ALOGV("%s: divisor for att %d: %d, w/ stride %d (effective stride %d) size %d type 0x%x) datalen %u",
                             __FUNCTION__, i, divisor, state.stride, effectiveStride, state.elementSize, state.type, datalen);
                     int actual_count = std::max(1, (int)((primcount + divisor - 1) / divisor));
@@ -1239,7 +1239,7 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count, bool hasClient
                 // But the last element doesn't have to fill up the whole stride.
                 // So it becomes the current form.
                 unsigned int bufLen = effectiveStride * (count ? (count - 1) : 0) + state.elementSize;
-                if (divisor && primcount) {
+                if (divisor) {
                     int actual_count = std::max(1, (int)((primcount + divisor - 1) / divisor));
                     bufLen = effectiveStride * (actual_count ? (actual_count - 1) : 0) + state.elementSize;
                 }
