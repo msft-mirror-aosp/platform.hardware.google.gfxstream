@@ -39,6 +39,22 @@ public:
 
     GOLDFISH_VK_LIST_HANDLE_TYPES(HANDLE_REGISTER_DECL)
 
+    VkResult on_vkCreateDevice(
+        void* context,
+        VkResult input_result,
+        VkPhysicalDevice physicalDevice,
+        const VkDeviceCreateInfo* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkDevice* pDevice) override;
+
+    VkResult on_vkAllocateMemory(
+        void* context,
+        VkResult input_result,
+        VkDevice device,
+        const VkMemoryAllocateInfo* pAllocateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkDeviceMemory* pMemory) override;
+
     void setDeviceInfo(VkDevice device, VkPhysicalDevice physdev, VkPhysicalDeviceProperties props, VkPhysicalDeviceMemoryProperties memProps);
     bool isMemoryTypeHostVisible(VkDevice device, uint32_t typeIndex) const;
     VkDeviceSize getNonCoherentExtendedSize(VkDevice device, VkDeviceSize basicSize) const;
