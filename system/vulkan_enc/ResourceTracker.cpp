@@ -16,11 +16,27 @@
 #include "ResourceTracker.h"
 
 #include "Resources.h"
+#include "VkEncoder.h"
 
+#include "android/base/AlignedBuf.h"
 #include "android/base/synchronization/AndroidLock.h"
 
 #include <unordered_map>
 
+#include <log/log.h>
+
+#define RESOURCE_TRACKER_DEBUG 0
+
+#if RESOURCE_TRACKER_DEBUG
+#define D(fmt,...) ALOGD("%s: " fmt, __func__, ##__VA_ARGS__);
+#else
+#ifndef D
+#define D(fmt,...)
+#endif
+#endif
+
+using android::aligned_buf_alloc;
+using android::aligned_buf_free;
 using android::base::guest::AutoLock;
 using android::base::guest::Lock;
 
@@ -146,6 +162,62 @@ public:
         return atoms * nonCoherentAtomSize;
     }
 
+    VkResult on_vkCreateDevice(
+        void* context,
+        VkResult input_result,
+        VkPhysicalDevice physicalDevice,
+        const VkDeviceCreateInfo*,
+        const VkAllocationCallbacks*,
+        VkDevice* pDevice) {
+
+        if (input_result != VK_SUCCESS) return input_result;
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        VkPhysicalDeviceProperties props;
+        VkPhysicalDeviceMemoryProperties memProps;
+        enc->vkGetPhysicalDeviceProperties(physicalDevice, &props);
+        enc->vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProps);
+
+        setDeviceInfo(*pDevice, physicalDevice, props, memProps);
+
+        return input_result;
+    }
+
+    VkResult on_vkAllocateMemory(
+        void*,
+        VkResult input_result,
+        VkDevice device,
+        const VkMemoryAllocateInfo* pAllocateInfo,
+        const VkAllocationCallbacks*,
+        VkDeviceMemory* pMemory) {
+
+        if (input_result != VK_SUCCESS) return input_result;
+
+        // Assumes pMemory has already been allocated.
+        goldfish_VkDeviceMemory* mem = as_goldfish_VkDeviceMemory(*pMemory);
+        VkDeviceSize size = pAllocateInfo->allocationSize;
+
+        // assume memory is not host visible.
+        mem->ptr = nullptr;
+        mem->size = size;
+        mem->mappedSize = getNonCoherentExtendedSize(device, size);
+
+        if (!isMemoryTypeHostVisible(device, pAllocateInfo->memoryTypeIndex)) {
+            return input_result;
+        }
+
+        // This is a strict alignment; we do not expect any
+        // actual device to have more stringent requirements
+        // than this.
+        mem->ptr = (uint8_t*)aligned_buf_alloc(4096, mem->mappedSize);
+        D("host visible alloc: size 0x%llx host ptr %p mapped size 0x%llx",
+          (unsigned long long)size, mem->ptr,
+          (unsigned long long)mem->mappedSize);
+
+        return input_result;
+    }
+
 private:
     mutable Lock mLock;
 
@@ -199,6 +271,28 @@ bool ResourceTracker::isMemoryTypeHostVisible(
 
 VkDeviceSize ResourceTracker::getNonCoherentExtendedSize(VkDevice device, VkDeviceSize basicSize) const {
     return mImpl->getNonCoherentExtendedSize(device, basicSize);
+}
+
+VkResult ResourceTracker::on_vkCreateDevice(
+    void* context,
+    VkResult input_result,
+    VkPhysicalDevice physicalDevice,
+    const VkDeviceCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDevice* pDevice) {
+    return mImpl->on_vkCreateDevice(
+        context, input_result, physicalDevice, pCreateInfo, pAllocator, pDevice);
+}
+
+VkResult ResourceTracker::on_vkAllocateMemory(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    const VkMemoryAllocateInfo* pAllocateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDeviceMemory* pMemory) {
+    return mImpl->on_vkAllocateMemory(
+        context, input_result, device, pAllocateInfo, pAllocator, pMemory);
 }
 
 } // namespace goldfish_vk
