@@ -321,7 +321,6 @@ static void sClearIndexedBufferBinding(GLuint id, std::vector<GLClientState::Buf
             bindings[i].effectiveStride = 16;
             bindings[i].size = 0;
             bindings[i].buffer = 0;
-            bindings[i].divisor = 0;
         }
     }
 }
