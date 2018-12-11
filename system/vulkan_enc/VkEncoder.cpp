@@ -735,7 +735,7 @@ VkResult VkEncoder::vkCreateDevice(
     countingStream->clearPool();
     stream->clearPool();
     pool->freeAll();
-    goldfish_vkCreateDevice(this, vkCreateDevice_VkResult_return, physicalDevice, pCreateInfo, pAllocator, pDevice);
+    mImpl->resources()->on_vkCreateDevice(this, vkCreateDevice_VkResult_return, physicalDevice, pCreateInfo, pAllocator, pDevice);
     return vkCreateDevice_VkResult_return;
 }
 
@@ -1325,7 +1325,7 @@ VkResult VkEncoder::vkAllocateMemory(
     countingStream->clearPool();
     stream->clearPool();
     pool->freeAll();
-    goldfish_vkAllocateMemory(this, vkAllocateMemory_VkResult_return, device, pAllocateInfo, pAllocator, pMemory);
+    mImpl->resources()->on_vkAllocateMemory(this, vkAllocateMemory_VkResult_return, device, pAllocateInfo, pAllocator, pMemory);
     return vkAllocateMemory_VkResult_return;
 }
 

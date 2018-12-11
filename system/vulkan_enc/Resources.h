@@ -91,28 +91,12 @@ void goldfish_vkGetPhysicalDeviceProperties2(
     VkPhysicalDevice physicalDevice,
     VkPhysicalDeviceProperties2* pProperties);
 
-VkResult goldfish_vkCreateDevice(
-    void* opaque,
-    VkResult host_return,
-    VkPhysicalDevice physicalDevice,
-    const VkDeviceCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator,
-    VkDevice* pDevice);
-
 struct goldfish_VkDeviceMemory {
     uint64_t underlying;
     uint8_t* ptr;
     VkDeviceSize size;
     VkDeviceSize mappedSize;
 };
-
-VkResult goldfish_vkAllocateMemory(
-    void* opaque,
-    VkResult host_return,
-    VkDevice device,
-    const VkMemoryAllocateInfo* pAllocateInfo,
-    const VkAllocationCallbacks* pAllocator,
-    VkDeviceMemory* pMemory);
 
 VkResult goldfish_vkMapMemory(
     void* opaque,
