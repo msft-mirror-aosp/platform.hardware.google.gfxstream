@@ -39,6 +39,22 @@ public:
 
     GOLDFISH_VK_LIST_HANDLE_TYPES(HANDLE_REGISTER_DECL)
 
+    VkResult on_vkEnumerateInstanceVersion(
+        void* context,
+        VkResult input_result,
+        uint32_t* apiVersion) override;
+    VkResult on_vkEnumerateDeviceExtensionProperties(
+        void* context,
+        VkResult input_result,
+        VkPhysicalDevice physicalDevice,
+        const char* pLayerName,
+        uint32_t* pPropertyCount,
+        VkExtensionProperties* pProperties) override;
+    void on_vkGetPhysicalDeviceProperties2(
+        void* context,
+        VkPhysicalDevice physicalDevice,
+        VkPhysicalDeviceProperties2* pProperties) override;
+
     VkResult on_vkCreateDevice(
         void* context,
         VkResult input_result,
@@ -55,12 +71,33 @@ public:
         const VkAllocationCallbacks* pAllocator,
         VkDeviceMemory* pMemory) override;
 
+    VkResult on_vkMapMemory(
+        void* context,
+        VkResult input_result,
+        VkDevice device,
+        VkDeviceMemory memory,
+        VkDeviceSize offset,
+        VkDeviceSize size,
+        VkMemoryMapFlags,
+        void** ppData);
+
+    void on_vkUnmapMemory(
+        void* context,
+        VkDevice device,
+        VkDeviceMemory memory) override;
+
+    void unwrap_VkNativeBufferANDROID(
+        const VkImageCreateInfo* pCreateInfo,
+        VkImageCreateInfo* local_pCreateInfo);
+    void unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int* fd_out);
+
     void setDeviceInfo(VkDevice device, VkPhysicalDevice physdev, VkPhysicalDeviceProperties props, VkPhysicalDeviceMemoryProperties memProps);
     bool isMemoryTypeHostVisible(VkDevice device, uint32_t typeIndex) const;
+    uint8_t* getMappedPointer(VkDeviceMemory memory);
+    VkDeviceSize getMappedSize(VkDeviceMemory memory);
     VkDeviceSize getNonCoherentExtendedSize(VkDevice device, VkDeviceSize basicSize) const;
-    bool isValidMemoryRange(
-        VkDevice device,
-        const VkMappedMemoryRange& range) const;
+    bool isValidMemoryRange(const VkMappedMemoryRange& range) const;
+
   private:
     class Impl;
     std::unique_ptr<Impl> mImpl;

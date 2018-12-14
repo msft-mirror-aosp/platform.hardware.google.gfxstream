@@ -14,26 +14,9 @@
 #include "Validation.h"
 
 #include "Resources.h"
+#include "ResourceTracker.h"
 
 namespace goldfish_vk {
-
-static bool is_range_good(const VkMappedMemoryRange& range) {
-    const goldfish_VkDeviceMemory* mem =
-        as_goldfish_VkDeviceMemory(range.memory);
-
-    if (!mem || !mem->ptr) {
-        return false;
-    }
-
-    VkDeviceSize offset = range.offset;
-    VkDeviceSize size = range.size;
-
-    if (size == VK_WHOLE_SIZE) {
-        return offset <= mem->mappedSize;
-    };
-
-    return offset + size <= mem->mappedSize;
-}
 
 VkResult Validation::on_vkFlushMappedMemoryRanges(
     void*,
@@ -42,8 +25,10 @@ VkResult Validation::on_vkFlushMappedMemoryRanges(
     uint32_t memoryRangeCount,
     const VkMappedMemoryRange* pMemoryRanges) {
 
+    auto resources = ResourceTracker::get();
+
     for (uint32_t i = 0; i < memoryRangeCount; ++i) {
-        if (!is_range_good(pMemoryRanges[i])) {
+        if (!resources->isValidMemoryRange(pMemoryRanges[i])) {
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
     }
@@ -58,8 +43,10 @@ VkResult Validation::on_vkInvalidateMappedMemoryRanges(
     uint32_t memoryRangeCount,
     const VkMappedMemoryRange* pMemoryRanges) {
 
+    auto resources = ResourceTracker::get();
+
     for (uint32_t i = 0; i < memoryRangeCount; ++i) {
-        if (!is_range_good(pMemoryRanges[i])) {
+        if (!resources->isValidMemoryRange(pMemoryRanges[i])) {
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
     }

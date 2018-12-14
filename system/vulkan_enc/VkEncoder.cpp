@@ -889,7 +889,7 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
     VkExtensionProperties* pProperties)
 {
     VkResult vkEnumerateDeviceExtensionProperties_VkResult_return = (VkResult)0;
-    vkEnumerateDeviceExtensionProperties_VkResult_return = goldfish_vkEnumerateDeviceExtensionProperties(this, vkEnumerateDeviceExtensionProperties_VkResult_return, physicalDevice, pLayerName, pPropertyCount, pProperties);
+    vkEnumerateDeviceExtensionProperties_VkResult_return = mImpl->resources()->on_vkEnumerateDeviceExtensionProperties(this, VK_SUCCESS, physicalDevice, pLayerName, pPropertyCount, pProperties);
     return vkEnumerateDeviceExtensionProperties_VkResult_return;
 }
 
@@ -1397,7 +1397,7 @@ VkResult VkEncoder::vkMapMemory(
     void** ppData)
 {
     VkResult vkMapMemory_VkResult_return = (VkResult)0;
-    vkMapMemory_VkResult_return = goldfish_vkMapMemory(this, vkMapMemory_VkResult_return, device, memory, offset, size, flags, ppData);
+    vkMapMemory_VkResult_return = mImpl->resources()->on_vkMapMemory(this, VK_SUCCESS, device, memory, offset, size, flags, ppData);
     return vkMapMemory_VkResult_return;
 }
 
@@ -1405,7 +1405,7 @@ void VkEncoder::vkUnmapMemory(
     VkDevice device,
     VkDeviceMemory memory)
 {
-    goldfish_vkUnmapMemory(this, device, memory);
+    mImpl->resources()->on_vkUnmapMemory(this, device, memory);
 }
 
 VkResult VkEncoder::vkFlushMappedMemoryRanges(
@@ -1450,11 +1450,10 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
         auto memory = pMemoryRanges[i].memory;
         auto size = pMemoryRanges[i].size;
         auto offset = pMemoryRanges[i].offset;
-        auto goldfishMem = as_goldfish_VkDeviceMemory(memory);
         uint64_t streamSize = 0;
-        if (!goldfishMem) { countingStream->write(&streamSize, sizeof(uint64_t)); continue; };
-        auto hostPtr = goldfishMem->ptr;
-        auto actualSize = size == VK_WHOLE_SIZE ? goldfishMem->size : size;
+        if (!memory) { countingStream->write(&streamSize, sizeof(uint64_t)); continue; };
+        auto hostPtr = resources->getMappedPointer(memory);
+        auto actualSize = size == VK_WHOLE_SIZE ? resources->getMappedSize(memory) : size;
         if (!hostPtr) { countingStream->write(&streamSize, sizeof(uint64_t)); continue; };
         streamSize = actualSize;
         countingStream->write(&streamSize, sizeof(uint64_t));
@@ -1480,11 +1479,10 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
         auto memory = pMemoryRanges[i].memory;
         auto size = pMemoryRanges[i].size;
         auto offset = pMemoryRanges[i].offset;
-        auto goldfishMem = as_goldfish_VkDeviceMemory(memory);
         uint64_t streamSize = 0;
-        if (!goldfishMem) { stream->write(&streamSize, sizeof(uint64_t)); continue; };
-        auto hostPtr = goldfishMem->ptr;
-        auto actualSize = size == VK_WHOLE_SIZE ? goldfishMem->size : size;
+        if (!memory) { stream->write(&streamSize, sizeof(uint64_t)); continue; };
+        auto hostPtr = resources->getMappedPointer(memory);
+        auto actualSize = size == VK_WHOLE_SIZE ? resources->getMappedSize(memory) : size;
         if (!hostPtr) { stream->write(&streamSize, sizeof(uint64_t)); continue; };
         streamSize = actualSize;
         stream->write(&streamSize, sizeof(uint64_t));
@@ -1559,11 +1557,10 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
         auto memory = pMemoryRanges[i].memory;
         auto size = pMemoryRanges[i].size;
         auto offset = pMemoryRanges[i].offset;
-        auto goldfishMem = as_goldfish_VkDeviceMemory(memory);
         uint64_t streamSize = 0;
-        if (!goldfishMem) { stream->read(&streamSize, sizeof(uint64_t)); continue; };
-        auto hostPtr = goldfishMem->ptr;
-        auto actualSize = size == VK_WHOLE_SIZE ? goldfishMem->size : size;
+        if (!memory) { stream->read(&streamSize, sizeof(uint64_t)); continue; };
+        auto hostPtr = resources->getMappedPointer(memory);
+        auto actualSize = size == VK_WHOLE_SIZE ? resources->getMappedSize(memory) : size;
         if (!hostPtr) { stream->read(&streamSize, sizeof(uint64_t)); continue; };
         streamSize = actualSize;
         stream->read(&streamSize, sizeof(uint64_t));
@@ -3290,7 +3287,7 @@ VkResult VkEncoder::vkCreateImage(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    goldfish_unwrap_VkNativeBufferANDROID(pCreateInfo, local_pCreateInfo);
+    mImpl->resources()->unwrap_VkNativeBufferANDROID(pCreateInfo, local_pCreateInfo);
     local_pAllocator = nullptr;
     countingStream->rewind();
     {
@@ -8328,7 +8325,7 @@ VkResult VkEncoder::vkEnumerateInstanceVersion(
     uint32_t* pApiVersion)
 {
     VkResult vkEnumerateInstanceVersion_VkResult_return = (VkResult)0;
-    vkEnumerateInstanceVersion_VkResult_return = goldfish_vkEnumerateInstanceVersion(this, vkEnumerateInstanceVersion_VkResult_return, pApiVersion);
+    vkEnumerateInstanceVersion_VkResult_return = mImpl->resources()->on_vkEnumerateInstanceVersion(this, VK_SUCCESS, pApiVersion);
     return vkEnumerateInstanceVersion_VkResult_return;
 }
 
@@ -8880,7 +8877,7 @@ void VkEncoder::vkGetPhysicalDeviceProperties2(
     VkPhysicalDevice physicalDevice,
     VkPhysicalDeviceProperties2* pProperties)
 {
-    goldfish_vkGetPhysicalDeviceProperties2(this, physicalDevice, pProperties);
+    mImpl->resources()->on_vkGetPhysicalDeviceProperties2(this, physicalDevice, pProperties);
 }
 
 void VkEncoder::vkGetPhysicalDeviceFormatProperties2(
@@ -15222,7 +15219,7 @@ VkResult VkEncoder::vkAcquireImageANDROID(
     local_nativeFenceFd = nativeFenceFd;
     local_semaphore = semaphore;
     local_fence = fence;
-    goldfish_unwrap_vkAcquireImageANDROID_nativeFenceFd(nativeFenceFd, &local_nativeFenceFd);
+    mImpl->resources()->unwrap_vkAcquireImageANDROID_nativeFenceFd(nativeFenceFd, &local_nativeFenceFd);
     countingStream->rewind();
     {
         uint64_t cgen_var_1170;
