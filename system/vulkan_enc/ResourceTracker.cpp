@@ -21,9 +21,14 @@
 #include "android/base/AlignedBuf.h"
 #include "android/base/synchronization/AndroidLock.h"
 
+#include "gralloc_cb.h"
+#include "goldfish_vk_private_defs.h"
+
 #include <unordered_map>
 
 #include <log/log.h>
+#include <stdlib.h>
+#include <sync/sync.h>
 
 #define RESOURCE_TRACKER_DEBUG 0
 
@@ -110,8 +115,10 @@ public:
     };
 
     struct VkDeviceMemory_Info {
-        VkDeviceSize allocationSize;
-        uint32_t memoryTypeIndex;
+        VkDeviceSize allocationSize = 0;
+        VkDeviceSize mappedSize = 0;
+        uint8_t* mappedPtr = nullptr;
+        uint32_t memoryTypeIndex = 0;
     };
 
 #define HANDLE_REGISTER_IMPL_IMPL(type) \
@@ -120,12 +127,31 @@ public:
         AutoLock lock(mLock); \
         info_##type[obj] = type##_Info(); \
     } \
+
+#define HANDLE_UNREGISTER_IMPL_IMPL(type) \
     void unregister_##type(type obj) { \
         AutoLock lock(mLock); \
         info_##type.erase(obj); \
     } \
 
     GOLDFISH_VK_LIST_HANDLE_TYPES(HANDLE_REGISTER_IMPL_IMPL)
+    GOLDFISH_VK_LIST_TRIVIAL_HANDLE_TYPES(HANDLE_UNREGISTER_IMPL_IMPL)
+
+    void unregister_VkDevice(VkDevice device) {
+        AutoLock lock(mLock);
+        info_VkDevice.erase(device);
+    }
+
+    void unregister_VkDeviceMemory(VkDeviceMemory mem) {
+        AutoLock lock(mLock);
+        auto it = info_VkDeviceMemory.find(mem);
+        if (it == info_VkDeviceMemory.end()) return;
+
+        auto& memInfo = it->second;
+        if (memInfo.mappedPtr) {
+            aligned_buf_free(memInfo.mappedPtr);
+        }
+    }
 
     void setDeviceInfo(VkDevice device,
                        VkPhysicalDevice physdev,
@@ -138,6 +164,19 @@ public:
         info.memProps = memProps;
     }
 
+    void setDeviceMemoryInfo(VkDeviceMemory memory,
+                             VkDeviceSize allocationSize,
+                             VkDeviceSize mappedSize,
+                             uint8_t* ptr,
+                             uint32_t memoryTypeIndex) {
+        AutoLock lock(mLock);
+        auto& info = info_VkDeviceMemory[memory];
+        info.allocationSize = allocationSize;
+        info.mappedSize = mappedSize;
+        info.mappedPtr = ptr;
+        info.memoryTypeIndex = memoryTypeIndex;
+    }
+
     bool isMemoryTypeHostVisible(VkDevice device, uint32_t typeIndex) const {
         AutoLock lock(mLock);
         const auto it = info_VkDevice.find(device);
@@ -145,8 +184,26 @@ public:
         if (it == info_VkDevice.end()) return false;
 
         const auto& info = it->second;
-        return info.memProps.memoryTypes[typeIndex].propertyFlags & 
+        return info.memProps.memoryTypes[typeIndex].propertyFlags &
                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+    }
+
+    uint8_t* getMappedPointer(VkDeviceMemory memory) {
+        AutoLock lock(mLock);
+        const auto it = info_VkDeviceMemory.find(memory);
+        if (it == info_VkDeviceMemory.end()) return nullptr;
+
+        const auto& info = it->second;
+        return info.mappedPtr;
+    }
+
+    VkDeviceSize getMappedSize(VkDeviceMemory memory) {
+        AutoLock lock(mLock);
+        const auto it = info_VkDeviceMemory.find(memory);
+        if (it == info_VkDeviceMemory.end()) return 0;
+
+        const auto& info = it->second;
+        return info.mappedSize;
     }
 
     VkDeviceSize getNonCoherentExtendedSize(VkDevice device, VkDeviceSize basicSize) const {
@@ -160,6 +217,52 @@ public:
         VkDeviceSize atoms =
             (basicSize + nonCoherentAtomSize - 1) / nonCoherentAtomSize;
         return atoms * nonCoherentAtomSize;
+    }
+
+    bool isValidMemoryRange(const VkMappedMemoryRange& range) const {
+        AutoLock lock(mLock);
+        const auto it = info_VkDeviceMemory.find(range.memory);
+        if (it == info_VkDeviceMemory.end()) return false;
+        const auto& info = it->second;
+
+        if (!info.mappedPtr) return false;
+
+        VkDeviceSize offset = range.offset;
+        VkDeviceSize size = range.size;
+
+        if (size == VK_WHOLE_SIZE) {
+            return offset <= info.mappedSize;
+        }
+
+        return offset + size <= info.mappedSize;
+    }
+
+    VkResult on_vkEnumerateInstanceVersion(
+        void*,
+        VkResult,
+        uint32_t* apiVersion) {
+        if (apiVersion) {
+            *apiVersion = VK_MAKE_VERSION(1, 0, 0);
+        }
+        return VK_SUCCESS;
+    }
+
+    VkResult on_vkEnumerateDeviceExtensionProperties(
+        void*,
+        VkResult,
+        VkPhysicalDevice,
+        const char*,
+        uint32_t* pPropertyCount,
+        VkExtensionProperties*) {
+        *pPropertyCount = 0;
+        return VK_SUCCESS;
+    }
+
+    void on_vkGetPhysicalDeviceProperties2(
+        void*,
+        VkPhysicalDevice,
+        VkPhysicalDeviceProperties2*) {
+        // no-op
     }
 
     VkResult on_vkCreateDevice(
@@ -194,28 +297,95 @@ public:
 
         if (input_result != VK_SUCCESS) return input_result;
 
-        // Assumes pMemory has already been allocated.
-        goldfish_VkDeviceMemory* mem = as_goldfish_VkDeviceMemory(*pMemory);
-        VkDeviceSize size = pAllocateInfo->allocationSize;
+        VkDeviceSize allocationSize = pAllocateInfo->allocationSize;
+        VkDeviceSize mappedSize = getNonCoherentExtendedSize(device, allocationSize);
+        uint8_t* mappedPtr = nullptr;
 
-        // assume memory is not host visible.
-        mem->ptr = nullptr;
-        mem->size = size;
-        mem->mappedSize = getNonCoherentExtendedSize(device, size);
-
-        if (!isMemoryTypeHostVisible(device, pAllocateInfo->memoryTypeIndex)) {
-            return input_result;
+        if (isMemoryTypeHostVisible(device, pAllocateInfo->memoryTypeIndex)) {
+            mappedPtr = (uint8_t*)aligned_buf_alloc(4096, mappedSize);
+            D("host visible alloc: size 0x%llx host ptr %p mapped size 0x%llx",
+              (unsigned long long)size, mem->ptr,
+              (unsigned long long)mem->mappedSize);
         }
 
-        // This is a strict alignment; we do not expect any
-        // actual device to have more stringent requirements
-        // than this.
-        mem->ptr = (uint8_t*)aligned_buf_alloc(4096, mem->mappedSize);
-        D("host visible alloc: size 0x%llx host ptr %p mapped size 0x%llx",
-          (unsigned long long)size, mem->ptr,
-          (unsigned long long)mem->mappedSize);
+        setDeviceMemoryInfo(
+            *pMemory, allocationSize, mappedSize, mappedPtr,
+            pAllocateInfo->memoryTypeIndex);
 
         return input_result;
+    }
+
+    VkResult on_vkMapMemory(
+        void*,
+        VkResult host_result,
+        VkDevice,
+        VkDeviceMemory memory,
+        VkDeviceSize offset,
+        VkDeviceSize size,
+        VkMemoryMapFlags,
+        void** ppData) {
+
+        if (host_result != VK_SUCCESS) return host_result;
+
+        AutoLock lock(mLock);
+
+        auto it = info_VkDeviceMemory.find(memory);
+        if (it == info_VkDeviceMemory.end()) return VK_ERROR_MEMORY_MAP_FAILED;
+
+        auto& info = it->second;
+
+        if (!info.mappedPtr) return VK_ERROR_MEMORY_MAP_FAILED;
+
+        if (size != VK_WHOLE_SIZE &&
+            (info.mappedPtr + offset + size > info.mappedPtr + info.allocationSize)) {
+            return VK_ERROR_MEMORY_MAP_FAILED;
+        }
+
+        *ppData = info.mappedPtr + offset;
+
+        return host_result;
+    }
+
+    void on_vkUnmapMemory(
+        void*,
+        VkDevice,
+        VkDeviceMemory) {
+        // no-op
+    }
+
+    void unwrap_VkNativeBufferANDROID(
+        const VkImageCreateInfo* pCreateInfo,
+        VkImageCreateInfo* local_pCreateInfo) {
+
+        if (!pCreateInfo->pNext) return;
+
+        const VkNativeBufferANDROID* nativeInfo =
+            reinterpret_cast<const VkNativeBufferANDROID*>(pCreateInfo->pNext);
+
+        if (VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID != nativeInfo->sType) {
+            return;
+        }
+
+        const cb_handle_t* cb_handle =
+            reinterpret_cast<const cb_handle_t*>(nativeInfo->handle);
+
+        if (!cb_handle) return;
+
+        VkNativeBufferANDROID* nativeInfoOut =
+            reinterpret_cast<VkNativeBufferANDROID*>(local_pCreateInfo);
+
+        if (!nativeInfoOut->handle) {
+            ALOGE("FATAL: Local native buffer info not properly allocated!");
+            abort();
+        }
+
+        *(uint32_t*)(nativeInfoOut->handle) = cb_handle->hostHandle;
+    }
+
+    void unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int*) {
+        if (fd != -1) {
+            sync_wait(fd, 3000);
+        }
     }
 
 private:
@@ -269,8 +439,45 @@ bool ResourceTracker::isMemoryTypeHostVisible(
     return mImpl->isMemoryTypeHostVisible(device, typeIndex);
 }
 
+uint8_t* ResourceTracker::getMappedPointer(VkDeviceMemory memory) {
+    return mImpl->getMappedPointer(memory);
+}
+
+VkDeviceSize ResourceTracker::getMappedSize(VkDeviceMemory memory) {
+    return mImpl->getMappedSize(memory);
+}
+
 VkDeviceSize ResourceTracker::getNonCoherentExtendedSize(VkDevice device, VkDeviceSize basicSize) const {
     return mImpl->getNonCoherentExtendedSize(device, basicSize);
+}
+
+bool ResourceTracker::isValidMemoryRange(const VkMappedMemoryRange& range) const {
+    return mImpl->isValidMemoryRange(range);
+}
+
+VkResult ResourceTracker::on_vkEnumerateInstanceVersion(
+    void* context,
+    VkResult input_result,
+    uint32_t* apiVersion) {
+    return mImpl->on_vkEnumerateInstanceVersion(context, input_result, apiVersion);
+}
+
+VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
+    void* context,
+    VkResult input_result,
+    VkPhysicalDevice physicalDevice,
+    const char* pLayerName,
+    uint32_t* pPropertyCount,
+    VkExtensionProperties* pProperties) {
+    return mImpl->on_vkEnumerateDeviceExtensionProperties(
+        context, input_result, physicalDevice, pLayerName, pPropertyCount, pProperties);
+}
+
+void ResourceTracker::on_vkGetPhysicalDeviceProperties2(
+    void* context,
+    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceProperties2* pProperties) {
+    mImpl->on_vkGetPhysicalDeviceProperties2(context, physicalDevice, pProperties);
 }
 
 VkResult ResourceTracker::on_vkCreateDevice(
@@ -293,6 +500,36 @@ VkResult ResourceTracker::on_vkAllocateMemory(
     VkDeviceMemory* pMemory) {
     return mImpl->on_vkAllocateMemory(
         context, input_result, device, pAllocateInfo, pAllocator, pMemory);
+}
+
+VkResult ResourceTracker::on_vkMapMemory(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    VkDeviceMemory memory,
+    VkDeviceSize offset,
+    VkDeviceSize size,
+    VkMemoryMapFlags flags,
+    void** ppData) {
+    return mImpl->on_vkMapMemory(
+        context, input_result, device, memory, offset, size, flags, ppData);
+}
+
+void ResourceTracker::on_vkUnmapMemory(
+    void* context,
+    VkDevice device,
+    VkDeviceMemory memory) {
+    mImpl->on_vkUnmapMemory(context, device, memory);
+}
+
+void ResourceTracker::unwrap_VkNativeBufferANDROID(
+    const VkImageCreateInfo* pCreateInfo,
+    VkImageCreateInfo* local_pCreateInfo) {
+    mImpl->unwrap_VkNativeBufferANDROID(pCreateInfo, local_pCreateInfo);
+}
+
+void ResourceTracker::unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int* fd_out) {
+    mImpl->unwrap_vkAcquireImageANDROID_nativeFenceFd(fd, fd_out);
 }
 
 } // namespace goldfish_vk
