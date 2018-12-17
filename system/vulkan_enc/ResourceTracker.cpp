@@ -372,7 +372,9 @@ public:
         if (!cb_handle) return;
 
         VkNativeBufferANDROID* nativeInfoOut =
-            reinterpret_cast<VkNativeBufferANDROID*>(local_pCreateInfo);
+            reinterpret_cast<VkNativeBufferANDROID*>(
+                const_cast<void*>(
+                    local_pCreateInfo->pNext));
 
         if (!nativeInfoOut->handle) {
             ALOGE("FATAL: Local native buffer info not properly allocated!");
