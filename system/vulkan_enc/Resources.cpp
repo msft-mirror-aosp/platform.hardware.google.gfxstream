@@ -37,7 +37,7 @@ extern "C" {
             abort(); \
         } \
         res->dispatch.magic = HWVULKAN_DISPATCH_MAGIC; \
-        res->underlying = (uint64_t)(uintptr_t)underlying; \
+        res->underlying = (uint64_t)underlying; \
         return reinterpret_cast<type>(res); \
     } \
 
@@ -45,7 +45,7 @@ extern "C" {
     type new_from_host_##type(type underlying) { \
         struct goldfish_##type* res = \
             static_cast<goldfish_##type*>(malloc(sizeof(goldfish_##type))); \
-        res->underlying = (uint64_t)(uintptr_t)underlying; \
+        res->underlying = (uint64_t)underlying; \
         return reinterpret_cast<type>(res); \
     } \
 
@@ -58,7 +58,7 @@ extern "C" {
     type get_host_##type(type toUnwrap) { \
         if (!toUnwrap) return VK_NULL_HANDLE; \
         auto as_goldfish = as_goldfish_##type(toUnwrap); \
-        return (type)(uintptr_t)(as_goldfish->underlying); \
+        return (type)(as_goldfish->underlying); \
     } \
 
 #define GOLDFISH_VK_DELETE_GOLDFISH_IMPL(type) \

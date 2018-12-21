@@ -74,20 +74,20 @@ public: \
 #define CREATE_MAPPING_IMPL_FOR_TYPE(type_name) \
     MAKE_HANDLE_MAPPING_FOREACH(type_name, \
         handles[i] = new_from_host_##type_name(handles[i]); ResourceTracker::get()->register_##type_name(handles[i]);, \
-        handle_u64s[i] = (uint64_t)(uintptr_t)new_from_host_##type_name(handles[i]), \
-        handles[i] = (type_name)(uintptr_t)new_from_host_u64_##type_name(handle_u64s[i]); ResourceTracker::get()->register_##type_name(handles[i]);)
+        handle_u64s[i] = (uint64_t)new_from_host_##type_name(handles[i]), \
+        handles[i] = (type_name)new_from_host_u64_##type_name(handle_u64s[i]); ResourceTracker::get()->register_##type_name(handles[i]);)
 
 #define UNWRAP_MAPPING_IMPL_FOR_TYPE(type_name) \
     MAKE_HANDLE_MAPPING_FOREACH(type_name, \
         handles[i] = get_host_##type_name(handles[i]), \
-        handle_u64s[i] = (uint64_t)(uintptr_t)get_host_u64_##type_name(handles[i]), \
-        handles[i] = (type_name)(uintptr_t)get_host_##type_name((type_name)(uintptr_t)handle_u64s[i]))
+        handle_u64s[i] = (uint64_t)get_host_u64_##type_name(handles[i]), \
+        handles[i] = (type_name)get_host_##type_name((type_name)handle_u64s[i]))
 
 #define DESTROY_MAPPING_IMPL_FOR_TYPE(type_name) \
     MAKE_HANDLE_MAPPING_FOREACH(type_name, \
         ResourceTracker::get()->unregister_##type_name(handles[i]); delete_goldfish_##type_name(handles[i]), \
         (void)handle_u64s[i]; delete_goldfish_##type_name(handles[i]), \
-        (void)handles[i]; delete_goldfish_##type_name((type_name)(uintptr_t)handle_u64s[i]))
+        (void)handles[i]; delete_goldfish_##type_name((type_name)handle_u64s[i]))
 
 DEFINE_RESOURCE_TRACKING_CLASS(CreateMapping, CREATE_MAPPING_IMPL_FOR_TYPE)
 DEFINE_RESOURCE_TRACKING_CLASS(UnwrapMapping, UNWRAP_MAPPING_IMPL_FOR_TYPE)
