@@ -21,6 +21,8 @@
 #include "VkEventHandler.h"
 #include <memory>
 
+struct EmulatorFeatureInfo;
+
 namespace goldfish_vk {
 
 class ResourceTracker : public VkEventHandler {
@@ -97,6 +99,7 @@ public:
     VkDeviceSize getMappedSize(VkDeviceMemory memory);
     VkDeviceSize getNonCoherentExtendedSize(VkDevice device, VkDeviceSize basicSize) const;
     bool isValidMemoryRange(const VkMappedMemoryRange& range) const;
+    void setupFeatures(const EmulatorFeatureInfo* features);
 
   private:
     class Impl;
