@@ -23,6 +23,7 @@
 #include "android/base/synchronization/AndroidLock.h"
 
 #include "gralloc_cb.h"
+#include "goldfish_address_space.h"
 #include "goldfish_vk_private_defs.h"
 
 #include <unordered_map>
@@ -120,6 +121,9 @@ public:
         VkDeviceSize mappedSize = 0;
         uint8_t* mappedPtr = nullptr;
         uint32_t memoryTypeIndex = 0;
+        bool directMapped = false;
+        std::unique_ptr<GoldfishAddressSpaceBlock>
+            goldfishAddressSpaceBlock = {};
     };
 
 #define HANDLE_REGISTER_IMPL_IMPL(type) \
@@ -145,13 +149,19 @@ public:
 
     void unregister_VkDeviceMemory(VkDeviceMemory mem) {
         AutoLock lock(mLock);
+
         auto it = info_VkDeviceMemory.find(mem);
         if (it == info_VkDeviceMemory.end()) return;
 
         auto& memInfo = it->second;
-        if (memInfo.mappedPtr) {
+
+        if (memInfo.mappedPtr && !memInfo.directMapped) {
             aligned_buf_free(memInfo.mappedPtr);
         }
+
+        // Direct mapping is erased by GoldfishAddressSpaceBlock's
+        // dtor
+        info_VkDeviceMemory.erase(mem);
     }
 
     void setDeviceInfo(VkDevice device,
@@ -242,6 +252,15 @@ public:
         if (!features || mFeatureInfo) return;
         mFeatureInfo.reset(new EmulatorFeatureInfo);
         *mFeatureInfo = *features;
+
+        if (mFeatureInfo->hasDirectMem) {
+            mGoldfishAddressSpaceBlockProvider.reset(
+                new GoldfishAddressSpaceBlockProvider);
+        }
+    }
+
+    bool usingDirectMapping() const {
+        return mFeatureInfo->hasDirectMem;
     }
 
     VkResult on_vkEnumerateInstanceVersion(
@@ -295,7 +314,7 @@ public:
     }
 
     VkResult on_vkAllocateMemory(
-        void*,
+        void* context,
         VkResult input_result,
         VkDevice device,
         const VkMemoryAllocateInfo* pAllocateInfo,
@@ -307,17 +326,52 @@ public:
         VkDeviceSize allocationSize = pAllocateInfo->allocationSize;
         VkDeviceSize mappedSize = getNonCoherentExtendedSize(device, allocationSize);
         uint8_t* mappedPtr = nullptr;
-
-        if (isMemoryTypeHostVisible(device, pAllocateInfo->memoryTypeIndex)) {
+        bool hostVisible =
+            isMemoryTypeHostVisible(device, pAllocateInfo->memoryTypeIndex);
+        if (hostVisible && !mGoldfishAddressSpaceBlockProvider) {
             mappedPtr = (uint8_t*)aligned_buf_alloc(4096, mappedSize);
-            D("host visible alloc: size 0x%llx host ptr %p mapped size 0x%llx",
-              (unsigned long long)size, mem->ptr,
-              (unsigned long long)mem->mappedSize);
+            D("host visible alloc (non-direct): "
+              "size 0x%llx host ptr %p mapped size 0x%llx",
+              (unsigned long long)allocationSize, mappedPtr,
+              (unsigned long long)mappedSize);
         }
 
         setDeviceMemoryInfo(
             *pMemory, allocationSize, mappedSize, mappedPtr,
             pAllocateInfo->memoryTypeIndex);
+
+        bool doDirectMap =
+            hostVisible && mGoldfishAddressSpaceBlockProvider;
+
+        if (doDirectMap) {
+            VkEncoder* enc = (VkEncoder*)context;
+
+            uint64_t directMappedAddr = 0;
+
+            VkResult directMapResult =
+                enc->vkMapMemoryIntoAddressSpaceGOOGLE(
+                    device, *pMemory, &directMappedAddr);
+
+            if (directMapResult != VK_SUCCESS) {
+                return directMapResult;
+            }
+
+            AutoLock lock(mLock);
+
+            auto it = info_VkDeviceMemory.find(*pMemory);
+            if (it == info_VkDeviceMemory.end()) {
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
+
+            auto& info = it->second;
+            info.mappedPtr = (uint8_t*)(uintptr_t)directMappedAddr;
+            info.directMapped = true;
+
+            D("host visible alloc (direct): "
+              "size 0x%llx host ptr %p mapped size 0x%llx",
+              (unsigned long long)allocationSize, info.mappedPtr,
+              (unsigned long long)mappedSize);
+        }
 
         return input_result;
     }
@@ -397,9 +451,82 @@ public:
         }
     }
 
+    // Action of vkMapMemoryIntoAddressSpaceGOOGLE:
+    // 1. preprocess (on_vkMapMemoryIntoAddressSpaceGOOGLE_pre):
+    //    uses address space device to reserve the right size of
+    //    memory.
+    // 2. the reservation results in a physical address. the physical
+    //    address is set as |*pAddress|.
+    // 3. after pre, the API call is encoded to the host, where the
+    //    value of pAddress is also sent (the physical address).
+    // 4. the host will obtain the actual gpu pointer and send it
+    //    back out in |*pAddress|.
+    // 5. postprocess (on_vkMapMemoryIntoAddressSpaceGOOGLE) will run,
+    //    using the mmap() method of GoldfishAddressSpaceBlock to obtain
+    //    a pointer in guest userspace corresponding to the host pointer.
+    VkResult on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(
+        void*,
+        VkResult,
+        VkDevice,
+        VkDeviceMemory memory,
+        uint64_t* pAddress) {
+
+        AutoLock lock(mLock);
+
+        auto it = info_VkDeviceMemory.find(memory);
+        if (it == info_VkDeviceMemory.end()) {
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+
+        auto& memInfo = it->second;
+        memInfo.goldfishAddressSpaceBlock.reset(
+            new GoldfishAddressSpaceBlock);
+        auto& block = *(memInfo.goldfishAddressSpaceBlock);
+
+        block.allocate(
+            mGoldfishAddressSpaceBlockProvider.get(),
+            memInfo.mappedSize);
+
+        *pAddress = block.physAddr();
+
+        return VK_SUCCESS;
+    }
+
+    VkResult on_vkMapMemoryIntoAddressSpaceGOOGLE(
+        void*,
+        VkResult input_result,
+        VkDevice,
+        VkDeviceMemory memory,
+        uint64_t* pAddress) {
+
+        if (input_result != VK_SUCCESS) {
+            return input_result;
+        }
+
+        // Now pAddress points to the gpu addr from host.
+        AutoLock lock(mLock);
+
+        auto it = info_VkDeviceMemory.find(memory);
+        if (it == info_VkDeviceMemory.end()) {
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+
+        auto& memInfo = it->second;
+        auto& block = *(memInfo.goldfishAddressSpaceBlock);
+
+        uint64_t gpuAddr = *pAddress;
+
+        void* userPtr = block.mmap(gpuAddr);
+
+        *pAddress = (uint64_t)(uintptr_t)userPtr;
+
+        return input_result;
+    }
+
 private:
     mutable Lock mLock;
     std::unique_ptr<EmulatorFeatureInfo> mFeatureInfo;
+    std::unique_ptr<GoldfishAddressSpaceBlockProvider> mGoldfishAddressSpaceBlockProvider;
 };
 ResourceTracker::ResourceTracker() : mImpl(new ResourceTracker::Impl()) { }
 ResourceTracker::~ResourceTracker() { }
@@ -466,6 +593,10 @@ bool ResourceTracker::isValidMemoryRange(const VkMappedMemoryRange& range) const
 
 void ResourceTracker::setupFeatures(const EmulatorFeatureInfo* features) {
     mImpl->setupFeatures(features);
+}
+
+bool ResourceTracker::usingDirectMapping() const {
+    return mImpl->usingDirectMapping();
 }
 
 VkResult ResourceTracker::on_vkEnumerateInstanceVersion(
@@ -543,6 +674,26 @@ void ResourceTracker::unwrap_VkNativeBufferANDROID(
 
 void ResourceTracker::unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int* fd_out) {
     mImpl->unwrap_vkAcquireImageANDROID_nativeFenceFd(fd, fd_out);
+}
+
+VkResult ResourceTracker::on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    VkDeviceMemory memory,
+    uint64_t* pAddress) {
+    return mImpl->on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(
+        context, input_result, device, memory, pAddress);
+}
+
+VkResult ResourceTracker::on_vkMapMemoryIntoAddressSpaceGOOGLE(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    VkDeviceMemory memory,
+    uint64_t* pAddress) {
+    return mImpl->on_vkMapMemoryIntoAddressSpaceGOOGLE(
+        context, input_result, device, memory, pAddress);
 }
 
 } // namespace goldfish_vk
