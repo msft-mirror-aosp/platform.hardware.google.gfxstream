@@ -1444,21 +1444,24 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
             marshal_VkMappedMemoryRange(countingStream, (VkMappedMemoryRange*)(local_pMemoryRanges + i));
         }
     }
-    for (uint32_t i = 0; i < memoryRangeCount; ++i)
+    if (!resources->usingDirectMapping())
     {
-        auto range = pMemoryRanges[i];
-        auto memory = pMemoryRanges[i].memory;
-        auto size = pMemoryRanges[i].size;
-        auto offset = pMemoryRanges[i].offset;
-        uint64_t streamSize = 0;
-        if (!memory) { countingStream->write(&streamSize, sizeof(uint64_t)); continue; };
-        auto hostPtr = resources->getMappedPointer(memory);
-        auto actualSize = size == VK_WHOLE_SIZE ? resources->getMappedSize(memory) : size;
-        if (!hostPtr) { countingStream->write(&streamSize, sizeof(uint64_t)); continue; };
-        streamSize = actualSize;
-        countingStream->write(&streamSize, sizeof(uint64_t));
-        uint8_t* targetRange = hostPtr + offset;
-        countingStream->write(targetRange, actualSize);
+        for (uint32_t i = 0; i < memoryRangeCount; ++i)
+        {
+            auto range = pMemoryRanges[i];
+            auto memory = pMemoryRanges[i].memory;
+            auto size = pMemoryRanges[i].size;
+            auto offset = pMemoryRanges[i].offset;
+            uint64_t streamSize = 0;
+            if (!memory) { countingStream->write(&streamSize, sizeof(uint64_t)); continue; };
+            auto hostPtr = resources->getMappedPointer(memory);
+            auto actualSize = size == VK_WHOLE_SIZE ? resources->getMappedSize(memory) : size;
+            if (!hostPtr) { countingStream->write(&streamSize, sizeof(uint64_t)); continue; };
+            streamSize = actualSize;
+            countingStream->write(&streamSize, sizeof(uint64_t));
+            uint8_t* targetRange = hostPtr + offset;
+            countingStream->write(targetRange, actualSize);
+        }
     }
     uint32_t packetSize_vkFlushMappedMemoryRanges = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
@@ -1473,21 +1476,24 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
     {
         marshal_VkMappedMemoryRange(stream, (VkMappedMemoryRange*)(local_pMemoryRanges + i));
     }
-    for (uint32_t i = 0; i < memoryRangeCount; ++i)
+    if (!resources->usingDirectMapping())
     {
-        auto range = pMemoryRanges[i];
-        auto memory = pMemoryRanges[i].memory;
-        auto size = pMemoryRanges[i].size;
-        auto offset = pMemoryRanges[i].offset;
-        uint64_t streamSize = 0;
-        if (!memory) { stream->write(&streamSize, sizeof(uint64_t)); continue; };
-        auto hostPtr = resources->getMappedPointer(memory);
-        auto actualSize = size == VK_WHOLE_SIZE ? resources->getMappedSize(memory) : size;
-        if (!hostPtr) { stream->write(&streamSize, sizeof(uint64_t)); continue; };
-        streamSize = actualSize;
-        stream->write(&streamSize, sizeof(uint64_t));
-        uint8_t* targetRange = hostPtr + offset;
-        stream->write(targetRange, actualSize);
+        for (uint32_t i = 0; i < memoryRangeCount; ++i)
+        {
+            auto range = pMemoryRanges[i];
+            auto memory = pMemoryRanges[i].memory;
+            auto size = pMemoryRanges[i].size;
+            auto offset = pMemoryRanges[i].offset;
+            uint64_t streamSize = 0;
+            if (!memory) { stream->write(&streamSize, sizeof(uint64_t)); continue; };
+            auto hostPtr = resources->getMappedPointer(memory);
+            auto actualSize = size == VK_WHOLE_SIZE ? resources->getMappedSize(memory) : size;
+            if (!hostPtr) { stream->write(&streamSize, sizeof(uint64_t)); continue; };
+            streamSize = actualSize;
+            stream->write(&streamSize, sizeof(uint64_t));
+            uint8_t* targetRange = hostPtr + offset;
+            stream->write(targetRange, actualSize);
+        }
     }
     VkResult vkFlushMappedMemoryRanges_VkResult_return = (VkResult)0;
     stream->read(&vkFlushMappedMemoryRanges_VkResult_return, sizeof(VkResult));
@@ -1551,21 +1557,24 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
     countingStream->clearPool();
     stream->clearPool();
     pool->freeAll();
-    for (uint32_t i = 0; i < memoryRangeCount; ++i)
+    if (!resources->usingDirectMapping())
     {
-        auto range = pMemoryRanges[i];
-        auto memory = pMemoryRanges[i].memory;
-        auto size = pMemoryRanges[i].size;
-        auto offset = pMemoryRanges[i].offset;
-        uint64_t streamSize = 0;
-        if (!memory) { stream->read(&streamSize, sizeof(uint64_t)); continue; };
-        auto hostPtr = resources->getMappedPointer(memory);
-        auto actualSize = size == VK_WHOLE_SIZE ? resources->getMappedSize(memory) : size;
-        if (!hostPtr) { stream->read(&streamSize, sizeof(uint64_t)); continue; };
-        streamSize = actualSize;
-        stream->read(&streamSize, sizeof(uint64_t));
-        uint8_t* targetRange = hostPtr + offset;
-        stream->read(targetRange, actualSize);
+        for (uint32_t i = 0; i < memoryRangeCount; ++i)
+        {
+            auto range = pMemoryRanges[i];
+            auto memory = pMemoryRanges[i].memory;
+            auto size = pMemoryRanges[i].size;
+            auto offset = pMemoryRanges[i].offset;
+            uint64_t streamSize = 0;
+            if (!memory) { stream->read(&streamSize, sizeof(uint64_t)); continue; };
+            auto hostPtr = resources->getMappedPointer(memory);
+            auto actualSize = size == VK_WHOLE_SIZE ? resources->getMappedSize(memory) : size;
+            if (!hostPtr) { stream->read(&streamSize, sizeof(uint64_t)); continue; };
+            streamSize = actualSize;
+            stream->read(&streamSize, sizeof(uint64_t));
+            uint8_t* targetRange = hostPtr + offset;
+            stream->read(targetRange, actualSize);
+        }
     }
     return vkInvalidateMappedMemoryRanges_VkResult_return;
 }
@@ -18950,6 +18959,77 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
             unmarshal_VkCheckpointDataNV(stream, (VkCheckpointDataNV*)(pCheckpointData + i));
         }
     }
+}
+
+#endif
+#ifdef VK_GOOGLE_address_space
+VkResult VkEncoder::vkMapMemoryIntoAddressSpaceGOOGLE(
+    VkDevice device,
+    VkDeviceMemory memory,
+    uint64_t* pAddress)
+{
+    mImpl->resources()->on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(this, VK_SUCCESS, device, memory, pAddress);
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkDevice local_device;
+    VkDeviceMemory local_memory;
+    local_device = device;
+    local_memory = memory;
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1461;
+        countingStream->handleMapping()->mapHandles_VkDevice_u64(&local_device, &cgen_var_1461, 1);
+        countingStream->write((uint64_t*)&cgen_var_1461, 1 * 8);
+        uint64_t cgen_var_1462;
+        countingStream->handleMapping()->mapHandles_VkDeviceMemory_u64(&local_memory, &cgen_var_1462, 1);
+        countingStream->write((uint64_t*)&cgen_var_1462, 1 * 8);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1463 = (uint64_t)(uintptr_t)pAddress;
+        countingStream->putBe64(cgen_var_1463);
+        if (pAddress)
+        {
+            countingStream->write((uint64_t*)pAddress, sizeof(uint64_t));
+        }
+    }
+    uint32_t packetSize_vkMapMemoryIntoAddressSpaceGOOGLE = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkMapMemoryIntoAddressSpaceGOOGLE = OP_vkMapMemoryIntoAddressSpaceGOOGLE;
+    stream->write(&opcode_vkMapMemoryIntoAddressSpaceGOOGLE, sizeof(uint32_t));
+    stream->write(&packetSize_vkMapMemoryIntoAddressSpaceGOOGLE, sizeof(uint32_t));
+    uint64_t cgen_var_1464;
+    stream->handleMapping()->mapHandles_VkDevice_u64(&local_device, &cgen_var_1464, 1);
+    stream->write((uint64_t*)&cgen_var_1464, 1 * 8);
+    uint64_t cgen_var_1465;
+    stream->handleMapping()->mapHandles_VkDeviceMemory_u64(&local_memory, &cgen_var_1465, 1);
+    stream->write((uint64_t*)&cgen_var_1465, 1 * 8);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1466 = (uint64_t)(uintptr_t)pAddress;
+    stream->putBe64(cgen_var_1466);
+    if (pAddress)
+    {
+        stream->write((uint64_t*)pAddress, sizeof(uint64_t));
+    }
+    // WARNING PTR CHECK
+    uint64_t* check_pAddress;
+    check_pAddress = (uint64_t*)(uintptr_t)stream->getBe64();
+    if (pAddress)
+    {
+        if (!(check_pAddress))
+        {
+            fprintf(stderr, "fatal: pAddress inconsistent between guest and host\n");
+        }
+        stream->read((uint64_t*)pAddress, sizeof(uint64_t));
+    }
+    VkResult vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return = (VkResult)0;
+    stream->read(&vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return, sizeof(VkResult));
+    countingStream->clearPool();
+    stream->clearPool();
+    pool->freeAll();
+    mImpl->resources()->on_vkMapMemoryIntoAddressSpaceGOOGLE(this, vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return, device, memory, pAddress);
+    return vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return;
 }
 
 #endif

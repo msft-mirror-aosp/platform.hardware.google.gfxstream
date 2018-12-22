@@ -1663,5 +1663,7 @@ void handlemap_VkCheckpointDataNV(
     VkCheckpointDataNV* toMap);
 
 #endif
+#ifdef VK_GOOGLE_address_space
+#endif
 
 } // namespace goldfish_vk

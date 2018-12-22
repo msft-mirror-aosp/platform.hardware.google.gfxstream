@@ -3151,5 +3151,17 @@ void VkEventHandler::on_vkGetQueueCheckpointDataNV(
 {
 }
 #endif
+#ifdef VK_GOOGLE_address_space
+VkResult VkEventHandler::on_vkMapMemoryIntoAddressSpaceGOOGLE(
+    void*,
+    VkResult,
+    VkDevice,
+    VkDeviceMemory,
+    uint64_t*)
+{
+    VkResult on_vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return = (VkResult)0;
+    return on_vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return;
+}
+#endif
 
 } // namespace goldfish_vk
