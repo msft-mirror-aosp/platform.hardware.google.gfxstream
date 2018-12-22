@@ -35,6 +35,7 @@ endif
 LOCAL_CFLAGS += \
     -DLOG_TAG=\"goldfish_vulkan\" \
     -DVK_ANDROID_native_buffer \
+    -DVK_GOOGLE_address_space \
     -Wno-missing-field-initializers \
     -Werror \
     -fstrict-aliasing \

@@ -1741,6 +1741,12 @@ public:
         uint32_t* pCheckpointDataCount,
         VkCheckpointDataNV* pCheckpointData);
 #endif
+#ifdef VK_GOOGLE_address_space
+    VkResult vkMapMemoryIntoAddressSpaceGOOGLE(
+    VkDevice device,
+        VkDeviceMemory memory,
+        uint64_t* pAddress);
+#endif
 
 private:
     class Impl;

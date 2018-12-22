@@ -3320,6 +3320,18 @@ static void entry_vkGetQueueCheckpointDataNV(
     vkEnc->vkGetQueueCheckpointDataNV(queue, pCheckpointDataCount, pCheckpointData);
 }
 #endif
+#ifdef VK_GOOGLE_address_space
+static VkResult entry_vkMapMemoryIntoAddressSpaceGOOGLE(
+    VkDevice device,
+    VkDeviceMemory memory,
+    uint64_t* pAddress)
+{
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return = (VkResult)0;
+    vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return = vkEnc->vkMapMemoryIntoAddressSpaceGOOGLE(device, memory, pAddress);
+    return vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return;
+}
+#endif
 void* goldfish_vulkan_get_proc_address(const char* name){
 #ifdef VK_VERSION_1_0
     if (!strcmp(name, "vkCreateInstance"))
@@ -4713,6 +4725,12 @@ void* goldfish_vulkan_get_proc_address(const char* name){
     if (!strcmp(name, "vkGetQueueCheckpointDataNV"))
     {
         return (void*)entry_vkGetQueueCheckpointDataNV;
+    }
+#endif
+#ifdef VK_GOOGLE_address_space
+    if (!strcmp(name, "vkMapMemoryIntoAddressSpaceGOOGLE"))
+    {
+        return (void*)entry_vkMapMemoryIntoAddressSpaceGOOGLE;
     }
 #endif
     return nullptr;
