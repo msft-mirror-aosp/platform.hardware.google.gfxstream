@@ -15,6 +15,7 @@
 
 #include "ResourceTracker.h"
 
+#include "../OpenglSystemCommon/EmulatorFeatureInfo.h"
 #include "Resources.h"
 #include "VkEncoder.h"
 
@@ -237,6 +238,12 @@ public:
         return offset + size <= info.mappedSize;
     }
 
+    void setupFeatures(const EmulatorFeatureInfo* features) {
+        if (!features || mFeatureInfo) return;
+        mFeatureInfo.reset(new EmulatorFeatureInfo);
+        *mFeatureInfo = *features;
+    }
+
     VkResult on_vkEnumerateInstanceVersion(
         void*,
         VkResult,
@@ -392,7 +399,7 @@ public:
 
 private:
     mutable Lock mLock;
-
+    std::unique_ptr<EmulatorFeatureInfo> mFeatureInfo;
 };
 ResourceTracker::ResourceTracker() : mImpl(new ResourceTracker::Impl()) { }
 ResourceTracker::~ResourceTracker() { }
@@ -455,6 +462,10 @@ VkDeviceSize ResourceTracker::getNonCoherentExtendedSize(VkDevice device, VkDevi
 
 bool ResourceTracker::isValidMemoryRange(const VkMappedMemoryRange& range) const {
     return mImpl->isValidMemoryRange(range);
+}
+
+void ResourceTracker::setupFeatures(const EmulatorFeatureInfo* features) {
+    mImpl->setupFeatures(features);
 }
 
 VkResult ResourceTracker::on_vkEnumerateInstanceVersion(
