@@ -93,6 +93,19 @@ public:
         VkImageCreateInfo* local_pCreateInfo);
     void unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int* fd_out);
 
+    VkResult on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(
+        void* context,
+        VkResult input_result,
+        VkDevice device,
+        VkDeviceMemory memory,
+        uint64_t* pAddress);
+    VkResult on_vkMapMemoryIntoAddressSpaceGOOGLE(
+        void* context,
+        VkResult input_result,
+        VkDevice device,
+        VkDeviceMemory memory,
+        uint64_t* pAddress);
+
     void setDeviceInfo(VkDevice device, VkPhysicalDevice physdev, VkPhysicalDeviceProperties props, VkPhysicalDeviceMemoryProperties memProps);
     bool isMemoryTypeHostVisible(VkDevice device, uint32_t typeIndex) const;
     uint8_t* getMappedPointer(VkDeviceMemory memory);
@@ -100,6 +113,7 @@ public:
     VkDeviceSize getNonCoherentExtendedSize(VkDevice device, VkDeviceSize basicSize) const;
     bool isValidMemoryRange(const VkMappedMemoryRange& range) const;
     void setupFeatures(const EmulatorFeatureInfo* features);
+    bool usingDirectMapping() const;
 
   private:
     class Impl;
