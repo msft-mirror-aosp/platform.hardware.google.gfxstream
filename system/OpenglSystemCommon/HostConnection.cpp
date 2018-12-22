@@ -250,6 +250,8 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetGLESMaxVersion(m_rcEnc);
         queryAndSetNoErrorState(m_rcEnc);
         queryAndSetHostCompositionImpl(m_rcEnc);
+        queryAndSetDirectMemSupport(m_rcEnc);
+        queryAndSetVulkanSupport(m_rcEnc);
         if (m_processPipe) {
             m_processPipe->processPipeInit(m_rcEnc);
         }
@@ -382,5 +384,19 @@ void HostConnection::queryAndSetNoErrorState(ExtendedRCEncoderContext* rcEnc) {
     std::string glExtensions = queryGLExtensions(rcEnc);
     if (glExtensions.find(kGLESNoHostError) != std::string::npos) {
         m_noHostError = true;
+    }
+}
+
+void HostConnection::queryAndSetDirectMemSupport(ExtendedRCEncoderContext* rcEnc) {
+    std::string glExtensions = queryGLExtensions(rcEnc);
+    if (glExtensions.find(kGLDirectMem) != std::string::npos) {
+        rcEnc->featureInfo()->hasDirectMem = true;
+    }
+}
+
+void HostConnection::queryAndSetVulkanSupport(ExtendedRCEncoderContext* rcEnc) {
+    std::string glExtensions = queryGLExtensions(rcEnc);
+    if (glExtensions.find(kVulkan) != std::string::npos) {
+        rcEnc->featureInfo()->hasVulkan = true;
     }
 }
