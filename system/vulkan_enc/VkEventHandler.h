@@ -2212,6 +2212,14 @@ public:
         uint32_t* pCheckpointDataCount,
         VkCheckpointDataNV* pCheckpointData);
 #endif
+#ifdef VK_GOOGLE_address_space
+    virtual VkResult on_vkMapMemoryIntoAddressSpaceGOOGLE(
+    void* context,
+        VkResult input_result,
+        VkDevice device,
+        VkDeviceMemory memory,
+        uint64_t* pAddress);
+#endif
 
 };
 
