@@ -276,6 +276,8 @@ namespace goldfish_vk {
 #endif
 #ifdef VK_NV_device_diagnostic_checkpoints
 #endif
+#ifdef VK_GOOGLE_address_space
+#endif
 void* goldfish_vulkan_get_proc_address(const char* name);
 
 } // namespace goldfish_vk
