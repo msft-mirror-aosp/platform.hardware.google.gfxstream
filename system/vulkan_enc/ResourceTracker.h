@@ -114,6 +114,12 @@ public:
     bool isValidMemoryRange(const VkMappedMemoryRange& range) const;
     void setupFeatures(const EmulatorFeatureInfo* features);
     bool usingDirectMapping() const;
+    void deviceMemoryTransform(
+        VkDeviceMemory* memory, uint32_t memoryCount,
+        VkDeviceSize* offset, uint32_t offsetCount,
+        VkDeviceSize* size, uint32_t sizeCount,
+        uint32_t* typeIndex, uint32_t typeIndexCount,
+        uint32_t* typeBits, uint32_t typeBitsCount);
 
   private:
     class Impl;
