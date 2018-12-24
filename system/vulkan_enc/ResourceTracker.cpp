@@ -263,6 +263,38 @@ public:
         return mFeatureInfo->hasDirectMem;
     }
 
+    void deviceMemoryTransform(
+        VkDeviceMemory* memory, uint32_t memoryCount,
+        VkDeviceSize* offset, uint32_t offsetCount,
+        VkDeviceSize* size, uint32_t sizeCount,
+        uint32_t* typeIndex, uint32_t typeIndexCount,
+        uint32_t* typeBits, uint32_t typeBitsCount) {
+        
+        if (memoryCount != offsetCount ||
+            offsetCount != sizeCount ||
+            sizeCount != memoryCount) {
+            ALOGE("FATAL: Mismatched counts for device memory info");
+            abort();
+        }
+
+        for (uint32_t i = 0; i < memoryCount; ++i) {
+            // TODO
+            (void)memory;
+            (void)offset;
+            (void)size;
+        }
+
+        for (uint32_t i = 0; i < typeIndexCount; ++i) {
+            // TODO
+            (void)typeIndex;
+        }
+
+        for (uint32_t i = 0; i < typeBitsCount; ++i) {
+            // TODO
+            (void)typeBits;
+        }
+    }
+
     VkResult on_vkEnumerateInstanceVersion(
         void*,
         VkResult,
@@ -597,6 +629,20 @@ void ResourceTracker::setupFeatures(const EmulatorFeatureInfo* features) {
 
 bool ResourceTracker::usingDirectMapping() const {
     return mImpl->usingDirectMapping();
+}
+
+void ResourceTracker::deviceMemoryTransform(
+    VkDeviceMemory* memory, uint32_t memoryCount,
+    VkDeviceSize* offset, uint32_t offsetCount,
+    VkDeviceSize* size, uint32_t sizeCount,
+    uint32_t* typeIndex, uint32_t typeIndexCount,
+    uint32_t* typeBits, uint32_t typeBitsCount) {
+    mImpl->deviceMemoryTransform(
+        memory, memoryCount,
+        offset, offsetCount,
+        size, sizeCount,
+        typeIndex, typeIndexCount,
+        typeBits, typeBitsCount);
 }
 
 VkResult ResourceTracker::on_vkEnumerateInstanceVersion(
