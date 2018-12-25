@@ -425,9 +425,16 @@ public:
         VkResult input_result,
         VkDevice device,
         const VkMemoryAllocateInfo* pAllocateInfo,
-        const VkAllocationCallbacks*,
+        const VkAllocationCallbacks* pAllocator,
         VkDeviceMemory* pMemory) {
 
+        if (input_result != VK_SUCCESS) return input_result;
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        input_result =
+            enc->vkAllocateMemory(device, pAllocateInfo, pAllocator, pMemory);
+        
         if (input_result != VK_SUCCESS) return input_result;
 
         VkDeviceSize allocationSize = pAllocateInfo->allocationSize;
@@ -452,7 +459,6 @@ public:
             hostVisible && directMappingSupported;
 
         if (doDirectMap) {
-            VkEncoder* enc = (VkEncoder*)context;
 
             uint64_t directMappedAddr = 0;
 
@@ -482,6 +488,16 @@ public:
         }
 
         return input_result;
+    }
+
+    void on_vkFreeMemory(
+        void* context,
+        VkDevice device,
+        VkDeviceMemory memory,
+        const VkAllocationCallbacks* pAllocateInfo) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+        enc->vkFreeMemory(device, memory, pAllocateInfo);
     }
 
     VkResult on_vkMapMemory(
@@ -789,6 +805,15 @@ VkResult ResourceTracker::on_vkAllocateMemory(
     VkDeviceMemory* pMemory) {
     return mImpl->on_vkAllocateMemory(
         context, input_result, device, pAllocateInfo, pAllocator, pMemory);
+}
+
+void ResourceTracker::on_vkFreeMemory(
+    void* context,
+    VkDevice device,
+    VkDeviceMemory memory,
+    const VkAllocationCallbacks* pAllocator) {
+    return mImpl->on_vkFreeMemory(
+        context, device, memory, pAllocator);
 }
 
 VkResult ResourceTracker::on_vkMapMemory(
