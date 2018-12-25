@@ -15,24 +15,22 @@
 
 #include <vulkan/vulkan.h>
 
-#include "VkEventHandler.h"
-
 namespace goldfish_vk {
 
-class Validation : public VkEventHandler {
+class Validation {
 public:
     VkResult on_vkFlushMappedMemoryRanges(
         void* context,
         VkResult input_result,
         VkDevice device,
         uint32_t memoryRangeCount,
-        const VkMappedMemoryRange* pMemoryRanges) override;
+        const VkMappedMemoryRange* pMemoryRanges);
     VkResult on_vkInvalidateMappedMemoryRanges(
         void* context,
         VkResult input_result,
         VkDevice device,
         uint32_t memoryRangeCount,
-        const VkMappedMemoryRange* pMemoryRanges) override;
+        const VkMappedMemoryRange* pMemoryRanges);
 };
 
 } // namespace goldfish_vk

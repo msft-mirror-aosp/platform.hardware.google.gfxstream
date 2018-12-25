@@ -106,11 +106,11 @@ VkResult VkEncoder::vkCreateInstance(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkInstanceCreateInfo(mImpl->resources(), (VkInstanceCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkInstanceCreateInfo(mImpl->resources(), (VkInstanceCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -178,7 +178,7 @@ void VkEncoder::vkDestroyInstance(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -345,6 +345,10 @@ void VkEncoder::vkGetPhysicalDeviceFeatures(
     stream->write((uint64_t*)&cgen_var_21, 1 * 8);
     marshal_VkPhysicalDeviceFeatures(stream, (VkPhysicalDeviceFeatures*)(pFeatures));
     unmarshal_VkPhysicalDeviceFeatures(stream, (VkPhysicalDeviceFeatures*)(pFeatures));
+    if (pFeatures)
+    {
+        transform_fromhost_VkPhysicalDeviceFeatures(mImpl->resources(), (VkPhysicalDeviceFeatures*)(pFeatures));
+    }
 }
 
 void VkEncoder::vkGetPhysicalDeviceFormatProperties(
@@ -380,6 +384,10 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties(
     stream->write((VkFormat*)&local_format, sizeof(VkFormat));
     marshal_VkFormatProperties(stream, (VkFormatProperties*)(pFormatProperties));
     unmarshal_VkFormatProperties(stream, (VkFormatProperties*)(pFormatProperties));
+    if (pFormatProperties)
+    {
+        transform_fromhost_VkFormatProperties(mImpl->resources(), (VkFormatProperties*)(pFormatProperties));
+    }
 }
 
 VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties(
@@ -435,6 +443,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties(
     stream->write((VkImageCreateFlags*)&local_flags, sizeof(VkImageCreateFlags));
     marshal_VkImageFormatProperties(stream, (VkImageFormatProperties*)(pImageFormatProperties));
     unmarshal_VkImageFormatProperties(stream, (VkImageFormatProperties*)(pImageFormatProperties));
+    if (pImageFormatProperties)
+    {
+        transform_fromhost_VkImageFormatProperties(mImpl->resources(), (VkImageFormatProperties*)(pImageFormatProperties));
+    }
     VkResult vkGetPhysicalDeviceImageFormatProperties_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceImageFormatProperties_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -471,6 +483,10 @@ void VkEncoder::vkGetPhysicalDeviceProperties(
     stream->write((uint64_t*)&cgen_var_27, 1 * 8);
     marshal_VkPhysicalDeviceProperties(stream, (VkPhysicalDeviceProperties*)(pProperties));
     unmarshal_VkPhysicalDeviceProperties(stream, (VkPhysicalDeviceProperties*)(pProperties));
+    if (pProperties)
+    {
+        transform_fromhost_VkPhysicalDeviceProperties(mImpl->resources(), (VkPhysicalDeviceProperties*)(pProperties));
+    }
 }
 
 void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
@@ -558,6 +574,13 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
             unmarshal_VkQueueFamilyProperties(stream, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i));
         }
     }
+    if (pQueueFamilyProperties)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+        {
+            transform_fromhost_VkQueueFamilyProperties(mImpl->resources(), (VkQueueFamilyProperties*)(pQueueFamilyProperties + i));
+        }
+    }
 }
 
 void VkEncoder::vkGetPhysicalDeviceMemoryProperties(
@@ -588,6 +611,11 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties(
     stream->write((uint64_t*)&cgen_var_37, 1 * 8);
     marshal_VkPhysicalDeviceMemoryProperties(stream, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties));
     unmarshal_VkPhysicalDeviceMemoryProperties(stream, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties));
+    if (pMemoryProperties)
+    {
+        transform_fromhost_VkPhysicalDeviceMemoryProperties(mImpl->resources(), (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties));
+    }
+    mImpl->resources()->on_vkGetPhysicalDeviceMemoryProperties(this, physicalDevice, pMemoryProperties);
 }
 
 PFN_vkVoidFunction VkEncoder::vkGetInstanceProcAddr(
@@ -702,11 +730,11 @@ VkResult VkEncoder::vkCreateDevice(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkDeviceCreateInfo(mImpl->resources(), (VkDeviceCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkDeviceCreateInfo(mImpl->resources(), (VkDeviceCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -781,7 +809,7 @@ void VkEncoder::vkDestroyDevice(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -899,6 +927,13 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
             unmarshal_VkExtensionProperties(stream, (VkExtensionProperties*)(pProperties + i));
         }
     }
+    if (pProperties)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        {
+            transform_fromhost_VkExtensionProperties(mImpl->resources(), (VkExtensionProperties*)(pProperties + i));
+        }
+    }
     VkResult vkEnumerateInstanceExtensionProperties_VkResult_return = (VkResult)0;
     stream->read(&vkEnumerateInstanceExtensionProperties_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -994,6 +1029,13 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
             unmarshal_VkLayerProperties(stream, (VkLayerProperties*)(pProperties + i));
         }
     }
+    if (pProperties)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        {
+            transform_fromhost_VkLayerProperties(mImpl->resources(), (VkLayerProperties*)(pProperties + i));
+        }
+    }
     VkResult vkEnumerateInstanceLayerProperties_VkResult_return = (VkResult)0;
     stream->read(&vkEnumerateInstanceLayerProperties_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -1087,6 +1129,13 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
             unmarshal_VkLayerProperties(stream, (VkLayerProperties*)(pProperties + i));
         }
     }
+    if (pProperties)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        {
+            transform_fromhost_VkLayerProperties(mImpl->resources(), (VkLayerProperties*)(pProperties + i));
+        }
+    }
     VkResult vkEnumerateDeviceLayerProperties_VkResult_return = (VkResult)0;
     stream->read(&vkEnumerateDeviceLayerProperties_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -1176,7 +1225,7 @@ VkResult VkEncoder::vkQueueSubmit(
     {
         for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i)
         {
-            transform_VkSubmitInfo(mImpl->resources(), (VkSubmitInfo*)(local_pSubmits + i));
+            transform_tohost_VkSubmitInfo(mImpl->resources(), (VkSubmitInfo*)(local_pSubmits + i));
         }
     }
     countingStream->rewind();
@@ -1311,11 +1360,11 @@ VkResult VkEncoder::vkAllocateMemory(
     local_pAllocator = nullptr;
     if (local_pAllocateInfo)
     {
-        transform_VkMemoryAllocateInfo(mImpl->resources(), (VkMemoryAllocateInfo*)(local_pAllocateInfo));
+        transform_tohost_VkMemoryAllocateInfo(mImpl->resources(), (VkMemoryAllocateInfo*)(local_pAllocateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -1391,7 +1440,7 @@ void VkEncoder::vkFreeMemory(
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
-    mImpl->resources()->deviceMemoryTransform(&local_memory, 1, nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    mImpl->resources()->deviceMemoryTransform_tohost(&local_memory, 1, nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1);
     countingStream->rewind();
     {
         uint64_t cgen_var_93;
@@ -1478,7 +1527,7 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
     {
         for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i)
         {
-            transform_VkMappedMemoryRange(mImpl->resources(), (VkMappedMemoryRange*)(local_pMemoryRanges + i));
+            transform_tohost_VkMappedMemoryRange(mImpl->resources(), (VkMappedMemoryRange*)(local_pMemoryRanges + i));
         }
     }
     countingStream->rewind();
@@ -1580,7 +1629,7 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
     {
         for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i)
         {
-            transform_VkMappedMemoryRange(mImpl->resources(), (VkMappedMemoryRange*)(local_pMemoryRanges + i));
+            transform_tohost_VkMappedMemoryRange(mImpl->resources(), (VkMappedMemoryRange*)(local_pMemoryRanges + i));
         }
     }
     countingStream->rewind();
@@ -1648,7 +1697,7 @@ void VkEncoder::vkGetDeviceMemoryCommitment(
     VkDeviceMemory local_memory;
     local_device = device;
     local_memory = memory;
-    mImpl->resources()->deviceMemoryTransform(&local_memory, 1, nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    mImpl->resources()->deviceMemoryTransform_tohost(&local_memory, 1, nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1);
     countingStream->rewind();
     {
         uint64_t cgen_var_103;
@@ -1693,7 +1742,7 @@ VkResult VkEncoder::vkBindBufferMemory(
     local_buffer = buffer;
     local_memory = memory;
     local_memoryOffset = memoryOffset;
-    mImpl->resources()->deviceMemoryTransform(&local_memory, 1, &local_memoryOffset, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    mImpl->resources()->deviceMemoryTransform_tohost(&local_memory, 1, &local_memoryOffset, 1, nullptr, 1, nullptr, 1, nullptr, 1);
     countingStream->rewind();
     {
         uint64_t cgen_var_107;
@@ -1749,7 +1798,7 @@ VkResult VkEncoder::vkBindImageMemory(
     local_image = image;
     local_memory = memory;
     local_memoryOffset = memoryOffset;
-    mImpl->resources()->deviceMemoryTransform(&local_memory, 1, &local_memoryOffset, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    mImpl->resources()->deviceMemoryTransform_tohost(&local_memory, 1, &local_memoryOffset, 1, nullptr, 1, nullptr, 1, nullptr, 1);
     countingStream->rewind();
     {
         uint64_t cgen_var_113;
@@ -1823,6 +1872,10 @@ void VkEncoder::vkGetBufferMemoryRequirements(
     stream->write((uint64_t*)&cgen_var_122, 1 * 8);
     marshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
     unmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
+    if (pMemoryRequirements)
+    {
+        transform_fromhost_VkMemoryRequirements(mImpl->resources(), (VkMemoryRequirements*)(pMemoryRequirements));
+    }
 }
 
 void VkEncoder::vkGetImageMemoryRequirements(
@@ -1862,6 +1915,10 @@ void VkEncoder::vkGetImageMemoryRequirements(
     stream->write((uint64_t*)&cgen_var_126, 1 * 8);
     marshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
     unmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
+    if (pMemoryRequirements)
+    {
+        transform_fromhost_VkMemoryRequirements(mImpl->resources(), (VkMemoryRequirements*)(pMemoryRequirements));
+    }
 }
 
 void VkEncoder::vkGetImageSparseMemoryRequirements(
@@ -1956,6 +2013,13 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
         for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
         {
             unmarshal_VkSparseImageMemoryRequirements(stream, (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i));
+        }
+    }
+    if (pSparseMemoryRequirements)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+        {
+            transform_fromhost_VkSparseImageMemoryRequirements(mImpl->resources(), (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i));
         }
     }
 }
@@ -2070,6 +2134,13 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
             unmarshal_VkSparseImageFormatProperties(stream, (VkSparseImageFormatProperties*)(pProperties + i));
         }
     }
+    if (pProperties)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        {
+            transform_fromhost_VkSparseImageFormatProperties(mImpl->resources(), (VkSparseImageFormatProperties*)(pProperties + i));
+        }
+    }
 }
 
 VkResult VkEncoder::vkQueueBindSparse(
@@ -2103,7 +2174,7 @@ VkResult VkEncoder::vkQueueBindSparse(
     {
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            transform_VkBindSparseInfo(mImpl->resources(), (VkBindSparseInfo*)(local_pBindInfo + i));
+            transform_tohost_VkBindSparseInfo(mImpl->resources(), (VkBindSparseInfo*)(local_pBindInfo + i));
         }
     }
     countingStream->rewind();
@@ -2174,11 +2245,11 @@ VkResult VkEncoder::vkCreateFence(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkFenceCreateInfo(mImpl->resources(), (VkFenceCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkFenceCreateInfo(mImpl->resources(), (VkFenceCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -2255,7 +2326,7 @@ void VkEncoder::vkDestroyFence(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -2491,11 +2562,11 @@ VkResult VkEncoder::vkCreateSemaphore(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkSemaphoreCreateInfo(mImpl->resources(), (VkSemaphoreCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkSemaphoreCreateInfo(mImpl->resources(), (VkSemaphoreCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -2572,7 +2643,7 @@ void VkEncoder::vkDestroySemaphore(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -2641,11 +2712,11 @@ VkResult VkEncoder::vkCreateEvent(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkEventCreateInfo(mImpl->resources(), (VkEventCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkEventCreateInfo(mImpl->resources(), (VkEventCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -2722,7 +2793,7 @@ void VkEncoder::vkDestroyEvent(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -2914,11 +2985,11 @@ VkResult VkEncoder::vkCreateQueryPool(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkQueryPoolCreateInfo(mImpl->resources(), (VkQueryPoolCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkQueryPoolCreateInfo(mImpl->resources(), (VkQueryPoolCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -2995,7 +3066,7 @@ void VkEncoder::vkDestroyQueryPool(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -3136,11 +3207,11 @@ VkResult VkEncoder::vkCreateBuffer(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkBufferCreateInfo(mImpl->resources(), (VkBufferCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkBufferCreateInfo(mImpl->resources(), (VkBufferCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -3217,7 +3288,7 @@ void VkEncoder::vkDestroyBuffer(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -3286,11 +3357,11 @@ VkResult VkEncoder::vkCreateBufferView(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkBufferViewCreateInfo(mImpl->resources(), (VkBufferViewCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkBufferViewCreateInfo(mImpl->resources(), (VkBufferViewCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -3367,7 +3438,7 @@ void VkEncoder::vkDestroyBufferView(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -3437,11 +3508,11 @@ VkResult VkEncoder::vkCreateImage(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkImageCreateInfo(mImpl->resources(), (VkImageCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkImageCreateInfo(mImpl->resources(), (VkImageCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -3518,7 +3589,7 @@ void VkEncoder::vkDestroyImage(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -3581,7 +3652,7 @@ void VkEncoder::vkGetImageSubresourceLayout(
     }
     if (local_pSubresource)
     {
-        transform_VkImageSubresource(mImpl->resources(), (VkImageSubresource*)(local_pSubresource));
+        transform_tohost_VkImageSubresource(mImpl->resources(), (VkImageSubresource*)(local_pSubresource));
     }
     countingStream->rewind();
     {
@@ -3608,6 +3679,10 @@ void VkEncoder::vkGetImageSubresourceLayout(
     marshal_VkImageSubresource(stream, (VkImageSubresource*)(local_pSubresource));
     marshal_VkSubresourceLayout(stream, (VkSubresourceLayout*)(pLayout));
     unmarshal_VkSubresourceLayout(stream, (VkSubresourceLayout*)(pLayout));
+    if (pLayout)
+    {
+        transform_fromhost_VkSubresourceLayout(mImpl->resources(), (VkSubresourceLayout*)(pLayout));
+    }
 }
 
 VkResult VkEncoder::vkCreateImageView(
@@ -3640,11 +3715,11 @@ VkResult VkEncoder::vkCreateImageView(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkImageViewCreateInfo(mImpl->resources(), (VkImageViewCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkImageViewCreateInfo(mImpl->resources(), (VkImageViewCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -3721,7 +3796,7 @@ void VkEncoder::vkDestroyImageView(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -3790,11 +3865,11 @@ VkResult VkEncoder::vkCreateShaderModule(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkShaderModuleCreateInfo(mImpl->resources(), (VkShaderModuleCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkShaderModuleCreateInfo(mImpl->resources(), (VkShaderModuleCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -3871,7 +3946,7 @@ void VkEncoder::vkDestroyShaderModule(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -3940,11 +4015,11 @@ VkResult VkEncoder::vkCreatePipelineCache(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkPipelineCacheCreateInfo(mImpl->resources(), (VkPipelineCacheCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkPipelineCacheCreateInfo(mImpl->resources(), (VkPipelineCacheCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -4021,7 +4096,7 @@ void VkEncoder::vkDestroyPipelineCache(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -4263,12 +4338,12 @@ VkResult VkEncoder::vkCreateGraphicsPipelines(
     {
         for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
         {
-            transform_VkGraphicsPipelineCreateInfo(mImpl->resources(), (VkGraphicsPipelineCreateInfo*)(local_pCreateInfos + i));
+            transform_tohost_VkGraphicsPipelineCreateInfo(mImpl->resources(), (VkGraphicsPipelineCreateInfo*)(local_pCreateInfos + i));
         }
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -4388,12 +4463,12 @@ VkResult VkEncoder::vkCreateComputePipelines(
     {
         for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
         {
-            transform_VkComputePipelineCreateInfo(mImpl->resources(), (VkComputePipelineCreateInfo*)(local_pCreateInfos + i));
+            transform_tohost_VkComputePipelineCreateInfo(mImpl->resources(), (VkComputePipelineCreateInfo*)(local_pCreateInfos + i));
         }
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -4496,7 +4571,7 @@ void VkEncoder::vkDestroyPipeline(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -4565,11 +4640,11 @@ VkResult VkEncoder::vkCreatePipelineLayout(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkPipelineLayoutCreateInfo(mImpl->resources(), (VkPipelineLayoutCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkPipelineLayoutCreateInfo(mImpl->resources(), (VkPipelineLayoutCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -4646,7 +4721,7 @@ void VkEncoder::vkDestroyPipelineLayout(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -4715,11 +4790,11 @@ VkResult VkEncoder::vkCreateSampler(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkSamplerCreateInfo(mImpl->resources(), (VkSamplerCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkSamplerCreateInfo(mImpl->resources(), (VkSamplerCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -4796,7 +4871,7 @@ void VkEncoder::vkDestroySampler(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -4865,11 +4940,11 @@ VkResult VkEncoder::vkCreateDescriptorSetLayout(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkDescriptorSetLayoutCreateInfo(mImpl->resources(), (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkDescriptorSetLayoutCreateInfo(mImpl->resources(), (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -4946,7 +5021,7 @@ void VkEncoder::vkDestroyDescriptorSetLayout(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -5015,11 +5090,11 @@ VkResult VkEncoder::vkCreateDescriptorPool(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkDescriptorPoolCreateInfo(mImpl->resources(), (VkDescriptorPoolCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkDescriptorPoolCreateInfo(mImpl->resources(), (VkDescriptorPoolCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -5096,7 +5171,7 @@ void VkEncoder::vkDestroyDescriptorPool(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -5202,7 +5277,7 @@ VkResult VkEncoder::vkAllocateDescriptorSets(
     }
     if (local_pAllocateInfo)
     {
-        transform_VkDescriptorSetAllocateInfo(mImpl->resources(), (VkDescriptorSetAllocateInfo*)(local_pAllocateInfo));
+        transform_tohost_VkDescriptorSetAllocateInfo(mImpl->resources(), (VkDescriptorSetAllocateInfo*)(local_pAllocateInfo));
     }
     countingStream->rewind();
     {
@@ -5378,14 +5453,14 @@ void VkEncoder::vkUpdateDescriptorSets(
     {
         for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i)
         {
-            transform_VkWriteDescriptorSet(mImpl->resources(), (VkWriteDescriptorSet*)(local_pDescriptorWrites + i));
+            transform_tohost_VkWriteDescriptorSet(mImpl->resources(), (VkWriteDescriptorSet*)(local_pDescriptorWrites + i));
         }
     }
     if (local_pDescriptorCopies)
     {
         for (uint32_t i = 0; i < (uint32_t)((descriptorCopyCount)); ++i)
         {
-            transform_VkCopyDescriptorSet(mImpl->resources(), (VkCopyDescriptorSet*)(local_pDescriptorCopies + i));
+            transform_tohost_VkCopyDescriptorSet(mImpl->resources(), (VkCopyDescriptorSet*)(local_pDescriptorCopies + i));
         }
     }
     countingStream->rewind();
@@ -5454,11 +5529,11 @@ VkResult VkEncoder::vkCreateFramebuffer(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkFramebufferCreateInfo(mImpl->resources(), (VkFramebufferCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkFramebufferCreateInfo(mImpl->resources(), (VkFramebufferCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -5535,7 +5610,7 @@ void VkEncoder::vkDestroyFramebuffer(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -5604,11 +5679,11 @@ VkResult VkEncoder::vkCreateRenderPass(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkRenderPassCreateInfo(mImpl->resources(), (VkRenderPassCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkRenderPassCreateInfo(mImpl->resources(), (VkRenderPassCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -5685,7 +5760,7 @@ void VkEncoder::vkDestroyRenderPass(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -5761,6 +5836,10 @@ void VkEncoder::vkGetRenderAreaGranularity(
     stream->write((uint64_t*)&cgen_var_456, 1 * 8);
     marshal_VkExtent2D(stream, (VkExtent2D*)(pGranularity));
     unmarshal_VkExtent2D(stream, (VkExtent2D*)(pGranularity));
+    if (pGranularity)
+    {
+        transform_fromhost_VkExtent2D(mImpl->resources(), (VkExtent2D*)(pGranularity));
+    }
 }
 
 VkResult VkEncoder::vkCreateCommandPool(
@@ -5793,11 +5872,11 @@ VkResult VkEncoder::vkCreateCommandPool(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkCommandPoolCreateInfo(mImpl->resources(), (VkCommandPoolCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkCommandPoolCreateInfo(mImpl->resources(), (VkCommandPoolCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -5874,7 +5953,7 @@ void VkEncoder::vkDestroyCommandPool(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -5980,7 +6059,7 @@ VkResult VkEncoder::vkAllocateCommandBuffers(
     }
     if (local_pAllocateInfo)
     {
-        transform_VkCommandBufferAllocateInfo(mImpl->resources(), (VkCommandBufferAllocateInfo*)(local_pAllocateInfo));
+        transform_tohost_VkCommandBufferAllocateInfo(mImpl->resources(), (VkCommandBufferAllocateInfo*)(local_pAllocateInfo));
     }
     countingStream->rewind();
     {
@@ -6128,7 +6207,7 @@ VkResult VkEncoder::vkBeginCommandBuffer(
     }
     if (local_pBeginInfo)
     {
-        transform_VkCommandBufferBeginInfo(mImpl->resources(), (VkCommandBufferBeginInfo*)(local_pBeginInfo));
+        transform_tohost_VkCommandBufferBeginInfo(mImpl->resources(), (VkCommandBufferBeginInfo*)(local_pBeginInfo));
     }
     countingStream->rewind();
     {
@@ -6294,7 +6373,7 @@ void VkEncoder::vkCmdSetViewport(
     {
         for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
         {
-            transform_VkViewport(mImpl->resources(), (VkViewport*)(local_pViewports + i));
+            transform_tohost_VkViewport(mImpl->resources(), (VkViewport*)(local_pViewports + i));
         }
     }
     countingStream->rewind();
@@ -6356,7 +6435,7 @@ void VkEncoder::vkCmdSetScissor(
     {
         for (uint32_t i = 0; i < (uint32_t)((scissorCount)); ++i)
         {
-            transform_VkRect2D(mImpl->resources(), (VkRect2D*)(local_pScissors + i));
+            transform_tohost_VkRect2D(mImpl->resources(), (VkRect2D*)(local_pScissors + i));
         }
     }
     countingStream->rewind();
@@ -7142,7 +7221,7 @@ void VkEncoder::vkCmdCopyBuffer(
     {
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            transform_VkBufferCopy(mImpl->resources(), (VkBufferCopy*)(local_pRegions + i));
+            transform_tohost_VkBufferCopy(mImpl->resources(), (VkBufferCopy*)(local_pRegions + i));
         }
     }
     countingStream->rewind();
@@ -7223,7 +7302,7 @@ void VkEncoder::vkCmdCopyImage(
     {
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            transform_VkImageCopy(mImpl->resources(), (VkImageCopy*)(local_pRegions + i));
+            transform_tohost_VkImageCopy(mImpl->resources(), (VkImageCopy*)(local_pRegions + i));
         }
     }
     countingStream->rewind();
@@ -7311,7 +7390,7 @@ void VkEncoder::vkCmdBlitImage(
     {
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            transform_VkImageBlit(mImpl->resources(), (VkImageBlit*)(local_pRegions + i));
+            transform_tohost_VkImageBlit(mImpl->resources(), (VkImageBlit*)(local_pRegions + i));
         }
     }
     countingStream->rewind();
@@ -7395,7 +7474,7 @@ void VkEncoder::vkCmdCopyBufferToImage(
     {
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            transform_VkBufferImageCopy(mImpl->resources(), (VkBufferImageCopy*)(local_pRegions + i));
+            transform_tohost_VkBufferImageCopy(mImpl->resources(), (VkBufferImageCopy*)(local_pRegions + i));
         }
     }
     countingStream->rewind();
@@ -7475,7 +7554,7 @@ void VkEncoder::vkCmdCopyImageToBuffer(
     {
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            transform_VkBufferImageCopy(mImpl->resources(), (VkBufferImageCopy*)(local_pRegions + i));
+            transform_tohost_VkBufferImageCopy(mImpl->resources(), (VkBufferImageCopy*)(local_pRegions + i));
         }
     }
     countingStream->rewind();
@@ -7662,13 +7741,13 @@ void VkEncoder::vkCmdClearColorImage(
     }
     if (local_pColor)
     {
-        transform_VkClearColorValue(mImpl->resources(), (VkClearColorValue*)(local_pColor));
+        transform_tohost_VkClearColorValue(mImpl->resources(), (VkClearColorValue*)(local_pColor));
     }
     if (local_pRanges)
     {
         for (uint32_t i = 0; i < (uint32_t)((rangeCount)); ++i)
         {
-            transform_VkImageSubresourceRange(mImpl->resources(), (VkImageSubresourceRange*)(local_pRanges + i));
+            transform_tohost_VkImageSubresourceRange(mImpl->resources(), (VkImageSubresourceRange*)(local_pRanges + i));
         }
     }
     countingStream->rewind();
@@ -7747,13 +7826,13 @@ void VkEncoder::vkCmdClearDepthStencilImage(
     }
     if (local_pDepthStencil)
     {
-        transform_VkClearDepthStencilValue(mImpl->resources(), (VkClearDepthStencilValue*)(local_pDepthStencil));
+        transform_tohost_VkClearDepthStencilValue(mImpl->resources(), (VkClearDepthStencilValue*)(local_pDepthStencil));
     }
     if (local_pRanges)
     {
         for (uint32_t i = 0; i < (uint32_t)((rangeCount)); ++i)
         {
-            transform_VkImageSubresourceRange(mImpl->resources(), (VkImageSubresourceRange*)(local_pRanges + i));
+            transform_tohost_VkImageSubresourceRange(mImpl->resources(), (VkImageSubresourceRange*)(local_pRanges + i));
         }
     }
     countingStream->rewind();
@@ -7834,14 +7913,14 @@ void VkEncoder::vkCmdClearAttachments(
     {
         for (uint32_t i = 0; i < (uint32_t)((attachmentCount)); ++i)
         {
-            transform_VkClearAttachment(mImpl->resources(), (VkClearAttachment*)(local_pAttachments + i));
+            transform_tohost_VkClearAttachment(mImpl->resources(), (VkClearAttachment*)(local_pAttachments + i));
         }
     }
     if (local_pRects)
     {
         for (uint32_t i = 0; i < (uint32_t)((rectCount)); ++i)
         {
-            transform_VkClearRect(mImpl->resources(), (VkClearRect*)(local_pRects + i));
+            transform_tohost_VkClearRect(mImpl->resources(), (VkClearRect*)(local_pRects + i));
         }
     }
     countingStream->rewind();
@@ -7920,7 +7999,7 @@ void VkEncoder::vkCmdResolveImage(
     {
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            transform_VkImageResolve(mImpl->resources(), (VkImageResolve*)(local_pRegions + i));
+            transform_tohost_VkImageResolve(mImpl->resources(), (VkImageResolve*)(local_pRegions + i));
         }
     }
     countingStream->rewind();
@@ -8117,21 +8196,21 @@ void VkEncoder::vkCmdWaitEvents(
     {
         for (uint32_t i = 0; i < (uint32_t)((memoryBarrierCount)); ++i)
         {
-            transform_VkMemoryBarrier(mImpl->resources(), (VkMemoryBarrier*)(local_pMemoryBarriers + i));
+            transform_tohost_VkMemoryBarrier(mImpl->resources(), (VkMemoryBarrier*)(local_pMemoryBarriers + i));
         }
     }
     if (local_pBufferMemoryBarriers)
     {
         for (uint32_t i = 0; i < (uint32_t)((bufferMemoryBarrierCount)); ++i)
         {
-            transform_VkBufferMemoryBarrier(mImpl->resources(), (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i));
+            transform_tohost_VkBufferMemoryBarrier(mImpl->resources(), (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i));
         }
     }
     if (local_pImageMemoryBarriers)
     {
         for (uint32_t i = 0; i < (uint32_t)((imageMemoryBarrierCount)); ++i)
         {
-            transform_VkImageMemoryBarrier(mImpl->resources(), (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i));
+            transform_tohost_VkImageMemoryBarrier(mImpl->resources(), (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i));
         }
     }
     countingStream->rewind();
@@ -8265,21 +8344,21 @@ void VkEncoder::vkCmdPipelineBarrier(
     {
         for (uint32_t i = 0; i < (uint32_t)((memoryBarrierCount)); ++i)
         {
-            transform_VkMemoryBarrier(mImpl->resources(), (VkMemoryBarrier*)(local_pMemoryBarriers + i));
+            transform_tohost_VkMemoryBarrier(mImpl->resources(), (VkMemoryBarrier*)(local_pMemoryBarriers + i));
         }
     }
     if (local_pBufferMemoryBarriers)
     {
         for (uint32_t i = 0; i < (uint32_t)((bufferMemoryBarrierCount)); ++i)
         {
-            transform_VkBufferMemoryBarrier(mImpl->resources(), (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i));
+            transform_tohost_VkBufferMemoryBarrier(mImpl->resources(), (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i));
         }
     }
     if (local_pImageMemoryBarriers)
     {
         for (uint32_t i = 0; i < (uint32_t)((imageMemoryBarrierCount)); ++i)
         {
-            transform_VkImageMemoryBarrier(mImpl->resources(), (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i));
+            transform_tohost_VkImageMemoryBarrier(mImpl->resources(), (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i));
         }
     }
     countingStream->rewind();
@@ -8660,7 +8739,7 @@ void VkEncoder::vkCmdBeginRenderPass(
     local_contents = contents;
     if (local_pRenderPassBegin)
     {
-        transform_VkRenderPassBeginInfo(mImpl->resources(), (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
+        transform_tohost_VkRenderPassBeginInfo(mImpl->resources(), (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
     }
     countingStream->rewind();
     {
@@ -8829,7 +8908,7 @@ VkResult VkEncoder::vkBindBufferMemory2(
     {
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            transform_VkBindBufferMemoryInfo(mImpl->resources(), (VkBindBufferMemoryInfo*)(local_pBindInfos + i));
+            transform_tohost_VkBindBufferMemoryInfo(mImpl->resources(), (VkBindBufferMemoryInfo*)(local_pBindInfos + i));
         }
     }
     countingStream->rewind();
@@ -8892,7 +8971,7 @@ VkResult VkEncoder::vkBindImageMemory2(
     {
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            transform_VkBindImageMemoryInfo(mImpl->resources(), (VkBindImageMemoryInfo*)(local_pBindInfos + i));
+            transform_tohost_VkBindImageMemoryInfo(mImpl->resources(), (VkBindImageMemoryInfo*)(local_pBindInfos + i));
         }
     }
     countingStream->rewind();
@@ -9144,6 +9223,13 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
             unmarshal_VkPhysicalDeviceGroupProperties(stream, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
         }
     }
+    if (pPhysicalDeviceGroupProperties)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
+        {
+            transform_fromhost_VkPhysicalDeviceGroupProperties(mImpl->resources(), (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
+        }
+    }
     VkResult vkEnumeratePhysicalDeviceGroups_VkResult_return = (VkResult)0;
     stream->read(&vkEnumeratePhysicalDeviceGroups_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -9173,7 +9259,7 @@ void VkEncoder::vkGetImageMemoryRequirements2(
     }
     if (local_pInfo)
     {
-        transform_VkImageMemoryRequirementsInfo2(mImpl->resources(), (VkImageMemoryRequirementsInfo2*)(local_pInfo));
+        transform_tohost_VkImageMemoryRequirementsInfo2(mImpl->resources(), (VkImageMemoryRequirementsInfo2*)(local_pInfo));
     }
     countingStream->rewind();
     {
@@ -9194,6 +9280,10 @@ void VkEncoder::vkGetImageMemoryRequirements2(
     marshal_VkImageMemoryRequirementsInfo2(stream, (VkImageMemoryRequirementsInfo2*)(local_pInfo));
     marshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
     unmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
+    if (pMemoryRequirements)
+    {
+        transform_fromhost_VkMemoryRequirements2(mImpl->resources(), (VkMemoryRequirements2*)(pMemoryRequirements));
+    }
 }
 
 void VkEncoder::vkGetBufferMemoryRequirements2(
@@ -9217,7 +9307,7 @@ void VkEncoder::vkGetBufferMemoryRequirements2(
     }
     if (local_pInfo)
     {
-        transform_VkBufferMemoryRequirementsInfo2(mImpl->resources(), (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
+        transform_tohost_VkBufferMemoryRequirementsInfo2(mImpl->resources(), (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
     }
     countingStream->rewind();
     {
@@ -9238,6 +9328,10 @@ void VkEncoder::vkGetBufferMemoryRequirements2(
     marshal_VkBufferMemoryRequirementsInfo2(stream, (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
     marshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
     unmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
+    if (pMemoryRequirements)
+    {
+        transform_fromhost_VkMemoryRequirements2(mImpl->resources(), (VkMemoryRequirements2*)(pMemoryRequirements));
+    }
 }
 
 void VkEncoder::vkGetImageSparseMemoryRequirements2(
@@ -9262,7 +9356,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
     }
     if (local_pInfo)
     {
-        transform_VkImageSparseMemoryRequirementsInfo2(mImpl->resources(), (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo));
+        transform_tohost_VkImageSparseMemoryRequirementsInfo2(mImpl->resources(), (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo));
     }
     countingStream->rewind();
     {
@@ -9339,6 +9433,13 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
             unmarshal_VkSparseImageMemoryRequirements2(stream, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
         }
     }
+    if (pSparseMemoryRequirements)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+        {
+            transform_fromhost_VkSparseImageMemoryRequirements2(mImpl->resources(), (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
+        }
+    }
 }
 
 void VkEncoder::vkGetPhysicalDeviceFeatures2(
@@ -9369,6 +9470,10 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2(
     stream->write((uint64_t*)&cgen_var_682, 1 * 8);
     marshal_VkPhysicalDeviceFeatures2(stream, (VkPhysicalDeviceFeatures2*)(pFeatures));
     unmarshal_VkPhysicalDeviceFeatures2(stream, (VkPhysicalDeviceFeatures2*)(pFeatures));
+    if (pFeatures)
+    {
+        transform_fromhost_VkPhysicalDeviceFeatures2(mImpl->resources(), (VkPhysicalDeviceFeatures2*)(pFeatures));
+    }
 }
 
 void VkEncoder::vkGetPhysicalDeviceProperties2(
@@ -9411,6 +9516,10 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2(
     stream->write((VkFormat*)&local_format, sizeof(VkFormat));
     marshal_VkFormatProperties2(stream, (VkFormatProperties2*)(pFormatProperties));
     unmarshal_VkFormatProperties2(stream, (VkFormatProperties2*)(pFormatProperties));
+    if (pFormatProperties)
+    {
+        transform_fromhost_VkFormatProperties2(mImpl->resources(), (VkFormatProperties2*)(pFormatProperties));
+    }
 }
 
 VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2(
@@ -9434,7 +9543,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2(
     }
     if (local_pImageFormatInfo)
     {
-        transform_VkPhysicalDeviceImageFormatInfo2(mImpl->resources(), (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
+        transform_tohost_VkPhysicalDeviceImageFormatInfo2(mImpl->resources(), (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
     }
     countingStream->rewind();
     {
@@ -9455,6 +9564,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2(
     marshal_VkPhysicalDeviceImageFormatInfo2(stream, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
     marshal_VkImageFormatProperties2(stream, (VkImageFormatProperties2*)(pImageFormatProperties));
     unmarshal_VkImageFormatProperties2(stream, (VkImageFormatProperties2*)(pImageFormatProperties));
+    if (pImageFormatProperties)
+    {
+        transform_fromhost_VkImageFormatProperties2(mImpl->resources(), (VkImageFormatProperties2*)(pImageFormatProperties));
+    }
     VkResult vkGetPhysicalDeviceImageFormatProperties2_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceImageFormatProperties2_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -9548,6 +9661,13 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
             unmarshal_VkQueueFamilyProperties2(stream, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
         }
     }
+    if (pQueueFamilyProperties)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+        {
+            transform_fromhost_VkQueueFamilyProperties2(mImpl->resources(), (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
+        }
+    }
 }
 
 void VkEncoder::vkGetPhysicalDeviceMemoryProperties2(
@@ -9578,6 +9698,10 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2(
     stream->write((uint64_t*)&cgen_var_696, 1 * 8);
     marshal_VkPhysicalDeviceMemoryProperties2(stream, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     unmarshal_VkPhysicalDeviceMemoryProperties2(stream, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
+    if (pMemoryProperties)
+    {
+        transform_fromhost_VkPhysicalDeviceMemoryProperties2(mImpl->resources(), (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
+    }
 }
 
 void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
@@ -9602,7 +9726,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
     }
     if (local_pFormatInfo)
     {
-        transform_VkPhysicalDeviceSparseImageFormatInfo2(mImpl->resources(), (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo));
+        transform_tohost_VkPhysicalDeviceSparseImageFormatInfo2(mImpl->resources(), (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo));
     }
     countingStream->rewind();
     {
@@ -9679,6 +9803,13 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
             unmarshal_VkSparseImageFormatProperties2(stream, (VkSparseImageFormatProperties2*)(pProperties + i));
         }
     }
+    if (pProperties)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        {
+            transform_fromhost_VkSparseImageFormatProperties2(mImpl->resources(), (VkSparseImageFormatProperties2*)(pProperties + i));
+        }
+    }
 }
 
 void VkEncoder::vkTrimCommandPool(
@@ -9742,7 +9873,7 @@ void VkEncoder::vkGetDeviceQueue2(
     }
     if (local_pQueueInfo)
     {
-        transform_VkDeviceQueueInfo2(mImpl->resources(), (VkDeviceQueueInfo2*)(local_pQueueInfo));
+        transform_tohost_VkDeviceQueueInfo2(mImpl->resources(), (VkDeviceQueueInfo2*)(local_pQueueInfo));
     }
     countingStream->rewind();
     {
@@ -9803,11 +9934,11 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversion(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkSamplerYcbcrConversionCreateInfo(mImpl->resources(), (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkSamplerYcbcrConversionCreateInfo(mImpl->resources(), (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -9884,7 +10015,7 @@ void VkEncoder::vkDestroySamplerYcbcrConversion(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -9953,11 +10084,11 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplate(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkDescriptorUpdateTemplateCreateInfo(mImpl->resources(), (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkDescriptorUpdateTemplateCreateInfo(mImpl->resources(), (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -10034,7 +10165,7 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplate(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -10159,7 +10290,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
     }
     if (local_pExternalBufferInfo)
     {
-        transform_VkPhysicalDeviceExternalBufferInfo(mImpl->resources(), (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
+        transform_tohost_VkPhysicalDeviceExternalBufferInfo(mImpl->resources(), (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
     }
     countingStream->rewind();
     {
@@ -10180,6 +10311,10 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
     marshal_VkPhysicalDeviceExternalBufferInfo(stream, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
     marshal_VkExternalBufferProperties(stream, (VkExternalBufferProperties*)(pExternalBufferProperties));
     unmarshal_VkExternalBufferProperties(stream, (VkExternalBufferProperties*)(pExternalBufferProperties));
+    if (pExternalBufferProperties)
+    {
+        transform_fromhost_VkExternalBufferProperties(mImpl->resources(), (VkExternalBufferProperties*)(pExternalBufferProperties));
+    }
 }
 
 void VkEncoder::vkGetPhysicalDeviceExternalFenceProperties(
@@ -10203,7 +10338,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalFenceProperties(
     }
     if (local_pExternalFenceInfo)
     {
-        transform_VkPhysicalDeviceExternalFenceInfo(mImpl->resources(), (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
+        transform_tohost_VkPhysicalDeviceExternalFenceInfo(mImpl->resources(), (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
     }
     countingStream->rewind();
     {
@@ -10224,6 +10359,10 @@ void VkEncoder::vkGetPhysicalDeviceExternalFenceProperties(
     marshal_VkPhysicalDeviceExternalFenceInfo(stream, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
     marshal_VkExternalFenceProperties(stream, (VkExternalFenceProperties*)(pExternalFenceProperties));
     unmarshal_VkExternalFenceProperties(stream, (VkExternalFenceProperties*)(pExternalFenceProperties));
+    if (pExternalFenceProperties)
+    {
+        transform_fromhost_VkExternalFenceProperties(mImpl->resources(), (VkExternalFenceProperties*)(pExternalFenceProperties));
+    }
 }
 
 void VkEncoder::vkGetPhysicalDeviceExternalSemaphoreProperties(
@@ -10247,7 +10386,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphoreProperties(
     }
     if (local_pExternalSemaphoreInfo)
     {
-        transform_VkPhysicalDeviceExternalSemaphoreInfo(mImpl->resources(), (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
+        transform_tohost_VkPhysicalDeviceExternalSemaphoreInfo(mImpl->resources(), (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
     }
     countingStream->rewind();
     {
@@ -10268,6 +10407,10 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphoreProperties(
     marshal_VkPhysicalDeviceExternalSemaphoreInfo(stream, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
     marshal_VkExternalSemaphoreProperties(stream, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
     unmarshal_VkExternalSemaphoreProperties(stream, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
+    if (pExternalSemaphoreProperties)
+    {
+        transform_fromhost_VkExternalSemaphoreProperties(mImpl->resources(), (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
+    }
 }
 
 void VkEncoder::vkGetDescriptorSetLayoutSupport(
@@ -10291,7 +10434,7 @@ void VkEncoder::vkGetDescriptorSetLayoutSupport(
     }
     if (local_pCreateInfo)
     {
-        transform_VkDescriptorSetLayoutCreateInfo(mImpl->resources(), (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkDescriptorSetLayoutCreateInfo(mImpl->resources(), (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
     }
     countingStream->rewind();
     {
@@ -10312,6 +10455,10 @@ void VkEncoder::vkGetDescriptorSetLayoutSupport(
     marshal_VkDescriptorSetLayoutCreateInfo(stream, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
     marshal_VkDescriptorSetLayoutSupport(stream, (VkDescriptorSetLayoutSupport*)(pSupport));
     unmarshal_VkDescriptorSetLayoutSupport(stream, (VkDescriptorSetLayoutSupport*)(pSupport));
+    if (pSupport)
+    {
+        transform_fromhost_VkDescriptorSetLayoutSupport(mImpl->resources(), (VkDescriptorSetLayoutSupport*)(pSupport));
+    }
 }
 
 #endif
@@ -10340,7 +10487,7 @@ void VkEncoder::vkDestroySurfaceKHR(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -10466,6 +10613,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
     stream->write((uint64_t*)&cgen_var_769, 1 * 8);
     marshal_VkSurfaceCapabilitiesKHR(stream, (VkSurfaceCapabilitiesKHR*)(pSurfaceCapabilities));
     unmarshal_VkSurfaceCapabilitiesKHR(stream, (VkSurfaceCapabilitiesKHR*)(pSurfaceCapabilities));
+    if (pSurfaceCapabilities)
+    {
+        transform_fromhost_VkSurfaceCapabilitiesKHR(mImpl->resources(), (VkSurfaceCapabilitiesKHR*)(pSurfaceCapabilities));
+    }
     VkResult vkGetPhysicalDeviceSurfaceCapabilitiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceSurfaceCapabilitiesKHR_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -10566,6 +10717,13 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
         for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
         {
             unmarshal_VkSurfaceFormatKHR(stream, (VkSurfaceFormatKHR*)(pSurfaceFormats + i));
+        }
+    }
+    if (pSurfaceFormats)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
+        {
+            transform_fromhost_VkSurfaceFormatKHR(mImpl->resources(), (VkSurfaceFormatKHR*)(pSurfaceFormats + i));
         }
     }
     VkResult vkGetPhysicalDeviceSurfaceFormatsKHR_VkResult_return = (VkResult)0;
@@ -10701,11 +10859,11 @@ VkResult VkEncoder::vkCreateSwapchainKHR(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkSwapchainCreateInfoKHR(mImpl->resources(), (VkSwapchainCreateInfoKHR*)(local_pCreateInfo));
+        transform_tohost_VkSwapchainCreateInfoKHR(mImpl->resources(), (VkSwapchainCreateInfoKHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -10782,7 +10940,7 @@ void VkEncoder::vkDestroySwapchainKHR(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -11022,7 +11180,7 @@ VkResult VkEncoder::vkQueuePresentKHR(
     }
     if (local_pPresentInfo)
     {
-        transform_VkPresentInfoKHR(mImpl->resources(), (VkPresentInfoKHR*)(local_pPresentInfo));
+        transform_tohost_VkPresentInfoKHR(mImpl->resources(), (VkPresentInfoKHR*)(local_pPresentInfo));
     }
     countingStream->rewind();
     {
@@ -11076,6 +11234,10 @@ VkResult VkEncoder::vkGetDeviceGroupPresentCapabilitiesKHR(
     stream->write((uint64_t*)&cgen_var_827, 1 * 8);
     marshal_VkDeviceGroupPresentCapabilitiesKHR(stream, (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities));
     unmarshal_VkDeviceGroupPresentCapabilitiesKHR(stream, (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities));
+    if (pDeviceGroupPresentCapabilities)
+    {
+        transform_fromhost_VkDeviceGroupPresentCapabilitiesKHR(mImpl->resources(), (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities));
+    }
     VkResult vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -11245,6 +11407,13 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
             unmarshal_VkRect2D(stream, (VkRect2D*)(pRects + i));
         }
     }
+    if (pRects)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i)
+        {
+            transform_fromhost_VkRect2D(mImpl->resources(), (VkRect2D*)(pRects + i));
+        }
+    }
     VkResult vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -11274,7 +11443,7 @@ VkResult VkEncoder::vkAcquireNextImage2KHR(
     }
     if (local_pAcquireInfo)
     {
-        transform_VkAcquireNextImageInfoKHR(mImpl->resources(), (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo));
+        transform_tohost_VkAcquireNextImageInfoKHR(mImpl->resources(), (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo));
     }
     countingStream->rewind();
     {
@@ -11390,6 +11559,13 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
             unmarshal_VkDisplayPropertiesKHR(stream, (VkDisplayPropertiesKHR*)(pProperties + i));
         }
     }
+    if (pProperties)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        {
+            transform_fromhost_VkDisplayPropertiesKHR(mImpl->resources(), (VkDisplayPropertiesKHR*)(pProperties + i));
+        }
+    }
     VkResult vkGetPhysicalDeviceDisplayPropertiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceDisplayPropertiesKHR_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -11481,6 +11657,13 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
             unmarshal_VkDisplayPlanePropertiesKHR(stream, (VkDisplayPlanePropertiesKHR*)(pProperties + i));
+        }
+    }
+    if (pProperties)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        {
+            transform_fromhost_VkDisplayPlanePropertiesKHR(mImpl->resources(), (VkDisplayPlanePropertiesKHR*)(pProperties + i));
         }
     }
     VkResult vkGetPhysicalDeviceDisplayPlanePropertiesKHR_VkResult_return = (VkResult)0;
@@ -11694,6 +11877,13 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
             unmarshal_VkDisplayModePropertiesKHR(stream, (VkDisplayModePropertiesKHR*)(pProperties + i));
         }
     }
+    if (pProperties)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        {
+            transform_fromhost_VkDisplayModePropertiesKHR(mImpl->resources(), (VkDisplayModePropertiesKHR*)(pProperties + i));
+        }
+    }
     VkResult vkGetDisplayModePropertiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetDisplayModePropertiesKHR_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -11735,11 +11925,11 @@ VkResult VkEncoder::vkCreateDisplayModeKHR(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkDisplayModeCreateInfoKHR(mImpl->resources(), (VkDisplayModeCreateInfoKHR*)(local_pCreateInfo));
+        transform_tohost_VkDisplayModeCreateInfoKHR(mImpl->resources(), (VkDisplayModeCreateInfoKHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -11840,6 +12030,10 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilitiesKHR(
     stream->write((uint32_t*)&local_planeIndex, sizeof(uint32_t));
     marshal_VkDisplayPlaneCapabilitiesKHR(stream, (VkDisplayPlaneCapabilitiesKHR*)(pCapabilities));
     unmarshal_VkDisplayPlaneCapabilitiesKHR(stream, (VkDisplayPlaneCapabilitiesKHR*)(pCapabilities));
+    if (pCapabilities)
+    {
+        transform_fromhost_VkDisplayPlaneCapabilitiesKHR(mImpl->resources(), (VkDisplayPlaneCapabilitiesKHR*)(pCapabilities));
+    }
     VkResult vkGetDisplayPlaneCapabilitiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetDisplayPlaneCapabilitiesKHR_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -11878,11 +12072,11 @@ VkResult VkEncoder::vkCreateDisplayPlaneSurfaceKHR(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkDisplaySurfaceCreateInfoKHR(mImpl->resources(), (VkDisplaySurfaceCreateInfoKHR*)(local_pCreateInfo));
+        transform_tohost_VkDisplaySurfaceCreateInfoKHR(mImpl->resources(), (VkDisplaySurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -11973,12 +12167,12 @@ VkResult VkEncoder::vkCreateSharedSwapchainsKHR(
     {
         for (uint32_t i = 0; i < (uint32_t)((swapchainCount)); ++i)
         {
-            transform_VkSwapchainCreateInfoKHR(mImpl->resources(), (VkSwapchainCreateInfoKHR*)(local_pCreateInfos + i));
+            transform_tohost_VkSwapchainCreateInfoKHR(mImpl->resources(), (VkSwapchainCreateInfoKHR*)(local_pCreateInfos + i));
         }
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -12081,11 +12275,11 @@ VkResult VkEncoder::vkCreateXlibSurfaceKHR(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkXlibSurfaceCreateInfoKHR(mImpl->resources(), (VkXlibSurfaceCreateInfoKHR*)(local_pCreateInfo));
+        transform_tohost_VkXlibSurfaceCreateInfoKHR(mImpl->resources(), (VkXlibSurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -12214,11 +12408,11 @@ VkResult VkEncoder::vkCreateXcbSurfaceKHR(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkXcbSurfaceCreateInfoKHR(mImpl->resources(), (VkXcbSurfaceCreateInfoKHR*)(local_pCreateInfo));
+        transform_tohost_VkXcbSurfaceCreateInfoKHR(mImpl->resources(), (VkXcbSurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -12347,11 +12541,11 @@ VkResult VkEncoder::vkCreateWaylandSurfaceKHR(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkWaylandSurfaceCreateInfoKHR(mImpl->resources(), (VkWaylandSurfaceCreateInfoKHR*)(local_pCreateInfo));
+        transform_tohost_VkWaylandSurfaceCreateInfoKHR(mImpl->resources(), (VkWaylandSurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -12475,11 +12669,11 @@ VkResult VkEncoder::vkCreateMirSurfaceKHR(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkMirSurfaceCreateInfoKHR(mImpl->resources(), (VkMirSurfaceCreateInfoKHR*)(local_pCreateInfo));
+        transform_tohost_VkMirSurfaceCreateInfoKHR(mImpl->resources(), (VkMirSurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -12603,11 +12797,11 @@ VkResult VkEncoder::vkCreateAndroidSurfaceKHR(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkAndroidSurfaceCreateInfoKHR(mImpl->resources(), (VkAndroidSurfaceCreateInfoKHR*)(local_pCreateInfo));
+        transform_tohost_VkAndroidSurfaceCreateInfoKHR(mImpl->resources(), (VkAndroidSurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -12690,11 +12884,11 @@ VkResult VkEncoder::vkCreateWin32SurfaceKHR(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkWin32SurfaceCreateInfoKHR(mImpl->resources(), (VkWin32SurfaceCreateInfoKHR*)(local_pCreateInfo));
+        transform_tohost_VkWin32SurfaceCreateInfoKHR(mImpl->resources(), (VkWin32SurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -12816,6 +13010,10 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2KHR(
     stream->write((uint64_t*)&cgen_var_964, 1 * 8);
     marshal_VkPhysicalDeviceFeatures2(stream, (VkPhysicalDeviceFeatures2*)(pFeatures));
     unmarshal_VkPhysicalDeviceFeatures2(stream, (VkPhysicalDeviceFeatures2*)(pFeatures));
+    if (pFeatures)
+    {
+        transform_fromhost_VkPhysicalDeviceFeatures2(mImpl->resources(), (VkPhysicalDeviceFeatures2*)(pFeatures));
+    }
 }
 
 void VkEncoder::vkGetPhysicalDeviceProperties2KHR(
@@ -12846,6 +13044,10 @@ void VkEncoder::vkGetPhysicalDeviceProperties2KHR(
     stream->write((uint64_t*)&cgen_var_966, 1 * 8);
     marshal_VkPhysicalDeviceProperties2(stream, (VkPhysicalDeviceProperties2*)(pProperties));
     unmarshal_VkPhysicalDeviceProperties2(stream, (VkPhysicalDeviceProperties2*)(pProperties));
+    if (pProperties)
+    {
+        transform_fromhost_VkPhysicalDeviceProperties2(mImpl->resources(), (VkPhysicalDeviceProperties2*)(pProperties));
+    }
 }
 
 void VkEncoder::vkGetPhysicalDeviceFormatProperties2KHR(
@@ -12881,6 +13083,10 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2KHR(
     stream->write((VkFormat*)&local_format, sizeof(VkFormat));
     marshal_VkFormatProperties2(stream, (VkFormatProperties2*)(pFormatProperties));
     unmarshal_VkFormatProperties2(stream, (VkFormatProperties2*)(pFormatProperties));
+    if (pFormatProperties)
+    {
+        transform_fromhost_VkFormatProperties2(mImpl->resources(), (VkFormatProperties2*)(pFormatProperties));
+    }
 }
 
 VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2KHR(
@@ -12904,7 +13110,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2KHR(
     }
     if (local_pImageFormatInfo)
     {
-        transform_VkPhysicalDeviceImageFormatInfo2(mImpl->resources(), (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
+        transform_tohost_VkPhysicalDeviceImageFormatInfo2(mImpl->resources(), (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
     }
     countingStream->rewind();
     {
@@ -12925,6 +13131,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2KHR(
     marshal_VkPhysicalDeviceImageFormatInfo2(stream, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
     marshal_VkImageFormatProperties2(stream, (VkImageFormatProperties2*)(pImageFormatProperties));
     unmarshal_VkImageFormatProperties2(stream, (VkImageFormatProperties2*)(pImageFormatProperties));
+    if (pImageFormatProperties)
+    {
+        transform_fromhost_VkImageFormatProperties2(mImpl->resources(), (VkImageFormatProperties2*)(pImageFormatProperties));
+    }
     VkResult vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -13018,6 +13228,13 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
             unmarshal_VkQueueFamilyProperties2(stream, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
         }
     }
+    if (pQueueFamilyProperties)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+        {
+            transform_fromhost_VkQueueFamilyProperties2(mImpl->resources(), (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
+        }
+    }
 }
 
 void VkEncoder::vkGetPhysicalDeviceMemoryProperties2KHR(
@@ -13048,6 +13265,10 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2KHR(
     stream->write((uint64_t*)&cgen_var_980, 1 * 8);
     marshal_VkPhysicalDeviceMemoryProperties2(stream, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     unmarshal_VkPhysicalDeviceMemoryProperties2(stream, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
+    if (pMemoryProperties)
+    {
+        transform_fromhost_VkPhysicalDeviceMemoryProperties2(mImpl->resources(), (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
+    }
 }
 
 void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
@@ -13072,7 +13293,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
     }
     if (local_pFormatInfo)
     {
-        transform_VkPhysicalDeviceSparseImageFormatInfo2(mImpl->resources(), (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo));
+        transform_tohost_VkPhysicalDeviceSparseImageFormatInfo2(mImpl->resources(), (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo));
     }
     countingStream->rewind();
     {
@@ -13147,6 +13368,13 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
             unmarshal_VkSparseImageFormatProperties2(stream, (VkSparseImageFormatProperties2*)(pProperties + i));
+        }
+    }
+    if (pProperties)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        {
+            transform_fromhost_VkSparseImageFormatProperties2(mImpl->resources(), (VkSparseImageFormatProperties2*)(pProperties + i));
         }
     }
 }
@@ -13416,6 +13644,13 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
             unmarshal_VkPhysicalDeviceGroupProperties(stream, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
         }
     }
+    if (pPhysicalDeviceGroupProperties)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
+        {
+            transform_fromhost_VkPhysicalDeviceGroupProperties(mImpl->resources(), (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
+        }
+    }
     VkResult vkEnumeratePhysicalDeviceGroupsKHR_VkResult_return = (VkResult)0;
     stream->read(&vkEnumeratePhysicalDeviceGroupsKHR_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -13447,7 +13682,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
     }
     if (local_pExternalBufferInfo)
     {
-        transform_VkPhysicalDeviceExternalBufferInfo(mImpl->resources(), (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
+        transform_tohost_VkPhysicalDeviceExternalBufferInfo(mImpl->resources(), (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
     }
     countingStream->rewind();
     {
@@ -13468,6 +13703,10 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
     marshal_VkPhysicalDeviceExternalBufferInfo(stream, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
     marshal_VkExternalBufferProperties(stream, (VkExternalBufferProperties*)(pExternalBufferProperties));
     unmarshal_VkExternalBufferProperties(stream, (VkExternalBufferProperties*)(pExternalBufferProperties));
+    if (pExternalBufferProperties)
+    {
+        transform_fromhost_VkExternalBufferProperties(mImpl->resources(), (VkExternalBufferProperties*)(pExternalBufferProperties));
+    }
 }
 
 #endif
@@ -13495,7 +13734,7 @@ VkResult VkEncoder::vkGetMemoryWin32HandleKHR(
     }
     if (local_pGetWin32HandleInfo)
     {
-        transform_VkMemoryGetWin32HandleInfoKHR(mImpl->resources(), (VkMemoryGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
+        transform_tohost_VkMemoryGetWin32HandleInfoKHR(mImpl->resources(), (VkMemoryGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
     }
     countingStream->rewind();
     {
@@ -13562,6 +13801,10 @@ VkResult VkEncoder::vkGetMemoryWin32HandlePropertiesKHR(
     stream->write((HANDLE*)&local_handle, sizeof(HANDLE));
     marshal_VkMemoryWin32HandlePropertiesKHR(stream, (VkMemoryWin32HandlePropertiesKHR*)(pMemoryWin32HandleProperties));
     unmarshal_VkMemoryWin32HandlePropertiesKHR(stream, (VkMemoryWin32HandlePropertiesKHR*)(pMemoryWin32HandleProperties));
+    if (pMemoryWin32HandleProperties)
+    {
+        transform_fromhost_VkMemoryWin32HandlePropertiesKHR(mImpl->resources(), (VkMemoryWin32HandlePropertiesKHR*)(pMemoryWin32HandleProperties));
+    }
     VkResult vkGetMemoryWin32HandlePropertiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetMemoryWin32HandlePropertiesKHR_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -13593,7 +13836,7 @@ VkResult VkEncoder::vkGetMemoryFdKHR(
     }
     if (local_pGetFdInfo)
     {
-        transform_VkMemoryGetFdInfoKHR(mImpl->resources(), (VkMemoryGetFdInfoKHR*)(local_pGetFdInfo));
+        transform_tohost_VkMemoryGetFdInfoKHR(mImpl->resources(), (VkMemoryGetFdInfoKHR*)(local_pGetFdInfo));
     }
     countingStream->rewind();
     {
@@ -13660,6 +13903,10 @@ VkResult VkEncoder::vkGetMemoryFdPropertiesKHR(
     stream->write((int*)&local_fd, sizeof(int));
     marshal_VkMemoryFdPropertiesKHR(stream, (VkMemoryFdPropertiesKHR*)(pMemoryFdProperties));
     unmarshal_VkMemoryFdPropertiesKHR(stream, (VkMemoryFdPropertiesKHR*)(pMemoryFdProperties));
+    if (pMemoryFdProperties)
+    {
+        transform_fromhost_VkMemoryFdPropertiesKHR(mImpl->resources(), (VkMemoryFdPropertiesKHR*)(pMemoryFdProperties));
+    }
     VkResult vkGetMemoryFdPropertiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetMemoryFdPropertiesKHR_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -13693,7 +13940,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
     }
     if (local_pExternalSemaphoreInfo)
     {
-        transform_VkPhysicalDeviceExternalSemaphoreInfo(mImpl->resources(), (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
+        transform_tohost_VkPhysicalDeviceExternalSemaphoreInfo(mImpl->resources(), (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
     }
     countingStream->rewind();
     {
@@ -13714,6 +13961,10 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
     marshal_VkPhysicalDeviceExternalSemaphoreInfo(stream, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
     marshal_VkExternalSemaphoreProperties(stream, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
     unmarshal_VkExternalSemaphoreProperties(stream, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
+    if (pExternalSemaphoreProperties)
+    {
+        transform_fromhost_VkExternalSemaphoreProperties(mImpl->resources(), (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
+    }
 }
 
 #endif
@@ -13740,7 +13991,7 @@ VkResult VkEncoder::vkImportSemaphoreWin32HandleKHR(
     }
     if (local_pImportSemaphoreWin32HandleInfo)
     {
-        transform_VkImportSemaphoreWin32HandleInfoKHR(mImpl->resources(), (VkImportSemaphoreWin32HandleInfoKHR*)(local_pImportSemaphoreWin32HandleInfo));
+        transform_tohost_VkImportSemaphoreWin32HandleInfoKHR(mImpl->resources(), (VkImportSemaphoreWin32HandleInfoKHR*)(local_pImportSemaphoreWin32HandleInfo));
     }
     countingStream->rewind();
     {
@@ -13787,7 +14038,7 @@ VkResult VkEncoder::vkGetSemaphoreWin32HandleKHR(
     }
     if (local_pGetWin32HandleInfo)
     {
-        transform_VkSemaphoreGetWin32HandleInfoKHR(mImpl->resources(), (VkSemaphoreGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
+        transform_tohost_VkSemaphoreGetWin32HandleInfoKHR(mImpl->resources(), (VkSemaphoreGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
     }
     countingStream->rewind();
     {
@@ -13838,7 +14089,7 @@ VkResult VkEncoder::vkImportSemaphoreFdKHR(
     }
     if (local_pImportSemaphoreFdInfo)
     {
-        transform_VkImportSemaphoreFdInfoKHR(mImpl->resources(), (VkImportSemaphoreFdInfoKHR*)(local_pImportSemaphoreFdInfo));
+        transform_tohost_VkImportSemaphoreFdInfoKHR(mImpl->resources(), (VkImportSemaphoreFdInfoKHR*)(local_pImportSemaphoreFdInfo));
     }
     countingStream->rewind();
     {
@@ -13885,7 +14136,7 @@ VkResult VkEncoder::vkGetSemaphoreFdKHR(
     }
     if (local_pGetFdInfo)
     {
-        transform_VkSemaphoreGetFdInfoKHR(mImpl->resources(), (VkSemaphoreGetFdInfoKHR*)(local_pGetFdInfo));
+        transform_tohost_VkSemaphoreGetFdInfoKHR(mImpl->resources(), (VkSemaphoreGetFdInfoKHR*)(local_pGetFdInfo));
     }
     countingStream->rewind();
     {
@@ -13953,7 +14204,7 @@ void VkEncoder::vkCmdPushDescriptorSetKHR(
     {
         for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i)
         {
-            transform_VkWriteDescriptorSet(mImpl->resources(), (VkWriteDescriptorSet*)(local_pDescriptorWrites + i));
+            transform_tohost_VkWriteDescriptorSet(mImpl->resources(), (VkWriteDescriptorSet*)(local_pDescriptorWrites + i));
         }
     }
     countingStream->rewind();
@@ -14098,11 +14349,11 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkDescriptorUpdateTemplateCreateInfo(mImpl->resources(), (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkDescriptorUpdateTemplateCreateInfo(mImpl->resources(), (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -14177,7 +14428,7 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplateKHR(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -14312,11 +14563,11 @@ VkResult VkEncoder::vkCreateRenderPass2KHR(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkRenderPassCreateInfo2KHR(mImpl->resources(), (VkRenderPassCreateInfo2KHR*)(local_pCreateInfo));
+        transform_tohost_VkRenderPassCreateInfo2KHR(mImpl->resources(), (VkRenderPassCreateInfo2KHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -14395,11 +14646,11 @@ void VkEncoder::vkCmdBeginRenderPass2KHR(
     }
     if (local_pRenderPassBegin)
     {
-        transform_VkRenderPassBeginInfo(mImpl->resources(), (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
+        transform_tohost_VkRenderPassBeginInfo(mImpl->resources(), (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
     }
     if (local_pSubpassBeginInfo)
     {
-        transform_VkSubpassBeginInfoKHR(mImpl->resources(), (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo));
+        transform_tohost_VkSubpassBeginInfoKHR(mImpl->resources(), (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo));
     }
     countingStream->rewind();
     {
@@ -14449,11 +14700,11 @@ void VkEncoder::vkCmdNextSubpass2KHR(
     }
     if (local_pSubpassBeginInfo)
     {
-        transform_VkSubpassBeginInfoKHR(mImpl->resources(), (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo));
+        transform_tohost_VkSubpassBeginInfoKHR(mImpl->resources(), (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo));
     }
     if (local_pSubpassEndInfo)
     {
-        transform_VkSubpassEndInfoKHR(mImpl->resources(), (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo));
+        transform_tohost_VkSubpassEndInfoKHR(mImpl->resources(), (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo));
     }
     countingStream->rewind();
     {
@@ -14495,7 +14746,7 @@ void VkEncoder::vkCmdEndRenderPass2KHR(
     }
     if (local_pSubpassEndInfo)
     {
-        transform_VkSubpassEndInfoKHR(mImpl->resources(), (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo));
+        transform_tohost_VkSubpassEndInfoKHR(mImpl->resources(), (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo));
     }
     countingStream->rewind();
     {
@@ -14581,7 +14832,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalFencePropertiesKHR(
     }
     if (local_pExternalFenceInfo)
     {
-        transform_VkPhysicalDeviceExternalFenceInfo(mImpl->resources(), (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
+        transform_tohost_VkPhysicalDeviceExternalFenceInfo(mImpl->resources(), (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
     }
     countingStream->rewind();
     {
@@ -14602,6 +14853,10 @@ void VkEncoder::vkGetPhysicalDeviceExternalFencePropertiesKHR(
     marshal_VkPhysicalDeviceExternalFenceInfo(stream, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
     marshal_VkExternalFenceProperties(stream, (VkExternalFenceProperties*)(pExternalFenceProperties));
     unmarshal_VkExternalFenceProperties(stream, (VkExternalFenceProperties*)(pExternalFenceProperties));
+    if (pExternalFenceProperties)
+    {
+        transform_fromhost_VkExternalFenceProperties(mImpl->resources(), (VkExternalFenceProperties*)(pExternalFenceProperties));
+    }
 }
 
 #endif
@@ -14628,7 +14883,7 @@ VkResult VkEncoder::vkImportFenceWin32HandleKHR(
     }
     if (local_pImportFenceWin32HandleInfo)
     {
-        transform_VkImportFenceWin32HandleInfoKHR(mImpl->resources(), (VkImportFenceWin32HandleInfoKHR*)(local_pImportFenceWin32HandleInfo));
+        transform_tohost_VkImportFenceWin32HandleInfoKHR(mImpl->resources(), (VkImportFenceWin32HandleInfoKHR*)(local_pImportFenceWin32HandleInfo));
     }
     countingStream->rewind();
     {
@@ -14675,7 +14930,7 @@ VkResult VkEncoder::vkGetFenceWin32HandleKHR(
     }
     if (local_pGetWin32HandleInfo)
     {
-        transform_VkFenceGetWin32HandleInfoKHR(mImpl->resources(), (VkFenceGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
+        transform_tohost_VkFenceGetWin32HandleInfoKHR(mImpl->resources(), (VkFenceGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
     }
     countingStream->rewind();
     {
@@ -14726,7 +14981,7 @@ VkResult VkEncoder::vkImportFenceFdKHR(
     }
     if (local_pImportFenceFdInfo)
     {
-        transform_VkImportFenceFdInfoKHR(mImpl->resources(), (VkImportFenceFdInfoKHR*)(local_pImportFenceFdInfo));
+        transform_tohost_VkImportFenceFdInfoKHR(mImpl->resources(), (VkImportFenceFdInfoKHR*)(local_pImportFenceFdInfo));
     }
     countingStream->rewind();
     {
@@ -14773,7 +15028,7 @@ VkResult VkEncoder::vkGetFenceFdKHR(
     }
     if (local_pGetFdInfo)
     {
-        transform_VkFenceGetFdInfoKHR(mImpl->resources(), (VkFenceGetFdInfoKHR*)(local_pGetFdInfo));
+        transform_tohost_VkFenceGetFdInfoKHR(mImpl->resources(), (VkFenceGetFdInfoKHR*)(local_pGetFdInfo));
     }
     countingStream->rewind();
     {
@@ -14827,7 +15082,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2KHR(
     }
     if (local_pSurfaceInfo)
     {
-        transform_VkPhysicalDeviceSurfaceInfo2KHR(mImpl->resources(), (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
+        transform_tohost_VkPhysicalDeviceSurfaceInfo2KHR(mImpl->resources(), (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
     }
     countingStream->rewind();
     {
@@ -14848,6 +15103,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2KHR(
     marshal_VkPhysicalDeviceSurfaceInfo2KHR(stream, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
     marshal_VkSurfaceCapabilities2KHR(stream, (VkSurfaceCapabilities2KHR*)(pSurfaceCapabilities));
     unmarshal_VkSurfaceCapabilities2KHR(stream, (VkSurfaceCapabilities2KHR*)(pSurfaceCapabilities));
+    if (pSurfaceCapabilities)
+    {
+        transform_fromhost_VkSurfaceCapabilities2KHR(mImpl->resources(), (VkSurfaceCapabilities2KHR*)(pSurfaceCapabilities));
+    }
     VkResult vkGetPhysicalDeviceSurfaceCapabilities2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceSurfaceCapabilities2KHR_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -14878,7 +15137,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
     }
     if (local_pSurfaceInfo)
     {
-        transform_VkPhysicalDeviceSurfaceInfo2KHR(mImpl->resources(), (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
+        transform_tohost_VkPhysicalDeviceSurfaceInfo2KHR(mImpl->resources(), (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
     }
     countingStream->rewind();
     {
@@ -14953,6 +15212,13 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
         for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
         {
             unmarshal_VkSurfaceFormat2KHR(stream, (VkSurfaceFormat2KHR*)(pSurfaceFormats + i));
+        }
+    }
+    if (pSurfaceFormats)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
+        {
+            transform_fromhost_VkSurfaceFormat2KHR(mImpl->resources(), (VkSurfaceFormat2KHR*)(pSurfaceFormats + i));
         }
     }
     VkResult vkGetPhysicalDeviceSurfaceFormats2KHR_VkResult_return = (VkResult)0;
@@ -15052,6 +15318,13 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
             unmarshal_VkDisplayProperties2KHR(stream, (VkDisplayProperties2KHR*)(pProperties + i));
         }
     }
+    if (pProperties)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        {
+            transform_fromhost_VkDisplayProperties2KHR(mImpl->resources(), (VkDisplayProperties2KHR*)(pProperties + i));
+        }
+    }
     VkResult vkGetPhysicalDeviceDisplayProperties2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceDisplayProperties2KHR_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -15143,6 +15416,13 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
             unmarshal_VkDisplayPlaneProperties2KHR(stream, (VkDisplayPlaneProperties2KHR*)(pProperties + i));
+        }
+    }
+    if (pProperties)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        {
+            transform_fromhost_VkDisplayPlaneProperties2KHR(mImpl->resources(), (VkDisplayPlaneProperties2KHR*)(pProperties + i));
         }
     }
     VkResult vkGetPhysicalDeviceDisplayPlaneProperties2KHR_VkResult_return = (VkResult)0;
@@ -15247,6 +15527,13 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
             unmarshal_VkDisplayModeProperties2KHR(stream, (VkDisplayModeProperties2KHR*)(pProperties + i));
         }
     }
+    if (pProperties)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        {
+            transform_fromhost_VkDisplayModeProperties2KHR(mImpl->resources(), (VkDisplayModeProperties2KHR*)(pProperties + i));
+        }
+    }
     VkResult vkGetDisplayModeProperties2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetDisplayModeProperties2KHR_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -15276,7 +15563,7 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilities2KHR(
     }
     if (local_pDisplayPlaneInfo)
     {
-        transform_VkDisplayPlaneInfo2KHR(mImpl->resources(), (VkDisplayPlaneInfo2KHR*)(local_pDisplayPlaneInfo));
+        transform_tohost_VkDisplayPlaneInfo2KHR(mImpl->resources(), (VkDisplayPlaneInfo2KHR*)(local_pDisplayPlaneInfo));
     }
     countingStream->rewind();
     {
@@ -15297,6 +15584,10 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilities2KHR(
     marshal_VkDisplayPlaneInfo2KHR(stream, (VkDisplayPlaneInfo2KHR*)(local_pDisplayPlaneInfo));
     marshal_VkDisplayPlaneCapabilities2KHR(stream, (VkDisplayPlaneCapabilities2KHR*)(pCapabilities));
     unmarshal_VkDisplayPlaneCapabilities2KHR(stream, (VkDisplayPlaneCapabilities2KHR*)(pCapabilities));
+    if (pCapabilities)
+    {
+        transform_fromhost_VkDisplayPlaneCapabilities2KHR(mImpl->resources(), (VkDisplayPlaneCapabilities2KHR*)(pCapabilities));
+    }
     VkResult vkGetDisplayPlaneCapabilities2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetDisplayPlaneCapabilities2KHR_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -15334,7 +15625,7 @@ void VkEncoder::vkGetImageMemoryRequirements2KHR(
     }
     if (local_pInfo)
     {
-        transform_VkImageMemoryRequirementsInfo2(mImpl->resources(), (VkImageMemoryRequirementsInfo2*)(local_pInfo));
+        transform_tohost_VkImageMemoryRequirementsInfo2(mImpl->resources(), (VkImageMemoryRequirementsInfo2*)(local_pInfo));
     }
     countingStream->rewind();
     {
@@ -15355,6 +15646,10 @@ void VkEncoder::vkGetImageMemoryRequirements2KHR(
     marshal_VkImageMemoryRequirementsInfo2(stream, (VkImageMemoryRequirementsInfo2*)(local_pInfo));
     marshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
     unmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
+    if (pMemoryRequirements)
+    {
+        transform_fromhost_VkMemoryRequirements2(mImpl->resources(), (VkMemoryRequirements2*)(pMemoryRequirements));
+    }
 }
 
 void VkEncoder::vkGetBufferMemoryRequirements2KHR(
@@ -15378,7 +15673,7 @@ void VkEncoder::vkGetBufferMemoryRequirements2KHR(
     }
     if (local_pInfo)
     {
-        transform_VkBufferMemoryRequirementsInfo2(mImpl->resources(), (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
+        transform_tohost_VkBufferMemoryRequirementsInfo2(mImpl->resources(), (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
     }
     countingStream->rewind();
     {
@@ -15399,6 +15694,10 @@ void VkEncoder::vkGetBufferMemoryRequirements2KHR(
     marshal_VkBufferMemoryRequirementsInfo2(stream, (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
     marshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
     unmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
+    if (pMemoryRequirements)
+    {
+        transform_fromhost_VkMemoryRequirements2(mImpl->resources(), (VkMemoryRequirements2*)(pMemoryRequirements));
+    }
 }
 
 void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
@@ -15423,7 +15722,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
     }
     if (local_pInfo)
     {
-        transform_VkImageSparseMemoryRequirementsInfo2(mImpl->resources(), (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo));
+        transform_tohost_VkImageSparseMemoryRequirementsInfo2(mImpl->resources(), (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo));
     }
     countingStream->rewind();
     {
@@ -15500,6 +15799,13 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
             unmarshal_VkSparseImageMemoryRequirements2(stream, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
         }
     }
+    if (pSparseMemoryRequirements)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+        {
+            transform_fromhost_VkSparseImageMemoryRequirements2(mImpl->resources(), (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
+        }
+    }
 }
 
 #endif
@@ -15536,11 +15842,11 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkSamplerYcbcrConversionCreateInfo(mImpl->resources(), (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkSamplerYcbcrConversionCreateInfo(mImpl->resources(), (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -15615,7 +15921,7 @@ void VkEncoder::vkDestroySamplerYcbcrConversionKHR(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -15683,7 +15989,7 @@ VkResult VkEncoder::vkBindBufferMemory2KHR(
     {
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            transform_VkBindBufferMemoryInfo(mImpl->resources(), (VkBindBufferMemoryInfo*)(local_pBindInfos + i));
+            transform_tohost_VkBindBufferMemoryInfo(mImpl->resources(), (VkBindBufferMemoryInfo*)(local_pBindInfos + i));
         }
     }
     countingStream->rewind();
@@ -15746,7 +16052,7 @@ VkResult VkEncoder::vkBindImageMemory2KHR(
     {
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            transform_VkBindImageMemoryInfo(mImpl->resources(), (VkBindImageMemoryInfo*)(local_pBindInfos + i));
+            transform_tohost_VkBindImageMemoryInfo(mImpl->resources(), (VkBindImageMemoryInfo*)(local_pBindInfos + i));
         }
     }
     countingStream->rewind();
@@ -15804,7 +16110,7 @@ void VkEncoder::vkGetDescriptorSetLayoutSupportKHR(
     }
     if (local_pCreateInfo)
     {
-        transform_VkDescriptorSetLayoutCreateInfo(mImpl->resources(), (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkDescriptorSetLayoutCreateInfo(mImpl->resources(), (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
     }
     countingStream->rewind();
     {
@@ -15825,6 +16131,10 @@ void VkEncoder::vkGetDescriptorSetLayoutSupportKHR(
     marshal_VkDescriptorSetLayoutCreateInfo(stream, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
     marshal_VkDescriptorSetLayoutSupport(stream, (VkDescriptorSetLayoutSupport*)(pSupport));
     unmarshal_VkDescriptorSetLayoutSupport(stream, (VkDescriptorSetLayoutSupport*)(pSupport));
+    if (pSupport)
+    {
+        transform_fromhost_VkDescriptorSetLayoutSupport(mImpl->resources(), (VkDescriptorSetLayoutSupport*)(pSupport));
+    }
 }
 
 #endif
@@ -16167,11 +16477,11 @@ VkResult VkEncoder::vkCreateDebugReportCallbackEXT(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkDebugReportCallbackCreateInfoEXT(mImpl->resources(), (VkDebugReportCallbackCreateInfoEXT*)(local_pCreateInfo));
+        transform_tohost_VkDebugReportCallbackCreateInfoEXT(mImpl->resources(), (VkDebugReportCallbackCreateInfoEXT*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -16248,7 +16558,7 @@ void VkEncoder::vkDestroyDebugReportCallbackEXT(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -16392,7 +16702,7 @@ VkResult VkEncoder::vkDebugMarkerSetObjectTagEXT(
     }
     if (local_pTagInfo)
     {
-        transform_VkDebugMarkerObjectTagInfoEXT(mImpl->resources(), (VkDebugMarkerObjectTagInfoEXT*)(local_pTagInfo));
+        transform_tohost_VkDebugMarkerObjectTagInfoEXT(mImpl->resources(), (VkDebugMarkerObjectTagInfoEXT*)(local_pTagInfo));
     }
     countingStream->rewind();
     {
@@ -16438,7 +16748,7 @@ VkResult VkEncoder::vkDebugMarkerSetObjectNameEXT(
     }
     if (local_pNameInfo)
     {
-        transform_VkDebugMarkerObjectNameInfoEXT(mImpl->resources(), (VkDebugMarkerObjectNameInfoEXT*)(local_pNameInfo));
+        transform_tohost_VkDebugMarkerObjectNameInfoEXT(mImpl->resources(), (VkDebugMarkerObjectNameInfoEXT*)(local_pNameInfo));
     }
     countingStream->rewind();
     {
@@ -16484,7 +16794,7 @@ void VkEncoder::vkCmdDebugMarkerBeginEXT(
     }
     if (local_pMarkerInfo)
     {
-        transform_VkDebugMarkerMarkerInfoEXT(mImpl->resources(), (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
+        transform_tohost_VkDebugMarkerMarkerInfoEXT(mImpl->resources(), (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
     }
     countingStream->rewind();
     {
@@ -16550,7 +16860,7 @@ void VkEncoder::vkCmdDebugMarkerInsertEXT(
     }
     if (local_pMarkerInfo)
     {
-        transform_VkDebugMarkerMarkerInfoEXT(mImpl->resources(), (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
+        transform_tohost_VkDebugMarkerMarkerInfoEXT(mImpl->resources(), (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
     }
     countingStream->rewind();
     {
@@ -16883,6 +17193,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceExternalImageFormatPropertiesNV(
     stream->write((VkExternalMemoryHandleTypeFlagsNV*)&local_externalHandleType, sizeof(VkExternalMemoryHandleTypeFlagsNV));
     marshal_VkExternalImageFormatPropertiesNV(stream, (VkExternalImageFormatPropertiesNV*)(pExternalImageFormatProperties));
     unmarshal_VkExternalImageFormatPropertiesNV(stream, (VkExternalImageFormatPropertiesNV*)(pExternalImageFormatProperties));
+    if (pExternalImageFormatProperties)
+    {
+        transform_fromhost_VkExternalImageFormatPropertiesNV(mImpl->resources(), (VkExternalImageFormatPropertiesNV*)(pExternalImageFormatProperties));
+    }
     VkResult vkGetPhysicalDeviceExternalImageFormatPropertiesNV_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceExternalImageFormatPropertiesNV_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -16912,7 +17226,7 @@ VkResult VkEncoder::vkGetMemoryWin32HandleNV(
     local_device = device;
     local_memory = memory;
     local_handleType = handleType;
-    mImpl->resources()->deviceMemoryTransform(&local_memory, 1, nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    mImpl->resources()->deviceMemoryTransform_tohost(&local_memory, 1, nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1);
     countingStream->rewind();
     {
         uint64_t cgen_var_1238;
@@ -16982,11 +17296,11 @@ VkResult VkEncoder::vkCreateViSurfaceNN(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkViSurfaceCreateInfoNN(mImpl->resources(), (VkViSurfaceCreateInfoNN*)(local_pCreateInfo));
+        transform_tohost_VkViSurfaceCreateInfoNN(mImpl->resources(), (VkViSurfaceCreateInfoNN*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -17063,7 +17377,7 @@ void VkEncoder::vkCmdBeginConditionalRenderingEXT(
     }
     if (local_pConditionalRenderingBegin)
     {
-        transform_VkConditionalRenderingBeginInfoEXT(mImpl->resources(), (VkConditionalRenderingBeginInfoEXT*)(local_pConditionalRenderingBegin));
+        transform_tohost_VkConditionalRenderingBeginInfoEXT(mImpl->resources(), (VkConditionalRenderingBeginInfoEXT*)(local_pConditionalRenderingBegin));
     }
     countingStream->rewind();
     {
@@ -17131,7 +17445,7 @@ void VkEncoder::vkCmdProcessCommandsNVX(
     }
     if (local_pProcessCommandsInfo)
     {
-        transform_VkCmdProcessCommandsInfoNVX(mImpl->resources(), (VkCmdProcessCommandsInfoNVX*)(local_pProcessCommandsInfo));
+        transform_tohost_VkCmdProcessCommandsInfoNVX(mImpl->resources(), (VkCmdProcessCommandsInfoNVX*)(local_pProcessCommandsInfo));
     }
     countingStream->rewind();
     {
@@ -17171,7 +17485,7 @@ void VkEncoder::vkCmdReserveSpaceForCommandsNVX(
     }
     if (local_pReserveSpaceInfo)
     {
-        transform_VkCmdReserveSpaceForCommandsInfoNVX(mImpl->resources(), (VkCmdReserveSpaceForCommandsInfoNVX*)(local_pReserveSpaceInfo));
+        transform_tohost_VkCmdReserveSpaceForCommandsInfoNVX(mImpl->resources(), (VkCmdReserveSpaceForCommandsInfoNVX*)(local_pReserveSpaceInfo));
     }
     countingStream->rewind();
     {
@@ -17221,11 +17535,11 @@ VkResult VkEncoder::vkCreateIndirectCommandsLayoutNVX(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkIndirectCommandsLayoutCreateInfoNVX(mImpl->resources(), (VkIndirectCommandsLayoutCreateInfoNVX*)(local_pCreateInfo));
+        transform_tohost_VkIndirectCommandsLayoutCreateInfoNVX(mImpl->resources(), (VkIndirectCommandsLayoutCreateInfoNVX*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -17302,7 +17616,7 @@ void VkEncoder::vkDestroyIndirectCommandsLayoutNVX(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -17371,11 +17685,11 @@ VkResult VkEncoder::vkCreateObjectTableNVX(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkObjectTableCreateInfoNVX(mImpl->resources(), (VkObjectTableCreateInfoNVX*)(local_pCreateInfo));
+        transform_tohost_VkObjectTableCreateInfoNVX(mImpl->resources(), (VkObjectTableCreateInfoNVX*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -17452,7 +17766,7 @@ void VkEncoder::vkDestroyObjectTableNVX(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -17647,7 +17961,15 @@ void VkEncoder::vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX(
     marshal_VkDeviceGeneratedCommandsFeaturesNVX(stream, (VkDeviceGeneratedCommandsFeaturesNVX*)(pFeatures));
     marshal_VkDeviceGeneratedCommandsLimitsNVX(stream, (VkDeviceGeneratedCommandsLimitsNVX*)(pLimits));
     unmarshal_VkDeviceGeneratedCommandsFeaturesNVX(stream, (VkDeviceGeneratedCommandsFeaturesNVX*)(pFeatures));
+    if (pFeatures)
+    {
+        transform_fromhost_VkDeviceGeneratedCommandsFeaturesNVX(mImpl->resources(), (VkDeviceGeneratedCommandsFeaturesNVX*)(pFeatures));
+    }
     unmarshal_VkDeviceGeneratedCommandsLimitsNVX(stream, (VkDeviceGeneratedCommandsLimitsNVX*)(pLimits));
+    if (pLimits)
+    {
+        transform_fromhost_VkDeviceGeneratedCommandsLimitsNVX(mImpl->resources(), (VkDeviceGeneratedCommandsLimitsNVX*)(pLimits));
+    }
 }
 
 #endif
@@ -17683,7 +18005,7 @@ void VkEncoder::vkCmdSetViewportWScalingNV(
     {
         for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
         {
-            transform_VkViewportWScalingNV(mImpl->resources(), (VkViewportWScalingNV*)(local_pViewportWScalings + i));
+            transform_tohost_VkViewportWScalingNV(mImpl->resources(), (VkViewportWScalingNV*)(local_pViewportWScalings + i));
         }
     }
     countingStream->rewind();
@@ -17896,6 +18218,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2EXT(
     stream->write((uint64_t*)&cgen_var_1311, 1 * 8);
     marshal_VkSurfaceCapabilities2EXT(stream, (VkSurfaceCapabilities2EXT*)(pSurfaceCapabilities));
     unmarshal_VkSurfaceCapabilities2EXT(stream, (VkSurfaceCapabilities2EXT*)(pSurfaceCapabilities));
+    if (pSurfaceCapabilities)
+    {
+        transform_fromhost_VkSurfaceCapabilities2EXT(mImpl->resources(), (VkSurfaceCapabilities2EXT*)(pSurfaceCapabilities));
+    }
     VkResult vkGetPhysicalDeviceSurfaceCapabilities2EXT_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceSurfaceCapabilities2EXT_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -17929,7 +18255,7 @@ VkResult VkEncoder::vkDisplayPowerControlEXT(
     }
     if (local_pDisplayPowerInfo)
     {
-        transform_VkDisplayPowerInfoEXT(mImpl->resources(), (VkDisplayPowerInfoEXT*)(local_pDisplayPowerInfo));
+        transform_tohost_VkDisplayPowerInfoEXT(mImpl->resources(), (VkDisplayPowerInfoEXT*)(local_pDisplayPowerInfo));
     }
     countingStream->rewind();
     {
@@ -17991,11 +18317,11 @@ VkResult VkEncoder::vkRegisterDeviceEventEXT(
     local_pAllocator = nullptr;
     if (local_pDeviceEventInfo)
     {
-        transform_VkDeviceEventInfoEXT(mImpl->resources(), (VkDeviceEventInfoEXT*)(local_pDeviceEventInfo));
+        transform_tohost_VkDeviceEventInfoEXT(mImpl->resources(), (VkDeviceEventInfoEXT*)(local_pDeviceEventInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -18079,11 +18405,11 @@ VkResult VkEncoder::vkRegisterDisplayEventEXT(
     local_pAllocator = nullptr;
     if (local_pDisplayEventInfo)
     {
-        transform_VkDisplayEventInfoEXT(mImpl->resources(), (VkDisplayEventInfoEXT*)(local_pDisplayEventInfo));
+        transform_tohost_VkDisplayEventInfoEXT(mImpl->resources(), (VkDisplayEventInfoEXT*)(local_pDisplayEventInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -18229,6 +18555,10 @@ VkResult VkEncoder::vkGetRefreshCycleDurationGOOGLE(
     stream->write((uint64_t*)&cgen_var_1339, 1 * 8);
     marshal_VkRefreshCycleDurationGOOGLE(stream, (VkRefreshCycleDurationGOOGLE*)(pDisplayTimingProperties));
     unmarshal_VkRefreshCycleDurationGOOGLE(stream, (VkRefreshCycleDurationGOOGLE*)(pDisplayTimingProperties));
+    if (pDisplayTimingProperties)
+    {
+        transform_fromhost_VkRefreshCycleDurationGOOGLE(mImpl->resources(), (VkRefreshCycleDurationGOOGLE*)(pDisplayTimingProperties));
+    }
     VkResult vkGetRefreshCycleDurationGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkGetRefreshCycleDurationGOOGLE_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -18331,6 +18661,13 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
             unmarshal_VkPastPresentationTimingGOOGLE(stream, (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i));
         }
     }
+    if (pPresentationTimings)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pPresentationTimingCount)); ++i)
+        {
+            transform_fromhost_VkPastPresentationTimingGOOGLE(mImpl->resources(), (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i));
+        }
+    }
     VkResult vkGetPastPresentationTimingGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkGetPastPresentationTimingGOOGLE_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -18382,7 +18719,7 @@ void VkEncoder::vkCmdSetDiscardRectangleEXT(
     {
         for (uint32_t i = 0; i < (uint32_t)((discardRectangleCount)); ++i)
         {
-            transform_VkRect2D(mImpl->resources(), (VkRect2D*)(local_pDiscardRectangles + i));
+            transform_tohost_VkRect2D(mImpl->resources(), (VkRect2D*)(local_pDiscardRectangles + i));
         }
     }
     countingStream->rewind();
@@ -18454,7 +18791,7 @@ void VkEncoder::vkSetHdrMetadataEXT(
     {
         for (uint32_t i = 0; i < (uint32_t)((swapchainCount)); ++i)
         {
-            transform_VkHdrMetadataEXT(mImpl->resources(), (VkHdrMetadataEXT*)(local_pMetadata + i));
+            transform_tohost_VkHdrMetadataEXT(mImpl->resources(), (VkHdrMetadataEXT*)(local_pMetadata + i));
         }
     }
     countingStream->rewind();
@@ -18529,11 +18866,11 @@ VkResult VkEncoder::vkCreateIOSSurfaceMVK(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkIOSSurfaceCreateInfoMVK(mImpl->resources(), (VkIOSSurfaceCreateInfoMVK*)(local_pCreateInfo));
+        transform_tohost_VkIOSSurfaceCreateInfoMVK(mImpl->resources(), (VkIOSSurfaceCreateInfoMVK*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -18616,11 +18953,11 @@ VkResult VkEncoder::vkCreateMacOSSurfaceMVK(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkMacOSSurfaceCreateInfoMVK(mImpl->resources(), (VkMacOSSurfaceCreateInfoMVK*)(local_pCreateInfo));
+        transform_tohost_VkMacOSSurfaceCreateInfoMVK(mImpl->resources(), (VkMacOSSurfaceCreateInfoMVK*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -18697,7 +19034,7 @@ VkResult VkEncoder::vkSetDebugUtilsObjectNameEXT(
     }
     if (local_pNameInfo)
     {
-        transform_VkDebugUtilsObjectNameInfoEXT(mImpl->resources(), (VkDebugUtilsObjectNameInfoEXT*)(local_pNameInfo));
+        transform_tohost_VkDebugUtilsObjectNameInfoEXT(mImpl->resources(), (VkDebugUtilsObjectNameInfoEXT*)(local_pNameInfo));
     }
     countingStream->rewind();
     {
@@ -18743,7 +19080,7 @@ VkResult VkEncoder::vkSetDebugUtilsObjectTagEXT(
     }
     if (local_pTagInfo)
     {
-        transform_VkDebugUtilsObjectTagInfoEXT(mImpl->resources(), (VkDebugUtilsObjectTagInfoEXT*)(local_pTagInfo));
+        transform_tohost_VkDebugUtilsObjectTagInfoEXT(mImpl->resources(), (VkDebugUtilsObjectTagInfoEXT*)(local_pTagInfo));
     }
     countingStream->rewind();
     {
@@ -18789,7 +19126,7 @@ void VkEncoder::vkQueueBeginDebugUtilsLabelEXT(
     }
     if (local_pLabelInfo)
     {
-        transform_VkDebugUtilsLabelEXT(mImpl->resources(), (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
+        transform_tohost_VkDebugUtilsLabelEXT(mImpl->resources(), (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
     countingStream->rewind();
     {
@@ -18855,7 +19192,7 @@ void VkEncoder::vkQueueInsertDebugUtilsLabelEXT(
     }
     if (local_pLabelInfo)
     {
-        transform_VkDebugUtilsLabelEXT(mImpl->resources(), (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
+        transform_tohost_VkDebugUtilsLabelEXT(mImpl->resources(), (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
     countingStream->rewind();
     {
@@ -18895,7 +19232,7 @@ void VkEncoder::vkCmdBeginDebugUtilsLabelEXT(
     }
     if (local_pLabelInfo)
     {
-        transform_VkDebugUtilsLabelEXT(mImpl->resources(), (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
+        transform_tohost_VkDebugUtilsLabelEXT(mImpl->resources(), (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
     countingStream->rewind();
     {
@@ -18961,7 +19298,7 @@ void VkEncoder::vkCmdInsertDebugUtilsLabelEXT(
     }
     if (local_pLabelInfo)
     {
-        transform_VkDebugUtilsLabelEXT(mImpl->resources(), (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
+        transform_tohost_VkDebugUtilsLabelEXT(mImpl->resources(), (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
     countingStream->rewind();
     {
@@ -19011,11 +19348,11 @@ VkResult VkEncoder::vkCreateDebugUtilsMessengerEXT(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkDebugUtilsMessengerCreateInfoEXT(mImpl->resources(), (VkDebugUtilsMessengerCreateInfoEXT*)(local_pCreateInfo));
+        transform_tohost_VkDebugUtilsMessengerCreateInfoEXT(mImpl->resources(), (VkDebugUtilsMessengerCreateInfoEXT*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -19092,7 +19429,7 @@ void VkEncoder::vkDestroyDebugUtilsMessengerEXT(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -19157,7 +19494,7 @@ void VkEncoder::vkSubmitDebugUtilsMessageEXT(
     }
     if (local_pCallbackData)
     {
-        transform_VkDebugUtilsMessengerCallbackDataEXT(mImpl->resources(), (VkDebugUtilsMessengerCallbackDataEXT*)(local_pCallbackData));
+        transform_tohost_VkDebugUtilsMessengerCallbackDataEXT(mImpl->resources(), (VkDebugUtilsMessengerCallbackDataEXT*)(local_pCallbackData));
     }
     countingStream->rewind();
     {
@@ -19220,6 +19557,10 @@ VkResult VkEncoder::vkGetAndroidHardwareBufferPropertiesANDROID(
     stream->write((AHardwareBuffer*)local_buffer, sizeof(AHardwareBuffer));
     marshal_VkAndroidHardwareBufferPropertiesANDROID(stream, (VkAndroidHardwareBufferPropertiesANDROID*)(pProperties));
     unmarshal_VkAndroidHardwareBufferPropertiesANDROID(stream, (VkAndroidHardwareBufferPropertiesANDROID*)(pProperties));
+    if (pProperties)
+    {
+        transform_fromhost_VkAndroidHardwareBufferPropertiesANDROID(mImpl->resources(), (VkAndroidHardwareBufferPropertiesANDROID*)(pProperties));
+    }
     VkResult vkGetAndroidHardwareBufferPropertiesANDROID_VkResult_return = (VkResult)0;
     stream->read(&vkGetAndroidHardwareBufferPropertiesANDROID_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -19249,7 +19590,7 @@ VkResult VkEncoder::vkGetMemoryAndroidHardwareBufferANDROID(
     }
     if (local_pInfo)
     {
-        transform_VkMemoryGetAndroidHardwareBufferInfoANDROID(mImpl->resources(), (VkMemoryGetAndroidHardwareBufferInfoANDROID*)(local_pInfo));
+        transform_tohost_VkMemoryGetAndroidHardwareBufferInfoANDROID(mImpl->resources(), (VkMemoryGetAndroidHardwareBufferInfoANDROID*)(local_pInfo));
     }
     countingStream->rewind();
     {
@@ -19310,7 +19651,7 @@ void VkEncoder::vkCmdSetSampleLocationsEXT(
     }
     if (local_pSampleLocationsInfo)
     {
-        transform_VkSampleLocationsInfoEXT(mImpl->resources(), (VkSampleLocationsInfoEXT*)(local_pSampleLocationsInfo));
+        transform_tohost_VkSampleLocationsInfoEXT(mImpl->resources(), (VkSampleLocationsInfoEXT*)(local_pSampleLocationsInfo));
     }
     countingStream->rewind();
     {
@@ -19363,6 +19704,10 @@ void VkEncoder::vkGetPhysicalDeviceMultisamplePropertiesEXT(
     stream->write((VkSampleCountFlagBits*)&local_samples, sizeof(VkSampleCountFlagBits));
     marshal_VkMultisamplePropertiesEXT(stream, (VkMultisamplePropertiesEXT*)(pMultisampleProperties));
     unmarshal_VkMultisamplePropertiesEXT(stream, (VkMultisamplePropertiesEXT*)(pMultisampleProperties));
+    if (pMultisampleProperties)
+    {
+        transform_fromhost_VkMultisamplePropertiesEXT(mImpl->resources(), (VkMultisamplePropertiesEXT*)(pMultisampleProperties));
+    }
 }
 
 #endif
@@ -19407,11 +19752,11 @@ VkResult VkEncoder::vkCreateValidationCacheEXT(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_VkValidationCacheCreateInfoEXT(mImpl->resources(), (VkValidationCacheCreateInfoEXT*)(local_pCreateInfo));
+        transform_tohost_VkValidationCacheCreateInfoEXT(mImpl->resources(), (VkValidationCacheCreateInfoEXT*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -19488,7 +19833,7 @@ void VkEncoder::vkDestroyValidationCacheEXT(
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
     }
     countingStream->rewind();
     {
@@ -19751,6 +20096,10 @@ VkResult VkEncoder::vkGetMemoryHostPointerPropertiesEXT(
     }
     marshal_VkMemoryHostPointerPropertiesEXT(stream, (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties));
     unmarshal_VkMemoryHostPointerPropertiesEXT(stream, (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties));
+    if (pMemoryHostPointerProperties)
+    {
+        transform_fromhost_VkMemoryHostPointerPropertiesEXT(mImpl->resources(), (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties));
+    }
     VkResult vkGetMemoryHostPointerPropertiesEXT_VkResult_return = (VkResult)0;
     stream->read(&vkGetMemoryHostPointerPropertiesEXT_VkResult_return, sizeof(VkResult));
     countingStream->clearPool();
@@ -19951,6 +20300,13 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
             unmarshal_VkCheckpointDataNV(stream, (VkCheckpointDataNV*)(pCheckpointData + i));
         }
     }
+    if (pCheckpointData)
+    {
+        for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i)
+        {
+            transform_fromhost_VkCheckpointDataNV(mImpl->resources(), (VkCheckpointDataNV*)(pCheckpointData + i));
+        }
+    }
 }
 
 #endif
@@ -19970,7 +20326,7 @@ VkResult VkEncoder::vkMapMemoryIntoAddressSpaceGOOGLE(
     VkDeviceMemory local_memory;
     local_device = device;
     local_memory = memory;
-    mImpl->resources()->deviceMemoryTransform(&local_memory, 1, nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    mImpl->resources()->deviceMemoryTransform_tohost(&local_memory, 1, nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1);
     countingStream->rewind();
     {
         uint64_t cgen_var_1461;
