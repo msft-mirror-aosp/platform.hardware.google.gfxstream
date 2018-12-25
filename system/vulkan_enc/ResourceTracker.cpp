@@ -16,6 +16,7 @@
 #include "ResourceTracker.h"
 
 #include "../OpenglSystemCommon/EmulatorFeatureInfo.h"
+#include "HostVisibleMemoryVirtualization.h"
 #include "Resources.h"
 #include "VkEncoder.h"
 
@@ -114,6 +115,7 @@ public:
         VkPhysicalDevice physdev;
         VkPhysicalDeviceProperties props;
         VkPhysicalDeviceMemoryProperties memProps;
+        HostVisibleMemoryVirtualizationInfo hostVisibleVirtInfo;
     };
 
     struct VkDeviceMemory_Info {
@@ -124,6 +126,8 @@ public:
         bool directMapped = false;
         std::unique_ptr<GoldfishAddressSpaceBlock>
             goldfishAddressSpaceBlock = {};
+        HostVisibleMemoryVirtualizationInfo
+            hostVisibleVirtInfo;
     };
 
 #define HANDLE_REGISTER_IMPL_IMPL(type) \
@@ -173,19 +177,25 @@ public:
         info.physdev = physdev;
         info.props = props;
         info.memProps = memProps;
+        initHostVisibleMemoryVirtualizationInfo(
+            physdev, &memProps, &info.hostVisibleVirtInfo);
     }
 
-    void setDeviceMemoryInfo(VkDeviceMemory memory,
+    void setDeviceMemoryInfo(VkDevice device,
+                             VkDeviceMemory memory,
                              VkDeviceSize allocationSize,
                              VkDeviceSize mappedSize,
                              uint8_t* ptr,
                              uint32_t memoryTypeIndex) {
         AutoLock lock(mLock);
+        auto& deviceInfo = info_VkDevice[device];
         auto& info = info_VkDeviceMemory[memory];
+
         info.allocationSize = allocationSize;
         info.mappedSize = mappedSize;
         info.mappedPtr = ptr;
         info.memoryTypeIndex = memoryTypeIndex;
+        info.hostVisibleVirtInfo = deviceInfo.hostVisibleVirtInfo;
     }
 
     bool isMemoryTypeHostVisible(VkDevice device, uint32_t typeIndex) const {
@@ -406,7 +416,7 @@ public:
         }
 
         setDeviceMemoryInfo(
-            *pMemory, allocationSize, mappedSize, mappedPtr,
+            device, *pMemory, allocationSize, mappedSize, mappedPtr,
             pAllocateInfo->memoryTypeIndex);
 
         bool doDirectMap =
