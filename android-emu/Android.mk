@@ -17,6 +17,7 @@ LOCAL_SRC_FILES := \
     android/base/files/StreamSerializing.cpp \
     android/base/Pool.cpp \
     android/base/StringFormat.cpp \
+    android/base/SubAllocator.cpp \
     android/utils/debug.c \
 
 $(call emugl-end-module)
