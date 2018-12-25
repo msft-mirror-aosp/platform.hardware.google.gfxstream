@@ -18,14 +18,13 @@
 
 #include "VulkanHandleMapping.h"
 #include "VulkanHandles.h"
-#include "VkEventHandler.h"
 #include <memory>
 
 struct EmulatorFeatureInfo;
 
 namespace goldfish_vk {
 
-class ResourceTracker : public VkEventHandler {
+class ResourceTracker {
 public:
     ResourceTracker();
     virtual ~ResourceTracker();
@@ -44,18 +43,22 @@ public:
     VkResult on_vkEnumerateInstanceVersion(
         void* context,
         VkResult input_result,
-        uint32_t* apiVersion) override;
+        uint32_t* apiVersion);
     VkResult on_vkEnumerateDeviceExtensionProperties(
         void* context,
         VkResult input_result,
         VkPhysicalDevice physicalDevice,
         const char* pLayerName,
         uint32_t* pPropertyCount,
-        VkExtensionProperties* pProperties) override;
+        VkExtensionProperties* pProperties);
     void on_vkGetPhysicalDeviceProperties2(
         void* context,
         VkPhysicalDevice physicalDevice,
-        VkPhysicalDeviceProperties2* pProperties) override;
+        VkPhysicalDeviceProperties2* pProperties);
+    void on_vkGetPhysicalDeviceMemoryProperties(
+        void* context,
+        VkPhysicalDevice physicalDevice,
+        VkPhysicalDeviceMemoryProperties* pMemoryProperties);
 
     VkResult on_vkCreateDevice(
         void* context,
@@ -63,7 +66,7 @@ public:
         VkPhysicalDevice physicalDevice,
         const VkDeviceCreateInfo* pCreateInfo,
         const VkAllocationCallbacks* pAllocator,
-        VkDevice* pDevice) override;
+        VkDevice* pDevice);
 
     VkResult on_vkAllocateMemory(
         void* context,
@@ -71,7 +74,7 @@ public:
         VkDevice device,
         const VkMemoryAllocateInfo* pAllocateInfo,
         const VkAllocationCallbacks* pAllocator,
-        VkDeviceMemory* pMemory) override;
+        VkDeviceMemory* pMemory);
 
     VkResult on_vkMapMemory(
         void* context,
@@ -86,7 +89,7 @@ public:
     void on_vkUnmapMemory(
         void* context,
         VkDevice device,
-        VkDeviceMemory memory) override;
+        VkDeviceMemory memory);
 
     void unwrap_VkNativeBufferANDROID(
         const VkImageCreateInfo* pCreateInfo,
@@ -114,7 +117,13 @@ public:
     bool isValidMemoryRange(const VkMappedMemoryRange& range) const;
     void setupFeatures(const EmulatorFeatureInfo* features);
     bool usingDirectMapping() const;
-    void deviceMemoryTransform(
+    void deviceMemoryTransform_tohost(
+        VkDeviceMemory* memory, uint32_t memoryCount,
+        VkDeviceSize* offset, uint32_t offsetCount,
+        VkDeviceSize* size, uint32_t sizeCount,
+        uint32_t* typeIndex, uint32_t typeIndexCount,
+        uint32_t* typeBits, uint32_t typeBitsCount);
+    void deviceMemoryTransform_fromhost(
         VkDeviceMemory* memory, uint32_t memoryCount,
         VkDeviceSize* offset, uint32_t offsetCount,
         VkDeviceSize* size, uint32_t sizeCount,
