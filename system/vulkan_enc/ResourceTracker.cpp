@@ -115,6 +115,7 @@ public:
         VkPhysicalDevice physdev;
         VkPhysicalDeviceProperties props;
         VkPhysicalDeviceMemoryProperties memProps;
+        HostMemAlloc hostMemAllocs[VK_MAX_MEMORY_TYPES] = {};
     };
 
     struct VkDeviceMemory_Info {
@@ -122,9 +123,11 @@ public:
         VkDeviceSize mappedSize = 0;
         uint8_t* mappedPtr = nullptr;
         uint32_t memoryTypeIndex = 0;
+        bool virtualHostVisibleBacking = false;
         bool directMapped = false;
-        std::unique_ptr<GoldfishAddressSpaceBlock>
-            goldfishAddressSpaceBlock = {};
+        GoldfishAddressSpaceBlock*
+            goldfishAddressSpaceBlock = nullptr;
+        SubAlloc subAlloc;
     };
 
 #define HANDLE_REGISTER_IMPL_IMPL(type) \
@@ -145,7 +148,12 @@ public:
 
     void unregister_VkDevice(VkDevice device) {
         AutoLock lock(mLock);
+
+        auto it = info_VkDevice.find(device);
+        if (it == info_VkDevice.end()) return;
+        auto info = it->second;
         info_VkDevice.erase(device);
+        lock.unlock();
     }
 
     void unregister_VkDeviceMemory(VkDeviceMemory mem) {
@@ -156,12 +164,18 @@ public:
 
         auto& memInfo = it->second;
 
-        if (memInfo.mappedPtr && !memInfo.directMapped) {
+        if (memInfo.mappedPtr &&
+            !memInfo.virtualHostVisibleBacking &&
+            !memInfo.directMapped) {
             aligned_buf_free(memInfo.mappedPtr);
         }
 
-        // Direct mapping is erased by GoldfishAddressSpaceBlock's
-        // dtor
+        if (memInfo.directMapped) {
+            subFreeHostMemory(&memInfo.subAlloc);
+        }
+
+        delete memInfo.goldfishAddressSpaceBlock;
+
         info_VkDeviceMemory.erase(mem);
     }
 
@@ -281,16 +295,42 @@ public:
         (void)memoryCount;
         (void)offsetCount;
         (void)sizeCount;
+
         const auto& hostVirt =
             mHostVisibleMemoryVirtInfo;
 
         if (!hostVirt.virtualizationSupported) return;
 
-        for (uint32_t i = 0; i < memoryCount; ++i) {
-            // TODO
-            (void)memory;
-            (void)offset;
-            (void)size;
+        if (memory) {
+            AutoLock lock (mLock);
+
+            for (uint32_t i = 0; i < memoryCount; ++i) {
+                VkDeviceMemory mem = memory[i];
+
+                auto it = info_VkDeviceMemory.find(mem);
+                if (it == info_VkDeviceMemory.end()) return;
+
+                const auto& info = it->second;
+
+                if (!info.directMapped) continue;
+
+                memory[i] = info.subAlloc.baseMemory;
+
+                if (offset) {
+                    offset[i] = info.subAlloc.baseOffset + offset[i];
+                }
+
+                if (size) {
+                    if (size[i] == VK_WHOLE_SIZE) {
+                        size[i] = info.subAlloc.subMappedSize;
+                    }
+                }
+
+                // TODO
+                (void)memory;
+                (void)offset;
+                (void)size;
+            }
         }
 
         for (uint32_t i = 0; i < typeIndexCount; ++i) {
@@ -320,11 +360,13 @@ public:
         (void)memoryCount;
         (void)offsetCount;
         (void)sizeCount;
-        
+
         const auto& hostVirt =
             mHostVisibleMemoryVirtInfo;
 
         if (!hostVirt.virtualizationSupported) return;
+
+        AutoLock lock (mLock);
 
         for (uint32_t i = 0; i < memoryCount; ++i) {
             // TODO
@@ -386,13 +428,13 @@ public:
         void*,
         VkPhysicalDevice physdev,
         VkPhysicalDeviceMemoryProperties* out) {
-        
+
         initHostVisibleMemoryVirtualizationInfo(
             physdev,
             out,
             mFeatureInfo->hasDirectMem,
             &mHostVisibleMemoryVirtInfo);
-        
+
         if (mHostVisibleMemoryVirtInfo.virtualizationSupported) {
             *out = mHostVisibleMemoryVirtInfo.guestMemoryProperties;
         }
@@ -420,6 +462,24 @@ public:
         return input_result;
     }
 
+    void on_vkDestroyDevice_pre(
+        void*,
+        VkDevice device,
+        const VkAllocationCallbacks*) {
+
+        AutoLock lock(mLock);
+
+        auto it = info_VkDevice.find(device);
+        if (it == info_VkDevice.end()) return;
+        auto info = it->second;
+
+        lock.unlock();
+
+        for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
+            destroyHostMemAlloc(device, &info.hostMemAllocs[i]);
+        }
+    }
+
     VkResult on_vkAllocateMemory(
         void* context,
         VkResult input_result,
@@ -432,62 +492,144 @@ public:
 
         VkEncoder* enc = (VkEncoder*)context;
 
-        input_result =
-            enc->vkAllocateMemory(device, pAllocateInfo, pAllocator, pMemory);
-        
-        if (input_result != VK_SUCCESS) return input_result;
+        // Device local memory: pass through
+        if (!isHostVisibleMemoryTypeIndexForGuest(
+                &mHostVisibleMemoryVirtInfo,
+                pAllocateInfo->memoryTypeIndex)) {
 
-        VkDeviceSize allocationSize = pAllocateInfo->allocationSize;
-        VkDeviceSize mappedSize = getNonCoherentExtendedSize(device, allocationSize);
-        uint8_t* mappedPtr = nullptr;
-        bool hostVisible =
-            isMemoryTypeHostVisible(device, pAllocateInfo->memoryTypeIndex);
+            input_result =
+                enc->vkAllocateMemory(
+                    device, pAllocateInfo, pAllocator, pMemory);
+
+            if (input_result != VK_SUCCESS) return input_result;
+
+            VkDeviceSize allocationSize = pAllocateInfo->allocationSize;
+            setDeviceMemoryInfo(
+                device, *pMemory,
+                pAllocateInfo->allocationSize,
+                0, nullptr,
+                pAllocateInfo->memoryTypeIndex);
+
+            return VK_SUCCESS;
+        }
+
+        // Host visible memory with no direct mapping support
         bool directMappingSupported = usingDirectMapping();
-        if (hostVisible && !directMappingSupported) {
-            mappedPtr = (uint8_t*)aligned_buf_alloc(4096, mappedSize);
+        if (!directMappingSupported) {
+            VkDeviceSize mappedSize =
+                getNonCoherentExtendedSize(device,
+                    pAllocateInfo->allocationSize);
+            uint8_t* mappedPtr = (uint8_t*)aligned_buf_alloc(4096, mappedSize);
             D("host visible alloc (non-direct): "
               "size 0x%llx host ptr %p mapped size 0x%llx",
               (unsigned long long)allocationSize, mappedPtr,
               (unsigned long long)mappedSize);
+            setDeviceMemoryInfo(
+                device, *pMemory,
+                pAllocateInfo->allocationSize,
+                mappedSize, mappedPtr,
+                pAllocateInfo->memoryTypeIndex);
+            return VK_SUCCESS;
         }
 
-        setDeviceMemoryInfo(
-            device, *pMemory, allocationSize, mappedSize, mappedPtr,
-            pAllocateInfo->memoryTypeIndex);
+        // Host visible memory with direct mapping
+        AutoLock lock(mLock);
 
-        bool doDirectMap =
-            hostVisible && directMappingSupported;
+        auto it = info_VkDevice.find(device);
+        if (it == info_VkDevice.end()) return VK_ERROR_DEVICE_LOST;
+        auto& deviceInfo = it->second;
 
-        if (doDirectMap) {
+        HostMemAlloc* hostMemAlloc =
+            &deviceInfo.hostMemAllocs[pAllocateInfo->memoryTypeIndex];
+
+        if (!hostMemAlloc->initialized) {
+            VkMemoryAllocateInfo allocInfoForHost = *pAllocateInfo;
+            allocInfoForHost.allocationSize = VIRTUAL_HOST_VISIBLE_HEAP_SIZE;
+            // TODO: Support dedicated allocation
+            allocInfoForHost.pNext = nullptr;
+
+            lock.unlock();
+            VkResult host_res =
+                enc->vkAllocateMemory(
+                    device,
+                    &allocInfoForHost,
+                    nullptr,
+                    &hostMemAlloc->memory);
+            lock.lock();
+
+            if (host_res != VK_SUCCESS) {
+                ALOGE("Could not allocate backing for virtual host visible memory: %d",
+                      host_res);
+                hostMemAlloc->initialized = true;
+                hostMemAlloc->initResult = host_res;
+                return host_res;
+            }
+
+            auto& hostMemInfo = info_VkDeviceMemory[hostMemAlloc->memory];
+            hostMemInfo.allocationSize = allocInfoForHost.allocationSize;
+            VkDeviceSize nonCoherentAtomSize =
+                deviceInfo.props.limits.nonCoherentAtomSize;
+            hostMemInfo.mappedSize = hostMemInfo.allocationSize;
+            hostMemInfo.memoryTypeIndex =
+                pAllocateInfo->memoryTypeIndex;
 
             uint64_t directMappedAddr = 0;
-
+            lock.unlock();
             VkResult directMapResult =
                 enc->vkMapMemoryIntoAddressSpaceGOOGLE(
-                    device, *pMemory, &directMappedAddr);
+                    device, hostMemAlloc->memory, &directMappedAddr);
+            lock.lock();
 
             if (directMapResult != VK_SUCCESS) {
+                hostMemAlloc->initialized = true;
+                hostMemAlloc->initResult = directMapResult;
                 return directMapResult;
             }
 
-            AutoLock lock(mLock);
+            hostMemInfo.mappedPtr =
+                (uint8_t*)(uintptr_t)directMappedAddr;
+            hostMemInfo.virtualHostVisibleBacking = true;
 
-            auto it = info_VkDeviceMemory.find(*pMemory);
-            if (it == info_VkDeviceMemory.end()) {
-                return VK_ERROR_INITIALIZATION_FAILED;
+            VkResult hostMemAllocRes =
+                finishHostMemAllocInit(
+                    enc,
+                    device,
+                    pAllocateInfo->memoryTypeIndex,
+                    nonCoherentAtomSize,
+                    hostMemInfo.allocationSize,
+                    hostMemInfo.mappedSize,
+                    hostMemInfo.mappedPtr,
+                    hostMemAlloc);
+
+            if (hostMemAllocRes != VK_SUCCESS) {
+                return hostMemAllocRes;
             }
-
-            auto& info = it->second;
-            info.mappedPtr = (uint8_t*)(uintptr_t)directMappedAddr;
-            info.directMapped = true;
-
-            D("host visible alloc (direct): "
-              "size 0x%llx host ptr %p mapped size 0x%llx",
-              (unsigned long long)allocationSize, info.mappedPtr,
-              (unsigned long long)mappedSize);
         }
 
-        return input_result;
+        VkDeviceMemory_Info virtualMemInfo;
+
+        subAllocHostMemory(
+            hostMemAlloc,
+            pAllocateInfo,
+            &virtualMemInfo.subAlloc);
+
+        virtualMemInfo.allocationSize = virtualMemInfo.subAlloc.subAllocSize;
+        virtualMemInfo.mappedSize = virtualMemInfo.subAlloc.subMappedSize;
+        virtualMemInfo.mappedPtr = virtualMemInfo.subAlloc.mappedPtr;
+        virtualMemInfo.memoryTypeIndex = pAllocateInfo->memoryTypeIndex;
+        virtualMemInfo.directMapped = true;
+
+        D("host visible alloc (direct, suballoc): "
+          "size 0x%llx ptr %p mapped size 0x%llx",
+          (unsigned long long)virtualMemInfo.allocationSize, virtualMemInfo.mappedPtr,
+          (unsigned long long)virtualMemInfo.mappedSisze);
+
+        info_VkDeviceMemory[
+            virtualMemInfo.subAlloc.subMemory] = virtualMemInfo;
+
+        *pMemory = virtualMemInfo.subAlloc.subMemory;
+
+        return VK_SUCCESS;
     }
 
     void on_vkFreeMemory(
@@ -496,8 +638,20 @@ public:
         VkDeviceMemory memory,
         const VkAllocationCallbacks* pAllocateInfo) {
 
-        VkEncoder* enc = (VkEncoder*)context;
-        enc->vkFreeMemory(device, memory, pAllocateInfo);
+        AutoLock lock(mLock);
+
+        auto it = info_VkDeviceMemory.find(memory);
+        if (it == info_VkDeviceMemory.end()) return;
+        auto& info = it->second;
+
+        if (!info.directMapped) {
+            lock.unlock();
+            VkEncoder* enc = (VkEncoder*)context;
+            enc->vkFreeMemory(device, memory, pAllocateInfo);
+            return;
+        }
+
+        subFreeHostMemory(&info.subAlloc);
     }
 
     VkResult on_vkMapMemory(
@@ -603,8 +757,8 @@ public:
         }
 
         auto& memInfo = it->second;
-        memInfo.goldfishAddressSpaceBlock.reset(
-            new GoldfishAddressSpaceBlock);
+        memInfo.goldfishAddressSpaceBlock =
+            new GoldfishAddressSpaceBlock;
         auto& block = *(memInfo.goldfishAddressSpaceBlock);
 
         block.allocate(
@@ -794,6 +948,13 @@ VkResult ResourceTracker::on_vkCreateDevice(
     VkDevice* pDevice) {
     return mImpl->on_vkCreateDevice(
         context, input_result, physicalDevice, pCreateInfo, pAllocator, pDevice);
+}
+
+void ResourceTracker::on_vkDestroyDevice_pre(
+    void* context,
+    VkDevice device,
+    const VkAllocationCallbacks* pAllocator) {
+    mImpl->on_vkDestroyDevice_pre(context, device, pAllocator);
 }
 
 VkResult ResourceTracker::on_vkAllocateMemory(

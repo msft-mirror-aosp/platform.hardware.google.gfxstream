@@ -14,9 +14,16 @@
 // limitations under the License.
 #include "HostVisibleMemoryVirtualization.h"
 
+#include "android/base/SubAllocator.h"
+
+#include "Resources.h"
+#include "VkEncoder.h"
+
 #include <log/log.h>
 
 #include <set>
+
+using android::base::SubAllocator;
 
 namespace goldfish_vk {
 
@@ -40,33 +47,12 @@ bool canFitVirtualHostVisibleMemoryInfo(
     }
 
     uint32_t numFreeMemoryTypes = VK_MAX_MEMORY_TYPES - typeCount;
-    uint32_t numFreeMemoryHeaps = VK_MAX_MEMORY_HEAPS - heapCount;
-
     uint32_t hostVisibleMemoryTypeCount = 0;
-    uint32_t hostVisibleMemoryHeapCount = 0;
-    std::set<uint32_t> hostVisibleMemoryHeaps;
-
-    for (uint32_t i = 0; i < typeCount; ++i) {
-        const auto& type = memoryProperties->memoryTypes[i];
-        if (type.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
-            ++hostVisibleMemoryTypeCount;
-            hostVisibleMemoryHeaps.insert(type.heapIndex);
-        }
-    }
-    hostVisibleMemoryHeapCount =
-        (uint32_t)hostVisibleMemoryHeaps.size();
 
     if (hostVisibleMemoryTypeCount > numFreeMemoryTypes) {
         ALOGE("Underlying device has too many host visible memory types (%u)"
               "and not enough free types (%u)",
               hostVisibleMemoryTypeCount, numFreeMemoryTypes);
-        canFit = false;
-    }
-
-    if (hostVisibleMemoryHeapCount > numFreeMemoryHeaps) {
-        ALOGE("Underlying device has too many host visible memory types (%u)"
-              "and not enough free types (%u)",
-              hostVisibleMemoryHeapCount, numFreeMemoryHeaps);
         canFit = false;
     }
 
@@ -161,7 +147,7 @@ void initHostVisibleMemoryVirtualizationInfo(
                 ~(VK_MEMORY_HEAP_DEVICE_LOCAL_BIT);
 
             // TODO: Figure out how to support bigger sizes
-            newVirtualMemoryHeap.size = 512ULL * 1048576ULL; // 512 MB
+            newVirtualMemoryHeap.size = VIRTUAL_HOST_VISIBLE_HEAP_SIZE;
 
             info_out->memoryTypeIndexMappingToHost[firstFreeTypeIndex] = i;
             info_out->memoryHeapIndexMappingToHost[firstFreeHeapIndex] = i;
@@ -175,17 +161,96 @@ void initHostVisibleMemoryVirtualizationInfo(
                 type.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
             ++firstFreeTypeIndex;
-            ++firstFreeHeapIndex;
+
+            // Explicitly only create one new heap.
+            // ++firstFreeHeapIndex;
         }
     }
 
     info_out->guestMemoryProperties.memoryTypeCount = firstFreeTypeIndex;
-    info_out->guestMemoryProperties.memoryHeapCount = firstFreeHeapIndex;
+    info_out->guestMemoryProperties.memoryHeapCount = firstFreeHeapIndex + 1;
 
     for (uint32_t i = info_out->guestMemoryProperties.memoryTypeCount; i < VK_MAX_MEMORY_TYPES; ++i) {
         memset(&info_out->guestMemoryProperties.memoryTypes[i],
                0x0, sizeof(VkMemoryType));
     }
+}
+
+bool isHostVisibleMemoryTypeIndexForGuest(
+    const HostVisibleMemoryVirtualizationInfo* info,
+    uint32_t index) {
+    return info->guestMemoryProperties.memoryTypes[index].propertyFlags &
+           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+}
+
+VkResult finishHostMemAllocInit(
+    VkEncoder* enc,
+    VkDevice device,
+    uint32_t memoryTypeIndex,
+    VkDeviceSize nonCoherentAtomSize,
+    VkDeviceSize allocSize,
+    VkDeviceSize mappedSize,
+    uint8_t* mappedPtr,
+    HostMemAlloc* out) {
+
+    out->enc = enc;
+    out->device = device;
+    out->memoryTypeIndex = memoryTypeIndex;
+    out->nonCoherentAtomSize = nonCoherentAtomSize;
+    out->allocSize = allocSize;
+    out->mappedSize = mappedSize;
+    out->mappedPtr = mappedPtr;
+
+    out->subAlloc = new
+        SubAllocator(
+            out->mappedPtr,
+            out->mappedSize,
+            out->nonCoherentAtomSize);
+
+    out->initialized = true;
+    out->initResult = VK_SUCCESS;
+    return VK_SUCCESS;
+}
+
+void destroyHostMemAlloc(
+    VkDevice device,
+    HostMemAlloc* toDestroy) {
+
+    if (toDestroy->initResult != VK_SUCCESS) return;
+    if (!toDestroy->initialized) return;
+
+    toDestroy->enc->vkFreeMemory(device, toDestroy->memory, nullptr);
+    delete toDestroy->subAlloc;
+}
+
+void subAllocHostMemory(
+    HostMemAlloc* alloc,
+    const VkMemoryAllocateInfo* pAllocateInfo,
+    SubAlloc* out) {
+
+    VkDeviceSize mappedSize =
+        alloc->nonCoherentAtomSize * (
+            (pAllocateInfo->allocationSize +
+             alloc->nonCoherentAtomSize - 1) /
+            alloc->nonCoherentAtomSize);
+
+    void* subMapped = alloc->subAlloc->alloc(mappedSize);
+    out->mappedPtr = (uint8_t*)subMapped;
+
+    out->subAllocSize = pAllocateInfo->allocationSize;
+    out->subMappedSize = mappedSize;
+
+    out->baseMemory = alloc->memory;
+    out->baseOffset = alloc->subAlloc->getOffset(subMapped);
+
+    out->subMemory = new_from_host_VkDeviceMemory(VK_NULL_HANDLE);
+    out->subAlloc = alloc->subAlloc;
+}
+
+void subFreeHostMemory(SubAlloc* toFree) {
+    delete_goldfish_VkDeviceMemory(toFree->subMemory);
+    toFree->subAlloc->free(toFree->mappedPtr);
+    memset(toFree, 0x0, sizeof(SubAlloc));
 }
 
 } // namespace goldfish_vk
