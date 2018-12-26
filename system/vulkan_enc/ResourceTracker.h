@@ -75,6 +75,11 @@ public:
         const VkMemoryAllocateInfo* pAllocateInfo,
         const VkAllocationCallbacks* pAllocator,
         VkDeviceMemory* pMemory);
+    void on_vkFreeMemory(
+        void* context,
+        VkDevice device,
+        VkDeviceMemory memory,
+        const VkAllocationCallbacks* pAllocator);
 
     VkResult on_vkMapMemory(
         void* context,
