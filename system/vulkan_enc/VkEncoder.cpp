@@ -792,6 +792,7 @@ void VkEncoder::vkDestroyDevice(
     VkDevice device,
     const VkAllocationCallbacks* pAllocator)
 {
+    mImpl->resources()->on_vkDestroyDevice_pre(this, device, pAllocator);
     auto stream = mImpl->stream();
     auto countingStream = mImpl->countingStream();
     auto resources = mImpl->resources();
@@ -840,6 +841,7 @@ void VkEncoder::vkDestroyDevice(
         marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
     }
     resources->destroyMapping()->mapHandles_VkDevice((VkDevice*)&device);
+    stream->flush();
 }
 
 VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(

@@ -50,6 +50,7 @@ public:
     void unsetHandleMapping();
     VulkanHandleMapping* handleMapping() const;
 
+    void flush();
 private:
     class Impl;
     std::unique_ptr<Impl> mImpl;
