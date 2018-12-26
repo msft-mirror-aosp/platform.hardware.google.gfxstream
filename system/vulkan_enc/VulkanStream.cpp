@@ -70,6 +70,10 @@ public:
         return mCurrentHandleMapping;
     }
 
+    void flush() {
+        commitWrite();
+    }
+
 private:
     size_t oustandingWriteBuffer() const {
         return mWritePos;
@@ -177,6 +181,10 @@ void VulkanStream::unsetHandleMapping() {
 
 VulkanHandleMapping* VulkanStream::handleMapping() const {
     return mImpl->handleMapping();
+}
+
+void VulkanStream::flush() {
+    mImpl->flush();
 }
 
 VulkanCountingStream::VulkanCountingStream() : VulkanStream(nullptr) { }
