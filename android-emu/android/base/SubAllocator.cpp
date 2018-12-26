@@ -131,5 +131,9 @@ void SubAllocator::freeAll() {
     mImpl->freeAll();
 }
 
+uint64_t SubAllocator::getOffset(void* ptr) {
+    return mImpl->getOffset(ptr);
+}
+
 } // namespace base
 } // namespace android
