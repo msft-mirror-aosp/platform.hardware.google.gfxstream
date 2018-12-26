@@ -76,12 +76,21 @@ bool canFitVirtualHostVisibleMemoryInfo(
 void initHostVisibleMemoryVirtualizationInfo(
     VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceMemoryProperties* memoryProperties,
+    bool hasDirectMem,
     HostVisibleMemoryVirtualizationInfo* info_out) {
-    
-    info_out->supported =
+
+    info_out->memoryPropertiesSupported =
         canFitVirtualHostVisibleMemoryInfo(memoryProperties);
 
-    if (!info_out->supported) return;
+    info_out->directMemSupported = hasDirectMem;
+
+    if (!info_out->memoryPropertiesSupported ||
+        !info_out->directMemSupported) {
+        info_out->virtualizationSupported = false;
+        return;
+    }
+
+    info_out->virtualizationSupported = true;
 
     uint32_t typeCount =
         memoryProperties->memoryTypeCount;

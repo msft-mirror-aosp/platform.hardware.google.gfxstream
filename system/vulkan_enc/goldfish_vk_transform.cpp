@@ -444,7 +444,7 @@ void transform_tohost_VkMemoryAllocateInfo(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_tohost(nullptr, 1, nullptr, 1, nullptr, 1, &toTransform->memoryTypeIndex, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_tohost(nullptr, 0, nullptr, 0, nullptr, 0, &toTransform->memoryTypeIndex, 1, nullptr, 0);
     if (toTransform->pNext)
     {
         transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -457,7 +457,7 @@ void transform_fromhost_VkMemoryAllocateInfo(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_fromhost(nullptr, 1, nullptr, 1, nullptr, 1, &toTransform->memoryTypeIndex, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_fromhost(nullptr, 0, nullptr, 0, nullptr, 0, &toTransform->memoryTypeIndex, 1, nullptr, 0);
     if (toTransform->pNext)
     {
         transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -470,7 +470,7 @@ void transform_tohost_VkMappedMemoryRange(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_tohost(&toTransform->memory, 1, &toTransform->offset, 1, &toTransform->size, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_tohost(&toTransform->memory, 1, &toTransform->offset, 1, &toTransform->size, 1, nullptr, 0, nullptr, 0);
     if (toTransform->pNext)
     {
         transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -483,7 +483,7 @@ void transform_fromhost_VkMappedMemoryRange(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_fromhost(&toTransform->memory, 1, &toTransform->offset, 1, &toTransform->size, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_fromhost(&toTransform->memory, 1, &toTransform->offset, 1, &toTransform->size, 1, nullptr, 0, nullptr, 0);
     if (toTransform->pNext)
     {
         transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -496,7 +496,7 @@ void transform_tohost_VkMemoryRequirements(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_tohost(nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1, &toTransform->memoryTypeBits, 1);
+    resourceTracker->deviceMemoryTransform_tohost(nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0, &toTransform->memoryTypeBits, 1);
 }
 
 void transform_fromhost_VkMemoryRequirements(
@@ -505,7 +505,7 @@ void transform_fromhost_VkMemoryRequirements(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_fromhost(nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1, &toTransform->memoryTypeBits, 1);
+    resourceTracker->deviceMemoryTransform_fromhost(nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0, &toTransform->memoryTypeBits, 1);
 }
 
 void transform_tohost_VkSparseImageFormatProperties(
@@ -550,7 +550,7 @@ void transform_tohost_VkSparseMemoryBind(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_tohost(&toTransform->memory, 1, &toTransform->memoryOffset, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_tohost(&toTransform->memory, 1, &toTransform->memoryOffset, 1, nullptr, 0, nullptr, 0, nullptr, 0);
 }
 
 void transform_fromhost_VkSparseMemoryBind(
@@ -559,7 +559,7 @@ void transform_fromhost_VkSparseMemoryBind(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_fromhost(&toTransform->memory, 1, &toTransform->memoryOffset, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_fromhost(&toTransform->memory, 1, &toTransform->memoryOffset, 1, nullptr, 0, nullptr, 0, nullptr, 0);
 }
 
 void transform_tohost_VkSparseBufferMemoryBindInfo(
@@ -660,7 +660,7 @@ void transform_tohost_VkSparseImageMemoryBind(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_tohost(&toTransform->memory, 1, &toTransform->memoryOffset, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_tohost(&toTransform->memory, 1, &toTransform->memoryOffset, 1, nullptr, 0, nullptr, 0, nullptr, 0);
     transform_tohost_VkImageSubresource(resourceTracker, (VkImageSubresource*)(&toTransform->subresource));
     transform_tohost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->offset));
     transform_tohost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->extent));
@@ -672,7 +672,7 @@ void transform_fromhost_VkSparseImageMemoryBind(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_fromhost(&toTransform->memory, 1, &toTransform->memoryOffset, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_fromhost(&toTransform->memory, 1, &toTransform->memoryOffset, 1, nullptr, 0, nullptr, 0, nullptr, 0);
     transform_fromhost_VkImageSubresource(resourceTracker, (VkImageSubresource*)(&toTransform->subresource));
     transform_fromhost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->offset));
     transform_fromhost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->extent));
@@ -2802,7 +2802,7 @@ void transform_tohost_VkBindBufferMemoryInfo(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_tohost(&toTransform->memory, 1, &toTransform->memoryOffset, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_tohost(&toTransform->memory, 1, &toTransform->memoryOffset, 1, nullptr, 0, nullptr, 0, nullptr, 0);
     if (toTransform->pNext)
     {
         transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -2815,7 +2815,7 @@ void transform_fromhost_VkBindBufferMemoryInfo(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_fromhost(&toTransform->memory, 1, &toTransform->memoryOffset, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_fromhost(&toTransform->memory, 1, &toTransform->memoryOffset, 1, nullptr, 0, nullptr, 0, nullptr, 0);
     if (toTransform->pNext)
     {
         transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -2828,7 +2828,7 @@ void transform_tohost_VkBindImageMemoryInfo(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_tohost(&toTransform->memory, 1, nullptr, 1, &toTransform->memoryOffset, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_tohost(&toTransform->memory, 1, nullptr, 0, &toTransform->memoryOffset, 1, nullptr, 0, nullptr, 0);
     if (toTransform->pNext)
     {
         transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -2841,7 +2841,7 @@ void transform_fromhost_VkBindImageMemoryInfo(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_fromhost(&toTransform->memory, 1, nullptr, 1, &toTransform->memoryOffset, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_fromhost(&toTransform->memory, 1, nullptr, 0, &toTransform->memoryOffset, 1, nullptr, 0, nullptr, 0);
     if (toTransform->pNext)
     {
         transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -5118,7 +5118,7 @@ void transform_tohost_VkMemoryWin32HandlePropertiesKHR(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_tohost(nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1, &toTransform->memoryTypeBits, 1);
+    resourceTracker->deviceMemoryTransform_tohost(nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0, &toTransform->memoryTypeBits, 1);
     if (toTransform->pNext)
     {
         transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -5131,7 +5131,7 @@ void transform_fromhost_VkMemoryWin32HandlePropertiesKHR(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_fromhost(nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1, &toTransform->memoryTypeBits, 1);
+    resourceTracker->deviceMemoryTransform_fromhost(nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0, &toTransform->memoryTypeBits, 1);
     if (toTransform->pNext)
     {
         transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -5144,7 +5144,7 @@ void transform_tohost_VkMemoryGetWin32HandleInfoKHR(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_tohost(&toTransform->memory, 1, nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_tohost(&toTransform->memory, 1, nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0);
     if (toTransform->pNext)
     {
         transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -5157,7 +5157,7 @@ void transform_fromhost_VkMemoryGetWin32HandleInfoKHR(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_fromhost(&toTransform->memory, 1, nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_fromhost(&toTransform->memory, 1, nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0);
     if (toTransform->pNext)
     {
         transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -5196,7 +5196,7 @@ void transform_tohost_VkMemoryFdPropertiesKHR(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_tohost(nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1, &toTransform->memoryTypeBits, 1);
+    resourceTracker->deviceMemoryTransform_tohost(nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0, &toTransform->memoryTypeBits, 1);
     if (toTransform->pNext)
     {
         transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -5209,7 +5209,7 @@ void transform_fromhost_VkMemoryFdPropertiesKHR(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_fromhost(nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1, &toTransform->memoryTypeBits, 1);
+    resourceTracker->deviceMemoryTransform_fromhost(nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0, &toTransform->memoryTypeBits, 1);
     if (toTransform->pNext)
     {
         transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -5222,7 +5222,7 @@ void transform_tohost_VkMemoryGetFdInfoKHR(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_tohost(&toTransform->memory, 1, nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_tohost(&toTransform->memory, 1, nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0);
     if (toTransform->pNext)
     {
         transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -5235,7 +5235,7 @@ void transform_fromhost_VkMemoryGetFdInfoKHR(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_fromhost(&toTransform->memory, 1, nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_fromhost(&toTransform->memory, 1, nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0);
     if (toTransform->pNext)
     {
         transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -5250,7 +5250,7 @@ void transform_tohost_VkWin32KeyedMutexAcquireReleaseInfoKHR(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_tohost(toTransform->pReleaseSyncs, toTransform->releaseCount, nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_tohost(toTransform->pReleaseSyncs, toTransform->releaseCount, nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0);
     if (toTransform->pNext)
     {
         transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -5263,7 +5263,7 @@ void transform_fromhost_VkWin32KeyedMutexAcquireReleaseInfoKHR(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_fromhost(toTransform->pReleaseSyncs, toTransform->releaseCount, nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_fromhost(toTransform->pReleaseSyncs, toTransform->releaseCount, nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0);
     if (toTransform->pNext)
     {
         transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -6678,7 +6678,7 @@ void transform_tohost_VkWin32KeyedMutexAcquireReleaseInfoNV(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_tohost(toTransform->pReleaseSyncs, toTransform->releaseCount, nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_tohost(toTransform->pReleaseSyncs, toTransform->releaseCount, nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0);
     if (toTransform->pNext)
     {
         transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -6691,7 +6691,7 @@ void transform_fromhost_VkWin32KeyedMutexAcquireReleaseInfoNV(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_fromhost(toTransform->pReleaseSyncs, toTransform->releaseCount, nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_fromhost(toTransform->pReleaseSyncs, toTransform->releaseCount, nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0);
     if (toTransform->pNext)
     {
         transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -7914,7 +7914,7 @@ void transform_tohost_VkAndroidHardwareBufferPropertiesANDROID(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_tohost(nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1, &toTransform->memoryTypeBits, 1);
+    resourceTracker->deviceMemoryTransform_tohost(nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0, &toTransform->memoryTypeBits, 1);
     if (toTransform->pNext)
     {
         transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -7927,7 +7927,7 @@ void transform_fromhost_VkAndroidHardwareBufferPropertiesANDROID(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_fromhost(nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1, &toTransform->memoryTypeBits, 1);
+    resourceTracker->deviceMemoryTransform_fromhost(nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0, &toTransform->memoryTypeBits, 1);
     if (toTransform->pNext)
     {
         transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -7990,7 +7990,7 @@ void transform_tohost_VkMemoryGetAndroidHardwareBufferInfoANDROID(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_tohost(&toTransform->memory, 1, nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_tohost(&toTransform->memory, 1, nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0);
     if (toTransform->pNext)
     {
         transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -8003,7 +8003,7 @@ void transform_fromhost_VkMemoryGetAndroidHardwareBufferInfoANDROID(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_fromhost(&toTransform->memory, 1, nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1);
+    resourceTracker->deviceMemoryTransform_fromhost(&toTransform->memory, 1, nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0);
     if (toTransform->pNext)
     {
         transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -8678,7 +8678,7 @@ void transform_tohost_VkMemoryHostPointerPropertiesEXT(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_tohost(nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1, &toTransform->memoryTypeBits, 1);
+    resourceTracker->deviceMemoryTransform_tohost(nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0, &toTransform->memoryTypeBits, 1);
     if (toTransform->pNext)
     {
         transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
@@ -8691,7 +8691,7 @@ void transform_fromhost_VkMemoryHostPointerPropertiesEXT(
 {
     (void)resourceTracker;
     (void)toTransform;
-    resourceTracker->deviceMemoryTransform_fromhost(nullptr, 1, nullptr, 1, nullptr, 1, nullptr, 1, &toTransform->memoryTypeBits, 1);
+    resourceTracker->deviceMemoryTransform_fromhost(nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0, &toTransform->memoryTypeBits, 1);
     if (toTransform->pNext)
     {
         transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
