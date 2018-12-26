@@ -19,7 +19,9 @@
 namespace goldfish_vk {
 
 struct HostVisibleMemoryVirtualizationInfo {
-    bool supported;
+    bool memoryPropertiesSupported;
+    bool directMemSupported;
+    bool virtualizationSupported;
 
     VkPhysicalDevice physicalDevice;
 
@@ -41,6 +43,7 @@ bool canFitVirtualHostVisibleMemoryInfo(
 void initHostVisibleMemoryVirtualizationInfo(
     VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceMemoryProperties* memoryProperties,
+    bool directMemSupported,
     HostVisibleMemoryVirtualizationInfo* info_out);
 
 } // namespace goldfish_vk

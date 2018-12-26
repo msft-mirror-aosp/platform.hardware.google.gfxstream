@@ -115,7 +115,6 @@ public:
         VkPhysicalDevice physdev;
         VkPhysicalDeviceProperties props;
         VkPhysicalDeviceMemoryProperties memProps;
-        HostVisibleMemoryVirtualizationInfo hostVisibleVirtInfo;
     };
 
     struct VkDeviceMemory_Info {
@@ -126,8 +125,6 @@ public:
         bool directMapped = false;
         std::unique_ptr<GoldfishAddressSpaceBlock>
             goldfishAddressSpaceBlock = {};
-        HostVisibleMemoryVirtualizationInfo
-            hostVisibleVirtInfo;
     };
 
 #define HANDLE_REGISTER_IMPL_IMPL(type) \
@@ -178,7 +175,9 @@ public:
         info.props = props;
         info.memProps = memProps;
         initHostVisibleMemoryVirtualizationInfo(
-            physdev, &memProps, &info.hostVisibleVirtInfo);
+            physdev, &memProps,
+            mFeatureInfo->hasDirectMem,
+            &mHostVisibleMemoryVirtInfo);
     }
 
     void setDeviceMemoryInfo(VkDevice device,
@@ -195,7 +194,6 @@ public:
         info.mappedSize = mappedSize;
         info.mappedPtr = ptr;
         info.memoryTypeIndex = memoryTypeIndex;
-        info.hostVisibleVirtInfo = deviceInfo.hostVisibleVirtInfo;
     }
 
     bool isMemoryTypeHostVisible(VkDevice device, uint32_t typeIndex) const {
@@ -270,7 +268,7 @@ public:
     }
 
     bool usingDirectMapping() const {
-        return mFeatureInfo->hasDirectMem;
+        return mHostVisibleMemoryVirtInfo.virtualizationSupported;
     }
 
     void deviceMemoryTransform_tohost(
@@ -279,13 +277,10 @@ public:
         VkDeviceSize* size, uint32_t sizeCount,
         uint32_t* typeIndex, uint32_t typeIndexCount,
         uint32_t* typeBits, uint32_t typeBitsCount) {
-        
-        if (memoryCount != offsetCount ||
-            offsetCount != sizeCount ||
-            sizeCount != memoryCount) {
-            ALOGE("FATAL: Mismatched counts for device memory info");
-            abort();
-        }
+
+        (void)memoryCount;
+        (void)offsetCount;
+        (void)sizeCount;
 
         for (uint32_t i = 0; i < memoryCount; ++i) {
             // TODO
@@ -311,14 +306,11 @@ public:
         VkDeviceSize* size, uint32_t sizeCount,
         uint32_t* typeIndex, uint32_t typeIndexCount,
         uint32_t* typeBits, uint32_t typeBitsCount) {
-        
-        if (memoryCount != offsetCount ||
-            offsetCount != sizeCount ||
-            sizeCount != memoryCount) {
-            ALOGE("FATAL: Mismatched counts for device memory info");
-            abort();
-        }
 
+        (void)memoryCount;
+        (void)offsetCount;
+        (void)sizeCount;
+        
         for (uint32_t i = 0; i < memoryCount; ++i) {
             // TODO
             (void)memory;
@@ -407,7 +399,8 @@ public:
         uint8_t* mappedPtr = nullptr;
         bool hostVisible =
             isMemoryTypeHostVisible(device, pAllocateInfo->memoryTypeIndex);
-        if (hostVisible && !mGoldfishAddressSpaceBlockProvider) {
+        bool directMappingSupported = usingDirectMapping();
+        if (hostVisible && !directMappingSupported) {
             mappedPtr = (uint8_t*)aligned_buf_alloc(4096, mappedSize);
             D("host visible alloc (non-direct): "
               "size 0x%llx host ptr %p mapped size 0x%llx",
@@ -420,7 +413,7 @@ public:
             pAllocateInfo->memoryTypeIndex);
 
         bool doDirectMap =
-            hostVisible && mGoldfishAddressSpaceBlockProvider;
+            hostVisible && directMappingSupported;
 
         if (doDirectMap) {
             VkEncoder* enc = (VkEncoder*)context;
@@ -604,6 +597,7 @@ public:
 
 private:
     mutable Lock mLock;
+    HostVisibleMemoryVirtualizationInfo mHostVisibleMemoryVirtInfo;
     std::unique_ptr<EmulatorFeatureInfo> mFeatureInfo;
     std::unique_ptr<GoldfishAddressSpaceBlockProvider> mGoldfishAddressSpaceBlockProvider;
 };
