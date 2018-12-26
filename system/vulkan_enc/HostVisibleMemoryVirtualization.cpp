@@ -79,6 +79,10 @@ void initHostVisibleMemoryVirtualizationInfo(
     bool hasDirectMem,
     HostVisibleMemoryVirtualizationInfo* info_out) {
 
+    if (info_out->initialized) return;
+
+    info_out->initialized = true;
+
     info_out->memoryPropertiesSupported =
         canFitVirtualHostVisibleMemoryInfo(memoryProperties);
 
@@ -92,17 +96,18 @@ void initHostVisibleMemoryVirtualizationInfo(
 
     info_out->virtualizationSupported = true;
 
+    info_out->physicalDevice = physicalDevice;
+    info_out->hostMemoryProperties = *memoryProperties;
+    info_out->guestMemoryProperties = *memoryProperties;
+
     uint32_t typeCount =
         memoryProperties->memoryTypeCount;
     uint32_t heapCount =
         memoryProperties->memoryHeapCount;
 
-    info_out->physicalDevice = physicalDevice;
-    info_out->hostMemoryProperties = *memoryProperties;
-    info_out->guestMemoryProperties = *memoryProperties;
-
     uint32_t firstFreeTypeIndex = typeCount;
     uint32_t firstFreeHeapIndex = heapCount;
+
     for (uint32_t i = 0; i < typeCount; ++i) {
 
         // Set up identity mapping and not-both
@@ -116,7 +121,9 @@ void initHostVisibleMemoryVirtualizationInfo(
         info_out->memoryTypeBitsShouldAdvertiseBoth[i] = false;
 
         const auto& type = memoryProperties->memoryTypes[i];
+
         if (type.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
+            uint32_t heapIndex = type.heapIndex;
 
             auto& guestMemoryType =
                 info_out->guestMemoryProperties.memoryTypes[i];
@@ -127,27 +134,28 @@ void initHostVisibleMemoryVirtualizationInfo(
             auto& newVirtualMemoryHeap =
                 info_out->guestMemoryProperties.memoryHeaps[firstFreeHeapIndex];
 
+            // Remove all references to host visible in the guest memory type at
+            // index i, while transferring them to the new virtual memory type.
             newVirtualMemoryType = type;
 
             // Set this memory type to have a separate heap.
             newVirtualMemoryType.heapIndex = firstFreeHeapIndex;
 
-            // Remove all references to host visible in the guest memory type at
-            // index i, while transferring them to the new virtual memory type.
+            newVirtualMemoryType.propertyFlags =
+                type.propertyFlags &
+                ~(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
             guestMemoryType.propertyFlags =
                 type.propertyFlags & \
                 ~(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
                   VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 
-            // Remove device local from the new virtual memory type.
-            newVirtualMemoryType.propertyFlags =
-                guestMemoryType.propertyFlags &
-                ~(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
             // In the corresponding new memory heap, copy the information over,
             // remove device local flags, and resize it based on what is
             // supported by the PCI device.
+            newVirtualMemoryHeap =
+                memoryProperties->memoryHeaps[heapIndex];
             newVirtualMemoryHeap.flags =
                 newVirtualMemoryHeap.flags &
                 ~(VK_MEMORY_HEAP_DEVICE_LOCAL_BIT);
@@ -169,6 +177,14 @@ void initHostVisibleMemoryVirtualizationInfo(
             ++firstFreeTypeIndex;
             ++firstFreeHeapIndex;
         }
+    }
+
+    info_out->guestMemoryProperties.memoryTypeCount = firstFreeTypeIndex;
+    info_out->guestMemoryProperties.memoryHeapCount = firstFreeHeapIndex;
+
+    for (uint32_t i = info_out->guestMemoryProperties.memoryTypeCount; i < VK_MAX_MEMORY_TYPES; ++i) {
+        memset(&info_out->guestMemoryProperties.memoryTypes[i],
+               0x0, sizeof(VkMemoryType));
     }
 }
 
