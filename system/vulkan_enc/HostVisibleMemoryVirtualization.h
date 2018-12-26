@@ -16,7 +16,7 @@
 
 #include <vulkan/vulkan.h>
 
-#define VIRTUAL_HOST_VISIBLE_HEAP_SIZE 128ULL * (1048576ULL)
+#define VIRTUAL_HOST_VISIBLE_HEAP_SIZE 512ULL * (1048576ULL)
 
 namespace android {
 namespace base {
