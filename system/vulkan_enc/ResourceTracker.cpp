@@ -281,6 +281,10 @@ public:
         (void)memoryCount;
         (void)offsetCount;
         (void)sizeCount;
+        const auto& hostVirt =
+            mHostVisibleMemoryVirtInfo;
+
+        if (!hostVirt.virtualizationSupported) return;
 
         for (uint32_t i = 0; i < memoryCount; ++i) {
             // TODO
@@ -290,13 +294,19 @@ public:
         }
 
         for (uint32_t i = 0; i < typeIndexCount; ++i) {
-            // TODO
-            (void)typeIndex;
+            typeIndex[i] =
+                hostVirt.memoryTypeIndexMappingToHost[typeIndex[i]];
         }
 
         for (uint32_t i = 0; i < typeBitsCount; ++i) {
-            // TODO
-            (void)typeBits;
+            uint32_t bits = 0;
+            for (uint32_t j = 0; j < VK_MAX_MEMORY_TYPES; ++j) {
+                bool guestHas = typeBits[i] & (1 << j);
+                uint32_t hostIndex =
+                    hostVirt.memoryTypeIndexMappingToHost[j];
+                bits |= guestHas ? (1 << hostIndex) : 0;
+            }
+            typeBits[i] = bits;
         }
     }
 
@@ -311,6 +321,11 @@ public:
         (void)offsetCount;
         (void)sizeCount;
         
+        const auto& hostVirt =
+            mHostVisibleMemoryVirtInfo;
+
+        if (!hostVirt.virtualizationSupported) return;
+
         for (uint32_t i = 0; i < memoryCount; ++i) {
             // TODO
             (void)memory;
@@ -319,13 +334,23 @@ public:
         }
 
         for (uint32_t i = 0; i < typeIndexCount; ++i) {
-            // TODO
-            (void)typeIndex;
+            typeIndex[i] =
+                hostVirt.memoryTypeIndexMappingFromHost[typeIndex[i]];
         }
 
         for (uint32_t i = 0; i < typeBitsCount; ++i) {
-            // TODO
-            (void)typeBits;
+            uint32_t bits = 0;
+            for (uint32_t j = 0; j < VK_MAX_MEMORY_TYPES; ++j) {
+                bool hostHas = typeBits[i] & (1 << j);
+                uint32_t guestIndex =
+                    hostVirt.memoryTypeIndexMappingFromHost[j];
+                bits |= hostHas ? (1 << guestIndex) : 0;
+
+                if (hostVirt.memoryTypeBitsShouldAdvertiseBoth[j]) {
+                    bits |= hostHas ? (1 << j) : 0;
+                }
+            }
+            typeBits[i] = bits;
         }
     }
 
@@ -359,8 +384,19 @@ public:
 
     void on_vkGetPhysicalDeviceMemoryProperties(
         void*,
-        VkPhysicalDevice,
-        VkPhysicalDeviceMemoryProperties*) { }
+        VkPhysicalDevice physdev,
+        VkPhysicalDeviceMemoryProperties* out) {
+        
+        initHostVisibleMemoryVirtualizationInfo(
+            physdev,
+            out,
+            mFeatureInfo->hasDirectMem,
+            &mHostVisibleMemoryVirtInfo);
+        
+        if (mHostVisibleMemoryVirtInfo.virtualizationSupported) {
+            *out = mHostVisibleMemoryVirtInfo.guestMemoryProperties;
+        }
+    }
 
     VkResult on_vkCreateDevice(
         void* context,
