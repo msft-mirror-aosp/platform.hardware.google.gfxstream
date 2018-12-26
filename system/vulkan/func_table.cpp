@@ -27,6 +27,7 @@
 
 #include "VkEncoder.h"
 #include "HostConnection.h"
+#include "ResourceTracker.h"
 
 #include "goldfish_vk_private_defs.h"
 
@@ -239,7 +240,8 @@ static VkResult entry_vkAllocateMemory(
 {
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkAllocateMemory_VkResult_return = (VkResult)0;
-    vkAllocateMemory_VkResult_return = vkEnc->vkAllocateMemory(device, pAllocateInfo, pAllocator, pMemory);
+    auto resources = ResourceTracker::get();
+    vkAllocateMemory_VkResult_return = resources->on_vkAllocateMemory(vkEnc, VK_SUCCESS, device, pAllocateInfo, pAllocator, pMemory);
     return vkAllocateMemory_VkResult_return;
 }
 static void entry_vkFreeMemory(
@@ -248,7 +250,8 @@ static void entry_vkFreeMemory(
     const VkAllocationCallbacks* pAllocator)
 {
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkFreeMemory(device, memory, pAllocator);
+    auto resources = ResourceTracker::get();
+    resources->on_vkFreeMemory(vkEnc, device, memory, pAllocator);
 }
 static VkResult entry_vkMapMemory(
     VkDevice device,

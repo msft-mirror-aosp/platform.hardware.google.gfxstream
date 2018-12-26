@@ -1414,7 +1414,6 @@ VkResult VkEncoder::vkAllocateMemory(
     countingStream->clearPool();
     stream->clearPool();
     pool->freeAll();
-    mImpl->resources()->on_vkAllocateMemory(this, vkAllocateMemory_VkResult_return, device, pAllocateInfo, pAllocator, pMemory);
     return vkAllocateMemory_VkResult_return;
 }
 
