@@ -516,6 +516,12 @@ public:
         // Host visible memory with no direct mapping support
         bool directMappingSupported = usingDirectMapping();
         if (!directMappingSupported) {
+            input_result =
+                enc->vkAllocateMemory(
+                    device, pAllocateInfo, pAllocator, pMemory);
+
+            if (input_result != VK_SUCCESS) return input_result;
+
             VkDeviceSize mappedSize =
                 getNonCoherentExtendedSize(device,
                     pAllocateInfo->allocationSize);
