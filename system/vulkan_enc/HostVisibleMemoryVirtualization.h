@@ -19,6 +19,7 @@
 namespace goldfish_vk {
 
 struct HostVisibleMemoryVirtualizationInfo {
+    bool initialized = false;
     bool memoryPropertiesSupported;
     bool directMemSupported;
     bool virtualizationSupported;
