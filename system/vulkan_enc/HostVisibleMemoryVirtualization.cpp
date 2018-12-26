@@ -67,6 +67,7 @@ void initHostVisibleMemoryVirtualizationInfo(
 
     if (info_out->initialized) return;
 
+    info_out->hostMemoryProperties = *memoryProperties;
     info_out->initialized = true;
 
     info_out->memoryPropertiesSupported =
@@ -83,7 +84,6 @@ void initHostVisibleMemoryVirtualizationInfo(
     info_out->virtualizationSupported = true;
 
     info_out->physicalDevice = physicalDevice;
-    info_out->hostMemoryProperties = *memoryProperties;
     info_out->guestMemoryProperties = *memoryProperties;
 
     uint32_t typeCount =
@@ -179,8 +179,13 @@ void initHostVisibleMemoryVirtualizationInfo(
 bool isHostVisibleMemoryTypeIndexForGuest(
     const HostVisibleMemoryVirtualizationInfo* info,
     uint32_t index) {
-    return info->guestMemoryProperties.memoryTypes[index].propertyFlags &
-           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+
+    const auto& props =
+        info->virtualizationSupported ?
+        info->guestMemoryProperties :
+        info->hostMemoryProperties;
+
+    return props.memoryTypes[index].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 }
 
 VkResult finishHostMemAllocInit(
