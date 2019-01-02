@@ -426,6 +426,10 @@ int gl2_client_context_t::initDispatchByName(void *(*getProc)(const char *, void
 	glMapBufferRangeDirect = (glMapBufferRangeDirect_client_proc_t) getProc("glMapBufferRangeDirect", userData);
 	glUnmapBufferDirect = (glUnmapBufferDirect_client_proc_t) getProc("glUnmapBufferDirect", userData);
 	glFlushMappedBufferRangeDirect = (glFlushMappedBufferRangeDirect_client_proc_t) getProc("glFlushMappedBufferRangeDirect", userData);
+	glGetGraphicsResetStatusEXT = (glGetGraphicsResetStatusEXT_client_proc_t) getProc("glGetGraphicsResetStatusEXT", userData);
+	glReadnPixelsEXT = (glReadnPixelsEXT_client_proc_t) getProc("glReadnPixelsEXT", userData);
+	glGetnUniformfvEXT = (glGetnUniformfvEXT_client_proc_t) getProc("glGetnUniformfvEXT", userData);
+	glGetnUniformivEXT = (glGetnUniformivEXT_client_proc_t) getProc("glGetnUniformivEXT", userData);
 	return 0;
 }
 

@@ -3030,9 +3030,7 @@ void glReadPixels_enc(void *self , GLint x, GLint y, GLsizei width, GLsizei heig
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
 
-	// TODO: emugen produces bad code here, see b/79208762
-	stream->readbackPixels(self, width, height, format, type, pixels);
-
+	stream->readback(pixels, __size_pixels);
 	if (useChecksum) checksumCalculator->addBuffer(pixels, __size_pixels);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
@@ -11232,6 +11230,172 @@ void glFlushMappedBufferRangeDirect_enc(void *self , GLenum target, GLintptr off
 
 }
 
+GLenum glGetGraphicsResetStatusEXT_enc(void *self )
+{
+
+	gl2_encoder_context_t *ctx = (gl2_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_glGetGraphicsResetStatusEXT;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+
+	GLenum retval;
+	stream->readback(&retval, 4);
+	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			ALOGE("glGetGraphicsResetStatusEXT: GL communication error, please report this issue to b.android.com.\n");
+			abort();
+		}
+	}
+	return retval;
+}
+
+void glReadnPixelsEXT_enc(void *self , GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, GLvoid* data)
+{
+
+	gl2_encoder_context_t *ctx = (gl2_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	const unsigned int __size_data =  bufSize;
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 0 + 1*4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_glReadnPixelsEXT;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &x, 4); ptr += 4;
+		memcpy(ptr, &y, 4); ptr += 4;
+		memcpy(ptr, &width, 4); ptr += 4;
+		memcpy(ptr, &height, 4); ptr += 4;
+		memcpy(ptr, &format, 4); ptr += 4;
+		memcpy(ptr, &type, 4); ptr += 4;
+		memcpy(ptr, &bufSize, 4); ptr += 4;
+	*(unsigned int *)(ptr) = __size_data; ptr += 4;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+	stream->readback(data, __size_data);
+	if (useChecksum) checksumCalculator->addBuffer(data, __size_data);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			ALOGE("glReadnPixelsEXT: GL communication error, please report this issue to b.android.com.\n");
+			abort();
+		}
+	}
+}
+
+void glGetnUniformfvEXT_enc(void *self , GLuint program, GLint location, GLsizei bufSize, GLfloat* params)
+{
+
+	gl2_encoder_context_t *ctx = (gl2_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	const unsigned int __size_params =  bufSize;
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + 0 + 1*4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_glGetnUniformfvEXT;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &program, 4); ptr += 4;
+		memcpy(ptr, &location, 4); ptr += 4;
+		memcpy(ptr, &bufSize, 4); ptr += 4;
+	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+	stream->readback(params, __size_params);
+	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			ALOGE("glGetnUniformfvEXT: GL communication error, please report this issue to b.android.com.\n");
+			abort();
+		}
+	}
+}
+
+void glGetnUniformivEXT_enc(void *self , GLuint program, GLint location, GLsizei bufSize, GLint* params)
+{
+
+	gl2_encoder_context_t *ctx = (gl2_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	const unsigned int __size_params =  bufSize;
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + 0 + 1*4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_glGetnUniformivEXT;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &program, 4); ptr += 4;
+		memcpy(ptr, &location, 4); ptr += 4;
+		memcpy(ptr, &bufSize, 4); ptr += 4;
+	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+	stream->readback(params, __size_params);
+	if (useChecksum) checksumCalculator->addBuffer(params, __size_params);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			ALOGE("glGetnUniformivEXT: GL communication error, please report this issue to b.android.com.\n");
+			abort();
+		}
+	}
+}
+
 }  // namespace
 
 gl2_encoder_context_t::gl2_encoder_context_t(IOStream *stream, ChecksumCalculator *checksumCalculator)
@@ -11655,5 +11819,9 @@ gl2_encoder_context_t::gl2_encoder_context_t(IOStream *stream, ChecksumCalculato
 	this->glMapBufferRangeDirect = &glMapBufferRangeDirect_enc;
 	this->glUnmapBufferDirect = &glUnmapBufferDirect_enc;
 	this->glFlushMappedBufferRangeDirect = &glFlushMappedBufferRangeDirect_enc;
+	this->glGetGraphicsResetStatusEXT = &glGetGraphicsResetStatusEXT_enc;
+	this->glReadnPixelsEXT = &glReadnPixelsEXT_enc;
+	this->glGetnUniformfvEXT = &glGetnUniformfvEXT_enc;
+	this->glGetnUniformivEXT = &glGetnUniformivEXT_enc;
 }
 
