@@ -363,6 +363,11 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     OVERRIDE_CUSTOM(glDrawElementsIndirect);
 
     OVERRIDE(glTexStorage2DMultisample);
+
+    OVERRIDE_CUSTOM(glGetGraphicsResetStatusEXT);
+    OVERRIDE_CUSTOM(glReadnPixelsEXT);
+    OVERRIDE_CUSTOM(glGetnUniformfvEXT);
+    OVERRIDE_CUSTOM(glGetnUniformivEXT);
 }
 
 GL2Encoder::~GL2Encoder()
@@ -852,6 +857,10 @@ void GL2Encoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
             ctx->safe_glGetIntegerv(param, ptr);
             ctx->m_max_vertexAttribBindings = *ptr;
         }
+        break;
+    case GL_RESET_NOTIFICATION_STRATEGY_EXT:
+        // BUG: 121414786
+        *ptr = GL_LOSE_CONTEXT_ON_RESET_EXT;
         break;
     default:
         SET_ERROR_IF(!state, GL_INVALID_OPERATION);
@@ -5320,3 +5329,32 @@ void GL2Encoder::s_glTexStorage2DMultisample(void* self, GLenum target, GLsizei 
     ctx->m_glTexStorage2DMultisample_enc(ctx, target, samples, internalformat, width, height, fixedsamplelocations);
 }
 
+GLenum GL2Encoder::s_glGetGraphicsResetStatusEXT(void* self) {
+    (void)self;
+    return GL_NO_ERROR;
+}
+
+void GL2Encoder::s_glReadnPixelsEXT(void* self, GLint x, GLint y, GLsizei width,
+        GLsizei height, GLenum format, GLenum type, GLsizei bufSize,
+        GLvoid* pixels) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(bufSize < glesv2_enc::pixelDataSize(self, width, height, format,
+        type, 1), GL_INVALID_OPERATION);
+    s_glReadPixels(self, x, y, width, height, format, type, pixels);
+}
+
+void GL2Encoder::s_glGetnUniformfvEXT(void *self, GLuint program, GLint location,
+        GLsizei bufSize, GLfloat* params) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(bufSize < glSizeof(glesv2_enc::uniformType(self, program,
+        location)), GL_INVALID_OPERATION);
+    s_glGetUniformfv(self, program, location, params);
+}
+
+void GL2Encoder::s_glGetnUniformivEXT(void *self, GLuint program, GLint location,
+        GLsizei bufSize, GLint* params) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(bufSize < glSizeof(glesv2_enc::uniformType(self, program,
+        location)), GL_INVALID_OPERATION);
+    s_glGetUniformiv(self, program, location, params);
+}
