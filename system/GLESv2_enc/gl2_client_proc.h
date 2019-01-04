@@ -428,6 +428,10 @@ typedef void (gl2_APIENTRY *glUnmapBufferDMA_client_proc_t) (void * ctx, GLenum,
 typedef uint64_t (gl2_APIENTRY *glMapBufferRangeDirect_client_proc_t) (void * ctx, GLenum, GLintptr, GLsizeiptr, GLbitfield, uint64_t);
 typedef void (gl2_APIENTRY *glUnmapBufferDirect_client_proc_t) (void * ctx, GLenum, GLintptr, GLsizeiptr, GLbitfield, uint64_t, uint64_t, GLboolean*);
 typedef void (gl2_APIENTRY *glFlushMappedBufferRangeDirect_client_proc_t) (void * ctx, GLenum, GLintptr, GLsizeiptr, GLbitfield);
+typedef GLenum (gl2_APIENTRY *glGetGraphicsResetStatusEXT_client_proc_t) (void * ctx);
+typedef void (gl2_APIENTRY *glReadnPixelsEXT_client_proc_t) (void * ctx, GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, GLsizei, GLvoid*);
+typedef void (gl2_APIENTRY *glGetnUniformfvEXT_client_proc_t) (void * ctx, GLuint, GLint, GLsizei, GLfloat*);
+typedef void (gl2_APIENTRY *glGetnUniformivEXT_client_proc_t) (void * ctx, GLuint, GLint, GLsizei, GLint*);
 
 
 #endif

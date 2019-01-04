@@ -419,7 +419,11 @@
 #define OP_glMapBufferRangeDirect 					2461
 #define OP_glUnmapBufferDirect 					2462
 #define OP_glFlushMappedBufferRangeDirect 					2463
-#define OP_last 					2464
+#define OP_glGetGraphicsResetStatusEXT 					2464
+#define OP_glReadnPixelsEXT 					2465
+#define OP_glGetnUniformfvEXT 					2466
+#define OP_glGetnUniformivEXT 					2467
+#define OP_last 					2468
 
 
 #endif
