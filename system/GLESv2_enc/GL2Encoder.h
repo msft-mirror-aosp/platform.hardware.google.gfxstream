@@ -719,6 +719,14 @@ private:
     glTexStorage2DMultisample_client_proc_t m_glTexStorage2DMultisample_enc;
     static void s_glTexStorage2DMultisample(void* self, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
 
+    static GLenum s_glGetGraphicsResetStatusEXT(void* self);
+    static void s_glReadnPixelsEXT(void* self, GLint x, GLint y, GLsizei width,
+            GLsizei height, GLenum format, GLenum type, GLsizei bufSize,
+            GLvoid* pixels);
+    static void s_glGetnUniformfvEXT(void *self, GLuint program, GLint location,
+            GLsizei bufSize, GLfloat* params);
+    static void s_glGetnUniformivEXT(void *self, GLuint program, GLint location,
+            GLsizei bufSize, GLint* params);
 public:
     glEGLImageTargetTexture2DOES_client_proc_t m_glEGLImageTargetTexture2DOES_enc;
 

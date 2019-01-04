@@ -98,6 +98,11 @@ void GLEncoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
         *ptr = state->getBoundTexture(GL_TEXTURE_EXTERNAL_OES);
         break;
 
+    case GL_RESET_NOTIFICATION_STRATEGY_EXT:
+        // BUG: 121414786
+        *ptr = GL_LOSE_CONTEXT_ON_RESET_EXT;
+        break;
+
     default:
         if (!state->getClientStateParameter<GLint>(param,ptr)) {
             ctx->m_glGetIntegerv_enc(self, param, ptr);
@@ -1078,6 +1083,8 @@ GLEncoder::GLEncoder(IOStream *stream, ChecksumCalculator *protocol)
     OVERRIDE(glFramebufferTexture2DOES);
     OVERRIDE(glFramebufferTexture2DMultisampleIMG);
     OVERRIDE(glGetFramebufferAttachmentParameterivOES);
+
+    this->glReadnPixelsEXT = s_glReadnPixelsEXT;
 }
 
 GLEncoder::~GLEncoder()
@@ -1095,4 +1102,13 @@ void GLEncoder::s_glFinish(void *self)
 {
     GLEncoder *ctx = (GLEncoder *)self;
     ctx->glFinishRoundTrip(self);
+}
+
+void GLEncoder::s_glReadnPixelsEXT(void* self, GLint x, GLint y, GLsizei width,
+        GLsizei height, GLenum format, GLenum type, GLsizei bufSize,
+        GLvoid* pixels) {
+    GLEncoder *ctx = (GLEncoder*)self;
+    SET_ERROR_IF(bufSize < ctx->pixelDataSize(width, height, format,
+        type, 1), GL_INVALID_OPERATION);
+    ctx->glReadPixels(self, x, y, width, height, format, type, pixels);
 }

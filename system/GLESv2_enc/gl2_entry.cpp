@@ -421,6 +421,10 @@ extern "C" {
 	uint64_t glMapBufferRangeDirect(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access, uint64_t paddr);
 	void glUnmapBufferDirect(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access, uint64_t paddr, uint64_t guest_ptr, GLboolean* out_res);
 	void glFlushMappedBufferRangeDirect(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
+	GLenum glGetGraphicsResetStatusEXT();
+	void glReadnPixelsEXT(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, GLvoid* data);
+	void glGetnUniformfvEXT(GLuint program, GLint location, GLsizei bufSize, GLfloat* params);
+	void glGetnUniformivEXT(GLuint program, GLint location, GLsizei bufSize, GLint* params);
 };
 
 #ifndef GET_CONTEXT
@@ -2960,5 +2964,29 @@ void glFlushMappedBufferRangeDirect(GLenum target, GLintptr offset, GLsizeiptr l
 {
 	GET_CONTEXT;
 	ctx->glFlushMappedBufferRangeDirect(ctx, target, offset, length, access);
+}
+
+GLenum glGetGraphicsResetStatusEXT()
+{
+	GET_CONTEXT;
+	return ctx->glGetGraphicsResetStatusEXT(ctx);
+}
+
+void glReadnPixelsEXT(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, GLvoid* data)
+{
+	GET_CONTEXT;
+	ctx->glReadnPixelsEXT(ctx, x, y, width, height, format, type, bufSize, data);
+}
+
+void glGetnUniformfvEXT(GLuint program, GLint location, GLsizei bufSize, GLfloat* params)
+{
+	GET_CONTEXT;
+	ctx->glGetnUniformfvEXT(ctx, program, location, bufSize, params);
+}
+
+void glGetnUniformivEXT(GLuint program, GLint location, GLsizei bufSize, GLint* params)
+{
+	GET_CONTEXT;
+	ctx->glGetnUniformivEXT(ctx, program, location, bufSize, params);
 }
 

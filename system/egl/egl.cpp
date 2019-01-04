@@ -735,6 +735,8 @@ static std::vector<std::string> getExtStringArray() {
             hostStr = NULL;
         }
     }
+    // push guest strings
+    res.push_back("GL_EXT_robustness");
 
     if (!hostStr || !strlen(hostStr)) { return res; }
 

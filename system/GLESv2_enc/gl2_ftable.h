@@ -381,6 +381,10 @@ static const struct _gl2_funcs_by_name {
 	{"glGetFramebufferParameteriv", (void*)glGetFramebufferParameteriv},
 	{"glGetTexLevelParameterfv", (void*)glGetTexLevelParameterfv},
 	{"glGetTexLevelParameteriv", (void*)glGetTexLevelParameteriv},
+	{"glGetGraphicsResetStatusEXT", (void*)glGetGraphicsResetStatusEXT},
+	{"glReadnPixelsEXT", (void*)glReadnPixelsEXT},
+	{"glGetnUniformfvEXT", (void*)glGetnUniformfvEXT},
+	{"glGetnUniformivEXT", (void*)glGetnUniformivEXT},
 };
 static const int gl2_num_funcs = sizeof(gl2_funcs_by_name) / sizeof(struct _gl2_funcs_by_name);
 
