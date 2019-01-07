@@ -1,4 +1,4 @@
-// Copyright (C) 2018 The Android Open Source Project
+/// Copyright (C) 2018 The Android Open Source Project
 // Copyright (C) 2018 Google Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -463,7 +463,7 @@ public:
     }
 
     void on_vkDestroyDevice_pre(
-        void*,
+        void* context,
         VkDevice device,
         const VkAllocationCallbacks*) {
 
@@ -475,8 +475,10 @@ public:
 
         lock.unlock();
 
+        VkEncoder* enc = (VkEncoder*)context;
+
         for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
-            destroyHostMemAlloc(device, &info.hostMemAllocs[i]);
+            destroyHostMemAlloc(enc, device, &info.hostMemAllocs[i]);
         }
     }
 
