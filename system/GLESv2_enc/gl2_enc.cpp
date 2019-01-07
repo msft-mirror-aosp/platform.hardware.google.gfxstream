@@ -3030,7 +3030,7 @@ void glReadPixels_enc(void *self , GLint x, GLint y, GLsizei width, GLsizei heig
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
 
-	stream->readback(pixels, __size_pixels);
+	 stream->readbackPixels(self, width, height, format, type, pixels);
 	if (useChecksum) checksumCalculator->addBuffer(pixels, __size_pixels);
 	if (useChecksum) {
 		unsigned char *checksumBufPtr = NULL;
