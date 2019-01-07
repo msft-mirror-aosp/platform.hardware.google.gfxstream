@@ -189,7 +189,7 @@ bool isHostVisibleMemoryTypeIndexForGuest(
 }
 
 VkResult finishHostMemAllocInit(
-    VkEncoder* enc,
+    VkEncoder*,
     VkDevice device,
     uint32_t memoryTypeIndex,
     VkDeviceSize nonCoherentAtomSize,
@@ -198,7 +198,6 @@ VkResult finishHostMemAllocInit(
     uint8_t* mappedPtr,
     HostMemAlloc* out) {
 
-    out->enc = enc;
     out->device = device;
     out->memoryTypeIndex = memoryTypeIndex;
     out->nonCoherentAtomSize = nonCoherentAtomSize;
@@ -218,13 +217,14 @@ VkResult finishHostMemAllocInit(
 }
 
 void destroyHostMemAlloc(
+    VkEncoder* enc,
     VkDevice device,
     HostMemAlloc* toDestroy) {
 
     if (toDestroy->initResult != VK_SUCCESS) return;
     if (!toDestroy->initialized) return;
 
-    toDestroy->enc->vkFreeMemory(device, toDestroy->memory, nullptr);
+    enc->vkFreeMemory(device, toDestroy->memory, nullptr);
     delete toDestroy->subAlloc;
 }
 

@@ -65,7 +65,6 @@ bool isHostVisibleMemoryTypeIndexForGuest(
 
 struct HostMemAlloc {
     bool initialized = false;
-    VkEncoder* enc;
     VkResult initResult = VK_SUCCESS;
     VkDevice device = nullptr;
     uint32_t memoryTypeIndex = 0;
@@ -88,6 +87,7 @@ VkResult finishHostMemAllocInit(
     HostMemAlloc* out);
 
 void destroyHostMemAlloc(
+    VkEncoder* enc,
     VkDevice device,
     HostMemAlloc* toDestroy);
 
