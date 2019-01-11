@@ -697,6 +697,7 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
                         ALOGE("%s waited on fence %d for 3000 ms",
                             __FUNCTION__, fence);
                     }
+                    close(fence);
                 }
                 else {
                     ALOGV("%s: aquiredFence not set for layer %u",
