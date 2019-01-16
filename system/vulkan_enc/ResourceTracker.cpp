@@ -412,8 +412,16 @@ public:
         VkPhysicalDevice,
         const char*,
         uint32_t* pPropertyCount,
-        VkExtensionProperties*) {
-        *pPropertyCount = 0;
+        VkExtensionProperties* pProperties) {
+        *pPropertyCount = 1;
+    VkExtensionProperties anb = {
+        "VK_ANDROID_native_buffer", 7,
+    };
+
+    if (pProperties) {
+        *pProperties = anb;
+    }
+
         return VK_SUCCESS;
     }
 
