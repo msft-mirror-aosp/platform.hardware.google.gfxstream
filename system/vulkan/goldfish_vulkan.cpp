@@ -84,7 +84,14 @@ VkResult EnumerateInstanceExtensionProperties(
 
     // For now, let's not expose any extensions;
     // add them one at a time as needed.
-    *count = 0;
+    *count = 1;
+    VkExtensionProperties anb = {
+        "VK_ANDROID_native_buffer", 7,
+    };
+
+    if (properties) {
+        *properties = anb;
+    }
 
     return VK_SUCCESS;
 }
