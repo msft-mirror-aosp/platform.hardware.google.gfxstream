@@ -24,6 +24,13 @@
 #include <log/log.h>
 #include <sync/sync.h>
 
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+
+#include "../egl/goldfish_sync.h"
+
+#include "ThreadInfo.h"
+
 #if defined(LOG_NNDEBUG) && LOG_NNDEBUG == 0
 #define ALOGVV ALOGV
 #else
@@ -392,6 +399,8 @@ EmuHWC2::Display::Display(EmuHWC2& device, DisplayType type)
     mClientTarget(),
     mChanges(),
     mLayers(),
+    mReleaseLayerIds(),
+    mReleaseFences(),
     mConfigs(),
     mActiveConfig(nullptr),
     mColorModes(),
@@ -599,10 +608,25 @@ Error EmuHWC2::Display::getName(uint32_t* outSize, char* outName) {
 }
 
 Error EmuHWC2::Display::getReleaseFences(uint32_t* outNumElements,
-        hwc2_layer_t* /*outLayers*/, int32_t* /*outFences*/) {
+        hwc2_layer_t* outLayers, int32_t* outFences) {
     ALOGVV("%s", __FUNCTION__);
 
-    *outNumElements = 0;
+    *outNumElements = mReleaseLayerIds.size();
+
+    ALOGVV("%s. Got %u elements", __FUNCTION__, *outNumElements);
+
+    if (*outNumElements && outLayers) {
+        ALOGVV("%s. export release layers", __FUNCTION__);
+        memcpy(outLayers, mReleaseLayerIds.data(),
+               sizeof(hwc2_layer_t) * (*outNumElements));
+    }
+
+    if (*outNumElements && outFences) {
+        ALOGVV("%s. export release fences", __FUNCTION__);
+        memcpy(outFences, mReleaseFences.data(),
+               sizeof(int32_t) * (*outNumElements));
+    }
+
     return Error::None;
 }
 
@@ -648,6 +672,9 @@ Error EmuHWC2::Display::getType(int32_t* outType) {
 
 Error EmuHWC2::Display::present(int32_t* outRetireFence) {
     ALOGVV("%s", __FUNCTION__);
+
+    *outRetireFence = -1;
+
     std::unique_lock<std::mutex> lock(mStateMutex);
 
     if (!mChanges || (mChanges->getNumTypes() > 0)) {
@@ -666,9 +693,12 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
                 numLayer++;
             }
         }
-        ALOGV("present %d layers total %u layers", numLayer,
-              (uint32_t)mLayers.size());
+
+        ALOGVV("present %d layers total %u layers",
+              numLayer, (uint32_t)mLayers.size());
+
         if (numLayer == 0) {
+            ALOGVV("No layers, exit");
             mGralloc->getFb()->post(mGralloc->getFb(), mClientTarget.getBuffer());
             *outRetireFence = mClientTarget.getFence();
             return Error::None;
@@ -681,6 +711,10 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
         // Handle the composition
         ComposeDevice* p = mComposeMsg->get();
         ComposeLayer* l = p->layer;
+
+        mReleaseLayerIds.clear();
+        mReleaseFences.clear();
+
         for (auto layer: mLayers) {
             if (layer->getCompositionType() != Composition::Device &&
                 layer->getCompositionType() != Composition::SolidColor) {
@@ -691,6 +725,7 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
             // send layer composition command to host
             if (layer->getCompositionType() == Composition::Device) {
                 int fence = layer->getLayerBuffer().getFence();
+                mReleaseLayerIds.push_back(layer->getId());
                 if (fence != -1) {
                     int err = sync_wait(fence, 3000);
                     if (err < 0 && errno == ETIME) {
@@ -700,7 +735,7 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
                     close(fence);
                 }
                 else {
-                    ALOGV("%s: aquiredFence not set for layer %u",
+                    ALOGV("%s: acquire fence not set for layer %u",
                           __FUNCTION__, (uint32_t)layer->getId());
                 }
                 cb_handle_t *cb =
@@ -739,11 +774,29 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
         rcEnc->rcCompose(rcEnc,
                          sizeof(ComposeDevice) + numLayer * sizeof(ComposeLayer),
                          (void *)p);
-        // not set retireFence should be fine, because the rcCompose is a
-        // sync call, it returns until the host call eglswapbuffers
-        *outRetireFence = -1;
-    }
-    else {
+
+        // Send a retire fence and use it as the release fence for all layers,
+        // since media expects it
+        EGLint attribs[] = { EGL_SYNC_NATIVE_FENCE_ANDROID, EGL_NO_NATIVE_FENCE_FD_ANDROID };
+
+        uint64_t sync_handle, thread_handle;
+        int retire_fd;
+
+        rcEnc->rcCreateSyncKHR(rcEnc, EGL_SYNC_NATIVE_FENCE_ANDROID,
+                attribs, 2 * sizeof(EGLint), true /* destroy when signaled */,
+                &sync_handle, &thread_handle);
+
+        goldfish_sync_queue_work(mSyncDeviceFd,
+                sync_handle, thread_handle, &retire_fd);
+
+        for (size_t i = 0; i < mReleaseLayerIds.size(); ++i) {
+            mReleaseFences.push_back(dup(retire_fd));
+        }
+
+        *outRetireFence = dup(retire_fd);
+        close(retire_fd);
+        rcEnc->rcDestroySyncKHR(rcEnc, sync_handle);
+    } else {
         // we set all layers Composition::Client, so do nothing.
         mGralloc->getFb()->post(mGralloc->getFb(), mClientTarget.getBuffer());
         *outRetireFence = mClientTarget.getFence();
@@ -819,8 +872,8 @@ Error EmuHWC2::Display::setColorTransform(const float* /*matrix*/,
 }
 
 Error EmuHWC2::Display::setOutputBuffer(buffer_handle_t /*buffer*/,
-        int32_t /*releaseFence*/) {
-    ALOGVV("%s", __FUNCTION__);
+        int32_t releaseFence) {
+    ALOGVV("%s. fence: %d", __FUNCTION__, releaseFence);
     //TODO: for virtual display
     return Error::None;
 }
@@ -1009,6 +1062,8 @@ int EmuHWC2::Display::populatePrimaryConfigs() {
     mActiveConfig = mConfigs[0];
     mActiveColorMode = HAL_COLOR_MODE_NATIVE;
     mColorModes.emplace((android_color_mode_t)HAL_COLOR_MODE_NATIVE);
+
+    mSyncDeviceFd = goldfish_sync_open();
 
     return 0;
 }
