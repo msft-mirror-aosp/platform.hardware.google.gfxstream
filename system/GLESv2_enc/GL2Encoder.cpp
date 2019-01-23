@@ -2908,7 +2908,7 @@ void* GL2Encoder::s_glMapBufferRange(void* self, GLenum target, GLintptr offset,
                 buf->m_guest_paddr);
 
         return reinterpret_cast<void*>(buf->dma_buffer.get().mapped_addr);
-    } else if (ctx->hasExtension("ANDROID_EMU_direct_mem")) {
+    } else if (ctx->hasExtension("ANDROID_EMU_direct_mem_v2")) {
         GoldfishAddressSpaceBlock new_shared_block;
 
         if (new_shared_block.allocate(&ctx->m_goldfish_address_block_provider, length)) {
