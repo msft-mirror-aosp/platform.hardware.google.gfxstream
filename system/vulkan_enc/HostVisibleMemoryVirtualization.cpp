@@ -205,11 +205,22 @@ VkResult finishHostMemAllocInit(
     out->mappedSize = mappedSize;
     out->mappedPtr = mappedPtr;
 
+    // because it's not just nonCoherentAtomSize granularity,
+    // people will also use it for uniform buffers, images, etc.
+    // that need some bigger alignment
+#define HIGHEST_BUFFER_OR_IMAGE_ALIGNMENT 1024
+
+    uint64_t neededPageSize = out->nonCoherentAtomSize;
+    if (HIGHEST_BUFFER_OR_IMAGE_ALIGNMENT >
+        neededPageSize) {
+        neededPageSize = HIGHEST_BUFFER_OR_IMAGE_ALIGNMENT;
+    }
+
     out->subAlloc = new
         SubAllocator(
             out->mappedPtr,
             out->mappedSize,
-            out->nonCoherentAtomSize);
+            neededPageSize);
 
     out->initialized = true;
     out->initResult = VK_SUCCESS;
@@ -238,6 +249,11 @@ void subAllocHostMemory(
             (pAllocateInfo->allocationSize +
              alloc->nonCoherentAtomSize - 1) /
             alloc->nonCoherentAtomSize);
+
+    ALOGD("%s: alloc size %u mapped size %u ncaSize %u\n", __func__,
+            (unsigned int)pAllocateInfo->allocationSize,
+            (unsigned int)mappedSize,
+            (unsigned int)alloc->nonCoherentAtomSize);
 
     void* subMapped = alloc->subAlloc->alloc(mappedSize);
     out->mappedPtr = (uint8_t*)subMapped;
