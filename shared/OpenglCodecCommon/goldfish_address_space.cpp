@@ -105,6 +105,10 @@ GoldfishAddressSpaceBlock &GoldfishAddressSpaceBlock::operator=(const GoldfishAd
 
 bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *provider, size_t size)
 {
+
+    ALOGD("%s: Ask for block of size 0x%llx\n", __func__,
+         (unsigned long long)size);
+
     destroy();
 
     if (!provider->is_opened()) {
@@ -120,8 +124,14 @@ bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *prov
         return false;
     } else {
         m_phys_addr = request.phys_addr;
+
         m_offset = request.offset;
         m_size = request.size;
+
+        ALOGD("%s: ioctl allocate returned offset 0x%llx size 0x%llx\n", __func__,
+                (unsigned long long)m_offset,
+                (unsigned long long)m_size);
+
         m_fd = provider->m_fd;
         return true;
     }
@@ -140,6 +150,7 @@ uint64_t GoldfishAddressSpaceBlock::hostAddr() const
 void *GoldfishAddressSpaceBlock::mmap(uint64_t host_addr)
 {
     if (m_size == 0) {
+        ALOGE("%s: called with zero size\n", __func__);
         return NULL;
     }
     if (m_mmaped_ptr) {
@@ -147,8 +158,13 @@ void *GoldfishAddressSpaceBlock::mmap(uint64_t host_addr)
         ::abort();
     }
 
-    void *result = ::mmap(NULL, m_size, PROT_WRITE, MAP_SHARED, m_fd, m_offset);
+    void *result = ::mmap64(NULL, m_size, PROT_WRITE, MAP_SHARED, m_fd, m_offset);
     if (result == MAP_FAILED) {
+        ALOGE("%s: host memory map failed with size 0x%llx "
+              "off 0x%llx errno %d\n",
+              __func__,
+              (unsigned long long)m_size,
+              (unsigned long long)m_offset, errno);
         return NULL;
     } else {
         m_mmaped_ptr = result;
