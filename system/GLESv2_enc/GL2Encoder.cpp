@@ -123,6 +123,8 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     OVERRIDE(glDeleteBuffers);
     OVERRIDE(glDrawArrays);
     OVERRIDE(glDrawElements);
+    OVERRIDE(glDrawArraysNullAEMU);
+    OVERRIDE(glDrawElementsNullAEMU);
     OVERRIDE(glGetIntegerv);
     OVERRIDE(glGetFloatv);
     OVERRIDE(glGetBooleanv);
@@ -1426,6 +1428,120 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
     }
 }
 
+void GL2Encoder::s_glDrawArraysNullAEMU(void *self, GLenum mode, GLint first, GLsizei count)
+{
+    GL2Encoder *ctx = (GL2Encoder *)self;
+    assert(ctx->m_state != NULL);
+    SET_ERROR_IF(!isValidDrawMode(mode), GL_INVALID_ENUM);
+    SET_ERROR_IF(count < 0, GL_INVALID_VALUE);
+
+    bool has_client_vertex_arrays = false;
+    bool has_indirect_arrays = false;
+    ctx->getVBOUsage(&has_client_vertex_arrays,
+                     &has_indirect_arrays);
+
+    if (has_client_vertex_arrays ||
+        (!has_client_vertex_arrays &&
+         !has_indirect_arrays)) {
+        ctx->sendVertexAttributes(first, count, true);
+        ctx->m_glDrawArraysNullAEMU_enc(ctx, mode, 0, count);
+    } else {
+        ctx->sendVertexAttributes(0, count, false);
+        ctx->m_glDrawArraysNullAEMU_enc(ctx, mode, first, count);
+    }
+}
+
+void GL2Encoder::s_glDrawElementsNullAEMU(void *self, GLenum mode, GLsizei count, GLenum type, const void *indices)
+{
+
+    GL2Encoder *ctx = (GL2Encoder *)self;
+    assert(ctx->m_state != NULL);
+    SET_ERROR_IF(!isValidDrawMode(mode), GL_INVALID_ENUM);
+    SET_ERROR_IF(count < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(!(type == GL_UNSIGNED_BYTE || type == GL_UNSIGNED_SHORT || type == GL_UNSIGNED_INT), GL_INVALID_ENUM);
+    SET_ERROR_IF(ctx->m_state->getTransformFeedbackActiveUnpaused(), GL_INVALID_OPERATION);
+
+    bool has_client_vertex_arrays = false;
+    bool has_indirect_arrays = false;
+    int nLocations = ctx->m_state->nLocations();
+    GLintptr offset = 0;
+
+    ctx->getVBOUsage(&has_client_vertex_arrays, &has_indirect_arrays);
+
+    if (!has_client_vertex_arrays && !has_indirect_arrays) {
+        // ALOGW("glDrawElements: no vertex arrays / buffers bound to the command\n");
+        GLenum status = ctx->m_glCheckFramebufferStatus_enc(self, GL_FRAMEBUFFER);
+        SET_ERROR_IF(status != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
+    }
+
+    BufferData* buf = NULL;
+    int minIndex = 0, maxIndex = 0;
+
+    // For validation/immediate index array purposes,
+    // we need the min/max vertex index of the index array.
+    // If the VBO != 0, this may not be the first time we have
+    // used this particular index buffer. getBufferIndexRange
+    // can more quickly get min/max vertex index by
+    // caching previous results.
+    if (ctx->m_state->currentIndexVbo() != 0) {
+        buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
+        offset = (GLintptr)indices;
+        indices = (void*)((GLintptr)buf->m_fixedBuffer.ptr() + (GLintptr)indices);
+        ctx->getBufferIndexRange(buf,
+                                 indices,
+                                 type,
+                                 (size_t)count,
+                                 (size_t)offset,
+                                 &minIndex, &maxIndex);
+    } else {
+        // In this case, the |indices| field holds a real
+        // array, so calculate the indices now. They will
+        // also be needed to know how much data to
+        // transfer to host.
+        ctx->calcIndexRange(indices,
+                            type,
+                            count,
+                            &minIndex,
+                            &maxIndex);
+    }
+
+    if (count == 0) return;
+
+    bool adjustIndices = true;
+    if (ctx->m_state->currentIndexVbo() != 0) {
+        if (!has_client_vertex_arrays) {
+            ctx->sendVertexAttributes(0, maxIndex + 1, false);
+            ctx->m_glBindBuffer_enc(self, GL_ELEMENT_ARRAY_BUFFER, ctx->m_state->currentIndexVbo());
+            ctx->glDrawElementsOffsetNullAEMU(ctx, mode, count, type, offset);
+            ctx->flushDrawCall();
+            adjustIndices = false;
+        } else {
+            BufferData * buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
+            ctx->m_glBindBuffer_enc(self, GL_ELEMENT_ARRAY_BUFFER, 0);
+        }
+    }
+    if (adjustIndices) {
+        void *adjustedIndices =
+            ctx->recenterIndices(indices,
+                                 type,
+                                 count,
+                                 minIndex);
+
+        if (has_indirect_arrays || 1) {
+            ctx->sendVertexAttributes(minIndex, maxIndex - minIndex + 1, true);
+            ctx->glDrawElementsDataNullAEMU(ctx, mode, count, type, adjustedIndices,
+                                    count * glSizeof(type));
+            // XXX - OPTIMIZATION (see the other else branch) should be implemented
+            if(!has_indirect_arrays) {
+                //ALOGD("unoptimized drawelements !!!\n");
+            }
+        } else {
+            // we are all direct arrays and immidate mode index array -
+            // rebuild the arrays and the index array;
+            ALOGE("glDrawElementsNullAEMU: direct index & direct buffer data - will be implemented in later versions;\n");
+        }
+    }
+}
 
 GLint * GL2Encoder::getCompressedTextureFormats()
 {

@@ -430,6 +430,10 @@ struct gl2_client_context_t {
 	glReadnPixelsEXT_client_proc_t glReadnPixelsEXT;
 	glGetnUniformfvEXT_client_proc_t glGetnUniformfvEXT;
 	glGetnUniformivEXT_client_proc_t glGetnUniformivEXT;
+	glDrawArraysNullAEMU_client_proc_t glDrawArraysNullAEMU;
+	glDrawElementsNullAEMU_client_proc_t glDrawElementsNullAEMU;
+	glDrawElementsOffsetNullAEMU_client_proc_t glDrawElementsOffsetNullAEMU;
+	glDrawElementsDataNullAEMU_client_proc_t glDrawElementsDataNullAEMU;
 	virtual ~gl2_client_context_t() {}
 
 	typedef gl2_client_context_t *CONTEXT_ACCESSOR_TYPE(void);
