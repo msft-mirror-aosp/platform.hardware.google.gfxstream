@@ -425,6 +425,10 @@ extern "C" {
 	void glReadnPixelsEXT(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, GLvoid* data);
 	void glGetnUniformfvEXT(GLuint program, GLint location, GLsizei bufSize, GLfloat* params);
 	void glGetnUniformivEXT(GLuint program, GLint location, GLsizei bufSize, GLint* params);
+	void glDrawArraysNullAEMU(GLenum mode, GLint first, GLsizei count);
+	void glDrawElementsNullAEMU(GLenum mode, GLsizei count, GLenum type, const GLvoid* indices);
+	void glDrawElementsOffsetNullAEMU(GLenum mode, GLsizei count, GLenum type, GLuint offset);
+	void glDrawElementsDataNullAEMU(GLenum mode, GLsizei count, GLenum type, void* data, GLuint datalen);
 };
 
 #ifndef GET_CONTEXT
@@ -2988,5 +2992,29 @@ void glGetnUniformivEXT(GLuint program, GLint location, GLsizei bufSize, GLint* 
 {
 	GET_CONTEXT;
 	ctx->glGetnUniformivEXT(ctx, program, location, bufSize, params);
+}
+
+void glDrawArraysNullAEMU(GLenum mode, GLint first, GLsizei count)
+{
+	GET_CONTEXT;
+	ctx->glDrawArraysNullAEMU(ctx, mode, first, count);
+}
+
+void glDrawElementsNullAEMU(GLenum mode, GLsizei count, GLenum type, const GLvoid* indices)
+{
+	GET_CONTEXT;
+	ctx->glDrawElementsNullAEMU(ctx, mode, count, type, indices);
+}
+
+void glDrawElementsOffsetNullAEMU(GLenum mode, GLsizei count, GLenum type, GLuint offset)
+{
+	GET_CONTEXT;
+	ctx->glDrawElementsOffsetNullAEMU(ctx, mode, count, type, offset);
+}
+
+void glDrawElementsDataNullAEMU(GLenum mode, GLsizei count, GLenum type, void* data, GLuint datalen)
+{
+	GET_CONTEXT;
+	ctx->glDrawElementsDataNullAEMU(ctx, mode, count, type, data, datalen);
 }
 

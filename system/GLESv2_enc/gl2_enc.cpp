@@ -11396,6 +11396,92 @@ void glGetnUniformivEXT_enc(void *self , GLuint program, GLint location, GLsizei
 	}
 }
 
+void glDrawArraysNullAEMU_enc(void *self , GLenum mode, GLint first, GLsizei count)
+{
+
+	gl2_encoder_context_t *ctx = (gl2_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_glDrawArraysNullAEMU;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &mode, 4); ptr += 4;
+		memcpy(ptr, &first, 4); ptr += 4;
+		memcpy(ptr, &count, 4); ptr += 4;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+}
+
+void glDrawElementsOffsetNullAEMU_enc(void *self , GLenum mode, GLsizei count, GLenum type, GLuint offset)
+{
+
+	gl2_encoder_context_t *ctx = (gl2_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + 4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_glDrawElementsOffsetNullAEMU;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &mode, 4); ptr += 4;
+		memcpy(ptr, &count, 4); ptr += 4;
+		memcpy(ptr, &type, 4); ptr += 4;
+		memcpy(ptr, &offset, 4); ptr += 4;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+}
+
+void glDrawElementsDataNullAEMU_enc(void *self , GLenum mode, GLsizei count, GLenum type, void* data, GLuint datalen)
+{
+
+	gl2_encoder_context_t *ctx = (gl2_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	const unsigned int __size_data =  datalen;
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + __size_data + 4 + 1*4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_glDrawElementsDataNullAEMU;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &mode, 4); ptr += 4;
+		memcpy(ptr, &count, 4); ptr += 4;
+		memcpy(ptr, &type, 4); ptr += 4;
+	*(unsigned int *)(ptr) = __size_data; ptr += 4;
+	memcpy(ptr, data, __size_data);ptr += __size_data;
+		memcpy(ptr, &datalen, 4); ptr += 4;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+}
+
 }  // namespace
 
 gl2_encoder_context_t::gl2_encoder_context_t(IOStream *stream, ChecksumCalculator *checksumCalculator)
@@ -11823,5 +11909,9 @@ gl2_encoder_context_t::gl2_encoder_context_t(IOStream *stream, ChecksumCalculato
 	this->glReadnPixelsEXT = &glReadnPixelsEXT_enc;
 	this->glGetnUniformfvEXT = &glGetnUniformfvEXT_enc;
 	this->glGetnUniformivEXT = &glGetnUniformivEXT_enc;
+	this->glDrawArraysNullAEMU = &glDrawArraysNullAEMU_enc;
+	this->glDrawElementsNullAEMU = (glDrawElementsNullAEMU_client_proc_t) &enc_unsupported;
+	this->glDrawElementsOffsetNullAEMU = &glDrawElementsOffsetNullAEMU_enc;
+	this->glDrawElementsDataNullAEMU = &glDrawElementsDataNullAEMU_enc;
 }
 
