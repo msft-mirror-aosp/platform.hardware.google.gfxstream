@@ -423,7 +423,11 @@
 #define OP_glReadnPixelsEXT 					2465
 #define OP_glGetnUniformfvEXT 					2466
 #define OP_glGetnUniformivEXT 					2467
-#define OP_last 					2468
+#define OP_glDrawArraysNullAEMU 					2468
+#define OP_glDrawElementsNullAEMU 					2469
+#define OP_glDrawElementsOffsetNullAEMU 					2470
+#define OP_glDrawElementsDataNullAEMU 					2471
+#define OP_last 					2472
 
 
 #endif
