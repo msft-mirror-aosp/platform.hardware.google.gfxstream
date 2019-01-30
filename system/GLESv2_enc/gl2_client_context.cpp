@@ -430,6 +430,10 @@ int gl2_client_context_t::initDispatchByName(void *(*getProc)(const char *, void
 	glReadnPixelsEXT = (glReadnPixelsEXT_client_proc_t) getProc("glReadnPixelsEXT", userData);
 	glGetnUniformfvEXT = (glGetnUniformfvEXT_client_proc_t) getProc("glGetnUniformfvEXT", userData);
 	glGetnUniformivEXT = (glGetnUniformivEXT_client_proc_t) getProc("glGetnUniformivEXT", userData);
+	glDrawArraysNullAEMU = (glDrawArraysNullAEMU_client_proc_t) getProc("glDrawArraysNullAEMU", userData);
+	glDrawElementsNullAEMU = (glDrawElementsNullAEMU_client_proc_t) getProc("glDrawElementsNullAEMU", userData);
+	glDrawElementsOffsetNullAEMU = (glDrawElementsOffsetNullAEMU_client_proc_t) getProc("glDrawElementsOffsetNullAEMU", userData);
+	glDrawElementsDataNullAEMU = (glDrawElementsDataNullAEMU_client_proc_t) getProc("glDrawElementsDataNullAEMU", userData);
 	return 0;
 }
 

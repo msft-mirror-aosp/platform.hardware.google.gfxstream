@@ -205,6 +205,12 @@ private:
     glDrawElements_client_proc_t m_glDrawElements_enc;
     static void s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum type, const void *indices);
 
+    glDrawArraysNullAEMU_client_proc_t m_glDrawArraysNullAEMU_enc;
+    static void s_glDrawArraysNullAEMU(void *self, GLenum mode, GLint first, GLsizei count);
+
+    glDrawElementsNullAEMU_client_proc_t m_glDrawElementsNullAEMU_enc;
+    static void s_glDrawElementsNullAEMU(void *self, GLenum mode, GLsizei count, GLenum type, const void *indices);
+
     glGetIntegerv_client_proc_t m_glGetIntegerv_enc;
     static void s_glGetIntegerv(void *self, GLenum pname, GLint *ptr);
 

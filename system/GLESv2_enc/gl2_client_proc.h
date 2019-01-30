@@ -432,6 +432,10 @@ typedef GLenum (gl2_APIENTRY *glGetGraphicsResetStatusEXT_client_proc_t) (void *
 typedef void (gl2_APIENTRY *glReadnPixelsEXT_client_proc_t) (void * ctx, GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, GLsizei, GLvoid*);
 typedef void (gl2_APIENTRY *glGetnUniformfvEXT_client_proc_t) (void * ctx, GLuint, GLint, GLsizei, GLfloat*);
 typedef void (gl2_APIENTRY *glGetnUniformivEXT_client_proc_t) (void * ctx, GLuint, GLint, GLsizei, GLint*);
+typedef void (gl2_APIENTRY *glDrawArraysNullAEMU_client_proc_t) (void * ctx, GLenum, GLint, GLsizei);
+typedef void (gl2_APIENTRY *glDrawElementsNullAEMU_client_proc_t) (void * ctx, GLenum, GLsizei, GLenum, const GLvoid*);
+typedef void (gl2_APIENTRY *glDrawElementsOffsetNullAEMU_client_proc_t) (void * ctx, GLenum, GLsizei, GLenum, GLuint);
+typedef void (gl2_APIENTRY *glDrawElementsDataNullAEMU_client_proc_t) (void * ctx, GLenum, GLsizei, GLenum, void*, GLuint);
 
 
 #endif
