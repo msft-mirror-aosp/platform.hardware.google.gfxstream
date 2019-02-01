@@ -785,6 +785,7 @@ bool pixelFormat(GL2Encoder* ctx, GLenum format) {
     f(GL_DEPTH_COMPONENT32F) \
     f(GL_DEPTH24_STENCIL8) \
     f(GL_DEPTH32F_STENCIL8) \
+    f(GL_ETC1_RGB8_OES) \
     f(GL_COMPRESSED_R11_EAC) \
     f(GL_COMPRESSED_SIGNED_R11_EAC) \
     f(GL_COMPRESSED_RG11_EAC) \
