@@ -697,6 +697,9 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
         ALOGVV("present %d layers total %u layers",
               numLayer, (uint32_t)mLayers.size());
 
+        mReleaseLayerIds.clear();
+        mReleaseFences.clear();
+
         if (numLayer == 0) {
             ALOGVV("No layers, exit");
             mGralloc->getFb()->post(mGralloc->getFb(), mClientTarget.getBuffer());
@@ -711,9 +714,6 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
         // Handle the composition
         ComposeDevice* p = mComposeMsg->get();
         ComposeLayer* l = p->layer;
-
-        mReleaseLayerIds.clear();
-        mReleaseFences.clear();
 
         for (auto layer: mLayers) {
             if (layer->getCompositionType() != Composition::Device &&
