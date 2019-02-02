@@ -169,6 +169,7 @@ VkResult VkEncoder::vkCreateInstance(
     countingStream->clearPool();
     stream->clearPool();
     pool->freeAll();
+    mImpl->resources()->on_vkCreateInstance(this, vkCreateInstance_VkResult_return, pCreateInfo, pAllocator, pInstance);
     mImpl->log("finish vkCreateInstance");;
     return vkCreateInstance_VkResult_return;
 }

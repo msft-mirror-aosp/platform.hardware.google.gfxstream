@@ -17,12 +17,12 @@
 #include <vulkan/vulkan.h>
 
 #define GOLDFISH_VK_LIST_TRIVIAL_DISPATCHABLE_HANDLE_TYPES(f) \
-    f(VkInstance) \
     f(VkPhysicalDevice) \
     f(VkQueue) \
     f(VkCommandBuffer) \
 
 #define GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(f) \
+    f(VkInstance) \
     f(VkDevice) \
     GOLDFISH_VK_LIST_TRIVIAL_DISPATCHABLE_HANDLE_TYPES(f)
 
