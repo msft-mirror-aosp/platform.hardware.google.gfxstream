@@ -327,6 +327,8 @@ private:
         std::unique_ptr<Changes> mChanges;
         // All layers this Display is aware of.
         std::multiset<std::shared_ptr<Layer>, SortLayersByZ> mLayers;
+        std::vector<hwc2_display_t> mReleaseLayerIds;
+        std::vector<int32_t> mReleaseFences;
         std::vector<std::shared_ptr<Config>> mConfigs;
         std::shared_ptr<const Config> mActiveConfig;
         std::set<android_color_mode_t> mColorModes;
@@ -339,6 +341,8 @@ private:
         mutable std::mutex mStateMutex;
         std::unique_ptr<GrallocModule> mGralloc;
         std::unique_ptr<ComposeMsg> mComposeMsg;
+        int mSyncDeviceFd;
+
    };
 
     template<typename MF, MF memFunc, typename ...Args>
