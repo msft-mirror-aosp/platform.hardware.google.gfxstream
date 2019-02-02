@@ -44,6 +44,14 @@ public:
         void* context,
         VkResult input_result,
         uint32_t* apiVersion);
+
+    VkResult on_vkEnumerateInstanceExtensionProperties(
+        void* context,
+        VkResult input_result,
+        const char* pLayerName,
+        uint32_t* pPropertyCount,
+        VkExtensionProperties* pProperties);
+
     VkResult on_vkEnumerateDeviceExtensionProperties(
         void* context,
         VkResult input_result,
@@ -51,14 +59,19 @@ public:
         const char* pLayerName,
         uint32_t* pPropertyCount,
         VkExtensionProperties* pProperties);
-    void on_vkGetPhysicalDeviceProperties2(
-        void* context,
-        VkPhysicalDevice physicalDevice,
-        VkPhysicalDeviceProperties2* pProperties);
+
     void on_vkGetPhysicalDeviceMemoryProperties(
         void* context,
         VkPhysicalDevice physicalDevice,
         VkPhysicalDeviceMemoryProperties* pMemoryProperties);
+    void on_vkGetPhysicalDeviceMemoryProperties2(
+        void* context,
+        VkPhysicalDevice physicalDevice,
+        VkPhysicalDeviceMemoryProperties2* pMemoryProperties);
+    void on_vkGetPhysicalDeviceMemoryProperties2KHR(
+        void* context,
+        VkPhysicalDevice physicalDevice,
+        VkPhysicalDeviceMemoryProperties2* pMemoryProperties);
 
     VkResult on_vkCreateDevice(
         void* context,

@@ -28,6 +28,7 @@
 #include "goldfish_vk_extension_structs_guest.h"
 #include "goldfish_vk_private_defs.h"
 
+#include <stdio.h>
 
 namespace goldfish_vk {
 
@@ -680,7 +681,9 @@ void deepcopy_VkImageCreateInfo(
     to->pQueueFamilyIndices = nullptr;
     if (from->pQueueFamilyIndices)
     {
+        fprintf(stderr, "%s: begin qfi. count: %u\n", __func__, from->queueFamilyIndexCount);
         to->pQueueFamilyIndices = (uint32_t*)pool->dupArray(from->pQueueFamilyIndices, from->queueFamilyIndexCount * sizeof(const uint32_t));
+        fprintf(stderr, "%s: end qfi\n", __func__);
     }
 }
 

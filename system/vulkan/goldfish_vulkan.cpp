@@ -82,18 +82,10 @@ VkResult EnumerateInstanceExtensionProperties(
             layer_name);
     }
 
-    // For now, let's not expose any extensions;
-    // add them one at a time as needed.
-    *count = 1;
-    VkExtensionProperties anb = {
-        "VK_ANDROID_native_buffer", 7,
-    };
+    VkResult res = goldfish_vk::ResourceTracker::get()->on_vkEnumerateInstanceExtensionProperties(
+        vkEnc, VK_SUCCESS, layer_name, count, properties);
 
-    if (properties) {
-        *properties = anb;
-    }
-
-    return VK_SUCCESS;
+    return res;
 }
 
 VKAPI_ATTR
