@@ -13,6 +13,8 @@ LOCAL_SRC_FILES := \
     QemuPipeStream.cpp \
     ProcessPipe.cpp    \
 
+LOCAL_CFLAGS += -Wno-unused-variable -Wno-unused-parameter
+
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 
 LOCAL_SRC_FILES += \
