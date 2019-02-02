@@ -15,7 +15,7 @@
  */
 
 #include "EmuHWC2.h"
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 //#define LOG_NNDEBUG 0
 #undef LOG_TAG
 #define LOG_TAG "EmuHWC2"
@@ -718,8 +718,9 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
         for (auto layer: mLayers) {
             if (layer->getCompositionType() != Composition::Device &&
                 layer->getCompositionType() != Composition::SolidColor) {
-                ALOGE("%s: Unsupported composition types %d",
-                      __FUNCTION__, layer->getCompositionType());
+                ALOGE("%s: Unsupported composition types %d layer %u",
+                      __FUNCTION__, layer->getCompositionType(),
+                      (uint32_t)layer->getId());
                 continue;
             }
             // send layer composition command to host
@@ -807,7 +808,7 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
 }
 
 Error EmuHWC2::Display::setActiveConfig(hwc2_config_t configId) {
-    ALOGVV("%s", __FUNCTION__);
+    ALOGVV("%s %u", __FUNCTION__, (uint32_t)configId);
     std::unique_lock<std::mutex> lock(mStateMutex);
 
     if (configId > mConfigs.size() || !mConfigs[configId]->isOnDisplay(*this)) {
@@ -839,7 +840,7 @@ Error EmuHWC2::Display::setClientTarget(buffer_handle_t target,
 }
 
 Error EmuHWC2::Display::setColorMode(int32_t intMode) {
-    ALOGVV("%s", __FUNCTION__);
+    ALOGVV("%s %d", __FUNCTION__, intMode);
     std::unique_lock<std::mutex> lock(mStateMutex);
 
     auto mode = static_cast<android_color_mode_t>(intMode);
@@ -858,7 +859,7 @@ Error EmuHWC2::Display::setColorMode(int32_t intMode) {
 
 Error EmuHWC2::Display::setColorTransform(const float* /*matrix*/,
                                           int32_t hint) {
-    ALOGVV("%s", __FUNCTION__);
+    ALOGVV("%s hint %d", __FUNCTION__, hint);
     std::unique_lock<std::mutex> lock(mStateMutex);
     //we force client composition if this is set
     if (hint == 0 ) {
@@ -871,8 +872,8 @@ Error EmuHWC2::Display::setColorTransform(const float* /*matrix*/,
 }
 
 Error EmuHWC2::Display::setOutputBuffer(buffer_handle_t /*buffer*/,
-        int32_t releaseFence) {
-    ALOGVV("%s. fence: %d", __FUNCTION__, releaseFence);
+        int32_t /*releaseFence*/) {
+    ALOGVV("%s", __FUNCTION__);
     //TODO: for virtual display
     return Error::None;
 }
@@ -914,7 +915,7 @@ static bool isValid(Vsync enable) {
 }
 
 Error EmuHWC2::Display::setVsyncEnabled(int32_t intEnable) {
-    ALOGVV("%s", __FUNCTION__);
+    ALOGVV("%s %d", __FUNCTION__, intEnable);
     Vsync enable = static_cast<Vsync>(intEnable);
     if (!isValid(enable)) {
         return Error::BadParameter;
@@ -942,10 +943,17 @@ Error EmuHWC2::Display::validate(uint32_t* outNumTypes,
             // to Client
             bool fallBack = false;
             for (auto& layer : mLayers) {
+                if (layer->getCompositionType() == Composition::Invalid) {
+                    // Log error for unused layers, layer leak?
+                    ALOGE("%s layer %u CompositionType(%d) not set",
+                          __FUNCTION__, (uint32_t)layer->getId(),
+                          layer->getCompositionType());
+                    continue;
+                }
                 if (layer->getCompositionType() == Composition::Client ||
                     layer->getCompositionType() == Composition::Cursor ||
                     layer->getCompositionType() == Composition::Sideband) {
-                    ALOGV("%s: layer %u CompositionType %d\n", __FUNCTION__,
+                    ALOGW("%s: layer %u CompositionType %d, fallback", __FUNCTION__,
                          (uint32_t)layer->getId(), layer->getCompositionType());
                     fallBack = true;
                     break;
@@ -956,6 +964,9 @@ Error EmuHWC2::Display::validate(uint32_t* outNumTypes,
             }
             if (fallBack) {
                 for (auto& layer : mLayers) {
+                    if (layer->getCompositionType() == Composition::Invalid) {
+                        continue;
+                    }
                     if (layer->getCompositionType() != Composition::Client) {
                         mChanges->addTypeChange(layer->getId(),
                                                 Composition::Client);
@@ -1210,8 +1221,9 @@ Error EmuHWC2::Layer::setBuffer(buffer_handle_t buffer,
 
 Error EmuHWC2::Layer::setCursorPosition(int32_t /*x*/,
                                         int32_t /*y*/) {
-    ALOGVV("%s", __FUNCTION__);
+    ALOGVV("%s layer %u", __FUNCTION__, (uint32_t)mId);
     if (mCompositionType != Composition::Cursor) {
+        ALOGE("%s: CompositionType not Cursor type", __FUNCTION__);
         return Error::BadLayer;
     }
    //TODO
@@ -1220,6 +1232,7 @@ Error EmuHWC2::Layer::setCursorPosition(int32_t /*x*/,
 
 Error EmuHWC2::Layer::setSurfaceDamage(hwc_region_t /*damage*/) {
     // Emulator redraw whole layer per frame, so ignore this.
+    ALOGVV("%s", __FUNCTION__);
     return Error::None;
 }
 
@@ -1232,42 +1245,48 @@ Error EmuHWC2::Layer::setBlendMode(int32_t mode) {
 }
 
 Error EmuHWC2::Layer::setColor(hwc_color_t color) {
-    ALOGVV("%s", __FUNCTION__);
+    ALOGVV("%s layer %u %d", __FUNCTION__, (uint32_t)mId, color);
     mColor = color;
     return Error::None;
 }
 
 Error EmuHWC2::Layer::setCompositionType(int32_t type) {
-    ALOGVV("%s", __FUNCTION__);
+    ALOGVV("%s layer %u %u", __FUNCTION__, (uint32_t)mId, type);
     mCompositionType = static_cast<Composition>(type);
     return Error::None;
 }
 
 Error EmuHWC2::Layer::setDataspace(int32_t) {
+    ALOGVV("%s", __FUNCTION__);
     return Error::None;
 }
 
 Error EmuHWC2::Layer::setDisplayFrame(hwc_rect_t frame) {
+    ALOGVV("%s layer %u", __FUNCTION__, (uint32_t)mId);
     mDisplayFrame = frame;
     return Error::None;
 }
 
 Error EmuHWC2::Layer::setPlaneAlpha(float alpha) {
+    ALOGVV("%s layer %u %f", __FUNCTION__, (uint32_t)mId, alpha);
     mPlaneAlpha = alpha;
     return Error::None;
 }
 
 Error EmuHWC2::Layer::setSidebandStream(const native_handle_t* stream) {
+    ALOGVV("%s layer %u", __FUNCTION__, (uint32_t)mId);
     mSidebandStream = stream;
     return Error::None;
 }
 
 Error EmuHWC2::Layer::setSourceCrop(hwc_frect_t crop) {
+    ALOGVV("%s layer %u", __FUNCTION__, (uint32_t)mId);
     mSourceCrop = crop;
     return Error::None;
 }
 
 Error EmuHWC2::Layer::setTransform(int32_t transform) {
+    ALOGVV("%s layer %u", __FUNCTION__, (uint32_t)mId);
     mTransform = static_cast<Transform>(transform);
     return Error::None;
 }
@@ -1291,7 +1310,7 @@ Error EmuHWC2::Layer::setVisibleRegion(hwc_region_t visible) {
 }
 
 Error EmuHWC2::Layer::setZ(uint32_t z) {
-    ALOGVV("%s %d", __FUNCTION__, z);
+    ALOGVV("%s layer %u %d", __FUNCTION__, (uint32_t)mId, z);
     mZ = z;
     return Error::None;
 }
@@ -1351,7 +1370,7 @@ std::tuple<EmuHWC2::Layer*, Error> EmuHWC2::getLayer(
 
 static int hwc2DevOpen(const struct hw_module_t *module, const char *name,
         struct hw_device_t **dev) {
-    ALOGV("%s ", __FUNCTION__);
+    ALOGVV("%s ", __FUNCTION__);
     if (strcmp(name, HWC_HARDWARE_COMPOSER)) {
         ALOGE("Invalid module name- %s", name);
         return -EINVAL;
