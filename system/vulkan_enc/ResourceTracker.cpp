@@ -27,6 +27,7 @@
 #include "goldfish_address_space.h"
 #include "goldfish_vk_private_defs.h"
 
+#include <string>
 #include <unordered_map>
 
 #include <log/log.h>
@@ -286,6 +287,28 @@ public:
         return mHostVisibleMemoryVirtInfo.virtualizationSupported;
     }
 
+    int getHostInstanceExtensionIndex(const std::string& extName) const {
+        int i = 0;
+        for (const auto& prop : mHostInstanceExtensions) {
+            if (extName == std::string(prop.extensionName)) {
+                return i;
+            }
+            ++i;
+        }
+        return -1;
+    }
+
+    int getHostDeviceExtensionIndex(const std::string& extName) const {
+        int i = 0;
+        for (const auto& prop : mHostDeviceExtensions) {
+            if (extName == std::string(prop.extensionName)) {
+                return i;
+            }
+            ++i;
+        }
+        return -1;
+    }
+
     void deviceMemoryTransform_tohost(
         VkDeviceMemory* memory, uint32_t memoryCount,
         VkDeviceSize* offset, uint32_t offsetCount,
@@ -407,30 +430,122 @@ public:
         return VK_SUCCESS;
     }
 
-    VkResult on_vkEnumerateDeviceExtensionProperties(
-        void*,
+    VkResult on_vkEnumerateInstanceExtensionProperties(
+        void* context,
         VkResult,
-        VkPhysicalDevice,
         const char*,
         uint32_t* pPropertyCount,
         VkExtensionProperties* pProperties) {
-        *pPropertyCount = 1;
-    VkExtensionProperties anb = {
-        "VK_ANDROID_native_buffer", 7,
-    };
 
-    if (pProperties) {
-        *pProperties = anb;
-    }
+        std::vector<const char*> allowedExtensionNames = {
+            "VK_KHR_get_physical_device_properties2",
+            // TODO:
+            // VK_KHR_external_memory_capabilities
+        };
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        // Only advertise a select set of extensions.
+        if (mHostInstanceExtensions.empty()) {
+            uint32_t hostPropCount = 0;
+            enc->vkEnumerateInstanceExtensionProperties(nullptr, &hostPropCount, nullptr);
+            mHostInstanceExtensions.resize(hostPropCount);
+
+            VkResult hostRes =
+                enc->vkEnumerateInstanceExtensionProperties(
+                    nullptr, &hostPropCount, mHostInstanceExtensions.data());
+
+            if (hostRes != VK_SUCCESS) {
+                return hostRes;
+            }
+        }
+
+        std::vector<VkExtensionProperties> filteredExts;
+
+        for (size_t i = 0; i < allowedExtensionNames.size(); ++i) {
+            auto extIndex = getHostInstanceExtensionIndex(allowedExtensionNames[i]);
+            if (extIndex != -1) {
+                filteredExts.push_back(mHostInstanceExtensions[extIndex]);
+            }
+        }
+
+        VkExtensionProperties anbExtProp = {
+            "VK_ANDROID_native_buffer", 7,
+        };
+
+        filteredExts.push_back(anbExtProp);
+
+        if (pPropertyCount) {
+            *pPropertyCount = filteredExts.size();
+        }
+
+        if (pPropertyCount && pProperties) {
+            for (size_t i = 0; i < *pPropertyCount; ++i) {
+                pProperties[i] = filteredExts[i];
+            }
+        }
 
         return VK_SUCCESS;
     }
 
-    void on_vkGetPhysicalDeviceProperties2(
-        void*,
-        VkPhysicalDevice,
-        VkPhysicalDeviceProperties2*) {
-        // no-op
+    VkResult on_vkEnumerateDeviceExtensionProperties(
+        void* context,
+        VkResult,
+        VkPhysicalDevice physdev,
+        const char*,
+        uint32_t* pPropertyCount,
+        VkExtensionProperties* pProperties) {
+
+        std::vector<const char*> allowedExtensionNames = {
+            // "VK_KHR_maintenance1",
+            // "VK_KHR_maintenance2",
+            // "VK_KHR_maintenance3",
+            // TODO:
+            // VK_KHR_external_memory_capabilities
+        };
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        if (mHostDeviceExtensions.empty()) {
+            uint32_t hostPropCount = 0;
+            enc->vkEnumerateDeviceExtensionProperties(physdev, nullptr, &hostPropCount, nullptr);
+            mHostDeviceExtensions.resize(hostPropCount);
+
+            VkResult hostRes =
+                enc->vkEnumerateDeviceExtensionProperties(
+                    physdev, nullptr, &hostPropCount, mHostDeviceExtensions.data());
+
+            if (hostRes != VK_SUCCESS) {
+                return hostRes;
+            }
+        }
+
+        std::vector<VkExtensionProperties> filteredExts;
+
+        for (size_t i = 0; i < allowedExtensionNames.size(); ++i) {
+            auto extIndex = getHostDeviceExtensionIndex(allowedExtensionNames[i]);
+            if (extIndex != -1) {
+                filteredExts.push_back(mHostDeviceExtensions[extIndex]);
+            }
+        }
+
+        VkExtensionProperties anbExtProp = {
+            "VK_ANDROID_native_buffer", 7,
+        };
+
+        filteredExts.push_back(anbExtProp);
+
+        if (pPropertyCount) {
+            *pPropertyCount = filteredExts.size();
+        }
+
+        if (pPropertyCount && pProperties) {
+            for (size_t i = 0; i < *pPropertyCount; ++i) {
+                pProperties[i] = filteredExts[i];
+            }
+        }
+
+        return VK_SUCCESS;
     }
 
     void on_vkGetPhysicalDeviceMemoryProperties(
@@ -448,6 +563,23 @@ public:
             *out = mHostVisibleMemoryVirtInfo.guestMemoryProperties;
         }
     }
+
+    void on_vkGetPhysicalDeviceMemoryProperties2(
+        void*,
+        VkPhysicalDevice physdev,
+        VkPhysicalDeviceMemoryProperties2* out) {
+
+        initHostVisibleMemoryVirtualizationInfo(
+            physdev,
+            &out->memoryProperties,
+            mFeatureInfo->hasDirectMem,
+            &mHostVisibleMemoryVirtInfo);
+
+        if (mHostVisibleMemoryVirtInfo.virtualizationSupported) {
+            out->memoryProperties = mHostVisibleMemoryVirtInfo.guestMemoryProperties;
+        }
+    }
+
 
     VkResult on_vkCreateDevice(
         void* context,
@@ -831,7 +963,11 @@ private:
     HostVisibleMemoryVirtualizationInfo mHostVisibleMemoryVirtInfo;
     std::unique_ptr<EmulatorFeatureInfo> mFeatureInfo;
     std::unique_ptr<GoldfishAddressSpaceBlockProvider> mGoldfishAddressSpaceBlockProvider;
+
+    std::vector<VkExtensionProperties> mHostInstanceExtensions;
+    std::vector<VkExtensionProperties> mHostDeviceExtensions;
 };
+
 ResourceTracker::ResourceTracker() : mImpl(new ResourceTracker::Impl()) { }
 ResourceTracker::~ResourceTracker() { }
 VulkanHandleMapping* ResourceTracker::createMapping() {
@@ -938,6 +1074,16 @@ VkResult ResourceTracker::on_vkEnumerateInstanceVersion(
     return mImpl->on_vkEnumerateInstanceVersion(context, input_result, apiVersion);
 }
 
+VkResult ResourceTracker::on_vkEnumerateInstanceExtensionProperties(
+    void* context,
+    VkResult input_result,
+    const char* pLayerName,
+    uint32_t* pPropertyCount,
+    VkExtensionProperties* pProperties) {
+    return mImpl->on_vkEnumerateInstanceExtensionProperties(
+        context, input_result, pLayerName, pPropertyCount, pProperties);
+}
+
 VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
     void* context,
     VkResult input_result,
@@ -949,18 +1095,27 @@ VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
         context, input_result, physicalDevice, pLayerName, pPropertyCount, pProperties);
 }
 
-void ResourceTracker::on_vkGetPhysicalDeviceProperties2(
-    void* context,
-    VkPhysicalDevice physicalDevice,
-    VkPhysicalDeviceProperties2* pProperties) {
-    mImpl->on_vkGetPhysicalDeviceProperties2(context, physicalDevice, pProperties);
-}
-
 void ResourceTracker::on_vkGetPhysicalDeviceMemoryProperties(
     void* context,
     VkPhysicalDevice physicalDevice,
     VkPhysicalDeviceMemoryProperties* pMemoryProperties) {
     mImpl->on_vkGetPhysicalDeviceMemoryProperties(
+        context, physicalDevice, pMemoryProperties);
+}
+
+void ResourceTracker::on_vkGetPhysicalDeviceMemoryProperties2(
+    void* context,
+    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {
+    mImpl->on_vkGetPhysicalDeviceMemoryProperties2(
+        context, physicalDevice, pMemoryProperties);
+}
+
+void ResourceTracker::on_vkGetPhysicalDeviceMemoryProperties2KHR(
+    void* context,
+    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {
+    mImpl->on_vkGetPhysicalDeviceMemoryProperties2(
         context, physicalDevice, pMemoryProperties);
 }
 
