@@ -3891,27 +3891,27 @@ void* goldfish_vulkan_get_proc_address(const char* name){
 #ifdef VK_VERSION_1_1
     if (!strcmp(name, "vkEnumerateInstanceVersion"))
     {
-        return (void*)entry_vkEnumerateInstanceVersion;
+        return nullptr;
     }
     if (!strcmp(name, "vkBindBufferMemory2"))
     {
-        return (void*)entry_vkBindBufferMemory2;
+        return nullptr;
     }
     if (!strcmp(name, "vkBindImageMemory2"))
     {
-        return (void*)entry_vkBindImageMemory2;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetDeviceGroupPeerMemoryFeatures"))
     {
-        return (void*)entry_vkGetDeviceGroupPeerMemoryFeatures;
+        return nullptr;
     }
     if (!strcmp(name, "vkCmdSetDeviceMask"))
     {
-        return (void*)entry_vkCmdSetDeviceMask;
+        return nullptr;
     }
     if (!strcmp(name, "vkCmdDispatchBase"))
     {
-        return (void*)entry_vkCmdDispatchBase;
+        return nullptr;
     }
     if (!strcmp(name, "vkEnumeratePhysicalDeviceGroups"))
     {
@@ -3919,823 +3919,3939 @@ void* goldfish_vulkan_get_proc_address(const char* name){
     }
     if (!strcmp(name, "vkGetImageMemoryRequirements2"))
     {
-        return (void*)entry_vkGetImageMemoryRequirements2;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetBufferMemoryRequirements2"))
     {
-        return (void*)entry_vkGetBufferMemoryRequirements2;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetImageSparseMemoryRequirements2"))
     {
-        return (void*)entry_vkGetImageSparseMemoryRequirements2;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceFeatures2"))
     {
-        return (void*)entry_vkGetPhysicalDeviceFeatures2;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceProperties2"))
     {
-        return (void*)entry_vkGetPhysicalDeviceProperties2;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceFormatProperties2"))
     {
-        return (void*)entry_vkGetPhysicalDeviceFormatProperties2;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceImageFormatProperties2"))
     {
-        return (void*)entry_vkGetPhysicalDeviceImageFormatProperties2;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceQueueFamilyProperties2"))
     {
-        return (void*)entry_vkGetPhysicalDeviceQueueFamilyProperties2;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceMemoryProperties2"))
     {
-        return (void*)entry_vkGetPhysicalDeviceMemoryProperties2;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceSparseImageFormatProperties2"))
     {
-        return (void*)entry_vkGetPhysicalDeviceSparseImageFormatProperties2;
+        return nullptr;
     }
     if (!strcmp(name, "vkTrimCommandPool"))
     {
-        return (void*)entry_vkTrimCommandPool;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetDeviceQueue2"))
     {
-        return (void*)entry_vkGetDeviceQueue2;
+        return nullptr;
     }
     if (!strcmp(name, "vkCreateSamplerYcbcrConversion"))
     {
-        return (void*)entry_vkCreateSamplerYcbcrConversion;
+        return nullptr;
     }
     if (!strcmp(name, "vkDestroySamplerYcbcrConversion"))
     {
-        return (void*)entry_vkDestroySamplerYcbcrConversion;
+        return nullptr;
     }
     if (!strcmp(name, "vkCreateDescriptorUpdateTemplate"))
     {
-        return (void*)entry_vkCreateDescriptorUpdateTemplate;
+        return nullptr;
     }
     if (!strcmp(name, "vkDestroyDescriptorUpdateTemplate"))
     {
-        return (void*)entry_vkDestroyDescriptorUpdateTemplate;
+        return nullptr;
     }
     if (!strcmp(name, "vkUpdateDescriptorSetWithTemplate"))
     {
-        return (void*)entry_vkUpdateDescriptorSetWithTemplate;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceExternalBufferProperties"))
     {
-        return (void*)entry_vkGetPhysicalDeviceExternalBufferProperties;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceExternalFenceProperties"))
     {
-        return (void*)entry_vkGetPhysicalDeviceExternalFenceProperties;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceExternalSemaphoreProperties"))
     {
-        return (void*)entry_vkGetPhysicalDeviceExternalSemaphoreProperties;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetDescriptorSetLayoutSupport"))
     {
-        return (void*)entry_vkGetDescriptorSetLayoutSupport;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_surface
     if (!strcmp(name, "vkDestroySurfaceKHR"))
     {
-        return (void*)entry_vkDestroySurfaceKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceSurfaceSupportKHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceSurfaceSupportKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceSurfaceCapabilitiesKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceSurfaceFormatsKHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceSurfaceFormatsKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceSurfacePresentModesKHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceSurfacePresentModesKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_swapchain
     if (!strcmp(name, "vkCreateSwapchainKHR"))
     {
-        return (void*)entry_vkCreateSwapchainKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkDestroySwapchainKHR"))
     {
-        return (void*)entry_vkDestroySwapchainKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetSwapchainImagesKHR"))
     {
-        return (void*)entry_vkGetSwapchainImagesKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkAcquireNextImageKHR"))
     {
-        return (void*)entry_vkAcquireNextImageKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkQueuePresentKHR"))
     {
-        return (void*)entry_vkQueuePresentKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetDeviceGroupPresentCapabilitiesKHR"))
     {
-        return (void*)entry_vkGetDeviceGroupPresentCapabilitiesKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetDeviceGroupSurfacePresentModesKHR"))
     {
-        return (void*)entry_vkGetDeviceGroupSurfacePresentModesKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDevicePresentRectanglesKHR"))
     {
-        return (void*)entry_vkGetPhysicalDevicePresentRectanglesKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkAcquireNextImage2KHR"))
     {
-        return (void*)entry_vkAcquireNextImage2KHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_display
     if (!strcmp(name, "vkGetPhysicalDeviceDisplayPropertiesKHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceDisplayPropertiesKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceDisplayPlanePropertiesKHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceDisplayPlanePropertiesKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetDisplayPlaneSupportedDisplaysKHR"))
     {
-        return (void*)entry_vkGetDisplayPlaneSupportedDisplaysKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetDisplayModePropertiesKHR"))
     {
-        return (void*)entry_vkGetDisplayModePropertiesKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkCreateDisplayModeKHR"))
     {
-        return (void*)entry_vkCreateDisplayModeKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetDisplayPlaneCapabilitiesKHR"))
     {
-        return (void*)entry_vkGetDisplayPlaneCapabilitiesKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkCreateDisplayPlaneSurfaceKHR"))
     {
-        return (void*)entry_vkCreateDisplayPlaneSurfaceKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_display_swapchain
     if (!strcmp(name, "vkCreateSharedSwapchainsKHR"))
     {
-        return (void*)entry_vkCreateSharedSwapchainsKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_xlib_surface
     if (!strcmp(name, "vkCreateXlibSurfaceKHR"))
     {
-        return (void*)entry_vkCreateXlibSurfaceKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceXlibPresentationSupportKHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceXlibPresentationSupportKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_xcb_surface
     if (!strcmp(name, "vkCreateXcbSurfaceKHR"))
     {
-        return (void*)entry_vkCreateXcbSurfaceKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceXcbPresentationSupportKHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceXcbPresentationSupportKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_wayland_surface
     if (!strcmp(name, "vkCreateWaylandSurfaceKHR"))
     {
-        return (void*)entry_vkCreateWaylandSurfaceKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceWaylandPresentationSupportKHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceWaylandPresentationSupportKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_mir_surface
     if (!strcmp(name, "vkCreateMirSurfaceKHR"))
     {
-        return (void*)entry_vkCreateMirSurfaceKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceMirPresentationSupportKHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceMirPresentationSupportKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_android_surface
     if (!strcmp(name, "vkCreateAndroidSurfaceKHR"))
     {
-        return (void*)entry_vkCreateAndroidSurfaceKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_win32_surface
     if (!strcmp(name, "vkCreateWin32SurfaceKHR"))
     {
-        return (void*)entry_vkCreateWin32SurfaceKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceWin32PresentationSupportKHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceWin32PresentationSupportKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_get_physical_device_properties2
     if (!strcmp(name, "vkGetPhysicalDeviceFeatures2KHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceFeatures2KHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceProperties2KHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceProperties2KHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceFormatProperties2KHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceFormatProperties2KHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceImageFormatProperties2KHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceImageFormatProperties2KHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceQueueFamilyProperties2KHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceQueueFamilyProperties2KHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceMemoryProperties2KHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceMemoryProperties2KHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceSparseImageFormatProperties2KHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceSparseImageFormatProperties2KHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_device_group
     if (!strcmp(name, "vkGetDeviceGroupPeerMemoryFeaturesKHR"))
     {
-        return (void*)entry_vkGetDeviceGroupPeerMemoryFeaturesKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkCmdSetDeviceMaskKHR"))
     {
-        return (void*)entry_vkCmdSetDeviceMaskKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkCmdDispatchBaseKHR"))
     {
-        return (void*)entry_vkCmdDispatchBaseKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_maintenance1
     if (!strcmp(name, "vkTrimCommandPoolKHR"))
     {
-        return (void*)entry_vkTrimCommandPoolKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_device_group_creation
     if (!strcmp(name, "vkEnumeratePhysicalDeviceGroupsKHR"))
     {
-        return (void*)entry_vkEnumeratePhysicalDeviceGroupsKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_external_memory_capabilities
     if (!strcmp(name, "vkGetPhysicalDeviceExternalBufferPropertiesKHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceExternalBufferPropertiesKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_external_memory_win32
     if (!strcmp(name, "vkGetMemoryWin32HandleKHR"))
     {
-        return (void*)entry_vkGetMemoryWin32HandleKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetMemoryWin32HandlePropertiesKHR"))
     {
-        return (void*)entry_vkGetMemoryWin32HandlePropertiesKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_external_memory_fd
     if (!strcmp(name, "vkGetMemoryFdKHR"))
     {
-        return (void*)entry_vkGetMemoryFdKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetMemoryFdPropertiesKHR"))
     {
-        return (void*)entry_vkGetMemoryFdPropertiesKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_external_semaphore_capabilities
     if (!strcmp(name, "vkGetPhysicalDeviceExternalSemaphorePropertiesKHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_external_semaphore_win32
     if (!strcmp(name, "vkImportSemaphoreWin32HandleKHR"))
     {
-        return (void*)entry_vkImportSemaphoreWin32HandleKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetSemaphoreWin32HandleKHR"))
     {
-        return (void*)entry_vkGetSemaphoreWin32HandleKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_external_semaphore_fd
     if (!strcmp(name, "vkImportSemaphoreFdKHR"))
     {
-        return (void*)entry_vkImportSemaphoreFdKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetSemaphoreFdKHR"))
     {
-        return (void*)entry_vkGetSemaphoreFdKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_push_descriptor
     if (!strcmp(name, "vkCmdPushDescriptorSetKHR"))
     {
-        return (void*)entry_vkCmdPushDescriptorSetKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkCmdPushDescriptorSetWithTemplateKHR"))
     {
-        return (void*)entry_vkCmdPushDescriptorSetWithTemplateKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_descriptor_update_template
     if (!strcmp(name, "vkCreateDescriptorUpdateTemplateKHR"))
     {
-        return (void*)entry_vkCreateDescriptorUpdateTemplateKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkDestroyDescriptorUpdateTemplateKHR"))
     {
-        return (void*)entry_vkDestroyDescriptorUpdateTemplateKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkUpdateDescriptorSetWithTemplateKHR"))
     {
-        return (void*)entry_vkUpdateDescriptorSetWithTemplateKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_create_renderpass2
     if (!strcmp(name, "vkCreateRenderPass2KHR"))
     {
-        return (void*)entry_vkCreateRenderPass2KHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkCmdBeginRenderPass2KHR"))
     {
-        return (void*)entry_vkCmdBeginRenderPass2KHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkCmdNextSubpass2KHR"))
     {
-        return (void*)entry_vkCmdNextSubpass2KHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkCmdEndRenderPass2KHR"))
     {
-        return (void*)entry_vkCmdEndRenderPass2KHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_shared_presentable_image
     if (!strcmp(name, "vkGetSwapchainStatusKHR"))
     {
-        return (void*)entry_vkGetSwapchainStatusKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_external_fence_capabilities
     if (!strcmp(name, "vkGetPhysicalDeviceExternalFencePropertiesKHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceExternalFencePropertiesKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_external_fence_win32
     if (!strcmp(name, "vkImportFenceWin32HandleKHR"))
     {
-        return (void*)entry_vkImportFenceWin32HandleKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetFenceWin32HandleKHR"))
     {
-        return (void*)entry_vkGetFenceWin32HandleKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_external_fence_fd
     if (!strcmp(name, "vkImportFenceFdKHR"))
     {
-        return (void*)entry_vkImportFenceFdKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetFenceFdKHR"))
     {
-        return (void*)entry_vkGetFenceFdKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_get_surface_capabilities2
     if (!strcmp(name, "vkGetPhysicalDeviceSurfaceCapabilities2KHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceSurfaceCapabilities2KHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceSurfaceFormats2KHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceSurfaceFormats2KHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_get_display_properties2
     if (!strcmp(name, "vkGetPhysicalDeviceDisplayProperties2KHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceDisplayProperties2KHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceDisplayPlaneProperties2KHR"))
     {
-        return (void*)entry_vkGetPhysicalDeviceDisplayPlaneProperties2KHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetDisplayModeProperties2KHR"))
     {
-        return (void*)entry_vkGetDisplayModeProperties2KHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetDisplayPlaneCapabilities2KHR"))
     {
-        return (void*)entry_vkGetDisplayPlaneCapabilities2KHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_get_memory_requirements2
     if (!strcmp(name, "vkGetImageMemoryRequirements2KHR"))
     {
-        return (void*)entry_vkGetImageMemoryRequirements2KHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetBufferMemoryRequirements2KHR"))
     {
-        return (void*)entry_vkGetBufferMemoryRequirements2KHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetImageSparseMemoryRequirements2KHR"))
     {
-        return (void*)entry_vkGetImageSparseMemoryRequirements2KHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_sampler_ycbcr_conversion
     if (!strcmp(name, "vkCreateSamplerYcbcrConversionKHR"))
     {
-        return (void*)entry_vkCreateSamplerYcbcrConversionKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkDestroySamplerYcbcrConversionKHR"))
     {
-        return (void*)entry_vkDestroySamplerYcbcrConversionKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_bind_memory2
     if (!strcmp(name, "vkBindBufferMemory2KHR"))
     {
-        return (void*)entry_vkBindBufferMemory2KHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkBindImageMemory2KHR"))
     {
-        return (void*)entry_vkBindImageMemory2KHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_maintenance3
     if (!strcmp(name, "vkGetDescriptorSetLayoutSupportKHR"))
     {
-        return (void*)entry_vkGetDescriptorSetLayoutSupportKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_KHR_draw_indirect_count
     if (!strcmp(name, "vkCmdDrawIndirectCountKHR"))
     {
-        return (void*)entry_vkCmdDrawIndirectCountKHR;
+        return nullptr;
     }
     if (!strcmp(name, "vkCmdDrawIndexedIndirectCountKHR"))
     {
-        return (void*)entry_vkCmdDrawIndexedIndirectCountKHR;
+        return nullptr;
     }
 #endif
 #ifdef VK_ANDROID_native_buffer
     if (!strcmp(name, "vkGetSwapchainGrallocUsageANDROID"))
     {
-        return (void*)entry_vkGetSwapchainGrallocUsageANDROID;
+        return nullptr;
     }
     if (!strcmp(name, "vkAcquireImageANDROID"))
     {
-        return (void*)entry_vkAcquireImageANDROID;
+        return nullptr;
     }
     if (!strcmp(name, "vkQueueSignalReleaseImageANDROID"))
     {
-        return (void*)entry_vkQueueSignalReleaseImageANDROID;
+        return nullptr;
     }
 #endif
 #ifdef VK_EXT_debug_report
     if (!strcmp(name, "vkCreateDebugReportCallbackEXT"))
     {
-        return (void*)entry_vkCreateDebugReportCallbackEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkDestroyDebugReportCallbackEXT"))
     {
-        return (void*)entry_vkDestroyDebugReportCallbackEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkDebugReportMessageEXT"))
     {
-        return (void*)entry_vkDebugReportMessageEXT;
+        return nullptr;
     }
 #endif
 #ifdef VK_EXT_debug_marker
     if (!strcmp(name, "vkDebugMarkerSetObjectTagEXT"))
     {
-        return (void*)entry_vkDebugMarkerSetObjectTagEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkDebugMarkerSetObjectNameEXT"))
     {
-        return (void*)entry_vkDebugMarkerSetObjectNameEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkCmdDebugMarkerBeginEXT"))
     {
-        return (void*)entry_vkCmdDebugMarkerBeginEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkCmdDebugMarkerEndEXT"))
     {
-        return (void*)entry_vkCmdDebugMarkerEndEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkCmdDebugMarkerInsertEXT"))
     {
-        return (void*)entry_vkCmdDebugMarkerInsertEXT;
+        return nullptr;
     }
 #endif
 #ifdef VK_AMD_draw_indirect_count
     if (!strcmp(name, "vkCmdDrawIndirectCountAMD"))
     {
-        return (void*)entry_vkCmdDrawIndirectCountAMD;
+        return nullptr;
     }
     if (!strcmp(name, "vkCmdDrawIndexedIndirectCountAMD"))
     {
-        return (void*)entry_vkCmdDrawIndexedIndirectCountAMD;
+        return nullptr;
     }
 #endif
 #ifdef VK_AMD_shader_info
     if (!strcmp(name, "vkGetShaderInfoAMD"))
     {
-        return (void*)entry_vkGetShaderInfoAMD;
+        return nullptr;
     }
 #endif
 #ifdef VK_NV_external_memory_capabilities
     if (!strcmp(name, "vkGetPhysicalDeviceExternalImageFormatPropertiesNV"))
     {
-        return (void*)entry_vkGetPhysicalDeviceExternalImageFormatPropertiesNV;
+        return nullptr;
     }
 #endif
 #ifdef VK_NV_external_memory_win32
     if (!strcmp(name, "vkGetMemoryWin32HandleNV"))
     {
-        return (void*)entry_vkGetMemoryWin32HandleNV;
+        return nullptr;
     }
 #endif
 #ifdef VK_NN_vi_surface
     if (!strcmp(name, "vkCreateViSurfaceNN"))
     {
-        return (void*)entry_vkCreateViSurfaceNN;
+        return nullptr;
     }
 #endif
 #ifdef VK_EXT_conditional_rendering
     if (!strcmp(name, "vkCmdBeginConditionalRenderingEXT"))
     {
-        return (void*)entry_vkCmdBeginConditionalRenderingEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkCmdEndConditionalRenderingEXT"))
     {
-        return (void*)entry_vkCmdEndConditionalRenderingEXT;
+        return nullptr;
     }
 #endif
 #ifdef VK_NVX_device_generated_commands
     if (!strcmp(name, "vkCmdProcessCommandsNVX"))
     {
-        return (void*)entry_vkCmdProcessCommandsNVX;
+        return nullptr;
     }
     if (!strcmp(name, "vkCmdReserveSpaceForCommandsNVX"))
     {
-        return (void*)entry_vkCmdReserveSpaceForCommandsNVX;
+        return nullptr;
     }
     if (!strcmp(name, "vkCreateIndirectCommandsLayoutNVX"))
     {
-        return (void*)entry_vkCreateIndirectCommandsLayoutNVX;
+        return nullptr;
     }
     if (!strcmp(name, "vkDestroyIndirectCommandsLayoutNVX"))
     {
-        return (void*)entry_vkDestroyIndirectCommandsLayoutNVX;
+        return nullptr;
     }
     if (!strcmp(name, "vkCreateObjectTableNVX"))
     {
-        return (void*)entry_vkCreateObjectTableNVX;
+        return nullptr;
     }
     if (!strcmp(name, "vkDestroyObjectTableNVX"))
     {
-        return (void*)entry_vkDestroyObjectTableNVX;
+        return nullptr;
     }
     if (!strcmp(name, "vkRegisterObjectsNVX"))
     {
-        return (void*)entry_vkRegisterObjectsNVX;
+        return nullptr;
     }
     if (!strcmp(name, "vkUnregisterObjectsNVX"))
     {
-        return (void*)entry_vkUnregisterObjectsNVX;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX"))
     {
-        return (void*)entry_vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX;
+        return nullptr;
     }
 #endif
 #ifdef VK_NV_clip_space_w_scaling
     if (!strcmp(name, "vkCmdSetViewportWScalingNV"))
     {
-        return (void*)entry_vkCmdSetViewportWScalingNV;
+        return nullptr;
     }
 #endif
 #ifdef VK_EXT_direct_mode_display
     if (!strcmp(name, "vkReleaseDisplayEXT"))
     {
-        return (void*)entry_vkReleaseDisplayEXT;
+        return nullptr;
     }
 #endif
 #ifdef VK_EXT_acquire_xlib_display
     if (!strcmp(name, "vkAcquireXlibDisplayEXT"))
     {
-        return (void*)entry_vkAcquireXlibDisplayEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetRandROutputDisplayEXT"))
     {
-        return (void*)entry_vkGetRandROutputDisplayEXT;
+        return nullptr;
     }
 #endif
 #ifdef VK_EXT_display_surface_counter
     if (!strcmp(name, "vkGetPhysicalDeviceSurfaceCapabilities2EXT"))
     {
-        return (void*)entry_vkGetPhysicalDeviceSurfaceCapabilities2EXT;
+        return nullptr;
     }
 #endif
 #ifdef VK_EXT_display_control
     if (!strcmp(name, "vkDisplayPowerControlEXT"))
     {
-        return (void*)entry_vkDisplayPowerControlEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkRegisterDeviceEventEXT"))
     {
-        return (void*)entry_vkRegisterDeviceEventEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkRegisterDisplayEventEXT"))
     {
-        return (void*)entry_vkRegisterDisplayEventEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetSwapchainCounterEXT"))
     {
-        return (void*)entry_vkGetSwapchainCounterEXT;
+        return nullptr;
     }
 #endif
 #ifdef VK_GOOGLE_display_timing
     if (!strcmp(name, "vkGetRefreshCycleDurationGOOGLE"))
     {
-        return (void*)entry_vkGetRefreshCycleDurationGOOGLE;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPastPresentationTimingGOOGLE"))
     {
-        return (void*)entry_vkGetPastPresentationTimingGOOGLE;
+        return nullptr;
     }
 #endif
 #ifdef VK_EXT_discard_rectangles
     if (!strcmp(name, "vkCmdSetDiscardRectangleEXT"))
     {
-        return (void*)entry_vkCmdSetDiscardRectangleEXT;
+        return nullptr;
     }
 #endif
 #ifdef VK_EXT_hdr_metadata
     if (!strcmp(name, "vkSetHdrMetadataEXT"))
     {
-        return (void*)entry_vkSetHdrMetadataEXT;
+        return nullptr;
     }
 #endif
 #ifdef VK_MVK_ios_surface
     if (!strcmp(name, "vkCreateIOSSurfaceMVK"))
     {
-        return (void*)entry_vkCreateIOSSurfaceMVK;
+        return nullptr;
     }
 #endif
 #ifdef VK_MVK_macos_surface
     if (!strcmp(name, "vkCreateMacOSSurfaceMVK"))
     {
-        return (void*)entry_vkCreateMacOSSurfaceMVK;
+        return nullptr;
     }
 #endif
 #ifdef VK_EXT_debug_utils
     if (!strcmp(name, "vkSetDebugUtilsObjectNameEXT"))
     {
-        return (void*)entry_vkSetDebugUtilsObjectNameEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkSetDebugUtilsObjectTagEXT"))
     {
-        return (void*)entry_vkSetDebugUtilsObjectTagEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkQueueBeginDebugUtilsLabelEXT"))
     {
-        return (void*)entry_vkQueueBeginDebugUtilsLabelEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkQueueEndDebugUtilsLabelEXT"))
     {
-        return (void*)entry_vkQueueEndDebugUtilsLabelEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkQueueInsertDebugUtilsLabelEXT"))
     {
-        return (void*)entry_vkQueueInsertDebugUtilsLabelEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkCmdBeginDebugUtilsLabelEXT"))
     {
-        return (void*)entry_vkCmdBeginDebugUtilsLabelEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkCmdEndDebugUtilsLabelEXT"))
     {
-        return (void*)entry_vkCmdEndDebugUtilsLabelEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkCmdInsertDebugUtilsLabelEXT"))
     {
-        return (void*)entry_vkCmdInsertDebugUtilsLabelEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkCreateDebugUtilsMessengerEXT"))
     {
-        return (void*)entry_vkCreateDebugUtilsMessengerEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkDestroyDebugUtilsMessengerEXT"))
     {
-        return (void*)entry_vkDestroyDebugUtilsMessengerEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkSubmitDebugUtilsMessageEXT"))
     {
-        return (void*)entry_vkSubmitDebugUtilsMessageEXT;
+        return nullptr;
     }
 #endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
     if (!strcmp(name, "vkGetAndroidHardwareBufferPropertiesANDROID"))
     {
-        return (void*)entry_vkGetAndroidHardwareBufferPropertiesANDROID;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetMemoryAndroidHardwareBufferANDROID"))
     {
-        return (void*)entry_vkGetMemoryAndroidHardwareBufferANDROID;
+        return nullptr;
     }
 #endif
 #ifdef VK_EXT_sample_locations
     if (!strcmp(name, "vkCmdSetSampleLocationsEXT"))
     {
-        return (void*)entry_vkCmdSetSampleLocationsEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceMultisamplePropertiesEXT"))
     {
-        return (void*)entry_vkGetPhysicalDeviceMultisamplePropertiesEXT;
+        return nullptr;
     }
 #endif
 #ifdef VK_EXT_validation_cache
     if (!strcmp(name, "vkCreateValidationCacheEXT"))
     {
-        return (void*)entry_vkCreateValidationCacheEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkDestroyValidationCacheEXT"))
     {
-        return (void*)entry_vkDestroyValidationCacheEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkMergeValidationCachesEXT"))
     {
-        return (void*)entry_vkMergeValidationCachesEXT;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetValidationCacheDataEXT"))
     {
-        return (void*)entry_vkGetValidationCacheDataEXT;
+        return nullptr;
     }
 #endif
 #ifdef VK_EXT_external_memory_host
     if (!strcmp(name, "vkGetMemoryHostPointerPropertiesEXT"))
     {
-        return (void*)entry_vkGetMemoryHostPointerPropertiesEXT;
+        return nullptr;
     }
 #endif
 #ifdef VK_AMD_buffer_marker
     if (!strcmp(name, "vkCmdWriteBufferMarkerAMD"))
     {
-        return (void*)entry_vkCmdWriteBufferMarkerAMD;
+        return nullptr;
     }
 #endif
 #ifdef VK_NV_device_diagnostic_checkpoints
     if (!strcmp(name, "vkCmdSetCheckpointNV"))
     {
-        return (void*)entry_vkCmdSetCheckpointNV;
+        return nullptr;
     }
     if (!strcmp(name, "vkGetQueueCheckpointDataNV"))
     {
-        return (void*)entry_vkGetQueueCheckpointDataNV;
+        return nullptr;
     }
 #endif
 #ifdef VK_GOOGLE_address_space
     if (!strcmp(name, "vkMapMemoryIntoAddressSpaceGOOGLE"))
     {
-        return (void*)entry_vkMapMemoryIntoAddressSpaceGOOGLE;
+        return nullptr;
+    }
+#endif
+    return nullptr;
+}
+void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char* name){
+    auto resources = ResourceTracker::get();
+    bool has1_1OrHigher = resources->getApiVersionFromInstance(instance) >= VK_API_VERSION_1_1;
+#ifdef VK_VERSION_1_0
+    if (!strcmp(name, "vkCreateInstance"))
+    {
+        return (void*)entry_vkCreateInstance;
+    }
+    if (!strcmp(name, "vkDestroyInstance"))
+    {
+        return (void*)entry_vkDestroyInstance;
+    }
+    if (!strcmp(name, "vkEnumeratePhysicalDevices"))
+    {
+        return (void*)entry_vkEnumeratePhysicalDevices;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceFeatures"))
+    {
+        return (void*)entry_vkGetPhysicalDeviceFeatures;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceFormatProperties"))
+    {
+        return (void*)entry_vkGetPhysicalDeviceFormatProperties;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceImageFormatProperties"))
+    {
+        return (void*)entry_vkGetPhysicalDeviceImageFormatProperties;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceProperties"))
+    {
+        return (void*)entry_vkGetPhysicalDeviceProperties;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceQueueFamilyProperties"))
+    {
+        return (void*)entry_vkGetPhysicalDeviceQueueFamilyProperties;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceMemoryProperties"))
+    {
+        return (void*)entry_vkGetPhysicalDeviceMemoryProperties;
+    }
+    if (!strcmp(name, "vkGetInstanceProcAddr"))
+    {
+        return (void*)entry_vkGetInstanceProcAddr;
+    }
+    if (!strcmp(name, "vkGetDeviceProcAddr"))
+    {
+        return (void*)entry_vkGetDeviceProcAddr;
+    }
+    if (!strcmp(name, "vkCreateDevice"))
+    {
+        return (void*)entry_vkCreateDevice;
+    }
+    if (!strcmp(name, "vkDestroyDevice"))
+    {
+        return (void*)entry_vkDestroyDevice;
+    }
+    if (!strcmp(name, "vkEnumerateInstanceExtensionProperties"))
+    {
+        return (void*)entry_vkEnumerateInstanceExtensionProperties;
+    }
+    if (!strcmp(name, "vkEnumerateDeviceExtensionProperties"))
+    {
+        return (void*)entry_vkEnumerateDeviceExtensionProperties;
+    }
+    if (!strcmp(name, "vkEnumerateInstanceLayerProperties"))
+    {
+        return (void*)entry_vkEnumerateInstanceLayerProperties;
+    }
+    if (!strcmp(name, "vkEnumerateDeviceLayerProperties"))
+    {
+        return (void*)entry_vkEnumerateDeviceLayerProperties;
+    }
+    if (!strcmp(name, "vkGetDeviceQueue"))
+    {
+        return (void*)entry_vkGetDeviceQueue;
+    }
+    if (!strcmp(name, "vkQueueSubmit"))
+    {
+        return (void*)entry_vkQueueSubmit;
+    }
+    if (!strcmp(name, "vkQueueWaitIdle"))
+    {
+        return (void*)entry_vkQueueWaitIdle;
+    }
+    if (!strcmp(name, "vkDeviceWaitIdle"))
+    {
+        return (void*)entry_vkDeviceWaitIdle;
+    }
+    if (!strcmp(name, "vkAllocateMemory"))
+    {
+        return (void*)entry_vkAllocateMemory;
+    }
+    if (!strcmp(name, "vkFreeMemory"))
+    {
+        return (void*)entry_vkFreeMemory;
+    }
+    if (!strcmp(name, "vkMapMemory"))
+    {
+        return (void*)entry_vkMapMemory;
+    }
+    if (!strcmp(name, "vkUnmapMemory"))
+    {
+        return (void*)entry_vkUnmapMemory;
+    }
+    if (!strcmp(name, "vkFlushMappedMemoryRanges"))
+    {
+        return (void*)entry_vkFlushMappedMemoryRanges;
+    }
+    if (!strcmp(name, "vkInvalidateMappedMemoryRanges"))
+    {
+        return (void*)entry_vkInvalidateMappedMemoryRanges;
+    }
+    if (!strcmp(name, "vkGetDeviceMemoryCommitment"))
+    {
+        return (void*)entry_vkGetDeviceMemoryCommitment;
+    }
+    if (!strcmp(name, "vkBindBufferMemory"))
+    {
+        return (void*)entry_vkBindBufferMemory;
+    }
+    if (!strcmp(name, "vkBindImageMemory"))
+    {
+        return (void*)entry_vkBindImageMemory;
+    }
+    if (!strcmp(name, "vkGetBufferMemoryRequirements"))
+    {
+        return (void*)entry_vkGetBufferMemoryRequirements;
+    }
+    if (!strcmp(name, "vkGetImageMemoryRequirements"))
+    {
+        return (void*)entry_vkGetImageMemoryRequirements;
+    }
+    if (!strcmp(name, "vkGetImageSparseMemoryRequirements"))
+    {
+        return (void*)entry_vkGetImageSparseMemoryRequirements;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSparseImageFormatProperties"))
+    {
+        return (void*)entry_vkGetPhysicalDeviceSparseImageFormatProperties;
+    }
+    if (!strcmp(name, "vkQueueBindSparse"))
+    {
+        return (void*)entry_vkQueueBindSparse;
+    }
+    if (!strcmp(name, "vkCreateFence"))
+    {
+        return (void*)entry_vkCreateFence;
+    }
+    if (!strcmp(name, "vkDestroyFence"))
+    {
+        return (void*)entry_vkDestroyFence;
+    }
+    if (!strcmp(name, "vkResetFences"))
+    {
+        return (void*)entry_vkResetFences;
+    }
+    if (!strcmp(name, "vkGetFenceStatus"))
+    {
+        return (void*)entry_vkGetFenceStatus;
+    }
+    if (!strcmp(name, "vkWaitForFences"))
+    {
+        return (void*)entry_vkWaitForFences;
+    }
+    if (!strcmp(name, "vkCreateSemaphore"))
+    {
+        return (void*)entry_vkCreateSemaphore;
+    }
+    if (!strcmp(name, "vkDestroySemaphore"))
+    {
+        return (void*)entry_vkDestroySemaphore;
+    }
+    if (!strcmp(name, "vkCreateEvent"))
+    {
+        return (void*)entry_vkCreateEvent;
+    }
+    if (!strcmp(name, "vkDestroyEvent"))
+    {
+        return (void*)entry_vkDestroyEvent;
+    }
+    if (!strcmp(name, "vkGetEventStatus"))
+    {
+        return (void*)entry_vkGetEventStatus;
+    }
+    if (!strcmp(name, "vkSetEvent"))
+    {
+        return (void*)entry_vkSetEvent;
+    }
+    if (!strcmp(name, "vkResetEvent"))
+    {
+        return (void*)entry_vkResetEvent;
+    }
+    if (!strcmp(name, "vkCreateQueryPool"))
+    {
+        return (void*)entry_vkCreateQueryPool;
+    }
+    if (!strcmp(name, "vkDestroyQueryPool"))
+    {
+        return (void*)entry_vkDestroyQueryPool;
+    }
+    if (!strcmp(name, "vkGetQueryPoolResults"))
+    {
+        return (void*)entry_vkGetQueryPoolResults;
+    }
+    if (!strcmp(name, "vkCreateBuffer"))
+    {
+        return (void*)entry_vkCreateBuffer;
+    }
+    if (!strcmp(name, "vkDestroyBuffer"))
+    {
+        return (void*)entry_vkDestroyBuffer;
+    }
+    if (!strcmp(name, "vkCreateBufferView"))
+    {
+        return (void*)entry_vkCreateBufferView;
+    }
+    if (!strcmp(name, "vkDestroyBufferView"))
+    {
+        return (void*)entry_vkDestroyBufferView;
+    }
+    if (!strcmp(name, "vkCreateImage"))
+    {
+        return (void*)entry_vkCreateImage;
+    }
+    if (!strcmp(name, "vkDestroyImage"))
+    {
+        return (void*)entry_vkDestroyImage;
+    }
+    if (!strcmp(name, "vkGetImageSubresourceLayout"))
+    {
+        return (void*)entry_vkGetImageSubresourceLayout;
+    }
+    if (!strcmp(name, "vkCreateImageView"))
+    {
+        return (void*)entry_vkCreateImageView;
+    }
+    if (!strcmp(name, "vkDestroyImageView"))
+    {
+        return (void*)entry_vkDestroyImageView;
+    }
+    if (!strcmp(name, "vkCreateShaderModule"))
+    {
+        return (void*)entry_vkCreateShaderModule;
+    }
+    if (!strcmp(name, "vkDestroyShaderModule"))
+    {
+        return (void*)entry_vkDestroyShaderModule;
+    }
+    if (!strcmp(name, "vkCreatePipelineCache"))
+    {
+        return (void*)entry_vkCreatePipelineCache;
+    }
+    if (!strcmp(name, "vkDestroyPipelineCache"))
+    {
+        return (void*)entry_vkDestroyPipelineCache;
+    }
+    if (!strcmp(name, "vkGetPipelineCacheData"))
+    {
+        return (void*)entry_vkGetPipelineCacheData;
+    }
+    if (!strcmp(name, "vkMergePipelineCaches"))
+    {
+        return (void*)entry_vkMergePipelineCaches;
+    }
+    if (!strcmp(name, "vkCreateGraphicsPipelines"))
+    {
+        return (void*)entry_vkCreateGraphicsPipelines;
+    }
+    if (!strcmp(name, "vkCreateComputePipelines"))
+    {
+        return (void*)entry_vkCreateComputePipelines;
+    }
+    if (!strcmp(name, "vkDestroyPipeline"))
+    {
+        return (void*)entry_vkDestroyPipeline;
+    }
+    if (!strcmp(name, "vkCreatePipelineLayout"))
+    {
+        return (void*)entry_vkCreatePipelineLayout;
+    }
+    if (!strcmp(name, "vkDestroyPipelineLayout"))
+    {
+        return (void*)entry_vkDestroyPipelineLayout;
+    }
+    if (!strcmp(name, "vkCreateSampler"))
+    {
+        return (void*)entry_vkCreateSampler;
+    }
+    if (!strcmp(name, "vkDestroySampler"))
+    {
+        return (void*)entry_vkDestroySampler;
+    }
+    if (!strcmp(name, "vkCreateDescriptorSetLayout"))
+    {
+        return (void*)entry_vkCreateDescriptorSetLayout;
+    }
+    if (!strcmp(name, "vkDestroyDescriptorSetLayout"))
+    {
+        return (void*)entry_vkDestroyDescriptorSetLayout;
+    }
+    if (!strcmp(name, "vkCreateDescriptorPool"))
+    {
+        return (void*)entry_vkCreateDescriptorPool;
+    }
+    if (!strcmp(name, "vkDestroyDescriptorPool"))
+    {
+        return (void*)entry_vkDestroyDescriptorPool;
+    }
+    if (!strcmp(name, "vkResetDescriptorPool"))
+    {
+        return (void*)entry_vkResetDescriptorPool;
+    }
+    if (!strcmp(name, "vkAllocateDescriptorSets"))
+    {
+        return (void*)entry_vkAllocateDescriptorSets;
+    }
+    if (!strcmp(name, "vkFreeDescriptorSets"))
+    {
+        return (void*)entry_vkFreeDescriptorSets;
+    }
+    if (!strcmp(name, "vkUpdateDescriptorSets"))
+    {
+        return (void*)entry_vkUpdateDescriptorSets;
+    }
+    if (!strcmp(name, "vkCreateFramebuffer"))
+    {
+        return (void*)entry_vkCreateFramebuffer;
+    }
+    if (!strcmp(name, "vkDestroyFramebuffer"))
+    {
+        return (void*)entry_vkDestroyFramebuffer;
+    }
+    if (!strcmp(name, "vkCreateRenderPass"))
+    {
+        return (void*)entry_vkCreateRenderPass;
+    }
+    if (!strcmp(name, "vkDestroyRenderPass"))
+    {
+        return (void*)entry_vkDestroyRenderPass;
+    }
+    if (!strcmp(name, "vkGetRenderAreaGranularity"))
+    {
+        return (void*)entry_vkGetRenderAreaGranularity;
+    }
+    if (!strcmp(name, "vkCreateCommandPool"))
+    {
+        return (void*)entry_vkCreateCommandPool;
+    }
+    if (!strcmp(name, "vkDestroyCommandPool"))
+    {
+        return (void*)entry_vkDestroyCommandPool;
+    }
+    if (!strcmp(name, "vkResetCommandPool"))
+    {
+        return (void*)entry_vkResetCommandPool;
+    }
+    if (!strcmp(name, "vkAllocateCommandBuffers"))
+    {
+        return (void*)entry_vkAllocateCommandBuffers;
+    }
+    if (!strcmp(name, "vkFreeCommandBuffers"))
+    {
+        return (void*)entry_vkFreeCommandBuffers;
+    }
+    if (!strcmp(name, "vkBeginCommandBuffer"))
+    {
+        return (void*)entry_vkBeginCommandBuffer;
+    }
+    if (!strcmp(name, "vkEndCommandBuffer"))
+    {
+        return (void*)entry_vkEndCommandBuffer;
+    }
+    if (!strcmp(name, "vkResetCommandBuffer"))
+    {
+        return (void*)entry_vkResetCommandBuffer;
+    }
+    if (!strcmp(name, "vkCmdBindPipeline"))
+    {
+        return (void*)entry_vkCmdBindPipeline;
+    }
+    if (!strcmp(name, "vkCmdSetViewport"))
+    {
+        return (void*)entry_vkCmdSetViewport;
+    }
+    if (!strcmp(name, "vkCmdSetScissor"))
+    {
+        return (void*)entry_vkCmdSetScissor;
+    }
+    if (!strcmp(name, "vkCmdSetLineWidth"))
+    {
+        return (void*)entry_vkCmdSetLineWidth;
+    }
+    if (!strcmp(name, "vkCmdSetDepthBias"))
+    {
+        return (void*)entry_vkCmdSetDepthBias;
+    }
+    if (!strcmp(name, "vkCmdSetBlendConstants"))
+    {
+        return (void*)entry_vkCmdSetBlendConstants;
+    }
+    if (!strcmp(name, "vkCmdSetDepthBounds"))
+    {
+        return (void*)entry_vkCmdSetDepthBounds;
+    }
+    if (!strcmp(name, "vkCmdSetStencilCompareMask"))
+    {
+        return (void*)entry_vkCmdSetStencilCompareMask;
+    }
+    if (!strcmp(name, "vkCmdSetStencilWriteMask"))
+    {
+        return (void*)entry_vkCmdSetStencilWriteMask;
+    }
+    if (!strcmp(name, "vkCmdSetStencilReference"))
+    {
+        return (void*)entry_vkCmdSetStencilReference;
+    }
+    if (!strcmp(name, "vkCmdBindDescriptorSets"))
+    {
+        return (void*)entry_vkCmdBindDescriptorSets;
+    }
+    if (!strcmp(name, "vkCmdBindIndexBuffer"))
+    {
+        return (void*)entry_vkCmdBindIndexBuffer;
+    }
+    if (!strcmp(name, "vkCmdBindVertexBuffers"))
+    {
+        return (void*)entry_vkCmdBindVertexBuffers;
+    }
+    if (!strcmp(name, "vkCmdDraw"))
+    {
+        return (void*)entry_vkCmdDraw;
+    }
+    if (!strcmp(name, "vkCmdDrawIndexed"))
+    {
+        return (void*)entry_vkCmdDrawIndexed;
+    }
+    if (!strcmp(name, "vkCmdDrawIndirect"))
+    {
+        return (void*)entry_vkCmdDrawIndirect;
+    }
+    if (!strcmp(name, "vkCmdDrawIndexedIndirect"))
+    {
+        return (void*)entry_vkCmdDrawIndexedIndirect;
+    }
+    if (!strcmp(name, "vkCmdDispatch"))
+    {
+        return (void*)entry_vkCmdDispatch;
+    }
+    if (!strcmp(name, "vkCmdDispatchIndirect"))
+    {
+        return (void*)entry_vkCmdDispatchIndirect;
+    }
+    if (!strcmp(name, "vkCmdCopyBuffer"))
+    {
+        return (void*)entry_vkCmdCopyBuffer;
+    }
+    if (!strcmp(name, "vkCmdCopyImage"))
+    {
+        return (void*)entry_vkCmdCopyImage;
+    }
+    if (!strcmp(name, "vkCmdBlitImage"))
+    {
+        return (void*)entry_vkCmdBlitImage;
+    }
+    if (!strcmp(name, "vkCmdCopyBufferToImage"))
+    {
+        return (void*)entry_vkCmdCopyBufferToImage;
+    }
+    if (!strcmp(name, "vkCmdCopyImageToBuffer"))
+    {
+        return (void*)entry_vkCmdCopyImageToBuffer;
+    }
+    if (!strcmp(name, "vkCmdUpdateBuffer"))
+    {
+        return (void*)entry_vkCmdUpdateBuffer;
+    }
+    if (!strcmp(name, "vkCmdFillBuffer"))
+    {
+        return (void*)entry_vkCmdFillBuffer;
+    }
+    if (!strcmp(name, "vkCmdClearColorImage"))
+    {
+        return (void*)entry_vkCmdClearColorImage;
+    }
+    if (!strcmp(name, "vkCmdClearDepthStencilImage"))
+    {
+        return (void*)entry_vkCmdClearDepthStencilImage;
+    }
+    if (!strcmp(name, "vkCmdClearAttachments"))
+    {
+        return (void*)entry_vkCmdClearAttachments;
+    }
+    if (!strcmp(name, "vkCmdResolveImage"))
+    {
+        return (void*)entry_vkCmdResolveImage;
+    }
+    if (!strcmp(name, "vkCmdSetEvent"))
+    {
+        return (void*)entry_vkCmdSetEvent;
+    }
+    if (!strcmp(name, "vkCmdResetEvent"))
+    {
+        return (void*)entry_vkCmdResetEvent;
+    }
+    if (!strcmp(name, "vkCmdWaitEvents"))
+    {
+        return (void*)entry_vkCmdWaitEvents;
+    }
+    if (!strcmp(name, "vkCmdPipelineBarrier"))
+    {
+        return (void*)entry_vkCmdPipelineBarrier;
+    }
+    if (!strcmp(name, "vkCmdBeginQuery"))
+    {
+        return (void*)entry_vkCmdBeginQuery;
+    }
+    if (!strcmp(name, "vkCmdEndQuery"))
+    {
+        return (void*)entry_vkCmdEndQuery;
+    }
+    if (!strcmp(name, "vkCmdResetQueryPool"))
+    {
+        return (void*)entry_vkCmdResetQueryPool;
+    }
+    if (!strcmp(name, "vkCmdWriteTimestamp"))
+    {
+        return (void*)entry_vkCmdWriteTimestamp;
+    }
+    if (!strcmp(name, "vkCmdCopyQueryPoolResults"))
+    {
+        return (void*)entry_vkCmdCopyQueryPoolResults;
+    }
+    if (!strcmp(name, "vkCmdPushConstants"))
+    {
+        return (void*)entry_vkCmdPushConstants;
+    }
+    if (!strcmp(name, "vkCmdBeginRenderPass"))
+    {
+        return (void*)entry_vkCmdBeginRenderPass;
+    }
+    if (!strcmp(name, "vkCmdNextSubpass"))
+    {
+        return (void*)entry_vkCmdNextSubpass;
+    }
+    if (!strcmp(name, "vkCmdEndRenderPass"))
+    {
+        return (void*)entry_vkCmdEndRenderPass;
+    }
+    if (!strcmp(name, "vkCmdExecuteCommands"))
+    {
+        return (void*)entry_vkCmdExecuteCommands;
+    }
+#endif
+#ifdef VK_VERSION_1_1
+    if (!strcmp(name, "vkEnumerateInstanceVersion"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkEnumerateInstanceVersion : nullptr;
+    }
+    if (!strcmp(name, "vkBindBufferMemory2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkBindBufferMemory2 : nullptr;
+    }
+    if (!strcmp(name, "vkBindImageMemory2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkBindImageMemory2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceGroupPeerMemoryFeatures"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetDeviceGroupPeerMemoryFeatures : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDeviceMask"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkCmdSetDeviceMask : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDispatchBase"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkCmdDispatchBase : nullptr;
+    }
+    if (!strcmp(name, "vkEnumeratePhysicalDeviceGroups"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetImageMemoryRequirements2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetImageMemoryRequirements2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetBufferMemoryRequirements2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetBufferMemoryRequirements2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetImageSparseMemoryRequirements2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetImageSparseMemoryRequirements2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceFeatures2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceFeatures2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceProperties2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceProperties2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceFormatProperties2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceFormatProperties2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceImageFormatProperties2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceImageFormatProperties2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceQueueFamilyProperties2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceQueueFamilyProperties2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceMemoryProperties2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceMemoryProperties2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSparseImageFormatProperties2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceSparseImageFormatProperties2 : nullptr;
+    }
+    if (!strcmp(name, "vkTrimCommandPool"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkTrimCommandPool : nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceQueue2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetDeviceQueue2 : nullptr;
+    }
+    if (!strcmp(name, "vkCreateSamplerYcbcrConversion"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkCreateSamplerYcbcrConversion : nullptr;
+    }
+    if (!strcmp(name, "vkDestroySamplerYcbcrConversion"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkDestroySamplerYcbcrConversion : nullptr;
+    }
+    if (!strcmp(name, "vkCreateDescriptorUpdateTemplate"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkCreateDescriptorUpdateTemplate : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyDescriptorUpdateTemplate"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkDestroyDescriptorUpdateTemplate : nullptr;
+    }
+    if (!strcmp(name, "vkUpdateDescriptorSetWithTemplate"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkUpdateDescriptorSetWithTemplate : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceExternalBufferProperties"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceExternalBufferProperties : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceExternalFenceProperties"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceExternalFenceProperties : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceExternalSemaphoreProperties"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceExternalSemaphoreProperties : nullptr;
+    }
+    if (!strcmp(name, "vkGetDescriptorSetLayoutSupport"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetDescriptorSetLayoutSupport : nullptr;
+    }
+#endif
+#ifdef VK_KHR_surface
+    if (!strcmp(name, "vkDestroySurfaceKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkDestroySurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceSupportKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceSupportKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceCapabilitiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceFormatsKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceFormatsKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfacePresentModesKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfacePresentModesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_swapchain
+    if (!strcmp(name, "vkCreateSwapchainKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkCreateSwapchainKHR : nullptr;
+    }
+    if (!strcmp(name, "vkDestroySwapchainKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkDestroySwapchainKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetSwapchainImagesKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkGetSwapchainImagesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkAcquireNextImageKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkAcquireNextImageKHR : nullptr;
+    }
+    if (!strcmp(name, "vkQueuePresentKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkQueuePresentKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceGroupPresentCapabilitiesKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkGetDeviceGroupPresentCapabilitiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceGroupSurfacePresentModesKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkGetDeviceGroupSurfacePresentModesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDevicePresentRectanglesKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkGetPhysicalDevicePresentRectanglesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkAcquireNextImage2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkAcquireNextImage2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_display
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayPropertiesKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceDisplayPropertiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayPlanePropertiesKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceDisplayPlanePropertiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayPlaneSupportedDisplaysKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetDisplayPlaneSupportedDisplaysKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayModePropertiesKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetDisplayModePropertiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCreateDisplayModeKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkCreateDisplayModeKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayPlaneCapabilitiesKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetDisplayPlaneCapabilitiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCreateDisplayPlaneSurfaceKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkCreateDisplayPlaneSurfaceKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_display_swapchain
+    if (!strcmp(name, "vkCreateSharedSwapchainsKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_display_swapchain");
+        return hasExt ? (void*)entry_vkCreateSharedSwapchainsKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_xlib_surface
+    if (!strcmp(name, "vkCreateXlibSurfaceKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_xlib_surface");
+        return hasExt ? (void*)entry_vkCreateXlibSurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceXlibPresentationSupportKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_xlib_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceXlibPresentationSupportKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_xcb_surface
+    if (!strcmp(name, "vkCreateXcbSurfaceKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_xcb_surface");
+        return hasExt ? (void*)entry_vkCreateXcbSurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceXcbPresentationSupportKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_xcb_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceXcbPresentationSupportKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_wayland_surface
+    if (!strcmp(name, "vkCreateWaylandSurfaceKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_wayland_surface");
+        return hasExt ? (void*)entry_vkCreateWaylandSurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceWaylandPresentationSupportKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_wayland_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceWaylandPresentationSupportKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_mir_surface
+    if (!strcmp(name, "vkCreateMirSurfaceKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_mir_surface");
+        return hasExt ? (void*)entry_vkCreateMirSurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceMirPresentationSupportKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_mir_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceMirPresentationSupportKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_android_surface
+    if (!strcmp(name, "vkCreateAndroidSurfaceKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_android_surface");
+        return hasExt ? (void*)entry_vkCreateAndroidSurfaceKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_win32_surface
+    if (!strcmp(name, "vkCreateWin32SurfaceKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_win32_surface");
+        return hasExt ? (void*)entry_vkCreateWin32SurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceWin32PresentationSupportKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_win32_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceWin32PresentationSupportKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_get_physical_device_properties2
+    if (!strcmp(name, "vkGetPhysicalDeviceFeatures2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_physical_device_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceFeatures2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceProperties2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_physical_device_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceFormatProperties2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_physical_device_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceFormatProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceImageFormatProperties2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_physical_device_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceImageFormatProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceQueueFamilyProperties2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_physical_device_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceQueueFamilyProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceMemoryProperties2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_physical_device_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceMemoryProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSparseImageFormatProperties2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_physical_device_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSparseImageFormatProperties2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_device_group
+    if (!strcmp(name, "vkGetDeviceGroupPeerMemoryFeaturesKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_device_group");
+        return hasExt ? (void*)entry_vkGetDeviceGroupPeerMemoryFeaturesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDeviceMaskKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_device_group");
+        return hasExt ? (void*)entry_vkCmdSetDeviceMaskKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDispatchBaseKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_device_group");
+        return hasExt ? (void*)entry_vkCmdDispatchBaseKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_maintenance1
+    if (!strcmp(name, "vkTrimCommandPoolKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_maintenance1");
+        return hasExt ? (void*)entry_vkTrimCommandPoolKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_device_group_creation
+    if (!strcmp(name, "vkEnumeratePhysicalDeviceGroupsKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_device_group_creation");
+        return hasExt ? (void*)entry_vkEnumeratePhysicalDeviceGroupsKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_memory_capabilities
+    if (!strcmp(name, "vkGetPhysicalDeviceExternalBufferPropertiesKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_memory_capabilities");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceExternalBufferPropertiesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_memory_win32
+    if (!strcmp(name, "vkGetMemoryWin32HandleKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_memory_win32");
+        return hasExt ? (void*)entry_vkGetMemoryWin32HandleKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetMemoryWin32HandlePropertiesKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_memory_win32");
+        return hasExt ? (void*)entry_vkGetMemoryWin32HandlePropertiesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_memory_fd
+    if (!strcmp(name, "vkGetMemoryFdKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_memory_fd");
+        return hasExt ? (void*)entry_vkGetMemoryFdKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetMemoryFdPropertiesKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_memory_fd");
+        return hasExt ? (void*)entry_vkGetMemoryFdPropertiesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_semaphore_capabilities
+    if (!strcmp(name, "vkGetPhysicalDeviceExternalSemaphorePropertiesKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_semaphore_capabilities");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_semaphore_win32
+    if (!strcmp(name, "vkImportSemaphoreWin32HandleKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_semaphore_win32");
+        return hasExt ? (void*)entry_vkImportSemaphoreWin32HandleKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetSemaphoreWin32HandleKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_semaphore_win32");
+        return hasExt ? (void*)entry_vkGetSemaphoreWin32HandleKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_semaphore_fd
+    if (!strcmp(name, "vkImportSemaphoreFdKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_semaphore_fd");
+        return hasExt ? (void*)entry_vkImportSemaphoreFdKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetSemaphoreFdKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_semaphore_fd");
+        return hasExt ? (void*)entry_vkGetSemaphoreFdKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_push_descriptor
+    if (!strcmp(name, "vkCmdPushDescriptorSetKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_push_descriptor");
+        return hasExt ? (void*)entry_vkCmdPushDescriptorSetKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdPushDescriptorSetWithTemplateKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_push_descriptor");
+        return hasExt ? (void*)entry_vkCmdPushDescriptorSetWithTemplateKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_descriptor_update_template
+    if (!strcmp(name, "vkCreateDescriptorUpdateTemplateKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_descriptor_update_template");
+        return hasExt ? (void*)entry_vkCreateDescriptorUpdateTemplateKHR : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyDescriptorUpdateTemplateKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_descriptor_update_template");
+        return hasExt ? (void*)entry_vkDestroyDescriptorUpdateTemplateKHR : nullptr;
+    }
+    if (!strcmp(name, "vkUpdateDescriptorSetWithTemplateKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_descriptor_update_template");
+        return hasExt ? (void*)entry_vkUpdateDescriptorSetWithTemplateKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_create_renderpass2
+    if (!strcmp(name, "vkCreateRenderPass2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_create_renderpass2");
+        return hasExt ? (void*)entry_vkCreateRenderPass2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdBeginRenderPass2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_create_renderpass2");
+        return hasExt ? (void*)entry_vkCmdBeginRenderPass2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdNextSubpass2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_create_renderpass2");
+        return hasExt ? (void*)entry_vkCmdNextSubpass2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndRenderPass2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_create_renderpass2");
+        return hasExt ? (void*)entry_vkCmdEndRenderPass2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_shared_presentable_image
+    if (!strcmp(name, "vkGetSwapchainStatusKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_shared_presentable_image");
+        return hasExt ? (void*)entry_vkGetSwapchainStatusKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_fence_capabilities
+    if (!strcmp(name, "vkGetPhysicalDeviceExternalFencePropertiesKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_fence_capabilities");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceExternalFencePropertiesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_fence_win32
+    if (!strcmp(name, "vkImportFenceWin32HandleKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_fence_win32");
+        return hasExt ? (void*)entry_vkImportFenceWin32HandleKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetFenceWin32HandleKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_fence_win32");
+        return hasExt ? (void*)entry_vkGetFenceWin32HandleKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_fence_fd
+    if (!strcmp(name, "vkImportFenceFdKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_fence_fd");
+        return hasExt ? (void*)entry_vkImportFenceFdKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetFenceFdKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_fence_fd");
+        return hasExt ? (void*)entry_vkGetFenceFdKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_get_surface_capabilities2
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceCapabilities2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_surface_capabilities2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceCapabilities2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceFormats2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_surface_capabilities2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceFormats2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_get_display_properties2
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayProperties2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_display_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceDisplayProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayPlaneProperties2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_display_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceDisplayPlaneProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayModeProperties2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_display_properties2");
+        return hasExt ? (void*)entry_vkGetDisplayModeProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayPlaneCapabilities2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_display_properties2");
+        return hasExt ? (void*)entry_vkGetDisplayPlaneCapabilities2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_get_memory_requirements2
+    if (!strcmp(name, "vkGetImageMemoryRequirements2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_memory_requirements2");
+        return hasExt ? (void*)entry_vkGetImageMemoryRequirements2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetBufferMemoryRequirements2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_memory_requirements2");
+        return hasExt ? (void*)entry_vkGetBufferMemoryRequirements2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetImageSparseMemoryRequirements2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_memory_requirements2");
+        return hasExt ? (void*)entry_vkGetImageSparseMemoryRequirements2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_sampler_ycbcr_conversion
+    if (!strcmp(name, "vkCreateSamplerYcbcrConversionKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_sampler_ycbcr_conversion");
+        return hasExt ? (void*)entry_vkCreateSamplerYcbcrConversionKHR : nullptr;
+    }
+    if (!strcmp(name, "vkDestroySamplerYcbcrConversionKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_sampler_ycbcr_conversion");
+        return hasExt ? (void*)entry_vkDestroySamplerYcbcrConversionKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_bind_memory2
+    if (!strcmp(name, "vkBindBufferMemory2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_bind_memory2");
+        return hasExt ? (void*)entry_vkBindBufferMemory2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkBindImageMemory2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_bind_memory2");
+        return hasExt ? (void*)entry_vkBindImageMemory2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_maintenance3
+    if (!strcmp(name, "vkGetDescriptorSetLayoutSupportKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_maintenance3");
+        return hasExt ? (void*)entry_vkGetDescriptorSetLayoutSupportKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_draw_indirect_count
+    if (!strcmp(name, "vkCmdDrawIndirectCountKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_draw_indirect_count");
+        return hasExt ? (void*)entry_vkCmdDrawIndirectCountKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawIndexedIndirectCountKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_draw_indirect_count");
+        return hasExt ? (void*)entry_vkCmdDrawIndexedIndirectCountKHR : nullptr;
+    }
+#endif
+#ifdef VK_ANDROID_native_buffer
+    if (!strcmp(name, "vkGetSwapchainGrallocUsageANDROID"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_ANDROID_native_buffer");
+        return hasExt ? (void*)entry_vkGetSwapchainGrallocUsageANDROID : nullptr;
+    }
+    if (!strcmp(name, "vkAcquireImageANDROID"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_ANDROID_native_buffer");
+        return hasExt ? (void*)entry_vkAcquireImageANDROID : nullptr;
+    }
+    if (!strcmp(name, "vkQueueSignalReleaseImageANDROID"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_ANDROID_native_buffer");
+        return hasExt ? (void*)entry_vkQueueSignalReleaseImageANDROID : nullptr;
+    }
+#endif
+#ifdef VK_EXT_debug_report
+    if (!strcmp(name, "vkCreateDebugReportCallbackEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_report");
+        return hasExt ? (void*)entry_vkCreateDebugReportCallbackEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyDebugReportCallbackEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_report");
+        return hasExt ? (void*)entry_vkDestroyDebugReportCallbackEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDebugReportMessageEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_report");
+        return hasExt ? (void*)entry_vkDebugReportMessageEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_debug_marker
+    if (!strcmp(name, "vkDebugMarkerSetObjectTagEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_marker");
+        return hasExt ? (void*)entry_vkDebugMarkerSetObjectTagEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDebugMarkerSetObjectNameEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_marker");
+        return hasExt ? (void*)entry_vkDebugMarkerSetObjectNameEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDebugMarkerBeginEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_marker");
+        return hasExt ? (void*)entry_vkCmdDebugMarkerBeginEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDebugMarkerEndEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_marker");
+        return hasExt ? (void*)entry_vkCmdDebugMarkerEndEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDebugMarkerInsertEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_marker");
+        return hasExt ? (void*)entry_vkCmdDebugMarkerInsertEXT : nullptr;
+    }
+#endif
+#ifdef VK_AMD_draw_indirect_count
+    if (!strcmp(name, "vkCmdDrawIndirectCountAMD"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_AMD_draw_indirect_count");
+        return hasExt ? (void*)entry_vkCmdDrawIndirectCountAMD : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawIndexedIndirectCountAMD"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_AMD_draw_indirect_count");
+        return hasExt ? (void*)entry_vkCmdDrawIndexedIndirectCountAMD : nullptr;
+    }
+#endif
+#ifdef VK_AMD_shader_info
+    if (!strcmp(name, "vkGetShaderInfoAMD"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_AMD_shader_info");
+        return hasExt ? (void*)entry_vkGetShaderInfoAMD : nullptr;
+    }
+#endif
+#ifdef VK_NV_external_memory_capabilities
+    if (!strcmp(name, "vkGetPhysicalDeviceExternalImageFormatPropertiesNV"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_NV_external_memory_capabilities");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceExternalImageFormatPropertiesNV : nullptr;
+    }
+#endif
+#ifdef VK_NV_external_memory_win32
+    if (!strcmp(name, "vkGetMemoryWin32HandleNV"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_NV_external_memory_win32");
+        return hasExt ? (void*)entry_vkGetMemoryWin32HandleNV : nullptr;
+    }
+#endif
+#ifdef VK_NN_vi_surface
+    if (!strcmp(name, "vkCreateViSurfaceNN"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_NN_vi_surface");
+        return hasExt ? (void*)entry_vkCreateViSurfaceNN : nullptr;
+    }
+#endif
+#ifdef VK_EXT_conditional_rendering
+    if (!strcmp(name, "vkCmdBeginConditionalRenderingEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_conditional_rendering");
+        return hasExt ? (void*)entry_vkCmdBeginConditionalRenderingEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndConditionalRenderingEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_conditional_rendering");
+        return hasExt ? (void*)entry_vkCmdEndConditionalRenderingEXT : nullptr;
+    }
+#endif
+#ifdef VK_NVX_device_generated_commands
+    if (!strcmp(name, "vkCmdProcessCommandsNVX"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_NVX_device_generated_commands");
+        return hasExt ? (void*)entry_vkCmdProcessCommandsNVX : nullptr;
+    }
+    if (!strcmp(name, "vkCmdReserveSpaceForCommandsNVX"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_NVX_device_generated_commands");
+        return hasExt ? (void*)entry_vkCmdReserveSpaceForCommandsNVX : nullptr;
+    }
+    if (!strcmp(name, "vkCreateIndirectCommandsLayoutNVX"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_NVX_device_generated_commands");
+        return hasExt ? (void*)entry_vkCreateIndirectCommandsLayoutNVX : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyIndirectCommandsLayoutNVX"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_NVX_device_generated_commands");
+        return hasExt ? (void*)entry_vkDestroyIndirectCommandsLayoutNVX : nullptr;
+    }
+    if (!strcmp(name, "vkCreateObjectTableNVX"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_NVX_device_generated_commands");
+        return hasExt ? (void*)entry_vkCreateObjectTableNVX : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyObjectTableNVX"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_NVX_device_generated_commands");
+        return hasExt ? (void*)entry_vkDestroyObjectTableNVX : nullptr;
+    }
+    if (!strcmp(name, "vkRegisterObjectsNVX"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_NVX_device_generated_commands");
+        return hasExt ? (void*)entry_vkRegisterObjectsNVX : nullptr;
+    }
+    if (!strcmp(name, "vkUnregisterObjectsNVX"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_NVX_device_generated_commands");
+        return hasExt ? (void*)entry_vkUnregisterObjectsNVX : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_NVX_device_generated_commands");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX : nullptr;
+    }
+#endif
+#ifdef VK_NV_clip_space_w_scaling
+    if (!strcmp(name, "vkCmdSetViewportWScalingNV"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_NV_clip_space_w_scaling");
+        return hasExt ? (void*)entry_vkCmdSetViewportWScalingNV : nullptr;
+    }
+#endif
+#ifdef VK_EXT_direct_mode_display
+    if (!strcmp(name, "vkReleaseDisplayEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_direct_mode_display");
+        return hasExt ? (void*)entry_vkReleaseDisplayEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_acquire_xlib_display
+    if (!strcmp(name, "vkAcquireXlibDisplayEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_acquire_xlib_display");
+        return hasExt ? (void*)entry_vkAcquireXlibDisplayEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetRandROutputDisplayEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_acquire_xlib_display");
+        return hasExt ? (void*)entry_vkGetRandROutputDisplayEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_display_surface_counter
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceCapabilities2EXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_display_surface_counter");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceCapabilities2EXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_display_control
+    if (!strcmp(name, "vkDisplayPowerControlEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_display_control");
+        return hasExt ? (void*)entry_vkDisplayPowerControlEXT : nullptr;
+    }
+    if (!strcmp(name, "vkRegisterDeviceEventEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_display_control");
+        return hasExt ? (void*)entry_vkRegisterDeviceEventEXT : nullptr;
+    }
+    if (!strcmp(name, "vkRegisterDisplayEventEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_display_control");
+        return hasExt ? (void*)entry_vkRegisterDisplayEventEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetSwapchainCounterEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_display_control");
+        return hasExt ? (void*)entry_vkGetSwapchainCounterEXT : nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_display_timing
+    if (!strcmp(name, "vkGetRefreshCycleDurationGOOGLE"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_display_timing");
+        return hasExt ? (void*)entry_vkGetRefreshCycleDurationGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkGetPastPresentationTimingGOOGLE"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_display_timing");
+        return hasExt ? (void*)entry_vkGetPastPresentationTimingGOOGLE : nullptr;
+    }
+#endif
+#ifdef VK_EXT_discard_rectangles
+    if (!strcmp(name, "vkCmdSetDiscardRectangleEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_discard_rectangles");
+        return hasExt ? (void*)entry_vkCmdSetDiscardRectangleEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_hdr_metadata
+    if (!strcmp(name, "vkSetHdrMetadataEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_hdr_metadata");
+        return hasExt ? (void*)entry_vkSetHdrMetadataEXT : nullptr;
+    }
+#endif
+#ifdef VK_MVK_ios_surface
+    if (!strcmp(name, "vkCreateIOSSurfaceMVK"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_MVK_ios_surface");
+        return hasExt ? (void*)entry_vkCreateIOSSurfaceMVK : nullptr;
+    }
+#endif
+#ifdef VK_MVK_macos_surface
+    if (!strcmp(name, "vkCreateMacOSSurfaceMVK"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_MVK_macos_surface");
+        return hasExt ? (void*)entry_vkCreateMacOSSurfaceMVK : nullptr;
+    }
+#endif
+#ifdef VK_EXT_debug_utils
+    if (!strcmp(name, "vkSetDebugUtilsObjectNameEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkSetDebugUtilsObjectNameEXT : nullptr;
+    }
+    if (!strcmp(name, "vkSetDebugUtilsObjectTagEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkSetDebugUtilsObjectTagEXT : nullptr;
+    }
+    if (!strcmp(name, "vkQueueBeginDebugUtilsLabelEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkQueueBeginDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkQueueEndDebugUtilsLabelEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkQueueEndDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkQueueInsertDebugUtilsLabelEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkQueueInsertDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdBeginDebugUtilsLabelEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkCmdBeginDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndDebugUtilsLabelEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkCmdEndDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdInsertDebugUtilsLabelEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkCmdInsertDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCreateDebugUtilsMessengerEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkCreateDebugUtilsMessengerEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyDebugUtilsMessengerEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkDestroyDebugUtilsMessengerEXT : nullptr;
+    }
+    if (!strcmp(name, "vkSubmitDebugUtilsMessageEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkSubmitDebugUtilsMessageEXT : nullptr;
+    }
+#endif
+#ifdef VK_ANDROID_external_memory_android_hardware_buffer
+    if (!strcmp(name, "vkGetAndroidHardwareBufferPropertiesANDROID"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_ANDROID_external_memory_android_hardware_buffer");
+        return hasExt ? (void*)entry_vkGetAndroidHardwareBufferPropertiesANDROID : nullptr;
+    }
+    if (!strcmp(name, "vkGetMemoryAndroidHardwareBufferANDROID"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_ANDROID_external_memory_android_hardware_buffer");
+        return hasExt ? (void*)entry_vkGetMemoryAndroidHardwareBufferANDROID : nullptr;
+    }
+#endif
+#ifdef VK_EXT_sample_locations
+    if (!strcmp(name, "vkCmdSetSampleLocationsEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_sample_locations");
+        return hasExt ? (void*)entry_vkCmdSetSampleLocationsEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceMultisamplePropertiesEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_sample_locations");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceMultisamplePropertiesEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_validation_cache
+    if (!strcmp(name, "vkCreateValidationCacheEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_validation_cache");
+        return hasExt ? (void*)entry_vkCreateValidationCacheEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyValidationCacheEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_validation_cache");
+        return hasExt ? (void*)entry_vkDestroyValidationCacheEXT : nullptr;
+    }
+    if (!strcmp(name, "vkMergeValidationCachesEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_validation_cache");
+        return hasExt ? (void*)entry_vkMergeValidationCachesEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetValidationCacheDataEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_validation_cache");
+        return hasExt ? (void*)entry_vkGetValidationCacheDataEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_external_memory_host
+    if (!strcmp(name, "vkGetMemoryHostPointerPropertiesEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_external_memory_host");
+        return hasExt ? (void*)entry_vkGetMemoryHostPointerPropertiesEXT : nullptr;
+    }
+#endif
+#ifdef VK_AMD_buffer_marker
+    if (!strcmp(name, "vkCmdWriteBufferMarkerAMD"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_AMD_buffer_marker");
+        return hasExt ? (void*)entry_vkCmdWriteBufferMarkerAMD : nullptr;
+    }
+#endif
+#ifdef VK_NV_device_diagnostic_checkpoints
+    if (!strcmp(name, "vkCmdSetCheckpointNV"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_NV_device_diagnostic_checkpoints");
+        return hasExt ? (void*)entry_vkCmdSetCheckpointNV : nullptr;
+    }
+    if (!strcmp(name, "vkGetQueueCheckpointDataNV"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_NV_device_diagnostic_checkpoints");
+        return hasExt ? (void*)entry_vkGetQueueCheckpointDataNV : nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_address_space
+    if (!strcmp(name, "vkMapMemoryIntoAddressSpaceGOOGLE"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_address_space");
+        return hasExt ? (void*)entry_vkMapMemoryIntoAddressSpaceGOOGLE : nullptr;
+    }
+#endif
+    return nullptr;
+}
+void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name){
+    auto resources = ResourceTracker::get();
+    bool has1_1OrHigher = resources->getApiVersionFromDevice(device) >= VK_API_VERSION_1_1;
+#ifdef VK_VERSION_1_0
+    if (!strcmp(name, "vkCreateInstance"))
+    {
+        return (void*)entry_vkCreateInstance;
+    }
+    if (!strcmp(name, "vkDestroyInstance"))
+    {
+        return (void*)entry_vkDestroyInstance;
+    }
+    if (!strcmp(name, "vkEnumeratePhysicalDevices"))
+    {
+        return (void*)entry_vkEnumeratePhysicalDevices;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceFeatures"))
+    {
+        return (void*)entry_vkGetPhysicalDeviceFeatures;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceFormatProperties"))
+    {
+        return (void*)entry_vkGetPhysicalDeviceFormatProperties;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceImageFormatProperties"))
+    {
+        return (void*)entry_vkGetPhysicalDeviceImageFormatProperties;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceProperties"))
+    {
+        return (void*)entry_vkGetPhysicalDeviceProperties;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceQueueFamilyProperties"))
+    {
+        return (void*)entry_vkGetPhysicalDeviceQueueFamilyProperties;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceMemoryProperties"))
+    {
+        return (void*)entry_vkGetPhysicalDeviceMemoryProperties;
+    }
+    if (!strcmp(name, "vkGetInstanceProcAddr"))
+    {
+        return (void*)entry_vkGetInstanceProcAddr;
+    }
+    if (!strcmp(name, "vkGetDeviceProcAddr"))
+    {
+        return (void*)entry_vkGetDeviceProcAddr;
+    }
+    if (!strcmp(name, "vkCreateDevice"))
+    {
+        return (void*)entry_vkCreateDevice;
+    }
+    if (!strcmp(name, "vkDestroyDevice"))
+    {
+        return (void*)entry_vkDestroyDevice;
+    }
+    if (!strcmp(name, "vkEnumerateInstanceExtensionProperties"))
+    {
+        return (void*)entry_vkEnumerateInstanceExtensionProperties;
+    }
+    if (!strcmp(name, "vkEnumerateDeviceExtensionProperties"))
+    {
+        return (void*)entry_vkEnumerateDeviceExtensionProperties;
+    }
+    if (!strcmp(name, "vkEnumerateInstanceLayerProperties"))
+    {
+        return (void*)entry_vkEnumerateInstanceLayerProperties;
+    }
+    if (!strcmp(name, "vkEnumerateDeviceLayerProperties"))
+    {
+        return (void*)entry_vkEnumerateDeviceLayerProperties;
+    }
+    if (!strcmp(name, "vkGetDeviceQueue"))
+    {
+        return (void*)entry_vkGetDeviceQueue;
+    }
+    if (!strcmp(name, "vkQueueSubmit"))
+    {
+        return (void*)entry_vkQueueSubmit;
+    }
+    if (!strcmp(name, "vkQueueWaitIdle"))
+    {
+        return (void*)entry_vkQueueWaitIdle;
+    }
+    if (!strcmp(name, "vkDeviceWaitIdle"))
+    {
+        return (void*)entry_vkDeviceWaitIdle;
+    }
+    if (!strcmp(name, "vkAllocateMemory"))
+    {
+        return (void*)entry_vkAllocateMemory;
+    }
+    if (!strcmp(name, "vkFreeMemory"))
+    {
+        return (void*)entry_vkFreeMemory;
+    }
+    if (!strcmp(name, "vkMapMemory"))
+    {
+        return (void*)entry_vkMapMemory;
+    }
+    if (!strcmp(name, "vkUnmapMemory"))
+    {
+        return (void*)entry_vkUnmapMemory;
+    }
+    if (!strcmp(name, "vkFlushMappedMemoryRanges"))
+    {
+        return (void*)entry_vkFlushMappedMemoryRanges;
+    }
+    if (!strcmp(name, "vkInvalidateMappedMemoryRanges"))
+    {
+        return (void*)entry_vkInvalidateMappedMemoryRanges;
+    }
+    if (!strcmp(name, "vkGetDeviceMemoryCommitment"))
+    {
+        return (void*)entry_vkGetDeviceMemoryCommitment;
+    }
+    if (!strcmp(name, "vkBindBufferMemory"))
+    {
+        return (void*)entry_vkBindBufferMemory;
+    }
+    if (!strcmp(name, "vkBindImageMemory"))
+    {
+        return (void*)entry_vkBindImageMemory;
+    }
+    if (!strcmp(name, "vkGetBufferMemoryRequirements"))
+    {
+        return (void*)entry_vkGetBufferMemoryRequirements;
+    }
+    if (!strcmp(name, "vkGetImageMemoryRequirements"))
+    {
+        return (void*)entry_vkGetImageMemoryRequirements;
+    }
+    if (!strcmp(name, "vkGetImageSparseMemoryRequirements"))
+    {
+        return (void*)entry_vkGetImageSparseMemoryRequirements;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSparseImageFormatProperties"))
+    {
+        return (void*)entry_vkGetPhysicalDeviceSparseImageFormatProperties;
+    }
+    if (!strcmp(name, "vkQueueBindSparse"))
+    {
+        return (void*)entry_vkQueueBindSparse;
+    }
+    if (!strcmp(name, "vkCreateFence"))
+    {
+        return (void*)entry_vkCreateFence;
+    }
+    if (!strcmp(name, "vkDestroyFence"))
+    {
+        return (void*)entry_vkDestroyFence;
+    }
+    if (!strcmp(name, "vkResetFences"))
+    {
+        return (void*)entry_vkResetFences;
+    }
+    if (!strcmp(name, "vkGetFenceStatus"))
+    {
+        return (void*)entry_vkGetFenceStatus;
+    }
+    if (!strcmp(name, "vkWaitForFences"))
+    {
+        return (void*)entry_vkWaitForFences;
+    }
+    if (!strcmp(name, "vkCreateSemaphore"))
+    {
+        return (void*)entry_vkCreateSemaphore;
+    }
+    if (!strcmp(name, "vkDestroySemaphore"))
+    {
+        return (void*)entry_vkDestroySemaphore;
+    }
+    if (!strcmp(name, "vkCreateEvent"))
+    {
+        return (void*)entry_vkCreateEvent;
+    }
+    if (!strcmp(name, "vkDestroyEvent"))
+    {
+        return (void*)entry_vkDestroyEvent;
+    }
+    if (!strcmp(name, "vkGetEventStatus"))
+    {
+        return (void*)entry_vkGetEventStatus;
+    }
+    if (!strcmp(name, "vkSetEvent"))
+    {
+        return (void*)entry_vkSetEvent;
+    }
+    if (!strcmp(name, "vkResetEvent"))
+    {
+        return (void*)entry_vkResetEvent;
+    }
+    if (!strcmp(name, "vkCreateQueryPool"))
+    {
+        return (void*)entry_vkCreateQueryPool;
+    }
+    if (!strcmp(name, "vkDestroyQueryPool"))
+    {
+        return (void*)entry_vkDestroyQueryPool;
+    }
+    if (!strcmp(name, "vkGetQueryPoolResults"))
+    {
+        return (void*)entry_vkGetQueryPoolResults;
+    }
+    if (!strcmp(name, "vkCreateBuffer"))
+    {
+        return (void*)entry_vkCreateBuffer;
+    }
+    if (!strcmp(name, "vkDestroyBuffer"))
+    {
+        return (void*)entry_vkDestroyBuffer;
+    }
+    if (!strcmp(name, "vkCreateBufferView"))
+    {
+        return (void*)entry_vkCreateBufferView;
+    }
+    if (!strcmp(name, "vkDestroyBufferView"))
+    {
+        return (void*)entry_vkDestroyBufferView;
+    }
+    if (!strcmp(name, "vkCreateImage"))
+    {
+        return (void*)entry_vkCreateImage;
+    }
+    if (!strcmp(name, "vkDestroyImage"))
+    {
+        return (void*)entry_vkDestroyImage;
+    }
+    if (!strcmp(name, "vkGetImageSubresourceLayout"))
+    {
+        return (void*)entry_vkGetImageSubresourceLayout;
+    }
+    if (!strcmp(name, "vkCreateImageView"))
+    {
+        return (void*)entry_vkCreateImageView;
+    }
+    if (!strcmp(name, "vkDestroyImageView"))
+    {
+        return (void*)entry_vkDestroyImageView;
+    }
+    if (!strcmp(name, "vkCreateShaderModule"))
+    {
+        return (void*)entry_vkCreateShaderModule;
+    }
+    if (!strcmp(name, "vkDestroyShaderModule"))
+    {
+        return (void*)entry_vkDestroyShaderModule;
+    }
+    if (!strcmp(name, "vkCreatePipelineCache"))
+    {
+        return (void*)entry_vkCreatePipelineCache;
+    }
+    if (!strcmp(name, "vkDestroyPipelineCache"))
+    {
+        return (void*)entry_vkDestroyPipelineCache;
+    }
+    if (!strcmp(name, "vkGetPipelineCacheData"))
+    {
+        return (void*)entry_vkGetPipelineCacheData;
+    }
+    if (!strcmp(name, "vkMergePipelineCaches"))
+    {
+        return (void*)entry_vkMergePipelineCaches;
+    }
+    if (!strcmp(name, "vkCreateGraphicsPipelines"))
+    {
+        return (void*)entry_vkCreateGraphicsPipelines;
+    }
+    if (!strcmp(name, "vkCreateComputePipelines"))
+    {
+        return (void*)entry_vkCreateComputePipelines;
+    }
+    if (!strcmp(name, "vkDestroyPipeline"))
+    {
+        return (void*)entry_vkDestroyPipeline;
+    }
+    if (!strcmp(name, "vkCreatePipelineLayout"))
+    {
+        return (void*)entry_vkCreatePipelineLayout;
+    }
+    if (!strcmp(name, "vkDestroyPipelineLayout"))
+    {
+        return (void*)entry_vkDestroyPipelineLayout;
+    }
+    if (!strcmp(name, "vkCreateSampler"))
+    {
+        return (void*)entry_vkCreateSampler;
+    }
+    if (!strcmp(name, "vkDestroySampler"))
+    {
+        return (void*)entry_vkDestroySampler;
+    }
+    if (!strcmp(name, "vkCreateDescriptorSetLayout"))
+    {
+        return (void*)entry_vkCreateDescriptorSetLayout;
+    }
+    if (!strcmp(name, "vkDestroyDescriptorSetLayout"))
+    {
+        return (void*)entry_vkDestroyDescriptorSetLayout;
+    }
+    if (!strcmp(name, "vkCreateDescriptorPool"))
+    {
+        return (void*)entry_vkCreateDescriptorPool;
+    }
+    if (!strcmp(name, "vkDestroyDescriptorPool"))
+    {
+        return (void*)entry_vkDestroyDescriptorPool;
+    }
+    if (!strcmp(name, "vkResetDescriptorPool"))
+    {
+        return (void*)entry_vkResetDescriptorPool;
+    }
+    if (!strcmp(name, "vkAllocateDescriptorSets"))
+    {
+        return (void*)entry_vkAllocateDescriptorSets;
+    }
+    if (!strcmp(name, "vkFreeDescriptorSets"))
+    {
+        return (void*)entry_vkFreeDescriptorSets;
+    }
+    if (!strcmp(name, "vkUpdateDescriptorSets"))
+    {
+        return (void*)entry_vkUpdateDescriptorSets;
+    }
+    if (!strcmp(name, "vkCreateFramebuffer"))
+    {
+        return (void*)entry_vkCreateFramebuffer;
+    }
+    if (!strcmp(name, "vkDestroyFramebuffer"))
+    {
+        return (void*)entry_vkDestroyFramebuffer;
+    }
+    if (!strcmp(name, "vkCreateRenderPass"))
+    {
+        return (void*)entry_vkCreateRenderPass;
+    }
+    if (!strcmp(name, "vkDestroyRenderPass"))
+    {
+        return (void*)entry_vkDestroyRenderPass;
+    }
+    if (!strcmp(name, "vkGetRenderAreaGranularity"))
+    {
+        return (void*)entry_vkGetRenderAreaGranularity;
+    }
+    if (!strcmp(name, "vkCreateCommandPool"))
+    {
+        return (void*)entry_vkCreateCommandPool;
+    }
+    if (!strcmp(name, "vkDestroyCommandPool"))
+    {
+        return (void*)entry_vkDestroyCommandPool;
+    }
+    if (!strcmp(name, "vkResetCommandPool"))
+    {
+        return (void*)entry_vkResetCommandPool;
+    }
+    if (!strcmp(name, "vkAllocateCommandBuffers"))
+    {
+        return (void*)entry_vkAllocateCommandBuffers;
+    }
+    if (!strcmp(name, "vkFreeCommandBuffers"))
+    {
+        return (void*)entry_vkFreeCommandBuffers;
+    }
+    if (!strcmp(name, "vkBeginCommandBuffer"))
+    {
+        return (void*)entry_vkBeginCommandBuffer;
+    }
+    if (!strcmp(name, "vkEndCommandBuffer"))
+    {
+        return (void*)entry_vkEndCommandBuffer;
+    }
+    if (!strcmp(name, "vkResetCommandBuffer"))
+    {
+        return (void*)entry_vkResetCommandBuffer;
+    }
+    if (!strcmp(name, "vkCmdBindPipeline"))
+    {
+        return (void*)entry_vkCmdBindPipeline;
+    }
+    if (!strcmp(name, "vkCmdSetViewport"))
+    {
+        return (void*)entry_vkCmdSetViewport;
+    }
+    if (!strcmp(name, "vkCmdSetScissor"))
+    {
+        return (void*)entry_vkCmdSetScissor;
+    }
+    if (!strcmp(name, "vkCmdSetLineWidth"))
+    {
+        return (void*)entry_vkCmdSetLineWidth;
+    }
+    if (!strcmp(name, "vkCmdSetDepthBias"))
+    {
+        return (void*)entry_vkCmdSetDepthBias;
+    }
+    if (!strcmp(name, "vkCmdSetBlendConstants"))
+    {
+        return (void*)entry_vkCmdSetBlendConstants;
+    }
+    if (!strcmp(name, "vkCmdSetDepthBounds"))
+    {
+        return (void*)entry_vkCmdSetDepthBounds;
+    }
+    if (!strcmp(name, "vkCmdSetStencilCompareMask"))
+    {
+        return (void*)entry_vkCmdSetStencilCompareMask;
+    }
+    if (!strcmp(name, "vkCmdSetStencilWriteMask"))
+    {
+        return (void*)entry_vkCmdSetStencilWriteMask;
+    }
+    if (!strcmp(name, "vkCmdSetStencilReference"))
+    {
+        return (void*)entry_vkCmdSetStencilReference;
+    }
+    if (!strcmp(name, "vkCmdBindDescriptorSets"))
+    {
+        return (void*)entry_vkCmdBindDescriptorSets;
+    }
+    if (!strcmp(name, "vkCmdBindIndexBuffer"))
+    {
+        return (void*)entry_vkCmdBindIndexBuffer;
+    }
+    if (!strcmp(name, "vkCmdBindVertexBuffers"))
+    {
+        return (void*)entry_vkCmdBindVertexBuffers;
+    }
+    if (!strcmp(name, "vkCmdDraw"))
+    {
+        return (void*)entry_vkCmdDraw;
+    }
+    if (!strcmp(name, "vkCmdDrawIndexed"))
+    {
+        return (void*)entry_vkCmdDrawIndexed;
+    }
+    if (!strcmp(name, "vkCmdDrawIndirect"))
+    {
+        return (void*)entry_vkCmdDrawIndirect;
+    }
+    if (!strcmp(name, "vkCmdDrawIndexedIndirect"))
+    {
+        return (void*)entry_vkCmdDrawIndexedIndirect;
+    }
+    if (!strcmp(name, "vkCmdDispatch"))
+    {
+        return (void*)entry_vkCmdDispatch;
+    }
+    if (!strcmp(name, "vkCmdDispatchIndirect"))
+    {
+        return (void*)entry_vkCmdDispatchIndirect;
+    }
+    if (!strcmp(name, "vkCmdCopyBuffer"))
+    {
+        return (void*)entry_vkCmdCopyBuffer;
+    }
+    if (!strcmp(name, "vkCmdCopyImage"))
+    {
+        return (void*)entry_vkCmdCopyImage;
+    }
+    if (!strcmp(name, "vkCmdBlitImage"))
+    {
+        return (void*)entry_vkCmdBlitImage;
+    }
+    if (!strcmp(name, "vkCmdCopyBufferToImage"))
+    {
+        return (void*)entry_vkCmdCopyBufferToImage;
+    }
+    if (!strcmp(name, "vkCmdCopyImageToBuffer"))
+    {
+        return (void*)entry_vkCmdCopyImageToBuffer;
+    }
+    if (!strcmp(name, "vkCmdUpdateBuffer"))
+    {
+        return (void*)entry_vkCmdUpdateBuffer;
+    }
+    if (!strcmp(name, "vkCmdFillBuffer"))
+    {
+        return (void*)entry_vkCmdFillBuffer;
+    }
+    if (!strcmp(name, "vkCmdClearColorImage"))
+    {
+        return (void*)entry_vkCmdClearColorImage;
+    }
+    if (!strcmp(name, "vkCmdClearDepthStencilImage"))
+    {
+        return (void*)entry_vkCmdClearDepthStencilImage;
+    }
+    if (!strcmp(name, "vkCmdClearAttachments"))
+    {
+        return (void*)entry_vkCmdClearAttachments;
+    }
+    if (!strcmp(name, "vkCmdResolveImage"))
+    {
+        return (void*)entry_vkCmdResolveImage;
+    }
+    if (!strcmp(name, "vkCmdSetEvent"))
+    {
+        return (void*)entry_vkCmdSetEvent;
+    }
+    if (!strcmp(name, "vkCmdResetEvent"))
+    {
+        return (void*)entry_vkCmdResetEvent;
+    }
+    if (!strcmp(name, "vkCmdWaitEvents"))
+    {
+        return (void*)entry_vkCmdWaitEvents;
+    }
+    if (!strcmp(name, "vkCmdPipelineBarrier"))
+    {
+        return (void*)entry_vkCmdPipelineBarrier;
+    }
+    if (!strcmp(name, "vkCmdBeginQuery"))
+    {
+        return (void*)entry_vkCmdBeginQuery;
+    }
+    if (!strcmp(name, "vkCmdEndQuery"))
+    {
+        return (void*)entry_vkCmdEndQuery;
+    }
+    if (!strcmp(name, "vkCmdResetQueryPool"))
+    {
+        return (void*)entry_vkCmdResetQueryPool;
+    }
+    if (!strcmp(name, "vkCmdWriteTimestamp"))
+    {
+        return (void*)entry_vkCmdWriteTimestamp;
+    }
+    if (!strcmp(name, "vkCmdCopyQueryPoolResults"))
+    {
+        return (void*)entry_vkCmdCopyQueryPoolResults;
+    }
+    if (!strcmp(name, "vkCmdPushConstants"))
+    {
+        return (void*)entry_vkCmdPushConstants;
+    }
+    if (!strcmp(name, "vkCmdBeginRenderPass"))
+    {
+        return (void*)entry_vkCmdBeginRenderPass;
+    }
+    if (!strcmp(name, "vkCmdNextSubpass"))
+    {
+        return (void*)entry_vkCmdNextSubpass;
+    }
+    if (!strcmp(name, "vkCmdEndRenderPass"))
+    {
+        return (void*)entry_vkCmdEndRenderPass;
+    }
+    if (!strcmp(name, "vkCmdExecuteCommands"))
+    {
+        return (void*)entry_vkCmdExecuteCommands;
+    }
+#endif
+#ifdef VK_VERSION_1_1
+    if (!strcmp(name, "vkEnumerateInstanceVersion"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkEnumerateInstanceVersion : nullptr;
+    }
+    if (!strcmp(name, "vkBindBufferMemory2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkBindBufferMemory2 : nullptr;
+    }
+    if (!strcmp(name, "vkBindImageMemory2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkBindImageMemory2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceGroupPeerMemoryFeatures"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetDeviceGroupPeerMemoryFeatures : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDeviceMask"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkCmdSetDeviceMask : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDispatchBase"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkCmdDispatchBase : nullptr;
+    }
+    if (!strcmp(name, "vkEnumeratePhysicalDeviceGroups"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetImageMemoryRequirements2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetImageMemoryRequirements2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetBufferMemoryRequirements2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetBufferMemoryRequirements2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetImageSparseMemoryRequirements2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetImageSparseMemoryRequirements2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceFeatures2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceFeatures2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceProperties2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceProperties2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceFormatProperties2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceFormatProperties2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceImageFormatProperties2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceImageFormatProperties2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceQueueFamilyProperties2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceQueueFamilyProperties2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceMemoryProperties2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceMemoryProperties2 : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSparseImageFormatProperties2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceSparseImageFormatProperties2 : nullptr;
+    }
+    if (!strcmp(name, "vkTrimCommandPool"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkTrimCommandPool : nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceQueue2"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetDeviceQueue2 : nullptr;
+    }
+    if (!strcmp(name, "vkCreateSamplerYcbcrConversion"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkCreateSamplerYcbcrConversion : nullptr;
+    }
+    if (!strcmp(name, "vkDestroySamplerYcbcrConversion"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkDestroySamplerYcbcrConversion : nullptr;
+    }
+    if (!strcmp(name, "vkCreateDescriptorUpdateTemplate"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkCreateDescriptorUpdateTemplate : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyDescriptorUpdateTemplate"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkDestroyDescriptorUpdateTemplate : nullptr;
+    }
+    if (!strcmp(name, "vkUpdateDescriptorSetWithTemplate"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkUpdateDescriptorSetWithTemplate : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceExternalBufferProperties"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceExternalBufferProperties : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceExternalFenceProperties"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceExternalFenceProperties : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceExternalSemaphoreProperties"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetPhysicalDeviceExternalSemaphoreProperties : nullptr;
+    }
+    if (!strcmp(name, "vkGetDescriptorSetLayoutSupport"))
+    {
+        return has1_1OrHigher ? (void*)entry_vkGetDescriptorSetLayoutSupport : nullptr;
+    }
+#endif
+#ifdef VK_KHR_surface
+    if (!strcmp(name, "vkDestroySurfaceKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkDestroySurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceSupportKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceSupportKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceCapabilitiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceFormatsKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceFormatsKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfacePresentModesKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfacePresentModesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_swapchain
+    if (!strcmp(name, "vkCreateSwapchainKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkCreateSwapchainKHR : nullptr;
+    }
+    if (!strcmp(name, "vkDestroySwapchainKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkDestroySwapchainKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetSwapchainImagesKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkGetSwapchainImagesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkAcquireNextImageKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkAcquireNextImageKHR : nullptr;
+    }
+    if (!strcmp(name, "vkQueuePresentKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkQueuePresentKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceGroupPresentCapabilitiesKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkGetDeviceGroupPresentCapabilitiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceGroupSurfacePresentModesKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkGetDeviceGroupSurfacePresentModesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDevicePresentRectanglesKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkGetPhysicalDevicePresentRectanglesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkAcquireNextImage2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_swapchain");
+        return hasExt ? (void*)entry_vkAcquireNextImage2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_display
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayPropertiesKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceDisplayPropertiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayPlanePropertiesKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceDisplayPlanePropertiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayPlaneSupportedDisplaysKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetDisplayPlaneSupportedDisplaysKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayModePropertiesKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetDisplayModePropertiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCreateDisplayModeKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkCreateDisplayModeKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayPlaneCapabilitiesKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkGetDisplayPlaneCapabilitiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCreateDisplayPlaneSurfaceKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_display");
+        return hasExt ? (void*)entry_vkCreateDisplayPlaneSurfaceKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_display_swapchain
+    if (!strcmp(name, "vkCreateSharedSwapchainsKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_display_swapchain");
+        return hasExt ? (void*)entry_vkCreateSharedSwapchainsKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_xlib_surface
+    if (!strcmp(name, "vkCreateXlibSurfaceKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_xlib_surface");
+        return hasExt ? (void*)entry_vkCreateXlibSurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceXlibPresentationSupportKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_xlib_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceXlibPresentationSupportKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_xcb_surface
+    if (!strcmp(name, "vkCreateXcbSurfaceKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_xcb_surface");
+        return hasExt ? (void*)entry_vkCreateXcbSurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceXcbPresentationSupportKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_xcb_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceXcbPresentationSupportKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_wayland_surface
+    if (!strcmp(name, "vkCreateWaylandSurfaceKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_wayland_surface");
+        return hasExt ? (void*)entry_vkCreateWaylandSurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceWaylandPresentationSupportKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_wayland_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceWaylandPresentationSupportKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_mir_surface
+    if (!strcmp(name, "vkCreateMirSurfaceKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_mir_surface");
+        return hasExt ? (void*)entry_vkCreateMirSurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceMirPresentationSupportKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_mir_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceMirPresentationSupportKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_android_surface
+    if (!strcmp(name, "vkCreateAndroidSurfaceKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_android_surface");
+        return hasExt ? (void*)entry_vkCreateAndroidSurfaceKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_win32_surface
+    if (!strcmp(name, "vkCreateWin32SurfaceKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_win32_surface");
+        return hasExt ? (void*)entry_vkCreateWin32SurfaceKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceWin32PresentationSupportKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_win32_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceWin32PresentationSupportKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_get_physical_device_properties2
+    if (!strcmp(name, "vkGetPhysicalDeviceFeatures2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_physical_device_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceFeatures2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceProperties2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_physical_device_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceFormatProperties2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_physical_device_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceFormatProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceImageFormatProperties2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_physical_device_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceImageFormatProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceQueueFamilyProperties2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_physical_device_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceQueueFamilyProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceMemoryProperties2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_physical_device_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceMemoryProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSparseImageFormatProperties2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_physical_device_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSparseImageFormatProperties2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_device_group
+    if (!strcmp(name, "vkGetDeviceGroupPeerMemoryFeaturesKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_device_group");
+        return hasExt ? (void*)entry_vkGetDeviceGroupPeerMemoryFeaturesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDeviceMaskKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_device_group");
+        return hasExt ? (void*)entry_vkCmdSetDeviceMaskKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDispatchBaseKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_device_group");
+        return hasExt ? (void*)entry_vkCmdDispatchBaseKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_maintenance1
+    if (!strcmp(name, "vkTrimCommandPoolKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_maintenance1");
+        return hasExt ? (void*)entry_vkTrimCommandPoolKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_device_group_creation
+    if (!strcmp(name, "vkEnumeratePhysicalDeviceGroupsKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_device_group_creation");
+        return hasExt ? (void*)entry_vkEnumeratePhysicalDeviceGroupsKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_memory_capabilities
+    if (!strcmp(name, "vkGetPhysicalDeviceExternalBufferPropertiesKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_memory_capabilities");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceExternalBufferPropertiesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_memory_win32
+    if (!strcmp(name, "vkGetMemoryWin32HandleKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_memory_win32");
+        return hasExt ? (void*)entry_vkGetMemoryWin32HandleKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetMemoryWin32HandlePropertiesKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_memory_win32");
+        return hasExt ? (void*)entry_vkGetMemoryWin32HandlePropertiesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_memory_fd
+    if (!strcmp(name, "vkGetMemoryFdKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_memory_fd");
+        return hasExt ? (void*)entry_vkGetMemoryFdKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetMemoryFdPropertiesKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_memory_fd");
+        return hasExt ? (void*)entry_vkGetMemoryFdPropertiesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_semaphore_capabilities
+    if (!strcmp(name, "vkGetPhysicalDeviceExternalSemaphorePropertiesKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_semaphore_capabilities");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_semaphore_win32
+    if (!strcmp(name, "vkImportSemaphoreWin32HandleKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_semaphore_win32");
+        return hasExt ? (void*)entry_vkImportSemaphoreWin32HandleKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetSemaphoreWin32HandleKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_semaphore_win32");
+        return hasExt ? (void*)entry_vkGetSemaphoreWin32HandleKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_semaphore_fd
+    if (!strcmp(name, "vkImportSemaphoreFdKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_semaphore_fd");
+        return hasExt ? (void*)entry_vkImportSemaphoreFdKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetSemaphoreFdKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_semaphore_fd");
+        return hasExt ? (void*)entry_vkGetSemaphoreFdKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_push_descriptor
+    if (!strcmp(name, "vkCmdPushDescriptorSetKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_push_descriptor");
+        return hasExt ? (void*)entry_vkCmdPushDescriptorSetKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdPushDescriptorSetWithTemplateKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_push_descriptor");
+        return hasExt ? (void*)entry_vkCmdPushDescriptorSetWithTemplateKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_descriptor_update_template
+    if (!strcmp(name, "vkCreateDescriptorUpdateTemplateKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_descriptor_update_template");
+        return hasExt ? (void*)entry_vkCreateDescriptorUpdateTemplateKHR : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyDescriptorUpdateTemplateKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_descriptor_update_template");
+        return hasExt ? (void*)entry_vkDestroyDescriptorUpdateTemplateKHR : nullptr;
+    }
+    if (!strcmp(name, "vkUpdateDescriptorSetWithTemplateKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_descriptor_update_template");
+        return hasExt ? (void*)entry_vkUpdateDescriptorSetWithTemplateKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_create_renderpass2
+    if (!strcmp(name, "vkCreateRenderPass2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_create_renderpass2");
+        return hasExt ? (void*)entry_vkCreateRenderPass2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdBeginRenderPass2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_create_renderpass2");
+        return hasExt ? (void*)entry_vkCmdBeginRenderPass2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdNextSubpass2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_create_renderpass2");
+        return hasExt ? (void*)entry_vkCmdNextSubpass2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndRenderPass2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_create_renderpass2");
+        return hasExt ? (void*)entry_vkCmdEndRenderPass2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_shared_presentable_image
+    if (!strcmp(name, "vkGetSwapchainStatusKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_shared_presentable_image");
+        return hasExt ? (void*)entry_vkGetSwapchainStatusKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_fence_capabilities
+    if (!strcmp(name, "vkGetPhysicalDeviceExternalFencePropertiesKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_fence_capabilities");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceExternalFencePropertiesKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_fence_win32
+    if (!strcmp(name, "vkImportFenceWin32HandleKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_fence_win32");
+        return hasExt ? (void*)entry_vkImportFenceWin32HandleKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetFenceWin32HandleKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_fence_win32");
+        return hasExt ? (void*)entry_vkGetFenceWin32HandleKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_external_fence_fd
+    if (!strcmp(name, "vkImportFenceFdKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_fence_fd");
+        return hasExt ? (void*)entry_vkImportFenceFdKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetFenceFdKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_external_fence_fd");
+        return hasExt ? (void*)entry_vkGetFenceFdKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_get_surface_capabilities2
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceCapabilities2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_surface_capabilities2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceCapabilities2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceFormats2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_surface_capabilities2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceFormats2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_get_display_properties2
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayProperties2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_display_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceDisplayProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceDisplayPlaneProperties2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_display_properties2");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceDisplayPlaneProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayModeProperties2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_display_properties2");
+        return hasExt ? (void*)entry_vkGetDisplayModeProperties2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDisplayPlaneCapabilities2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_display_properties2");
+        return hasExt ? (void*)entry_vkGetDisplayPlaneCapabilities2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_get_memory_requirements2
+    if (!strcmp(name, "vkGetImageMemoryRequirements2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_memory_requirements2");
+        return hasExt ? (void*)entry_vkGetImageMemoryRequirements2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetBufferMemoryRequirements2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_memory_requirements2");
+        return hasExt ? (void*)entry_vkGetBufferMemoryRequirements2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetImageSparseMemoryRequirements2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_get_memory_requirements2");
+        return hasExt ? (void*)entry_vkGetImageSparseMemoryRequirements2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_sampler_ycbcr_conversion
+    if (!strcmp(name, "vkCreateSamplerYcbcrConversionKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_sampler_ycbcr_conversion");
+        return hasExt ? (void*)entry_vkCreateSamplerYcbcrConversionKHR : nullptr;
+    }
+    if (!strcmp(name, "vkDestroySamplerYcbcrConversionKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_sampler_ycbcr_conversion");
+        return hasExt ? (void*)entry_vkDestroySamplerYcbcrConversionKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_bind_memory2
+    if (!strcmp(name, "vkBindBufferMemory2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_bind_memory2");
+        return hasExt ? (void*)entry_vkBindBufferMemory2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkBindImageMemory2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_bind_memory2");
+        return hasExt ? (void*)entry_vkBindImageMemory2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_maintenance3
+    if (!strcmp(name, "vkGetDescriptorSetLayoutSupportKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_maintenance3");
+        return hasExt ? (void*)entry_vkGetDescriptorSetLayoutSupportKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_draw_indirect_count
+    if (!strcmp(name, "vkCmdDrawIndirectCountKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_draw_indirect_count");
+        return hasExt ? (void*)entry_vkCmdDrawIndirectCountKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawIndexedIndirectCountKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_draw_indirect_count");
+        return hasExt ? (void*)entry_vkCmdDrawIndexedIndirectCountKHR : nullptr;
+    }
+#endif
+#ifdef VK_ANDROID_native_buffer
+    if (!strcmp(name, "vkGetSwapchainGrallocUsageANDROID"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_ANDROID_native_buffer");
+        return hasExt ? (void*)entry_vkGetSwapchainGrallocUsageANDROID : nullptr;
+    }
+    if (!strcmp(name, "vkAcquireImageANDROID"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_ANDROID_native_buffer");
+        return hasExt ? (void*)entry_vkAcquireImageANDROID : nullptr;
+    }
+    if (!strcmp(name, "vkQueueSignalReleaseImageANDROID"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_ANDROID_native_buffer");
+        return hasExt ? (void*)entry_vkQueueSignalReleaseImageANDROID : nullptr;
+    }
+#endif
+#ifdef VK_EXT_debug_report
+    if (!strcmp(name, "vkCreateDebugReportCallbackEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_report");
+        return hasExt ? (void*)entry_vkCreateDebugReportCallbackEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyDebugReportCallbackEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_report");
+        return hasExt ? (void*)entry_vkDestroyDebugReportCallbackEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDebugReportMessageEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_report");
+        return hasExt ? (void*)entry_vkDebugReportMessageEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_debug_marker
+    if (!strcmp(name, "vkDebugMarkerSetObjectTagEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_marker");
+        return hasExt ? (void*)entry_vkDebugMarkerSetObjectTagEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDebugMarkerSetObjectNameEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_marker");
+        return hasExt ? (void*)entry_vkDebugMarkerSetObjectNameEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDebugMarkerBeginEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_marker");
+        return hasExt ? (void*)entry_vkCmdDebugMarkerBeginEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDebugMarkerEndEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_marker");
+        return hasExt ? (void*)entry_vkCmdDebugMarkerEndEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDebugMarkerInsertEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_marker");
+        return hasExt ? (void*)entry_vkCmdDebugMarkerInsertEXT : nullptr;
+    }
+#endif
+#ifdef VK_AMD_draw_indirect_count
+    if (!strcmp(name, "vkCmdDrawIndirectCountAMD"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_AMD_draw_indirect_count");
+        return hasExt ? (void*)entry_vkCmdDrawIndirectCountAMD : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawIndexedIndirectCountAMD"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_AMD_draw_indirect_count");
+        return hasExt ? (void*)entry_vkCmdDrawIndexedIndirectCountAMD : nullptr;
+    }
+#endif
+#ifdef VK_AMD_shader_info
+    if (!strcmp(name, "vkGetShaderInfoAMD"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_AMD_shader_info");
+        return hasExt ? (void*)entry_vkGetShaderInfoAMD : nullptr;
+    }
+#endif
+#ifdef VK_NV_external_memory_capabilities
+    if (!strcmp(name, "vkGetPhysicalDeviceExternalImageFormatPropertiesNV"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_external_memory_capabilities");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceExternalImageFormatPropertiesNV : nullptr;
+    }
+#endif
+#ifdef VK_NV_external_memory_win32
+    if (!strcmp(name, "vkGetMemoryWin32HandleNV"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_external_memory_win32");
+        return hasExt ? (void*)entry_vkGetMemoryWin32HandleNV : nullptr;
+    }
+#endif
+#ifdef VK_NN_vi_surface
+    if (!strcmp(name, "vkCreateViSurfaceNN"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NN_vi_surface");
+        return hasExt ? (void*)entry_vkCreateViSurfaceNN : nullptr;
+    }
+#endif
+#ifdef VK_EXT_conditional_rendering
+    if (!strcmp(name, "vkCmdBeginConditionalRenderingEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_conditional_rendering");
+        return hasExt ? (void*)entry_vkCmdBeginConditionalRenderingEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndConditionalRenderingEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_conditional_rendering");
+        return hasExt ? (void*)entry_vkCmdEndConditionalRenderingEXT : nullptr;
+    }
+#endif
+#ifdef VK_NVX_device_generated_commands
+    if (!strcmp(name, "vkCmdProcessCommandsNVX"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_device_generated_commands");
+        return hasExt ? (void*)entry_vkCmdProcessCommandsNVX : nullptr;
+    }
+    if (!strcmp(name, "vkCmdReserveSpaceForCommandsNVX"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_device_generated_commands");
+        return hasExt ? (void*)entry_vkCmdReserveSpaceForCommandsNVX : nullptr;
+    }
+    if (!strcmp(name, "vkCreateIndirectCommandsLayoutNVX"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_device_generated_commands");
+        return hasExt ? (void*)entry_vkCreateIndirectCommandsLayoutNVX : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyIndirectCommandsLayoutNVX"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_device_generated_commands");
+        return hasExt ? (void*)entry_vkDestroyIndirectCommandsLayoutNVX : nullptr;
+    }
+    if (!strcmp(name, "vkCreateObjectTableNVX"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_device_generated_commands");
+        return hasExt ? (void*)entry_vkCreateObjectTableNVX : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyObjectTableNVX"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_device_generated_commands");
+        return hasExt ? (void*)entry_vkDestroyObjectTableNVX : nullptr;
+    }
+    if (!strcmp(name, "vkRegisterObjectsNVX"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_device_generated_commands");
+        return hasExt ? (void*)entry_vkRegisterObjectsNVX : nullptr;
+    }
+    if (!strcmp(name, "vkUnregisterObjectsNVX"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_device_generated_commands");
+        return hasExt ? (void*)entry_vkUnregisterObjectsNVX : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_device_generated_commands");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX : nullptr;
+    }
+#endif
+#ifdef VK_NV_clip_space_w_scaling
+    if (!strcmp(name, "vkCmdSetViewportWScalingNV"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_clip_space_w_scaling");
+        return hasExt ? (void*)entry_vkCmdSetViewportWScalingNV : nullptr;
+    }
+#endif
+#ifdef VK_EXT_direct_mode_display
+    if (!strcmp(name, "vkReleaseDisplayEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_direct_mode_display");
+        return hasExt ? (void*)entry_vkReleaseDisplayEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_acquire_xlib_display
+    if (!strcmp(name, "vkAcquireXlibDisplayEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_acquire_xlib_display");
+        return hasExt ? (void*)entry_vkAcquireXlibDisplayEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetRandROutputDisplayEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_acquire_xlib_display");
+        return hasExt ? (void*)entry_vkGetRandROutputDisplayEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_display_surface_counter
+    if (!strcmp(name, "vkGetPhysicalDeviceSurfaceCapabilities2EXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_display_surface_counter");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfaceCapabilities2EXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_display_control
+    if (!strcmp(name, "vkDisplayPowerControlEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_display_control");
+        return hasExt ? (void*)entry_vkDisplayPowerControlEXT : nullptr;
+    }
+    if (!strcmp(name, "vkRegisterDeviceEventEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_display_control");
+        return hasExt ? (void*)entry_vkRegisterDeviceEventEXT : nullptr;
+    }
+    if (!strcmp(name, "vkRegisterDisplayEventEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_display_control");
+        return hasExt ? (void*)entry_vkRegisterDisplayEventEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetSwapchainCounterEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_display_control");
+        return hasExt ? (void*)entry_vkGetSwapchainCounterEXT : nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_display_timing
+    if (!strcmp(name, "vkGetRefreshCycleDurationGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_display_timing");
+        return hasExt ? (void*)entry_vkGetRefreshCycleDurationGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkGetPastPresentationTimingGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_display_timing");
+        return hasExt ? (void*)entry_vkGetPastPresentationTimingGOOGLE : nullptr;
+    }
+#endif
+#ifdef VK_EXT_discard_rectangles
+    if (!strcmp(name, "vkCmdSetDiscardRectangleEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_discard_rectangles");
+        return hasExt ? (void*)entry_vkCmdSetDiscardRectangleEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_hdr_metadata
+    if (!strcmp(name, "vkSetHdrMetadataEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_hdr_metadata");
+        return hasExt ? (void*)entry_vkSetHdrMetadataEXT : nullptr;
+    }
+#endif
+#ifdef VK_MVK_ios_surface
+    if (!strcmp(name, "vkCreateIOSSurfaceMVK"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_MVK_ios_surface");
+        return hasExt ? (void*)entry_vkCreateIOSSurfaceMVK : nullptr;
+    }
+#endif
+#ifdef VK_MVK_macos_surface
+    if (!strcmp(name, "vkCreateMacOSSurfaceMVK"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_MVK_macos_surface");
+        return hasExt ? (void*)entry_vkCreateMacOSSurfaceMVK : nullptr;
+    }
+#endif
+#ifdef VK_EXT_debug_utils
+    if (!strcmp(name, "vkSetDebugUtilsObjectNameEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkSetDebugUtilsObjectNameEXT : nullptr;
+    }
+    if (!strcmp(name, "vkSetDebugUtilsObjectTagEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkSetDebugUtilsObjectTagEXT : nullptr;
+    }
+    if (!strcmp(name, "vkQueueBeginDebugUtilsLabelEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkQueueBeginDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkQueueEndDebugUtilsLabelEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkQueueEndDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkQueueInsertDebugUtilsLabelEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkQueueInsertDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdBeginDebugUtilsLabelEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkCmdBeginDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndDebugUtilsLabelEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkCmdEndDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdInsertDebugUtilsLabelEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkCmdInsertDebugUtilsLabelEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCreateDebugUtilsMessengerEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkCreateDebugUtilsMessengerEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyDebugUtilsMessengerEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkDestroyDebugUtilsMessengerEXT : nullptr;
+    }
+    if (!strcmp(name, "vkSubmitDebugUtilsMessageEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_debug_utils");
+        return hasExt ? (void*)entry_vkSubmitDebugUtilsMessageEXT : nullptr;
+    }
+#endif
+#ifdef VK_ANDROID_external_memory_android_hardware_buffer
+    if (!strcmp(name, "vkGetAndroidHardwareBufferPropertiesANDROID"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_ANDROID_external_memory_android_hardware_buffer");
+        return hasExt ? (void*)entry_vkGetAndroidHardwareBufferPropertiesANDROID : nullptr;
+    }
+    if (!strcmp(name, "vkGetMemoryAndroidHardwareBufferANDROID"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_ANDROID_external_memory_android_hardware_buffer");
+        return hasExt ? (void*)entry_vkGetMemoryAndroidHardwareBufferANDROID : nullptr;
+    }
+#endif
+#ifdef VK_EXT_sample_locations
+    if (!strcmp(name, "vkCmdSetSampleLocationsEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_sample_locations");
+        return hasExt ? (void*)entry_vkCmdSetSampleLocationsEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceMultisamplePropertiesEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_sample_locations");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceMultisamplePropertiesEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_validation_cache
+    if (!strcmp(name, "vkCreateValidationCacheEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_validation_cache");
+        return hasExt ? (void*)entry_vkCreateValidationCacheEXT : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyValidationCacheEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_validation_cache");
+        return hasExt ? (void*)entry_vkDestroyValidationCacheEXT : nullptr;
+    }
+    if (!strcmp(name, "vkMergeValidationCachesEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_validation_cache");
+        return hasExt ? (void*)entry_vkMergeValidationCachesEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetValidationCacheDataEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_validation_cache");
+        return hasExt ? (void*)entry_vkGetValidationCacheDataEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_external_memory_host
+    if (!strcmp(name, "vkGetMemoryHostPointerPropertiesEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_external_memory_host");
+        return hasExt ? (void*)entry_vkGetMemoryHostPointerPropertiesEXT : nullptr;
+    }
+#endif
+#ifdef VK_AMD_buffer_marker
+    if (!strcmp(name, "vkCmdWriteBufferMarkerAMD"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_AMD_buffer_marker");
+        return hasExt ? (void*)entry_vkCmdWriteBufferMarkerAMD : nullptr;
+    }
+#endif
+#ifdef VK_NV_device_diagnostic_checkpoints
+    if (!strcmp(name, "vkCmdSetCheckpointNV"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_device_diagnostic_checkpoints");
+        return hasExt ? (void*)entry_vkCmdSetCheckpointNV : nullptr;
+    }
+    if (!strcmp(name, "vkGetQueueCheckpointDataNV"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_device_diagnostic_checkpoints");
+        return hasExt ? (void*)entry_vkGetQueueCheckpointDataNV : nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_address_space
+    if (!strcmp(name, "vkMapMemoryIntoAddressSpaceGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_address_space");
+        return hasExt ? (void*)entry_vkMapMemoryIntoAddressSpaceGOOGLE : nullptr;
     }
 #endif
     return nullptr;
