@@ -163,7 +163,8 @@ static VkResult entry_vkEnumerateInstanceExtensionProperties(
 {
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkEnumerateInstanceExtensionProperties_VkResult_return = (VkResult)0;
-    vkEnumerateInstanceExtensionProperties_VkResult_return = vkEnc->vkEnumerateInstanceExtensionProperties(pLayerName, pPropertyCount, pProperties);
+    auto resources = ResourceTracker::get();
+    vkEnumerateInstanceExtensionProperties_VkResult_return = resources->on_vkEnumerateInstanceExtensionProperties(vkEnc, VK_SUCCESS, pLayerName, pPropertyCount, pProperties);
     return vkEnumerateInstanceExtensionProperties_VkResult_return;
 }
 static VkResult entry_vkEnumerateDeviceExtensionProperties(
@@ -174,7 +175,8 @@ static VkResult entry_vkEnumerateDeviceExtensionProperties(
 {
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkEnumerateDeviceExtensionProperties_VkResult_return = (VkResult)0;
-    vkEnumerateDeviceExtensionProperties_VkResult_return = vkEnc->vkEnumerateDeviceExtensionProperties(physicalDevice, pLayerName, pPropertyCount, pProperties);
+    auto resources = ResourceTracker::get();
+    vkEnumerateDeviceExtensionProperties_VkResult_return = resources->on_vkEnumerateDeviceExtensionProperties(vkEnc, VK_SUCCESS, physicalDevice, pLayerName, pPropertyCount, pProperties);
     return vkEnumerateDeviceExtensionProperties_VkResult_return;
 }
 static VkResult entry_vkEnumerateInstanceLayerProperties(
