@@ -328,6 +328,12 @@ public:
         }
     }
 
+    bool hostSupportsVulkan() const {
+        if (!mFeatureInfo) return false;
+
+        return mFeatureInfo->hasVulkan;
+    }
+
     bool usingDirectMapping() const {
         return mHostVisibleMemoryVirtInfo.virtualizationSupported;
     }
@@ -1134,6 +1140,10 @@ bool ResourceTracker::isValidMemoryRange(const VkMappedMemoryRange& range) const
 
 void ResourceTracker::setupFeatures(const EmulatorFeatureInfo* features) {
     mImpl->setupFeatures(features);
+}
+
+bool ResourceTracker::hostSupportsVulkan() const {
+    return mImpl->hostSupportsVulkan();
 }
 
 bool ResourceTracker::usingDirectMapping() const {

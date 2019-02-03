@@ -143,6 +143,7 @@ public:
     VkDeviceSize getNonCoherentExtendedSize(VkDevice device, VkDeviceSize basicSize) const;
     bool isValidMemoryRange(const VkMappedMemoryRange& range) const;
     void setupFeatures(const EmulatorFeatureInfo* features);
+    bool hostSupportsVulkan() const;
     bool usingDirectMapping() const;
     void deviceMemoryTransform_tohost(
         VkDeviceMemory* memory, uint32_t memoryCount,
