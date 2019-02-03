@@ -542,7 +542,8 @@ public:
         VkExtensionProperties* pProperties) {
 
         std::vector<const char*> allowedExtensionNames = {
-            // "VK_KHR_maintenance1",
+            "VK_KHR_maintenance1",
+            "VK_KHR_get_memory_requirements2",
             // "VK_KHR_maintenance2",
             // "VK_KHR_maintenance3",
             // TODO:
