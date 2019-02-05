@@ -24,39 +24,11 @@ struct EmulatorFeatureInfo;
 
 namespace goldfish_vk {
 
-struct TeardownFuncs {
-    PFN_vkDeviceWaitIdle vkDeviceWaitIdle = 0;
-    PFN_vkDestroyInstance vkDestroyInstance = 0;
-    PFN_vkDestroyDevice vkDestroyDevice = 0;
-    PFN_vkDestroySemaphore vkDestroySemaphore = 0;
-    PFN_vkDestroyFence vkDestroyFence = 0;
-    PFN_vkFreeMemory vkFreeMemory = 0;
-    PFN_vkDestroyBuffer vkDestroyBuffer = 0;
-    PFN_vkDestroyImage vkDestroyImage = 0;
-    PFN_vkDestroyEvent vkDestroyEvent = 0;
-    PFN_vkDestroyQueryPool vkDestroyQueryPool = 0;
-    PFN_vkDestroyBufferView vkDestroyBufferView = 0;
-    PFN_vkDestroyImageView vkDestroyImageView = 0;
-    PFN_vkDestroyShaderModule vkDestroyShaderModule = 0;
-    PFN_vkDestroyPipelineCache vkDestroyPipelineCache = 0;
-    PFN_vkDestroyPipelineLayout vkDestroyPipelineLayout = 0;
-    PFN_vkDestroyRenderPass vkDestroyRenderPass = 0;
-    PFN_vkDestroyPipeline vkDestroyPipeline = 0;
-    PFN_vkDestroyDescriptorSetLayout vkDestroyDescriptorSetLayout = 0;
-    PFN_vkDestroySampler vkDestroySampler = 0;
-    PFN_vkDestroyDescriptorPool vkDestroyDescriptorPool = 0;
-    PFN_vkDestroyFramebuffer vkDestroyFramebuffer = 0;
-    PFN_vkDestroyCommandPool vkDestroyCommandPool = 0;
-};
-
 class ResourceTracker {
 public:
     ResourceTracker();
     virtual ~ResourceTracker();
     static ResourceTracker* get();
-    void teardown(
-        void* context,
-        const TeardownFuncs& teardownFuncs);
     VulkanHandleMapping* createMapping();
     VulkanHandleMapping* unwrapMapping();
     VulkanHandleMapping* destroyMapping();
