@@ -143,6 +143,11 @@ extern "C" __attribute__((visibility("default"))) hwvulkan_module_t HAL_MODULE_I
     },
 };
 
+int CloseDevice(struct hw_device_t* /*device*/) {
+    // nothing to do - opening a device doesn't allocate any resources
+    return 0;
+}
+
 #define VK_HOST_CONNECTION(ret) \
     HostConnection *hostCon = HostConnection::get(); \
     if (!hostCon) { \
@@ -161,50 +166,6 @@ extern "C" __attribute__((visibility("default"))) hwvulkan_module_t HAL_MODULE_I
     } \
     goldfish_vk::ResourceTracker::get()->setupFeatures(rcEnc->featureInfo_const()); \
     auto hostSupportsVulkan = goldfish_vk::ResourceTracker::get()->hostSupportsVulkan(); \
-
-int CloseDevice(struct hw_device_t* /*device*/) {
-    VK_HOST_CONNECTION(-1)
-
-    if (!hostSupportsVulkan) {
-        // nothing to do - opening a device doesn't allocate any resources
-        return 0;
-    }
-
-    goldfish_vk::TeardownFuncs teardownFuncs;
-    teardownFuncs.vkDeviceWaitIdle =
-        (PFN_vkDeviceWaitIdle)goldfish_vk::goldfish_vulkan_get_proc_address("vkDeviceWaitIdle");
-
-#define GET_TEARDOWN_PROC_ADDR(func) \
-    teardownFuncs.func = (PFN_##func)goldfish_vk::goldfish_vulkan_get_proc_address(#func);
-
-    GET_TEARDOWN_PROC_ADDR(vkDestroyInstance)
-    GET_TEARDOWN_PROC_ADDR(vkDestroyDevice)
-    GET_TEARDOWN_PROC_ADDR(vkDestroySemaphore)
-    GET_TEARDOWN_PROC_ADDR(vkDestroyFence)
-    GET_TEARDOWN_PROC_ADDR(vkFreeMemory)
-    GET_TEARDOWN_PROC_ADDR(vkDestroyBuffer)
-    GET_TEARDOWN_PROC_ADDR(vkDestroyImage)
-    GET_TEARDOWN_PROC_ADDR(vkDestroyEvent)
-    GET_TEARDOWN_PROC_ADDR(vkDestroyQueryPool)
-    GET_TEARDOWN_PROC_ADDR(vkDestroyBufferView)
-    GET_TEARDOWN_PROC_ADDR(vkDestroyImageView)
-    GET_TEARDOWN_PROC_ADDR(vkDestroyShaderModule)
-    GET_TEARDOWN_PROC_ADDR(vkDestroyPipelineCache)
-    GET_TEARDOWN_PROC_ADDR(vkDestroyPipelineLayout)
-    GET_TEARDOWN_PROC_ADDR(vkDestroyRenderPass)
-    GET_TEARDOWN_PROC_ADDR(vkDestroyPipeline)
-    GET_TEARDOWN_PROC_ADDR(vkDestroyDescriptorSetLayout)
-    GET_TEARDOWN_PROC_ADDR(vkDestroySampler)
-    GET_TEARDOWN_PROC_ADDR(vkDestroyDescriptorPool)
-    GET_TEARDOWN_PROC_ADDR(vkDestroyFramebuffer)
-    GET_TEARDOWN_PROC_ADDR(vkDestroyCommandPool)
-
-    goldfish_vk::ResourceTracker::get()->teardown(
-        (void*)vkEnc,
-        teardownFuncs);
-
-    return 0;
-}
 
 VKAPI_ATTR
 VkResult EnumerateInstanceExtensionProperties(

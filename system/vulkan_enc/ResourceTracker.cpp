@@ -199,23 +199,6 @@ public:
         info_VkDeviceMemory.erase(mem);
     }
 
-    void teardown(void* context, const TeardownFuncs& vk) {
-        VkEncoder* enc = (VkEncoder*)context;
-        // TODO
-        (void)enc;
-
-        for (auto it : info_VkDevice) {
-            auto device = it.first;
-            vk.vkDeviceWaitIdle(device);
-            vk.vkDestroyDevice(device, nullptr);
-        }
-
-        for (auto it : info_VkInstance) {
-            auto instance = it.first;
-            vk.vkDestroyInstance(instance, nullptr);
-        }
-    }
-
     // TODO: Upgrade to 1.1
     static constexpr uint32_t kMaxApiVersion = VK_MAKE_VERSION(1, 0, 65);
     static constexpr uint32_t kMinApiVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -1122,12 +1105,6 @@ ResourceTracker* ResourceTracker::get() {
         sTracker = new ResourceTracker;
     }
     return sTracker;
-}
-
-void ResourceTracker::teardown(
-        void* context,
-        const TeardownFuncs& funcs) {
-    mImpl->teardown(context, funcs);
 }
 
 #define HANDLE_REGISTER_IMPL(type) \
