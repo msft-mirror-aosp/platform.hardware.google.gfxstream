@@ -356,12 +356,6 @@ static HostConnection* createOrGetHostConnection() {
         return -EIO; \
     }
 
-#define EXIT_GRALLOCONLY_HOST_CONNECTION \
-    if (hostCon && hostCon->isGrallocOnly()) { \
-        ALOGD("%s: exiting HostConnection (is buffer-handling thread)", \
-              __FUNCTION__); \
-    }
-
 #if PLATFORM_SDK_VERSION < 18
 // On older APIs, just define it as a value no one is going to use.
 #define HAL_PIXEL_FORMAT_YCbCr_420_888 0xFFFFFFFF
@@ -1097,8 +1091,6 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
             }
         }
         hostCon->unlock();
-        EXIT_GRALLOCONLY_HOST_CONNECTION;
-
     }
 
     //
