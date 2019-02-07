@@ -44,8 +44,17 @@ static hwc2_function_pointer_t asFP(T function)
     return reinterpret_cast<hwc2_function_pointer_t>(function);
 }
 
+static HostConnection *sHostCon = nullptr;
+
+static HostConnection* createOrGetHostConnection() {
+    if (!sHostCon) {
+        sHostCon = HostConnection::createUnique();
+    }
+    return sHostCon;
+}
+
 #define DEFINE_AND_VALIDATE_HOST_CONNECTION \
-    HostConnection *hostCon = HostConnection::get(); \
+    HostConnection *hostCon = createOrGetHostConnection(); \
     if (!hostCon) { \
         ALOGE("EmuHWC2: Failed to get host connection\n"); \
         return Error::NoResources; \
@@ -685,7 +694,11 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
     mChanges.reset();
 
     DEFINE_AND_VALIDATE_HOST_CONNECTION
-    if (rcEnc->hasHostCompositionV1()) {
+    hostCon->lock();
+    bool hostCompositionV1 = rcEnc->hasHostCompositionV1();
+    hostCon->unlock();
+
+    if (hostCompositionV1) {
         uint32_t numLayer = 0;
         for (auto layer: mLayers) {
             if (layer->getCompositionType() == Composition::Device ||
@@ -772,9 +785,11 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
         p->targetHandle = mGralloc->getTargetCb();
         p->numLayers = numLayer;
 
+        hostCon->lock();
         rcEnc->rcCompose(rcEnc,
                          sizeof(ComposeDevice) + numLayer * sizeof(ComposeLayer),
                          (void *)p);
+        hostCon->unlock();
 
         // Send a retire fence and use it as the release fence for all layers,
         // since media expects it
@@ -783,9 +798,11 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
         uint64_t sync_handle, thread_handle;
         int retire_fd;
 
+        hostCon->lock();
         rcEnc->rcCreateSyncKHR(rcEnc, EGL_SYNC_NATIVE_FENCE_ANDROID,
                 attribs, 2 * sizeof(EGLint), true /* destroy when signaled */,
                 &sync_handle, &thread_handle);
+        hostCon->unlock();
 
         goldfish_sync_queue_work(mSyncDeviceFd,
                 sync_handle, thread_handle, &retire_fd);
@@ -796,7 +813,9 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
 
         *outRetireFence = dup(retire_fd);
         close(retire_fd);
+        hostCon->lock();
         rcEnc->rcDestroySyncKHR(rcEnc, sync_handle);
+        hostCon->unlock();
     } else {
         // we set all layers Composition::Client, so do nothing.
         mGralloc->getFb()->post(mGralloc->getFb(), mClientTarget.getBuffer());
@@ -939,7 +958,11 @@ Error EmuHWC2::Display::validate(uint32_t* outNumTypes,
     if (!mChanges) {
         mChanges.reset(new Changes);
         DEFINE_AND_VALIDATE_HOST_CONNECTION
-        if (rcEnc->hasHostCompositionV1()) {
+        hostCon->lock();
+        bool hostCompositionV1 = rcEnc->hasHostCompositionV1();
+        hostCon->unlock();
+
+        if (hostCompositionV1) {
             // Support Device and SolidColor, otherwise, fallback all layers
             // to Client
             bool fallBack = false;
