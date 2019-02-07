@@ -100,6 +100,84 @@ HostConnection::~HostConnection()
     delete m_rcEnc;
 }
 
+// static
+HostConnection* HostConnection::connect(HostConnection* con) {
+    if (!con) return con;
+
+    const enum HostConnectionType connType = HOST_CONNECTION_VIRTIO_GPU;
+
+    switch (connType) {
+        default:
+        case HOST_CONNECTION_QEMU_PIPE: {
+            QemuPipeStream *stream = new QemuPipeStream(STREAM_BUFFER_SIZE);
+            if (!stream) {
+                ALOGE("Failed to create QemuPipeStream for host connection!!!\n");
+                delete con;
+                return NULL;
+            }
+            if (stream->connect() < 0) {
+                ALOGE("Failed to connect to host (QemuPipeStream)!!!\n");
+                delete stream;
+                delete con;
+                return NULL;
+            }
+            con->m_stream = stream;
+            con->m_grallocHelper = &m_goldfishGralloc;
+            con->m_processPipe = &m_goldfishProcessPipe;
+            break;
+        }
+        case HOST_CONNECTION_TCP: {
+            TcpStream *stream = new TcpStream(STREAM_BUFFER_SIZE);
+            if (!stream) {
+                ALOGE("Failed to create TcpStream for host connection!!!\n");
+                delete con;
+                return NULL;
+            }
+
+            if (stream->connect("10.0.2.2", STREAM_PORT_NUM) < 0) {
+                ALOGE("Failed to connect to host (TcpStream)!!!\n");
+                delete stream;
+                delete con;
+                return NULL;
+            }
+            con->m_stream = stream;
+            con->m_grallocHelper = &m_goldfishGralloc;
+            con->m_processPipe = &m_goldfishProcessPipe;
+            break;
+        }
+#ifdef VIRTIO_GPU
+        case HOST_CONNECTION_VIRTIO_GPU: {
+            VirtioGpuStream *stream = new VirtioGpuStream(STREAM_BUFFER_SIZE);
+            if (!stream) {
+                ALOGE("Failed to create VirtioGpu for host connection!!!\n");
+                delete con;
+                return NULL;
+            }
+            if (stream->connect() < 0) {
+                ALOGE("Failed to connect to host (VirtioGpu)!!!\n");
+                delete stream;
+                delete con;
+                return NULL;
+            }
+            con->m_stream = stream;
+            con->m_grallocHelper = stream->getGralloc();
+            con->m_processPipe = stream->getProcessPipe();
+            break;
+        }
+#endif
+    }
+
+    // send zero 'clientFlags' to the host.
+    unsigned int *pClientFlags =
+            (unsigned int *)con->m_stream->allocBuffer(sizeof(unsigned int));
+    *pClientFlags = 0;
+    con->m_stream->commitBuffer(sizeof(unsigned int));
+
+    ALOGD("HostConnection::get() New Host Connection established %p, tid %d\n",
+          con, getCurrentThreadId());
+    return con;
+}
+
 HostConnection *HostConnection::get() {
     return getWithThreadInfo(getEGLThreadInfo());
 }
@@ -116,79 +194,8 @@ HostConnection *HostConnection::getWithThreadInfo(EGLThreadInfo* tinfo) {
 
     if (tinfo->hostConn == NULL) {
         HostConnection *con = new HostConnection();
-        if (NULL == con) {
-            return NULL;
-        }
+        con = connect(con);
 
-        switch (connType) {
-            default:
-            case HOST_CONNECTION_QEMU_PIPE: {
-                QemuPipeStream *stream = new QemuPipeStream(STREAM_BUFFER_SIZE);
-                if (!stream) {
-                    ALOGE("Failed to create QemuPipeStream for host connection!!!\n");
-                    delete con;
-                    return NULL;
-                }
-                if (stream->connect() < 0) {
-                    ALOGE("Failed to connect to host (QemuPipeStream)!!!\n");
-                    delete stream;
-                    delete con;
-                    return NULL;
-                }
-                con->m_stream = stream;
-                con->m_grallocHelper = &m_goldfishGralloc;
-                con->m_processPipe = &m_goldfishProcessPipe;
-                break;
-            }
-            case HOST_CONNECTION_TCP: {
-                TcpStream *stream = new TcpStream(STREAM_BUFFER_SIZE);
-                if (!stream) {
-                    ALOGE("Failed to create TcpStream for host connection!!!\n");
-                    delete con;
-                    return NULL;
-                }
-
-                if (stream->connect("10.0.2.2", STREAM_PORT_NUM) < 0) {
-                    ALOGE("Failed to connect to host (TcpStream)!!!\n");
-                    delete stream;
-                    delete con;
-                    return NULL;
-                }
-                con->m_stream = stream;
-                con->m_grallocHelper = &m_goldfishGralloc;
-                con->m_processPipe = &m_goldfishProcessPipe;
-                break;
-            }
-#ifdef VIRTIO_GPU
-            case HOST_CONNECTION_VIRTIO_GPU: {
-                VirtioGpuStream *stream = new VirtioGpuStream(STREAM_BUFFER_SIZE);
-                if (!stream) {
-                    ALOGE("Failed to create VirtioGpu for host connection!!!\n");
-                    delete con;
-                    return NULL;
-                }
-                if (stream->connect() < 0) {
-                    ALOGE("Failed to connect to host (VirtioGpu)!!!\n");
-                    delete stream;
-                    delete con;
-                    return NULL;
-                }
-                con->m_stream = stream;
-                con->m_grallocHelper = stream->getGralloc();
-                con->m_processPipe = stream->getProcessPipe();
-                break;
-            }
-#endif
-        }
-
-        // send zero 'clientFlags' to the host.
-        unsigned int *pClientFlags =
-                (unsigned int *)con->m_stream->allocBuffer(sizeof(unsigned int));
-        *pClientFlags = 0;
-        con->m_stream->commitBuffer(sizeof(unsigned int));
-
-        ALOGD("HostConnection::get() New Host Connection established %p, tid %d\n",
-              con, getCurrentThreadId());
         tinfo->hostConn = con;
     }
 
@@ -207,7 +214,16 @@ void HostConnection::exit() {
     }
 }
 
+// static 
+HostConnection *HostConnection::createUnique() {
+    ALOGD("%s: call\n", __func__);
+    return connect(new HostConnection());
+}
 
+// static
+void HostConnection::teardownUnique(HostConnection* con) {
+    delete con;
+}
 
 GLEncoder *HostConnection::glEncoder()
 {
