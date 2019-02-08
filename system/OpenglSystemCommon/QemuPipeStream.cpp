@@ -85,6 +85,7 @@ void *QemuPipeStream::allocBuffer(size_t minSize)
 
 int QemuPipeStream::commitBuffer(size_t size)
 {
+    if (size == 0) return 0;
     return writeFully(m_buf, size);
 }
 
