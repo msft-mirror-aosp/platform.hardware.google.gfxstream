@@ -84,6 +84,8 @@ private:
     }
 
     void commitWrite() {
+        mStream->flush();
+
         if (!valid()) {
             ALOGE("FATAL: Tried to commit write to vulkan pipe with invalid pipe!");
             abort();
