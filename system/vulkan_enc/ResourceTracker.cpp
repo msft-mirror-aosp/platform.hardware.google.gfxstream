@@ -1150,34 +1150,6 @@ bool ResourceTracker::usingDirectMapping() const {
     return mImpl->usingDirectMapping();
 }
 
-void ResourceTracker::deviceMemoryTransform_tohost(
-    VkDeviceMemory* memory, uint32_t memoryCount,
-    VkDeviceSize* offset, uint32_t offsetCount,
-    VkDeviceSize* size, uint32_t sizeCount,
-    uint32_t* typeIndex, uint32_t typeIndexCount,
-    uint32_t* typeBits, uint32_t typeBitsCount) {
-    mImpl->deviceMemoryTransform_tohost(
-        memory, memoryCount,
-        offset, offsetCount,
-        size, sizeCount,
-        typeIndex, typeIndexCount,
-        typeBits, typeBitsCount);
-}
-
-void ResourceTracker::deviceMemoryTransform_fromhost(
-    VkDeviceMemory* memory, uint32_t memoryCount,
-    VkDeviceSize* offset, uint32_t offsetCount,
-    VkDeviceSize* size, uint32_t sizeCount,
-    uint32_t* typeIndex, uint32_t typeIndexCount,
-    uint32_t* typeBits, uint32_t typeBitsCount) {
-    mImpl->deviceMemoryTransform_fromhost(
-        memory, memoryCount,
-        offset, offsetCount,
-        size, sizeCount,
-        typeIndex, typeIndexCount,
-        typeBits, typeBitsCount);
-}
-
 uint32_t ResourceTracker::getApiVersionFromInstance(VkInstance instance) const {
     return mImpl->getApiVersionFromInstance(instance);
 }
@@ -1341,5 +1313,39 @@ VkResult ResourceTracker::on_vkMapMemoryIntoAddressSpaceGOOGLE(
     return mImpl->on_vkMapMemoryIntoAddressSpaceGOOGLE(
         context, input_result, device, memory, pAddress);
 }
+
+void ResourceTracker::deviceMemoryTransform_tohost(
+    VkDeviceMemory* memory, uint32_t memoryCount,
+    VkDeviceSize* offset, uint32_t offsetCount,
+    VkDeviceSize* size, uint32_t sizeCount,
+    uint32_t* typeIndex, uint32_t typeIndexCount,
+    uint32_t* typeBits, uint32_t typeBitsCount) {
+    mImpl->deviceMemoryTransform_tohost(
+        memory, memoryCount,
+        offset, offsetCount,
+        size, sizeCount,
+        typeIndex, typeIndexCount,
+        typeBits, typeBitsCount);
+}
+
+void ResourceTracker::deviceMemoryTransform_fromhost(
+    VkDeviceMemory* memory, uint32_t memoryCount,
+    VkDeviceSize* offset, uint32_t offsetCount,
+    VkDeviceSize* size, uint32_t sizeCount,
+    uint32_t* typeIndex, uint32_t typeIndexCount,
+    uint32_t* typeBits, uint32_t typeBitsCount) {
+    mImpl->deviceMemoryTransform_fromhost(
+        memory, memoryCount,
+        offset, offsetCount,
+        size, sizeCount,
+        typeIndex, typeIndexCount,
+        typeBits, typeBitsCount);
+}
+
+#define DEFINE_TRANSFORMED_TYPE_IMPL(type) \
+    void ResourceTracker::transformImpl_##type##_tohost(const type*, uint32_t) { } \
+    void ResourceTracker::transformImpl_##type##_fromhost(const type*, uint32_t) { } \
+
+LIST_TRANSFORMED_TYPES(DEFINE_TRANSFORMED_TYPE_IMPL)
 
 } // namespace goldfish_vk

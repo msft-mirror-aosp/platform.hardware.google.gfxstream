@@ -40,7 +40,7 @@
 #include "goldfish_vk_deepcopy_guest.h"
 #include "goldfish_vk_handlemap_guest.h"
 #include "goldfish_vk_private_defs.h"
-#include "goldfish_vk_transform.h"
+#include "goldfish_vk_transform_guest.h"
 
 
 namespace goldfish_vk {
@@ -1599,7 +1599,7 @@ void VkEncoder::vkFreeMemory(
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
-    mImpl->resources()->deviceMemoryTransform_tohost(&local_memory, 1, nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0);
+    mImpl->resources()->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
     countingStream->rewind();
     {
         uint64_t cgen_var_101;
@@ -1863,7 +1863,7 @@ void VkEncoder::vkGetDeviceMemoryCommitment(
     VkDeviceMemory local_memory;
     local_device = device;
     local_memory = memory;
-    mImpl->resources()->deviceMemoryTransform_tohost(&local_memory, 1, nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0);
+    mImpl->resources()->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
     countingStream->rewind();
     {
         uint64_t cgen_var_111;
@@ -1910,7 +1910,7 @@ VkResult VkEncoder::vkBindBufferMemory(
     local_buffer = buffer;
     local_memory = memory;
     local_memoryOffset = memoryOffset;
-    mImpl->resources()->deviceMemoryTransform_tohost(&local_memory, 1, &local_memoryOffset, 1, nullptr, 0, nullptr, 0, nullptr, 0);
+    mImpl->resources()->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)&local_memoryOffset, 1, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
     countingStream->rewind();
     {
         uint64_t cgen_var_115;
@@ -1968,7 +1968,7 @@ VkResult VkEncoder::vkBindImageMemory(
     local_image = image;
     local_memory = memory;
     local_memoryOffset = memoryOffset;
-    mImpl->resources()->deviceMemoryTransform_tohost(&local_memory, 1, &local_memoryOffset, 1, nullptr, 0, nullptr, 0, nullptr, 0);
+    mImpl->resources()->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)&local_memoryOffset, 1, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
     countingStream->rewind();
     {
         uint64_t cgen_var_121;
@@ -10751,6 +10751,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
     }
     if (local_pExternalBufferInfo)
     {
+        mImpl->resources()->transformImpl_VkPhysicalDeviceExternalBufferInfo_tohost(local_pExternalBufferInfo, 1);
         transform_tohost_VkPhysicalDeviceExternalBufferInfo(mImpl->resources(), (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
     }
     countingStream->rewind();
@@ -10774,6 +10775,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
     unmarshal_VkExternalBufferProperties(stream, (VkExternalBufferProperties*)(pExternalBufferProperties));
     if (pExternalBufferProperties)
     {
+        mImpl->resources()->transformImpl_VkExternalBufferProperties_fromhost(pExternalBufferProperties, 1);
         transform_fromhost_VkExternalBufferProperties(mImpl->resources(), (VkExternalBufferProperties*)(pExternalBufferProperties));
     }
     mImpl->log("finish vkGetPhysicalDeviceExternalBufferProperties");;
@@ -14242,6 +14244,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
     }
     if (local_pExternalBufferInfo)
     {
+        mImpl->resources()->transformImpl_VkPhysicalDeviceExternalBufferInfo_tohost(local_pExternalBufferInfo, 1);
         transform_tohost_VkPhysicalDeviceExternalBufferInfo(mImpl->resources(), (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
     }
     countingStream->rewind();
@@ -14265,6 +14268,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
     unmarshal_VkExternalBufferProperties(stream, (VkExternalBufferProperties*)(pExternalBufferProperties));
     if (pExternalBufferProperties)
     {
+        mImpl->resources()->transformImpl_VkExternalBufferProperties_fromhost(pExternalBufferProperties, 1);
         transform_fromhost_VkExternalBufferProperties(mImpl->resources(), (VkExternalBufferProperties*)(pExternalBufferProperties));
     }
     mImpl->log("finish vkGetPhysicalDeviceExternalBufferPropertiesKHR");;
@@ -17918,7 +17922,7 @@ VkResult VkEncoder::vkGetMemoryWin32HandleNV(
     local_device = device;
     local_memory = memory;
     local_handleType = handleType;
-    mImpl->resources()->deviceMemoryTransform_tohost(&local_memory, 1, nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0);
+    mImpl->resources()->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
     countingStream->rewind();
     {
         uint64_t cgen_var_1250;
@@ -21120,7 +21124,7 @@ VkResult VkEncoder::vkMapMemoryIntoAddressSpaceGOOGLE(
     VkDeviceMemory local_memory;
     local_device = device;
     local_memory = memory;
-    mImpl->resources()->deviceMemoryTransform_tohost(&local_memory, 1, nullptr, 0, nullptr, 0, nullptr, 0, nullptr, 0);
+    mImpl->resources()->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
     countingStream->rewind();
     {
         uint64_t cgen_var_1473;

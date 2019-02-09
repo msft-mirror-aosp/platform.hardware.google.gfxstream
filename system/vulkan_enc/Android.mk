@@ -53,7 +53,7 @@ goldfish_vk_extension_structs_guest.cpp \
 goldfish_vk_marshaling_guest.cpp \
 goldfish_vk_deepcopy_guest.cpp \
 goldfish_vk_handlemap_guest.cpp \
-goldfish_vk_transform.cpp \
+goldfish_vk_transform_guest.cpp \
 
 
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
