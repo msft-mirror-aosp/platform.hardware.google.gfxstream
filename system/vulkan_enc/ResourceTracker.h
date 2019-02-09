@@ -20,6 +20,8 @@
 #include "VulkanHandles.h"
 #include <memory>
 
+#include "goldfish_vk_transform_guest.h"
+
 struct EmulatorFeatureInfo;
 
 namespace goldfish_vk {
@@ -145,6 +147,12 @@ public:
     void setupFeatures(const EmulatorFeatureInfo* features);
     bool hostSupportsVulkan() const;
     bool usingDirectMapping() const;
+    uint32_t getApiVersionFromInstance(VkInstance instance) const;
+    uint32_t getApiVersionFromDevice(VkDevice device) const;
+    bool hasInstanceExtension(VkInstance instance, const std::string& name) const;
+    bool hasDeviceExtension(VkDevice instance, const std::string& name) const;
+
+    // Transforms
     void deviceMemoryTransform_tohost(
         VkDeviceMemory* memory, uint32_t memoryCount,
         VkDeviceSize* offset, uint32_t offsetCount,
@@ -158,10 +166,11 @@ public:
         uint32_t* typeIndex, uint32_t typeIndexCount,
         uint32_t* typeBits, uint32_t typeBitsCount);
 
-    uint32_t getApiVersionFromInstance(VkInstance instance) const;
-    uint32_t getApiVersionFromDevice(VkDevice device) const;
-    bool hasInstanceExtension(VkInstance instance, const std::string& name) const;
-    bool hasDeviceExtension(VkDevice instance, const std::string& name) const;
+#define DEFINE_TRANSFORMED_TYPE_PROTOTYPE(type) \
+    void transformImpl_##type##_tohost(const type*, uint32_t); \
+    void transformImpl_##type##_fromhost(const type*, uint32_t); \
+    
+LIST_TRANSFORMED_TYPES(DEFINE_TRANSFORMED_TYPE_PROTOTYPE)
 
   private:
     class Impl;
