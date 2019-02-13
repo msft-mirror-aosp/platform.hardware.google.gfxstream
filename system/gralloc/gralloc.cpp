@@ -395,7 +395,7 @@ static void updateHostColorBuffer(cb_handle_t* cb,
                 width, height, top, left, bpp);
     }
 
-    if (s_grdma->bigbufCount) {
+    if (s_grdma && s_grdma->bigbufCount) {
         D("%s: there are big buffers alive, use fallback (count %u)", __FUNCTION__,
           s_grdma->bigbufCount);
     }
