@@ -31,6 +31,7 @@
 #include <unordered_map>
 #include <set>
 
+#include <vndk/hardware_buffer.h>
 #include <log/log.h>
 #include <stdlib.h>
 #include <sync/sync.h>
