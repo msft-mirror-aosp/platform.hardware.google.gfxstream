@@ -42,7 +42,8 @@ LOCAL_CFLAGS += \
     -DVK_USE_PLATFORM_ANDROID_KHR \
     -DVK_NO_PROTOTYPES \
 
-LOCAL_SRC_FILES := HostVisibleMemoryVirtualization.cpp \
+LOCAL_SRC_FILES := AndroidHardwareBuffer.cpp \
+    HostVisibleMemoryVirtualization.cpp \
     Resources.cpp \
     Validation.cpp \
     VulkanStream.cpp \
@@ -57,6 +58,7 @@ goldfish_vk_transform_guest.cpp \
 
 
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
+LOCAL_CFLAGS += -D__ANDROID_API__=28
 $(call emugl-export,SHARED_LIBRARIES,libgui)
 else
 $(call emugl-export,SHARED_LIBRARIES,libsync libnativewindow)
