@@ -16,6 +16,7 @@
 #include "ResourceTracker.h"
 
 #include "../OpenglSystemCommon/EmulatorFeatureInfo.h"
+#include "AndroidHardwareBuffer.h"
 #include "HostVisibleMemoryVirtualization.h"
 #include "Resources.h"
 #include "VkEncoder.h"
@@ -139,6 +140,7 @@ public:
         GoldfishAddressSpaceBlock*
             goldfishAddressSpaceBlock = nullptr;
         SubAlloc subAlloc;
+        AHardwareBuffer** ahbHandle = nullptr;
     };
 
 #define HANDLE_REGISTER_IMPL_IMPL(type) \
@@ -692,6 +694,49 @@ public:
         for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
             destroyHostMemAlloc(enc, device, &info.hostMemAllocs[i]);
         }
+    }
+
+    VkResult on_vkGetAndroidHardwareBufferPropertiesANDROID(
+        VkDevice device,
+        const AHardwareBuffer* buffer,
+        VkAndroidHardwareBufferPropertiesANDROID* pProperties) {
+        return getAndroidHardwareBufferPropertiesANDROID(
+            &mHostVisibleMemoryVirtInfo,
+            device, buffer, pProperties);
+    }
+
+    VkResult on_vkGetMemoryAndroidHardwareBufferANDROID(
+        VkDevice device,
+        const VkMemoryGetAndroidHardwareBufferInfoANDROID *pInfo,
+        struct AHardwareBuffer** pBuffer) {
+
+        if (!pInfo) return VK_ERROR_INITIALIZATION_FAILED;
+        if (!pInfo->memory) return VK_ERROR_INITIALIZATION_FAILED;
+
+        AutoLock lock(mLock);
+
+        auto deviceIt = info_VkDevice.find(device);
+
+        if (deviceIt == info_VkDevice.end()) {
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
+
+        auto memoryIt = info_VkDeviceMemory.find(pInfo->memory);
+
+        if (memoryIt == info_VkDeviceMemory.end()) {
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
+
+        auto& info = memoryIt->second;
+
+        VkResult queryRes =
+            getMemoryAndroidHardwareBufferANDROID(info.ahbHandle);
+
+        if (queryRes != VK_SUCCESS) return queryRes;
+
+        *pBuffer = *(info.ahbHandle);
+
+        return queryRes;
     }
 
     VkResult on_vkAllocateMemory(
