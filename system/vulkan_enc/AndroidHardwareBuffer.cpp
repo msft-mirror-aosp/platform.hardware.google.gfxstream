@@ -14,10 +14,9 @@
 // limitations under the License.
 #include "AndroidHardwareBuffer.h"
 
-#include "Resources.h"
-
 #include "gralloc_cb.h"
 #include "vk_format_info.h"
+#include "vk_util.h"
 
 namespace goldfish_vk {
 
@@ -61,7 +60,7 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
 
     VkAndroidHardwareBufferFormatPropertiesANDROID* ahbFormatProps =
         (VkAndroidHardwareBufferFormatPropertiesANDROID*)vk_find_struct(
-            (vk_struct*)pProperties->pNext,
+            (vk_struct_common*)pProperties->pNext,
             VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_PROPERTIES_ANDROID);
 
     if (ahbFormatProps) {

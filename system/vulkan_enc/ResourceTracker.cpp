@@ -27,6 +27,7 @@
 #include "gralloc_cb.h"
 #include "goldfish_address_space.h"
 #include "goldfish_vk_private_defs.h"
+#include "vk_util.h"
 
 #include <string>
 #include <unordered_map>
@@ -143,6 +144,23 @@ public:
         AHardwareBuffer** ahbHandle = nullptr;
     };
 
+    // custom guest-side structs for images/buffers because of AHardwareBuffer :((
+    struct VkImage_Info {
+        VkDevice device;
+        VkImageCreateInfo createInfo;
+        VkDeviceMemory currentBacking = VK_NULL_HANDLE;
+        VkDeviceSize currentBackingOffset = 0;
+        VkDeviceSize currentBackingSize = 0;
+    };
+
+    struct VkBuffer_Info {
+        VkDevice device;
+        VkBufferCreateInfo createInfo;
+        VkDeviceMemory currentBacking = VK_NULL_HANDLE;
+        VkDeviceSize currentBackingOffset = 0;
+        VkDeviceSize currentBackingSize = 0;
+    };
+
 #define HANDLE_REGISTER_IMPL_IMPL(type) \
     std::unordered_map<type, type##_Info> info_##type; \
     void register_##type(type obj) { \
@@ -200,6 +218,24 @@ public:
         delete memInfo.goldfishAddressSpaceBlock;
 
         info_VkDeviceMemory.erase(mem);
+    }
+
+    void unregister_VkImage(VkImage img) {
+        AutoLock lock(mLock);
+
+        auto it = info_VkImage.find(img);
+        if (it == info_VkImage.end()) return;
+
+        info_VkImage.erase(img);
+    }
+
+    void unregister_VkBuffer(VkBuffer buf) {
+        AutoLock lock(mLock);
+
+        auto it = info_VkBuffer.find(buf);
+        if (it == info_VkBuffer.end()) return;
+
+        info_VkBuffer.erase(buf);
     }
 
     // TODO: Upgrade to 1.1
@@ -958,6 +994,129 @@ public:
         // no-op
     }
 
+    VkResult on_vkCreateImage(
+        void* context, VkResult,
+        VkDevice device, const VkImageCreateInfo *pCreateInfo,
+        const VkAllocationCallbacks *pAllocator,
+        VkImage *pImage) {
+        VkEncoder* enc = (VkEncoder*)context;
+        return enc->vkCreateImage(device, pCreateInfo, pAllocator, pImage);
+    }
+
+    void on_vkDestroyImage(
+        void* context,
+        VkDevice device, VkImage image, const VkAllocationCallbacks *pAllocator) {
+        VkEncoder* enc = (VkEncoder*)context;
+        enc->vkDestroyImage(device, image, pAllocator);
+    }
+
+    void on_vkGetImageMemoryRequirements(
+        void *context, VkDevice device, VkImage image,
+        VkMemoryRequirements *pMemoryRequirements) {
+        VkEncoder* enc = (VkEncoder*)context;
+        enc->vkGetImageMemoryRequirements(
+            device, image, pMemoryRequirements);
+    }
+
+    void on_vkGetImageMemoryRequirements2(
+        void *context, VkDevice device, const VkImageMemoryRequirementsInfo2 *pInfo,
+        VkMemoryRequirements2 *pMemoryRequirements) {
+        VkEncoder* enc = (VkEncoder*)context;
+        enc->vkGetImageMemoryRequirements2(
+            device, pInfo, pMemoryRequirements);
+    }
+
+    void on_vkGetImageMemoryRequirements2KHR(
+        void *context, VkDevice device, const VkImageMemoryRequirementsInfo2 *pInfo,
+        VkMemoryRequirements2 *pMemoryRequirements) {
+        VkEncoder* enc = (VkEncoder*)context;
+        enc->vkGetImageMemoryRequirements2KHR(
+            device, pInfo, pMemoryRequirements);
+    }
+
+    VkResult on_vkBindImageMemory(
+        void* context, VkResult,
+        VkDevice device, VkImage image, VkDeviceMemory memory,
+        VkDeviceSize memoryOffset) {
+        VkEncoder* enc = (VkEncoder*)context;
+        return enc->vkBindImageMemory(device, image, memory, memoryOffset);
+    }
+
+    VkResult on_vkBindImageMemory2(
+        void* context, VkResult,
+        VkDevice device, uint32_t bindingCount, const VkBindImageMemoryInfo* pBindInfos) {
+        VkEncoder* enc = (VkEncoder*)context;
+        return enc->vkBindImageMemory2(device, bindingCount, pBindInfos);
+    }
+
+    VkResult on_vkBindImageMemory2KHR(
+        void* context, VkResult,
+        VkDevice device, uint32_t bindingCount, const VkBindImageMemoryInfo* pBindInfos) {
+        VkEncoder* enc = (VkEncoder*)context;
+        return enc->vkBindImageMemory2KHR(device, bindingCount, pBindInfos);
+    }
+
+    VkResult on_vkCreateBuffer(
+        void* context, VkResult,
+        VkDevice device, const VkBufferCreateInfo *pCreateInfo,
+        const VkAllocationCallbacks *pAllocator,
+        VkBuffer *pBuffer) {
+        VkEncoder* enc = (VkEncoder*)context;
+        return enc->vkCreateBuffer(device, pCreateInfo, pAllocator, pBuffer);
+    }
+
+    void on_vkDestroyBuffer(
+        void* context,
+        VkDevice device, VkBuffer buffer, const VkAllocationCallbacks *pAllocator) {
+        VkEncoder* enc = (VkEncoder*)context;
+        enc->vkDestroyBuffer(device, buffer, pAllocator);
+    }
+
+    void on_vkGetBufferMemoryRequirements(
+        void* context, VkDevice device, VkBuffer buffer, VkMemoryRequirements *pMemoryRequirements) {
+        VkEncoder* enc = (VkEncoder*)context;
+        enc->vkGetBufferMemoryRequirements(
+            device, buffer, pMemoryRequirements);
+    }
+
+    void on_vkGetBufferMemoryRequirements2(
+        void* context, VkDevice device, const VkBufferMemoryRequirementsInfo2* pInfo,
+        VkMemoryRequirements2* pMemoryRequirements) {
+        VkEncoder* enc = (VkEncoder*)context;
+        enc->vkGetBufferMemoryRequirements2(device, pInfo, pMemoryRequirements);
+    }
+
+    void on_vkGetBufferMemoryRequirements2KHR(
+        void* context, VkDevice device, const VkBufferMemoryRequirementsInfo2* pInfo,
+        VkMemoryRequirements2* pMemoryRequirements) {
+        VkEncoder* enc = (VkEncoder*)context;
+        enc->vkGetBufferMemoryRequirements2KHR(device, pInfo, pMemoryRequirements);
+    }
+
+    VkResult on_vkBindBufferMemory(
+        void *context, VkResult,
+        VkDevice device, VkBuffer buffer, VkDeviceMemory memory, VkDeviceSize memoryOffset) {
+        VkEncoder *enc = (VkEncoder *)context;
+        return enc->vkBindBufferMemory(
+            device, buffer, memory, memoryOffset);
+    }
+
+    VkResult on_vkBindBufferMemory2(
+        void *context, VkResult,
+        VkDevice device, uint32_t bindInfoCount, const VkBindBufferMemoryInfo *pBindInfos) {
+        VkEncoder *enc = (VkEncoder *)context;
+        return enc->vkBindBufferMemory2(
+            device, bindInfoCount, pBindInfos);
+    }
+
+    VkResult on_vkBindBufferMemory2KHR(
+        void *context, VkResult,
+        VkDevice device, uint32_t bindInfoCount, const VkBindBufferMemoryInfo *pBindInfos) {
+        VkEncoder *enc = (VkEncoder *)context;
+        return enc->vkBindBufferMemory2KHR(
+            device, bindInfoCount, pBindInfos);
+    }
+
     void unwrap_VkNativeBufferANDROID(
         const VkImageCreateInfo* pCreateInfo,
         VkImageCreateInfo* local_pCreateInfo) {
@@ -1328,6 +1487,125 @@ void ResourceTracker::on_vkUnmapMemory(
     VkDevice device,
     VkDeviceMemory memory) {
     mImpl->on_vkUnmapMemory(context, device, memory);
+}
+
+VkResult ResourceTracker::on_vkCreateImage(
+    void* context, VkResult input_result,
+    VkDevice device, const VkImageCreateInfo *pCreateInfo,
+    const VkAllocationCallbacks *pAllocator,
+    VkImage *pImage) {
+    return mImpl->on_vkCreateImage(
+        context, input_result,
+        device, pCreateInfo, pAllocator, pImage);
+}
+
+void ResourceTracker::on_vkDestroyImage(
+    void* context,
+    VkDevice device, VkImage image, const VkAllocationCallbacks *pAllocator) {
+    mImpl->on_vkDestroyImage(context,
+        device, image, pAllocator);
+}
+
+void ResourceTracker::on_vkGetImageMemoryRequirements(
+    void *context, VkDevice device, VkImage image,
+    VkMemoryRequirements *pMemoryRequirements) {
+    mImpl->on_vkGetImageMemoryRequirements(
+        context, device, image, pMemoryRequirements);
+}
+
+void ResourceTracker::on_vkGetImageMemoryRequirements2(
+    void *context, VkDevice device, const VkImageMemoryRequirementsInfo2 *pInfo,
+    VkMemoryRequirements2 *pMemoryRequirements) {
+    mImpl->on_vkGetImageMemoryRequirements2(
+        context, device, pInfo, pMemoryRequirements);
+}
+
+void ResourceTracker::on_vkGetImageMemoryRequirements2KHR(
+    void *context, VkDevice device, const VkImageMemoryRequirementsInfo2 *pInfo,
+    VkMemoryRequirements2 *pMemoryRequirements) {
+    mImpl->on_vkGetImageMemoryRequirements2KHR(
+        context, device, pInfo, pMemoryRequirements);
+}
+
+VkResult ResourceTracker::on_vkBindImageMemory(
+    void* context, VkResult input_result,
+    VkDevice device, VkImage image, VkDeviceMemory memory,
+    VkDeviceSize memoryOffset) {
+    return mImpl->on_vkBindImageMemory(
+        context, input_result, device, image, memory, memoryOffset);
+}
+
+VkResult ResourceTracker::on_vkBindImageMemory2(
+    void* context, VkResult input_result,
+    VkDevice device, uint32_t bindingCount, const VkBindImageMemoryInfo* pBindInfos) {
+    return mImpl->on_vkBindImageMemory2(
+        context, input_result, device, bindingCount, pBindInfos);
+}
+
+VkResult ResourceTracker::on_vkBindImageMemory2KHR(
+    void* context, VkResult input_result,
+    VkDevice device, uint32_t bindingCount, const VkBindImageMemoryInfo* pBindInfos) {
+    return mImpl->on_vkBindImageMemory2KHR(
+        context, input_result, device, bindingCount, pBindInfos);
+}
+
+VkResult ResourceTracker::on_vkCreateBuffer(
+    void* context, VkResult input_result,
+    VkDevice device, const VkBufferCreateInfo *pCreateInfo,
+    const VkAllocationCallbacks *pAllocator,
+    VkBuffer *pBuffer) {
+    return mImpl->on_vkCreateBuffer(
+        context, input_result,
+        device, pCreateInfo, pAllocator, pBuffer);
+}
+
+void ResourceTracker::on_vkDestroyBuffer(
+    void* context,
+    VkDevice device, VkBuffer buffer, const VkAllocationCallbacks *pAllocator) {
+    mImpl->on_vkDestroyBuffer(context, device, buffer, pAllocator);
+}
+
+void ResourceTracker::on_vkGetBufferMemoryRequirements(
+    void* context, VkDevice device, VkBuffer buffer, VkMemoryRequirements *pMemoryRequirements) {
+    mImpl->on_vkGetBufferMemoryRequirements(context, device, buffer, pMemoryRequirements);
+}
+
+void ResourceTracker::on_vkGetBufferMemoryRequirements2(
+    void* context, VkDevice device, const VkBufferMemoryRequirementsInfo2* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements) {
+    mImpl->on_vkGetBufferMemoryRequirements2(
+        context, device, pInfo, pMemoryRequirements);
+}
+
+void ResourceTracker::on_vkGetBufferMemoryRequirements2KHR(
+    void* context, VkDevice device, const VkBufferMemoryRequirementsInfo2* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements) {
+    mImpl->on_vkGetBufferMemoryRequirements2KHR(
+        context, device, pInfo, pMemoryRequirements);
+}
+
+VkResult ResourceTracker::on_vkBindBufferMemory(
+    void* context, VkResult input_result,
+    VkDevice device, VkBuffer buffer, VkDeviceMemory memory, VkDeviceSize memoryOffset) {
+    return mImpl->on_vkBindBufferMemory(
+        context, input_result,
+        device, buffer, memory, memoryOffset);
+}
+
+VkResult ResourceTracker::on_vkBindBufferMemory2(
+    void* context, VkResult input_result,
+    VkDevice device, uint32_t bindInfoCount, const VkBindBufferMemoryInfo *pBindInfos) {
+    return mImpl->on_vkBindBufferMemory2(
+        context, input_result,
+        device, bindInfoCount, pBindInfos);
+}
+
+VkResult ResourceTracker::on_vkBindBufferMemory2KHR(
+    void* context, VkResult input_result,
+    VkDevice device, uint32_t bindInfoCount, const VkBindBufferMemoryInfo *pBindInfos) {
+    return mImpl->on_vkBindBufferMemory2KHR(
+        context, input_result,
+        device, bindInfoCount, pBindInfos);
 }
 
 void ResourceTracker::unwrap_VkNativeBufferANDROID(
