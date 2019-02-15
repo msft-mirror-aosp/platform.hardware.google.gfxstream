@@ -62,6 +62,11 @@ public:
         uint32_t* pPropertyCount,
         VkExtensionProperties* pProperties);
 
+    VkResult on_vkEnumeratePhysicalDevices(
+        void* context, VkResult input_result,
+        VkInstance instance, uint32_t* pPhysicalDeviceCount,
+        VkPhysicalDevice* pPhysicalDevices);
+
     void on_vkGetPhysicalDeviceMemoryProperties(
         void* context,
         VkPhysicalDevice physicalDevice,
