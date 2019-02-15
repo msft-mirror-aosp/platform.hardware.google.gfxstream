@@ -121,6 +121,64 @@ public:
         VkDevice device,
         VkDeviceMemory memory);
 
+    VkResult on_vkCreateImage(
+        void* context, VkResult input_result,
+        VkDevice device, const VkImageCreateInfo *pCreateInfo,
+        const VkAllocationCallbacks *pAllocator,
+        VkImage *pImage);
+    void on_vkDestroyImage(
+        void* context,
+        VkDevice device, VkImage image, const VkAllocationCallbacks *pAllocator);
+
+    void on_vkGetImageMemoryRequirements(
+        void *context, VkDevice device, VkImage image,
+        VkMemoryRequirements *pMemoryRequirements);
+    void on_vkGetImageMemoryRequirements2(
+        void *context, VkDevice device, const VkImageMemoryRequirementsInfo2 *pInfo,
+        VkMemoryRequirements2 *pMemoryRequirements);
+    void on_vkGetImageMemoryRequirements2KHR(
+        void *context, VkDevice device, const VkImageMemoryRequirementsInfo2 *pInfo,
+        VkMemoryRequirements2 *pMemoryRequirements);
+
+    VkResult on_vkBindImageMemory(
+        void* context, VkResult input_result,
+        VkDevice device, VkImage image, VkDeviceMemory memory,
+        VkDeviceSize memoryOffset);
+    VkResult on_vkBindImageMemory2(
+        void* context, VkResult input_result,
+        VkDevice device, uint32_t bindingCount, const VkBindImageMemoryInfo* pBindInfos);
+    VkResult on_vkBindImageMemory2KHR(
+        void* context, VkResult input_result,
+        VkDevice device, uint32_t bindingCount, const VkBindImageMemoryInfo* pBindInfos);
+
+    VkResult on_vkCreateBuffer(
+        void* context, VkResult input_result,
+        VkDevice device, const VkBufferCreateInfo *pCreateInfo,
+        const VkAllocationCallbacks *pAllocator,
+        VkBuffer *pBuffer);
+    void on_vkDestroyBuffer(
+        void* context,
+        VkDevice device, VkBuffer buffer, const VkAllocationCallbacks *pAllocator);
+
+    void on_vkGetBufferMemoryRequirements(
+        void* context, VkDevice device, VkBuffer buffer, VkMemoryRequirements *pMemoryRequirements);
+    void on_vkGetBufferMemoryRequirements2(
+        void* context, VkDevice device, const VkBufferMemoryRequirementsInfo2* pInfo,
+        VkMemoryRequirements2* pMemoryRequirements);
+    void on_vkGetBufferMemoryRequirements2KHR(
+        void* context, VkDevice device, const VkBufferMemoryRequirementsInfo2* pInfo,
+        VkMemoryRequirements2* pMemoryRequirements);
+
+    VkResult on_vkBindBufferMemory(
+        void* context, VkResult input_result,
+        VkDevice device, VkBuffer buffer, VkDeviceMemory memory, VkDeviceSize memoryOffset);
+    VkResult on_vkBindBufferMemory2(
+        void* context, VkResult input_result,
+        VkDevice device, uint32_t bindInfoCount, const VkBindBufferMemoryInfo *pBindInfos);
+    VkResult on_vkBindBufferMemory2KHR(
+        void* context, VkResult input_result,
+        VkDevice device, uint32_t bindInfoCount, const VkBindBufferMemoryInfo *pBindInfos);
+
     void unwrap_VkNativeBufferANDROID(
         const VkImageCreateInfo* pCreateInfo,
         VkImageCreateInfo* local_pCreateInfo);
@@ -169,7 +227,7 @@ public:
 #define DEFINE_TRANSFORMED_TYPE_PROTOTYPE(type) \
     void transformImpl_##type##_tohost(const type*, uint32_t); \
     void transformImpl_##type##_fromhost(const type*, uint32_t); \
-    
+
 LIST_TRANSFORMED_TYPES(DEFINE_TRANSFORMED_TYPE_PROTOTYPE)
 
   private:
