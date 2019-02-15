@@ -66,7 +66,8 @@ static VkResult entry_vkEnumeratePhysicalDevices(
 {
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkEnumeratePhysicalDevices_VkResult_return = (VkResult)0;
-    vkEnumeratePhysicalDevices_VkResult_return = vkEnc->vkEnumeratePhysicalDevices(instance, pPhysicalDeviceCount, pPhysicalDevices);
+    auto resources = ResourceTracker::get();
+    vkEnumeratePhysicalDevices_VkResult_return = resources->on_vkEnumeratePhysicalDevices(vkEnc, VK_SUCCESS, instance, pPhysicalDeviceCount, pPhysicalDevices);
     return vkEnumeratePhysicalDevices_VkResult_return;
 }
 static void entry_vkGetPhysicalDeviceFeatures(
