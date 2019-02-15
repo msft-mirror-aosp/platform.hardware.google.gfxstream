@@ -120,6 +120,8 @@ public:
     struct VkInstance_Info {
         uint32_t highestApiVersion;
         std::set<std::string> enabledExtensions;
+        // Fodder for vkEnumeratePhysicalDevices.
+        std::vector<VkPhysicalDevice> physicalDevices;
     };
 
     struct VkDevice_Info {
@@ -634,6 +636,65 @@ public:
             for (size_t i = 0; i < *pPropertyCount; ++i) {
                 pProperties[i] = filteredExts[i];
             }
+        }
+
+        return VK_SUCCESS;
+    }
+
+    VkResult on_vkEnumeratePhysicalDevices(
+        void* context, VkResult,
+        VkInstance instance, uint32_t* pPhysicalDeviceCount,
+        VkPhysicalDevice* pPhysicalDevices) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        if (!instance) return VK_ERROR_INITIALIZATION_FAILED;
+
+        if (!pPhysicalDeviceCount) return VK_ERROR_INITIALIZATION_FAILED;
+
+        AutoLock lock(mLock);
+
+        auto it = info_VkInstance.find(instance);
+
+        if (it == info_VkInstance.end()) return VK_ERROR_INITIALIZATION_FAILED;
+
+        auto& info = it->second;
+
+        if (info.physicalDevices.empty()) {
+            uint32_t physdevCount = 0;
+
+            lock.unlock();
+            VkResult countRes = enc->vkEnumeratePhysicalDevices(
+                instance, &physdevCount, nullptr);
+            lock.lock();
+
+            if (countRes != VK_SUCCESS) {
+                ALOGE("%s: failed: could not count host physical devices. "
+                      "Error %d\n", __func__, countRes);
+                return countRes;
+            }
+
+            info.physicalDevices.resize(physdevCount);
+
+            lock.unlock();
+            VkResult enumRes = enc->vkEnumeratePhysicalDevices(
+                instance, &physdevCount, info.physicalDevices.data());
+            lock.lock();
+
+            if (enumRes != VK_SUCCESS) {
+                ALOGE("%s: failed: could not retrieve host physical devices. "
+                      "Error %d\n", __func__, enumRes);
+                return enumRes;
+            }
+        }
+
+        *pPhysicalDeviceCount = (uint32_t)info.physicalDevices.size();
+
+        if (pPhysicalDevices && *pPhysicalDeviceCount) {
+            memcpy(pPhysicalDevices,
+                   info.physicalDevices.data(),
+                   sizeof(VkPhysicalDevice) *
+                   info.physicalDevices.size());
         }
 
         return VK_SUCCESS;
@@ -1395,6 +1456,15 @@ VkResult ResourceTracker::on_vkEnumerateDeviceExtensionProperties(
     VkExtensionProperties* pProperties) {
     return mImpl->on_vkEnumerateDeviceExtensionProperties(
         context, input_result, physicalDevice, pLayerName, pPropertyCount, pProperties);
+}
+
+VkResult ResourceTracker::on_vkEnumeratePhysicalDevices(
+    void* context, VkResult input_result,
+    VkInstance instance, uint32_t* pPhysicalDeviceCount,
+    VkPhysicalDevice* pPhysicalDevices) {
+    return mImpl->on_vkEnumeratePhysicalDevices(
+        context, input_result, instance, pPhysicalDeviceCount,
+        pPhysicalDevices);
 }
 
 void ResourceTracker::on_vkGetPhysicalDeviceMemoryProperties(
