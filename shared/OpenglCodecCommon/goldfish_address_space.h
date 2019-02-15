@@ -16,6 +16,7 @@
 #define ANDROID_INCLUDE_HARDWARE_GOLDFISH_ADDRESS_SPACE_H
 
 #include <inttypes.h>
+#include <stddef.h>
 
 class GoldfishAddressSpaceBlock;
 
