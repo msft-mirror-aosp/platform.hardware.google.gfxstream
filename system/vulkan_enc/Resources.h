@@ -72,18 +72,4 @@ GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_NEW_FROM_HOST_U64_DEC
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_GET_HOST_U64_DECL)
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_DEFINE_TRIVIAL_NON_DISPATCHABLE_HANDLE_STRUCT)
 
-// From vkd3d: utility function to search for extension structs
-struct vk_struct { 
-    VkStructureType sType; 
-    struct vk_struct *pNext; 
-}; 
- 
-static const void *vk_find_struct(struct vk_struct *chain, VkStructureType type) { 
-    while (chain) { 
-        if (chain->sType == type) return chain; 
-        chain = chain->pNext; 
-    } 
-    return nullptr; 
-} 
-
 } // extern "C"
