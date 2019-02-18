@@ -46,8 +46,13 @@ void GoldfishAddressSpaceBlock::replace(GoldfishAddressSpaceBlock *other)
     }
 }
 #else
+#ifdef __ANDROID__
 #include <linux/types.h>
 #include <linux/ioctl.h>
+#elif __Fuchsia__
+typedef uint64_t __u64;
+#define mmap64 mmap
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>

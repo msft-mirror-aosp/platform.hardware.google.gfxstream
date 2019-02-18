@@ -41,8 +41,24 @@ typedef int QEMU_PIPE_HANDLE;
 
 #define QEMU_PIPE_INVALID_HANDLE (-1)
 
+#ifndef QEMU_PIPE_PATH
+#define QEMU_PIPE_PATH "/dev/qemu_pipe"
+#endif
+
+#ifndef TEMP_FAILURE_RETRY
+#define TEMP_FAILURE_RETRY(exp) ({         \
+    __typeof__(exp) _rc;                   \
+    do {                                   \
+        _rc = (exp);                       \
+    } while (_rc == -1 && errno == EINTR); \
+    _rc; })
+#include <stdint.h>
+#endif
+
 #include <cutils/log.h>
+#ifdef __ANDROID__
 #include <sys/cdefs.h>
+#endif
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -103,11 +119,11 @@ qemu_pipe_open(const char* pipeName) {
 
     snprintf(buff, sizeof buff, "pipe:%s", pipeName);
 
-    fd = TEMP_FAILURE_RETRY(open("/dev/qemu_pipe", O_RDWR));
+    fd = TEMP_FAILURE_RETRY(open(QEMU_PIPE_PATH, O_RDWR));
     if (fd < 0 && errno == ENOENT)
         fd = TEMP_FAILURE_RETRY(open("/dev/goldfish_pipe", O_RDWR));
     if (fd < 0) {
-        D("%s: Could not open /dev/qemu_pipe: %s", __FUNCTION__, strerror(errno));
+        D("%s: Could not open " QEMU_PIPE_PATH ": %s", __FUNCTION__, strerror(errno));
         //errno = ENOSYS;
         return -1;
     }
