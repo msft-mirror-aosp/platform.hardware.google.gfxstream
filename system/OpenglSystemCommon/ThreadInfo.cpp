@@ -16,7 +16,9 @@
 #include "ThreadInfo.h"
 #include "cutils/threads.h"
 
+#ifdef __ANDROID__
 #include <bionic_tls.h>
+#endif
 #include <pthread.h>
 
 thread_store_t s_tls = THREAD_STORE_INITIALIZER;
@@ -31,8 +33,9 @@ static void tlsDestruct(void *ptr)
     sTlsDestructorCallback(ptr);
     if (ptr
 #ifdef __ANDROID__
-         && ((void **)__get_tls())[TLS_SLOT_OPENGL]) {
+         && ((void **)__get_tls())[TLS_SLOT_OPENGL]
 #endif
+        ) {
         EGLThreadInfo *ti = (EGLThreadInfo *)ptr;
         delete ti->hostConn;
         delete ti;

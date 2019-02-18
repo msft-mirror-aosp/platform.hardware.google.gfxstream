@@ -15,8 +15,28 @@
 */
 #include "HostConnection.h"
 
+#ifdef GOLDFISH_NO_GL
+struct gl_client_context_t {
+    int placeholder;
+};
+class GLEncoder : public gl_client_context_t {
+public:
+    GLEncoder(IOStream*, ChecksumCalculator*) { }
+    void setContextAccessor(gl_client_context_t *()) { }
+};
+struct gl2_client_context_t {
+    int placeholder;
+};
+class GL2Encoder : public gl2_client_context_t {
+public:
+    GL2Encoder(IOStream*, ChecksumCalculator*) { }
+    void setContextAccessor(gl2_client_context_t *()) { }
+    void setNoHostError(bool) { }
+};
+#else
 #include "GLEncoder.h"
 #include "GL2Encoder.h"
+#endif
 
 #ifdef GOLDFISH_VULKAN
 #include "VkEncoder.h"
