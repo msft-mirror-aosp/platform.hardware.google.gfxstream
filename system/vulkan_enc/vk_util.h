@@ -207,4 +207,19 @@ uint32_t vk_get_version_override(void);
 #define VK_ENUM_OFFSET(__enum) \
    ((__enum) >= VK_EXT_OFFSET ? ((__enum) % 1000) : (__enum))
 
+static inline vk_struct_common*
+vk_init_struct_chain(vk_struct_common* start)
+{
+   start->pNext = nullptr;
+   return start;
+}
+
+static inline vk_struct_common*
+vk_append_struct(vk_struct_common* current, vk_struct_common* next)
+{
+   current->pNext = next;
+   next->pNext = nullptr;
+   return next;
+}
+
 #endif /* VK_UTIL_H */
