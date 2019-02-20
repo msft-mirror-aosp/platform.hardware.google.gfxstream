@@ -8891,6 +8891,8 @@ void transform_fromhost_VkCheckpointDataNV(
 #endif
 #ifdef VK_GOOGLE_address_space
 #endif
+#ifdef VK_GOOGLE_color_buffer
+#endif
 void transform_tohost_extension_struct(
     ResourceTracker* resourceTracker,
     void* structExtension_out)

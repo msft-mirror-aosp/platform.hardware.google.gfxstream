@@ -1747,6 +1747,16 @@ public:
         VkDeviceMemory memory,
         uint64_t* pAddress);
 #endif
+#ifdef VK_GOOGLE_color_buffer
+    VkResult vkRegisterImageColorBufferGOOGLE(
+    VkDevice device,
+        VkImage image,
+        uint32_t colorBuffer);
+    VkResult vkRegisterBufferColorBufferGOOGLE(
+    VkDevice device,
+        VkBuffer buffer,
+        uint32_t colorBuffer);
+#endif
 
 private:
     class Impl;
