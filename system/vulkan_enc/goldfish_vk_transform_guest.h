@@ -3045,5 +3045,7 @@ void transform_fromhost_VkCheckpointDataNV(
 #endif
 #ifdef VK_GOOGLE_address_space
 #endif
+#ifdef VK_GOOGLE_color_buffer
+#endif
 
 } // namespace goldfish_vk

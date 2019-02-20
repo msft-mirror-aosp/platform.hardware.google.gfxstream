@@ -21181,5 +21181,103 @@ VkResult VkEncoder::vkMapMemoryIntoAddressSpaceGOOGLE(
 }
 
 #endif
+#ifdef VK_GOOGLE_color_buffer
+VkResult VkEncoder::vkRegisterImageColorBufferGOOGLE(
+    VkDevice device,
+    VkImage image,
+    uint32_t colorBuffer)
+{
+    mImpl->log("start vkRegisterImageColorBufferGOOGLE");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkDevice local_device;
+    VkImage local_image;
+    uint32_t local_colorBuffer;
+    local_device = device;
+    local_image = image;
+    local_colorBuffer = colorBuffer;
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1480;
+        countingStream->handleMapping()->mapHandles_VkDevice_u64(&local_device, &cgen_var_1480, 1);
+        countingStream->write((uint64_t*)&cgen_var_1480, 1 * 8);
+        uint64_t cgen_var_1481;
+        countingStream->handleMapping()->mapHandles_VkImage_u64(&local_image, &cgen_var_1481, 1);
+        countingStream->write((uint64_t*)&cgen_var_1481, 1 * 8);
+        countingStream->write((uint32_t*)&local_colorBuffer, sizeof(uint32_t));
+    }
+    uint32_t packetSize_vkRegisterImageColorBufferGOOGLE = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkRegisterImageColorBufferGOOGLE = OP_vkRegisterImageColorBufferGOOGLE;
+    stream->write(&opcode_vkRegisterImageColorBufferGOOGLE, sizeof(uint32_t));
+    stream->write(&packetSize_vkRegisterImageColorBufferGOOGLE, sizeof(uint32_t));
+    uint64_t cgen_var_1482;
+    stream->handleMapping()->mapHandles_VkDevice_u64(&local_device, &cgen_var_1482, 1);
+    stream->write((uint64_t*)&cgen_var_1482, 1 * 8);
+    uint64_t cgen_var_1483;
+    stream->handleMapping()->mapHandles_VkImage_u64(&local_image, &cgen_var_1483, 1);
+    stream->write((uint64_t*)&cgen_var_1483, 1 * 8);
+    stream->write((uint32_t*)&local_colorBuffer, sizeof(uint32_t));
+    VkResult vkRegisterImageColorBufferGOOGLE_VkResult_return = (VkResult)0;
+    stream->read(&vkRegisterImageColorBufferGOOGLE_VkResult_return, sizeof(VkResult));
+    countingStream->clearPool();
+    stream->clearPool();
+    pool->freeAll();
+    mImpl->log("finish vkRegisterImageColorBufferGOOGLE");;
+    return vkRegisterImageColorBufferGOOGLE_VkResult_return;
+}
+
+VkResult VkEncoder::vkRegisterBufferColorBufferGOOGLE(
+    VkDevice device,
+    VkBuffer buffer,
+    uint32_t colorBuffer)
+{
+    mImpl->log("start vkRegisterBufferColorBufferGOOGLE");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkDevice local_device;
+    VkBuffer local_buffer;
+    uint32_t local_colorBuffer;
+    local_device = device;
+    local_buffer = buffer;
+    local_colorBuffer = colorBuffer;
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1484;
+        countingStream->handleMapping()->mapHandles_VkDevice_u64(&local_device, &cgen_var_1484, 1);
+        countingStream->write((uint64_t*)&cgen_var_1484, 1 * 8);
+        uint64_t cgen_var_1485;
+        countingStream->handleMapping()->mapHandles_VkBuffer_u64(&local_buffer, &cgen_var_1485, 1);
+        countingStream->write((uint64_t*)&cgen_var_1485, 1 * 8);
+        countingStream->write((uint32_t*)&local_colorBuffer, sizeof(uint32_t));
+    }
+    uint32_t packetSize_vkRegisterBufferColorBufferGOOGLE = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkRegisterBufferColorBufferGOOGLE = OP_vkRegisterBufferColorBufferGOOGLE;
+    stream->write(&opcode_vkRegisterBufferColorBufferGOOGLE, sizeof(uint32_t));
+    stream->write(&packetSize_vkRegisterBufferColorBufferGOOGLE, sizeof(uint32_t));
+    uint64_t cgen_var_1486;
+    stream->handleMapping()->mapHandles_VkDevice_u64(&local_device, &cgen_var_1486, 1);
+    stream->write((uint64_t*)&cgen_var_1486, 1 * 8);
+    uint64_t cgen_var_1487;
+    stream->handleMapping()->mapHandles_VkBuffer_u64(&local_buffer, &cgen_var_1487, 1);
+    stream->write((uint64_t*)&cgen_var_1487, 1 * 8);
+    stream->write((uint32_t*)&local_colorBuffer, sizeof(uint32_t));
+    VkResult vkRegisterBufferColorBufferGOOGLE_VkResult_return = (VkResult)0;
+    stream->read(&vkRegisterBufferColorBufferGOOGLE_VkResult_return, sizeof(VkResult));
+    countingStream->clearPool();
+    stream->clearPool();
+    pool->freeAll();
+    mImpl->log("finish vkRegisterBufferColorBufferGOOGLE");;
+    return vkRegisterBufferColorBufferGOOGLE_VkResult_return;
+}
+
+#endif
 
 } // namespace goldfish_vk
