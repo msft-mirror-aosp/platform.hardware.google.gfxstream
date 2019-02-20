@@ -28,6 +28,9 @@ struct EmulatorFeatureInfo;
 
 namespace goldfish_vk {
 
+typedef uint32_t (*PFN_CreateColorBuffer)(uint32_t width, uint32_t height, uint32_t format);
+typedef uint32_t (*PFN_CloseColorBuffer)(uint32_t id);
+
 class ResourceTracker {
 public:
     ResourceTracker();
@@ -186,7 +189,7 @@ public:
         void* context, VkResult input_result,
         VkDevice device, uint32_t bindInfoCount, const VkBindBufferMemoryInfo *pBindInfos);
 
-  VkResult on_vkCreateSemaphore(
+    VkResult on_vkCreateSemaphore(
         void* context, VkResult,
         VkDevice device, const VkSemaphoreCreateInfo* pCreateInfo,
         const VkAllocationCallbacks* pAllocator,
@@ -203,6 +206,20 @@ public:
         const VkImageCreateInfo* pCreateInfo,
         VkImageCreateInfo* local_pCreateInfo);
     void unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int* fd_out);
+
+#ifdef VK_USE_PLATFORM_FUCHSIA
+    VkResult on_vkGetMemoryFuchsiaHandleKHR(
+        VkDevice device,
+        const VkMemoryGetFuchsiaHandleInfoKHR* pInfo,
+        uint32_t* pHandle);
+    VkResult on_vkGetSemaphoreFuchsiaHandleKHR(
+        VkDevice device,
+        const VkSemaphoreGetFuchsiaHandleInfoKHR* pInfo,
+        uint32_t* pHandle);
+    VkResult on_vkImportSemaphoreFuchsiaHandleKHR(
+        VkDevice device,
+        const VkImportSemaphoreFuchsiaHandleInfoKHR* pInfo);
+#endif
 
     VkResult on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(
         void* context,
@@ -229,6 +246,7 @@ public:
     uint32_t getApiVersionFromDevice(VkDevice device) const;
     bool hasInstanceExtension(VkInstance instance, const std::string& name) const;
     bool hasDeviceExtension(VkDevice instance, const std::string& name) const;
+    void setColorBufferFunctions(PFN_CreateColorBuffer create, PFN_CloseColorBuffer close);
 
     // Transforms
     void deviceMemoryTransform_tohost(

@@ -27,7 +27,7 @@ void ScopedTrace::beginTraceImpl(const char* name) {
     atrace_begin(VK_TRACE_TAG, name);
 }
 
-void ScopedTrace::endTraceImpl() {
+void ScopedTrace::endTraceImpl(const char*) {
     atrace_end(VK_TRACE_TAG);
 }
 
@@ -36,12 +36,20 @@ void ScopedTrace::endTraceImpl() {
 
 #elif __Fuchsia__
 
+#include <trace/event.h>
+
+#define VK_TRACE_TAG "gfx"
+
 namespace android {
 namespace base {
 
-// TODO
-void ScopedTrace::beginTraceImpl(const char*) { }
-void ScopedTrace::endTraceImpl()
+void ScopedTrace::beginTraceImpl(const char* name) {
+    TRACE_DURATION_BEGIN(VK_TRACE_TAG, name);
+}
+
+void ScopedTrace::endTraceImpl(const char* name) {
+    TRACE_DURATION_END(VK_TRACE_TAG, name);
+}
 
 } // namespace base
 } // namespace android
