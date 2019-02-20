@@ -24,7 +24,12 @@
 
 #include <cutils/native_handle.h>
 
+#ifdef GOLDFISH_VULKAN
 #include <mutex>
+#else
+#include <utils/threads.h>
+#endif
+
 #include <string>
 
 class GLEncoder;
@@ -167,7 +172,11 @@ private:
     std::string m_glExtensions;
     bool m_grallocOnly;
     bool m_noHostError;
+#ifdef GOLDFISH_VULKAN
     mutable std::mutex m_lock;
+#else
+    mutable android::Mutex m_lock;
+#endif
 };
 
 #endif
