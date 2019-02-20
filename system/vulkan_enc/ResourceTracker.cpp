@@ -1062,7 +1062,22 @@ public:
         const VkAllocationCallbacks *pAllocator,
         VkImage *pImage) {
         VkEncoder* enc = (VkEncoder*)context;
-        return enc->vkCreateImage(device, pCreateInfo, pAllocator, pImage);
+
+        VkResult res = enc->vkCreateImage(device, pCreateInfo, pAllocator, pImage);
+
+        if (res != VK_SUCCESS) return res;
+
+        AutoLock lock(mLock);
+
+        auto it = info_VkImage.find(*pImage);
+        if (it == info_VkImage.end()) return VK_ERROR_INITIALIZATION_FAILED;
+
+        auto& info = it->second;
+
+        info.createInfo = *pCreateInfo;
+        info.createInfo.pNext = nullptr;
+
+        return res;
     }
 
     void on_vkDestroyImage(
@@ -1124,7 +1139,22 @@ public:
         const VkAllocationCallbacks *pAllocator,
         VkBuffer *pBuffer) {
         VkEncoder* enc = (VkEncoder*)context;
-        return enc->vkCreateBuffer(device, pCreateInfo, pAllocator, pBuffer);
+
+        VkResult res = enc->vkCreateBuffer(device, pCreateInfo, pAllocator, pBuffer);
+
+        if (res != VK_SUCCESS) return res;
+
+        AutoLock lock(mLock);
+
+        auto it = info_VkBuffer.find(*pBuffer);
+        if (it == info_VkBuffer.end()) return VK_ERROR_INITIALIZATION_FAILED;
+
+        auto& info = it->second;
+
+        info.createInfo = *pCreateInfo;
+        info.createInfo.pNext = nullptr;
+
+        return res;
     }
 
     void on_vkDestroyBuffer(
