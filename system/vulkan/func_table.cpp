@@ -3354,6 +3354,28 @@ static VkResult entry_vkMapMemoryIntoAddressSpaceGOOGLE(
     return vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return;
 }
 #endif
+#ifdef VK_GOOGLE_color_buffer
+static VkResult entry_vkRegisterImageColorBufferGOOGLE(
+    VkDevice device,
+    VkImage image,
+    uint32_t colorBuffer)
+{
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkRegisterImageColorBufferGOOGLE_VkResult_return = (VkResult)0;
+    vkRegisterImageColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterImageColorBufferGOOGLE(device, image, colorBuffer);
+    return vkRegisterImageColorBufferGOOGLE_VkResult_return;
+}
+static VkResult entry_vkRegisterBufferColorBufferGOOGLE(
+    VkDevice device,
+    VkBuffer buffer,
+    uint32_t colorBuffer)
+{
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkRegisterBufferColorBufferGOOGLE_VkResult_return = (VkResult)0;
+    vkRegisterBufferColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterBufferColorBufferGOOGLE(device, buffer, colorBuffer);
+    return vkRegisterBufferColorBufferGOOGLE_VkResult_return;
+}
+#endif
 void* goldfish_vulkan_get_proc_address(const char* name){
 #ifdef VK_VERSION_1_0
     if (!strcmp(name, "vkCreateInstance"))
@@ -4751,6 +4773,16 @@ void* goldfish_vulkan_get_proc_address(const char* name){
 #endif
 #ifdef VK_GOOGLE_address_space
     if (!strcmp(name, "vkMapMemoryIntoAddressSpaceGOOGLE"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_color_buffer
+    if (!strcmp(name, "vkRegisterImageColorBufferGOOGLE"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkRegisterBufferColorBufferGOOGLE"))
     {
         return nullptr;
     }
@@ -6313,6 +6345,18 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return hasExt ? (void*)entry_vkMapMemoryIntoAddressSpaceGOOGLE : nullptr;
     }
 #endif
+#ifdef VK_GOOGLE_color_buffer
+    if (!strcmp(name, "vkRegisterImageColorBufferGOOGLE"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_color_buffer");
+        return hasExt ? (void*)entry_vkRegisterImageColorBufferGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkRegisterBufferColorBufferGOOGLE"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_color_buffer");
+        return hasExt ? (void*)entry_vkRegisterBufferColorBufferGOOGLE : nullptr;
+    }
+#endif
     return nullptr;
 }
 void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name){
@@ -7869,6 +7913,18 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     {
         bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_address_space");
         return hasExt ? (void*)entry_vkMapMemoryIntoAddressSpaceGOOGLE : nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_color_buffer
+    if (!strcmp(name, "vkRegisterImageColorBufferGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_color_buffer");
+        return hasExt ? (void*)entry_vkRegisterImageColorBufferGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkRegisterBufferColorBufferGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_color_buffer");
+        return hasExt ? (void*)entry_vkRegisterBufferColorBufferGOOGLE : nullptr;
     }
 #endif
     return nullptr;
