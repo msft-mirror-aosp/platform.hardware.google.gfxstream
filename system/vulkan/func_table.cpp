@@ -437,7 +437,8 @@ static VkResult entry_vkCreateSemaphore(
 {
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateSemaphore_VkResult_return = (VkResult)0;
-    vkCreateSemaphore_VkResult_return = vkEnc->vkCreateSemaphore(device, pCreateInfo, pAllocator, pSemaphore);
+    auto resources = ResourceTracker::get();
+    vkCreateSemaphore_VkResult_return = resources->on_vkCreateSemaphore(vkEnc, VK_SUCCESS, device, pCreateInfo, pAllocator, pSemaphore);
     return vkCreateSemaphore_VkResult_return;
 }
 static void entry_vkDestroySemaphore(
@@ -446,7 +447,8 @@ static void entry_vkDestroySemaphore(
     const VkAllocationCallbacks* pAllocator)
 {
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroySemaphore(device, semaphore, pAllocator);
+    auto resources = ResourceTracker::get();
+    resources->on_vkDestroySemaphore(vkEnc, device, semaphore, pAllocator);
 }
 static VkResult entry_vkCreateEvent(
     VkDevice device,
