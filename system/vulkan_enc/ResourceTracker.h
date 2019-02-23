@@ -14,6 +14,8 @@
 // limitations under the License.
 #pragma once
 
+#include "android/base/Tracing.h"
+
 #include <vulkan/vulkan.h>
 
 #include "VulkanHandleMapping.h"
