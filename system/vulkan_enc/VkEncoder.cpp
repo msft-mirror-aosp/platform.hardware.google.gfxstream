@@ -15644,9 +15644,11 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
     stream->write((uint64_t*)&cgen_var_1054, 8);
     stream->setHandleMapping(resources->unwrapMapping());
     AEMU_SCOPED_TRACE("vkCreateDescriptorUpdateTemplateKHR readParams");
+    stream->setHandleMapping(resources->createMapping());
     uint64_t cgen_var_1055;
     stream->read((uint64_t*)&cgen_var_1055, 8);
     stream->handleMapping()->mapHandles_u64_VkDescriptorUpdateTemplate(&cgen_var_1055, (VkDescriptorUpdateTemplate*)pDescriptorUpdateTemplate, 1);
+    stream->unsetHandleMapping();
     AEMU_SCOPED_TRACE("vkCreateDescriptorUpdateTemplateKHR returnUnmarshal");
     VkResult vkCreateDescriptorUpdateTemplateKHR_VkResult_return = (VkResult)0;
     stream->read(&vkCreateDescriptorUpdateTemplateKHR_VkResult_return, sizeof(VkResult));
@@ -15721,6 +15723,7 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplateKHR(
     }
     AEMU_SCOPED_TRACE("vkDestroyDescriptorUpdateTemplateKHR readParams");
     AEMU_SCOPED_TRACE("vkDestroyDescriptorUpdateTemplateKHR returnUnmarshal");
+    resources->destroyMapping()->mapHandles_VkDescriptorUpdateTemplate((VkDescriptorUpdateTemplate*)&descriptorUpdateTemplate);
     mImpl->log("finish vkDestroyDescriptorUpdateTemplateKHR");;
 }
 
@@ -17247,9 +17250,11 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
     stream->write((uint64_t*)&cgen_var_1152, 8);
     stream->setHandleMapping(resources->unwrapMapping());
     AEMU_SCOPED_TRACE("vkCreateSamplerYcbcrConversionKHR readParams");
+    stream->setHandleMapping(resources->createMapping());
     uint64_t cgen_var_1153;
     stream->read((uint64_t*)&cgen_var_1153, 8);
     stream->handleMapping()->mapHandles_u64_VkSamplerYcbcrConversion(&cgen_var_1153, (VkSamplerYcbcrConversion*)pYcbcrConversion, 1);
+    stream->unsetHandleMapping();
     AEMU_SCOPED_TRACE("vkCreateSamplerYcbcrConversionKHR returnUnmarshal");
     VkResult vkCreateSamplerYcbcrConversionKHR_VkResult_return = (VkResult)0;
     stream->read(&vkCreateSamplerYcbcrConversionKHR_VkResult_return, sizeof(VkResult));
@@ -17324,6 +17329,7 @@ void VkEncoder::vkDestroySamplerYcbcrConversionKHR(
     }
     AEMU_SCOPED_TRACE("vkDestroySamplerYcbcrConversionKHR readParams");
     AEMU_SCOPED_TRACE("vkDestroySamplerYcbcrConversionKHR returnUnmarshal");
+    resources->destroyMapping()->mapHandles_VkSamplerYcbcrConversion((VkSamplerYcbcrConversion*)&ycbcrConversion);
     mImpl->log("finish vkDestroySamplerYcbcrConversionKHR");;
 }
 
