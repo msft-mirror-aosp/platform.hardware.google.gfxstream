@@ -43,11 +43,13 @@ public:
     }
 
     ssize_t write(const void *buffer, size_t size) override {
-        return bufferedWrite(buffer, size);
+        uint8_t* streamBuf = (uint8_t*)mStream->alloc(size);
+        memcpy(streamBuf, buffer, size);
+        return size;
     }
 
     ssize_t read(void *buffer, size_t size) override {
-        if (mWritePos) commitWrite();
+        commitWrite();
         if (!mStream->readFully(buffer, size)) {
             ALOGE("FATAL: Could not read back %zu bytes", size);
             abort();
@@ -87,21 +89,6 @@ private:
     void commitWrite() {
         AEMU_SCOPED_TRACE("VulkanStreamGuest device write");
         mStream->flush();
-
-        if (!valid()) {
-            ALOGE("FATAL: Tried to commit write to vulkan pipe with invalid pipe!");
-            abort();
-        }
-
-        int written =
-            mStream->writeFully(mWriteBuffer.data(), mWritePos);
-
-        if (written) {
-            ALOGE("FATAL: Did not write exactly %zu bytes!",
-                  mWritePos);
-            abort();
-        }
-        mWritePos = 0;
     }
 
     ssize_t bufferedWrite(const void *buffer, size_t size) {
