@@ -1209,6 +1209,23 @@ public:
             device, bindInfoCount, pBindInfos);
     }
 
+    VkResult on_vkCreateSemaphore(
+        void* context, VkResult,
+        VkDevice device, const VkSemaphoreCreateInfo* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkSemaphore* pSemaphore) {
+        VkEncoder* enc = (VkEncoder*)context;
+        return enc->vkCreateSemaphore(
+            device, pCreateInfo, pAllocator, pSemaphore);
+    }
+
+    void on_vkDestroySemaphore(
+        void* context,
+        VkDevice device, VkSemaphore semaphore, const VkAllocationCallbacks *pAllocator) {
+        VkEncoder* enc = (VkEncoder*)context;
+        enc->vkDestroySemaphore(device, semaphore, pAllocator);
+    }
+
     void unwrap_VkNativeBufferANDROID(
         const VkImageCreateInfo* pCreateInfo,
         VkImageCreateInfo* local_pCreateInfo) {
@@ -1244,6 +1261,9 @@ public:
         if (fd != -1) {
             sync_wait(fd, 3000);
         }
+    }
+
+    void unwrap_vkQueueSubmit(uint32_t, const VkSubmitInfo*, VkSubmitInfo*) {
     }
 
     // Action of vkMapMemoryIntoAddressSpaceGOOGLE:
@@ -1709,6 +1729,22 @@ VkResult ResourceTracker::on_vkBindBufferMemory2KHR(
         device, bindInfoCount, pBindInfos);
 }
 
+VkResult ResourceTracker::on_vkCreateSemaphore(
+    void* context, VkResult input_result,
+    VkDevice device, const VkSemaphoreCreateInfo *pCreateInfo,
+    const VkAllocationCallbacks *pAllocator,
+    VkSemaphore *pSemaphore) {
+    return mImpl->on_vkCreateSemaphore(
+        context, input_result,
+        device, pCreateInfo, pAllocator, pSemaphore);
+}
+
+void ResourceTracker::on_vkDestroySemaphore(
+    void* context,
+    VkDevice device, VkSemaphore semaphore, const VkAllocationCallbacks *pAllocator) {
+    mImpl->on_vkDestroySemaphore(context, device, semaphore, pAllocator);
+}
+
 void ResourceTracker::unwrap_VkNativeBufferANDROID(
     const VkImageCreateInfo* pCreateInfo,
     VkImageCreateInfo* local_pCreateInfo) {
@@ -1717,6 +1753,11 @@ void ResourceTracker::unwrap_VkNativeBufferANDROID(
 
 void ResourceTracker::unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int* fd_out) {
     mImpl->unwrap_vkAcquireImageANDROID_nativeFenceFd(fd, fd_out);
+}
+
+void ResourceTracker::unwrap_vkQueueSubmit(
+    uint32_t submitCount, const VkSubmitInfo* pSubmits, VkSubmitInfo* local_pSubmits) {
+    mImpl->unwrap_vkQueueSubmit(submitCount, pSubmits, local_pSubmits);
 }
 
 VkResult ResourceTracker::on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(

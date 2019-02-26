@@ -184,10 +184,22 @@ public:
         void* context, VkResult input_result,
         VkDevice device, uint32_t bindInfoCount, const VkBindBufferMemoryInfo *pBindInfos);
 
+  VkResult on_vkCreateSemaphore(
+        void* context, VkResult,
+        VkDevice device, const VkSemaphoreCreateInfo* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkSemaphore* pSemaphore);
+    void on_vkDestroySemaphore(
+        void* context,
+        VkDevice device, VkSemaphore semaphore, const VkAllocationCallbacks *pAllocator);
+
     void unwrap_VkNativeBufferANDROID(
         const VkImageCreateInfo* pCreateInfo,
         VkImageCreateInfo* local_pCreateInfo);
     void unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int* fd_out);
+
+    void unwrap_vkQueueSubmit(
+        uint32_t submitCount, const VkSubmitInfo* pSubmits, VkSubmitInfo* local_pSubmits);
 
     VkResult on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(
         void* context,
