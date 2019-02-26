@@ -35,6 +35,7 @@ void GLClientState::init() {
     m_nLocations = CODEC_MAX_VERTEX_ATTRIBUTES;
 
     m_arrayBuffer = 0;
+    m_arrayBuffer_lastEncode = 0;
     m_max_vertex_attrib_bindings = m_nLocations;
     addVertexArrayObject(0);
     setVertexArrayObject(0);
@@ -281,6 +282,25 @@ const GLClientState::VertexAttribState& GLClientState::getStateAndEnableDirty(in
     return m_currVaoState[location];
 }
 
+void GLClientState::updateEnableDirtyArrayForDraw() {
+    bool enableChanged;
+    auto& vaoState = m_currVaoState.vaoState();
+
+    int k = 0;
+    for (int i = 0; i < CODEC_MAX_VERTEX_ATTRIBUTES; ++i) {
+        const VertexAttribState &state = getStateAndEnableDirty(i, &enableChanged);
+        if (enableChanged || state.enabled) {
+            vaoState.attributesNeedingUpdateForDraw[k] = i;
+            ++k;
+        }
+    }
+    vaoState.numAttributesNeedingUpdateForDraw = k;
+}
+
+GLClientState::VAOState& GLClientState::currentVaoState() {
+    return m_currVaoState.vaoState();
+}
+
 int GLClientState::getLocation(GLenum loc)
 {
     int retval;
@@ -338,8 +358,16 @@ bool GLClientState::bufferIdExists(GLuint id) const {
 }
 
 void GLClientState::unBindBuffer(GLuint id) {
-    if (m_arrayBuffer == id) m_arrayBuffer = 0;
-    if (m_currVaoState.iboId() == id) m_currVaoState.iboId() = 0;
+    if (m_arrayBuffer == id) {
+        m_arrayBuffer = 0;
+        m_arrayBuffer_lastEncode = 0;
+    }
+
+    if (m_currVaoState.iboId() == id) {
+        m_currVaoState.iboId() = 0;
+        m_currVaoState.iboIdLastEncode() = 0;
+    }
+
     if (m_copyReadBuffer == id)
         m_copyReadBuffer = 0;
     if (m_copyWriteBuffer == id)
@@ -465,6 +493,42 @@ int GLClientState::getMaxIndexedBufferBindings(GLenum target) const {
     }
 }
 
+bool GLClientState::isIndexedBindNoOp(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size, GLintptr stride, GLintptr effectiveStride) {
+
+    if (target == GL_TRANSFORM_FEEDBACK_BUFFER) return false;
+
+    if (buffer != getLastEncodedBufferBind(target)) return false;
+
+    switch (target) {
+    case GL_TRANSFORM_FEEDBACK_BUFFER:
+        return m_indexedTransformFeedbackBuffers[index].buffer == buffer &&
+               m_indexedTransformFeedbackBuffers[index].offset == offset &&
+               m_indexedTransformFeedbackBuffers[index].size == size &&
+               m_indexedTransformFeedbackBuffers[index].stride == stride;
+    case GL_UNIFORM_BUFFER:
+        return m_indexedUniformBuffers[index].buffer == buffer &&
+               m_indexedUniformBuffers[index].offset == offset &&
+               m_indexedUniformBuffers[index].size == size &&
+               m_indexedUniformBuffers[index].stride == stride;
+    case GL_ATOMIC_COUNTER_BUFFER:
+        return m_indexedAtomicCounterBuffers[index].buffer == buffer &&
+               m_indexedAtomicCounterBuffers[index].offset == offset &&
+               m_indexedAtomicCounterBuffers[index].size == size &&
+               m_indexedAtomicCounterBuffers[index].stride == stride;
+    case GL_SHADER_STORAGE_BUFFER:
+        return m_indexedShaderStorageBuffers[index].buffer == buffer &&
+               m_indexedShaderStorageBuffers[index].offset == offset &&
+               m_indexedShaderStorageBuffers[index].size == size &&
+               m_indexedShaderStorageBuffers[index].stride == stride;
+    default:
+        return m_currVaoState.bufferBinding(index).buffer == buffer &&
+               m_currVaoState.bufferBinding(index).offset == offset &&
+               m_currVaoState.bufferBinding(index).size == size &&
+               m_currVaoState.bufferBinding(index).stride == stride &&
+               m_currVaoState.bufferBinding(index).effectiveStride == effectiveStride;
+    }
+}
+
 int GLClientState::getBuffer(GLenum target) {
     int ret=0;
     switch (target) {
@@ -508,6 +572,41 @@ int GLClientState::getBuffer(GLenum target) {
             ret = -1;
     }
     return ret;
+}
+
+GLuint GLClientState::getLastEncodedBufferBind(GLenum target) {
+    GLuint ret;
+    switch (target)
+    {
+    case GL_ARRAY_BUFFER:
+        ret = m_arrayBuffer_lastEncode;
+        break;
+    case GL_ELEMENT_ARRAY_BUFFER:
+        ret = m_currVaoState.iboIdLastEncode();
+        break;
+    default:
+    {
+        int idOrError = getBuffer(target);
+        ret = (idOrError < 0) ? 0 : (GLuint)idOrError;
+    }
+    }
+
+    return ret;
+}
+
+void GLClientState::setLastEncodedBufferBind(GLenum target, GLuint id)
+{
+    switch (target)
+    {
+    case GL_ARRAY_BUFFER:
+        m_arrayBuffer_lastEncode = id;
+        break;
+    case GL_ELEMENT_ARRAY_BUFFER:
+        m_currVaoState.iboIdLastEncode() = id;
+        break;
+    default:
+        break;
+    }
 }
 
 void GLClientState::getClientStatePointer(GLenum pname, GLvoid** params)
@@ -755,6 +854,25 @@ void GLClientState::disableTextureTarget(GLenum target)
     case GL_TEXTURE_EXTERNAL_OES:
         m_tex.activeUnit->enables &= ~(1u << TEXTURE_EXTERNAL);
         break;
+    }
+}
+
+void GLClientState::bindSampler(GLuint unit, GLuint sampler) {
+    m_tex.unit[unit].boundSampler = sampler;
+}
+
+bool GLClientState::isSamplerBindNoOp(GLuint unit, GLuint sampler) {
+    return m_tex.unit[unit].boundSampler == sampler;
+}
+
+void GLClientState::onDeleteSamplers(GLsizei n, const GLuint* samplers) {
+    for (uint32_t i = 0; i < n; ++i) {
+        for (uint32_t j = 0; j < MAX_TEXTURE_UNITS; ++j) {
+            uint32_t currentSampler = m_tex.unit[j].boundSampler;
+            if (currentSampler == samplers[i]) {
+                m_tex.unit[j].boundSampler = 0;
+            }
+        }
     }
 }
 
