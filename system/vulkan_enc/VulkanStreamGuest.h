@@ -24,10 +24,10 @@ class IOStream;
 
 namespace goldfish_vk {
 
-class VulkanStream : public android::base::Stream {
+class VulkanStreamGuest : public android::base::Stream {
 public:
-    VulkanStream(IOStream* stream);
-    ~VulkanStream();
+    VulkanStreamGuest(IOStream* stream);
+    ~VulkanStreamGuest();
 
     // Returns whether the connection is valid.
     bool valid();
@@ -56,7 +56,7 @@ private:
     std::unique_ptr<Impl> mImpl;
 };
 
-class VulkanCountingStream : public VulkanStream {
+class VulkanCountingStream : public VulkanStreamGuest {
 public:
     VulkanCountingStream();
     ~VulkanCountingStream();

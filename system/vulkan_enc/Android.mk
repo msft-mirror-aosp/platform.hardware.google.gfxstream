@@ -46,7 +46,7 @@ LOCAL_SRC_FILES := AndroidHardwareBuffer.cpp \
     HostVisibleMemoryVirtualization.cpp \
     Resources.cpp \
     Validation.cpp \
-    VulkanStream.cpp \
+    VulkanStreamGuest.cpp \
     VulkanHandleMapping.cpp \
     ResourceTracker.cpp \
     VkEncoder.cpp \
