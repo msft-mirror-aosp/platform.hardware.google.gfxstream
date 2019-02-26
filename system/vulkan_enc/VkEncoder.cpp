@@ -1428,7 +1428,6 @@ VkResult VkEncoder::vkQueueSubmit(
         }
     }
     local_fence = fence;
-    mImpl->resources()->unwrap_vkQueueSubmit(submitCount, pSubmits, local_pSubmits);
     if (local_pSubmits)
     {
         for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i)

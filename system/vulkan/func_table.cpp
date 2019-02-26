@@ -235,7 +235,8 @@ static VkResult entry_vkQueueSubmit(
     AEMU_SCOPED_TRACE("vkQueueSubmit");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkQueueSubmit_VkResult_return = (VkResult)0;
-    vkQueueSubmit_VkResult_return = vkEnc->vkQueueSubmit(queue, submitCount, pSubmits, fence);
+    auto resources = ResourceTracker::get();
+    vkQueueSubmit_VkResult_return = resources->on_vkQueueSubmit(vkEnc, VK_SUCCESS, queue, submitCount, pSubmits, fence);
     return vkQueueSubmit_VkResult_return;
 }
 static VkResult entry_vkQueueWaitIdle(

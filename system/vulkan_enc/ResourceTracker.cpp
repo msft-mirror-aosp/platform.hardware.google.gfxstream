@@ -1482,6 +1482,13 @@ public:
         enc->vkDestroySemaphore(device, semaphore, pAllocator);
     }
 
+    VkResult on_vkQueueSubmit(
+        void* context, VkResult,
+        VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
+        VkEncoder* enc = (VkEncoder*)context;
+        return enc->vkQueueSubmit(queue, submitCount, pSubmits, fence);
+    }
+
     void unwrap_VkNativeBufferANDROID(
         const VkImageCreateInfo* pCreateInfo,
         VkImageCreateInfo* local_pCreateInfo) {
@@ -1517,9 +1524,6 @@ public:
         if (fd != -1) {
             sync_wait(fd, 3000);
         }
-    }
-
-    void unwrap_vkQueueSubmit(uint32_t, const VkSubmitInfo*, VkSubmitInfo*) {
     }
 
     // Action of vkMapMemoryIntoAddressSpaceGOOGLE:
@@ -2001,6 +2005,13 @@ void ResourceTracker::on_vkDestroySemaphore(
     mImpl->on_vkDestroySemaphore(context, device, semaphore, pAllocator);
 }
 
+VkResult ResourceTracker::on_vkQueueSubmit(
+    void* context, VkResult input_result,
+    VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
+    return mImpl->on_vkQueueSubmit(
+        context, input_result, queue, submitCount, pSubmits, fence);
+}
+
 void ResourceTracker::unwrap_VkNativeBufferANDROID(
     const VkImageCreateInfo* pCreateInfo,
     VkImageCreateInfo* local_pCreateInfo) {
@@ -2009,11 +2020,6 @@ void ResourceTracker::unwrap_VkNativeBufferANDROID(
 
 void ResourceTracker::unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int* fd_out) {
     mImpl->unwrap_vkAcquireImageANDROID_nativeFenceFd(fd, fd_out);
-}
-
-void ResourceTracker::unwrap_vkQueueSubmit(
-    uint32_t submitCount, const VkSubmitInfo* pSubmits, VkSubmitInfo* local_pSubmits) {
-    mImpl->unwrap_vkQueueSubmit(submitCount, pSubmits, local_pSubmits);
 }
 
 VkResult ResourceTracker::on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(
