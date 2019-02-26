@@ -179,7 +179,9 @@ VkResult importAndroidHardwareBuffer(
     auto ahb = info->buffer;
 
     AHardwareBuffer_acquire(ahb);
-    *importOut = ahb;
+
+    if (importOut) *importOut = ahb;
+
     return VK_SUCCESS;
 }
 
