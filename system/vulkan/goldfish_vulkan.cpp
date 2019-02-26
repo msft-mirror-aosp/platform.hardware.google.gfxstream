@@ -45,6 +45,7 @@ VkResult
 EnumerateInstanceExtensionProperties(const char* /*layer_name*/,
                                      uint32_t* count,
                                      VkExtensionProperties* /*properties*/) {
+    AEMU_SCOPED_TRACE("vkstubhal::EnumerateInstanceExtensionProperties");
     *count = 0;
     return VK_SUCCESS;
 }
@@ -52,6 +53,7 @@ EnumerateInstanceExtensionProperties(const char* /*layer_name*/,
 VkResult
 EnumerateInstanceLayerProperties(uint32_t* count,
                                  VkLayerProperties* /*properties*/) {
+    AEMU_SCOPED_TRACE("vkstubhal::EnumerateInstanceLayerProperties");
     *count = 0;
     return VK_SUCCESS;
 }
@@ -59,6 +61,7 @@ EnumerateInstanceLayerProperties(uint32_t* count,
 VkResult CreateInstance(const VkInstanceCreateInfo* /*create_info*/,
                         const VkAllocationCallbacks* /*allocator*/,
                         VkInstance* instance) {
+    AEMU_SCOPED_TRACE("vkstubhal::CreateInstance");
     std::lock_guard<std::mutex> lock(g_instance_mutex);
     for (size_t i = 0; i < kMaxInstances; i++) {
         if (!g_instance_used[i]) {
@@ -74,6 +77,7 @@ VkResult CreateInstance(const VkInstanceCreateInfo* /*create_info*/,
 
 void DestroyInstance(VkInstance instance,
                      const VkAllocationCallbacks* /*allocator*/) {
+    AEMU_SCOPED_TRACE("vkstubhal::DestroyInstance");
     std::lock_guard<std::mutex> lock(g_instance_mutex);
     ssize_t idx =
         reinterpret_cast<hwvulkan_dispatch_t*>(instance) - &g_instances[0];
@@ -85,6 +89,7 @@ void DestroyInstance(VkInstance instance,
 VkResult EnumeratePhysicalDevices(VkInstance /*instance*/,
                                   uint32_t* count,
                                   VkPhysicalDevice* /*gpus*/) {
+    AEMU_SCOPED_TRACE("vkstubhal::EnumeratePhysicalDevices");
     *count = 0;
     return VK_SUCCESS;
 }
@@ -93,12 +98,14 @@ VkResult
 EnumeratePhysicalDeviceGroups(VkInstance /*instance*/,
                               uint32_t* count,
                               VkPhysicalDeviceGroupProperties* /*properties*/) {
+    AEMU_SCOPED_TRACE("vkstubhal::EnumeratePhysicalDeviceGroups");
     *count = 0;
     return VK_SUCCESS;
 }
 
 PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance,
                                        const char* name) {
+    AEMU_SCOPED_TRACE("vkstubhal::GetInstanceProcAddr");
     if (strcmp(name, "vkCreateInstance") == 0)
         return reinterpret_cast<PFN_vkVoidFunction>(CreateInstance);
     if (strcmp(name, "vkDestroyInstance") == 0)
@@ -144,6 +151,7 @@ extern "C" __attribute__((visibility("default"))) hwvulkan_module_t HAL_MODULE_I
 };
 
 int CloseDevice(struct hw_device_t* /*device*/) {
+    AEMU_SCOPED_TRACE("goldfish_vulkan::GetInstanceProcAddr");
     // nothing to do - opening a device doesn't allocate any resources
     return 0;
 }
@@ -172,6 +180,7 @@ VkResult EnumerateInstanceExtensionProperties(
     const char* layer_name,
     uint32_t* count,
     VkExtensionProperties* properties) {
+    AEMU_SCOPED_TRACE("goldfish_vulkan::EnumerateInstanceExtensionProperties");
 
     VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
 
@@ -196,6 +205,8 @@ VKAPI_ATTR
 VkResult CreateInstance(const VkInstanceCreateInfo* create_info,
                         const VkAllocationCallbacks* allocator,
                         VkInstance* out_instance) {
+    AEMU_SCOPED_TRACE("goldfish_vulkan::CreateInstance");
+
     VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
 
     if (!hostSupportsVulkan) {
@@ -208,6 +219,8 @@ VkResult CreateInstance(const VkInstanceCreateInfo* create_info,
 }
 
 static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* name) {
+    AEMU_SCOPED_TRACE("goldfish_vulkan::GetDeviceProcAddr");
+
     VK_HOST_CONNECTION(nullptr)
 
     if (!hostSupportsVulkan) {
@@ -222,6 +235,8 @@ static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* name) {
 
 VKAPI_ATTR
 PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* name) {
+    AEMU_SCOPED_TRACE("goldfish_vulkan::GetInstanceProcAddr");
+
     VK_HOST_CONNECTION(nullptr)
 
     if (!hostSupportsVulkan) {
@@ -255,6 +270,8 @@ hwvulkan_device_t goldfish_vulkan_device = {
 int OpenDevice(const hw_module_t* /*module*/,
                const char* id,
                hw_device_t** device) {
+    AEMU_SCOPED_TRACE("goldfish_vulkan::OpenDevice");
+
     if (strcmp(id, HWVULKAN_DEVICE_0) == 0) {
         *device = &goldfish_vulkan_device.common;
         goldfish_vk::ResourceTracker::get();
