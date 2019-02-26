@@ -597,6 +597,7 @@ public:
 
         std::vector<const char*> allowedExtensionNames = {
             "VK_KHR_get_physical_device_properties2",
+            "VK_KHR_sampler_ycbcr_conversion",
             // TODO:
             // VK_KHR_external_memory_capabilities
         };
@@ -659,6 +660,7 @@ public:
             "VK_KHR_get_memory_requirements2",
             "VK_KHR_dedicated_allocation",
             "VK_KHR_bind_memory2",
+            "VK_KHR_sampler_ycbcr_conversion",
             // "VK_KHR_maintenance2",
             // "VK_KHR_maintenance3",
             // TODO:
