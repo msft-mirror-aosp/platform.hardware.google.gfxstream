@@ -195,13 +195,14 @@ public:
         void* context,
         VkDevice device, VkSemaphore semaphore, const VkAllocationCallbacks *pAllocator);
 
+    VkResult on_vkQueueSubmit(
+        void* context, VkResult input_result,
+        VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence);
+
     void unwrap_VkNativeBufferANDROID(
         const VkImageCreateInfo* pCreateInfo,
         VkImageCreateInfo* local_pCreateInfo);
     void unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int* fd_out);
-
-    void unwrap_vkQueueSubmit(
-        uint32_t submitCount, const VkSubmitInfo* pSubmits, VkSubmitInfo* local_pSubmits);
 
     VkResult on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(
         void* context,
