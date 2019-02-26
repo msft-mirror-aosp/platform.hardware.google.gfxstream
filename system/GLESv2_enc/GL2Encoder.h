@@ -186,7 +186,7 @@ private:
 
     glBindBuffer_client_proc_t m_glBindBuffer_enc;
     static void s_glBindBuffer(void *self, GLenum target, GLuint id);
-
+    void doBindBufferEncodeCached(GLenum taret, GLuint id);
 
     glBufferData_client_proc_t m_glBufferData_enc;
     static void s_glBufferData(void *self, GLenum target, GLsizeiptr size, const GLvoid * data, GLenum usage);
@@ -442,6 +442,23 @@ private:
     glBindBufferBase_client_proc_t m_glBindBufferBase_enc;
     static void s_glBindBufferBase(void *self , GLenum target, GLuint index, GLuint buffer);
 
+    // TODO:
+    // VertexAttrib(I)Pointer
+    // VertexAttribBinding
+    // BindVertexBuffer
+    // depend on other state as well
+    enum IndexedBufferBindOp {
+        BindBufferBase,
+        BindBufferRange,
+        // TODO
+        // VertexAttribPointer,
+        // VertexAttribIPointer,
+        // VertexAttribBinding,
+        // VertexAttribFormat,
+        // BindVertexBuffer,
+    };
+    void doIndexedBufferBindEncodeCached(IndexedBufferBindOp op, GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size, GLintptr stride, GLintptr effectiveStride);
+
     glCopyBufferSubData_client_proc_t m_glCopyBufferSubData_enc;
     static void s_glCopyBufferSubData(void *self , GLenum readtarget, GLenum writetarget, GLintptr readoffset, GLintptr writeoffset, GLsizeiptr size);
 
@@ -590,6 +607,10 @@ private:
 
     glBindSampler_client_proc_t m_glBindSampler_enc;
     static void s_glBindSampler(void* self, GLuint unit, GLuint sampler);
+    void doSamplerBindEncodeCached(GLuint unit, GLuint sampler);
+
+    glDeleteSamplers_client_proc_t m_glDeleteSamplers_enc;
+    static void s_glDeleteSamplers(void* self, GLsizei n, const GLuint* samplers);
 
     static GLsync s_glFenceSync(void* self, GLenum condition, GLbitfield flags);
     static GLenum s_glClientWaitSync(void* self, GLsync wait_on, GLbitfield flags, GLuint64 timeout);

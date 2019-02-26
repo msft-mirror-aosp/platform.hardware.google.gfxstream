@@ -543,10 +543,26 @@ void GL2Encoder::s_glBindBuffer(void *self, GLenum target, GLuint id)
 {
     GL2Encoder *ctx = (GL2Encoder *) self;
     assert(ctx->m_state != NULL);
+    SET_ERROR_IF(!GLESv2Validation::bufferTarget(ctx, target), GL_INVALID_ENUM);
+
+    bool nop = id == ctx->m_state->getLastEncodedBufferBind(target);
+
+    if (nop) return;
+
     ctx->m_state->bindBuffer(target, id);
     ctx->m_state->addBuffer(id);
-    // TODO set error state if needed;
-    ctx->m_glBindBuffer_enc(self, target, id);
+    ctx->m_glBindBuffer_enc(ctx, target, id);
+    ctx->m_state->setLastEncodedBufferBind(target, id);
+}
+
+void GL2Encoder::doBindBufferEncodeCached(GLenum target, GLuint id) {
+    bool encode = id != m_state->getLastEncodedBufferBind(target);
+
+    if (encode) {
+        m_glBindBuffer_enc(this, target, id);
+    }
+
+    m_state->setLastEncodedBufferBind(target, id);
 }
 
 void GL2Encoder::s_glBufferData(void * self, GLenum target, GLsizeiptr size, const GLvoid * data, GLenum usage)
@@ -629,7 +645,7 @@ void GL2Encoder::s_glVertexAttribPointer(void *self, GLuint indx, GLint size, GL
 
     GLsizei effectiveStride = stride;
     if (stride == 0) {
-        effectiveStride = glSizeof(type) * size; 
+        effectiveStride = glSizeof(type) * size;
         switch (type) {
             case GL_INT_2_10_10_10_REV:
             case GL_UNSIGNED_INT_2_10_10_10_REV:
@@ -1187,21 +1203,22 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count, bool hasClient
 {
     assert(m_state);
 
+    m_state->updateEnableDirtyArrayForDraw();
+
     GLuint currentVao = m_state->currentVertexArrayObject();
     GLuint lastBoundVbo = m_state->currentArrayVbo();
-    for (int i = 0; i < m_state->nLocations(); i++) {
-        bool enableDirty;
-        const GLClientState::VertexAttribState& state = m_state->getStateAndEnableDirty(i, &enableDirty);
+    const GLClientState::VAOState& vaoState = m_state->currentVaoState();
 
-        if (!enableDirty && !state.enabled) {
-            continue;
-        }
+    for (int k = 0; k < vaoState.numAttributesNeedingUpdateForDraw; k++) {
+        int i = vaoState.attributesNeedingUpdateForDraw[k];
+
+        const GLClientState::VertexAttribState& state = vaoState.attribState[i];
 
         if (state.enabled) {
             const GLClientState::BufferBinding& curr_binding = m_state->getCurrAttributeBindingInfo(i);
             GLuint bufferObject = curr_binding.buffer;
             if (hasClientArrays && lastBoundVbo != bufferObject) {
-                this->m_glBindBuffer_enc(this, GL_ARRAY_BUFFER, bufferObject);
+                doBindBufferEncodeCached(GL_ARRAY_BUFFER, bufferObject);
                 lastBoundVbo = bufferObject;
             }
 
@@ -1281,7 +1298,7 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count, bool hasClient
     }
 
     if (hasClientArrays && lastBoundVbo != m_state->currentArrayVbo()) {
-        this->m_glBindBuffer_enc(this, GL_ARRAY_BUFFER, m_state->currentArrayVbo());
+        doBindBufferEncodeCached(GL_ARRAY_BUFFER, m_state->currentArrayVbo());
     }
 }
 
@@ -1396,13 +1413,13 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
     if (ctx->m_state->currentIndexVbo() != 0) {
         if (!has_client_vertex_arrays) {
             ctx->sendVertexAttributes(0, maxIndex + 1, false);
-            ctx->m_glBindBuffer_enc(self, GL_ELEMENT_ARRAY_BUFFER, ctx->m_state->currentIndexVbo());
+            ctx->doBindBufferEncodeCached(GL_ELEMENT_ARRAY_BUFFER, ctx->m_state->currentIndexVbo());
             ctx->glDrawElementsOffset(ctx, mode, count, type, offset);
             ctx->flushDrawCall();
             adjustIndices = false;
         } else {
             BufferData * buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
-            ctx->m_glBindBuffer_enc(self, GL_ELEMENT_ARRAY_BUFFER, 0);
+            ctx->doBindBufferEncodeCached(GL_ELEMENT_ARRAY_BUFFER, 0);
         }
     }
     if (adjustIndices) {
@@ -2436,7 +2453,7 @@ void GL2Encoder::s_glTexSubImage2D(void* self, GLenum target, GLint level,
 {
     GL2Encoder* ctx = (GL2Encoder*)self;
     GLClientState* state = ctx->m_state;
- 
+
     SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, target), GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::pixelType(ctx, type), GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::pixelFormat(ctx, format), GL_INVALID_ENUM);
@@ -2963,7 +2980,7 @@ void* GL2Encoder::s_glMapBufferRange(void* self, GLenum target, GLintptr offset,
     GLClientState* state = ctx->m_state;
 
     // begin validation (lots)
-    
+
     RET_AND_SET_ERROR_IF(!GLESv2Validation::bufferTarget(ctx, target), GL_INVALID_ENUM, NULL);
 
     GLuint boundBuffer = ctx->m_state->getBuffer(target);
@@ -2990,7 +3007,7 @@ void* GL2Encoder::s_glMapBufferRange(void* self, GLenum target, GLintptr offset,
               (access & GL_MAP_FLUSH_EXPLICIT_BIT)), GL_INVALID_OPERATION, NULL);
 
     // end validation; actually do stuff now
-   
+
     buf->m_mapped = true;
     buf->m_mappedAccess = access;
     buf->m_mappedOffset = offset;
@@ -3162,7 +3179,7 @@ void GL2Encoder::s_glFlushMappedBufferRange(void* self, GLenum target, GLintptr 
     if (buf->shared_block.guestPtr()) {
         ctx->glFlushMappedBufferRangeDirect(
                 ctx, target,
-                totalOffset,
+                offset,
                 length,
                 buf->m_mappedAccess);
     } else {
@@ -3316,10 +3333,14 @@ void GL2Encoder::s_glBindBufferRange(void* self, GLenum target, GLuint index, GL
                  offset % ubo_offset_align,
                  GL_INVALID_VALUE);
 
+    if (ctx->m_state->isIndexedBindNoOp(target, index, buffer, offset, size, 0, 0)) return;
+
     state->bindBuffer(target, buffer);
     ctx->m_state->addBuffer(buffer);
     state->bindIndexedBuffer(target, index, buffer, offset, size, 0, 0);
-    ctx->m_glBindBufferRange_enc(self, target, index, buffer, offset, size);
+
+    ctx->m_glBindBufferRange_enc(ctx, target, index, buffer, offset, size);
+    ctx->m_state->setLastEncodedBufferBind(target, buffer);
 }
 
 void GL2Encoder::s_glBindBufferBase(void* self, GLenum target, GLuint index, GLuint buffer) {
@@ -3340,11 +3361,34 @@ void GL2Encoder::s_glBindBufferBase(void* self, GLenum target, GLuint index, GLu
                  index >= state->getMaxIndexedBufferBindings(target),
                  GL_INVALID_VALUE);
 
+    BufferData* buf = ctx->getBufferDataById(buffer);
+    GLsizeiptr size = buf ? buf->m_size : 0;
+
+    if (ctx->m_state->isIndexedBindNoOp(target, index, buffer, 0, size, 0, 0)) return;
+
     state->bindBuffer(target, buffer);
     ctx->m_state->addBuffer(buffer);
-    BufferData* buf = ctx->getBufferDataById(buffer);
-    state->bindIndexedBuffer(target, index, buffer, 0, buf ? buf->m_size : 0, 0, 0);
-    ctx->m_glBindBufferBase_enc(self, target, index, buffer);
+
+    state->bindIndexedBuffer(target, index, buffer, 0, size, 0, 0);
+
+    ctx->m_glBindBufferBase_enc(ctx, target, index, buffer);
+    ctx->m_state->setLastEncodedBufferBind(target, buffer);
+}
+
+void GL2Encoder::doIndexedBufferBindEncodeCached(IndexedBufferBindOp op, GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size, GLintptr stride, GLintptr effectiveStride)
+{
+    if (m_state->isIndexedBindNoOp(target, index, buffer, offset, size, stride, effectiveStride)) return;
+
+    switch (op) {
+        case BindBufferBase:
+            // can emulate with bindBufferRange
+        case BindBufferRange:
+            m_glBindBufferRange_enc(this, target, index, buffer, offset, size);
+            break;
+        // TODO: other ops
+    }
+
+    m_state->setLastEncodedBufferBind(target, buffer);
 }
 
 void GL2Encoder::s_glCopyBufferSubData(void *self , GLenum readtarget, GLenum writetarget, GLintptr readoffset, GLintptr writeoffset, GLsizeiptr size) {
@@ -3736,7 +3780,7 @@ void GL2Encoder::s_glVertexAttribIPointer(void* self, GLuint index, GLint size, 
     ctx->m_state->setVertexAttribFormat(index, size, type, false, 0, true);
     GLsizei effectiveStride = stride;
     if (stride == 0) {
-        effectiveStride = glSizeof(type) * size; 
+        effectiveStride = glSizeof(type) * size;
     }
     ctx->m_state->bindIndexedBuffer(0, index, ctx->m_state->currentArrayVbo(), (uintptr_t)pointer, 0, stride, effectiveStride);
 
@@ -4233,13 +4277,13 @@ void GL2Encoder::s_glDrawElementsInstanced(void* self, GLenum mode, GLsizei coun
     if (ctx->m_state->currentIndexVbo() != 0) {
         if (!has_client_vertex_arrays) {
             ctx->sendVertexAttributes(0, maxIndex + 1, false, primcount);
-            ctx->m_glBindBuffer_enc(self, GL_ELEMENT_ARRAY_BUFFER, ctx->m_state->currentIndexVbo());
+            ctx->doBindBufferEncodeCached(GL_ELEMENT_ARRAY_BUFFER, ctx->m_state->currentIndexVbo());
             ctx->glDrawElementsInstancedOffsetAEMU(ctx, mode, count, type, offset, primcount);
             ctx->flushDrawCall();
             adjustIndices = false;
         } else {
             BufferData * buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
-            ctx->m_glBindBuffer_enc(self, GL_ELEMENT_ARRAY_BUFFER, 0);
+            ctx->doBindBufferEncodeCached(GL_ELEMENT_ARRAY_BUFFER, 0);
         }
     }
     if (adjustIndices) {
@@ -4326,13 +4370,13 @@ void GL2Encoder::s_glDrawRangeElements(void* self, GLenum mode, GLuint start, GL
     if (ctx->m_state->currentIndexVbo() != 0) {
         if (!has_client_vertex_arrays) {
             ctx->sendVertexAttributes(0, maxIndex + 1, false);
-            ctx->m_glBindBuffer_enc(self, GL_ELEMENT_ARRAY_BUFFER, ctx->m_state->currentIndexVbo());
+            ctx->doBindBufferEncodeCached(GL_ELEMENT_ARRAY_BUFFER, ctx->m_state->currentIndexVbo());
             ctx->glDrawElementsOffset(ctx, mode, count, type, offset);
             ctx->flushDrawCall();
             adjustIndices = false;
         } else {
             BufferData * buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
-            ctx->m_glBindBuffer_enc(self, GL_ELEMENT_ARRAY_BUFFER, 0);
+            ctx->doBindBufferEncodeCached(GL_ELEMENT_ARRAY_BUFFER, 0);
         }
     }
     if (adjustIndices) {
@@ -4357,25 +4401,6 @@ void GL2Encoder::s_glDrawRangeElements(void* self, GLenum mode, GLuint start, GL
         }
     }
 }
-
-// struct GLStringKey {
-//     GLenum name;
-//     GLuint index;
-// };
-// 
-// struct GLStringKeyCompare {
-//     bool operator() (const GLStringKey& a,
-//                      const GLStringKey& b) const {
-//         if (a.name != b.name) return a.name < b.name;
-//         if (a.index != b.index) return a.index < b.index;
-//         return false;
-//     }
-// };
-// 
-// typedef std::map<GLStringKey, std::string, GLStringKeyCompare> GLStringStore;
-// 
-// static GLStringStore sGLStringStore;
-// bool sGLStringStoreInitialized = false;
 
 const GLubyte* GL2Encoder::s_glGetStringi(void* self, GLenum name, GLuint index) {
     GL2Encoder *ctx = (GL2Encoder *)self;
@@ -4692,7 +4717,19 @@ void GL2Encoder::s_glBindSampler(void* self, GLuint unit, GLuint sampler) {
     ctx->glGetIntegerv(ctx, GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxCombinedUnits);
     SET_ERROR_IF(unit >= maxCombinedUnits, GL_INVALID_VALUE);
 
-    ctx->m_glBindSampler_enc(ctx, unit, sampler);
+    ctx->doSamplerBindEncodeCached(unit, sampler);
+}
+
+void GL2Encoder::doSamplerBindEncodeCached(GLuint unit, GLuint sampler) {
+    if (m_state->isSamplerBindNoOp(unit, sampler)) return;
+    m_glBindSampler_enc(this, unit, sampler);
+    m_state->bindSampler(unit, sampler);
+}
+
+void GL2Encoder::s_glDeleteSamplers(void* self, GLsizei n, const GLuint* samplers) {
+    GL2Encoder *ctx = (GL2Encoder *)self;
+    ctx->m_state->onDeleteSamplers(n, samplers);
+    ctx->m_glDeleteSamplers_enc(ctx, n, samplers);
 }
 
 GLsync GL2Encoder::s_glFenceSync(void* self, GLenum condition, GLbitfield flags) {
@@ -4886,8 +4923,8 @@ GLuint GL2Encoder::s_glCreateShaderProgramv(void* self, GLenum type, GLsizei cou
     int len = glUtilsCalcShaderSourceLen((char**)strings, length, count);
     char *str = new char[len + 1];
     glUtilsPackStrings(str, (char**)strings, (GLint*)length, count);
-   
-    // Do GLSharedGroup and location WorkARound-specific initialization 
+
+    // Do GLSharedGroup and location WorkARound-specific initialization
     // Phase 1: create a ShaderData and initialize with replaceSamplerExternalWith2D()
     uint32_t spDataId = ctx->m_shared->addNewShaderProgramData();
     ShaderProgramData* spData = ctx->m_shared->getShaderProgramDataById(spDataId);
