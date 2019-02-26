@@ -16,7 +16,30 @@
 #include "ResourceTracker.h"
 
 #include "../OpenglSystemCommon/EmulatorFeatureInfo.h"
+
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+
+typedef uint32_t zx_handle_t;
+#define ZX_HANDLE_INVALID         ((zx_handle_t)0)
+void zx_handle_close(zx_handle_t) { }
+
 #include "AndroidHardwareBuffer.h"
+
+#endif // VK_USE_PLATFORM_ANDROID_KHR
+
+#ifdef VK_USE_PLATFORM_FUCHSIA
+
+typedef uint32_t AHardwareBuffer;
+void AHardwareBuffer_release(AHardwareBuffer*) { }
+
+#include <fuchsia/hardware/goldfish/c/fidl.h>
+#include <lib/fzl/fdio.h>
+#include <zircon/process.h>
+#include <zircon/syscalls.h>
+#include <zircon/syscalls/object.h>
+
+#endif // VK_USE_PLATFORM_FUCHSIA
+
 #include "HostVisibleMemoryVirtualization.h"
 #include "Resources.h"
 #include "VkEncoder.h"
@@ -55,6 +78,36 @@ using android::base::guest::AutoLock;
 using android::base::guest::Lock;
 
 namespace goldfish_vk {
+
+namespace {
+
+template<typename T>
+bool GetImportHandle(const void* pNext, VkStructureType import_type,
+                     uint32_t bit, uint32_t* pHandle) {
+    while (pNext) {
+        auto info = static_cast<const T*>(pNext);
+        if (info->sType == import_type && info->handleType & bit) {
+            *pHandle = info->handle;
+            return true;
+        }
+        pNext = info->pNext;
+    }
+    return false;
+}
+
+template<typename T>
+bool HasExportBit(const void* pNext, VkStructureType export_type, uint32_t bit) {
+    while (pNext) {
+        auto info = static_cast<const T*>(pNext);
+        if (info->sType == export_type && info->handleTypes & bit) {
+            return true;
+        }
+        pNext = info->pNext;
+    }
+    return false;
+}
+
+} // namespace
 
 #define MAKE_HANDLE_MAPPING_FOREACH(type_name, map_impl, map_to_u64_impl, map_from_u64_impl) \
     void mapHandles_##type_name(type_name* handles, size_t count) override { \
@@ -143,7 +196,8 @@ public:
         GoldfishAddressSpaceBlock*
             goldfishAddressSpaceBlock = nullptr;
         SubAlloc subAlloc;
-        AHardwareBuffer** ahbHandle = nullptr;
+        AHardwareBuffer* ahw = nullptr;
+        zx_handle_t vmoHandle = ZX_HANDLE_INVALID;
     };
 
     // custom guest-side structs for images/buffers because of AHardwareBuffer :((
@@ -206,6 +260,14 @@ public:
         if (it == info_VkDeviceMemory.end()) return;
 
         auto& memInfo = it->second;
+
+        if (memInfo.ahw) {
+            AHardwareBuffer_release(memInfo.ahw);
+        }
+
+        if (memInfo.vmoHandle) {
+            zx_handle_close(memInfo.vmoHandle);
+        }
 
         if (memInfo.mappedPtr &&
             !memInfo.virtualHostVisibleBacking &&
@@ -287,7 +349,9 @@ public:
                              VkDeviceSize allocationSize,
                              VkDeviceSize mappedSize,
                              uint8_t* ptr,
-                             uint32_t memoryTypeIndex) {
+                             uint32_t memoryTypeIndex,
+                             AHardwareBuffer* ahw = nullptr,
+                             zx_handle_t vmoHandle = ZX_HANDLE_INVALID) {
         AutoLock lock(mLock);
         auto& deviceInfo = info_VkDevice[device];
         auto& info = info_VkDeviceMemory[memory];
@@ -296,6 +360,8 @@ public:
         info.mappedSize = mappedSize;
         info.mappedPtr = ptr;
         info.memoryTypeIndex = memoryTypeIndex;
+        info.ahw = ahw;
+        info.vmoHandle = vmoHandle;
     }
 
     bool isMemoryTypeHostVisible(VkDevice device, uint32_t typeIndex) const {
@@ -829,11 +895,11 @@ public:
         auto& info = memoryIt->second;
 
         VkResult queryRes =
-            getMemoryAndroidHardwareBufferANDROID(info.ahbHandle);
+            getMemoryAndroidHardwareBufferANDROID(&info.ahw);
 
         if (queryRes != VK_SUCCESS) return queryRes;
 
-        *pBuffer = *(info.ahbHandle);
+        *pBuffer = info.ahw;
 
         return queryRes;
     }
@@ -850,50 +916,237 @@ public:
 
         VkEncoder* enc = (VkEncoder*)context;
 
-        // Device local memory: pass through
-        if (!isHostVisibleMemoryTypeIndexForGuest(
+        VkMemoryAllocateInfo finalAllocInfo = *pAllocateInfo;
+        VkMemoryDedicatedAllocateInfo dedicatedAllocInfo;
+        VkImportColorBufferGOOGLE importCbInfo = {
+            VK_STRUCTURE_TYPE_IMPORT_COLOR_BUFFER_GOOGLE, 0,
+        };
+        VkImportPhysicalAddressGOOGLE importPhysAddrInfo = {
+            VK_STRUCTURE_TYPE_IMPORT_PHYSICAL_ADDRESS_GOOGLE, 0,
+        };
+
+        vk_struct_common* structChain =
+        structChain = vk_init_struct_chain(
+            (vk_struct_common*)(&finalAllocInfo));
+        structChain->pNext = nullptr;
+
+        VkExportMemoryAllocateInfo* exportAllocateInfoPtr =
+            (VkExportMemoryAllocateInfo*)vk_find_struct((vk_struct_common*)pAllocateInfo,
+                VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO);
+
+        VkImportAndroidHardwareBufferInfoANDROID* importAhbInfoPtr =
+            (VkImportAndroidHardwareBufferInfoANDROID*)vk_find_struct((vk_struct_common*)pAllocateInfo,
+                VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID);
+
+        // TODO: Fuchsia image works in a similar way but over vmo id (phys addr)?
+        VkImportPhysicalAddressGOOGLE* importPhysAddrInfoPtr = nullptr;
+
+        VkMemoryDedicatedAllocateInfo* dedicatedAllocInfoPtr =
+            (VkMemoryDedicatedAllocateInfo*)vk_find_struct((vk_struct_common*)pAllocateInfo,
+                VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO);
+
+        bool shouldPassThroughDedicatedAllocInfo =
+            !isHostVisibleMemoryTypeIndexForGuest(
+                &mHostVisibleMemoryVirtInfo,
+                pAllocateInfo->memoryTypeIndex);
+
+        if (!exportAllocateInfoPtr &&
+            importAhbInfoPtr && // TODO: Fuchsia image
+            dedicatedAllocInfoPtr &&
+            isHostVisibleMemoryTypeIndexForGuest(
                 &mHostVisibleMemoryVirtInfo,
                 pAllocateInfo->memoryTypeIndex)) {
+            ALOGE("FATAL: It is not yet supported to import-allocate "
+                  "external memory that is both host visible and dedicated.");
+            abort();
+        }
+
+        if (shouldPassThroughDedicatedAllocInfo &&
+            dedicatedAllocInfoPtr) {
+            dedicatedAllocInfo = *dedicatedAllocInfoPtr;
+            structChain->pNext =
+                (vk_struct_common*)(&dedicatedAllocInfo);
+            structChain =
+                (vk_struct_common*)(&dedicatedAllocInfo);
+            structChain->pNext = nullptr;
+        }
+
+        // State needed for import/export.
+        bool exportAhb = false;
+        bool exportPhysAddr = false;
+        bool importAhb = false;
+        bool importPhysAddr = false;
+        (void)exportPhysAddr;
+        (void)importPhysAddr;
+
+        // Even if we export allocate, the underlying operation
+        // for the host is always going to be an import operation.
+        // This is also how Intel's implementation works,
+        // and is generally simpler;
+        // even in an export allocation,
+        // we perform AHardwareBuffer allocation
+        // on the guest side, at this layer,
+        // and then we attach a new VkDeviceMemory
+        // to the AHardwareBuffer on the host via an "import" operation.
+        AHardwareBuffer* ahw = nullptr;
+        zx_handle_t vmo_handle = ZX_HANDLE_INVALID;
+
+        if (exportAllocateInfoPtr) {
+            exportAhb =
+                exportAllocateInfoPtr->handleTypes &
+                VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
+        } else if (importAhbInfoPtr) {
+            importAhb = true;
+        }
+
+        if (importPhysAddrInfoPtr) {
+            importPhysAddrInfo = *importPhysAddrInfoPtr;
+            importPhysAddr = true;
+        }
+
+        if (exportAhb) {
+            bool hasDedicatedImage = dedicatedAllocInfoPtr &&
+                (dedicatedAllocInfoPtr->image != VK_NULL_HANDLE);
+            bool hasDedicatedBuffer = dedicatedAllocInfoPtr &&
+                (dedicatedAllocInfoPtr->buffer != VK_NULL_HANDLE);
+            VkExtent3D imageExtent = { 0, 0, 0 };
+            uint32_t imageLayers = 0;
+            VkFormat imageFormat = VK_FORMAT_UNDEFINED;
+            VkImageUsageFlags imageUsage = 0;
+            VkImageCreateFlags imageCreateFlags = 0;
+            VkDeviceSize bufferSize = 0;
+            VkDeviceSize allocationInfoAllocSize =
+                finalAllocInfo.allocationSize;
+
+            if (hasDedicatedImage) {
+                AutoLock lock(mLock);
+
+                auto it = info_VkImage.find(
+                    dedicatedAllocInfoPtr->image);
+                if (it == info_VkImage.end()) return VK_ERROR_INITIALIZATION_FAILED;
+                const auto& info = it->second;
+                const auto& imgCi = info.createInfo;
+
+                imageExtent = imgCi.extent;
+                imageLayers = imgCi.arrayLayers;
+                imageFormat = imgCi.format;
+                imageUsage = imgCi.usage;
+                imageCreateFlags = imgCi.flags;
+            }
+
+            if (hasDedicatedBuffer) {
+                AutoLock lock(mLock);
+
+                auto it = info_VkBuffer.find(
+                    dedicatedAllocInfoPtr->buffer);
+                if (it == info_VkBuffer.end()) return VK_ERROR_INITIALIZATION_FAILED;
+                const auto& info = it->second;
+                const auto& bufCi = info.createInfo;
+
+                bufferSize = bufCi.size;
+            }
+
+            VkResult ahbCreateRes =
+                createAndroidHardwareBuffer(
+                    hasDedicatedImage,
+                    hasDedicatedBuffer,
+                    imageExtent,
+                    imageLayers,
+                    imageFormat,
+                    imageUsage,
+                    imageCreateFlags,
+                    bufferSize,
+                    allocationInfoAllocSize,
+                    &ahw);
+
+            if (ahbCreateRes != VK_SUCCESS) {
+                return ahbCreateRes;
+            }
+        }
+
+        if (importAhb) {
+            ahw = importAhbInfoPtr->buffer;
+            // We still need to acquire the AHardwareBuffer.
+            importAndroidHardwareBuffer(
+                importAhbInfoPtr, nullptr);
+        }
+
+        if (ahw) {
+            const native_handle_t *handle =
+                AHardwareBuffer_getNativeHandle(ahw);
+            const cb_handle_t* cb_handle =
+                reinterpret_cast<const cb_handle_t*>(handle);
+            importCbInfo.colorBuffer = cb_handle->hostHandle;
+            structChain =
+                vk_append_struct(structChain, (vk_struct_common*)(&importCbInfo));
+        }
+
+        // TODO if (exportPhysAddr) { }
+
+        if (!isHostVisibleMemoryTypeIndexForGuest(
+                &mHostVisibleMemoryVirtInfo,
+                finalAllocInfo.memoryTypeIndex)) {
 
             input_result =
                 enc->vkAllocateMemory(
-                    device, pAllocateInfo, pAllocator, pMemory);
+                    device, &finalAllocInfo, pAllocator, pMemory);
 
             if (input_result != VK_SUCCESS) return input_result;
 
-            VkDeviceSize allocationSize = pAllocateInfo->allocationSize;
+            VkDeviceSize allocationSize = finalAllocInfo.allocationSize;
             setDeviceMemoryInfo(
                 device, *pMemory,
-                pAllocateInfo->allocationSize,
+                finalAllocInfo.allocationSize,
                 0, nullptr,
-                pAllocateInfo->memoryTypeIndex);
+                finalAllocInfo.memoryTypeIndex,
+                ahw,
+                vmo_handle);
 
             return VK_SUCCESS;
         }
 
-        // Host visible memory with no direct mapping support
+        // Device-local memory dealing is over. What follows:
+        // host-visible memory.
+
+        if (ahw) {
+            ALOGE("%s: Host visible export/import allocation "
+                  "of Android hardware buffers is not supported.",
+                  __func__);
+            abort();
+        }
+
+        // Host visible memory, non external
         bool directMappingSupported = usingDirectMapping();
         if (!directMappingSupported) {
             input_result =
                 enc->vkAllocateMemory(
-                    device, pAllocateInfo, pAllocator, pMemory);
+                    device, &finalAllocInfo, pAllocator, pMemory);
 
             if (input_result != VK_SUCCESS) return input_result;
 
             VkDeviceSize mappedSize =
                 getNonCoherentExtendedSize(device,
-                    pAllocateInfo->allocationSize);
+                    finalAllocInfo.allocationSize);
             uint8_t* mappedPtr = (uint8_t*)aligned_buf_alloc(4096, mappedSize);
             D("host visible alloc (non-direct): "
               "size 0x%llx host ptr %p mapped size 0x%llx",
-              (unsigned long long)pAllocateInfo->allocationSize, mappedPtr,
+              (unsigned long long)finalAllocInfo.allocationSize, mappedPtr,
               (unsigned long long)mappedSize);
             setDeviceMemoryInfo(
                 device, *pMemory,
-                pAllocateInfo->allocationSize,
+                finalAllocInfo.allocationSize,
                 mappedSize, mappedPtr,
-                pAllocateInfo->memoryTypeIndex);
+                finalAllocInfo.memoryTypeIndex);
             return VK_SUCCESS;
+        }
+
+        // Host visible memory with direct mapping via
+        // VkImportPhysicalAddressGOOGLE
+        if (importPhysAddr) {
+            // vkAllocateMemory(device, &finalAllocInfo, pAllocator, pMemory);
+            //    host maps the host pointer to the guest physical address
+            // TODO: the host side page offset of the
+            // host pointer needs to be returned somehow.
         }
 
         // Host visible memory with direct mapping
@@ -904,10 +1157,10 @@ public:
         auto& deviceInfo = it->second;
 
         HostMemAlloc* hostMemAlloc =
-            &deviceInfo.hostMemAllocs[pAllocateInfo->memoryTypeIndex];
+            &deviceInfo.hostMemAllocs[finalAllocInfo.memoryTypeIndex];
 
         if (!hostMemAlloc->initialized) {
-            VkMemoryAllocateInfo allocInfoForHost = *pAllocateInfo;
+            VkMemoryAllocateInfo allocInfoForHost = finalAllocInfo;
             allocInfoForHost.allocationSize = VIRTUAL_HOST_VISIBLE_HEAP_SIZE;
             // TODO: Support dedicated allocation
             allocInfoForHost.pNext = nullptr;
@@ -935,7 +1188,7 @@ public:
                 deviceInfo.props.limits.nonCoherentAtomSize;
             hostMemInfo.mappedSize = hostMemInfo.allocationSize;
             hostMemInfo.memoryTypeIndex =
-                pAllocateInfo->memoryTypeIndex;
+                finalAllocInfo.memoryTypeIndex;
             hostMemAlloc->nonCoherentAtomSize = nonCoherentAtomSize;
 
             uint64_t directMappedAddr = 0;
@@ -959,7 +1212,7 @@ public:
                 finishHostMemAllocInit(
                     enc,
                     device,
-                    pAllocateInfo->memoryTypeIndex,
+                    finalAllocInfo.memoryTypeIndex,
                     nonCoherentAtomSize,
                     hostMemInfo.allocationSize,
                     hostMemInfo.mappedSize,
@@ -975,13 +1228,13 @@ public:
 
         subAllocHostMemory(
             hostMemAlloc,
-            pAllocateInfo,
+            &finalAllocInfo,
             &virtualMemInfo.subAlloc);
 
         virtualMemInfo.allocationSize = virtualMemInfo.subAlloc.subAllocSize;
         virtualMemInfo.mappedSize = virtualMemInfo.subAlloc.subMappedSize;
         virtualMemInfo.mappedPtr = virtualMemInfo.subAlloc.mappedPtr;
-        virtualMemInfo.memoryTypeIndex = pAllocateInfo->memoryTypeIndex;
+        virtualMemInfo.memoryTypeIndex = finalAllocInfo.memoryTypeIndex;
         virtualMemInfo.directMapped = true;
 
         D("host visible alloc (direct, suballoc): "
