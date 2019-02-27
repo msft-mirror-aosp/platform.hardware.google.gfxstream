@@ -696,6 +696,7 @@ public:
             "VK_KHR_sampler_ycbcr_conversion",
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
             "VK_KHR_external_semaphore_capabilities",
+            "VK_KHR_external_memory_capabilities",
 #endif
             // TODO:
             // VK_KHR_external_memory_capabilities
@@ -772,6 +773,7 @@ public:
             "VK_KHR_external_semaphore",
             "VK_KHR_external_semaphore_fd",
             // "VK_KHR_external_semaphore_win32", not exposed because it's translated to fd
+            "VK_KHR_external_memory",
 #endif
             // "VK_KHR_maintenance2",
             // "VK_KHR_maintenance3",
@@ -840,6 +842,24 @@ public:
             !hostHasPosixExternalSemaphore) {
             filteredExts.push_back(
                 { "VK_KHR_external_semaphore_fd", 1});
+        }
+
+        bool win32ExtMemAvailable =
+            getHostDeviceExtensionIndex(
+                "VK_KHR_external_memory_win32") != -1;
+        bool posixExtMemAvailable =
+            getHostDeviceExtensionIndex(
+                "VK_KHR_external_memory_fd") != -1;
+
+        bool hostHasExternalMemorySupport =
+            win32ExtMemAvailable || posixExtMemAvailable;
+
+        if (hostHasExternalMemorySupport) {
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+            filteredExts.push_back({
+                "VK_ANDROID_external_memory_android_hardware_buffer", 7
+            });
+#endif
         }
 
         if (pPropertyCount) {
