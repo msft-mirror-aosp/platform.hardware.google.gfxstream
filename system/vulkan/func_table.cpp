@@ -2431,7 +2431,8 @@ static VkResult entry_vkImportSemaphoreFdKHR(
     AEMU_SCOPED_TRACE("vkImportSemaphoreFdKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkImportSemaphoreFdKHR_VkResult_return = (VkResult)0;
-    vkImportSemaphoreFdKHR_VkResult_return = vkEnc->vkImportSemaphoreFdKHR(device, pImportSemaphoreFdInfo);
+    auto resources = ResourceTracker::get();
+    vkImportSemaphoreFdKHR_VkResult_return = resources->on_vkImportSemaphoreFdKHR(vkEnc, VK_SUCCESS, device, pImportSemaphoreFdInfo);
     return vkImportSemaphoreFdKHR_VkResult_return;
 }
 static VkResult entry_vkGetSemaphoreFdKHR(
@@ -2442,7 +2443,8 @@ static VkResult entry_vkGetSemaphoreFdKHR(
     AEMU_SCOPED_TRACE("vkGetSemaphoreFdKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetSemaphoreFdKHR_VkResult_return = (VkResult)0;
-    vkGetSemaphoreFdKHR_VkResult_return = vkEnc->vkGetSemaphoreFdKHR(device, pGetFdInfo, pFd);
+    auto resources = ResourceTracker::get();
+    vkGetSemaphoreFdKHR_VkResult_return = resources->on_vkGetSemaphoreFdKHR(vkEnc, VK_SUCCESS, device, pGetFdInfo, pFd);
     return vkGetSemaphoreFdKHR_VkResult_return;
 }
 #endif
