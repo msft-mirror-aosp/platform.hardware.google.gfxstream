@@ -284,7 +284,7 @@ const GLClientState::VertexAttribState& GLClientState::getStateAndEnableDirty(in
 
 void GLClientState::updateEnableDirtyArrayForDraw() {
     bool enableChanged;
-    auto& vaoState = m_currVaoState.vaoState();
+    VAOState& vaoState = m_currVaoState.vaoState();
 
     int k = 0;
     for (int i = 0; i < CODEC_MAX_VERTEX_ATTRIBUTES; ++i) {
