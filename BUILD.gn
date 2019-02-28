@@ -73,7 +73,7 @@ source_set("goldfish_vulkan") {
     "LOG_TAG=\"goldfish_vulkan\"",
     "GOLDFISH_VULKAN",
     "GOLDFISH_NO_GL",
-    "VK_USE_PLATFORM_ANDROID_KHR",
+    "VK_USE_PLATFORM_FUCHSIA",
     "PLATFORM_SDK_VERSION=1",
     "PAGE_SIZE=4096",
   ]
@@ -81,6 +81,7 @@ source_set("goldfish_vulkan") {
   cflags_cc = [
     "-Wno-unused-function",
     "-Wno-unused-variable",
+    "-Wno-missing-field-initializers",
   ]
 
   if (target_os == "fuchsia") {
@@ -91,8 +92,20 @@ source_set("goldfish_vulkan") {
       "fuchsia/include",
     ]
 
+    libs = [
+      "zircon"
+    ]
+
+    deps = [
+      "//zircon/public/fidl/fuchsia-hardware-goldfish:fuchsia-hardware-goldfish_c",
+      "//zircon/public/lib/fdio",
+      "//zircon/public/lib/fzl",
+      "//zircon/public/lib/trace",
+    ]
+
     defines += [
       "QEMU_PIPE_PATH=\"/dev/sys/platform/acpi/goldfish/goldfish-pipe\"",
+      "GOLDFISH_ADDRESS_SPACE_DEVICE_NAME=\"/dev/sys/platform/acpi/goldfish/goldfish-pipe\"",
     ]
   }
 }

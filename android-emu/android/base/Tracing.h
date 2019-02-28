@@ -21,16 +21,18 @@ namespace base {
 
 class ScopedTrace {
 public:
-    ScopedTrace(const char* name) {
-        beginTraceImpl(name);
+    ScopedTrace(const char* name) : name_(name) {
+        beginTraceImpl(name_);
     }
 
     ~ScopedTrace() {
-        endTraceImpl();
+        endTraceImpl(name_);
     }
 private:
     void beginTraceImpl(const char* name);
-    void endTraceImpl();
+    void endTraceImpl(const char* name);
+
+    const char* const name_;
 };
 
 } // namespace base
