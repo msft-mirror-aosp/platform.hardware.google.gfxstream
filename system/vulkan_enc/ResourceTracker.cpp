@@ -1808,6 +1808,8 @@ public:
         std::vector<zx_handle_t> post_wait_events;
         VkDevice device = VK_NULL_HANDLE;
 
+        VkEncoder* enc = (VkEncoder*)context;
+
 #ifdef VK_USE_PLATFORM_FUCHSIA
         AutoLock lock(mLock);
 
@@ -1840,16 +1842,16 @@ public:
         lock.unlock();
 #endif
 
-        VkEncoder* enc = (VkEncoder*)context;
-
-        VkSubmitInfo submit_info = {
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-            .waitSemaphoreCount = 0,
-            .pWaitSemaphores = nullptr,
-            .pWaitDstStageMask = nullptr,
-            .signalSemaphoreCount = static_cast<uint32_t>(pre_signal_semaphores.size()),
-            .pSignalSemaphores = pre_signal_semaphores.data()};
-        enc->vkQueueSubmit(queue, 1, &submit_info, VK_NULL_HANDLE);
+        if (!pre_signal_semaphores.empty()) {
+            VkSubmitInfo submit_info = {
+                .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                .waitSemaphoreCount = 0,
+                .pWaitSemaphores = nullptr,
+                .pWaitDstStageMask = nullptr,
+                .signalSemaphoreCount = static_cast<uint32_t>(pre_signal_semaphores.size()),
+                .pSignalSemaphores = pre_signal_semaphores.data()};
+            enc->vkQueueSubmit(queue, 1, &submit_info, VK_NULL_HANDLE);
+        }
 
         input_result = enc->vkQueueSubmit(queue, submitCount, pSubmits, fence);
 
