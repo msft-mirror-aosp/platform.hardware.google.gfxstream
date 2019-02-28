@@ -103,6 +103,30 @@ EnumeratePhysicalDeviceGroups(VkInstance /*instance*/,
     return VK_SUCCESS;
 }
 
+#ifdef VK_USE_PLATFORM_FUCHSIA
+VkResult
+GetMemoryFuchsiaHandleKHR(VkDevice /*device*/,
+                          const VkMemoryGetFuchsiaHandleInfoKHR* /*pInfo*/,
+                          uint32_t* pHandle) {
+    *pHandle = 0;
+    return VK_SUCCESS;
+}
+
+VkResult
+GetSemaphoreFuchsiaHandleKHR(VkDevice /*device*/,
+                             const VkSemaphoreGetFuchsiaHandleInfoKHR* /*pInfo*/,
+                             uint32_t* pHandle) {
+    *pHandle = 0;
+    return VK_SUCCESS;
+}
+
+VkResult
+ImportSemaphoreFuchsiaHandleKHR(VkDevice /*device*/,
+                                const VkImportSemaphoreFuchsiaHandleInfoKHR* /*pInfo*/) {
+    return VK_SUCCESS;
+}
+#endif
+
 PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance,
                                        const char* name) {
     AEMU_SCOPED_TRACE("vkstubhal::GetInstanceProcAddr");
@@ -120,6 +144,14 @@ PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance,
             EnumeratePhysicalDeviceGroups);
     if (strcmp(name, "vkGetInstanceProcAddr") == 0)
         return reinterpret_cast<PFN_vkVoidFunction>(GetInstanceProcAddr);
+#ifdef VK_USE_PLATFORM_FUCHSIA
+    if (strcmp(name, "vkGetMemoryFuchsiaHandleKHR") == 0)
+        return reinterpret_cast<PFN_vkVoidFunction>(GetMemoryFuchsiaHandleKHR);
+    if (strcmp(name, "vkGetSemaphoreFuchsiaHandleKHR") == 0)
+        return reinterpret_cast<PFN_vkVoidFunction>(GetSemaphoreFuchsiaHandleKHR);
+    if (strcmp(name, "vkImportSemaphoreFuchsiaHandleKHR") == 0)
+        return reinterpret_cast<PFN_vkVoidFunction>(ImportSemaphoreFuchsiaHandleKHR);
+#endif
     // Per the spec, return NULL if instance is NULL.
     if (!instance)
         return nullptr;
@@ -218,6 +250,64 @@ VkResult CreateInstance(const VkInstanceCreateInfo* create_info,
     return res;
 }
 
+#ifdef VK_USE_PLATFORM_FUCHSIA
+VKAPI_ATTR
+VkResult GetMemoryFuchsiaHandleKHR(
+    VkDevice device,
+    const VkMemoryGetFuchsiaHandleInfoKHR* pInfo,
+    uint32_t* pHandle) {
+    AEMU_SCOPED_TRACE("goldfish_vulkan::GetMemoryFuchsiaHandleKHR");
+
+    VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
+
+    if (!hostSupportsVulkan) {
+        return vkstubhal::GetMemoryFuchsiaHandleKHR(device, pInfo, pHandle);
+    }
+
+    VkResult res = goldfish_vk::ResourceTracker::get()->
+        on_vkGetMemoryFuchsiaHandleKHR(device, pInfo, pHandle);
+
+    return res;
+}
+
+VKAPI_ATTR
+VkResult GetSemaphoreFuchsiaHandleKHR(
+    VkDevice device,
+    const VkSemaphoreGetFuchsiaHandleInfoKHR* pInfo,
+    uint32_t* pHandle) {
+    AEMU_SCOPED_TRACE("goldfish_vulkan::GetSemaphoreFuchsiaHandleKHR");
+
+    VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
+
+    if (!hostSupportsVulkan) {
+        return vkstubhal::GetSemaphoreFuchsiaHandleKHR(device, pInfo, pHandle);
+    }
+
+    VkResult res = goldfish_vk::ResourceTracker::get()->
+        on_vkGetSemaphoreFuchsiaHandleKHR(device, pInfo, pHandle);
+
+    return res;
+}
+
+VKAPI_ATTR
+VkResult ImportSemaphoreFuchsiaHandleKHR(
+    VkDevice device,
+    const VkImportSemaphoreFuchsiaHandleInfoKHR* pInfo) {
+    AEMU_SCOPED_TRACE("goldfish_vulkan::ImportSemaphoreFuchsiaHandleKHR");
+
+    VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
+
+    if (!hostSupportsVulkan) {
+        return vkstubhal::ImportSemaphoreFuchsiaHandleKHR(device, pInfo);
+    }
+
+    VkResult res = goldfish_vk::ResourceTracker::get()->
+        on_vkImportSemaphoreFuchsiaHandleKHR(device, pInfo);
+
+    return res;
+}
+#endif
+
 static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* name) {
     AEMU_SCOPED_TRACE("goldfish_vulkan::GetDeviceProcAddr");
 
@@ -227,6 +317,17 @@ static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* name) {
         return nullptr;
     }
 
+#ifdef VK_USE_PLATFORM_FUCHSIA
+    if (!strcmp(name, "vkGetMemoryFuchsiaHandleKHR")) {
+        return (PFN_vkVoidFunction)GetMemoryFuchsiaHandleKHR;
+    }
+    if (!strcmp(name, "vkGetSemaphoreFuchsiaHandleKHR")) {
+        return (PFN_vkVoidFunction)GetSemaphoreFuchsiaHandleKHR;
+    }
+    if (!strcmp(name, "vkImportSemaphoreFuchsiaHandleKHR")) {
+        return (PFN_vkVoidFunction)ImportSemaphoreFuchsiaHandleKHR;
+    }
+#endif
     if (!strcmp(name, "vkGetDeviceProcAddr")) {
         return (PFN_vkVoidFunction)(GetDeviceProcAddr);
     }
@@ -274,7 +375,21 @@ int OpenDevice(const hw_module_t* /*module*/,
 
     if (strcmp(id, HWVULKAN_DEVICE_0) == 0) {
         *device = &goldfish_vulkan_device.common;
+#ifdef VK_USE_PLATFORM_FUCHSIA
+        goldfish_vk::ResourceTracker::get()->setColorBufferFunctions(
+            [](uint32_t width, uint32_t height, uint32_t format) {
+                VK_HOST_CONNECTION((uint32_t)0)
+                uint32_t r = rcEnc->rcCreateColorBuffer(rcEnc, width, height, format);
+                return r;
+            },
+            [](uint32_t id){
+                VK_HOST_CONNECTION((uint32_t)0)
+                rcEnc->rcCloseColorBuffer(rcEnc, id);
+                return 0u;
+            });
+#else
         goldfish_vk::ResourceTracker::get();
+#endif
         return 0;
     }
     return -ENOENT;
