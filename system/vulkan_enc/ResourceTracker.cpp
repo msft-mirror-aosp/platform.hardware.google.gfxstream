@@ -1764,24 +1764,27 @@ public:
 
         VkEncoder* enc = (VkEncoder*)context;
 
-        input_result = enc->vkCreateSemaphore(
-            device, pCreateInfo, pAllocator, pSemaphore);
-
-        if (input_result != VK_SUCCESS) return input_result;
-
-        bool exportFence = false;
-        zx_handle_t event_handle = ZX_HANDLE_INVALID;
+        VkSemaphoreCreateInfo finalCreateInfo = *pCreateInfo;
+        vk_struct_common* structChain = vk_init_struct_chain(
+            (vk_struct_common*)(&finalCreateInfo));
+        structChain->pNext = nullptr;
 
         VkExportSemaphoreCreateInfoKHR* exportSemaphoreInfoPtr =
             (VkExportSemaphoreCreateInfoKHR*)vk_find_struct((vk_struct_common*)pCreateInfo,
                 VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO_KHR);
 
+        bool exportFence = false;
         if (exportSemaphoreInfoPtr) {
             exportFence =
                 exportSemaphoreInfoPtr->handleTypes &
                 VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_FUCHSIA_FENCE_BIT_KHR;
+            // TODO: add host side export struct info.
         }
 
+        input_result = enc->vkCreateSemaphore(
+            device, &finalCreateInfo, pAllocator, pSemaphore);
+
+        zx_handle_t event_handle = ZX_HANDLE_INVALID;
         if (exportFence) {
             zx_event_create(0, &event_handle);
         }
