@@ -113,6 +113,29 @@ VkResult createAndroidHardwareBuffer(
 #include <stdlib.h>
 #include <sync/sync.h>
 
+#include <sys/mman.h>
+#include <sys/syscall.h>
+
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+
+#ifdef HOST_BUILD
+#include "android/utils/tempfile.h"
+#endif
+
+#ifndef HAVE_MEMFD_CREATE
+static inline int
+memfd_create(const char *name, unsigned int flags) {
+#ifdef HOST_BUILD
+    TempFile* tmpFile = tempfile_create();
+    return open(tempfile_path(tmpFile), O_RDWR);
+    // TODO: Windows is not suppose to support VkSemaphoreGetFdInfoKHR
+#else
+    return syscall(SYS_memfd_create, name, flags);
+#endif
+}
+#endif // !HAVE_MEMFD_CREATE
+#endif // !VK_USE_PLATFORM_ANDROID_KHR
+
 #define RESOURCE_TRACKER_DEBUG 0
 
 #if RESOURCE_TRACKER_DEBUG
@@ -660,10 +683,12 @@ public:
         const char*,
         uint32_t* pPropertyCount,
         VkExtensionProperties* pProperties) {
-
         std::vector<const char*> allowedExtensionNames = {
             "VK_KHR_get_physical_device_properties2",
             "VK_KHR_sampler_ycbcr_conversion",
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+            "VK_KHR_external_semaphore_capabilities",
+#endif
             // TODO:
             // VK_KHR_external_memory_capabilities
         };
@@ -735,6 +760,10 @@ public:
             "VK_KHR_dedicated_allocation",
             "VK_KHR_bind_memory2",
             "VK_KHR_sampler_ycbcr_conversion",
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+            "VK_KHR_external_semaphore",
+            "VK_KHR_external_semaphore_fd",
+#endif
             // "VK_KHR_maintenance2",
             // "VK_KHR_maintenance3",
             // TODO:
@@ -791,6 +820,7 @@ public:
                 pProperties[i] = filteredExts[i];
             }
         }
+
 
         return VK_SUCCESS;
     }
@@ -1770,15 +1800,18 @@ public:
         VkEncoder* enc = (VkEncoder*)context;
 
         VkSemaphoreCreateInfo finalCreateInfo = *pCreateInfo;
+
+#ifdef VK_USE_PLATFORM_FUCHSIA
+        // vk_init_struct_chain initializes pNext to nullptr
         vk_struct_common* structChain = vk_init_struct_chain(
             (vk_struct_common*)(&finalCreateInfo));
-        structChain->pNext = nullptr;
 
         VkExportSemaphoreCreateInfoKHR* exportSemaphoreInfoPtr =
             (VkExportSemaphoreCreateInfoKHR*)vk_find_struct((vk_struct_common*)pCreateInfo,
                 VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO_KHR);
 
         bool exportFence = false;
+
         if (exportSemaphoreInfoPtr) {
             exportFence =
                 exportSemaphoreInfoPtr->handleTypes &
@@ -1786,13 +1819,17 @@ public:
             // TODO: add host side export struct info.
         }
 
+#endif
         input_result = enc->vkCreateSemaphore(
             device, &finalCreateInfo, pAllocator, pSemaphore);
 
         zx_handle_t event_handle = ZX_HANDLE_INVALID;
+
+#ifdef VK_USE_PLATFORM_FUCHSIA
         if (exportFence) {
             zx_event_create(0, &event_handle);
         }
+#endif
 
         AutoLock lock(mLock);
 
@@ -1812,6 +1849,63 @@ public:
         VkDevice device, VkSemaphore semaphore, const VkAllocationCallbacks *pAllocator) {
         VkEncoder* enc = (VkEncoder*)context;
         enc->vkDestroySemaphore(device, semaphore, pAllocator);
+    }
+
+    // https://www.khronos.org/registry/vulkan/specs/1.0-extensions/html/vkspec.html#vkGetSemaphoreFdKHR
+    // Each call to vkGetSemaphoreFdKHR must create a new file descriptor and transfer ownership
+    // of it to the application. To avoid leaking resources, the application must release ownership
+    // of the file descriptor when it is no longer needed.
+    VkResult on_vkGetSemaphoreFdKHR(
+        void* context, VkResult,
+        VkDevice device, const VkSemaphoreGetFdInfoKHR* pGetFdInfo,
+        int* pFd) {
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        VkEncoder* enc = (VkEncoder*)context;
+        int hostFd = 0;
+        VkResult result = enc->vkGetSemaphoreFdKHR(device, pGetFdInfo, &hostFd);
+        if (result != VK_SUCCESS) {
+            return result;
+        }
+        *pFd = memfd_create("vk_opaque_fd", 0);
+        write(*pFd, &hostFd, sizeof(hostFd));
+        return VK_SUCCESS;
+#else
+        (void)context;
+        (void)device;
+        (void)pGetFdInfo;
+        (void)pFd;
+        return VK_ERROR_INCOMPATIBLE_DRIVER;
+#endif
+    }
+
+    VkResult on_vkImportSemaphoreFdKHR(
+        void* context, VkResult input_result,
+        VkDevice device,
+        const VkImportSemaphoreFdInfoKHR* pImportSemaphoreFdInfo) {
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        VkEncoder* enc = (VkEncoder*)context;
+        if (input_result != VK_SUCCESS) {
+            return input_result;
+        }
+        int fd = pImportSemaphoreFdInfo->fd;
+        int err = lseek(fd, 0, SEEK_SET);
+        if (err == -1) {
+            ALOGE("lseek fail on import semaphore");
+        }
+        int hostFd = 0;
+        read(fd, &hostFd, sizeof(hostFd));
+        VkImportSemaphoreFdInfoKHR tmpInfo = *pImportSemaphoreFdInfo;
+        tmpInfo.fd = hostFd;
+        VkResult result = enc->vkImportSemaphoreFdKHR(device, &tmpInfo);
+        close(fd);
+        return result;
+#else
+        (void)context;
+        (void)input_result;
+        (void)device;
+        (void)pImportSemaphoreFdInfo;
+        return VK_ERROR_INCOMPATIBLE_DRIVER;
+#endif
     }
 
     VkResult on_vkQueueSubmit(
@@ -2425,6 +2519,21 @@ VkResult ResourceTracker::on_vkQueueSubmit(
     VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
     return mImpl->on_vkQueueSubmit(
         context, input_result, queue, submitCount, pSubmits, fence);
+}
+
+VkResult ResourceTracker::on_vkGetSemaphoreFdKHR(
+    void* context, VkResult input_result,
+    VkDevice device,
+    const VkSemaphoreGetFdInfoKHR* pGetFdInfo,
+    int* pFd) {
+    return mImpl->on_vkGetSemaphoreFdKHR(context, input_result, device, pGetFdInfo, pFd);
+}
+
+VkResult ResourceTracker::on_vkImportSemaphoreFdKHR(
+    void* context, VkResult input_result,
+    VkDevice device,
+    const VkImportSemaphoreFdInfoKHR* pImportSemaphoreFdInfo) {
+    return mImpl->on_vkImportSemaphoreFdKHR(context, input_result, device, pImportSemaphoreFdInfo);
 }
 
 void ResourceTracker::unwrap_VkNativeBufferANDROID(
