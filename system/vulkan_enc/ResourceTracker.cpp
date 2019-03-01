@@ -948,6 +948,7 @@ public:
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
     VkResult on_vkGetAndroidHardwareBufferPropertiesANDROID(
+        void*, VkResult,
         VkDevice device,
         const AHardwareBuffer* buffer,
         VkAndroidHardwareBufferPropertiesANDROID* pProperties) {
@@ -957,6 +958,7 @@ public:
     }
 
     VkResult on_vkGetMemoryAndroidHardwareBufferANDROID(
+        void*, VkResult,
         VkDevice device,
         const VkMemoryGetAndroidHardwareBufferInfoANDROID *pInfo,
         struct AHardwareBuffer** pBuffer) {
@@ -993,6 +995,7 @@ public:
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
     VkResult on_vkGetMemoryFuchsiaHandleKHR(
+        void*, VkResult,
         VkDevice device,
         const VkMemoryGetFuchsiaHandleInfoKHR* pInfo,
         uint32_t* pHandle) {
@@ -1027,6 +1030,7 @@ public:
     }
 
     VkResult on_vkGetMemoryFuchsiaHandlePropertiesKHR(
+        void*, VkResult,
         VkDevice device,
         VkExternalMemoryHandleTypeFlagBitsKHR handleType,
         uint32_t handle,
@@ -1036,6 +1040,7 @@ public:
     }
 
     VkResult on_vkImportSemaphoreFuchsiaHandleKHR(
+        void*, VkResult,
         VkDevice device,
         const VkImportSemaphoreFuchsiaHandleInfoKHR* pInfo) {
 
@@ -1067,6 +1072,7 @@ public:
     }
 
     VkResult on_vkGetSemaphoreFuchsiaHandleKHR(
+        void*, VkResult,
         VkDevice device,
         const VkSemaphoreGetFuchsiaHandleInfoKHR* pInfo,
         uint32_t* pHandle) {
@@ -2423,23 +2429,59 @@ void ResourceTracker::unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int* fd
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
 VkResult ResourceTracker::on_vkGetMemoryFuchsiaHandleKHR(
+    void* context, VkResult input_result,
     VkDevice device,
     const VkMemoryGetFuchsiaHandleInfoKHR* pInfo,
     uint32_t* pHandle) {
-    return mImpl->on_vkGetMemoryFuchsiaHandleKHR(device, pInfo, pHandle);
+    return mImpl->on_vkGetMemoryFuchsiaHandleKHR(
+        context, input_result, device, pInfo, pHandle);
+}
+
+VkResult on_vkGetMemoryFuchsiaHandlePropertiesKHR(
+    void* context, VkResult input_result,
+    VkDevice device,
+    VkExternalMemoryHandleTypeFlagBitsKHR handleType,
+    uint32_t handle,
+    VkMemoryFuchsiaHandlePropertiesKHR* pProperties) {
+    return mImpl->on_vkGetMemoryFuchsiaHandlePropertiesKHR(
+        context, input_result, device, handleType, handle, pProperties);
 }
 
 VkResult ResourceTracker::on_vkGetSemaphoreFuchsiaHandleKHR(
+    void* context, VkResult input_result,
     VkDevice device,
     const VkSemaphoreGetFuchsiaHandleInfoKHR* pInfo,
     uint32_t* pHandle) {
-    return mImpl->on_vkGetSemaphoreFuchsiaHandleKHR(device, pInfo, pHandle);
+    return mImpl->on_vkGetSemaphoreFuchsiaHandleKHR(
+        context, input_result, device, pInfo, pHandle);
 }
 
 VkResult ResourceTracker::on_vkImportSemaphoreFuchsiaHandleKHR(
+    void* context, VkResult input_result,
     VkDevice device,
     const VkImportSemaphoreFuchsiaHandleInfoKHR* pInfo) {
-    return mImpl->on_vkImportSemaphoreFuchsiaHandleKHR(device, pInfo);
+    return mImpl->on_vkImportSemaphoreFuchsiaHandleKHR(
+        context, input_result, device, pInfo);
+}
+#endif
+
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+VkResult ResourceTracker::on_vkGetAndroidHardwareBufferPropertiesANDROID(
+    void* context, VkResult input_result,
+    VkDevice device,
+    const AHardwareBuffer* buffer,
+    VkAndroidHardwareBufferPropertiesANDROID* pProperties) {
+    return mImpl->on_vkGetAndroidHardwareBufferPropertiesANDROID(
+        context, input_result, device, buffer, pProperties);
+}
+VkResult ResourceTracker::on_vkGetMemoryAndroidHardwareBufferANDROID(
+    void* context, VkResult input_result,
+    VkDevice device,
+    const VkMemoryGetAndroidHardwareBufferInfoANDROID *pInfo,
+    struct AHardwareBuffer** pBuffer) {
+    return mImpl->on_vkGetMemoryAndroidHardwareBufferANDROID(
+        context, input_result,
+        device, pInfo, pBuffer);
 }
 #endif
 

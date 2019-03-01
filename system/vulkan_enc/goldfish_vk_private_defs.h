@@ -114,6 +114,11 @@ typedef struct {
 typedef VkResult (VKAPI_PTR *PFN_vkRegisterImageColorBufferGOOGLE)(VkDevice device, VkImage image, uint32_t colorBuffer);
 typedef VkResult (VKAPI_PTR *PFN_vkRegisterBufferColorBufferGOOGLE)(VkDevice device, VkBuffer image, uint32_t colorBuffer);
 
+#define VK_ANDROID_external_memory_android_hardware_buffer 1
+struct AHardwareBuffer;
+struct VkAndroidHardwareBufferPropertiesANDROID;
+struct VkMemoryGetAndroidHardwareBufferInfoANDROID;
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
