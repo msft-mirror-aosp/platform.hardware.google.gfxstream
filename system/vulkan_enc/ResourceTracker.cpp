@@ -206,6 +206,7 @@ public:
         HostMemAlloc hostMemAllocs[VK_MAX_MEMORY_TYPES] = {};
         uint32_t apiVersion;
         std::set<std::string> enabledExtensions;
+        VkFence fence = VK_NULL_HANDLE;
     };
 
     struct VkDeviceMemory_Info {
@@ -943,6 +944,10 @@ public:
 
         for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
             destroyHostMemAlloc(enc, device, &info.hostMemAllocs[i]);
+        }
+
+        if (info.fence != VK_NULL_HANDLE) {
+            enc->vkDestroyFence(device, info.fence, nullptr);
         }
     }
 
@@ -1816,6 +1821,7 @@ public:
         std::vector<VkSemaphore> pre_signal_semaphores;
         std::vector<zx_handle_t> post_wait_events;
         VkDevice device = VK_NULL_HANDLE;
+        VkFence* pFence = nullptr;
 
         VkEncoder* enc = (VkEncoder*)context;
 
@@ -1844,6 +1850,7 @@ public:
                     if (semInfo.eventHandle) {
                         post_wait_events.push_back(semInfo.eventHandle);
                         device = semInfo.device;
+                        pFence = &info_VkDevice[device].fence;
                     }
                 }
             }
@@ -1869,17 +1876,17 @@ public:
         if (post_wait_events.empty())
             return VK_SUCCESS;
 
-        VkFenceCreateInfo fence_create_info = {
-            VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, 0, 0,
-        };
-        enc->vkCreateFence(device, &fence_create_info, nullptr, &fence);
-        enc->vkQueueSubmit(queue, 0, nullptr, fence);
-
+        if (*pFence == VK_NULL_HANDLE) {
+            VkFenceCreateInfo fence_create_info = {
+                VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, 0, 0,
+            };
+            enc->vkCreateFence(device, &fence_create_info, nullptr, pFence);
+        }
+        enc->vkQueueSubmit(queue, 0, nullptr, *pFence);
         static constexpr uint64_t MAX_WAIT_NS =
             5ULL * 1000ULL * 1000ULL * 1000ULL;
-
-        enc->vkWaitForFences(device, 1, &fence, VK_TRUE, MAX_WAIT_NS);
-        enc->vkDestroyFence(device, fence, nullptr);
+        enc->vkWaitForFences(device, 1, pFence, VK_TRUE, MAX_WAIT_NS);
+        enc->vkResetFences(device, 1, pFence);
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
         for (auto& event : post_wait_events) {
