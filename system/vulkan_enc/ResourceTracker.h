@@ -197,6 +197,15 @@ public:
     void on_vkDestroySemaphore(
         void* context,
         VkDevice device, VkSemaphore semaphore, const VkAllocationCallbacks *pAllocator);
+    VkResult on_vkGetSemaphoreFdKHR(
+        void* context, VkResult,
+        VkDevice device,
+        const VkSemaphoreGetFdInfoKHR* pGetFdInfo,
+        int* pFd);
+    VkResult on_vkImportSemaphoreFdKHR(
+        void* context, VkResult,
+        VkDevice device,
+        const VkImportSemaphoreFdInfoKHR* pImportSemaphoreFdInfo);
 
     VkResult on_vkQueueSubmit(
         void* context, VkResult input_result,
