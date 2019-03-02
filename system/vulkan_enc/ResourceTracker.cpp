@@ -250,6 +250,8 @@ public:
     struct VkImage_Info {
         VkDevice device;
         VkImageCreateInfo createInfo;
+        bool external = false;
+        VkExternalMemoryImageCreateInfo externalCreateInfo;
         VkDeviceMemory currentBacking = VK_NULL_HANDLE;
         VkDeviceSize currentBackingOffset = 0;
         VkDeviceSize currentBackingSize = 0;
@@ -259,6 +261,8 @@ public:
     struct VkBuffer_Info {
         VkDevice device;
         VkBufferCreateInfo createInfo;
+        bool external = false;
+        VkExternalMemoryBufferCreateInfo externalCreateInfo;
         VkDeviceMemory currentBacking = VK_NULL_HANDLE;
         VkDeviceSize currentBackingOffset = 0;
         VkDeviceSize currentBackingSize = 0;
@@ -1570,6 +1574,58 @@ public:
         // no-op
     }
 
+    uint32_t transformExternalResourceMemoryTypeBitsForGuest(
+        uint32_t normalBits) {
+        uint32_t res = 0;
+        for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
+            if (normalBits & (1 << i) &&
+                !isHostVisibleMemoryTypeIndexForGuest(
+                    &mHostVisibleMemoryVirtInfo, i)) {
+                res |= (1 << i);
+            }
+        }
+        return res;
+    }
+
+    void transformExternalResourceMemoryRequirementsForGuest(
+        VkMemoryRequirements* reqs) {
+        reqs->memoryTypeBits =
+            transformExternalResourceMemoryTypeBitsForGuest(
+                reqs->memoryTypeBits);
+    }
+
+    void transformExternalImageMemoryRequirementsForGuest(
+        VkImage image,
+        VkMemoryRequirements* reqs) {
+
+        AutoLock lock(mLock);
+
+        auto it = info_VkImage.find(image);
+        if (it == info_VkImage.end()) return;
+
+        auto& info = it->second;
+        if (!info.external) return;
+        if (!info.externalCreateInfo.handleTypes) return;
+
+        transformExternalResourceMemoryRequirementsForGuest(reqs);
+    }
+
+    void transformExternalBufferMemoryRequirementsForGuest(
+        VkBuffer buffer,
+        VkMemoryRequirements* reqs) {
+
+        AutoLock lock(mLock);
+
+        auto it = info_VkBuffer.find(buffer);
+        if (it == info_VkBuffer.end()) return;
+
+        auto& info = it->second;
+        if (!info.external) return;
+        if (!info.externalCreateInfo.handleTypes) return;
+
+        transformExternalResourceMemoryRequirementsForGuest(reqs);
+    }
+
     VkResult on_vkCreateImage(
         void* context, VkResult,
         VkDevice device, const VkImageCreateInfo *pCreateInfo,
@@ -1624,6 +1680,15 @@ public:
         info.createInfo.pNext = nullptr;
         info.cbHandle = cbHandle;
 
+        VkExternalMemoryImageCreateInfo* extImgCi =
+            (VkExternalMemoryImageCreateInfo*)vk_find_struct((vk_struct_common*)pCreateInfo,
+                VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO);
+
+        if (!extImgCi) return res;
+
+        info.external = true;
+        info.externalCreateInfo = *extImgCi;
+
         return res;
     }
 
@@ -1640,6 +1705,8 @@ public:
         VkEncoder* enc = (VkEncoder*)context;
         enc->vkGetImageMemoryRequirements(
             device, image, pMemoryRequirements);
+        transformExternalImageMemoryRequirementsForGuest(
+            image, pMemoryRequirements);
     }
 
     void on_vkGetImageMemoryRequirements2(
@@ -1648,6 +1715,9 @@ public:
         VkEncoder* enc = (VkEncoder*)context;
         enc->vkGetImageMemoryRequirements2(
             device, pInfo, pMemoryRequirements);
+        transformExternalImageMemoryRequirementsForGuest(
+            pInfo->image,
+            &pMemoryRequirements->memoryRequirements);
     }
 
     void on_vkGetImageMemoryRequirements2KHR(
@@ -1656,6 +1726,9 @@ public:
         VkEncoder* enc = (VkEncoder*)context;
         enc->vkGetImageMemoryRequirements2KHR(
             device, pInfo, pMemoryRequirements);
+        transformExternalImageMemoryRequirementsForGuest(
+            pInfo->image,
+            &pMemoryRequirements->memoryRequirements);
     }
 
     VkResult on_vkBindImageMemory(
@@ -1736,6 +1809,15 @@ public:
         info.createInfo = *pCreateInfo;
         info.createInfo.pNext = nullptr;
 
+        VkExternalMemoryBufferCreateInfo* extBufCi =
+            (VkExternalMemoryBufferCreateInfo*)vk_find_struct((vk_struct_common*)pCreateInfo,
+                VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO);
+
+        if (!extBufCi) return res;
+
+        info.external = true;
+        info.externalCreateInfo = *extBufCi;
+
         return res;
     }
 
@@ -1751,6 +1833,8 @@ public:
         VkEncoder* enc = (VkEncoder*)context;
         enc->vkGetBufferMemoryRequirements(
             device, buffer, pMemoryRequirements);
+        transformExternalBufferMemoryRequirementsForGuest(
+            buffer, pMemoryRequirements);
     }
 
     void on_vkGetBufferMemoryRequirements2(
@@ -1758,6 +1842,9 @@ public:
         VkMemoryRequirements2* pMemoryRequirements) {
         VkEncoder* enc = (VkEncoder*)context;
         enc->vkGetBufferMemoryRequirements2(device, pInfo, pMemoryRequirements);
+        transformExternalBufferMemoryRequirementsForGuest(
+            pInfo->buffer,
+            &pMemoryRequirements->memoryRequirements);
     }
 
     void on_vkGetBufferMemoryRequirements2KHR(
@@ -1765,6 +1852,9 @@ public:
         VkMemoryRequirements2* pMemoryRequirements) {
         VkEncoder* enc = (VkEncoder*)context;
         enc->vkGetBufferMemoryRequirements2KHR(device, pInfo, pMemoryRequirements);
+        transformExternalBufferMemoryRequirementsForGuest(
+            pInfo->buffer,
+            &pMemoryRequirements->memoryRequirements);
     }
 
     VkResult on_vkBindBufferMemory(
