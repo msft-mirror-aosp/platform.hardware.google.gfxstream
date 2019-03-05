@@ -767,6 +767,7 @@ public:
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
             "VK_KHR_external_semaphore",
             "VK_KHR_external_semaphore_fd",
+            // "VK_KHR_external_semaphore_win32", not exposed because it's translated to fd
 #endif
             // "VK_KHR_maintenance2",
             // "VK_KHR_maintenance3",
@@ -789,6 +790,18 @@ public:
                 return hostRes;
             }
         }
+
+        bool hostHasWin32ExternalSemaphore =
+            getHostInstanceExtensionIndex(
+                "VK_KHR_external_semaphore_win32") != -1;
+
+        bool hostHasPosixExternalSemaphore =
+            getHostInstanceExtensionIndex(
+                "VK_KHR_external_semaphore_fd") != -1;
+
+        bool hostSupportsExternalSemaphore =
+            hostHasWin32ExternalSemaphore ||
+            hostHasPosixExternalSemaphore;
 
         std::vector<VkExtensionProperties> filteredExts;
 
@@ -813,6 +826,12 @@ public:
 
         for (auto& anbExtProp: anbExtProps) {
             filteredExts.push_back(anbExtProp);
+        }
+
+        if (hostSupportsExternalSemaphore &&
+            !hostHasPosixExternalSemaphore) {
+            filteredExts.push_back(
+                { "VK_KHR_external_semaphore_fd", 1});
         }
 
         if (pPropertyCount) {
