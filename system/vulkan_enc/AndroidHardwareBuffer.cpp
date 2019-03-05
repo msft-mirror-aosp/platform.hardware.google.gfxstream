@@ -79,8 +79,7 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
         ahbFormatProps->format =
             vk_format_from_android(desc.format);
 
-        // Just don't, for now
-        ahbFormatProps->externalFormat = 0;
+        ahbFormatProps->externalFormat = VK_FORMAT_G8B8G8R8_422_UNORM;
 
         // The formatFeatures member must include
         // VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT and at least one of
@@ -121,13 +120,13 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
         return VK_ERROR_INVALID_EXTERNAL_HANDLE;
     }
 
-    // Disallow host visible heaps for now
+    // Disallow host visible and noflags heaps for now
     // (hard to make actual dedicated allocs)
     uint32_t memoryTypeBits = 0;
     for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
-        memoryTypeBits |=
-            (!isHostVisibleMemoryTypeIndexForGuest(
-             hostMemVirtInfo, i)) << i;
+        if (isNoFlagsMemoryTypeIndexForGuest(hostMemVirtInfo, i)) continue;
+        if (isHostVisibleMemoryTypeIndexForGuest(hostMemVirtInfo, i)) continue;
+        memoryTypeBits |= (1 << i);
     }
 
     pProperties->memoryTypeBits = memoryTypeBits;
