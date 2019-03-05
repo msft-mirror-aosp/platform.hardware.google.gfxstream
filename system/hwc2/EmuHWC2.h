@@ -114,7 +114,7 @@ private:
     class SortLayersByZ {
     public:
         bool operator()(const std::shared_ptr<Layer>& lhs,
-                    const std::shared_ptr<Layer>& rhs);
+                    const std::shared_ptr<Layer>& rhs) const;
     };
 
     // SurfaceFlinger sets the ColorBuffer and its Fence handler for each
