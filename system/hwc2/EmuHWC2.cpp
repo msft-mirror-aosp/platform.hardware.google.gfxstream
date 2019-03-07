@@ -1210,8 +1210,8 @@ bool EmuHWC2::Display::VsyncThread::threadLoop() {
 
 
 // Layer functions
-bool EmuHWC2::SortLayersByZ::operator()(
-        const std::shared_ptr<Layer>& lhs, const std::shared_ptr<Layer>& rhs) {
+bool EmuHWC2::SortLayersByZ::operator()(const std::shared_ptr<Layer>& lhs,
+        const std::shared_ptr<Layer>& rhs) const {
     return lhs->getZ() < rhs->getZ();
 }
 
