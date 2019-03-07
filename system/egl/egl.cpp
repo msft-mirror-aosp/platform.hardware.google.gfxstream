@@ -20,7 +20,11 @@
 #include "eglDisplay.h"
 #include "eglSync.h"
 #include "egl_ftable.h"
+#if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
+#else
+#include <log/log.h>
+#endif
 #include <cutils/properties.h>
 #include "goldfish_sync.h"
 #include "GLClientState.h"
