@@ -188,6 +188,28 @@ bool isHostVisibleMemoryTypeIndexForGuest(
     return props.memoryTypes[index].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 }
 
+bool isDeviceLocalMemoryTypeIndexForGuest(
+    const HostVisibleMemoryVirtualizationInfo* info,
+    uint32_t index) {
+
+    const auto& props =
+        info->virtualizationSupported ?
+        info->guestMemoryProperties :
+        info->hostMemoryProperties;
+
+    return props.memoryTypes[index].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+}
+
+bool isNoFlagsMemoryTypeIndexForGuest(
+    const HostVisibleMemoryVirtualizationInfo* info,
+    uint32_t index) {
+    const auto& props =
+        info->virtualizationSupported ?
+        info->guestMemoryProperties :
+        info->hostMemoryProperties;
+    return props.memoryTypes[index].propertyFlags == 0;
+}
+
 VkResult finishHostMemAllocInit(
     VkEncoder*,
     VkDevice device,
