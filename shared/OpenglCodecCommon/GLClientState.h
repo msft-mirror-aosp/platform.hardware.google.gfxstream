@@ -241,6 +241,7 @@ public:
     int bindBuffer(GLenum target, GLuint id);
     void bindIndexedBuffer(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size, GLintptr stride, GLintptr effectiveStride);
     int getMaxIndexedBufferBindings(GLenum target) const;
+    bool isNonIndexedBindNoOp(GLenum target, GLuint buffer);
     bool isIndexedBindNoOp(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size, GLintptr stride, GLintptr effectiveStride);
 
     int getBuffer(GLenum target);
