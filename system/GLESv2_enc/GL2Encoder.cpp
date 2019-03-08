@@ -545,7 +545,7 @@ void GL2Encoder::s_glBindBuffer(void *self, GLenum target, GLuint id)
     assert(ctx->m_state != NULL);
     SET_ERROR_IF(!GLESv2Validation::bufferTarget(ctx, target), GL_INVALID_ENUM);
 
-    bool nop = id == ctx->m_state->getLastEncodedBufferBind(target);
+    bool nop = ctx->m_state->isNonIndexedBindNoOp(target, id);
 
     if (nop) return;
 
@@ -4344,8 +4344,14 @@ void GL2Encoder::s_glDrawRangeElements(void* self, GLenum mode, GLuint start, GL
     // caching previous results.
     if (ctx->m_state->currentIndexVbo() != 0) {
         buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
+        ALOGV("%s: current index vbo: %p len %zu count %zu\n", __func__, buf, (size_t)buf->m_fixedBuffer.len(), (size_t)count);
         offset = (GLintptr)indices;
+        void* oldIndices = (void*)indices;
         indices = (void*)((GLintptr)buf->m_fixedBuffer.ptr() + (GLintptr)indices);
+        ALOGV("%s: indices arg: %p buffer start: %p indices: %p\n", __func__,
+                (void*)(uintptr_t)(oldIndices),
+                buf->m_fixedBuffer.ptr(),
+                indices);
         ctx->getBufferIndexRange(buf,
                                  indices,
                                  type,
