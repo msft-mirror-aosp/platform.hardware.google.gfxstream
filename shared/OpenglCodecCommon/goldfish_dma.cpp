@@ -15,7 +15,11 @@
 #include "goldfish_dma.h"
 #include "qemu_pipe.h"
 
+#if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
+#else
+#include <log/log.h>
+#endif
 #include <errno.h>
 #ifdef __ANDROID__
 #include <linux/ioctl.h>
@@ -105,7 +109,7 @@ void* goldfish_dma_map(struct goldfish_dma_context* cxt) {
 }
 
 int goldfish_dma_unmap(struct goldfish_dma_context* cxt) {
-    ALOGV("%s: cxt=%p mapped=0x" PRIu64, __FUNCTION__, cxt, cxt->mapped_addr);
+    ALOGV("%s: cxt=%p mapped=0x%" PRIu64, __FUNCTION__, cxt, cxt->mapped_addr);
     munmap(reinterpret_cast<void *>(cxt->mapped_addr), cxt->size);
     cxt->mapped_addr = 0;
     cxt->size = 0;

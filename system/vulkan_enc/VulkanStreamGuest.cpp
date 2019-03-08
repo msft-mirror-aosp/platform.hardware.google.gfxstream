@@ -20,7 +20,7 @@
 
 #include <vector>
 
-#include <cutils/log.h>
+#include <log/log.h>
 #include <inttypes.h>
 
 namespace goldfish_vk {
