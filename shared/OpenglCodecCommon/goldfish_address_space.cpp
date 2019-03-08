@@ -1,4 +1,9 @@
+#if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
+#else
+#include <log/log.h>
+#endif
+
 #include "goldfish_address_space.h"
 
 #ifdef HOST_BUILD

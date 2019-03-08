@@ -14,7 +14,11 @@
 
 #include "FormatConversions.h"
 
+#if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
+#else
+#include <log/log.h>
+#endif
 #include <string.h>
 
 #define DEBUG 0

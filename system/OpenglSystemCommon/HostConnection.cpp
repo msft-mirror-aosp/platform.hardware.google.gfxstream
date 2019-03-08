@@ -62,7 +62,11 @@ using goldfish_vk::VkEncoder;
 #include "VirtioGpuStream.h"
 #endif
 
+#if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
+#else
+#include <log/log.h>
+#endif
 
 #define STREAM_BUFFER_SIZE  (4*1024*1024)
 #define STREAM_PORT_NUM     22468

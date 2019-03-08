@@ -36,7 +36,11 @@
 #include "glUtils.h"
 #include "qemu_pipe.h"
 
+#if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
+#else
+#include <log/log.h>
+#endif
 #include <cutils/properties.h>
 
 #include <set>
