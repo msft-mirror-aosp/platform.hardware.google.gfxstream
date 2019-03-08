@@ -55,19 +55,6 @@ typedef struct VkImportMemoryFuchsiaHandleInfoKHR {
 
 struct AHardwareBuffer;
 
-typedef struct VkImportAndroidHardwareBufferInfoANDROID {
-    VkStructureType            sType;
-    const void*                pNext;
-    struct AHardwareBuffer*    buffer;
-} VkImportAndroidHardwareBufferInfoANDROID;
-
-typedef struct VkAndroidHardwareBufferPropertiesANDROID {
-    VkStructureType    sType;
-    void*              pNext;
-    VkDeviceSize       allocationSize;
-    uint32_t           memoryTypeBits;
-} VkAndroidHardwareBufferPropertiesANDROID;
-
 void AHardwareBuffer_release(AHardwareBuffer*) { }
 
 native_handle_t *AHardwareBuffer_getNativeHandle(AHardwareBuffer*) { return NULL; }
@@ -91,6 +78,18 @@ VkResult createAndroidHardwareBuffer(
     struct AHardwareBuffer **out) {
   return VK_SUCCESS;
 }
+
+namespace goldfish_vk {
+struct HostVisibleMemoryVirtualizationInfo;
+}
+
+VkResult getAndroidHardwareBufferPropertiesANDROID(
+    const goldfish_vk::HostVisibleMemoryVirtualizationInfo*,
+    VkDevice,
+    const AHardwareBuffer*,
+    VkAndroidHardwareBufferPropertiesANDROID*) { return VK_SUCCESS; }
+
+VkResult getMemoryAndroidHardwareBufferANDROID(struct AHardwareBuffer **) { return VK_SUCCESS; }
 
 #endif // VK_USE_PLATFORM_FUCHSIA
 
@@ -116,10 +115,10 @@ VkResult createAndroidHardwareBuffer(
 #include <stdlib.h>
 #include <sync/sync.h>
 
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+
 #include <sys/mman.h>
 #include <sys/syscall.h>
-
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
 
 #ifdef HOST_BUILD
 #include "android/utils/tempfile.h"
@@ -1032,7 +1031,6 @@ public:
         }
     }
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
     VkResult on_vkGetAndroidHardwareBufferPropertiesANDROID(
         void*, VkResult,
         VkDevice device,
@@ -1077,7 +1075,6 @@ public:
 
         return queryRes;
     }
-#endif
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
     VkResult on_vkGetMemoryFuchsiaHandleKHR(
@@ -3015,7 +3012,7 @@ VkResult ResourceTracker::on_vkGetMemoryFuchsiaHandleKHR(
         context, input_result, device, pInfo, pHandle);
 }
 
-VkResult on_vkGetMemoryFuchsiaHandlePropertiesKHR(
+VkResult ResourceTracker::on_vkGetMemoryFuchsiaHandlePropertiesKHR(
     void* context, VkResult input_result,
     VkDevice device,
     VkExternalMemoryHandleTypeFlagBitsKHR handleType,
@@ -3043,7 +3040,6 @@ VkResult ResourceTracker::on_vkImportSemaphoreFuchsiaHandleKHR(
 }
 #endif
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
 VkResult ResourceTracker::on_vkGetAndroidHardwareBufferPropertiesANDROID(
     void* context, VkResult input_result,
     VkDevice device,
@@ -3061,7 +3057,6 @@ VkResult ResourceTracker::on_vkGetMemoryAndroidHardwareBufferANDROID(
         context, input_result,
         device, pInfo, pBuffer);
 }
-#endif
 
 VkResult ResourceTracker::on_vkCreateSamplerYcbcrConversion(
     void* context, VkResult input_result,
