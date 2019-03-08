@@ -55,7 +55,11 @@ typedef int QEMU_PIPE_HANDLE;
 #include <stdint.h>
 #endif
 
+#if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
+#else
+#include <log/log.h>
+#endif
 #ifdef __ANDROID__
 #include <sys/cdefs.h>
 #endif

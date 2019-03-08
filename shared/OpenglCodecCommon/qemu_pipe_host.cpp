@@ -15,7 +15,11 @@
 
 #include "android/emulation/hostpipe/HostGoldfishPipe.h"
 
+#if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
+#else
+#include <log/log.h>
+#endif
 
 using android::HostGoldfishPipeDevice;
 
