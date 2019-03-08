@@ -265,7 +265,9 @@ VkResult GetMemoryFuchsiaHandleKHR(
     }
 
     VkResult res = goldfish_vk::ResourceTracker::get()->
-        on_vkGetMemoryFuchsiaHandleKHR(device, pInfo, pHandle);
+        on_vkGetMemoryFuchsiaHandleKHR(
+            vkEnc, VK_SUCCESS,
+            device, pInfo, pHandle);
 
     return res;
 }
@@ -284,7 +286,8 @@ VkResult GetSemaphoreFuchsiaHandleKHR(
     }
 
     VkResult res = goldfish_vk::ResourceTracker::get()->
-        on_vkGetSemaphoreFuchsiaHandleKHR(device, pInfo, pHandle);
+        on_vkGetSemaphoreFuchsiaHandleKHR(
+            vkEnc, VK_SUCCESS, device, pInfo, pHandle);
 
     return res;
 }
@@ -302,7 +305,8 @@ VkResult ImportSemaphoreFuchsiaHandleKHR(
     }
 
     VkResult res = goldfish_vk::ResourceTracker::get()->
-        on_vkImportSemaphoreFuchsiaHandleKHR(device, pInfo);
+        on_vkImportSemaphoreFuchsiaHandleKHR(
+            vkEnc, VK_SUCCESS, device, pInfo);
 
     return res;
 }
