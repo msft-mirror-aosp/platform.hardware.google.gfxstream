@@ -635,10 +635,10 @@ static int gralloc_alloc(alloc_device_t* dev,
     // rendering will still happen on the host but we also need to be able to
     // read back from the color buffer, which requires that there is a buffer
     //
+    DEFINE_AND_VALIDATE_HOST_CONNECTION;
 #if PLATFORM_SDK_VERSION >= 17
 
 #ifdef GOLDFISH_VULKAN
-    DEFINE_AND_VALIDATE_HOST_CONNECTION;
 
     bool needHostCb = (((!yuv_format) && (hasVulkan || (frameworkFormat != HAL_PIXEL_FORMAT_BLOB))) ||
 #else
