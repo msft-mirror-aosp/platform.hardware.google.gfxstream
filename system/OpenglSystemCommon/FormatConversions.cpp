@@ -168,7 +168,7 @@ void rgb888_to_yuv420p(char* dest, char* src, int width, int height,
     for (int j = top; j <= bottom; ++j) {
         uint8_t *yv12_y = yv12_y0 + j * yStride;
         uint8_t *yv12_u = yv12_u0 + (j/2) * cStride;
-        uint8_t *yv12_v = yv12_u + cStride;
+        uint8_t *yv12_v = yv12_u + cSize;
         uint8_t *rgb_ptr = rgb_ptr0 + get_rgb_offset(j, width, rgb_stride);
         bool jeven = (j & 1) == 0;
         for (int i = left; i <= right; ++i) {
