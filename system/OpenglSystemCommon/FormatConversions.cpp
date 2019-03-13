@@ -24,7 +24,7 @@
 #define DEBUG 0
 
 #if DEBUG
-#define DD(...) ALOGD(...)
+#define DD(...) ALOGD(__VA_ARGS__)
 #else
 #define DD(...)
 #endif
