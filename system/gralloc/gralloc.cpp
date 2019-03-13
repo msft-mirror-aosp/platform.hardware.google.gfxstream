@@ -1328,9 +1328,9 @@ static int gralloc_unlock(gralloc_module_t const* module,
 
 #if PLATFORM_SDK_VERSION >= 18
 static int gralloc_lock_ycbcr(gralloc_module_t const* module,
-                        buffer_handle_t handle, int usage,
-                        int l, int t, int w, int h,
-                        android_ycbcr *ycbcr)
+                              buffer_handle_t handle, int usage,
+                              int l, int t, int w, int h,
+                              android_ycbcr *ycbcr)
 {
     // Not supporting fallback module for YCbCr
     if (sFallback != NULL) {
@@ -1359,14 +1359,13 @@ static int gralloc_lock_ycbcr(gralloc_module_t const* module,
         return -EINVAL;
     }
 
-    // Make sure memory is mapped, get address
-    if (cb->ashmemBasePid != getpid() || !cb->ashmemBase) {
-        ALOGD("%s: ashmembase not mapped. -EACCESS", __FUNCTION__);
-        return -EACCES;
+    void *vaddr;
+    int ret = gralloc_lock(module, handle, usage | GRALLOC_USAGE_SW_WRITE_MASK, l, t, w, h, &vaddr);
+    if (ret) {
+        return ret;
     }
 
-    uint8_t *cpu_addr = NULL;
-    cpu_addr = (uint8_t *)(cb->ashmemBase) + getAshmemColorOffset(cb);
+    uint8_t* cpu_addr = static_cast<uint8_t*>(vaddr);
 
     // Calculate offsets to underlying YUV data
     size_t yStride;
@@ -1399,11 +1398,11 @@ static int gralloc_lock_ycbcr(gralloc_module_t const* module,
             break;
         case HAL_PIXEL_FORMAT_YCbCr_420_888:
             yStride = cb->width;
-            cStride = cb->width;
+            cStride = yStride / 2;
             yOffset = 0;
-            vOffset = yStride * cb->height;
-            uOffset = vOffset + 1;
-            cStep = 2;
+            uOffset = cb->height * yStride;
+            vOffset = uOffset + cStride * cb->height / 2;
+            cStep = 1;
             break;
         default:
             ALOGE("gralloc_lock_ycbcr unexpected internal format %x",
@@ -1421,18 +1420,10 @@ static int gralloc_lock_ycbcr(gralloc_module_t const* module,
     // Zero out reserved fields
     memset(ycbcr->reserved, 0, sizeof(ycbcr->reserved));
 
-    //
-    // Keep locked region if locked for s/w write access.
-    //
-    cb->lockedLeft = l;
-    cb->lockedTop = t;
-    cb->lockedWidth = w;
-    cb->lockedHeight = h;
-
     DD("gralloc_lock_ycbcr success. usage: %x, ycbcr.y: %p, .cb: %p, .cr: %p, "
-            ".ystride: %d , .cstride: %d, .chroma_step: %d, base: %p", usage,
-            ycbcr->y, ycbcr->cb, ycbcr->cr, ycbcr->ystride, ycbcr->cstride,
-            ycbcr->chroma_step, cb->ashmemBase);
+           ".ystride: %d , .cstride: %d, .chroma_step: %d, base: %p", usage,
+           ycbcr->y, ycbcr->cb, ycbcr->cr, ycbcr->ystride, ycbcr->cstride,
+           ycbcr->chroma_step, cb->ashmemBase);
 
     return 0;
 }
