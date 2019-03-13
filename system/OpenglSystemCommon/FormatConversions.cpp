@@ -85,7 +85,6 @@ void rgb565_to_yv12(char* dest, char* src, int width, int height,
     uint16_t *rgb_ptr0 = (uint16_t *)src;
     uint8_t *yv12_y0 = (uint8_t *)dest;
     uint8_t *yv12_v0 = yv12_y0 + yStride * height;
-    uint8_t *yv12_u0 = yv12_v0 + cSize;
 
     for (int j = top; j <= bottom; ++j) {
         uint8_t *yv12_y = yv12_y0 + j * yStride;
@@ -129,7 +128,6 @@ void rgb888_to_yv12(char* dest, char* src, int width, int height,
     uint8_t *rgb_ptr0 = (uint8_t *)src;
     uint8_t *yv12_y0 = (uint8_t *)dest;
     uint8_t *yv12_v0 = yv12_y0 + yStride * height;
-    uint8_t *yv12_u0 = yv12_v0 + cSize;
 
     for (int j = top; j <= bottom; ++j) {
         uint8_t *yv12_y = yv12_y0 + j * yStride;
@@ -166,7 +164,6 @@ void rgb888_to_yuv420p(char* dest, char* src, int width, int height,
     uint8_t *rgb_ptr0 = (uint8_t *)src;
     uint8_t *yv12_y0 = (uint8_t *)dest;
     uint8_t *yv12_u0 = yv12_y0 + yStride * height;
-    uint8_t *yv12_v0 = yv12_u0 + cSize;
 
     for (int j = top; j <= bottom; ++j) {
         uint8_t *yv12_y = yv12_y0 + j * yStride;
@@ -205,7 +202,6 @@ void yv12_to_rgb565(char* dest, char* src, int width, int height,
     uint16_t *rgb_ptr0 = (uint16_t *)dest;
     uint8_t *yv12_y0 = (uint8_t *)src;
     uint8_t *yv12_v0 = yv12_y0 + yStride * height;
-    uint8_t *yv12_u0 = yv12_v0 + cSize;
 
     for (int j = top; j <= bottom; ++j) {
         uint8_t *yv12_y = yv12_y0 + j * yStride;
@@ -252,7 +248,6 @@ void yv12_to_rgb888(char* dest, char* src, int width, int height,
     uint8_t *rgb_ptr0 = (uint8_t *)dest;
     uint8_t *yv12_y0 = (uint8_t *)src;
     uint8_t *yv12_v0 = yv12_y0 + yStride * height;
-    uint8_t *yv12_u0 = yv12_v0 + cSize;
 
     for (int j = top; j <= bottom; ++j) {
         uint8_t *yv12_y = yv12_y0 + j * yStride;
@@ -298,7 +293,6 @@ void yuv420p_to_rgb888(char* dest, char* src, int width, int height,
     uint8_t *rgb_ptr0 = (uint8_t *)dest;
     uint8_t *yv12_y0 = (uint8_t *)src;
     uint8_t *yv12_u0 = yv12_y0 + yStride * height;
-    uint8_t *yv12_v0 = yv12_u0 + cSize;
 
     for (int j = top; j <= bottom; ++j) {
         uint8_t *yv12_y = yv12_y0 + j * yStride;
