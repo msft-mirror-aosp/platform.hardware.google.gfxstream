@@ -48,7 +48,13 @@ typedef struct VkImportMemoryFuchsiaHandleInfoKHR {
 
 #include <cutils/native_handle.h>
 #include <fuchsia/hardware/goldfish/c/fidl.h>
+#include <fuchsia/sysmem/cpp/fidl.h>
+#include <lib/fdio/directory.h>
+#include <lib/fdio/fd.h>
+#include <lib/fdio/fdio.h>
+#include <lib/fdio/io.h>
 #include <lib/fzl/fdio.h>
+#include <lib/zx/channel.h>
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>
@@ -523,6 +529,15 @@ public:
             mGoldfishAddressSpaceBlockProvider.reset(
                 new GoldfishAddressSpaceBlockProvider);
         }
+
+#ifdef VK_USE_PLATFORM_FUCHSIA
+        zx_status_t status = fdio_service_connect(
+            "/svc/fuchsia.sysmem.Allocator",
+            mSysmemAllocator.NewRequest().TakeChannel().release());
+        if (status != ZX_OK) {
+            ALOGE("failed to connect to sysmem service, status %d", status);
+        }
+#endif
     }
 
     bool hostSupportsVulkan() const {
@@ -830,6 +845,7 @@ public:
             { "VK_KHR_external_memory_fuchsia", 1 },
             { "VK_KHR_external_semaphore", 1 },
             { "VK_KHR_external_semaphore_fuchsia", 1 },
+            { "VK_FUCHSIA_buffer_collection", 1 },
 #endif
         };
 
@@ -1103,7 +1119,7 @@ public:
         auto& info = memoryIt->second;
 
         if (info.vmoHandle == ZX_HANDLE_INVALID) {
-            ALOGE("%s: memory cannot be exported: %d", __func__);
+            ALOGE("%s: memory cannot be exported", __func__);
             return VK_ERROR_INITIALIZATION_FAILED;
         }
 
@@ -1185,6 +1201,87 @@ public:
 
         *pHandle = ZX_HANDLE_INVALID;
         zx_handle_duplicate(info.eventHandle, ZX_RIGHT_SAME_RIGHTS, pHandle);
+        return VK_SUCCESS;
+    }
+
+    VkResult on_vkCreateBufferCollectionFUCHSIA(
+        void*, VkResult, VkDevice,
+        const VkBufferCollectionCreateInfoFUCHSIA* pInfo,
+        const VkAllocationCallbacks*,
+        VkBufferCollectionFUCHSIA* pCollection) {
+        fuchsia::sysmem::BufferCollectionTokenSyncPtr token;
+        if (pInfo->collectionToken) {
+            token.Bind(zx::channel(pInfo->collectionToken));
+        } else {
+            zx_status_t status = mSysmemAllocator->AllocateSharedCollection(token.NewRequest());
+            if (status != ZX_OK) {
+                ALOGE("AllocateSharedCollection failed: %d", status);
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
+        }
+        auto sysmem_collection = new fuchsia::sysmem::BufferCollectionSyncPtr;
+        zx_status_t status = mSysmemAllocator->BindSharedCollection(
+            token, sysmem_collection->NewRequest());
+        if (status != ZX_OK) {
+            ALOGE("BindSharedCollection failed: %d", status);
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
+        *pCollection = reinterpret_cast<VkBufferCollectionFUCHSIA>(sysmem_collection);
+        return VK_SUCCESS;
+    }
+
+    void on_vkDestroyBufferCollectionFUCHSIA(
+        void*, VkResult, VkDevice,
+        VkBufferCollectionFUCHSIA collection,
+        const VkAllocationCallbacks*) {
+        auto sysmem_collection = reinterpret_cast<fuchsia::sysmem::BufferCollectionSyncPtr*>(collection);
+        if (sysmem_collection->is_bound()) {
+            (*sysmem_collection)->Close();
+        }
+        delete sysmem_collection;
+    }
+
+    VkResult on_vkSetBufferCollectionConstraintsFUCHSIA(
+        void*, VkResult, VkDevice,
+        VkBufferCollectionFUCHSIA collection,
+        const VkImageCreateInfo* pImageInfo) {
+        fuchsia::sysmem::BufferCollectionConstraints constraints = {};
+        constraints.usage.vulkan = fuchsia::sysmem::vulkanUsageColorAttachment |
+                                   fuchsia::sysmem::vulkanUsageTransferSrc |
+                                   fuchsia::sysmem::vulkanUsageTransferDst |
+                                   fuchsia::sysmem::vulkanUsageSampled;
+        constraints.min_buffer_count_for_camping = 1;
+        constraints.has_buffer_memory_constraints = true;
+        fuchsia::sysmem::BufferMemoryConstraints& buffer_constraints =
+            constraints.buffer_memory_constraints;
+        buffer_constraints.min_size_bytes = pImageInfo->extent.width * pImageInfo->extent.height * 4;
+        buffer_constraints.max_size_bytes = 0xffffffff;
+        buffer_constraints.physically_contiguous_required = false;
+        buffer_constraints.secure_required = false;
+        buffer_constraints.secure_permitted = false;
+        constraints.image_format_constraints_count = 1;
+        fuchsia::sysmem::ImageFormatConstraints& image_constraints =
+            constraints.image_format_constraints[0];
+        image_constraints.pixel_format.type = fuchsia::sysmem::PixelFormatType::BGRA32;
+        image_constraints.color_spaces_count = 1;
+        image_constraints.color_space[0].type = fuchsia::sysmem::ColorSpaceType::SRGB;
+        image_constraints.min_coded_width = pImageInfo->extent.width;
+        image_constraints.max_coded_width = 0xfffffff;
+        image_constraints.min_coded_height = pImageInfo->extent.height;
+        image_constraints.max_coded_height = 0xffffffff;
+        image_constraints.min_bytes_per_row = pImageInfo->extent.width * 4;
+        image_constraints.max_bytes_per_row = 0xffffffff;
+        image_constraints.max_coded_width_times_coded_height = 0xffffffff;
+        image_constraints.layers = 1;
+        image_constraints.coded_width_divisor = 1;
+        image_constraints.coded_height_divisor = 1;
+        image_constraints.bytes_per_row_divisor = 1;
+        image_constraints.start_offset_divisor = 1;
+        image_constraints.display_width_divisor = 1;
+        image_constraints.display_height_divisor = 1;
+
+        auto sysmem_collection = reinterpret_cast<fuchsia::sysmem::BufferCollectionSyncPtr*>(collection);
+        (*sysmem_collection)->SetConstraints(true, constraints);
         return VK_SUCCESS;
     }
 #endif
@@ -2618,6 +2715,10 @@ private:
     std::vector<VkExtensionProperties> mHostDeviceExtensions;
 
     int mSyncDeviceFd = -1;
+
+#ifdef VK_USE_PLATFORM_FUCHSIA
+    fuchsia::sysmem::AllocatorSyncPtr mSysmemAllocator;
+#endif
 };
 
 ResourceTracker::ResourceTracker() : mImpl(new ResourceTracker::Impl()) { }
@@ -3037,6 +3138,34 @@ VkResult ResourceTracker::on_vkImportSemaphoreFuchsiaHandleKHR(
     const VkImportSemaphoreFuchsiaHandleInfoKHR* pInfo) {
     return mImpl->on_vkImportSemaphoreFuchsiaHandleKHR(
         context, input_result, device, pInfo);
+}
+
+VkResult ResourceTracker::on_vkCreateBufferCollectionFUCHSIA(
+    void* context, VkResult input_result,
+    VkDevice device,
+    const VkBufferCollectionCreateInfoFUCHSIA* pInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkBufferCollectionFUCHSIA* pCollection) {
+    return mImpl->on_vkCreateBufferCollectionFUCHSIA(
+        context, input_result, device, pInfo, pAllocator, pCollection);
+}
+
+void ResourceTracker::on_vkDestroyBufferCollectionFUCHSIA(
+        void* context, VkResult input_result,
+        VkDevice device,
+        VkBufferCollectionFUCHSIA collection,
+        const VkAllocationCallbacks* pAllocator) {
+    return mImpl->on_vkDestroyBufferCollectionFUCHSIA(
+        context, input_result, device, collection, pAllocator);
+}
+
+VkResult ResourceTracker::on_vkSetBufferCollectionConstraintsFUCHSIA(
+        void* context, VkResult input_result,
+        VkDevice device,
+        VkBufferCollectionFUCHSIA collection,
+        const VkImageCreateInfo* pImageInfo) {
+    return mImpl->on_vkSetBufferCollectionConstraintsFUCHSIA(
+        context, input_result, device, collection, pImageInfo);
 }
 #endif
 
