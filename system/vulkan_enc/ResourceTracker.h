@@ -237,6 +237,22 @@ public:
         void* context, VkResult input_result,
         VkDevice device,
         const VkImportSemaphoreFuchsiaHandleInfoKHR* pInfo);
+    VkResult on_vkCreateBufferCollectionFUCHSIA(
+        void* context, VkResult input_result,
+        VkDevice device,
+        const VkBufferCollectionCreateInfoFUCHSIA* pInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkBufferCollectionFUCHSIA* pCollection);
+    void on_vkDestroyBufferCollectionFUCHSIA(
+        void* context, VkResult input_result,
+        VkDevice device,
+        VkBufferCollectionFUCHSIA collection,
+        const VkAllocationCallbacks* pAllocator);
+    VkResult on_vkSetBufferCollectionConstraintsFUCHSIA(
+        void* context, VkResult input_result,
+        VkDevice device,
+        VkBufferCollectionFUCHSIA collection,
+        const VkImageCreateInfo* pImageInfo);
 #endif
 
     VkResult on_vkGetAndroidHardwareBufferPropertiesANDROID(
