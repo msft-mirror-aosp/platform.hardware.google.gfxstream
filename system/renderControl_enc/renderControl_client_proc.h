@@ -50,6 +50,13 @@ typedef int (renderControl_APIENTRY *rcUpdateColorBufferDMA_client_proc_t) (void
 typedef uint32_t (renderControl_APIENTRY *rcCreateColorBufferDMA_client_proc_t) (void * ctx, uint32_t, uint32_t, GLenum, int);
 typedef void (renderControl_APIENTRY *rcWaitSyncKHR_client_proc_t) (void * ctx, uint64_t, EGLint);
 typedef GLint (renderControl_APIENTRY *rcCompose_client_proc_t) (void * ctx, uint32_t, void*);
+typedef GLint (renderControl_APIENTRY *rcCreateDisplay_client_proc_t) (void * ctx, uint32_t*);
+typedef GLint (renderControl_APIENTRY *rcDestroyDisplay_client_proc_t) (void * ctx, uint32_t);
+typedef GLint (renderControl_APIENTRY *rcSetDisplayColorBuffer_client_proc_t) (void * ctx, uint32_t, uint32_t);
+typedef GLint (renderControl_APIENTRY *rcGetDisplayColorBuffer_client_proc_t) (void * ctx, uint32_t, uint32_t*);
+typedef GLint (renderControl_APIENTRY *rcGetColorBufferDisplay_client_proc_t) (void * ctx, uint32_t, uint32_t*);
+typedef GLint (renderControl_APIENTRY *rcGetDisplayPose_client_proc_t) (void * ctx, uint32_t, uint32_t*, uint32_t*, uint32_t*, uint32_t*);
+typedef GLint (renderControl_APIENTRY *rcSetDisplayPose_client_proc_t) (void * ctx, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
 
 
 #endif
