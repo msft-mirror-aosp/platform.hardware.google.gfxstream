@@ -98,6 +98,7 @@ source_set("goldfish_vulkan") {
 
     deps = [
       "//zircon/public/fidl/fuchsia-hardware-goldfish:fuchsia-hardware-goldfish_c",
+      "//zircon/public/fidl/fuchsia-sysmem",
       "//zircon/public/lib/fdio",
       "//zircon/public/lib/fzl",
       "//zircon/public/lib/trace",

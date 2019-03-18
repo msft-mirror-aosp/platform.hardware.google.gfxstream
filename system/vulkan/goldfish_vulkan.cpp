@@ -125,6 +125,26 @@ ImportSemaphoreFuchsiaHandleKHR(VkDevice /*device*/,
                                 const VkImportSemaphoreFuchsiaHandleInfoKHR* /*pInfo*/) {
     return VK_SUCCESS;
 }
+
+VkResult
+CreateBufferCollectionFUCHSIA(VkDevice /*device*/,
+                              const VkBufferCollectionCreateInfoFUCHSIA* /*pInfo*/,
+                              const VkAllocationCallbacks* /*pAllocator*/,
+                              VkBufferCollectionFUCHSIA* /*pCollection*/) {
+    return VK_SUCCESS;
+}
+
+void DestroyBufferCollectionFUCHSIA(VkDevice /*device*/,
+                                    VkBufferCollectionFUCHSIA /*collection*/,
+                                    const VkAllocationCallbacks* /*pAllocator*/) {
+}
+
+VkResult
+SetBufferCollectionConstraintsFUCHSIA(VkDevice /*device*/,
+                                      VkBufferCollectionFUCHSIA /*collection*/,
+                                      const VkImageCreateInfo* /*pImageInfo*/) {
+    return VK_SUCCESS;
+}
 #endif
 
 PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance,
@@ -151,6 +171,12 @@ PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance,
         return reinterpret_cast<PFN_vkVoidFunction>(GetSemaphoreFuchsiaHandleKHR);
     if (strcmp(name, "vkImportSemaphoreFuchsiaHandleKHR") == 0)
         return reinterpret_cast<PFN_vkVoidFunction>(ImportSemaphoreFuchsiaHandleKHR);
+    if (strcmp(name, "vkCreateBufferCollectionFUCHSIA") == 0)
+        return reinterpret_cast<PFN_vkVoidFunction>(CreateBufferCollectionFUCHSIA);
+    if (strcmp(name, "vkDestroyBufferCollectionFUCHSIA") == 0)
+        return reinterpret_cast<PFN_vkVoidFunction>(DestroyBufferCollectionFUCHSIA);
+    if (strcmp(name, "vkSetBufferCollectionConstraintsFUCHSIA") == 0)
+        return reinterpret_cast<PFN_vkVoidFunction>(SetBufferCollectionConstraintsFUCHSIA);
 #endif
     // Per the spec, return NULL if instance is NULL.
     if (!instance)
@@ -310,6 +336,66 @@ VkResult ImportSemaphoreFuchsiaHandleKHR(
 
     return res;
 }
+
+VKAPI_ATTR
+VkResult CreateBufferCollectionFUCHSIA(
+    VkDevice device,
+    const VkBufferCollectionCreateInfoFUCHSIA* pInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkBufferCollectionFUCHSIA* pCollection) {
+    AEMU_SCOPED_TRACE("goldfish_vulkan::CreateBufferCollectionFUCHSIA");
+
+    VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
+
+    if (!hostSupportsVulkan) {
+        return vkstubhal::CreateBufferCollectionFUCHSIA(device, pInfo, pAllocator, pCollection);
+    }
+
+    VkResult res = goldfish_vk::ResourceTracker::get()->
+        on_vkCreateBufferCollectionFUCHSIA(
+            vkEnc, VK_SUCCESS, device, pInfo, pAllocator, pCollection);
+
+    return res;
+}
+
+VKAPI_ATTR
+void DestroyBufferCollectionFUCHSIA(
+    VkDevice device,
+    VkBufferCollectionFUCHSIA collection,
+    const VkAllocationCallbacks* pAllocator) {
+    AEMU_SCOPED_TRACE("goldfish_vulkan::DestroyBufferCollectionFUCHSIA");
+
+    VK_HOST_CONNECTION()
+
+    if (!hostSupportsVulkan) {
+        vkstubhal::DestroyBufferCollectionFUCHSIA(device, collection, pAllocator);
+        return;
+    }
+
+    goldfish_vk::ResourceTracker::get()->
+        on_vkDestroyBufferCollectionFUCHSIA(
+            vkEnc, VK_SUCCESS, device, collection, pAllocator);
+}
+
+VKAPI_ATTR
+VkResult SetBufferCollectionConstraintsFUCHSIA(
+    VkDevice device,
+    VkBufferCollectionFUCHSIA collection,
+    const VkImageCreateInfo* pImageInfo) {
+    AEMU_SCOPED_TRACE("goldfish_vulkan::SetBufferCollectionConstraintsFUCHSIA");
+
+    VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
+
+    if (!hostSupportsVulkan) {
+        return vkstubhal::SetBufferCollectionConstraintsFUCHSIA(device, collection, pImageInfo);
+    }
+
+    VkResult res = goldfish_vk::ResourceTracker::get()->
+        on_vkSetBufferCollectionConstraintsFUCHSIA(
+            vkEnc, VK_SUCCESS, device, collection, pImageInfo);
+
+    return res;
+}
 #endif
 
 static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* name) {
@@ -330,6 +416,15 @@ static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* name) {
     }
     if (!strcmp(name, "vkImportSemaphoreFuchsiaHandleKHR")) {
         return (PFN_vkVoidFunction)ImportSemaphoreFuchsiaHandleKHR;
+    }
+    if (!strcmp(name, "vkCreateBufferCollectionFUCHSIA")) {
+        return (PFN_vkVoidFunction)CreateBufferCollectionFUCHSIA;
+    }
+    if (!strcmp(name, "vkDestroyBufferCollectionFUCHSIA")) {
+        return (PFN_vkVoidFunction)DestroyBufferCollectionFUCHSIA;
+    }
+    if (!strcmp(name, "vkSetBufferCollectionConstraintsFUCHSIA")) {
+        return (PFN_vkVoidFunction)SetBufferCollectionConstraintsFUCHSIA;
     }
 #endif
     if (!strcmp(name, "vkGetDeviceProcAddr")) {
