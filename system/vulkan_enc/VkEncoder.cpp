@@ -9667,9 +9667,31 @@ void VkEncoder::vkCmdExecuteCommands(
 VkResult VkEncoder::vkEnumerateInstanceVersion(
     uint32_t* pApiVersion)
 {
-    AEMU_SCOPED_TRACE("vkEnumerateInstanceVersion resourceEvent");
+    AEMU_SCOPED_TRACE("vkEnumerateInstanceVersion encode");
+    mImpl->log("start vkEnumerateInstanceVersion");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    countingStream->rewind();
+    {
+        countingStream->write((uint32_t*)pApiVersion, sizeof(uint32_t));
+    }
+    uint32_t packetSize_vkEnumerateInstanceVersion = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkEnumerateInstanceVersion = OP_vkEnumerateInstanceVersion;
+    stream->write(&opcode_vkEnumerateInstanceVersion, sizeof(uint32_t));
+    stream->write(&packetSize_vkEnumerateInstanceVersion, sizeof(uint32_t));
+    stream->write((uint32_t*)pApiVersion, sizeof(uint32_t));
+    AEMU_SCOPED_TRACE("vkEnumerateInstanceVersion readParams");
+    stream->read((uint32_t*)pApiVersion, sizeof(uint32_t));
+    AEMU_SCOPED_TRACE("vkEnumerateInstanceVersion returnUnmarshal");
     VkResult vkEnumerateInstanceVersion_VkResult_return = (VkResult)0;
-    vkEnumerateInstanceVersion_VkResult_return = mImpl->resources()->on_vkEnumerateInstanceVersion(this, VK_SUCCESS, pApiVersion);
+    stream->read(&vkEnumerateInstanceVersion_VkResult_return, sizeof(VkResult));
+    countingStream->clearPool();
+    stream->clearPool();
+    pool->freeAll();
     mImpl->log("finish vkEnumerateInstanceVersion");;
     return vkEnumerateInstanceVersion_VkResult_return;
 }

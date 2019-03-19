@@ -47,11 +47,6 @@ public:
 
     GOLDFISH_VK_LIST_HANDLE_TYPES(HANDLE_REGISTER_DECL)
 
-    VkResult on_vkEnumerateInstanceVersion(
-        void* context,
-        VkResult input_result,
-        uint32_t* apiVersion);
-
     VkResult on_vkEnumerateInstanceExtensionProperties(
         void* context,
         VkResult input_result,
