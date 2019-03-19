@@ -2340,18 +2340,13 @@ public:
 #endif
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
-        VkImportSemaphoreFdInfoKHR* importSempahoreFdPtr =
-            (VkImportSemaphoreFdInfoKHR*)vk_find_struct(
-                (vk_struct_common*)pCreateInfo,
-                VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_FD_INFO_KHR);
-
         bool exportSyncFd = exportSemaphoreInfoPtr &&
             (exportSemaphoreInfoPtr->handleTypes &
              VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT);
-        bool importSyncFd = importSempahoreFdPtr &&
-            (importSempahoreFdPtr->handleType &
-             VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT);
 
+        if (exportSyncFd) {
+            finalCreateInfo.pNext = nullptr;
+        }
 #endif
         input_result = enc->vkCreateSemaphore(
             device, &finalCreateInfo, pAllocator, pSemaphore);
@@ -2375,7 +2370,7 @@ public:
         info.eventHandle = event_handle;
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
-        if (exportSyncFd || importSyncFd) {
+        if (exportSyncFd) {
 
             ensureSyncDeviceFd();
 
@@ -2387,10 +2382,6 @@ public:
                     GOLDFISH_SYNC_VULKAN_SEMAPHORE_SYNC /* thread handle (doubling as type field) */,
                     &syncFd);
                 info.syncFd = syncFd;
-            }
-
-            if (importSyncFd) {
-                info.syncFd = importSempahoreFdPtr->fd;
             }
         }
 #endif
@@ -2425,17 +2416,17 @@ public:
             auto& semInfo = it->second;
             *pFd = dup(semInfo.syncFd);
             return VK_SUCCESS;
+        } else {
+            // opaque fd
+            int hostFd = 0;
+            VkResult result = enc->vkGetSemaphoreFdKHR(device, pGetFdInfo, &hostFd);
+            if (result != VK_SUCCESS) {
+                return result;
+            }
+            *pFd = memfd_create("vk_opaque_fd", 0);
+            write(*pFd, &hostFd, sizeof(hostFd));
+            return VK_SUCCESS;
         }
-
-        // opaque fd
-        int hostFd = 0;
-        VkResult result = enc->vkGetSemaphoreFdKHR(device, pGetFdInfo, &hostFd);
-        if (result != VK_SUCCESS) {
-            return result;
-        }
-        *pFd = memfd_create("vk_opaque_fd", 0);
-        write(*pFd, &hostFd, sizeof(hostFd));
-        return VK_SUCCESS;
 #else
         (void)context;
         (void)device;
@@ -2454,18 +2445,37 @@ public:
         if (input_result != VK_SUCCESS) {
             return input_result;
         }
-        int fd = pImportSemaphoreFdInfo->fd;
-        int err = lseek(fd, 0, SEEK_SET);
-        if (err == -1) {
-            ALOGE("lseek fail on import semaphore");
+
+        if (pImportSemaphoreFdInfo->handleType &
+            VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT) {
+            VkImportSemaphoreFdInfoKHR tmpInfo = *pImportSemaphoreFdInfo;
+
+            AutoLock lock(mLock);
+
+            auto semaphoreIt = info_VkSemaphore.find(pImportSemaphoreFdInfo->semaphore);
+            auto& info = semaphoreIt->second;
+
+            if (info.syncFd >= 0) {
+                close(info.syncFd);
+            }
+
+            info.syncFd = pImportSemaphoreFdInfo->fd;
+
+            return VK_SUCCESS;
+        } else {
+            int fd = pImportSemaphoreFdInfo->fd;
+            int err = lseek(fd, 0, SEEK_SET);
+            if (err == -1) {
+                ALOGE("lseek fail on import semaphore");
+            }
+            int hostFd = 0;
+            read(fd, &hostFd, sizeof(hostFd));
+            VkImportSemaphoreFdInfoKHR tmpInfo = *pImportSemaphoreFdInfo;
+            tmpInfo.fd = hostFd;
+            VkResult result = enc->vkImportSemaphoreFdKHR(device, &tmpInfo);
+            close(fd);
+            return result;
         }
-        int hostFd = 0;
-        read(fd, &hostFd, sizeof(hostFd));
-        VkImportSemaphoreFdInfoKHR tmpInfo = *pImportSemaphoreFdInfo;
-        tmpInfo.fd = hostFd;
-        VkResult result = enc->vkImportSemaphoreFdKHR(device, &tmpInfo);
-        close(fd);
-        return result;
 #else
         (void)context;
         (void)input_result;
