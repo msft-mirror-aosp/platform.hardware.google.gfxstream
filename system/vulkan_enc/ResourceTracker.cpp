@@ -389,15 +389,16 @@ public:
     }
 
     // TODO: Upgrade to 1.1
-    static constexpr uint32_t kMaxApiVersion = VK_MAKE_VERSION(1, 0, 65);
+    static constexpr uint32_t kMaxApiVersion = VK_MAKE_VERSION(1, 1, 0);
     static constexpr uint32_t kMinApiVersion = VK_MAKE_VERSION(1, 0, 0);
 
     void setInstanceInfo(VkInstance instance,
                          uint32_t enabledExtensionCount,
-                         const char* const* ppEnabledExtensionNames) {
+                         const char* const* ppEnabledExtensionNames,
+                         uint32_t apiVersion) {
         AutoLock lock(mLock);
         auto& info = info_VkInstance[instance];
-        info.highestApiVersion = kMaxApiVersion;
+        info.highestApiVersion = apiVersion;
 
         if (!ppEnabledExtensionNames) return;
 
@@ -689,16 +690,6 @@ public:
         }
     }
 
-    VkResult on_vkEnumerateInstanceVersion(
-        void*,
-        VkResult,
-        uint32_t* apiVersion) {
-        if (apiVersion) {
-            *apiVersion = kMaxApiVersion;
-        }
-        return VK_SUCCESS;
-    }
-
     VkResult on_vkEnumerateInstanceExtensionProperties(
         void* context,
         VkResult,
@@ -983,7 +974,7 @@ public:
     }
 
     VkResult on_vkCreateInstance(
-        void*,
+        void* context,
         VkResult input_result,
         const VkInstanceCreateInfo* createInfo,
         const VkAllocationCallbacks*,
@@ -991,10 +982,17 @@ public:
 
         if (input_result != VK_SUCCESS) return input_result;
 
+        VkEncoder* enc = (VkEncoder*)context;
+
+        uint32_t apiVersion;
+        VkResult enumInstanceVersionRes =
+            enc->vkEnumerateInstanceVersion(&apiVersion);
+
         setInstanceInfo(
             *pInstance,
             createInfo->enabledExtensionCount,
-            createInfo->ppEnabledExtensionNames);
+            createInfo->ppEnabledExtensionNames,
+            apiVersion);
 
         return input_result;
     }
@@ -2853,13 +2851,6 @@ bool ResourceTracker::hasDeviceExtension(VkDevice device, const std::string &nam
 void ResourceTracker::setColorBufferFunctions(
     PFN_CreateColorBuffer create, PFN_CloseColorBuffer close) {
     mImpl->setColorBufferFunctions(create, close);
-}
-
-VkResult ResourceTracker::on_vkEnumerateInstanceVersion(
-    void* context,
-    VkResult input_result,
-    uint32_t* apiVersion) {
-    return mImpl->on_vkEnumerateInstanceVersion(context, input_result, apiVersion);
 }
 
 VkResult ResourceTracker::on_vkEnumerateInstanceExtensionProperties(
