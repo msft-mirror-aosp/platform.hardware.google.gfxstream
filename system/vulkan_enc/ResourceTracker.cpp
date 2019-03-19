@@ -1918,6 +1918,14 @@ public:
         }
 #endif
 
+#ifdef VK_USE_PLATFORM_FUCHSIA
+        VkFuchsiaImageFormatFUCHSIA* extFuchsiaImageFormatPtr =
+        (VkFuchsiaImageFormatFUCHSIA*)
+        vk_find_struct(
+            (vk_struct_common*)pCreateInfo_mut,
+            VK_STRUCTURE_TYPE_FUCHSIA_IMAGE_FORMAT_FUCHSIA);
+#endif
+
         vk_struct_common* structChain =
             vk_init_struct_chain((vk_struct_common*)pCreateInfo_mut);
 
@@ -1954,22 +1962,52 @@ public:
         cb_handle_t native_handle(
             0, 0, 0, 0, 0, 0, 0, 0, 0, FRAMEWORK_FORMAT_GL_COMPATIBLE);
 
-        if (pCreateInfo->usage &
-            (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-             VK_IMAGE_USAGE_SCANOUT_BIT_GOOGLE)) {
-            if (localCreateInfo.pNext) {
-                abort();
-            }
+        if (pCreateInfo->usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) {
             // Create color buffer.
-            cbHandle = (*mCreateColorBuffer)(localCreateInfo.extent.width,
-                                             localCreateInfo.extent.height,
+            cbHandle = (*mCreateColorBuffer)(pCreateInfo_mut->extent.width,
+                                             pCreateInfo_mut->extent.height,
                                              0x1908 /*GL_RGBA*/);
             native_handle.hostHandle = cbHandle;
             native_info.handle = (uint32_t*)&native_handle;
             native_info.stride = 0;
             native_info.format = 1; // RGBA
             native_info.usage = GRALLOC_USAGE_HW_FB;
-            localCreateInfo.pNext = &native_info;
+            if (pCreateInfo_mut->pNext) {
+                abort();
+            }
+            pCreateInfo_mut->pNext = &native_info;
+            if (extFuchsiaImageFormatPtr) {
+                auto imageFormat = static_cast<const uint8_t*>(
+                    extFuchsiaImageFormatPtr->imageFormat);
+                size_t imageFormatSize =
+                    extFuchsiaImageFormatPtr->imageFormatSize;
+                std::vector<uint8_t> message(
+                    imageFormat, imageFormat + imageFormatSize);
+                fidl::Message msg(fidl::BytePart(message.data(),
+                                                 imageFormatSize,
+                                                 imageFormatSize),
+                                  fidl::HandlePart());
+                const char* err_msg = nullptr;
+                zx_status_t status = msg.Decode(
+                    fuchsia::sysmem::SingleBufferSettings::FidlType, &err_msg);
+                if (status != ZX_OK) {
+                    ALOGE("Invalid SingleBufferSettings: %d %s", status,
+                          err_msg);
+                    abort();
+                }
+                fidl::Decoder decoder(std::move(msg));
+                fuchsia::sysmem::SingleBufferSettings settings;
+                fuchsia::sysmem::SingleBufferSettings::Decode(
+                    &decoder, &settings, 0);
+                if (settings.buffer_settings.is_physically_contiguous) {
+                    // Replace the local image pCreateInfo_mut format
+                    // with the color buffer format if physically contiguous
+                    // and a potential display layer candidate.
+                    // TODO(reveman): Remove this after adding BGRA color
+                    // buffer support.
+                    pCreateInfo_mut->format = VK_FORMAT_R8G8B8A8_UNORM;
+                }
+            }
         }
 #endif
 
