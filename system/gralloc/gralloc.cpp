@@ -99,12 +99,6 @@ static pthread_once_t     sFallbackOnce = PTHREAD_ONCE_INIT;
 
 static void fallback_init(void);  // forward
 
-typedef struct _alloc_list_node {
-    buffer_handle_t handle;
-    _alloc_list_node *next;
-    _alloc_list_node *prev;
-} AllocListNode;
-
 struct MemRegionInfo {
     void* ashmemBase;
     mutable uint32_t refCount;
@@ -124,8 +118,7 @@ typedef MemRegionSet::iterator mem_region_handle_t;
 //
 struct gralloc_device_t {
     alloc_device_t  device;
-
-    AllocListNode *allocListHead;    // double linked list of allocated buffers
+    std::set<buffer_handle_t> allocated;
     pthread_mutex_t lock;
 };
 
@@ -788,15 +781,8 @@ static int gralloc_alloc(alloc_device_t* dev,
     //
     // alloc succeeded - insert the allocated handle to the allocated list
     //
-    AllocListNode *node = new AllocListNode();
     pthread_mutex_lock(&grdev->lock);
-    node->handle = cb;
-    node->next =  grdev->allocListHead;
-    node->prev =  NULL;
-    if (grdev->allocListHead) {
-        grdev->allocListHead->prev = node;
-    }
-    grdev->allocListHead = node;
+    grdev->allocated.insert(cb);
     pthread_mutex_unlock(&grdev->lock);
 
     *pHandle = cb;
@@ -863,25 +849,9 @@ static int gralloc_free(alloc_device_t* dev,
     D("%s: done", __FUNCTION__);
     // remove it from the allocated list
     gralloc_device_t *grdev = (gralloc_device_t *)dev;
-    pthread_mutex_lock(&grdev->lock);
-    AllocListNode *n = grdev->allocListHead;
-    while( n && n->handle != cb ) {
-        n = n->next;
-    }
-    if (n) {
-       // buffer found on list - remove it from list
-       if (n->next) {
-           n->next->prev = n->prev;
-       }
-       if (n->prev) {
-           n->prev->next = n->next;
-       }
-       else {
-           grdev->allocListHead = n->next;
-       }
 
-       delete n;
-    }
+    pthread_mutex_lock(&grdev->lock);
+    grdev->allocated.erase(cb);
     pthread_mutex_unlock(&grdev->lock);
 
     delete cb;
@@ -894,14 +864,12 @@ static int gralloc_device_close(struct hw_device_t *dev)
 {
     gralloc_device_t* d = reinterpret_cast<gralloc_device_t*>(dev);
     if (d) {
-
-        // free still allocated buffers
-        while( d->allocListHead != NULL ) {
-            gralloc_free(&d->device, d->allocListHead->handle);
+        for (std::set<buffer_handle_t>::const_iterator i = d->allocated.begin();
+             i != d->allocated.end(); ++i) {
+            gralloc_free(&d->device, *i);
         }
 
-        // free device
-        free(d);
+        delete d;
     }
     return 0;
 }
@@ -1454,12 +1422,10 @@ static int gralloc_device_open(const hw_module_t* module,
         //
         // Allocate memory for the gralloc device (alloc interface)
         //
-        gralloc_device_t *dev;
-        dev = (gralloc_device_t*)malloc(sizeof(gralloc_device_t));
+        gralloc_device_t *dev = new gralloc_device_t;
         if (NULL == dev) {
             return -ENOMEM;
         }
-        memset(dev, 0, sizeof(gralloc_device_t));
 
         // Initialize our device structure
         //
@@ -1470,7 +1436,6 @@ static int gralloc_device_open(const hw_module_t* module,
 
         dev->device.alloc   = gralloc_alloc;
         dev->device.free    = gralloc_free;
-        dev->allocListHead  = NULL;
         pthread_mutex_init(&dev->lock, NULL);
 
         *device = &dev->device.common;
