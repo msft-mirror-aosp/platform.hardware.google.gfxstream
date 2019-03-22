@@ -1257,6 +1257,8 @@ public:
         buffer_constraints.physically_contiguous_required = false;
         buffer_constraints.secure_required = false;
         buffer_constraints.secure_permitted = false;
+        buffer_constraints.ram_domain_supported = true;
+        buffer_constraints.cpu_domain_supported = false;
         constraints.image_format_constraints_count = 1;
         fuchsia::sysmem::ImageFormatConstraints& image_constraints =
             constraints.image_format_constraints[0];
