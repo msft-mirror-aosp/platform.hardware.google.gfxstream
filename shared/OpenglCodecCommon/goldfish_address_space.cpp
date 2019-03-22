@@ -1,3 +1,18 @@
+// Copyright (C) 2019 The Android Open Source Project
+// Copyright (C) 2019 Google Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
 #else
@@ -7,17 +22,71 @@
 #include "goldfish_address_space.h"
 
 #ifdef HOST_BUILD
-GoldfishAddressSpaceBlock::GoldfishAddressSpaceBlock() : m_guest_ptr(NULL) {}
-GoldfishAddressSpaceBlock::~GoldfishAddressSpaceBlock() {}
+
+#include "android/base/SubAllocator.h"
+#include "android/base/memory/LazyInstance.h"
+
+// AddressSpaceHost is a global class for obtaining physical addresses
+// for the host-side build.
+class AddressSpaceHost {
+public:
+    AddressSpaceHost() : mAlloc(0, 16ULL * 1024ULL * 1048576ULL, 4096) { }
+    uint64_t alloc(size_t size) {
+        return (uint64_t)(uintptr_t)mAlloc.alloc(size);
+    }
+    void free(uint64_t addr) {
+        mAlloc.free((void*)(uintptr_t)addr);
+    }
+private:
+    android::base::SubAllocator mAlloc;
+};
+
+static android::base::LazyInstance<AddressSpaceHost> sAddressSpaceHost =
+    LAZY_INSTANCE_INIT;
+
+// It may seem like there should be one allocator per provider,
+// but to properly reflect the guest behavior where there is only one
+// allocator in the system and multiple providers are possible,
+// we need to have a separate global object (sAddressSpaceHost).
+GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider()
+    : mAlloc(sAddressSpaceHost.ptr()) {}
+
+GoldfishAddressSpaceBlockProvider::~GoldfishAddressSpaceBlockProvider() { }
+
+uint64_t GoldfishAddressSpaceBlockProvider::allocPhys(size_t size) {
+    AddressSpaceHost* hostAlloc = reinterpret_cast<AddressSpaceHost*>(mAlloc);
+    return hostAlloc->alloc(size);
+}
+
+void GoldfishAddressSpaceBlockProvider::freePhys(uint64_t phys) {
+    AddressSpaceHost* hostAlloc = reinterpret_cast<AddressSpaceHost*>(mAlloc);
+    return hostAlloc->free(phys);
+}
+
+GoldfishAddressSpaceBlock::GoldfishAddressSpaceBlock() :
+    m_alloced(false), m_guest_ptr(NULL), m_phys_addr(0), m_provider(NULL) {}
+GoldfishAddressSpaceBlock::~GoldfishAddressSpaceBlock() { destroy(); }
+
+GoldfishAddressSpaceBlock &GoldfishAddressSpaceBlock::operator=(const GoldfishAddressSpaceBlock &rhs)
+{
+    m_guest_ptr = rhs.m_guest_ptr;
+    m_phys_addr = rhs.m_phys_addr;
+    m_provider = rhs.m_provider;
+    return *this;
+}
 
 bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *provider, size_t size)
 {
+    destroy();
+    m_phys_addr = provider->allocPhys(size);
+    m_alloced = true;
+    m_provider = provider;
     return true;
 }
 
 uint64_t GoldfishAddressSpaceBlock::physAddr() const
 {
-    return 42;  // some random number, not used
+    return m_phys_addr;
 }
 
 uint64_t GoldfishAddressSpaceBlock::hostAddr() const
@@ -38,7 +107,13 @@ void *GoldfishAddressSpaceBlock::guestPtr() const
 
 void GoldfishAddressSpaceBlock::destroy()
 {
-    m_guest_ptr = NULL;
+    if (m_alloced) {
+        m_guest_ptr = NULL;
+        if (m_provider) {
+            m_provider->freePhys(m_phys_addr);
+        }
+        m_alloced = false;
+    }
 }
 
 void GoldfishAddressSpaceBlock::replace(GoldfishAddressSpaceBlock *other)
