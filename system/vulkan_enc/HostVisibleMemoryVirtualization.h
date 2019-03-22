@@ -117,4 +117,5 @@ void subAllocHostMemory(
 
 void subFreeHostMemory(SubAlloc* toFree);
 
+bool canSubAlloc(android::base::SubAllocator* subAlloc, VkDeviceSize size);
 } // namespace goldfish_vk
