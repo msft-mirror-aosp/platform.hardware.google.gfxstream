@@ -67,9 +67,9 @@
 #define GOLDFISH_OFFSET_UNIT 8
 
 #ifdef GOLDFISH_HIDL_GRALLOC
-static bool isHidlGralloc = true;
+static const bool isHidlGralloc = true;
 #else
-static bool isHidlGralloc = false;
+static const bool isHidlGralloc = false;
 #endif
 
 int32_t* getOpenCountPtr(cb_handle_t* cb) {
