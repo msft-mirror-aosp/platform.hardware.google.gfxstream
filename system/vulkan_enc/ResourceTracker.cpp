@@ -1711,7 +1711,7 @@ public:
                 device,
                 deviceInfo);
 
-        if (blockIndex == INVALID_HOST_MEM_BLOCK) {
+        if (blockIndex == (HostMemBlockIndex) INVALID_HOST_MEM_BLOCK) {
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
