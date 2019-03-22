@@ -126,7 +126,6 @@ struct gralloc_device_t {
     alloc_device_t  device;
 
     AllocListNode *allocListHead;    // double linked list of allocated buffers
-    MemRegionSet ashmemRegions; // to track allocations of each ashmem region
     pthread_mutex_t lock;
 };
 
