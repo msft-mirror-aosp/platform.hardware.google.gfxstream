@@ -21,7 +21,19 @@
 class GoldfishAddressSpaceBlock;
 
 #ifdef HOST_BUILD
-class GoldfishAddressSpaceBlockProvider {};
+class GoldfishAddressSpaceBlockProvider {
+public:
+    GoldfishAddressSpaceBlockProvider();
+    ~GoldfishAddressSpaceBlockProvider();
+
+    uint64_t allocPhys(size_t size);
+    void freePhys(uint64_t phys);
+
+private:
+   void* mAlloc;
+
+   friend class GoldfishAddressSpaceBlock;
+};
 #else
 class GoldfishAddressSpaceBlockProvider {
 public:
@@ -56,7 +68,10 @@ private:
     GoldfishAddressSpaceBlock &operator=(const GoldfishAddressSpaceBlock &);
 
 #ifdef HOST_BUILD
+    bool        m_alloced;
     void     *m_guest_ptr;
+    uint64_t  m_phys_addr;
+    GoldfishAddressSpaceBlockProvider* m_provider;
 #else
 #ifdef __Fuchsia__
     uint32_t  m_vmo;
