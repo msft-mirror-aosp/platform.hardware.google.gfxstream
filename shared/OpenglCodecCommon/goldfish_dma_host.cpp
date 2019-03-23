@@ -13,14 +13,6 @@
 // limitations under the License.
 #include "goldfish_dma.h"
 
-int goldfish_dma_lock(struct goldfish_dma_context* cxt) {
-    return 0;
-}
-
-int goldfish_dma_unlock(struct goldfish_dma_context* cxt) {
-    return 0;
-}
-
 int goldfish_dma_create_region(uint32_t sz, struct goldfish_dma_context* res) {
     return 0;
 }

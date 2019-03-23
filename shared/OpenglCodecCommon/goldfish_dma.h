@@ -24,8 +24,6 @@ struct goldfish_dma_context {
 	int32_t fd;
 };
 
-int goldfish_dma_lock(struct goldfish_dma_context* cxt);
-int goldfish_dma_unlock(struct goldfish_dma_context* cxt);
 int goldfish_dma_create_region(uint32_t sz, struct goldfish_dma_context* res);
 
 void* goldfish_dma_map(struct goldfish_dma_context* cxt);
