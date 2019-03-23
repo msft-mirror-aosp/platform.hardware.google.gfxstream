@@ -51,18 +51,6 @@ struct goldfish_dma_ioctl_info {
     uint64_t size;
 };
 
-int goldfish_dma_lock(struct goldfish_dma_context* cxt) {
-    struct goldfish_dma_ioctl_info info;
-
-    return ioctl(cxt->fd, GOLDFISH_DMA_IOC_LOCK, &info);
-}
-
-int goldfish_dma_unlock(struct goldfish_dma_context* cxt) {
-    struct goldfish_dma_ioctl_info info;
-
-    return ioctl(cxt->fd, GOLDFISH_DMA_IOC_UNLOCK, &info);
-}
-
 int goldfish_dma_create_region(uint32_t sz, struct goldfish_dma_context* res) {
 
     res->fd = qemu_pipe_open("opengles");
