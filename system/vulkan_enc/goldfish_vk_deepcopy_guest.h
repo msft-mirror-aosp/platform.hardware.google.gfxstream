@@ -2022,5 +2022,7 @@ void deepcopy_VkImportPhysicalAddressGOOGLE(
     VkImportPhysicalAddressGOOGLE* to);
 
 #endif
+#ifdef VK_GOOGLE_sized_descriptor_update_template
+#endif
 
 } // namespace goldfish_vk
