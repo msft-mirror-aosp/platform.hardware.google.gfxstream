@@ -65,7 +65,6 @@ public:
                   __FUNCTION__);
             return 0;
         }
-        goldfish_dma_lock(m_dmaCxt);
         goldfish_dma_write(m_dmaCxt, data, size);
         uint64_t paddr = goldfish_dma_guest_paddr(m_dmaCxt);
         ALOGV("%s: paddr=0x%llx", __FUNCTION__, (unsigned long long)paddr);
