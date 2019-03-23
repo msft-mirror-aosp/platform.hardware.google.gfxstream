@@ -481,10 +481,13 @@ int OpenDevice(const hw_module_t* /*module*/,
                 uint32_t r = rcEnc->rcCreateColorBuffer(rcEnc, width, height, format);
                 return r;
             },
+            [](uint32_t id) {
+                VK_HOST_CONNECTION()
+                rcEnc->rcOpenColorBuffer(rcEnc, id);
+            },
             [](uint32_t id){
-                VK_HOST_CONNECTION((uint32_t)0)
+                VK_HOST_CONNECTION()
                 rcEnc->rcCloseColorBuffer(rcEnc, id);
-                return 0u;
             });
 #else
         goldfish_vk::ResourceTracker::get();

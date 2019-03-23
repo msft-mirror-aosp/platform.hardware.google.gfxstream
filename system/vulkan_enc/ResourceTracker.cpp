@@ -257,6 +257,7 @@ public:
         SubAlloc subAlloc;
         AHardwareBuffer* ahw = nullptr;
         zx_handle_t vmoHandle = ZX_HANDLE_INVALID;
+        uint32_t cbHandle = 0;
     };
 
     // custom guest-side structs for images/buffers because of AHardwareBuffer :((
@@ -334,6 +335,10 @@ public:
 
         if (memInfo.ahw) {
             AHardwareBuffer_release(memInfo.ahw);
+        }
+
+        if (memInfo.cbHandle) {
+            (*mCloseColorBuffer)(memInfo.cbHandle);
         }
 
         if (memInfo.vmoHandle != ZX_HANDLE_INVALID) {
@@ -443,7 +448,8 @@ public:
                              uint8_t* ptr,
                              uint32_t memoryTypeIndex,
                              AHardwareBuffer* ahw = nullptr,
-                             zx_handle_t vmoHandle = ZX_HANDLE_INVALID) {
+                             zx_handle_t vmoHandle = ZX_HANDLE_INVALID,
+                             uint32_t cbHandle = 0) {
         AutoLock lock(mLock);
         auto& deviceInfo = info_VkDevice[device];
         auto& info = info_VkDeviceMemory[memory];
@@ -454,6 +460,7 @@ public:
         info.memoryTypeIndex = memoryTypeIndex;
         info.ahw = ahw;
         info.vmoHandle = vmoHandle;
+        info.cbHandle = cbHandle;
     }
 
     void setImageInfo(VkImage image,
@@ -579,8 +586,10 @@ public:
     }
 
     void setColorBufferFunctions(PFN_CreateColorBuffer create,
+                                 PFN_OpenColorBuffer open,
                                  PFN_CloseColorBuffer close) {
         mCreateColorBuffer = create;
+        mOpenColorBuffer = open;
         mCloseColorBuffer = close;
     }
 
@@ -1498,6 +1507,7 @@ public:
         // to the AHardwareBuffer on the host via an "import" operation.
         AHardwareBuffer* ahw = nullptr;
         zx_handle_t vmo_handle = ZX_HANDLE_INVALID;
+        uint32_t cbHandle = 0;
 
         if (exportAllocateInfoPtr) {
             exportAhb =
@@ -1599,7 +1609,7 @@ public:
 #endif
 
             if (cb) {
-                importCbInfo.colorBuffer = cb;
+                cbHandle = importCbInfo.colorBuffer = cb;
                 structChain =
                     vk_append_struct(structChain, (vk_struct_common*)(&importCbInfo));
             }
@@ -1610,7 +1620,9 @@ public:
         if (!isHostVisibleMemoryTypeIndexForGuest(
                 &mHostVisibleMemoryVirtInfo,
                 finalAllocInfo.memoryTypeIndex)) {
-
+            if (cbHandle) {
+                (*mOpenColorBuffer)(cbHandle);
+            }
             input_result =
                 enc->vkAllocateMemory(
                     device, &finalAllocInfo, pAllocator, pMemory);
@@ -1624,7 +1636,8 @@ public:
                 0, nullptr,
                 finalAllocInfo.memoryTypeIndex,
                 ahw,
-                vmo_handle);
+                vmo_handle,
+                cbHandle);
 
             return VK_SUCCESS;
         }
@@ -2826,6 +2839,7 @@ private:
     std::unique_ptr<EmulatorFeatureInfo> mFeatureInfo;
     std::unique_ptr<GoldfishAddressSpaceBlockProvider> mGoldfishAddressSpaceBlockProvider;
     PFN_CreateColorBuffer mCreateColorBuffer;
+    PFN_OpenColorBuffer mOpenColorBuffer;
     PFN_CloseColorBuffer mCloseColorBuffer;
 
     std::vector<VkExtensionProperties> mHostInstanceExtensions;
@@ -2920,8 +2934,10 @@ bool ResourceTracker::hasDeviceExtension(VkDevice device, const std::string &nam
 }
 
 void ResourceTracker::setColorBufferFunctions(
-    PFN_CreateColorBuffer create, PFN_CloseColorBuffer close) {
-    mImpl->setColorBufferFunctions(create, close);
+    PFN_CreateColorBuffer create,
+    PFN_OpenColorBuffer open,
+    PFN_CloseColorBuffer close) {
+    mImpl->setColorBufferFunctions(create, open, close);
 }
 
 VkResult ResourceTracker::on_vkEnumerateInstanceExtensionProperties(

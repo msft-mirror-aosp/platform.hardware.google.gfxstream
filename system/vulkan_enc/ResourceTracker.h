@@ -29,7 +29,8 @@ struct EmulatorFeatureInfo;
 namespace goldfish_vk {
 
 typedef uint32_t (*PFN_CreateColorBuffer)(uint32_t width, uint32_t height, uint32_t format);
-typedef uint32_t (*PFN_CloseColorBuffer)(uint32_t id);
+typedef void (*PFN_OpenColorBuffer)(uint32_t id);
+typedef void (*PFN_CloseColorBuffer)(uint32_t id);
 
 class ResourceTracker {
 public:
@@ -299,7 +300,9 @@ public:
     uint32_t getApiVersionFromDevice(VkDevice device) const;
     bool hasInstanceExtension(VkInstance instance, const std::string& name) const;
     bool hasDeviceExtension(VkDevice instance, const std::string& name) const;
-    void setColorBufferFunctions(PFN_CreateColorBuffer create, PFN_CloseColorBuffer close);
+    void setColorBufferFunctions(PFN_CreateColorBuffer create,
+                                 PFN_OpenColorBuffer open,
+                                 PFN_CloseColorBuffer close);
 
     // Transforms
     void deviceMemoryTransform_tohost(
