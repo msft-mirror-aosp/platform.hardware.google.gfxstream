@@ -1754,7 +1754,8 @@ static void entry_vkUpdateDescriptorSetWithTemplate(
 {
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplate");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkUpdateDescriptorSetWithTemplate(device, descriptorSet, descriptorUpdateTemplate, pData);
+    auto resources = ResourceTracker::get();
+    resources->on_vkUpdateDescriptorSetWithTemplate(vkEnc, device, descriptorSet, descriptorUpdateTemplate, pData);
 }
 static void entry_vkGetPhysicalDeviceExternalBufferProperties(
     VkPhysicalDevice physicalDevice,
@@ -3704,6 +3705,26 @@ static VkResult entry_vkRegisterBufferColorBufferGOOGLE(
     return vkRegisterBufferColorBufferGOOGLE_VkResult_return;
 }
 #endif
+#ifdef VK_GOOGLE_sized_descriptor_update_template
+static void entry_vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
+    VkDevice device,
+    VkDescriptorSet descriptorSet,
+    VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+    uint32_t imageInfoCount,
+    uint32_t bufferInfoCount,
+    uint32_t bufferViewCount,
+    const uint32_t* pImageInfoEntryIndices,
+    const uint32_t* pBufferInfoEntryIndices,
+    const uint32_t* pBufferViewEntryIndices,
+    const VkDescriptorImageInfo* pImageInfos,
+    const VkDescriptorBufferInfo* pBufferInfos,
+    const VkBufferView* pBufferViews)
+{
+    AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateSizedGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkUpdateDescriptorSetWithTemplateSizedGOOGLE(device, descriptorSet, descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount, pImageInfoEntryIndices, pBufferInfoEntryIndices, pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews);
+}
+#endif
 void* goldfish_vulkan_get_proc_address(const char* name){
 #ifdef VK_VERSION_1_0
     if (!strcmp(name, "vkCreateInstance"))
@@ -5111,6 +5132,12 @@ void* goldfish_vulkan_get_proc_address(const char* name){
         return nullptr;
     }
     if (!strcmp(name, "vkRegisterBufferColorBufferGOOGLE"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_sized_descriptor_update_template
+    if (!strcmp(name, "vkUpdateDescriptorSetWithTemplateSizedGOOGLE"))
     {
         return nullptr;
     }
@@ -6685,6 +6712,13 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return hasExt ? (void*)entry_vkRegisterBufferColorBufferGOOGLE : nullptr;
     }
 #endif
+#ifdef VK_GOOGLE_sized_descriptor_update_template
+    if (!strcmp(name, "vkUpdateDescriptorSetWithTemplateSizedGOOGLE"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_sized_descriptor_update_template");
+        return hasExt ? (void*)entry_vkUpdateDescriptorSetWithTemplateSizedGOOGLE : nullptr;
+    }
+#endif
     return nullptr;
 }
 void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name){
@@ -8253,6 +8287,13 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     {
         bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_color_buffer");
         return hasExt ? (void*)entry_vkRegisterBufferColorBufferGOOGLE : nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_sized_descriptor_update_template
+    if (!strcmp(name, "vkUpdateDescriptorSetWithTemplateSizedGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_sized_descriptor_update_template");
+        return hasExt ? (void*)entry_vkUpdateDescriptorSetWithTemplateSizedGOOGLE : nullptr;
     }
 #endif
     return nullptr;

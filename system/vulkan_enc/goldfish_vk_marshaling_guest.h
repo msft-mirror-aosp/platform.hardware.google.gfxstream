@@ -3381,5 +3381,8 @@ void unmarshal_VkImportPhysicalAddressGOOGLE(
 #define OP_vkRegisterImageColorBufferGOOGLE 20318
 #define OP_vkRegisterBufferColorBufferGOOGLE 20319
 #endif
+#ifdef VK_GOOGLE_sized_descriptor_update_template
+#define OP_vkUpdateDescriptorSetWithTemplateSizedGOOGLE 20320
+#endif
 
 } // namespace goldfish_vk

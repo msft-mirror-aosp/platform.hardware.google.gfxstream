@@ -44,7 +44,6 @@
     f(VkEvent) \
     f(VkQueryPool) \
     f(VkSamplerYcbcrConversion) \
-    f(VkDescriptorUpdateTemplate) \
     f(VkSurfaceKHR) \
     f(VkSwapchainKHR) \
     f(VkDisplayKHR) \
@@ -60,6 +59,7 @@
     f(VkBuffer) \
     f(VkImage) \
     f(VkSemaphore) \
+    f(VkDescriptorUpdateTemplate) \
     GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(f) \
 
 #define GOLDFISH_VK_LIST_HANDLE_TYPES(f) \

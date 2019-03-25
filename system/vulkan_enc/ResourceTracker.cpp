@@ -288,6 +288,17 @@ public:
         int syncFd = -1;
     };
 
+    struct VkDescriptorUpdateTemplate_Info {
+        std::vector<VkDescriptorUpdateTemplateEntry> templateEntries;
+
+        // Flattened versions
+        std::vector<uint32_t> imageInfoEntryIndices;
+        std::vector<uint32_t> bufferInfoEntryIndices;
+        std::vector<uint32_t> bufferViewEntryIndices;
+        std::vector<VkDescriptorImageInfo> imageInfos;
+        std::vector<VkDescriptorBufferInfo> bufferInfos;
+        std::vector<VkBufferView> bufferViews;
+    };
 
 #define HANDLE_REGISTER_IMPL_IMPL(type) \
     std::unordered_map<type, type##_Info> info_##type; \
@@ -396,6 +407,10 @@ public:
         }
 
         info_VkSemaphore.erase(sem);
+    }
+
+    void unregister_VkDescriptorUpdateTemplate(VkDescriptorUpdateTemplate templ) {
+        info_VkDescriptorUpdateTemplate.erase(templ);
     }
 
     // TODO: Upgrade to 1.1
@@ -2788,6 +2803,185 @@ public:
         return input_result;
     }
 
+    bool isDescriptorTypeImageInfo(VkDescriptorType descType) {
+        return (descType == VK_DESCRIPTOR_TYPE_SAMPLER) ||
+               (descType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) ||
+               (descType == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE) ||
+               (descType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE) ||
+               (descType == VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT);
+    }
+
+    bool isDescriptorTypeBufferInfo(VkDescriptorType descType) {
+        return (descType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) ||
+               (descType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC) ||
+               (descType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER) ||
+               (descType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC);
+    }
+
+    bool isDescriptorTypeBufferView(VkDescriptorType descType) {
+        return (descType == VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER) ||
+               (descType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER);
+    }
+
+    VkResult initDescriptorUpdateTemplateBuffers(
+        const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
+        VkDescriptorUpdateTemplate descriptorUpdateTemplate) {
+
+        AutoLock lock(mLock);
+
+        auto it = info_VkDescriptorUpdateTemplate.find(descriptorUpdateTemplate);
+        if (it == info_VkDescriptorUpdateTemplate.end()) {
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
+
+        auto& info = it->second;
+
+        size_t imageInfosNeeded = 0;
+        size_t bufferInfosNeeded = 0;
+        size_t bufferViewsNeeded = 0;
+
+        for (uint32_t i = 0; i < pCreateInfo->descriptorUpdateEntryCount; ++i) {
+            const auto& entry = pCreateInfo->pDescriptorUpdateEntries[i];
+            uint32_t descCount = entry.descriptorCount;
+            VkDescriptorType descType = entry.descriptorType;
+
+            info.templateEntries.push_back(entry);
+
+            for (uint32_t j = 0; j < descCount; ++j) {
+                if (isDescriptorTypeImageInfo(descType)) {
+                    ++imageInfosNeeded;
+                    info.imageInfoEntryIndices.push_back(i);
+                } else if (isDescriptorTypeBufferInfo(descType)) {
+                    ++bufferInfosNeeded;
+                    info.bufferInfoEntryIndices.push_back(i);
+                } else if (isDescriptorTypeBufferView(descType)) {
+                    ++bufferViewsNeeded;
+                    info.bufferViewEntryIndices.push_back(i);
+                } else {
+                    ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
+                    abort();
+                }
+            }
+        }
+
+        // To be filled in later (our flat structure)
+        info.imageInfos.resize(imageInfosNeeded);
+        info.bufferInfos.resize(bufferInfosNeeded);
+        info.bufferViews.resize(bufferViewsNeeded);
+
+        return VK_SUCCESS;
+    }
+
+    VkResult on_vkCreateDescriptorUpdateTemplate(
+        void* context, VkResult input_result,
+        VkDevice device,
+        const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
+
+        (void)context;
+        (void)device;
+        (void)pAllocator;
+
+        if (input_result != VK_SUCCESS) return input_result;
+
+        return initDescriptorUpdateTemplateBuffers(pCreateInfo, *pDescriptorUpdateTemplate);
+    }
+
+    VkResult on_vkCreateDescriptorUpdateTemplateKHR(
+        void* context, VkResult input_result,
+        VkDevice device,
+        const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
+
+        (void)context;
+        (void)device;
+        (void)pAllocator;
+
+        if (input_result != VK_SUCCESS) return input_result;
+
+        return initDescriptorUpdateTemplateBuffers(pCreateInfo, *pDescriptorUpdateTemplate);
+    }
+
+    void on_vkUpdateDescriptorSetWithTemplate(
+        void* context,
+        VkDevice device,
+        VkDescriptorSet descriptorSet,
+        VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+        const void* pData) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        uint8_t* userBuffer = (uint8_t*)pData;
+        if (!userBuffer) return;
+
+        AutoLock lock(mLock);
+
+        auto it = info_VkDescriptorUpdateTemplate.find(descriptorUpdateTemplate);
+        if (it == info_VkDescriptorUpdateTemplate.end()) {
+            return;
+        }
+
+        auto& info = it->second;
+
+        size_t currImageInfoOffset = 0;
+        size_t currBufferInfoOffset = 0;
+        size_t currBufferViewOffset = 0;
+
+        for (const auto& entry : info.templateEntries) {
+            VkDescriptorType descType = entry.descriptorType;
+
+            auto offset = entry.offset;
+            auto stride = entry.stride;
+
+            uint32_t descCount = entry.descriptorCount;
+
+            if (isDescriptorTypeImageInfo(descType)) {
+                if (!stride) stride = sizeof(VkDescriptorImageInfo);
+                for (uint32_t j = 0; j < descCount; ++j) {
+                    memcpy(((uint8_t*)info.imageInfos.data()) + currImageInfoOffset,
+                           userBuffer + offset + j * stride,
+                           sizeof(VkDescriptorImageInfo));
+                    currImageInfoOffset += sizeof(VkDescriptorImageInfo);
+                }
+            } else if (isDescriptorTypeBufferInfo(descType)) {
+                if (!stride) stride = sizeof(VkDescriptorBufferInfo);
+                for (uint32_t j = 0; j < descCount; ++j) {
+                    memcpy(((uint8_t*)info.bufferInfos.data()) + currBufferInfoOffset,
+                           userBuffer + offset + j * stride,
+                           sizeof(VkDescriptorBufferInfo));
+                    currBufferInfoOffset += sizeof(VkDescriptorBufferInfo);
+                }
+            } else if (isDescriptorTypeBufferView(descType)) {
+                if (!stride) stride = sizeof(VkBufferView);
+                for (uint32_t j = 0; j < descCount; ++j) {
+                    memcpy(((uint8_t*)info.bufferViews.data()) + currBufferViewOffset,
+                           userBuffer + offset + j * stride,
+                           sizeof(VkBufferView));
+                    currBufferViewOffset += sizeof(VkBufferView);
+                }
+            } else {
+                ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
+                abort();
+            }
+        }
+
+        enc->vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
+            device,
+            descriptorSet,
+            descriptorUpdateTemplate,
+            (uint32_t)info.imageInfos.size(),
+            (uint32_t)info.bufferInfos.size(),
+            (uint32_t)info.bufferViews.size(),
+            info.imageInfoEntryIndices.data(),
+            info.bufferInfoEntryIndices.data(),
+            info.bufferViewEntryIndices.data(),
+            info.imageInfos.data(),
+            info.bufferInfos.data(),
+            info.bufferViews.data());
+    }
+
     uint32_t getApiVersionFromInstance(VkInstance instance) const {
         AutoLock lock(mLock);
         uint32_t api = kMinApiVersion;
@@ -3351,6 +3545,39 @@ VkResult ResourceTracker::on_vkMapMemoryIntoAddressSpaceGOOGLE(
     uint64_t* pAddress) {
     return mImpl->on_vkMapMemoryIntoAddressSpaceGOOGLE(
         context, input_result, device, memory, pAddress);
+}
+
+VkResult ResourceTracker::on_vkCreateDescriptorUpdateTemplate(
+    void* context, VkResult input_result,
+    VkDevice device,
+    const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
+    return mImpl->on_vkCreateDescriptorUpdateTemplate(
+        context, input_result,
+        device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
+}
+
+VkResult ResourceTracker::on_vkCreateDescriptorUpdateTemplateKHR(
+    void* context, VkResult input_result,
+    VkDevice device,
+    const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
+    return mImpl->on_vkCreateDescriptorUpdateTemplateKHR(
+        context, input_result,
+        device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
+}
+
+void ResourceTracker::on_vkUpdateDescriptorSetWithTemplate(
+    void* context,
+    VkDevice device,
+    VkDescriptorSet descriptorSet,
+    VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+    const void* pData) {
+    mImpl->on_vkUpdateDescriptorSetWithTemplate(
+        context, device, descriptorSet,
+        descriptorUpdateTemplate, pData);
 }
 
 void ResourceTracker::deviceMemoryTransform_tohost(
