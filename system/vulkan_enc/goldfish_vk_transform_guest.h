@@ -3063,5 +3063,7 @@ void transform_fromhost_VkImportPhysicalAddressGOOGLE(
     VkImportPhysicalAddressGOOGLE* toTransform);
 
 #endif
+#ifdef VK_GOOGLE_sized_descriptor_update_template
+#endif
 
 } // namespace goldfish_vk
