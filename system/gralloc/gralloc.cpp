@@ -759,7 +759,7 @@ static int gralloc_alloc(alloc_device_t* dev,
                 allocFormat = GL_RGB;
             }
             hostCon->lock();
-            if (s_grdma) {
+            if (rcEnc->getDmaVersion() > 0) {
                 cb->hostHandle = rcEnc->rcCreateColorBufferDMA(rcEnc, w, h, allocFormat, cb->emuFrameworkFormat);
             } else {
                 cb->hostHandle = rcEnc->rcCreateColorBuffer(rcEnc, w, h, allocFormat);
