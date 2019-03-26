@@ -309,6 +309,18 @@ public:
         VkDescriptorUpdateTemplate descriptorUpdateTemplate,
         const void* pData);
 
+    VkResult on_vkGetPhysicalDeviceImageFormatProperties2(
+        void* context, VkResult input_result,
+        VkPhysicalDevice physicalDevice,
+        const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
+        VkImageFormatProperties2* pImageFormatProperties);
+
+    VkResult on_vkGetPhysicalDeviceImageFormatProperties2KHR(
+        void* context, VkResult input_result,
+        VkPhysicalDevice physicalDevice,
+        const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
+        VkImageFormatProperties2* pImageFormatProperties);
+
     bool isMemoryTypeHostVisible(VkDevice device, uint32_t typeIndex) const;
     uint8_t* getMappedPointer(VkDeviceMemory memory);
     VkDeviceSize getMappedSize(VkDeviceMemory memory);

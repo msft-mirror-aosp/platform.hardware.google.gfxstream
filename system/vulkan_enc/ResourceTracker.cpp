@@ -2982,6 +2982,65 @@ public:
             info.bufferViews.data());
     }
 
+    VkResult on_vkGetPhysicalDeviceImageFormatProperties2_common(
+        bool isKhr,
+        void* context, VkResult input_result,
+        VkPhysicalDevice physicalDevice,
+        const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
+        VkImageFormatProperties2* pImageFormatProperties) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+        (void)input_result;
+
+        VkAndroidHardwareBufferUsageANDROID* output_ahw_usage =
+            (VkAndroidHardwareBufferUsageANDROID*)vk_find_struct(
+                (vk_struct_common*)pImageFormatProperties,
+                VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_USAGE_ANDROID);
+
+        VkResult hostRes;
+
+        if (isKhr) {
+            hostRes = enc->vkGetPhysicalDeviceImageFormatProperties2KHR(
+                physicalDevice, pImageFormatInfo,
+                pImageFormatProperties);
+        } else {
+            hostRes = enc->vkGetPhysicalDeviceImageFormatProperties2(
+                physicalDevice, pImageFormatInfo,
+                pImageFormatProperties);
+        }
+
+        if (hostRes != VK_SUCCESS) return hostRes;
+
+        if (output_ahw_usage) {
+            output_ahw_usage->androidHardwareBufferUsage =
+                getAndroidHardwareBufferUsageFromVkUsage(
+                    pImageFormatInfo->flags,
+                    pImageFormatInfo->usage);
+        }
+
+        return hostRes;
+    }
+
+    VkResult on_vkGetPhysicalDeviceImageFormatProperties2(
+        void* context, VkResult input_result,
+        VkPhysicalDevice physicalDevice,
+        const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
+        VkImageFormatProperties2* pImageFormatProperties) {
+        return on_vkGetPhysicalDeviceImageFormatProperties2_common(
+            false /* not KHR */, context, input_result,
+            physicalDevice, pImageFormatInfo, pImageFormatProperties);
+    }
+
+    VkResult on_vkGetPhysicalDeviceImageFormatProperties2KHR(
+        void* context, VkResult input_result,
+        VkPhysicalDevice physicalDevice,
+        const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
+        VkImageFormatProperties2* pImageFormatProperties) {
+        return on_vkGetPhysicalDeviceImageFormatProperties2_common(
+            true /* is KHR */, context, input_result,
+            physicalDevice, pImageFormatInfo, pImageFormatProperties);
+    }
+
     uint32_t getApiVersionFromInstance(VkInstance instance) const {
         AutoLock lock(mLock);
         uint32_t api = kMinApiVersion;
@@ -3578,6 +3637,26 @@ void ResourceTracker::on_vkUpdateDescriptorSetWithTemplate(
     mImpl->on_vkUpdateDescriptorSetWithTemplate(
         context, device, descriptorSet,
         descriptorUpdateTemplate, pData);
+}
+
+VkResult ResourceTracker::on_vkGetPhysicalDeviceImageFormatProperties2(
+    void* context, VkResult input_result,
+    VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
+    VkImageFormatProperties2* pImageFormatProperties) {
+    return mImpl->on_vkGetPhysicalDeviceImageFormatProperties2(
+        context, input_result, physicalDevice, pImageFormatInfo,
+        pImageFormatProperties);
+}
+
+VkResult ResourceTracker::on_vkGetPhysicalDeviceImageFormatProperties2KHR(
+    void* context, VkResult input_result,
+    VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
+    VkImageFormatProperties2* pImageFormatProperties) {
+    return mImpl->on_vkGetPhysicalDeviceImageFormatProperties2KHR(
+        context, input_result, physicalDevice, pImageFormatInfo,
+        pImageFormatProperties);
 }
 
 void ResourceTracker::deviceMemoryTransform_tohost(
