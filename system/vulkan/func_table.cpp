@@ -1655,7 +1655,8 @@ static VkResult entry_vkGetPhysicalDeviceImageFormatProperties2(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceImageFormatProperties2");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPhysicalDeviceImageFormatProperties2_VkResult_return = (VkResult)0;
-    vkGetPhysicalDeviceImageFormatProperties2_VkResult_return = vkEnc->vkGetPhysicalDeviceImageFormatProperties2(physicalDevice, pImageFormatInfo, pImageFormatProperties);
+    auto resources = ResourceTracker::get();
+    vkGetPhysicalDeviceImageFormatProperties2_VkResult_return = resources->on_vkGetPhysicalDeviceImageFormatProperties2(vkEnc, VK_SUCCESS, physicalDevice, pImageFormatInfo, pImageFormatProperties);
     return vkGetPhysicalDeviceImageFormatProperties2_VkResult_return;
 }
 static void entry_vkGetPhysicalDeviceQueueFamilyProperties2(
@@ -2233,7 +2234,8 @@ static VkResult entry_vkGetPhysicalDeviceImageFormatProperties2KHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceImageFormatProperties2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return = (VkResult)0;
-    vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return = vkEnc->vkGetPhysicalDeviceImageFormatProperties2KHR(physicalDevice, pImageFormatInfo, pImageFormatProperties);
+    auto resources = ResourceTracker::get();
+    vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return = resources->on_vkGetPhysicalDeviceImageFormatProperties2KHR(vkEnc, VK_SUCCESS, physicalDevice, pImageFormatInfo, pImageFormatProperties);
     return vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return;
 }
 static void entry_vkGetPhysicalDeviceQueueFamilyProperties2KHR(
