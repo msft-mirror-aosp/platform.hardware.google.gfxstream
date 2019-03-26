@@ -213,10 +213,10 @@ public:
     void unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int* fd_out);
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
-    VkResult on_vkGetMemoryFuchsiaHandleKHR(
+    VkResult on_vkGetMemoryZirconHandleFUCHSIA(
         void* context, VkResult input_result,
         VkDevice device,
-        const VkMemoryGetFuchsiaHandleInfoKHR* pInfo,
+        const VkMemoryGetZirconHandleInfoFUCHSIA* pInfo,
         uint32_t* pHandle);
     VkResult on_vkGetMemoryFuchsiaHandlePropertiesKHR(
         void* context, VkResult input_result,
@@ -224,15 +224,15 @@ public:
         VkExternalMemoryHandleTypeFlagBitsKHR handleType,
         uint32_t handle,
         VkMemoryFuchsiaHandlePropertiesKHR* pProperties);
-    VkResult on_vkGetSemaphoreFuchsiaHandleKHR(
+    VkResult on_vkGetSemaphoreZirconHandleFUCHSIA(
         void* context, VkResult input_result,
         VkDevice device,
-        const VkSemaphoreGetFuchsiaHandleInfoKHR* pInfo,
+        const VkSemaphoreGetZirconHandleInfoFUCHSIA* pInfo,
         uint32_t* pHandle);
-    VkResult on_vkImportSemaphoreFuchsiaHandleKHR(
+    VkResult on_vkImportSemaphoreZirconHandleFUCHSIA(
         void* context, VkResult input_result,
         VkDevice device,
-        const VkImportSemaphoreFuchsiaHandleInfoKHR* pInfo);
+        const VkImportSemaphoreZirconHandleInfoFUCHSIA* pInfo);
     VkResult on_vkCreateBufferCollectionFUCHSIA(
         void* context, VkResult input_result,
         VkDevice device,
