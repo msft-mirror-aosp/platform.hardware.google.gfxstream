@@ -24,6 +24,11 @@
 
 namespace goldfish_vk {
 
+uint64_t
+getAndroidHardwareBufferUsageFromVkUsage(
+    const VkImageCreateFlags vk_create,
+    const VkImageUsageFlags vk_usage);
+
 VkResult getAndroidHardwareBufferPropertiesANDROID(
     const HostVisibleMemoryVirtualizationInfo* hostMemVirtInfo,
     VkDevice device,
