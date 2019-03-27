@@ -26,12 +26,12 @@ typedef uint32_t zx_handle_t;
 void zx_handle_close(zx_handle_t) { }
 void zx_event_create(int, zx_handle_t*) { }
 
-typedef struct VkImportMemoryFuchsiaHandleInfoKHR {
+typedef struct VkImportMemoryZirconHandleInfoFUCHSIA {
     VkStructureType                       sType;
     const void*                           pNext;
     VkExternalMemoryHandleTypeFlagBits    handleType;
     uint32_t                              handle;
-} VkImportMemoryFuchsiaHandleInfoKHR;
+} VkImportMemoryZirconHandleInfoFUCHSIA;
 
 #define VK_STRUCTURE_TYPE_TEMP_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA \
     ((VkStructureType)1001000000)
@@ -1167,14 +1167,38 @@ public:
         return VK_SUCCESS;
     }
 
-    VkResult on_vkGetMemoryFuchsiaHandlePropertiesKHR(
+    VkResult on_vkGetMemoryZirconHandlePropertiesFUCHSIA(
         void*, VkResult,
         VkDevice device,
-        VkExternalMemoryHandleTypeFlagBitsKHR handleType,
+        VkExternalMemoryHandleTypeFlagBits handleType,
         uint32_t handle,
-        VkMemoryFuchsiaHandlePropertiesKHR* pProperties) {
-        ALOGW("%s", __FUNCTION__);
-        return VK_ERROR_INITIALIZATION_FAILED;
+        VkMemoryZirconHandlePropertiesFUCHSIA* pProperties) {
+        if (handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA) {
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
+        if (pProperties->sType != VK_STRUCTURE_TYPE_TEMP_MEMORY_ZIRCON_HANDLE_PROPERTIES_FUCHSIA) {
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
+
+        AutoLock lock(mLock);
+
+        auto deviceIt = info_VkDevice.find(device);
+
+        if (deviceIt == info_VkDevice.end()) {
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
+
+        auto& info = deviceIt->second;
+
+        // Device local memory type supported.
+        pProperties->memoryTypeBits = 0;
+        for (uint32_t i = 0; i < info.memProps.memoryTypeCount; ++i) {
+            if (info.memProps.memoryTypes[i].propertyFlags &
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
+                pProperties->memoryTypeBits = 1ull << i;
+            }
+        }
+        return VK_SUCCESS;
     }
 
     VkResult on_vkImportSemaphoreZirconHandleFUCHSIA(
@@ -1260,7 +1284,7 @@ public:
         }
         auto sysmem_collection = new fuchsia::sysmem::BufferCollectionSyncPtr;
         zx_status_t status = mSysmemAllocator->BindSharedCollection(
-            token, sysmem_collection->NewRequest());
+            std::move(token), sysmem_collection->NewRequest());
         if (status != ZX_OK) {
             ALOGE("BindSharedCollection failed: %d", status);
             return VK_ERROR_INITIALIZATION_FAILED;
@@ -1476,8 +1500,8 @@ public:
             (VkImportAndroidHardwareBufferInfoANDROID*)vk_find_struct((vk_struct_common*)pAllocateInfo,
                 VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID);
 
-        VkImportMemoryFuchsiaHandleInfoKHR* importPhysAddrInfoPtr =
-            (VkImportMemoryFuchsiaHandleInfoKHR*)vk_find_struct((vk_struct_common*)pAllocateInfo,
+        VkImportMemoryZirconHandleInfoFUCHSIA* importPhysAddrInfoPtr =
+            (VkImportMemoryZirconHandleInfoFUCHSIA*)vk_find_struct((vk_struct_common*)pAllocateInfo,
                 VK_STRUCTURE_TYPE_TEMP_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA);
 
         VkMemoryDedicatedAllocateInfo* dedicatedAllocInfoPtr =
@@ -3502,13 +3526,13 @@ VkResult ResourceTracker::on_vkGetMemoryZirconHandleFUCHSIA(
         context, input_result, device, pInfo, pHandle);
 }
 
-VkResult ResourceTracker::on_vkGetMemoryFuchsiaHandlePropertiesKHR(
+VkResult ResourceTracker::on_vkGetMemoryZirconHandlePropertiesFUCHSIA(
     void* context, VkResult input_result,
     VkDevice device,
-    VkExternalMemoryHandleTypeFlagBitsKHR handleType,
+    VkExternalMemoryHandleTypeFlagBits handleType,
     uint32_t handle,
-    VkMemoryFuchsiaHandlePropertiesKHR* pProperties) {
-    return mImpl->on_vkGetMemoryFuchsiaHandlePropertiesKHR(
+    VkMemoryZirconHandlePropertiesFUCHSIA* pProperties) {
+    return mImpl->on_vkGetMemoryZirconHandlePropertiesFUCHSIA(
         context, input_result, device, handleType, handle, pProperties);
 }
 
