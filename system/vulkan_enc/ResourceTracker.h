@@ -218,12 +218,12 @@ public:
         VkDevice device,
         const VkMemoryGetZirconHandleInfoFUCHSIA* pInfo,
         uint32_t* pHandle);
-    VkResult on_vkGetMemoryFuchsiaHandlePropertiesKHR(
+    VkResult on_vkGetMemoryZirconHandlePropertiesFUCHSIA(
         void* context, VkResult input_result,
         VkDevice device,
-        VkExternalMemoryHandleTypeFlagBitsKHR handleType,
+        VkExternalMemoryHandleTypeFlagBits handleType,
         uint32_t handle,
-        VkMemoryFuchsiaHandlePropertiesKHR* pProperties);
+        VkMemoryZirconHandlePropertiesFUCHSIA* pProperties);
     VkResult on_vkGetSemaphoreZirconHandleFUCHSIA(
         void* context, VkResult input_result,
         VkDevice device,
