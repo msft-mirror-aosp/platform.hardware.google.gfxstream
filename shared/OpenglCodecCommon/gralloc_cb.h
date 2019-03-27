@@ -132,7 +132,6 @@ struct cb_handle_t : public native_handle {
     int lockedHeight;
     uint32_t hostHandle;
 
-    uint32_t goldfish_dma_buf_size;
     EmulatorFrameworkFormat emuFrameworkFormat;
 };
 
