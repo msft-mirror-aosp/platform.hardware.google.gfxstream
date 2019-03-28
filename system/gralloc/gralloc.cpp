@@ -716,12 +716,8 @@ static int gralloc_alloc(alloc_device_t* dev,
             D("%s: creating goldfish dma region of size %lu (cb fd %d)\n", __FUNCTION__, ashmem_size, cb->fd);
             init_gralloc_dmaregion();
             get_gralloc_dmaregion();
-        } else {
-            cb->goldfish_dma.fd = -1;
         }
         hostCon->unlock();
-    } else {
-        cb->goldfish_dma.fd = -1;
     }
 
     if (needHostCb) {
