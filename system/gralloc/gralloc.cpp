@@ -67,9 +67,9 @@
 #define GOLDFISH_OFFSET_UNIT 8
 
 #ifdef GOLDFISH_HIDL_GRALLOC
-static bool isHidlGralloc = true;
+static const bool isHidlGralloc = true;
 #else
-static bool isHidlGralloc = false;
+static const bool isHidlGralloc = false;
 #endif
 
 int32_t* getOpenCountPtr(cb_handle_t* cb) {
@@ -126,7 +126,6 @@ struct gralloc_device_t {
     alloc_device_t  device;
 
     AllocListNode *allocListHead;    // double linked list of allocated buffers
-    MemRegionSet ashmemRegions; // to track allocations of each ashmem region
     pthread_mutex_t lock;
 };
 
@@ -148,13 +147,13 @@ struct gralloc_dmaregion_t {
 static gralloc_memregions_t* s_memregions = NULL;
 static gralloc_dmaregion_t* s_grdma = NULL;
 
-void init_gralloc_memregions() {
+static void init_gralloc_memregions() {
     if (s_memregions) return;
     s_memregions = new gralloc_memregions_t;
     pthread_mutex_init(&s_memregions->lock, NULL);
 }
 
-void init_gralloc_dmaregion() {
+static void init_gralloc_dmaregion() {
     D("%s: call\n", __FUNCTION__);
     if (s_grdma) return;
 
@@ -169,7 +168,7 @@ void init_gralloc_dmaregion() {
     pthread_mutex_unlock(&s_grdma->lock);
 }
 
-void get_gralloc_dmaregion() {
+static void get_gralloc_dmaregion() {
     if (!s_grdma) return;
     pthread_mutex_lock(&s_grdma->lock);
     s_grdma->refcount++;
@@ -190,7 +189,7 @@ static void resize_gralloc_dmaregion_locked(uint32_t new_sz) {
 // max dma size: 2x 4K rgba8888
 #define MAX_DMA_SIZE 66355200
 
-bool put_gralloc_dmaregion(uint32_t sz) {
+static bool put_gralloc_dmaregion(uint32_t sz) {
     if (!s_grdma) return false;
     pthread_mutex_lock(&s_grdma->lock);
     D("%s: call. refcount before: %u\n", __FUNCTION__, s_grdma->refcount);
@@ -210,7 +209,7 @@ bool put_gralloc_dmaregion(uint32_t sz) {
     return shouldDelete;
 }
 
-void gralloc_dmaregion_register_ashmem(uint32_t sz) {
+static void gralloc_dmaregion_register_ashmem(uint32_t sz) {
     if (!s_grdma) return;
     pthread_mutex_lock(&s_grdma->lock);
     D("%s: for sz %u, refcount %u", __FUNCTION__, sz, s_grdma->refcount);
@@ -231,7 +230,7 @@ void gralloc_dmaregion_register_ashmem(uint32_t sz) {
     pthread_mutex_unlock(&s_grdma->lock);
 }
 
-void get_mem_region(void* ashmemBase) {
+static void get_mem_region(void* ashmemBase) {
     init_gralloc_memregions();
     D("%s: call for %p", __FUNCTION__, ashmemBase);
     MemRegionInfo lookup;
@@ -249,7 +248,7 @@ void get_mem_region(void* ashmemBase) {
     pthread_mutex_unlock(&s_memregions->lock);
 }
 
-bool put_mem_region(void* ashmemBase) {
+static bool put_mem_region(void* ashmemBase) {
     init_gralloc_memregions();
     D("%s: call for %p", __FUNCTION__, ashmemBase);
     MemRegionInfo lookup;
@@ -271,7 +270,7 @@ bool put_mem_region(void* ashmemBase) {
     }
 }
 
-void dump_regions() {
+static void dump_regions() {
     init_gralloc_memregions();
     mem_region_handle_t curr = s_memregions->ashmemRegions.begin();
     std::stringstream res;
@@ -760,7 +759,7 @@ static int gralloc_alloc(alloc_device_t* dev,
                 allocFormat = GL_RGB;
             }
             hostCon->lock();
-            if (s_grdma) {
+            if (rcEnc->getDmaVersion() > 0) {
                 cb->hostHandle = rcEnc->rcCreateColorBufferDMA(rcEnc, w, h, allocFormat, cb->emuFrameworkFormat);
             } else {
                 cb->hostHandle = rcEnc->rcCreateColorBuffer(rcEnc, w, h, allocFormat);

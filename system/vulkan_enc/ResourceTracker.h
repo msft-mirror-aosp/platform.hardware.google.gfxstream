@@ -29,7 +29,8 @@ struct EmulatorFeatureInfo;
 namespace goldfish_vk {
 
 typedef uint32_t (*PFN_CreateColorBuffer)(uint32_t width, uint32_t height, uint32_t format);
-typedef uint32_t (*PFN_CloseColorBuffer)(uint32_t id);
+typedef void (*PFN_OpenColorBuffer)(uint32_t id);
+typedef void (*PFN_CloseColorBuffer)(uint32_t id);
 
 class ResourceTracker {
 public:
@@ -287,6 +288,27 @@ public:
         VkDeviceMemory memory,
         uint64_t* pAddress);
 
+    VkResult on_vkCreateDescriptorUpdateTemplate(
+        void* context, VkResult input_result,
+        VkDevice device,
+        const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate);
+
+    VkResult on_vkCreateDescriptorUpdateTemplateKHR(
+        void* context, VkResult input_result,
+        VkDevice device,
+        const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate);
+
+    void on_vkUpdateDescriptorSetWithTemplate(
+        void* context,
+        VkDevice device,
+        VkDescriptorSet descriptorSet,
+        VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+        const void* pData);
+
     bool isMemoryTypeHostVisible(VkDevice device, uint32_t typeIndex) const;
     uint8_t* getMappedPointer(VkDeviceMemory memory);
     VkDeviceSize getMappedSize(VkDeviceMemory memory);
@@ -299,7 +321,9 @@ public:
     uint32_t getApiVersionFromDevice(VkDevice device) const;
     bool hasInstanceExtension(VkInstance instance, const std::string& name) const;
     bool hasDeviceExtension(VkDevice instance, const std::string& name) const;
-    void setColorBufferFunctions(PFN_CreateColorBuffer create, PFN_CloseColorBuffer close);
+    void setColorBufferFunctions(PFN_CreateColorBuffer create,
+                                 PFN_OpenColorBuffer open,
+                                 PFN_CloseColorBuffer close);
 
     // Transforms
     void deviceMemoryTransform_tohost(

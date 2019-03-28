@@ -1,4 +1,4 @@
-/// Copyright (C) 2018 The Android Open Source Project
+// Copyright (C) 2018 The Android Open Source Project
 // Copyright (C) 2018 Google Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -230,11 +230,16 @@ public:
         std::vector<VkPhysicalDevice> physicalDevices;
     };
 
+    using HostMemBlocks = std::vector<HostMemAlloc>;
+    using HostMemBlockIndex = size_t;
+
+#define INVALID_HOST_MEM_BLOCK (-1)
+
     struct VkDevice_Info {
         VkPhysicalDevice physdev;
         VkPhysicalDeviceProperties props;
         VkPhysicalDeviceMemoryProperties memProps;
-        HostMemAlloc hostMemAllocs[VK_MAX_MEMORY_TYPES] = {};
+        std::vector<HostMemBlocks> hostMemBlocks { VK_MAX_MEMORY_TYPES };
         uint32_t apiVersion;
         std::set<std::string> enabledExtensions;
         VkFence fence = VK_NULL_HANDLE;
@@ -252,6 +257,7 @@ public:
         SubAlloc subAlloc;
         AHardwareBuffer* ahw = nullptr;
         zx_handle_t vmoHandle = ZX_HANDLE_INVALID;
+        uint32_t cbHandle = 0;
     };
 
     // custom guest-side structs for images/buffers because of AHardwareBuffer :((
@@ -282,6 +288,17 @@ public:
         int syncFd = -1;
     };
 
+    struct VkDescriptorUpdateTemplate_Info {
+        std::vector<VkDescriptorUpdateTemplateEntry> templateEntries;
+
+        // Flattened versions
+        std::vector<uint32_t> imageInfoEntryIndices;
+        std::vector<uint32_t> bufferInfoEntryIndices;
+        std::vector<uint32_t> bufferViewEntryIndices;
+        std::vector<VkDescriptorImageInfo> imageInfos;
+        std::vector<VkDescriptorBufferInfo> bufferInfos;
+        std::vector<VkBufferView> bufferViews;
+    };
 
 #define HANDLE_REGISTER_IMPL_IMPL(type) \
     std::unordered_map<type, type##_Info> info_##type; \
@@ -329,6 +346,10 @@ public:
 
         if (memInfo.ahw) {
             AHardwareBuffer_release(memInfo.ahw);
+        }
+
+        if (memInfo.cbHandle) {
+            (*mCloseColorBuffer)(memInfo.cbHandle);
         }
 
         if (memInfo.vmoHandle != ZX_HANDLE_INVALID) {
@@ -388,6 +409,10 @@ public:
         info_VkSemaphore.erase(sem);
     }
 
+    void unregister_VkDescriptorUpdateTemplate(VkDescriptorUpdateTemplate templ) {
+        info_VkDescriptorUpdateTemplate.erase(templ);
+    }
+
     // TODO: Upgrade to 1.1
     static constexpr uint32_t kMaxApiVersion = VK_MAKE_VERSION(1, 1, 0);
     static constexpr uint32_t kMinApiVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -438,7 +463,8 @@ public:
                              uint8_t* ptr,
                              uint32_t memoryTypeIndex,
                              AHardwareBuffer* ahw = nullptr,
-                             zx_handle_t vmoHandle = ZX_HANDLE_INVALID) {
+                             zx_handle_t vmoHandle = ZX_HANDLE_INVALID,
+                             uint32_t cbHandle = 0) {
         AutoLock lock(mLock);
         auto& deviceInfo = info_VkDevice[device];
         auto& info = info_VkDeviceMemory[memory];
@@ -449,6 +475,7 @@ public:
         info.memoryTypeIndex = memoryTypeIndex;
         info.ahw = ahw;
         info.vmoHandle = vmoHandle;
+        info.cbHandle = cbHandle;
     }
 
     void setImageInfo(VkImage image,
@@ -574,8 +601,10 @@ public:
     }
 
     void setColorBufferFunctions(PFN_CreateColorBuffer create,
+                                 PFN_OpenColorBuffer open,
                                  PFN_CloseColorBuffer close) {
         mCreateColorBuffer = create;
+        mOpenColorBuffer = open;
         mCloseColorBuffer = close;
     }
 
@@ -1037,7 +1066,9 @@ public:
         VkEncoder* enc = (VkEncoder*)context;
 
         for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
-            destroyHostMemAlloc(enc, device, &info.hostMemAllocs[i]);
+            for (auto& block : info.hostMemBlocks[i]) {
+                destroyHostMemAlloc(enc, device, &block);
+            }
         }
 
         if (info.fence != VK_NULL_HANDLE) {
@@ -1257,6 +1288,8 @@ public:
         buffer_constraints.physically_contiguous_required = false;
         buffer_constraints.secure_required = false;
         buffer_constraints.secure_permitted = false;
+        buffer_constraints.ram_domain_supported = true;
+        buffer_constraints.cpu_domain_supported = false;
         constraints.image_format_constraints_count = 1;
         fuchsia::sysmem::ImageFormatConstraints& image_constraints =
             constraints.image_format_constraints[0];
@@ -1283,6 +1316,121 @@ public:
         return VK_SUCCESS;
     }
 #endif
+
+    HostMemBlockIndex getOrAllocateHostMemBlockLocked(
+        HostMemBlocks& blocks,
+        const VkMemoryAllocateInfo* pAllocateInfo,
+        VkEncoder* enc,
+        VkDevice device,
+        const VkDevice_Info& deviceInfo) {
+
+        HostMemBlockIndex res = 0;
+        bool found = false;
+
+        while (!found) {
+            for (HostMemBlockIndex i = 0; i < blocks.size(); ++i) {
+                if (blocks[i].initialized &&
+                    blocks[i].initResult == VK_SUCCESS &&
+                    canSubAlloc(
+                        blocks[i].subAlloc,
+                        pAllocateInfo->allocationSize)) {
+                    res = i;
+                    found = true;
+                    return res;
+                }
+            }
+
+            blocks.push_back({});
+
+            auto& hostMemAlloc = blocks.back();
+
+            // Uninitialized block; allocate on host.
+            static constexpr VkDeviceSize oneMb = 1048576;
+            static constexpr VkDeviceSize kDefaultHostMemBlockSize =
+                16 * oneMb; // 16 mb
+            VkDeviceSize roundedUpAllocSize =
+                oneMb * ((pAllocateInfo->allocationSize + oneMb - 1) / oneMb);
+
+            VkDeviceSize virtualHeapSize = VIRTUAL_HOST_VISIBLE_HEAP_SIZE;
+
+            VkDeviceSize blockSizeNeeded =
+                std::max(roundedUpAllocSize,
+                    std::min(virtualHeapSize,
+                             kDefaultHostMemBlockSize));
+
+            VkMemoryAllocateInfo allocInfoForHost = *pAllocateInfo;
+
+            allocInfoForHost.allocationSize = blockSizeNeeded;
+
+            // TODO: Support dedicated/external host visible allocation
+            allocInfoForHost.pNext = nullptr;
+
+            mLock.unlock();
+            VkResult host_res =
+                enc->vkAllocateMemory(
+                    device,
+                    &allocInfoForHost,
+                    nullptr,
+                    &hostMemAlloc.memory);
+            mLock.lock();
+
+            if (host_res != VK_SUCCESS) {
+                ALOGE("Could not allocate backing for virtual host visible memory: %d",
+                      host_res);
+                hostMemAlloc.initialized = true;
+                hostMemAlloc.initResult = host_res;
+                return INVALID_HOST_MEM_BLOCK;
+            }
+
+            auto& hostMemInfo = info_VkDeviceMemory[hostMemAlloc.memory];
+            hostMemInfo.allocationSize = allocInfoForHost.allocationSize;
+            VkDeviceSize nonCoherentAtomSize =
+                deviceInfo.props.limits.nonCoherentAtomSize;
+            hostMemInfo.mappedSize = hostMemInfo.allocationSize;
+            hostMemInfo.memoryTypeIndex =
+                pAllocateInfo->memoryTypeIndex;
+            hostMemAlloc.nonCoherentAtomSize = nonCoherentAtomSize;
+
+            uint64_t directMappedAddr = 0;
+
+            mLock.unlock();
+            VkResult directMapResult =
+                enc->vkMapMemoryIntoAddressSpaceGOOGLE(
+                    device, hostMemAlloc.memory, &directMappedAddr);
+            mLock.lock();
+
+            if (directMapResult != VK_SUCCESS) {
+                hostMemAlloc.initialized = true;
+                hostMemAlloc.initResult = directMapResult;
+                mLock.unlock();
+                enc->vkFreeMemory(device, hostMemAlloc.memory, nullptr);
+                mLock.lock();
+                return INVALID_HOST_MEM_BLOCK;
+            }
+
+            hostMemInfo.mappedPtr =
+                (uint8_t*)(uintptr_t)directMappedAddr;
+            hostMemInfo.virtualHostVisibleBacking = true;
+
+            VkResult hostMemAllocRes =
+                finishHostMemAllocInit(
+                    enc,
+                    device,
+                    pAllocateInfo->memoryTypeIndex,
+                    nonCoherentAtomSize,
+                    hostMemInfo.allocationSize,
+                    hostMemInfo.mappedSize,
+                    hostMemInfo.mappedPtr,
+                    &hostMemAlloc);
+
+            if (hostMemAllocRes != VK_SUCCESS) {
+                return INVALID_HOST_MEM_BLOCK;
+            }
+        }
+
+        // unreacheable, but we need to make Werror happy
+        return INVALID_HOST_MEM_BLOCK;
+    }
 
     VkResult on_vkAllocateMemory(
         void* context,
@@ -1374,6 +1522,7 @@ public:
         // to the AHardwareBuffer on the host via an "import" operation.
         AHardwareBuffer* ahw = nullptr;
         zx_handle_t vmo_handle = ZX_HANDLE_INVALID;
+        uint32_t cbHandle = 0;
 
         if (exportAllocateInfoPtr) {
             exportAhb =
@@ -1456,7 +1605,7 @@ public:
         }
 
         if (ahw) {
-            ALOGD("%s: AHBIMPORT", __func__);
+            ALOGD("%s: Import AHardwareBulffer", __func__);
             const native_handle_t *handle =
                 AHardwareBuffer_getNativeHandle(ahw);
             const cb_handle_t* cb_handle =
@@ -1475,7 +1624,7 @@ public:
 #endif
 
             if (cb) {
-                importCbInfo.colorBuffer = cb;
+                cbHandle = importCbInfo.colorBuffer = cb;
                 structChain =
                     vk_append_struct(structChain, (vk_struct_common*)(&importCbInfo));
             }
@@ -1486,7 +1635,9 @@ public:
         if (!isHostVisibleMemoryTypeIndexForGuest(
                 &mHostVisibleMemoryVirtInfo,
                 finalAllocInfo.memoryTypeIndex)) {
-
+            if (cbHandle) {
+                (*mOpenColorBuffer)(cbHandle);
+            }
             input_result =
                 enc->vkAllocateMemory(
                     device, &finalAllocInfo, pAllocator, pMemory);
@@ -1500,7 +1651,8 @@ public:
                 0, nullptr,
                 finalAllocInfo.memoryTypeIndex,
                 ahw,
-                vmo_handle);
+                vmo_handle,
+                cbHandle);
 
             return VK_SUCCESS;
         }
@@ -1563,78 +1715,25 @@ public:
         if (it == info_VkDevice.end()) return VK_ERROR_DEVICE_LOST;
         auto& deviceInfo = it->second;
 
-        HostMemAlloc* hostMemAlloc =
-            &deviceInfo.hostMemAllocs[finalAllocInfo.memoryTypeIndex];
+        auto& hostMemBlocksForTypeIndex =
+            deviceInfo.hostMemBlocks[finalAllocInfo.memoryTypeIndex];
 
-        if (!hostMemAlloc->initialized) {
-            VkMemoryAllocateInfo allocInfoForHost = finalAllocInfo;
-            allocInfoForHost.allocationSize = VIRTUAL_HOST_VISIBLE_HEAP_SIZE;
-            // TODO: Support dedicated allocation
-            allocInfoForHost.pNext = nullptr;
+        HostMemBlockIndex blockIndex =
+            getOrAllocateHostMemBlockLocked(
+                hostMemBlocksForTypeIndex,
+                &finalAllocInfo,
+                enc,
+                device,
+                deviceInfo);
 
-            lock.unlock();
-            VkResult host_res =
-                enc->vkAllocateMemory(
-                    device,
-                    &allocInfoForHost,
-                    nullptr,
-                    &hostMemAlloc->memory);
-            lock.lock();
-
-            if (host_res != VK_SUCCESS) {
-                ALOGE("Could not allocate backing for virtual host visible memory: %d",
-                      host_res);
-                hostMemAlloc->initialized = true;
-                hostMemAlloc->initResult = host_res;
-                return host_res;
-            }
-
-            auto& hostMemInfo = info_VkDeviceMemory[hostMemAlloc->memory];
-            hostMemInfo.allocationSize = allocInfoForHost.allocationSize;
-            VkDeviceSize nonCoherentAtomSize =
-                deviceInfo.props.limits.nonCoherentAtomSize;
-            hostMemInfo.mappedSize = hostMemInfo.allocationSize;
-            hostMemInfo.memoryTypeIndex =
-                finalAllocInfo.memoryTypeIndex;
-            hostMemAlloc->nonCoherentAtomSize = nonCoherentAtomSize;
-
-            uint64_t directMappedAddr = 0;
-            lock.unlock();
-            VkResult directMapResult =
-                enc->vkMapMemoryIntoAddressSpaceGOOGLE(
-                    device, hostMemAlloc->memory, &directMappedAddr);
-            lock.lock();
-
-            if (directMapResult != VK_SUCCESS) {
-                hostMemAlloc->initialized = true;
-                hostMemAlloc->initResult = directMapResult;
-                return directMapResult;
-            }
-
-            hostMemInfo.mappedPtr =
-                (uint8_t*)(uintptr_t)directMappedAddr;
-            hostMemInfo.virtualHostVisibleBacking = true;
-
-            VkResult hostMemAllocRes =
-                finishHostMemAllocInit(
-                    enc,
-                    device,
-                    finalAllocInfo.memoryTypeIndex,
-                    nonCoherentAtomSize,
-                    hostMemInfo.allocationSize,
-                    hostMemInfo.mappedSize,
-                    hostMemInfo.mappedPtr,
-                    hostMemAlloc);
-
-            if (hostMemAllocRes != VK_SUCCESS) {
-                return hostMemAllocRes;
-            }
+        if (blockIndex == (HostMemBlockIndex) INVALID_HOST_MEM_BLOCK) {
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
         VkDeviceMemory_Info virtualMemInfo;
 
         subAllocHostMemory(
-            hostMemAlloc,
+            &hostMemBlocksForTypeIndex[blockIndex],
             &finalAllocInfo,
             &virtualMemInfo.subAlloc);
 
@@ -2704,6 +2803,185 @@ public:
         return input_result;
     }
 
+    bool isDescriptorTypeImageInfo(VkDescriptorType descType) {
+        return (descType == VK_DESCRIPTOR_TYPE_SAMPLER) ||
+               (descType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) ||
+               (descType == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE) ||
+               (descType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE) ||
+               (descType == VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT);
+    }
+
+    bool isDescriptorTypeBufferInfo(VkDescriptorType descType) {
+        return (descType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) ||
+               (descType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC) ||
+               (descType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER) ||
+               (descType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC);
+    }
+
+    bool isDescriptorTypeBufferView(VkDescriptorType descType) {
+        return (descType == VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER) ||
+               (descType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER);
+    }
+
+    VkResult initDescriptorUpdateTemplateBuffers(
+        const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
+        VkDescriptorUpdateTemplate descriptorUpdateTemplate) {
+
+        AutoLock lock(mLock);
+
+        auto it = info_VkDescriptorUpdateTemplate.find(descriptorUpdateTemplate);
+        if (it == info_VkDescriptorUpdateTemplate.end()) {
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
+
+        auto& info = it->second;
+
+        size_t imageInfosNeeded = 0;
+        size_t bufferInfosNeeded = 0;
+        size_t bufferViewsNeeded = 0;
+
+        for (uint32_t i = 0; i < pCreateInfo->descriptorUpdateEntryCount; ++i) {
+            const auto& entry = pCreateInfo->pDescriptorUpdateEntries[i];
+            uint32_t descCount = entry.descriptorCount;
+            VkDescriptorType descType = entry.descriptorType;
+
+            info.templateEntries.push_back(entry);
+
+            for (uint32_t j = 0; j < descCount; ++j) {
+                if (isDescriptorTypeImageInfo(descType)) {
+                    ++imageInfosNeeded;
+                    info.imageInfoEntryIndices.push_back(i);
+                } else if (isDescriptorTypeBufferInfo(descType)) {
+                    ++bufferInfosNeeded;
+                    info.bufferInfoEntryIndices.push_back(i);
+                } else if (isDescriptorTypeBufferView(descType)) {
+                    ++bufferViewsNeeded;
+                    info.bufferViewEntryIndices.push_back(i);
+                } else {
+                    ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
+                    abort();
+                }
+            }
+        }
+
+        // To be filled in later (our flat structure)
+        info.imageInfos.resize(imageInfosNeeded);
+        info.bufferInfos.resize(bufferInfosNeeded);
+        info.bufferViews.resize(bufferViewsNeeded);
+
+        return VK_SUCCESS;
+    }
+
+    VkResult on_vkCreateDescriptorUpdateTemplate(
+        void* context, VkResult input_result,
+        VkDevice device,
+        const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
+
+        (void)context;
+        (void)device;
+        (void)pAllocator;
+
+        if (input_result != VK_SUCCESS) return input_result;
+
+        return initDescriptorUpdateTemplateBuffers(pCreateInfo, *pDescriptorUpdateTemplate);
+    }
+
+    VkResult on_vkCreateDescriptorUpdateTemplateKHR(
+        void* context, VkResult input_result,
+        VkDevice device,
+        const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
+
+        (void)context;
+        (void)device;
+        (void)pAllocator;
+
+        if (input_result != VK_SUCCESS) return input_result;
+
+        return initDescriptorUpdateTemplateBuffers(pCreateInfo, *pDescriptorUpdateTemplate);
+    }
+
+    void on_vkUpdateDescriptorSetWithTemplate(
+        void* context,
+        VkDevice device,
+        VkDescriptorSet descriptorSet,
+        VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+        const void* pData) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        uint8_t* userBuffer = (uint8_t*)pData;
+        if (!userBuffer) return;
+
+        AutoLock lock(mLock);
+
+        auto it = info_VkDescriptorUpdateTemplate.find(descriptorUpdateTemplate);
+        if (it == info_VkDescriptorUpdateTemplate.end()) {
+            return;
+        }
+
+        auto& info = it->second;
+
+        size_t currImageInfoOffset = 0;
+        size_t currBufferInfoOffset = 0;
+        size_t currBufferViewOffset = 0;
+
+        for (const auto& entry : info.templateEntries) {
+            VkDescriptorType descType = entry.descriptorType;
+
+            auto offset = entry.offset;
+            auto stride = entry.stride;
+
+            uint32_t descCount = entry.descriptorCount;
+
+            if (isDescriptorTypeImageInfo(descType)) {
+                if (!stride) stride = sizeof(VkDescriptorImageInfo);
+                for (uint32_t j = 0; j < descCount; ++j) {
+                    memcpy(((uint8_t*)info.imageInfos.data()) + currImageInfoOffset,
+                           userBuffer + offset + j * stride,
+                           sizeof(VkDescriptorImageInfo));
+                    currImageInfoOffset += sizeof(VkDescriptorImageInfo);
+                }
+            } else if (isDescriptorTypeBufferInfo(descType)) {
+                if (!stride) stride = sizeof(VkDescriptorBufferInfo);
+                for (uint32_t j = 0; j < descCount; ++j) {
+                    memcpy(((uint8_t*)info.bufferInfos.data()) + currBufferInfoOffset,
+                           userBuffer + offset + j * stride,
+                           sizeof(VkDescriptorBufferInfo));
+                    currBufferInfoOffset += sizeof(VkDescriptorBufferInfo);
+                }
+            } else if (isDescriptorTypeBufferView(descType)) {
+                if (!stride) stride = sizeof(VkBufferView);
+                for (uint32_t j = 0; j < descCount; ++j) {
+                    memcpy(((uint8_t*)info.bufferViews.data()) + currBufferViewOffset,
+                           userBuffer + offset + j * stride,
+                           sizeof(VkBufferView));
+                    currBufferViewOffset += sizeof(VkBufferView);
+                }
+            } else {
+                ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
+                abort();
+            }
+        }
+
+        enc->vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
+            device,
+            descriptorSet,
+            descriptorUpdateTemplate,
+            (uint32_t)info.imageInfos.size(),
+            (uint32_t)info.bufferInfos.size(),
+            (uint32_t)info.bufferViews.size(),
+            info.imageInfoEntryIndices.data(),
+            info.bufferInfoEntryIndices.data(),
+            info.bufferViewEntryIndices.data(),
+            info.imageInfos.data(),
+            info.bufferInfos.data(),
+            info.bufferViews.data());
+    }
+
     uint32_t getApiVersionFromInstance(VkInstance instance) const {
         AutoLock lock(mLock);
         uint32_t api = kMinApiVersion;
@@ -2755,6 +3033,7 @@ private:
     std::unique_ptr<EmulatorFeatureInfo> mFeatureInfo;
     std::unique_ptr<GoldfishAddressSpaceBlockProvider> mGoldfishAddressSpaceBlockProvider;
     PFN_CreateColorBuffer mCreateColorBuffer;
+    PFN_OpenColorBuffer mOpenColorBuffer;
     PFN_CloseColorBuffer mCloseColorBuffer;
 
     std::vector<VkExtensionProperties> mHostInstanceExtensions;
@@ -2849,8 +3128,10 @@ bool ResourceTracker::hasDeviceExtension(VkDevice device, const std::string &nam
 }
 
 void ResourceTracker::setColorBufferFunctions(
-    PFN_CreateColorBuffer create, PFN_CloseColorBuffer close) {
-    mImpl->setColorBufferFunctions(create, close);
+    PFN_CreateColorBuffer create,
+    PFN_OpenColorBuffer open,
+    PFN_CloseColorBuffer close) {
+    mImpl->setColorBufferFunctions(create, open, close);
 }
 
 VkResult ResourceTracker::on_vkEnumerateInstanceExtensionProperties(
@@ -3264,6 +3545,39 @@ VkResult ResourceTracker::on_vkMapMemoryIntoAddressSpaceGOOGLE(
     uint64_t* pAddress) {
     return mImpl->on_vkMapMemoryIntoAddressSpaceGOOGLE(
         context, input_result, device, memory, pAddress);
+}
+
+VkResult ResourceTracker::on_vkCreateDescriptorUpdateTemplate(
+    void* context, VkResult input_result,
+    VkDevice device,
+    const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
+    return mImpl->on_vkCreateDescriptorUpdateTemplate(
+        context, input_result,
+        device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
+}
+
+VkResult ResourceTracker::on_vkCreateDescriptorUpdateTemplateKHR(
+    void* context, VkResult input_result,
+    VkDevice device,
+    const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
+    return mImpl->on_vkCreateDescriptorUpdateTemplateKHR(
+        context, input_result,
+        device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
+}
+
+void ResourceTracker::on_vkUpdateDescriptorSetWithTemplate(
+    void* context,
+    VkDevice device,
+    VkDescriptorSet descriptorSet,
+    VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+    const void* pData) {
+    mImpl->on_vkUpdateDescriptorSetWithTemplate(
+        context, device, descriptorSet,
+        descriptorUpdateTemplate, pData);
 }
 
 void ResourceTracker::deviceMemoryTransform_tohost(
