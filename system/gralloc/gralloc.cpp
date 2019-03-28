@@ -709,15 +709,6 @@ static int gralloc_alloc(alloc_device_t* dev,
         }
 
         cb->setFd(fd);
-
-        hostCon->lock();
-
-        if (rcEnc->getDmaVersion() > 0) {
-            D("%s: creating goldfish dma region of size %lu (cb fd %d)\n", __FUNCTION__, ashmem_size, cb->fd);
-            init_gralloc_dmaregion();
-            get_gralloc_dmaregion();
-        }
-        hostCon->unlock();
     }
 
     if (needHostCb) {
@@ -776,6 +767,14 @@ static int gralloc_alloc(alloc_device_t* dev,
         *pStride = stride;
         break;
     }
+
+    hostCon->lock();
+    if (rcEnc->getDmaVersion() > 0) {
+        init_gralloc_dmaregion();
+        get_gralloc_dmaregion();
+    }
+    hostCon->unlock();
+
     return 0;
 }
 
