@@ -53,7 +53,6 @@ typedef struct VkImportMemoryZirconHandleInfoFUCHSIA {
 #include <lib/fdio/fd.h>
 #include <lib/fdio/fdio.h>
 #include <lib/fdio/io.h>
-#include <lib/fzl/fdio.h>
 #include <lib/zx/channel.h>
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
@@ -2460,19 +2459,13 @@ public:
                 VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO_KHR);
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
-        // vk_init_struct_chain initializes pNext to nullptr
-        vk_struct_common* structChain = vk_init_struct_chain(
-            (vk_struct_common*)(&finalCreateInfo));
+        bool exportEvent = exportSemaphoreInfoPtr &&
+            (exportSemaphoreInfoPtr->handleTypes &
+             VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA);
 
-        bool exportFence = false;
-
-        if (exportSemaphoreInfoPtr) {
-            exportFence =
-                exportSemaphoreInfoPtr->handleTypes &
-                VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA;
-            // TODO: add host side export struct info.
+        if (exportEvent) {
+            finalCreateInfo.pNext = nullptr;
         }
-
 #endif
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
@@ -2490,7 +2483,7 @@ public:
         zx_handle_t event_handle = ZX_HANDLE_INVALID;
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
-        if (exportFence) {
+        if (exportEvent) {
             zx_event_create(0, &event_handle);
         }
 #endif
