@@ -1021,7 +1021,8 @@ static VkResult entry_vkBeginCommandBuffer(
     AEMU_SCOPED_TRACE("vkBeginCommandBuffer");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkBeginCommandBuffer_VkResult_return = (VkResult)0;
-    vkBeginCommandBuffer_VkResult_return = vkEnc->vkBeginCommandBuffer(commandBuffer, pBeginInfo);
+    auto resources = ResourceTracker::get();
+    vkBeginCommandBuffer_VkResult_return = resources->on_vkBeginCommandBuffer(vkEnc, VK_SUCCESS, commandBuffer, pBeginInfo);
     return vkBeginCommandBuffer_VkResult_return;
 }
 static VkResult entry_vkEndCommandBuffer(
@@ -1030,7 +1031,8 @@ static VkResult entry_vkEndCommandBuffer(
     AEMU_SCOPED_TRACE("vkEndCommandBuffer");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkEndCommandBuffer_VkResult_return = (VkResult)0;
-    vkEndCommandBuffer_VkResult_return = vkEnc->vkEndCommandBuffer(commandBuffer);
+    auto resources = ResourceTracker::get();
+    vkEndCommandBuffer_VkResult_return = resources->on_vkEndCommandBuffer(vkEnc, VK_SUCCESS, commandBuffer);
     return vkEndCommandBuffer_VkResult_return;
 }
 static VkResult entry_vkResetCommandBuffer(
@@ -1040,7 +1042,8 @@ static VkResult entry_vkResetCommandBuffer(
     AEMU_SCOPED_TRACE("vkResetCommandBuffer");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkResetCommandBuffer_VkResult_return = (VkResult)0;
-    vkResetCommandBuffer_VkResult_return = vkEnc->vkResetCommandBuffer(commandBuffer, flags);
+    auto resources = ResourceTracker::get();
+    vkResetCommandBuffer_VkResult_return = resources->on_vkResetCommandBuffer(vkEnc, VK_SUCCESS, commandBuffer, flags);
     return vkResetCommandBuffer_VkResult_return;
 }
 static void entry_vkCmdBindPipeline(
@@ -3727,6 +3730,31 @@ static void entry_vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     vkEnc->vkUpdateDescriptorSetWithTemplateSizedGOOGLE(device, descriptorSet, descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount, pImageInfoEntryIndices, pBufferInfoEntryIndices, pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews);
 }
 #endif
+#ifdef VK_GOOGLE_async_command_buffers
+static void entry_vkBeginCommandBufferAsyncGOOGLE(
+    VkCommandBuffer commandBuffer,
+    const VkCommandBufferBeginInfo* pBeginInfo)
+{
+    AEMU_SCOPED_TRACE("vkBeginCommandBufferAsyncGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkBeginCommandBufferAsyncGOOGLE(commandBuffer, pBeginInfo);
+}
+static void entry_vkEndCommandBufferAsyncGOOGLE(
+    VkCommandBuffer commandBuffer)
+{
+    AEMU_SCOPED_TRACE("vkEndCommandBufferAsyncGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkEndCommandBufferAsyncGOOGLE(commandBuffer);
+}
+static void entry_vkResetCommandBufferAsyncGOOGLE(
+    VkCommandBuffer commandBuffer,
+    VkCommandBufferResetFlags flags)
+{
+    AEMU_SCOPED_TRACE("vkResetCommandBufferAsyncGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkResetCommandBufferAsyncGOOGLE(commandBuffer, flags);
+}
+#endif
 void* goldfish_vulkan_get_proc_address(const char* name){
 #ifdef VK_VERSION_1_0
     if (!strcmp(name, "vkCreateInstance"))
@@ -5140,6 +5168,20 @@ void* goldfish_vulkan_get_proc_address(const char* name){
 #endif
 #ifdef VK_GOOGLE_sized_descriptor_update_template
     if (!strcmp(name, "vkUpdateDescriptorSetWithTemplateSizedGOOGLE"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_async_command_buffers
+    if (!strcmp(name, "vkBeginCommandBufferAsyncGOOGLE"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkEndCommandBufferAsyncGOOGLE"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkResetCommandBufferAsyncGOOGLE"))
     {
         return nullptr;
     }
@@ -6721,6 +6763,23 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return hasExt ? (void*)entry_vkUpdateDescriptorSetWithTemplateSizedGOOGLE : nullptr;
     }
 #endif
+#ifdef VK_GOOGLE_async_command_buffers
+    if (!strcmp(name, "vkBeginCommandBufferAsyncGOOGLE"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_async_command_buffers");
+        return hasExt ? (void*)entry_vkBeginCommandBufferAsyncGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkEndCommandBufferAsyncGOOGLE"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_async_command_buffers");
+        return hasExt ? (void*)entry_vkEndCommandBufferAsyncGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkResetCommandBufferAsyncGOOGLE"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_async_command_buffers");
+        return hasExt ? (void*)entry_vkResetCommandBufferAsyncGOOGLE : nullptr;
+    }
+#endif
     return nullptr;
 }
 void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name){
@@ -8296,6 +8355,23 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     {
         bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_sized_descriptor_update_template");
         return hasExt ? (void*)entry_vkUpdateDescriptorSetWithTemplateSizedGOOGLE : nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_async_command_buffers
+    if (!strcmp(name, "vkBeginCommandBufferAsyncGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_async_command_buffers");
+        return hasExt ? (void*)entry_vkBeginCommandBufferAsyncGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkEndCommandBufferAsyncGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_async_command_buffers");
+        return hasExt ? (void*)entry_vkEndCommandBufferAsyncGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkResetCommandBufferAsyncGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_async_command_buffers");
+        return hasExt ? (void*)entry_vkResetCommandBufferAsyncGOOGLE : nullptr;
     }
 #endif
     return nullptr;
