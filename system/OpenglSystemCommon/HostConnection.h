@@ -165,6 +165,7 @@ private:
     void queryAndSetHostCompositionImpl(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetDirectMemSupport(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanSupport(ExtendedRCEncoderContext *rcEnc);
+    void queryAndSetDeferredVulkanCommandsSupport(ExtendedRCEncoderContext *rcEnc);
 
 private:
     IOStream *m_stream;

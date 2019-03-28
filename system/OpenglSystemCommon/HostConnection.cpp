@@ -440,3 +440,10 @@ void HostConnection::queryAndSetVulkanSupport(ExtendedRCEncoderContext* rcEnc) {
         rcEnc->featureInfo()->hasVulkan = true;
     }
 }
+
+void HostConnection::queryAndSetDeferredVulkanCommandsSupport(ExtendedRCEncoderContext* rcEnc) {
+    std::string glExtensions = queryGLExtensions(rcEnc);
+    if (glExtensions.find(kDeferredVulkanCommands) != std::string::npos) {
+        rcEnc->featureInfo()->hasDeferredVulkanCommands = true;
+    }
+}

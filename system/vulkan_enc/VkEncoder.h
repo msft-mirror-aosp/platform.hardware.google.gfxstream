@@ -1772,6 +1772,16 @@ public:
         const VkDescriptorBufferInfo* pBufferInfos,
         const VkBufferView* pBufferViews);
 #endif
+#ifdef VK_GOOGLE_async_command_buffers
+    void vkBeginCommandBufferAsyncGOOGLE(
+    VkCommandBuffer commandBuffer,
+        const VkCommandBufferBeginInfo* pBeginInfo);
+    void vkEndCommandBufferAsyncGOOGLE(
+    VkCommandBuffer commandBuffer);
+    void vkResetCommandBufferAsyncGOOGLE(
+    VkCommandBuffer commandBuffer,
+        VkCommandBufferResetFlags flags);
+#endif
 
 private:
     class Impl;
