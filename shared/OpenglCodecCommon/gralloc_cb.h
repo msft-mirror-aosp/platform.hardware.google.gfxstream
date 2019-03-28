@@ -21,7 +21,6 @@
 #include <hardware/gralloc.h>
 #include <cutils/native_handle.h>
 
-#include "goldfish_dma.h"
 #include "qemu_pipe.h"
 
 #define BUFFER_HANDLE_MAGIC ((int)0xabfabfab)
@@ -64,7 +63,6 @@ struct cb_handle_t : public native_handle {
         hostHandle(0),
         emuFrameworkFormat(p_emuFrameworkFormat)
     {
-        goldfish_dma.fd = -1;
         refcount_pipe_fd = QEMU_PIPE_INVALID_HANDLE;
         version = sizeof(native_handle);
         numFds = 0;
@@ -134,7 +132,6 @@ struct cb_handle_t : public native_handle {
     int lockedHeight;
     uint32_t hostHandle;
 
-    goldfish_dma_context goldfish_dma;
     uint32_t goldfish_dma_buf_size;
     EmulatorFrameworkFormat emuFrameworkFormat;
 };
