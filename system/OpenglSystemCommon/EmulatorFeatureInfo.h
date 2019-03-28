@@ -76,6 +76,9 @@ static const char kGLDirectMem[] = "ANDROID_EMU_direct_mem";
 // - Full gralloc interop: External memory, AHB
 static const char kVulkan[] = "ANDROID_EMU_vulkan";
 
+// Deferred Vulkan commands
+static const char kDeferredVulkanCommands[] = "ANDROID_EMU_deferred_vulkan_commands";
+
 // Struct describing available emulator features
 struct EmulatorFeatureInfo {
 
@@ -85,7 +88,8 @@ struct EmulatorFeatureInfo {
         hostComposition(HOST_COMPOSITION_NONE),
         glesMaxVersion(GLES_MAX_VERSION_2),
         hasDirectMem(false),
-        hasVulkan(false) { }
+        hasVulkan(false),
+        hasDeferredVulkanCommands(false) { }
 
     SyncImpl syncImpl;
     DmaImpl dmaImpl;
@@ -93,6 +97,7 @@ struct EmulatorFeatureInfo {
     GLESMaxVersion glesMaxVersion;
     bool hasDirectMem;
     bool hasVulkan;
+    bool hasDeferredVulkanCommands;
 };
 
 #endif // __COMMON_EMULATOR_FEATURE_INFO_H
