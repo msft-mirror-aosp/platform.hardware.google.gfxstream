@@ -584,6 +584,11 @@ public:
         return mHostVisibleMemoryVirtInfo.virtualizationSupported;
     }
 
+    bool supportsDeferredCommands() const {
+        if (!mFeatureInfo) return false;
+        return mFeatureInfo->hasDeferredVulkanCommands;
+    }
+
     int getHostInstanceExtensionIndex(const std::string& extName) const {
         int i = 0;
         for (const auto& prop : mHostInstanceExtensions) {
@@ -3075,6 +3080,53 @@ public:
             physicalDevice, pImageFormatInfo, pImageFormatProperties);
     }
 
+    VkResult on_vkBeginCommandBuffer(
+        void* context, VkResult input_result,
+        VkCommandBuffer commandBuffer,
+        const VkCommandBufferBeginInfo* pBeginInfo) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+        (void)input_result;
+
+        if (!supportsDeferredCommands()) {
+            return enc->vkBeginCommandBuffer(commandBuffer, pBeginInfo);
+        }
+
+        enc->vkBeginCommandBufferAsyncGOOGLE(commandBuffer, pBeginInfo);
+        return VK_SUCCESS;
+    }
+
+    VkResult on_vkEndCommandBuffer(
+        void* context, VkResult input_result,
+        VkCommandBuffer commandBuffer) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+        (void)input_result;
+
+        if (!supportsDeferredCommands()) {
+            return enc->vkEndCommandBuffer(commandBuffer);
+        }
+
+        enc->vkEndCommandBufferAsyncGOOGLE(commandBuffer);
+        return VK_SUCCESS;
+    }
+
+    VkResult on_vkResetCommandBuffer(
+        void* context, VkResult input_result,
+        VkCommandBuffer commandBuffer,
+        VkCommandBufferResetFlags flags) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+        (void)input_result;
+
+        if (!supportsDeferredCommands()) {
+            return enc->vkResetCommandBuffer(commandBuffer, flags);
+        }
+
+        enc->vkResetCommandBufferAsyncGOOGLE(commandBuffer, flags);
+        return VK_SUCCESS;
+    }
+
     uint32_t getApiVersionFromInstance(VkInstance instance) const {
         AutoLock lock(mLock);
         uint32_t api = kMinApiVersion;
@@ -3691,6 +3743,29 @@ VkResult ResourceTracker::on_vkGetPhysicalDeviceImageFormatProperties2KHR(
     return mImpl->on_vkGetPhysicalDeviceImageFormatProperties2KHR(
         context, input_result, physicalDevice, pImageFormatInfo,
         pImageFormatProperties);
+}
+
+VkResult ResourceTracker::on_vkBeginCommandBuffer(
+    void* context, VkResult input_result,
+    VkCommandBuffer commandBuffer,
+    const VkCommandBufferBeginInfo* pBeginInfo) {
+    return mImpl->on_vkBeginCommandBuffer(
+        context, input_result, commandBuffer, pBeginInfo);
+}
+
+VkResult ResourceTracker::on_vkEndCommandBuffer(
+    void* context, VkResult input_result,
+    VkCommandBuffer commandBuffer) {
+    return mImpl->on_vkEndCommandBuffer(
+        context, input_result, commandBuffer);
+}
+
+VkResult ResourceTracker::on_vkResetCommandBuffer(
+    void* context, VkResult input_result,
+    VkCommandBuffer commandBuffer,
+    VkCommandBufferResetFlags flags) {
+    return mImpl->on_vkResetCommandBuffer(
+        context, input_result, commandBuffer, flags);
 }
 
 void ResourceTracker::deviceMemoryTransform_tohost(

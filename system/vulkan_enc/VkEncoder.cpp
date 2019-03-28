@@ -22501,5 +22501,119 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
 }
 
 #endif
+#ifdef VK_GOOGLE_async_command_buffers
+void VkEncoder::vkBeginCommandBufferAsyncGOOGLE(
+    VkCommandBuffer commandBuffer,
+    const VkCommandBufferBeginInfo* pBeginInfo)
+{
+    AEMU_SCOPED_TRACE("vkBeginCommandBufferAsyncGOOGLE encode");
+    mImpl->log("start vkBeginCommandBufferAsyncGOOGLE");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkCommandBuffer local_commandBuffer;
+    VkCommandBufferBeginInfo* local_pBeginInfo;
+    local_commandBuffer = commandBuffer;
+    local_pBeginInfo = nullptr;
+    if (pBeginInfo)
+    {
+        local_pBeginInfo = (VkCommandBufferBeginInfo*)pool->alloc(sizeof(const VkCommandBufferBeginInfo));
+        deepcopy_VkCommandBufferBeginInfo(pool, pBeginInfo, (VkCommandBufferBeginInfo*)(local_pBeginInfo));
+    }
+    if (local_pBeginInfo)
+    {
+        transform_tohost_VkCommandBufferBeginInfo(mImpl->resources(), (VkCommandBufferBeginInfo*)(local_pBeginInfo));
+    }
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1508;
+        countingStream->handleMapping()->mapHandles_VkCommandBuffer_u64(&local_commandBuffer, &cgen_var_1508, 1);
+        countingStream->write((uint64_t*)&cgen_var_1508, 1 * 8);
+        marshal_VkCommandBufferBeginInfo(countingStream, (VkCommandBufferBeginInfo*)(local_pBeginInfo));
+    }
+    uint32_t packetSize_vkBeginCommandBufferAsyncGOOGLE = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkBeginCommandBufferAsyncGOOGLE = OP_vkBeginCommandBufferAsyncGOOGLE;
+    stream->write(&opcode_vkBeginCommandBufferAsyncGOOGLE, sizeof(uint32_t));
+    stream->write(&packetSize_vkBeginCommandBufferAsyncGOOGLE, sizeof(uint32_t));
+    uint64_t cgen_var_1509;
+    stream->handleMapping()->mapHandles_VkCommandBuffer_u64(&local_commandBuffer, &cgen_var_1509, 1);
+    stream->write((uint64_t*)&cgen_var_1509, 1 * 8);
+    marshal_VkCommandBufferBeginInfo(stream, (VkCommandBufferBeginInfo*)(local_pBeginInfo));
+    AEMU_SCOPED_TRACE("vkBeginCommandBufferAsyncGOOGLE readParams");
+    AEMU_SCOPED_TRACE("vkBeginCommandBufferAsyncGOOGLE returnUnmarshal");
+    mImpl->log("finish vkBeginCommandBufferAsyncGOOGLE");;
+}
+
+void VkEncoder::vkEndCommandBufferAsyncGOOGLE(
+    VkCommandBuffer commandBuffer)
+{
+    AEMU_SCOPED_TRACE("vkEndCommandBufferAsyncGOOGLE encode");
+    mImpl->log("start vkEndCommandBufferAsyncGOOGLE");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkCommandBuffer local_commandBuffer;
+    local_commandBuffer = commandBuffer;
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1510;
+        countingStream->handleMapping()->mapHandles_VkCommandBuffer_u64(&local_commandBuffer, &cgen_var_1510, 1);
+        countingStream->write((uint64_t*)&cgen_var_1510, 1 * 8);
+    }
+    uint32_t packetSize_vkEndCommandBufferAsyncGOOGLE = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkEndCommandBufferAsyncGOOGLE = OP_vkEndCommandBufferAsyncGOOGLE;
+    stream->write(&opcode_vkEndCommandBufferAsyncGOOGLE, sizeof(uint32_t));
+    stream->write(&packetSize_vkEndCommandBufferAsyncGOOGLE, sizeof(uint32_t));
+    uint64_t cgen_var_1511;
+    stream->handleMapping()->mapHandles_VkCommandBuffer_u64(&local_commandBuffer, &cgen_var_1511, 1);
+    stream->write((uint64_t*)&cgen_var_1511, 1 * 8);
+    AEMU_SCOPED_TRACE("vkEndCommandBufferAsyncGOOGLE readParams");
+    AEMU_SCOPED_TRACE("vkEndCommandBufferAsyncGOOGLE returnUnmarshal");
+    mImpl->log("finish vkEndCommandBufferAsyncGOOGLE");;
+}
+
+void VkEncoder::vkResetCommandBufferAsyncGOOGLE(
+    VkCommandBuffer commandBuffer,
+    VkCommandBufferResetFlags flags)
+{
+    AEMU_SCOPED_TRACE("vkResetCommandBufferAsyncGOOGLE encode");
+    mImpl->log("start vkResetCommandBufferAsyncGOOGLE");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkCommandBuffer local_commandBuffer;
+    VkCommandBufferResetFlags local_flags;
+    local_commandBuffer = commandBuffer;
+    local_flags = flags;
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1512;
+        countingStream->handleMapping()->mapHandles_VkCommandBuffer_u64(&local_commandBuffer, &cgen_var_1512, 1);
+        countingStream->write((uint64_t*)&cgen_var_1512, 1 * 8);
+        countingStream->write((VkCommandBufferResetFlags*)&local_flags, sizeof(VkCommandBufferResetFlags));
+    }
+    uint32_t packetSize_vkResetCommandBufferAsyncGOOGLE = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkResetCommandBufferAsyncGOOGLE = OP_vkResetCommandBufferAsyncGOOGLE;
+    stream->write(&opcode_vkResetCommandBufferAsyncGOOGLE, sizeof(uint32_t));
+    stream->write(&packetSize_vkResetCommandBufferAsyncGOOGLE, sizeof(uint32_t));
+    uint64_t cgen_var_1513;
+    stream->handleMapping()->mapHandles_VkCommandBuffer_u64(&local_commandBuffer, &cgen_var_1513, 1);
+    stream->write((uint64_t*)&cgen_var_1513, 1 * 8);
+    stream->write((VkCommandBufferResetFlags*)&local_flags, sizeof(VkCommandBufferResetFlags));
+    AEMU_SCOPED_TRACE("vkResetCommandBufferAsyncGOOGLE readParams");
+    AEMU_SCOPED_TRACE("vkResetCommandBufferAsyncGOOGLE returnUnmarshal");
+    mImpl->log("finish vkResetCommandBufferAsyncGOOGLE");;
+}
+
+#endif
 
 } // namespace goldfish_vk
