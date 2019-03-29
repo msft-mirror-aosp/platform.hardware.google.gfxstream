@@ -59,17 +59,12 @@ public:
     DmaImpl getDmaVersion() const { return m_featureInfo.dmaImpl; }
     void bindDmaContext(struct goldfish_dma_context* cxt) { m_dmaCxt = cxt; }
     virtual uint64_t lockAndWriteDma(void* data, uint32_t size) {
-        ALOGV("%s: call", __FUNCTION__);
-        if (!m_dmaCxt) {
-            ALOGE("%s: ERROR: No DMA context bound!",
-                  __FUNCTION__);
+        if (m_dmaCxt) {
+            return lockAndWriteGoldfishDma(data, size, m_dmaCxt);
+        } else {
+            ALOGE("%s: ERROR: No DMA context bound!", __func__);
             return 0;
         }
-        goldfish_dma_lock(m_dmaCxt);
-        goldfish_dma_write(m_dmaCxt, data, size);
-        uint64_t paddr = goldfish_dma_guest_paddr(m_dmaCxt);
-        ALOGV("%s: paddr=0x%llx", __FUNCTION__, (unsigned long long)paddr);
-        return paddr;
     }
     void setGLESMaxVersion(GLESMaxVersion ver) { m_featureInfo.glesMaxVersion = ver; }
     GLESMaxVersion getGLESMaxVersion() const { return m_featureInfo.glesMaxVersion; }
@@ -77,6 +72,17 @@ public:
     const EmulatorFeatureInfo* featureInfo_const() const { return &m_featureInfo; }
     EmulatorFeatureInfo* featureInfo() { return &m_featureInfo; }
 private:
+    static uint64_t lockAndWriteGoldfishDma(void* data, uint32_t size,
+                                            struct goldfish_dma_context* dmaCxt) {
+        ALOGV("%s(data=%p, size=%u): call", __func__, data, size);
+
+        goldfish_dma_write(dmaCxt, data, size);
+        uint64_t paddr = goldfish_dma_guest_paddr(dmaCxt);
+
+        ALOGV("%s: paddr=0x%llx", __func__, (unsigned long long)paddr);
+        return paddr;
+    }
+
     EmulatorFeatureInfo m_featureInfo;
     struct goldfish_dma_context* m_dmaCxt;
 };
