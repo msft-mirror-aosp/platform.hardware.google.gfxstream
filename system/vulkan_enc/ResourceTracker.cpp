@@ -33,6 +33,17 @@ typedef struct VkImportMemoryZirconHandleInfoFUCHSIA {
     uint32_t                              handle;
 } VkImportMemoryZirconHandleInfoFUCHSIA;
 
+typedef uint32_t VkBufferCollectionFUCHSIA;
+
+typedef struct VkImportMemoryBufferCollectionFUCHSIA {
+    VkStructureType              sType;
+    const void*                  pNext;
+    VkBufferCollectionFUCHSIA    collection;
+    uint32_t                     index;
+} VkImportMemoryBufferCollectionFUCHSIA;
+
+#define VK_STRUCTURE_TYPE_IMPORT_MEMORY_BUFFER_COLLECTION_FUCHSIA \
+    ((VkStructureType)1001000000)
 #define VK_STRUCTURE_TYPE_TEMP_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA \
     ((VkStructureType)1001000000)
 #define VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA \
@@ -1487,9 +1498,9 @@ public:
         VkImportColorBufferGOOGLE importCbInfo = {
             VK_STRUCTURE_TYPE_IMPORT_COLOR_BUFFER_GOOGLE, 0,
         };
-        VkImportPhysicalAddressGOOGLE importPhysAddrInfo = {
-            VK_STRUCTURE_TYPE_IMPORT_PHYSICAL_ADDRESS_GOOGLE, 0,
-        };
+        // VkImportPhysicalAddressGOOGLE importPhysAddrInfo = {
+        //     VK_STRUCTURE_TYPE_IMPORT_PHYSICAL_ADDRESS_GOOGLE, 0,
+        // };
 
         vk_struct_common* structChain =
         structChain = vk_init_struct_chain(
@@ -1504,7 +1515,11 @@ public:
             (VkImportAndroidHardwareBufferInfoANDROID*)vk_find_struct((vk_struct_common*)pAllocateInfo,
                 VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID);
 
-        VkImportMemoryZirconHandleInfoFUCHSIA* importPhysAddrInfoPtr =
+        VkImportMemoryBufferCollectionFUCHSIA* importBufferCollectionInfoPtr =
+            (VkImportMemoryBufferCollectionFUCHSIA*)vk_find_struct((vk_struct_common*)pAllocateInfo,
+                VK_STRUCTURE_TYPE_IMPORT_MEMORY_BUFFER_COLLECTION_FUCHSIA);
+
+        VkImportMemoryZirconHandleInfoFUCHSIA* importVmoInfoPtr =
             (VkImportMemoryZirconHandleInfoFUCHSIA*)vk_find_struct((vk_struct_common*)pAllocateInfo,
                 VK_STRUCTURE_TYPE_TEMP_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA);
 
@@ -1515,13 +1530,14 @@ public:
         bool shouldPassThroughDedicatedAllocInfo =
             !exportAllocateInfoPtr &&
             !importAhbInfoPtr &&
-            !importPhysAddrInfoPtr &&
+            !importBufferCollectionInfoPtr &&
+            !importVmoInfoPtr &&
             !isHostVisibleMemoryTypeIndexForGuest(
                 &mHostVisibleMemoryVirtInfo,
                 pAllocateInfo->memoryTypeIndex);
 
         if (!exportAllocateInfoPtr &&
-            (importAhbInfoPtr || importPhysAddrInfoPtr) &&
+            (importAhbInfoPtr || importBufferCollectionInfoPtr || importVmoInfoPtr) &&
             dedicatedAllocInfoPtr &&
             isHostVisibleMemoryTypeIndexForGuest(
                 &mHostVisibleMemoryVirtInfo,
@@ -1543,11 +1559,11 @@ public:
 
         // State needed for import/export.
         bool exportAhb = false;
-        bool exportPhysAddr = false;
+        bool exportVmo = false;
         bool importAhb = false;
-        bool importPhysAddr = false;
-        (void)exportPhysAddr;
-        (void)importPhysAddr;
+        bool importBufferCollection = false;
+        bool importVmo = false;
+        (void)exportVmo;
 
         // Even if we export allocate, the underlying operation
         // for the host is always going to be an import operation.
@@ -1566,13 +1582,15 @@ public:
             exportAhb =
                 exportAllocateInfoPtr->handleTypes &
                 VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
-            exportPhysAddr =
+            exportVmo =
                 exportAllocateInfoPtr->handleTypes &
                 VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA;
         } else if (importAhbInfoPtr) {
             importAhb = true;
-        } else if (importPhysAddrInfoPtr) {
-            importPhysAddr = true;
+        } else if (importBufferCollectionInfoPtr) {
+            importBufferCollection = true;
+        } else if (importVmoInfoPtr) {
+            importVmo = true;
         }
 
         if (exportAhb) {
@@ -1653,8 +1671,33 @@ public:
                 vk_append_struct(structChain, (vk_struct_common*)(&importCbInfo));
         }
 
-        if (importPhysAddr) {
-            vmo_handle = importPhysAddrInfoPtr->handle;
+        if (importBufferCollection) {
+
+#ifdef VK_USE_PLATFORM_FUCHSIA
+            auto collection = reinterpret_cast<fuchsia::sysmem::BufferCollectionSyncPtr*>(
+                importBufferCollectionInfoPtr->collection);
+            fuchsia::sysmem::BufferCollectionInfo_2 info;
+            zx_status_t status2;
+            zx_status_t status = (*collection)->WaitForBuffersAllocated(&status2, &info);
+            if (status != ZX_OK || status2 != ZX_OK) {
+                ALOGE("WaitForBuffersAllocated failed: %d %d", status);
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
+            uint32_t index = importBufferCollectionInfoPtr->index;
+            if (info.buffer_count < index) {
+                ALOGE("Invalid buffer index: %d %d", index);
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
+            vmo_handle = info.buffers[index].vmo.release();
+#endif
+
+        }
+
+        if (importVmo) {
+            vmo_handle = importVmoInfoPtr->handle;
+        }
+
+        if (vmo_handle != ZX_HANDLE_INVALID) {
             uint64_t cb = 0;
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
@@ -1668,7 +1711,7 @@ public:
             }
         }
 
-        // TODO if (exportPhysAddr) { }
+        // TODO if (exportVmo) { }
 
         if (!isHostVisibleMemoryTypeIndexForGuest(
                 &mHostVisibleMemoryVirtInfo,
@@ -1739,12 +1782,12 @@ public:
 
         // Host visible memory with direct mapping via
         // VkImportPhysicalAddressGOOGLE
-        if (importPhysAddr) {
+        // if (importPhysAddr) {
             // vkAllocateMemory(device, &finalAllocInfo, pAllocator, pMemory);
             //    host maps the host pointer to the guest physical address
             // TODO: the host side page offset of the
             // host pointer needs to be returned somehow.
-        }
+        // }
 
         // Host visible memory with direct mapping
         AutoLock lock(mLock);
@@ -2059,6 +2102,12 @@ public:
         vk_find_struct(
             (vk_struct_common*)pCreateInfo_mut,
             VK_STRUCTURE_TYPE_FUCHSIA_IMAGE_FORMAT_FUCHSIA);
+
+        VkBufferCollectionImageCreateInfoFUCHSIA* extBufferCollectionPtr =
+        (VkBufferCollectionImageCreateInfoFUCHSIA*)
+        vk_find_struct(
+            (vk_struct_common*)pCreateInfo_mut,
+            VK_STRUCTURE_TYPE_BUFFER_COLLECTION_IMAGE_CREATE_INFO_FUCHSIA);
 #endif
 
         vk_struct_common* structChain =
@@ -2111,7 +2160,22 @@ public:
                 abort();
             }
             pCreateInfo_mut->pNext = &native_info;
-            if (extFuchsiaImageFormatPtr) {
+
+            bool is_physically_contiguous = false;
+            if (extBufferCollectionPtr) {
+               auto collection = reinterpret_cast<fuchsia::sysmem::BufferCollectionSyncPtr*>(
+                   extBufferCollectionPtr->collection);
+               fuchsia::sysmem::BufferCollectionInfo_2 info;
+               zx_status_t status2;
+               zx_status_t status = (*collection)->WaitForBuffersAllocated(&status2, &info);
+               if (status == ZX_OK && status2 == ZX_OK) {
+                   is_physically_contiguous =
+                       info.settings.has_image_format_constraints &&
+                       info.settings.buffer_settings.is_physically_contiguous;
+               } else {
+                   ALOGE("WaitForBuffersAllocated failed: %d %d", status, status2);
+               }
+            } else if (extFuchsiaImageFormatPtr) {
                 auto imageFormat = static_cast<const uint8_t*>(
                     extFuchsiaImageFormatPtr->imageFormat);
                 size_t imageFormatSize =
@@ -2134,14 +2198,17 @@ public:
                 fuchsia::sysmem::SingleBufferSettings settings;
                 fuchsia::sysmem::SingleBufferSettings::Decode(
                     &decoder, &settings, 0);
-                if (settings.buffer_settings.is_physically_contiguous) {
-                    // Replace the local image pCreateInfo_mut format
-                    // with the color buffer format if physically contiguous
-                    // and a potential display layer candidate.
-                    // TODO(reveman): Remove this after adding BGRA color
-                    // buffer support.
-                    pCreateInfo_mut->format = VK_FORMAT_R8G8B8A8_UNORM;
-                }
+                is_physically_contiguous =
+                    settings.buffer_settings.is_physically_contiguous;
+            }
+
+            if (is_physically_contiguous) {
+                // Replace the local image pCreateInfo_mut format
+                // with the color buffer format if physically contiguous
+                // and a potential display layer candidate.
+                // TODO(reveman): Remove this after adding BGRA color
+                // buffer support.
+                pCreateInfo_mut->format = VK_FORMAT_R8G8B8A8_UNORM;
             }
         }
 #endif
