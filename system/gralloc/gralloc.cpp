@@ -45,6 +45,7 @@
 
 #include <set>
 #include <map>
+#include <vector>
 #include <string>
 #include <sstream>
 
@@ -384,11 +385,11 @@ static void updateHostColorBuffer(cb_handle_t* cb,
         cb->frameworkFormat != HAL_PIXEL_FORMAT_YV12 &&
         cb->frameworkFormat != HAL_PIXEL_FORMAT_YCbCr_420_888;
 
-    char* convertedBuf = NULL;
+    std::vector<char> convertedBuf;
     if ((doLocked && is_rgb_format) ||
         (!grdma && (doLocked || !is_rgb_format))) {
-        convertedBuf = new char[rgbSz];
-        to_send = convertedBuf;
+        convertedBuf.resize(rgbSz);
+        to_send = convertedBuf.data();
         send_buffer_size = rgbSz;
     }
 
@@ -439,8 +440,6 @@ static void updateHostColorBuffer(cb_handle_t* cb,
                 left, top, width, height,
                 cb->glFormat, cb->glType, to_send);
     }
-
-    if (convertedBuf) delete [] convertedBuf;
 }
 
 #ifndef GL_RGBA16F
