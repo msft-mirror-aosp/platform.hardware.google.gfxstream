@@ -105,24 +105,36 @@ EnumeratePhysicalDeviceGroups(VkInstance /*instance*/,
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
 VkResult
-GetMemoryFuchsiaHandleKHR(VkDevice /*device*/,
-                          const VkMemoryGetFuchsiaHandleInfoKHR* /*pInfo*/,
-                          uint32_t* pHandle) {
-    *pHandle = 0;
-    return VK_SUCCESS;
-}
-
-VkResult
-GetSemaphoreFuchsiaHandleKHR(VkDevice /*device*/,
-                             const VkSemaphoreGetFuchsiaHandleInfoKHR* /*pInfo*/,
+GetMemoryZirconHandleFUCHSIA(VkDevice /*device*/,
+                             const VkMemoryGetZirconHandleInfoFUCHSIA* /*pInfo*/,
                              uint32_t* pHandle) {
+    AEMU_SCOPED_TRACE("vkstubhal::GetMemoryZirconHandleFUCHSIA");
     *pHandle = 0;
     return VK_SUCCESS;
 }
 
 VkResult
-ImportSemaphoreFuchsiaHandleKHR(VkDevice /*device*/,
-                                const VkImportSemaphoreFuchsiaHandleInfoKHR* /*pInfo*/) {
+GetMemoryZirconHandlePropertiesFUCHSIA(VkDevice /*device*/,
+                                       VkExternalMemoryHandleTypeFlagBits /*handleType*/,
+                                       uint32_t /*handle*/,
+                                       VkMemoryZirconHandlePropertiesFUCHSIA* /*pProperties*/) {
+    AEMU_SCOPED_TRACE("vkstubhal::GetMemoryZirconHandlePropertiesFUCHSIA");
+    return VK_SUCCESS;
+}
+
+VkResult
+GetSemaphoreZirconHandleFUCHSIA(VkDevice /*device*/,
+                                const VkSemaphoreGetZirconHandleInfoFUCHSIA* /*pInfo*/,
+                                uint32_t* pHandle) {
+    AEMU_SCOPED_TRACE("vkstubhal::GetSemaphoreZirconHandleFUCHSIA");
+    *pHandle = 0;
+    return VK_SUCCESS;
+}
+
+VkResult
+ImportSemaphoreZirconHandleFUCHSIA(VkDevice /*device*/,
+                                   const VkImportSemaphoreZirconHandleInfoFUCHSIA* /*pInfo*/) {
+    AEMU_SCOPED_TRACE("vkstubhal::ImportSemaphoreZirconHandleFUCHSIA");
     return VK_SUCCESS;
 }
 
@@ -131,18 +143,22 @@ CreateBufferCollectionFUCHSIA(VkDevice /*device*/,
                               const VkBufferCollectionCreateInfoFUCHSIA* /*pInfo*/,
                               const VkAllocationCallbacks* /*pAllocator*/,
                               VkBufferCollectionFUCHSIA* /*pCollection*/) {
+    AEMU_SCOPED_TRACE("vkstubhal::CreateBufferCollectionFUCHSIA");
     return VK_SUCCESS;
 }
 
-void DestroyBufferCollectionFUCHSIA(VkDevice /*device*/,
-                                    VkBufferCollectionFUCHSIA /*collection*/,
-                                    const VkAllocationCallbacks* /*pAllocator*/) {
+void
+DestroyBufferCollectionFUCHSIA(VkDevice /*device*/,
+                               VkBufferCollectionFUCHSIA /*collection*/,
+                               const VkAllocationCallbacks* /*pAllocator*/) {
+    AEMU_SCOPED_TRACE("vkstubhal::DestroyBufferCollectionFUCHSIA");
 }
 
 VkResult
 SetBufferCollectionConstraintsFUCHSIA(VkDevice /*device*/,
                                       VkBufferCollectionFUCHSIA /*collection*/,
                                       const VkImageCreateInfo* /*pImageInfo*/) {
+    AEMU_SCOPED_TRACE("vkstubhal::SetBufferCollectionConstraintsFUCHSIA");
     return VK_SUCCESS;
 }
 #endif
@@ -165,12 +181,14 @@ PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance,
     if (strcmp(name, "vkGetInstanceProcAddr") == 0)
         return reinterpret_cast<PFN_vkVoidFunction>(GetInstanceProcAddr);
 #ifdef VK_USE_PLATFORM_FUCHSIA
-    if (strcmp(name, "vkGetMemoryFuchsiaHandleKHR") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(GetMemoryFuchsiaHandleKHR);
-    if (strcmp(name, "vkGetSemaphoreFuchsiaHandleKHR") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(GetSemaphoreFuchsiaHandleKHR);
-    if (strcmp(name, "vkImportSemaphoreFuchsiaHandleKHR") == 0)
-        return reinterpret_cast<PFN_vkVoidFunction>(ImportSemaphoreFuchsiaHandleKHR);
+    if (strcmp(name, "vkGetMemoryZirconHandleFUCHSIA") == 0)
+        return reinterpret_cast<PFN_vkVoidFunction>(GetMemoryZirconHandleFUCHSIA);
+    if (strcmp(name, "vkGetMemoryZirconHandlePropertiesFUCHSIA") == 0)
+        return reinterpret_cast<PFN_vkVoidFunction>(GetMemoryZirconHandlePropertiesFUCHSIA);
+    if (strcmp(name, "vkGetSemaphoreZirconHandleFUCHSIA") == 0)
+        return reinterpret_cast<PFN_vkVoidFunction>(GetSemaphoreZirconHandleFUCHSIA);
+    if (strcmp(name, "vkImportSemaphoreZirconHandleFUCHSIA") == 0)
+        return reinterpret_cast<PFN_vkVoidFunction>(ImportSemaphoreZirconHandleFUCHSIA);
     if (strcmp(name, "vkCreateBufferCollectionFUCHSIA") == 0)
         return reinterpret_cast<PFN_vkVoidFunction>(CreateBufferCollectionFUCHSIA);
     if (strcmp(name, "vkDestroyBufferCollectionFUCHSIA") == 0)
@@ -278,20 +296,20 @@ VkResult CreateInstance(const VkInstanceCreateInfo* create_info,
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
 VKAPI_ATTR
-VkResult GetMemoryFuchsiaHandleKHR(
+VkResult GetMemoryZirconHandleFUCHSIA(
     VkDevice device,
-    const VkMemoryGetFuchsiaHandleInfoKHR* pInfo,
+    const VkMemoryGetZirconHandleInfoFUCHSIA* pInfo,
     uint32_t* pHandle) {
-    AEMU_SCOPED_TRACE("goldfish_vulkan::GetMemoryFuchsiaHandleKHR");
+    AEMU_SCOPED_TRACE("goldfish_vulkan::GetMemoryZirconHandleFUCHSIA");
 
     VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
 
     if (!hostSupportsVulkan) {
-        return vkstubhal::GetMemoryFuchsiaHandleKHR(device, pInfo, pHandle);
+        return vkstubhal::GetMemoryZirconHandleFUCHSIA(device, pInfo, pHandle);
     }
 
     VkResult res = goldfish_vk::ResourceTracker::get()->
-        on_vkGetMemoryFuchsiaHandleKHR(
+        on_vkGetMemoryZirconHandleFUCHSIA(
             vkEnc, VK_SUCCESS,
             device, pInfo, pHandle);
 
@@ -299,39 +317,61 @@ VkResult GetMemoryFuchsiaHandleKHR(
 }
 
 VKAPI_ATTR
-VkResult GetSemaphoreFuchsiaHandleKHR(
+VkResult GetMemoryZirconHandlePropertiesFUCHSIA(
     VkDevice device,
-    const VkSemaphoreGetFuchsiaHandleInfoKHR* pInfo,
-    uint32_t* pHandle) {
-    AEMU_SCOPED_TRACE("goldfish_vulkan::GetSemaphoreFuchsiaHandleKHR");
+    VkExternalMemoryHandleTypeFlagBits handleType,
+    uint32_t handle,
+    VkMemoryZirconHandlePropertiesFUCHSIA* pProperties) {
+    AEMU_SCOPED_TRACE("goldfish_vulkan::GetMemoryZirconHandlePropertiesFUCHSIA");
 
     VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
 
     if (!hostSupportsVulkan) {
-        return vkstubhal::GetSemaphoreFuchsiaHandleKHR(device, pInfo, pHandle);
+        return vkstubhal::GetMemoryZirconHandlePropertiesFUCHSIA(
+            device, handleType, handle, pProperties);
     }
 
     VkResult res = goldfish_vk::ResourceTracker::get()->
-        on_vkGetSemaphoreFuchsiaHandleKHR(
+        on_vkGetMemoryZirconHandlePropertiesFUCHSIA(
+            vkEnc, VK_SUCCESS, device, handleType, handle, pProperties);
+
+    return res;
+}
+
+VKAPI_ATTR
+VkResult GetSemaphoreZirconHandleFUCHSIA(
+    VkDevice device,
+    const VkSemaphoreGetZirconHandleInfoFUCHSIA* pInfo,
+    uint32_t* pHandle) {
+    AEMU_SCOPED_TRACE("goldfish_vulkan::GetSemaphoreZirconHandleFUCHSIA");
+
+    VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
+
+    if (!hostSupportsVulkan) {
+        return vkstubhal::GetSemaphoreZirconHandleFUCHSIA(device, pInfo, pHandle);
+    }
+
+    VkResult res = goldfish_vk::ResourceTracker::get()->
+        on_vkGetSemaphoreZirconHandleFUCHSIA(
             vkEnc, VK_SUCCESS, device, pInfo, pHandle);
 
     return res;
 }
 
 VKAPI_ATTR
-VkResult ImportSemaphoreFuchsiaHandleKHR(
+VkResult ImportSemaphoreZirconHandleFUCHSIA(
     VkDevice device,
-    const VkImportSemaphoreFuchsiaHandleInfoKHR* pInfo) {
-    AEMU_SCOPED_TRACE("goldfish_vulkan::ImportSemaphoreFuchsiaHandleKHR");
+    const VkImportSemaphoreZirconHandleInfoFUCHSIA* pInfo) {
+    AEMU_SCOPED_TRACE("goldfish_vulkan::ImportSemaphoreZirconHandleFUCHSIA");
 
     VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
 
     if (!hostSupportsVulkan) {
-        return vkstubhal::ImportSemaphoreFuchsiaHandleKHR(device, pInfo);
+        return vkstubhal::ImportSemaphoreZirconHandleFUCHSIA(device, pInfo);
     }
 
     VkResult res = goldfish_vk::ResourceTracker::get()->
-        on_vkImportSemaphoreFuchsiaHandleKHR(
+        on_vkImportSemaphoreZirconHandleFUCHSIA(
             vkEnc, VK_SUCCESS, device, pInfo);
 
     return res;
@@ -408,14 +448,17 @@ static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* name) {
     }
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
-    if (!strcmp(name, "vkGetMemoryFuchsiaHandleKHR")) {
-        return (PFN_vkVoidFunction)GetMemoryFuchsiaHandleKHR;
+    if (!strcmp(name, "vkGetMemoryZirconHandleFUCHSIA")) {
+        return (PFN_vkVoidFunction)GetMemoryZirconHandleFUCHSIA;
     }
-    if (!strcmp(name, "vkGetSemaphoreFuchsiaHandleKHR")) {
-        return (PFN_vkVoidFunction)GetSemaphoreFuchsiaHandleKHR;
+    if (!strcmp(name, "vkGetMemoryZirconHandlePropertiesFUCHSIA")) {
+        return (PFN_vkVoidFunction)GetMemoryZirconHandlePropertiesFUCHSIA;
     }
-    if (!strcmp(name, "vkImportSemaphoreFuchsiaHandleKHR")) {
-        return (PFN_vkVoidFunction)ImportSemaphoreFuchsiaHandleKHR;
+    if (!strcmp(name, "vkGetSemaphoreZirconHandleFUCHSIA")) {
+        return (PFN_vkVoidFunction)GetSemaphoreZirconHandleFUCHSIA;
+    }
+    if (!strcmp(name, "vkImportSemaphoreZirconHandleFUCHSIA")) {
+        return (PFN_vkVoidFunction)ImportSemaphoreZirconHandleFUCHSIA;
     }
     if (!strcmp(name, "vkCreateBufferCollectionFUCHSIA")) {
         return (PFN_vkVoidFunction)CreateBufferCollectionFUCHSIA;

@@ -24,8 +24,8 @@ namespace goldfish_vk {
 /* Construct ahw usage mask from image usage bits, see
  * 'AHardwareBuffer Usage Equivalence' in Vulkan spec.
  */
-static uint64_t
-goldfish_ahw_usage_from_vk_usage(const VkImageCreateFlags vk_create,
+uint64_t
+getAndroidHardwareBufferUsageFromVkUsage(const VkImageCreateFlags vk_create,
                                  const VkImageUsageFlags vk_usage)
 {
    uint64_t ahw_usage = 0;
@@ -208,7 +208,7 @@ VkResult createAndroidHardwareBuffer(
        h = imageExtent.height;
        layers = imageLayers;
        format = android_format_from_vk(imageFormat);
-       usage = goldfish_ahw_usage_from_vk_usage(imageCreateFlags, imageUsage);
+       usage = getAndroidHardwareBufferUsageFromVkUsage(imageCreateFlags, imageUsage);
     } else if (hasDedicatedBuffer) {
        w = bufferSize;
        format = AHARDWAREBUFFER_FORMAT_BLOB;

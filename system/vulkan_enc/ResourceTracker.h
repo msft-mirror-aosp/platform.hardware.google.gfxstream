@@ -213,26 +213,26 @@ public:
     void unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int* fd_out);
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
-    VkResult on_vkGetMemoryFuchsiaHandleKHR(
+    VkResult on_vkGetMemoryZirconHandleFUCHSIA(
         void* context, VkResult input_result,
         VkDevice device,
-        const VkMemoryGetFuchsiaHandleInfoKHR* pInfo,
+        const VkMemoryGetZirconHandleInfoFUCHSIA* pInfo,
         uint32_t* pHandle);
-    VkResult on_vkGetMemoryFuchsiaHandlePropertiesKHR(
+    VkResult on_vkGetMemoryZirconHandlePropertiesFUCHSIA(
         void* context, VkResult input_result,
         VkDevice device,
-        VkExternalMemoryHandleTypeFlagBitsKHR handleType,
+        VkExternalMemoryHandleTypeFlagBits handleType,
         uint32_t handle,
-        VkMemoryFuchsiaHandlePropertiesKHR* pProperties);
-    VkResult on_vkGetSemaphoreFuchsiaHandleKHR(
+        VkMemoryZirconHandlePropertiesFUCHSIA* pProperties);
+    VkResult on_vkGetSemaphoreZirconHandleFUCHSIA(
         void* context, VkResult input_result,
         VkDevice device,
-        const VkSemaphoreGetFuchsiaHandleInfoKHR* pInfo,
+        const VkSemaphoreGetZirconHandleInfoFUCHSIA* pInfo,
         uint32_t* pHandle);
-    VkResult on_vkImportSemaphoreFuchsiaHandleKHR(
+    VkResult on_vkImportSemaphoreZirconHandleFUCHSIA(
         void* context, VkResult input_result,
         VkDevice device,
-        const VkImportSemaphoreFuchsiaHandleInfoKHR* pInfo);
+        const VkImportSemaphoreZirconHandleInfoFUCHSIA* pInfo);
     VkResult on_vkCreateBufferCollectionFUCHSIA(
         void* context, VkResult input_result,
         VkDevice device,
@@ -308,6 +308,30 @@ public:
         VkDescriptorSet descriptorSet,
         VkDescriptorUpdateTemplate descriptorUpdateTemplate,
         const void* pData);
+
+    VkResult on_vkGetPhysicalDeviceImageFormatProperties2(
+        void* context, VkResult input_result,
+        VkPhysicalDevice physicalDevice,
+        const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
+        VkImageFormatProperties2* pImageFormatProperties);
+
+    VkResult on_vkGetPhysicalDeviceImageFormatProperties2KHR(
+        void* context, VkResult input_result,
+        VkPhysicalDevice physicalDevice,
+        const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
+        VkImageFormatProperties2* pImageFormatProperties);
+
+    VkResult on_vkBeginCommandBuffer(
+        void* context, VkResult input_result,
+        VkCommandBuffer commandBuffer,
+        const VkCommandBufferBeginInfo* pBeginInfo);
+    VkResult on_vkEndCommandBuffer(
+        void* context, VkResult input_result,
+        VkCommandBuffer commandBuffer);
+    VkResult on_vkResetCommandBuffer(
+        void* context, VkResult input_result,
+        VkCommandBuffer commandBuffer,
+        VkCommandBufferResetFlags flags);
 
     bool isMemoryTypeHostVisible(VkDevice device, uint32_t typeIndex) const;
     uint8_t* getMappedPointer(VkDeviceMemory memory);

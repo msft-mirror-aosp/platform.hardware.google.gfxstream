@@ -3384,5 +3384,10 @@ void unmarshal_VkImportPhysicalAddressGOOGLE(
 #ifdef VK_GOOGLE_sized_descriptor_update_template
 #define OP_vkUpdateDescriptorSetWithTemplateSizedGOOGLE 20320
 #endif
+#ifdef VK_GOOGLE_async_command_buffers
+#define OP_vkBeginCommandBufferAsyncGOOGLE 20321
+#define OP_vkEndCommandBufferAsyncGOOGLE 20322
+#define OP_vkResetCommandBufferAsyncGOOGLE 20323
+#endif
 
 } // namespace goldfish_vk
