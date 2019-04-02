@@ -119,6 +119,13 @@ struct gralloc_memregions_t {
 
 #define INITIAL_DMA_REGION_SIZE 4096
 struct gralloc_dmaregion_t {
+    gralloc_dmaregion_t(ExtendedRCEncoderContext *rcEnc)
+      : sz(0), refcount(0), bigbufCount(0) {
+        pthread_mutex_init(&lock, NULL);
+        sz = INITIAL_DMA_REGION_SIZE;
+        goldfish_dma_create_region(sz, &goldfish_dma);
+    }
+
     goldfish_dma_context goldfish_dma;
     uint32_t sz;
     uint32_t refcount;
@@ -138,81 +145,86 @@ static gralloc_memregions_t* init_gralloc_memregions() {
     return s_memregions;
 }
 
-static void init_gralloc_dmaregion() {
-    D("%s: call\n", __FUNCTION__);
-    if (s_grdma) return;
-
-    s_grdma = new gralloc_dmaregion_t;
-    s_grdma->sz = INITIAL_DMA_REGION_SIZE;
-    s_grdma->refcount = 0;
-    s_grdma->bigbufCount = 0;
-
-    pthread_mutex_init(&s_grdma->lock, NULL);
-    pthread_mutex_lock(&s_grdma->lock);
-    goldfish_dma_create_region(s_grdma->sz, &s_grdma->goldfish_dma);
-    pthread_mutex_unlock(&s_grdma->lock);
-}
-
-static void get_gralloc_dmaregion() {
-    if (!s_grdma) return;
-    pthread_mutex_lock(&s_grdma->lock);
-    s_grdma->refcount++;
-    D("%s: call. refcount: %u\n", __FUNCTION__, s_grdma->refcount);
-    pthread_mutex_unlock(&s_grdma->lock);
-}
-
-static void resize_gralloc_dmaregion_locked(uint32_t new_sz) {
-    if (!s_grdma) return;
-    if (s_grdma->goldfish_dma.mapped_addr) {
-        goldfish_dma_unmap(&s_grdma->goldfish_dma);
+static gralloc_dmaregion_t* init_gralloc_dmaregion(ExtendedRCEncoderContext *rcEnc) {
+    D("%s: call\n", __func__);
+    if (!s_grdma) {
+        s_grdma = new gralloc_dmaregion_t(rcEnc);
     }
-    close(s_grdma->goldfish_dma.fd);
-    goldfish_dma_create_region(new_sz, &s_grdma->goldfish_dma);
-    s_grdma->sz = new_sz;
+    return s_grdma;
+}
+
+static void get_gralloc_region(ExtendedRCEncoderContext *rcEnc) {
+    gralloc_dmaregion_t* grdma = init_gralloc_dmaregion(rcEnc);
+
+    pthread_mutex_lock(&grdma->lock);
+    grdma->refcount++;
+    D("%s: call. refcount: %u\n", __func__, grdma->refcount);
+    pthread_mutex_unlock(&grdma->lock);
+}
+
+static void resize_gralloc_dmaregion_locked(gralloc_dmaregion_t* grdma, uint32_t new_sz) {
+    if (grdma->goldfish_dma.mapped_addr) {
+        goldfish_dma_unmap(&grdma->goldfish_dma);
+    }
+    close(grdma->goldfish_dma.fd);
+    goldfish_dma_create_region(new_sz, &grdma->goldfish_dma);
+    grdma->sz = new_sz;
 }
 
 // max dma size: 2x 4K rgba8888
 #define MAX_DMA_SIZE 66355200
 
-static bool put_gralloc_dmaregion(uint32_t sz) {
-    if (!s_grdma) return false;
-    pthread_mutex_lock(&s_grdma->lock);
-    D("%s: call. refcount before: %u\n", __FUNCTION__, s_grdma->refcount);
-    s_grdma->refcount--;
-    if (sz > MAX_DMA_SIZE &&
-        s_grdma->bigbufCount) {
-        s_grdma->bigbufCount--;
+static bool put_gralloc_region_dma_locked(gralloc_dmaregion_t* grdma, uint32_t sz) {
+    D("%s: call. refcount before: %u\n", __func__, grdma->refcount);
+    grdma->refcount--;
+    if (sz > MAX_DMA_SIZE && grdma->bigbufCount) {
+        grdma->bigbufCount--;
     }
-    bool shouldDelete = !s_grdma->refcount;
+    bool shouldDelete = !grdma->refcount;
     if (shouldDelete) {
-        D("%s: should delete!\n", __FUNCTION__);
-        resize_gralloc_dmaregion_locked(INITIAL_DMA_REGION_SIZE);
-        D("%s: done\n", __FUNCTION__);
+        D("%s: should delete!\n", __func__);
+        resize_gralloc_dmaregion_locked(grdma, INITIAL_DMA_REGION_SIZE);
+        D("%s: done\n", __func__);
     }
-    pthread_mutex_unlock(&s_grdma->lock);
-    D("%s: exit\n", __FUNCTION__);
+    D("%s: exit\n", __func__);
     return shouldDelete;
 }
 
-static void gralloc_dmaregion_register_ashmem(uint32_t sz) {
-    if (!s_grdma) return;
-    pthread_mutex_lock(&s_grdma->lock);
-    D("%s: for sz %u, refcount %u", __FUNCTION__, sz, s_grdma->refcount);
-    uint32_t new_sz = std::max(s_grdma->sz, sz);
-    if (new_sz != s_grdma->sz) {
+static bool put_gralloc_region(ExtendedRCEncoderContext *rcEnc, uint32_t sz) {
+    bool shouldDelete;
+
+    gralloc_dmaregion_t* grdma = init_gralloc_dmaregion(rcEnc);
+    pthread_mutex_lock(&grdma->lock);
+    shouldDelete = put_gralloc_region_dma_locked(grdma, sz);
+    pthread_mutex_unlock(&grdma->lock);
+
+    return shouldDelete;
+}
+
+static void gralloc_dmaregion_register_ashmem_dma(gralloc_dmaregion_t* grdma, uint32_t new_sz) {
+    if (new_sz != grdma->sz) {
         if (new_sz > MAX_DMA_SIZE)  {
             D("%s: requested sz %u too large (limit %u), set to fallback.",
-              __FUNCTION__, sz, MAX_DMA_SIZE);
-            s_grdma->bigbufCount++;
+              __func__, sz, MAX_DMA_SIZE);
+            grdma->bigbufCount++;
         } else {
-            D("%s: change sz from %u to %u", __FUNCTION__, s_grdma->sz, sz);
-            resize_gralloc_dmaregion_locked(new_sz);
+            D("%s: change sz from %u to %u", __func__, grdma->sz, sz);
+            resize_gralloc_dmaregion_locked(grdma, new_sz);
         }
     }
-    if (!s_grdma->goldfish_dma.mapped_addr) {
-        goldfish_dma_map(&s_grdma->goldfish_dma);
+    if (!grdma->goldfish_dma.mapped_addr) {
+        goldfish_dma_map(&grdma->goldfish_dma);
     }
-    pthread_mutex_unlock(&s_grdma->lock);
+}
+
+static void gralloc_dmaregion_register_ashmem(ExtendedRCEncoderContext *rcEnc, uint32_t sz) {
+    gralloc_dmaregion_t* grdma = init_gralloc_dmaregion(rcEnc);
+
+    pthread_mutex_lock(&grdma->lock);
+    D("%s: for sz %u, refcount %u", __func__, sz, grdma->refcount);
+    const uint32_t new_sz = std::max(grdma->sz, sz);
+    gralloc_dmaregion_register_ashmem_dma(grdma, new_sz);
+    pthread_mutex_unlock(&grdma->lock);
 }
 
 static void get_mem_region(void* ashmemBase) {
@@ -225,7 +237,7 @@ static void get_mem_region(void* ashmemBase) {
     pthread_mutex_unlock(&memregions->lock);
 }
 
-static bool put_mem_region(void* ashmemBase) {
+static bool put_mem_region(ExtendedRCEncoderContext *rcEnc, void* ashmemBase) {
     D("%s: call for %p", __func__, ashmemBase);
 
     gralloc_memregions_t* memregions = init_gralloc_memregions();
@@ -247,7 +259,7 @@ static bool put_mem_region(void* ashmemBase) {
     return shouldRemove;
 }
 
-static void dump_regions() {
+static void dump_regions(ExtendedRCEncoderContext *rcEnc) {
     gralloc_memregions_t* memregions = init_gralloc_memregions();
     gralloc_memregions_t::mem_region_handle_t curr = memregions->ashmemRegions.begin();
     std::stringstream res;
@@ -257,27 +269,35 @@ static void dump_regions() {
     ALOGD("ashmem region dump [\n%s]", res.str().c_str());
 }
 
+static void get_ashmem_region(ExtendedRCEncoderContext *rcEnc, cb_handle_t *cb) {
 #if DEBUG
-
-#define GET_ASHMEM_REGION(cb) \
-    dump_regions(); \
-    get_mem_region((void*)cb->ashmemBase); \
-    dump_regions(); \
-
-#define PUT_ASHMEM_REGION(cb) \
-    dump_regions(); \
-    bool SHOULD_UNMAP = put_mem_region((void*)cb->ashmemBase); \
-    dump_regions(); \
-
-#else
-
-#define GET_ASHMEM_REGION(cb) \
-    get_mem_region((void*)cb->ashmemBase); \
-
-#define PUT_ASHMEM_REGION(cb) \
-    bool SHOULD_UNMAP = put_mem_region((void*)cb->ashmemBase); \
-
+    dump_regions(rcEnc);
 #endif
+
+    get_mem_region((void*)cb->ashmemBase);
+
+#if DEBUG
+    dump_regions(rcEnc);
+#endif
+
+    get_gralloc_region(rcEnc);
+}
+
+static bool put_ashmem_region(ExtendedRCEncoderContext *rcEnc, cb_handle_t *cb) {
+#if DEBUG
+    dump_regions(rcEnc);
+#endif
+
+    const bool should_unmap = put_mem_region(rcEnc, (void*)cb->ashmemBase);
+
+#if DEBUG
+    dump_regions(rcEnc);
+#endif
+
+    put_gralloc_region(rcEnc, cb->ashmemSize);
+
+    return should_unmap;
+}
 
 //
 // Our framebuffer device structure
@@ -347,7 +367,10 @@ static void updateHostColorBuffer(cb_handle_t* cb,
                               bool doLocked,
                               char* pixels) {
     D("%s: call. doLocked=%d", __FUNCTION__, doLocked);
+
     DEFINE_HOST_CONNECTION;
+    gralloc_dmaregion_t* grdma = init_gralloc_dmaregion(rcEnc);
+
     int bpp = glUtilsPixelBitSize(cb->glFormat, cb->glType) >> 3;
     int left = doLocked ? cb->lockedLeft : 0;
     int top = doLocked ? cb->lockedTop : 0;
@@ -363,8 +386,7 @@ static void updateHostColorBuffer(cb_handle_t* cb,
 
     char* convertedBuf = NULL;
     if ((doLocked && is_rgb_format) ||
-        (!s_grdma &&
-         (doLocked || !is_rgb_format))) {
+        (!grdma && (doLocked || !is_rgb_format))) {
         convertedBuf = new char[rgbSz];
         to_send = convertedBuf;
         send_buffer_size = rgbSz;
@@ -377,12 +399,13 @@ static void updateHostColorBuffer(cb_handle_t* cb,
                 width, height, top, left, bpp);
     }
 
-    if (s_grdma && s_grdma->bigbufCount) {
+    const bool hasDMA = rcEnc->getDmaVersion() > 0;
+    if (hasDMA && grdma->bigbufCount) {
         D("%s: there are big buffers alive, use fallback (count %u)", __FUNCTION__,
-          s_grdma->bigbufCount);
+          grdma->bigbufCount);
     }
 
-    if (s_grdma && !s_grdma->bigbufCount) {
+    if (hasDMA && !grdma->bigbufCount) {
         if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12) {
             get_yv12_offsets(width, height, NULL, NULL,
                              &send_buffer_size);
@@ -392,14 +415,15 @@ static void updateHostColorBuffer(cb_handle_t* cb,
                                 &send_buffer_size);
         }
 
-        rcEnc->bindDmaContext(&s_grdma->goldfish_dma);
-        D("%s: call. dma update with sz=%u", __FUNCTION__, send_buffer_size);
-        pthread_mutex_lock(&s_grdma->lock);
+        rcEnc->bindDmaContext(&grdma->goldfish_dma);
+
+        D("%s: call. dma update with sz=%u", __func__, send_buffer_size);
+        pthread_mutex_lock(&grdma->lock);
         rcEnc->rcUpdateColorBufferDMA(rcEnc, cb->hostHandle,
                 left, top, width, height,
                 cb->glFormat, cb->glType,
                 to_send, send_buffer_size);
-        pthread_mutex_unlock(&s_grdma->lock);
+        pthread_mutex_unlock(&grdma->lock);
     } else {
         if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12) {
             yv12_to_rgb888(to_send, pixels,
@@ -696,7 +720,6 @@ static int gralloc_alloc(alloc_device_t* dev,
                                       glFormat, glType, selectedEmuFrameworkFormat);
 
     if (ashmem_size > 0) {
-
         //
         // map ashmem region if exist
         //
@@ -707,7 +730,6 @@ static int gralloc_alloc(alloc_device_t* dev,
             delete cb;
             return err;
         }
-
         cb->setFd(fd);
     }
 
@@ -722,6 +744,8 @@ static int gralloc_alloc(alloc_device_t* dev,
             if (HAL_PIXEL_FORMAT_RGBX_8888 == format) {
                 allocFormat = GL_RGB;
             }
+
+            gralloc_dmaregion_t* grdma = init_gralloc_dmaregion(rcEnc);
             hostCon->lock();
             if (rcEnc->getDmaVersion() > 0) {
                 cb->hostHandle = rcEnc->rcCreateColorBufferDMA(rcEnc, w, h, allocFormat, cb->emuFrameworkFormat);
@@ -770,8 +794,7 @@ static int gralloc_alloc(alloc_device_t* dev,
 
     hostCon->lock();
     if (rcEnc->getDmaVersion() > 0) {
-        init_gralloc_dmaregion();
-        get_gralloc_dmaregion();
+        get_gralloc_region(rcEnc);  // map_buffer(cb, ...) refers here
     }
     hostCon->unlock();
 
@@ -781,6 +804,8 @@ static int gralloc_alloc(alloc_device_t* dev,
 static int gralloc_free(alloc_device_t* dev,
                         buffer_handle_t handle)
 {
+    DEFINE_AND_VALIDATE_HOST_CONNECTION;
+
     cb_handle_t *cb = (cb_handle_t *)handle;
     if (!cb_handle_t::validate((cb_handle_t*)cb)) {
         ERR("gralloc_free: invalid handle");
@@ -799,7 +824,6 @@ static int gralloc_free(alloc_device_t* dev,
         }
 
         if (*openCountPtr > 0) {
-            DEFINE_AND_VALIDATE_HOST_CONNECTION;
             D("Closing host ColorBuffer 0x%x\n", cb->hostHandle);
             hostCon->lock();
             rcEnc->rcCloseColorBuffer(rcEnc, cb->hostHandle);
@@ -817,7 +841,7 @@ static int gralloc_free(alloc_device_t* dev,
         if (cb->ashmemSize > 0 && cb->ashmemBase) {
             D("%s: unmapped %p", __FUNCTION__, cb->ashmemBase);
             munmap((void *)cb->ashmemBase, cb->ashmemSize);
-            put_gralloc_dmaregion(cb->ashmemSize);
+            put_gralloc_region(rcEnc, cb->ashmemSize);
         }
         close(cb->fd);
     }
@@ -953,6 +977,7 @@ static int fb_close(struct hw_device_t *dev)
 static int gralloc_register_buffer(gralloc_module_t const* module,
                                    buffer_handle_t handle)
 {
+    DEFINE_AND_VALIDATE_HOST_CONNECTION;
 
     D("%s: start", __FUNCTION__);
     pthread_once(&sFallbackOnce, fallback_init);
@@ -972,7 +997,6 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
         handle, cb->width, cb->height, cb->format, cb->frameworkFormat);
 
     if (cb->hostHandle != 0 && !cb->hasRefcountPipe()) {
-        DEFINE_AND_VALIDATE_HOST_CONNECTION;
         D("Opening host ColorBuffer 0x%x\n", cb->hostHandle);
         hostCon->lock();
         rcEnc->rcOpenColorBuffer2(rcEnc, cb->hostHandle);
@@ -997,19 +1021,16 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
             if (!*openCountPtr) *openCountPtr = 1;
         }
 
-        DEFINE_AND_VALIDATE_HOST_CONNECTION;
         hostCon->lock();
         if (rcEnc->getDmaVersion() > 0) {
-            init_gralloc_dmaregion();
-            gralloc_dmaregion_register_ashmem(cb->ashmemSize);
+            gralloc_dmaregion_register_ashmem(rcEnc, cb->ashmemSize);
         }
         hostCon->unlock();
 
     }
 
     if (cb->ashmemSize > 0) {
-        GET_ASHMEM_REGION(cb);
-        get_gralloc_dmaregion();
+        get_ashmem_region(rcEnc, cb);
     }
 
     return 0;
@@ -1018,6 +1039,8 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
 static int gralloc_unregister_buffer(gralloc_module_t const* module,
                                      buffer_handle_t handle)
 {
+    DEFINE_AND_VALIDATE_HOST_CONNECTION;
+
     if (sFallback != NULL) {
         return sFallback->unregisterBuffer(sFallback, handle);
     }
@@ -1033,7 +1056,6 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
 
     if (cb->hostHandle && !cb->hasRefcountPipe()) {
         D("Closing host ColorBuffer 0x%x\n", cb->hostHandle);
-        DEFINE_AND_VALIDATE_HOST_CONNECTION;
         hostCon->lock();
         rcEnc->rcCloseColorBuffer(rcEnc, cb->hostHandle);
 
@@ -1057,12 +1079,8 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
     // (through register_buffer)
     //
     if (cb->ashmemSize > 0 && cb->mappedPid == getpid()) {
-
-        PUT_ASHMEM_REGION(cb);
-        put_gralloc_dmaregion(cb->ashmemSize);
-
-        if (!SHOULD_UNMAP) goto done;
-
+        const bool should_unmap = put_ashmem_region(rcEnc, cb);
+        if (!should_unmap) goto done;
 
         void *vaddr;
         int err = munmap((void *)cb->ashmemBase, cb->ashmemSize);
@@ -1079,8 +1097,6 @@ done:
     D("gralloc_unregister_buffer(%p) done\n", cb);
     return 0;
 }
-
-
 
 static int gralloc_lock(gralloc_module_t const* module,
                         buffer_handle_t handle, int usage,
