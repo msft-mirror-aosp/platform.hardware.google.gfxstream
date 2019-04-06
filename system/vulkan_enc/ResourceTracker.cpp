@@ -1698,10 +1698,17 @@ public:
         }
 
         if (vmo_handle != ZX_HANDLE_INVALID) {
-            uint64_t cb = 0;
+            uint32_t cb = 0;
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
-            zx_object_get_cookie(vmo_handle, vmo_handle, &cb);
+            // TODO(reveman): Remove use of zx_vmo_read. Goldfish FIDL interface
+            // should provide a mechanism to query the color buffer ID associated
+            // with a VMO.
+            zx_status_t status = zx_vmo_read(vmo_handle, &cb, 0, sizeof(cb));
+            if (status != ZX_OK) {
+                ALOGE("failed to read color buffer name");
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
 #endif
 
             if (cb) {
@@ -2377,11 +2384,12 @@ public:
                     abort();
                 }
             }
-            status = zx_object_set_cookie(memoryInfo.vmoHandle,
-                                          memoryInfo.vmoHandle,
-                                          imageInfo.cbHandle);
+            // TODO(reveman): Remove use of zx_vmo_write. Sysmem
+            // and goldfish pipe driver should manage this association.
+            status = zx_vmo_write(memoryInfo.vmoHandle, &imageInfo.cbHandle,
+                                  0, sizeof(imageInfo.cbHandle));
             if (status != ZX_OK) {
-                ALOGE("%s: failed to set color buffer cookie", __func__);
+                ALOGE("%s: failed writing color buffer id to vmo", __func__);
                 abort();
             }
             // Color buffer backed images are already bound.
