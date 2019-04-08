@@ -99,16 +99,15 @@ shared_library("vulkan_goldfish") {
     ]
 
     deps = [
-      "//zircon/public/fidl/fuchsia-hardware-goldfish:fuchsia-hardware-goldfish_c",
+      "//zircon/public/fidl/fuchsia-hardware-goldfish-address-space:fuchsia-hardware-goldfish-address-space_c",
       "//zircon/public/fidl/fuchsia-sysmem",
       "//zircon/public/lib/fdio",
-      "//zircon/public/lib/fzl",
       "//zircon/public/lib/trace",
     ]
 
     defines += [
-      "QEMU_PIPE_PATH=\"/dev/sys/platform/acpi/goldfish/goldfish-pipe\"",
-      "GOLDFISH_ADDRESS_SPACE_DEVICE_NAME=\"/dev/sys/platform/acpi/goldfish/goldfish-pipe\"",
+      "QEMU_PIPE_PATH=\"/dev/class/goldfish-pipe/000\"",
+      "GOLDFISH_ADDRESS_SPACE_DEVICE_NAME=\"/dev/class/goldfish-address-space/000\"",
     ]
   }
 }

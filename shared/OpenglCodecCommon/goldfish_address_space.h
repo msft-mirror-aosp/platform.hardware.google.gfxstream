@@ -45,7 +45,11 @@ private:
    GoldfishAddressSpaceBlockProvider &operator=(const GoldfishAddressSpaceBlockProvider &rhs);
 
    bool is_opened();
+#ifdef __Fuchsia__
+   uint32_t m_channel;
+#else
    int m_fd;
+#endif
 
    friend class GoldfishAddressSpaceBlock;
 };
@@ -75,13 +79,15 @@ private:
 #else
 #ifdef __Fuchsia__
     uint32_t  m_vmo;
+    uint32_t  m_channel;
+#else
+    int       m_fd;
 #endif
     void     *m_mmaped_ptr;
     uint64_t  m_phys_addr;
     uint64_t  m_host_addr;
     uint64_t  m_offset;
     size_t    m_size;
-    int       m_fd;
 #endif
 };
 
