@@ -161,6 +161,14 @@ SetBufferCollectionConstraintsFUCHSIA(VkDevice /*device*/,
     AEMU_SCOPED_TRACE("vkstubhal::SetBufferCollectionConstraintsFUCHSIA");
     return VK_SUCCESS;
 }
+
+VkResult
+GetBufferCollectionPropertiesFUCHSIA(VkDevice /*device*/,
+                                     VkBufferCollectionFUCHSIA /*collection*/,
+                                     VkBufferCollectionPropertiesFUCHSIA* /*pProperties*/) {
+    AEMU_SCOPED_TRACE("vkstubhal::GetBufferCollectionPropertiesFUCHSIA");
+    return VK_SUCCESS;
+}
 #endif
 
 PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance,
@@ -195,6 +203,8 @@ PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance,
         return reinterpret_cast<PFN_vkVoidFunction>(DestroyBufferCollectionFUCHSIA);
     if (strcmp(name, "vkSetBufferCollectionConstraintsFUCHSIA") == 0)
         return reinterpret_cast<PFN_vkVoidFunction>(SetBufferCollectionConstraintsFUCHSIA);
+    if (strcmp(name, "vkGetBufferCollectionPropertiesFUCHSIA") == 0)
+        return reinterpret_cast<PFN_vkVoidFunction>(GetBufferCollectionPropertiesFUCHSIA);
 #endif
     // Per the spec, return NULL if instance is NULL.
     if (!instance)
@@ -436,6 +446,26 @@ VkResult SetBufferCollectionConstraintsFUCHSIA(
 
     return res;
 }
+
+VKAPI_ATTR
+VkResult GetBufferCollectionPropertiesFUCHSIA(
+    VkDevice device,
+    VkBufferCollectionFUCHSIA collection,
+    VkBufferCollectionPropertiesFUCHSIA* pProperties) {
+    AEMU_SCOPED_TRACE("goldfish_vulkan::GetBufferCollectionPropertiesFUCHSIA");
+
+    VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
+
+    if (!hostSupportsVulkan) {
+        return vkstubhal::GetBufferCollectionPropertiesFUCHSIA(device, collection, pProperties);
+    }
+
+    VkResult res = goldfish_vk::ResourceTracker::get()->
+        on_vkGetBufferCollectionPropertiesFUCHSIA(
+            vkEnc, VK_SUCCESS, device, collection, pProperties);
+
+    return res;
+}
 #endif
 
 static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* name) {
@@ -468,6 +498,9 @@ static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* name) {
     }
     if (!strcmp(name, "vkSetBufferCollectionConstraintsFUCHSIA")) {
         return (PFN_vkVoidFunction)SetBufferCollectionConstraintsFUCHSIA;
+    }
+    if (!strcmp(name, "vkGetBufferCollectionPropertiesFUCHSIA")) {
+        return (PFN_vkVoidFunction)GetBufferCollectionPropertiesFUCHSIA;
     }
 #endif
     if (!strcmp(name, "vkGetDeviceProcAddr")) {

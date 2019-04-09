@@ -249,6 +249,11 @@ public:
         VkDevice device,
         VkBufferCollectionFUCHSIA collection,
         const VkImageCreateInfo* pImageInfo);
+    VkResult on_vkGetBufferCollectionPropertiesFUCHSIA(
+        void* context, VkResult input_result,
+        VkDevice device,
+        VkBufferCollectionFUCHSIA collection,
+        VkBufferCollectionPropertiesFUCHSIA* pProperties);
 #endif
 
     VkResult on_vkGetAndroidHardwareBufferPropertiesANDROID(
