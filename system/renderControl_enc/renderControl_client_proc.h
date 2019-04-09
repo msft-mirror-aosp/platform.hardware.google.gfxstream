@@ -57,6 +57,7 @@ typedef GLint (renderControl_APIENTRY *rcGetDisplayColorBuffer_client_proc_t) (v
 typedef GLint (renderControl_APIENTRY *rcGetColorBufferDisplay_client_proc_t) (void * ctx, uint32_t, uint32_t*);
 typedef GLint (renderControl_APIENTRY *rcGetDisplayPose_client_proc_t) (void * ctx, uint32_t, uint32_t*, uint32_t*, uint32_t*, uint32_t*);
 typedef GLint (renderControl_APIENTRY *rcSetDisplayPose_client_proc_t) (void * ctx, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
+typedef GLint (renderControl_APIENTRY *rcSetColorBufferVulkanMode_client_proc_t) (void * ctx, uint32_t, uint32_t);
 
 
 #endif
