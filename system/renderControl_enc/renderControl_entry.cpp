@@ -50,6 +50,7 @@ extern "C" {
 	GLint rcGetColorBufferDisplay(uint32_t colorBuffer, uint32_t* displayId);
 	GLint rcGetDisplayPose(uint32_t displayId, uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h);
 	GLint rcSetDisplayPose(uint32_t displayId, uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+	GLint rcSetColorBufferVulkanMode(uint32_t colorBuffer, uint32_t mode);
 };
 
 #ifndef GET_CONTEXT
@@ -326,5 +327,11 @@ GLint rcSetDisplayPose(uint32_t displayId, uint32_t x, uint32_t y, uint32_t w, u
 {
 	GET_CONTEXT;
 	return ctx->rcSetDisplayPose(ctx, displayId, x, y, w, h);
+}
+
+GLint rcSetColorBufferVulkanMode(uint32_t colorBuffer, uint32_t mode)
+{
+	GET_CONTEXT;
+	return ctx->rcSetColorBufferVulkanMode(ctx, colorBuffer, mode);
 }
 
