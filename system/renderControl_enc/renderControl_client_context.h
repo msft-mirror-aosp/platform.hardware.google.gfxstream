@@ -55,6 +55,7 @@ struct renderControl_client_context_t {
 	rcGetColorBufferDisplay_client_proc_t rcGetColorBufferDisplay;
 	rcGetDisplayPose_client_proc_t rcGetDisplayPose;
 	rcSetDisplayPose_client_proc_t rcSetDisplayPose;
+	rcSetColorBufferVulkanMode_client_proc_t rcSetColorBufferVulkanMode;
 	virtual ~renderControl_client_context_t() {}
 
 	typedef renderControl_client_context_t *CONTEXT_ACCESSOR_TYPE(void);
