@@ -389,7 +389,7 @@ static void updateHostColorBuffer(cb_handle_t* cb,
     if ((doLocked && is_rgb_format) ||
         (!grdma && (doLocked || !is_rgb_format))) {
         convertedBuf.resize(rgbSz);
-        to_send = convertedBuf.data();
+        to_send = &convertedBuf.front();
         send_buffer_size = rgbSz;
     }
 
