@@ -457,6 +457,8 @@ static void updateHostColorBuffer(cb_handle_t* cb,
 //
 // gralloc device functions (alloc interface)
 //
+static void gralloc_dump(struct alloc_device_t* /*dev*/, char* /*buff*/, int /*buff_len*/) {}
+
 static int gralloc_alloc(alloc_device_t* dev,
                          int w, int h, int format, int usage,
                          buffer_handle_t* pHandle, int* pStride)
@@ -1430,6 +1432,7 @@ static int gralloc_device_open(const hw_module_t* module,
 
         dev->device.alloc   = gralloc_alloc;
         dev->device.free    = gralloc_free;
+        dev->device.dump = gralloc_dump;
         pthread_mutex_init(&dev->lock, NULL);
 
         *device = &dev->device.common;
