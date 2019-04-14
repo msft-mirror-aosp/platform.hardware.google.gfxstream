@@ -20,6 +20,7 @@ ifneq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 $(call emugl-import,libandroidemu)
 
 LOCAL_HEADER_LIBRARIES += \
+    hwvulkan_headers \
     vulkan_headers \
 
 endif
