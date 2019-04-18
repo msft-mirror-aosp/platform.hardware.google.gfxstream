@@ -28,6 +28,7 @@ LOCAL_C_INCLUDES += \
     $(LOCAL_PATH)/../vulkan_enc \
 
 LOCAL_HEADER_LIBRARIES += \
+    hwvulkan_headers \
     vulkan_headers \
 
 endif
