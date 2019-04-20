@@ -1095,7 +1095,7 @@ static void entry_vkCmdSetDepthBias(
 }
 static void entry_vkCmdSetBlendConstants(
     VkCommandBuffer commandBuffer,
-    const float blendConstants)
+    const float blendConstants[4])
 {
     AEMU_SCOPED_TRACE("vkCmdSetBlendConstants");
     auto vkEnc = HostConnection::get()->vkEncoder();
