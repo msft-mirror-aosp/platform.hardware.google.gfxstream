@@ -473,7 +473,7 @@ public:
         float depthBiasSlopeFactor);
     void vkCmdSetBlendConstants(
     VkCommandBuffer commandBuffer,
-        const float blendConstants);
+        const float blendConstants[4]);
     void vkCmdSetDepthBounds(
     VkCommandBuffer commandBuffer,
         float minDepthBounds,

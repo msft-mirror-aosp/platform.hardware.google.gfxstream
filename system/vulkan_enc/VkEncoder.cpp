@@ -7137,7 +7137,7 @@ void VkEncoder::vkCmdSetDepthBias(
 
 void VkEncoder::vkCmdSetBlendConstants(
     VkCommandBuffer commandBuffer,
-    const float blendConstants)
+    const float blendConstants[4])
 {
     AEMU_SCOPED_TRACE("vkCmdSetBlendConstants encode");
     mImpl->log("start vkCmdSetBlendConstants");
