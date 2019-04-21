@@ -25,6 +25,12 @@
 
 #include "qemu_pipe.h"
 
+#ifdef __Fuchsia__
+#include <lib/zx/channel.h>
+#include <lib/zx/event.h>
+#include <lib/zx/vmo.h>
+#endif
+
 class QemuPipeStream : public IOStream {
 public:
     typedef enum { ERR_INVALID_SOCKET = -1000 } QemuPipeStreamError;
@@ -48,6 +54,11 @@ private:
     QEMU_PIPE_HANDLE m_sock;
     size_t m_bufsize;
     unsigned char *m_buf;
+#ifdef __Fuchsia__
+    zx::channel m_channel;
+    zx::event m_event;
+    zx::vmo m_vmo;
+#endif
     QemuPipeStream(QEMU_PIPE_HANDLE sock, size_t bufSize);
 };
 
