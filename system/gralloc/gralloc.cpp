@@ -506,10 +506,6 @@ static int gralloc_alloc(alloc_device_t* dev,
             } else if (usage & GRALLOC_USAGE_HW_VIDEO_ENCODER) {
                 // Camera-to-encoder is NV21
                 format = HAL_PIXEL_FORMAT_YCrCb_420_SP;
-            } else if ((usage & GRALLOC_USAGE_HW_CAMERA_MASK) ==
-                    GRALLOC_USAGE_HW_CAMERA_ZSL) {
-                // Camera-to-ZSL-queue is RGB_888
-                format = HAL_PIXEL_FORMAT_RGB_888;
             }
         }
 
@@ -543,11 +539,6 @@ static int gralloc_alloc(alloc_device_t* dev,
         case HAL_PIXEL_FORMAT_BGRA_8888:
             bpp = 4;
             glFormat = GL_RGBA;
-            glType = GL_UNSIGNED_BYTE;
-            break;
-        case HAL_PIXEL_FORMAT_RGB_888:
-            bpp = 3;
-            glFormat = GL_RGB;
             glType = GL_UNSIGNED_BYTE;
             break;
         case HAL_PIXEL_FORMAT_RGB_565:
