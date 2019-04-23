@@ -1,4 +1,4 @@
-source_set("goldfish_vulkan") {
+shared_library("vulkan_goldfish") {
   sources = [
     "android-emu/android/base/AlignedBuf.cpp",
     "android-emu/android/base/AlignedBuf.h",
@@ -83,6 +83,8 @@ source_set("goldfish_vulkan") {
     "-Wno-unused-variable",
     "-Wno-missing-field-initializers",
   ]
+
+  ldflags = [ "-static-libstdc++" ]
 
   if (target_os == "fuchsia") {
     sources += [ "fuchsia/port.cc" ]
