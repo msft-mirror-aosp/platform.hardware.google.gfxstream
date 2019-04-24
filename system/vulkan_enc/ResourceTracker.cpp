@@ -58,6 +58,7 @@ typedef struct VkImportMemoryBufferCollectionFUCHSIA {
 #ifdef VK_USE_PLATFORM_FUCHSIA
 
 #include <cutils/native_handle.h>
+#include <fuchsia/hardware/goldfish/control/c/fidl.h>
 #include <fuchsia/sysmem/cpp/fidl.h>
 #include <lib/fdio/directory.h>
 #include <lib/fdio/fd.h>
@@ -272,7 +273,6 @@ public:
         SubAlloc subAlloc;
         AHardwareBuffer* ahw = nullptr;
         zx_handle_t vmoHandle = ZX_HANDLE_INVALID;
-        uint32_t cbHandle = 0;
     };
 
     // custom guest-side structs for images/buffers because of AHardwareBuffer :((
@@ -284,7 +284,6 @@ public:
         VkDeviceMemory currentBacking = VK_NULL_HANDLE;
         VkDeviceSize currentBackingOffset = 0;
         VkDeviceSize currentBackingSize = 0;
-        uint32_t cbHandle = 0;
     };
 
     struct VkBuffer_Info {
@@ -363,10 +362,6 @@ public:
             AHardwareBuffer_release(memInfo.ahw);
         }
 
-        if (memInfo.cbHandle) {
-            (*mCloseColorBuffer)(memInfo.cbHandle);
-        }
-
         if (memInfo.vmoHandle != ZX_HANDLE_INVALID) {
             zx_handle_close(memInfo.vmoHandle);
         }
@@ -393,9 +388,6 @@ public:
         if (it == info_VkImage.end()) return;
 
         auto& imageInfo = it->second;
-        if (imageInfo.cbHandle) {
-            (*mCloseColorBuffer)(imageInfo.cbHandle);
-        }
 
         info_VkImage.erase(img);
     }
@@ -478,8 +470,7 @@ public:
                              uint8_t* ptr,
                              uint32_t memoryTypeIndex,
                              AHardwareBuffer* ahw = nullptr,
-                             zx_handle_t vmoHandle = ZX_HANDLE_INVALID,
-                             uint32_t cbHandle = 0) {
+                             zx_handle_t vmoHandle = ZX_HANDLE_INVALID) {
         AutoLock lock(mLock);
         auto& deviceInfo = info_VkDevice[device];
         auto& info = info_VkDeviceMemory[memory];
@@ -490,7 +481,6 @@ public:
         info.memoryTypeIndex = memoryTypeIndex;
         info.ahw = ahw;
         info.vmoHandle = vmoHandle;
-        info.cbHandle = cbHandle;
     }
 
     void setImageInfo(VkImage image,
@@ -574,11 +564,24 @@ public:
         }
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
-        zx_status_t status = fdio_service_connect(
-            "/svc/fuchsia.sysmem.Allocator",
-            mSysmemAllocator.NewRequest().TakeChannel().release());
-        if (status != ZX_OK) {
-            ALOGE("failed to connect to sysmem service, status %d", status);
+        if (mFeatureInfo->hasVulkan) {
+            int fd = open("/dev/class/goldfish-control/000", O_RDWR);
+            if (fd < 0) {
+                ALOGE("failed to open control device");
+                abort();
+            }
+            zx_status_t status = fdio_get_service_handle(fd, &mControlDevice);
+            if (status != ZX_OK) {
+                ALOGE("failed to get control service handle, status %d", status);
+                abort();
+            }
+            status = fuchsia_hardware_goldfish_control_DeviceConnectSysmem(
+                mControlDevice,
+                mSysmemAllocator.NewRequest().TakeChannel().release());
+            if (status != ZX_OK) {
+                ALOGE("failed to get sysmem connection, status %d", status);
+                abort();
+            }
         }
 #endif
     }
@@ -618,14 +621,6 @@ public:
             ++i;
         }
         return -1;
-    }
-
-    void setColorBufferFunctions(PFN_CreateColorBuffer create,
-                                 PFN_OpenColorBuffer open,
-                                 PFN_CloseColorBuffer close) {
-        mCreateColorBuffer = create;
-        mOpenColorBuffer = open;
-        mCloseColorBuffer = close;
     }
 
     void deviceMemoryTransform_tohost(
@@ -1318,10 +1313,9 @@ public:
         delete sysmem_collection;
     }
 
-    VkResult on_vkSetBufferCollectionConstraintsFUCHSIA(
-        void*, VkResult, VkDevice,
-        VkBufferCollectionFUCHSIA collection,
-        const VkImageCreateInfo* pImageInfo) {
+    void setBufferCollectionConstraints(fuchsia::sysmem::BufferCollectionSyncPtr* collection,
+                                        const VkImageCreateInfo* pImageInfo,
+                                        size_t min_size_bytes) {
         fuchsia::sysmem::BufferCollectionConstraints constraints = {};
         constraints.usage.vulkan = fuchsia::sysmem::vulkanUsageColorAttachment |
                                    fuchsia::sysmem::vulkanUsageTransferSrc |
@@ -1331,13 +1325,14 @@ public:
         constraints.has_buffer_memory_constraints = true;
         fuchsia::sysmem::BufferMemoryConstraints& buffer_constraints =
             constraints.buffer_memory_constraints;
-        buffer_constraints.min_size_bytes = pImageInfo->extent.width * pImageInfo->extent.height * 4;
+        buffer_constraints.min_size_bytes = min_size_bytes;
         buffer_constraints.max_size_bytes = 0xffffffff;
         buffer_constraints.physically_contiguous_required = false;
         buffer_constraints.secure_required = false;
         buffer_constraints.secure_permitted = false;
-        buffer_constraints.ram_domain_supported = true;
+        buffer_constraints.ram_domain_supported = false;
         buffer_constraints.cpu_domain_supported = false;
+        buffer_constraints.gpu_domain_supported = true;
         constraints.image_format_constraints_count = 1;
         fuchsia::sysmem::ImageFormatConstraints& image_constraints =
             constraints.image_format_constraints[0];
@@ -1359,8 +1354,18 @@ public:
         image_constraints.display_width_divisor = 1;
         image_constraints.display_height_divisor = 1;
 
-        auto sysmem_collection = reinterpret_cast<fuchsia::sysmem::BufferCollectionSyncPtr*>(collection);
-        (*sysmem_collection)->SetConstraints(true, constraints);
+        (*collection)->SetConstraints(true, constraints);
+    }
+
+    VkResult on_vkSetBufferCollectionConstraintsFUCHSIA(
+        void*, VkResult, VkDevice,
+        VkBufferCollectionFUCHSIA collection,
+        const VkImageCreateInfo* pImageInfo) {
+        auto sysmem_collection =
+            reinterpret_cast<fuchsia::sysmem::BufferCollectionSyncPtr*>(collection);
+        setBufferCollectionConstraints(
+            sysmem_collection, pImageInfo,
+            pImageInfo->extent.width * pImageInfo->extent.height * 4);
         return VK_SUCCESS;
     }
 
@@ -1613,8 +1618,6 @@ public:
         // and then we attach a new VkDeviceMemory
         // to the AHardwareBuffer on the host via an "import" operation.
         AHardwareBuffer* ahw = nullptr;
-        zx_handle_t vmo_handle = ZX_HANDLE_INVALID;
-        uint32_t cbHandle = 0;
 
         if (exportAllocateInfoPtr) {
             exportAhb =
@@ -1709,6 +1712,8 @@ public:
                 vk_append_struct(structChain, (vk_struct_common*)(&importCbInfo));
         }
 
+        zx_handle_t vmo_handle = ZX_HANDLE_INVALID;
+
         if (importBufferCollection) {
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
@@ -1735,35 +1740,105 @@ public:
             vmo_handle = importVmoInfoPtr->handle;
         }
 
-        if (vmo_handle != ZX_HANDLE_INVALID) {
-            uint32_t cb = 0;
-
 #ifdef VK_USE_PLATFORM_FUCHSIA
-            // TODO(reveman): Remove use of zx_vmo_read. Goldfish FIDL interface
-            // should provide a mechanism to query the color buffer ID associated
-            // with a VMO.
-            zx_status_t status = zx_vmo_read(vmo_handle, &cb, 0, sizeof(cb));
-            if (status != ZX_OK) {
-                ALOGE("failed to read color buffer name");
-                return VK_ERROR_INITIALIZATION_FAILED;
-            }
-#endif
+        if (vmo_handle == ZX_HANDLE_INVALID &&
+            !isHostVisibleMemoryTypeIndexForGuest(
+                &mHostVisibleMemoryVirtInfo, finalAllocInfo.memoryTypeIndex)) {
+            bool hasDedicatedImage = dedicatedAllocInfoPtr &&
+                (dedicatedAllocInfoPtr->image != VK_NULL_HANDLE);
+            VkImageCreateInfo imageCreateInfo = {};
 
-            if (cb) {
-                cbHandle = importCbInfo.colorBuffer = cb;
-                structChain =
-                    vk_append_struct(structChain, (vk_struct_common*)(&importCbInfo));
+            if (hasDedicatedImage) {
+                AutoLock lock(mLock);
+
+                auto it = info_VkImage.find(dedicatedAllocInfoPtr->image);
+                if (it == info_VkImage.end()) return VK_ERROR_INITIALIZATION_FAILED;
+                const auto& imageInfo = it->second;
+
+                imageCreateInfo = imageInfo.createInfo;
+            }
+
+            if (imageCreateInfo.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) {
+                fuchsia::sysmem::BufferCollectionTokenSyncPtr token;
+                zx_status_t status = mSysmemAllocator->AllocateSharedCollection(
+                    token.NewRequest());
+                if (status != ZX_OK) {
+                    ALOGE("AllocateSharedCollection failed: %d", status);
+                    abort();
+                }
+
+                fuchsia::sysmem::BufferCollectionSyncPtr collection;
+                status = mSysmemAllocator->BindSharedCollection(
+                    std::move(token), collection.NewRequest());
+                if (status != ZX_OK) {
+                    ALOGE("BindSharedCollection failed: %d", status);
+                    abort();
+                }
+                setBufferCollectionConstraints(&collection,
+                                               &imageCreateInfo,
+                                               finalAllocInfo.allocationSize);
+
+                fuchsia::sysmem::BufferCollectionInfo_2 info;
+                zx_status_t status2;
+                status = collection->WaitForBuffersAllocated(&status2, &info);
+                if (status == ZX_OK && status2 == ZX_OK) {
+                    if (!info.buffer_count) {
+                      ALOGE("WaitForBuffersAllocated returned invalid count: %d", status);
+                      abort();
+                    }
+                    vmo_handle = info.buffers[0].vmo.release();
+                } else {
+                    ALOGE("WaitForBuffersAllocated failed: %d %d", status, status2);
+                    abort();
+                }
+
+                collection->Close();
+
+                zx_handle_t vmo_copy;
+                status = zx_handle_duplicate(vmo_handle, ZX_RIGHT_SAME_RIGHTS, &vmo_copy);
+                if (status != ZX_OK) {
+                    ALOGE("Failed to duplicate VMO: %d", status);
+                    abort();
+                }
+                status = fuchsia_hardware_goldfish_control_DeviceCreateColorBuffer(
+                    mControlDevice,
+                    vmo_copy,
+                    imageCreateInfo.extent.width,
+                    imageCreateInfo.extent.height,
+                    fuchsia_hardware_goldfish_control_FormatType_BGRA,
+                    &status2);
+                if (status != ZX_OK || status2 != ZX_OK) {
+                    ALOGE("CreateColorBuffer failed: %d:%d", status, status2);
+                    abort();
+                }
             }
         }
+
+        if (vmo_handle != ZX_HANDLE_INVALID) {
+            zx_handle_t vmo_copy;
+            zx_status_t status = zx_handle_duplicate(vmo_handle,
+                                                     ZX_RIGHT_SAME_RIGHTS,
+                                                     &vmo_copy);
+            if (status != ZX_OK) {
+                ALOGE("Failed to duplicate VMO: %d", status);
+                abort();
+            }
+            zx_status_t status2 = ZX_OK;
+            status = fuchsia_hardware_goldfish_control_DeviceGetColorBuffer(
+                mControlDevice, vmo_copy, &status2, &importCbInfo.colorBuffer);
+            if (status != ZX_OK || status2 != ZX_OK) {
+                ALOGE("GetColorBuffer failed: %d:%d", status, status2);
+            }
+            structChain =
+                vk_append_struct(structChain, (vk_struct_common*)(&importCbInfo));
+        }
+#endif
 
         // TODO if (exportVmo) { }
 
         if (!isHostVisibleMemoryTypeIndexForGuest(
                 &mHostVisibleMemoryVirtInfo,
                 finalAllocInfo.memoryTypeIndex)) {
-            if (cbHandle) {
-                (*mOpenColorBuffer)(cbHandle);
-            }
             input_result =
                 enc->vkAllocateMemory(
                     device, &finalAllocInfo, pAllocator, pMemory);
@@ -1777,8 +1852,7 @@ public:
                 0, nullptr,
                 finalAllocInfo.memoryTypeIndex,
                 ahw,
-                vmo_handle,
-                cbHandle);
+                vmo_handle);
 
             return VK_SUCCESS;
         }
@@ -2101,8 +2175,6 @@ public:
         VkImage *pImage) {
         VkEncoder* enc = (VkEncoder*)context;
 
-        uint32_t cbHandle = 0;
-
         VkImageCreateInfo localCreateInfo = *pCreateInfo;
         VkNativeBufferANDROID localAnb;
         VkExternalMemoryImageCreateInfo localExtImgCi;
@@ -2142,12 +2214,6 @@ public:
 #endif
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
-        VkFuchsiaImageFormatFUCHSIA* extFuchsiaImageFormatPtr =
-        (VkFuchsiaImageFormatFUCHSIA*)
-        vk_find_struct(
-            (vk_struct_common*)pCreateInfo_mut,
-            VK_STRUCTURE_TYPE_FUCHSIA_IMAGE_FORMAT_FUCHSIA);
-
         VkBufferCollectionImageCreateInfoFUCHSIA* extBufferCollectionPtr =
         (VkBufferCollectionImageCreateInfoFUCHSIA*)
         vk_find_struct(
@@ -2184,78 +2250,46 @@ public:
         }
 #endif
 
-
 #ifdef VK_USE_PLATFORM_FUCHSIA
-        VkNativeBufferANDROID native_info = {
-            .sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID,
-            .pNext = NULL,
-        };
-        cb_handle_t native_handle(
-            0, 0, 0, 0, 0, 0, 0, 0, 0, FRAMEWORK_FORMAT_GL_COMPATIBLE);
+        if (extBufferCollectionPtr) {
+            auto collection = reinterpret_cast<fuchsia::sysmem::BufferCollectionSyncPtr*>(
+                extBufferCollectionPtr->collection);
+            uint32_t index = extBufferCollectionPtr->index;
+            zx_handle_t vmo_handle = ZX_HANDLE_INVALID;
 
-        if (pCreateInfo->usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) {
-            // Create color buffer.
-            cbHandle = (*mCreateColorBuffer)(pCreateInfo_mut->extent.width,
-                                             pCreateInfo_mut->extent.height,
-                                             0x1908 /*GL_RGBA*/);
-            native_handle.hostHandle = cbHandle;
-            native_info.handle = (uint32_t*)&native_handle;
-            native_info.stride = 0;
-            native_info.format = 1; // RGBA
-            native_info.usage = GRALLOC_USAGE_HW_FB;
-            if (pCreateInfo_mut->pNext) {
-                abort();
-            }
-            pCreateInfo_mut->pNext = &native_info;
-
-            bool is_physically_contiguous = false;
-            if (extBufferCollectionPtr) {
-               auto collection = reinterpret_cast<fuchsia::sysmem::BufferCollectionSyncPtr*>(
-                   extBufferCollectionPtr->collection);
-               fuchsia::sysmem::BufferCollectionInfo_2 info;
-               zx_status_t status2;
-               zx_status_t status = (*collection)->WaitForBuffersAllocated(&status2, &info);
-               if (status == ZX_OK && status2 == ZX_OK) {
-                   is_physically_contiguous =
-                       info.settings.has_image_format_constraints &&
-                       info.settings.buffer_settings.is_physically_contiguous;
-               } else {
-                   ALOGE("WaitForBuffersAllocated failed: %d %d", status, status2);
-               }
-            } else if (extFuchsiaImageFormatPtr) {
-                auto imageFormat = static_cast<const uint8_t*>(
-                    extFuchsiaImageFormatPtr->imageFormat);
-                size_t imageFormatSize =
-                    extFuchsiaImageFormatPtr->imageFormatSize;
-                std::vector<uint8_t> message(
-                    imageFormat, imageFormat + imageFormatSize);
-                fidl::Message msg(fidl::BytePart(message.data(),
-                                                 imageFormatSize,
-                                                 imageFormatSize),
-                                  fidl::HandlePart());
-                const char* err_msg = nullptr;
-                zx_status_t status = msg.Decode(
-                    fuchsia::sysmem::SingleBufferSettings::FidlType, &err_msg);
-                if (status != ZX_OK) {
-                    ALOGE("Invalid SingleBufferSettings: %d %s", status,
-                          err_msg);
-                    abort();
+            fuchsia::sysmem::BufferCollectionInfo_2 info;
+            zx_status_t status2;
+            zx_status_t status = (*collection)->WaitForBuffersAllocated(&status2, &info);
+            if (status == ZX_OK && status2 == ZX_OK) {
+                if (index < info.buffer_count) {
+                    vmo_handle = info.buffers[index].vmo.release();
                 }
-                fidl::Decoder decoder(std::move(msg));
-                fuchsia::sysmem::SingleBufferSettings settings;
-                fuchsia::sysmem::SingleBufferSettings::Decode(
-                    &decoder, &settings, 0);
-                is_physically_contiguous =
-                    settings.buffer_settings.is_physically_contiguous;
+            } else {
+                ALOGE("WaitForBuffersAllocated failed: %d %d", status, status2);
             }
 
-            if (is_physically_contiguous) {
-                // Replace the local image pCreateInfo_mut format
-                // with the color buffer format if physically contiguous
-                // and a potential display layer candidate.
-                // TODO(reveman): Remove this after adding BGRA color
-                // buffer support.
-                pCreateInfo_mut->format = VK_FORMAT_R8G8B8A8_UNORM;
+            if (vmo_handle != ZX_HANDLE_INVALID) {
+                zx_status_t status2 = ZX_OK;
+                status = fuchsia_hardware_goldfish_control_DeviceCreateColorBuffer(
+                    mControlDevice,
+                    vmo_handle,
+                    pCreateInfo_mut->extent.width,
+                    pCreateInfo_mut->extent.height,
+                    fuchsia_hardware_goldfish_control_FormatType_BGRA,
+                    &status2);
+                if (status != ZX_OK || status2 != ZX_OK) {
+                    ALOGE("CreateColorBuffer failed: %d:%d", status, status2);
+                }
+            }
+        }
+
+        // Allow external memory for all color attachments on fuchsia.
+        if (pCreateInfo_mut->usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) {
+            if (!extImgCiPtr) {
+                localExtImgCi.sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO;
+                localExtImgCi.pNext = nullptr;
+                localExtImgCi.handleTypes = ~0; // handle type just needs to be non-zero
+                extImgCiPtr = &localExtImgCi;
             }
         }
 #endif
@@ -2274,7 +2308,6 @@ public:
         info.device = device;
         info.createInfo = *pCreateInfo_mut;
         info.createInfo.pNext = nullptr;
-        info.cbHandle = cbHandle;
 
         if (!extImgCiPtr) return res;
 
@@ -2401,42 +2434,6 @@ public:
         void* context, VkResult,
         VkDevice device, VkImage image, VkDeviceMemory memory,
         VkDeviceSize memoryOffset) {
-#ifdef VK_USE_PLATFORM_FUCHSIA
-        auto imageIt = info_VkImage.find(image);
-        if (imageIt == info_VkImage.end()) {
-            return VK_ERROR_INITIALIZATION_FAILED;
-        }
-        auto& imageInfo = imageIt->second;
-
-        if (imageInfo.cbHandle) {
-            auto memoryIt = info_VkDeviceMemory.find(memory);
-            if (memoryIt == info_VkDeviceMemory.end()) {
-                return VK_ERROR_INITIALIZATION_FAILED;
-            }
-            auto& memoryInfo = memoryIt->second;
-
-            zx_status_t status;
-            if (memoryInfo.vmoHandle == ZX_HANDLE_INVALID) {
-                status = zx_vmo_create(memoryInfo.allocationSize, 0,
-                                       &memoryInfo.vmoHandle);
-                if (status != ZX_OK) {
-                    ALOGE("%s: failed to alloc vmo", __func__);
-                    abort();
-                }
-            }
-            // TODO(reveman): Remove use of zx_vmo_write. Sysmem
-            // and goldfish pipe driver should manage this association.
-            status = zx_vmo_write(memoryInfo.vmoHandle, &imageInfo.cbHandle,
-                                  0, sizeof(imageInfo.cbHandle));
-            if (status != ZX_OK) {
-                ALOGE("%s: failed writing color buffer id to vmo", __func__);
-                abort();
-            }
-            // Color buffer backed images are already bound.
-            return VK_SUCCESS;
-        }
-#endif
-
         VkEncoder* enc = (VkEncoder*)context;
         return enc->vkBindImageMemory(device, image, memory, memoryOffset);
     }
@@ -3285,9 +3282,6 @@ private:
     HostVisibleMemoryVirtualizationInfo mHostVisibleMemoryVirtInfo;
     std::unique_ptr<EmulatorFeatureInfo> mFeatureInfo;
     std::unique_ptr<GoldfishAddressSpaceBlockProvider> mGoldfishAddressSpaceBlockProvider;
-    PFN_CreateColorBuffer mCreateColorBuffer;
-    PFN_OpenColorBuffer mOpenColorBuffer;
-    PFN_CloseColorBuffer mCloseColorBuffer;
 
     std::vector<VkExtensionProperties> mHostInstanceExtensions;
     std::vector<VkExtensionProperties> mHostDeviceExtensions;
@@ -3295,6 +3289,7 @@ private:
     int mSyncDeviceFd = -1;
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
+    zx_handle_t mControlDevice = ZX_HANDLE_INVALID;
     fuchsia::sysmem::AllocatorSyncPtr mSysmemAllocator;
 #endif
 };
@@ -3378,13 +3373,6 @@ bool ResourceTracker::hasInstanceExtension(VkInstance instance, const std::strin
 }
 bool ResourceTracker::hasDeviceExtension(VkDevice device, const std::string &name) const {
     return mImpl->hasDeviceExtension(device, name);
-}
-
-void ResourceTracker::setColorBufferFunctions(
-    PFN_CreateColorBuffer create,
-    PFN_OpenColorBuffer open,
-    PFN_CloseColorBuffer close) {
-    mImpl->setColorBufferFunctions(create, open, close);
 }
 
 VkResult ResourceTracker::on_vkEnumerateInstanceExtensionProperties(
