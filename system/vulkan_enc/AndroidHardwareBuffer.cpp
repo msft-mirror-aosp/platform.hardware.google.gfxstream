@@ -59,8 +59,8 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
     VkAndroidHardwareBufferPropertiesANDROID* pProperties) {
 
     VkAndroidHardwareBufferFormatPropertiesANDROID* ahbFormatProps =
-        (VkAndroidHardwareBufferFormatPropertiesANDROID*)vk_find_struct(
-            (vk_struct_common*)pProperties->pNext,
+        vk_find_struct<VkAndroidHardwareBufferFormatPropertiesANDROID>(
+            pProperties,
             VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_PROPERTIES_ANDROID);
 
     if (ahbFormatProps) {
