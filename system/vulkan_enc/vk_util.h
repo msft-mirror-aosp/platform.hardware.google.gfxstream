@@ -215,28 +215,11 @@ vk_init_struct_chain(vk_struct_common* start)
 }
 
 static inline vk_struct_common*
-vk_last_struct_chain(vk_struct_common* i)
-{
-    for (int n = 1000000; n > 0; --n) {
-        vk_struct_common* next = i->pNext;
-        if (next) {
-            i = next;
-        } else {
-            return i;
-        }
-    }
-
-    ::abort();  // crash on loops in the chain
-    return NULL;
-}
-
-static inline vk_struct_common*
 vk_append_struct(vk_struct_common* current, vk_struct_common* next)
 {
-    vk_struct_common* last = vk_last_struct_chain(current);
-    last->pNext = next;
-    next->pNext = nullptr;
-    return current;
+   current->pNext = next;
+   next->pNext = nullptr;
+   return next;
 }
 
 #endif /* VK_UTIL_H */
