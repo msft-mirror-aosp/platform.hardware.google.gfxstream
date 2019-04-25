@@ -67,7 +67,7 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
         AHardwareBuffer_Desc desc;
         AHardwareBuffer_describe(buffer, &desc);
 
-       uint64_t gpu_usage =
+       const uint64_t gpu_usage =
           AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE |
           AHARDWAREBUFFER_USAGE_GPU_COLOR_OUTPUT |
           AHARDWAREBUFFER_USAGE_GPU_DATA_BUFFER;
