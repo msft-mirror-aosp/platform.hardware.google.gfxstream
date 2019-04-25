@@ -2178,6 +2178,8 @@ public:
             if (extFormatAndroidPtr->externalFormat) {
                 pCreateInfo_mut->format =
                     vk_format_from_android(extFormatAndroidPtr->externalFormat);
+                if (pCreateInfo_mut->format == VK_FORMAT_UNDEFINED)
+                    return VK_ERROR_VALIDATION_FAILED_EXT;
             }
         }
 #endif
