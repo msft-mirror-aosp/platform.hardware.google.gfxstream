@@ -33,6 +33,10 @@ struct vk_struct_common {
     struct vk_struct_common *pNext;
 };
 
+struct vk_struct_chain_iterator {
+    vk_struct_common* value;
+};
+
 #define vk_foreach_struct(__iter, __start) \
    for (struct vk_struct_common *__iter = (struct vk_struct_common *)(__start); \
         __iter; __iter = __iter->pNext)
@@ -221,36 +225,32 @@ uint32_t vk_get_version_override(void);
 #define VK_ENUM_OFFSET(__enum) \
    ((__enum) >= VK_EXT_OFFSET ? ((__enum) % 1000) : (__enum))
 
-static inline vk_struct_common*
-vk_init_struct_chain(vk_struct_common* start)
-{
-   start->pNext = nullptr;
-   return start;
+template <class T> T vk_make_orphan_copy(const T& vk_struct) {
+    T copy = vk_struct;
+    copy.pNext = NULL;
+    return copy;
 }
 
-static inline vk_struct_common*
-vk_last_struct_chain(vk_struct_common* i)
+template <class T> vk_struct_chain_iterator vk_make_chain_iterator(T* vk_struct)
 {
-    for (int n = 1000000; n > 0; --n) {
-        vk_struct_common* next = i->pNext;
-        if (next) {
-            i = next;
-        } else {
-            return i;
-        }
+    vk_is_vk_struct(vk_struct);
+    vk_struct_chain_iterator result = { reinterpret_cast<vk_struct_common*>(vk_struct) };
+    return result;
+}
+
+template <class T> void vk_append_struct(vk_struct_chain_iterator* i, T* vk_struct)
+{
+    vk_is_vk_struct(vk_struct);
+
+    vk_struct_common* p = i->value;
+    if (p->pNext) {
+        ::abort();
     }
 
-    ::abort();  // crash on loops in the chain
-    return NULL;
-}
+    p->pNext = reinterpret_cast<vk_struct_common *>(vk_struct);
+    vk_struct->pNext = NULL;
 
-static inline vk_struct_common*
-vk_append_struct(vk_struct_common* current, vk_struct_common* next)
-{
-    vk_struct_common* last = vk_last_struct_chain(current);
-    last->pNext = next;
-    next->pNext = nullptr;
-    return current;
+    *i = vk_make_chain_iterator(vk_struct);
 }
 
 #endif /* VK_UTIL_H */
