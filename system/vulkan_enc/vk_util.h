@@ -194,8 +194,8 @@ __vk_find_struct(void *start, VkStructureType sType)
 
 template <class T> void vk_is_vk_struct(T *s)
 {
-    static_assert(sizeof(s->sType) == sizeof(VkStructureType));
-    static_assert(sizeof(s->pNext) == sizeof(void*));
+    static_assert(sizeof(s->sType) == sizeof(VkStructureType), "Vulkan structures has the sType field of type VkStructureType");
+    static_assert(sizeof(s->pNext) == sizeof(void*), "Vulkan structures has the pNext field of void*");
 }
 
 template <class T, class H> T* vk_find_struct(H* head, VkStructureType sType)
