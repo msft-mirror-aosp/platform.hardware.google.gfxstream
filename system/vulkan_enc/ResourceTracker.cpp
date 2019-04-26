@@ -1536,7 +1536,9 @@ public:
 
         VkEncoder* enc = (VkEncoder*)context;
 
-        VkMemoryAllocateInfo finalAllocInfo = *pAllocateInfo;
+        VkMemoryAllocateInfo finalAllocInfo = vk_make_orphan_copy(*pAllocateInfo);
+        vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&finalAllocInfo);
+
         VkMemoryDedicatedAllocateInfo dedicatedAllocInfo;
         VkImportColorBufferGOOGLE importCbInfo = {
             VK_STRUCTURE_TYPE_IMPORT_COLOR_BUFFER_GOOGLE, 0,
@@ -1544,11 +1546,6 @@ public:
         // VkImportPhysicalAddressGOOGLE importPhysAddrInfo = {
         //     VK_STRUCTURE_TYPE_IMPORT_PHYSICAL_ADDRESS_GOOGLE, 0,
         // };
-
-        vk_struct_common* structChain =
-        structChain = vk_init_struct_chain(
-            (vk_struct_common*)(&finalAllocInfo));
-        structChain->pNext = nullptr;
 
         const VkExportMemoryAllocateInfo* exportAllocateInfoPtr =
             vk_find_struct<VkExportMemoryAllocateInfo>(pAllocateInfo,
@@ -1592,12 +1589,8 @@ public:
 
         if (shouldPassThroughDedicatedAllocInfo &&
             dedicatedAllocInfoPtr) {
-            dedicatedAllocInfo = *dedicatedAllocInfoPtr;
-            structChain->pNext =
-                (vk_struct_common*)(&dedicatedAllocInfo);
-            structChain =
-                (vk_struct_common*)(&dedicatedAllocInfo);
-            structChain->pNext = nullptr;
+            dedicatedAllocInfo = vk_make_orphan_copy(*dedicatedAllocInfoPtr);
+            vk_append_struct(&structChainIter, &dedicatedAllocInfo);
         }
 
         // State needed for import/export.
@@ -1708,8 +1701,7 @@ public:
             const cb_handle_t* cb_handle =
                 reinterpret_cast<const cb_handle_t*>(handle);
             importCbInfo.colorBuffer = cb_handle->hostHandle;
-            structChain =
-                vk_append_struct(structChain, (vk_struct_common*)(&importCbInfo));
+            vk_append_struct(&structChainIter, &importCbInfo);
         }
 
         zx_handle_t vmo_handle = ZX_HANDLE_INVALID;
@@ -1829,8 +1821,7 @@ public:
             if (status != ZX_OK || status2 != ZX_OK) {
                 ALOGE("GetColorBuffer failed: %d:%d", status, status2);
             }
-            structChain =
-                vk_append_struct(structChain, (vk_struct_common*)(&importCbInfo));
+            vk_append_struct(&structChainIter, &importCbInfo);
         }
 #endif
 
@@ -2171,38 +2162,47 @@ public:
         VkImage *pImage) {
         VkEncoder* enc = (VkEncoder*)context;
 
-        VkImageCreateInfo localCreateInfo = *pCreateInfo;
-        VkNativeBufferANDROID localAnb;
+        VkImageCreateInfo localCreateInfo = vk_make_orphan_copy(*pCreateInfo);
+        vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&localCreateInfo);
         VkExternalMemoryImageCreateInfo localExtImgCi;
-
-        VkImageCreateInfo* pCreateInfo_mut = &localCreateInfo;
-
-        const VkNativeBufferANDROID* anbInfoPtr =
-            vk_find_struct<VkNativeBufferANDROID>(
-                pCreateInfo,
-                VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID);
-
-        if (anbInfoPtr) {
-            localAnb = *anbInfoPtr;
-        }
 
         const VkExternalMemoryImageCreateInfo* extImgCiPtr =
             vk_find_struct<VkExternalMemoryImageCreateInfo>(
                 pCreateInfo,
                 VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO);
-
         if (extImgCiPtr) {
-            localExtImgCi = *extImgCiPtr;
+            localExtImgCi = vk_make_orphan_copy(*extImgCiPtr);
+            vk_append_struct(&structChainIter, &localExtImgCi);
         }
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
+        VkNativeBufferANDROID localAnb;
+        const VkNativeBufferANDROID* anbInfoPtr =
+            vk_find_struct<VkNativeBufferANDROID>(
+                pCreateInfo,
+                VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID);
+        if (anbInfoPtr) {
+            localAnb = vk_make_orphan_copy(*anbInfoPtr);
+            vk_append_struct(&structChainIter, &localAnb);
+        }
+
         VkExternalFormatANDROID localExtFormatAndroid;
         const VkExternalFormatANDROID* extFormatAndroidPtr =
             vk_find_struct<VkExternalFormatANDROID>(
                 pCreateInfo,
                 VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID);
         if (extFormatAndroidPtr) {
-            localExtFormatAndroid = *extFormatAndroidPtr;
+            localExtFormatAndroid = vk_make_orphan_copy(*extFormatAndroidPtr);
+
+            // Do not append external format android;
+            // instead, replace the local image localCreateInfo format
+            // with the corresponding Vulkan format
+            if (extFormatAndroidPtr->externalFormat) {
+                localCreateInfo.format =
+                    vk_format_from_android(extFormatAndroidPtr->externalFormat);
+                if (localCreateInfo.format == VK_FORMAT_UNDEFINED)
+                    return VK_ERROR_VALIDATION_FAILED_EXT;
+            }
         }
 #endif
 
@@ -2211,38 +2211,6 @@ public:
             vk_find_struct<VkBufferCollectionImageCreateInfoFUCHSIA>(
                 pCreateInfo,
                 VK_STRUCTURE_TYPE_BUFFER_COLLECTION_IMAGE_CREATE_INFO_FUCHSIA);
-#endif
-
-        vk_struct_common* structChain =
-            vk_init_struct_chain((vk_struct_common*)pCreateInfo_mut);
-
-        if (extImgCiPtr) {
-            structChain =
-                vk_append_struct(
-                    structChain, (vk_struct_common*)(&localExtImgCi));
-        }
-
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
-        if (anbInfoPtr) {
-            structChain =
-                vk_append_struct(
-                    structChain, (vk_struct_common*)(&localAnb));
-        }
-
-        if (extFormatAndroidPtr) {
-            // Do not append external format android;
-            // instead, replace the local image pCreateInfo_mut format
-            // with the corresponding Vulkan format
-            if (extFormatAndroidPtr->externalFormat) {
-                pCreateInfo_mut->format =
-                    vk_format_from_android(extFormatAndroidPtr->externalFormat);
-                if (pCreateInfo_mut->format == VK_FORMAT_UNDEFINED)
-                    return VK_ERROR_VALIDATION_FAILED_EXT;
-            }
-        }
-#endif
-
-#ifdef VK_USE_PLATFORM_FUCHSIA
         if (extBufferCollectionPtr) {
             auto collection = reinterpret_cast<fuchsia::sysmem::BufferCollectionSyncPtr*>(
                 extBufferCollectionPtr->collection);
@@ -2265,8 +2233,8 @@ public:
                 status = fuchsia_hardware_goldfish_control_DeviceCreateColorBuffer(
                     mControlDevice,
                     vmo_handle,
-                    pCreateInfo_mut->extent.width,
-                    pCreateInfo_mut->extent.height,
+                    localCreateInfo.extent.width,
+                    localCreateInfo.extent.height,
                     fuchsia_hardware_goldfish_control_FormatType_BGRA,
                     &status2);
                 if (status != ZX_OK || status2 != ZX_OK) {
@@ -2276,17 +2244,17 @@ public:
         }
 
         // Allow external memory for all color attachments on fuchsia.
-        if (pCreateInfo_mut->usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) {
+        if (localCreateInfo.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) {
             if (!extImgCiPtr) {
                 localExtImgCi.sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO;
                 localExtImgCi.pNext = nullptr;
                 localExtImgCi.handleTypes = ~0; // handle type just needs to be non-zero
-                extImgCiPtr = &localExtImgCi;
+                extImgCiPtr = &localExtImgCi;   // no vk_append_struct required
             }
         }
 #endif
 
-        VkResult res = enc->vkCreateImage(device, pCreateInfo_mut, pAllocator, pImage);
+        VkResult res = enc->vkCreateImage(device, &localCreateInfo, pAllocator, pImage);
 
         if (res != VK_SUCCESS) return res;
 
@@ -2298,7 +2266,7 @@ public:
         auto& info = it->second;
 
         info.device = device;
-        info.createInfo = *pCreateInfo_mut;
+        info.createInfo = *pCreateInfo;
         info.createInfo.pNext = nullptr;
 
         if (!extImgCiPtr) return res;
@@ -2316,27 +2284,16 @@ public:
         const VkAllocationCallbacks* pAllocator,
         VkSamplerYcbcrConversion* pYcbcrConversion) {
 
-        VkSamplerYcbcrConversionCreateInfo localCreateInfo = *pCreateInfo;
-        VkSamplerYcbcrConversionCreateInfo* pCreateInfo_mut = &localCreateInfo;
+        VkSamplerYcbcrConversionCreateInfo localCreateInfo = vk_make_orphan_copy(*pCreateInfo);
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
-        VkExternalFormatANDROID localExtFormatAndroid;
         const VkExternalFormatANDROID* extFormatAndroidPtr =
             vk_find_struct<VkExternalFormatANDROID>(
                 pCreateInfo,
                 VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID);
         if (extFormatAndroidPtr) {
-            localExtFormatAndroid = *extFormatAndroidPtr;
-        }
-#endif
-
-        vk_struct_common* structChain =
-            vk_init_struct_chain((vk_struct_common*)pCreateInfo_mut);
-
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
-        if (extFormatAndroidPtr) {
             if (extFormatAndroidPtr->externalFormat) {
-                pCreateInfo_mut->format =
+                localCreateInfo.format =
                     vk_format_from_android(extFormatAndroidPtr->externalFormat);
             }
         }
@@ -2344,7 +2301,7 @@ public:
 
         VkEncoder* enc = (VkEncoder*)context;
         return enc->vkCreateSamplerYcbcrConversion(
-            device, pCreateInfo, pAllocator, pYcbcrConversion);
+            device, &localCreateInfo, pAllocator, pYcbcrConversion);
     }
 
     VkResult on_vkCreateSamplerYcbcrConversionKHR(
@@ -2354,33 +2311,24 @@ public:
         const VkAllocationCallbacks* pAllocator,
         VkSamplerYcbcrConversion* pYcbcrConversion) {
 
-        VkSamplerYcbcrConversionCreateInfo localCreateInfo = *pCreateInfo;
-        VkSamplerYcbcrConversionCreateInfo* pCreateInfo_mut = &localCreateInfo;
+        VkSamplerYcbcrConversionCreateInfo localCreateInfo = vk_make_orphan_copy(*pCreateInfo);
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
-        VkExternalFormatANDROID localExtFormatAndroid;
         const VkExternalFormatANDROID* extFormatAndroidPtr =
             vk_find_struct<VkExternalFormatANDROID>(
                 pCreateInfo,
                 VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID);
         if (extFormatAndroidPtr) {
-            localExtFormatAndroid = *extFormatAndroidPtr;
-        }
-#endif
-
-        vk_struct_common* structChain =
-            vk_init_struct_chain((vk_struct_common*)pCreateInfo_mut);
-
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
-        if (extFormatAndroidPtr) {
-            pCreateInfo_mut->format =
-                vk_format_from_android(extFormatAndroidPtr->externalFormat);
+            if (extFormatAndroidPtr->externalFormat) {
+                localCreateInfo.format =
+                    vk_format_from_android(extFormatAndroidPtr->externalFormat);
+            }
         }
 #endif
 
         VkEncoder* enc = (VkEncoder*)context;
         return enc->vkCreateSamplerYcbcrConversionKHR(
-            device, pCreateInfo, pAllocator, pYcbcrConversion);
+            device, &localCreateInfo, pAllocator, pYcbcrConversion);
     }
 
     void on_vkDestroyImage(
