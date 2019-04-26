@@ -569,20 +569,7 @@ int OpenDevice(const hw_module_t* /*module*/,
 class VulkanDevice {
 public:
     VulkanDevice() {
-        goldfish_vk::ResourceTracker::get()->setColorBufferFunctions(
-            [](uint32_t width, uint32_t height, uint32_t format) {
-                VK_HOST_CONNECTION((uint32_t)0)
-                uint32_t r = rcEnc->rcCreateColorBuffer(rcEnc, width, height, format);
-                return r;
-            },
-            [](uint32_t id) {
-                VK_HOST_CONNECTION()
-                rcEnc->rcOpenColorBuffer(rcEnc, id);
-            },
-            [](uint32_t id){
-                VK_HOST_CONNECTION()
-                rcEnc->rcCloseColorBuffer(rcEnc, id);
-            });
+        goldfish_vk::ResourceTracker::get();
     }
 
     static VulkanDevice& GetInstance() {
