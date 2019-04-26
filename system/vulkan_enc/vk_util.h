@@ -192,11 +192,24 @@ __vk_find_struct(void *start, VkStructureType sType)
    return NULL;
 }
 
-#define vk_find_struct(__start, __sType) \
-   __vk_find_struct((__start), __sType)
+template <class T> void vk_is_vk_struct(T *s)
+{
+    static_assert(sizeof(s->sType) == sizeof(VkStructureType));
+    static_assert(sizeof(s->pNext) == sizeof(void*));
+}
 
-#define vk_find_struct_const(__start, __sType) \
-   (const void *)__vk_find_struct((void *)(__start), __sType)
+template <class T, class H> T* vk_find_struct(H* head, VkStructureType sType)
+{
+    vk_is_vk_struct(head);
+    return static_cast<T*>(__vk_find_struct(static_cast<void*>(head), sType));
+}
+
+template <class T, class H> const T* vk_find_struct(const H* head, VkStructureType sType)
+{
+    vk_is_vk_struct(head);
+    return static_cast<const T*>(__vk_find_struct(const_cast<void*>(static_cast<const void*>(head)),
+                                 sType));
+}
 
 uint32_t vk_get_driver_version(void);
 
