@@ -334,6 +334,13 @@ public:
         VkCommandBuffer commandBuffer,
         VkCommandBufferResetFlags flags);
 
+    VkResult on_vkCreateImageView(
+        void* context, VkResult input_result,
+        VkDevice device,
+        const VkImageViewCreateInfo* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkImageView* pView);
+
     bool isMemoryTypeHostVisible(VkDevice device, uint32_t typeIndex) const;
     uint8_t* getMappedPointer(VkDeviceMemory memory);
     VkDeviceSize getMappedSize(VkDeviceMemory memory);
