@@ -76,7 +76,7 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
             return VK_ERROR_INVALID_EXTERNAL_HANDLE;
         }
 
-        ahbFormatProps->format = VK_FORMAT_UNDEFINED;
+        ahbFormatProps->format = vk_format_from_android(desc.format);
         ahbFormatProps->externalFormat = desc.format;
 
         // The formatFeatures member must include
