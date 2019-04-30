@@ -3122,6 +3122,32 @@ public:
         return VK_SUCCESS;
     }
 
+    VkResult on_vkCreateImageView(
+        void* context, VkResult input_result,
+        VkDevice device,
+        const VkImageViewCreateInfo* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkImageView* pView) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+        (void)input_result;
+
+        VkImageViewCreateInfo localCreateInfo = vk_make_orphan_copy(*pCreateInfo);
+
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        const VkExternalFormatANDROID* extFormatAndroidPtr =
+            vk_find_struct<VkExternalFormatANDROID>(pCreateInfo);
+        if (extFormatAndroidPtr) {
+            if (extFormatAndroidPtr->externalFormat) {
+                localCreateInfo.format =
+                    vk_format_from_android(extFormatAndroidPtr->externalFormat);
+            }
+        }
+#endif
+
+        return enc->vkCreateImageView(device, &localCreateInfo, pAllocator, pView);
+    }
+
     uint32_t getApiVersionFromInstance(VkInstance instance) const {
         AutoLock lock(mLock);
         uint32_t api = kMinApiVersion;
@@ -3761,6 +3787,16 @@ VkResult ResourceTracker::on_vkResetCommandBuffer(
     VkCommandBufferResetFlags flags) {
     return mImpl->on_vkResetCommandBuffer(
         context, input_result, commandBuffer, flags);
+}
+
+VkResult ResourceTracker::on_vkCreateImageView(
+    void* context, VkResult input_result,
+    VkDevice device,
+    const VkImageViewCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkImageView* pView) {
+    return mImpl->on_vkCreateImageView(
+        context, input_result, device, pCreateInfo, pAllocator, pView);
 }
 
 void ResourceTracker::deviceMemoryTransform_tohost(
