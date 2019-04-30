@@ -101,7 +101,10 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
         ahbFormatProps->samplerYcbcrConversionComponents.b = VK_COMPONENT_SWIZZLE_IDENTITY;
         ahbFormatProps->samplerYcbcrConversionComponents.a = VK_COMPONENT_SWIZZLE_IDENTITY;
 
-        ahbFormatProps->suggestedYcbcrModel = VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_601;
+        ahbFormatProps->suggestedYcbcrModel =
+            android_format_is_yuv(desc.format) ?
+                VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_601 :
+                VK_SAMPLER_YCBCR_MODEL_CONVERSION_RGB_IDENTITY;
         ahbFormatProps->suggestedYcbcrRange = VK_SAMPLER_YCBCR_RANGE_ITU_FULL;
 
         ahbFormatProps->suggestedXChromaOffset = VK_CHROMA_LOCATION_MIDPOINT;
