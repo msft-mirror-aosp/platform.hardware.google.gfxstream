@@ -14,6 +14,7 @@
 // limitations under the License.
 
 #include "ResourceTracker.h"
+#include "goldfish_vk_private_defs.h"
 
 #include "../OpenglSystemCommon/EmulatorFeatureInfo.h"
 
@@ -25,31 +26,6 @@ typedef uint32_t zx_handle_t;
 #define ZX_HANDLE_INVALID         ((zx_handle_t)0)
 void zx_handle_close(zx_handle_t) { }
 void zx_event_create(int, zx_handle_t*) { }
-
-typedef struct VkImportMemoryZirconHandleInfoFUCHSIA {
-    VkStructureType                       sType;
-    const void*                           pNext;
-    VkExternalMemoryHandleTypeFlagBits    handleType;
-    uint32_t                              handle;
-} VkImportMemoryZirconHandleInfoFUCHSIA;
-
-typedef uint32_t VkBufferCollectionFUCHSIA;
-
-typedef struct VkImportMemoryBufferCollectionFUCHSIA {
-    VkStructureType              sType;
-    const void*                  pNext;
-    VkBufferCollectionFUCHSIA    collection;
-    uint32_t                     index;
-} VkImportMemoryBufferCollectionFUCHSIA;
-
-#define VK_STRUCTURE_TYPE_IMPORT_MEMORY_BUFFER_COLLECTION_FUCHSIA \
-    ((VkStructureType)1001000000)
-#define VK_STRUCTURE_TYPE_TEMP_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA \
-    ((VkStructureType)1001000000)
-#define VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA \
-    ((VkStructureType)0x00000800)
-#define VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA \
-    ((VkStructureType)0x00000020)
 
 #include "AndroidHardwareBuffer.h"
 
@@ -1548,24 +1524,19 @@ public:
         // };
 
         const VkExportMemoryAllocateInfo* exportAllocateInfoPtr =
-            vk_find_struct<VkExportMemoryAllocateInfo>(pAllocateInfo,
-                VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO);
+            vk_find_struct<VkExportMemoryAllocateInfo>(pAllocateInfo);
 
         const VkImportAndroidHardwareBufferInfoANDROID* importAhbInfoPtr =
-            vk_find_struct<VkImportAndroidHardwareBufferInfoANDROID>(pAllocateInfo,
-                VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID);
+            vk_find_struct<VkImportAndroidHardwareBufferInfoANDROID>(pAllocateInfo);
 
         const VkImportMemoryBufferCollectionFUCHSIA* importBufferCollectionInfoPtr =
-            vk_find_struct<VkImportMemoryBufferCollectionFUCHSIA>(pAllocateInfo,
-                VK_STRUCTURE_TYPE_IMPORT_MEMORY_BUFFER_COLLECTION_FUCHSIA);
+            vk_find_struct<VkImportMemoryBufferCollectionFUCHSIA>(pAllocateInfo);
 
         const VkImportMemoryZirconHandleInfoFUCHSIA* importVmoInfoPtr =
-            vk_find_struct<VkImportMemoryZirconHandleInfoFUCHSIA>(pAllocateInfo,
-                VK_STRUCTURE_TYPE_TEMP_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA);
+            vk_find_struct<VkImportMemoryZirconHandleInfoFUCHSIA>(pAllocateInfo);
 
         const VkMemoryDedicatedAllocateInfo* dedicatedAllocInfoPtr =
-            vk_find_struct<VkMemoryDedicatedAllocateInfo>(pAllocateInfo,
-                VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO);
+            vk_find_struct<VkMemoryDedicatedAllocateInfo>(pAllocateInfo);
 
         bool shouldPassThroughDedicatedAllocInfo =
             !exportAllocateInfoPtr &&
@@ -2116,8 +2087,7 @@ public:
         transformExternalResourceMemoryRequirementsForGuest(&reqs2->memoryRequirements);
 
         VkMemoryDedicatedRequirements* dedicatedReqs =
-            vk_find_struct<VkMemoryDedicatedRequirements>(
-                reqs2, VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS);
+            vk_find_struct<VkMemoryDedicatedRequirements>(reqs2);
 
         if (!dedicatedReqs) return;
 
@@ -2146,8 +2116,7 @@ public:
         transformExternalResourceMemoryRequirementsForGuest(&reqs2->memoryRequirements);
 
         VkMemoryDedicatedRequirements* dedicatedReqs =
-            vk_find_struct<VkMemoryDedicatedRequirements>(
-                reqs2, VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS);
+            vk_find_struct<VkMemoryDedicatedRequirements>(reqs2);
 
         if (!dedicatedReqs) return;
 
@@ -2167,9 +2136,7 @@ public:
         VkExternalMemoryImageCreateInfo localExtImgCi;
 
         const VkExternalMemoryImageCreateInfo* extImgCiPtr =
-            vk_find_struct<VkExternalMemoryImageCreateInfo>(
-                pCreateInfo,
-                VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO);
+            vk_find_struct<VkExternalMemoryImageCreateInfo>(pCreateInfo);
         if (extImgCiPtr) {
             localExtImgCi = vk_make_orphan_copy(*extImgCiPtr);
             vk_append_struct(&structChainIter, &localExtImgCi);
@@ -2178,9 +2145,7 @@ public:
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
         VkNativeBufferANDROID localAnb;
         const VkNativeBufferANDROID* anbInfoPtr =
-            vk_find_struct<VkNativeBufferANDROID>(
-                pCreateInfo,
-                VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID);
+            vk_find_struct<VkNativeBufferANDROID>(pCreateInfo);
         if (anbInfoPtr) {
             localAnb = vk_make_orphan_copy(*anbInfoPtr);
             vk_append_struct(&structChainIter, &localAnb);
@@ -2188,9 +2153,7 @@ public:
 
         VkExternalFormatANDROID localExtFormatAndroid;
         const VkExternalFormatANDROID* extFormatAndroidPtr =
-            vk_find_struct<VkExternalFormatANDROID>(
-                pCreateInfo,
-                VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID);
+            vk_find_struct<VkExternalFormatANDROID>(pCreateInfo);
         if (extFormatAndroidPtr) {
             localExtFormatAndroid = vk_make_orphan_copy(*extFormatAndroidPtr);
 
@@ -2208,9 +2171,7 @@ public:
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
         const VkBufferCollectionImageCreateInfoFUCHSIA* extBufferCollectionPtr =
-            vk_find_struct<VkBufferCollectionImageCreateInfoFUCHSIA>(
-                pCreateInfo,
-                VK_STRUCTURE_TYPE_BUFFER_COLLECTION_IMAGE_CREATE_INFO_FUCHSIA);
+            vk_find_struct<VkBufferCollectionImageCreateInfoFUCHSIA>(pCreateInfo);
         if (extBufferCollectionPtr) {
             auto collection = reinterpret_cast<fuchsia::sysmem::BufferCollectionSyncPtr*>(
                 extBufferCollectionPtr->collection);
@@ -2288,9 +2249,7 @@ public:
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
         const VkExternalFormatANDROID* extFormatAndroidPtr =
-            vk_find_struct<VkExternalFormatANDROID>(
-                pCreateInfo,
-                VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID);
+            vk_find_struct<VkExternalFormatANDROID>(pCreateInfo);
         if (extFormatAndroidPtr) {
             if (extFormatAndroidPtr->externalFormat) {
                 localCreateInfo.format =
@@ -2315,9 +2274,7 @@ public:
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
         const VkExternalFormatANDROID* extFormatAndroidPtr =
-            vk_find_struct<VkExternalFormatANDROID>(
-                pCreateInfo,
-                VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID);
+            vk_find_struct<VkExternalFormatANDROID>(pCreateInfo);
         if (extFormatAndroidPtr) {
             if (extFormatAndroidPtr->externalFormat) {
                 localCreateInfo.format =
@@ -2412,8 +2369,7 @@ public:
         info.createInfo.pNext = nullptr;
 
         const VkExternalMemoryBufferCreateInfo* extBufCi =
-            vk_find_struct<VkExternalMemoryBufferCreateInfo>(pCreateInfo,
-                VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO);
+            vk_find_struct<VkExternalMemoryBufferCreateInfo>(pCreateInfo);
 
         if (!extBufCi) return res;
 
@@ -2504,9 +2460,7 @@ public:
         VkSemaphoreCreateInfo finalCreateInfo = *pCreateInfo;
 
         const VkExportSemaphoreCreateInfoKHR* exportSemaphoreInfoPtr =
-            vk_find_struct<VkExportSemaphoreCreateInfoKHR>(
-                pCreateInfo,
-                VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO_KHR);
+            vk_find_struct<VkExportSemaphoreCreateInfoKHR>(pCreateInfo);
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
         bool exportEvent = exportSemaphoreInfoPtr &&
@@ -3075,9 +3029,7 @@ public:
         (void)input_result;
 
         VkAndroidHardwareBufferUsageANDROID* output_ahw_usage =
-            vk_find_struct<VkAndroidHardwareBufferUsageANDROID>(
-                pImageFormatProperties,
-                VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_USAGE_ANDROID);
+            vk_find_struct<VkAndroidHardwareBufferUsageANDROID>(pImageFormatProperties);
 
         VkResult hostRes;
 
