@@ -27,6 +27,7 @@
 
 #include <vulkan/vulkan.h>
 #include <stdlib.h>
+#include "vk_struct_id.h"
 
 struct vk_struct_common {
     VkStructureType sType;
@@ -196,23 +197,17 @@ __vk_find_struct(void *start, VkStructureType sType)
    return NULL;
 }
 
-template <class T> void vk_is_vk_struct(T *s)
+template <class T, class H> T* vk_find_struct(H* head)
 {
-    static_assert(sizeof(s->sType) == sizeof(VkStructureType), "Vulkan structures has the sType field of type VkStructureType");
-    static_assert(sizeof(s->pNext) == sizeof(void*), "Vulkan structures has the pNext field of void*");
+    vk_get_vk_struct_id<H>::id;
+    return static_cast<T*>(__vk_find_struct(static_cast<void*>(head), vk_get_vk_struct_id<T>::id));
 }
 
-template <class T, class H> T* vk_find_struct(H* head, VkStructureType sType)
+template <class T, class H> const T* vk_find_struct(const H* head)
 {
-    vk_is_vk_struct(head);
-    return static_cast<T*>(__vk_find_struct(static_cast<void*>(head), sType));
-}
-
-template <class T, class H> const T* vk_find_struct(const H* head, VkStructureType sType)
-{
-    vk_is_vk_struct(head);
+    vk_get_vk_struct_id<H>::id;
     return static_cast<const T*>(__vk_find_struct(const_cast<void*>(static_cast<const void*>(head)),
-                                 sType));
+                                 vk_get_vk_struct_id<T>::id));
 }
 
 uint32_t vk_get_driver_version(void);
@@ -233,14 +228,14 @@ template <class T> T vk_make_orphan_copy(const T& vk_struct) {
 
 template <class T> vk_struct_chain_iterator vk_make_chain_iterator(T* vk_struct)
 {
-    vk_is_vk_struct(vk_struct);
+    vk_get_vk_struct_id<T>::id;
     vk_struct_chain_iterator result = { reinterpret_cast<vk_struct_common*>(vk_struct) };
     return result;
 }
 
 template <class T> void vk_append_struct(vk_struct_chain_iterator* i, T* vk_struct)
 {
-    vk_is_vk_struct(vk_struct);
+    vk_get_vk_struct_id<T>::id;
 
     vk_struct_common* p = i->value;
     if (p->pNext) {

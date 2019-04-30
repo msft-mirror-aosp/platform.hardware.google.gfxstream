@@ -443,6 +443,35 @@ typedef struct VkBufferCollectionImageCreateInfoFUCHSIA {
     ((VkStructureType)1001004005)
 #endif  // VK_USE_PLATFORM_FUCHSIA
 
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+
+typedef struct VkImportMemoryZirconHandleInfoFUCHSIA {
+    VkStructureType                       sType;
+    const void*                           pNext;
+    VkExternalMemoryHandleTypeFlagBits    handleType;
+    uint32_t                              handle;
+} VkImportMemoryZirconHandleInfoFUCHSIA;
+
+typedef uint32_t VkBufferCollectionFUCHSIA;
+
+typedef struct VkImportMemoryBufferCollectionFUCHSIA {
+    VkStructureType              sType;
+    const void*                  pNext;
+    VkBufferCollectionFUCHSIA    collection;
+    uint32_t                     index;
+} VkImportMemoryBufferCollectionFUCHSIA;
+
+#define VK_STRUCTURE_TYPE_IMPORT_MEMORY_BUFFER_COLLECTION_FUCHSIA \
+    ((VkStructureType)1001000000)
+#define VK_STRUCTURE_TYPE_TEMP_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA \
+    ((VkStructureType)1001000000)
+#define VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA \
+    ((VkStructureType)0x00000800)
+#define VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA \
+    ((VkStructureType)0x00000020)
+
+#endif // VK_USE_PLATFORM_ANDROID_KHR
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
