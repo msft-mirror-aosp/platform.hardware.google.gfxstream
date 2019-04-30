@@ -425,6 +425,24 @@ typedef void (VKAPI_PTR *PFN_vkResetCommandBufferAsyncGOOGLE)(
     VkCommandBuffer commandBuffer,
     VkCommandBufferResetFlags flags);
 
+#ifdef VK_USE_PLATFORM_FUCHSIA
+#define VK_FUCHSIA_buffer_collection 1
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkBufferCollectionFUCHSIA)
+
+#define VK_FUCHSIA_BUFFER_COLLECTION_SPEC_VERSION 1
+#define VK_FUCHSIA_BUFFER_COLLECTION_EXTENSION_NAME "VK_FUCHSIA_buffer_collection"
+
+typedef struct VkBufferCollectionImageCreateInfoFUCHSIA {
+    VkStructureType              sType;
+    const void*                  pNext;
+    VkBufferCollectionFUCHSIA    collection;
+    uint32_t                     index;
+} VkBufferCollectionImageCreateInfoFUCHSIA;
+
+#define VK_STRUCTURE_TYPE_BUFFER_COLLECTION_IMAGE_CREATE_INFO_FUCHSIA \
+    ((VkStructureType)1001004005)
+#endif  // VK_USE_PLATFORM_FUCHSIA
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
