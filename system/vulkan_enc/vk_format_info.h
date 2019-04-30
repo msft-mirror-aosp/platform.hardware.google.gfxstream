@@ -58,7 +58,7 @@ vk_format_from_android(unsigned android_format)
 }
 
 static inline unsigned
-android_format_from_vk(unsigned vk_format)
+android_format_from_vk(VkFormat vk_format)
 {
    switch (vk_format) {
    case VK_FORMAT_R8G8B8A8_UNORM:
