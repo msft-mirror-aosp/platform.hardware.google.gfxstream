@@ -78,6 +78,18 @@ android_format_from_vk(VkFormat vk_format)
    }
 }
 
+static inline bool
+android_format_is_yuv(unsigned android_format)
+{
+   switch (android_format) {
+   case HAL_PIXEL_FORMAT_NV12_Y_TILED_INTEL:
+      return true;
+
+   default:
+      return false;
+   }
+}
+
 static inline VkImageAspectFlags
 vk_format_aspects(VkFormat format)
 {
