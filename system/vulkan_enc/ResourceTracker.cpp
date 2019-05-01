@@ -1161,9 +1161,6 @@ public:
         if (handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA) {
             return VK_ERROR_INITIALIZATION_FAILED;
         }
-        if (pProperties->sType != VK_STRUCTURE_TYPE_TEMP_MEMORY_ZIRCON_HANDLE_PROPERTIES_FUCHSIA) {
-            return VK_ERROR_INITIALIZATION_FAILED;
-        }
 
         AutoLock lock(mLock);
 
