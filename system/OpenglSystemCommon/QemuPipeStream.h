@@ -26,7 +26,7 @@
 #include "qemu_pipe.h"
 
 #ifdef __Fuchsia__
-#include <lib/zx/channel.h>
+#include <fuchsia/hardware/goldfish/pipe/cpp/fidl.h>
 #include <lib/zx/event.h>
 #include <lib/zx/vmo.h>
 #endif
@@ -55,7 +55,7 @@ private:
     size_t m_bufsize;
     unsigned char *m_buf;
 #ifdef __Fuchsia__
-    zx::channel m_channel;
+    fuchsia::hardware::goldfish::pipe::DeviceSyncPtr m_device;
     zx::event m_event;
     zx::vmo m_vmo;
 #endif
