@@ -425,34 +425,18 @@ typedef void (VKAPI_PTR *PFN_vkResetCommandBufferAsyncGOOGLE)(
     VkCommandBuffer commandBuffer,
     VkCommandBufferResetFlags flags);
 
-#ifdef VK_USE_PLATFORM_FUCHSIA
+#ifndef VK_FUCHSIA_buffer_collection
 #define VK_FUCHSIA_buffer_collection 1
 VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkBufferCollectionFUCHSIA)
 
 #define VK_FUCHSIA_BUFFER_COLLECTION_SPEC_VERSION 1
 #define VK_FUCHSIA_BUFFER_COLLECTION_EXTENSION_NAME "VK_FUCHSIA_buffer_collection"
 
-typedef struct VkBufferCollectionImageCreateInfoFUCHSIA {
-    VkStructureType              sType;
-    const void*                  pNext;
-    VkBufferCollectionFUCHSIA    collection;
-    uint32_t                     index;
-} VkBufferCollectionImageCreateInfoFUCHSIA;
-
-#define VK_STRUCTURE_TYPE_BUFFER_COLLECTION_IMAGE_CREATE_INFO_FUCHSIA \
-    ((VkStructureType)1001004005)
-#endif  // VK_USE_PLATFORM_FUCHSIA
-
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
-
-typedef struct VkImportMemoryZirconHandleInfoFUCHSIA {
-    VkStructureType                       sType;
-    const void*                           pNext;
-    VkExternalMemoryHandleTypeFlagBits    handleType;
-    uint32_t                              handle;
-} VkImportMemoryZirconHandleInfoFUCHSIA;
-
-typedef uint32_t VkBufferCollectionFUCHSIA;
+typedef struct VkBufferCollectionCreateInfoFUCHSIA {
+    VkStructureType    sType;
+    const void*        pNext;
+    uint32_t           collectionToken;
+} VkBufferCollectionCreateInfoFUCHSIA;
 
 typedef struct VkImportMemoryBufferCollectionFUCHSIA {
     VkStructureType              sType;
@@ -461,16 +445,83 @@ typedef struct VkImportMemoryBufferCollectionFUCHSIA {
     uint32_t                     index;
 } VkImportMemoryBufferCollectionFUCHSIA;
 
-#define VK_STRUCTURE_TYPE_IMPORT_MEMORY_BUFFER_COLLECTION_FUCHSIA \
-    ((VkStructureType)1001000000)
-#define VK_STRUCTURE_TYPE_TEMP_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA \
-    ((VkStructureType)1001000000)
-#define VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA \
-    ((VkStructureType)0x00000800)
-#define VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA \
-    ((VkStructureType)0x00000020)
+typedef struct VkBufferCollectionImageCreateInfoFUCHSIA {
+    VkStructureType              sType;
+    const void*                  pNext;
+    VkBufferCollectionFUCHSIA    collection;
+    uint32_t                     index;
+} VkBufferCollectionImageCreateInfoFUCHSIA;
 
-#endif // VK_USE_PLATFORM_ANDROID_KHR
+typedef struct VkBufferCollectionPropertiesFUCHSIA {
+    VkStructureType    sType;
+    void*              pNext;
+    uint32_t           memoryTypeBits;
+    uint32_t           count;
+} VkBufferCollectionPropertiesFUCHSIA;
+
+#define VK_STRUCTURE_TYPE_IMPORT_MEMORY_BUFFER_COLLECTION_FUCHSIA       \
+    ((VkStructureType)1001004004)
+#define VK_STRUCTURE_TYPE_BUFFER_COLLECTION_IMAGE_CREATE_INFO_FUCHSIA \
+    ((VkStructureType)1001004005)
+#endif  // VK_FUCHSIA_buffer_collection
+
+#ifndef VK_FUCHSIA_external_memory
+#define VK_FUCHSIA_external_memory 1
+#define VK_FUCHSIA_EXTERNAL_MEMORY_SPEC_VERSION 1
+#define VK_FUCHSIA_EXTERNAL_MEMORY_EXTENSION_NAME "VK_FUCHSIA_external_memory"
+
+typedef struct VkImportMemoryZirconHandleInfoFUCHSIA {
+    VkStructureType                       sType;
+    const void*                           pNext;
+    VkExternalMemoryHandleTypeFlagBits    handleType;
+    uint32_t                              handle;
+} VkImportMemoryZirconHandleInfoFUCHSIA;
+
+typedef struct VkMemoryZirconHandlePropertiesFUCHSIA {
+    VkStructureType    sType;
+    void*              pNext;
+    uint32_t           memoryTypeBits;
+} VkMemoryZirconHandlePropertiesFUCHSIA;
+
+typedef struct VkMemoryGetZirconHandleInfoFUCHSIA {
+    VkStructureType                       sType;
+    const void*                           pNext;
+    VkDeviceMemory                        memory;
+    VkExternalMemoryHandleTypeFlagBits    handleType;
+} VkMemoryGetZirconHandleInfoFUCHSIA;
+
+#define VK_STRUCTURE_TYPE_TEMP_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA \
+    ((VkStructureType)1001005000)
+#define VK_STRUCTURE_TYPE_TEMP_MEMORY_ZIRCON_HANDLE_PROPERTIES_FUCHSIA \
+    ((VkStructureType)1001005001)
+#define VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA \
+    ((VkExternalMemoryHandleTypeFlagBits)0x00100000)
+#endif  // VK_FUCHSIA_external_memory
+
+#ifndef VK_FUCHSIA_external_semaphore
+#define VK_FUCHSIA_external_semaphore 1
+#define VK_FUCHSIA_EXTERNAL_SEMAPHORE_SPEC_VERSION 1
+#define VK_FUCHSIA_EXTERNAL_SEMAPHORE_EXTENSION_NAME "VK_FUCHSIA_external_semaphore"
+
+typedef struct VkImportSemaphoreZirconHandleInfoFUCHSIA {
+    VkStructureType                          sType;
+    const void*                              pNext;
+    VkSemaphore                              semaphore;
+    VkSemaphoreImportFlags                   flags;
+    VkExternalSemaphoreHandleTypeFlagBits    handleType;
+    uint32_t                                 handle;
+} VkImportSemaphoreZirconHandleInfoFUCHSIA;
+
+typedef struct VkSemaphoreGetZirconHandleInfoFUCHSIA {
+    VkStructureType                          sType;
+    const void*                              pNext;
+    VkSemaphore                              semaphore;
+    VkExternalSemaphoreHandleTypeFlagBits    handleType;
+} VkSemaphoreGetZirconHandleInfoFUCHSIA;
+
+#define VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA \
+    ((VkExternalSemaphoreHandleTypeFlagBits)0x00100000)
+#endif  // VK_FUCHSIA_external_semaphore
 
 #ifdef __cplusplus
 } // extern "C"
