@@ -34,13 +34,14 @@ void zx_event_create(int, zx_handle_t*) { }
 #ifdef VK_USE_PLATFORM_FUCHSIA
 
 #include <cutils/native_handle.h>
-#include <fuchsia/hardware/goldfish/control/c/fidl.h>
+#include <fuchsia/hardware/goldfish/control/cpp/fidl.h>
 #include <fuchsia/sysmem/cpp/fidl.h>
 #include <lib/fdio/directory.h>
 #include <lib/fdio/fd.h>
 #include <lib/fdio/fdio.h>
 #include <lib/fdio/io.h>
 #include <lib/zx/channel.h>
+#include <lib/zx/vmo.h>
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>
@@ -546,14 +547,14 @@ public:
                 ALOGE("failed to open control device");
                 abort();
             }
-            zx_status_t status = fdio_get_service_handle(fd, &mControlDevice);
+            zx::channel channel;
+            zx_status_t status = fdio_get_service_handle(fd, channel.reset_and_get_address());
             if (status != ZX_OK) {
                 ALOGE("failed to get control service handle, status %d", status);
                 abort();
             }
-            status = fuchsia_hardware_goldfish_control_DeviceConnectSysmem(
-                mControlDevice,
-                mSysmemAllocator.NewRequest().TakeChannel().release());
+            mControlDevice.Bind(std::move(channel));
+            status = mControlDevice->ConnectSysmem(mSysmemAllocator.NewRequest().TakeChannel());
             if (status != ZX_OK) {
                 ALOGE("failed to get sysmem connection, status %d", status);
                 abort();
@@ -1754,18 +1755,19 @@ public:
 
                 collection->Close();
 
-                zx_handle_t vmo_copy;
-                status = zx_handle_duplicate(vmo_handle, ZX_RIGHT_SAME_RIGHTS, &vmo_copy);
+                zx::vmo vmo_copy;
+                status = zx_handle_duplicate(vmo_handle,
+                                             ZX_RIGHT_SAME_RIGHTS,
+                                             vmo_copy.reset_and_get_address());
                 if (status != ZX_OK) {
                     ALOGE("Failed to duplicate VMO: %d", status);
                     abort();
                 }
-                status = fuchsia_hardware_goldfish_control_DeviceCreateColorBuffer(
-                    mControlDevice,
-                    vmo_copy,
+                status = mControlDevice->CreateColorBuffer(
+                    std::move(vmo_copy),
                     imageCreateInfo.extent.width,
                     imageCreateInfo.extent.height,
-                    fuchsia_hardware_goldfish_control_FormatType_BGRA,
+                    fuchsia::hardware::goldfish::control::FormatType::BGRA,
                     &status2);
                 if (status != ZX_OK || status2 != ZX_OK) {
                     ALOGE("CreateColorBuffer failed: %d:%d", status, status2);
@@ -1775,17 +1777,17 @@ public:
         }
 
         if (vmo_handle != ZX_HANDLE_INVALID) {
-            zx_handle_t vmo_copy;
+            zx::vmo vmo_copy;
             zx_status_t status = zx_handle_duplicate(vmo_handle,
                                                      ZX_RIGHT_SAME_RIGHTS,
-                                                     &vmo_copy);
+                                                     vmo_copy.reset_and_get_address());
             if (status != ZX_OK) {
                 ALOGE("Failed to duplicate VMO: %d", status);
                 abort();
             }
             zx_status_t status2 = ZX_OK;
-            status = fuchsia_hardware_goldfish_control_DeviceGetColorBuffer(
-                mControlDevice, vmo_copy, &status2, &importCbInfo.colorBuffer);
+            status = mControlDevice->GetColorBuffer(
+                std::move(vmo_copy), &status2, &importCbInfo.colorBuffer);
             if (status != ZX_OK || status2 != ZX_OK) {
                 ALOGE("GetColorBuffer failed: %d:%d", status, status2);
             }
@@ -2173,27 +2175,26 @@ public:
             auto collection = reinterpret_cast<fuchsia::sysmem::BufferCollectionSyncPtr*>(
                 extBufferCollectionPtr->collection);
             uint32_t index = extBufferCollectionPtr->index;
-            zx_handle_t vmo_handle = ZX_HANDLE_INVALID;
+            zx::vmo vmo;
 
             fuchsia::sysmem::BufferCollectionInfo_2 info;
             zx_status_t status2;
             zx_status_t status = (*collection)->WaitForBuffersAllocated(&status2, &info);
             if (status == ZX_OK && status2 == ZX_OK) {
                 if (index < info.buffer_count) {
-                    vmo_handle = info.buffers[index].vmo.release();
+                    vmo = std::move(info.buffers[index].vmo);
                 }
             } else {
                 ALOGE("WaitForBuffersAllocated failed: %d %d", status, status2);
             }
 
-            if (vmo_handle != ZX_HANDLE_INVALID) {
+            if (vmo.is_valid()) {
                 zx_status_t status2 = ZX_OK;
-                status = fuchsia_hardware_goldfish_control_DeviceCreateColorBuffer(
-                    mControlDevice,
-                    vmo_handle,
+                status = mControlDevice->CreateColorBuffer(
+                    std::move(vmo),
                     localCreateInfo.extent.width,
                     localCreateInfo.extent.height,
-                    fuchsia_hardware_goldfish_control_FormatType_BGRA,
+                    fuchsia::hardware::goldfish::control::FormatType::BGRA,
                     &status2);
                 if (status != ZX_OK || status2 != ZX_OK) {
                     ALOGE("CreateColorBuffer failed: %d:%d", status, status2);
@@ -3202,7 +3203,7 @@ private:
     int mSyncDeviceFd = -1;
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
-    zx_handle_t mControlDevice = ZX_HANDLE_INVALID;
+    fuchsia::hardware::goldfish::control::DeviceSyncPtr mControlDevice;
     fuchsia::sysmem::AllocatorSyncPtr mSysmemAllocator;
 #endif
 };

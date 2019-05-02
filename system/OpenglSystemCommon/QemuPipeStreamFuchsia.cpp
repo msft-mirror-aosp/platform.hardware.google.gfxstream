@@ -17,8 +17,8 @@
 
 #include <cutils/log.h>
 #include <errno.h>
-#include <fuchsia/hardware/goldfish/pipe/c/fidl.h>
 #include <lib/fdio/fdio.h>
+#include <lib/zx/channel.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,7 +45,7 @@ QemuPipeStream::QemuPipeStream(QEMU_PIPE_HANDLE sock, size_t bufSize) :
 
 QemuPipeStream::~QemuPipeStream()
 {
-    if (m_channel.is_valid()) {
+    if (m_device.is_bound()) {
         flush();
     }
     if (m_buf) {
@@ -77,6 +77,7 @@ int QemuPipeStream::connect(void)
         close(fd);
         return -1;
     }
+    m_device.Bind(std::move(channel));
 
     zx::event event;
     status = zx::event::create(0, &event);
@@ -91,8 +92,7 @@ int QemuPipeStream::connect(void)
         return -1;
     }
 
-    status = fuchsia_hardware_goldfish_pipe_DeviceSetEvent(
-        channel.get(), event_copy.release());
+    status = m_device->SetEvent(std::move(event_copy));
     if (status != ZX_OK) {
         ALOGE("%s: failed to set event: %d:%d", __FUNCTION__, status);
         return -1;
@@ -100,8 +100,7 @@ int QemuPipeStream::connect(void)
 
     zx_status_t status2 = ZX_OK;
     zx::vmo vmo;
-    status = fuchsia_hardware_goldfish_pipe_DeviceGetBuffer(
-        channel.get(), &status2, vmo.reset_and_get_address());
+    status = m_device->GetBuffer(&status2, &vmo);
     if (status != ZX_OK || status2 != ZX_OK) {
         ALOGE("%s: failed to get buffer: %d:%d", __FUNCTION__, status, status2);
         return -1;
@@ -115,15 +114,13 @@ int QemuPipeStream::connect(void)
     }
 
     uint64_t actual;
-    status = fuchsia_hardware_goldfish_pipe_DeviceWrite(
-        channel.get(), len + 1, 0, &status2, &actual);
+    status = m_device->Write(len + 1, 0, &status2, &actual);
     if (status != ZX_OK || status2 != ZX_OK) {
         ALOGD("%s: connecting to pipe service failed: %d:%d", __FUNCTION__,
               status, status2);
         return -1;
     }
 
-    m_channel = std::move(channel);
     m_event = std::move(event);
     m_vmo = std::move(vmo);
     return 0;
@@ -149,16 +146,14 @@ void *QemuPipeStream::allocBuffer(size_t minSize)
     size_t allocSize = m_bufsize < minSize ? minSize : m_bufsize;
 
     zx_status_t status2 = ZX_OK;
-    status = fuchsia_hardware_goldfish_pipe_DeviceSetBufferSize(
-        m_channel.get(), allocSize, &status2);
+    status = m_device->SetBufferSize(allocSize, &status2);
     if (status != ZX_OK || status2 != ZX_OK) {
         ALOGE("%s: failed to get buffer: %d:%d", __FUNCTION__, status, status2);
         return nullptr;
     }
 
     zx::vmo vmo;
-    status = fuchsia_hardware_goldfish_pipe_DeviceGetBuffer(
-        m_channel.get(), &status2, vmo.reset_and_get_address());
+    status = m_device->GetBuffer(&status2, &vmo);
     if (status != ZX_OK || status2 != ZX_OK) {
         ALOGE("%s: failed to get buffer: %d:%d", __FUNCTION__, status, status2);
         return nullptr;
@@ -187,8 +182,8 @@ int QemuPipeStream::commitBuffer(size_t size)
     while (remaining) {
         zx_status_t status2 = ZX_OK;
         uint64_t actual = 0;
-        zx_status_t status = fuchsia_hardware_goldfish_pipe_DeviceWrite(
-            m_channel.get(), remaining, size - remaining, &status2, &actual);
+        zx_status_t status = m_device->Write(
+            remaining, size - remaining, &status2, &actual);
         if (status != ZX_OK) {
             ALOGD("%s: Failed writing to pipe: %d", __FUNCTION__, status);
             return -1;
@@ -203,14 +198,14 @@ int QemuPipeStream::commitBuffer(size_t size)
         }
         zx_signals_t observed = ZX_SIGNAL_NONE;
         status = m_event.wait_one(
-            fuchsia_hardware_goldfish_pipe_SIGNAL_WRITABLE |
-            fuchsia_hardware_goldfish_pipe_SIGNAL_HANGUP,
+            fuchsia::hardware::goldfish::pipe::SIGNAL_WRITABLE |
+            fuchsia::hardware::goldfish::pipe::SIGNAL_HANGUP,
             zx::time::infinite(), &observed);
         if (status != ZX_OK) {
             ALOGD("%s: wait_one failed: %d", __FUNCTION__, status);
             return -1;
         }
-        if (observed & fuchsia_hardware_goldfish_pipe_SIGNAL_HANGUP) {
+        if (observed & fuchsia::hardware::goldfish::pipe::SIGNAL_HANGUP) {
             ALOGD("%s: Remote end hungup", __FUNCTION__);
             return -1;
         }
@@ -232,7 +227,7 @@ QEMU_PIPE_HANDLE QemuPipeStream::getSocket() const {
 
 const unsigned char *QemuPipeStream::readFully(void *buf, size_t len)
 {
-    if (!m_channel.is_valid()) return nullptr;
+    if (!m_device.is_bound()) return nullptr;
 
     if (!buf) {
         if (len > 0) {
@@ -248,8 +243,7 @@ const unsigned char *QemuPipeStream::readFully(void *buf, size_t len)
         size_t readSize = m_bufsize < remaining ? m_bufsize : remaining;
         zx_status_t status2 = ZX_OK;
         uint64_t actual = 0;
-        zx_status_t status = fuchsia_hardware_goldfish_pipe_DeviceRead(
-            m_channel.get(), readSize, 0, &status2, &actual);
+        zx_status_t status = m_device->Read(readSize, 0, &status2, &actual);
         if (status != ZX_OK) {
             ALOGD("%s: Failed reading from pipe: %d", __FUNCTION__, status);
             return nullptr;
@@ -265,14 +259,14 @@ const unsigned char *QemuPipeStream::readFully(void *buf, size_t len)
         }
         zx_signals_t observed = ZX_SIGNAL_NONE;
         status = m_event.wait_one(
-            fuchsia_hardware_goldfish_pipe_SIGNAL_READABLE |
-            fuchsia_hardware_goldfish_pipe_SIGNAL_HANGUP,
+            fuchsia::hardware::goldfish::pipe::SIGNAL_READABLE |
+            fuchsia::hardware::goldfish::pipe::SIGNAL_HANGUP,
             zx::time::infinite(), &observed);
         if (status != ZX_OK) {
             ALOGD("%s: wait_one failed: %d", __FUNCTION__, status);
             return nullptr;
         }
-        if (observed & fuchsia_hardware_goldfish_pipe_SIGNAL_HANGUP) {
+        if (observed & fuchsia::hardware::goldfish::pipe::SIGNAL_HANGUP) {
             ALOGD("%s: Remote end hungup", __FUNCTION__);
             return nullptr;
         }

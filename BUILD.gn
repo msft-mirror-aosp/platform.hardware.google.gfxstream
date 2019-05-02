@@ -80,6 +80,7 @@ shared_library("vulkan_goldfish") {
 
   cflags_cc = [
     "-Wno-missing-field-initializers",
+    "-Wno-newline-eof",
     "-Wno-unused-function",
     "-Wno-unused-value",
     "-Wno-unused-variable",
@@ -104,9 +105,9 @@ shared_library("vulkan_goldfish") {
     ]
 
     deps = [
-      "//zircon/public/fidl/fuchsia-hardware-goldfish-address-space:fuchsia-hardware-goldfish-address-space_c",
-      "//zircon/public/fidl/fuchsia-hardware-goldfish-control:fuchsia-hardware-goldfish-control_c",
-      "//zircon/public/fidl/fuchsia-hardware-goldfish-pipe:fuchsia-hardware-goldfish-pipe_c",
+      "//zircon/public/fidl/fuchsia-hardware-goldfish-address-space",
+      "//zircon/public/fidl/fuchsia-hardware-goldfish-control",
+      "//zircon/public/fidl/fuchsia-hardware-goldfish-pipe",
       "//zircon/public/fidl/fuchsia-sysmem",
       "//zircon/public/lib/fdio",
       "//zircon/public/lib/trace",
