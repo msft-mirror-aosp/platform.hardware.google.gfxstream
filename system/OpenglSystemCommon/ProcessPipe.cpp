@@ -25,6 +25,12 @@
 #include <pthread.h>
 #include <errno.h>
 
+#ifdef __Fuchsia__
+#include <fuchsia/hardware/goldfish/pipe/cpp/fidl.h>
+#include <lib/fdio/fdio.h>
+#include <lib/zx/vmo.h>
+#endif
+
 static QEMU_PIPE_HANDLE   sProcPipe = 0;
 static pthread_once_t     sProcPipeOnce = PTHREAD_ONCE_INIT;
 // sProcUID is a unique ID per process assigned by the host.
@@ -38,6 +44,79 @@ static uint64_t           sProcUID = 0;
 // It will fallback to the default path if the host does not support it.
 // Processes are identified by acquiring a per-process 64bit unique ID from the
 // host.
+#ifdef __Fuchsia__
+static void processPipeInitOnce() {
+    int fd = ::open(QEMU_PIPE_PATH, O_RDWR);
+    if (fd < 0) {
+        ALOGE("%s: failed to open " QEMU_PIPE_PATH ": %s",
+              __FUNCTION__, strerror(errno));
+        return;
+    }
+
+    zx::channel channel;
+    zx_status_t status = fdio_get_service_handle(
+        fd, channel.reset_and_get_address());
+    if (status != ZX_OK) {
+        ALOGE("%s: failed to get service handle for " QEMU_PIPE_PATH ": %d",
+              __FUNCTION__, status);
+        close(fd);
+        return;
+    }
+
+    fuchsia::hardware::goldfish::pipe::DeviceSyncPtr device;
+    device.Bind(std::move(channel));
+
+    zx_status_t status2 = ZX_OK;
+    zx::vmo vmo;
+    status = device->GetBuffer(&status2, &vmo);
+    if (status != ZX_OK || status2 != ZX_OK) {
+        ALOGE("%s: failed to get buffer: %d:%d", __FUNCTION__, status, status2);
+        return;
+    }
+
+    size_t len = strlen("pipe:GLProcessPipe");
+    status = vmo.write("pipe:GLProcessPipe", 0, len + 1);
+    if (status != ZX_OK) {
+        ALOGE("%s: failed write pipe name", __FUNCTION__);
+        return;
+    }
+    uint64_t actual;
+    status = device->Write(len + 1, 0, &status2, &actual);
+    if (status != ZX_OK || status2 != ZX_OK) {
+        ALOGD("%s: connecting to pipe service failed: %d:%d", __FUNCTION__,
+              status, status2);
+        return;
+    }
+
+    // Send a confirmation int to the host
+    int32_t confirmInt = 100;
+    status = vmo.write(&confirmInt, 0, sizeof(confirmInt));
+    if (status != ZX_OK) {
+        ALOGE("%s: failed write confirm int", __FUNCTION__);
+        return;
+    }
+    status = device->Write(sizeof(confirmInt), 0, &status2, &actual);
+    if (status != ZX_OK || status2 != ZX_OK) {
+        ALOGD("%s: failed to send confirm value: %d:%d", __FUNCTION__,
+              status, status2);
+        return;
+    }
+
+    // Ask the host for per-process unique ID
+    status = device->Read(sizeof(sProcUID), 0, &status2, &actual);
+    if (status != ZX_OK || status2 != ZX_OK) {
+        ALOGD("%s: failed to recv per-process ID: %d:%d", __FUNCTION__,
+              status, status2);
+        return;
+    }
+    status = vmo.read(&sProcUID, 0, sizeof(sProcUID));
+    if (status != ZX_OK) {
+        ALOGE("%s: failed read per-process ID: %d", __FUNCTION__, status);
+        return;
+    }
+    sProcPipe = device.Unbind().TakeChannel().release();
+}
+#else
 static void processPipeInitOnce() {
     sProcPipe = qemu_pipe_open("GLProcessPipe");
     if (!qemu_pipe_valid(sProcPipe)) {
@@ -76,6 +155,7 @@ static void processPipeInitOnce() {
         return;
     }
 }
+#endif
 
 bool processPipeInit(renderControl_encoder_context_t *rcEnc) {
     pthread_once(&sProcPipeOnce, processPipeInitOnce);
