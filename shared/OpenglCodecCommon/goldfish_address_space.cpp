@@ -127,8 +127,9 @@ void GoldfishAddressSpaceBlock::replace(GoldfishAddressSpaceBlock *other)
 }
 #elif __Fuchsia__
 #include <fcntl.h>
-#include <fuchsia/hardware/goldfish/address/space/c/fidl.h>
 #include <lib/fdio/fdio.h>
+#include <lib/zx/channel.h>
+#include <lib/zx/vmo.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -138,17 +139,25 @@ void GoldfishAddressSpaceBlock::replace(GoldfishAddressSpaceBlock *other)
 #include <zircon/syscalls/object.h>
 
 GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider() {
-    fdio_get_service_handle(::open(GOLDFISH_ADDRESS_SPACE_DEVICE_NAME, O_RDWR), &m_channel);
+    zx::channel channel;
+    zx_status_t status =
+        fdio_get_service_handle(::open(GOLDFISH_ADDRESS_SPACE_DEVICE_NAME, O_RDWR),
+                                channel.reset_and_get_address());
+    if (status != ZX_OK) {
+        ALOGE("%s: failed to get service handle for " GOLDFISH_ADDRESS_SPACE_DEVICE_NAME ": %d",
+              __FUNCTION__, status);
+        return;
+    }
+    m_device.Bind(std::move(channel));
 }
 
 GoldfishAddressSpaceBlockProvider::~GoldfishAddressSpaceBlockProvider()
 {
-    zx_handle_close(m_channel);
 }
 
 GoldfishAddressSpaceBlock::GoldfishAddressSpaceBlock()
-    : m_vmo(ZX_HANDLE_INVALID)
-    , m_channel(ZX_HANDLE_INVALID)
+    : m_device(NULL)
+    , m_vmo(ZX_HANDLE_INVALID)
     , m_mmaped_ptr(NULL)
     , m_phys_addr(0)
     , m_host_addr(0)
@@ -168,7 +177,7 @@ GoldfishAddressSpaceBlock &GoldfishAddressSpaceBlock::operator=(const GoldfishAd
     m_host_addr = rhs.m_host_addr;
     m_offset = rhs.m_offset;
     m_size = rhs.m_size;
-    m_channel = rhs.m_channel;
+    m_device = rhs.m_device;
 
     return *this;
 }
@@ -184,10 +193,11 @@ bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *prov
         return false;
     }
 
+    fuchsia::hardware::goldfish::address::space::DeviceSyncPtr* device = &provider->m_device;
+
     int32_t res = ZX_OK;
-    zx_status_t status =
-        fuchsia_hardware_goldfish_address_space_DeviceAllocateBlock(
-            provider->m_channel, size, &res, &m_phys_addr, &m_vmo);
+    zx::vmo vmo;
+    zx_status_t status = (*device)->AllocateBlock(size, &res, &m_phys_addr, &vmo);
     if (status != ZX_OK || res != ZX_OK) {
         ALOGE("%s: allocate block failed: %d:%d", __func__, status, res);
         return false;
@@ -195,12 +205,13 @@ bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *prov
 
     m_offset = 0;
     m_size = size;
+    m_vmo = vmo.release();
 
     ALOGD("%s: allocate returned offset 0x%llx size 0x%llx\n", __func__,
           (unsigned long long)m_offset,
           (unsigned long long)m_size);
 
-    m_channel = provider->m_channel;
+    m_device = device;
     return true;
 }
 
@@ -264,13 +275,11 @@ void GoldfishAddressSpaceBlock::destroy()
         zx_handle_close(m_vmo);
         m_vmo = ZX_HANDLE_INVALID;
         int32_t res = ZX_OK;
-        zx_status_t status =
-            fuchsia_hardware_goldfish_address_space_DeviceDeallocateBlock(
-                m_channel, m_phys_addr, &res);
+        zx_status_t status = (*m_device)->DeallocateBlock(m_phys_addr, &res);
         if (status != ZX_OK || res != ZX_OK) {
             ALOGE("%s: deallocate block failed: %d:%d", __func__, status, res);
         }
-        m_channel = ZX_HANDLE_INVALID;
+        m_device = NULL;
         m_phys_addr = 0;
         m_host_addr = 0;
         m_offset = 0;
@@ -290,7 +299,7 @@ void GoldfishAddressSpaceBlock::replace(GoldfishAddressSpaceBlock *other)
 
 bool GoldfishAddressSpaceBlockProvider::is_opened()
 {
-    return m_channel != ZX_HANDLE_INVALID;
+    return m_device.is_bound();
 }
 #else
 #include <linux/types.h>
