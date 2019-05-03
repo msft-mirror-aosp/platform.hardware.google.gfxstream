@@ -46,7 +46,7 @@ cc_library_shared {
     ],
 
     include_dirs: [
-        "external/qemu/android/android-emugl/host/include",
+        "external/vulkan-headers/include",
     ],
 
     local_include_dirs: [
@@ -78,13 +78,16 @@ cc_library_shared {
                 "-DGOLDFISH_ADDRESS_SPACE_DEVICE_NAME=\"/dev/class/goldfish-address-space/000\"",
             ],
 
+            stl: "libc++_static",
+
             local_include_dirs: [
                 "fuchsia/include",
             ],
 
-            shared_libs: [
-                "libfdio",
+            static_libs: [
+                "libasync",
                 "libfidl",
+                "libfidl_base",
                 "libfidl_cpp",
                 "libfidl_cpp_base",
                 "libfidl_cpp_sync",
@@ -93,6 +96,11 @@ cc_library_shared {
                 "libfuchsia.hardware.goldfish.pipe",
                 "libfuchsia.sysmem",
                 "libzx",
+            ],
+
+            shared_libs: [
+                "libasync-default",
+                "libfdio",
             ],
 
             required: [
