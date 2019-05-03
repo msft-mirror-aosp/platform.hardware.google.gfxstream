@@ -1,4 +1,4 @@
-shared_library("vulkan_goldfish") {
+shared_library("libvulkan_goldfish") {
   sources = [
     "android-emu/android/base/AlignedBuf.cpp",
     "android-emu/android/base/AlignedBuf.h",
