@@ -63,7 +63,8 @@ cc_library_shared {
     enabled: false,
     target: {
         fuchsia: {
-	    enabled: true,
+            // TODO(reveman): Enable when not breaking the build.
+            //enabled: true,
 
             srcs: [
                 "fuchsia/port.cc",
