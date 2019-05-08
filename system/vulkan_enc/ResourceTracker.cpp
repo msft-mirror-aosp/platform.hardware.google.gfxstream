@@ -1306,7 +1306,8 @@ public:
         buffer_constraints.secure_permitted = false;
         buffer_constraints.ram_domain_supported = false;
         buffer_constraints.cpu_domain_supported = false;
-        buffer_constraints.gpu_domain_supported = true;
+        buffer_constraints.heap_required = fuchsia::sysmem::HEAP_GOLDFISH;
+        buffer_constraints.heap_permitted = fuchsia::sysmem::HEAP_GOLDFISH;
         constraints.image_format_constraints_count = 1;
         fuchsia::sysmem::ImageFormatConstraints& image_constraints =
             constraints.image_format_constraints[0];
