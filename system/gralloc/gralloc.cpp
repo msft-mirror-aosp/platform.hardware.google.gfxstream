@@ -479,6 +479,7 @@ static int gralloc_alloc(alloc_device_t* dev,
     bool sw_write = (0 != (usage & GRALLOC_USAGE_SW_WRITE_MASK));
     bool hw_write = (usage & GRALLOC_USAGE_HW_RENDER);
     bool sw_read = (0 != (usage & GRALLOC_USAGE_SW_READ_MASK));
+    const bool hw_texture = usage & GRALLOC_USAGE_HW_TEXTURE;
 #if PLATFORM_SDK_VERSION >= 17
     bool hw_cam_write = (usage & GRALLOC_USAGE_HW_CAMERA_WRITE);
     bool hw_cam_read = (usage & GRALLOC_USAGE_HW_CAMERA_READ);
@@ -541,6 +542,15 @@ static int gralloc_alloc(alloc_device_t* dev,
             glFormat = GL_RGBA;
             glType = GL_UNSIGNED_BYTE;
             break;
+        case HAL_PIXEL_FORMAT_RGB_888:
+            if (hw_texture) {
+                return -EINVAL;  // we dont support RGB_888 for HW textures
+            } else {
+                bpp = 3;
+                glFormat = GL_RGB;
+                glType = GL_UNSIGNED_BYTE;
+                break;
+            }
         case HAL_PIXEL_FORMAT_RGB_565:
             bpp = 2;
             // Workaround: distinguish vs the RGB8/RGBA8
