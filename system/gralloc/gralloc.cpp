@@ -114,6 +114,10 @@ struct gralloc_memregions_t {
     typedef std::map<void*, uint32_t> MemRegionMap;  // base -> refCount
     typedef MemRegionMap::const_iterator mem_region_handle_t;
 
+    gralloc_memregions_t() {
+        pthread_mutex_init(&lock, NULL);
+    }
+
     MemRegionMap ashmemRegions;
     pthread_mutex_t lock;
 };
@@ -139,10 +143,9 @@ static gralloc_memregions_t* s_memregions = NULL;
 static gralloc_dmaregion_t* s_grdma = NULL;
 
 static gralloc_memregions_t* init_gralloc_memregions() {
-    if (s_memregions) return s_memregions;
-
-    s_memregions = new gralloc_memregions_t;
-    pthread_mutex_init(&s_memregions->lock, NULL);
+    if (!s_memregions) {
+        s_memregions = new gralloc_memregions_t;
+    }
     return s_memregions;
 }
 
