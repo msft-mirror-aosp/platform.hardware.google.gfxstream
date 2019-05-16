@@ -21,6 +21,7 @@
 #include "renderControl_enc.h"
 #include "ChecksumCalculator.h"
 #include "goldfish_dma.h"
+#include "goldfish_address_space.h"
 
 #include <cutils/native_handle.h>
 
@@ -47,7 +48,7 @@ class ExtendedRCEncoderContext : public renderControl_encoder_context_t {
 public:
     ExtendedRCEncoderContext(IOStream *stream, ChecksumCalculator *checksumCalculator)
         : renderControl_encoder_context_t(stream, checksumCalculator),
-          m_dmaCxt(NULL) { }
+          m_dmaCxt(NULL), m_addressSpaceBlock(NULL) { }
     void setSyncImpl(SyncImpl syncImpl) { m_featureInfo.syncImpl = syncImpl; }
     void setDmaImpl(DmaImpl dmaImpl) { m_featureInfo.dmaImpl = dmaImpl; }
     void setHostComposition(HostComposition hostComposition) {
@@ -58,9 +59,14 @@ public:
         return m_featureInfo.hostComposition == HOST_COMPOSITION_V1; }
     DmaImpl getDmaVersion() const { return m_featureInfo.dmaImpl; }
     void bindDmaContext(struct goldfish_dma_context* cxt) { m_dmaCxt = cxt; }
+    void bindAddressSpaceBlock(GoldfishAddressSpaceBlock* block) {
+        m_addressSpaceBlock = block;
+    }
     virtual uint64_t lockAndWriteDma(void* data, uint32_t size) {
-        if (m_dmaCxt) {
-            return lockAndWriteGoldfishDma(data, size, m_dmaCxt);
+        if (m_addressSpaceBlock) {
+            return writeAddressSpaceBlock(data, size, m_addressSpaceBlock);
+        } else if (m_dmaCxt) {
+            return writeGoldfishDma(data, size, m_dmaCxt);
         } else {
             ALOGE("%s: ERROR: No DMA context bound!", __func__);
             return 0;
@@ -68,12 +74,13 @@ public:
     }
     void setGLESMaxVersion(GLESMaxVersion ver) { m_featureInfo.glesMaxVersion = ver; }
     GLESMaxVersion getGLESMaxVersion() const { return m_featureInfo.glesMaxVersion; }
+    bool hasDirectMem() const { return m_featureInfo.hasDirectMem; }
 
     const EmulatorFeatureInfo* featureInfo_const() const { return &m_featureInfo; }
     EmulatorFeatureInfo* featureInfo() { return &m_featureInfo; }
 private:
-    static uint64_t lockAndWriteGoldfishDma(void* data, uint32_t size,
-                                            struct goldfish_dma_context* dmaCxt) {
+    static uint64_t writeGoldfishDma(void* data, uint32_t size,
+                                     struct goldfish_dma_context* dmaCxt) {
         ALOGV("%s(data=%p, size=%u): call", __func__, data, size);
 
         goldfish_dma_write(dmaCxt, data, size);
@@ -83,8 +90,20 @@ private:
         return paddr;
     }
 
+    static uint64_t writeAddressSpaceBlock(void* data, uint32_t size,
+                                           GoldfishAddressSpaceBlock* block) {
+        ALOGV("%s(data=%p, size=%u): call", __func__, data, size);
+
+        memcpy(block->guestPtr(), data, size);
+        const uint64_t paddr = block->physAddr();
+
+        ALOGV("%s: paddr=0x%llx", __func__, (unsigned long long)paddr);
+        return paddr;
+    }
+
     EmulatorFeatureInfo m_featureInfo;
     struct goldfish_dma_context* m_dmaCxt;
+    GoldfishAddressSpaceBlock* m_addressSpaceBlock;
 };
 
 // Abstraction for gralloc handle conversion
