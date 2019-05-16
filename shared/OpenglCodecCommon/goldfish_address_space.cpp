@@ -55,11 +55,11 @@ GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider()
 
 GoldfishAddressSpaceBlockProvider::~GoldfishAddressSpaceBlockProvider() { }
 
-long GoldfishAddressSpaceBlockProvider::hostMalloc(uint64_t phys_addr, uint64_t size) {
+long GoldfishAddressSpaceBlockProvider::hostMalloc(uint64_t offset, uint64_t size) {
     return 0;
 }
 
-void GoldfishAddressSpaceBlockProvider::hostFree(uint64_t phys_addr, uint64_t host_addr) {
+void GoldfishAddressSpaceBlockProvider::hostFree(uint64_t offset) {
 }
 
 uint64_t GoldfishAddressSpaceBlockProvider::allocPhys(size_t size) {
