@@ -554,7 +554,10 @@ public:
                 abort();
             }
             mControlDevice.Bind(std::move(channel));
-            status = mControlDevice->ConnectSysmem(mSysmemAllocator.NewRequest().TakeChannel());
+
+            status = fdio_service_connect(
+                "/svc/fuchsia.sysmem.Allocator",
+                mSysmemAllocator.NewRequest().TakeChannel().release());
             if (status != ZX_OK) {
                 ALOGE("failed to get sysmem connection, status %d", status);
                 abort();
@@ -1303,11 +1306,10 @@ public:
         buffer_constraints.max_size_bytes = 0xffffffff;
         buffer_constraints.physically_contiguous_required = false;
         buffer_constraints.secure_required = false;
-        buffer_constraints.secure_permitted = false;
         buffer_constraints.ram_domain_supported = false;
         buffer_constraints.cpu_domain_supported = false;
-        buffer_constraints.heap_required = fuchsia::sysmem::HEAP_GOLDFISH;
-        buffer_constraints.heap_permitted = fuchsia::sysmem::HEAP_GOLDFISH;
+        buffer_constraints.heap_permitted_count = 1;
+        buffer_constraints.heap_permitted[0] = fuchsia::sysmem::HeapType::Goldfish;
         constraints.image_format_constraints_count = 1;
         fuchsia::sysmem::ImageFormatConstraints& image_constraints =
             constraints.image_format_constraints[0];
