@@ -17,6 +17,9 @@
 
 #include <errno.h>
 #include <string.h>
+#ifdef VK_USE_PLATFORM_FUCHSIA
+#include <unistd.h>
+#endif
 
 #include "HostConnection.h"
 #include "ResourceTracker.h"
@@ -568,7 +571,7 @@ int OpenDevice(const hw_module_t* /*module*/,
 
 class VulkanDevice {
 public:
-    VulkanDevice() {
+    VulkanDevice() : mHostSupportsGoldfish(access(QEMU_PIPE_PATH, F_OK) != -1) {
         goldfish_vk::ResourceTracker::get();
     }
 
@@ -578,8 +581,14 @@ public:
     }
 
     PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* name) {
+        if (!mHostSupportsGoldfish) {
+            return vkstubhal::GetInstanceProcAddr(instance, name);
+        }
         return ::GetInstanceProcAddr(instance, name);
     }
+
+private:
+    const bool mHostSupportsGoldfish;
 };
 
 extern "C" __attribute__((visibility("default"))) PFN_vkVoidFunction
