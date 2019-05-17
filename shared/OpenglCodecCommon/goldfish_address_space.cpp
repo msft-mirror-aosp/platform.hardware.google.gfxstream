@@ -13,8 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memory>
-
 #if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
 #else
@@ -55,13 +53,6 @@ GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider()
 
 GoldfishAddressSpaceBlockProvider::~GoldfishAddressSpaceBlockProvider() { }
 
-long GoldfishAddressSpaceBlockProvider::hostMalloc(uint64_t offset, uint64_t size) {
-    return 0;
-}
-
-void GoldfishAddressSpaceBlockProvider::hostFree(uint64_t offset) {
-}
-
 uint64_t GoldfishAddressSpaceBlockProvider::allocPhys(size_t size) {
     AddressSpaceHost* hostAlloc = reinterpret_cast<AddressSpaceHost*>(mAlloc);
     return hostAlloc->alloc(size);
@@ -73,7 +64,7 @@ void GoldfishAddressSpaceBlockProvider::freePhys(uint64_t phys) {
 }
 
 GoldfishAddressSpaceBlock::GoldfishAddressSpaceBlock() :
-    m_offset(0), m_alloced(false), m_guest_ptr(NULL), m_phys_addr(0), m_provider(NULL) {}
+    m_alloced(false), m_guest_ptr(NULL), m_phys_addr(0), m_provider(NULL) {}
 GoldfishAddressSpaceBlock::~GoldfishAddressSpaceBlock() { destroy(); }
 
 GoldfishAddressSpaceBlock &GoldfishAddressSpaceBlock::operator=(const GoldfishAddressSpaceBlock &rhs)
@@ -112,11 +103,6 @@ void *GoldfishAddressSpaceBlock::mmap(uint64_t opaque)
 void *GoldfishAddressSpaceBlock::guestPtr() const
 {
     return m_guest_ptr;
-}
-
-uint64_t GoldfishAddressSpaceBlock::offset() const
-{
-    return m_offset;
 }
 
 void GoldfishAddressSpaceBlock::destroy()
@@ -239,11 +225,6 @@ uint64_t GoldfishAddressSpaceBlock::hostAddr() const
     return m_host_addr;
 }
 
-uint64_t GoldfishAddressSpaceBlock::offset() const
-{
-    return m_offset;
-}
-
 void *GoldfishAddressSpaceBlock::mmap(uint64_t host_addr)
 {
     if (m_size == 0) {
@@ -338,70 +319,19 @@ struct goldfish_address_space_allocate_block {
     __u64 phys_addr;
 };
 
-struct goldfish_address_space_ping {
-    __u64 offset;
-    __u64 size;
-    __u64 metadata;
-    __u64 wait_offset;
-    __u32 wait_flags;
-    __u32 direction;
-};
-
 #define GOLDFISH_ADDRESS_SPACE_IOCTL_MAGIC		'G'
 #define GOLDFISH_ADDRESS_SPACE_IOCTL_OP(OP, T)		_IOWR(GOLDFISH_ADDRESS_SPACE_IOCTL_MAGIC, OP, T)
 #define GOLDFISH_ADDRESS_SPACE_IOCTL_ALLOCATE_BLOCK	GOLDFISH_ADDRESS_SPACE_IOCTL_OP(10, struct goldfish_address_space_allocate_block)
 #define GOLDFISH_ADDRESS_SPACE_IOCTL_DEALLOCATE_BLOCK	GOLDFISH_ADDRESS_SPACE_IOCTL_OP(11, __u64)
-#define GOLDFISH_ADDRESS_SPACE_IOCTL_PING		GOLDFISH_ADDRESS_SPACE_IOCTL_OP(12, struct goldfish_address_space_ping)
-
-constexpr int DEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID = 5;
-constexpr int HOST_MEMORY_ALLOCATOR_COMMAND_ALLOCATE_ID = 1;
-constexpr int HOST_MEMORY_ALLOCATOR_COMMAND_UNALLOCATE_ID = 2;
 
 const char GOLDFISH_ADDRESS_SPACE_DEVICE_NAME[] = "/dev/goldfish_address_space";
 
 GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider()
-    : m_fd(::open(GOLDFISH_ADDRESS_SPACE_DEVICE_NAME, O_RDWR)) {
-    struct goldfish_address_space_ping request;
-    ::memset(&request, sizeof(request), 0);
-    request.metadata = DEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID;
-    const long ret = ::ioctl(m_fd, GOLDFISH_ADDRESS_SPACE_IOCTL_PING, &request);
-    if (ret) {
-        ALOGE("%s: GOLDFISH_ADDRESS_SPACE_IOCTL_PING failed, ret=%ld", __func__, ret);
-    }
-}
+    : m_fd(::open(GOLDFISH_ADDRESS_SPACE_DEVICE_NAME, O_RDWR)) {}
 
 GoldfishAddressSpaceBlockProvider::~GoldfishAddressSpaceBlockProvider()
 {
     ::close(m_fd);
-}
-
-long GoldfishAddressSpaceBlockProvider::hostMalloc(uint64_t offset, uint64_t size)
-{
-    struct goldfish_address_space_ping request;
-    ::memset(&request, sizeof(request), 0);
-    request.offset = offset;
-    request.size = size;
-    request.metadata = HOST_MEMORY_ALLOCATOR_COMMAND_ALLOCATE_ID;
-    const long ret = ::ioctl(m_fd, GOLDFISH_ADDRESS_SPACE_IOCTL_PING, &request);
-
-    if (ret) {
-        return ret;
-    } else {
-        return static_cast<long>(request.metadata);
-    }
-}
-
-void GoldfishAddressSpaceBlockProvider::hostFree(uint64_t offset)
-{
-    struct goldfish_address_space_ping request;
-    ::memset(&request, sizeof(request), 0);
-    request.offset = offset;
-    request.metadata = HOST_MEMORY_ALLOCATOR_COMMAND_UNALLOCATE_ID;
-    const long ret = ::ioctl(m_fd, GOLDFISH_ADDRESS_SPACE_IOCTL_PING, &request);
-    if (ret) {
-        ALOGE("%s: GOLDFISH_ADDRESS_SPACE_IOCTL_PING failed, ret=%ld", __func__, ret);
-        ::abort();
-    }
 }
 
 GoldfishAddressSpaceBlock::GoldfishAddressSpaceBlock()
@@ -431,6 +361,7 @@ GoldfishAddressSpaceBlock &GoldfishAddressSpaceBlock::operator=(const GoldfishAd
 
 bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *provider, size_t size)
 {
+
     ALOGD("%s: Ask for block of size 0x%llx\n", __func__,
          (unsigned long long)size);
 
@@ -470,11 +401,6 @@ uint64_t GoldfishAddressSpaceBlock::physAddr() const
 uint64_t GoldfishAddressSpaceBlock::hostAddr() const
 {
     return m_host_addr;
-}
-
-uint64_t GoldfishAddressSpaceBlock::offset() const
-{
-    return m_offset;
 }
 
 void *GoldfishAddressSpaceBlock::mmap(uint64_t host_addr)
