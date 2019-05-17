@@ -32,7 +32,6 @@ enum EmulatorFrameworkFormat {
     FRAMEWORK_FORMAT_GL_COMPATIBLE = 0,
     FRAMEWORK_FORMAT_YV12 = 1,
     FRAMEWORK_FORMAT_YUV_420_888 = 2,              // (Y+)(U+)(V+)
-    FRAMEWORK_FORMAT_YUV_420_888_INTERLEAVED = 3,  // (Y+)(UV)+
 };
 
 //
