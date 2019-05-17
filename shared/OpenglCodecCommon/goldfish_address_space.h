@@ -82,6 +82,7 @@ private:
     void destroy();
     GoldfishAddressSpaceBlock &operator=(const GoldfishAddressSpaceBlock &);
 
+    uint64_t  m_offset;
 #ifdef HOST_BUILD
     bool        m_alloced;
     void     *m_guest_ptr;
@@ -97,7 +98,6 @@ private:
     void     *m_mmaped_ptr;
     uint64_t  m_phys_addr;
     uint64_t  m_host_addr;
-    uint64_t  m_offset;
     size_t    m_size;
 #endif
 };

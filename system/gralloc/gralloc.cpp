@@ -129,12 +129,20 @@ struct gralloc_dmaregion_t {
       : sz(0), refcount(0), bigbufCount(0) {
         pthread_mutex_init(&lock, NULL);
 
+#ifdef HOST_BUILD
+        if (rcEnc->getDmaVersion() > 0) {
+            sz = INITIAL_DMA_REGION_SIZE;
+            goldfish_dma_create_region(sz, &goldfish_dma);
+        }
+#else
         if (rcEnc->hasDirectMem()) {
             // do nothing here
         } else if (rcEnc->getDmaVersion() > 0) {
             sz = INITIAL_DMA_REGION_SIZE;
             goldfish_dma_create_region(sz, &goldfish_dma);
         }
+#endif
+
     }
 
     goldfish_dma_context goldfish_dma;
@@ -158,7 +166,11 @@ static gralloc_memregions_t* init_gralloc_memregions() {
 }
 
 static bool has_DMA_support(const ExtendedRCEncoderContext *rcEnc) {
+#ifdef HOST_BUILD
+    return rcEnc->getDmaVersion() > 0;
+#else
     return rcEnc->getDmaVersion() > 0 || rcEnc->hasDirectMem();
+#endif
 }
 
 static gralloc_dmaregion_t* init_gralloc_dmaregion(ExtendedRCEncoderContext *rcEnc) {
@@ -227,6 +239,13 @@ static bool put_gralloc_region(ExtendedRCEncoderContext *rcEnc, uint32_t sz) {
 
     gralloc_dmaregion_t* grdma = init_gralloc_dmaregion(rcEnc);
     pthread_mutex_lock(&grdma->lock);
+#ifdef HOST_BUILD
+    if (rcEnc->getDmaVersion() > 0) {
+        shouldDelete = put_gralloc_region_dma_locked(grdma, sz);
+    } else {
+        shouldDelete = false;
+    }
+#else
     if (rcEnc->hasDirectMem()) {
         shouldDelete = put_gralloc_region_direct_mem_locked(grdma, sz);
     } else if (rcEnc->getDmaVersion() > 0) {
@@ -234,6 +253,7 @@ static bool put_gralloc_region(ExtendedRCEncoderContext *rcEnc, uint32_t sz) {
     } else {
         shouldDelete = false;
     }
+#endif
     pthread_mutex_unlock(&grdma->lock);
 
     return shouldDelete;
@@ -283,6 +303,13 @@ static void gralloc_dmaregion_register_ashmem(ExtendedRCEncoderContext *rcEnc, u
     D("%s: for sz %u, refcount %u", __func__, sz, grdma->refcount);
     const uint32_t new_sz = std::max(grdma->sz, sz);
 
+#ifdef HOST_BUILD
+    if (rcEnc->getDmaVersion() > 0) {
+        gralloc_dmaregion_register_ashmem_dma_locked(grdma, new_sz);
+    } else {
+        ALOGE("%s: unexpected DMA type", __func__);
+    }
+#else
     if (rcEnc->hasDirectMem()) {
         gralloc_dmaregion_register_ashmem_direct_mem_locked(grdma, new_sz);
     } else if (rcEnc->getDmaVersion() > 0) {
@@ -290,6 +317,7 @@ static void gralloc_dmaregion_register_ashmem(ExtendedRCEncoderContext *rcEnc, u
     } else {
         ALOGE("%s: unexpected DMA type", __func__);
     }
+#endif
 
     pthread_mutex_unlock(&grdma->lock);
 }

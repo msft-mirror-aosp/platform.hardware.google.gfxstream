@@ -73,7 +73,7 @@ void GoldfishAddressSpaceBlockProvider::freePhys(uint64_t phys) {
 }
 
 GoldfishAddressSpaceBlock::GoldfishAddressSpaceBlock() :
-    m_alloced(false), m_guest_ptr(NULL), m_phys_addr(0), m_provider(NULL) {}
+    m_offset(0), m_alloced(false), m_guest_ptr(NULL), m_phys_addr(0), m_provider(NULL) {}
 GoldfishAddressSpaceBlock::~GoldfishAddressSpaceBlock() { destroy(); }
 
 GoldfishAddressSpaceBlock &GoldfishAddressSpaceBlock::operator=(const GoldfishAddressSpaceBlock &rhs)
@@ -112,6 +112,11 @@ void *GoldfishAddressSpaceBlock::mmap(uint64_t opaque)
 void *GoldfishAddressSpaceBlock::guestPtr() const
 {
     return m_guest_ptr;
+}
+
+uint64_t GoldfishAddressSpaceBlock::offset() const
+{
+    return m_offset;
 }
 
 void GoldfishAddressSpaceBlock::destroy()
