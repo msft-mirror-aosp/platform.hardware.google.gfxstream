@@ -30,9 +30,6 @@ public:
     GoldfishAddressSpaceBlockProvider();
     ~GoldfishAddressSpaceBlockProvider();
 
-    long hostMalloc(uint64_t offset, uint64_t size);
-    void hostFree(uint64_t offset);
-
     uint64_t allocPhys(size_t size);
     void freePhys(uint64_t phys);
 
@@ -46,9 +43,6 @@ class GoldfishAddressSpaceBlockProvider {
 public:
     GoldfishAddressSpaceBlockProvider();
     ~GoldfishAddressSpaceBlockProvider();
-
-    long hostMalloc(uint64_t offset, uint64_t size);
-    void hostFree(uint64_t offset);
 
 private:
    GoldfishAddressSpaceBlockProvider(const GoldfishAddressSpaceBlockProvider &rhs);
@@ -73,7 +67,6 @@ public:
     bool allocate(GoldfishAddressSpaceBlockProvider *provider, size_t size);
     uint64_t physAddr() const;
     uint64_t hostAddr() const;
-    uint64_t offset() const;
     void *mmap(uint64_t opaque);
     void *guestPtr() const;
     void replace(GoldfishAddressSpaceBlock *x);
@@ -82,7 +75,6 @@ private:
     void destroy();
     GoldfishAddressSpaceBlock &operator=(const GoldfishAddressSpaceBlock &);
 
-    uint64_t  m_offset;
 #ifdef HOST_BUILD
     bool        m_alloced;
     void     *m_guest_ptr;
@@ -98,6 +90,7 @@ private:
     void     *m_mmaped_ptr;
     uint64_t  m_phys_addr;
     uint64_t  m_host_addr;
+    uint64_t  m_offset;
     size_t    m_size;
 #endif
 };
