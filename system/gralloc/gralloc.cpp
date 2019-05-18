@@ -29,7 +29,6 @@
 #endif
 
 #include "goldfish_dma.h"
-#include "goldfish_address_space.h"
 #include "FormatConversions.h"
 #include "HostConnection.h"
 #include "ProcessPipe.h"
@@ -128,26 +127,11 @@ struct gralloc_dmaregion_t {
     gralloc_dmaregion_t(ExtendedRCEncoderContext *rcEnc)
       : sz(0), refcount(0), bigbufCount(0) {
         pthread_mutex_init(&lock, NULL);
-
-#ifdef HOST_BUILD
-        if (rcEnc->getDmaVersion() > 0) {
-            sz = INITIAL_DMA_REGION_SIZE;
-            goldfish_dma_create_region(sz, &goldfish_dma);
-        }
-#else
-        if (rcEnc->hasDirectMem()) {
-            // do nothing here
-        } else if (rcEnc->getDmaVersion() > 0) {
-            sz = INITIAL_DMA_REGION_SIZE;
-            goldfish_dma_create_region(sz, &goldfish_dma);
-        }
-#endif
-
+        sz = INITIAL_DMA_REGION_SIZE;
+        goldfish_dma_create_region(sz, &goldfish_dma);
     }
 
     goldfish_dma_context goldfish_dma;
-    GoldfishAddressSpaceBlockProvider goldfish_address_space_block_provider;
-    GoldfishAddressSpaceBlock goldfish_address_space_block;
     uint32_t sz;
     uint32_t refcount;
     pthread_mutex_t lock;
@@ -163,14 +147,6 @@ static gralloc_memregions_t* init_gralloc_memregions() {
         s_memregions = new gralloc_memregions_t;
     }
     return s_memregions;
-}
-
-static bool has_DMA_support(const ExtendedRCEncoderContext *rcEnc) {
-#ifdef HOST_BUILD
-    return rcEnc->getDmaVersion() > 0;
-#else
-    return rcEnc->getDmaVersion() > 0 || rcEnc->hasDirectMem();
-#endif
 }
 
 static gralloc_dmaregion_t* init_gralloc_dmaregion(ExtendedRCEncoderContext *rcEnc) {
@@ -202,22 +178,6 @@ static void resize_gralloc_dmaregion_locked(gralloc_dmaregion_t* grdma, uint32_t
 // max dma size: 2x 4K rgba8888
 #define MAX_DMA_SIZE 66355200
 
-static bool put_gralloc_region_direct_mem_locked(gralloc_dmaregion_t* grdma, uint32_t sz) {
-    const bool shouldDelete = !grdma->refcount;
-    if (shouldDelete) {
-        GoldfishAddressSpaceBlockProvider* provider = &grdma->goldfish_address_space_block_provider;
-        GoldfishAddressSpaceBlock* block = &grdma->goldfish_address_space_block;
-
-        const uint64_t offset = block->offset();
-        block->replace(NULL);
-        if (~offset) {
-            provider->hostFree(offset);
-        }
-    }
-
-    return shouldDelete;
-}
-
 static bool put_gralloc_region_dma_locked(gralloc_dmaregion_t* grdma, uint32_t sz) {
     D("%s: call. refcount before: %u\n", __func__, grdma->refcount);
     grdma->refcount--;
@@ -239,48 +199,13 @@ static bool put_gralloc_region(ExtendedRCEncoderContext *rcEnc, uint32_t sz) {
 
     gralloc_dmaregion_t* grdma = init_gralloc_dmaregion(rcEnc);
     pthread_mutex_lock(&grdma->lock);
-#ifdef HOST_BUILD
-    if (rcEnc->getDmaVersion() > 0) {
-        shouldDelete = put_gralloc_region_dma_locked(grdma, sz);
-    } else {
-        shouldDelete = false;
-    }
-#else
-    if (rcEnc->hasDirectMem()) {
-        shouldDelete = put_gralloc_region_direct_mem_locked(grdma, sz);
-    } else if (rcEnc->getDmaVersion() > 0) {
-        shouldDelete = put_gralloc_region_dma_locked(grdma, sz);
-    } else {
-        shouldDelete = false;
-    }
-#endif
+    shouldDelete = put_gralloc_region_dma_locked(grdma, sz);
     pthread_mutex_unlock(&grdma->lock);
 
     return shouldDelete;
 }
 
-static void gralloc_dmaregion_register_ashmem_direct_mem_locked(gralloc_dmaregion_t* grdma, uint32_t new_sz) {
-    if (new_sz == grdma->sz) return;
-
-    GoldfishAddressSpaceBlockProvider* provider = &grdma->goldfish_address_space_block_provider;
-    GoldfishAddressSpaceBlock* block = &grdma->goldfish_address_space_block;
-
-    const uint64_t offset = block->offset();
-    block->replace(NULL);
-    if (~offset) {
-        provider->hostFree(offset);
-    }
-
-    // allocates addresses
-    block->allocate(provider, new_sz);
-    // asks the host to plug RAM into these addresses
-    const long ret = provider->hostMalloc(block->offset(), new_sz);
-    // the host address is managed by device
-    block->mmap(0);
-    grdma->sz = new_sz;
-}
-
-static void gralloc_dmaregion_register_ashmem_dma_locked(gralloc_dmaregion_t* grdma, uint32_t new_sz) {
+static void gralloc_dmaregion_register_ashmem_dma(gralloc_dmaregion_t* grdma, uint32_t new_sz) {
     if (new_sz != grdma->sz) {
         if (new_sz > MAX_DMA_SIZE)  {
             D("%s: requested sz %u too large (limit %u), set to fallback.",
@@ -302,23 +227,7 @@ static void gralloc_dmaregion_register_ashmem(ExtendedRCEncoderContext *rcEnc, u
     pthread_mutex_lock(&grdma->lock);
     D("%s: for sz %u, refcount %u", __func__, sz, grdma->refcount);
     const uint32_t new_sz = std::max(grdma->sz, sz);
-
-#ifdef HOST_BUILD
-    if (rcEnc->getDmaVersion() > 0) {
-        gralloc_dmaregion_register_ashmem_dma_locked(grdma, new_sz);
-    } else {
-        ALOGE("%s: unexpected DMA type", __func__);
-    }
-#else
-    if (rcEnc->hasDirectMem()) {
-        gralloc_dmaregion_register_ashmem_direct_mem_locked(grdma, new_sz);
-    } else if (rcEnc->getDmaVersion() > 0) {
-        gralloc_dmaregion_register_ashmem_dma_locked(grdma, new_sz);
-    } else {
-        ALOGE("%s: unexpected DMA type", __func__);
-    }
-#endif
-
+    gralloc_dmaregion_register_ashmem_dma(grdma, new_sz);
     pthread_mutex_unlock(&grdma->lock);
 }
 
@@ -494,7 +403,7 @@ static void updateHostColorBuffer(cb_handle_t* cb,
                 width, height, top, left, bpp);
     }
 
-    const bool hasDMA = has_DMA_support(rcEnc);
+    const bool hasDMA = rcEnc->getDmaVersion() > 0;
     if (hasDMA && grdma->bigbufCount) {
         D("%s: there are big buffers alive, use fallback (count %u)", __FUNCTION__,
           grdma->bigbufCount);
@@ -510,13 +419,7 @@ static void updateHostColorBuffer(cb_handle_t* cb,
                                 &send_buffer_size);
         }
 
-        if (grdma->goldfish_address_space_block.guestPtr()) {
-            rcEnc->bindAddressSpaceBlock(&grdma->goldfish_address_space_block);
-        } else if (grdma->goldfish_dma.mapped_addr) {
-            rcEnc->bindDmaContext(&grdma->goldfish_dma);
-        } else {
-            ALOGE("%s: Unexpected DMA", __func__);
-        }
+        rcEnc->bindDmaContext(&grdma->goldfish_dma);
 
         D("%s: call. dma update with sz=%u", __func__, send_buffer_size);
         pthread_mutex_lock(&grdma->lock);
@@ -835,8 +738,6 @@ static int gralloc_alloc(alloc_device_t* dev,
         cb->setFd(fd);
     }
 
-    const bool hasDMA = has_DMA_support(rcEnc);
-
     if (needHostCb) {
         if (hostCon && rcEnc) {
             GLenum allocFormat = glFormat;
@@ -849,8 +750,9 @@ static int gralloc_alloc(alloc_device_t* dev,
                 allocFormat = GL_RGB;
             }
 
+            gralloc_dmaregion_t* grdma = init_gralloc_dmaregion(rcEnc);
             hostCon->lock();
-            if (hasDMA) {
+            if (rcEnc->getDmaVersion() > 0) {
                 cb->hostHandle = rcEnc->rcCreateColorBufferDMA(rcEnc, w, h, allocFormat, cb->emuFrameworkFormat);
             } else {
                 cb->hostHandle = rcEnc->rcCreateColorBuffer(rcEnc, w, h, allocFormat);
@@ -862,7 +764,7 @@ static int gralloc_alloc(alloc_device_t* dev,
             // Could not create colorbuffer on host !!!
             close(fd);
             delete cb;
-            ALOGE("%s: failed to create host cb! -EIO", __FUNCTION__);
+            ALOGD("%s: failed to create host cb! -EIO", __FUNCTION__);
             return -EIO;
         } else {
             QEMU_PIPE_HANDLE refcountPipeFd = qemu_pipe_open("refcount");
@@ -896,7 +798,7 @@ static int gralloc_alloc(alloc_device_t* dev,
     }
 
     hostCon->lock();
-    if (hasDMA) {
+    if (rcEnc->getDmaVersion() > 0) {
         get_gralloc_region(rcEnc);  // map_buffer(cb, ...) refers here
     }
     hostCon->unlock();
@@ -1125,10 +1027,11 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
         }
 
         hostCon->lock();
-        if (has_DMA_support(rcEnc)) {
+        if (rcEnc->getDmaVersion() > 0) {
             gralloc_dmaregion_register_ashmem(rcEnc, cb->ashmemSize);
         }
         hostCon->unlock();
+
     }
 
     if (cb->ashmemSize > 0) {
