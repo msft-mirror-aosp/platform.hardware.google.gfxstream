@@ -39,7 +39,6 @@
 #include <utils/threads.h>
 #include "FixedBuffer.h"
 #include "auto_goldfish_dma_context.h"
-#include "goldfish_address_space.h"
 #include "IndexRangeCache.h"
 #include "SmartPtr.h"
 
@@ -64,8 +63,6 @@ struct BufferData {
 
     // DMA support
     AutoGoldfishDmaContext dma_buffer;
-    // Direct memory access support
-    GoldfishAddressSpaceBlock shared_block;
 };
 
 class ProgramData {
