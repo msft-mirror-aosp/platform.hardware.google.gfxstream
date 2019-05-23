@@ -920,7 +920,11 @@ __eglMustCastToProperFunctionPointerType eglGetProcAddress(const char *procname)
 
 const char* eglQueryString(EGLDisplay dpy, EGLint name)
 {
-    VALIDATE_DISPLAY_INIT(dpy, NULL);
+    // EGL_BAD_DISPLAY is generated if display is not an EGL display connection, unless display is
+    // EGL_NO_DISPLAY and name is EGL_EXTENSIONS.
+    if (dpy || name != EGL_EXTENSIONS) {
+        VALIDATE_DISPLAY_INIT(dpy, NULL);
+    }
 
     return s_display.queryString(name);
 }
