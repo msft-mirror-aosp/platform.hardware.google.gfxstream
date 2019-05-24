@@ -1311,7 +1311,7 @@ public:
         buffer_constraints.inaccessible_domain_supported = true;
         buffer_constraints.heap_permitted_count = 1;
         buffer_constraints.heap_permitted[0] =
-            fuchsia::sysmem::HeapType::GoldfishDeviceLocal;
+            fuchsia::sysmem::HeapType::GOLDFISH_DEVICE_LOCAL;
         constraints.image_format_constraints_count = 1;
         fuchsia::sysmem::ImageFormatConstraints& image_constraints =
             constraints.image_format_constraints[0];
