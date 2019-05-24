@@ -98,7 +98,7 @@ cipd_path = os.path.join(fuchsia_root, "buildtools/cipd")
 git_rev = subprocess.check_output(
     ["git", "-C", git_repo_location, "rev-parse", "HEAD"]).strip()
 
-cipd_command = "%s create -in %s -name %s -ref latest -tag git_revision:%s" % (
+cipd_command = "%s create -in %s -name %s -ref latest -install-mode copy -tag git_revision:%s" % (
     cipd_path, package_dir, package_name, git_rev)
 print cipd_command
 if not args.dry_run:
