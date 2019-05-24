@@ -23,64 +23,61 @@
 
 #ifdef HOST_BUILD
 
-#include "android/base/SubAllocator.h"
-#include "android/base/memory/LazyInstance.h"
+#include "android/emulation/hostdevices/HostAddressSpace.h"
 
-// AddressSpaceHost is a global class for obtaining physical addresses
-// for the host-side build.
-class AddressSpaceHost {
-public:
-    AddressSpaceHost() : mAlloc(0, 16ULL * 1024ULL * 1048576ULL, 4096) { }
-    uint64_t alloc(size_t size) {
-        return (uint64_t)(uintptr_t)mAlloc.alloc(size);
-    }
-    void free(uint64_t addr) {
-        mAlloc.free((void*)(uintptr_t)addr);
-    }
-private:
-    android::base::SubAllocator mAlloc;
-};
+using android::HostAddressSpaceDevice;
 
-static android::base::LazyInstance<AddressSpaceHost> sAddressSpaceHost =
-    LAZY_INSTANCE_INIT;
-
-// It may seem like there should be one allocator per provider,
-// but to properly reflect the guest behavior where there is only one
-// allocator in the system and multiple providers are possible,
-// we need to have a separate global object (sAddressSpaceHost).
 GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider()
-    : mAlloc(sAddressSpaceHost.ptr()) {}
+    : m_handle(HostAddressSpaceDevice::get()->open()) { }
 
-GoldfishAddressSpaceBlockProvider::~GoldfishAddressSpaceBlockProvider() { }
-
-uint64_t GoldfishAddressSpaceBlockProvider::allocPhys(size_t size) {
-    AddressSpaceHost* hostAlloc = reinterpret_cast<AddressSpaceHost*>(mAlloc);
-    return hostAlloc->alloc(size);
+GoldfishAddressSpaceBlockProvider::~GoldfishAddressSpaceBlockProvider()
+{
+    HostAddressSpaceDevice::get()->close(m_handle);
 }
 
-void GoldfishAddressSpaceBlockProvider::freePhys(uint64_t phys) {
-    AddressSpaceHost* hostAlloc = reinterpret_cast<AddressSpaceHost*>(mAlloc);
-    return hostAlloc->free(phys);
-}
+GoldfishAddressSpaceBlock::GoldfishAddressSpaceBlock()
+    : m_mmaped_ptr(NULL)
+    , m_phys_addr(0)
+    , m_host_addr(0)
+    , m_offset(0)
+    , m_size(0)
+    , m_handle(0) {}
 
-GoldfishAddressSpaceBlock::GoldfishAddressSpaceBlock() :
-    m_alloced(false), m_guest_ptr(NULL), m_phys_addr(0), m_provider(NULL) {}
-GoldfishAddressSpaceBlock::~GoldfishAddressSpaceBlock() { destroy(); }
+GoldfishAddressSpaceBlock::~GoldfishAddressSpaceBlock()
+{
+    destroy();
+}
 
 GoldfishAddressSpaceBlock &GoldfishAddressSpaceBlock::operator=(const GoldfishAddressSpaceBlock &rhs)
 {
-    m_guest_ptr = rhs.m_guest_ptr;
+    m_mmaped_ptr = rhs.m_mmaped_ptr;
     m_phys_addr = rhs.m_phys_addr;
-    m_provider = rhs.m_provider;
+    m_host_addr = rhs.m_host_addr;
+    m_offset = rhs.m_offset;
+    m_size = rhs.m_size;
+    m_handle = rhs.m_handle;
+
     return *this;
 }
 
 bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *provider, size_t size)
 {
+
+    ALOGD("%s: Ask for block of size 0x%llx\n", __func__,
+         (unsigned long long)size);
+
     destroy();
-    m_phys_addr = provider->allocPhys(size);
-    m_alloced = true;
-    m_provider = provider;
+
+    if (!provider->is_opened()) {
+        return false;
+    }
+
+    m_size = size;
+    m_offset =
+        HostAddressSpaceDevice::get()->allocBlock(
+            provider->m_handle, size, &m_phys_addr);
+    m_handle = provider->m_handle;
+
     return true;
 }
 
@@ -91,40 +88,62 @@ uint64_t GoldfishAddressSpaceBlock::physAddr() const
 
 uint64_t GoldfishAddressSpaceBlock::hostAddr() const
 {
-    return 42;  // some random number, not used
+    return m_host_addr;
 }
 
-void *GoldfishAddressSpaceBlock::mmap(uint64_t opaque)
+void *GoldfishAddressSpaceBlock::mmap(uint64_t host_addr)
 {
-    m_guest_ptr = reinterpret_cast<void *>(opaque);
-    return m_guest_ptr;
+    if (m_size == 0) {
+        ALOGE("%s: called with zero size\n", __func__);
+        return NULL;
+    }
+
+    if (m_mmaped_ptr != nullptr) {
+        ALOGE("'mmap' called for an already mmaped address block 0x%llx %d", (unsigned long long)m_mmaped_ptr, nullptr == m_mmaped_ptr);
+        ::abort();
+    }
+
+    m_mmaped_ptr = (void*)(uintptr_t)(host_addr & (~(PAGE_SIZE - 1)));
+    m_host_addr = host_addr;
+
+    return guestPtr();
 }
 
 void *GoldfishAddressSpaceBlock::guestPtr() const
 {
-    return m_guest_ptr;
+    return reinterpret_cast<char *>(m_mmaped_ptr) + (m_host_addr & (PAGE_SIZE - 1));
 }
 
 void GoldfishAddressSpaceBlock::destroy()
 {
-    if (m_alloced) {
-        m_guest_ptr = NULL;
-        if (m_provider) {
-            m_provider->freePhys(m_phys_addr);
-        }
-        m_alloced = false;
+    if (m_mmaped_ptr && m_size) {
+        m_mmaped_ptr = NULL;
+    }
+
+    if (m_size) {
+        HostAddressSpaceDevice::get()->freeBlock(m_handle, m_offset);
+        m_phys_addr = 0;
+        m_host_addr = 0;
+        m_offset = 0;
+        m_size = 0;
     }
 }
 
 void GoldfishAddressSpaceBlock::replace(GoldfishAddressSpaceBlock *other)
 {
+    destroy();
+
     if (other) {
-        this->m_guest_ptr = other->m_guest_ptr;
-        other->m_guest_ptr = NULL;
-    } else {
-        this->m_guest_ptr = NULL;
+        *this = *other;
+        *other = GoldfishAddressSpaceBlock();
     }
 }
+
+bool GoldfishAddressSpaceBlockProvider::is_opened()
+{
+    return m_handle > 0;
+}
+
 #elif __Fuchsia__
 #include <fcntl.h>
 #include <lib/fdio/fdio.h>
