@@ -25,20 +25,15 @@
 class GoldfishAddressSpaceBlock;
 
 #ifdef HOST_BUILD
-class GoldfishAddressSpaceBlockProvider {
-public:
-    GoldfishAddressSpaceBlockProvider();
-    ~GoldfishAddressSpaceBlockProvider();
 
-    uint64_t allocPhys(size_t size);
-    void freePhys(uint64_t phys);
+namespace android {
 
-private:
-   void* mAlloc;
+class HostAddressSpaceDevice;
 
-   friend class GoldfishAddressSpaceBlock;
-};
-#else
+} // namespace android
+
+#endif
+
 class GoldfishAddressSpaceBlockProvider {
 public:
     GoldfishAddressSpaceBlockProvider();
@@ -49,15 +44,18 @@ private:
    GoldfishAddressSpaceBlockProvider &operator=(const GoldfishAddressSpaceBlockProvider &rhs);
 
    bool is_opened();
+#ifdef HOST_BUILD
+   uint32_t m_handle;
+#else // HOST_BUILD
 #ifdef __Fuchsia__
    fuchsia::hardware::goldfish::address::space::DeviceSyncPtr m_device;
-#else
+#else // __Fuchsia__
    int m_fd;
-#endif
+#endif // !__Fuchsia__
+#endif // !HOST_BUILD
 
    friend class GoldfishAddressSpaceBlock;
 };
-#endif
 
 class GoldfishAddressSpaceBlock {
 public:
@@ -76,23 +74,25 @@ private:
     GoldfishAddressSpaceBlock &operator=(const GoldfishAddressSpaceBlock &);
 
 #ifdef HOST_BUILD
-    bool        m_alloced;
-    void     *m_guest_ptr;
-    uint64_t  m_phys_addr;
-    GoldfishAddressSpaceBlockProvider* m_provider;
-#else
+    uint32_t m_handle;
+#else // HOST_BUILD
+
 #ifdef __Fuchsia__
     fuchsia::hardware::goldfish::address::space::DeviceSyncPtr* m_device;
     uint32_t  m_vmo;
-#else
+
+#else // __Fuchsia__
+
     int       m_fd;
-#endif
+
+#endif // !__Fuchsia__
+#endif // !HOST_BUILD
+
     void     *m_mmaped_ptr;
     uint64_t  m_phys_addr;
     uint64_t  m_host_addr;
     uint64_t  m_offset;
     size_t    m_size;
-#endif
 };
 
 #endif
