@@ -189,6 +189,9 @@ PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance,
     if (strcmp(name, "vkEnumeratePhysicalDeviceGroups") == 0)
         return reinterpret_cast<PFN_vkVoidFunction>(
             EnumeratePhysicalDeviceGroups);
+    if (strcmp(name, "vkEnumeratePhysicalDeviceGroupsKHR") == 0)
+        return reinterpret_cast<PFN_vkVoidFunction>(
+            EnumeratePhysicalDeviceGroups);
     if (strcmp(name, "vkGetInstanceProcAddr") == 0)
         return reinterpret_cast<PFN_vkVoidFunction>(GetInstanceProcAddr);
 #ifdef VK_USE_PLATFORM_FUCHSIA
