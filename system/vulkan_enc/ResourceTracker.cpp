@@ -235,7 +235,6 @@ public:
         std::vector<HostMemBlocks> hostMemBlocks { VK_MAX_MEMORY_TYPES };
         uint32_t apiVersion;
         std::set<std::string> enabledExtensions;
-        VkFence fence = VK_NULL_HANDLE;
     };
 
     struct VkDeviceMemory_Info {
@@ -1068,10 +1067,6 @@ public:
             for (auto& block : info.hostMemBlocks[i]) {
                 destroyHostMemAlloc(enc, device, &block);
             }
-        }
-
-        if (info.fence != VK_NULL_HANDLE) {
-            enc->vkDestroyFence(device, info.fence, nullptr);
         }
     }
 
@@ -2632,8 +2627,6 @@ public:
         std::vector<VkSemaphore> pre_signal_semaphores;
         std::vector<zx_handle_t> post_wait_events;
         std::vector<int> post_wait_sync_fds;
-        VkDevice device = VK_NULL_HANDLE;
-        VkFence* pFence = nullptr;
 
         VkEncoder* enc = (VkEncoder*)context;
 
@@ -2670,15 +2663,11 @@ public:
 #ifdef VK_USE_PLATFORM_FUCHSIA
                     if (semInfo.eventHandle) {
                         post_wait_events.push_back(semInfo.eventHandle);
-                        device = semInfo.device;
-                        pFence = &info_VkDevice[device].fence;
                     }
 #endif
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
                     if (semInfo.syncFd >= 0) {
                         post_wait_sync_fds.push_back(semInfo.syncFd);
-                        device = semInfo.device;
-                        pFence = &info_VkDevice[device].fence;
                     }
 #endif
                 }
@@ -2701,20 +2690,9 @@ public:
 
         if (input_result != VK_SUCCESS) return input_result;
 
-        if (post_wait_events.empty())
-            return VK_SUCCESS;
-
-        if (*pFence == VK_NULL_HANDLE) {
-            VkFenceCreateInfo fence_create_info = {
-                VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, 0, 0,
-            };
-            enc->vkCreateFence(device, &fence_create_info, nullptr, pFence);
+        if (!post_wait_events.empty() || !post_wait_sync_fds.empty()) {
+            enc->vkQueueWaitIdle(queue);
         }
-        enc->vkQueueSubmit(queue, 0, nullptr, *pFence);
-        static constexpr uint64_t MAX_WAIT_NS =
-            5ULL * 1000ULL * 1000ULL * 1000ULL;
-        enc->vkWaitForFences(device, 1, pFence, VK_TRUE, MAX_WAIT_NS);
-        enc->vkResetFences(device, 1, pFence);
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
         for (auto& event : post_wait_events) {
