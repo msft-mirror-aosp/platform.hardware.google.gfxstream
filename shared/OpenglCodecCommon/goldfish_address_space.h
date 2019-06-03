@@ -43,7 +43,8 @@ private:
    GoldfishAddressSpaceBlockProvider(const GoldfishAddressSpaceBlockProvider &rhs);
    GoldfishAddressSpaceBlockProvider &operator=(const GoldfishAddressSpaceBlockProvider &rhs);
 
-   bool is_opened();
+   bool is_opened() const;
+   void close();
 #ifdef HOST_BUILD
    uint32_t m_handle;
 #else // HOST_BUILD
@@ -65,9 +66,11 @@ public:
     bool allocate(GoldfishAddressSpaceBlockProvider *provider, size_t size);
     uint64_t physAddr() const;
     uint64_t hostAddr() const;
+    uint64_t offset() const { return m_offset; }
+    size_t size() const { return m_size; }
     void *mmap(uint64_t opaque);
     void *guestPtr() const;
-    void replace(GoldfishAddressSpaceBlock *x);
+    void replace(GoldfishAddressSpaceBlock *other);
 
 private:
     void destroy();
@@ -92,7 +95,7 @@ private:
     uint64_t  m_phys_addr;
     uint64_t  m_host_addr;
     uint64_t  m_offset;
-    size_t    m_size;
+    uint64_t  m_size;
 };
 
 #endif  // #ifndef ANDROID_INCLUDE_HARDWARE_GOLDFISH_ADDRESS_SPACE_H
