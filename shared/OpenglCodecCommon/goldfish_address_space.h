@@ -40,22 +40,22 @@ public:
     ~GoldfishAddressSpaceBlockProvider();
 
 private:
-   GoldfishAddressSpaceBlockProvider(const GoldfishAddressSpaceBlockProvider &rhs);
-   GoldfishAddressSpaceBlockProvider &operator=(const GoldfishAddressSpaceBlockProvider &rhs);
+    GoldfishAddressSpaceBlockProvider(const GoldfishAddressSpaceBlockProvider &rhs);
+    GoldfishAddressSpaceBlockProvider &operator=(const GoldfishAddressSpaceBlockProvider &rhs);
 
-   bool is_opened() const;
-   void close();
+    bool is_opened() const;
+    void close();
 #ifdef HOST_BUILD
-   uint32_t m_handle;
+    uint32_t m_handle;
 #else // HOST_BUILD
 #ifdef __Fuchsia__
-   fuchsia::hardware::goldfish::address::space::DeviceSyncPtr m_device;
+    fuchsia::hardware::goldfish::address::space::DeviceSyncPtr m_device;
 #else // __Fuchsia__
-   int m_fd;
+    int m_fd;
 #endif // !__Fuchsia__
 #endif // !HOST_BUILD
 
-   friend class GoldfishAddressSpaceBlock;
+    friend class GoldfishAddressSpaceBlock;
 };
 
 class GoldfishAddressSpaceBlock {
