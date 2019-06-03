@@ -95,4 +95,4 @@ private:
     size_t    m_size;
 };
 
-#endif
+#endif  // #ifndef ANDROID_INCLUDE_HARDWARE_GOLDFISH_ADDRESS_SPACE_H
