@@ -2207,12 +2207,15 @@ public:
         // Note: This causes external to be set to true below. The result
         // is that a dedicated memory allocation is required for the image,
         // which allows the memory to be exported.
+        // TODO(reveman): Remove this when Fuchsia code is explicitly
+        // specifying external memory image info.
         if (localCreateInfo.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) {
             if (!extImgCiPtr) {
                 localExtImgCi.sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO;
                 localExtImgCi.pNext = nullptr;
                 localExtImgCi.handleTypes = ~0; // handle type just needs to be non-zero
-                extImgCiPtr = &localExtImgCi;   // no vk_append_struct required
+                extImgCiPtr = &localExtImgCi;
+                vk_append_struct(&structChainIter, &localExtImgCi);
             }
         }
 #endif
