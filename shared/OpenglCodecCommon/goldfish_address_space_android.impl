@@ -58,10 +58,6 @@ struct goldfish_address_space_ping {
 
 const char GOLDFISH_ADDRESS_SPACE_DEVICE_NAME[] = "/dev/goldfish_address_space";
 
-constexpr int DEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID = 5;
-constexpr int HOST_MEMORY_ALLOCATOR_COMMAND_ALLOCATE_ID = 1;
-constexpr int HOST_MEMORY_ALLOCATOR_COMMAND_UNALLOCATE_ID = 2;
-
 long ioctl_allocate(int fd, struct goldfish_address_space_allocate_block *request)
 {
     return ::ioctl(fd, GOLDFISH_ADDRESS_SPACE_IOCTL_ALLOCATE_BLOCK, request);
@@ -70,11 +66,6 @@ long ioctl_allocate(int fd, struct goldfish_address_space_allocate_block *reques
 long ioctl_deallocate(int fd, uint64_t offset)
 {
     return ::ioctl(fd, GOLDFISH_ADDRESS_SPACE_IOCTL_DEALLOCATE_BLOCK, &offset);
-}
-
-long ioctl_ping(int fd, struct goldfish_address_space_ping *request)
-{
-    return ::ioctl(fd, GOLDFISH_ADDRESS_SPACE_IOCTL_PING, request);
 }
 
 }  // namespace
