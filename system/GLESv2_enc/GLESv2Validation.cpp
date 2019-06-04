@@ -731,6 +731,7 @@ bool pixelFormat(GL2Encoder* ctx, GLenum format) {
     return false;
 }
 #define LIST_VALID_TEX_INTERNALFORMATS(f) \
+    f(GL_BGRA8_EXT) \
     f(GL_R8) \
     f(GL_R8_SNORM) \
     f(GL_R16F) \
