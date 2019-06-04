@@ -23,6 +23,7 @@
 #endif
 
 class GoldfishAddressSpaceBlock;
+class GoldfishAddressSpaceHostMemoryAllocator;
 
 #ifdef HOST_BUILD
 
@@ -56,6 +57,7 @@ private:
 #endif // !HOST_BUILD
 
     friend class GoldfishAddressSpaceBlock;
+    friend class GoldfishAddressSpaceHostMemoryAllocator;
 };
 
 class GoldfishAddressSpaceBlock {
@@ -96,6 +98,17 @@ private:
     uint64_t  m_host_addr;
     uint64_t  m_offset;
     uint64_t  m_size;
+};
+
+class GoldfishAddressSpaceHostMemoryAllocator {
+public:
+    GoldfishAddressSpaceHostMemoryAllocator();
+
+    long hostMalloc(GoldfishAddressSpaceBlock *block, size_t size);
+    void hostFree(GoldfishAddressSpaceBlock *block);
+
+private:
+    GoldfishAddressSpaceBlockProvider m_provider;
 };
 
 #endif  // #ifndef ANDROID_INCLUDE_HARDWARE_GOLDFISH_ADDRESS_SPACE_H
