@@ -24,6 +24,14 @@
 
 #include "goldfish_address_space.h"
 
+namespace {
+
+const int DEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID = 5;
+const int HOST_MEMORY_ALLOCATOR_COMMAND_ALLOCATE_ID = 1;
+const int HOST_MEMORY_ALLOCATOR_COMMAND_UNALLOCATE_ID = 2;
+
+}  // namsepace
+
 using android::HostAddressSpaceDevice;
 using android::emulation::AddressSpaceDevicePingInfo;
 
@@ -139,3 +147,65 @@ void GoldfishAddressSpaceBlock::destroy()
         m_size = 0;
     }
 }
+
+GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator()
+{
+    if (m_provider.is_opened()) {
+        AddressSpaceDevicePingInfo request;
+        ::memset(&request, 0, sizeof(request));
+        request.metadata = DEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID;
+
+        HostAddressSpaceDevice::get()->ping(m_provider.m_handle, &request);
+    }
+}
+
+long GoldfishAddressSpaceHostMemoryAllocator::hostMalloc(GoldfishAddressSpaceBlock *block, size_t size)
+{
+    if (size == 0) {
+        return -EINVAL;
+    }
+    if (block->size() > 0) {
+        return -EINVAL;
+    }
+    if (!m_provider.is_opened()) {
+        return -ENODEV;
+    }
+    if (!block->allocate(&m_provider, size)) {
+        return -ENOMEM;
+    }
+
+    AddressSpaceDevicePingInfo request;
+    ::memset(&request, 0, sizeof(request));
+    request.phys_addr = block->physAddr();
+    request.size = block->size();
+    request.metadata = HOST_MEMORY_ALLOCATOR_COMMAND_ALLOCATE_ID;
+
+    HostAddressSpaceDevice::get()->ping(m_provider.m_handle, &request);
+    block->mmap(0);
+
+    return 0;
+}
+
+void GoldfishAddressSpaceHostMemoryAllocator::hostFree(GoldfishAddressSpaceBlock *block)
+{
+    if (block->size() == 0) {
+        return;
+    }
+
+    if (!m_provider.is_opened()) {
+        ALOGE("%s: device is not available", __func__);
+        ::abort();
+    }
+
+    if (block->guestPtr()) {
+        AddressSpaceDevicePingInfo request;
+        ::memset(&request, 0, sizeof(request));
+        request.phys_addr = block->physAddr();
+        request.metadata = HOST_MEMORY_ALLOCATOR_COMMAND_UNALLOCATE_ID;
+
+        HostAddressSpaceDevice::get()->ping(m_provider.m_handle, &request);
+    }
+
+    block->replace(NULL);
+}
+
