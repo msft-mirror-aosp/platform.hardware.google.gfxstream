@@ -24,14 +24,6 @@
 
 #include "goldfish_address_space.h"
 
-namespace {
-
-constexpr int DEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID = 5;
-constexpr int HOST_MEMORY_ALLOCATOR_COMMAND_ALLOCATE_ID = 1;
-constexpr int HOST_MEMORY_ALLOCATOR_COMMAND_UNALLOCATE_ID = 2;
-
-}  // namsepace
-
 using android::HostAddressSpaceDevice;
 using android::emulation::AddressSpaceDevicePingInfo;
 
