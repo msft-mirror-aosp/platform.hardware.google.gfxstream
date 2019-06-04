@@ -40,21 +40,22 @@ public:
     ~GoldfishAddressSpaceBlockProvider();
 
 private:
-   GoldfishAddressSpaceBlockProvider(const GoldfishAddressSpaceBlockProvider &rhs);
-   GoldfishAddressSpaceBlockProvider &operator=(const GoldfishAddressSpaceBlockProvider &rhs);
+    GoldfishAddressSpaceBlockProvider(const GoldfishAddressSpaceBlockProvider &rhs);
+    GoldfishAddressSpaceBlockProvider &operator=(const GoldfishAddressSpaceBlockProvider &rhs);
 
-   bool is_opened();
+    bool is_opened() const;
+    void close();
 #ifdef HOST_BUILD
-   uint32_t m_handle;
+    uint32_t m_handle;
 #else // HOST_BUILD
 #ifdef __Fuchsia__
-   fuchsia::hardware::goldfish::address::space::DeviceSyncPtr m_device;
+    fuchsia::hardware::goldfish::address::space::DeviceSyncPtr m_device;
 #else // __Fuchsia__
-   int m_fd;
+    int m_fd;
 #endif // !__Fuchsia__
 #endif // !HOST_BUILD
 
-   friend class GoldfishAddressSpaceBlock;
+    friend class GoldfishAddressSpaceBlock;
 };
 
 class GoldfishAddressSpaceBlock {
@@ -65,9 +66,11 @@ public:
     bool allocate(GoldfishAddressSpaceBlockProvider *provider, size_t size);
     uint64_t physAddr() const;
     uint64_t hostAddr() const;
+    uint64_t offset() const { return m_offset; }
+    size_t size() const { return m_size; }
     void *mmap(uint64_t opaque);
     void *guestPtr() const;
-    void replace(GoldfishAddressSpaceBlock *x);
+    void replace(GoldfishAddressSpaceBlock *other);
 
 private:
     void destroy();
@@ -92,7 +95,7 @@ private:
     uint64_t  m_phys_addr;
     uint64_t  m_host_addr;
     uint64_t  m_offset;
-    size_t    m_size;
+    uint64_t  m_size;
 };
 
 #endif  // #ifndef ANDROID_INCLUDE_HARDWARE_GOLDFISH_ADDRESS_SPACE_H
