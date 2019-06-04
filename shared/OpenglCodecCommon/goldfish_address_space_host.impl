@@ -1,0 +1,149 @@
+// Copyright (C) 2019 The Android Open Source Project
+// Copyright (C) 2019 Google Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include <memory>
+#include "android/emulation/hostdevices/HostAddressSpace.h"
+
+#if PLATFORM_SDK_VERSION < 26
+#include <cutils/log.h>
+#else
+#include <log/log.h>
+#endif
+
+#include "goldfish_address_space.h"
+
+namespace {
+
+constexpr int DEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID = 5;
+constexpr int HOST_MEMORY_ALLOCATOR_COMMAND_ALLOCATE_ID = 1;
+constexpr int HOST_MEMORY_ALLOCATOR_COMMAND_UNALLOCATE_ID = 2;
+
+}  // namsepace
+
+using android::HostAddressSpaceDevice;
+using android::emulation::AddressSpaceDevicePingInfo;
+
+GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider()
+    : m_handle(HostAddressSpaceDevice::get()->open()) {}
+
+GoldfishAddressSpaceBlockProvider::~GoldfishAddressSpaceBlockProvider()
+{
+    HostAddressSpaceDevice::get()->close(m_handle);
+}
+
+bool GoldfishAddressSpaceBlockProvider::is_opened() const
+{
+    return m_handle > 0;
+}
+
+void GoldfishAddressSpaceBlockProvider::close()
+{
+    if (is_opened()) {
+        HostAddressSpaceDevice::get()->close(m_handle);
+        m_handle = 0;
+    }
+}
+
+GoldfishAddressSpaceBlock::GoldfishAddressSpaceBlock()
+    : m_handle(0)
+    , m_mmaped_ptr(NULL)
+    , m_phys_addr(0)
+    , m_host_addr(0)
+    , m_offset(0)
+    , m_size(0) {}
+
+GoldfishAddressSpaceBlock::~GoldfishAddressSpaceBlock()
+{
+    destroy();
+}
+
+GoldfishAddressSpaceBlock &GoldfishAddressSpaceBlock::operator=(const GoldfishAddressSpaceBlock &rhs)
+{
+    m_mmaped_ptr = rhs.m_mmaped_ptr;
+    m_phys_addr = rhs.m_phys_addr;
+    m_host_addr = rhs.m_host_addr;
+    m_offset = rhs.m_offset;
+    m_size = rhs.m_size;
+    m_handle = rhs.m_handle;
+    return *this;
+}
+
+bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *provider, size_t size)
+{
+    ALOGD("%s: Ask for block of size 0x%llx\n", __func__,
+         (unsigned long long)size);
+
+    destroy();
+
+    if (!provider->is_opened()) {
+        return false;
+    }
+
+    m_size = size;
+    m_offset =
+        HostAddressSpaceDevice::get()->allocBlock(
+            provider->m_handle, size, &m_phys_addr);
+    m_handle = provider->m_handle;
+
+    return true;
+}
+
+uint64_t GoldfishAddressSpaceBlock::physAddr() const
+{
+    return m_phys_addr;
+}
+
+uint64_t GoldfishAddressSpaceBlock::hostAddr() const
+{
+    return m_host_addr;
+}
+
+void *GoldfishAddressSpaceBlock::mmap(uint64_t host_addr)
+{
+    if (m_size == 0) {
+        ALOGE("%s: called with zero size\n", __func__);
+        return NULL;
+    }
+
+    if (m_mmaped_ptr != nullptr) {
+        ALOGE("'mmap' called for an already mmaped address block 0x%llx %d", (unsigned long long)m_mmaped_ptr, nullptr == m_mmaped_ptr);
+        ::abort();
+    }
+
+    m_mmaped_ptr = (void*)(uintptr_t)(host_addr & (~(PAGE_SIZE - 1)));
+    m_host_addr = host_addr;
+
+    return guestPtr();
+}
+
+void *GoldfishAddressSpaceBlock::guestPtr() const
+{
+    return reinterpret_cast<char *>(m_mmaped_ptr) + (m_host_addr & (PAGE_SIZE - 1));
+}
+
+void GoldfishAddressSpaceBlock::destroy()
+{
+    if (m_mmaped_ptr && m_size) {
+        m_mmaped_ptr = NULL;
+    }
+
+    if (m_size) {
+        HostAddressSpaceDevice::get()->freeBlock(m_handle, m_offset);
+        m_phys_addr = 0;
+        m_host_addr = 0;
+        m_offset = 0;
+        m_size = 0;
+    }
+}
