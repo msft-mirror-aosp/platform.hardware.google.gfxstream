@@ -4503,9 +4503,9 @@ void GL2Encoder::s_glBlitFramebuffer(void* self, GLint srcX0, GLint srcY0, GLint
     GL2Encoder *ctx = (GL2Encoder *)self;
     GLClientState* state = ctx->m_state;
 
-    bool validateColor = mask | GL_COLOR_BUFFER_BIT;
-    bool validateDepth = mask | GL_DEPTH_BUFFER_BIT;
-    bool validateStencil = mask | GL_STENCIL_BUFFER_BIT;
+    bool validateColor = mask & GL_COLOR_BUFFER_BIT;
+    bool validateDepth = mask & GL_DEPTH_BUFFER_BIT;
+    bool validateStencil = mask & GL_STENCIL_BUFFER_BIT;
 
     FboFormatInfo read_fbo_format_info;
     FboFormatInfo draw_fbo_format_info;
