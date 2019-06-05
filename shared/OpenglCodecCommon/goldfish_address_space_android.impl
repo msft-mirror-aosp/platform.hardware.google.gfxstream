@@ -58,6 +58,10 @@ struct goldfish_address_space_ping {
 
 const char GOLDFISH_ADDRESS_SPACE_DEVICE_NAME[] = "/dev/goldfish_address_space";
 
+const int DEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID = 5;
+const int HOST_MEMORY_ALLOCATOR_COMMAND_ALLOCATE_ID = 1;
+const int HOST_MEMORY_ALLOCATOR_COMMAND_UNALLOCATE_ID = 2;
+
 long ioctl_allocate(int fd, struct goldfish_address_space_allocate_block *request)
 {
     return ::ioctl(fd, GOLDFISH_ADDRESS_SPACE_IOCTL_ALLOCATE_BLOCK, request);
@@ -66,6 +70,11 @@ long ioctl_allocate(int fd, struct goldfish_address_space_allocate_block *reques
 long ioctl_deallocate(int fd, uint64_t offset)
 {
     return ::ioctl(fd, GOLDFISH_ADDRESS_SPACE_IOCTL_DEALLOCATE_BLOCK, &offset);
+}
+
+long ioctl_ping(int fd, struct goldfish_address_space_ping *request)
+{
+    return ::ioctl(fd, GOLDFISH_ADDRESS_SPACE_IOCTL_PING, request);
 }
 
 }  // namespace
@@ -208,4 +217,81 @@ void GoldfishAddressSpaceBlock::destroy()
         m_offset = 0;
         m_size = 0;
     }
+}
+
+GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator()
+{
+    if (m_provider.is_opened()) {
+        struct goldfish_address_space_ping request;
+        ::memset(&request, 0, sizeof(request));
+        request.metadata = DEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID;
+
+        const long ret = ioctl_ping(m_provider.m_fd, &request);
+        if (ret) {
+            ALOGE("%s: ioctl_ping failed for device_type=%llu, ret=%ld",
+                  __func__, DEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID, ret);
+            m_provider.close();
+        }
+    }
+}
+
+long GoldfishAddressSpaceHostMemoryAllocator::hostMalloc(GoldfishAddressSpaceBlock *block, size_t size)
+{
+    if (size == 0) {
+        return -EINVAL;
+    }
+    if (block->size() > 0) {
+        return -EINVAL;
+    }
+    if (!m_provider.is_opened()) {
+        return -ENODEV;
+    }
+    if (!block->allocate(&m_provider, size)) {
+        return -ENOMEM;
+    }
+
+    struct goldfish_address_space_ping request;
+    ::memset(&request, 0, sizeof(request));
+    request.offset = block->offset();
+    request.size = block->size();
+    request.metadata = HOST_MEMORY_ALLOCATOR_COMMAND_ALLOCATE_ID;
+
+    long ret = ioctl_ping(m_provider.m_fd, &request);
+    if (ret) {
+        return ret;
+    }
+    ret = static_cast<long>(request.metadata);
+    if (ret) {
+        return ret;
+    }
+
+    block->mmap(0);
+    return 0;
+}
+
+void GoldfishAddressSpaceHostMemoryAllocator::hostFree(GoldfishAddressSpaceBlock *block)
+{
+    if (block->size() == 0) {
+        return;
+    }
+
+    if (!m_provider.is_opened()) {
+        ALOGE("%s: device is not available", __func__);
+        ::abort();
+    }
+
+    if (block->guestPtr()) {
+        struct goldfish_address_space_ping request;
+        ::memset(&request, 0, sizeof(request));
+        request.offset = block->offset();
+        request.metadata = HOST_MEMORY_ALLOCATOR_COMMAND_UNALLOCATE_ID;
+
+        const long ret = ioctl_ping(m_provider.m_fd, &request);
+        if (ret) {
+            ALOGE("%s: ioctl_ping failed, ret=%ld", __func__, ret);
+            ::abort();
+        }
+    }
+
+    block->replace(NULL);
 }
