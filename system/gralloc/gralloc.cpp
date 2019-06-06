@@ -1553,10 +1553,10 @@ struct private_module_t HAL_MODULE_INFO_SYM = {
         lock: gralloc_lock,
         unlock: gralloc_unlock,
         perform: NULL,
-#if PLATFORM_SDK_VERSION >= 28 // In Q, we want to specify these, but SDK version is not 29 yet. do not merge this to P
+#if PLATFORM_SDK_VERSION >= 29 // For Q and later
         validateBufferSize: NULL,
         getTransportSize: NULL,
-#endif // PLATFORM_VERSION > 28
+#endif // PLATFORM_SDK_VERSION >= 29
 #if PLATFORM_SDK_VERSION >= 18
         lock_ycbcr: gralloc_lock_ycbcr,
 #endif // PLATFORM_SDK_VERSION >= 18
