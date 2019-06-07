@@ -27,18 +27,9 @@
 
 #include "func_table.h"
 
-#include <array>
-#include <bitset>
-#include <mutex>
-
 // Used when there is no Vulkan support on the host.
 // Copied from frameworks/native/vulkan/libvulkan/stubhal.cpp
 namespace vkstubhal {
-
-const size_t kMaxInstances = 32;
-static std::mutex g_instance_mutex;
-static std::bitset<kMaxInstances> g_instance_used(false);
-static std::array<hwvulkan_dispatch_t, kMaxInstances> g_instances;
 
 [[noreturn]] VKAPI_ATTR void NoOp() {
     LOG_ALWAYS_FATAL("invalid stub function called");
@@ -65,28 +56,19 @@ VkResult CreateInstance(const VkInstanceCreateInfo* /*create_info*/,
                         const VkAllocationCallbacks* /*allocator*/,
                         VkInstance* instance) {
     AEMU_SCOPED_TRACE("vkstubhal::CreateInstance");
-    std::lock_guard<std::mutex> lock(g_instance_mutex);
-    for (size_t i = 0; i < kMaxInstances; i++) {
-        if (!g_instance_used[i]) {
-            g_instance_used[i] = true;
-            g_instances[i].magic = HWVULKAN_DISPATCH_MAGIC;
-            *instance = reinterpret_cast<VkInstance>(&g_instances[i]);
-            return VK_SUCCESS;
-        }
-    }
-    ALOGE("no more instances available (max=%zu)", kMaxInstances);
-    return VK_ERROR_INITIALIZATION_FAILED;
+    auto dispatch = new hwvulkan_dispatch_t;
+    dispatch->magic = HWVULKAN_DISPATCH_MAGIC;
+    *instance = reinterpret_cast<VkInstance>(dispatch);
+    return VK_SUCCESS;
 }
 
 void DestroyInstance(VkInstance instance,
                      const VkAllocationCallbacks* /*allocator*/) {
     AEMU_SCOPED_TRACE("vkstubhal::DestroyInstance");
-    std::lock_guard<std::mutex> lock(g_instance_mutex);
-    ssize_t idx =
-        reinterpret_cast<hwvulkan_dispatch_t*>(instance) - &g_instances[0];
-    ALOG_ASSERT(idx >= 0 && static_cast<size_t>(idx) < g_instance_used.size(),
+    auto dispatch = reinterpret_cast<hwvulkan_dispatch_t*>(instance);
+    ALOG_ASSERT(dispatch->magic == HWVULKAN_DISPATCH_MAGIC,
                 "DestroyInstance: invalid instance handle");
-    g_instance_used[static_cast<size_t>(idx)] = false;
+    delete dispatch;
 }
 
 VkResult EnumeratePhysicalDevices(VkInstance /*instance*/,
