@@ -119,6 +119,33 @@ DebugReportMessageEXT(VkInstance /*instance*/,
     AEMU_SCOPED_TRACE("vkstubhal::DebugReportMessageEXT");
 }
 
+VkResult
+CreateDebugUtilsMessengerEXT(VkInstance /*instance*/,
+                             const VkDebugUtilsMessengerCreateInfoEXT* /*pCreateInfo*/,
+                             const VkAllocationCallbacks* /*pAllocator*/,
+                             VkDebugUtilsMessengerEXT* /*pMessenger*/)
+{
+    AEMU_SCOPED_TRACE("vkstubhal::CreateDebugUtilsMessengerEXT");
+    return VK_SUCCESS;
+}
+
+void
+DestroyDebugUtilsMessengerEXT(VkInstance /*instance*/,
+                              VkDebugUtilsMessengerEXT /*messenger*/,
+                              const VkAllocationCallbacks* /*pAllocator*/)
+{
+    AEMU_SCOPED_TRACE("vkstubhal::DestroyDebugUtilsMessengerkEXT");
+}
+
+void
+SubmitDebugUtilsMessageEXT(VkInstance /*instance*/,
+                           VkDebugUtilsMessageSeverityFlagBitsEXT /*messageSeverity*/,
+                           VkDebugUtilsMessageTypeFlagsEXT /*messageTypes*/,
+                           const VkDebugUtilsMessengerCallbackDataEXT* /*pCallbackData*/)
+{
+    AEMU_SCOPED_TRACE("vkstubhal::SubmitDebugUtilsMessageEXT");
+}
+
 #ifdef VK_USE_PLATFORM_FUCHSIA
 VkResult
 GetMemoryZirconHandleFUCHSIA(VkDevice /*device*/,
@@ -213,6 +240,12 @@ PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance,
         return reinterpret_cast<PFN_vkVoidFunction>(DestroyDebugReportCallbackEXT);
     if (strcmp(name, "vkDebugReportMessageEXT") == 0)
         return reinterpret_cast<PFN_vkVoidFunction>(DebugReportMessageEXT);
+    if (strcmp(name, "vkCreateDebugUtilsMessengerEXT") == 0)
+        return reinterpret_cast<PFN_vkVoidFunction>(CreateDebugUtilsMessengerEXT);
+    if (strcmp(name, "vkDestroyDebugUtilsMessengerEXT") == 0)
+        return reinterpret_cast<PFN_vkVoidFunction>(DestroyDebugUtilsMessengerEXT);
+    if (strcmp(name, "vkSubmitDebugUtilsMessageEXT") == 0)
+        return reinterpret_cast<PFN_vkVoidFunction>(SubmitDebugUtilsMessageEXT);
 #ifdef VK_USE_PLATFORM_FUCHSIA
     if (strcmp(name, "vkGetMemoryZirconHandleFUCHSIA") == 0)
         return reinterpret_cast<PFN_vkVoidFunction>(GetMemoryZirconHandleFUCHSIA);
