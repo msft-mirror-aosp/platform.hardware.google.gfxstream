@@ -878,9 +878,12 @@ public:
         bool posixExtMemAvailable =
             getHostDeviceExtensionIndex(
                 "VK_KHR_external_memory_fd") != -1;
+        bool extMoltenVkAvailable =
+            getHostDeviceExtensionIndex(
+                "VK_MVK_moltenvk") != -1;
 
         bool hostHasExternalMemorySupport =
-            win32ExtMemAvailable || posixExtMemAvailable;
+            win32ExtMemAvailable || posixExtMemAvailable || extMoltenVkAvailable;
 
         if (hostHasExternalMemorySupport) {
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
