@@ -130,7 +130,7 @@ void *GoldfishAddressSpaceBlock::mmap(uint64_t host_addr)
 
 void *GoldfishAddressSpaceBlock::guestPtr() const
 {
-    return reinterpret_cast<char *>(m_mmaped_ptr) + (m_host_addr & (PAGE_SIZE - 1));
+    return HostAddressSpaceDevice::get()->getHostAddr(m_host_addr);
 }
 
 void GoldfishAddressSpaceBlock::destroy()
@@ -181,7 +181,7 @@ long GoldfishAddressSpaceHostMemoryAllocator::hostMalloc(GoldfishAddressSpaceBlo
     request.metadata = HOST_MEMORY_ALLOCATOR_COMMAND_ALLOCATE_ID;
 
     HostAddressSpaceDevice::get()->ping(m_provider.m_handle, &request);
-    block->mmap(0);
+    block->mmap(block->physAddr());
 
     return 0;
 }
