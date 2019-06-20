@@ -944,10 +944,17 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
     }
     countingStream->rewind();
     {
-        // WARNING PTR CHECK
-        uint64_t cgen_var_53 = (uint64_t)(uintptr_t)local_pLayerName;
-        countingStream->putBe64(cgen_var_53);
-        if (local_pLayerName)
+        if (countingStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
+        {
+            // WARNING PTR CHECK
+            uint64_t cgen_var_53 = (uint64_t)(uintptr_t)local_pLayerName;
+            countingStream->putBe64(cgen_var_53);
+            if (local_pLayerName)
+            {
+                countingStream->putString(local_pLayerName);
+            }
+        }
+        else
         {
             countingStream->putString(local_pLayerName);
         }
@@ -974,10 +981,17 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
     uint32_t opcode_vkEnumerateInstanceExtensionProperties = OP_vkEnumerateInstanceExtensionProperties;
     stream->write(&opcode_vkEnumerateInstanceExtensionProperties, sizeof(uint32_t));
     stream->write(&packetSize_vkEnumerateInstanceExtensionProperties, sizeof(uint32_t));
-    // WARNING PTR CHECK
-    uint64_t cgen_var_56 = (uint64_t)(uintptr_t)local_pLayerName;
-    stream->putBe64(cgen_var_56);
-    if (local_pLayerName)
+    if (stream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
+    {
+        // WARNING PTR CHECK
+        uint64_t cgen_var_56 = (uint64_t)(uintptr_t)local_pLayerName;
+        stream->putBe64(cgen_var_56);
+        if (local_pLayerName)
+        {
+            stream->putString(local_pLayerName);
+        }
+    }
+    else
     {
         stream->putString(local_pLayerName);
     }
@@ -1067,10 +1081,17 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
         uint64_t cgen_var_61;
         countingStream->handleMapping()->mapHandles_VkPhysicalDevice_u64(&local_physicalDevice, &cgen_var_61, 1);
         countingStream->write((uint64_t*)&cgen_var_61, 1 * 8);
-        // WARNING PTR CHECK
-        uint64_t cgen_var_62 = (uint64_t)(uintptr_t)local_pLayerName;
-        countingStream->putBe64(cgen_var_62);
-        if (local_pLayerName)
+        if (countingStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
+        {
+            // WARNING PTR CHECK
+            uint64_t cgen_var_62 = (uint64_t)(uintptr_t)local_pLayerName;
+            countingStream->putBe64(cgen_var_62);
+            if (local_pLayerName)
+            {
+                countingStream->putString(local_pLayerName);
+            }
+        }
+        else
         {
             countingStream->putString(local_pLayerName);
         }
@@ -1100,10 +1121,17 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
     uint64_t cgen_var_65;
     stream->handleMapping()->mapHandles_VkPhysicalDevice_u64(&local_physicalDevice, &cgen_var_65, 1);
     stream->write((uint64_t*)&cgen_var_65, 1 * 8);
-    // WARNING PTR CHECK
-    uint64_t cgen_var_66 = (uint64_t)(uintptr_t)local_pLayerName;
-    stream->putBe64(cgen_var_66);
-    if (local_pLayerName)
+    if (stream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
+    {
+        // WARNING PTR CHECK
+        uint64_t cgen_var_66 = (uint64_t)(uintptr_t)local_pLayerName;
+        stream->putBe64(cgen_var_66);
+        if (local_pLayerName)
+        {
+            stream->putString(local_pLayerName);
+        }
+    }
+    else
     {
         stream->putString(local_pLayerName);
     }
