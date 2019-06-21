@@ -52,18 +52,32 @@ void marshal_VkApplicationInfo(
         vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
         marshal_extension_struct(vkStream, forMarshaling->pNext);
     }
-    // WARNING PTR CHECK
-    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pApplicationName;
-    vkStream->putBe64(cgen_var_0);
-    if (forMarshaling->pApplicationName)
+    if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
+    {
+        // WARNING PTR CHECK
+        uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pApplicationName;
+        vkStream->putBe64(cgen_var_0);
+        if (forMarshaling->pApplicationName)
+        {
+            vkStream->putString(forMarshaling->pApplicationName);
+        }
+    }
+    else
     {
         vkStream->putString(forMarshaling->pApplicationName);
     }
     vkStream->write((uint32_t*)&forMarshaling->applicationVersion, sizeof(uint32_t));
-    // WARNING PTR CHECK
-    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pEngineName;
-    vkStream->putBe64(cgen_var_1);
-    if (forMarshaling->pEngineName)
+    if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
+    {
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1 = (uint64_t)(uintptr_t)forMarshaling->pEngineName;
+        vkStream->putBe64(cgen_var_1);
+        if (forMarshaling->pEngineName)
+        {
+            vkStream->putString(forMarshaling->pEngineName);
+        }
+    }
+    else
     {
         vkStream->putString(forMarshaling->pEngineName);
     }
@@ -84,27 +98,41 @@ void unmarshal_VkApplicationInfo(
         vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
         unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     }
-    // WARNING PTR CHECK
-    const char* check_pApplicationName;
-    check_pApplicationName = (const char*)(uintptr_t)vkStream->getBe64();
-    if (forUnmarshaling->pApplicationName)
+    if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
     {
-        if (!(check_pApplicationName))
+        // WARNING PTR CHECK
+        const char* check_pApplicationName;
+        check_pApplicationName = (const char*)(uintptr_t)vkStream->getBe64();
+        if (forUnmarshaling->pApplicationName)
         {
-            fprintf(stderr, "fatal: forUnmarshaling->pApplicationName inconsistent between guest and host\n");
+            if (!(check_pApplicationName))
+            {
+                fprintf(stderr, "fatal: forUnmarshaling->pApplicationName inconsistent between guest and host\n");
+            }
+            vkStream->loadStringInPlace((char**)&forUnmarshaling->pApplicationName);
         }
+    }
+    else
+    {
         vkStream->loadStringInPlace((char**)&forUnmarshaling->pApplicationName);
     }
     vkStream->read((uint32_t*)&forUnmarshaling->applicationVersion, sizeof(uint32_t));
-    // WARNING PTR CHECK
-    const char* check_pEngineName;
-    check_pEngineName = (const char*)(uintptr_t)vkStream->getBe64();
-    if (forUnmarshaling->pEngineName)
+    if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
     {
-        if (!(check_pEngineName))
+        // WARNING PTR CHECK
+        const char* check_pEngineName;
+        check_pEngineName = (const char*)(uintptr_t)vkStream->getBe64();
+        if (forUnmarshaling->pEngineName)
         {
-            fprintf(stderr, "fatal: forUnmarshaling->pEngineName inconsistent between guest and host\n");
+            if (!(check_pEngineName))
+            {
+                fprintf(stderr, "fatal: forUnmarshaling->pEngineName inconsistent between guest and host\n");
+            }
+            vkStream->loadStringInPlace((char**)&forUnmarshaling->pEngineName);
         }
+    }
+    else
+    {
         vkStream->loadStringInPlace((char**)&forUnmarshaling->pEngineName);
     }
     vkStream->read((uint32_t*)&forUnmarshaling->engineVersion, sizeof(uint32_t));
@@ -11590,10 +11618,17 @@ void marshal_VkDebugUtilsObjectNameInfoEXT(
     }
     vkStream->write((VkObjectType*)&forMarshaling->objectType, sizeof(VkObjectType));
     vkStream->write((uint64_t*)&forMarshaling->objectHandle, sizeof(uint64_t));
-    // WARNING PTR CHECK
-    uint64_t cgen_var_334 = (uint64_t)(uintptr_t)forMarshaling->pObjectName;
-    vkStream->putBe64(cgen_var_334);
-    if (forMarshaling->pObjectName)
+    if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
+    {
+        // WARNING PTR CHECK
+        uint64_t cgen_var_334 = (uint64_t)(uintptr_t)forMarshaling->pObjectName;
+        vkStream->putBe64(cgen_var_334);
+        if (forMarshaling->pObjectName)
+        {
+            vkStream->putString(forMarshaling->pObjectName);
+        }
+    }
+    else
     {
         vkStream->putString(forMarshaling->pObjectName);
     }
@@ -11614,15 +11649,22 @@ void unmarshal_VkDebugUtilsObjectNameInfoEXT(
     }
     vkStream->read((VkObjectType*)&forUnmarshaling->objectType, sizeof(VkObjectType));
     vkStream->read((uint64_t*)&forUnmarshaling->objectHandle, sizeof(uint64_t));
-    // WARNING PTR CHECK
-    const char* check_pObjectName;
-    check_pObjectName = (const char*)(uintptr_t)vkStream->getBe64();
-    if (forUnmarshaling->pObjectName)
+    if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
     {
-        if (!(check_pObjectName))
+        // WARNING PTR CHECK
+        const char* check_pObjectName;
+        check_pObjectName = (const char*)(uintptr_t)vkStream->getBe64();
+        if (forUnmarshaling->pObjectName)
         {
-            fprintf(stderr, "fatal: forUnmarshaling->pObjectName inconsistent between guest and host\n");
+            if (!(check_pObjectName))
+            {
+                fprintf(stderr, "fatal: forUnmarshaling->pObjectName inconsistent between guest and host\n");
+            }
+            vkStream->loadStringInPlace((char**)&forUnmarshaling->pObjectName);
         }
+    }
+    else
+    {
         vkStream->loadStringInPlace((char**)&forUnmarshaling->pObjectName);
     }
 }
@@ -11713,10 +11755,17 @@ void marshal_VkDebugUtilsMessengerCallbackDataEXT(
         marshal_extension_struct(vkStream, forMarshaling->pNext);
     }
     vkStream->write((VkDebugUtilsMessengerCallbackDataFlagsEXT*)&forMarshaling->flags, sizeof(VkDebugUtilsMessengerCallbackDataFlagsEXT));
-    // WARNING PTR CHECK
-    uint64_t cgen_var_338 = (uint64_t)(uintptr_t)forMarshaling->pMessageIdName;
-    vkStream->putBe64(cgen_var_338);
-    if (forMarshaling->pMessageIdName)
+    if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
+    {
+        // WARNING PTR CHECK
+        uint64_t cgen_var_338 = (uint64_t)(uintptr_t)forMarshaling->pMessageIdName;
+        vkStream->putBe64(cgen_var_338);
+        if (forMarshaling->pMessageIdName)
+        {
+            vkStream->putString(forMarshaling->pMessageIdName);
+        }
+    }
+    else
     {
         vkStream->putString(forMarshaling->pMessageIdName);
     }
@@ -11771,15 +11820,22 @@ void unmarshal_VkDebugUtilsMessengerCallbackDataEXT(
         unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     }
     vkStream->read((VkDebugUtilsMessengerCallbackDataFlagsEXT*)&forUnmarshaling->flags, sizeof(VkDebugUtilsMessengerCallbackDataFlagsEXT));
-    // WARNING PTR CHECK
-    const char* check_pMessageIdName;
-    check_pMessageIdName = (const char*)(uintptr_t)vkStream->getBe64();
-    if (forUnmarshaling->pMessageIdName)
+    if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
     {
-        if (!(check_pMessageIdName))
+        // WARNING PTR CHECK
+        const char* check_pMessageIdName;
+        check_pMessageIdName = (const char*)(uintptr_t)vkStream->getBe64();
+        if (forUnmarshaling->pMessageIdName)
         {
-            fprintf(stderr, "fatal: forUnmarshaling->pMessageIdName inconsistent between guest and host\n");
+            if (!(check_pMessageIdName))
+            {
+                fprintf(stderr, "fatal: forUnmarshaling->pMessageIdName inconsistent between guest and host\n");
+            }
+            vkStream->loadStringInPlace((char**)&forUnmarshaling->pMessageIdName);
         }
+    }
+    else
+    {
         vkStream->loadStringInPlace((char**)&forUnmarshaling->pMessageIdName);
     }
     vkStream->read((int32_t*)&forUnmarshaling->messageIdNumber, sizeof(int32_t));

@@ -79,6 +79,9 @@ static const char kVulkan[] = "ANDROID_EMU_vulkan";
 // Deferred Vulkan commands
 static const char kDeferredVulkanCommands[] = "ANDROID_EMU_deferred_vulkan_commands";
 
+// Vulkan null optional strings
+static const char kVulkanNullOptionalStrings[] = "ANDROID_EMU_vulkan_null_optional_strings";
+
 // Struct describing available emulator features
 struct EmulatorFeatureInfo {
 
@@ -89,7 +92,8 @@ struct EmulatorFeatureInfo {
         glesMaxVersion(GLES_MAX_VERSION_2),
         hasDirectMem(false),
         hasVulkan(false),
-        hasDeferredVulkanCommands(false) { }
+        hasDeferredVulkanCommands(false),
+        hasVulkanNullOptionalStrings(false) { }
 
     SyncImpl syncImpl;
     DmaImpl dmaImpl;
@@ -98,6 +102,7 @@ struct EmulatorFeatureInfo {
     bool hasDirectMem;
     bool hasVulkan;
     bool hasDeferredVulkanCommands;
+    bool hasVulkanNullOptionalStrings;
 };
 
 #endif // __COMMON_EMULATOR_FEATURE_INFO_H
