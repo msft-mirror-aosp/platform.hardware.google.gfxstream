@@ -349,6 +349,7 @@ public:
     void setupFeatures(const EmulatorFeatureInfo* features);
     bool hostSupportsVulkan() const;
     bool usingDirectMapping() const;
+    uint32_t getStreamFeatures() const;
     uint32_t getApiVersionFromInstance(VkInstance instance) const;
     uint32_t getApiVersionFromDevice(VkDevice device) const;
     bool hasInstanceExtension(VkInstance instance, const std::string& name) const;
