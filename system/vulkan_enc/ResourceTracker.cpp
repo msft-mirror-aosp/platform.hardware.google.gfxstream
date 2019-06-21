@@ -563,6 +563,10 @@ public:
             }
         }
 #endif
+
+        if (mFeatureInfo->hasVulkanNullOptionalStrings) {
+            mStreamFeatureBits |= VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT;
+        }
     }
 
     bool hostSupportsVulkan() const {
@@ -573,6 +577,10 @@ public:
 
     bool usingDirectMapping() const {
         return mHostVisibleMemoryVirtInfo.virtualizationSupported;
+    }
+
+    uint32_t getStreamFeatures() const {
+        return mStreamFeatureBits;
     }
 
     bool supportsDeferredCommands() const {
@@ -3172,6 +3180,7 @@ private:
     mutable Lock mLock;
     HostVisibleMemoryVirtualizationInfo mHostVisibleMemoryVirtInfo;
     std::unique_ptr<EmulatorFeatureInfo> mFeatureInfo;
+    uint32_t mStreamFeatureBits = 0;
     std::unique_ptr<GoldfishAddressSpaceBlockProvider> mGoldfishAddressSpaceBlockProvider;
 
     std::vector<VkExtensionProperties> mHostInstanceExtensions;
@@ -3250,6 +3259,10 @@ bool ResourceTracker::hostSupportsVulkan() const {
 
 bool ResourceTracker::usingDirectMapping() const {
     return mImpl->usingDirectMapping();
+}
+
+uint32_t ResourceTracker::getStreamFeatures() const {
+    return mImpl->getStreamFeatures();
 }
 
 uint32_t ResourceTracker::getApiVersionFromInstance(VkInstance instance) const {

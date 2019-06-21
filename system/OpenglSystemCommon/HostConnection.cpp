@@ -292,6 +292,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetHostCompositionImpl(m_rcEnc);
         queryAndSetDirectMemSupport(m_rcEnc);
         queryAndSetVulkanSupport(m_rcEnc);
+        queryAndSetVulkanNullOptionalStringsSupport(m_rcEnc);
         if (m_processPipe) {
             m_processPipe->processPipeInit(m_rcEnc);
         }
@@ -445,5 +446,12 @@ void HostConnection::queryAndSetDeferredVulkanCommandsSupport(ExtendedRCEncoderC
     std::string glExtensions = queryGLExtensions(rcEnc);
     if (glExtensions.find(kDeferredVulkanCommands) != std::string::npos) {
         rcEnc->featureInfo()->hasDeferredVulkanCommands = true;
+    }
+}
+
+void HostConnection::queryAndSetVulkanNullOptionalStringsSupport(ExtendedRCEncoderContext* rcEnc) {
+    std::string glExtensions = queryGLExtensions(rcEnc);
+    if (glExtensions.find(kVulkanNullOptionalStrings) != std::string::npos) {
+        rcEnc->featureInfo()->hasVulkanNullOptionalStrings = true;
     }
 }

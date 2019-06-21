@@ -523,6 +523,9 @@ typedef struct VkSemaphoreGetZirconHandleInfoFUCHSIA {
     ((VkExternalSemaphoreHandleTypeFlagBits)0x00100000)
 #endif  // VK_FUCHSIA_external_semaphore
 
+// VulkanStream features
+#define VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT (1 << 0)
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
