@@ -82,6 +82,9 @@ static const char kDeferredVulkanCommands[] = "ANDROID_EMU_deferred_vulkan_comma
 // Vulkan null optional strings
 static const char kVulkanNullOptionalStrings[] = "ANDROID_EMU_vulkan_null_optional_strings";
 
+// Vulkan create resources with requirements
+static const char kVulkanCreateResourcesWithRequirements[] = "ANDROID_EMU_vulkan_create_resources_with_requirements";
+
 // Struct describing available emulator features
 struct EmulatorFeatureInfo {
 
@@ -93,7 +96,8 @@ struct EmulatorFeatureInfo {
         hasDirectMem(false),
         hasVulkan(false),
         hasDeferredVulkanCommands(false),
-        hasVulkanNullOptionalStrings(false) { }
+        hasVulkanNullOptionalStrings(false),
+        hasVulkanCreateResourcesWithRequirements(false) { }
 
     SyncImpl syncImpl;
     DmaImpl dmaImpl;
@@ -103,6 +107,7 @@ struct EmulatorFeatureInfo {
     bool hasVulkan;
     bool hasDeferredVulkanCommands;
     bool hasVulkanNullOptionalStrings;
+    bool hasVulkanCreateResourcesWithRequirements;
 };
 
 #endif // __COMMON_EMULATOR_FEATURE_INFO_H

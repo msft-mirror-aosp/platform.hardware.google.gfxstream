@@ -94,7 +94,11 @@ public:
 
     // Assume the lock for the current encoder is held.
     void registerCleanupCallback(void* handle, VkEncoder::CleanupCallback cb) {
-        mCleanupCallbacks.insert({handle, cb});
+        if (mCleanupCallbacks.end() == mCleanupCallbacks.find(handle)) {
+            mCleanupCallbacks[handle] = cb;
+        } else {
+            return;
+        }
     }
 
     void unregisterCleanupCallback(void* handle) {
@@ -23093,6 +23097,210 @@ void VkEncoder::vkCommandBufferHostSyncGOOGLE(
     AEMU_SCOPED_TRACE("vkCommandBufferHostSyncGOOGLE readParams");
     AEMU_SCOPED_TRACE("vkCommandBufferHostSyncGOOGLE returnUnmarshal");
     mImpl->log("finish vkCommandBufferHostSyncGOOGLE");;
+}
+
+#endif
+#ifdef VK_GOOGLE_create_resources_with_requirements
+VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
+    VkDevice device,
+    const VkImageCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkImage* pImage,
+    VkMemoryRequirements* pMemoryRequirements)
+{
+    AutoLock encoderLock(mImpl->lock);
+    AEMU_SCOPED_TRACE("vkCreateImageWithRequirementsGOOGLE encode");
+    mImpl->log("start vkCreateImageWithRequirementsGOOGLE");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkDevice local_device;
+    VkImageCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_pCreateInfo = nullptr;
+    if (pCreateInfo)
+    {
+        local_pCreateInfo = (VkImageCreateInfo*)pool->alloc(sizeof(const VkImageCreateInfo));
+        deepcopy_VkImageCreateInfo(pool, pCreateInfo, (VkImageCreateInfo*)(local_pCreateInfo));
+    }
+    local_pAllocator = nullptr;
+    if (pAllocator)
+    {
+        local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
+        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+    }
+    local_pAllocator = nullptr;
+    if (local_pCreateInfo)
+    {
+        transform_tohost_VkImageCreateInfo(mImpl->resources(), (VkImageCreateInfo*)(local_pCreateInfo));
+    }
+    if (local_pAllocator)
+    {
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+    }
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1520;
+        countingStream->handleMapping()->mapHandles_VkDevice_u64(&local_device, &cgen_var_1520, 1);
+        countingStream->write((uint64_t*)&cgen_var_1520, 1 * 8);
+        marshal_VkImageCreateInfo(countingStream, (VkImageCreateInfo*)(local_pCreateInfo));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1521 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_1521);
+        if (local_pAllocator)
+        {
+            marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
+        }
+        uint64_t cgen_var_1522;
+        countingStream->handleMapping()->mapHandles_VkImage_u64(pImage, &cgen_var_1522, 1);
+        countingStream->write((uint64_t*)&cgen_var_1522, 8);
+        marshal_VkMemoryRequirements(countingStream, (VkMemoryRequirements*)(pMemoryRequirements));
+    }
+    uint32_t packetSize_vkCreateImageWithRequirementsGOOGLE = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkCreateImageWithRequirementsGOOGLE = OP_vkCreateImageWithRequirementsGOOGLE;
+    stream->write(&opcode_vkCreateImageWithRequirementsGOOGLE, sizeof(uint32_t));
+    stream->write(&packetSize_vkCreateImageWithRequirementsGOOGLE, sizeof(uint32_t));
+    uint64_t cgen_var_1523;
+    stream->handleMapping()->mapHandles_VkDevice_u64(&local_device, &cgen_var_1523, 1);
+    stream->write((uint64_t*)&cgen_var_1523, 1 * 8);
+    marshal_VkImageCreateInfo(stream, (VkImageCreateInfo*)(local_pCreateInfo));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1524 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_1524);
+    if (local_pAllocator)
+    {
+        marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
+    }
+    stream->unsetHandleMapping() /* emit_marshal, is handle, possibly out */;
+    uint64_t cgen_var_1525;
+    stream->handleMapping()->mapHandles_VkImage_u64(pImage, &cgen_var_1525, 1);
+    stream->write((uint64_t*)&cgen_var_1525, 8);
+    stream->setHandleMapping(resources->unwrapMapping());
+    marshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
+    AEMU_SCOPED_TRACE("vkCreateImageWithRequirementsGOOGLE readParams");
+    stream->setHandleMapping(resources->createMapping());
+    uint64_t cgen_var_1526;
+    stream->read((uint64_t*)&cgen_var_1526, 8);
+    stream->handleMapping()->mapHandles_u64_VkImage(&cgen_var_1526, (VkImage*)pImage, 1);
+    stream->unsetHandleMapping();
+    unmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
+    if (pMemoryRequirements)
+    {
+        transform_fromhost_VkMemoryRequirements(mImpl->resources(), (VkMemoryRequirements*)(pMemoryRequirements));
+    }
+    AEMU_SCOPED_TRACE("vkCreateImageWithRequirementsGOOGLE returnUnmarshal");
+    VkResult vkCreateImageWithRequirementsGOOGLE_VkResult_return = (VkResult)0;
+    stream->read(&vkCreateImageWithRequirementsGOOGLE_VkResult_return, sizeof(VkResult));
+    countingStream->clearPool();
+    stream->clearPool();
+    pool->freeAll();
+    mImpl->log("finish vkCreateImageWithRequirementsGOOGLE");;
+    return vkCreateImageWithRequirementsGOOGLE_VkResult_return;
+}
+
+VkResult VkEncoder::vkCreateBufferWithRequirementsGOOGLE(
+    VkDevice device,
+    const VkBufferCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkBuffer* pBuffer,
+    VkMemoryRequirements* pMemoryRequirements)
+{
+    AutoLock encoderLock(mImpl->lock);
+    AEMU_SCOPED_TRACE("vkCreateBufferWithRequirementsGOOGLE encode");
+    mImpl->log("start vkCreateBufferWithRequirementsGOOGLE");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkDevice local_device;
+    VkBufferCreateInfo* local_pCreateInfo;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_pCreateInfo = nullptr;
+    if (pCreateInfo)
+    {
+        local_pCreateInfo = (VkBufferCreateInfo*)pool->alloc(sizeof(const VkBufferCreateInfo));
+        deepcopy_VkBufferCreateInfo(pool, pCreateInfo, (VkBufferCreateInfo*)(local_pCreateInfo));
+    }
+    local_pAllocator = nullptr;
+    if (pAllocator)
+    {
+        local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
+        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+    }
+    local_pAllocator = nullptr;
+    if (local_pCreateInfo)
+    {
+        transform_tohost_VkBufferCreateInfo(mImpl->resources(), (VkBufferCreateInfo*)(local_pCreateInfo));
+    }
+    if (local_pAllocator)
+    {
+        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+    }
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1527;
+        countingStream->handleMapping()->mapHandles_VkDevice_u64(&local_device, &cgen_var_1527, 1);
+        countingStream->write((uint64_t*)&cgen_var_1527, 1 * 8);
+        marshal_VkBufferCreateInfo(countingStream, (VkBufferCreateInfo*)(local_pCreateInfo));
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1528 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_1528);
+        if (local_pAllocator)
+        {
+            marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
+        }
+        uint64_t cgen_var_1529;
+        countingStream->handleMapping()->mapHandles_VkBuffer_u64(pBuffer, &cgen_var_1529, 1);
+        countingStream->write((uint64_t*)&cgen_var_1529, 8);
+        marshal_VkMemoryRequirements(countingStream, (VkMemoryRequirements*)(pMemoryRequirements));
+    }
+    uint32_t packetSize_vkCreateBufferWithRequirementsGOOGLE = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkCreateBufferWithRequirementsGOOGLE = OP_vkCreateBufferWithRequirementsGOOGLE;
+    stream->write(&opcode_vkCreateBufferWithRequirementsGOOGLE, sizeof(uint32_t));
+    stream->write(&packetSize_vkCreateBufferWithRequirementsGOOGLE, sizeof(uint32_t));
+    uint64_t cgen_var_1530;
+    stream->handleMapping()->mapHandles_VkDevice_u64(&local_device, &cgen_var_1530, 1);
+    stream->write((uint64_t*)&cgen_var_1530, 1 * 8);
+    marshal_VkBufferCreateInfo(stream, (VkBufferCreateInfo*)(local_pCreateInfo));
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1531 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_1531);
+    if (local_pAllocator)
+    {
+        marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
+    }
+    stream->unsetHandleMapping() /* emit_marshal, is handle, possibly out */;
+    uint64_t cgen_var_1532;
+    stream->handleMapping()->mapHandles_VkBuffer_u64(pBuffer, &cgen_var_1532, 1);
+    stream->write((uint64_t*)&cgen_var_1532, 8);
+    stream->setHandleMapping(resources->unwrapMapping());
+    marshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
+    AEMU_SCOPED_TRACE("vkCreateBufferWithRequirementsGOOGLE readParams");
+    stream->setHandleMapping(resources->createMapping());
+    uint64_t cgen_var_1533;
+    stream->read((uint64_t*)&cgen_var_1533, 8);
+    stream->handleMapping()->mapHandles_u64_VkBuffer(&cgen_var_1533, (VkBuffer*)pBuffer, 1);
+    stream->unsetHandleMapping();
+    unmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
+    if (pMemoryRequirements)
+    {
+        transform_fromhost_VkMemoryRequirements(mImpl->resources(), (VkMemoryRequirements*)(pMemoryRequirements));
+    }
+    AEMU_SCOPED_TRACE("vkCreateBufferWithRequirementsGOOGLE returnUnmarshal");
+    VkResult vkCreateBufferWithRequirementsGOOGLE_VkResult_return = (VkResult)0;
+    stream->read(&vkCreateBufferWithRequirementsGOOGLE_VkResult_return, sizeof(VkResult));
+    countingStream->clearPool();
+    stream->clearPool();
+    pool->freeAll();
+    mImpl->log("finish vkCreateBufferWithRequirementsGOOGLE");;
+    return vkCreateBufferWithRequirementsGOOGLE_VkResult_return;
 }
 
 #endif
