@@ -85,6 +85,9 @@ static const char kVulkanNullOptionalStrings[] = "ANDROID_EMU_vulkan_null_option
 // Vulkan create resources with requirements
 static const char kVulkanCreateResourcesWithRequirements[] = "ANDROID_EMU_vulkan_create_resources_with_requirements";
 
+// YUV420_888 to NV21
+static const char kYUV420888toNV21[] = "ANDROID_EMU_YUV420_888_to_NV21";
+
 // Struct describing available emulator features
 struct EmulatorFeatureInfo {
 
@@ -97,7 +100,8 @@ struct EmulatorFeatureInfo {
         hasVulkan(false),
         hasDeferredVulkanCommands(false),
         hasVulkanNullOptionalStrings(false),
-        hasVulkanCreateResourcesWithRequirements(false) { }
+        hasVulkanCreateResourcesWithRequirements(false),
+        hasYUV420888toNV21(false) { }
 
     SyncImpl syncImpl;
     DmaImpl dmaImpl;
@@ -108,6 +112,7 @@ struct EmulatorFeatureInfo {
     bool hasDeferredVulkanCommands;
     bool hasVulkanNullOptionalStrings;
     bool hasVulkanCreateResourcesWithRequirements;
+    bool hasYUV420888toNV21;
 };
 
 #endif // __COMMON_EMULATOR_FEATURE_INFO_H
