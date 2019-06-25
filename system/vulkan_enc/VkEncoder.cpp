@@ -43,6 +43,9 @@
 #include "goldfish_vk_private_defs.h"
 #include "goldfish_vk_transform_guest.h"
 
+#include <unordered_map>
+
+
 
 namespace goldfish_vk {
 
@@ -65,6 +68,14 @@ public:
             m_logEncodes = atoi(encodeProp) > 0;
         }
     }
+
+    ~Impl() {
+        for (auto it : mCleanupCallbacks) {
+            fprintf(stderr, "%s: run cleanup callback for %p\n", __func__, it.first);
+            it.second();
+        }
+    }
+
     VulkanCountingStream* countingStream() { return &m_countingStream; }
     VulkanStreamGuest* stream() { return &m_stream; }
     Pool* pool() { return &m_pool; }
@@ -81,6 +92,15 @@ public:
         m_stream.flush();
     }
 
+    // Assume the lock for the current encoder is held.
+    void registerCleanupCallback(void* handle, VkEncoder::CleanupCallback cb) {
+        mCleanupCallbacks.insert({handle, cb});
+    }
+
+    void unregisterCleanupCallback(void* handle) {
+        mCleanupCallbacks.erase(handle);
+    }
+
     Lock lock;
 
 private:
@@ -90,6 +110,8 @@ private:
 
     Validation m_validation;
     bool m_logEncodes;
+
+    std::unordered_map<void*, VkEncoder::CleanupCallback> mCleanupCallbacks;
 };
 
 VkEncoder::VkEncoder(IOStream *stream) :
@@ -97,6 +119,14 @@ VkEncoder::VkEncoder(IOStream *stream) :
 
 void VkEncoder::flush() {
     mImpl->flush();
+}
+
+void VkEncoder::registerCleanupCallback(void* handle, VkEncoder::CleanupCallback cb) {
+    mImpl->registerCleanupCallback(handle, cb);
+}
+
+void VkEncoder::unregisterCleanupCallback(void* handle) {
+    mImpl->unregisterCleanupCallback(handle);
 }
 
 #define VALIDATE_RET(retType, success, validate) \
@@ -23021,6 +23051,48 @@ void VkEncoder::vkResetCommandBufferAsyncGOOGLE(
     AEMU_SCOPED_TRACE("vkResetCommandBufferAsyncGOOGLE readParams");
     AEMU_SCOPED_TRACE("vkResetCommandBufferAsyncGOOGLE returnUnmarshal");
     mImpl->log("finish vkResetCommandBufferAsyncGOOGLE");;
+}
+
+void VkEncoder::vkCommandBufferHostSyncGOOGLE(
+    VkCommandBuffer commandBuffer,
+    uint32_t needHostSync,
+    uint32_t sequenceNumber)
+{
+    AutoLock encoderLock(mImpl->lock);
+    AEMU_SCOPED_TRACE("vkCommandBufferHostSyncGOOGLE encode");
+    mImpl->log("start vkCommandBufferHostSyncGOOGLE");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkCommandBuffer local_commandBuffer;
+    uint32_t local_needHostSync;
+    uint32_t local_sequenceNumber;
+    local_commandBuffer = commandBuffer;
+    local_needHostSync = needHostSync;
+    local_sequenceNumber = sequenceNumber;
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1518;
+        countingStream->handleMapping()->mapHandles_VkCommandBuffer_u64(&local_commandBuffer, &cgen_var_1518, 1);
+        countingStream->write((uint64_t*)&cgen_var_1518, 1 * 8);
+        countingStream->write((uint32_t*)&local_needHostSync, sizeof(uint32_t));
+        countingStream->write((uint32_t*)&local_sequenceNumber, sizeof(uint32_t));
+    }
+    uint32_t packetSize_vkCommandBufferHostSyncGOOGLE = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkCommandBufferHostSyncGOOGLE = OP_vkCommandBufferHostSyncGOOGLE;
+    stream->write(&opcode_vkCommandBufferHostSyncGOOGLE, sizeof(uint32_t));
+    stream->write(&packetSize_vkCommandBufferHostSyncGOOGLE, sizeof(uint32_t));
+    uint64_t cgen_var_1519;
+    stream->handleMapping()->mapHandles_VkCommandBuffer_u64(&local_commandBuffer, &cgen_var_1519, 1);
+    stream->write((uint64_t*)&cgen_var_1519, 1 * 8);
+    stream->write((uint32_t*)&local_needHostSync, sizeof(uint32_t));
+    stream->write((uint32_t*)&local_sequenceNumber, sizeof(uint32_t));
+    AEMU_SCOPED_TRACE("vkCommandBufferHostSyncGOOGLE readParams");
+    AEMU_SCOPED_TRACE("vkCommandBufferHostSyncGOOGLE returnUnmarshal");
+    mImpl->log("finish vkCommandBufferHostSyncGOOGLE");;
 }
 
 #endif
