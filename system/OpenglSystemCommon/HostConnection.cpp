@@ -292,6 +292,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetHostCompositionImpl(m_rcEnc);
         queryAndSetDirectMemSupport(m_rcEnc);
         queryAndSetVulkanSupport(m_rcEnc);
+        queryAndSetDeferredVulkanCommandsSupport(m_rcEnc);
         queryAndSetVulkanNullOptionalStringsSupport(m_rcEnc);
         if (m_processPipe) {
             m_processPipe->processPipeInit(m_rcEnc);
