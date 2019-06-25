@@ -39,6 +39,8 @@ class VkEncoder {
 public:
     VkEncoder(IOStream* stream);
     ~VkEncoder();
+
+    void flush(); // Cross-thread flushing!!!111
 #ifdef VK_VERSION_1_0
     VkResult vkCreateInstance(
     const VkInstanceCreateInfo* pCreateInfo,
