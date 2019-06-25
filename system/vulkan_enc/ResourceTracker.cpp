@@ -251,6 +251,11 @@ public:
         zx_handle_t vmoHandle = ZX_HANDLE_INVALID;
     };
 
+    struct VkCommandBuffer_Info {
+        VkEncoder** lastUsedEncoderPtr = nullptr;
+        uint32_t sequenceNumber = 0;
+    };
+
     // custom guest-side structs for images/buffers because of AHardwareBuffer :((
     struct VkImage_Info {
         VkDevice device;
@@ -324,6 +329,24 @@ public:
         auto info = it->second;
         info_VkDevice.erase(device);
         lock.unlock();
+    }
+
+    void unregister_VkCommandBuffer(VkCommandBuffer commandBuffer) {
+        AutoLock lock(mLock);
+
+        auto it = info_VkCommandBuffer.find(commandBuffer);
+        if (it == info_VkCommandBuffer.end()) return;
+        auto& info = it->second;
+        auto lastUsedEncoder =
+            info.lastUsedEncoderPtr ?
+            *(info.lastUsedEncoderPtr) : nullptr;
+
+        if (lastUsedEncoder) {
+            lastUsedEncoder->unregisterCleanupCallback(commandBuffer);
+            delete info.lastUsedEncoderPtr;
+        }
+
+        info_VkCommandBuffer.erase(commandBuffer);
     }
 
     void unregister_VkDeviceMemory(VkDeviceMemory mem) {
@@ -3058,6 +3081,48 @@ public:
             physicalDevice, pImageFormatInfo, pImageFormatProperties);
     }
 
+    uint32_t syncEncodersForCommandBuffer(VkCommandBuffer commandBuffer, VkEncoder* currentEncoder) {
+        AutoLock lock(mLock);
+
+        auto it = info_VkCommandBuffer.find(commandBuffer);
+        if (it == info_VkCommandBuffer.end()) return 0;
+
+        auto& info = it->second;
+
+        if (!info.lastUsedEncoderPtr) {
+            info.lastUsedEncoderPtr = new VkEncoder*;
+            *(info.lastUsedEncoderPtr) = currentEncoder;
+        }
+
+        auto lastUsedEncoderPtr = info.lastUsedEncoderPtr;
+
+        auto lastEncoder = *(lastUsedEncoderPtr);
+
+        // We always make lastUsedEncoderPtr track
+        // the current encoder, even if the last encoder
+        // is null.
+        *(lastUsedEncoderPtr) = currentEncoder;
+
+        if (!lastEncoder) return 0;
+        if (lastEncoder == currentEncoder) return 0;
+
+        info.sequenceNumber++;
+        lastEncoder->vkCommandBufferHostSyncGOOGLE(commandBuffer, false, info.sequenceNumber);
+        lastEncoder->flush();
+        info.sequenceNumber++;
+        currentEncoder->vkCommandBufferHostSyncGOOGLE(commandBuffer, true, info.sequenceNumber);
+
+        lastEncoder->unregisterCleanupCallback(commandBuffer);
+
+        currentEncoder->registerCleanupCallback(commandBuffer, [currentEncoder, lastUsedEncoderPtr]() {
+            if (*(lastUsedEncoderPtr) == currentEncoder) {
+                *(lastUsedEncoderPtr) = nullptr;
+            }
+        });
+
+        return 1;
+    }
+
     VkResult on_vkBeginCommandBuffer(
         void* context, VkResult input_result,
         VkCommandBuffer commandBuffer,
@@ -3071,6 +3136,7 @@ public:
         }
 
         enc->vkBeginCommandBufferAsyncGOOGLE(commandBuffer, pBeginInfo);
+
         return VK_SUCCESS;
     }
 
@@ -3086,6 +3152,7 @@ public:
         }
 
         enc->vkEndCommandBufferAsyncGOOGLE(commandBuffer);
+
         return VK_SUCCESS;
     }
 
@@ -3752,6 +3819,10 @@ VkResult ResourceTracker::on_vkGetPhysicalDeviceImageFormatProperties2KHR(
     return mImpl->on_vkGetPhysicalDeviceImageFormatProperties2KHR(
         context, input_result, physicalDevice, pImageFormatInfo,
         pImageFormatProperties);
+}
+
+uint32_t ResourceTracker::syncEncodersForCommandBuffer(VkCommandBuffer commandBuffer, VkEncoder* current) {
+    return mImpl->syncEncodersForCommandBuffer(commandBuffer, current);
 }
 
 VkResult ResourceTracker::on_vkBeginCommandBuffer(

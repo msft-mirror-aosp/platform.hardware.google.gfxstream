@@ -28,6 +28,8 @@ struct EmulatorFeatureInfo;
 
 namespace goldfish_vk {
 
+class VkEncoder;
+
 class ResourceTracker {
 public:
     ResourceTracker();
@@ -321,6 +323,8 @@ public:
         VkPhysicalDevice physicalDevice,
         const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
         VkImageFormatProperties2* pImageFormatProperties);
+
+    uint32_t syncEncodersForCommandBuffer(VkCommandBuffer commandBuffer, VkEncoder* current);
 
     VkResult on_vkBeginCommandBuffer(
         void* context, VkResult input_result,

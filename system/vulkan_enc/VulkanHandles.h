@@ -19,11 +19,11 @@
 #define GOLDFISH_VK_LIST_TRIVIAL_DISPATCHABLE_HANDLE_TYPES(f) \
     f(VkPhysicalDevice) \
     f(VkQueue) \
-    f(VkCommandBuffer) \
 
 #define GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(f) \
     f(VkInstance) \
     f(VkDevice) \
+    f(VkCommandBuffer) \
     GOLDFISH_VK_LIST_TRIVIAL_DISPATCHABLE_HANDLE_TYPES(f)
 
 #define GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(f) \
