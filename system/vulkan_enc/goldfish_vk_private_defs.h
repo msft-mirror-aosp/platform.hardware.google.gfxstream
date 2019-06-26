@@ -429,6 +429,11 @@ typedef void (VKAPI_PTR *PFN_vkCommandBufferHostSyncGOOGLE)(
     uint32_t needHostSync,
     uint32_t sequenceNumber);
 
+#define VK_GOOGLE_create_resources_with_requirements 1
+
+typedef void (VKAPI_PTR *PFN_vkCreateImageWithRequirementsGOOGLE)(
+    VkDevice device, const VkImageCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkImage* pImage, VkMemoryRequirements* pMemoryRequirements);
+
 #ifndef VK_FUCHSIA_buffer_collection
 #define VK_FUCHSIA_buffer_collection 1
 VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkBufferCollectionFUCHSIA)
