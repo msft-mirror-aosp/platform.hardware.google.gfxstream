@@ -3844,34 +3844,6 @@ static void entry_vkCommandBufferHostSyncGOOGLE(
     vkEnc->vkCommandBufferHostSyncGOOGLE(commandBuffer, needHostSync, sequenceNumber);
 }
 #endif
-#ifdef VK_GOOGLE_create_resources_with_requirements
-static VkResult entry_vkCreateImageWithRequirementsGOOGLE(
-    VkDevice device,
-    const VkImageCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator,
-    VkImage* pImage,
-    VkMemoryRequirements* pMemoryRequirements)
-{
-    AEMU_SCOPED_TRACE("vkCreateImageWithRequirementsGOOGLE");
-    auto vkEnc = HostConnection::get()->vkEncoder();
-    VkResult vkCreateImageWithRequirementsGOOGLE_VkResult_return = (VkResult)0;
-    vkCreateImageWithRequirementsGOOGLE_VkResult_return = vkEnc->vkCreateImageWithRequirementsGOOGLE(device, pCreateInfo, pAllocator, pImage, pMemoryRequirements);
-    return vkCreateImageWithRequirementsGOOGLE_VkResult_return;
-}
-static VkResult entry_vkCreateBufferWithRequirementsGOOGLE(
-    VkDevice device,
-    const VkBufferCreateInfo* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator,
-    VkBuffer* pBuffer,
-    VkMemoryRequirements* pMemoryRequirements)
-{
-    AEMU_SCOPED_TRACE("vkCreateBufferWithRequirementsGOOGLE");
-    auto vkEnc = HostConnection::get()->vkEncoder();
-    VkResult vkCreateBufferWithRequirementsGOOGLE_VkResult_return = (VkResult)0;
-    vkCreateBufferWithRequirementsGOOGLE_VkResult_return = vkEnc->vkCreateBufferWithRequirementsGOOGLE(device, pCreateInfo, pAllocator, pBuffer, pMemoryRequirements);
-    return vkCreateBufferWithRequirementsGOOGLE_VkResult_return;
-}
-#endif
 void* goldfish_vulkan_get_proc_address(const char* name){
 #ifdef VK_VERSION_1_0
     if (!strcmp(name, "vkCreateInstance"))
@@ -5303,16 +5275,6 @@ void* goldfish_vulkan_get_proc_address(const char* name){
         return nullptr;
     }
     if (!strcmp(name, "vkCommandBufferHostSyncGOOGLE"))
-    {
-        return nullptr;
-    }
-#endif
-#ifdef VK_GOOGLE_create_resources_with_requirements
-    if (!strcmp(name, "vkCreateImageWithRequirementsGOOGLE"))
-    {
-        return nullptr;
-    }
-    if (!strcmp(name, "vkCreateBufferWithRequirementsGOOGLE"))
     {
         return nullptr;
     }
@@ -6916,18 +6878,6 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return hasExt ? (void*)entry_vkCommandBufferHostSyncGOOGLE : nullptr;
     }
 #endif
-#ifdef VK_GOOGLE_create_resources_with_requirements
-    if (!strcmp(name, "vkCreateImageWithRequirementsGOOGLE"))
-    {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_create_resources_with_requirements");
-        return hasExt ? (void*)entry_vkCreateImageWithRequirementsGOOGLE : nullptr;
-    }
-    if (!strcmp(name, "vkCreateBufferWithRequirementsGOOGLE"))
-    {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_create_resources_with_requirements");
-        return hasExt ? (void*)entry_vkCreateBufferWithRequirementsGOOGLE : nullptr;
-    }
-#endif
     return nullptr;
 }
 void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name){
@@ -8525,18 +8475,6 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     {
         bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_async_command_buffers");
         return hasExt ? (void*)entry_vkCommandBufferHostSyncGOOGLE : nullptr;
-    }
-#endif
-#ifdef VK_GOOGLE_create_resources_with_requirements
-    if (!strcmp(name, "vkCreateImageWithRequirementsGOOGLE"))
-    {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_create_resources_with_requirements");
-        return hasExt ? (void*)entry_vkCreateImageWithRequirementsGOOGLE : nullptr;
-    }
-    if (!strcmp(name, "vkCreateBufferWithRequirementsGOOGLE"))
-    {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_create_resources_with_requirements");
-        return hasExt ? (void*)entry_vkCreateBufferWithRequirementsGOOGLE : nullptr;
     }
 #endif
     return nullptr;
