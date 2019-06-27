@@ -1793,20 +1793,6 @@ public:
         uint32_t needHostSync,
         uint32_t sequenceNumber);
 #endif
-#ifdef VK_GOOGLE_create_resources_with_requirements
-    VkResult vkCreateImageWithRequirementsGOOGLE(
-    VkDevice device,
-        const VkImageCreateInfo* pCreateInfo,
-        const VkAllocationCallbacks* pAllocator,
-        VkImage* pImage,
-        VkMemoryRequirements* pMemoryRequirements);
-    VkResult vkCreateBufferWithRequirementsGOOGLE(
-    VkDevice device,
-        const VkBufferCreateInfo* pCreateInfo,
-        const VkAllocationCallbacks* pAllocator,
-        VkBuffer* pBuffer,
-        VkMemoryRequirements* pMemoryRequirements);
-#endif
 
 private:
     class Impl;
