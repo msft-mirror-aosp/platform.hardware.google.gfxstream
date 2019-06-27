@@ -167,7 +167,6 @@ private:
     void queryAndSetVulkanSupport(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetDeferredVulkanCommandsSupport(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanNullOptionalStringsSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetVulkanCreateResourcesWithRequirementsSupport(ExtendedRCEncoderContext *rcEnc);
 
 private:
     IOStream *m_stream;

@@ -265,8 +265,6 @@ public:
         VkDeviceMemory currentBacking = VK_NULL_HANDLE;
         VkDeviceSize currentBackingOffset = 0;
         VkDeviceSize currentBackingSize = 0;
-        bool baseRequirementsKnown = false;
-        VkMemoryRequirements baseRequirements;
     };
 
     struct VkBuffer_Info {
@@ -277,8 +275,6 @@ public:
         VkDeviceMemory currentBacking = VK_NULL_HANDLE;
         VkDeviceSize currentBackingOffset = 0;
         VkDeviceSize currentBackingSize = 0;
-        bool baseRequirementsKnown = false;
-        VkMemoryRequirements baseRequirements;
     };
 
     struct VkSemaphore_Info {
@@ -613,11 +609,6 @@ public:
     bool supportsDeferredCommands() const {
         if (!mFeatureInfo) return false;
         return mFeatureInfo->hasDeferredVulkanCommands;
-    }
-
-    bool supportsCreateResourcesWithRequirements() const {
-        if (!mFeatureInfo) return false;
-        return mFeatureInfo->hasVulkanCreateResourcesWithRequirements;
     }
 
     int getHostInstanceExtensionIndex(const std::string& extName) const {
@@ -2069,9 +2060,11 @@ public:
         dedicatedReqs->requiresDedicatedAllocation = VK_TRUE;
     }
 
-    void transformImageMemoryRequirementsForGuestLocked(
+    void transformImageMemoryRequirementsForGuest(
         VkImage image,
         VkMemoryRequirements* reqs) {
+
+        AutoLock lock(mLock);
 
         auto it = info_VkImage.find(image);
         if (it == info_VkImage.end()) return;
@@ -2087,9 +2080,11 @@ public:
         transformExternalResourceMemoryRequirementsForGuest(reqs);
     }
 
-    void transformBufferMemoryRequirementsForGuestLocked(
+    void transformBufferMemoryRequirementsForGuest(
         VkBuffer buffer,
         VkMemoryRequirements* reqs) {
+
+        AutoLock lock(mLock);
 
         auto it = info_VkBuffer.find(buffer);
         if (it == info_VkBuffer.end()) return;
@@ -2243,14 +2238,7 @@ public:
         }
 #endif
 
-        VkResult res;
-        VkMemoryRequirements memReqs;
-
-        if (supportsCreateResourcesWithRequirements()) {
-            res = enc->vkCreateImageWithRequirementsGOOGLE(device, &localCreateInfo, pAllocator, pImage, &memReqs);
-        } else {
-            res = enc->vkCreateImage(device, &localCreateInfo, pAllocator, pImage);
-        }
+        VkResult res = enc->vkCreateImage(device, &localCreateInfo, pAllocator, pImage);
 
         if (res != VK_SUCCESS) return res;
 
@@ -2265,19 +2253,10 @@ public:
         info.createInfo = *pCreateInfo;
         info.createInfo.pNext = nullptr;
 
-        if (supportsCreateResourcesWithRequirements()) {
-            info.baseRequirementsKnown = true;
-        }
+        if (!extImgCiPtr) return res;
 
-        if (extImgCiPtr) {
-            info.external = true;
-            info.externalCreateInfo = *extImgCiPtr;
-        }
-
-        if (info.baseRequirementsKnown) {
-            transformImageMemoryRequirementsForGuestLocked(*pImage, &memReqs);
-            info.baseRequirements = memReqs;
-        }
+        info.external = true;
+        info.externalCreateInfo = *extImgCiPtr;
 
         return res;
     }
@@ -2342,28 +2321,11 @@ public:
     void on_vkGetImageMemoryRequirements(
         void *context, VkDevice device, VkImage image,
         VkMemoryRequirements *pMemoryRequirements) {
-
-        AutoLock lock(mLock);
-
-        auto it = info_VkImage.find(image);
-        if (it == info_VkImage.end()) return;
-
-        auto& info = it->second;
-
-        if (info.baseRequirementsKnown) {
-            *pMemoryRequirements = info.baseRequirements;
-            return;
-        }
-
         VkEncoder* enc = (VkEncoder*)context;
-
         enc->vkGetImageMemoryRequirements(
             device, image, pMemoryRequirements);
-
-        transformImageMemoryRequirementsForGuestLocked(
+        transformImageMemoryRequirementsForGuest(
             image, pMemoryRequirements);
-        info.baseRequirementsKnown = true;
-        info.baseRequirements = *pMemoryRequirements;
     }
 
     void on_vkGetImageMemoryRequirements2(
@@ -2415,14 +2377,7 @@ public:
         VkBuffer *pBuffer) {
         VkEncoder* enc = (VkEncoder*)context;
 
-        VkResult res;
-        VkMemoryRequirements memReqs;
-
-        if (supportsCreateResourcesWithRequirements()) {
-            res = enc->vkCreateBufferWithRequirementsGOOGLE(device, pCreateInfo, pAllocator, pBuffer, &memReqs);
-        } else {
-            res = enc->vkCreateBuffer(device, pCreateInfo, pAllocator, pBuffer);
-        }
+        VkResult res = enc->vkCreateBuffer(device, pCreateInfo, pAllocator, pBuffer);
 
         if (res != VK_SUCCESS) return res;
 
@@ -2436,22 +2391,13 @@ public:
         info.createInfo = *pCreateInfo;
         info.createInfo.pNext = nullptr;
 
-        if (supportsCreateResourcesWithRequirements()) {
-            info.baseRequirementsKnown = true;
-        }
-
         const VkExternalMemoryBufferCreateInfo* extBufCi =
             vk_find_struct<VkExternalMemoryBufferCreateInfo>(pCreateInfo);
 
-        if (extBufCi) {
-            info.external = true;
-            info.externalCreateInfo = *extBufCi;
-        }
+        if (!extBufCi) return res;
 
-        if (info.baseRequirementsKnown) {
-            transformBufferMemoryRequirementsForGuestLocked(*pBuffer, &memReqs);
-            info.baseRequirements = memReqs;
-        }
+        info.external = true;
+        info.externalCreateInfo = *extBufCi;
 
         return res;
     }
@@ -2465,26 +2411,11 @@ public:
 
     void on_vkGetBufferMemoryRequirements(
         void* context, VkDevice device, VkBuffer buffer, VkMemoryRequirements *pMemoryRequirements) {
-
-        AutoLock lock(mLock);
-
-        auto it = info_VkBuffer.find(buffer);
-        if (it == info_VkBuffer.end()) return;
-
-        auto& info = it->second;
-
-        if (info.baseRequirementsKnown) {
-            *pMemoryRequirements = info.baseRequirements;
-            return;
-        }
-
         VkEncoder* enc = (VkEncoder*)context;
         enc->vkGetBufferMemoryRequirements(
             device, buffer, pMemoryRequirements);
-        transformBufferMemoryRequirementsForGuestLocked(
+        transformBufferMemoryRequirementsForGuest(
             buffer, pMemoryRequirements);
-        info.baseRequirementsKnown = true;
-        info.baseRequirements = *pMemoryRequirements;
     }
 
     void on_vkGetBufferMemoryRequirements2(
