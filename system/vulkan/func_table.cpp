@@ -812,7 +812,8 @@ static VkResult entry_vkCreateSampler(
     AEMU_SCOPED_TRACE("vkCreateSampler");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateSampler_VkResult_return = (VkResult)0;
-    vkCreateSampler_VkResult_return = vkEnc->vkCreateSampler(device, pCreateInfo, pAllocator, pSampler);
+    auto resources = ResourceTracker::get();
+    vkCreateSampler_VkResult_return = resources->on_vkCreateSampler(vkEnc, VK_SUCCESS, device, pCreateInfo, pAllocator, pSampler);
     return vkCreateSampler_VkResult_return;
 }
 static void entry_vkDestroySampler(
@@ -1777,7 +1778,8 @@ static void entry_vkDestroySamplerYcbcrConversion(
 {
     AEMU_SCOPED_TRACE("vkDestroySamplerYcbcrConversion");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroySamplerYcbcrConversion(device, ycbcrConversion, pAllocator);
+    auto resources = ResourceTracker::get();
+    resources->on_vkDestroySamplerYcbcrConversion(vkEnc, device, ycbcrConversion, pAllocator);
 }
 static VkResult entry_vkCreateDescriptorUpdateTemplate(
     VkDevice device,
@@ -2822,7 +2824,8 @@ static void entry_vkDestroySamplerYcbcrConversionKHR(
 {
     AEMU_SCOPED_TRACE("vkDestroySamplerYcbcrConversionKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroySamplerYcbcrConversionKHR(device, ycbcrConversion, pAllocator);
+    auto resources = ResourceTracker::get();
+    resources->on_vkDestroySamplerYcbcrConversionKHR(vkEnc, device, ycbcrConversion, pAllocator);
 }
 #endif
 #ifdef VK_KHR_bind_memory2
