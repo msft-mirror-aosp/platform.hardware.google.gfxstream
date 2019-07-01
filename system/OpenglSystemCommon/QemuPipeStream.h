@@ -42,6 +42,7 @@ public:
     virtual void *allocBuffer(size_t minSize);
     virtual int commitBuffer(size_t size);
     virtual const unsigned char *readFully( void *buf, size_t len);
+    virtual const unsigned char *commitBufferAndReadFully(size_t size, void *buf, size_t len);
     virtual const unsigned char *read( void *buf, size_t *inout_len);
 
     bool valid() { return qemu_pipe_valid(m_sock); }
@@ -56,8 +57,11 @@ private:
     unsigned char *m_buf;
 #ifdef __Fuchsia__
     fuchsia::hardware::goldfish::pipe::DeviceSyncPtr m_device;
+    fuchsia::hardware::goldfish::pipe::PipeSyncPtr m_pipe;
     zx::event m_event;
     zx::vmo m_vmo;
+    size_t m_read = 0;
+    size_t m_readLeft = 0;
 #endif
     QemuPipeStream(QEMU_PIPE_HANDLE sock, size_t bufSize);
 };

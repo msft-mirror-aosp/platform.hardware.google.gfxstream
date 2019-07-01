@@ -69,6 +69,10 @@ public:
     virtual int writeFully(const void *buf, size_t len);
     virtual const unsigned char *readFully(void *buf, size_t len);
     virtual int commitBuffer(size_t size);
+    virtual int commitBufferAndReadFully(size_t size, void *buf, size_t len)
+    {
+        return commitBuffer(size) ? nullptr : readFully(buf, len);
+    }
     virtual const unsigned char *read(void *buf, size_t *inout_len) final
     {
         return readFully(buf, *inout_len);
