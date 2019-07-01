@@ -29,6 +29,7 @@
 #include <fuchsia/hardware/goldfish/pipe/cpp/fidl.h>
 #include <lib/fdio/fdio.h>
 #include <lib/zx/vmo.h>
+static QEMU_PIPE_HANDLE   sProcDevice = 0;
 #endif
 
 static QEMU_PIPE_HANDLE   sProcPipe = 0;
@@ -66,9 +67,12 @@ static void processPipeInitOnce() {
     fuchsia::hardware::goldfish::pipe::DeviceSyncPtr device;
     device.Bind(std::move(channel));
 
+    fuchsia::hardware::goldfish::pipe::PipeSyncPtr pipe;
+    device->OpenPipe(pipe.NewRequest());
+
     zx_status_t status2 = ZX_OK;
     zx::vmo vmo;
-    status = device->GetBuffer(&status2, &vmo);
+    status = pipe->GetBuffer(&status2, &vmo);
     if (status != ZX_OK || status2 != ZX_OK) {
         ALOGE("%s: failed to get buffer: %d:%d", __FUNCTION__, status, status2);
         return;
@@ -81,31 +85,23 @@ static void processPipeInitOnce() {
         return;
     }
     uint64_t actual;
-    status = device->Write(len + 1, 0, &status2, &actual);
+    status = pipe->Write(len + 1, 0, &status2, &actual);
     if (status != ZX_OK || status2 != ZX_OK) {
         ALOGD("%s: connecting to pipe service failed: %d:%d", __FUNCTION__,
               status, status2);
         return;
     }
 
-    // Send a confirmation int to the host
+    // Send a confirmation int to the host and get per-process unique ID back
     int32_t confirmInt = 100;
     status = vmo.write(&confirmInt, 0, sizeof(confirmInt));
     if (status != ZX_OK) {
         ALOGE("%s: failed write confirm int", __FUNCTION__);
         return;
     }
-    status = device->Write(sizeof(confirmInt), 0, &status2, &actual);
+    status = pipe->Call(sizeof(confirmInt), 0, sizeof(sProcUID), 0, &status2, &actual);
     if (status != ZX_OK || status2 != ZX_OK) {
-        ALOGD("%s: failed to send confirm value: %d:%d", __FUNCTION__,
-              status, status2);
-        return;
-    }
-
-    // Ask the host for per-process unique ID
-    status = device->Read(sizeof(sProcUID), 0, &status2, &actual);
-    if (status != ZX_OK || status2 != ZX_OK) {
-        ALOGD("%s: failed to recv per-process ID: %d:%d", __FUNCTION__,
+        ALOGD("%s: failed to get per-process ID: %d:%d", __FUNCTION__,
               status, status2);
         return;
     }
@@ -114,7 +110,8 @@ static void processPipeInitOnce() {
         ALOGE("%s: failed read per-process ID: %d", __FUNCTION__, status);
         return;
     }
-    sProcPipe = device.Unbind().TakeChannel().release();
+    sProcDevice = device.Unbind().TakeChannel().release();
+    sProcPipe = pipe.Unbind().TakeChannel().release();
 }
 #else
 static void processPipeInitOnce() {
