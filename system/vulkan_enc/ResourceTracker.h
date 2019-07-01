@@ -271,12 +271,29 @@ public:
         const VkSamplerYcbcrConversionCreateInfo* pCreateInfo,
         const VkAllocationCallbacks* pAllocator,
         VkSamplerYcbcrConversion* pYcbcrConversion);
+    void on_vkDestroySamplerYcbcrConversion(
+        void* context,
+        VkDevice device,
+        VkSamplerYcbcrConversion ycbcrConversion,
+        const VkAllocationCallbacks* pAllocator);
     VkResult on_vkCreateSamplerYcbcrConversionKHR(
         void* context, VkResult input_result,
         VkDevice device,
         const VkSamplerYcbcrConversionCreateInfo* pCreateInfo,
         const VkAllocationCallbacks* pAllocator,
         VkSamplerYcbcrConversion* pYcbcrConversion);
+    void on_vkDestroySamplerYcbcrConversionKHR(
+        void* context,
+        VkDevice device,
+        VkSamplerYcbcrConversion ycbcrConversion,
+        const VkAllocationCallbacks* pAllocator);
+
+    VkResult on_vkCreateSampler(
+        void* context, VkResult input_result,
+        VkDevice device,
+        const VkSamplerCreateInfo* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkSampler* pSampler);
 
     VkResult on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(
         void* context,
