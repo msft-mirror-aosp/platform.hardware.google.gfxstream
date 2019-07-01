@@ -27,6 +27,9 @@
 
 #include <utility>
 
+constexpr size_t kReadSize = 512 * 1024;
+constexpr size_t kWriteOffset = kReadSize;
+
 QemuPipeStream::QemuPipeStream(size_t bufSize) :
     IOStream(bufSize),
     m_sock(-1),
@@ -78,6 +81,7 @@ int QemuPipeStream::connect(void)
         return -1;
     }
     m_device.Bind(std::move(channel));
+    m_device->OpenPipe(m_pipe.NewRequest());
 
     zx::event event;
     status = zx::event::create(0, &event);
@@ -92,29 +96,27 @@ int QemuPipeStream::connect(void)
         return -1;
     }
 
-    status = m_device->SetEvent(std::move(event_copy));
+    status = m_pipe->SetEvent(std::move(event_copy));
     if (status != ZX_OK) {
         ALOGE("%s: failed to set event: %d:%d", __FUNCTION__, status);
         return -1;
     }
 
-    zx_status_t status2 = ZX_OK;
-    zx::vmo vmo;
-    status = m_device->GetBuffer(&status2, &vmo);
-    if (status != ZX_OK || status2 != ZX_OK) {
-        ALOGE("%s: failed to get buffer: %d:%d", __FUNCTION__, status, status2);
+    if (!allocBuffer(m_bufsize)) {
+        ALOGE("%s: failed allocate initial buffer", __FUNCTION__);
         return -1;
     }
 
     size_t len = strlen("pipe:opengles");
-    status = vmo.write("pipe:opengles", 0, len + 1);
+    status = m_vmo.write("pipe:opengles", 0, len + 1);
     if (status != ZX_OK) {
         ALOGE("%s: failed write pipe name", __FUNCTION__);
         return -1;
     }
 
     uint64_t actual;
-    status = m_device->Write(len + 1, 0, &status2, &actual);
+    zx_status_t status2 = ZX_OK;
+    status = m_pipe->Write(len + 1, 0, &status2, &actual);
     if (status != ZX_OK || status2 != ZX_OK) {
         ALOGD("%s: connecting to pipe service failed: %d:%d", __FUNCTION__,
               status, status2);
@@ -122,16 +124,18 @@ int QemuPipeStream::connect(void)
     }
 
     m_event = std::move(event);
-    m_vmo = std::move(vmo);
     return 0;
 }
 
 void *QemuPipeStream::allocBuffer(size_t minSize)
 {
+    // Add dedicated read buffer space at the front of buffer.
+    minSize += kReadSize;
+
     zx_status_t status;
     if (m_buf) {
         if (minSize <= m_bufsize) {
-            return m_buf;
+            return m_buf + kWriteOffset;
         }
         status = zx_vmar_unmap(zx_vmar_root_self(),
                                reinterpret_cast<zx_vaddr_t>(m_buf),
@@ -146,14 +150,14 @@ void *QemuPipeStream::allocBuffer(size_t minSize)
     size_t allocSize = m_bufsize < minSize ? minSize : m_bufsize;
 
     zx_status_t status2 = ZX_OK;
-    status = m_device->SetBufferSize(allocSize, &status2);
+    status = m_pipe->SetBufferSize(allocSize, &status2);
     if (status != ZX_OK || status2 != ZX_OK) {
         ALOGE("%s: failed to get buffer: %d:%d", __FUNCTION__, status, status2);
         return nullptr;
     }
 
     zx::vmo vmo;
-    status = m_device->GetBuffer(&status2, &vmo);
+    status = m_pipe->GetBuffer(&status2, &vmo);
     if (status != ZX_OK || status2 != ZX_OK) {
         ALOGE("%s: failed to get buffer: %d:%d", __FUNCTION__, status, status2);
         return nullptr;
@@ -171,44 +175,19 @@ void *QemuPipeStream::allocBuffer(size_t minSize)
     m_buf = reinterpret_cast<unsigned char*>(mapped_addr);
     m_bufsize = allocSize;
     m_vmo = std::move(vmo);
-    return m_buf;
+    return m_buf + kWriteOffset;
 }
 
 int QemuPipeStream::commitBuffer(size_t size)
 {
     if (size == 0) return 0;
 
-    size_t remaining = size;
-    while (remaining) {
-        zx_status_t status2 = ZX_OK;
-        uint64_t actual = 0;
-        zx_status_t status = m_device->Write(
-            remaining, size - remaining, &status2, &actual);
-        if (status != ZX_OK) {
-            ALOGD("%s: Failed writing to pipe: %d", __FUNCTION__, status);
-            return -1;
-        }
-        if (actual) {
-            remaining -= actual;
-            continue;
-        }
-        if (status2 != ZX_ERR_SHOULD_WAIT) {
-            ALOGD("%s: Error writing to pipe: %d", __FUNCTION__, status2);
-            return -1;
-        }
-        zx_signals_t observed = ZX_SIGNAL_NONE;
-        status = m_event.wait_one(
-            fuchsia::hardware::goldfish::pipe::SIGNAL_WRITABLE |
-            fuchsia::hardware::goldfish::pipe::SIGNAL_HANGUP,
-            zx::time::infinite(), &observed);
-        if (status != ZX_OK) {
-            ALOGD("%s: wait_one failed: %d", __FUNCTION__, status);
-            return -1;
-        }
-        if (observed & fuchsia::hardware::goldfish::pipe::SIGNAL_HANGUP) {
-            ALOGD("%s: Remote end hungup", __FUNCTION__);
-            return -1;
-        }
+    uint64_t actual = 0;
+    zx_status_t status2 = ZX_OK;
+    zx_status_t status = m_pipe->Call(size, kWriteOffset, 0, 0, &status2, &actual);
+    if (status != ZX_OK || status2 != ZX_OK) {
+        ALOGD("%s: Pipe call failed: %d:%d", __FUNCTION__, status, status2);
+        return -1;
     }
 
     return 0;
@@ -227,30 +206,74 @@ QEMU_PIPE_HANDLE QemuPipeStream::getSocket() const {
 
 const unsigned char *QemuPipeStream::readFully(void *buf, size_t len)
 {
+    return commitBufferAndReadFully(0, buf, len);
+}
+
+const unsigned char *QemuPipeStream::commitBufferAndReadFully(size_t size, void *buf, size_t len)
+{
     if (!m_device.is_bound()) return nullptr;
 
     if (!buf) {
         if (len > 0) {
-            ALOGE("QemuPipeStream::readFully failed, buf=NULL, len %zu, lethal"
+            ALOGE("QemuPipeStream::commitBufferAndReadFully failed, buf=NULL, len %zu, lethal"
                     " error, exiting.", len);
             abort();
         }
+        if (!size) {
+            return nullptr;
+        }
+    }
+
+    // Advance buffered read if not yet consumed.
+    size_t remaining = len;
+    size_t readSize = m_readLeft < remaining ? m_readLeft : remaining;
+    if (readSize) {
+        memcpy(static_cast<char*>(buf), m_buf + (m_read - m_readLeft), readSize);
+        remaining -= readSize;
+        m_readLeft -= readSize;
+    }
+
+    // Early out if nothing left to do.
+    if  (!size && !remaining) {
+        return static_cast<const unsigned char *>(buf);
+    }
+
+    // Read up to kReadSize bytes if all buffered read has been consumed.
+    size_t maxRead = (m_readLeft || !remaining) ? 0 : kReadSize;
+    uint64_t actual = 0;
+    zx_status_t status2 = ZX_OK;
+    zx_status_t status = m_pipe->Call(size, kWriteOffset, maxRead, 0, &status2, &actual);
+    if (status != ZX_OK) {
+        ALOGD("%s: Pipe call failed: %d", __FUNCTION__, status);
         return nullptr;
     }
 
-    size_t remaining = len;
+    // Updated buffered read size.
+    if (actual) {
+        m_read = m_readLeft = actual;
+    }
+
+    // Consume buffered read and read more if neccessary.
     while (remaining) {
-        size_t readSize = m_bufsize < remaining ? m_bufsize : remaining;
-        zx_status_t status2 = ZX_OK;
-        uint64_t actual = 0;
-        zx_status_t status = m_device->Read(readSize, 0, &status2, &actual);
+        readSize = m_readLeft < remaining ? m_readLeft : remaining;
+        if (readSize) {
+            memcpy(static_cast<char*>(buf) + (len - remaining),
+                   m_buf + (m_read - m_readLeft),
+                   readSize);
+            remaining -= readSize;
+            m_readLeft -= readSize;
+            continue;
+        }
+
+        status2 = ZX_OK;
+        actual = 0;
+        status = m_pipe->Read(kReadSize, 0, &status2, &actual);
         if (status != ZX_OK) {
             ALOGD("%s: Failed reading from pipe: %d", __FUNCTION__, status);
             return nullptr;
         }
         if (actual) {
-            m_vmo.read(static_cast<char *>(buf) + (len - remaining), 0, actual);
-            remaining -= actual;
+            m_read = m_readLeft = actual;
             continue;
         }
         if (status2 != ZX_ERR_SHOULD_WAIT) {

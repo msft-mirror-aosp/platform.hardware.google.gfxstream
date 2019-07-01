@@ -33,6 +33,7 @@ public:
     virtual void *allocBuffer(size_t minSize) = 0;
     virtual int commitBuffer(size_t size) = 0;
     virtual const unsigned char *readFully( void *buf, size_t len) = 0;
+    virtual const unsigned char *commitBufferAndReadFully(size_t size, void *buf, size_t len) = 0;
     virtual const unsigned char *read( void *buf, size_t *inout_len) = 0;
     virtual int writeFully(const void* buf, size_t len) = 0;
 
@@ -79,7 +80,12 @@ public:
     }
 
     const unsigned char *readback(void *buf, size_t len) {
-        flush();
+        if (m_buf && m_free != m_bufsize) {
+            size_t size = m_bufsize - m_free;
+            m_buf = NULL;
+            m_free = 0;
+            return commitBufferAndReadFully(size, buf, len);
+        }
         return readFully(buf, len);
     }
 
