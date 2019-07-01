@@ -64,6 +64,7 @@ EMUGL_COMMON_CFLAGS += \
     -fvisibility=default \
     -DPAGE_SIZE=4096 \
     -DGOLDFISH_VULKAN \
+    -Wno-unused-parameter
 
 endif # GOLDFISH_OPENGL_BUILD_FOR_HOST
 
