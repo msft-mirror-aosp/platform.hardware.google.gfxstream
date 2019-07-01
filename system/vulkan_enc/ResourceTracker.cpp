@@ -2295,7 +2295,15 @@ public:
         const VkExternalFormatANDROID* extFormatAndroidPtr =
             vk_find_struct<VkExternalFormatANDROID>(pCreateInfo);
         if (extFormatAndroidPtr) {
-            if (extFormatAndroidPtr->externalFormat) {
+            if (extFormatAndroidPtr->externalFormat == AHARDWAREBUFFER_FORMAT_R5G6B5_UNORM) {
+                // We don't support external formats on host and it causes RGB565
+                // to fail in CtsGraphicsTestCases android.graphics.cts.BasicVulkanGpuTest
+                // when passed as an external format.
+                // We may consider doing this for all external formats.
+                // See b/134771579.
+                *pYcbcrConversion = VK_YCBCR_CONVERSION_DO_NOTHING;
+                return VK_SUCCESS;
+            } else if (extFormatAndroidPtr->externalFormat) {
                 localCreateInfo.format =
                     vk_format_from_android(extFormatAndroidPtr->externalFormat);
             }
@@ -2303,8 +2311,25 @@ public:
 #endif
 
         VkEncoder* enc = (VkEncoder*)context;
-        return enc->vkCreateSamplerYcbcrConversion(
+        VkResult res = enc->vkCreateSamplerYcbcrConversion(
             device, &localCreateInfo, pAllocator, pYcbcrConversion);
+
+        if (*pYcbcrConversion == VK_YCBCR_CONVERSION_DO_NOTHING) {
+            ALOGE("FATAL: vkCreateSamplerYcbcrConversion returned a reserved value (VK_YCBCR_CONVERSION_DO_NOTHING)");
+            abort();
+        }
+        return res;
+    }
+
+    void on_vkDestroySamplerYcbcrConversion(
+        void* context,
+        VkDevice device,
+        VkSamplerYcbcrConversion ycbcrConversion,
+        const VkAllocationCallbacks* pAllocator) {
+        VkEncoder* enc = (VkEncoder*)context;
+        if (ycbcrConversion != VK_YCBCR_CONVERSION_DO_NOTHING) {
+            enc->vkDestroySamplerYcbcrConversion(device, ycbcrConversion, pAllocator);
+        }
     }
 
     VkResult on_vkCreateSamplerYcbcrConversionKHR(
@@ -2320,7 +2345,15 @@ public:
         const VkExternalFormatANDROID* extFormatAndroidPtr =
             vk_find_struct<VkExternalFormatANDROID>(pCreateInfo);
         if (extFormatAndroidPtr) {
-            if (extFormatAndroidPtr->externalFormat) {
+            if (extFormatAndroidPtr->externalFormat == AHARDWAREBUFFER_FORMAT_R5G6B5_UNORM) {
+                // We don't support external formats on host and it causes RGB565
+                // to fail in CtsGraphicsTestCases android.graphics.cts.BasicVulkanGpuTest
+                // when passed as an external format.
+                // We may consider doing this for all external formats.
+                // See b/134771579.
+                *pYcbcrConversion = VK_YCBCR_CONVERSION_DO_NOTHING;
+                return VK_SUCCESS;
+            } else if (extFormatAndroidPtr->externalFormat) {
                 localCreateInfo.format =
                     vk_format_from_android(extFormatAndroidPtr->externalFormat);
             }
@@ -2328,8 +2361,51 @@ public:
 #endif
 
         VkEncoder* enc = (VkEncoder*)context;
-        return enc->vkCreateSamplerYcbcrConversionKHR(
+        VkResult res = enc->vkCreateSamplerYcbcrConversionKHR(
             device, &localCreateInfo, pAllocator, pYcbcrConversion);
+
+        if (*pYcbcrConversion == VK_YCBCR_CONVERSION_DO_NOTHING) {
+            ALOGE("FATAL: vkCreateSamplerYcbcrConversionKHR returned a reserved value (VK_YCBCR_CONVERSION_DO_NOTHING)");
+            abort();
+        }
+        return res;
+    }
+
+    void on_vkDestroySamplerYcbcrConversionKHR(
+        void* context,
+        VkDevice device,
+        VkSamplerYcbcrConversion ycbcrConversion,
+        const VkAllocationCallbacks* pAllocator) {
+        VkEncoder* enc = (VkEncoder*)context;
+        if (ycbcrConversion != VK_YCBCR_CONVERSION_DO_NOTHING) {
+            enc->vkDestroySamplerYcbcrConversion(device, ycbcrConversion, pAllocator);
+        }
+    }
+
+    VkResult on_vkCreateSampler(
+        void* context, VkResult,
+        VkDevice device,
+        const VkSamplerCreateInfo* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkSampler* pSampler) {
+
+        VkSamplerCreateInfo localCreateInfo = vk_make_orphan_copy(*pCreateInfo);
+        vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&localCreateInfo);
+
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        VkSamplerYcbcrConversionInfo localVkSamplerYcbcrConversionInfo;
+        const VkSamplerYcbcrConversionInfo* samplerYcbcrConversionInfo =
+            vk_find_struct<VkSamplerYcbcrConversionInfo>(pCreateInfo);
+        if (samplerYcbcrConversionInfo) {
+            if (samplerYcbcrConversionInfo->conversion != VK_YCBCR_CONVERSION_DO_NOTHING) {
+                localVkSamplerYcbcrConversionInfo = vk_make_orphan_copy(*samplerYcbcrConversionInfo);
+                vk_append_struct(&structChainIter, &localVkSamplerYcbcrConversionInfo);
+            }
+        }
+#endif
+
+        VkEncoder* enc = (VkEncoder*)context;
+        return enc->vkCreateSampler(device, &localCreateInfo, pAllocator, pSampler);
     }
 
     void on_vkDestroyImage(
@@ -3816,6 +3892,15 @@ VkResult ResourceTracker::on_vkCreateSamplerYcbcrConversion(
         context, input_result, device, pCreateInfo, pAllocator, pYcbcrConversion);
 }
 
+void ResourceTracker::on_vkDestroySamplerYcbcrConversion(
+    void* context,
+    VkDevice device,
+    VkSamplerYcbcrConversion ycbcrConversion,
+    const VkAllocationCallbacks* pAllocator) {
+    mImpl->on_vkDestroySamplerYcbcrConversion(
+        context, device, ycbcrConversion, pAllocator);
+}
+
 VkResult ResourceTracker::on_vkCreateSamplerYcbcrConversionKHR(
     void* context, VkResult input_result,
     VkDevice device,
@@ -3824,6 +3909,25 @@ VkResult ResourceTracker::on_vkCreateSamplerYcbcrConversionKHR(
     VkSamplerYcbcrConversion* pYcbcrConversion) {
     return mImpl->on_vkCreateSamplerYcbcrConversionKHR(
         context, input_result, device, pCreateInfo, pAllocator, pYcbcrConversion);
+}
+
+void ResourceTracker::on_vkDestroySamplerYcbcrConversionKHR(
+    void* context,
+    VkDevice device,
+    VkSamplerYcbcrConversion ycbcrConversion,
+    const VkAllocationCallbacks* pAllocator) {
+    mImpl->on_vkDestroySamplerYcbcrConversionKHR(
+        context, device, ycbcrConversion, pAllocator);
+}
+
+VkResult ResourceTracker::on_vkCreateSampler(
+    void* context, VkResult input_result,
+    VkDevice device,
+    const VkSamplerCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkSampler* pSampler) {
+    return mImpl->on_vkCreateSampler(
+        context, input_result, device, pCreateInfo, pAllocator, pSampler);
 }
 
 VkResult ResourceTracker::on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(
