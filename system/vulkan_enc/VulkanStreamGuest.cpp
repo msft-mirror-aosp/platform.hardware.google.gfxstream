@@ -53,8 +53,7 @@ public:
     }
 
     ssize_t read(void *buffer, size_t size) override {
-        commitWrite();
-        if (!mStream->readFully(buffer, size)) {
+        if (!mStream->readback(buffer, size)) {
             ALOGE("FATAL: Could not read back %zu bytes", size);
             abort();
         }

@@ -175,6 +175,11 @@ const unsigned char *QemuPipeStream::readFully(void *buf, size_t len)
     return (const unsigned char *)buf;
 }
 
+const unsigned char *QemuPipeStream::commitBufferAndReadFully(size_t size, void *buf, size_t len)
+{
+    return commitBuffer(size) ? nullptr : readFully(buf, len);
+}
+
 const unsigned char *QemuPipeStream::read( void *buf, size_t *inout_len)
 {
     //DBG(">> QemuPipeStream::read %d\n", *inout_len);
