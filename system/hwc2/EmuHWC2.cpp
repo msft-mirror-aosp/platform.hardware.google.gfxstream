@@ -416,7 +416,7 @@ EmuHWC2::Display::Display(EmuHWC2& device, DisplayType type)
     mSetColorTransform(false),
     mStateMutex()
     {
-        mVsyncThread.run("", HAL_PRIORITY_URGENT_DISPLAY);
+        mVsyncThread.run("", -19 /* ANDROID_PRIORITY_URGENT_AUDIO */);
     }
 
 Error EmuHWC2::Display::acceptChanges() {
