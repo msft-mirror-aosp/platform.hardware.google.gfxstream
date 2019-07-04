@@ -181,7 +181,9 @@ long GoldfishAddressSpaceHostMemoryAllocator::hostMalloc(GoldfishAddressSpaceBlo
     request.metadata = HOST_MEMORY_ALLOCATOR_COMMAND_ALLOCATE_ID;
 
     HostAddressSpaceDevice::get()->ping(m_provider.m_handle, &request);
-    block->mmap(0);
+
+    void *hostPtr = HostAddressSpaceDevice::get()->getHostAddr(block->physAddr());
+    block->mmap(static_cast<uint64_t>(reinterpret_cast<uintptr_t>(hostPtr)));
 
     return 0;
 }
