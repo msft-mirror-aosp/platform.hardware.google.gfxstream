@@ -209,10 +209,10 @@ static void gralloc_dmaregion_register_ashmem_dma(gralloc_dmaregion_t* grdma, ui
     if (new_sz != grdma->sz) {
         if (new_sz > MAX_DMA_SIZE)  {
             D("%s: requested sz %u too large (limit %u), set to fallback.",
-              __func__, sz, MAX_DMA_SIZE);
+              __func__, new_sz, MAX_DMA_SIZE);
             grdma->bigbufCount++;
         } else {
-            D("%s: change sz from %u to %u", __func__, grdma->sz, sz);
+            D("%s: change sz from %u to %u", __func__, grdma->sz, new_sz);
             resize_gralloc_dmaregion_locked(grdma, new_sz);
         }
     }
@@ -429,12 +429,18 @@ static void updateHostColorBuffer(cb_handle_t* cb,
                 to_send, send_buffer_size);
         pthread_mutex_unlock(&grdma->lock);
     } else {
+        char *tmpBuf = nullptr;
         if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12) {
+            tmpBuf = new char[cb->lockedWidth * cb->lockedHeight * bpp];
+            D("convert yv12 to rgb888 here");
+            to_send = tmpBuf;
             yv12_to_rgb888(to_send, pixels,
                            width, height, left, top,
                            left + width - 1, top + height - 1);
         }
         if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) {
+            tmpBuf = new char[cb->lockedWidth * cb->lockedHeight * bpp];
+            to_send = tmpBuf;
             yuv420p_to_rgb888(to_send, pixels,
                               width, height, left, top,
                               left + width - 1, top + height - 1);
@@ -442,6 +448,9 @@ static void updateHostColorBuffer(cb_handle_t* cb,
         rcEnc->rcUpdateColorBuffer(rcEnc, cb->hostHandle,
                 left, top, width, height,
                 cb->glFormat, cb->glType, to_send);
+        if (tmpBuf != nullptr) {
+            delete [] tmpBuf;
+        }
     }
 }
 
@@ -1219,6 +1228,7 @@ static int gralloc_lock(gralloc_module_t const* module,
                     0, 0, cb->width, cb->height, cb->glFormat, cb->glType, rgb_addr);
             if (tmpBuf) {
                 if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12) {
+                    D("convert rgb888 to yv12 here");
                     rgb888_to_yv12((char*)cpu_addr, tmpBuf, cb->width, cb->height, l, t, l+w-1, t+h-1);
                 } else if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) {
                     rgb888_to_yuv420p((char*)cpu_addr, tmpBuf, cb->width, cb->height, l, t, l+w-1, t+h-1);
