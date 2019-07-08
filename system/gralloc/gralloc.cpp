@@ -1034,13 +1034,6 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
             int32_t* openCountPtr = getOpenCountPtr(cb);
             if (!*openCountPtr) *openCountPtr = 1;
         }
-
-        hostCon->lock();
-        if (rcEnc->getDmaVersion() > 0) {
-            gralloc_dmaregion_register_ashmem(rcEnc, cb->ashmemSize);
-        }
-        hostCon->unlock();
-
     }
 
     if (cb->ashmemSize > 0) {
@@ -1235,6 +1228,10 @@ static int gralloc_lock(gralloc_module_t const* module,
                 }
                 delete [] tmpBuf;
             }
+        }
+
+        if (rcEnc->getDmaVersion() > 0) {
+            gralloc_dmaregion_register_ashmem(rcEnc, cb->ashmemSize);
         }
         hostCon->unlock();
     }
