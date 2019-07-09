@@ -132,7 +132,7 @@ const unsigned char *SocketStream::readFully(void *buf, size_t len)
 
 const unsigned char *SocketStream::commitBufferAndReadFully(size_t size, void *buf, size_t len)
 {
-    return commitBuffer(size) ? nullptr : readFully(buf, len);
+    return commitBuffer(size) ? NULL : readFully(buf, len);
 }
 
 const unsigned char *SocketStream::read( void *buf, size_t *inout_len)
