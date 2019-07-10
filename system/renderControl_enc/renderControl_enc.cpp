@@ -1436,7 +1436,7 @@ GLint rcCompose_enc(void *self , uint32_t bufferSize, void* buffer)
 	return retval;
 }
 
-GLint rcCreateDisplay_enc(void *self , uint32_t* displayId)
+int rcCreateDisplay_enc(void *self , uint32_t* displayId)
 {
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
@@ -1463,7 +1463,7 @@ GLint rcCreateDisplay_enc(void *self , uint32_t* displayId)
 	stream->readback(displayId, __size_displayId);
 	if (useChecksum) checksumCalculator->addBuffer(displayId, __size_displayId);
 
-	GLint retval;
+	int retval;
 	stream->readback(&retval, 4);
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
@@ -1479,7 +1479,7 @@ GLint rcCreateDisplay_enc(void *self , uint32_t* displayId)
 	return retval;
 }
 
-GLint rcDestroyDisplay_enc(void *self , uint32_t displayId)
+int rcDestroyDisplay_enc(void *self , uint32_t displayId)
 {
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
@@ -1503,7 +1503,7 @@ GLint rcDestroyDisplay_enc(void *self , uint32_t displayId)
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
 
 
-	GLint retval;
+	int retval;
 	stream->readback(&retval, 4);
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
@@ -1519,7 +1519,7 @@ GLint rcDestroyDisplay_enc(void *self , uint32_t displayId)
 	return retval;
 }
 
-GLint rcSetDisplayColorBuffer_enc(void *self , uint32_t displayId, uint32_t colorBuffer)
+int rcSetDisplayColorBuffer_enc(void *self , uint32_t displayId, uint32_t colorBuffer)
 {
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
@@ -1544,7 +1544,7 @@ GLint rcSetDisplayColorBuffer_enc(void *self , uint32_t displayId, uint32_t colo
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
 
 
-	GLint retval;
+	int retval;
 	stream->readback(&retval, 4);
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
@@ -1560,7 +1560,7 @@ GLint rcSetDisplayColorBuffer_enc(void *self , uint32_t displayId, uint32_t colo
 	return retval;
 }
 
-GLint rcGetDisplayColorBuffer_enc(void *self , uint32_t displayId, uint32_t* colorBuffer)
+int rcGetDisplayColorBuffer_enc(void *self , uint32_t displayId, uint32_t* colorBuffer)
 {
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
@@ -1588,7 +1588,7 @@ GLint rcGetDisplayColorBuffer_enc(void *self , uint32_t displayId, uint32_t* col
 	stream->readback(colorBuffer, __size_colorBuffer);
 	if (useChecksum) checksumCalculator->addBuffer(colorBuffer, __size_colorBuffer);
 
-	GLint retval;
+	int retval;
 	stream->readback(&retval, 4);
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
@@ -1604,7 +1604,7 @@ GLint rcGetDisplayColorBuffer_enc(void *self , uint32_t displayId, uint32_t* col
 	return retval;
 }
 
-GLint rcGetColorBufferDisplay_enc(void *self , uint32_t colorBuffer, uint32_t* displayId)
+int rcGetColorBufferDisplay_enc(void *self , uint32_t colorBuffer, uint32_t* displayId)
 {
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
@@ -1632,7 +1632,7 @@ GLint rcGetColorBufferDisplay_enc(void *self , uint32_t colorBuffer, uint32_t* d
 	stream->readback(displayId, __size_displayId);
 	if (useChecksum) checksumCalculator->addBuffer(displayId, __size_displayId);
 
-	GLint retval;
+	int retval;
 	stream->readback(&retval, 4);
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
@@ -1648,7 +1648,7 @@ GLint rcGetColorBufferDisplay_enc(void *self , uint32_t colorBuffer, uint32_t* d
 	return retval;
 }
 
-GLint rcGetDisplayPose_enc(void *self , uint32_t displayId, uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h)
+int rcGetDisplayPose_enc(void *self , uint32_t displayId, GLint* x, GLint* y, uint32_t* w, uint32_t* h)
 {
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
@@ -1688,7 +1688,7 @@ GLint rcGetDisplayPose_enc(void *self , uint32_t displayId, uint32_t* x, uint32_
 	stream->readback(h, __size_h);
 	if (useChecksum) checksumCalculator->addBuffer(h, __size_h);
 
-	GLint retval;
+	int retval;
 	stream->readback(&retval, 4);
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
@@ -1704,7 +1704,7 @@ GLint rcGetDisplayPose_enc(void *self , uint32_t displayId, uint32_t* x, uint32_
 	return retval;
 }
 
-GLint rcSetDisplayPose_enc(void *self , uint32_t displayId, uint32_t x, uint32_t y, uint32_t w, uint32_t h)
+int rcSetDisplayPose_enc(void *self , uint32_t displayId, GLint x, GLint y, uint32_t w, uint32_t h)
 {
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
@@ -1732,7 +1732,7 @@ GLint rcSetDisplayPose_enc(void *self , uint32_t displayId, uint32_t x, uint32_t
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
 
 
-	GLint retval;
+	int retval;
 	stream->readback(&retval, 4);
 	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
 	if (useChecksum) {
