@@ -55,9 +55,9 @@ void get_yuv420p_offsets(int width, int height,
                                 uint32_t* totalSz_out) {
     uint32_t align = 1;
     uint32_t yStride = (width + (align - 1)) & ~(align-1);
-    uint32_t uvStride = (yStride / 2 + (align - 1)) & ~(align-1);
+    uint32_t uvStride = yStride;
     uint32_t uvHeight = height / 2;
-    uint32_t sz = yStride * height + 2 * (uvHeight * uvStride);
+    uint32_t sz = yStride * height + uvHeight * uvStride;
 
     if (yStride_out) *yStride_out = yStride;
     if (cStride_out) *cStride_out = uvStride;
@@ -218,6 +218,44 @@ void rgb888_to_yuv420p(char* dest, char* src, int width, int height,
         }
     }
 }
+
+//HAL_PIXEL_FORMAT_YCbCr_420_888, or yuv420p is treated as NV21 across our
+//gralloc and camera module when feature YUV420888toNV21 enabled
+void rgb888_to_nv21(char* dest, char* src, int width, int height,
+                    int left, int top, int right, int bottom) {
+    const int rgb_stride = 3;
+
+    DD("%s convert %d by %d", __func__, width, height);
+    int yStride = width;
+    int cStride = yStride;
+    int yOffset = 0;
+
+    uint8_t *rgb_ptr0 = (uint8_t *)src;
+    uint8_t *nv21_y0 = (uint8_t *)dest;
+    uint8_t *nv21_v0 = nv21_y0 + yStride * height;
+
+    for (int j = top; j <= bottom; ++j) {
+        uint8_t *nv21_y = nv21_y0 + j * yStride;
+        uint8_t *nv21_v = nv21_v0 + (j/2) * cStride;
+        uint8_t *nv21_u = nv21_v + 1;
+        uint8_t *rgb_ptr = rgb_ptr0 + get_rgb_offset(j, width, rgb_stride);
+        bool jeven = (j & 1) == 0;
+        for (int i = left; i <= right; ++i) {
+            uint8_t R = rgb_ptr[i*rgb_stride];
+            uint8_t G = rgb_ptr[i*rgb_stride+1];
+            uint8_t B = rgb_ptr[i*rgb_stride+2];
+            // convert to YV12
+            // frameworks/base/core/jni/android_hardware_camera2_legacy_LegacyCameraDevice.cpp
+            nv21_y[i] = clamp_rgb((77 * R + 150 * G +  29 * B) >> 8);
+            bool ieven = (i & 1) == 0;
+            if (jeven && ieven) {
+                nv21_u[i] = clamp_rgb((( -43 * R - 85 * G + 128 * B) >> 8) + 128);
+                nv21_v[i] = clamp_rgb((( 128 * R - 107 * G - 21 * B) >> 8) + 128);
+            }
+        }
+    }
+}
+
 // YV12 is aka YUV420Planar, or YUV420p; the only difference is that YV12 has
 // certain stride requirements for Y and UV respectively.
 void yv12_to_rgb565(char* dest, char* src, int width, int height,
@@ -305,8 +343,6 @@ void yv12_to_rgb888(char* dest, char* src, int width, int height,
     }
 }
 
-// YV12 is aka YUV420Planar, or YUV420p; the only difference is that YV12 has
-// certain stride requirements for Y and UV respectively.
 void yuv420p_to_rgb888(char* dest, char* src, int width, int height,
         int left, int top, int right, int bottom) {
     const int rgb_stride = 3;
@@ -332,6 +368,50 @@ void yuv420p_to_rgb888(char* dest, char* src, int width, int height,
             signed y1 = (signed)yv12_y[i] - 16;
             signed u = (signed)yv12_u[i / 2] - 128;
             signed v = (signed)yv12_v[i / 2] - 128;
+
+            signed u_b = u * 517;
+            signed u_g = -u * 100;
+            signed v_g = -v * 208;
+            signed v_r = v * 409;
+
+            signed tmp1 = y1 * 298;
+            signed b1 = clamp_rgb((tmp1 + u_b) / 256);
+            signed g1 = clamp_rgb((tmp1 + v_g + u_g) / 256);
+            signed r1 = clamp_rgb((tmp1 + v_r) / 256);
+
+            rgb_ptr[(i-left)*rgb_stride] = r1;
+            rgb_ptr[(i-left)*rgb_stride+1] = g1;
+            rgb_ptr[(i-left)*rgb_stride+2] = b1;
+        }
+    }
+}
+
+//HAL_PIXEL_FORMAT_YCbCr_420_888, or yuv420p is treated as NV21 across our
+//gralloc and camera module when feature YUV420888toNV21 enabled
+void nv21_to_rgb888(char* dest, char* src, int width, int height,
+                    int left, int top, int right, int bottom) {
+    const int rgb_stride = 3;
+
+    DD("%s convert %d by %d", __func__, width, height);
+    int yStride = width;
+    int cStride = yStride;
+    int yOffset = 0;
+
+    uint8_t *rgb_ptr0 = (uint8_t *)dest;
+    uint8_t *nv21_y0 = (uint8_t *)src;
+    uint8_t *nv21_v0 = nv21_y0 + yStride * height;
+
+    for (int j = top; j <= bottom; ++j) {
+        uint8_t *nv21_y = nv21_y0 + j * yStride;
+        uint8_t *nv21_v = nv21_v0 + (j/2) * cStride;
+        uint8_t *nv21_u = nv21_v + 1;
+        uint8_t *rgb_ptr = rgb_ptr0 + get_rgb_offset(j - top, right - left + 1, rgb_stride);
+        for (int i = left; i <= right; ++i) {
+            // convert to rgb
+            // frameworks/av/media/libstagefright/colorconversion/ColorConverter.cpp
+            signed y1 = (signed)nv21_y[i] - 16;
+            signed u = (signed)nv21_u[i / 2] - 128;
+            signed v = (signed)nv21_v[i / 2] - 128;
 
             signed u_b = u * 517;
             signed u_g = -u * 100;

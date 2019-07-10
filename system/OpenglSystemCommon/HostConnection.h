@@ -57,6 +57,8 @@ public:
     bool hasNativeSyncV3() const { return m_featureInfo.syncImpl >= SYNC_IMPL_NATIVE_SYNC_V3; }
     bool hasHostCompositionV1() const {
         return m_featureInfo.hostComposition == HOST_COMPOSITION_V1; }
+    bool hasYUV420toNV21() const {
+        return m_featureInfo.hasYUV420888toNV21; }
     DmaImpl getDmaVersion() const { return m_featureInfo.dmaImpl; }
     void bindDmaContext(struct goldfish_dma_context* cxt) { m_dmaCxt = cxt; }
     void bindAddressSpaceBlock(GoldfishAddressSpaceBlock* block) {
@@ -194,6 +196,7 @@ private:
     void queryAndSetDeferredVulkanCommandsSupport(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanNullOptionalStringsSupport(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanCreateResourcesWithRequirementsSupport(ExtendedRCEncoderContext *rcEnc);
+    void queryAndSetYUV420888toNV21(ExtendedRCEncoderContext *mrcEnc);
 
 private:
     IOStream *m_stream;
