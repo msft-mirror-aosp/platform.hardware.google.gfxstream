@@ -295,6 +295,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetDeferredVulkanCommandsSupport(m_rcEnc);
         queryAndSetVulkanNullOptionalStringsSupport(m_rcEnc);
         queryAndSetVulkanCreateResourcesWithRequirementsSupport(m_rcEnc);
+        queryAndSetYUV420888toNV21(m_rcEnc);
         if (m_processPipe) {
             m_processPipe->processPipeInit(m_rcEnc);
         }
@@ -462,5 +463,12 @@ void HostConnection::queryAndSetVulkanCreateResourcesWithRequirementsSupport(Ext
     std::string glExtensions = queryGLExtensions(rcEnc);
     if (glExtensions.find(kVulkanCreateResourcesWithRequirements) != std::string::npos) {
         rcEnc->featureInfo()->hasVulkanCreateResourcesWithRequirements = true;
+    }
+}
+
+void HostConnection::queryAndSetYUV420888toNV21(ExtendedRCEncoderContext* rcEnc) {
+    std::string glExtensions = queryGLExtensions(rcEnc);
+    if (glExtensions.find(kYUV420888toNV21) != std::string::npos) {
+        rcEnc->featureInfo()->hasYUV420888toNV21 = true;
     }
 }
