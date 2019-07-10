@@ -434,14 +434,10 @@ static void updateHostColorBuffer(cb_handle_t* cb,
         cb->frameworkFormat != HAL_PIXEL_FORMAT_YCbCr_420_888;
 
     std::vector<char> convertedBuf;
-    if ((doLocked && is_rgb_format) ||
-        (!grdma && (doLocked || !is_rgb_format))) {
-        convertedBuf.resize(rgbSz);
-        to_send = &convertedBuf.front();
-        send_buffer_size = rgbSz;
-    }
 
     if (doLocked && is_rgb_format) {
+        convertedBuf.resize(rgbSz);
+        to_send = &convertedBuf.front();
         copy_rgb_buffer_from_unlocked(
                 to_send, pixels,
                 cb->width,
@@ -455,13 +451,14 @@ static void updateHostColorBuffer(cb_handle_t* cb,
     }
 
     if (hasDMA && !grdma->bigbufCount) {
-        if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12) {
-            get_yv12_offsets(width, height, NULL, NULL,
-                             &send_buffer_size);
-        }
-        if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) {
-            get_yuv420p_offsets(width, height, NULL, NULL,
-                                &send_buffer_size);
+        switch (cb->frameworkFormat) {
+        case HAL_PIXEL_FORMAT_YV12:
+            get_yv12_offsets(width, height, NULL, NULL, &send_buffer_size);
+            break;
+
+        case HAL_PIXEL_FORMAT_YCbCr_420_888:
+            get_yuv420p_offsets(width, height, NULL, NULL, &send_buffer_size);
+            break;
         }
 
         if (grdma->address_space_block.guestPtr()) {
@@ -480,28 +477,28 @@ static void updateHostColorBuffer(cb_handle_t* cb,
                 to_send, send_buffer_size);
         pthread_mutex_unlock(&grdma->lock);
     } else {
-        char *tmpBuf = nullptr;
-        if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12) {
-            tmpBuf = new char[cb->lockedWidth * cb->lockedHeight * bpp];
+        switch (cb->frameworkFormat) {
+        case HAL_PIXEL_FORMAT_YV12:
+            convertedBuf.resize(rgbSz);
+            to_send = &convertedBuf.front();
             D("convert yv12 to rgb888 here");
-            to_send = tmpBuf;
             yv12_to_rgb888(to_send, pixels,
                            width, height, left, top,
                            left + width - 1, top + height - 1);
-        }
-        if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) {
-            tmpBuf = new char[cb->lockedWidth * cb->lockedHeight * bpp];
-            to_send = tmpBuf;
+            break;
+
+        case HAL_PIXEL_FORMAT_YCbCr_420_888:
+            convertedBuf.resize(rgbSz);
+            to_send = &convertedBuf.front();
             yuv420p_to_rgb888(to_send, pixels,
                               width, height, left, top,
                               left + width - 1, top + height - 1);
+            break;
         }
+
         rcEnc->rcUpdateColorBuffer(rcEnc, cb->hostHandle,
                 left, top, width, height,
                 cb->glFormat, cb->glType, to_send);
-        if (tmpBuf != nullptr) {
-            delete [] tmpBuf;
-        }
     }
 }
 
