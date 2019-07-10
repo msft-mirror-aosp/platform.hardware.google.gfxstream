@@ -490,12 +490,17 @@ static void updateHostColorBuffer(cb_handle_t* cb,
         case HAL_PIXEL_FORMAT_YCbCr_420_888:
             convertedBuf.resize(rgbSz);
             to_send = &convertedBuf.front();
-            yuv420p_to_rgb888(to_send, pixels,
-                              width, height, left, top,
-                              left + width - 1, top + height - 1);
+            if (rcEnc->hasYUV420toNV21()) {
+                nv21_to_rgb888(to_send, pixels,
+                               width, height, left, top,
+                               left + width - 1, top + height - 1);
+            } else {
+                yuv420p_to_rgb888(to_send, pixels,
+                                  width, height, left, top,
+                                  left + width - 1, top + height - 1);
+            }
             break;
         }
-
         rcEnc->rcUpdateColorBuffer(rcEnc, cb->hostHandle,
                 left, top, width, height,
                 cb->glFormat, cb->glType, to_send);
@@ -1273,7 +1278,11 @@ static int gralloc_lock(gralloc_module_t const* module,
                     D("convert rgb888 to yv12 here");
                     rgb888_to_yv12((char*)cpu_addr, tmpBuf, cb->width, cb->height, l, t, l+w-1, t+h-1);
                 } else if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) {
-                    rgb888_to_yuv420p((char*)cpu_addr, tmpBuf, cb->width, cb->height, l, t, l+w-1, t+h-1);
+                    if (rcEnc->hasYUV420toNV21()) {
+                        rgb888_to_nv21((char*)cpu_addr, tmpBuf, cb->width, cb->height, l, t, l+w-1, t+h-1);
+                    } else {
+                        rgb888_to_yuv420p((char*)cpu_addr, tmpBuf, cb->width, cb->height, l, t, l+w-1, t+h-1);
+                    }
                 }
                 delete [] tmpBuf;
             }
@@ -1423,8 +1432,9 @@ static int gralloc_lock_ycbcr(gralloc_module_t const* module,
             uOffset = vOffset + cSize;
             cStep = 1;
             break;
-        case HAL_PIXEL_FORMAT_YCbCr_420_888:
-            if (usage & GRALLOC_USAGE_HW_CAMERA_MASK) {
+        case HAL_PIXEL_FORMAT_YCbCr_420_888: {
+            DEFINE_AND_VALIDATE_HOST_CONNECTION
+            if (rcEnc->hasYUV420toNV21()) {
                 yStride = cb->width;
                 cStride = cb->width;
                 yOffset = 0;
@@ -1432,14 +1442,24 @@ static int gralloc_lock_ycbcr(gralloc_module_t const* module,
                 uOffset = vOffset + 1;
                 cStep = 2;
             } else {
-                yStride = cb->width;
-                cStride = yStride / 2;
-                yOffset = 0;
-                uOffset = cb->height * yStride;
-                vOffset = uOffset + cStride * cb->height / 2;
-                cStep = 1;
+                if (usage & GRALLOC_USAGE_HW_CAMERA_MASK) {
+                    yStride = cb->width;
+                    cStride = cb->width;
+                    yOffset = 0;
+                    vOffset = yStride * cb->height;
+                    uOffset = vOffset + 1;
+                    cStep = 2;
+                } else {
+                    yStride = cb->width;
+                    cStride = yStride / 2;
+                    yOffset = 0;
+                    uOffset = cb->height * yStride;
+                    vOffset = uOffset + cStride * cb->height / 2;
+                    cStep = 1;
+                }
             }
             break;
+        }
         default:
             ALOGE("gralloc_lock_ycbcr unexpected internal format %x",
                     cb->format);
