@@ -49,7 +49,8 @@
 #define OP_rcGetDisplayPose 					10043
 #define OP_rcSetDisplayPose 					10044
 #define OP_rcSetColorBufferVulkanMode 					10045
-#define OP_last 					10046
+#define OP_rcReadColorBufferYUV 					10046
+#define OP_last 					10047
 
 
 #endif
