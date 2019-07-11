@@ -1261,30 +1261,47 @@ static int gralloc_lock(gralloc_module_t const* module,
         // camera delivers bits to the buffer directly and does not require
         // an explicit read, it also writes in YUV_420 (interleaved)
         if (sw_read & !(usage & GRALLOC_USAGE_HW_CAMERA_MASK)) {
+            D("gralloc_lock read back color buffer %d %d ashmem base %p sz %d\n",
+              cb->width, cb->height, cb->ashmemBase, cb->ashmemSize);
             void* rgb_addr = cpu_addr;
             char* tmpBuf = 0;
             if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12 ||
                 cb->frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) {
-                // We are using RGB888
-                tmpBuf = new char[cb->width * cb->height * 3];
-                rgb_addr = tmpBuf;
-            }
-            D("gralloc_lock read back color buffer %d %d ashmem base %p sz %d\n",
-              cb->width, cb->height, cb->ashmemBase, cb->ashmemSize);
-            rcEnc->rcReadColorBuffer(rcEnc, cb->hostHandle,
-                    0, 0, cb->width, cb->height, cb->glFormat, cb->glType, rgb_addr);
-            if (tmpBuf) {
-                if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12) {
-                    D("convert rgb888 to yv12 here");
-                    rgb888_to_yv12((char*)cpu_addr, tmpBuf, cb->width, cb->height, l, t, l+w-1, t+h-1);
-                } else if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) {
-                    if (rcEnc->hasYUV420toNV21()) {
-                        rgb888_to_nv21((char*)cpu_addr, tmpBuf, cb->width, cb->height, l, t, l+w-1, t+h-1);
+                if (rcEnc->hasYUVCache()) {
+                    uint32_t buffer_size;
+                    if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12) {
+                       get_yv12_offsets(cb->width, cb->height, NULL, NULL,
+                                        &buffer_size);
                     } else {
-                        rgb888_to_yuv420p((char*)cpu_addr, tmpBuf, cb->width, cb->height, l, t, l+w-1, t+h-1);
+                       get_yuv420p_offsets(cb->width, cb->height, NULL, NULL,
+                                           &buffer_size);
                     }
+                    D("read YUV copy from host");
+                    rcEnc->rcReadColorBufferYUV(rcEnc, cb->hostHandle,
+                                            0, 0, cb->width, cb->height,
+                                            rgb_addr, buffer_size);
+                } else {
+                    // We are using RGB888
+                    tmpBuf = new char[cb->width * cb->height * 3];
+                    rcEnc->rcReadColorBuffer(rcEnc, cb->hostHandle,
+                                              0, 0, cb->width, cb->height, cb->glFormat, cb->glType, tmpBuf);
+                    if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YV12) {
+                        D("convert rgb888 to yv12 here");
+                        rgb888_to_yv12((char*)cpu_addr, tmpBuf, cb->width, cb->height, l, t, l+w-1, t+h-1);
+                    } else if (cb->frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) {
+                        if (rcEnc->hasYUV420toNV21()) {
+                            D("convert rgb888 to nv21 here");
+                            rgb888_to_nv21((char*)cpu_addr, tmpBuf, cb->width, cb->height, l, t, l+w-1, t+h-1);
+                        } else {
+                            D("convert rgb888 to yuv420p here");
+                            rgb888_to_yuv420p((char*)cpu_addr, tmpBuf, cb->width, cb->height, l, t, l+w-1, t+h-1);
+                        }
+                    }
+                    delete [] tmpBuf;
                 }
-                delete [] tmpBuf;
+            } else {
+                rcEnc->rcReadColorBuffer(rcEnc, cb->hostHandle,
+                        0, 0, cb->width, cb->height, cb->glFormat, cb->glType, rgb_addr);
             }
         }
 
