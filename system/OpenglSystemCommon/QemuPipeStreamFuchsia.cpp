@@ -34,7 +34,9 @@ QemuPipeStream::QemuPipeStream(size_t bufSize) :
     IOStream(bufSize),
     m_sock(-1),
     m_bufsize(bufSize),
-    m_buf(nullptr)
+    m_buf(nullptr),
+    m_read(0),
+    m_readLeft(0)
 {
 }
 
@@ -42,7 +44,9 @@ QemuPipeStream::QemuPipeStream(QEMU_PIPE_HANDLE sock, size_t bufSize) :
     IOStream(bufSize),
     m_sock(sock),
     m_bufsize(bufSize),
-    m_buf(nullptr)
+    m_buf(nullptr),
+    m_read(0),
+    m_readLeft(0)
 {
 }
 
