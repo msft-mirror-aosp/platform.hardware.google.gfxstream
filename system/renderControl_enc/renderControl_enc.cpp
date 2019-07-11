@@ -1789,6 +1789,50 @@ GLint rcSetColorBufferVulkanMode_enc(void *self , uint32_t colorBuffer, uint32_t
 	return retval;
 }
 
+void rcReadColorBufferYUV_enc(void *self , uint32_t colorbuffer, GLint x, GLint y, GLint width, GLint height, void* pixels, uint32_t pixels_size)
+{
+
+	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	const unsigned int __size_pixels =  pixels_size;
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + 4 + 4 + 0 + 4 + 1*4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_rcReadColorBufferYUV;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &colorbuffer, 4); ptr += 4;
+		memcpy(ptr, &x, 4); ptr += 4;
+		memcpy(ptr, &y, 4); ptr += 4;
+		memcpy(ptr, &width, 4); ptr += 4;
+		memcpy(ptr, &height, 4); ptr += 4;
+	*(unsigned int *)(ptr) = __size_pixels; ptr += 4;
+		memcpy(ptr, &pixels_size, 4); ptr += 4;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+	stream->readback(pixels, __size_pixels);
+	if (useChecksum) checksumCalculator->addBuffer(pixels, __size_pixels);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			ALOGE("rcReadColorBufferYUV: GL communication error, please report this issue to b.android.com.\n");
+			abort();
+		}
+	}
+}
+
 }  // namespace
 
 renderControl_encoder_context_t::renderControl_encoder_context_t(IOStream *stream, ChecksumCalculator *checksumCalculator)
@@ -1842,5 +1886,6 @@ renderControl_encoder_context_t::renderControl_encoder_context_t(IOStream *strea
 	this->rcGetDisplayPose = &rcGetDisplayPose_enc;
 	this->rcSetDisplayPose = &rcSetDisplayPose_enc;
 	this->rcSetColorBufferVulkanMode = &rcSetColorBufferVulkanMode_enc;
+	this->rcReadColorBufferYUV = &rcReadColorBufferYUV_enc;
 }
 

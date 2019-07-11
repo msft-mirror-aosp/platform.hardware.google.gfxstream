@@ -88,6 +88,9 @@ static const char kVulkanCreateResourcesWithRequirements[] = "ANDROID_EMU_vulkan
 // YUV420_888 to NV21
 static const char kYUV420888toNV21[] = "ANDROID_EMU_YUV420_888_to_NV21";
 
+// YUV host cache
+static const char kYUVCache[] = "ANDROID_EMU_YUV_Cache";
+
 // Struct describing available emulator features
 struct EmulatorFeatureInfo {
 
@@ -101,7 +104,8 @@ struct EmulatorFeatureInfo {
         hasDeferredVulkanCommands(false),
         hasVulkanNullOptionalStrings(false),
         hasVulkanCreateResourcesWithRequirements(false),
-        hasYUV420888toNV21(false) { }
+        hasYUV420888toNV21(false),
+        hasYUVCache (false) { }
 
     SyncImpl syncImpl;
     DmaImpl dmaImpl;
@@ -113,6 +117,7 @@ struct EmulatorFeatureInfo {
     bool hasVulkanNullOptionalStrings;
     bool hasVulkanCreateResourcesWithRequirements;
     bool hasYUV420888toNV21;
+    bool hasYUVCache;
 };
 
 #endif // __COMMON_EMULATOR_FEATURE_INFO_H
