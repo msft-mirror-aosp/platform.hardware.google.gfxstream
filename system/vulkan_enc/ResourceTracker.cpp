@@ -1336,7 +1336,7 @@ public:
                                    fuchsia::sysmem::vulkanUsageTransferSrc |
                                    fuchsia::sysmem::vulkanUsageTransferDst |
                                    fuchsia::sysmem::vulkanUsageSampled;
-        constraints.min_buffer_count_for_camping = 1;
+        constraints.min_buffer_count = 1;
         constraints.has_buffer_memory_constraints = true;
         fuchsia::sysmem::BufferMemoryConstraints& buffer_constraints =
             constraints.buffer_memory_constraints;
