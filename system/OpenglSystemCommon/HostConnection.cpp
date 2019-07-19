@@ -118,6 +118,11 @@ HostConnection::HostConnection() :
 
 HostConnection::~HostConnection()
 {
+    // round-trip to ensure that queued commands have been processed
+    // before process pipe closure is detected.
+    if (m_rcEnc) {
+        (void) m_rcEnc->rcGetRendererVersion(m_rcEnc);
+    }
     delete m_stream;
     delete m_glEnc;
     delete m_gl2Enc;
