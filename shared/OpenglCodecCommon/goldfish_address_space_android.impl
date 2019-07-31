@@ -228,7 +228,7 @@ GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator
 
         const long ret = ioctl_ping(m_provider.m_fd, &request);
         if (ret) {
-            ALOGE("%s: ioctl_ping failed for device_type=%llu, ret=%ld",
+            ALOGE("%s: ioctl_ping failed for device_type=%d, ret=%ld",
                   __func__, DEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID, ret);
             m_provider.close();
         }
