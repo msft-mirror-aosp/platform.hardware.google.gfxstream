@@ -142,7 +142,7 @@ static void processPipeInitOnce() {
         stat =
             qemu_pipe_read(sProcPipe, (char*)&sProcUID,
                 sizeof(sProcUID));
-    } while (stat < 0 && (errno == EINTR || errno == EAGAIN));
+    } while (stat < 0 && errno == EINTR);
 
     if (stat != sizeof(sProcUID)) {
         qemu_pipe_close(sProcPipe);
