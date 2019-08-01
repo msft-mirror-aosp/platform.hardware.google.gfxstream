@@ -238,7 +238,7 @@ const unsigned char *QemuPipeStream::commitBufferAndReadFully(size_t size, void 
     }
 
     // Early out if nothing left to do.
-    if (!size && !remaining) {
+    if  (!size && !remaining) {
         return static_cast<const unsigned char *>(buf);
     }
 
