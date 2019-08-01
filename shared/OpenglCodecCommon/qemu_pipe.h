@@ -41,16 +41,6 @@ typedef int QEMU_PIPE_HANDLE;
 
 #define QEMU_PIPE_INVALID_HANDLE (-1)
 
-#ifndef QEMU_PIPE_RETRY
-#define QEMU_PIPE_RETRY(exp) ({ \
-    __typeof__(exp) _rc; \
-    do { \
-        _rc = (exp); \
-    } while (_rc == -1 && (errno == EINTR || errno == EAGAIN)); \
-    _rc; }) \
-
-#endif
-
 #ifndef QEMU_PIPE_PATH
 #define QEMU_PIPE_PATH "/dev/qemu_pipe"
 #endif
@@ -90,7 +80,7 @@ static bool WriteFully(QEMU_PIPE_HANDLE fd, const void* data, size_t byte_count)
   const uint8_t* p = (const uint8_t*)(data);
   size_t remaining = byte_count;
   while (remaining > 0) {
-    ssize_t n = QEMU_PIPE_RETRY(write(fd, p, remaining));
+    ssize_t n = TEMP_FAILURE_RETRY(write(fd, p, remaining));
     if (n == -1) return false;
     p += n;
     remaining -= n;
@@ -133,10 +123,9 @@ qemu_pipe_open(const char* pipeName) {
 
     snprintf(buff, sizeof buff, "pipe:%s", pipeName);
 
-    fd = QEMU_PIPE_RETRY(open(QEMU_PIPE_PATH, O_RDWR | O_NONBLOCK));
-    if (fd < 0 && errno == ENOENT) {
-        fd = QEMU_PIPE_RETRY(open("/dev/goldfish_pipe", O_RDWR | O_NONBLOCK));
-    }
+    fd = TEMP_FAILURE_RETRY(open(QEMU_PIPE_PATH, O_RDWR));
+    if (fd < 0 && errno == ENOENT)
+        fd = TEMP_FAILURE_RETRY(open("/dev/goldfish_pipe", O_RDWR));
     if (fd < 0) {
         D("%s: Could not open " QEMU_PIPE_PATH ": %s", __FUNCTION__, strerror(errno));
         //errno = ENOSYS;
@@ -170,7 +159,7 @@ qemu_pipe_write(QEMU_PIPE_HANDLE pipe, const void* buffer, size_t len) {
 
 static __inline__ bool
 qemu_pipe_try_again() {
-    return errno == EINTR || errno == EAGAIN;
+    return errno == EINTR;
 }
 
 static __inline__ bool
