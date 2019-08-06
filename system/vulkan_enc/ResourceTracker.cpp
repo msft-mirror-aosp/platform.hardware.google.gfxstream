@@ -123,9 +123,8 @@ VkResult getMemoryAndroidHardwareBufferANDROID(struct AHardwareBuffer **) { retu
 #include "android/utils/tempfile.h"
 #endif
 
-#ifndef HAVE_MEMFD_CREATE
 static inline int
-memfd_create(const char *name, unsigned int flags) {
+inline_memfd_create(const char *name, unsigned int flags) {
 #ifdef HOST_BUILD
     TempFile* tmpFile = tempfile_create();
     return open(tempfile_path(tmpFile), O_RDWR);
@@ -134,7 +133,7 @@ memfd_create(const char *name, unsigned int flags) {
     return syscall(SYS_memfd_create, name, flags);
 #endif
 }
-#endif // !HAVE_MEMFD_CREATE
+#define memfd_create inline_memfd_create
 #endif // !VK_USE_PLATFORM_ANDROID_KHR
 
 #define RESOURCE_TRACKER_DEBUG 0
