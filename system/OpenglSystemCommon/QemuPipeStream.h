@@ -55,13 +55,13 @@ private:
     QEMU_PIPE_HANDLE m_sock;
     size_t m_bufsize;
     unsigned char *m_buf;
+    size_t m_read;
+    size_t m_readLeft;
 #ifdef __Fuchsia__
     fuchsia::hardware::goldfish::pipe::DeviceSyncPtr m_device;
     fuchsia::hardware::goldfish::pipe::PipeSyncPtr m_pipe;
     zx::event m_event;
     zx::vmo m_vmo;
-    size_t m_read = 0;
-    size_t m_readLeft = 0;
 #endif
     QemuPipeStream(QEMU_PIPE_HANDLE sock, size_t bufSize);
 };
