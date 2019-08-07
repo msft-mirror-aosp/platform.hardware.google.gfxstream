@@ -809,17 +809,41 @@ public:
             filteredExts.push_back(anbExtProp);
         }
 
-        if (pPropertyCount) {
-            *pPropertyCount = filteredExts.size();
-        }
+        // Spec:
+        //
+        // https://www.khronos.org/registry/vulkan/specs/1.1-extensions/man/html/vkEnumerateInstanceExtensionProperties.html
+        //
+        // If pProperties is NULL, then the number of extensions properties
+        // available is returned in pPropertyCount. Otherwise, pPropertyCount
+        // must point to a variable set by the user to the number of elements
+        // in the pProperties array, and on return the variable is overwritten
+        // with the number of structures actually written to pProperties. If
+        // pPropertyCount is less than the number of extension properties
+        // available, at most pPropertyCount structures will be written. If
+        // pPropertyCount is smaller than the number of extensions available,
+        // VK_INCOMPLETE will be returned instead of VK_SUCCESS, to indicate
+        // that not all the available properties were returned.
+        //
+        // pPropertyCount must be a valid pointer to a uint32_t value
+        if (!pPropertyCount) return VK_ERROR_INITIALIZATION_FAILED;
 
-        if (pPropertyCount && pProperties) {
-            for (size_t i = 0; i < *pPropertyCount; ++i) {
+        if (!pProperties) {
+            *pPropertyCount = (uint32_t)filteredExts.size();
+            return VK_SUCCESS;
+        } else {
+            auto actualExtensionCount = (uint32_t)filteredExts.size();
+            auto toWrite = actualExtensionCount < *pPropertyCount ? actualExtensionCount : *pPropertyCount;
+
+            for (uint32_t i = 0; i < toWrite; ++i) {
                 pProperties[i] = filteredExts[i];
             }
-        }
 
-        return VK_SUCCESS;
+            if (actualExtensionCount > *pPropertyCount) {
+                return VK_INCOMPLETE;
+            }
+
+            return VK_SUCCESS;
+        }
     }
 
     VkResult on_vkEnumerateDeviceExtensionProperties(
@@ -937,18 +961,49 @@ public:
 #endif
         }
 
-        if (pPropertyCount) {
-            *pPropertyCount = filteredExts.size();
-        }
+        // Spec:
+        //
+        // https://www.khronos.org/registry/vulkan/specs/1.1-extensions/man/html/vkEnumerateDeviceExtensionProperties.html
+        //
+        // pPropertyCount is a pointer to an integer related to the number of
+        // extension properties available or queried, and is treated in the
+        // same fashion as the
+        // vkEnumerateInstanceExtensionProperties::pPropertyCount parameter.
+        //
+        // https://www.khronos.org/registry/vulkan/specs/1.1-extensions/man/html/vkEnumerateInstanceExtensionProperties.html
+        //
+        // If pProperties is NULL, then the number of extensions properties
+        // available is returned in pPropertyCount. Otherwise, pPropertyCount
+        // must point to a variable set by the user to the number of elements
+        // in the pProperties array, and on return the variable is overwritten
+        // with the number of structures actually written to pProperties. If
+        // pPropertyCount is less than the number of extension properties
+        // available, at most pPropertyCount structures will be written. If
+        // pPropertyCount is smaller than the number of extensions available,
+        // VK_INCOMPLETE will be returned instead of VK_SUCCESS, to indicate
+        // that not all the available properties were returned.
+        //
+        // pPropertyCount must be a valid pointer to a uint32_t value
 
-        if (pPropertyCount && pProperties) {
-            for (size_t i = 0; i < *pPropertyCount; ++i) {
+        if (!pPropertyCount) return VK_ERROR_INITIALIZATION_FAILED;
+
+        if (!pProperties) {
+            *pPropertyCount = (uint32_t)filteredExts.size();
+            return VK_SUCCESS;
+        } else {
+            auto actualExtensionCount = (uint32_t)filteredExts.size();
+            auto toWrite = actualExtensionCount < *pPropertyCount ? actualExtensionCount : *pPropertyCount;
+
+            for (uint32_t i = 0; i < toWrite; ++i) {
                 pProperties[i] = filteredExts[i];
             }
+
+            if (actualExtensionCount > *pPropertyCount) {
+                return VK_INCOMPLETE;
+            }
+
+            return VK_SUCCESS;
         }
-
-
-        return VK_SUCCESS;
     }
 
     VkResult on_vkEnumeratePhysicalDevices(
