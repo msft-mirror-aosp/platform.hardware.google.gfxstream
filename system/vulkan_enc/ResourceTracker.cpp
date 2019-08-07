@@ -796,9 +796,6 @@ public:
         }
 
         VkExtensionProperties anbExtProps[] = {
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
-            { "VK_ANDROID_native_buffer", 7 },
-#endif
 #ifdef VK_USE_PLATFORM_FUCHSIA
             { "VK_KHR_external_memory_capabilities", 1},
             { "VK_KHR_external_semaphore_capabilities", 1},
