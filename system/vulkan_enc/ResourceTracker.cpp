@@ -950,6 +950,9 @@ public:
             filteredExts.push_back({
                 "VK_ANDROID_external_memory_android_hardware_buffer", 7
             });
+            filteredExts.push_back({
+                "VK_EXT_queue_family_foreign", 1
+            });
 #endif
 #ifdef VK_USE_PLATFORM_FUCHSIA
             filteredExts.push_back({
