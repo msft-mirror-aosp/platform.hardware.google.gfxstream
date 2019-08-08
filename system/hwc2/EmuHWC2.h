@@ -191,6 +191,25 @@ private:
         ComposeDevice* mComposeDevice;
     };
 
+    class ComposeMsg_v2 {
+    public:
+        ComposeMsg_v2(uint32_t layerCnt = 0) :
+          mData(sizeof(ComposeDevice_v2) + layerCnt * sizeof(ComposeLayer))
+        {
+            mComposeDevice = reinterpret_cast<ComposeDevice_v2*>(mData.data());
+            mLayerCnt = layerCnt;
+        }
+
+        ComposeDevice_v2* get() { return mComposeDevice; }
+
+        uint32_t getLayerCnt() { return mLayerCnt; }
+
+    private:
+        std::vector<uint8_t> mData;
+        uint32_t mLayerCnt;
+        ComposeDevice_v2* mComposeDevice;
+    };
+
     class Display {
     public:
         Display(EmuHWC2& device, HWC2::DisplayType type);
@@ -348,6 +367,7 @@ private:
         mutable std::mutex mStateMutex;
         std::unique_ptr<GrallocModule> mGralloc;
         std::unique_ptr<ComposeMsg> mComposeMsg;
+        std::unique_ptr<ComposeMsg_v2> mComposeMsg_v2;
         int mSyncDeviceFd;
 
    };
