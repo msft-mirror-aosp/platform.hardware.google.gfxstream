@@ -7355,13 +7355,13 @@ void VkEncoder::vkCmdSetBlendConstants(
     VkCommandBuffer local_commandBuffer;
     float local_blendConstants[4];
     local_commandBuffer = commandBuffer;
-    memcpy(&local_blendConstants, &blendConstants, 4 * sizeof(const float));
+    memcpy(local_blendConstants, blendConstants, 4 * sizeof(const float));
     countingStream->rewind();
     {
         uint64_t cgen_var_517;
         countingStream->handleMapping()->mapHandles_VkCommandBuffer_u64(&local_commandBuffer, &cgen_var_517, 1);
         countingStream->write((uint64_t*)&cgen_var_517, 1 * 8);
-        countingStream->write((float*)&local_blendConstants, 4 * sizeof(float));
+        countingStream->write((float*)local_blendConstants, 4 * sizeof(float));
     }
     uint32_t packetSize_vkCmdSetBlendConstants = 4 + 4 + (uint32_t)countingStream->bytesWritten();
     countingStream->rewind();
@@ -7371,7 +7371,7 @@ void VkEncoder::vkCmdSetBlendConstants(
     uint64_t cgen_var_518;
     stream->handleMapping()->mapHandles_VkCommandBuffer_u64(&local_commandBuffer, &cgen_var_518, 1);
     stream->write((uint64_t*)&cgen_var_518, 1 * 8);
-    stream->write((float*)&local_blendConstants, 4 * sizeof(float));
+    stream->write((float*)local_blendConstants, 4 * sizeof(float));
     AEMU_SCOPED_TRACE("vkCmdSetBlendConstants readParams");
     AEMU_SCOPED_TRACE("vkCmdSetBlendConstants returnUnmarshal");
     mImpl->log("finish vkCmdSetBlendConstants");;
