@@ -3003,7 +3003,20 @@ public:
 
     void unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int*) {
         if (fd != -1) {
+            // Implicit Synchronization
             sync_wait(fd, 3000);
+            // From libvulkan's swapchain.cpp:
+            // """
+            // NOTE: we're relying on AcquireImageANDROID to close fence_clone,
+            // even if the call fails. We could close it ourselves on failure, but
+            // that would create a race condition if the driver closes it on a
+            // failure path: some other thread might create an fd with the same
+            // number between the time the driver closes it and the time we close
+            // it. We must assume one of: the driver *always* closes it even on
+            // failure, or *never* closes it on failure.
+            // """
+            // Therefore, assume contract where we need to close fd in this driver
+            close(fd);
         }
     }
 
