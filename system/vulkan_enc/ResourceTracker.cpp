@@ -2953,7 +2953,17 @@ public:
         if (input_result != VK_SUCCESS) return input_result;
 
         if (!post_wait_events.empty() || !post_wait_sync_fds.empty()) {
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+            // Super bad hack: Just signal stuff early :D
+            // The reason is that it is better than freezing up.
+            // The VK CTS tests external semaphores by queueing up vkCmdWaitEvent
+            // in vkQueueSubmit, which would mean vkQueueWaitIdle here would time out.
+            //
+            // TODO (b/139194471): Have proper sync fd implementation for Android
+            // enc->vkQueueWaitIdle(queue);
+#else
             enc->vkQueueWaitIdle(queue);
+#endif
         }
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
