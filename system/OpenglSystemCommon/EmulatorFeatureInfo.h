@@ -60,9 +60,11 @@ static const char kGLESMaxVersion_3_2[] = "ANDROID_EMU_gles_max_version_3_2";
 enum HostComposition {
     HOST_COMPOSITION_NONE = 0,
     HOST_COMPOSITION_V1,
+    HOST_COMPOSITION_V2,
 };
 
 static const char kHostCompositionV1[] = "ANDROID_EMU_host_composition_v1";
+static const char kHostCompositionV2[] = "ANDROID_EMU_host_composition_v2";
 
 // No querying errors from host extension
 static const char kGLESNoHostError[] = "ANDROID_EMU_gles_no_host_error";
