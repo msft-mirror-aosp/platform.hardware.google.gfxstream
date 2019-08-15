@@ -696,9 +696,15 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
     DEFINE_AND_VALIDATE_HOST_CONNECTION
     hostCon->lock();
     bool hostCompositionV1 = rcEnc->hasHostCompositionV1();
+    bool hostCompositionV2 = rcEnc->hasHostCompositionV2();
     hostCon->unlock();
 
-    if (hostCompositionV1) {
+    // if we supports v2, then discard v1
+    if (hostCompositionV2) {
+        hostCompositionV1 = false;
+    }
+
+    if (hostCompositionV2 || hostCompositionV1) {
         uint32_t numLayer = 0;
         for (auto layer: mLayers) {
             if (layer->getCompositionType() == Composition::Device ||
@@ -720,13 +726,28 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
             return Error::None;
         }
 
-        if (mComposeMsg == nullptr || mComposeMsg->getLayerCnt() < numLayer) {
-            mComposeMsg.reset(new ComposeMsg(numLayer));
+        if (hostCompositionV1) {
+            if (mComposeMsg == nullptr || mComposeMsg->getLayerCnt() < numLayer) {
+                mComposeMsg.reset(new ComposeMsg(numLayer));
+            }
+        } else {
+            if (mComposeMsg_v2 == nullptr || mComposeMsg_v2->getLayerCnt() < numLayer) {
+                mComposeMsg_v2.reset(new ComposeMsg_v2(numLayer));
+            }
         }
 
         // Handle the composition
-        ComposeDevice* p = mComposeMsg->get();
-        ComposeLayer* l = p->layer;
+        ComposeDevice* p;
+        ComposeDevice_v2* p2;
+        ComposeLayer* l;
+
+        if (hostCompositionV1) {
+            p = mComposeMsg->get();
+            l = p->layer;
+        } else {
+            p2 = mComposeMsg_v2->get();
+            l = p2->layer;
+        }
 
         for (auto layer: mLayers) {
             if (layer->getCompositionType() != Composition::Device &&
@@ -781,14 +802,28 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
                   layer->getZ(), l->composeMode, l->transform);
             l++;
         }
-        p->version = 1;
-        p->targetHandle = mGralloc->getTargetCb();
-        p->numLayers = numLayer;
+        if (hostCompositionV1) {
+            p->version = 1;
+            p->targetHandle = mGralloc->getTargetCb();
+            p->numLayers = numLayer;
+        } else {
+            p2->version = 2;
+            p2->displayId = (uint32_t)mId;
+            p2->targetHandle = mGralloc->getTargetCb();
+            p2->numLayers = numLayer;
+        }
 
         hostCon->lock();
-        rcEnc->rcCompose(rcEnc,
-                         sizeof(ComposeDevice) + numLayer * sizeof(ComposeLayer),
-                         (void *)p);
+        if (hostCompositionV1) {
+            rcEnc->rcCompose(rcEnc,
+                             sizeof(ComposeDevice) + numLayer * sizeof(ComposeLayer),
+                             (void *)p);
+        } else {
+            rcEnc->rcCompose(rcEnc,
+                             sizeof(ComposeDevice_v2) + numLayer * sizeof(ComposeLayer),
+                             (void *)p2);
+        }
+
         hostCon->unlock();
 
         // Send a retire fence and use it as the release fence for all layers,
