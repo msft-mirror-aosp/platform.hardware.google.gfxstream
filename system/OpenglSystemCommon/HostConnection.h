@@ -57,6 +57,8 @@ public:
     bool hasNativeSyncV3() const { return m_featureInfo.syncImpl >= SYNC_IMPL_NATIVE_SYNC_V3; }
     bool hasHostCompositionV1() const {
         return m_featureInfo.hostComposition == HOST_COMPOSITION_V1; }
+    bool hasHostCompositionV2() const {
+        return m_featureInfo.hostComposition == HOST_COMPOSITION_V2; }
     bool hasYUV420toNV21() const {
         return m_featureInfo.hasYUV420888toNV21; }
     bool hasYUVCache() const {
