@@ -358,7 +358,11 @@ const std::string& HostConnection::queryGLExtensions(ExtendedRCEncoderContext *r
 void HostConnection::queryAndSetHostCompositionImpl(ExtendedRCEncoderContext *rcEnc) {
     const std::string& glExtensions = queryGLExtensions(rcEnc);
     ALOGD("HostComposition ext %s", glExtensions.c_str());
-    if (glExtensions.find(kHostCompositionV1) != std::string::npos) {
+    // make sure V2 is checked first before V1, as host may declare supporting both
+    if (glExtensions.find(kHostCompositionV2) != std::string::npos) {
+        rcEnc->setHostComposition(HOST_COMPOSITION_V2);
+    }
+    else if (glExtensions.find(kHostCompositionV1) != std::string::npos) {
         rcEnc->setHostComposition(HOST_COMPOSITION_V1);
     }
     else {
