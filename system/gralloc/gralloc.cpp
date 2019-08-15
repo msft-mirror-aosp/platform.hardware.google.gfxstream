@@ -682,8 +682,8 @@ static int gralloc_alloc(alloc_device_t* dev,
             align = 16;
             bpp = 1; // per-channel bpp
             yuv_format = true;
-            // We are going to use RGB888 on the host
-            glFormat = GL_RGB;
+            // We are going to use RGB8888 on the host for Vulkan
+            glFormat = GL_RGBA;
             glType = GL_UNSIGNED_BYTE;
             selectedEmuFrameworkFormat = FRAMEWORK_FORMAT_YV12;
             break;
