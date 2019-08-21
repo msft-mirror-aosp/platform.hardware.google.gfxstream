@@ -26,6 +26,8 @@
 
 struct EmulatorFeatureInfo;
 
+class HostConnection;
+
 namespace goldfish_vk {
 
 class VkEncoder;
@@ -39,6 +41,12 @@ public:
     VulkanHandleMapping* unwrapMapping();
     VulkanHandleMapping* destroyMapping();
     VulkanHandleMapping* defaultMapping();
+
+    using HostConnectionGetFunc = HostConnection* (*)();
+
+    struct ThreadingCallbacks {
+        HostConnectionGetFunc hostConnectionGetFunc = 0;
+    };
 
 #define HANDLE_REGISTER_DECL(type) \
     void register_##type(type); \
@@ -368,6 +376,7 @@ public:
     VkDeviceSize getNonCoherentExtendedSize(VkDevice device, VkDeviceSize basicSize) const;
     bool isValidMemoryRange(const VkMappedMemoryRange& range) const;
     void setupFeatures(const EmulatorFeatureInfo* features);
+    void setThreadingCallbacks(const ThreadingCallbacks& callbacks);
     bool hostSupportsVulkan() const;
     bool usingDirectMapping() const;
     uint32_t getStreamFeatures() const;
