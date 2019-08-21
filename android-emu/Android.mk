@@ -18,6 +18,10 @@ LOCAL_SRC_FILES := \
     android/base/Pool.cpp \
     android/base/StringFormat.cpp \
     android/base/SubAllocator.cpp \
+    android/base/synchronization/AndroidMessageChannel.cpp \
+    android/base/threads/AndroidFunctorThread.cpp \
+    android/base/threads/AndroidThreadStore.cpp \
+    android/base/threads/AndroidThread_pthread.cpp \
     android/base/Tracing.cpp \
     android/utils/debug.c \
 
