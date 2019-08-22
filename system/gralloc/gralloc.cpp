@@ -53,10 +53,14 @@
 /* Set to 1 or 2 to enable debug traces */
 #define DEBUG  0
 
+#ifndef D
+
 #if DEBUG >= 1
 #  define D(...)   ALOGD(__VA_ARGS__)
 #else
 #  define D(...)   ((void)0)
+#endif
+
 #endif
 
 #if DEBUG >= 2
@@ -190,7 +194,7 @@ static void resize_gralloc_dmaregion_locked(gralloc_dmaregion_t* grdma, uint32_t
 // max dma size: 2x 4K rgba8888
 #define MAX_DMA_SIZE 66355200
 
-static bool put_gralloc_region_direct_mem_locked(gralloc_dmaregion_t* grdma, uint32_t sz) {
+static bool put_gralloc_region_direct_mem_locked(gralloc_dmaregion_t* grdma, uint32_t /* sz, unused */) {
     const bool shouldDelete = !grdma->refcount;
     if (shouldDelete) {
         grdma->host_memory_allocator.hostFree(&grdma->address_space_block);
@@ -286,7 +290,7 @@ static void get_mem_region(void* ashmemBase) {
     pthread_mutex_unlock(&memregions->lock);
 }
 
-static bool put_mem_region(ExtendedRCEncoderContext *rcEnc, void* ashmemBase) {
+static bool put_mem_region(ExtendedRCEncoderContext *, void* ashmemBase) {
     D("%s: call for %p", __func__, ashmemBase);
 
     gralloc_memregions_t* memregions = init_gralloc_memregions();
@@ -308,7 +312,8 @@ static bool put_mem_region(ExtendedRCEncoderContext *rcEnc, void* ashmemBase) {
     return shouldRemove;
 }
 
-static void dump_regions(ExtendedRCEncoderContext *rcEnc) {
+#if DEBUG
+static void dump_regions(ExtendedRCEncoderContext *) {
     gralloc_memregions_t* memregions = init_gralloc_memregions();
     gralloc_memregions_t::mem_region_handle_t curr = memregions->ashmemRegions.begin();
     std::stringstream res;
@@ -317,6 +322,7 @@ static void dump_regions(ExtendedRCEncoderContext *rcEnc) {
     }
     ALOGD("ashmem region dump [\n%s]", res.str().c_str());
 }
+#endif
 
 static void get_ashmem_region(ExtendedRCEncoderContext *rcEnc, cb_handle_t *cb) {
 #if DEBUG
@@ -392,7 +398,7 @@ static HostConnection* createOrGetHostConnection() {
 #define DEFINE_HOST_CONNECTION \
     HostConnection *hostCon = createOrGetHostConnection(); \
     ExtendedRCEncoderContext *rcEnc = (hostCon ? hostCon->rcEncoder() : NULL); \
-    bool hasVulkan = rcEnc->featureInfo_const()->hasVulkan; \
+    bool hasVulkan = rcEnc->featureInfo_const()->hasVulkan; (void)hasVulkan; \
 
 #define DEFINE_AND_VALIDATE_HOST_CONNECTION \
     HostConnection *hostCon = createOrGetHostConnection(); \
@@ -405,7 +411,7 @@ static HostConnection* createOrGetHostConnection() {
         ALOGE("gralloc: Failed to get renderControl encoder context\n"); \
         return -EIO; \
     } \
-    bool hasVulkan = rcEnc->featureInfo_const()->hasVulkan; \
+    bool hasVulkan = rcEnc->featureInfo_const()->hasVulkan; (void)hasVulkan;\
 
 #if PLATFORM_SDK_VERSION < 18
 // On older APIs, just define it as a value no one is going to use.
@@ -542,7 +548,7 @@ static int gralloc_alloc(alloc_device_t* dev,
     // and this is a valid usage
     //
     bool sw_write = (0 != (usage & GRALLOC_USAGE_SW_WRITE_MASK));
-    bool hw_write = (usage & GRALLOC_USAGE_HW_RENDER);
+    bool hw_write = (usage & GRALLOC_USAGE_HW_RENDER); (void)hw_write;
     bool sw_read = (0 != (usage & GRALLOC_USAGE_SW_READ_MASK));
     const bool hw_texture = usage & GRALLOC_USAGE_HW_TEXTURE;
     const bool hw_render = usage & GRALLOC_USAGE_HW_RENDER;
@@ -990,6 +996,7 @@ static int fb_post(struct framebuffer_device_t* dev, buffer_handle_t buffer)
     return 0;
 }
 
+/* unused (for now)
 static int fb_setUpdateRect(struct framebuffer_device_t* dev,
         int l, int t, int w, int h)
 {
@@ -1013,6 +1020,7 @@ static int fb_setUpdateRect(struct framebuffer_device_t* dev,
 
     return 0;
 }
+*/
 
 static int fb_setSwapInterval(struct framebuffer_device_t* dev,
             int interval)
@@ -1623,7 +1631,7 @@ static int gralloc_device_open(const hw_module_t* module,
 // define the HMI symbol - our module interface
 //
 static struct hw_module_methods_t gralloc_module_methods = {
-        open: gralloc_device_open
+    .open = gralloc_device_open,
 };
 
 struct private_module_t HAL_MODULE_INFO_SYM = {

@@ -331,23 +331,6 @@ static char *queryHostEGLString(EGLint name)
     return NULL;
 }
 
-static bool findExtInList(const char* token, int tokenlen, const char* list)
-{
-    const char* p = list;
-    while (*p != '\0') {
-        const char* q = strchr(p, ' ');
-        if (q == NULL) {
-            /* should not happen, list must be space-terminated */
-            break;
-        }
-        if (tokenlen == (q - p) && !memcmp(token, p, tokenlen)) {
-            return true;  /* found it */
-        }
-        p = q+1;
-    }
-    return false;  /* not found */
-}
-
 static char *buildExtensionString()
 {
     //Query host extension string
