@@ -29,7 +29,8 @@ emulator_hwcomposer_shared_libraries := \
     libui \
 
 emulator_hwcomposer_cflags += \
-    -DLOG_TAG=\"hwc2\"
+    -DLOG_TAG=\"hwc2\" \
+    -DPLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION) \
 
 emulator_hwcomposer_c_includes += \
     system/core/libsync \
