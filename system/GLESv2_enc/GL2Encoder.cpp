@@ -3181,7 +3181,6 @@ void GL2Encoder::s_glCompressedTexImage2D(void* self, GLenum target, GLint level
 
 void GL2Encoder::s_glCompressedTexSubImage2D(void* self, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const GLvoid* data) {
     GL2Encoder* ctx = (GL2Encoder*)self;
-    GLClientState* state = ctx->m_state;
 
     SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, target), GL_INVALID_ENUM);
     // If unpack buffer is nonzero, verify unmapped state.
@@ -3318,7 +3317,6 @@ void GL2Encoder::doIndexedBufferBindEncodeCached(IndexedBufferBindOp op, GLenum 
 
 void GL2Encoder::s_glCopyBufferSubData(void *self , GLenum readtarget, GLenum writetarget, GLintptr readoffset, GLintptr writeoffset, GLsizeiptr size) {
     GL2Encoder* ctx = (GL2Encoder*)self;
-    GLClientState* state = ctx->m_state;
 
     SET_ERROR_IF(!GLESv2Validation::bufferTarget(ctx, readtarget), GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::bufferTarget(ctx, writetarget), GL_INVALID_ENUM);
