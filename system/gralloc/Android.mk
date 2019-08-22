@@ -9,6 +9,7 @@ $$(call emugl-set-shared-library-subpath,hw)
 
 LOCAL_CFLAGS += -DLOG_TAG=\"gralloc_$(1)\"
 LOCAL_CFLAGS += -Wno-missing-field-initializers
+LOCAL_CFLAGS += -Wno-gnu-designator
 
 LOCAL_SRC_FILES := gralloc.cpp
 
