@@ -1205,7 +1205,6 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count, bool hasClient
 
     m_state->updateEnableDirtyArrayForDraw();
 
-    GLuint currentVao = m_state->currentVertexArrayObject();
     GLuint lastBoundVbo = m_state->currentArrayVbo();
     const GLClientState::VAOState& vaoState = m_state->currentVaoState();
 
@@ -1365,7 +1364,6 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
 
     bool has_client_vertex_arrays = false;
     bool has_indirect_arrays = false;
-    int nLocations = ctx->m_state->nLocations();
     GLintptr offset = 0;
 
     ctx->getVBOUsage(&has_client_vertex_arrays, &has_indirect_arrays);
@@ -1418,7 +1416,6 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
             ctx->flushDrawCall();
             adjustIndices = false;
         } else {
-            BufferData * buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
             ctx->doBindBufferEncodeCached(GL_ELEMENT_ARRAY_BUFFER, 0);
         }
     }
@@ -1480,7 +1477,6 @@ void GL2Encoder::s_glDrawElementsNullAEMU(void *self, GLenum mode, GLsizei count
 
     bool has_client_vertex_arrays = false;
     bool has_indirect_arrays = false;
-    int nLocations = ctx->m_state->nLocations();
     GLintptr offset = 0;
 
     ctx->getVBOUsage(&has_client_vertex_arrays, &has_indirect_arrays);
@@ -1533,7 +1529,6 @@ void GL2Encoder::s_glDrawElementsNullAEMU(void *self, GLenum mode, GLsizei count
             ctx->flushDrawCall();
             adjustIndices = false;
         } else {
-            BufferData * buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
             ctx->m_glBindBuffer_enc(self, GL_ELEMENT_ARRAY_BUFFER, 0);
         }
     }
@@ -1744,10 +1739,10 @@ static bool replaceSamplerExternalWith2D(char* const str, ShaderData* const data
     return true;
 }
 
-void GL2Encoder::s_glShaderBinary(void *self, GLsizei n, const GLuint *shaders, GLenum binaryformat, const void* binary, GLsizei length)
+void GL2Encoder::s_glShaderBinary(void *self, GLsizei, const GLuint *, GLenum, const void*, GLsizei)
 {
-    GL2Encoder* ctx = (GL2Encoder*)self;
     // Although it is not supported, need to set proper error code.
+    GL2Encoder* ctx = (GL2Encoder*)self;
     SET_ERROR_IF(1, GL_INVALID_ENUM);
 }
 
@@ -2254,7 +2249,6 @@ void GL2Encoder::s_glGetTexParameterfv(void* self,
         GLenum target, GLenum pname, GLfloat* params)
 {
     GL2Encoder* ctx = (GL2Encoder*)self;
-    const GLClientState* state = ctx->m_state;
 
     if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
         ctx->override2DTextureTarget(target);
@@ -2269,7 +2263,6 @@ void GL2Encoder::s_glGetTexParameteriv(void* self,
         GLenum target, GLenum pname, GLint* params)
 {
     GL2Encoder* ctx = (GL2Encoder*)self;
-    const GLClientState* state = ctx->m_state;
 
     switch (pname) {
     case GL_REQUIRED_TEXTURE_IMAGE_UNITS_OES:
@@ -2308,7 +2301,6 @@ void GL2Encoder::s_glTexParameterf(void* self,
         GLenum target, GLenum pname, GLfloat param)
 {
     GL2Encoder* ctx = (GL2Encoder*)self;
-    const GLClientState* state = ctx->m_state;
 
     SET_ERROR_IF((target == GL_TEXTURE_EXTERNAL_OES &&
             !isValidTextureExternalParam(pname, (GLenum)param)),
@@ -2327,7 +2319,6 @@ void GL2Encoder::s_glTexParameterfv(void* self,
         GLenum target, GLenum pname, const GLfloat* params)
 {
     GL2Encoder* ctx = (GL2Encoder*)self;
-    const GLClientState* state = ctx->m_state;
 
     SET_ERROR_IF((target == GL_TEXTURE_EXTERNAL_OES &&
             !isValidTextureExternalParam(pname, (GLenum)params[0])),
@@ -2346,7 +2337,6 @@ void GL2Encoder::s_glTexParameteri(void* self,
         GLenum target, GLenum pname, GLint param)
 {
     GL2Encoder* ctx = (GL2Encoder*)self;
-    const GLClientState* state = ctx->m_state;
 
     SET_ERROR_IF((target == GL_TEXTURE_EXTERNAL_OES &&
             !isValidTextureExternalParam(pname, (GLenum)param)),
@@ -2549,7 +2539,6 @@ void GL2Encoder::s_glTexParameteriv(void* self,
         GLenum target, GLenum pname, const GLint* params)
 {
     GL2Encoder* ctx = (GL2Encoder*)self;
-    const GLClientState* state = ctx->m_state;
 
     SET_ERROR_IF((target == GL_TEXTURE_EXTERNAL_OES &&
             !isValidTextureExternalParam(pname, (GLenum)params[0])),
@@ -2977,7 +2966,6 @@ void* GL2Encoder::s_glMapBufferRangeAEMUImpl(GL2Encoder* ctx, GLenum target,
 
 void* GL2Encoder::s_glMapBufferRange(void* self, GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access) {
     GL2Encoder* ctx = (GL2Encoder*)self;
-    GLClientState* state = ctx->m_state;
 
     // begin validation (lots)
 
@@ -3048,7 +3036,6 @@ void* GL2Encoder::s_glMapBufferRange(void* self, GLenum target, GLintptr offset,
 
 GLboolean GL2Encoder::s_glUnmapBuffer(void* self, GLenum target) {
     GL2Encoder* ctx = (GL2Encoder*)self;
-    GLClientState* state = ctx->m_state;
 
     RET_AND_SET_ERROR_IF(!GLESv2Validation::bufferTarget(ctx, target), GL_INVALID_ENUM, GL_FALSE);
 
@@ -3103,7 +3090,6 @@ GLboolean GL2Encoder::s_glUnmapBuffer(void* self, GLenum target) {
 
 void GL2Encoder::s_glFlushMappedBufferRange(void* self, GLenum target, GLintptr offset, GLsizeiptr length) {
     GL2Encoder* ctx = (GL2Encoder*)self;
-    GLClientState* state = ctx->m_state;
 
     SET_ERROR_IF(!GLESv2Validation::bufferTarget(ctx, target), GL_INVALID_ENUM);
 
@@ -3656,7 +3642,6 @@ void GL2Encoder::s_glGetUniformuiv(void* self, GLuint program, GLint location, G
 
 void GL2Encoder::s_glGetActiveUniformBlockiv(void* self, GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint* params) {
     GL2Encoder* ctx = (GL2Encoder*)self;
-    GLClientState* state = ctx->m_state;
 
     // refresh client state's # active uniforms in this block
     if (pname == GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES) {
@@ -4082,7 +4067,6 @@ void GL2Encoder::s_glCompressedTexImage3D(void* self, GLenum target, GLint level
 
 void GL2Encoder::s_glCompressedTexSubImage3D(void* self, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const GLvoid* data) {
     GL2Encoder* ctx = (GL2Encoder*)self;
-    GLClientState* state = ctx->m_state;
 
     SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, target), GL_INVALID_ENUM);
     // If unpack buffer is nonzero, verify unmapped state.
@@ -4168,7 +4152,6 @@ void GL2Encoder::s_glDrawElementsInstanced(void* self, GLenum mode, GLsizei coun
 
     bool has_client_vertex_arrays = false;
     bool has_indirect_arrays = false;
-    int nLocations = ctx->m_state->nLocations();
     GLintptr offset = 0;
 
     ctx->getVBOUsage(&has_client_vertex_arrays, &has_indirect_arrays);
@@ -4221,7 +4204,6 @@ void GL2Encoder::s_glDrawElementsInstanced(void* self, GLenum mode, GLsizei coun
             ctx->flushDrawCall();
             adjustIndices = false;
         } else {
-            BufferData * buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
             ctx->doBindBufferEncodeCached(GL_ELEMENT_ARRAY_BUFFER, 0);
         }
     }
@@ -4261,7 +4243,6 @@ void GL2Encoder::s_glDrawRangeElements(void* self, GLenum mode, GLuint start, GL
 
     bool has_client_vertex_arrays = false;
     bool has_indirect_arrays = false;
-    int nLocations = ctx->m_state->nLocations();
     GLintptr offset = 0;
 
     ctx->getVBOUsage(&has_client_vertex_arrays, &has_indirect_arrays);
@@ -4320,7 +4301,6 @@ void GL2Encoder::s_glDrawRangeElements(void* self, GLenum mode, GLuint start, GL
             ctx->flushDrawCall();
             adjustIndices = false;
         } else {
-            BufferData * buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
             ctx->doBindBufferEncodeCached(GL_ELEMENT_ARRAY_BUFFER, 0);
         }
     }
@@ -4635,7 +4615,6 @@ void GL2Encoder::s_glGenerateMipmap(void* self, GLenum target) {
 
     GLuint tex = state->getBoundTexture(target);
     GLenum internalformat = state->queryTexInternalFormat(tex);
-    GLenum format = state->queryTexFormat(tex);
 
     SET_ERROR_IF(tex && GLESv2Validation::isCompressedFormat(internalformat),
                  GL_INVALID_OPERATION);
