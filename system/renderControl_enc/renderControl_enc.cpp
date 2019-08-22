@@ -1656,8 +1656,8 @@ int rcGetDisplayPose_enc(void *self , uint32_t displayId, GLint* x, GLint* y, ui
 	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
 	bool useChecksum = checksumCalculator->getVersion() > 0;
 
-	const unsigned int __size_x =  sizeof(uint32_t);
-	const unsigned int __size_y =  sizeof(uint32_t);
+	const unsigned int __size_x =  sizeof(int32_t);
+	const unsigned int __size_y =  sizeof(int32_t);
 	const unsigned int __size_w =  sizeof(uint32_t);
 	const unsigned int __size_h =  sizeof(uint32_t);
 	 unsigned char *ptr;
