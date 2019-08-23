@@ -80,7 +80,6 @@ void rgb565_to_yv12(char* dest, char* src, int width, int height,
     int align = 16;
     int yStride = (width + (align -1)) & ~(align-1);
     int cStride = (yStride / 2 + (align - 1)) & ~(align-1);
-    int yOffset = 0;
     int cSize = cStride * height/2;
 
     uint16_t *rgb_ptr0 = (uint16_t *)src;
@@ -122,7 +121,6 @@ void rgb888_to_yv12(char* dest, char* src, int width, int height,
     int align = 16;
     int yStride = (width + (align -1)) & ~(align-1);
     int cStride = (yStride / 2 + (align - 1)) & ~(align-1);
-    int yOffset = 0;
     int cSize = cStride * height/2;
 
 
@@ -190,7 +188,6 @@ void rgb888_to_yuv420p(char* dest, char* src, int width, int height,
     DD("%s convert %d by %d", __func__, width, height);
     int yStride = width;
     int cStride = yStride / 2;
-    int yOffset = 0;
     int cSize = cStride * height/2;
 
     uint8_t *rgb_ptr0 = (uint8_t *)src;
@@ -228,7 +225,6 @@ void rgb888_to_nv21(char* dest, char* src, int width, int height,
     DD("%s convert %d by %d", __func__, width, height);
     int yStride = width;
     int cStride = yStride;
-    int yOffset = 0;
 
     uint8_t *rgb_ptr0 = (uint8_t *)src;
     uint8_t *nv21_y0 = (uint8_t *)dest;
@@ -266,7 +262,6 @@ void yv12_to_rgb565(char* dest, char* src, int width, int height,
     int align = 16;
     int yStride = (width + (align -1)) & ~(align-1);
     int cStride = (yStride / 2 + (align - 1)) & ~(align-1);
-    int yOffset = 0;
     int cSize = cStride * height/2;
 
     uint16_t *rgb_ptr0 = (uint16_t *)dest;
@@ -312,7 +307,6 @@ void yv12_to_rgb888(char* dest, char* src, int width, int height,
     int align = 16;
     int yStride = (width + (align -1)) & ~(align-1);
     int cStride = (yStride / 2 + (align - 1)) & ~(align-1);
-    int yOffset = 0;
     int cSize = cStride * height/2;
 
     uint8_t *rgb_ptr0 = (uint8_t *)dest;
@@ -350,7 +344,6 @@ void yuv420p_to_rgb888(char* dest, char* src, int width, int height,
     DD("%s convert %d by %d", __func__, width, height);
     int yStride = width;
     int cStride = yStride / 2;
-    int yOffset = 0;
     int cSize = cStride * height/2;
 
     uint8_t *rgb_ptr0 = (uint8_t *)dest;
@@ -395,7 +388,6 @@ void nv21_to_rgb888(char* dest, char* src, int width, int height,
     DD("%s convert %d by %d", __func__, width, height);
     int yStride = width;
     int cStride = yStride;
-    int yOffset = 0;
 
     uint8_t *rgb_ptr0 = (uint8_t *)dest;
     uint8_t *nv21_y0 = (uint8_t *)src;
