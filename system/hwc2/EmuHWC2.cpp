@@ -995,9 +995,10 @@ Error EmuHWC2::Display::validate(uint32_t* outNumTypes,
         DEFINE_AND_VALIDATE_HOST_CONNECTION
         hostCon->lock();
         bool hostCompositionV1 = rcEnc->hasHostCompositionV1();
+        bool hostCompositionV2 = rcEnc->hasHostCompositionV2();
         hostCon->unlock();
 
-        if (hostCompositionV1) {
+        if (hostCompositionV1 || hostCompositionV2) {
             // Support Device and SolidColor, otherwise, fallback all layers
             // to Client
             bool fallBack = false;
