@@ -62,6 +62,8 @@ using goldfish_vk::VkEncoder;
 #include "VirtioGpuStream.h"
 #endif
 
+#undef LOG_TAG
+#define LOG_TAG "HostConnection"
 #if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
 #else
