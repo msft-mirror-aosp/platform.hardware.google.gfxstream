@@ -53,6 +53,7 @@ struct address_space_allocator {
 
 /* The assert function to abort if something goes wrong. */
 static void address_space_assert(bool condition) {
+    (void)condition;
 #ifdef ANDROID_EMU_ADDRESS_SPACE_ASSERT_FUNC
     ANDROID_EMU_ADDRESS_SPACE_ASSERT_FUNC(condition);
 #else
