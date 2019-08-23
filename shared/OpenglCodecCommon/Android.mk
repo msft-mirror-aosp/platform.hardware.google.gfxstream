@@ -34,6 +34,7 @@ $(call emugl-begin-shared-library,libOpenglCodecCommon$(GOLDFISH_OPENGL_LIB_SUFF
 LOCAL_SRC_FILES := $(commonSources)
 
 LOCAL_CFLAGS += -DLOG_TAG=\"eglCodecCommon\"
+LOCAL_CFLAGS += -Wno-unused-private-field
 
 $(call emugl-export,SHARED_LIBRARIES,libcutils libutils liblog)
 
