@@ -1157,7 +1157,6 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
         const bool should_unmap = put_ashmem_region(rcEnc, cb);
         if (!should_unmap) goto done;
 
-        void *vaddr;
         int err = munmap((void *)cb->ashmemBase, cb->ashmemSize);
         if (err) {
             ERR("gralloc_unregister_buffer(%p): unmap failed", cb);

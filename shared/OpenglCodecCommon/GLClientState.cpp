@@ -956,6 +956,8 @@ GLenum GLClientState::bindTexture(GLenum target, GLuint texture,
 }
 
 void GLClientState::setBoundEGLImage(GLenum target, GLeglImageOES image) {
+    (void)image;
+
     GLuint texture = getBoundTexture(target);
     TextureRec* texrec = getTextureRec(texture);
     if (!texrec) return;
