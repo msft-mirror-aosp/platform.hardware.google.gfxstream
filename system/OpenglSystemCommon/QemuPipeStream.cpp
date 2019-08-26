@@ -184,7 +184,7 @@ const unsigned char *QemuPipeStream::commitBufferAndReadFully(size_t writeSize, 
         return userReadBuf;
     }
 
-    int writeFullyRes = writeFully(m_buf + kWriteOffset, writeSize);
+    writeFully(m_buf + kWriteOffset, writeSize);
 
     // Now done writing. Early out if no reading left to do.
     if (!remaining) {

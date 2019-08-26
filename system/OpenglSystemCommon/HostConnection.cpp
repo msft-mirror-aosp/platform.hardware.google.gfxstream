@@ -214,10 +214,6 @@ HostConnection *HostConnection::get() {
 }
 
 HostConnection *HostConnection::getWithThreadInfo(EGLThreadInfo* tinfo) {
-
-    /* TODO: Make this configurable with a system property */
-    const enum HostConnectionType connType = HOST_CONNECTION_VIRTIO_GPU;
-
     // Get thread info
     if (!tinfo) {
         return NULL;
