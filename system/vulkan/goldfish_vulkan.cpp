@@ -316,6 +316,10 @@ int CloseDevice(struct hw_device_t* /*device*/) {
         return ret; \
     } \
     goldfish_vk::ResourceTracker::get()->setupFeatures(rcEnc->featureInfo_const()); \
+    goldfish_vk::ResourceTracker::ThreadingCallbacks threadingCallbacks = { \
+        [] { return HostConnection::get(); }, \
+    }; \
+    goldfish_vk::ResourceTracker::get()->setThreadingCallbacks(threadingCallbacks); \
     auto hostSupportsVulkan = goldfish_vk::ResourceTracker::get()->hostSupportsVulkan(); \
     goldfish_vk::VkEncoder *vkEnc = hostCon->vkEncoder(); \
     if (!vkEnc) { \
