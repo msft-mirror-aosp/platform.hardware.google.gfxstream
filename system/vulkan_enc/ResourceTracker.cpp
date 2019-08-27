@@ -17,6 +17,7 @@
 #include "goldfish_vk_private_defs.h"
 
 #include "../OpenglSystemCommon/EmulatorFeatureInfo.h"
+#include "../OpenglSystemCommon/HostConnection.h"
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
 
@@ -593,6 +594,10 @@ public:
         if (mFeatureInfo->hasVulkanNullOptionalStrings) {
             mStreamFeatureBits |= VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT;
         }
+    }
+
+    void setThreadingCallbacks(const ResourceTracker::ThreadingCallbacks& callbacks) {
+        mThreadingCallbacks = callbacks;
     }
 
     bool hostSupportsVulkan() const {
@@ -3511,6 +3516,7 @@ private:
     mutable Lock mLock;
     HostVisibleMemoryVirtualizationInfo mHostVisibleMemoryVirtInfo;
     std::unique_ptr<EmulatorFeatureInfo> mFeatureInfo;
+    ResourceTracker::ThreadingCallbacks mThreadingCallbacks;
     uint32_t mStreamFeatureBits = 0;
     std::unique_ptr<GoldfishAddressSpaceBlockProvider> mGoldfishAddressSpaceBlockProvider;
 
@@ -3582,6 +3588,10 @@ bool ResourceTracker::isValidMemoryRange(const VkMappedMemoryRange& range) const
 
 void ResourceTracker::setupFeatures(const EmulatorFeatureInfo* features) {
     mImpl->setupFeatures(features);
+}
+
+void ResourceTracker::setThreadingCallbacks(const ResourceTracker::ThreadingCallbacks& callbacks) {
+    mImpl->setThreadingCallbacks(callbacks);
 }
 
 bool ResourceTracker::hostSupportsVulkan() const {
