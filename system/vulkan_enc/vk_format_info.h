@@ -51,11 +51,13 @@ vk_format_from_android(unsigned android_format)
       return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
    case HAL_PIXEL_FORMAT_NV12_Y_TILED_INTEL:
       return VK_FORMAT_G8_B8R8_2PLANE_420_UNORM;
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
    case HAL_PIXEL_FORMAT_YV12:
       // YUV converter will convert this format to R8G8B8A8
       // TODO: should we use R8G8B8A8 for other YUV format as well?
       return VK_FORMAT_R8G8B8A8_UNORM;
    case AHARDWAREBUFFER_FORMAT_BLOB:
+#endif
    default:
       return VK_FORMAT_UNDEFINED;
    }
