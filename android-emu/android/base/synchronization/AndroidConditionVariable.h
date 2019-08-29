@@ -147,6 +147,10 @@ private:
         timespec abstime;
         abstime.tv_sec = waitUntilUs / 1000000LL;
         abstime.tv_nsec = (waitUntilUs % 1000000LL) * 1000;
+        return timedWait(userLock, abstime);
+    }
+
+    bool timedWait(StaticLock* userLock, const timespec& abstime) {
         return pthread_cond_timedwait(&mCond, &userLock->mLock, &abstime) == 0;
     }
 
