@@ -12,6 +12,8 @@ shared_library("libvulkan_goldfish") {
     "android-emu/android/base/files/Stream.h",
     "android-emu/android/base/files/StreamSerializing.cpp",
     "android-emu/android/base/files/StreamSerializing.h",
+    "android-emu/android/base/threads/AndroidWorkPool.h",
+    "android-emu/android/base/threads/AndroidWorkPool.cpp",
     "android-emu/android/base/Tracing.cpp",
     "android-emu/android/base/Tracing.h",
     "shared/OpenglCodecCommon/ChecksumCalculator.cpp",
