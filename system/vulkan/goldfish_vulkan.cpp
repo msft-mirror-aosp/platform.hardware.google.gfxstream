@@ -31,10 +31,6 @@
 // Copied from frameworks/native/vulkan/libvulkan/stubhal.cpp
 namespace vkstubhal {
 
-[[noreturn]] VKAPI_ATTR void NoOp() {
-    LOG_ALWAYS_FATAL("invalid stub function called");
-}
-
 VkResult
 EnumerateInstanceExtensionProperties(const char* /*layer_name*/,
                                      uint32_t* count,
@@ -264,12 +260,8 @@ PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance,
     if (strcmp(name, "vkGetBufferCollectionPropertiesFUCHSIA") == 0)
         return reinterpret_cast<PFN_vkVoidFunction>(GetBufferCollectionPropertiesFUCHSIA);
 #endif
-    // Per the spec, return NULL if instance is NULL.
-    if (!instance)
-        return nullptr;
-    // None of the other Vulkan functions should ever be called, as they all
-    // take a VkPhysicalDevice or other object obtained from a physical device.
-    return reinterpret_cast<PFN_vkVoidFunction>(NoOp);
+    // Per the spec, return NULL for nonexistent entrypoints.
+    return nullptr;
 }
 
 } // namespace vkstubhal
