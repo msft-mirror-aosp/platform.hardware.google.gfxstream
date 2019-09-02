@@ -88,9 +88,10 @@ VkResult
 CreateDebugReportCallbackEXT(VkInstance /*instance*/,
                              const VkDebugReportCallbackCreateInfoEXT* /*pCreateInfo*/,
                              const VkAllocationCallbacks* /*pAllocator*/,
-                             VkDebugReportCallbackEXT* /*pCallback*/)
+                             VkDebugReportCallbackEXT* pCallback)
 {
     AEMU_SCOPED_TRACE("vkstubhal::CreateDebugReportCallbackEXT");
+    *pCallback = VK_NULL_HANDLE;
     return VK_SUCCESS;
 }
 
@@ -119,9 +120,10 @@ VkResult
 CreateDebugUtilsMessengerEXT(VkInstance /*instance*/,
                              const VkDebugUtilsMessengerCreateInfoEXT* /*pCreateInfo*/,
                              const VkAllocationCallbacks* /*pAllocator*/,
-                             VkDebugUtilsMessengerEXT* /*pMessenger*/)
+                             VkDebugUtilsMessengerEXT* pMessenger)
 {
     AEMU_SCOPED_TRACE("vkstubhal::CreateDebugUtilsMessengerEXT");
+    *pMessenger = VK_NULL_HANDLE;
     return VK_SUCCESS;
 }
 
