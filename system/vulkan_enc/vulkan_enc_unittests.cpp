@@ -79,14 +79,18 @@ TEST(WorkPool, Eight) {
 TEST(WorkPool, WaitAny) {
     WorkPool p;
     int x = 0;
+    WorkPool::WaitGroupHandle handle = 0;
 
-    std::vector<WorkPool::Task> tasks;
+    {
+        std::vector<WorkPool::Task> tasks;
 
-    for (int i = 0; i < 8; ++i) {
-        tasks.push_back([&x] { ++x; });
+        for (int i = 0; i < 8; ++i) {
+            tasks.push_back([&x] { ++x; });
+        }
+
+        handle = p.schedule(tasks);
     }
 
-    auto handle = p.schedule(tasks);
 
     p.waitAny(handle, -1);
 
