@@ -244,7 +244,8 @@ static VkResult entry_vkQueueWaitIdle(
     AEMU_SCOPED_TRACE("vkQueueWaitIdle");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkQueueWaitIdle_VkResult_return = (VkResult)0;
-    vkQueueWaitIdle_VkResult_return = vkEnc->vkQueueWaitIdle(queue);
+    auto resources = ResourceTracker::get();
+    vkQueueWaitIdle_VkResult_return = resources->on_vkQueueWaitIdle(vkEnc, VK_SUCCESS, queue);
     return vkQueueWaitIdle_VkResult_return;
 }
 static VkResult entry_vkDeviceWaitIdle(
@@ -423,7 +424,8 @@ static VkResult entry_vkCreateFence(
     AEMU_SCOPED_TRACE("vkCreateFence");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateFence_VkResult_return = (VkResult)0;
-    vkCreateFence_VkResult_return = vkEnc->vkCreateFence(device, pCreateInfo, pAllocator, pFence);
+    auto resources = ResourceTracker::get();
+    vkCreateFence_VkResult_return = resources->on_vkCreateFence(vkEnc, VK_SUCCESS, device, pCreateInfo, pAllocator, pFence);
     return vkCreateFence_VkResult_return;
 }
 static void entry_vkDestroyFence(
@@ -443,7 +445,8 @@ static VkResult entry_vkResetFences(
     AEMU_SCOPED_TRACE("vkResetFences");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkResetFences_VkResult_return = (VkResult)0;
-    vkResetFences_VkResult_return = vkEnc->vkResetFences(device, fenceCount, pFences);
+    auto resources = ResourceTracker::get();
+    vkResetFences_VkResult_return = resources->on_vkResetFences(vkEnc, VK_SUCCESS, device, fenceCount, pFences);
     return vkResetFences_VkResult_return;
 }
 static VkResult entry_vkGetFenceStatus(
@@ -466,7 +469,8 @@ static VkResult entry_vkWaitForFences(
     AEMU_SCOPED_TRACE("vkWaitForFences");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkWaitForFences_VkResult_return = (VkResult)0;
-    vkWaitForFences_VkResult_return = vkEnc->vkWaitForFences(device, fenceCount, pFences, waitAll, timeout);
+    auto resources = ResourceTracker::get();
+    vkWaitForFences_VkResult_return = resources->on_vkWaitForFences(vkEnc, VK_SUCCESS, device, fenceCount, pFences, waitAll, timeout);
     return vkWaitForFences_VkResult_return;
 }
 static VkResult entry_vkCreateSemaphore(
@@ -1829,7 +1833,8 @@ static void entry_vkGetPhysicalDeviceExternalFenceProperties(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalFenceProperties");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceExternalFenceProperties(physicalDevice, pExternalFenceInfo, pExternalFenceProperties);
+    auto resources = ResourceTracker::get();
+    resources->on_vkGetPhysicalDeviceExternalFenceProperties(vkEnc, physicalDevice, pExternalFenceInfo, pExternalFenceProperties);
 }
 static void entry_vkGetPhysicalDeviceExternalSemaphoreProperties(
     VkPhysicalDevice physicalDevice,
@@ -2636,7 +2641,8 @@ static void entry_vkGetPhysicalDeviceExternalFencePropertiesKHR(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalFencePropertiesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceExternalFencePropertiesKHR(physicalDevice, pExternalFenceInfo, pExternalFenceProperties);
+    auto resources = ResourceTracker::get();
+    resources->on_vkGetPhysicalDeviceExternalFencePropertiesKHR(vkEnc, physicalDevice, pExternalFenceInfo, pExternalFenceProperties);
 }
 #endif
 #ifdef VK_KHR_external_fence
@@ -2672,7 +2678,8 @@ static VkResult entry_vkImportFenceFdKHR(
     AEMU_SCOPED_TRACE("vkImportFenceFdKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkImportFenceFdKHR_VkResult_return = (VkResult)0;
-    vkImportFenceFdKHR_VkResult_return = vkEnc->vkImportFenceFdKHR(device, pImportFenceFdInfo);
+    auto resources = ResourceTracker::get();
+    vkImportFenceFdKHR_VkResult_return = resources->on_vkImportFenceFdKHR(vkEnc, VK_SUCCESS, device, pImportFenceFdInfo);
     return vkImportFenceFdKHR_VkResult_return;
 }
 static VkResult entry_vkGetFenceFdKHR(
@@ -2683,7 +2690,8 @@ static VkResult entry_vkGetFenceFdKHR(
     AEMU_SCOPED_TRACE("vkGetFenceFdKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetFenceFdKHR_VkResult_return = (VkResult)0;
-    vkGetFenceFdKHR_VkResult_return = vkEnc->vkGetFenceFdKHR(device, pGetFdInfo, pFd);
+    auto resources = ResourceTracker::get();
+    vkGetFenceFdKHR_VkResult_return = resources->on_vkGetFenceFdKHR(vkEnc, VK_SUCCESS, device, pGetFdInfo, pFd);
     return vkGetFenceFdKHR_VkResult_return;
 }
 #endif

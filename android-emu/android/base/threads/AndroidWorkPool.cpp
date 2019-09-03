@@ -47,14 +47,14 @@ public:
 
     void acquire() {
         if (0 == mRefCount.fetch_add(1, std::memory_order_seq_cst)) {
-            ALOGD("%s: goofed, refcount0 acquire\n", __func__);
+            ALOGE("%s: goofed, refcount0 acquire\n", __func__);
             abort();
         }
     }
 
     bool release() {
         if (0 == mRefCount) {
-            ALOGD("%s: goofed, refcount0 release\n", __func__);
+            ALOGE("%s: goofed, refcount0 release\n", __func__);
             abort();
         }
         if (1 == mRefCount.fetch_sub(1, std::memory_order_seq_cst)) {
@@ -91,7 +91,8 @@ public:
 private:
 
     bool doWait(WorkPool::TimeoutUs timeout) {
-        if (timeout < 0) {
+        if (timeout == ~0ULL) {
+            ALOGV("%s: uncond wait\n", __func__);
             mCv.wait(&mLock);
             return true;
         } else {
