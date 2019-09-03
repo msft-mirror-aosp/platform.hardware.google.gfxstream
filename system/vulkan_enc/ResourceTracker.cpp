@@ -14,6 +14,9 @@
 // limitations under the License.
 
 #include "ResourceTracker.h"
+
+#include "android/base/threads/AndroidWorkPool.h"
+
 #include "goldfish_vk_private_defs.h"
 
 #include "../OpenglSystemCommon/EmulatorFeatureInfo.h"
@@ -152,6 +155,7 @@ using android::aligned_buf_alloc;
 using android::aligned_buf_free;
 using android::base::guest::AutoLock;
 using android::base::guest::Lock;
+using android::base::guest::WorkPool;
 
 namespace goldfish_vk {
 
@@ -299,6 +303,15 @@ public:
         std::vector<VkBufferView> bufferViews;
     };
 
+    struct VkFence_Info {
+        VkDevice device;
+        bool external = false;
+        VkExportFenceCreateInfo exportFenceCreateInfo;
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        int syncFd = -1;
+#endif
+    };
+
 #define HANDLE_REGISTER_IMPL_IMPL(type) \
     std::unordered_map<type, type##_Info> info_##type; \
     void register_##type(type obj) { \
@@ -421,6 +434,23 @@ public:
 
     void unregister_VkDescriptorUpdateTemplate(VkDescriptorUpdateTemplate templ) {
         info_VkDescriptorUpdateTemplate.erase(templ);
+    }
+
+    void unregister_VkFence(VkFence fence) {
+        AutoLock lock(mLock);
+        auto it = info_VkFence.find(fence);
+        if (it == info_VkFence.end()) return;
+
+        auto& fenceInfo = it->second;
+        (void)fenceInfo;
+
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        if (fenceInfo.syncFd >= 0) {
+            close(fenceInfo.syncFd);
+        }
+#endif
+
+        info_VkFence.erase(fence);
     }
 
     // TODO: Upgrade to 1.1
@@ -769,6 +799,7 @@ public:
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
             "VK_KHR_external_semaphore_capabilities",
             "VK_KHR_external_memory_capabilities",
+            "VK_KHR_external_fence_capabilities",
 #endif
             // TODO:
             // VK_KHR_external_memory_capabilities
@@ -867,6 +898,8 @@ public:
             "VK_KHR_external_semaphore_fd",
             // "VK_KHR_external_semaphore_win32", not exposed because it's translated to fd
             "VK_KHR_external_memory",
+            "VK_KHR_external_fence",
+            "VK_KHR_external_fence_fd",
 #endif
             // "VK_KHR_maintenance2",
             // "VK_KHR_maintenance3",
@@ -2500,6 +2533,364 @@ public:
         return enc->vkCreateSampler(device, &localCreateInfo, pAllocator, pSampler);
     }
 
+    void on_vkGetPhysicalDeviceExternalFenceProperties(
+        void* context,
+        VkPhysicalDevice physicalDevice,
+        const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
+        VkExternalFenceProperties* pExternalFenceProperties) {
+
+        (void)context;
+        (void)physicalDevice;
+
+        pExternalFenceProperties->exportFromImportedHandleTypes = 0;
+        pExternalFenceProperties->compatibleHandleTypes = 0;
+        pExternalFenceProperties->externalFenceFeatures = 0;
+
+        bool syncFd =
+            pExternalFenceInfo->handleType &
+            VK_EXTERNAL_FENCE_HANDLE_TYPE_SYNC_FD_BIT;
+
+        if (!syncFd) {
+            return;
+        }
+
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        pExternalFenceProperties->exportFromImportedHandleTypes =
+            VK_EXTERNAL_FENCE_HANDLE_TYPE_SYNC_FD_BIT;
+        pExternalFenceProperties->compatibleHandleTypes =
+            VK_EXTERNAL_FENCE_HANDLE_TYPE_SYNC_FD_BIT;
+        pExternalFenceProperties->externalFenceFeatures =
+            VK_EXTERNAL_FENCE_FEATURE_IMPORTABLE_BIT |
+            VK_EXTERNAL_FENCE_FEATURE_EXPORTABLE_BIT;
+
+        ALOGD("%s: asked for sync fd, set the features\n", __func__);
+#endif
+    }
+
+    VkResult on_vkCreateFence(
+        void* context,
+        VkResult input_result,
+        VkDevice device,
+        const VkFenceCreateInfo* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator, VkFence* pFence) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+        VkFenceCreateInfo finalCreateInfo = *pCreateInfo;
+
+        const VkExportFenceCreateInfo* exportFenceInfoPtr =
+            vk_find_struct<VkExportFenceCreateInfo>(pCreateInfo);
+
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        bool exportSyncFd =
+            exportFenceInfoPtr &&
+            (exportFenceInfoPtr->handleTypes &
+             VK_EXTERNAL_FENCE_HANDLE_TYPE_SYNC_FD_BIT);
+
+        if (exportSyncFd) {
+            ALOGV("%s: exporting sync fd, do not send pNext to host\n", __func__);
+            finalCreateInfo.pNext = nullptr;
+        }
+#endif
+
+        input_result = enc->vkCreateFence(
+            device, &finalCreateInfo, pAllocator, pFence);
+
+        if (input_result != VK_SUCCESS) return input_result;
+
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        if (exportSyncFd) {
+            ALOGV("%s: ensure sync device\n", __func__);
+            ensureSyncDeviceFd();
+
+            ALOGV("%s: getting fence info\n", __func__);
+            AutoLock lock(mLock);
+            auto it = info_VkFence.find(*pFence);
+
+            if (it == info_VkFence.end())
+                return VK_ERROR_INITIALIZATION_FAILED;
+
+            auto& info = it->second;
+
+            info.external = true;
+            info.exportFenceCreateInfo = *exportFenceInfoPtr;
+            ALOGV("%s: info set (fence still -1). fence: %p\n", __func__, (void*)(*pFence));
+            // syncFd is still -1 because we expect user to explicitly
+            // export it via vkGetFenceFdKHR
+        }
+#endif
+
+        return input_result;
+    }
+
+    void on_vkDestroyFence(
+        void* context,
+        VkDevice device,
+        VkFence fence,
+        const VkAllocationCallbacks* pAllocator) {
+        VkEncoder* enc = (VkEncoder*)context;
+        enc->vkDestroyFence(device, fence, pAllocator);
+    }
+
+    VkResult on_vkResetFences(
+        void* context,
+        VkResult,
+        VkDevice device,
+        uint32_t fenceCount,
+        const VkFence* pFences) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+        VkResult res = enc->vkResetFences(device, fenceCount, pFences);
+
+        if (res != VK_SUCCESS) return res;
+
+        if (!fenceCount) return res;
+
+        // Permanence: temporary
+        // on fence reset, close the fence fd
+        // and act like we need to GetFenceFdKHR/ImportFenceFdKHR again
+        AutoLock lock(mLock);
+        for (uint32_t i = 0; i < fenceCount; ++i) {
+            VkFence fence = pFences[i];
+            auto it = info_VkFence.find(fence);
+            auto& info = it->second;
+            if (!info.external) continue;
+
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+            if (info.syncFd >= 0) {
+                ALOGV("%s: resetting fence. make fd -1\n", __func__);
+                goldfish_sync_signal(info.syncFd);
+                close(info.syncFd);
+                info.syncFd = -1;
+            }
+#endif
+        }
+
+        return res;
+    }
+
+    VkResult on_vkImportFenceFdKHR(
+        void* context,
+        VkResult,
+        VkDevice device,
+        const VkImportFenceFdInfoKHR* pImportFenceFdInfo) {
+
+        (void)context;
+        (void)device;
+        (void)pImportFenceFdInfo;
+
+        // Transference: copy
+        // meaning dup() the incoming fd
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        bool hasFence = pImportFenceFdInfo->fence != VK_NULL_HANDLE;
+
+        if (!hasFence) return VK_ERROR_OUT_OF_HOST_MEMORY;
+
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+
+        bool syncFdImport =
+            pImportFenceFdInfo->handleType & VK_EXTERNAL_FENCE_HANDLE_TYPE_SYNC_FD_BIT;
+
+        if (!syncFdImport) {
+            ALOGV("%s: VK_ERROR_OUT_OF_HOST_MEMORY: no sync fd import\n", __func__);
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+
+        AutoLock lock(mLock);
+        auto it = info_VkFence.find(pImportFenceFdInfo->fence);
+        if (it == info_VkFence.end()) {
+            ALOGV("%s: VK_ERROR_OUT_OF_HOST_MEMORY: no fence info\n", __func__);
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+
+        auto& info = it->second;
+
+        if (info.syncFd >= 0) {
+            ALOGV("%s: previous sync fd exists, close it\n", __func__);
+            goldfish_sync_signal(info.syncFd);
+            close(info.syncFd);
+        }
+
+        if (pImportFenceFdInfo->fd < 0) {
+            ALOGV("%s: import -1, set to -1 and exit\n", __func__);
+            info.syncFd = -1;
+        } else {
+            ALOGV("%s: import actual fd, dup and close()\n", __func__);
+            info.syncFd = dup(pImportFenceFdInfo->fd);
+            close(pImportFenceFdInfo->fd);
+        }
+        return VK_SUCCESS;
+#else
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
+#endif
+    }
+
+    VkResult on_vkGetFenceFdKHR(
+        void* context,
+        VkResult,
+        VkDevice device,
+        const VkFenceGetFdInfoKHR* pGetFdInfo,
+        int* pFd) {
+
+        // export operation.
+        // first check if fence is signaled
+        // then if so, return -1
+        // else, queue work
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        bool hasFence = pGetFdInfo->fence != VK_NULL_HANDLE;
+
+        if (!hasFence) {
+            ALOGV("%s: VK_ERROR_OUT_OF_HOST_MEMORY: no fence\n", __func__);
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        bool syncFdExport =
+            pGetFdInfo->handleType & VK_EXTERNAL_FENCE_HANDLE_TYPE_SYNC_FD_BIT;
+
+        if (!syncFdExport) {
+            ALOGV("%s: VK_ERROR_OUT_OF_HOST_MEMORY: no sync fd fence\n", __func__);
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
+        }
+
+        VkResult currentFenceStatus = enc->vkGetFenceStatus(device, pGetFdInfo->fence);
+
+        if (VK_SUCCESS == currentFenceStatus) { // Fence already signaled
+            ALOGV("%s: VK_SUCCESS: already signaled\n", __func__);
+            *pFd = -1;
+            return VK_SUCCESS;
+        }
+
+        if (VK_ERROR_DEVICE_LOST == currentFenceStatus) { // Other error
+            ALOGV("%s: VK_ERROR_DEVICE_LOST: Other error\n", __func__);
+            *pFd = -1;
+            return VK_ERROR_DEVICE_LOST;
+        }
+
+        if (VK_NOT_READY == currentFenceStatus) { // Fence unsignaled; create fd here
+            AutoLock lock(mLock);
+
+            auto it = info_VkFence.find(pGetFdInfo->fence);
+            if (it == info_VkFence.end()) {
+                ALOGV("%s: VK_ERROR_OUT_OF_HOST_MEMORY: no fence info\n", __func__);
+                return VK_ERROR_OUT_OF_HOST_MEMORY;
+            }
+
+            auto& info = it->second;
+
+            bool syncFdCreated =
+                info.external &&
+                (info.exportFenceCreateInfo.handleTypes &
+                 VK_EXTERNAL_FENCE_HANDLE_TYPE_SYNC_FD_BIT);
+
+            if (!syncFdCreated) {
+                ALOGV("%s: VK_ERROR_OUT_OF_HOST_MEMORY: no sync fd created\n", __func__);
+                return VK_ERROR_OUT_OF_HOST_MEMORY;
+            }
+
+            goldfish_sync_queue_work(
+                mSyncDeviceFd,
+                get_host_u64_VkFence(pGetFdInfo->fence) /* the handle */,
+                GOLDFISH_SYNC_VULKAN_SEMAPHORE_SYNC /* thread handle (doubling as type field) */,
+                pFd);
+            // relinquish ownership
+            info.syncFd = -1;
+            ALOGV("%s: got fd: %d\n", __func__, *pFd);
+            return VK_SUCCESS;
+        }
+        return VK_ERROR_DEVICE_LOST;
+#else
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
+#endif
+    }
+
+    VkResult on_vkWaitForFences(
+        void* context,
+        VkResult,
+        VkDevice device,
+        uint32_t fenceCount,
+        const VkFence* pFences,
+        VkBool32 waitAll,
+        uint64_t timeout) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        std::vector<VkFence> fencesExternal;
+        std::vector<int> fencesExternalWaitFds;
+        std::vector<VkFence> fencesNonExternal;
+
+        AutoLock lock(mLock);
+
+        for (uint32_t i = 0; i < fenceCount; ++i) {
+            auto it = info_VkFence.find(pFences[i]);
+            if (it == info_VkFence.end()) continue;
+            const auto& info = it->second;
+            if (info.syncFd >= 0) {
+                fencesExternal.push_back(pFences[i]);
+                fencesExternalWaitFds.push_back(info.syncFd);
+            } else {
+                fencesNonExternal.push_back(pFences[i]);
+            }
+        }
+
+        if (fencesExternal.empty()) {
+            // No need for work pool, just wait with host driver.
+            return enc->vkWaitForFences(
+                device, fenceCount, pFences, waitAll, timeout);
+        } else {
+            // Depending on wait any or wait all,
+            // schedule a wait group with waitAny/waitAll
+            std::vector<WorkPool::Task> tasks;
+
+            ALOGV("%s: scheduling ext waits\n", __func__);
+
+            for (auto fd : fencesExternalWaitFds) {
+                ALOGV("%s: wait on %d\n", __func__, fd);
+                tasks.push_back([fd] {
+                    sync_wait(fd, 3000);
+                    ALOGV("done waiting on fd %d\n", fd);
+                });
+            }
+
+            if (!fencesNonExternal.empty()) {
+                tasks.push_back([this,
+                                 fencesNonExternal /* copy of vector */,
+                                 device, waitAll, timeout] {
+                    auto hostConn = mThreadingCallbacks.hostConnectionGetFunc();
+                    auto vkEncoder = mThreadingCallbacks.vkEncoderGetFunc(hostConn);
+                    ALOGV("%s: vkWaitForFences to host\n", __func__);
+                    vkEncoder->vkWaitForFences(device, fencesNonExternal.size(), fencesNonExternal.data(), waitAll, timeout);
+                });
+            }
+
+            auto waitGroupHandle = mWorkPool.schedule(tasks);
+
+            // Convert timeout to microseconds from nanoseconds
+            bool waitRes = false;
+            if (waitAll) {
+                waitRes = mWorkPool.waitAll(waitGroupHandle, timeout / 1000);
+            } else {
+                waitRes = mWorkPool.waitAny(waitGroupHandle, timeout / 1000);
+            }
+
+            if (waitRes) {
+                ALOGV("%s: VK_SUCCESS\n", __func__);
+                return VK_SUCCESS;
+            } else {
+                ALOGV("%s: VK_TIMEOUT\n", __func__);
+                return VK_TIMEOUT;
+            }
+        }
+#else
+        return enc->vkWaitForFences(
+            device, fenceCount, pFences, waitAll, timeout);
+#endif
+    }
+
     void on_vkDestroyImage(
         void* context,
         VkDevice device, VkImage image, const VkAllocationCallbacks *pAllocator) {
@@ -2892,6 +3283,8 @@ public:
         VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
 
         std::vector<VkSemaphore> pre_signal_semaphores;
+        std::vector<zx_handle_t> pre_signal_events;
+        std::vector<int> pre_signal_sync_fds;
         std::vector<zx_handle_t> post_wait_events;
         std::vector<int> post_wait_sync_fds;
 
@@ -2906,18 +3299,13 @@ public:
                     auto& semInfo = it->second;
 #ifdef VK_USE_PLATFORM_FUCHSIA
                     if (semInfo.eventHandle) {
-                        // Wait here instead of passing semaphore to host.
-                        zx_object_wait_one(semInfo.eventHandle,
-                                           ZX_EVENT_SIGNALED,
-                                           ZX_TIME_INFINITE,
-                                           nullptr);
+                        pre_signal_events.push_back(semInfo.eventHandle);
                         pre_signal_semaphores.push_back(pSubmits[i].pWaitSemaphores[j]);
                     }
 #endif
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
                     if (semInfo.syncFd >= 0) {
-                        // Wait here instead of passing semaphore to host.
-                        sync_wait(semInfo.syncFd, 3000);
+                        pre_signal_sync_fds.push_back(semInfo.syncFd);
                         pre_signal_semaphores.push_back(pSubmits[i].pWaitSemaphores[j]);
                     }
 #endif
@@ -2942,7 +3330,36 @@ public:
         }
         lock.unlock();
 
-        if (!pre_signal_semaphores.empty()) {
+        if (pre_signal_semaphores.empty()) {
+            input_result = enc->vkQueueSubmit(queue, submitCount, pSubmits, fence);
+            if (input_result != VK_SUCCESS) return input_result;
+        } else {
+            // Schedule waits on the OS external objects and
+            // signal the wait semaphores
+            // in a separate thread.
+            std::vector<WorkPool::Task> preSignalTasks;
+            std::vector<WorkPool::Task> preSignalQueueSubmitTasks;;
+#ifdef VK_USE_PLATFORM_FUCHSIA
+            for (auto event : pre_signal_events) {
+                preSignalTasks.push_back([event] {
+                    zx_object_wait_one(
+                        event,
+                        ZX_EVENT_SIGNALED,
+                        ZX_TIME_INFINITE,
+                        nullptr);
+                });
+            }
+#endif
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+            for (auto fd : pre_signal_sync_fds) {
+                preSignalTasks.push_back([fd] {
+                    sync_wait(fd, 3000);
+                });
+            }
+#endif
+            auto waitGroupHandle = mWorkPool.schedule(preSignalTasks);
+            mWorkPool.waitAll(waitGroupHandle);
+
             VkSubmitInfo submit_info = {
                 .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
                 .waitSemaphoreCount = 0,
@@ -2951,38 +3368,87 @@ public:
                 .signalSemaphoreCount = static_cast<uint32_t>(pre_signal_semaphores.size()),
                 .pSignalSemaphores = pre_signal_semaphores.data()};
             enc->vkQueueSubmit(queue, 1, &submit_info, VK_NULL_HANDLE);
+
+            input_result = enc->vkQueueSubmit(queue, submitCount, pSubmits, fence);
+            if (input_result != VK_SUCCESS) return input_result;
         }
 
-        input_result = enc->vkQueueSubmit(queue, submitCount, pSubmits, fence);
+        lock.lock();
+        int externalFenceFdToSignal = -1;
 
-        if (input_result != VK_SUCCESS) return input_result;
-
-        if (!post_wait_events.empty() || !post_wait_sync_fds.empty()) {
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
-            // Super bad hack: Just signal stuff early :D
-            // The reason is that it is better than freezing up.
-            // The VK CTS tests external semaphores by queueing up vkCmdWaitEvent
-            // in vkQueueSubmit, which would mean vkQueueWaitIdle here would time out.
-            //
-            // TODO (b/139194471): Have proper sync fd implementation for Android
-            // enc->vkQueueWaitIdle(queue);
-#else
-            enc->vkQueueWaitIdle(queue);
-#endif
+        if (fence != VK_NULL_HANDLE) {
+            auto it = info_VkFence.find(fence);
+            if (it != info_VkFence.end()) {
+                const auto& info = it->second;
+                if (info.syncFd >= 0) {
+                    externalFenceFdToSignal = info.syncFd;
+                }
+            }
         }
+#endif
+        if (externalFenceFdToSignal >= 0 ||
+            !post_wait_events.empty() ||
+            !post_wait_sync_fds.empty()) {
 
+            std::vector<WorkPool::Task> tasks;
+
+            tasks.push_back([this, queue, externalFenceFdToSignal,
+                             post_wait_events /* copy of zx handles */,
+                             post_wait_sync_fds /* copy of sync fds */] {
+                auto hostConn = mThreadingCallbacks.hostConnectionGetFunc();
+                auto vkEncoder = mThreadingCallbacks.vkEncoderGetFunc(hostConn);
+                auto waitIdleRes = vkEncoder->vkQueueWaitIdle(queue);
 #ifdef VK_USE_PLATFORM_FUCHSIA
-        for (auto& event : post_wait_events) {
-            zx_object_signal(event, 0, ZX_EVENT_SIGNALED);
-        }
+                (void)externalFenceFdToSignal;
+                for (auto& event : post_wait_events) {
+                    zx_object_signal(event, 0, ZX_EVENT_SIGNALED);
+                }
 #endif
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
-        for (auto& fd : post_wait_sync_fds) {
-            goldfish_sync_signal(fd);
-        }
+                for (auto& fd : post_wait_sync_fds) {
+                    goldfish_sync_signal(fd);
+                }
+
+                if (externalFenceFdToSignal >= 0) {
+                    ALOGV("%s: external fence real signal: %d\n", __func__, externalFenceFdToSignal);
+                    goldfish_sync_signal(externalFenceFdToSignal);
+                }
 #endif
+            });
+            auto queueAsyncWaitHandle = mWorkPool.schedule(tasks);
+            auto& queueWorkItems = mQueueSensitiveWorkPoolItems[queue];
+            queueWorkItems.push_back(queueAsyncWaitHandle);
+        }
 
         return VK_SUCCESS;
+    }
+
+    VkResult on_vkQueueWaitIdle(
+        void* context, VkResult,
+        VkQueue queue) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        AutoLock lock(mLock);
+        std::vector<WorkPool::WaitGroupHandle> toWait =
+            mQueueSensitiveWorkPoolItems[queue];
+        mQueueSensitiveWorkPoolItems[queue].clear();
+        lock.unlock();
+
+        if (toWait.empty()) {
+            ALOGV("%s: No queue-specific work pool items\n", __func__);
+            return enc->vkQueueWaitIdle(queue);
+        }
+
+        for (auto handle : toWait) {
+            ALOGV("%s: waiting on work group item: %llu\n", __func__, 
+                  (unsigned long long)handle);
+            mWorkPool.waitAll(handle);
+        }
+
+        // now done waiting, get the host's opinion
+        return enc->vkQueueWaitIdle(queue);
     }
 
     void unwrap_VkNativeBufferANDROID(
@@ -3529,6 +3995,10 @@ private:
     fuchsia::hardware::goldfish::control::DeviceSyncPtr mControlDevice;
     fuchsia::sysmem::AllocatorSyncPtr mSysmemAllocator;
 #endif
+
+    WorkPool mWorkPool { 4 };
+    std::unordered_map<VkQueue, std::vector<WorkPool::WaitGroupHandle>>
+        mQueueSensitiveWorkPoolItems;
 };
 
 ResourceTracker::ResourceTracker() : mImpl(new ResourceTracker::Impl()) { }
@@ -3884,6 +4354,12 @@ VkResult ResourceTracker::on_vkQueueSubmit(
         context, input_result, queue, submitCount, pSubmits, fence);
 }
 
+VkResult ResourceTracker::on_vkQueueWaitIdle(
+    void* context, VkResult input_result,
+    VkQueue queue) {
+    return mImpl->on_vkQueueWaitIdle(context, input_result, queue);
+}
+
 VkResult ResourceTracker::on_vkGetSemaphoreFdKHR(
     void* context, VkResult input_result,
     VkDevice device,
@@ -4048,6 +4524,84 @@ VkResult ResourceTracker::on_vkCreateSampler(
     VkSampler* pSampler) {
     return mImpl->on_vkCreateSampler(
         context, input_result, device, pCreateInfo, pAllocator, pSampler);
+}
+
+void ResourceTracker::on_vkGetPhysicalDeviceExternalFenceProperties(
+    void* context,
+    VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
+    VkExternalFenceProperties* pExternalFenceProperties) {
+    mImpl->on_vkGetPhysicalDeviceExternalFenceProperties(
+        context, physicalDevice, pExternalFenceInfo, pExternalFenceProperties);
+}
+
+void ResourceTracker::on_vkGetPhysicalDeviceExternalFencePropertiesKHR(
+    void* context,
+    VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
+    VkExternalFenceProperties* pExternalFenceProperties) {
+    mImpl->on_vkGetPhysicalDeviceExternalFenceProperties(
+        context, physicalDevice, pExternalFenceInfo, pExternalFenceProperties);
+}
+
+VkResult ResourceTracker::on_vkCreateFence(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    const VkFenceCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator, VkFence* pFence) {
+    return mImpl->on_vkCreateFence(
+        context, input_result, device, pCreateInfo, pAllocator, pFence);
+}
+
+void ResourceTracker::on_vkDestroyFence(
+    void* context,
+    VkDevice device,
+    VkFence fence,
+    const VkAllocationCallbacks* pAllocator) {
+    mImpl->on_vkDestroyFence(
+        context, device, fence, pAllocator);
+}
+
+VkResult ResourceTracker::on_vkResetFences(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    uint32_t fenceCount,
+    const VkFence* pFences) {
+    return mImpl->on_vkResetFences(
+        context, input_result, device, fenceCount, pFences);
+}
+
+VkResult ResourceTracker::on_vkImportFenceFdKHR(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    const VkImportFenceFdInfoKHR* pImportFenceFdInfo) {
+    return mImpl->on_vkImportFenceFdKHR(
+        context, input_result, device, pImportFenceFdInfo);
+}
+
+VkResult ResourceTracker::on_vkGetFenceFdKHR(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    const VkFenceGetFdInfoKHR* pGetFdInfo,
+    int* pFd) {
+    return mImpl->on_vkGetFenceFdKHR(
+        context, input_result, device, pGetFdInfo, pFd);
+}
+
+VkResult ResourceTracker::on_vkWaitForFences(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    uint32_t fenceCount,
+    const VkFence* pFences,
+    VkBool32 waitAll,
+    uint64_t timeout) {
+    return mImpl->on_vkWaitForFences(
+        context, input_result, device, fenceCount, pFences, waitAll, timeout);
 }
 
 VkResult ResourceTracker::on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(
