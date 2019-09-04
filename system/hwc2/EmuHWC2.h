@@ -27,6 +27,7 @@
 #include <atomic>
 #include <map>
 #include <mutex>
+#include <sstream>
 #include <vector>
 #include <unordered_set>
 #include <unordered_map>
@@ -42,6 +43,7 @@ class EmuHWC2 : public hwc2_device_t {
 public:
     EmuHWC2();
     int populatePrimary();
+    int populateSecondaryDisplays();
 
 private:
     static inline EmuHWC2* getHWC2(hwc2_device_t* device) {
@@ -258,6 +260,8 @@ private:
 
         // Read configs from PRIMARY Display
         int populatePrimaryConfigs();
+        HWC2::Error populateSecondaryConfigs(uint32_t width, uint32_t height,
+                 uint32_t dpi);
 
     private:
         class Config {
