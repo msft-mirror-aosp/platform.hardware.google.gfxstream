@@ -45,7 +45,8 @@ struct goldfish_address_space_ping {
     __u64 offset;
     __u64 size;
     __u64 metadata;
-    __u64 wait_offset;
+    __u32 version;
+    __u32 wait_fd;
     __u32 wait_flags;
     __u32 direction;
 };
@@ -224,6 +225,7 @@ GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator
     if (m_provider.is_opened()) {
         struct goldfish_address_space_ping request;
         ::memset(&request, 0, sizeof(request));
+        request.version = sizeof(request);
         request.metadata = DEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID;
 
         const long ret = ioctl_ping(m_provider.m_fd, &request);
@@ -252,6 +254,7 @@ long GoldfishAddressSpaceHostMemoryAllocator::hostMalloc(GoldfishAddressSpaceBlo
 
     struct goldfish_address_space_ping request;
     ::memset(&request, 0, sizeof(request));
+    request.version = sizeof(request);
     request.offset = block->offset();
     request.size = block->size();
     request.metadata = HOST_MEMORY_ALLOCATOR_COMMAND_ALLOCATE_ID;
@@ -283,6 +286,7 @@ void GoldfishAddressSpaceHostMemoryAllocator::hostFree(GoldfishAddressSpaceBlock
     if (block->guestPtr()) {
         struct goldfish_address_space_ping request;
         ::memset(&request, 0, sizeof(request));
+        request.version = sizeof(request);
         request.offset = block->offset();
         request.metadata = HOST_MEMORY_ALLOCATOR_COMMAND_UNALLOCATE_ID;
 
