@@ -6,5 +6,5 @@ set(OpenglCodecCommon_host_src GLClientState.cpp GLESTextureUtils.cpp ChecksumCa
 android_add_shared_library(OpenglCodecCommon_host)
 target_include_directories(OpenglCodecCommon_host PRIVATE ${GOLDFISH_DEVICE_ROOT}/shared/OpenglCodecCommon ${GOLDFISH_DEVICE_ROOT}/./host/include/libOpenglRender ${GOLDFISH_DEVICE_ROOT}/./system/include ${GOLDFISH_DEVICE_ROOT}/./../../../external/qemu/android/android-emugl/guest)
 target_compile_definitions(OpenglCodecCommon_host PRIVATE "-DWITH_GLES2" "-DPLATFORM_SDK_VERSION=29" "-DGOLDFISH_HIDL_GRALLOC" "-DEMULATOR_OPENGL_POST_O=1" "-DHOST_BUILD" "-DANDROID" "-DGL_GLEXT_PROTOTYPES" "-DPAGE_SIZE=4096" "-DGOLDFISH_VULKAN" "-DLOG_TAG=\"eglCodecCommon\"")
-target_compile_options(OpenglCodecCommon_host PRIVATE "-fvisibility=default" "-Wno-unused-private-field")
+target_compile_options(OpenglCodecCommon_host PRIVATE "-fvisibility=default" "-Wno-unused-parameter" "-Wno-unused-private-field")
 target_link_libraries(OpenglCodecCommon_host PRIVATE android-emu-shared cutils utils log)
