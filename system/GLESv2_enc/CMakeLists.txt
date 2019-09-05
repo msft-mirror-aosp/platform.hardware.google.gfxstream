@@ -6,5 +6,5 @@ set(GLESv2_enc_src GL2EncoderUtils.cpp GL2Encoder.cpp GLESv2Validation.cpp gl2_c
 android_add_shared_library(GLESv2_enc)
 target_include_directories(GLESv2_enc PRIVATE ${GOLDFISH_DEVICE_ROOT}/shared/OpenglCodecCommon ${GOLDFISH_DEVICE_ROOT}/system/GLESv2_enc ${GOLDFISH_DEVICE_ROOT}/./host/include/libOpenglRender ${GOLDFISH_DEVICE_ROOT}/./system/include ${GOLDFISH_DEVICE_ROOT}/./../../../external/qemu/android/android-emugl/guest)
 target_compile_definitions(GLESv2_enc PRIVATE "-DWITH_GLES2" "-DPLATFORM_SDK_VERSION=29" "-DGOLDFISH_HIDL_GRALLOC" "-DEMULATOR_OPENGL_POST_O=1" "-DHOST_BUILD" "-DANDROID" "-DGL_GLEXT_PROTOTYPES" "-DPAGE_SIZE=4096" "-DGOLDFISH_VULKAN" "-DLOG_TAG=\"emuglGLESv2_enc\"")
-target_compile_options(GLESv2_enc PRIVATE "-fvisibility=default" "-Wno-unused-private-field")
+target_compile_options(GLESv2_enc PRIVATE "-fvisibility=default" "-Wno-unused-parameter" "-Wno-unused-private-field")
 target_link_libraries(GLESv2_enc PRIVATE OpenglCodecCommon_host cutils utils log android-emu-shared)
