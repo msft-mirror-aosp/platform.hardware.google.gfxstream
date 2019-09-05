@@ -32,6 +32,8 @@ LOCAL_CFLAGS += \
     -fstrict-aliasing \
     -DVK_USE_PLATFORM_ANDROID_KHR \
     -DVK_NO_PROTOTYPES \
+    -Wno-unused-parameter \
+    -Wno-unused-function
 
 LOCAL_SRC_FILES := \
     func_table.cpp \
