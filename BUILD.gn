@@ -118,10 +118,10 @@ shared_library("libvulkan_goldfish") {
     ]
 
     deps = [
-      "//zircon/public/fidl/fuchsia-hardware-goldfish-address-space",
-      "//zircon/public/fidl/fuchsia-hardware-goldfish-control",
-      "//zircon/public/fidl/fuchsia-hardware-goldfish-pipe",
-      "//zircon/public/fidl/fuchsia-sysmem",
+      "//zircon/system/fidl/fuchsia-hardware-goldfish-address-space",
+      "//zircon/system/fidl/fuchsia-hardware-goldfish-control",
+      "//zircon/system/fidl/fuchsia-hardware-goldfish-pipe",
+      "//zircon/system/fidl/fuchsia-sysmem",
       "//zircon/public/lib/fdio",
       "//zircon/public/lib/trace",
     ]
