@@ -716,14 +716,10 @@ static int gralloc_alloc(alloc_device_t* dev,
     //
     DEFINE_AND_VALIDATE_HOST_CONNECTION;
 #if PLATFORM_SDK_VERSION >= 17
-
-#ifdef GOLDFISH_VULKAN
-
-    bool needHostCb = (((!yuv_format) && (hasVulkan || (frameworkFormat != HAL_PIXEL_FORMAT_BLOB))) ||
-#else
+    // GPU_DATA_BUFFER is defined in hardware/interfaces/graphics/common/1.0/types.hal
+#   define _GRALLOC_USAGE_GPU_DATA_BUFFER 0x1000000
     bool needHostCb = ((!yuv_format && frameworkFormat != HAL_PIXEL_FORMAT_BLOB) ||
-#endif // !GOLDFISH_VULKAN
-
+                      usage & _GRALLOC_USAGE_GPU_DATA_BUFFER ||
 #else
     bool needHostCb = (!yuv_format ||
 #endif // !(PLATFORM_SDK_VERSION >= 17)
