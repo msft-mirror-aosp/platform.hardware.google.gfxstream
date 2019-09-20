@@ -212,12 +212,14 @@ VkResult createAndroidHardwareBuffer(
        w = bufferSize;
        format = AHARDWAREBUFFER_FORMAT_BLOB;
        usage = AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN |
-               AHARDWAREBUFFER_USAGE_CPU_WRITE_OFTEN;
+               AHARDWAREBUFFER_USAGE_CPU_WRITE_OFTEN |
+               AHARDWAREBUFFER_USAGE_GPU_DATA_BUFFER;
     } else {
        w = allocationInfoAllocSize;
        format = AHARDWAREBUFFER_FORMAT_BLOB;
        usage = AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN |
-               AHARDWAREBUFFER_USAGE_CPU_WRITE_OFTEN;
+               AHARDWAREBUFFER_USAGE_CPU_WRITE_OFTEN |
+               AHARDWAREBUFFER_USAGE_GPU_DATA_BUFFER;
     }
 
     struct AHardwareBuffer *ahw = NULL;
