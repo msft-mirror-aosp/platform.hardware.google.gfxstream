@@ -379,7 +379,8 @@ EmuHWC2::GrallocModule::~GrallocModule() {
     if (mHandle != nullptr) {
         mGralloc->unregisterBuffer(mGralloc, mHandle);
         mAllocDev->free(mAllocDev, mHandle);
-        ALOGI("free targetCb %d", ((cb_handle_t*)(mHandle))->hostHandle);
+        ALOGI("free targetCb %u",
+            cb_handle_t::from_raw_pointer(mHandle)->hostHandle);
     }
 }
 
@@ -394,10 +395,9 @@ uint32_t EmuHWC2::GrallocModule::getTargetCb() {
                                &mHandle, &stride);
         assert(ret == 0 && "Fail to allocate target ColorBuffer");
         mGralloc->registerBuffer(mGralloc, mHandle);
-        ALOGI("targetCb %d", reinterpret_cast<const cb_handle_t*>(mHandle)
-              ->hostHandle);
+        ALOGI("targetCb %u", cb_handle_t::from_raw_pointer(mHandle)->hostHandle);
     }
-    return reinterpret_cast<const cb_handle_t*>(mHandle)->hostHandle;
+    return cb_handle_t::from_raw_pointer(mHandle)->hostHandle;
 }
 
 // Display functions
@@ -781,8 +781,8 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
                     ALOGV("%s: acquire fence not set for layer %u",
                           __FUNCTION__, (uint32_t)layer->getId());
                 }
-                cb_handle_t *cb =
-                    (cb_handle_t *)layer->getLayerBuffer().getBuffer();
+                const cb_handle_t *cb =
+                    cb_handle_t::from_raw_pointer(layer->getLayerBuffer().getBuffer());
                 if (cb != nullptr) {
                     l->cbHandle = cb->hostHandle;
                 }
@@ -892,8 +892,7 @@ Error EmuHWC2::Display::setClientTarget(buffer_handle_t target,
         int32_t acquireFence, int32_t /*dataspace*/, hwc_region_t /*damage*/) {
     ALOGVV("%s", __FUNCTION__);
 
-    cb_handle_t *cb =
-            (cb_handle_t *)target;
+    const cb_handle_t *cb = cb_handle_t::from_raw_pointer(target);
     ALOGV("%s: display(%u) buffer handle %p cb %d, acquireFence %d", __FUNCTION__,
           (uint32_t)mId, target, cb->hostHandle, acquireFence);
     std::unique_lock<std::mutex> lock(mStateMutex);
