@@ -367,9 +367,6 @@ static int map_buffer(cb_handle_t *cb, void **vaddr)
         return -EINVAL;
     }
 
-    int map_flags = MAP_SHARED;
-    if (isHidlGralloc) map_flags |= MAP_ANONYMOUS;
-
     void *addr = mmap(0, cb->ashmemSize, PROT_READ | PROT_WRITE,
                       MAP_SHARED, cb->fd, 0);
     if (addr == MAP_FAILED) {
