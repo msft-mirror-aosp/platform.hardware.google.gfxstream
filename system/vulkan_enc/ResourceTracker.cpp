@@ -2361,7 +2361,7 @@ public:
                     localCreateInfo.extent.height,
                     fuchsia::hardware::goldfish::control::FormatType::BGRA,
                     &status2);
-                if (status != ZX_OK || status2 != ZX_OK) {
+                if (status != ZX_OK || (status2 != ZX_OK && status2 != ZX_ERR_ALREADY_EXISTS)) {
                     ALOGE("CreateColorBuffer failed: %d:%d", status, status2);
                 }
             }
