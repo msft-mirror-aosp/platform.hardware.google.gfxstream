@@ -73,6 +73,26 @@ struct cb_handle_t : public native_handle {
         magic = 0;
     }
 
+    static cb_handle_t* from_native_handle(native_handle* n) {
+        cb_handle_t* cb = static_cast<cb_handle_t*>(n);
+        LOG_ALWAYS_FATAL_IF(cb->magic != BUFFER_HANDLE_MAGIC, "Unexpected magic");
+        return cb;
+    }
+
+    static const cb_handle_t* from_native_handle(const native_handle* n) {
+        const cb_handle_t* cb = static_cast<const cb_handle_t*>(n);
+        LOG_ALWAYS_FATAL_IF(cb->magic != BUFFER_HANDLE_MAGIC, "Unexpected magic");
+        return cb;
+    }
+
+    static cb_handle_t* from_raw_pointer(void* ptr) {
+        return from_native_handle(static_cast<native_handle*>(ptr));
+    }
+
+    static const cb_handle_t* from_raw_pointer(const void* ptr) {
+        return from_native_handle(static_cast<const native_handle*>(ptr));
+    }
+
     void setFd(int p_fd) {
         if (p_fd >= 0) {
             numFds++;
