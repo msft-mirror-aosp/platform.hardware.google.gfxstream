@@ -1835,7 +1835,8 @@ public:
             ALOGD("%s: Import AHardwareBulffer", __func__);
             const native_handle_t *handle =
                 AHardwareBuffer_getNativeHandle(ahw);
-            const cb_handle_t* cb_handle = cb_handle_t::from_native_handle(handle);
+            const cb_handle_t* cb_handle =
+                reinterpret_cast<const cb_handle_t*>(handle);
             importCbInfo.colorBuffer = cb_handle->hostHandle;
             vk_append_struct(&structChainIter, &importCbInfo);
         }
@@ -3463,7 +3464,7 @@ public:
         }
 
         const cb_handle_t* cb_handle =
-            cb_handle_t::from_raw_pointer(nativeInfo->handle);
+            reinterpret_cast<const cb_handle_t*>(nativeInfo->handle);
 
         if (!cb_handle) return;
 
