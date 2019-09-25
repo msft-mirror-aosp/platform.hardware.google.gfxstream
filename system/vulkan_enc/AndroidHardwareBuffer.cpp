@@ -109,10 +109,9 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
         ahbFormatProps->suggestedYChromaOffset = VK_CHROMA_LOCATION_MIDPOINT;
     }
 
-    const native_handle_t *handle =
+    const native_handle_t *nandle =
        AHardwareBuffer_getNativeHandle(buffer);
-    const cb_handle_t* cb_handle =
-        reinterpret_cast<const cb_handle_t*>(handle);
+    const cb_handle_t* cb_handle = cb_handle_t::from_native_handle(nandle);
     uint32_t colorBufferHandle = cb_handle->hostHandle;
 
     if (!colorBufferHandle) {
@@ -164,10 +163,9 @@ VkResult importAndroidHardwareBuffer(
         return VK_ERROR_INVALID_EXTERNAL_HANDLE;
     }
 
-    const native_handle_t *handle =
+    const native_handle_t *nandle =
        AHardwareBuffer_getNativeHandle(info->buffer);
-    const cb_handle_t* cb_handle =
-        reinterpret_cast<const cb_handle_t*>(handle);
+    const cb_handle_t* cb_handle = cb_handle_t::from_native_handle(nandle);
     uint32_t colorBufferHandle = cb_handle->hostHandle;
 
     if (!colorBufferHandle) {
