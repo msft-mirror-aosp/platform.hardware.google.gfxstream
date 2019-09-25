@@ -3458,9 +3458,8 @@ public:
         if (!pCreateInfo->pNext) return;
 
         const VkNativeBufferANDROID* nativeInfo =
-            reinterpret_cast<const VkNativeBufferANDROID*>(pCreateInfo->pNext);
-
-        if (VK_STRUCTURE_TYPE_NATIVE_BUFFER_ANDROID != nativeInfo->sType) {
+            vk_find_struct<VkNativeBufferANDROID>(pCreateInfo);
+        if (!nativeInfo) {
             return;
         }
 
