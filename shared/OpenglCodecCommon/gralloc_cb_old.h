@@ -120,6 +120,10 @@ struct cb_handle_t : public native_handle {
         return (0 != (usage & GRALLOC_USAGE_HW_FB));
     }
 
+    uint32_t allocationSize() const {
+        return ashmemBase ? ashmemSize : 0;
+    }
+
     // file-descriptors
     int fd;  // ashmem fd (-1 of ashmem region did not allocated, i.e. no SW access needed)
     QEMU_PIPE_HANDLE refcount_pipe_fd; // goldfish pipe service for gralloc refcounting fd.
