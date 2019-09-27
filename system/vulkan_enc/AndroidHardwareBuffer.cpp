@@ -128,8 +128,7 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
     }
 
     pProperties->memoryTypeBits = memoryTypeBits;
-    pProperties->allocationSize =
-        cb_handle->ashmemBase ? cb_handle->ashmemSize : 0;
+    pProperties->allocationSize = cb_handle->allocationSize();
 
     return VK_SUCCESS;
 }
