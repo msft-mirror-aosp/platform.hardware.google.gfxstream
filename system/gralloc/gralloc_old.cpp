@@ -23,9 +23,9 @@
 #include <sys/mman.h>
 
 #if PLATFORM_SDK_VERSION < 28
-#include "gralloc_cb.h"
+#include "gralloc_cb_old.h"
 #else
-#include "../../shared/OpenglCodecCommon/gralloc_cb.h"
+#include "../../shared/OpenglCodecCommon/gralloc_cb_old.h"
 #endif
 
 #include "goldfish_dma.h"
@@ -79,11 +79,11 @@ static const bool isHidlGralloc = true;
 static const bool isHidlGralloc = false;
 #endif
 
-int32_t* getOpenCountPtr(cb_handle_t* cb) {
+int32_t* getOpenCountPtr(cb_handle_old_t* cb) {
     return ((int32_t*)cb->ashmemBase) + 1;
 }
 
-uint32_t getAshmemColorOffset(cb_handle_t* cb) {
+uint32_t getAshmemColorOffset(cb_handle_old_t* cb) {
     uint32_t res = 0;
     if (cb->canBePosted()) res = GOLDFISH_OFFSET_UNIT;
     if (isHidlGralloc) res = GOLDFISH_OFFSET_UNIT * 2;
@@ -324,7 +324,7 @@ static void dump_regions(ExtendedRCEncoderContext *) {
 }
 #endif
 
-static void get_ashmem_region(ExtendedRCEncoderContext *rcEnc, cb_handle_t *cb) {
+static void get_ashmem_region(ExtendedRCEncoderContext *rcEnc, cb_handle_old_t *cb) {
 #if DEBUG
     dump_regions(rcEnc);
 #endif
@@ -338,7 +338,7 @@ static void get_ashmem_region(ExtendedRCEncoderContext *rcEnc, cb_handle_t *cb) 
     get_gralloc_region(rcEnc);
 }
 
-static bool put_ashmem_region(ExtendedRCEncoderContext *rcEnc, cb_handle_t *cb) {
+static bool put_ashmem_region(ExtendedRCEncoderContext *rcEnc, cb_handle_old_t *cb) {
 #if DEBUG
     dump_regions(rcEnc);
 #endif
@@ -361,7 +361,7 @@ struct fb_device_t {
     framebuffer_device_t  device;
 };
 
-static int map_buffer(cb_handle_t *cb, void **vaddr)
+static int map_buffer(cb_handle_old_t *cb, void **vaddr)
 {
     if (cb->fd < 0 || cb->ashmemSize <= 0) {
         return -EINVAL;
@@ -415,7 +415,7 @@ static HostConnection* createOrGetHostConnection() {
 #define HAL_PIXEL_FORMAT_YCbCr_420_888 0xFFFFFFFF
 #endif
 
-static void updateHostColorBuffer(cb_handle_t* cb,
+static void updateHostColorBuffer(cb_handle_old_t* cb,
                               bool doLocked,
                               char* pixels) {
     D("%s: call. doLocked=%d", __FUNCTION__, doLocked);
@@ -787,9 +787,10 @@ static int gralloc_alloc(alloc_device_t* dev,
         }
     }
 
-    cb_handle_t *cb = new cb_handle_t(fd, ashmem_size, usage,
-                                      w, h, frameworkFormat, format,
-                                      glFormat, glType, selectedEmuFrameworkFormat);
+    cb_handle_old_t *cb = new cb_handle_old_t(fd, ashmem_size, usage,
+                                              w, h, frameworkFormat, format,
+                                              glFormat, glType,
+                                              selectedEmuFrameworkFormat);
 
     if (ashmem_size > 0) {
         //
@@ -879,8 +880,8 @@ static int gralloc_free(alloc_device_t* dev,
 {
     DEFINE_AND_VALIDATE_HOST_CONNECTION;
 
-    cb_handle_t *cb = (cb_handle_t *)handle;
-    if (!cb_handle_t::validate((cb_handle_t*)cb)) {
+    cb_handle_old_t *cb = (cb_handle_old_t *)handle;
+    if (!cb_handle_old_t::validate((cb_handle_old_t*)cb)) {
         ERR("gralloc_free: invalid handle");
         return -EINVAL;
     }
@@ -963,9 +964,9 @@ static int fb_compositionComplete(struct framebuffer_device_t* dev)
 static int fb_post(struct framebuffer_device_t* dev, buffer_handle_t buffer)
 {
     fb_device_t *fbdev = (fb_device_t *)dev;
-    cb_handle_t *cb = (cb_handle_t *)buffer;
+    cb_handle_old_t *cb = (cb_handle_old_t *)buffer;
 
-    if (!fbdev || !cb_handle_t::validate(cb) || !cb->canBePosted()) {
+    if (!fbdev || !cb_handle_old_t::validate(cb) || !cb->canBePosted()) {
         return -EINVAL;
     }
 
@@ -1061,9 +1062,9 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
     }
 
     private_module_t *gr = (private_module_t *)module;
-    cb_handle_t *cb = (cb_handle_t *)handle;
+    cb_handle_old_t *cb = (cb_handle_old_t *)handle;
 
-    if (!gr || !cb_handle_t::validate(cb)) {
+    if (!gr || !cb_handle_old_t::validate(cb)) {
         ERR("gralloc_register_buffer(%p): invalid buffer", cb);
         return -EINVAL;
     }
@@ -1114,9 +1115,9 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
     }
 
     private_module_t *gr = (private_module_t *)module;
-    cb_handle_t *cb = (cb_handle_t *)handle;
+    cb_handle_old_t *cb = (cb_handle_old_t *)handle;
 
-    if (!gr || !cb_handle_t::validate(cb)) {
+    if (!gr || !cb_handle_old_t::validate(cb)) {
         ERR("gralloc_unregister_buffer(%p): invalid buffer", cb);
         return -EINVAL;
     }
@@ -1175,9 +1176,9 @@ static int gralloc_lock(gralloc_module_t const* module,
     }
 
     private_module_t *gr = (private_module_t *)module;
-    cb_handle_t *cb = (cb_handle_t *)handle;
+    cb_handle_old_t *cb = (cb_handle_old_t *)handle;
 
-    if (!gr || !cb_handle_t::validate(cb)) {
+    if (!gr || !cb_handle_old_t::validate(cb)) {
         ALOGE("gralloc_lock bad handle\n");
         return -EINVAL;
     }
@@ -1348,9 +1349,9 @@ static int gralloc_unlock(gralloc_module_t const* module,
     }
 
     private_module_t *gr = (private_module_t *)module;
-    cb_handle_t *cb = (cb_handle_t *)handle;
+    cb_handle_old_t *cb = (cb_handle_old_t *)handle;
 
-    if (!gr || !cb_handle_t::validate(cb)) {
+    if (!gr || !cb_handle_old_t::validate(cb)) {
         ALOGD("%s: invalid gr or cb handle. -EINVAL", __FUNCTION__);
         return -EINVAL;
     }
@@ -1401,8 +1402,8 @@ static int gralloc_lock_ycbcr(gralloc_module_t const* module,
     }
 
     private_module_t *gr = (private_module_t *)module;
-    cb_handle_t *cb = (cb_handle_t *)handle;
-    if (!gr || !cb_handle_t::validate(cb)) {
+    cb_handle_old_t *cb = (cb_handle_old_t *)handle;
+    if (!gr || !cb_handle_old_t::validate(cb)) {
         ALOGE("%s: bad colorbuffer handle. -EINVAL", __FUNCTION__);
         return -EINVAL;
     }

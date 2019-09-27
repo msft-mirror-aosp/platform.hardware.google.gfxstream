@@ -18,5 +18,6 @@
 #define __GRALLOC_CB_H__
 
 #include "gralloc_cb_old.h"
+typedef cb_handle_old_t cb_handle_t;
 
 #endif //__GRALLOC_CB_H__
