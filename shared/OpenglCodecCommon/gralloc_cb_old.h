@@ -24,7 +24,7 @@
 #include "qemu_pipe.h"
 
 #define BUFFER_HANDLE_MAGIC ((int)0xabfabfab)
-#define CB_HANDLE_NUM_INTS(nfds) (int)((sizeof(cb_handle_t) - (nfds)*sizeof(int)) / sizeof(int))
+#define CB_HANDLE_NUM_INTS(nfds) (int)((sizeof(cb_handle_old_t) - (nfds)*sizeof(int)) / sizeof(int))
 
 // Tell the emulator which gralloc formats
 // need special handling.
@@ -37,12 +37,12 @@ enum EmulatorFrameworkFormat {
 //
 // Our buffer handle structure
 //
-struct cb_handle_t : public native_handle {
+struct cb_handle_old_t : public native_handle {
 
-    cb_handle_t(int p_fd, int p_ashmemSize, int p_usage,
-                int p_width, int p_height, int p_frameworkFormat,
-                int p_format, int p_glFormat, int p_glType,
-                EmulatorFrameworkFormat p_emuFrameworkFormat) :
+    cb_handle_old_t(int p_fd, int p_ashmemSize, int p_usage,
+                    int p_width, int p_height, int p_frameworkFormat,
+                    int p_format, int p_glFormat, int p_glType,
+                    EmulatorFrameworkFormat p_emuFrameworkFormat) :
         fd(p_fd),
         magic(BUFFER_HANDLE_MAGIC),
         usage(p_usage),
@@ -69,23 +69,23 @@ struct cb_handle_t : public native_handle {
         numInts = CB_HANDLE_NUM_INTS(numFds);
     }
 
-    ~cb_handle_t() {
+    ~cb_handle_old_t() {
         magic = 0;
     }
 
-    static cb_handle_t* from_native_handle(native_handle* n) {
-        return static_cast<cb_handle_t*>(n);
+    static cb_handle_old_t* from_native_handle(native_handle* n) {
+        return static_cast<cb_handle_old_t*>(n);
     }
 
-    static const cb_handle_t* from_native_handle(const native_handle* n) {
-        return static_cast<const cb_handle_t*>(n);
+    static const cb_handle_old_t* from_native_handle(const native_handle* n) {
+        return static_cast<const cb_handle_old_t*>(n);
     }
 
-    static cb_handle_t* from_raw_pointer(void* ptr) {
+    static cb_handle_old_t* from_raw_pointer(void* ptr) {
         return from_native_handle(static_cast<native_handle*>(ptr));
     }
 
-    static const cb_handle_t* from_raw_pointer(const void* ptr) {
+    static const cb_handle_old_t* from_raw_pointer(const void* ptr) {
         return from_native_handle(static_cast<const native_handle*>(ptr));
     }
 
@@ -109,7 +109,7 @@ struct cb_handle_t : public native_handle {
         numInts = CB_HANDLE_NUM_INTS(numFds);
     }
 
-    static bool validate(const cb_handle_t* hnd) {
+    static bool validate(const cb_handle_old_t* hnd) {
         return (hnd &&
                 hnd->version == sizeof(native_handle) &&
                 hnd->magic == BUFFER_HANDLE_MAGIC &&
@@ -129,7 +129,7 @@ struct cb_handle_t : public native_handle {
     QEMU_PIPE_HANDLE refcount_pipe_fd; // goldfish pipe service for gralloc refcounting fd.
 
     // ints
-    int magic;              // magic number in order to validate a pointer to be a cb_handle_t
+    int magic;              // magic number in order to validate a pointer to be a cb_handle_old_t
     int usage;              // usage bits the buffer was created with
     int width;              // buffer width
     int height;             // buffer height
