@@ -30,9 +30,6 @@ LOCAL_STATIC_LIBRARIES += libarect
 LOCAL_SHARED_LIBRARIES += libnativewindow
 endif
 
-# Used to access the Bionic private OpenGL TLS slot
-LOCAL_C_INCLUDES += bionic/libc/private
-
 endif # !GOLDFISH_OPENGL_BUILD_FOR_HOST
 
 $(call emugl-end-module)
