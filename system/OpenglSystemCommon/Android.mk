@@ -51,7 +51,7 @@ LOCAL_HEADER_LIBRARIES += libhardware_headers
 $(call emugl-export,HEADER_LIBRARIES,libhardware_headers)
 endif
 
-$(call emugl-export,C_INCLUDES,$(LOCAL_PATH) bionic/libc/private)
+$(call emugl-export,C_INCLUDES,$(LOCAL_PATH) bionic/libc/platform)
 
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 $(call emugl-export,SHARED_LIBRARIES,android-emu-shared)
