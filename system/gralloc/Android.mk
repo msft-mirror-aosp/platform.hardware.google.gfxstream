@@ -14,8 +14,6 @@ LOCAL_CFLAGS += -Wno-gnu-designator
 LOCAL_SRC_FILES := gralloc_old.cpp
 
 ifneq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
-# Need to access the special OPENGL TLS Slot
-LOCAL_C_INCLUDES += bionic/libc/private
 LOCAL_SHARED_LIBRARIES += libdl
 endif
 

@@ -16,8 +16,8 @@
 #include "ThreadInfo.h"
 #include "cutils/threads.h"
 
-#ifdef __ANDROID__
-#include <bionic_tls.h>
+#ifdef __BIONIC__
+#include <bionic/tls.h>
 #endif
 #include <pthread.h>
 
