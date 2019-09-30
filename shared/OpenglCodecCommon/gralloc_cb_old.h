@@ -21,18 +21,11 @@
 #include <hardware/gralloc.h>
 #include <cutils/native_handle.h>
 
+#include "gralloc_cb_common.h"
 #include "qemu_pipe.h"
 
 #define BUFFER_HANDLE_MAGIC ((int)0xabfabfab)
 #define CB_HANDLE_NUM_INTS(nfds) (int)((sizeof(cb_handle_old_t) - (nfds)*sizeof(int)) / sizeof(int))
-
-// Tell the emulator which gralloc formats
-// need special handling.
-enum EmulatorFrameworkFormat {
-    FRAMEWORK_FORMAT_GL_COMPATIBLE = 0,
-    FRAMEWORK_FORMAT_YV12 = 1,
-    FRAMEWORK_FORMAT_YUV_420_888 = 2,              // (Y+)(U+)(V+)
-};
 
 //
 // Our buffer handle structure
