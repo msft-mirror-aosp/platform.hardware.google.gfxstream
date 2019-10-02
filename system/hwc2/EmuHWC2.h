@@ -345,6 +345,8 @@ private:
         // Display ID generator.
         static std::atomic<hwc2_display_t> sNextId;
         const hwc2_display_t mId;
+        // emulator side displayId
+        uint32_t mHostDisplayId;
         std::string mName;
         HWC2::DisplayType mType;
         HWC2::PowerMode mPowerMode;
