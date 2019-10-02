@@ -51,6 +51,8 @@ LOCAL_HEADER_LIBRARIES += libhardware_headers
 $(call emugl-export,HEADER_LIBRARIES,libhardware_headers)
 endif
 
+$(call emugl-export,C_INCLUDES,$(LOCAL_PATH)/bionic-include)
+$(call emugl-export,C_INCLUDES,$(LOCAL_PATH) bionic/libc/private)
 $(call emugl-export,C_INCLUDES,$(LOCAL_PATH) bionic/libc/platform)
 
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
