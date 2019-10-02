@@ -402,6 +402,24 @@ uint32_t EmuHWC2::GrallocModule::getTargetCb() {
 
 // Display functions
 
+#define VSYNC_PERIOD_PROP "ro.kernel.qemu.vsync"
+
+static int getVsyncPeriodFromProperty() {
+    char displaysValue[PROPERTY_VALUE_MAX] = "";
+    property_get(VSYNC_PERIOD_PROP, displaysValue, "");
+    bool isValid = displaysValue[0] != '\0';
+
+    if (!isValid) return 60;
+
+    long vsyncPeriodParsed = strtol(displaysValue, 0, 10);
+
+    // On failure, strtol returns 0. Also, there's no reason to have 0
+    // as the vsync period.
+    if (!vsyncPeriodParsed) return 60;
+
+    return static_cast<int>(vsyncPeriodParsed);
+}
+
 std::atomic<hwc2_display_t> EmuHWC2::Display::sNextId(0);
 
 EmuHWC2::Display::Display(EmuHWC2& device, DisplayType type)
@@ -411,7 +429,7 @@ EmuHWC2::Display::Display(EmuHWC2& device, DisplayType type)
     mType(type),
     mPowerMode(PowerMode::Off),
     mVsyncEnabled(Vsync::Invalid),
-    mVsyncPeriod(1000*1000*1000/60), // vsync is 60 hz
+    mVsyncPeriod(1000*1000*1000/getVsyncPeriodFromProperty()), // vsync is 60 hz
     mVsyncThread(*this),
     mClientTarget(),
     mChanges(),
