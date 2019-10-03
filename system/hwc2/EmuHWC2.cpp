@@ -350,13 +350,8 @@ Error EmuHWC2::registerCallback(Callback descriptor,
     if (descriptor == Callback::Hotplug) {
         lock.unlock();
         auto hotplug = reinterpret_cast<HWC2_PFN_VSYNC>(pointer);
-        hotplug(callbackData, 0, static_cast<int32_t>(Connection::Connected));
-
-        int ret = populateSecondaryDisplays();
-        if (ret < 0) {
-            ALOGE("Failed to populate secondary displays");
-        } else if (ret == 0) {
-            hotplug(callbackData, 1, static_cast<int32_t>(Connection::Connected));
+        for (const auto& iter : mDisplays) {
+            hotplug(callbackData, iter.first, static_cast<int32_t>(Connection::Connected));
         }
     }
 
@@ -1573,6 +1568,12 @@ static int hwc2DevOpen(const struct hw_module_t *module, const char *name,
     int ret = ctx->populatePrimary();
     if (ret != 0) {
         ALOGE("Failed to populate primary display");
+        return ret;
+    }
+
+    ret = ctx->populateSecondaryDisplays();
+    if (ret < 0) {
+        ALOGE("Failed to populate secondary displays");
         return ret;
     }
 
