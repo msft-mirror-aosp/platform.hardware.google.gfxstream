@@ -476,7 +476,8 @@ private:
     };
     std::unordered_map<HWC2::Callback, CallbackInfo> mCallbacks;
 
-    std::unordered_map<hwc2_display_t, std::shared_ptr<Display>> mDisplays;
+    // use map so displays can be pluged in by order of ID, 0, 1, 2, 3, etc.
+    std::map<hwc2_display_t, std::shared_ptr<Display>> mDisplays;
     std::unordered_map<hwc2_layer_t, std::shared_ptr<Layer>> mLayers;
 
 };
