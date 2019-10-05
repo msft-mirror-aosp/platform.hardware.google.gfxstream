@@ -261,11 +261,6 @@ void GLClientState::setVertexArrayObject(GLuint name) {
 
     m_currVaoState =
         VAOStateRef(m_vaoMap.find(name));
-    ALOGD("%s: set vao to %u (%u) %u %u", __FUNCTION__,
-            name,
-            m_currVaoState.vaoId(),
-            m_arrayBuffer,
-            m_currVaoState.iboId());
 }
 
 bool GLClientState::isVertexArrayObject(GLuint vao) const {
