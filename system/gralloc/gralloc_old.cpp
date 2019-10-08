@@ -528,10 +528,10 @@ static void updateHostColorBuffer(cb_handle_old_t* cb,
 static void gralloc_dump(struct alloc_device_t* /*dev*/, char* /*buff*/, int /*buff_len*/) {}
 
 static int gralloc_alloc(alloc_device_t* dev,
-                         int w, int h, int format, int usage,
+                         int w, int h, const int frameworkFormat, int usage,
                          buffer_handle_t* pHandle, int* pStride)
 {
-    D("gralloc_alloc w=%d h=%d usage=0x%x format=0x%x\n", w, h, usage, format);
+    D("gralloc_alloc w=%d h=%d usage=0x%x frameworkFormat=0x%x\n", w, h, usage, frameworkFormat);
 
     gralloc_device_t *grdev = (gralloc_device_t *)dev;
     if (!grdev || !pHandle || !pStride) {
@@ -568,7 +568,7 @@ static int gralloc_alloc(alloc_device_t* dev,
 #endif // PLATFORM_SDK_VERSION
 
     // Keep around original requested format for later validation
-    int frameworkFormat = format;
+    int format = frameworkFormat;
     // Pick the right concrete pixel format given the endpoints as encoded in
     // the usage bits.  Every end-point pair needs explicit listing here.
 #if PLATFORM_SDK_VERSION >= 17
