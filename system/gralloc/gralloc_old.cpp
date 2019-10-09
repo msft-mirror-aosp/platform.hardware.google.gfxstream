@@ -1232,7 +1232,6 @@ static int gralloc_lock(gralloc_module_t const* module,
         //return -EINVAL;
     }
 
-    intptr_t postCount = 0;
     void *cpu_addr = NULL;
 
     //
@@ -1257,13 +1256,12 @@ static int gralloc_lock(gralloc_module_t const* module,
         // flush color buffer write cache on host and get its sync status.
         //
         int hostSyncStatus = rcEnc->rcColorBufferCacheFlush(rcEnc, cb->hostHandle,
-                                                            postCount,
+                                                            0,
                                                             sw_read);
         if (hostSyncStatus < 0) {
             // host failed the color buffer sync - probably since it was already
             // locked for write access. fail the lock.
-            ALOGE("gralloc_lock cacheFlush failed postCount=%d sw_read=%d\n",
-                 (int)postCount, sw_read);
+            ALOGE("gralloc_lock cacheFlush failed sw_read=%d\n", sw_read);
             return -EBUSY;
         }
 
