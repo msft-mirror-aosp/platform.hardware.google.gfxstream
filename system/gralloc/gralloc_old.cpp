@@ -527,6 +527,34 @@ static void updateHostColorBuffer(cb_handle_old_t* cb,
 //
 static void gralloc_dump(struct alloc_device_t* /*dev*/, char* /*buff*/, int /*buff_len*/) {}
 
+static int gralloc_get_buffer_format(const int frameworkFormat, const int usage) {
+    // Pick the right concrete pixel format given the endpoints as encoded in
+    // the usage bits.  Every end-point pair needs explicit listing here.
+#if PLATFORM_SDK_VERSION >= 17
+    if (frameworkFormat == HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED) {
+        // Camera as producer
+        if (usage & GRALLOC_USAGE_HW_CAMERA_WRITE) {
+            if (usage & GRALLOC_USAGE_HW_TEXTURE) {
+                // Camera-to-display is RGBA
+                return HAL_PIXEL_FORMAT_RGBA_8888;
+            } else if (usage & GRALLOC_USAGE_HW_VIDEO_ENCODER) {
+                // Camera-to-encoder is NV21
+                return HAL_PIXEL_FORMAT_YCrCb_420_SP;
+            }
+        }
+
+        ALOGE("gralloc_alloc: Requested auto format selection, "
+              "but no known format for this usage=%x", usage);
+        return -EINVAL;
+    } else if (frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) {
+        ALOGW("gralloc_alloc: Requested YCbCr_420_888, taking experimental path. "
+              "usage=%x", usage);
+    }
+#endif // PLATFORM_SDK_VERSION >= 17
+
+    return frameworkFormat;
+}
+
 static int gralloc_alloc(alloc_device_t* dev,
                          int w, int h, const int frameworkFormat, int usage,
                          buffer_handle_t* pHandle, int* pStride)
@@ -538,6 +566,11 @@ static int gralloc_alloc(alloc_device_t* dev,
         ALOGE("gralloc_alloc: Bad inputs (grdev: %p, pHandle: %p, pStride: %p",
                 grdev, pHandle, pStride);
         return -EINVAL;
+    }
+
+    const int format = gralloc_get_buffer_format(frameworkFormat, usage);
+    if (format < 0) {
+        return format;
     }
 
     //
@@ -567,38 +600,7 @@ static int gralloc_alloc(alloc_device_t* dev,
     bool hw_vid_enc_read = false;
 #endif // PLATFORM_SDK_VERSION
 
-    // Keep around original requested format for later validation
-    int format = frameworkFormat;
-    // Pick the right concrete pixel format given the endpoints as encoded in
-    // the usage bits.  Every end-point pair needs explicit listing here.
-#if PLATFORM_SDK_VERSION >= 17
-    if (format == HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED) {
-        // Camera as producer
-        if (usage & GRALLOC_USAGE_HW_CAMERA_WRITE) {
-            if (usage & GRALLOC_USAGE_HW_TEXTURE) {
-                // Camera-to-display is RGBA
-                format = HAL_PIXEL_FORMAT_RGBA_8888;
-            } else if (usage & GRALLOC_USAGE_HW_VIDEO_ENCODER) {
-                // Camera-to-encoder is NV21
-                format = HAL_PIXEL_FORMAT_YCrCb_420_SP;
-            }
-        }
-
-        if (format == HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED) {
-            ALOGE("gralloc_alloc: Requested auto format selection, "
-                    "but no known format for this usage: %d x %d, usage %x",
-                    w, h, usage);
-            return -EINVAL;
-        }
-    }
-    else if (format == HAL_PIXEL_FORMAT_YCbCr_420_888) {
-        ALOGW("gralloc_alloc: Requested YCbCr_420_888, taking experimental path. "
-                "usage: %d x %d, usage %x",
-                w, h, usage);
-    }
-#endif // PLATFORM_SDK_VERSION >= 17
     bool yuv_format = false;
-
     int ashmem_size = 0;
     int stride = w;
 
