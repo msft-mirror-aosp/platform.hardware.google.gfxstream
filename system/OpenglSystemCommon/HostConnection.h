@@ -21,7 +21,6 @@
 #include "renderControl_enc.h"
 #include "ChecksumCalculator.h"
 #include "goldfish_dma.h"
-#include "goldfish_address_space.h"
 
 #include <cutils/native_handle.h>
 
@@ -48,7 +47,7 @@ class ExtendedRCEncoderContext : public renderControl_encoder_context_t {
 public:
     ExtendedRCEncoderContext(IOStream *stream, ChecksumCalculator *checksumCalculator)
         : renderControl_encoder_context_t(stream, checksumCalculator),
-          m_dmaCxt(NULL), m_addressSpaceBlock(NULL) { }
+          m_dmaCxt(NULL), m_dmaPtr(NULL), m_dmaPhysAddr(0) { }
     void setSyncImpl(SyncImpl syncImpl) { m_featureInfo.syncImpl = syncImpl; }
     void setDmaImpl(DmaImpl dmaImpl) { m_featureInfo.dmaImpl = dmaImpl; }
     void setHostComposition(HostComposition hostComposition) {
@@ -65,12 +64,14 @@ public:
         return m_featureInfo.hasYUVCache; }
     DmaImpl getDmaVersion() const { return m_featureInfo.dmaImpl; }
     void bindDmaContext(struct goldfish_dma_context* cxt) { m_dmaCxt = cxt; }
-    void bindAddressSpaceBlock(GoldfishAddressSpaceBlock* block) {
-        m_addressSpaceBlock = block;
+    void bindDmaDirectly(void* dmaPtr, uint64_t dmaPhysAddr) {
+        m_dmaPtr = dmaPtr;
+        m_dmaPhysAddr = dmaPhysAddr;
     }
     virtual uint64_t lockAndWriteDma(void* data, uint32_t size) {
-        if (m_addressSpaceBlock) {
-            return writeAddressSpaceBlock(data, size, m_addressSpaceBlock);
+        if (m_dmaPtr && m_dmaPhysAddr) {
+            memcpy(m_dmaPtr, data, size);
+            return m_dmaPhysAddr;
         } else if (m_dmaCxt) {
             return writeGoldfishDma(data, size, m_dmaCxt);
         } else {
@@ -103,20 +104,10 @@ private:
         return paddr;
     }
 
-    static uint64_t writeAddressSpaceBlock(void* data, uint32_t size,
-                                           GoldfishAddressSpaceBlock* block) {
-        ALOGV("%s(data=%p, size=%u): call", __func__, data, size);
-
-        memcpy(block->guestPtr(), data, size);
-        const uint64_t paddr = block->physAddr();
-
-        ALOGV("%s: paddr=0x%llx", __func__, (unsigned long long)paddr);
-        return paddr;
-    }
-
     EmulatorFeatureInfo m_featureInfo;
     struct goldfish_dma_context* m_dmaCxt;
-    GoldfishAddressSpaceBlock* m_addressSpaceBlock;
+    void* m_dmaPtr;
+    uint64_t m_dmaPhysAddr;
 };
 
 // Abstraction for gralloc handle conversion
