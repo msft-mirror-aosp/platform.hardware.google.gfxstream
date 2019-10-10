@@ -28,6 +28,8 @@
 #include "../../shared/OpenglCodecCommon/gralloc_cb_old.h"
 #endif
 
+#include "gralloc_common.h"
+
 #include "goldfish_dma.h"
 #include "goldfish_address_space.h"
 #include "FormatConversions.h"
@@ -511,18 +513,6 @@ static void updateHostColorBuffer(cb_handle_old_t* cb,
     }
 }
 
-#ifndef GL_RGBA16F
-#define GL_RGBA16F                        0x881A
-#endif // GL_RGBA16F
-#ifndef GL_HALF_FLOAT
-#define GL_HALF_FLOAT                     0x140B
-#endif // GL_HALF_FLOAT
-#ifndef GL_RGB10_A2
-#define GL_RGB10_A2                       0x8059
-#endif // GL_RGB10_A2
-#ifndef GL_UNSIGNED_INT_2_10_10_10_REV
-#define GL_UNSIGNED_INT_2_10_10_10_REV    0x8368
-#endif // GL_UNSIGNED_INT_2_10_10_10_REV
 //
 // gralloc device functions (alloc interface)
 //
@@ -716,10 +706,8 @@ static int gralloc_alloc(alloc_device_t* dev,
     //
     DEFINE_AND_VALIDATE_HOST_CONNECTION;
 #if PLATFORM_SDK_VERSION >= 17
-    // GPU_DATA_BUFFER is defined in hardware/interfaces/graphics/common/1.0/types.hal
-#   define _GRALLOC_USAGE_GPU_DATA_BUFFER 0x1000000
     bool needHostCb = ((!yuv_format && frameworkFormat != HAL_PIXEL_FORMAT_BLOB) ||
-                      usage & _GRALLOC_USAGE_GPU_DATA_BUFFER ||
+                      usage & GOLDFISH_GRALLOC_USAGE_GPU_DATA_BUFFER ||
 #else
     bool needHostCb = (!yuv_format ||
 #endif // !(PLATFORM_SDK_VERSION >= 17)
