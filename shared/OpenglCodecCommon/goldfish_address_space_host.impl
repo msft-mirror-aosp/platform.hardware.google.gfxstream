@@ -37,7 +37,7 @@ using android::emulation::AddressSpaceDevicePingInfo;
 GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider(uint64_t subdevice)
     : m_handle(HostAddressSpaceDevice::get()->open())
 {
-    if ((subdevice != SUBDEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID) && is_opened()) {
+    if ((subdevice != SUBDEVICE_TYPE_NO_SUBDEVICE_ID) && is_opened()) {
         AddressSpaceDevicePingInfo request;
         ::memset(&request, 0, sizeof(request));
         request.metadata = subdevice;
