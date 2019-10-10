@@ -465,7 +465,8 @@ static void updateHostColorBuffer(cb_handle_old_t* cb,
         }
 
         if (grdma->address_space_block.guestPtr()) {
-            rcEnc->bindAddressSpaceBlock(&grdma->address_space_block);
+            rcEnc->bindDmaDirectly(grdma->address_space_block.guestPtr(),
+                                   grdma->address_space_block.physAddr());
         } else if (grdma->goldfish_dma.mapped_addr) {
             rcEnc->bindDmaContext(&grdma->goldfish_dma);
         } else {
