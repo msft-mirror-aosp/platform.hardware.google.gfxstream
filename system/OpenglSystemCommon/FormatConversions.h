@@ -18,6 +18,8 @@
 #include <inttypes.h>
 
 // format conversions and helper functions
+bool gralloc_is_yuv_format(int format); // e.g. HAL_PIXEL_FORMAT_YCbCr_420_888
+
 void get_yv12_offsets(int width, int height,
                       uint32_t* yStride_out,
                       uint32_t* cStride_out,
