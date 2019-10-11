@@ -59,9 +59,13 @@ struct goldfish_address_space_ping {
 
 const char GOLDFISH_ADDRESS_SPACE_DEVICE_NAME[] = "/dev/goldfish_address_space";
 
-const int DEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID = 5;
 const int HOST_MEMORY_ALLOCATOR_COMMAND_ALLOCATE_ID = 1;
 const int HOST_MEMORY_ALLOCATOR_COMMAND_UNALLOCATE_ID = 2;
+
+int create_address_space_fd()
+{
+    return ::open(GOLDFISH_ADDRESS_SPACE_DEVICE_NAME, O_RDWR);
+}
 
 long ioctl_allocate(int fd, struct goldfish_address_space_allocate_block *request)
 {
@@ -78,10 +82,30 @@ long ioctl_ping(int fd, struct goldfish_address_space_ping *request)
     return ::ioctl(fd, GOLDFISH_ADDRESS_SPACE_IOCTL_PING, request);
 }
 
+long set_address_space_subdevice_type(int fd, uint64_t type)
+{
+    struct goldfish_address_space_ping request;
+    ::memset(&request, 0, sizeof(request));
+    request.version = sizeof(request);
+    request.metadata = type;
+
+    return ioctl_ping(fd, &request);
+}
+
 }  // namespace
 
-GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider()
-  : m_fd(::open(GOLDFISH_ADDRESS_SPACE_DEVICE_NAME, O_RDWR)) {}
+GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider(uint64_t subdevice)
+  : m_fd(create_address_space_fd())
+{
+    if ((subdevice != SUBDEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID) && is_opened()) {
+        const long ret = set_address_space_subdevice_type(m_fd, subdevice);
+        if (ret) {
+            ALOGE("%s: set_address_space_subdevice_type failed for device_type=%lu, ret=%ld",
+                  __func__, static_cast<unsigned long>(subdevice), ret);
+            close();
+        }
+    }
+}
 
 GoldfishAddressSpaceBlockProvider::~GoldfishAddressSpaceBlockProvider()
 {
@@ -221,21 +245,7 @@ void GoldfishAddressSpaceBlock::destroy()
 }
 
 GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator()
-{
-    if (m_provider.is_opened()) {
-        struct goldfish_address_space_ping request;
-        ::memset(&request, 0, sizeof(request));
-        request.version = sizeof(request);
-        request.metadata = DEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID;
-
-        const long ret = ioctl_ping(m_provider.m_fd, &request);
-        if (ret) {
-            ALOGE("%s: ioctl_ping failed for device_type=%d, ret=%ld",
-                  __func__, DEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID, ret);
-            m_provider.close();
-        }
-    }
-}
+  : m_provider(GoldfishAddressSpaceBlockProvider::SUBDEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID) {}
 
 long GoldfishAddressSpaceHostMemoryAllocator::hostMalloc(GoldfishAddressSpaceBlock *block, size_t size)
 {
