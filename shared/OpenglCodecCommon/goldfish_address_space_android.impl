@@ -97,7 +97,7 @@ long set_address_space_subdevice_type(int fd, uint64_t type)
 GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider(uint64_t subdevice)
   : m_handle(create_address_space_fd())
 {
-    if ((subdevice != SUBDEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID) && is_opened()) {
+    if ((subdevice != SUBDEVICE_TYPE_NO_SUBDEVICE_ID) && is_opened()) {
         const long ret = set_address_space_subdevice_type(m_handle, subdevice);
         if (ret) {
             ALOGE("%s: set_address_space_subdevice_type failed for device_type=%lu, ret=%ld",
