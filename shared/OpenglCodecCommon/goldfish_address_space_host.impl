@@ -48,7 +48,9 @@ GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider(uint64_t su
 
 GoldfishAddressSpaceBlockProvider::~GoldfishAddressSpaceBlockProvider()
 {
-    HostAddressSpaceDevice::get()->close(m_handle);
+    if (is_opened()) {
+        HostAddressSpaceDevice::get()->close(m_handle);
+    }
 }
 
 bool GoldfishAddressSpaceBlockProvider::is_opened() const
@@ -62,6 +64,13 @@ void GoldfishAddressSpaceBlockProvider::close()
         HostAddressSpaceDevice::get()->close(m_handle);
         m_handle = 0;
     }
+}
+
+address_space_handle_t GoldfishAddressSpaceBlockProvider::release()
+{
+    address_space_handle_t handle = m_handle;
+    m_handle = 0;
+    return handle;
 }
 
 GoldfishAddressSpaceBlock::GoldfishAddressSpaceBlock()
@@ -156,8 +165,20 @@ void GoldfishAddressSpaceBlock::destroy()
     }
 }
 
+void GoldfishAddressSpaceBlock::release()
+{
+    m_handle = 0;
+    m_mmaped_ptr = NULL;
+    m_phys_addr = 0;
+    m_host_addr = 0;
+    m_offset = 0;
+    m_size = 0;
+}
+
 GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator()
   : m_provider(GoldfishAddressSpaceBlockProvider::SUBDEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID) {}
+
+bool GoldfishAddressSpaceHostMemoryAllocator::is_opened() const { return m_provider.is_opened(); }
 
 long GoldfishAddressSpaceHostMemoryAllocator::hostMalloc(GoldfishAddressSpaceBlock *block, size_t size)
 {
