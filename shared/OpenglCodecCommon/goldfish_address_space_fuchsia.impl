@@ -52,6 +52,7 @@ bool GoldfishAddressSpaceBlockProvider::is_opened() const
 }
 
 // void GoldfishAddressSpaceBlockProvider::close() - not implemented
+// address_space_handle_t GoldfishAddressSpaceBlockProvider::release() - not imeplemented
 
 GoldfishAddressSpaceBlock::GoldfishAddressSpaceBlock()
     : m_device(NULL)
