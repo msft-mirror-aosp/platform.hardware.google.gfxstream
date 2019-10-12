@@ -101,6 +101,7 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     m_ssbo_offset_align = 0;
     m_ubo_offset_align = 0;
 
+    m_drawCallFlushInterval = 800;
     m_drawCallFlushCount = 0;
     m_primitiveRestartEnabled = false;
     m_primitiveRestartIndex = 0;
@@ -1302,11 +1303,7 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count, bool hasClient
 }
 
 void GL2Encoder::flushDrawCall() {
-    // This used to be every other draw call, but
-    // now that we are using real GPU buffers on host,
-    // set this to every 200 draw calls
-    // (tuned on z840 linux NVIDIA Quadro K2200)
-    if (m_drawCallFlushCount % 200 == 0) {
+    if (m_drawCallFlushCount % m_drawCallFlushInterval == 0) {
         m_stream->flush();
     }
     m_drawCallFlushCount++;
@@ -1463,6 +1460,7 @@ void GL2Encoder::s_glDrawArraysNullAEMU(void *self, GLenum mode, GLint first, GL
         ctx->sendVertexAttributes(0, count, false);
         ctx->m_glDrawArraysNullAEMU_enc(ctx, mode, first, count);
     }
+    ctx->flushDrawCall();
 }
 
 void GL2Encoder::s_glDrawElementsNullAEMU(void *self, GLenum mode, GLsizei count, GLenum type, const void *indices)
