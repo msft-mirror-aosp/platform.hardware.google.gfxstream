@@ -72,6 +72,7 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
 {
     m_currMajorVersion = 2;
     m_currMinorVersion = 0;
+    m_hasAsyncUnmapBuffer = false;
     m_initialized = false;
     m_noHostError = false;
     m_state = NULL;
@@ -2953,11 +2954,16 @@ void* GL2Encoder::s_glMapBufferRangeAEMUImpl(GL2Encoder* ctx, GLenum target,
                                              GLbitfield access, BufferData* buf) {
     char* bits = (char*)buf->m_fixedBuffer.ptr() + offset;
 
-    ctx->glMapBufferRangeAEMU(
-            ctx, target,
-            offset, length,
-            access,
-            bits);
+    if ((access & GL_MAP_READ_BIT) ||
+        ((access & GL_MAP_WRITE_BIT) &&
+        (!(access & GL_MAP_INVALIDATE_RANGE_BIT) &&
+         !(access & GL_MAP_INVALIDATE_BUFFER_BIT)))) {
+        ctx->glMapBufferRangeAEMU(
+                ctx, target,
+                offset, length,
+                access,
+                bits);
+    }
 
     return bits;
 }
@@ -3069,13 +3075,25 @@ GLboolean GL2Encoder::s_glUnmapBuffer(void* self, GLenum target) {
             goldfish_dma_guest_paddr(&buf->dma_buffer.get()),
             &host_res);
     } else {
-        ctx->glUnmapBufferAEMU(
-                ctx, target,
-                buf->m_mappedOffset,
-                buf->m_mappedLength,
-                buf->m_mappedAccess,
-                (void*)((char*)buf->m_fixedBuffer.ptr() + buf->m_mappedOffset),
-                &host_res);
+        if (ctx->m_hasAsyncUnmapBuffer) {
+            ctx->glUnmapBufferAsyncAEMU(
+                    ctx, target,
+                    buf->m_mappedOffset,
+                    buf->m_mappedLength,
+                    buf->m_mappedAccess,
+                    (void*)((char*)buf->m_fixedBuffer.ptr() + buf->m_mappedOffset),
+                    &host_res);
+        } else {
+            if (buf->m_mappedAccess & GL_MAP_WRITE_BIT) {
+                ctx->glUnmapBufferAEMU(
+                        ctx, target,
+                        buf->m_mappedOffset,
+                        buf->m_mappedLength,
+                        buf->m_mappedAccess,
+                        (void*)((char*)buf->m_fixedBuffer.ptr() + buf->m_mappedOffset),
+                        &host_res);
+            }
+        }
     }
 
     buf->m_mapped = false;
@@ -3107,12 +3125,21 @@ void GL2Encoder::s_glFlushMappedBufferRange(void* self, GLenum target, GLintptr 
 
     buf->m_indexRangeCache.invalidateRange(totalOffset, length);
 
-    ctx->glFlushMappedBufferRangeAEMU(
-            ctx, target,
-            totalOffset,
-            length,
-            buf->m_mappedAccess,
-            (void*)((char*)buf->m_fixedBuffer.ptr() + totalOffset));
+    if (ctx->m_hasAsyncUnmapBuffer) {
+        ctx->glFlushMappedBufferRangeAEMU2(
+                ctx, target,
+                totalOffset,
+                length,
+                buf->m_mappedAccess,
+                (void*)((char*)buf->m_fixedBuffer.ptr() + totalOffset));
+    } else {
+        ctx->glFlushMappedBufferRangeAEMU(
+                ctx, target,
+                totalOffset,
+                length,
+                buf->m_mappedAccess,
+                (void*)((char*)buf->m_fixedBuffer.ptr() + totalOffset));
+    }
 }
 
 void GL2Encoder::s_glCompressedTexImage2D(void* self, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const GLvoid* data) {

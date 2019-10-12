@@ -93,6 +93,9 @@ static const char kYUV420888toNV21[] = "ANDROID_EMU_YUV420_888_to_NV21";
 // YUV host cache
 static const char kYUVCache[] = "ANDROID_EMU_YUV_Cache";
 
+// GL protocol v2
+static const char kAsyncUnmapBuffer[] = "ANDROID_EMU_async_unmap_buffer";
+
 // Struct describing available emulator features
 struct EmulatorFeatureInfo {
 
@@ -107,7 +110,8 @@ struct EmulatorFeatureInfo {
         hasVulkanNullOptionalStrings(false),
         hasVulkanCreateResourcesWithRequirements(false),
         hasYUV420888toNV21(false),
-        hasYUVCache (false) { }
+        hasYUVCache (false),
+        hasAsyncUnmapBuffer (false) { }
 
     SyncImpl syncImpl;
     DmaImpl dmaImpl;
@@ -120,6 +124,7 @@ struct EmulatorFeatureInfo {
     bool hasVulkanCreateResourcesWithRequirements;
     bool hasYUV420888toNV21;
     bool hasYUVCache;
+    bool hasAsyncUnmapBuffer;
 };
 
 #endif // __COMMON_EMULATOR_FEATURE_INFO_H

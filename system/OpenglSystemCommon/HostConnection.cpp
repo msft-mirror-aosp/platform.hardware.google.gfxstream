@@ -140,9 +140,7 @@ HostConnection::HostConnection() :
     m_checksumHelper(),
     m_glExtensions(),
     m_grallocOnly(true),
-    m_noHostError(false)
-{
-}
+    m_noHostError(false) { }
 
 HostConnection::~HostConnection()
 {
@@ -304,6 +302,7 @@ GL2Encoder *HostConnection::gl2Encoder()
         m_gl2Enc->setNoHostError(m_noHostError);
         m_gl2Enc->setDrawCallFlushInterval(
             getDrawCallFlushIntervalFromProperty());
+        m_gl2Enc->setHasAsyncUnmapBuffer(m_rcEnc->hasAsyncUnmapBuffer());
     }
     return m_gl2Enc;
 }
@@ -333,6 +332,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetVulkanCreateResourcesWithRequirementsSupport(m_rcEnc);
         queryAndSetYUV420888toNV21(m_rcEnc);
         queryAndSetYUVCache(m_rcEnc);
+        queryAndSetAsyncUnmapBuffer(m_rcEnc);
         if (m_processPipe) {
             m_processPipe->processPipeInit(m_rcEnc);
         }
@@ -520,3 +520,11 @@ void HostConnection::queryAndSetYUVCache(ExtendedRCEncoderContext* rcEnc) {
         rcEnc->featureInfo()->hasYUVCache = true;
     }
 }
+
+void HostConnection::queryAndSetAsyncUnmapBuffer(ExtendedRCEncoderContext* rcEnc) {
+    std::string glExtensions = queryGLExtensions(rcEnc);
+    if (glExtensions.find(kAsyncUnmapBuffer) != std::string::npos) {
+        rcEnc->featureInfo()->hasAsyncUnmapBuffer = true;
+    }
+}
+

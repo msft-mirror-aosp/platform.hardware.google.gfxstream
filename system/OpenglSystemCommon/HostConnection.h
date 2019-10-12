@@ -62,6 +62,8 @@ public:
         return m_featureInfo.hasYUV420888toNV21; }
     bool hasYUVCache() const {
         return m_featureInfo.hasYUVCache; }
+    bool hasAsyncUnmapBuffer() const {
+        return m_featureInfo.hasAsyncUnmapBuffer; }
     DmaImpl getDmaVersion() const { return m_featureInfo.dmaImpl; }
     void bindDmaContext(struct goldfish_dma_context* cxt) { m_dmaCxt = cxt; }
     void bindDmaDirectly(void* dmaPtr, uint64_t dmaPhysAddr) {
@@ -204,6 +206,7 @@ private:
     void queryAndSetVulkanCreateResourcesWithRequirementsSupport(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetYUV420888toNV21(ExtendedRCEncoderContext *mrcEnc);
     void queryAndSetYUVCache(ExtendedRCEncoderContext *mrcEnc);
+    void queryAndSetAsyncUnmapBuffer(ExtendedRCEncoderContext *rcEnc);
 
 private:
     HostConnectionType m_connectionType;
