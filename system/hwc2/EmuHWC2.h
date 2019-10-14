@@ -27,6 +27,7 @@
 #include <atomic>
 #include <map>
 #include <mutex>
+#include <numeric>
 #include <sstream>
 #include <vector>
 #include <unordered_set>
@@ -257,6 +258,13 @@ private:
         HWC2::Error updateLayerZ(hwc2_layer_t layerId, uint32_t z);
         HWC2::Error getClientTargetSupport(uint32_t width, uint32_t height,
                  int32_t format, int32_t dataspace);
+        // 2.3 required functions
+        HWC2::Error getDisplayIdentificationData(uint8_t* outPort,
+                 uint32_t* outDataSize, uint8_t* outData);
+        HWC2::Error getDisplayCapabilities(uint32_t* outNumCapabilities,
+                 uint32_t* outCapabilities);
+        HWC2::Error getDisplayBrightnessSupport(bool *out_support);
+        HWC2::Error setDisplayBrightness(float brightness);
 
         // Read configs from PRIMARY Display
         int populatePrimaryConfigs();
