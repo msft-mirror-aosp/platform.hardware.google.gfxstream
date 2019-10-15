@@ -127,6 +127,13 @@ public:
 
 struct EGLThreadInfo;
 
+enum HostConnectionType {
+    HOST_CONNECTION_TCP = 0,
+    HOST_CONNECTION_QEMU_PIPE = 1,
+    HOST_CONNECTION_VIRTIO_GPU = 2,
+    HOST_CONNECTION_ADDRESS_SPACE = 3,
+};
+
 class HostConnection
 {
 public:
@@ -138,6 +145,10 @@ public:
     static void teardownUnique(HostConnection* con);
 
     ~HostConnection();
+
+    HostConnectionType connectionType() const {
+        return m_connectionType;
+    }
 
     GLEncoder *glEncoder();
     GL2Encoder *gl2Encoder();
@@ -195,6 +206,7 @@ private:
     void queryAndSetYUVCache(ExtendedRCEncoderContext *mrcEnc);
 
 private:
+    HostConnectionType m_connectionType;
     IOStream *m_stream;
     GLEncoder   *m_glEnc;
     GL2Encoder  *m_gl2Enc;
