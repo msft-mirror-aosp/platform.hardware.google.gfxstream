@@ -16,7 +16,6 @@ LOCAL_SRC_FILES := \
     android/base/files/Stream.cpp \
     android/base/files/StreamSerializing.cpp \
     android/base/Pool.cpp \
-    android/base/ring_buffer.c \
     android/base/StringFormat.cpp \
     android/base/SubAllocator.cpp \
     android/base/synchronization/AndroidMessageChannel.cpp \
