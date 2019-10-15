@@ -29,7 +29,13 @@
 
 #include "goldfish_address_space.h"
 
-GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider() {
+GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider(uint64_t subdevice) {
+
+    if (subdevice != SUBDEVICE_TYPE_NO_SUBDEVICE_ID) {
+        ALOGE("%s: Tried to use a nontrivial subdevice when support has not been added\n", __func__);
+        abort();
+    }
+
     zx::channel channel;
     zx_status_t status =
         fdio_get_service_handle(::open(GOLDFISH_ADDRESS_SPACE_DEVICE_NAME, O_RDWR),
