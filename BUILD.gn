@@ -4,6 +4,7 @@ shared_library("libvulkan_goldfish") {
     "android-emu/android/base/AlignedBuf.h",
     "android-emu/android/base/Pool.cpp",
     "android-emu/android/base/Pool.h",
+    "android-emu/android/base/ring_buffer.c",
     "android-emu/android/base/SubAllocator.cpp",
     "android-emu/android/base/SubAllocator.h",
     "android-emu/android/base/files/MemStream.cpp",
