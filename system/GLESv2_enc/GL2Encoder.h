@@ -31,6 +31,9 @@ public:
     void setDrawCallFlushInterval(uint32_t interval) {
         m_drawCallFlushInterval = interval;
     }
+    void setHasAsyncUnmapBuffer(int version) {
+        m_hasAsyncUnmapBuffer = version;
+    }
     void setNoHostError(bool noHostError) {
         m_noHostError = noHostError;
     }
@@ -101,6 +104,7 @@ private:
     std::string m_currExtensions;
     std::vector<std::string> m_currExtensionsArray;
 
+    bool    m_hasAsyncUnmapBuffer;
     bool    m_initialized;
     bool    m_noHostError;
     GLClientState *m_state;
