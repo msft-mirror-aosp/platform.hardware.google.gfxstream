@@ -45,13 +45,9 @@ class HostAddressSpaceDevice;
 
 class GoldfishAddressSpaceBlockProvider {
 public:
-#ifdef __Fuchsia__
-    GoldfishAddressSpaceBlockProvider();
-#else
     static const uint64_t SUBDEVICE_TYPE_NO_SUBDEVICE_ID = -1;
     static const uint64_t SUBDEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID = 5;
     GoldfishAddressSpaceBlockProvider(uint64_t subdevice);
-#endif  // __Fuchsia__
     ~GoldfishAddressSpaceBlockProvider();
 
 private:
