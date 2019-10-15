@@ -31,6 +31,7 @@
 #include "../egl/goldfish_sync.h"
 
 #include "ThreadInfo.h"
+#include "gralloc_cb.h"
 
 #if defined(LOG_NNDEBUG) && LOG_NNDEBUG == 0
 #define ALOGVV ALOGV
