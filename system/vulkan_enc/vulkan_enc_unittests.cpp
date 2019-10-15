@@ -95,6 +95,9 @@ TEST(WorkPool, WaitAny) {
     p.waitAny(handle, -1);
 
     EXPECT_GE(x, 1);
+
+    // Prevent use after scope after test finish
+    p.waitAll(handle);
 }
 
 // Tests waitAll primitive; each worker increments the atomic int once,
