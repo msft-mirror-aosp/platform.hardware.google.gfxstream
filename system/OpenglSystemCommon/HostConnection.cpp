@@ -15,6 +15,8 @@
 */
 #include "HostConnection.h"
 
+#include "cutils/properties.h"
+
 #ifdef GOLDFISH_NO_GL
 struct gl_client_context_t {
     int placeholder;
@@ -73,11 +75,35 @@ using goldfish_vk::VkEncoder;
 #define STREAM_BUFFER_SIZE  (4*1024*1024)
 #define STREAM_PORT_NUM     22468
 
-enum HostConnectionType {
-    HOST_CONNECTION_TCP = 0,
-    HOST_CONNECTION_QEMU_PIPE = 1,
-    HOST_CONNECTION_VIRTIO_GPU = 2,
-};
+static HostConnectionType getConnectionTypeFromProperty() {
+    char transportValue[PROPERTY_VALUE_MAX] = "";
+    property_get("ro.kernel.qemu.gltransport", transportValue, "");
+
+    bool isValid = transportValue[0] != '\0';
+    if (!isValid) return HOST_CONNECTION_QEMU_PIPE;
+
+    if (!strcmp("tcp", transportValue)) return HOST_CONNECTION_TCP;
+    if (!strcmp("pipe", transportValue)) return HOST_CONNECTION_QEMU_PIPE;
+    if (!strcmp("virtio-gpu", transportValue)) return HOST_CONNECTION_VIRTIO_GPU;
+    if (!strcmp("asg", transportValue)) return HOST_CONNECTION_ADDRESS_SPACE;
+
+    return HOST_CONNECTION_QEMU_PIPE;
+}
+
+static uint32_t getDrawCallFlushIntervalFromProperty() {
+    char flushValue[PROPERTY_VALUE_MAX] = "";
+    property_get("ro.kernel.qemu.gltransport.drawFlushInterval", flushValue, "");
+
+    bool isValid = flushValue[0] != '\0';
+    if (!isValid) return 800;
+
+    long interval = strtol(flushValue, 0, 10);
+
+    if (!interval) return 800;
+
+    return (uint32_t)interval;
+}
+
 
 class GoldfishGralloc : public Gralloc
 {
@@ -135,10 +161,12 @@ HostConnection::~HostConnection()
 HostConnection* HostConnection::connect(HostConnection* con) {
     if (!con) return con;
 
-    const enum HostConnectionType connType = HOST_CONNECTION_VIRTIO_GPU;
+    const enum HostConnectionType connType = getConnectionTypeFromProperty();
 
     switch (connType) {
         default:
+        case HOST_CONNECTION_ADDRESS_SPACE: // Not implemented yet
+            ALOGE("Trying to use address space graphics device, not implemented yet\n");
         case HOST_CONNECTION_QEMU_PIPE: {
             QemuPipeStream *stream = new QemuPipeStream(STREAM_BUFFER_SIZE);
             if (!stream) {
@@ -152,6 +180,7 @@ HostConnection* HostConnection::connect(HostConnection* con) {
                 delete con;
                 return NULL;
             }
+            con->m_connectionType = HOST_CONNECTION_QEMU_PIPE;
             con->m_stream = stream;
             con->m_grallocHelper = &m_goldfishGralloc;
             con->m_processPipe = &m_goldfishProcessPipe;
@@ -171,6 +200,7 @@ HostConnection* HostConnection::connect(HostConnection* con) {
                 delete con;
                 return NULL;
             }
+            con->m_connectionType = HOST_CONNECTION_TCP;
             con->m_stream = stream;
             con->m_grallocHelper = &m_goldfishGralloc;
             con->m_processPipe = &m_goldfishProcessPipe;
@@ -190,6 +220,7 @@ HostConnection* HostConnection::connect(HostConnection* con) {
                 delete con;
                 return NULL;
             }
+            con->m_connectionType = HOST_CONNECTION_VIRTIO_GPU;
             con->m_stream = stream;
             con->m_grallocHelper = stream->getGralloc();
             con->m_processPipe = stream->getProcessPipe();
@@ -271,6 +302,8 @@ GL2Encoder *HostConnection::gl2Encoder()
             m_gl2Enc, getCurrentThreadId());
         m_gl2Enc->setContextAccessor(s_getGL2Context);
         m_gl2Enc->setNoHostError(m_noHostError);
+        m_gl2Enc->setDrawCallFlushInterval(
+            getDrawCallFlushIntervalFromProperty());
     }
     return m_gl2Enc;
 }
