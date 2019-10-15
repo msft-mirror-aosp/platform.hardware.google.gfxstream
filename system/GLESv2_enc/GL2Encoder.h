@@ -28,6 +28,9 @@ class GL2Encoder : public gl2_encoder_context_t {
 public:
     GL2Encoder(IOStream *stream, ChecksumCalculator* protocol);
     virtual ~GL2Encoder();
+    void setDrawCallFlushInterval(uint32_t interval) {
+        m_drawCallFlushInterval = interval;
+    }
     void setNoHostError(bool noHostError) {
         m_noHostError = noHostError;
     }
@@ -131,7 +134,8 @@ private:
 
     FixedBuffer m_fixedBuffer;
 
-    int m_drawCallFlushCount;
+    uint32_t m_drawCallFlushInterval;
+    uint32_t m_drawCallFlushCount;
 
     bool m_primitiveRestartEnabled;
     GLuint m_primitiveRestartIndex;
