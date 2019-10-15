@@ -25,9 +25,13 @@ class IOStream {
 public:
 
     IOStream(size_t bufSize) {
-        m_buf = NULL;
+        m_iostreamBuf = NULL;
         m_bufsize = bufSize;
         m_free = 0;
+    }
+
+    virtual size_t idealAllocSize(size_t len) {
+        return m_bufsize < len ? len : m_bufsize;
     }
 
     virtual void *allocBuffer(size_t minSize) = 0;
@@ -39,22 +43,22 @@ public:
 
     virtual ~IOStream() {
 
-        // NOTE: m_buf is 'owned' by the child class thus we expect it to be released by it
+        // NOTE: m_iostreamBuf is 'owned' by the child class thus we expect it to be released by it
     }
 
     virtual unsigned char *alloc(size_t len) {
 
-        if (m_buf && len > m_free) {
+        if (m_iostreamBuf && len > m_free) {
             if (flush() < 0) {
                 ERR("Failed to flush in alloc\n");
                 return NULL; // we failed to flush so something is wrong
             }
         }
 
-        if (!m_buf || len > m_bufsize) {
-            int allocLen = m_bufsize < len ? len : m_bufsize;
-            m_buf = (unsigned char *)allocBuffer(allocLen);
-            if (!m_buf) {
+        if (!m_iostreamBuf || len > m_bufsize) {
+            int allocLen = this->idealAllocSize(len);
+            m_iostreamBuf = (unsigned char *)allocBuffer(allocLen);
+            if (!m_iostreamBuf) {
                 ERR("Alloc (%u bytes) failed\n", allocLen);
                 return NULL;
             }
@@ -63,7 +67,7 @@ public:
 
         unsigned char *ptr;
 
-        ptr = m_buf + (m_bufsize - m_free);
+        ptr = m_iostreamBuf + (m_bufsize - m_free);
         m_free -= len;
 
         return ptr;
@@ -71,18 +75,18 @@ public:
 
     virtual int flush() {
 
-        if (!m_buf || m_free == m_bufsize) return 0;
+        if (!m_iostreamBuf || m_free == m_bufsize) return 0;
 
         int stat = commitBuffer(m_bufsize - m_free);
-        m_buf = NULL;
+        m_iostreamBuf = NULL;
         m_free = 0;
         return stat;
     }
 
     const unsigned char *readback(void *buf, size_t len) {
-        if (m_buf && m_free != m_bufsize) {
+        if (m_iostreamBuf && m_free != m_bufsize) {
             size_t size = m_bufsize - m_free;
-            m_buf = NULL;
+            m_iostreamBuf = NULL;
             m_free = 0;
             return commitBufferAndReadFully(size, buf, len);
         }
@@ -93,7 +97,7 @@ public:
 
 
 private:
-    unsigned char *m_buf;
+    unsigned char *m_iostreamBuf;
     size_t m_bufsize;
     size_t m_free;
 };
