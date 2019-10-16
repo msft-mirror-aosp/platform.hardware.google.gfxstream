@@ -34,8 +34,7 @@ struct cb_handle_old_t : public native_handle {
 
     cb_handle_old_t(int p_fd, int p_ashmemSize, int p_usage,
                     int p_width, int p_height,
-                    int p_format, int p_glFormat, int p_glType,
-                    EmulatorFrameworkFormat p_emuFrameworkFormat) :
+                    int p_format, int p_glFormat, int p_glType) :
         fd(p_fd),
         magic(BUFFER_HANDLE_MAGIC),
         usage(p_usage),
@@ -52,8 +51,7 @@ struct cb_handle_old_t : public native_handle {
         lockedTop(0),
         lockedWidth(0),
         lockedHeight(0),
-        hostHandle(0),
-        emuFrameworkFormat(p_emuFrameworkFormat)
+        hostHandle(0)
     {
         refcount_pipe_fd = QEMU_PIPE_INVALID_HANDLE;
         version = sizeof(native_handle);
@@ -142,8 +140,6 @@ struct cb_handle_old_t : public native_handle {
     int lockedWidth;
     int lockedHeight;
     uint32_t hostHandle;
-
-    EmulatorFrameworkFormat emuFrameworkFormat;
 };
 
 

@@ -775,8 +775,7 @@ static int gralloc_alloc(alloc_device_t* dev,
 
     cb_handle_old_t *cb = new cb_handle_old_t(fd, ashmem_size, usage,
                                               w, h, format,
-                                              glFormat, glType,
-                                              selectedEmuFrameworkFormat);
+                                              glFormat, glType);
 
     if (ashmem_size > 0) {
         //
@@ -808,7 +807,7 @@ static int gralloc_alloc(alloc_device_t* dev,
 
             hostCon->lock();
             if (hasDMA) {
-                cb->hostHandle = rcEnc->rcCreateColorBufferDMA(rcEnc, w, h, allocFormat, cb->emuFrameworkFormat);
+                cb->hostHandle = rcEnc->rcCreateColorBufferDMA(rcEnc, w, h, allocFormat, selectedEmuFrameworkFormat);
             } else {
                 cb->hostHandle = rcEnc->rcCreateColorBuffer(rcEnc, w, h, allocFormat);
             }
