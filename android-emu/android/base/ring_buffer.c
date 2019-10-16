@@ -21,7 +21,11 @@
 #include <sys/time.h>
 #endif
 
-#define RING_BUFFER_X86 (defined(__i386__) || defined(__x86_64__))
+#if (defined(__i386__) || defined(__x86_64__))
+#define RING_BUFFER_X86 1
+#else
+#define RING_BUFFER_X86 0
+#endif
 
 #if RING_BUFFER_X86
 #include <emmintrin.h>
