@@ -217,14 +217,13 @@ void *GoldfishAddressSpaceBlock::mmap(uint64_t host_addr)
         ::abort();
     }
 
-    void *result;
-    const int res = memoryMap(NULL, m_size, m_handle, m_offset, &result);
-    if (res) {
+    void *result = ::mmap64(NULL, m_size, PROT_WRITE, MAP_SHARED, m_handle, m_offset);
+    if (result == MAP_FAILED) {
         ALOGE("%s: host memory map failed with size 0x%llx "
               "off 0x%llx errno %d\n",
               __func__,
               (unsigned long long)m_size,
-              (unsigned long long)m_offset, res);
+              (unsigned long long)m_offset, errno);
         return NULL;
     } else {
         m_mmaped_ptr = result;
@@ -267,20 +266,6 @@ void GoldfishAddressSpaceBlock::release()
     m_host_addr = 0;
     m_offset = 0;
     m_size = 0;
-}
-
-int GoldfishAddressSpaceBlock::memoryMap(void *addr,
-                                         size_t len,
-                                         address_space_handle_t fd,
-                                         off64_t off,
-                                         void** dst) {
-    void* ptr = ::mmap64(addr, len, PROT_WRITE, MAP_SHARED, fd, off);
-    if (MAP_FAILED == ptr) {
-        return errno;
-    } else {
-        *dst = ptr;
-        return 0;
-    }
 }
 
 void GoldfishAddressSpaceBlock::memoryUnmap(void *ptr, size_t size)
