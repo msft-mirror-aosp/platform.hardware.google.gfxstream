@@ -83,6 +83,7 @@ public:
     void *guestPtr() const;
     void replace(GoldfishAddressSpaceBlock *other);
     void release();
+    static int memoryMap(void *addr, size_t len, address_space_handle_t fd, off64_t off, void** dst);
     static void memoryUnmap(void *ptr, size_t size);
 
 private:
