@@ -134,6 +134,11 @@ address_space_handle_t GoldfishAddressSpaceBlockProvider::release()
     return handle;
 }
 
+void GoldfishAddressSpaceBlockProvider::closeHandle(address_space_handle_t handle)
+{
+    ::close(handle);
+}
+
 GoldfishAddressSpaceBlock::GoldfishAddressSpaceBlock()
     : m_handle(-1)
     , m_mmaped_ptr(NULL)
@@ -235,7 +240,7 @@ void *GoldfishAddressSpaceBlock::guestPtr() const
 void GoldfishAddressSpaceBlock::destroy()
 {
     if (m_mmaped_ptr && m_size) {
-        ::munmap(m_mmaped_ptr, m_size);
+        memoryUnmap(m_mmaped_ptr, m_size);
         m_mmaped_ptr = NULL;
     }
 
@@ -261,6 +266,11 @@ void GoldfishAddressSpaceBlock::release()
     m_host_addr = 0;
     m_offset = 0;
     m_size = 0;
+}
+
+void GoldfishAddressSpaceBlock::memoryUnmap(void *ptr, size_t size)
+{
+    ::munmap(ptr, size);
 }
 
 GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator()

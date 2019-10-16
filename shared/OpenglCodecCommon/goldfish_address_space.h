@@ -57,6 +57,7 @@ private:
     bool is_opened() const;
     void close();
     address_space_handle_t release();
+    static void closeHandle(address_space_handle_t handle);
 
 #ifdef __Fuchsia__
     fuchsia::hardware::goldfish::address::space::DeviceSyncPtr m_device;
@@ -82,6 +83,7 @@ public:
     void *guestPtr() const;
     void replace(GoldfishAddressSpaceBlock *other);
     void release();
+    static void memoryUnmap(void *ptr, size_t size);
 
 private:
     void destroy();
@@ -110,6 +112,7 @@ public:
 
     bool is_opened() const;
     address_space_handle_t release() { return m_provider.release(); }
+    static void closeHandle(address_space_handle_t handle) { GoldfishAddressSpaceBlockProvider::closeHandle(handle); }
 
 private:
     GoldfishAddressSpaceBlockProvider m_provider;
