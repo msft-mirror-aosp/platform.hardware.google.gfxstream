@@ -58,8 +58,6 @@ public:
         return m_featureInfo.hostComposition == HOST_COMPOSITION_V1; }
     bool hasHostCompositionV2() const {
         return m_featureInfo.hostComposition == HOST_COMPOSITION_V2; }
-    bool hasYUV420toNV21() const {
-        return m_featureInfo.hasYUV420888toNV21; }
     bool hasYUVCache() const {
         return m_featureInfo.hasYUVCache; }
     bool hasAsyncUnmapBuffer() const {
@@ -204,7 +202,6 @@ private:
     void queryAndSetDeferredVulkanCommandsSupport(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanNullOptionalStringsSupport(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanCreateResourcesWithRequirementsSupport(ExtendedRCEncoderContext *rcEnc);
-    void queryAndSetYUV420888toNV21(ExtendedRCEncoderContext *mrcEnc);
     void queryAndSetYUVCache(ExtendedRCEncoderContext *mrcEnc);
     void queryAndSetAsyncUnmapBuffer(ExtendedRCEncoderContext *rcEnc);
 
