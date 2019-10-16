@@ -40,15 +40,13 @@ void zx_event_create(int, zx_handle_t*) { }
 #include <cutils/native_handle.h>
 #include <fuchsia/hardware/goldfish/cpp/fidl.h>
 #include <fuchsia/sysmem/cpp/fidl.h>
-#include <lib/fdio/directory.h>
-#include <lib/fdio/fd.h>
-#include <lib/fdio/fdio.h>
-#include <lib/fdio/io.h>
 #include <lib/zx/channel.h>
 #include <lib/zx/vmo.h>
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>
+
+#include "services/service_connector.h"
 
 struct AHardwareBuffer;
 
@@ -599,26 +597,18 @@ public:
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
         if (mFeatureInfo->hasVulkan) {
-            int fd = open("/dev/class/goldfish-control/000", O_RDWR);
-            if (fd < 0) {
+            zx::channel channel(GetConnectToServiceFunction()("/dev/class/goldfish-control/000"));
+            if (!channel) {
                 ALOGE("failed to open control device");
-                abort();
-            }
-            zx::channel channel;
-            zx_status_t status = fdio_get_service_handle(fd, channel.reset_and_get_address());
-            if (status != ZX_OK) {
-                ALOGE("failed to get control service handle, status %d", status);
                 abort();
             }
             mControlDevice.Bind(std::move(channel));
 
-            status = fdio_service_connect(
-                "/svc/fuchsia.sysmem.Allocator",
-                mSysmemAllocator.NewRequest().TakeChannel().release());
-            if (status != ZX_OK) {
-                ALOGE("failed to get sysmem connection, status %d", status);
-                abort();
+            zx::channel sysmem_channel(GetConnectToServiceFunction()("/svc/fuchsia.sysmem.Allocator"));
+            if (!channel) {
+                ALOGE("failed to open sysmem connection");
             }
+            mSysmemAllocator.Bind(std::move(sysmem_channel));
         }
 #endif
 
