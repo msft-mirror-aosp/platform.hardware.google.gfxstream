@@ -73,6 +73,11 @@ address_space_handle_t GoldfishAddressSpaceBlockProvider::release()
     return handle;
 }
 
+void GoldfishAddressSpaceBlockProvider::closeHandle(address_space_handle_t handle)
+{
+    HostAddressSpaceDevice::get()->close(handle);
+}
+
 GoldfishAddressSpaceBlock::GoldfishAddressSpaceBlock()
     : m_handle(0)
     , m_mmaped_ptr(NULL)
@@ -174,6 +179,8 @@ void GoldfishAddressSpaceBlock::release()
     m_offset = 0;
     m_size = 0;
 }
+
+void GoldfishAddressSpaceBlock::memoryUnmap(void *ptr, size_t size) {}
 
 GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator()
   : m_provider(GoldfishAddressSpaceBlockProvider::SUBDEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID) {}
