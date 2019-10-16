@@ -87,9 +87,6 @@ static const char kVulkanNullOptionalStrings[] = "ANDROID_EMU_vulkan_null_option
 // Vulkan create resources with requirements
 static const char kVulkanCreateResourcesWithRequirements[] = "ANDROID_EMU_vulkan_create_resources_with_requirements";
 
-// YUV420_888 to NV21
-static const char kYUV420888toNV21[] = "ANDROID_EMU_YUV420_888_to_NV21";
-
 // YUV host cache
 static const char kYUVCache[] = "ANDROID_EMU_YUV_Cache";
 
@@ -109,7 +106,6 @@ struct EmulatorFeatureInfo {
         hasDeferredVulkanCommands(false),
         hasVulkanNullOptionalStrings(false),
         hasVulkanCreateResourcesWithRequirements(false),
-        hasYUV420888toNV21(false),
         hasYUVCache (false),
         hasAsyncUnmapBuffer (false) { }
 
@@ -122,7 +118,6 @@ struct EmulatorFeatureInfo {
     bool hasDeferredVulkanCommands;
     bool hasVulkanNullOptionalStrings;
     bool hasVulkanCreateResourcesWithRequirements;
-    bool hasYUV420888toNV21;
     bool hasYUVCache;
     bool hasAsyncUnmapBuffer;
 };
