@@ -27,6 +27,7 @@
 #define VK_FORMAT_INFO_H
 
 #include <stdbool.h>
+#include <system/graphics.h>
 #include <vulkan/vulkan.h>
 #include <vndk/hardware_buffer.h>
 
