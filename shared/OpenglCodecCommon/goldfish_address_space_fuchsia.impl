@@ -193,6 +193,7 @@ void GoldfishAddressSpaceBlock::destroy()
 }
 
 GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator()
+  : m_provider(GoldfishAddressSpaceBlockProvider::SUBDEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID)
 {
 }
 
