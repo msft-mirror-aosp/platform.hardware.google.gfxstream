@@ -33,8 +33,8 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <set>
+#include <cutils/native_handle.h>
 
-#include "gralloc_cb.h"
 #include "MiniFence.h"
 #include "HostConnection.h"
 
