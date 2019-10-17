@@ -38,7 +38,7 @@ void zx_event_create(int, zx_handle_t*) { }
 #ifdef VK_USE_PLATFORM_FUCHSIA
 
 #include <cutils/native_handle.h>
-#include <fuchsia/hardware/goldfish/control/cpp/fidl.h>
+#include <fuchsia/hardware/goldfish/cpp/fidl.h>
 #include <fuchsia/sysmem/cpp/fidl.h>
 #include <lib/fdio/directory.h>
 #include <lib/fdio/fd.h>
@@ -1938,7 +1938,7 @@ public:
                     std::move(vmo_copy),
                     imageCreateInfo.extent.width,
                     imageCreateInfo.extent.height,
-                    fuchsia::hardware::goldfish::control::FormatType::BGRA,
+                    fuchsia::hardware::goldfish::ColorBufferFormatType::BGRA,
                     &status2);
                 if (status != ZX_OK || status2 != ZX_OK) {
                     ALOGE("CreateColorBuffer failed: %d:%d", status, status2);
@@ -2359,7 +2359,7 @@ public:
                     std::move(vmo),
                     localCreateInfo.extent.width,
                     localCreateInfo.extent.height,
-                    fuchsia::hardware::goldfish::control::FormatType::BGRA,
+                    fuchsia::hardware::goldfish::ColorBufferFormatType::BGRA,
                     &status2);
                 if (status != ZX_OK || (status2 != ZX_OK && status2 != ZX_ERR_ALREADY_EXISTS)) {
                     ALOGE("CreateColorBuffer failed: %d:%d", status, status2);
@@ -3991,7 +3991,7 @@ private:
     int mSyncDeviceFd = -1;
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
-    fuchsia::hardware::goldfish::control::DeviceSyncPtr mControlDevice;
+    fuchsia::hardware::goldfish::ControlDeviceSyncPtr mControlDevice;
     fuchsia::sysmem::AllocatorSyncPtr mSysmemAllocator;
 #endif
 
