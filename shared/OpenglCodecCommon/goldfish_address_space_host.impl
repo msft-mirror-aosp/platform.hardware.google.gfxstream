@@ -180,6 +180,15 @@ void GoldfishAddressSpaceBlock::release()
     m_size = 0;
 }
 
+int GoldfishAddressSpaceBlock::memoryMap(void *addr,
+                                         size_t,
+                                         address_space_handle_t,
+                                         uint64_t,
+                                         void** dst) {
+    *dst = addr;
+    return 0;
+}
+
 void GoldfishAddressSpaceBlock::memoryUnmap(void *ptr, size_t size) {}
 
 GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator()
