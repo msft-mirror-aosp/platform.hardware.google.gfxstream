@@ -17,6 +17,14 @@
 #ifndef __GRALLOC_COMMON_H__
 #define __GRALLOC_COMMON_H__
 
+// Tell the emulator which gralloc formats
+// need special handling.
+enum EmulatorFrameworkFormat {
+    FRAMEWORK_FORMAT_GL_COMPATIBLE = 0,
+    FRAMEWORK_FORMAT_YV12 = 1,
+    FRAMEWORK_FORMAT_YUV_420_888 = 2,              // (Y+)(U+)(V+)
+};
+
 #ifndef GL_RGBA16F
 #define GL_RGBA16F                        0x881A
 #endif // GL_RGBA16F
