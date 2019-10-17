@@ -92,6 +92,14 @@ shared_library("libvulkan_goldfish") {
     "PAGE_SIZE=4096",
   ]
 
+  cflags_c = [
+    "-Wno-missing-field-initializers",
+    "-Wno-newline-eof",
+    "-Wno-unused-function",
+    "-Wno-unused-value",
+    "-Wno-unused-variable",
+  ]
+
   cflags_cc = [
     "-Wno-missing-field-initializers",
     "-Wno-newline-eof",

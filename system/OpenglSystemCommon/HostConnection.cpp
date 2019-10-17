@@ -34,6 +34,8 @@ public:
     GL2Encoder(IOStream*, ChecksumCalculator*) { }
     void setContextAccessor(gl2_client_context_t *()) { }
     void setNoHostError(bool) { }
+    void setDrawCallFlushInterval(uint32_t) { }
+    void setHasAsyncUnmapBuffer(int) { }
 };
 #else
 #include "GLEncoder.h"
