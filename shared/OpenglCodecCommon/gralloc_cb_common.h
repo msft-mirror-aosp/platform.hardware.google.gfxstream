@@ -14,10 +14,15 @@
 * limitations under the License.
 */
 
-#ifndef __GRALLOC_CB_H__
-#define __GRALLOC_CB_H__
+#ifndef __GRALLOC_CB_COMMON_H__
+#define __GRALLOC_CB_COMMON_H__
 
-#include "gralloc_cb_old.h"
-typedef cb_handle_old_t cb_handle_t;
+// Tell the emulator which gralloc formats
+// need special handling.
+enum EmulatorFrameworkFormat {
+    FRAMEWORK_FORMAT_GL_COMPATIBLE = 0,
+    FRAMEWORK_FORMAT_YV12 = 1,
+    FRAMEWORK_FORMAT_YUV_420_888 = 2,              // (Y+)(U+)(V+)
+};
 
-#endif //__GRALLOC_CB_H__
+#endif //__GRALLOC_CB_COMMON_H__

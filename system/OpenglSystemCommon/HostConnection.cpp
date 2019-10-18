@@ -112,12 +112,12 @@ class GoldfishGralloc : public Gralloc
 public:
     uint32_t getHostHandle(native_handle_t const* handle)
     {
-        return cb_handle_t::from(handle)->hostHandle;
+        return cb_handle_t::from_native_handle(handle)->hostHandle;
     }
 
     int getFormat(native_handle_t const* handle)
     {
-        return cb_handle_t::from(handle)->format;
+        return cb_handle_t::from_native_handle(handle)->format;
     }
 };
 
