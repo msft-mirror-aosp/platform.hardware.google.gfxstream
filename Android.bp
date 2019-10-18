@@ -4,7 +4,7 @@ cc_library_shared {
     srcs: [
         "android-emu/android/base/AlignedBuf.cpp",
         "android-emu/android/base/Pool.cpp",
-        "android-emu/android/base/SubAllocator.cpp",
+        "android-emu/android/base/AndroidSubAllocator.cpp",
         "android-emu/android/base/files/MemStream.cpp",
         "android-emu/android/base/files/Stream.cpp",
         "android-emu/android/base/files/StreamSerializing.cpp",
