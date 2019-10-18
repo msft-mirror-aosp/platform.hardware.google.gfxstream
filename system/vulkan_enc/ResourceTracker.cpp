@@ -890,10 +890,15 @@ public:
 
         std::vector<const char*> allowedExtensionNames = {
             "VK_KHR_maintenance1",
+            "VK_KHR_maintenance2",
+            "VK_KHR_maintenance3",
             "VK_KHR_get_memory_requirements2",
             "VK_KHR_dedicated_allocation",
             "VK_KHR_bind_memory2",
             "VK_KHR_sampler_ycbcr_conversion",
+            "VK_KHR_shader_float16_int8",
+            "VK_AMD_gpu_shader_half_float",
+            "VK_NV_shader_subgroup_partitioned",
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
             "VK_KHR_external_semaphore",
             "VK_KHR_external_semaphore_fd",
@@ -902,8 +907,6 @@ public:
             "VK_KHR_external_fence",
             "VK_KHR_external_fence_fd",
 #endif
-            // "VK_KHR_maintenance2",
-            // "VK_KHR_maintenance3",
             // TODO:
             // VK_KHR_external_memory_capabilities
         };
