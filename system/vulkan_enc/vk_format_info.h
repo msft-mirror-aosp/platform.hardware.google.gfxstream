@@ -27,7 +27,9 @@
 #define VK_FORMAT_INFO_H
 
 #include <stdbool.h>
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
 #include <system/graphics.h>
+#endif
 #include <vulkan/vulkan.h>
 #include <vndk/hardware_buffer.h>
 
