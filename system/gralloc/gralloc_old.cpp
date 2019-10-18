@@ -1,4 +1,4 @@
- /*
+/*
 * Copyright (C) 2011 The Android Open Source Project
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,6 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-
 #include <string.h>
 #include <pthread.h>
 #include <limits.h>
@@ -22,12 +21,11 @@
 #include <errno.h>
 #include <dlfcn.h>
 #include <sys/mman.h>
-#include <hardware/gralloc.h>
 
 #if PLATFORM_SDK_VERSION < 28
-#include "gralloc_cb.h"
+#include "gralloc_cb_old.h"
 #else
-#include "../../shared/OpenglCodecCommon/gralloc_cb.h"
+#include "../../shared/OpenglCodecCommon/gralloc_cb_old.h"
 #endif
 
 #include "gralloc_common.h"
@@ -83,69 +81,8 @@ static const bool isHidlGralloc = true;
 static const bool isHidlGralloc = false;
 #endif
 
-const uint32_t CB_HANDLE_MAGIC_OLD = CB_HANDLE_MAGIC_BASE | 0x1;
-
-struct cb_handle_old_t : public cb_handle_t {
-    cb_handle_old_t(int p_fd, int p_ashmemSize, int p_usage,
-                    int p_width, int p_height,
-                    int p_format, int p_glFormat, int p_glType)
-            : cb_handle_t(p_fd,
-                          QEMU_PIPE_INVALID_HANDLE,
-                          CB_HANDLE_MAGIC_OLD,
-                          0,
-                          p_usage,
-                          p_width,
-                          p_height,
-                          p_format,
-                          p_glFormat,
-                          p_glType,
-                          p_ashmemSize,
-                          nullptr),
-              ashmemBasePid(0),
-              mappedPid(0) {
-        numInts = CB_HANDLE_NUM_INTS(numFds);
-    }
-
-    bool hasRefcountPipe() const {
-        return qemu_pipe_valid(hostHandleRefCountFd);
-    }
-
-    void setRefcountPipeFd(QEMU_PIPE_HANDLE fd) {
-        if (qemu_pipe_valid(fd)) {
-            numFds++;
-        }
-        hostHandleRefCountFd = fd;
-        numInts = CB_HANDLE_NUM_INTS(numFds);
-    }
-
-    bool canBePosted() const {
-        return (0 != (usage & GRALLOC_USAGE_HW_FB));
-    }
-
-    bool isValid() const {
-        return (version == sizeof(native_handle)) && (magic == CB_HANDLE_MAGIC_OLD);
-    }
-
-    static cb_handle_old_t* from(void* p) {
-        if (!p) { return nullptr; }
-        cb_handle_old_t* cb = static_cast<cb_handle_old_t*>(p);
-        return cb->isValid() ? cb : nullptr;
-    }
-
-    static const cb_handle_old_t* from(const void* p) {
-        return from(const_cast<void*>(p));
-    }
-
-    static cb_handle_old_t* from_unconst(const void* p) {
-        return from(const_cast<void*>(p));
-    }
-
-    int32_t ashmemBasePid;      // process id which mapped the ashmem region
-    int32_t mappedPid;          // process id which succeeded gralloc_register call
-};
-
-int32_t* getOpenCountPtr(const cb_handle_old_t* cb) {
-    return ((int32_t*)cb->getBufferPtr()) + 1;
+int32_t* getOpenCountPtr(cb_handle_old_t* cb) {
+    return ((int32_t*)cb->ashmemBase) + 1;
 }
 
 uint32_t getAshmemColorOffset(cb_handle_old_t* cb) {
@@ -394,7 +331,7 @@ static void get_ashmem_region(ExtendedRCEncoderContext *rcEnc, cb_handle_old_t *
     dump_regions(rcEnc);
 #endif
 
-    get_mem_region(cb->getBufferPtr());
+    get_mem_region((void*)cb->ashmemBase);
 
 #if DEBUG
     dump_regions(rcEnc);
@@ -408,13 +345,13 @@ static bool put_ashmem_region(ExtendedRCEncoderContext *rcEnc, cb_handle_old_t *
     dump_regions(rcEnc);
 #endif
 
-    const bool should_unmap = put_mem_region(rcEnc, cb->getBufferPtr());
+    const bool should_unmap = put_mem_region(rcEnc, (void*)cb->ashmemBase);
 
 #if DEBUG
     dump_regions(rcEnc);
 #endif
 
-    put_gralloc_region(rcEnc, cb->bufferSize);
+    put_gralloc_region(rcEnc, cb->ashmemSize);
 
     return should_unmap;
 }
@@ -428,21 +365,21 @@ struct fb_device_t {
 
 static int map_buffer(cb_handle_old_t *cb, void **vaddr)
 {
-    if (cb->bufferFd < 0) {
+    if (cb->fd < 0 || cb->ashmemSize <= 0) {
         return -EINVAL;
     }
 
-    void *addr = mmap(0, cb->bufferSize, PROT_READ | PROT_WRITE,
-                      MAP_SHARED, cb->bufferFd, 0);
+    void *addr = mmap(0, cb->ashmemSize, PROT_READ | PROT_WRITE,
+                      MAP_SHARED, cb->fd, 0);
     if (addr == MAP_FAILED) {
         ALOGE("%s: failed to map ashmem region!", __FUNCTION__);
         return -errno;
     }
 
-    cb->setBufferPtr(addr);
+    cb->ashmemBase = intptr_t(addr);
     cb->ashmemBasePid = getpid();
     D("%s: %p mapped ashmem base %p size %d\n", __FUNCTION__,
-      cb, addr, cb->bufferSize);
+      cb, cb->ashmemBase, cb->ashmemSize);
 
     *vaddr = addr;
     return 0;
@@ -851,6 +788,7 @@ static int gralloc_alloc(alloc_device_t* dev,
             delete cb;
             return err;
         }
+        cb->setFd(fd);
     }
 
     const bool hasDMA = has_DMA_support(rcEnc);
@@ -927,20 +865,20 @@ static int gralloc_free(alloc_device_t* dev,
 {
     DEFINE_AND_VALIDATE_HOST_CONNECTION;
 
-    const cb_handle_old_t *cb = cb_handle_old_t::from(handle);
-    if (!cb) {
-        ERR("gralloc_free: invalid handle %p", handle);
+    cb_handle_old_t *cb = (cb_handle_old_t *)handle;
+    if (!cb_handle_old_t::validate((cb_handle_old_t*)cb)) {
+        ERR("gralloc_free: invalid handle");
         return -EINVAL;
     }
 
     D("%s: for buf %p ptr %p size %d\n",
-      __FUNCTION__, handle, cb->getBufferPtr(), cb->bufferSize);
+      __FUNCTION__, handle, cb->ashmemBase, cb->ashmemSize);
 
     if (cb->hostHandle && !cb->hasRefcountPipe()) {
         int32_t openCount = 1;
         int32_t* openCountPtr = &openCount;
 
-        if (isHidlGralloc && cb->getBufferPtr()) {
+        if (isHidlGralloc && cb->ashmemBase) {
             openCountPtr = getOpenCountPtr(cb);
         }
 
@@ -958,17 +896,17 @@ static int gralloc_free(alloc_device_t* dev,
     //
     // detach and unmap ashmem area if present
     //
-    if (cb->bufferFd > 0) {
-        if (cb->bufferSize > 0 && cb->getBufferPtr()) {
-            D("%s: unmapped %p", __FUNCTION__, cb->getBufferPtr());
-            munmap(cb->getBufferPtr(), cb->bufferSize);
-            put_gralloc_region(rcEnc, cb->bufferSize);
+    if (cb->fd > 0) {
+        if (cb->ashmemSize > 0 && cb->ashmemBase) {
+            D("%s: unmapped %p", __FUNCTION__, cb->ashmemBase);
+            munmap((void *)cb->ashmemBase, cb->ashmemSize);
+            put_gralloc_region(rcEnc, cb->ashmemSize);
         }
-        close(cb->bufferFd);
+        close(cb->fd);
     }
 
-    if(qemu_pipe_valid(cb->hostHandleRefCountFd)) {
-        qemu_pipe_close(cb->hostHandleRefCountFd);
+    if(qemu_pipe_valid(cb->refcount_pipe_fd)) {
+        qemu_pipe_close(cb->refcount_pipe_fd);
     }
     D("%s: done", __FUNCTION__);
     // remove it from the allocated list
@@ -1011,14 +949,9 @@ static int fb_compositionComplete(struct framebuffer_device_t* dev)
 static int fb_post(struct framebuffer_device_t* dev, buffer_handle_t buffer)
 {
     fb_device_t *fbdev = (fb_device_t *)dev;
-    if (!fbdev) {
-        return -EINVAL;
-    }
-    const cb_handle_old_t *cb = cb_handle_old_t::from(buffer);
-    if (!cb) {
-        return -EINVAL;
-    }
-    if (!cb->canBePosted()) {
+    cb_handle_old_t *cb = (cb_handle_old_t *)buffer;
+
+    if (!fbdev || !cb_handle_old_t::validate(cb) || !cb->canBePosted()) {
         return -EINVAL;
     }
 
@@ -1026,7 +959,7 @@ static int fb_post(struct framebuffer_device_t* dev, buffer_handle_t buffer)
     DEFINE_AND_VALIDATE_HOST_CONNECTION;
 
     // increment the post count of the buffer
-    int32_t *postCountPtr = (int32_t *)cb->getBufferPtr();
+    intptr_t *postCountPtr = (intptr_t *)cb->ashmemBase;
     if (!postCountPtr) {
         // This should not happen
         return -EINVAL;
@@ -1114,12 +1047,9 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
     }
 
     private_module_t *gr = (private_module_t *)module;
-    if (!gr) {
-        return -EINVAL;
-    }
+    cb_handle_old_t *cb = (cb_handle_old_t *)handle;
 
-    cb_handle_old_t *cb = cb_handle_old_t::from_unconst(handle);
-    if (!cb) {
+    if (!gr || !cb_handle_old_t::validate(cb)) {
         ERR("gralloc_register_buffer(%p): invalid buffer", cb);
         return -EINVAL;
     }
@@ -1138,7 +1068,7 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
     // if the color buffer has ashmem region and it is not mapped in this
     // process map it now.
     //
-    if (cb->bufferSize > 0 && cb->mappedPid != getpid()) {
+    if (cb->ashmemSize > 0 && cb->mappedPid != getpid()) {
         void *vaddr;
         int err = map_buffer(cb, &vaddr);
         if (err) {
@@ -1153,7 +1083,7 @@ static int gralloc_register_buffer(gralloc_module_t const* module,
         }
     }
 
-    if (cb->bufferSize > 0) {
+    if (cb->ashmemSize > 0) {
         get_ashmem_region(rcEnc, cb);
     }
 
@@ -1170,12 +1100,9 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
     }
 
     private_module_t *gr = (private_module_t *)module;
-    if (!gr) {
-        return -EINVAL;
-    }
+    cb_handle_old_t *cb = (cb_handle_old_t *)handle;
 
-    cb_handle_old_t *cb = cb_handle_old_t::from_unconst(handle);
-    if (!cb) {
+    if (!gr || !cb_handle_old_t::validate(cb)) {
         ERR("gralloc_unregister_buffer(%p): invalid buffer", cb);
         return -EINVAL;
     }
@@ -1189,7 +1116,7 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
         if (isHidlGralloc) {
             // Queue up another rcCloseColorBuffer if applicable.
             // invariant: have ashmem.
-            if (cb->bufferSize > 0 && cb->mappedPid == getpid()) {
+            if (cb->ashmemSize > 0 && cb->mappedPid == getpid()) {
                 int32_t* openCountPtr = getOpenCountPtr(cb);
                 if (*openCountPtr == -1) {
                     D("%s: revenge of the rcCloseColorBuffer!", __func__);
@@ -1205,16 +1132,16 @@ static int gralloc_unregister_buffer(gralloc_module_t const* module,
     // unmap ashmem region if it was previously mapped in this process
     // (through register_buffer)
     //
-    if (cb->bufferSize > 0 && cb->mappedPid == getpid()) {
+    if (cb->ashmemSize > 0 && cb->mappedPid == getpid()) {
         const bool should_unmap = put_ashmem_region(rcEnc, cb);
         if (!should_unmap) goto done;
 
-        int err = munmap(cb->getBufferPtr(), cb->bufferSize);
+        int err = munmap((void *)cb->ashmemBase, cb->ashmemSize);
         if (err) {
             ERR("gralloc_unregister_buffer(%p): unmap failed", cb);
             return -EINVAL;
         }
-        cb->bufferSize = 0;
+        cb->ashmemBase = 0;
         cb->mappedPid = 0;
         D("%s: Unregister buffer previous mapped to pid %d", __FUNCTION__, getpid());
     }
@@ -1234,12 +1161,9 @@ static int gralloc_lock(gralloc_module_t const* module,
     }
 
     private_module_t *gr = (private_module_t *)module;
-    if (!gr) {
-        return -EINVAL;
-    }
+    cb_handle_old_t *cb = (cb_handle_old_t *)handle;
 
-    cb_handle_old_t *cb = cb_handle_old_t::from_unconst(handle);
-    if (!cb) {
+    if (!gr || !cb_handle_old_t::validate(cb)) {
         ALOGE("gralloc_lock bad handle\n");
         return -EINVAL;
     }
@@ -1299,11 +1223,11 @@ static int gralloc_lock(gralloc_module_t const* module,
     if (cb->canBePosted() || sw_read || sw_write ||
             hw_cam_write || hw_cam_read ||
             hw_vid_enc_read) {
-        if (cb->ashmemBasePid != getpid() || !cb->getBufferPtr()) {
+        if (cb->ashmemBasePid != getpid() || !cb->ashmemBase) {
             return -EACCES;
         }
 
-        cpu_addr = (void *)((char*)cb->getBufferPtr() + getAshmemColorOffset(cb));
+        cpu_addr = (void *)(cb->ashmemBase + getAshmemColorOffset(cb));
     }
 
     if (cb->hostHandle) {
@@ -1367,7 +1291,7 @@ static int gralloc_lock(gralloc_module_t const* module,
         }
 
         if (has_DMA_support(rcEnc)) {
-            gralloc_dmaregion_register_ashmem(rcEnc, cb->bufferSize);
+            gralloc_dmaregion_register_ashmem(rcEnc, cb->ashmemSize);
         }
         hostCon->unlock();
     }
@@ -1403,13 +1327,10 @@ static int gralloc_unlock(gralloc_module_t const* module,
     }
 
     private_module_t *gr = (private_module_t *)module;
-    if (!gr) {
-        return -EINVAL;
-    }
+    cb_handle_old_t *cb = (cb_handle_old_t *)handle;
 
-    cb_handle_old_t *cb = cb_handle_old_t::from_unconst(handle);
-    if (!cb) {
-        ALOGD("%s: invalid cb handle. -EINVAL", __FUNCTION__);
+    if (!gr || !cb_handle_old_t::validate(cb)) {
+        ALOGD("%s: invalid gr or cb handle. -EINVAL", __FUNCTION__);
         return -EINVAL;
     }
 
@@ -1423,13 +1344,14 @@ static int gralloc_unlock(gralloc_module_t const* module,
         DEFINE_AND_VALIDATE_HOST_CONNECTION;
         hostCon->lock();
 
-        char *cpu_addr = (char*)cb->getBufferPtr() + getAshmemColorOffset(cb);
+        void *cpu_addr = (void *)(cb->ashmemBase + getAshmemColorOffset(cb));
 
+        char* rgb_addr = (char *)cpu_addr;
         if (cb->lockedWidth < cb->width || cb->lockedHeight < cb->height) {
-            updateHostColorBuffer(cb, true, cpu_addr);
+            updateHostColorBuffer(cb, true, rgb_addr);
         }
         else {
-            updateHostColorBuffer(cb, false, cpu_addr);
+            updateHostColorBuffer(cb, false, rgb_addr);
         }
 
         hostCon->unlock();
@@ -1458,12 +1380,8 @@ static int gralloc_lock_ycbcr(gralloc_module_t const* module,
     }
 
     private_module_t *gr = (private_module_t *)module;
-    if (!gr) {
-        return -EINVAL;
-    }
-
-    cb_handle_old_t *cb = cb_handle_old_t::from_unconst(handle);
-    if (!cb) {
+    cb_handle_old_t *cb = (cb_handle_old_t *)handle;
+    if (!gr || !cb_handle_old_t::validate(cb)) {
         ALOGE("%s: bad colorbuffer handle. -EINVAL", __FUNCTION__);
         return -EINVAL;
     }
