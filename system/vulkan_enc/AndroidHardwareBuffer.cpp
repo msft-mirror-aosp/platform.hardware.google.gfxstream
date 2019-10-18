@@ -111,9 +111,12 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
 
     const native_handle_t *handle =
        AHardwareBuffer_getNativeHandle(buffer);
-    const cb_handle_t* cb_handle = cb_handle_t::from_native_handle(handle);
-    uint32_t colorBufferHandle = cb_handle->hostHandle;
+    const cb_handle_t* cb_handle = cb_handle_t::from(handle);
+    if (!cb_handle) {
+        return VK_ERROR_INVALID_EXTERNAL_HANDLE;
+    }
 
+    uint32_t colorBufferHandle = cb_handle->hostHandle;
     if (!colorBufferHandle) {
         return VK_ERROR_INVALID_EXTERNAL_HANDLE;
     }
@@ -128,7 +131,7 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
     }
 
     pProperties->memoryTypeBits = memoryTypeBits;
-    pProperties->allocationSize = cb_handle->allocationSize();
+    pProperties->allocationSize = cb_handle->allocatedSize();
 
     return VK_SUCCESS;
 }
@@ -164,9 +167,12 @@ VkResult importAndroidHardwareBuffer(
 
     const native_handle_t *handle =
        AHardwareBuffer_getNativeHandle(info->buffer);
-    const cb_handle_t* cb_handle = cb_handle_t::from_native_handle(handle);
-    uint32_t colorBufferHandle = cb_handle->hostHandle;
+    const cb_handle_t* cb_handle = cb_handle_t::from(handle);
+    if (!cb_handle) {
+        return VK_ERROR_INVALID_EXTERNAL_HANDLE;
+    }
 
+    uint32_t colorBufferHandle = cb_handle->hostHandle;
     if (!colorBufferHandle) {
         return VK_ERROR_INVALID_EXTERNAL_HANDLE;
     }
