@@ -14,7 +14,7 @@
 // limitations under the License.
 #include "HostVisibleMemoryVirtualization.h"
 
-#include "android/base/SubAllocator.h"
+#include "android/base/AndroidSubAllocator.h"
 
 #include "Resources.h"
 #include "VkEncoder.h"
@@ -23,7 +23,7 @@
 
 #include <set>
 
-using android::base::SubAllocator;
+using android::base::guest::SubAllocator;
 
 namespace goldfish_vk {
 
@@ -296,7 +296,7 @@ void subFreeHostMemory(SubAlloc* toFree) {
     memset(toFree, 0x0, sizeof(SubAlloc));
 }
 
-bool canSubAlloc(android::base::SubAllocator* subAlloc, VkDeviceSize size) {
+bool canSubAlloc(android::base::guest::SubAllocator* subAlloc, VkDeviceSize size) {
     auto ptr = subAlloc->alloc(size);
     if (!ptr) return false;
     subAlloc->free(ptr);
