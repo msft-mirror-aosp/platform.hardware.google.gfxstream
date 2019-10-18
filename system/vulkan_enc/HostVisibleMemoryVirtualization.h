@@ -20,9 +20,11 @@
 
 namespace android {
 namespace base {
+namespace guest {
 
 class SubAllocator;
 
+} // namespace guest
 } // namespace base
 } // namespace android
 
@@ -81,7 +83,7 @@ struct HostMemAlloc {
     VkDeviceSize allocSize = 0;
     VkDeviceSize mappedSize = 0;
     uint8_t* mappedPtr = nullptr;
-    android::base::SubAllocator* subAlloc = nullptr;
+    android::base::guest::SubAllocator* subAlloc = nullptr;
 };
 
 VkResult finishHostMemAllocInit(
@@ -106,7 +108,7 @@ struct SubAlloc {
 
     VkDeviceMemory baseMemory = VK_NULL_HANDLE;
     VkDeviceSize baseOffset = 0;
-    android::base::SubAllocator* subAlloc = nullptr;
+    android::base::guest::SubAllocator* subAlloc = nullptr;
     VkDeviceMemory subMemory = VK_NULL_HANDLE;
 };
 
@@ -117,5 +119,5 @@ void subAllocHostMemory(
 
 void subFreeHostMemory(SubAlloc* toFree);
 
-bool canSubAlloc(android::base::SubAllocator* subAlloc, VkDeviceSize size);
+bool canSubAlloc(android::base::guest::SubAllocator* subAlloc, VkDeviceSize size);
 } // namespace goldfish_vk
