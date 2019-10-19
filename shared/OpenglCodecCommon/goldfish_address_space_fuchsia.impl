@@ -120,6 +120,15 @@ bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *prov
     return true;
 }
 
+bool GoldfishAddressSpaceBlock::claimShared(GoldfishAddressSpaceBlockProvider *provider, uint64_t offset, uint64_t size)
+{
+    ALOGD("%s: Ask to claim region [0x%llx 0x%llx]\n", __func__,
+         (unsigned long long)offset,
+         (unsigned long long)offset + size);
+    ALOGE("%s: FATAL: claimShared not supported!\n");
+    abort();
+}
+
 uint64_t GoldfishAddressSpaceBlock::physAddr() const
 {
     return m_phys_addr;
