@@ -23,6 +23,7 @@
 #include <log/log.h>
 #endif
 
+#include <errno.h>
 #include "goldfish_address_space.h"
 
 namespace {
@@ -287,3 +288,82 @@ void GoldfishAddressSpaceHostMemoryAllocator::hostFree(GoldfishAddressSpaceBlock
     block->replace(NULL);
 }
 
+address_space_handle_t goldfish_address_space_open() {
+    return HostAddressSpaceDevice::get()->open();
+}
+
+void goldfish_address_space_close(address_space_handle_t handle) {
+    HostAddressSpaceDevice::get()->close(handle);
+}
+
+bool goldfish_address_space_allocate(
+    address_space_handle_t handle,
+    size_t size, uint64_t* phys_addr, uint64_t* offset) {
+
+    *offset =
+        HostAddressSpaceDevice::get()->allocBlock(
+            handle, size, phys_addr);
+
+    return true;
+}
+
+bool goldfish_address_space_free(
+    address_space_handle_t handle, uint64_t offset) {
+    HostAddressSpaceDevice::get()->freeBlock(handle, offset);
+    return true;
+}
+
+bool goldfish_address_space_claim_shared(
+    address_space_handle_t handle, uint64_t offset, uint64_t size) {
+
+    int claimRes = HostAddressSpaceDevice::get()->claimShared(
+        handle, offset, size);
+
+    if (claimRes) {
+        ALOGE("%s: failed to claim shared region. Error: %d\n", __func__, claimRes);
+        return false;
+    }
+
+    return true;
+}
+
+bool goldfish_address_space_unclaim_shared(
+        address_space_handle_t handle, uint64_t offset) {
+    HostAddressSpaceDevice::get()->unclaimShared(handle, offset);
+    return true;
+}
+
+// pgoff is the offset into the page to return in the result
+void* goldfish_address_space_map(
+    address_space_handle_t handle,
+    uint64_t offset, uint64_t size,
+    uint64_t pgoff) {
+
+    (void)size;
+
+    void* res = HostAddressSpaceDevice::get()->
+        getHostAddr(
+            HostAddressSpaceDevice::get()->offsetToPhysAddr(offset));
+
+    if (!res) {
+        ALOGE("%s: failed to map. errno: %d\n", __func__, errno);
+        return nullptr;
+    }
+
+    return (void*)(((char*)res) + (uintptr_t)(pgoff & (PAGE_SIZE - 1)));
+}
+
+// same address space
+void goldfish_address_space_unmap(void*, uint64_t) { }
+
+bool goldfish_address_space_ping(
+    address_space_handle_t handle,
+    struct goldfish_address_space_ping* ping) {
+
+    AddressSpaceDevicePingInfo* asHostPingInfo =
+        reinterpret_cast<AddressSpaceDevicePingInfo*>(ping);
+
+    HostAddressSpaceDevice::get()->ping(handle, asHostPingInfo);
+
+    return true;
+}
