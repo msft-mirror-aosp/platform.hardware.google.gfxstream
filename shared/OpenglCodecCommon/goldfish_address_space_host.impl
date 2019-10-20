@@ -13,8 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memory>
 #include "android/emulation/hostdevices/HostAddressSpace.h"
+
+#include <memory>
 
 #if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
@@ -84,7 +85,8 @@ GoldfishAddressSpaceBlock::GoldfishAddressSpaceBlock()
     , m_phys_addr(0)
     , m_host_addr(0)
     , m_offset(0)
-    , m_size(0) {}
+    , m_size(0)
+    , m_is_shared_mapping(false) {}
 
 GoldfishAddressSpaceBlock::~GoldfishAddressSpaceBlock()
 {
@@ -98,6 +100,7 @@ GoldfishAddressSpaceBlock &GoldfishAddressSpaceBlock::operator=(const GoldfishAd
     m_host_addr = rhs.m_host_addr;
     m_offset = rhs.m_offset;
     m_size = rhs.m_size;
+    m_is_shared_mapping = rhs.m_is_shared_mapping;
     m_handle = rhs.m_handle;
     return *this;
 }
@@ -118,6 +121,36 @@ bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *prov
         HostAddressSpaceDevice::get()->allocBlock(
             provider->m_handle, size, &m_phys_addr);
     m_handle = provider->m_handle;
+    m_is_shared_mapping = false;
+
+    return true;
+}
+
+bool GoldfishAddressSpaceBlock::claimShared(GoldfishAddressSpaceBlockProvider *provider, uint64_t offset, uint64_t size)
+{
+    ALOGD("%s: Ask to claim region [0x%llx 0x%llx]\n", __func__,
+         (unsigned long long)offset,
+         (unsigned long long)offset + size);
+
+    destroy();
+
+    if (!provider->is_opened()) {
+        return false;
+    }
+
+    int claimRes = HostAddressSpaceDevice::get()->claimShared(
+            provider->m_handle, offset, size);
+
+    if (claimRes) {
+        ALOGE("%s: failed to claim shared region. Error: %d\n", __func__, claimRes);
+        return false;
+    }
+
+    m_size = size;
+    m_offset = offset;
+    m_handle = provider->m_handle;
+    m_is_shared_mapping = true;
+    m_phys_addr = HostAddressSpaceDevice::get()->offsetToPhysAddr(m_offset);
 
     return true;
 }
@@ -132,6 +165,8 @@ uint64_t GoldfishAddressSpaceBlock::hostAddr() const
     return m_host_addr;
 }
 
+// In the host implementation:
+// mmap: is done by interpreting |host_addr| as the actual host address.
 void *GoldfishAddressSpaceBlock::mmap(uint64_t host_addr)
 {
     if (m_size == 0) {
@@ -162,7 +197,11 @@ void GoldfishAddressSpaceBlock::destroy()
     }
 
     if (m_size) {
-        HostAddressSpaceDevice::get()->freeBlock(m_handle, m_offset);
+        if (m_is_shared_mapping) {
+            HostAddressSpaceDevice::get()->unclaimShared(m_handle, m_offset);
+        } else {
+            HostAddressSpaceDevice::get()->freeBlock(m_handle, m_offset);
+        }
         m_phys_addr = 0;
         m_host_addr = 0;
         m_offset = 0;
