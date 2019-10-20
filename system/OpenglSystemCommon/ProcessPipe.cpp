@@ -26,7 +26,7 @@
 #include <errno.h>
 
 #ifdef __Fuchsia__
-#include <fuchsia/hardware/goldfish/pipe/cpp/fidl.h>
+#include <fuchsia/hardware/goldfish/cpp/fidl.h>
 #include <lib/fdio/fdio.h>
 #include <lib/zx/vmo.h>
 static QEMU_PIPE_HANDLE   sProcDevice = 0;
@@ -64,10 +64,10 @@ static void processPipeInitOnce() {
         return;
     }
 
-    fuchsia::hardware::goldfish::pipe::DeviceSyncPtr device;
+    fuchsia::hardware::goldfish::PipeDeviceSyncPtr device;
     device.Bind(std::move(channel));
 
-    fuchsia::hardware::goldfish::pipe::PipeSyncPtr pipe;
+    fuchsia::hardware::goldfish::PipeSyncPtr pipe;
     device->OpenPipe(pipe.NewRequest());
 
     zx_status_t status2 = ZX_OK;

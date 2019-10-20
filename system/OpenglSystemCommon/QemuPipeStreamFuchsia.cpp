@@ -286,14 +286,14 @@ const unsigned char *QemuPipeStream::commitBufferAndReadFully(size_t size, void 
         }
         zx_signals_t observed = ZX_SIGNAL_NONE;
         status = m_event.wait_one(
-            fuchsia::hardware::goldfish::pipe::SIGNAL_READABLE |
-            fuchsia::hardware::goldfish::pipe::SIGNAL_HANGUP,
+            fuchsia::hardware::goldfish::SIGNAL_READABLE |
+            fuchsia::hardware::goldfish::SIGNAL_HANGUP,
             zx::time::infinite(), &observed);
         if (status != ZX_OK) {
             ALOGD("%s: wait_one failed: %d", __FUNCTION__, status);
             return nullptr;
         }
-        if (observed & fuchsia::hardware::goldfish::pipe::SIGNAL_HANGUP) {
+        if (observed & fuchsia::hardware::goldfish::SIGNAL_HANGUP) {
             ALOGD("%s: Remote end hungup", __FUNCTION__);
             return nullptr;
         }
