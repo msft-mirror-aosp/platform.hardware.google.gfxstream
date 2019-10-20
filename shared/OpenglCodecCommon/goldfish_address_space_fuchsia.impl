@@ -98,7 +98,7 @@ bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *prov
         return false;
     }
 
-    fuchsia::hardware::goldfish::address::space::DeviceSyncPtr* device = &provider->m_device;
+    fuchsia::hardware::goldfish::AddressSpaceDeviceSyncPtr* device = &provider->m_device;
 
     int32_t res = ZX_OK;
     zx::vmo vmo;
