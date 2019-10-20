@@ -41,16 +41,6 @@ struct goldfish_address_space_allocate_block {
     __u64 phys_addr;
 };
 
-struct goldfish_address_space_ping {
-    __u64 offset;
-    __u64 size;
-    __u64 metadata;
-    __u32 version;
-    __u32 wait_fd;
-    __u32 wait_flags;
-    __u32 direction;
-};
-
 struct goldfish_address_space_claim_shared {
     __u64 offset;
     __u64 size;
@@ -413,4 +403,100 @@ void GoldfishAddressSpaceHostMemoryAllocator::hostFree(GoldfishAddressSpaceBlock
     }
 
     block->replace(NULL);
+}
+
+address_space_handle_t goldfish_address_space_open() {
+    return ::open(GOLDFISH_ADDRESS_SPACE_DEVICE_NAME, O_RDWR);
+}
+
+void goldfish_address_space_close(address_space_handle_t handle) {
+    ::close(handle);
+}
+
+bool goldfish_address_space_allocate(
+    address_space_handle_t handle,
+    size_t size, uint64_t* phys_addr, uint64_t* offset) {
+
+    struct goldfish_address_space_allocate_block request;
+    ::memset(&request, 0, sizeof(request));
+    request.size = size;
+
+    long res = ioctl_allocate(handle, &request);
+
+    if (res) return false;
+
+    *phys_addr = request.phys_addr;
+    *offset = request.offset;
+    return true;
+}
+
+bool goldfish_address_space_free(
+    address_space_handle_t handle, uint64_t offset) {
+
+    long res = ioctl_deallocate(handle, offset);
+
+    if (res) {
+        ALOGE("ioctl_deallocate failed, res=%ld", res);
+        ::abort();
+    }
+
+    return true;
+}
+
+bool goldfish_address_space_claim_shared(
+    address_space_handle_t handle, uint64_t offset, uint64_t size) {
+
+    struct goldfish_address_space_claim_shared request;
+    request.offset = offset;
+    request.size = size;
+    long res = ioctl_claim_shared(handle, &request);
+
+    if (res) return false;
+
+    return true;
+}
+
+bool goldfish_address_space_unclaim_shared(
+        address_space_handle_t handle, uint64_t offset) {
+    long res = ioctl_unclaim_shared(handle, offset);
+    if (res) {
+        ALOGE("ioctl_unclaim_shared failed, res=%ld", res);
+        ::abort();
+    }
+
+    return true;
+}
+
+// pgoff is the offset into the page to return in the result
+void* goldfish_address_space_map(
+    address_space_handle_t handle,
+    uint64_t offset, uint64_t size,
+    uint64_t pgoff) {
+
+    void* res = ::mmap64(0, size, PROT_WRITE, MAP_SHARED, handle, offset);
+
+    if (res == MAP_FAILED) {
+        ALOGE("%s: failed to map. errno: %d\n", __func__, errno);
+        return nullptr;
+    }
+
+    return (void*)(((char*)res) + (uintptr_t)(pgoff & (PAGE_SIZE - 1)));
+}
+
+void goldfish_address_space_unmap(void* ptr, uint64_t size) {
+    void* pagePtr = (void*)(((uintptr_t)ptr) & ~(PAGE_SIZE - 1));
+    ::munmap(pagePtr, size);
+}
+
+bool goldfish_address_space_ping(
+    address_space_handle_t handle,
+    struct goldfish_address_space_ping* ping) {
+    long res = ioctl_ping(handle, ping);
+
+    if (res) {
+        ALOGE("%s: ping failed: errno: %d\n", __func__, errno);
+        return false;
+    }
+
+    return true;
 }

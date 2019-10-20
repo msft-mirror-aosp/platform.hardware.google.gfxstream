@@ -214,3 +214,60 @@ long GoldfishAddressSpaceHostMemoryAllocator::hostMalloc(GoldfishAddressSpaceBlo
 void GoldfishAddressSpaceHostMemoryAllocator::hostFree(GoldfishAddressSpaceBlock *block)
 {
 }
+
+// TODO: Implement address_space_handle_t interface
+address_space_handle_t goldfish_address_space_open() {
+    ALOGE("%s: not implemented!\n", __func__);
+    abort();
+}
+
+void goldfish_address_space_close(address_space_handle_t handle) {
+    ALOGE("%s: not implemented!\n", __func__);
+    abort();
+}
+
+bool goldfish_address_space_allocate(
+    address_space_handle_t,
+    size_t, uint64_t*, uint64_t*) {
+    ALOGE("%s: not implemented!\n", __func__);
+    abort();
+}
+
+bool goldfish_address_space_free(
+    address_space_handle_t, uint64_t) {
+    ALOGE("%s: not implemented!\n", __func__);
+    abort();
+}
+
+bool goldfish_address_space_claim_shared(
+    address_space_handle_t, uint64_t, uint64_t) {
+    ALOGE("%s: not implemented!\n", __func__);
+    abort();
+}
+
+bool goldfish_address_space_unclaim_shared(
+    address_space_handle_t, uint64_t) {
+    ALOGE("%s: not implemented!\n", __func__);
+    abort();
+}
+
+// pgoff is the offset into the page to return in the result
+void* goldfish_address_space_map(
+    address_space_handle_t,
+    uint64_t, uint64_t,
+    uint64_t) {
+    ALOGE("%s: not implemented!\n", __func__);
+    abort();
+}
+
+void goldfish_address_space_unmap(void*, uint64_t) {
+    ALOGE("%s: not implemented!\n", __func__);
+    abort();
+}
+
+bool goldfish_address_space_ping(
+    address_space_handle_t handle,
+    struct goldfish_address_space_ping* ping) {
+    ALOGE("%s: not implemented!\n", __func__);
+    abort();
+}
