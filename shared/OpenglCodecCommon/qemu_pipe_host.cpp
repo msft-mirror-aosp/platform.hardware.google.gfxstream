@@ -21,6 +21,8 @@
 #include <log/log.h>
 #endif
 
+#include <errno.h>
+
 using android::HostGoldfishPipeDevice;
 
 QEMU_PIPE_HANDLE qemu_pipe_open(const char* pipeName) {

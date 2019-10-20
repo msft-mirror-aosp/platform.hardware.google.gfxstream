@@ -156,6 +156,40 @@ long ring_buffer_read(
     return (long)steps;
 }
 
+long ring_buffer_advance_write(
+    struct ring_buffer* r, uint32_t step_size, uint32_t steps) {
+    uint32_t i;
+
+    for (i = 0; i < steps; ++i) {
+        if (!ring_buffer_can_write(r, step_size)) {
+            errno = -EAGAIN;
+            return (long)i;
+        }
+
+        __atomic_add_fetch(&r->write_pos, step_size, __ATOMIC_SEQ_CST);
+    }
+
+    errno = 0;
+    return (long)steps;
+}
+
+long ring_buffer_advance_read(
+    struct ring_buffer* r, uint32_t step_size, uint32_t steps) {
+    uint32_t i;
+
+    for (i = 0; i < steps; ++i) {
+        if (!ring_buffer_can_read(r, step_size)) {
+            errno = -EAGAIN;
+            return (long)i;
+        }
+
+        __atomic_add_fetch(&r->read_pos, step_size, __ATOMIC_SEQ_CST);
+    }
+
+    errno = 0;
+    return (long)steps;
+}
+
 uint32_t ring_buffer_calc_shift(uint32_t size) {
     uint32_t shift = 0;
     while ((1 << shift) < size) {
@@ -196,7 +230,7 @@ void ring_buffer_init_view_only(
     v->mask = (1 << shift) - 1;
 }
 
-static uint32_t ring_buffer_view_get_ring_pos(
+uint32_t ring_buffer_view_get_ring_pos(
     const struct ring_buffer_view* v,
     uint32_t index) {
     return index & v->mask;
@@ -233,6 +267,60 @@ uint32_t ring_buffer_available_read(
     } else {
         return get_ring_pos(write_view - r->read_pos);
     }
+}
+
+int ring_buffer_copy_contents(
+    const struct ring_buffer* r,
+    const struct ring_buffer_view* v,
+    uint32_t wanted_bytes,
+    uint8_t* res) {
+
+    uint32_t total_available =
+        ring_buffer_available_read(r, v);
+    uint32_t available_at_end = 0;
+
+    if (v) {
+        available_at_end =
+            v->size - ring_buffer_view_get_ring_pos(v, r->read_pos);
+    } else {
+        available_at_end =
+            RING_BUFFER_SIZE - get_ring_pos(r->write_pos);
+    }
+
+    if (total_available < wanted_bytes) {
+        return -1;
+    }
+
+    if (v) {
+        if (wanted_bytes > available_at_end) {
+            uint32_t remaining = wanted_bytes - available_at_end;
+            memcpy(res,
+                   &v->buf[ring_buffer_view_get_ring_pos(v, r->read_pos)],
+                   available_at_end);
+            memcpy(res + available_at_end,
+                   &v->buf[ring_buffer_view_get_ring_pos(v, r->read_pos + available_at_end)],
+                   remaining);
+        } else {
+            memcpy(res,
+                   &v->buf[ring_buffer_view_get_ring_pos(v, r->read_pos)],
+                   wanted_bytes);
+        }
+    } else {
+        if (wanted_bytes > available_at_end) {
+            uint32_t remaining = wanted_bytes - available_at_end;
+            memcpy(res,
+                   &r->buf[get_ring_pos(r->read_pos)],
+                   available_at_end);
+            memcpy(res + available_at_end,
+                   &r->buf[get_ring_pos(r->read_pos + available_at_end)],
+                   remaining);
+        } else {
+            memcpy(res,
+                   &r->buf[get_ring_pos(r->read_pos)],
+                   wanted_bytes);
+        }
+    }
+    return 0;
 }
 
 long ring_buffer_view_write(
@@ -319,9 +407,7 @@ long ring_buffer_view_read(
 
 void ring_buffer_yield() {
 #ifdef _WIN32
-    if (!SwitchToThread()) {
-        Sleep(0);
-    }
+    ring_buffer_pause();
 #else
     sched_yield();
 #endif
@@ -351,6 +437,9 @@ bool ring_buffer_wait_write(
     const struct ring_buffer_view* v,
     uint32_t bytes,
     uint64_t timeout_us) {
+
+    uint64_t start_us = ring_buffer_curr_us();
+    uint64_t curr_wait_us;
 
     bool can_write =
         v ? ring_buffer_view_can_write(r, v, bytes) :
@@ -404,6 +493,24 @@ void ring_buffer_write_fully(
     struct ring_buffer_view* v,
     const void* data,
     uint32_t bytes) {
+    ring_buffer_write_fully_with_abort(r, v, data, bytes, 0, 0);
+}
+
+void ring_buffer_read_fully(
+    struct ring_buffer* r,
+    struct ring_buffer_view* v,
+    void* data,
+    uint32_t bytes) {
+    ring_buffer_read_fully_with_abort(r, v, data, bytes, 0, 0);
+}
+
+uint32_t ring_buffer_write_fully_with_abort(
+    struct ring_buffer* r,
+    struct ring_buffer_view* v,
+    const void* data,
+    uint32_t bytes,
+    uint32_t abort_value,
+    const volatile uint32_t* abort_ptr) {
 
     uint32_t candidate_step = get_step_size(r, v, bytes);
     uint32_t processed = 0;
@@ -425,14 +532,22 @@ void ring_buffer_write_fully(
         }
 
         processed += processed_here ? candidate_step : 0;
+
+        if (abort_ptr && (abort_value == *abort_ptr)) {
+            return processed;
+        }
     }
+
+    return processed;
 }
 
-void ring_buffer_read_fully(
+uint32_t ring_buffer_read_fully_with_abort(
     struct ring_buffer* r,
     struct ring_buffer_view* v,
     void* data,
-    uint32_t bytes) {
+    uint32_t bytes,
+    uint32_t abort_value,
+    const volatile uint32_t* abort_ptr) {
 
     uint32_t candidate_step = get_step_size(r, v, bytes);
     uint32_t processed = 0;
@@ -455,7 +570,13 @@ void ring_buffer_read_fully(
         }
 
         processed += processed_here ? candidate_step : 0;
+
+        if (abort_ptr && (abort_value == *abort_ptr)) {
+            return processed;
+        }
     }
+
+    return processed;
 }
 
 void ring_buffer_sync_init(struct ring_buffer* r) {
