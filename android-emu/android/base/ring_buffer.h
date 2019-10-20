@@ -52,6 +52,13 @@ long ring_buffer_write(
     struct ring_buffer* r, const void* data, uint32_t step_size, uint32_t steps);
 long ring_buffer_read(
     struct ring_buffer* r, void* data, uint32_t step_size, uint32_t steps);
+// Like ring_buffer_write / ring_buffer_read, but merely advances the counters
+// without reading or writing anything. Returns the number of step_size steps
+// advanced.
+long ring_buffer_advance_write(
+    struct ring_buffer* r, uint32_t step_size, uint32_t steps);
+long ring_buffer_advance_read(
+    struct ring_buffer* r, uint32_t step_size, uint32_t steps);
 
 // If we want to work with dynamically allocated buffers, a separate struct is
 // needed; the host and guest are in different address spaces and thus have
@@ -63,6 +70,13 @@ struct ring_buffer_view {
     uint32_t mask;
 };
 
+// Convenience struct that holds a pointer to a ring along with a view.  It's a
+// common pattern for the ring and the buffer of the view to be shared between
+// two entities (in this case, usually guest and host).
+struct ring_buffer_with_view {
+    struct ring_buffer* ring;
+    struct ring_buffer_view view;
+};
 
 // Calculates the highest power of 2 so that
 // (1 << shift) <= size.
@@ -122,6 +136,29 @@ void ring_buffer_read_fully(
     void* data,
     uint32_t bytes);
 
+// Like read/write fully, but with an abort value. The value is read from
+// |abortPtr| each time. If |abortPtr| is null, then behaves the same
+// as ring_buffer_(read|write)_fully.
+// Returns the actual number of bytes sent or received.
+uint32_t ring_buffer_write_fully_with_abort(
+    struct ring_buffer* r,
+    struct ring_buffer_view* v,
+    const void* data,
+    uint32_t bytes,
+    uint32_t abort_value,
+    const volatile uint32_t* abort_ptr);
+uint32_t ring_buffer_read_fully_with_abort(
+    struct ring_buffer* r,
+    struct ring_buffer_view* v,
+    void* data,
+    uint32_t bytes,
+    uint32_t abort_value,
+    const volatile uint32_t* abort_ptr);
+
+uint32_t ring_buffer_view_get_ring_pos(
+    const struct ring_buffer_view* v,
+    uint32_t index);
+
 bool ring_buffer_can_write(
     const struct ring_buffer* r, uint32_t bytes);
 bool ring_buffer_can_read(
@@ -137,6 +174,16 @@ bool ring_buffer_view_can_read(
 uint32_t ring_buffer_available_read(
     const struct ring_buffer* r,
     const struct ring_buffer_view* v);
+// Copies out contents from the consumer side of
+// ring buffer/view |r,v|.
+// If there is less available read than |wanted_bytes|,
+// returns -1.
+// On success, returns 0.
+int ring_buffer_copy_contents(
+    const struct ring_buffer* r,
+    const struct ring_buffer_view* v,
+    uint32_t wanted_bytes,
+    uint8_t* res);
 
 // Lockless synchronization where the consumer is allowed to hang up and go to
 // sleep. This can be considered a sort of asymmetric lock for two threads,
