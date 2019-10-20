@@ -477,7 +477,7 @@ void* goldfish_address_space_map(
 
     if (res == MAP_FAILED) {
         ALOGE("%s: failed to map. errno: %d\n", __func__, errno);
-        return nullptr;
+        return 0;
     }
 
     return (void*)(((char*)res) + (uintptr_t)(pgoff & (PAGE_SIZE - 1)));
