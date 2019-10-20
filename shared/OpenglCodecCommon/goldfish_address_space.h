@@ -75,6 +75,7 @@ public:
     ~GoldfishAddressSpaceBlock();
 
     bool allocate(GoldfishAddressSpaceBlockProvider *provider, size_t size);
+    bool claimShared(GoldfishAddressSpaceBlockProvider *provider, uint64_t offset, uint64_t size);
     uint64_t physAddr() const;
     uint64_t hostAddr() const;
     uint64_t offset() const { return m_offset; }
@@ -102,6 +103,7 @@ private:
     uint64_t  m_host_addr;
     uint64_t  m_offset;
     uint64_t  m_size;
+    bool      m_is_shared_mapping;
 };
 
 class GoldfishAddressSpaceHostMemoryAllocator {
