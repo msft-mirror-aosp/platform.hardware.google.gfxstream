@@ -44,6 +44,7 @@ public:
 
 #ifdef GOLDFISH_VULKAN
 #include "VkEncoder.h"
+#include "AddressSpaceStream.h"
 #else
 namespace goldfish_vk {
 struct VkEncoder {
@@ -51,6 +52,11 @@ struct VkEncoder {
     int placeholder;
 };
 } // namespace goldfish_vk
+using AddressSpaceStream = QemuPipeStream;
+AddressSpaceStream* createAddressSpaceStream(size_t bufSize) {
+    ALOGE("%s: FATAL: Trying to create ASG stream in unsupported build\n", __func__);
+    abort();
+}
 #endif
 
 using goldfish_vk::VkEncoder;
@@ -162,11 +168,22 @@ HostConnection* HostConnection::connect(HostConnection* con) {
     if (!con) return con;
 
     const enum HostConnectionType connType = getConnectionTypeFromProperty();
+    // const enum HostConnectionType connType = HOST_CONNECTION_VIRTIO_GPU;
 
     switch (connType) {
-        default:
-        case HOST_CONNECTION_ADDRESS_SPACE: // Not implemented yet
-            ALOGE("Trying to use address space graphics device, not implemented yet\n");
+        case HOST_CONNECTION_ADDRESS_SPACE: {
+            AddressSpaceStream *stream = createAddressSpaceStream(STREAM_BUFFER_SIZE);
+            if (!stream) {
+                ALOGE("Failed to create AddressSpaceStream for host connection!!!\n");
+                delete con;
+                return NULL;
+            }
+            con->m_connectionType = HOST_CONNECTION_ADDRESS_SPACE;
+            con->m_stream = stream;
+            con->m_grallocHelper = &m_goldfishGralloc;
+            con->m_processPipe = &m_goldfishProcessPipe;
+            break;
+        }
         case HOST_CONNECTION_QEMU_PIPE: {
             QemuPipeStream *stream = new QemuPipeStream(STREAM_BUFFER_SIZE);
             if (!stream) {
@@ -233,6 +250,9 @@ HostConnection* HostConnection::connect(HostConnection* con) {
             con->m_processPipe = stream->getProcessPipe();
             break;
         }
+#else
+        default:
+            break;
 #endif
     }
 
@@ -244,6 +264,8 @@ HostConnection* HostConnection::connect(HostConnection* con) {
 
     ALOGD("HostConnection::get() New Host Connection established %p, tid %d\n",
           con, getCurrentThreadId());
+
+    // ALOGD("Address space echo latency check done\n");
     return con;
 }
 
