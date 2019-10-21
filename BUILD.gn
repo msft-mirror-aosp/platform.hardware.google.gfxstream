@@ -36,6 +36,7 @@ shared_library("libvulkan_goldfish") {
     "shared/OpenglCodecCommon/goldfish_address_space.h",
     "shared/OpenglCodecCommon/goldfish_dma.cpp",
     "shared/OpenglCodecCommon/goldfish_dma.h",
+    "system/OpenglSystemCommon/AddressSpaceStream.cpp",
     "system/OpenglSystemCommon/HostConnection.cpp",
     "system/OpenglSystemCommon/HostConnection.h",
     "system/OpenglSystemCommon/ProcessPipe.cpp",
