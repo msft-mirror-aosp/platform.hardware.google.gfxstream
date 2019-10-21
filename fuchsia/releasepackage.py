@@ -25,6 +25,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 os.chdir(dir_path)
 
 fuchsia_root = os.path.abspath(os.path.join(dir_path, "../../../"))
+fx_path = os.path.join(fuchsia_root, "scripts/fx")
 
 if args.release_dir:
   release_dir = os.path.abspath(args.release_dir)
@@ -45,6 +46,7 @@ git_repo_location = "%s/third_party/goldfish-opengl" % fuchsia_root
 package_dir = "libvulkan_goldfish/%s" % arch
 package_name = "fuchsia/lib/libvulkan/%s" % package_dir
 
+repo_name = "goldfish-opengl"
 git_branch = subprocess.check_output([
     "git", "-C", git_repo_location, "rev-parse", "--abbrev-ref", "HEAD"
 ]).strip()
@@ -59,9 +61,7 @@ if git_branch != "master":
 
 # Force ninja dry-run
 ninja_output = subprocess.check_output([
-    os.path.join(fuchsia_root, "buildtools/ninja"), "-C", release_dir, "-v",
-    "-n",
-    target_name
+    fx_path, "ninja", "-C", release_dir, "-v", "-n", target_name
 ])
 
 if "ninja: no work to do." not in ninja_output:
@@ -73,8 +73,7 @@ if "ninja: no work to do." not in ninja_output:
     sys.exit(1)
 
 gn_output = subprocess.check_output([
-    os.path.join(fuchsia_root, "buildtools/gn"), "args", release_dir,
-    "--list=is_debug", "--short"
+    fx_path, "gn", "args", release_dir, "--list=is_debug", "--short"
 ]).strip()
 if gn_output != "is_debug = false":
   print("GN argument \"%s\" unexpected" % gn_output)
@@ -94,12 +93,12 @@ except:
   pass
 shutil.copyfile(source_file_name, full_name)
 
-cipd_path = os.path.join(fuchsia_root, "buildtools/cipd")
 git_rev = subprocess.check_output(
     ["git", "-C", git_repo_location, "rev-parse", "HEAD"]).strip()
 
-cipd_command = "%s create -in %s -name %s -ref latest -install-mode copy -tag git_revision:%s" % (
-    cipd_path, package_dir, package_name, git_rev)
+cipd_command = ("%s cipd create -in %s -name %s -ref latest" 
+                " -install-mode copy -tag git_revision:%s") % (
+                    fx_path, package_dir, package_name, git_rev)
 print cipd_command
 if not args.dry_run:
   subprocess.check_call(cipd_command.split(" "))
