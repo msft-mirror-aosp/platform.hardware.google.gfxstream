@@ -11,6 +11,7 @@ LOCAL_SRC_FILES := \
     FormatConversions.cpp \
     HostConnection.cpp \
     QemuPipeStream.cpp \
+    AddressSpaceStream.cpp \
     ProcessPipe.cpp    \
 
 LOCAL_CFLAGS += -Wno-unused-variable -Wno-unused-parameter
