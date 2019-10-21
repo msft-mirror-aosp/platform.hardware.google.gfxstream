@@ -3,16 +3,18 @@ LOCAL_PATH := $(call my-dir)
 $(call emugl-begin-shared-library,libOpenglSystemCommon)
 $(call emugl-import,libGLESv1_enc libGLESv2_enc lib_renderControl_enc)
 
-ifeq (true,$(BUILD_EMULATOR_VULKAN))
-$(call emugl-import,libvulkan_enc)
-endif
-
 LOCAL_SRC_FILES := \
     FormatConversions.cpp \
     HostConnection.cpp \
     QemuPipeStream.cpp \
-    AddressSpaceStream.cpp \
     ProcessPipe.cpp    \
+
+ifeq (true,$(BUILD_EMULATOR_VULKAN))
+$(call emugl-import,libvulkan_enc)
+
+LOCAL_SRC_FILES += AddressSpaceStream.cpp
+
+endif
 
 LOCAL_CFLAGS += -Wno-unused-variable -Wno-unused-parameter
 
