@@ -52,6 +52,7 @@ struct VkEncoder {
     int placeholder;
 };
 } // namespace goldfish_vk
+class QemuPipeStream;
 using AddressSpaceStream = QemuPipeStream;
 AddressSpaceStream* createAddressSpaceStream(size_t bufSize) {
     ALOGE("%s: FATAL: Trying to create ASG stream in unsupported build\n", __func__);
