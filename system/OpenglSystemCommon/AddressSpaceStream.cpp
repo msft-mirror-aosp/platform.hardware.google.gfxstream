@@ -187,8 +187,6 @@ void *AddressSpaceStream::allocBuffer(size_t minSize) {
         (m_writeStep < minSize ? minSize : m_writeStep);
 
     if (m_writeStep < allocSize) {
-        ALOGD("%s: oops. wanted %zu have %zu\n", __func__,
-                (size_t)allocSize, (size_t)m_writeStep);
         if (!m_tmpBuf) {
             m_tmpBufSize = allocSize * 2;
             m_tmpBuf = (unsigned char*)malloc(m_tmpBufSize);
@@ -200,7 +198,7 @@ void *AddressSpaceStream::allocBuffer(size_t minSize) {
         }
 
         if (!m_usingTmpBuf) {
-            ensureType1Finished();
+            flush();
         }
 
         m_usingTmpBuf = true;
@@ -502,6 +500,9 @@ void AddressSpaceStream::ensureType3Finished() {
             ring_buffer_available_read(
                 m_context.to_host_large_xfer.ring,
                 &m_context.to_host_large_xfer.view);
+        if (*(m_context.host_state) != ASG_HOST_STATE_CAN_CONSUME) {
+            notifyAvailable();
+        }
         if (isInError()) {
             return;
         }
@@ -518,6 +519,13 @@ int AddressSpaceStream::type1Write(uint32_t bufferOffset, size_t size) {
     };
 
     uint8_t* writeBufferBytes = (uint8_t*)(&xfer);
+
+    uint32_t avail = getAvailableForWrite();
+
+    while (avail < m_context.ring_config->flush_interval) {
+        ring_buffer_yield();
+        avail = getAvailableForWrite();
+    }
 
     while (sent < sizeForRing) {
 
@@ -540,6 +548,8 @@ int AddressSpaceStream::type1Write(uint32_t bufferOffset, size_t size) {
             return -1;
         }
     }
+
+    ensureConsumerFinishing();
 
     return 0;
 }
