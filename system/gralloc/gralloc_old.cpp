@@ -99,7 +99,7 @@ struct cb_handle_old_t : public cb_handle_t {
                           p_glFormat,
                           p_glType,
                           p_ashmemSize,
-                          nullptr),
+                          NULL),
               ashmemBasePid(0),
               mappedPid(0) {
         numInts = CB_HANDLE_NUM_INTS(numFds);
@@ -126,9 +126,9 @@ struct cb_handle_old_t : public cb_handle_t {
     }
 
     static cb_handle_old_t* from(void* p) {
-        if (!p) { return nullptr; }
+        if (!p) { return NULL; }
         cb_handle_old_t* cb = static_cast<cb_handle_old_t*>(p);
-        return cb->isValid() ? cb : nullptr;
+        return cb->isValid() ? cb : NULL;
     }
 
     static const cb_handle_old_t* from(const void* p) {
