@@ -2506,7 +2506,7 @@ public:
         const VkAllocationCallbacks* pAllocator) {
         VkEncoder* enc = (VkEncoder*)context;
         if (ycbcrConversion != VK_YCBCR_CONVERSION_DO_NOTHING) {
-            enc->vkDestroySamplerYcbcrConversion(device, ycbcrConversion, pAllocator);
+            enc->vkDestroySamplerYcbcrConversionKHR(device, ycbcrConversion, pAllocator);
         }
     }
 
