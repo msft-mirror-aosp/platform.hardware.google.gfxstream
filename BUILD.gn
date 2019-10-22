@@ -115,6 +115,7 @@ shared_library("libvulkan_goldfish") {
     sources -= [ "system/OpenglSystemCommon/QemuPipeStream.cpp" ]
     sources += [
       "fuchsia/port.cc",
+      "fuchsia/service_connector.cc",
       "system/OpenglSystemCommon/QemuPipeStreamFuchsia.cpp",
     ]
 
@@ -130,8 +131,8 @@ shared_library("libvulkan_goldfish") {
     deps = [
       "//sdk/fidl/fuchsia.hardware.goldfish",
       "//zircon/system/fidl/fuchsia-sysmem",
-      "//zircon/public/lib/fdio",
       "//zircon/public/lib/trace",
+      "//zircon/public/lib/zx",
     ]
 
     defines += [
