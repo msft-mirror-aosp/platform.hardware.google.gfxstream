@@ -261,7 +261,16 @@ public:
         char* const bufferBits = static_cast<char*>(handle.getBufferPtr());
         if (!bufferBits) { RETURN_ERROR_CODE(-EINVAL); }
 
-        return lock_impl(handle, usage, left, top, width, height, vaddr, bufferBits);
+        if (handle.hostHandle) {
+            const int res = lock_impl(handle,
+                                      usage,
+                                      left, top, width, height,
+                                      bufferBits);
+            if (res) { return res; }
+        }
+
+        *vaddr = bufferBits;
+        return 0;
     }
 
     int unlock(cb_handle_30_t& handle) {
@@ -271,14 +280,9 @@ public:
         if (!bufferBits) { RETURN_ERROR_CODE(-EINVAL); }
 
         if (handle.hostHandle) {
-            const bool doLocked = handle.lockedWidth > 0 && handle.lockedHeight > 0;
-            unlock_impl(handle, bufferBits, doLocked);
+            unlock_impl(handle, bufferBits);
         }
 
-        handle.lockedLeft = 0;
-        handle.lockedTop = 0;
-        handle.lockedWidth = 0;
-        handle.lockedHeight = 0;
         return 0;
     }
 
@@ -328,16 +332,16 @@ public:
             RETURN_ERROR_CODE(-EINVAL);
         }
 
-        void* vaddr;
-        const int res = lock_impl(handle,
-                                  usage,
-                                  left, top, width, height,
-                                  &vaddr,
-                                  bufferBits);
-        if (res) { return res; }
+        if (handle.hostHandle) {
+            const int res = lock_impl(handle,
+                                      usage,
+                                      left, top, width, height,
+                                      bufferBits);
+            if (res) { return res; }
+        }
 
         memset(ycbcr->reserved, 0, sizeof(ycbcr->reserved));
-        char* const vaddr1 = static_cast<char*>(vaddr);
+        char* const vaddr1 = static_cast<char*>(bufferBits);
         ycbcr->y = vaddr1;
         ycbcr->cb = vaddr1 + uOffset;
         ycbcr->cr = vaddr1 + vOffset;
@@ -351,103 +355,101 @@ private:
     int lock_impl(cb_handle_30_t& handle,
                   const int usage,
                   const int left, const int top, const int width, const int height,
-                  void** vaddr,
                   char* const bufferBits) {
         const bool usageSwRead = usage & GRALLOC_USAGE_SW_READ_MASK;
         const bool usageSwWrite = usage & GRALLOC_USAGE_SW_WRITE_MASK;
         const bool usageHwCamera = usage & GRALLOC_USAGE_HW_CAMERA_MASK;
         const bool usageHwCameraWrite = usage & GRALLOC_USAGE_HW_CAMERA_WRITE;
 
-        if (handle.hostHandle) {
-            const HostConnectionSession conn = getHostConnectionSession();
-            ExtendedRCEncoderContext *const rcEnc = conn.getRcEncoder();
+        const HostConnectionSession conn = getHostConnectionSession();
+        ExtendedRCEncoderContext *const rcEnc = conn.getRcEncoder();
 
-            const int res = rcEnc->rcColorBufferCacheFlush(
-                rcEnc, handle.hostHandle, 0, usageSwRead);
-            if (res < 0) {
-                RETURN_ERROR_CODE(-EBUSY);
-            }
-
-            // camera delivers bits to the buffer directly and does not require
-            // an explicit read.
-            if (usageSwRead && !usageHwCamera) {
-                if (gralloc_is_yuv_format(handle.format)) {
-                    if (rcEnc->hasYUVCache()) {
-                        uint32_t bufferSize;
-
-                        switch (handle.format) {
-                        case HAL_PIXEL_FORMAT_YV12:
-                            get_yv12_offsets(handle.width, handle.height,
-                                             nullptr, nullptr, &bufferSize);
-                            break;
-                        case HAL_PIXEL_FORMAT_YCbCr_420_888:
-                            get_yuv420p_offsets(handle.width, handle.height,
-                                                nullptr, nullptr, &bufferSize);
-                            break;
-                        default:
-                            CRASH("Unexpected format, switch is out of sync with gralloc_is_yuv_format");
-                            break;
-                        }
-
-                        rcEnc->rcReadColorBufferYUV(rcEnc, handle.hostHandle,
-                            0, 0, handle.width, handle.height,
-                            bufferBits, bufferSize);
-                    } else {
-                        // We are using RGB888
-                        std::vector<char> tmpBuf(handle.width * handle.height * 3);
-                        rcEnc->rcReadColorBuffer(rcEnc, handle.hostHandle,
-                                                 0, 0, handle.width, handle.height,
-                                                 handle.glFormat, handle.glType,
-                                                 tmpBuf.data());
-
-                        switch (handle.format) {
-                        case HAL_PIXEL_FORMAT_YV12:
-                            rgb888_to_yv12(bufferBits, tmpBuf.data(),
-                                           handle.width, handle.height,
-                                           left, top,
-                                           left + width - 1, top + height - 1);
-                            break;
-                        case HAL_PIXEL_FORMAT_YCbCr_420_888:
-                            rgb888_to_yuv420p(bufferBits, tmpBuf.data(),
-                                              handle.width, handle.height,
-                                              left, top,
-                                              left + width - 1, top + height - 1);
-                            break;
-                        default:
-                            CRASH("Unexpected format, switch is out of sync with gralloc_is_yuv_format");
-                            break;
-                        }
-                    }
-                } else {
-                    rcEnc->rcReadColorBuffer(rcEnc,
-                                             handle.hostHandle,
-                                             0, 0, handle.width, handle.height,
-                                             handle.glFormat, handle.glType,
-                                             bufferBits);
-                }
-            }
+        const int res = rcEnc->rcColorBufferCacheFlush(
+            rcEnc, handle.hostHandle, 0, usageSwRead);
+        if (res < 0) {
+            RETURN_ERROR_CODE(-EBUSY);
         }
 
-        *vaddr = bufferBits;
+        // camera delivers bits to the buffer directly and does not require
+        // an explicit read.
+        if (usageSwRead && !usageHwCamera) {
+            if (gralloc_is_yuv_format(handle.format)) {
+                if (rcEnc->hasYUVCache()) {
+                    uint32_t bufferSize;
+
+                    switch (handle.format) {
+                    case HAL_PIXEL_FORMAT_YV12:
+                        get_yv12_offsets(handle.width, handle.height,
+                                         nullptr, nullptr, &bufferSize);
+                        break;
+                    case HAL_PIXEL_FORMAT_YCbCr_420_888:
+                        get_yuv420p_offsets(handle.width, handle.height,
+                                            nullptr, nullptr, &bufferSize);
+                        break;
+                    default:
+                        CRASH("Unexpected format, switch is out of sync with gralloc_is_yuv_format");
+                        break;
+                    }
+
+                    rcEnc->rcReadColorBufferYUV(rcEnc, handle.hostHandle,
+                        0, 0, handle.width, handle.height,
+                        bufferBits, bufferSize);
+                } else {
+                    // We are using RGB888
+                    std::vector<char> tmpBuf(handle.width * handle.height * 3);
+                    rcEnc->rcReadColorBuffer(rcEnc, handle.hostHandle,
+                                             0, 0, handle.width, handle.height,
+                                             handle.glFormat, handle.glType,
+                                             tmpBuf.data());
+
+                    switch (handle.format) {
+                    case HAL_PIXEL_FORMAT_YV12:
+                        rgb888_to_yv12(bufferBits, tmpBuf.data(),
+                                       handle.width, handle.height,
+                                       left, top,
+                                       left + width - 1, top + height - 1);
+                        break;
+                    case HAL_PIXEL_FORMAT_YCbCr_420_888:
+                        rgb888_to_yuv420p(bufferBits, tmpBuf.data(),
+                                          handle.width, handle.height,
+                                          left, top,
+                                          left + width - 1, top + height - 1);
+                        break;
+                    default:
+                        CRASH("Unexpected format, switch is out of sync with gralloc_is_yuv_format");
+                        break;
+                    }
+                }
+            } else {
+                rcEnc->rcReadColorBuffer(rcEnc,
+                                         handle.hostHandle,
+                                         0, 0, handle.width, handle.height,
+                                         handle.glFormat, handle.glType,
+                                         bufferBits);
+            }
+        }
 
         if (usageSwWrite || usageHwCameraWrite) {
             handle.lockedLeft = left;
             handle.lockedTop = top;
             handle.lockedWidth = width;
             handle.lockedHeight = height;
+        } else {
+            handle.lockedLeft = 0;
+            handle.lockedTop = 0;
+            handle.lockedWidth = handle.width;
+            handle.lockedHeight = handle.height;
         }
 
         return 0;
     }
 
-    void unlock_impl(cb_handle_30_t& handle,
-                     char* const bufferBits,
-                     const bool doLocked) {
+    void unlock_impl(cb_handle_30_t& handle, char* const bufferBits) {
         const int bpp = glUtilsPixelBitSize(handle.glFormat, handle.glType) >> 3;
-        const int left = doLocked ? handle.lockedLeft : 0;
-        const int top = doLocked ? handle.lockedTop : 0;
-        const int width = doLocked ? handle.lockedWidth : handle.width;
-        const int height = doLocked ? handle.lockedHeight : handle.height;
+        const int left = handle.lockedLeft;
+        const int top = handle.lockedTop;
+        const int width = handle.lockedWidth;
+        const int height = handle.lockedHeight;
         const uint32_t rgbSize = width * height * bpp;
 
         std::vector<char> convertedBuf;
@@ -488,6 +490,11 @@ private:
                     handle.glFormat, handle.glType,
                     const_cast<char*>(bitsToSend), sizeToSend);
         }
+
+        handle.lockedLeft = 0;
+        handle.lockedTop = 0;
+        handle.lockedWidth = 0;
+        handle.lockedHeight = 0;
     }
 
     //std::unique_ptr<HostConnection> m_hostConn;  // b/142677230
