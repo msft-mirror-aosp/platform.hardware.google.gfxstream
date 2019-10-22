@@ -48,7 +48,6 @@ private:
     ssize_t speculativeRead(unsigned char* readBuffer, size_t trySize);
     void notifyAvailable();
     uint32_t getRelativeBufferPos(uint32_t pos);
-    uint32_t getAvailableForWrite();
     void advanceWrite();
     void ensureConsumerFinishing();
     void ensureType1Finished();
@@ -76,6 +75,9 @@ private:
     unsigned char* m_buf;
     unsigned char* m_writeStart;
     uint32_t m_writeStep;
+
+    uint32_t m_notifs;
+    uint32_t m_written;
 };
 
 #endif
