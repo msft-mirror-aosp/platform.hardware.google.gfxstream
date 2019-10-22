@@ -157,7 +157,9 @@ AddressSpaceStream::AddressSpaceStream(
     m_writeBufferMask(m_writeBufferSize - 1),
     m_buf((unsigned char*)context.buffer),
     m_writeStart(m_buf),
-    m_writeStep(context.ring_config->flush_interval) {
+    m_writeStep(context.ring_config->flush_interval),
+    m_notifs(0),
+    m_written(0) {
     // We'll use this in the future, but at the moment,
     // it's a potential compile Werror.
     (void)m_version;
@@ -220,7 +222,7 @@ int AddressSpaceStream::commitBuffer(size_t size)
     if (size == 0) return 0;
 
     if (m_usingTmpBuf) {
-        writeFully(m_tmpBuf, m_tmpBufXferSize);
+        writeFully(m_tmpBuf, size);
         m_tmpBufXferSize = 0;
         m_usingTmpBuf = false;
         return 0;
@@ -233,7 +235,6 @@ int AddressSpaceStream::commitBuffer(size_t size)
 
 const unsigned char *AddressSpaceStream::readFully(void *ptr, size_t totalReadSize)
 {
-    ensureConsumerFinishing();
 
     unsigned char* userReadBuf = static_cast<unsigned char*>(ptr);
 
@@ -323,7 +324,10 @@ const unsigned char *AddressSpaceStream::read(void *buf, size_t *inout_len) {
 
 int AddressSpaceStream::writeFully(const void *buf, size_t size)
 {
+    ensureConsumerFinishing();
+    ensureType3Finished();
     ensureType1Finished();
+
     m_context.ring_config->transfer_size = size;
     m_context.ring_config->transfer_mode = 3;
 
@@ -359,6 +363,7 @@ int AddressSpaceStream::writeFully(const void *buf, size_t size)
 
     ensureType3Finished();
     m_context.ring_config->transfer_mode = 1;
+    m_written += size;
     return 0;
 }
 
@@ -366,13 +371,14 @@ const unsigned char *AddressSpaceStream::commitBufferAndReadFully(
     size_t writeSize, void *userReadBufPtr, size_t totalReadSize) {
 
     if (m_usingTmpBuf) {
-        writeFully(m_tmpBuf, m_tmpBufXferSize);
+        writeFully(m_tmpBuf, writeSize);
         m_usingTmpBuf = false;
         m_tmpBufXferSize = 0;
+        return readFully(userReadBufPtr, totalReadSize);
+    } else {
+        commitBuffer(writeSize);
+        return readFully(userReadBufPtr, totalReadSize);
     }
-
-    commitBuffer(writeSize);
-    return readFully(userReadBufPtr, totalReadSize);
 }
 
 bool AddressSpaceStream::isInError() const {
@@ -380,8 +386,9 @@ bool AddressSpaceStream::isInError() const {
 }
 
 ssize_t AddressSpaceStream::speculativeRead(unsigned char* readBuffer, size_t trySize) {
-    flush();
     ensureConsumerFinishing();
+    ensureType3Finished();
+    ensureType1Finished();
 
     size_t actuallyRead = 0;
     while (!actuallyRead) {
@@ -416,48 +423,23 @@ void AddressSpaceStream::notifyAvailable() {
     struct goldfish_address_space_ping request;
     request.metadata = ASG_NOTIFY_AVAILABLE;
     goldfish_address_space_ping(m_handle, &request);
+    ++m_notifs;
 }
 
 uint32_t AddressSpaceStream::getRelativeBufferPos(uint32_t pos) {
     return pos & m_writeBufferMask;
 }
 
-uint32_t AddressSpaceStream::getAvailableForWrite() {
-    uint32_t host_consumed_view;
-    __atomic_load(&m_context.ring_config->host_consumed_pos,
-                  &host_consumed_view,
-                  __ATOMIC_SEQ_CST);
-    uint32_t availableForWrite =
-        getRelativeBufferPos(
-            host_consumed_view -
-            m_context.ring_config->guest_write_pos - 1);
-    return availableForWrite;
-}
-
 void AddressSpaceStream::advanceWrite() {
-    uint32_t avail = getAvailableForWrite();
+    m_writeStart += m_context.ring_config->flush_interval;
 
-    while (avail < m_context.ring_config->flush_interval) {
-        ensureConsumerFinishing();
-        avail = getAvailableForWrite();
+    if (m_writeStart == m_buf + m_context.ring_config->buffer_size) {
+        m_writeStart = m_buf;
     }
-
-    __atomic_add_fetch(
-        &m_context.ring_config->guest_write_pos,
-        m_context.ring_config->flush_interval,
-        __ATOMIC_SEQ_CST);
-
-    unsigned char* newBuffer =
-        m_buf +
-        getRelativeBufferPos(
-            m_context.ring_config->guest_write_pos);
-
-    m_writeStart = newBuffer;
 }
 
 void AddressSpaceStream::ensureConsumerFinishing() {
-    uint32_t currAvailRead =
-        ring_buffer_available_read(m_context.to_host, 0);
+    uint32_t currAvailRead = ring_buffer_available_read(m_context.to_host, 0);
 
     while (currAvailRead) {
         ring_buffer_yield();
@@ -520,11 +502,18 @@ int AddressSpaceStream::type1Write(uint32_t bufferOffset, size_t size) {
 
     uint8_t* writeBufferBytes = (uint8_t*)(&xfer);
 
-    uint32_t avail = getAvailableForWrite();
+    uint32_t maxOutstanding = 1;
+    uint32_t maxSteps = m_context.ring_config->buffer_size /
+            m_context.ring_config->flush_interval;
 
-    while (avail < m_context.ring_config->flush_interval) {
+    if (maxSteps > 1) maxOutstanding = maxSteps >> 1;
+
+    uint32_t ringAvailReadNow = ring_buffer_available_read(m_context.to_host, 0);
+
+    while (ringAvailReadNow >= maxOutstanding) {
+        ensureConsumerFinishing();
         ring_buffer_yield();
-        avail = getAvailableForWrite();
+        ringAvailReadNow = ring_buffer_available_read(m_context.to_host, 0);
     }
 
     while (sent < sizeForRing) {
@@ -550,6 +539,15 @@ int AddressSpaceStream::type1Write(uint32_t bufferOffset, size_t size) {
     }
 
     ensureConsumerFinishing();
+    m_written += size;
+
+    float mb = (float)m_written / 1048576.0f;
+    if (mb > 100.0f) {
+        ALOGD("%s: %f mb in %d notifs. %f mb/notif\n", __func__,
+              mb, m_notifs, m_notifs ? mb / (float)m_notifs : 0.0f);
+        m_notifs = 0;
+        m_written = 0;
+    }
 
     return 0;
 }
