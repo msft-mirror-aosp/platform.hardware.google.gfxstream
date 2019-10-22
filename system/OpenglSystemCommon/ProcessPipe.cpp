@@ -27,8 +27,10 @@
 
 #ifdef __Fuchsia__
 #include <fuchsia/hardware/goldfish/cpp/fidl.h>
-#include <lib/fdio/fdio.h>
 #include <lib/zx/vmo.h>
+
+#include "services/service_connector.h"
+
 static QEMU_PIPE_HANDLE   sProcDevice = 0;
 #endif
 
@@ -47,20 +49,10 @@ static uint64_t           sProcUID = 0;
 // host.
 #ifdef __Fuchsia__
 static void processPipeInitOnce() {
-    int fd = ::open(QEMU_PIPE_PATH, O_RDWR);
-    if (fd < 0) {
-        ALOGE("%s: failed to open " QEMU_PIPE_PATH ": %s",
-              __FUNCTION__, strerror(errno));
-        return;
-    }
-
-    zx::channel channel;
-    zx_status_t status = fdio_get_service_handle(
-        fd, channel.reset_and_get_address());
-    if (status != ZX_OK) {
-        ALOGE("%s: failed to get service handle for " QEMU_PIPE_PATH ": %d",
-              __FUNCTION__, status);
-        close(fd);
+    zx::channel channel(GetConnectToServiceFunction()(QEMU_PIPE_PATH));
+    if (!channel) {
+        ALOGE("%s: failed to open " QEMU_PIPE_PATH,
+              __FUNCTION__);
         return;
     }
 
@@ -70,7 +62,7 @@ static void processPipeInitOnce() {
     fuchsia::hardware::goldfish::PipeSyncPtr pipe;
     device->OpenPipe(pipe.NewRequest());
 
-    zx_status_t status2 = ZX_OK;
+    zx_status_t status, status2 = ZX_OK;
     zx::vmo vmo;
     status = pipe->GetBuffer(&status2, &vmo);
     if (status != ZX_OK || status2 != ZX_OK) {

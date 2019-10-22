@@ -17,7 +17,6 @@
 
 #include <cutils/log.h>
 #include <errno.h>
-#include <lib/fdio/fdio.h>
 #include <lib/zx/channel.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,6 +25,8 @@
 #include <zircon/process.h>
 
 #include <utility>
+
+#include "services/service_connector.h"
 
 constexpr size_t kReadSize = 512 * 1024;
 constexpr size_t kWriteOffset = kReadSize;
@@ -68,27 +69,18 @@ QemuPipeStream::~QemuPipeStream()
 
 int QemuPipeStream::connect(void)
 {
-    int fd = TEMP_FAILURE_RETRY(open(QEMU_PIPE_PATH, O_RDWR));
-    if (fd < 0) {
-        ALOGE("%s: failed to open " QEMU_PIPE_PATH ": %s",
-              __FUNCTION__, strerror(errno));
+    zx::channel channel(GetConnectToServiceFunction()(QEMU_PIPE_PATH));
+    if (!channel) {
+        ALOGE("%s: failed to get service handle for " QEMU_PIPE_PATH,
+              __FUNCTION__);
         return -1;
     }
 
-    zx::channel channel;
-    zx_status_t status = fdio_get_service_handle(
-        fd, channel.reset_and_get_address());
-    if (status != ZX_OK) {
-        ALOGE("%s: failed to get service handle for " QEMU_PIPE_PATH ": %d",
-              __FUNCTION__, status);
-        close(fd);
-        return -1;
-    }
     m_device.Bind(std::move(channel));
     m_device->OpenPipe(m_pipe.NewRequest());
 
     zx::event event;
-    status = zx::event::create(0, &event);
+    zx_status_t status = zx::event::create(0, &event);
     if (status != ZX_OK) {
         ALOGE("%s: failed to create event: %d", __FUNCTION__, status);
         return -1;
