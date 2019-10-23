@@ -41,7 +41,7 @@ if args.arch:
 else:
   arch = "x64"
 
-target_name = "%s-shared/libvulkan_goldfish.so" % arch
+target_name = "%s-shared/lib.unstripped/libvulkan_goldfish.so" % arch
 git_repo_location = "%s/third_party/goldfish-opengl" % fuchsia_root
 package_dir = "libvulkan_goldfish/%s" % arch
 package_name = "fuchsia/lib/libvulkan/%s" % package_dir
@@ -96,7 +96,7 @@ shutil.copyfile(source_file_name, full_name)
 git_rev = subprocess.check_output(
     ["git", "-C", git_repo_location, "rev-parse", "HEAD"]).strip()
 
-cipd_command = ("%s cipd create -in %s -name %s -ref latest" 
+cipd_command = ("%s cipd create -in %s -name %s -ref latest"
                 " -install-mode copy -tag git_revision:%s") % (
                     fx_path, package_dir, package_name, git_rev)
 print cipd_command
