@@ -26,15 +26,16 @@
 // capability, and we will use a fence fd to synchronize buffer swaps.
 enum SyncImpl {
     SYNC_IMPL_NONE = 0,
-    SYNC_IMPL_NATIVE_SYNC_V2 = 1,
-    SYNC_IMPL_NATIVE_SYNC_V3 = 2,
+    SYNC_IMPL_NATIVE_SYNC_V2 = 1, // ANDROID_native_fence_sync
+    SYNC_IMPL_NATIVE_SYNC_V3 = 2, // KHR_wait_sync
+    SYNC_IMPL_NATIVE_SYNC_V4 = 3, // Correct eglGetSyncAttribKHR
 };
 
-// Interface:
-// Use the highest of v2 or v3 that show up, making us
-// SYNC_IMPL_NATIVE_SYNC_V2 or SYNC_IMPL_NATIVE_SYNC_V3.
+// Interface for native sync:
+// Use the highest that shows up
 static const char kRCNativeSyncV2[] = "ANDROID_EMU_native_sync_v2";
 static const char kRCNativeSyncV3[] = "ANDROID_EMU_native_sync_v3";
+static const char kRCNativeSyncV4[] = "ANDROID_EMU_native_sync_v4";
 
 // DMA for OpenGL
 enum DmaImpl {
