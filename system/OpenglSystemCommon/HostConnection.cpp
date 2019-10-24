@@ -456,7 +456,9 @@ void HostConnection::queryAndSetSyncImpl(ExtendedRCEncoderContext *rcEnc) {
 #if PLATFORM_SDK_VERSION <= 16 || (!defined(__i386__) && !defined(__x86_64__))
     rcEnc->setSyncImpl(SYNC_IMPL_NONE);
 #else
-    if (glExtensions.find(kRCNativeSyncV3) != std::string::npos) {
+    if (glExtensions.find(kRCNativeSyncV4) != std::string::npos) {
+        rcEnc->setSyncImpl(SYNC_IMPL_NATIVE_SYNC_V4);
+    } else if (glExtensions.find(kRCNativeSyncV3) != std::string::npos) {
         rcEnc->setSyncImpl(SYNC_IMPL_NATIVE_SYNC_V3);
     } else if (glExtensions.find(kRCNativeSyncV2) != std::string::npos) {
         rcEnc->setSyncImpl(SYNC_IMPL_NATIVE_SYNC_V2);

@@ -54,6 +54,7 @@ public:
         m_featureInfo.hostComposition = hostComposition; }
     bool hasNativeSync() const { return m_featureInfo.syncImpl >= SYNC_IMPL_NATIVE_SYNC_V2; }
     bool hasNativeSyncV3() const { return m_featureInfo.syncImpl >= SYNC_IMPL_NATIVE_SYNC_V3; }
+    bool hasNativeSyncV4() const { return m_featureInfo.syncImpl >= SYNC_IMPL_NATIVE_SYNC_V4; }
     bool hasHostCompositionV1() const {
         return m_featureInfo.hostComposition == HOST_COMPOSITION_V1; }
     bool hasHostCompositionV2() const {
