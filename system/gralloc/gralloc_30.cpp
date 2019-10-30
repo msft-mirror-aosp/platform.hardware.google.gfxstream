@@ -98,19 +98,14 @@ struct cb_handle_30_t : public cb_handle_t {
                           p_glFormat,
                           p_glType,
                           p_bufSize,
-                          p_bufPtr),
+                          p_bufPtr,
+                          p_mmapedOffset),
               bufferFdAsInt(p_bufferFd),
               bufferPtrPid(p_bufferPtrPid),
               mmapedSize(p_mmapedSize),
-              mmapedOffsetLo(static_cast<uint32_t>(p_mmapedOffset)),
-              mmapedOffsetHi(static_cast<uint32_t>(p_mmapedOffset >> 32)),
               mmapedPhysAddrLo(static_cast<uint32_t>(p_mmapedPhysAddr)),
               mmapedPhysAddrHi(static_cast<uint32_t>(p_mmapedPhysAddr >> 32)) {
         numInts = CB_HANDLE_NUM_INTS(numFds);
-    }
-
-    uint64_t getMmapedOffset() const {
-        return (uint64_t(mmapedOffsetHi) << 32) | mmapedOffsetLo;
     }
 
     uint64_t getMmapedPhysAddr() const {
@@ -136,8 +131,6 @@ struct cb_handle_30_t : public cb_handle_t {
     int32_t  bufferFdAsInt;         // int copy of bufferFd, to check if fd was duped
     int32_t  bufferPtrPid;          // pid where bufferPtr belongs to
     uint32_t mmapedSize;            // real allocation side
-    uint32_t mmapedOffsetLo;
-    uint32_t mmapedOffsetHi;
     uint32_t mmapedPhysAddrLo;
     uint32_t mmapedPhysAddrHi;
 };
