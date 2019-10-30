@@ -31,6 +31,8 @@
 
 #include "goldfish_vk_private_defs.h"
 
+#include <log/log.h>
+
 // Stuff we are not going to use but if included,
 // will cause compile errors. These are Android Vulkan
 // required extensions, but the approach will be to
@@ -40,6 +42,11 @@
 
 namespace goldfish_vk {
 
+static void sOnInvalidDynamicallyCheckedCall(const char* apiname, const char* neededFeature)
+{
+    ALOGE("invalid call to %s: %s not supported", apiname, neededFeature);
+    abort();
+}
 #ifdef VK_VERSION_1_0
 static VkResult entry_vkCreateInstance(
     const VkInstanceCreateInfo* pCreateInfo,
@@ -1593,6 +1600,22 @@ static VkResult entry_vkBindBufferMemory2(
     vkBindBufferMemory2_VkResult_return = resources->on_vkBindBufferMemory2(vkEnc, VK_SUCCESS, device, bindInfoCount, pBindInfos);
     return vkBindBufferMemory2_VkResult_return;
 }
+static VkResult dynCheck_entry_vkBindBufferMemory2(
+    VkDevice device,
+    uint32_t bindInfoCount,
+    const VkBindBufferMemoryInfo* pBindInfos)
+{
+    auto resources = ResourceTracker::get();
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_1)
+    {
+        sOnInvalidDynamicallyCheckedCall("vkBindBufferMemory2", "VK_VERSION_1_1");
+    }
+    AEMU_SCOPED_TRACE("vkBindBufferMemory2");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkBindBufferMemory2_VkResult_return = (VkResult)0;
+    vkBindBufferMemory2_VkResult_return = resources->on_vkBindBufferMemory2(vkEnc, VK_SUCCESS, device, bindInfoCount, pBindInfos);
+    return vkBindBufferMemory2_VkResult_return;
+}
 static VkResult entry_vkBindImageMemory2(
     VkDevice device,
     uint32_t bindInfoCount,
@@ -1605,6 +1628,22 @@ static VkResult entry_vkBindImageMemory2(
     vkBindImageMemory2_VkResult_return = resources->on_vkBindImageMemory2(vkEnc, VK_SUCCESS, device, bindInfoCount, pBindInfos);
     return vkBindImageMemory2_VkResult_return;
 }
+static VkResult dynCheck_entry_vkBindImageMemory2(
+    VkDevice device,
+    uint32_t bindInfoCount,
+    const VkBindImageMemoryInfo* pBindInfos)
+{
+    auto resources = ResourceTracker::get();
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_1)
+    {
+        sOnInvalidDynamicallyCheckedCall("vkBindImageMemory2", "VK_VERSION_1_1");
+    }
+    AEMU_SCOPED_TRACE("vkBindImageMemory2");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkBindImageMemory2_VkResult_return = (VkResult)0;
+    vkBindImageMemory2_VkResult_return = resources->on_vkBindImageMemory2(vkEnc, VK_SUCCESS, device, bindInfoCount, pBindInfos);
+    return vkBindImageMemory2_VkResult_return;
+}
 static void entry_vkGetDeviceGroupPeerMemoryFeatures(
     VkDevice device,
     uint32_t heapIndex,
@@ -1612,6 +1651,22 @@ static void entry_vkGetDeviceGroupPeerMemoryFeatures(
     uint32_t remoteDeviceIndex,
     VkPeerMemoryFeatureFlags* pPeerMemoryFeatures)
 {
+    AEMU_SCOPED_TRACE("vkGetDeviceGroupPeerMemoryFeatures");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkGetDeviceGroupPeerMemoryFeatures(device, heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures);
+}
+static void dynCheck_entry_vkGetDeviceGroupPeerMemoryFeatures(
+    VkDevice device,
+    uint32_t heapIndex,
+    uint32_t localDeviceIndex,
+    uint32_t remoteDeviceIndex,
+    VkPeerMemoryFeatureFlags* pPeerMemoryFeatures)
+{
+    auto resources = ResourceTracker::get();
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_1)
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceGroupPeerMemoryFeatures", "VK_VERSION_1_1");
+    }
     AEMU_SCOPED_TRACE("vkGetDeviceGroupPeerMemoryFeatures");
     auto vkEnc = HostConnection::get()->vkEncoder();
     vkEnc->vkGetDeviceGroupPeerMemoryFeatures(device, heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures);
@@ -1660,6 +1715,20 @@ static void entry_vkGetImageMemoryRequirements2(
     auto resources = ResourceTracker::get();
     resources->on_vkGetImageMemoryRequirements2(vkEnc, device, pInfo, pMemoryRequirements);
 }
+static void dynCheck_entry_vkGetImageMemoryRequirements2(
+    VkDevice device,
+    const VkImageMemoryRequirementsInfo2* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements)
+{
+    auto resources = ResourceTracker::get();
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_1)
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetImageMemoryRequirements2", "VK_VERSION_1_1");
+    }
+    AEMU_SCOPED_TRACE("vkGetImageMemoryRequirements2");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    resources->on_vkGetImageMemoryRequirements2(vkEnc, device, pInfo, pMemoryRequirements);
+}
 static void entry_vkGetBufferMemoryRequirements2(
     VkDevice device,
     const VkBufferMemoryRequirementsInfo2* pInfo,
@@ -1670,12 +1739,41 @@ static void entry_vkGetBufferMemoryRequirements2(
     auto resources = ResourceTracker::get();
     resources->on_vkGetBufferMemoryRequirements2(vkEnc, device, pInfo, pMemoryRequirements);
 }
+static void dynCheck_entry_vkGetBufferMemoryRequirements2(
+    VkDevice device,
+    const VkBufferMemoryRequirementsInfo2* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements)
+{
+    auto resources = ResourceTracker::get();
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_1)
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetBufferMemoryRequirements2", "VK_VERSION_1_1");
+    }
+    AEMU_SCOPED_TRACE("vkGetBufferMemoryRequirements2");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    resources->on_vkGetBufferMemoryRequirements2(vkEnc, device, pInfo, pMemoryRequirements);
+}
 static void entry_vkGetImageSparseMemoryRequirements2(
     VkDevice device,
     const VkImageSparseMemoryRequirementsInfo2* pInfo,
     uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements)
 {
+    AEMU_SCOPED_TRACE("vkGetImageSparseMemoryRequirements2");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkGetImageSparseMemoryRequirements2(device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
+}
+static void dynCheck_entry_vkGetImageSparseMemoryRequirements2(
+    VkDevice device,
+    const VkImageSparseMemoryRequirementsInfo2* pInfo,
+    uint32_t* pSparseMemoryRequirementCount,
+    VkSparseImageMemoryRequirements2* pSparseMemoryRequirements)
+{
+    auto resources = ResourceTracker::get();
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_1)
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetImageSparseMemoryRequirements2", "VK_VERSION_1_1");
+    }
     AEMU_SCOPED_TRACE("vkGetImageSparseMemoryRequirements2");
     auto vkEnc = HostConnection::get()->vkEncoder();
     vkEnc->vkGetImageSparseMemoryRequirements2(device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
@@ -1753,11 +1851,39 @@ static void entry_vkTrimCommandPool(
     auto vkEnc = HostConnection::get()->vkEncoder();
     vkEnc->vkTrimCommandPool(device, commandPool, flags);
 }
+static void dynCheck_entry_vkTrimCommandPool(
+    VkDevice device,
+    VkCommandPool commandPool,
+    VkCommandPoolTrimFlags flags)
+{
+    auto resources = ResourceTracker::get();
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_1)
+    {
+        sOnInvalidDynamicallyCheckedCall("vkTrimCommandPool", "VK_VERSION_1_1");
+    }
+    AEMU_SCOPED_TRACE("vkTrimCommandPool");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkTrimCommandPool(device, commandPool, flags);
+}
 static void entry_vkGetDeviceQueue2(
     VkDevice device,
     const VkDeviceQueueInfo2* pQueueInfo,
     VkQueue* pQueue)
 {
+    AEMU_SCOPED_TRACE("vkGetDeviceQueue2");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkGetDeviceQueue2(device, pQueueInfo, pQueue);
+}
+static void dynCheck_entry_vkGetDeviceQueue2(
+    VkDevice device,
+    const VkDeviceQueueInfo2* pQueueInfo,
+    VkQueue* pQueue)
+{
+    auto resources = ResourceTracker::get();
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_1)
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceQueue2", "VK_VERSION_1_1");
+    }
     AEMU_SCOPED_TRACE("vkGetDeviceQueue2");
     auto vkEnc = HostConnection::get()->vkEncoder();
     vkEnc->vkGetDeviceQueue2(device, pQueueInfo, pQueue);
@@ -1775,6 +1901,23 @@ static VkResult entry_vkCreateSamplerYcbcrConversion(
     vkCreateSamplerYcbcrConversion_VkResult_return = resources->on_vkCreateSamplerYcbcrConversion(vkEnc, VK_SUCCESS, device, pCreateInfo, pAllocator, pYcbcrConversion);
     return vkCreateSamplerYcbcrConversion_VkResult_return;
 }
+static VkResult dynCheck_entry_vkCreateSamplerYcbcrConversion(
+    VkDevice device,
+    const VkSamplerYcbcrConversionCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkSamplerYcbcrConversion* pYcbcrConversion)
+{
+    auto resources = ResourceTracker::get();
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_1)
+    {
+        sOnInvalidDynamicallyCheckedCall("vkCreateSamplerYcbcrConversion", "VK_VERSION_1_1");
+    }
+    AEMU_SCOPED_TRACE("vkCreateSamplerYcbcrConversion");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkCreateSamplerYcbcrConversion_VkResult_return = (VkResult)0;
+    vkCreateSamplerYcbcrConversion_VkResult_return = resources->on_vkCreateSamplerYcbcrConversion(vkEnc, VK_SUCCESS, device, pCreateInfo, pAllocator, pYcbcrConversion);
+    return vkCreateSamplerYcbcrConversion_VkResult_return;
+}
 static void entry_vkDestroySamplerYcbcrConversion(
     VkDevice device,
     VkSamplerYcbcrConversion ycbcrConversion,
@@ -1785,12 +1928,43 @@ static void entry_vkDestroySamplerYcbcrConversion(
     auto resources = ResourceTracker::get();
     resources->on_vkDestroySamplerYcbcrConversion(vkEnc, device, ycbcrConversion, pAllocator);
 }
+static void dynCheck_entry_vkDestroySamplerYcbcrConversion(
+    VkDevice device,
+    VkSamplerYcbcrConversion ycbcrConversion,
+    const VkAllocationCallbacks* pAllocator)
+{
+    auto resources = ResourceTracker::get();
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_1)
+    {
+        sOnInvalidDynamicallyCheckedCall("vkDestroySamplerYcbcrConversion", "VK_VERSION_1_1");
+    }
+    AEMU_SCOPED_TRACE("vkDestroySamplerYcbcrConversion");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    resources->on_vkDestroySamplerYcbcrConversion(vkEnc, device, ycbcrConversion, pAllocator);
+}
 static VkResult entry_vkCreateDescriptorUpdateTemplate(
     VkDevice device,
     const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
     const VkAllocationCallbacks* pAllocator,
     VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate)
 {
+    AEMU_SCOPED_TRACE("vkCreateDescriptorUpdateTemplate");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkCreateDescriptorUpdateTemplate_VkResult_return = (VkResult)0;
+    vkCreateDescriptorUpdateTemplate_VkResult_return = vkEnc->vkCreateDescriptorUpdateTemplate(device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
+    return vkCreateDescriptorUpdateTemplate_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateDescriptorUpdateTemplate(
+    VkDevice device,
+    const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate)
+{
+    auto resources = ResourceTracker::get();
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_1)
+    {
+        sOnInvalidDynamicallyCheckedCall("vkCreateDescriptorUpdateTemplate", "VK_VERSION_1_1");
+    }
     AEMU_SCOPED_TRACE("vkCreateDescriptorUpdateTemplate");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateDescriptorUpdateTemplate_VkResult_return = (VkResult)0;
@@ -1806,6 +1980,20 @@ static void entry_vkDestroyDescriptorUpdateTemplate(
     auto vkEnc = HostConnection::get()->vkEncoder();
     vkEnc->vkDestroyDescriptorUpdateTemplate(device, descriptorUpdateTemplate, pAllocator);
 }
+static void dynCheck_entry_vkDestroyDescriptorUpdateTemplate(
+    VkDevice device,
+    VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+    const VkAllocationCallbacks* pAllocator)
+{
+    auto resources = ResourceTracker::get();
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_1)
+    {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyDescriptorUpdateTemplate", "VK_VERSION_1_1");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyDescriptorUpdateTemplate");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkDestroyDescriptorUpdateTemplate(device, descriptorUpdateTemplate, pAllocator);
+}
 static void entry_vkUpdateDescriptorSetWithTemplate(
     VkDevice device,
     VkDescriptorSet descriptorSet,
@@ -1815,6 +2003,21 @@ static void entry_vkUpdateDescriptorSetWithTemplate(
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplate");
     auto vkEnc = HostConnection::get()->vkEncoder();
     auto resources = ResourceTracker::get();
+    resources->on_vkUpdateDescriptorSetWithTemplate(vkEnc, device, descriptorSet, descriptorUpdateTemplate, pData);
+}
+static void dynCheck_entry_vkUpdateDescriptorSetWithTemplate(
+    VkDevice device,
+    VkDescriptorSet descriptorSet,
+    VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+    const void* pData)
+{
+    auto resources = ResourceTracker::get();
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_1)
+    {
+        sOnInvalidDynamicallyCheckedCall("vkUpdateDescriptorSetWithTemplate", "VK_VERSION_1_1");
+    }
+    AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplate");
+    auto vkEnc = HostConnection::get()->vkEncoder();
     resources->on_vkUpdateDescriptorSetWithTemplate(vkEnc, device, descriptorSet, descriptorUpdateTemplate, pData);
 }
 static void entry_vkGetPhysicalDeviceExternalBufferProperties(
@@ -1850,6 +2053,20 @@ static void entry_vkGetDescriptorSetLayoutSupport(
     const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
     VkDescriptorSetLayoutSupport* pSupport)
 {
+    AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutSupport");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkGetDescriptorSetLayoutSupport(device, pCreateInfo, pSupport);
+}
+static void dynCheck_entry_vkGetDescriptorSetLayoutSupport(
+    VkDevice device,
+    const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
+    VkDescriptorSetLayoutSupport* pSupport)
+{
+    auto resources = ResourceTracker::get();
+    if (resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_1)
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetDescriptorSetLayoutSupport", "VK_VERSION_1_1");
+    }
     AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutSupport");
     auto vkEnc = HostConnection::get()->vkEncoder();
     vkEnc->vkGetDescriptorSetLayoutSupport(device, pCreateInfo, pSupport);
@@ -1926,11 +2143,42 @@ static VkResult entry_vkCreateSwapchainKHR(
     vkCreateSwapchainKHR_VkResult_return = vkEnc->vkCreateSwapchainKHR(device, pCreateInfo, pAllocator, pSwapchain);
     return vkCreateSwapchainKHR_VkResult_return;
 }
+static VkResult dynCheck_entry_vkCreateSwapchainKHR(
+    VkDevice device,
+    const VkSwapchainCreateInfoKHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkSwapchainKHR* pSwapchain)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkCreateSwapchainKHR", "VK_KHR_swapchain");
+    }
+    AEMU_SCOPED_TRACE("vkCreateSwapchainKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkCreateSwapchainKHR_VkResult_return = (VkResult)0;
+    vkCreateSwapchainKHR_VkResult_return = vkEnc->vkCreateSwapchainKHR(device, pCreateInfo, pAllocator, pSwapchain);
+    return vkCreateSwapchainKHR_VkResult_return;
+}
 static void entry_vkDestroySwapchainKHR(
     VkDevice device,
     VkSwapchainKHR swapchain,
     const VkAllocationCallbacks* pAllocator)
 {
+    AEMU_SCOPED_TRACE("vkDestroySwapchainKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkDestroySwapchainKHR(device, swapchain, pAllocator);
+}
+static void dynCheck_entry_vkDestroySwapchainKHR(
+    VkDevice device,
+    VkSwapchainKHR swapchain,
+    const VkAllocationCallbacks* pAllocator)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkDestroySwapchainKHR", "VK_KHR_swapchain");
+    }
     AEMU_SCOPED_TRACE("vkDestroySwapchainKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     vkEnc->vkDestroySwapchainKHR(device, swapchain, pAllocator);
@@ -1947,6 +2195,23 @@ static VkResult entry_vkGetSwapchainImagesKHR(
     vkGetSwapchainImagesKHR_VkResult_return = vkEnc->vkGetSwapchainImagesKHR(device, swapchain, pSwapchainImageCount, pSwapchainImages);
     return vkGetSwapchainImagesKHR_VkResult_return;
 }
+static VkResult dynCheck_entry_vkGetSwapchainImagesKHR(
+    VkDevice device,
+    VkSwapchainKHR swapchain,
+    uint32_t* pSwapchainImageCount,
+    VkImage* pSwapchainImages)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetSwapchainImagesKHR", "VK_KHR_swapchain");
+    }
+    AEMU_SCOPED_TRACE("vkGetSwapchainImagesKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetSwapchainImagesKHR_VkResult_return = (VkResult)0;
+    vkGetSwapchainImagesKHR_VkResult_return = vkEnc->vkGetSwapchainImagesKHR(device, swapchain, pSwapchainImageCount, pSwapchainImages);
+    return vkGetSwapchainImagesKHR_VkResult_return;
+}
 static VkResult entry_vkAcquireNextImageKHR(
     VkDevice device,
     VkSwapchainKHR swapchain,
@@ -1955,6 +2220,25 @@ static VkResult entry_vkAcquireNextImageKHR(
     VkFence fence,
     uint32_t* pImageIndex)
 {
+    AEMU_SCOPED_TRACE("vkAcquireNextImageKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkAcquireNextImageKHR_VkResult_return = (VkResult)0;
+    vkAcquireNextImageKHR_VkResult_return = vkEnc->vkAcquireNextImageKHR(device, swapchain, timeout, semaphore, fence, pImageIndex);
+    return vkAcquireNextImageKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkAcquireNextImageKHR(
+    VkDevice device,
+    VkSwapchainKHR swapchain,
+    uint64_t timeout,
+    VkSemaphore semaphore,
+    VkFence fence,
+    uint32_t* pImageIndex)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkAcquireNextImageKHR", "VK_KHR_swapchain");
+    }
     AEMU_SCOPED_TRACE("vkAcquireNextImageKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkAcquireNextImageKHR_VkResult_return = (VkResult)0;
@@ -1981,11 +2265,42 @@ static VkResult entry_vkGetDeviceGroupPresentCapabilitiesKHR(
     vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return = vkEnc->vkGetDeviceGroupPresentCapabilitiesKHR(device, pDeviceGroupPresentCapabilities);
     return vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return;
 }
+static VkResult dynCheck_entry_vkGetDeviceGroupPresentCapabilitiesKHR(
+    VkDevice device,
+    VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceGroupPresentCapabilitiesKHR", "VK_KHR_swapchain");
+    }
+    AEMU_SCOPED_TRACE("vkGetDeviceGroupPresentCapabilitiesKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return = (VkResult)0;
+    vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return = vkEnc->vkGetDeviceGroupPresentCapabilitiesKHR(device, pDeviceGroupPresentCapabilities);
+    return vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return;
+}
 static VkResult entry_vkGetDeviceGroupSurfacePresentModesKHR(
     VkDevice device,
     VkSurfaceKHR surface,
     VkDeviceGroupPresentModeFlagsKHR* pModes)
 {
+    AEMU_SCOPED_TRACE("vkGetDeviceGroupSurfacePresentModesKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return = (VkResult)0;
+    vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return = vkEnc->vkGetDeviceGroupSurfacePresentModesKHR(device, surface, pModes);
+    return vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetDeviceGroupSurfacePresentModesKHR(
+    VkDevice device,
+    VkSurfaceKHR surface,
+    VkDeviceGroupPresentModeFlagsKHR* pModes)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceGroupSurfacePresentModesKHR", "VK_KHR_swapchain");
+    }
     AEMU_SCOPED_TRACE("vkGetDeviceGroupSurfacePresentModesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return = (VkResult)0;
@@ -2009,6 +2324,22 @@ static VkResult entry_vkAcquireNextImage2KHR(
     const VkAcquireNextImageInfoKHR* pAcquireInfo,
     uint32_t* pImageIndex)
 {
+    AEMU_SCOPED_TRACE("vkAcquireNextImage2KHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkAcquireNextImage2KHR_VkResult_return = (VkResult)0;
+    vkAcquireNextImage2KHR_VkResult_return = vkEnc->vkAcquireNextImage2KHR(device, pAcquireInfo, pImageIndex);
+    return vkAcquireNextImage2KHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkAcquireNextImage2KHR(
+    VkDevice device,
+    const VkAcquireNextImageInfoKHR* pAcquireInfo,
+    uint32_t* pImageIndex)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_swapchain"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkAcquireNextImage2KHR", "VK_KHR_swapchain");
+    }
     AEMU_SCOPED_TRACE("vkAcquireNextImage2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkAcquireNextImage2KHR_VkResult_return = (VkResult)0;
@@ -2109,6 +2440,24 @@ static VkResult entry_vkCreateSharedSwapchainsKHR(
     const VkAllocationCallbacks* pAllocator,
     VkSwapchainKHR* pSwapchains)
 {
+    AEMU_SCOPED_TRACE("vkCreateSharedSwapchainsKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkCreateSharedSwapchainsKHR_VkResult_return = (VkResult)0;
+    vkCreateSharedSwapchainsKHR_VkResult_return = vkEnc->vkCreateSharedSwapchainsKHR(device, swapchainCount, pCreateInfos, pAllocator, pSwapchains);
+    return vkCreateSharedSwapchainsKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateSharedSwapchainsKHR(
+    VkDevice device,
+    uint32_t swapchainCount,
+    const VkSwapchainCreateInfoKHR* pCreateInfos,
+    const VkAllocationCallbacks* pAllocator,
+    VkSwapchainKHR* pSwapchains)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_display_swapchain"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkCreateSharedSwapchainsKHR", "VK_KHR_display_swapchain");
+    }
     AEMU_SCOPED_TRACE("vkCreateSharedSwapchainsKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateSharedSwapchainsKHR_VkResult_return = (VkResult)0;
@@ -2338,6 +2687,22 @@ static void entry_vkGetDeviceGroupPeerMemoryFeaturesKHR(
     auto vkEnc = HostConnection::get()->vkEncoder();
     vkEnc->vkGetDeviceGroupPeerMemoryFeaturesKHR(device, heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures);
 }
+static void dynCheck_entry_vkGetDeviceGroupPeerMemoryFeaturesKHR(
+    VkDevice device,
+    uint32_t heapIndex,
+    uint32_t localDeviceIndex,
+    uint32_t remoteDeviceIndex,
+    VkPeerMemoryFeatureFlags* pPeerMemoryFeatures)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_device_group"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceGroupPeerMemoryFeaturesKHR", "VK_KHR_device_group");
+    }
+    AEMU_SCOPED_TRACE("vkGetDeviceGroupPeerMemoryFeaturesKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkGetDeviceGroupPeerMemoryFeaturesKHR(device, heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures);
+}
 static void entry_vkCmdSetDeviceMaskKHR(
     VkCommandBuffer commandBuffer,
     uint32_t deviceMask)
@@ -2370,6 +2735,20 @@ static void entry_vkTrimCommandPoolKHR(
     VkCommandPool commandPool,
     VkCommandPoolTrimFlags flags)
 {
+    AEMU_SCOPED_TRACE("vkTrimCommandPoolKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkTrimCommandPoolKHR(device, commandPool, flags);
+}
+static void dynCheck_entry_vkTrimCommandPoolKHR(
+    VkDevice device,
+    VkCommandPool commandPool,
+    VkCommandPoolTrimFlags flags)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_maintenance1"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkTrimCommandPoolKHR", "VK_KHR_maintenance1");
+    }
     AEMU_SCOPED_TRACE("vkTrimCommandPoolKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     vkEnc->vkTrimCommandPoolKHR(device, commandPool, flags);
@@ -2413,12 +2792,45 @@ static VkResult entry_vkGetMemoryWin32HandleKHR(
     vkGetMemoryWin32HandleKHR_VkResult_return = vkEnc->vkGetMemoryWin32HandleKHR(device, pGetWin32HandleInfo, pHandle);
     return vkGetMemoryWin32HandleKHR_VkResult_return;
 }
+static VkResult dynCheck_entry_vkGetMemoryWin32HandleKHR(
+    VkDevice device,
+    const VkMemoryGetWin32HandleInfoKHR* pGetWin32HandleInfo,
+    HANDLE* pHandle)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_memory_win32"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryWin32HandleKHR", "VK_KHR_external_memory_win32");
+    }
+    AEMU_SCOPED_TRACE("vkGetMemoryWin32HandleKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetMemoryWin32HandleKHR_VkResult_return = (VkResult)0;
+    vkGetMemoryWin32HandleKHR_VkResult_return = vkEnc->vkGetMemoryWin32HandleKHR(device, pGetWin32HandleInfo, pHandle);
+    return vkGetMemoryWin32HandleKHR_VkResult_return;
+}
 static VkResult entry_vkGetMemoryWin32HandlePropertiesKHR(
     VkDevice device,
     VkExternalMemoryHandleTypeFlagBits handleType,
     HANDLE handle,
     VkMemoryWin32HandlePropertiesKHR* pMemoryWin32HandleProperties)
 {
+    AEMU_SCOPED_TRACE("vkGetMemoryWin32HandlePropertiesKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetMemoryWin32HandlePropertiesKHR_VkResult_return = (VkResult)0;
+    vkGetMemoryWin32HandlePropertiesKHR_VkResult_return = vkEnc->vkGetMemoryWin32HandlePropertiesKHR(device, handleType, handle, pMemoryWin32HandleProperties);
+    return vkGetMemoryWin32HandlePropertiesKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetMemoryWin32HandlePropertiesKHR(
+    VkDevice device,
+    VkExternalMemoryHandleTypeFlagBits handleType,
+    HANDLE handle,
+    VkMemoryWin32HandlePropertiesKHR* pMemoryWin32HandleProperties)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_memory_win32"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryWin32HandlePropertiesKHR", "VK_KHR_external_memory_win32");
+    }
     AEMU_SCOPED_TRACE("vkGetMemoryWin32HandlePropertiesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetMemoryWin32HandlePropertiesKHR_VkResult_return = (VkResult)0;
@@ -2438,12 +2850,45 @@ static VkResult entry_vkGetMemoryFdKHR(
     vkGetMemoryFdKHR_VkResult_return = vkEnc->vkGetMemoryFdKHR(device, pGetFdInfo, pFd);
     return vkGetMemoryFdKHR_VkResult_return;
 }
+static VkResult dynCheck_entry_vkGetMemoryFdKHR(
+    VkDevice device,
+    const VkMemoryGetFdInfoKHR* pGetFdInfo,
+    int* pFd)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_memory_fd"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryFdKHR", "VK_KHR_external_memory_fd");
+    }
+    AEMU_SCOPED_TRACE("vkGetMemoryFdKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetMemoryFdKHR_VkResult_return = (VkResult)0;
+    vkGetMemoryFdKHR_VkResult_return = vkEnc->vkGetMemoryFdKHR(device, pGetFdInfo, pFd);
+    return vkGetMemoryFdKHR_VkResult_return;
+}
 static VkResult entry_vkGetMemoryFdPropertiesKHR(
     VkDevice device,
     VkExternalMemoryHandleTypeFlagBits handleType,
     int fd,
     VkMemoryFdPropertiesKHR* pMemoryFdProperties)
 {
+    AEMU_SCOPED_TRACE("vkGetMemoryFdPropertiesKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetMemoryFdPropertiesKHR_VkResult_return = (VkResult)0;
+    vkGetMemoryFdPropertiesKHR_VkResult_return = vkEnc->vkGetMemoryFdPropertiesKHR(device, handleType, fd, pMemoryFdProperties);
+    return vkGetMemoryFdPropertiesKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetMemoryFdPropertiesKHR(
+    VkDevice device,
+    VkExternalMemoryHandleTypeFlagBits handleType,
+    int fd,
+    VkMemoryFdPropertiesKHR* pMemoryFdProperties)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_memory_fd"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryFdPropertiesKHR", "VK_KHR_external_memory_fd");
+    }
     AEMU_SCOPED_TRACE("vkGetMemoryFdPropertiesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetMemoryFdPropertiesKHR_VkResult_return = (VkResult)0;
@@ -2477,11 +2922,42 @@ static VkResult entry_vkImportSemaphoreWin32HandleKHR(
     vkImportSemaphoreWin32HandleKHR_VkResult_return = vkEnc->vkImportSemaphoreWin32HandleKHR(device, pImportSemaphoreWin32HandleInfo);
     return vkImportSemaphoreWin32HandleKHR_VkResult_return;
 }
+static VkResult dynCheck_entry_vkImportSemaphoreWin32HandleKHR(
+    VkDevice device,
+    const VkImportSemaphoreWin32HandleInfoKHR* pImportSemaphoreWin32HandleInfo)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_semaphore_win32"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkImportSemaphoreWin32HandleKHR", "VK_KHR_external_semaphore_win32");
+    }
+    AEMU_SCOPED_TRACE("vkImportSemaphoreWin32HandleKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkImportSemaphoreWin32HandleKHR_VkResult_return = (VkResult)0;
+    vkImportSemaphoreWin32HandleKHR_VkResult_return = vkEnc->vkImportSemaphoreWin32HandleKHR(device, pImportSemaphoreWin32HandleInfo);
+    return vkImportSemaphoreWin32HandleKHR_VkResult_return;
+}
 static VkResult entry_vkGetSemaphoreWin32HandleKHR(
     VkDevice device,
     const VkSemaphoreGetWin32HandleInfoKHR* pGetWin32HandleInfo,
     HANDLE* pHandle)
 {
+    AEMU_SCOPED_TRACE("vkGetSemaphoreWin32HandleKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetSemaphoreWin32HandleKHR_VkResult_return = (VkResult)0;
+    vkGetSemaphoreWin32HandleKHR_VkResult_return = vkEnc->vkGetSemaphoreWin32HandleKHR(device, pGetWin32HandleInfo, pHandle);
+    return vkGetSemaphoreWin32HandleKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetSemaphoreWin32HandleKHR(
+    VkDevice device,
+    const VkSemaphoreGetWin32HandleInfoKHR* pGetWin32HandleInfo,
+    HANDLE* pHandle)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_semaphore_win32"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetSemaphoreWin32HandleKHR", "VK_KHR_external_semaphore_win32");
+    }
     AEMU_SCOPED_TRACE("vkGetSemaphoreWin32HandleKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetSemaphoreWin32HandleKHR_VkResult_return = (VkResult)0;
@@ -2501,6 +2977,21 @@ static VkResult entry_vkImportSemaphoreFdKHR(
     vkImportSemaphoreFdKHR_VkResult_return = resources->on_vkImportSemaphoreFdKHR(vkEnc, VK_SUCCESS, device, pImportSemaphoreFdInfo);
     return vkImportSemaphoreFdKHR_VkResult_return;
 }
+static VkResult dynCheck_entry_vkImportSemaphoreFdKHR(
+    VkDevice device,
+    const VkImportSemaphoreFdInfoKHR* pImportSemaphoreFdInfo)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_semaphore_fd"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkImportSemaphoreFdKHR", "VK_KHR_external_semaphore_fd");
+    }
+    AEMU_SCOPED_TRACE("vkImportSemaphoreFdKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkImportSemaphoreFdKHR_VkResult_return = (VkResult)0;
+    vkImportSemaphoreFdKHR_VkResult_return = resources->on_vkImportSemaphoreFdKHR(vkEnc, VK_SUCCESS, device, pImportSemaphoreFdInfo);
+    return vkImportSemaphoreFdKHR_VkResult_return;
+}
 static VkResult entry_vkGetSemaphoreFdKHR(
     VkDevice device,
     const VkSemaphoreGetFdInfoKHR* pGetFdInfo,
@@ -2510,6 +3001,22 @@ static VkResult entry_vkGetSemaphoreFdKHR(
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetSemaphoreFdKHR_VkResult_return = (VkResult)0;
     auto resources = ResourceTracker::get();
+    vkGetSemaphoreFdKHR_VkResult_return = resources->on_vkGetSemaphoreFdKHR(vkEnc, VK_SUCCESS, device, pGetFdInfo, pFd);
+    return vkGetSemaphoreFdKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetSemaphoreFdKHR(
+    VkDevice device,
+    const VkSemaphoreGetFdInfoKHR* pGetFdInfo,
+    int* pFd)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_semaphore_fd"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetSemaphoreFdKHR", "VK_KHR_external_semaphore_fd");
+    }
+    AEMU_SCOPED_TRACE("vkGetSemaphoreFdKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetSemaphoreFdKHR_VkResult_return = (VkResult)0;
     vkGetSemaphoreFdKHR_VkResult_return = resources->on_vkGetSemaphoreFdKHR(vkEnc, VK_SUCCESS, device, pGetFdInfo, pFd);
     return vkGetSemaphoreFdKHR_VkResult_return;
 }
@@ -2558,11 +3065,42 @@ static VkResult entry_vkCreateDescriptorUpdateTemplateKHR(
     vkCreateDescriptorUpdateTemplateKHR_VkResult_return = vkEnc->vkCreateDescriptorUpdateTemplateKHR(device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
     return vkCreateDescriptorUpdateTemplateKHR_VkResult_return;
 }
+static VkResult dynCheck_entry_vkCreateDescriptorUpdateTemplateKHR(
+    VkDevice device,
+    const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_descriptor_update_template"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkCreateDescriptorUpdateTemplateKHR", "VK_KHR_descriptor_update_template");
+    }
+    AEMU_SCOPED_TRACE("vkCreateDescriptorUpdateTemplateKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkCreateDescriptorUpdateTemplateKHR_VkResult_return = (VkResult)0;
+    vkCreateDescriptorUpdateTemplateKHR_VkResult_return = vkEnc->vkCreateDescriptorUpdateTemplateKHR(device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
+    return vkCreateDescriptorUpdateTemplateKHR_VkResult_return;
+}
 static void entry_vkDestroyDescriptorUpdateTemplateKHR(
     VkDevice device,
     VkDescriptorUpdateTemplate descriptorUpdateTemplate,
     const VkAllocationCallbacks* pAllocator)
 {
+    AEMU_SCOPED_TRACE("vkDestroyDescriptorUpdateTemplateKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkDestroyDescriptorUpdateTemplateKHR(device, descriptorUpdateTemplate, pAllocator);
+}
+static void dynCheck_entry_vkDestroyDescriptorUpdateTemplateKHR(
+    VkDevice device,
+    VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+    const VkAllocationCallbacks* pAllocator)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_descriptor_update_template"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyDescriptorUpdateTemplateKHR", "VK_KHR_descriptor_update_template");
+    }
     AEMU_SCOPED_TRACE("vkDestroyDescriptorUpdateTemplateKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     vkEnc->vkDestroyDescriptorUpdateTemplateKHR(device, descriptorUpdateTemplate, pAllocator);
@@ -2577,6 +3115,21 @@ static void entry_vkUpdateDescriptorSetWithTemplateKHR(
     auto vkEnc = HostConnection::get()->vkEncoder();
     vkEnc->vkUpdateDescriptorSetWithTemplateKHR(device, descriptorSet, descriptorUpdateTemplate, pData);
 }
+static void dynCheck_entry_vkUpdateDescriptorSetWithTemplateKHR(
+    VkDevice device,
+    VkDescriptorSet descriptorSet,
+    VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+    const void* pData)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_descriptor_update_template"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkUpdateDescriptorSetWithTemplateKHR", "VK_KHR_descriptor_update_template");
+    }
+    AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkUpdateDescriptorSetWithTemplateKHR(device, descriptorSet, descriptorUpdateTemplate, pData);
+}
 #endif
 #ifdef VK_KHR_create_renderpass2
 static VkResult entry_vkCreateRenderPass2KHR(
@@ -2585,6 +3138,23 @@ static VkResult entry_vkCreateRenderPass2KHR(
     const VkAllocationCallbacks* pAllocator,
     VkRenderPass* pRenderPass)
 {
+    AEMU_SCOPED_TRACE("vkCreateRenderPass2KHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkCreateRenderPass2KHR_VkResult_return = (VkResult)0;
+    vkCreateRenderPass2KHR_VkResult_return = vkEnc->vkCreateRenderPass2KHR(device, pCreateInfo, pAllocator, pRenderPass);
+    return vkCreateRenderPass2KHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateRenderPass2KHR(
+    VkDevice device,
+    const VkRenderPassCreateInfo2KHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkRenderPass* pRenderPass)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_create_renderpass2"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkCreateRenderPass2KHR", "VK_KHR_create_renderpass2");
+    }
     AEMU_SCOPED_TRACE("vkCreateRenderPass2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateRenderPass2KHR_VkResult_return = (VkResult)0;
@@ -2632,6 +3202,21 @@ static VkResult entry_vkGetSwapchainStatusKHR(
     vkGetSwapchainStatusKHR_VkResult_return = vkEnc->vkGetSwapchainStatusKHR(device, swapchain);
     return vkGetSwapchainStatusKHR_VkResult_return;
 }
+static VkResult dynCheck_entry_vkGetSwapchainStatusKHR(
+    VkDevice device,
+    VkSwapchainKHR swapchain)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_shared_presentable_image"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetSwapchainStatusKHR", "VK_KHR_shared_presentable_image");
+    }
+    AEMU_SCOPED_TRACE("vkGetSwapchainStatusKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetSwapchainStatusKHR_VkResult_return = (VkResult)0;
+    vkGetSwapchainStatusKHR_VkResult_return = vkEnc->vkGetSwapchainStatusKHR(device, swapchain);
+    return vkGetSwapchainStatusKHR_VkResult_return;
+}
 #endif
 #ifdef VK_KHR_external_fence_capabilities
 static void entry_vkGetPhysicalDeviceExternalFencePropertiesKHR(
@@ -2658,11 +3243,42 @@ static VkResult entry_vkImportFenceWin32HandleKHR(
     vkImportFenceWin32HandleKHR_VkResult_return = vkEnc->vkImportFenceWin32HandleKHR(device, pImportFenceWin32HandleInfo);
     return vkImportFenceWin32HandleKHR_VkResult_return;
 }
+static VkResult dynCheck_entry_vkImportFenceWin32HandleKHR(
+    VkDevice device,
+    const VkImportFenceWin32HandleInfoKHR* pImportFenceWin32HandleInfo)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_fence_win32"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkImportFenceWin32HandleKHR", "VK_KHR_external_fence_win32");
+    }
+    AEMU_SCOPED_TRACE("vkImportFenceWin32HandleKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkImportFenceWin32HandleKHR_VkResult_return = (VkResult)0;
+    vkImportFenceWin32HandleKHR_VkResult_return = vkEnc->vkImportFenceWin32HandleKHR(device, pImportFenceWin32HandleInfo);
+    return vkImportFenceWin32HandleKHR_VkResult_return;
+}
 static VkResult entry_vkGetFenceWin32HandleKHR(
     VkDevice device,
     const VkFenceGetWin32HandleInfoKHR* pGetWin32HandleInfo,
     HANDLE* pHandle)
 {
+    AEMU_SCOPED_TRACE("vkGetFenceWin32HandleKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetFenceWin32HandleKHR_VkResult_return = (VkResult)0;
+    vkGetFenceWin32HandleKHR_VkResult_return = vkEnc->vkGetFenceWin32HandleKHR(device, pGetWin32HandleInfo, pHandle);
+    return vkGetFenceWin32HandleKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetFenceWin32HandleKHR(
+    VkDevice device,
+    const VkFenceGetWin32HandleInfoKHR* pGetWin32HandleInfo,
+    HANDLE* pHandle)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_fence_win32"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetFenceWin32HandleKHR", "VK_KHR_external_fence_win32");
+    }
     AEMU_SCOPED_TRACE("vkGetFenceWin32HandleKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetFenceWin32HandleKHR_VkResult_return = (VkResult)0;
@@ -2682,6 +3298,21 @@ static VkResult entry_vkImportFenceFdKHR(
     vkImportFenceFdKHR_VkResult_return = resources->on_vkImportFenceFdKHR(vkEnc, VK_SUCCESS, device, pImportFenceFdInfo);
     return vkImportFenceFdKHR_VkResult_return;
 }
+static VkResult dynCheck_entry_vkImportFenceFdKHR(
+    VkDevice device,
+    const VkImportFenceFdInfoKHR* pImportFenceFdInfo)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_fence_fd"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkImportFenceFdKHR", "VK_KHR_external_fence_fd");
+    }
+    AEMU_SCOPED_TRACE("vkImportFenceFdKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkImportFenceFdKHR_VkResult_return = (VkResult)0;
+    vkImportFenceFdKHR_VkResult_return = resources->on_vkImportFenceFdKHR(vkEnc, VK_SUCCESS, device, pImportFenceFdInfo);
+    return vkImportFenceFdKHR_VkResult_return;
+}
 static VkResult entry_vkGetFenceFdKHR(
     VkDevice device,
     const VkFenceGetFdInfoKHR* pGetFdInfo,
@@ -2691,6 +3322,22 @@ static VkResult entry_vkGetFenceFdKHR(
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetFenceFdKHR_VkResult_return = (VkResult)0;
     auto resources = ResourceTracker::get();
+    vkGetFenceFdKHR_VkResult_return = resources->on_vkGetFenceFdKHR(vkEnc, VK_SUCCESS, device, pGetFdInfo, pFd);
+    return vkGetFenceFdKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetFenceFdKHR(
+    VkDevice device,
+    const VkFenceGetFdInfoKHR* pGetFdInfo,
+    int* pFd)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_external_fence_fd"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetFenceFdKHR", "VK_KHR_external_fence_fd");
+    }
+    AEMU_SCOPED_TRACE("vkGetFenceFdKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetFenceFdKHR_VkResult_return = (VkResult)0;
     vkGetFenceFdKHR_VkResult_return = resources->on_vkGetFenceFdKHR(vkEnc, VK_SUCCESS, device, pGetFdInfo, pFd);
     return vkGetFenceFdKHR_VkResult_return;
 }
@@ -2788,6 +3435,20 @@ static void entry_vkGetImageMemoryRequirements2KHR(
     auto resources = ResourceTracker::get();
     resources->on_vkGetImageMemoryRequirements2KHR(vkEnc, device, pInfo, pMemoryRequirements);
 }
+static void dynCheck_entry_vkGetImageMemoryRequirements2KHR(
+    VkDevice device,
+    const VkImageMemoryRequirementsInfo2* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_get_memory_requirements2"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetImageMemoryRequirements2KHR", "VK_KHR_get_memory_requirements2");
+    }
+    AEMU_SCOPED_TRACE("vkGetImageMemoryRequirements2KHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    resources->on_vkGetImageMemoryRequirements2KHR(vkEnc, device, pInfo, pMemoryRequirements);
+}
 static void entry_vkGetBufferMemoryRequirements2KHR(
     VkDevice device,
     const VkBufferMemoryRequirementsInfo2* pInfo,
@@ -2798,12 +3459,41 @@ static void entry_vkGetBufferMemoryRequirements2KHR(
     auto resources = ResourceTracker::get();
     resources->on_vkGetBufferMemoryRequirements2KHR(vkEnc, device, pInfo, pMemoryRequirements);
 }
+static void dynCheck_entry_vkGetBufferMemoryRequirements2KHR(
+    VkDevice device,
+    const VkBufferMemoryRequirementsInfo2* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_get_memory_requirements2"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetBufferMemoryRequirements2KHR", "VK_KHR_get_memory_requirements2");
+    }
+    AEMU_SCOPED_TRACE("vkGetBufferMemoryRequirements2KHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    resources->on_vkGetBufferMemoryRequirements2KHR(vkEnc, device, pInfo, pMemoryRequirements);
+}
 static void entry_vkGetImageSparseMemoryRequirements2KHR(
     VkDevice device,
     const VkImageSparseMemoryRequirementsInfo2* pInfo,
     uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements)
 {
+    AEMU_SCOPED_TRACE("vkGetImageSparseMemoryRequirements2KHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkGetImageSparseMemoryRequirements2KHR(device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
+}
+static void dynCheck_entry_vkGetImageSparseMemoryRequirements2KHR(
+    VkDevice device,
+    const VkImageSparseMemoryRequirementsInfo2* pInfo,
+    uint32_t* pSparseMemoryRequirementCount,
+    VkSparseImageMemoryRequirements2* pSparseMemoryRequirements)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_get_memory_requirements2"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetImageSparseMemoryRequirements2KHR", "VK_KHR_get_memory_requirements2");
+    }
     AEMU_SCOPED_TRACE("vkGetImageSparseMemoryRequirements2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     vkEnc->vkGetImageSparseMemoryRequirements2KHR(device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
@@ -2825,6 +3515,23 @@ static VkResult entry_vkCreateSamplerYcbcrConversionKHR(
     vkCreateSamplerYcbcrConversionKHR_VkResult_return = resources->on_vkCreateSamplerYcbcrConversionKHR(vkEnc, VK_SUCCESS, device, pCreateInfo, pAllocator, pYcbcrConversion);
     return vkCreateSamplerYcbcrConversionKHR_VkResult_return;
 }
+static VkResult dynCheck_entry_vkCreateSamplerYcbcrConversionKHR(
+    VkDevice device,
+    const VkSamplerYcbcrConversionCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkSamplerYcbcrConversion* pYcbcrConversion)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_sampler_ycbcr_conversion"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkCreateSamplerYcbcrConversionKHR", "VK_KHR_sampler_ycbcr_conversion");
+    }
+    AEMU_SCOPED_TRACE("vkCreateSamplerYcbcrConversionKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkCreateSamplerYcbcrConversionKHR_VkResult_return = (VkResult)0;
+    vkCreateSamplerYcbcrConversionKHR_VkResult_return = resources->on_vkCreateSamplerYcbcrConversionKHR(vkEnc, VK_SUCCESS, device, pCreateInfo, pAllocator, pYcbcrConversion);
+    return vkCreateSamplerYcbcrConversionKHR_VkResult_return;
+}
 static void entry_vkDestroySamplerYcbcrConversionKHR(
     VkDevice device,
     VkSamplerYcbcrConversion ycbcrConversion,
@@ -2833,6 +3540,20 @@ static void entry_vkDestroySamplerYcbcrConversionKHR(
     AEMU_SCOPED_TRACE("vkDestroySamplerYcbcrConversionKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     auto resources = ResourceTracker::get();
+    resources->on_vkDestroySamplerYcbcrConversionKHR(vkEnc, device, ycbcrConversion, pAllocator);
+}
+static void dynCheck_entry_vkDestroySamplerYcbcrConversionKHR(
+    VkDevice device,
+    VkSamplerYcbcrConversion ycbcrConversion,
+    const VkAllocationCallbacks* pAllocator)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_sampler_ycbcr_conversion"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkDestroySamplerYcbcrConversionKHR", "VK_KHR_sampler_ycbcr_conversion");
+    }
+    AEMU_SCOPED_TRACE("vkDestroySamplerYcbcrConversionKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
     resources->on_vkDestroySamplerYcbcrConversionKHR(vkEnc, device, ycbcrConversion, pAllocator);
 }
 #endif
@@ -2849,6 +3570,22 @@ static VkResult entry_vkBindBufferMemory2KHR(
     vkBindBufferMemory2KHR_VkResult_return = resources->on_vkBindBufferMemory2KHR(vkEnc, VK_SUCCESS, device, bindInfoCount, pBindInfos);
     return vkBindBufferMemory2KHR_VkResult_return;
 }
+static VkResult dynCheck_entry_vkBindBufferMemory2KHR(
+    VkDevice device,
+    uint32_t bindInfoCount,
+    const VkBindBufferMemoryInfo* pBindInfos)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_bind_memory2"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkBindBufferMemory2KHR", "VK_KHR_bind_memory2");
+    }
+    AEMU_SCOPED_TRACE("vkBindBufferMemory2KHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkBindBufferMemory2KHR_VkResult_return = (VkResult)0;
+    vkBindBufferMemory2KHR_VkResult_return = resources->on_vkBindBufferMemory2KHR(vkEnc, VK_SUCCESS, device, bindInfoCount, pBindInfos);
+    return vkBindBufferMemory2KHR_VkResult_return;
+}
 static VkResult entry_vkBindImageMemory2KHR(
     VkDevice device,
     uint32_t bindInfoCount,
@@ -2861,6 +3598,22 @@ static VkResult entry_vkBindImageMemory2KHR(
     vkBindImageMemory2KHR_VkResult_return = resources->on_vkBindImageMemory2KHR(vkEnc, VK_SUCCESS, device, bindInfoCount, pBindInfos);
     return vkBindImageMemory2KHR_VkResult_return;
 }
+static VkResult dynCheck_entry_vkBindImageMemory2KHR(
+    VkDevice device,
+    uint32_t bindInfoCount,
+    const VkBindImageMemoryInfo* pBindInfos)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_bind_memory2"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkBindImageMemory2KHR", "VK_KHR_bind_memory2");
+    }
+    AEMU_SCOPED_TRACE("vkBindImageMemory2KHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkBindImageMemory2KHR_VkResult_return = (VkResult)0;
+    vkBindImageMemory2KHR_VkResult_return = resources->on_vkBindImageMemory2KHR(vkEnc, VK_SUCCESS, device, bindInfoCount, pBindInfos);
+    return vkBindImageMemory2KHR_VkResult_return;
+}
 #endif
 #ifdef VK_KHR_maintenance3
 static void entry_vkGetDescriptorSetLayoutSupportKHR(
@@ -2868,6 +3621,20 @@ static void entry_vkGetDescriptorSetLayoutSupportKHR(
     const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
     VkDescriptorSetLayoutSupport* pSupport)
 {
+    AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutSupportKHR");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkGetDescriptorSetLayoutSupportKHR(device, pCreateInfo, pSupport);
+}
+static void dynCheck_entry_vkGetDescriptorSetLayoutSupportKHR(
+    VkDevice device,
+    const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
+    VkDescriptorSetLayoutSupport* pSupport)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_maintenance3"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetDescriptorSetLayoutSupportKHR", "VK_KHR_maintenance3");
+    }
     AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutSupportKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     vkEnc->vkGetDescriptorSetLayoutSupportKHR(device, pCreateInfo, pSupport);
@@ -2918,6 +3685,23 @@ static VkResult entry_vkGetSwapchainGrallocUsageANDROID(
     vkGetSwapchainGrallocUsageANDROID_VkResult_return = vkEnc->vkGetSwapchainGrallocUsageANDROID(device, format, imageUsage, grallocUsage);
     return vkGetSwapchainGrallocUsageANDROID_VkResult_return;
 }
+static VkResult dynCheck_entry_vkGetSwapchainGrallocUsageANDROID(
+    VkDevice device,
+    VkFormat format,
+    VkImageUsageFlags imageUsage,
+    int* grallocUsage)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_ANDROID_native_buffer"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetSwapchainGrallocUsageANDROID", "VK_ANDROID_native_buffer");
+    }
+    AEMU_SCOPED_TRACE("vkGetSwapchainGrallocUsageANDROID");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetSwapchainGrallocUsageANDROID_VkResult_return = (VkResult)0;
+    vkGetSwapchainGrallocUsageANDROID_VkResult_return = vkEnc->vkGetSwapchainGrallocUsageANDROID(device, format, imageUsage, grallocUsage);
+    return vkGetSwapchainGrallocUsageANDROID_VkResult_return;
+}
 static VkResult entry_vkAcquireImageANDROID(
     VkDevice device,
     VkImage image,
@@ -2925,6 +3709,24 @@ static VkResult entry_vkAcquireImageANDROID(
     VkSemaphore semaphore,
     VkFence fence)
 {
+    AEMU_SCOPED_TRACE("vkAcquireImageANDROID");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkAcquireImageANDROID_VkResult_return = (VkResult)0;
+    vkAcquireImageANDROID_VkResult_return = vkEnc->vkAcquireImageANDROID(device, image, nativeFenceFd, semaphore, fence);
+    return vkAcquireImageANDROID_VkResult_return;
+}
+static VkResult dynCheck_entry_vkAcquireImageANDROID(
+    VkDevice device,
+    VkImage image,
+    int nativeFenceFd,
+    VkSemaphore semaphore,
+    VkFence fence)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_ANDROID_native_buffer"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkAcquireImageANDROID", "VK_ANDROID_native_buffer");
+    }
     AEMU_SCOPED_TRACE("vkAcquireImageANDROID");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkAcquireImageANDROID_VkResult_return = (VkResult)0;
@@ -3005,10 +3807,40 @@ static VkResult entry_vkDebugMarkerSetObjectTagEXT(
     vkDebugMarkerSetObjectTagEXT_VkResult_return = vkEnc->vkDebugMarkerSetObjectTagEXT(device, pTagInfo);
     return vkDebugMarkerSetObjectTagEXT_VkResult_return;
 }
+static VkResult dynCheck_entry_vkDebugMarkerSetObjectTagEXT(
+    VkDevice device,
+    const VkDebugMarkerObjectTagInfoEXT* pTagInfo)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_debug_marker"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkDebugMarkerSetObjectTagEXT", "VK_EXT_debug_marker");
+    }
+    AEMU_SCOPED_TRACE("vkDebugMarkerSetObjectTagEXT");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkDebugMarkerSetObjectTagEXT_VkResult_return = (VkResult)0;
+    vkDebugMarkerSetObjectTagEXT_VkResult_return = vkEnc->vkDebugMarkerSetObjectTagEXT(device, pTagInfo);
+    return vkDebugMarkerSetObjectTagEXT_VkResult_return;
+}
 static VkResult entry_vkDebugMarkerSetObjectNameEXT(
     VkDevice device,
     const VkDebugMarkerObjectNameInfoEXT* pNameInfo)
 {
+    AEMU_SCOPED_TRACE("vkDebugMarkerSetObjectNameEXT");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkDebugMarkerSetObjectNameEXT_VkResult_return = (VkResult)0;
+    vkDebugMarkerSetObjectNameEXT_VkResult_return = vkEnc->vkDebugMarkerSetObjectNameEXT(device, pNameInfo);
+    return vkDebugMarkerSetObjectNameEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkDebugMarkerSetObjectNameEXT(
+    VkDevice device,
+    const VkDebugMarkerObjectNameInfoEXT* pNameInfo)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_debug_marker"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkDebugMarkerSetObjectNameEXT", "VK_EXT_debug_marker");
+    }
     AEMU_SCOPED_TRACE("vkDebugMarkerSetObjectNameEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkDebugMarkerSetObjectNameEXT_VkResult_return = (VkResult)0;
@@ -3099,6 +3931,25 @@ static VkResult entry_vkGetShaderInfoAMD(
     vkGetShaderInfoAMD_VkResult_return = vkEnc->vkGetShaderInfoAMD(device, pipeline, shaderStage, infoType, pInfoSize, pInfo);
     return vkGetShaderInfoAMD_VkResult_return;
 }
+static VkResult dynCheck_entry_vkGetShaderInfoAMD(
+    VkDevice device,
+    VkPipeline pipeline,
+    VkShaderStageFlagBits shaderStage,
+    VkShaderInfoTypeAMD infoType,
+    size_t* pInfoSize,
+    void* pInfo)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_AMD_shader_info"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetShaderInfoAMD", "VK_AMD_shader_info");
+    }
+    AEMU_SCOPED_TRACE("vkGetShaderInfoAMD");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetShaderInfoAMD_VkResult_return = (VkResult)0;
+    vkGetShaderInfoAMD_VkResult_return = vkEnc->vkGetShaderInfoAMD(device, pipeline, shaderStage, infoType, pInfoSize, pInfo);
+    return vkGetShaderInfoAMD_VkResult_return;
+}
 #endif
 #ifdef VK_AMD_shader_image_load_store_lod
 #endif
@@ -3131,6 +3982,23 @@ static VkResult entry_vkGetMemoryWin32HandleNV(
     VkExternalMemoryHandleTypeFlagsNV handleType,
     HANDLE* pHandle)
 {
+    AEMU_SCOPED_TRACE("vkGetMemoryWin32HandleNV");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetMemoryWin32HandleNV_VkResult_return = (VkResult)0;
+    vkGetMemoryWin32HandleNV_VkResult_return = vkEnc->vkGetMemoryWin32HandleNV(device, memory, handleType, pHandle);
+    return vkGetMemoryWin32HandleNV_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetMemoryWin32HandleNV(
+    VkDevice device,
+    VkDeviceMemory memory,
+    VkExternalMemoryHandleTypeFlagsNV handleType,
+    HANDLE* pHandle)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NV_external_memory_win32"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryWin32HandleNV", "VK_NV_external_memory_win32");
+    }
     AEMU_SCOPED_TRACE("vkGetMemoryWin32HandleNV");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetMemoryWin32HandleNV_VkResult_return = (VkResult)0;
@@ -3210,11 +4078,42 @@ static VkResult entry_vkCreateIndirectCommandsLayoutNVX(
     vkCreateIndirectCommandsLayoutNVX_VkResult_return = vkEnc->vkCreateIndirectCommandsLayoutNVX(device, pCreateInfo, pAllocator, pIndirectCommandsLayout);
     return vkCreateIndirectCommandsLayoutNVX_VkResult_return;
 }
+static VkResult dynCheck_entry_vkCreateIndirectCommandsLayoutNVX(
+    VkDevice device,
+    const VkIndirectCommandsLayoutCreateInfoNVX* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkIndirectCommandsLayoutNVX* pIndirectCommandsLayout)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NVX_device_generated_commands"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkCreateIndirectCommandsLayoutNVX", "VK_NVX_device_generated_commands");
+    }
+    AEMU_SCOPED_TRACE("vkCreateIndirectCommandsLayoutNVX");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkCreateIndirectCommandsLayoutNVX_VkResult_return = (VkResult)0;
+    vkCreateIndirectCommandsLayoutNVX_VkResult_return = vkEnc->vkCreateIndirectCommandsLayoutNVX(device, pCreateInfo, pAllocator, pIndirectCommandsLayout);
+    return vkCreateIndirectCommandsLayoutNVX_VkResult_return;
+}
 static void entry_vkDestroyIndirectCommandsLayoutNVX(
     VkDevice device,
     VkIndirectCommandsLayoutNVX indirectCommandsLayout,
     const VkAllocationCallbacks* pAllocator)
 {
+    AEMU_SCOPED_TRACE("vkDestroyIndirectCommandsLayoutNVX");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkDestroyIndirectCommandsLayoutNVX(device, indirectCommandsLayout, pAllocator);
+}
+static void dynCheck_entry_vkDestroyIndirectCommandsLayoutNVX(
+    VkDevice device,
+    VkIndirectCommandsLayoutNVX indirectCommandsLayout,
+    const VkAllocationCallbacks* pAllocator)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NVX_device_generated_commands"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyIndirectCommandsLayoutNVX", "VK_NVX_device_generated_commands");
+    }
     AEMU_SCOPED_TRACE("vkDestroyIndirectCommandsLayoutNVX");
     auto vkEnc = HostConnection::get()->vkEncoder();
     vkEnc->vkDestroyIndirectCommandsLayoutNVX(device, indirectCommandsLayout, pAllocator);
@@ -3231,11 +4130,42 @@ static VkResult entry_vkCreateObjectTableNVX(
     vkCreateObjectTableNVX_VkResult_return = vkEnc->vkCreateObjectTableNVX(device, pCreateInfo, pAllocator, pObjectTable);
     return vkCreateObjectTableNVX_VkResult_return;
 }
+static VkResult dynCheck_entry_vkCreateObjectTableNVX(
+    VkDevice device,
+    const VkObjectTableCreateInfoNVX* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkObjectTableNVX* pObjectTable)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NVX_device_generated_commands"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkCreateObjectTableNVX", "VK_NVX_device_generated_commands");
+    }
+    AEMU_SCOPED_TRACE("vkCreateObjectTableNVX");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkCreateObjectTableNVX_VkResult_return = (VkResult)0;
+    vkCreateObjectTableNVX_VkResult_return = vkEnc->vkCreateObjectTableNVX(device, pCreateInfo, pAllocator, pObjectTable);
+    return vkCreateObjectTableNVX_VkResult_return;
+}
 static void entry_vkDestroyObjectTableNVX(
     VkDevice device,
     VkObjectTableNVX objectTable,
     const VkAllocationCallbacks* pAllocator)
 {
+    AEMU_SCOPED_TRACE("vkDestroyObjectTableNVX");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkDestroyObjectTableNVX(device, objectTable, pAllocator);
+}
+static void dynCheck_entry_vkDestroyObjectTableNVX(
+    VkDevice device,
+    VkObjectTableNVX objectTable,
+    const VkAllocationCallbacks* pAllocator)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NVX_device_generated_commands"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyObjectTableNVX", "VK_NVX_device_generated_commands");
+    }
     AEMU_SCOPED_TRACE("vkDestroyObjectTableNVX");
     auto vkEnc = HostConnection::get()->vkEncoder();
     vkEnc->vkDestroyObjectTableNVX(device, objectTable, pAllocator);
@@ -3253,6 +4183,24 @@ static VkResult entry_vkRegisterObjectsNVX(
     vkRegisterObjectsNVX_VkResult_return = vkEnc->vkRegisterObjectsNVX(device, objectTable, objectCount, ppObjectTableEntries, pObjectIndices);
     return vkRegisterObjectsNVX_VkResult_return;
 }
+static VkResult dynCheck_entry_vkRegisterObjectsNVX(
+    VkDevice device,
+    VkObjectTableNVX objectTable,
+    uint32_t objectCount,
+    const VkObjectTableEntryNVX* const* ppObjectTableEntries,
+    const uint32_t* pObjectIndices)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NVX_device_generated_commands"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkRegisterObjectsNVX", "VK_NVX_device_generated_commands");
+    }
+    AEMU_SCOPED_TRACE("vkRegisterObjectsNVX");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkRegisterObjectsNVX_VkResult_return = (VkResult)0;
+    vkRegisterObjectsNVX_VkResult_return = vkEnc->vkRegisterObjectsNVX(device, objectTable, objectCount, ppObjectTableEntries, pObjectIndices);
+    return vkRegisterObjectsNVX_VkResult_return;
+}
 static VkResult entry_vkUnregisterObjectsNVX(
     VkDevice device,
     VkObjectTableNVX objectTable,
@@ -3260,6 +4208,24 @@ static VkResult entry_vkUnregisterObjectsNVX(
     const VkObjectEntryTypeNVX* pObjectEntryTypes,
     const uint32_t* pObjectIndices)
 {
+    AEMU_SCOPED_TRACE("vkUnregisterObjectsNVX");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkUnregisterObjectsNVX_VkResult_return = (VkResult)0;
+    vkUnregisterObjectsNVX_VkResult_return = vkEnc->vkUnregisterObjectsNVX(device, objectTable, objectCount, pObjectEntryTypes, pObjectIndices);
+    return vkUnregisterObjectsNVX_VkResult_return;
+}
+static VkResult dynCheck_entry_vkUnregisterObjectsNVX(
+    VkDevice device,
+    VkObjectTableNVX objectTable,
+    uint32_t objectCount,
+    const VkObjectEntryTypeNVX* pObjectEntryTypes,
+    const uint32_t* pObjectIndices)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NVX_device_generated_commands"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkUnregisterObjectsNVX", "VK_NVX_device_generated_commands");
+    }
     AEMU_SCOPED_TRACE("vkUnregisterObjectsNVX");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkUnregisterObjectsNVX_VkResult_return = (VkResult)0;
@@ -3351,12 +4317,45 @@ static VkResult entry_vkDisplayPowerControlEXT(
     vkDisplayPowerControlEXT_VkResult_return = vkEnc->vkDisplayPowerControlEXT(device, display, pDisplayPowerInfo);
     return vkDisplayPowerControlEXT_VkResult_return;
 }
+static VkResult dynCheck_entry_vkDisplayPowerControlEXT(
+    VkDevice device,
+    VkDisplayKHR display,
+    const VkDisplayPowerInfoEXT* pDisplayPowerInfo)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_display_control"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkDisplayPowerControlEXT", "VK_EXT_display_control");
+    }
+    AEMU_SCOPED_TRACE("vkDisplayPowerControlEXT");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkDisplayPowerControlEXT_VkResult_return = (VkResult)0;
+    vkDisplayPowerControlEXT_VkResult_return = vkEnc->vkDisplayPowerControlEXT(device, display, pDisplayPowerInfo);
+    return vkDisplayPowerControlEXT_VkResult_return;
+}
 static VkResult entry_vkRegisterDeviceEventEXT(
     VkDevice device,
     const VkDeviceEventInfoEXT* pDeviceEventInfo,
     const VkAllocationCallbacks* pAllocator,
     VkFence* pFence)
 {
+    AEMU_SCOPED_TRACE("vkRegisterDeviceEventEXT");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkRegisterDeviceEventEXT_VkResult_return = (VkResult)0;
+    vkRegisterDeviceEventEXT_VkResult_return = vkEnc->vkRegisterDeviceEventEXT(device, pDeviceEventInfo, pAllocator, pFence);
+    return vkRegisterDeviceEventEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkRegisterDeviceEventEXT(
+    VkDevice device,
+    const VkDeviceEventInfoEXT* pDeviceEventInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkFence* pFence)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_display_control"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkRegisterDeviceEventEXT", "VK_EXT_display_control");
+    }
     AEMU_SCOPED_TRACE("vkRegisterDeviceEventEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkRegisterDeviceEventEXT_VkResult_return = (VkResult)0;
@@ -3376,12 +4375,47 @@ static VkResult entry_vkRegisterDisplayEventEXT(
     vkRegisterDisplayEventEXT_VkResult_return = vkEnc->vkRegisterDisplayEventEXT(device, display, pDisplayEventInfo, pAllocator, pFence);
     return vkRegisterDisplayEventEXT_VkResult_return;
 }
+static VkResult dynCheck_entry_vkRegisterDisplayEventEXT(
+    VkDevice device,
+    VkDisplayKHR display,
+    const VkDisplayEventInfoEXT* pDisplayEventInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkFence* pFence)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_display_control"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkRegisterDisplayEventEXT", "VK_EXT_display_control");
+    }
+    AEMU_SCOPED_TRACE("vkRegisterDisplayEventEXT");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkRegisterDisplayEventEXT_VkResult_return = (VkResult)0;
+    vkRegisterDisplayEventEXT_VkResult_return = vkEnc->vkRegisterDisplayEventEXT(device, display, pDisplayEventInfo, pAllocator, pFence);
+    return vkRegisterDisplayEventEXT_VkResult_return;
+}
 static VkResult entry_vkGetSwapchainCounterEXT(
     VkDevice device,
     VkSwapchainKHR swapchain,
     VkSurfaceCounterFlagBitsEXT counter,
     uint64_t* pCounterValue)
 {
+    AEMU_SCOPED_TRACE("vkGetSwapchainCounterEXT");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetSwapchainCounterEXT_VkResult_return = (VkResult)0;
+    vkGetSwapchainCounterEXT_VkResult_return = vkEnc->vkGetSwapchainCounterEXT(device, swapchain, counter, pCounterValue);
+    return vkGetSwapchainCounterEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetSwapchainCounterEXT(
+    VkDevice device,
+    VkSwapchainKHR swapchain,
+    VkSurfaceCounterFlagBitsEXT counter,
+    uint64_t* pCounterValue)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_display_control"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetSwapchainCounterEXT", "VK_EXT_display_control");
+    }
     AEMU_SCOPED_TRACE("vkGetSwapchainCounterEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetSwapchainCounterEXT_VkResult_return = (VkResult)0;
@@ -3401,12 +4435,45 @@ static VkResult entry_vkGetRefreshCycleDurationGOOGLE(
     vkGetRefreshCycleDurationGOOGLE_VkResult_return = vkEnc->vkGetRefreshCycleDurationGOOGLE(device, swapchain, pDisplayTimingProperties);
     return vkGetRefreshCycleDurationGOOGLE_VkResult_return;
 }
+static VkResult dynCheck_entry_vkGetRefreshCycleDurationGOOGLE(
+    VkDevice device,
+    VkSwapchainKHR swapchain,
+    VkRefreshCycleDurationGOOGLE* pDisplayTimingProperties)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_display_timing"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetRefreshCycleDurationGOOGLE", "VK_GOOGLE_display_timing");
+    }
+    AEMU_SCOPED_TRACE("vkGetRefreshCycleDurationGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetRefreshCycleDurationGOOGLE_VkResult_return = (VkResult)0;
+    vkGetRefreshCycleDurationGOOGLE_VkResult_return = vkEnc->vkGetRefreshCycleDurationGOOGLE(device, swapchain, pDisplayTimingProperties);
+    return vkGetRefreshCycleDurationGOOGLE_VkResult_return;
+}
 static VkResult entry_vkGetPastPresentationTimingGOOGLE(
     VkDevice device,
     VkSwapchainKHR swapchain,
     uint32_t* pPresentationTimingCount,
     VkPastPresentationTimingGOOGLE* pPresentationTimings)
 {
+    AEMU_SCOPED_TRACE("vkGetPastPresentationTimingGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetPastPresentationTimingGOOGLE_VkResult_return = (VkResult)0;
+    vkGetPastPresentationTimingGOOGLE_VkResult_return = vkEnc->vkGetPastPresentationTimingGOOGLE(device, swapchain, pPresentationTimingCount, pPresentationTimings);
+    return vkGetPastPresentationTimingGOOGLE_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetPastPresentationTimingGOOGLE(
+    VkDevice device,
+    VkSwapchainKHR swapchain,
+    uint32_t* pPresentationTimingCount,
+    VkPastPresentationTimingGOOGLE* pPresentationTimings)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_display_timing"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetPastPresentationTimingGOOGLE", "VK_GOOGLE_display_timing");
+    }
     AEMU_SCOPED_TRACE("vkGetPastPresentationTimingGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPastPresentationTimingGOOGLE_VkResult_return = (VkResult)0;
@@ -3448,6 +4515,21 @@ static void entry_vkSetHdrMetadataEXT(
     const VkSwapchainKHR* pSwapchains,
     const VkHdrMetadataEXT* pMetadata)
 {
+    AEMU_SCOPED_TRACE("vkSetHdrMetadataEXT");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkSetHdrMetadataEXT(device, swapchainCount, pSwapchains, pMetadata);
+}
+static void dynCheck_entry_vkSetHdrMetadataEXT(
+    VkDevice device,
+    uint32_t swapchainCount,
+    const VkSwapchainKHR* pSwapchains,
+    const VkHdrMetadataEXT* pMetadata)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_hdr_metadata"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkSetHdrMetadataEXT", "VK_EXT_hdr_metadata");
+    }
     AEMU_SCOPED_TRACE("vkSetHdrMetadataEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     vkEnc->vkSetHdrMetadataEXT(device, swapchainCount, pSwapchains, pMetadata);
@@ -3496,10 +4578,40 @@ static VkResult entry_vkSetDebugUtilsObjectNameEXT(
     vkSetDebugUtilsObjectNameEXT_VkResult_return = vkEnc->vkSetDebugUtilsObjectNameEXT(device, pNameInfo);
     return vkSetDebugUtilsObjectNameEXT_VkResult_return;
 }
+static VkResult dynCheck_entry_vkSetDebugUtilsObjectNameEXT(
+    VkDevice device,
+    const VkDebugUtilsObjectNameInfoEXT* pNameInfo)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_debug_utils"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkSetDebugUtilsObjectNameEXT", "VK_EXT_debug_utils");
+    }
+    AEMU_SCOPED_TRACE("vkSetDebugUtilsObjectNameEXT");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkSetDebugUtilsObjectNameEXT_VkResult_return = (VkResult)0;
+    vkSetDebugUtilsObjectNameEXT_VkResult_return = vkEnc->vkSetDebugUtilsObjectNameEXT(device, pNameInfo);
+    return vkSetDebugUtilsObjectNameEXT_VkResult_return;
+}
 static VkResult entry_vkSetDebugUtilsObjectTagEXT(
     VkDevice device,
     const VkDebugUtilsObjectTagInfoEXT* pTagInfo)
 {
+    AEMU_SCOPED_TRACE("vkSetDebugUtilsObjectTagEXT");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkSetDebugUtilsObjectTagEXT_VkResult_return = (VkResult)0;
+    vkSetDebugUtilsObjectTagEXT_VkResult_return = vkEnc->vkSetDebugUtilsObjectTagEXT(device, pTagInfo);
+    return vkSetDebugUtilsObjectTagEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkSetDebugUtilsObjectTagEXT(
+    VkDevice device,
+    const VkDebugUtilsObjectTagInfoEXT* pTagInfo)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_debug_utils"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkSetDebugUtilsObjectTagEXT", "VK_EXT_debug_utils");
+    }
     AEMU_SCOPED_TRACE("vkSetDebugUtilsObjectTagEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkSetDebugUtilsObjectTagEXT_VkResult_return = (VkResult)0;
@@ -3600,6 +4712,22 @@ static VkResult entry_vkGetAndroidHardwareBufferPropertiesANDROID(
     vkGetAndroidHardwareBufferPropertiesANDROID_VkResult_return = resources->on_vkGetAndroidHardwareBufferPropertiesANDROID(vkEnc, VK_SUCCESS, device, buffer, pProperties);
     return vkGetAndroidHardwareBufferPropertiesANDROID_VkResult_return;
 }
+static VkResult dynCheck_entry_vkGetAndroidHardwareBufferPropertiesANDROID(
+    VkDevice device,
+    const AHardwareBuffer* buffer,
+    VkAndroidHardwareBufferPropertiesANDROID* pProperties)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_ANDROID_external_memory_android_hardware_buffer"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetAndroidHardwareBufferPropertiesANDROID", "VK_ANDROID_external_memory_android_hardware_buffer");
+    }
+    AEMU_SCOPED_TRACE("vkGetAndroidHardwareBufferPropertiesANDROID");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetAndroidHardwareBufferPropertiesANDROID_VkResult_return = (VkResult)0;
+    vkGetAndroidHardwareBufferPropertiesANDROID_VkResult_return = resources->on_vkGetAndroidHardwareBufferPropertiesANDROID(vkEnc, VK_SUCCESS, device, buffer, pProperties);
+    return vkGetAndroidHardwareBufferPropertiesANDROID_VkResult_return;
+}
 static VkResult entry_vkGetMemoryAndroidHardwareBufferANDROID(
     VkDevice device,
     const VkMemoryGetAndroidHardwareBufferInfoANDROID* pInfo,
@@ -3609,6 +4737,22 @@ static VkResult entry_vkGetMemoryAndroidHardwareBufferANDROID(
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetMemoryAndroidHardwareBufferANDROID_VkResult_return = (VkResult)0;
     auto resources = ResourceTracker::get();
+    vkGetMemoryAndroidHardwareBufferANDROID_VkResult_return = resources->on_vkGetMemoryAndroidHardwareBufferANDROID(vkEnc, VK_SUCCESS, device, pInfo, pBuffer);
+    return vkGetMemoryAndroidHardwareBufferANDROID_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetMemoryAndroidHardwareBufferANDROID(
+    VkDevice device,
+    const VkMemoryGetAndroidHardwareBufferInfoANDROID* pInfo,
+    AHardwareBuffer** pBuffer)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_ANDROID_external_memory_android_hardware_buffer"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryAndroidHardwareBufferANDROID", "VK_ANDROID_external_memory_android_hardware_buffer");
+    }
+    AEMU_SCOPED_TRACE("vkGetMemoryAndroidHardwareBufferANDROID");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetMemoryAndroidHardwareBufferANDROID_VkResult_return = (VkResult)0;
     vkGetMemoryAndroidHardwareBufferANDROID_VkResult_return = resources->on_vkGetMemoryAndroidHardwareBufferANDROID(vkEnc, VK_SUCCESS, device, pInfo, pBuffer);
     return vkGetMemoryAndroidHardwareBufferANDROID_VkResult_return;
 }
@@ -3666,11 +4810,42 @@ static VkResult entry_vkCreateValidationCacheEXT(
     vkCreateValidationCacheEXT_VkResult_return = vkEnc->vkCreateValidationCacheEXT(device, pCreateInfo, pAllocator, pValidationCache);
     return vkCreateValidationCacheEXT_VkResult_return;
 }
+static VkResult dynCheck_entry_vkCreateValidationCacheEXT(
+    VkDevice device,
+    const VkValidationCacheCreateInfoEXT* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkValidationCacheEXT* pValidationCache)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_validation_cache"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkCreateValidationCacheEXT", "VK_EXT_validation_cache");
+    }
+    AEMU_SCOPED_TRACE("vkCreateValidationCacheEXT");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkCreateValidationCacheEXT_VkResult_return = (VkResult)0;
+    vkCreateValidationCacheEXT_VkResult_return = vkEnc->vkCreateValidationCacheEXT(device, pCreateInfo, pAllocator, pValidationCache);
+    return vkCreateValidationCacheEXT_VkResult_return;
+}
 static void entry_vkDestroyValidationCacheEXT(
     VkDevice device,
     VkValidationCacheEXT validationCache,
     const VkAllocationCallbacks* pAllocator)
 {
+    AEMU_SCOPED_TRACE("vkDestroyValidationCacheEXT");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkDestroyValidationCacheEXT(device, validationCache, pAllocator);
+}
+static void dynCheck_entry_vkDestroyValidationCacheEXT(
+    VkDevice device,
+    VkValidationCacheEXT validationCache,
+    const VkAllocationCallbacks* pAllocator)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_validation_cache"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyValidationCacheEXT", "VK_EXT_validation_cache");
+    }
     AEMU_SCOPED_TRACE("vkDestroyValidationCacheEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     vkEnc->vkDestroyValidationCacheEXT(device, validationCache, pAllocator);
@@ -3687,12 +4862,46 @@ static VkResult entry_vkMergeValidationCachesEXT(
     vkMergeValidationCachesEXT_VkResult_return = vkEnc->vkMergeValidationCachesEXT(device, dstCache, srcCacheCount, pSrcCaches);
     return vkMergeValidationCachesEXT_VkResult_return;
 }
+static VkResult dynCheck_entry_vkMergeValidationCachesEXT(
+    VkDevice device,
+    VkValidationCacheEXT dstCache,
+    uint32_t srcCacheCount,
+    const VkValidationCacheEXT* pSrcCaches)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_validation_cache"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkMergeValidationCachesEXT", "VK_EXT_validation_cache");
+    }
+    AEMU_SCOPED_TRACE("vkMergeValidationCachesEXT");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkMergeValidationCachesEXT_VkResult_return = (VkResult)0;
+    vkMergeValidationCachesEXT_VkResult_return = vkEnc->vkMergeValidationCachesEXT(device, dstCache, srcCacheCount, pSrcCaches);
+    return vkMergeValidationCachesEXT_VkResult_return;
+}
 static VkResult entry_vkGetValidationCacheDataEXT(
     VkDevice device,
     VkValidationCacheEXT validationCache,
     size_t* pDataSize,
     void* pData)
 {
+    AEMU_SCOPED_TRACE("vkGetValidationCacheDataEXT");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetValidationCacheDataEXT_VkResult_return = (VkResult)0;
+    vkGetValidationCacheDataEXT_VkResult_return = vkEnc->vkGetValidationCacheDataEXT(device, validationCache, pDataSize, pData);
+    return vkGetValidationCacheDataEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetValidationCacheDataEXT(
+    VkDevice device,
+    VkValidationCacheEXT validationCache,
+    size_t* pDataSize,
+    void* pData)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_validation_cache"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetValidationCacheDataEXT", "VK_EXT_validation_cache");
+    }
     AEMU_SCOPED_TRACE("vkGetValidationCacheDataEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetValidationCacheDataEXT_VkResult_return = (VkResult)0;
@@ -3713,6 +4922,23 @@ static VkResult entry_vkGetMemoryHostPointerPropertiesEXT(
     const void* pHostPointer,
     VkMemoryHostPointerPropertiesEXT* pMemoryHostPointerProperties)
 {
+    AEMU_SCOPED_TRACE("vkGetMemoryHostPointerPropertiesEXT");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetMemoryHostPointerPropertiesEXT_VkResult_return = (VkResult)0;
+    vkGetMemoryHostPointerPropertiesEXT_VkResult_return = vkEnc->vkGetMemoryHostPointerPropertiesEXT(device, handleType, pHostPointer, pMemoryHostPointerProperties);
+    return vkGetMemoryHostPointerPropertiesEXT_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetMemoryHostPointerPropertiesEXT(
+    VkDevice device,
+    VkExternalMemoryHandleTypeFlagBits handleType,
+    const void* pHostPointer,
+    VkMemoryHostPointerPropertiesEXT* pMemoryHostPointerProperties)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_external_memory_host"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryHostPointerPropertiesEXT", "VK_EXT_external_memory_host");
+    }
     AEMU_SCOPED_TRACE("vkGetMemoryHostPointerPropertiesEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetMemoryHostPointerPropertiesEXT_VkResult_return = (VkResult)0;
@@ -3772,6 +4998,22 @@ static VkResult entry_vkMapMemoryIntoAddressSpaceGOOGLE(
     vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return = vkEnc->vkMapMemoryIntoAddressSpaceGOOGLE(device, memory, pAddress);
     return vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return;
 }
+static VkResult dynCheck_entry_vkMapMemoryIntoAddressSpaceGOOGLE(
+    VkDevice device,
+    VkDeviceMemory memory,
+    uint64_t* pAddress)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_address_space"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkMapMemoryIntoAddressSpaceGOOGLE", "VK_GOOGLE_address_space");
+    }
+    AEMU_SCOPED_TRACE("vkMapMemoryIntoAddressSpaceGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return = (VkResult)0;
+    vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return = vkEnc->vkMapMemoryIntoAddressSpaceGOOGLE(device, memory, pAddress);
+    return vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return;
+}
 #endif
 #ifdef VK_GOOGLE_color_buffer
 static VkResult entry_vkRegisterImageColorBufferGOOGLE(
@@ -3785,11 +5027,43 @@ static VkResult entry_vkRegisterImageColorBufferGOOGLE(
     vkRegisterImageColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterImageColorBufferGOOGLE(device, image, colorBuffer);
     return vkRegisterImageColorBufferGOOGLE_VkResult_return;
 }
+static VkResult dynCheck_entry_vkRegisterImageColorBufferGOOGLE(
+    VkDevice device,
+    VkImage image,
+    uint32_t colorBuffer)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_color_buffer"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkRegisterImageColorBufferGOOGLE", "VK_GOOGLE_color_buffer");
+    }
+    AEMU_SCOPED_TRACE("vkRegisterImageColorBufferGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkRegisterImageColorBufferGOOGLE_VkResult_return = (VkResult)0;
+    vkRegisterImageColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterImageColorBufferGOOGLE(device, image, colorBuffer);
+    return vkRegisterImageColorBufferGOOGLE_VkResult_return;
+}
 static VkResult entry_vkRegisterBufferColorBufferGOOGLE(
     VkDevice device,
     VkBuffer buffer,
     uint32_t colorBuffer)
 {
+    AEMU_SCOPED_TRACE("vkRegisterBufferColorBufferGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkRegisterBufferColorBufferGOOGLE_VkResult_return = (VkResult)0;
+    vkRegisterBufferColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterBufferColorBufferGOOGLE(device, buffer, colorBuffer);
+    return vkRegisterBufferColorBufferGOOGLE_VkResult_return;
+}
+static VkResult dynCheck_entry_vkRegisterBufferColorBufferGOOGLE(
+    VkDevice device,
+    VkBuffer buffer,
+    uint32_t colorBuffer)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_color_buffer"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkRegisterBufferColorBufferGOOGLE", "VK_GOOGLE_color_buffer");
+    }
     AEMU_SCOPED_TRACE("vkRegisterBufferColorBufferGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkRegisterBufferColorBufferGOOGLE_VkResult_return = (VkResult)0;
@@ -3812,6 +5086,29 @@ static void entry_vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     const VkDescriptorBufferInfo* pBufferInfos,
     const VkBufferView* pBufferViews)
 {
+    AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateSizedGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkUpdateDescriptorSetWithTemplateSizedGOOGLE(device, descriptorSet, descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount, pImageInfoEntryIndices, pBufferInfoEntryIndices, pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews);
+}
+static void dynCheck_entry_vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
+    VkDevice device,
+    VkDescriptorSet descriptorSet,
+    VkDescriptorUpdateTemplate descriptorUpdateTemplate,
+    uint32_t imageInfoCount,
+    uint32_t bufferInfoCount,
+    uint32_t bufferViewCount,
+    const uint32_t* pImageInfoEntryIndices,
+    const uint32_t* pBufferInfoEntryIndices,
+    const uint32_t* pBufferViewEntryIndices,
+    const VkDescriptorImageInfo* pImageInfos,
+    const VkDescriptorBufferInfo* pBufferInfos,
+    const VkBufferView* pBufferViews)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_sized_descriptor_update_template"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkUpdateDescriptorSetWithTemplateSizedGOOGLE", "VK_GOOGLE_sized_descriptor_update_template");
+    }
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateSizedGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     vkEnc->vkUpdateDescriptorSetWithTemplateSizedGOOGLE(device, descriptorSet, descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount, pImageInfoEntryIndices, pBufferInfoEntryIndices, pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews);
@@ -3869,6 +5166,24 @@ static VkResult entry_vkCreateImageWithRequirementsGOOGLE(
     vkCreateImageWithRequirementsGOOGLE_VkResult_return = vkEnc->vkCreateImageWithRequirementsGOOGLE(device, pCreateInfo, pAllocator, pImage, pMemoryRequirements);
     return vkCreateImageWithRequirementsGOOGLE_VkResult_return;
 }
+static VkResult dynCheck_entry_vkCreateImageWithRequirementsGOOGLE(
+    VkDevice device,
+    const VkImageCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkImage* pImage,
+    VkMemoryRequirements* pMemoryRequirements)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_create_resources_with_requirements"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkCreateImageWithRequirementsGOOGLE", "VK_GOOGLE_create_resources_with_requirements");
+    }
+    AEMU_SCOPED_TRACE("vkCreateImageWithRequirementsGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkCreateImageWithRequirementsGOOGLE_VkResult_return = (VkResult)0;
+    vkCreateImageWithRequirementsGOOGLE_VkResult_return = vkEnc->vkCreateImageWithRequirementsGOOGLE(device, pCreateInfo, pAllocator, pImage, pMemoryRequirements);
+    return vkCreateImageWithRequirementsGOOGLE_VkResult_return;
+}
 static VkResult entry_vkCreateBufferWithRequirementsGOOGLE(
     VkDevice device,
     const VkBufferCreateInfo* pCreateInfo,
@@ -3876,6 +5191,24 @@ static VkResult entry_vkCreateBufferWithRequirementsGOOGLE(
     VkBuffer* pBuffer,
     VkMemoryRequirements* pMemoryRequirements)
 {
+    AEMU_SCOPED_TRACE("vkCreateBufferWithRequirementsGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkCreateBufferWithRequirementsGOOGLE_VkResult_return = (VkResult)0;
+    vkCreateBufferWithRequirementsGOOGLE_VkResult_return = vkEnc->vkCreateBufferWithRequirementsGOOGLE(device, pCreateInfo, pAllocator, pBuffer, pMemoryRequirements);
+    return vkCreateBufferWithRequirementsGOOGLE_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateBufferWithRequirementsGOOGLE(
+    VkDevice device,
+    const VkBufferCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkBuffer* pBuffer,
+    VkMemoryRequirements* pMemoryRequirements)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_create_resources_with_requirements"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkCreateBufferWithRequirementsGOOGLE", "VK_GOOGLE_create_resources_with_requirements");
+    }
     AEMU_SCOPED_TRACE("vkCreateBufferWithRequirementsGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateBufferWithRequirementsGOOGLE_VkResult_return = (VkResult)0;
@@ -5890,15 +7223,15 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     }
     if (!strcmp(name, "vkBindBufferMemory2"))
     {
-        return has1_1OrHigher ? (void*)entry_vkBindBufferMemory2 : nullptr;
+        return (void*)dynCheck_entry_vkBindBufferMemory2;
     }
     if (!strcmp(name, "vkBindImageMemory2"))
     {
-        return has1_1OrHigher ? (void*)entry_vkBindImageMemory2 : nullptr;
+        return (void*)dynCheck_entry_vkBindImageMemory2;
     }
     if (!strcmp(name, "vkGetDeviceGroupPeerMemoryFeatures"))
     {
-        return has1_1OrHigher ? (void*)entry_vkGetDeviceGroupPeerMemoryFeatures : nullptr;
+        return (void*)dynCheck_entry_vkGetDeviceGroupPeerMemoryFeatures;
     }
     if (!strcmp(name, "vkCmdSetDeviceMask"))
     {
@@ -5914,15 +7247,15 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     }
     if (!strcmp(name, "vkGetImageMemoryRequirements2"))
     {
-        return has1_1OrHigher ? (void*)entry_vkGetImageMemoryRequirements2 : nullptr;
+        return (void*)dynCheck_entry_vkGetImageMemoryRequirements2;
     }
     if (!strcmp(name, "vkGetBufferMemoryRequirements2"))
     {
-        return has1_1OrHigher ? (void*)entry_vkGetBufferMemoryRequirements2 : nullptr;
+        return (void*)dynCheck_entry_vkGetBufferMemoryRequirements2;
     }
     if (!strcmp(name, "vkGetImageSparseMemoryRequirements2"))
     {
-        return has1_1OrHigher ? (void*)entry_vkGetImageSparseMemoryRequirements2 : nullptr;
+        return (void*)dynCheck_entry_vkGetImageSparseMemoryRequirements2;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceFeatures2"))
     {
@@ -5954,31 +7287,31 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     }
     if (!strcmp(name, "vkTrimCommandPool"))
     {
-        return has1_1OrHigher ? (void*)entry_vkTrimCommandPool : nullptr;
+        return (void*)dynCheck_entry_vkTrimCommandPool;
     }
     if (!strcmp(name, "vkGetDeviceQueue2"))
     {
-        return has1_1OrHigher ? (void*)entry_vkGetDeviceQueue2 : nullptr;
+        return (void*)dynCheck_entry_vkGetDeviceQueue2;
     }
     if (!strcmp(name, "vkCreateSamplerYcbcrConversion"))
     {
-        return has1_1OrHigher ? (void*)entry_vkCreateSamplerYcbcrConversion : nullptr;
+        return (void*)dynCheck_entry_vkCreateSamplerYcbcrConversion;
     }
     if (!strcmp(name, "vkDestroySamplerYcbcrConversion"))
     {
-        return has1_1OrHigher ? (void*)entry_vkDestroySamplerYcbcrConversion : nullptr;
+        return (void*)dynCheck_entry_vkDestroySamplerYcbcrConversion;
     }
     if (!strcmp(name, "vkCreateDescriptorUpdateTemplate"))
     {
-        return has1_1OrHigher ? (void*)entry_vkCreateDescriptorUpdateTemplate : nullptr;
+        return (void*)dynCheck_entry_vkCreateDescriptorUpdateTemplate;
     }
     if (!strcmp(name, "vkDestroyDescriptorUpdateTemplate"))
     {
-        return has1_1OrHigher ? (void*)entry_vkDestroyDescriptorUpdateTemplate : nullptr;
+        return (void*)dynCheck_entry_vkDestroyDescriptorUpdateTemplate;
     }
     if (!strcmp(name, "vkUpdateDescriptorSetWithTemplate"))
     {
-        return has1_1OrHigher ? (void*)entry_vkUpdateDescriptorSetWithTemplate : nullptr;
+        return (void*)dynCheck_entry_vkUpdateDescriptorSetWithTemplate;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceExternalBufferProperties"))
     {
@@ -5994,7 +7327,7 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     }
     if (!strcmp(name, "vkGetDescriptorSetLayoutSupport"))
     {
-        return has1_1OrHigher ? (void*)entry_vkGetDescriptorSetLayoutSupport : nullptr;
+        return (void*)dynCheck_entry_vkGetDescriptorSetLayoutSupport;
     }
 #endif
 #ifdef VK_KHR_surface
@@ -6027,23 +7360,19 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_KHR_swapchain
     if (!strcmp(name, "vkCreateSwapchainKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_swapchain");
-        return hasExt ? (void*)entry_vkCreateSwapchainKHR : nullptr;
+        return (void*)dynCheck_entry_vkCreateSwapchainKHR;
     }
     if (!strcmp(name, "vkDestroySwapchainKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_swapchain");
-        return hasExt ? (void*)entry_vkDestroySwapchainKHR : nullptr;
+        return (void*)dynCheck_entry_vkDestroySwapchainKHR;
     }
     if (!strcmp(name, "vkGetSwapchainImagesKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_swapchain");
-        return hasExt ? (void*)entry_vkGetSwapchainImagesKHR : nullptr;
+        return (void*)dynCheck_entry_vkGetSwapchainImagesKHR;
     }
     if (!strcmp(name, "vkAcquireNextImageKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_swapchain");
-        return hasExt ? (void*)entry_vkAcquireNextImageKHR : nullptr;
+        return (void*)dynCheck_entry_vkAcquireNextImageKHR;
     }
     if (!strcmp(name, "vkQueuePresentKHR"))
     {
@@ -6052,13 +7381,11 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     }
     if (!strcmp(name, "vkGetDeviceGroupPresentCapabilitiesKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_swapchain");
-        return hasExt ? (void*)entry_vkGetDeviceGroupPresentCapabilitiesKHR : nullptr;
+        return (void*)dynCheck_entry_vkGetDeviceGroupPresentCapabilitiesKHR;
     }
     if (!strcmp(name, "vkGetDeviceGroupSurfacePresentModesKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_swapchain");
-        return hasExt ? (void*)entry_vkGetDeviceGroupSurfacePresentModesKHR : nullptr;
+        return (void*)dynCheck_entry_vkGetDeviceGroupSurfacePresentModesKHR;
     }
     if (!strcmp(name, "vkGetPhysicalDevicePresentRectanglesKHR"))
     {
@@ -6067,8 +7394,7 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     }
     if (!strcmp(name, "vkAcquireNextImage2KHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_swapchain");
-        return hasExt ? (void*)entry_vkAcquireNextImage2KHR : nullptr;
+        return (void*)dynCheck_entry_vkAcquireNextImage2KHR;
     }
 #endif
 #ifdef VK_KHR_display
@@ -6111,8 +7437,7 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_KHR_display_swapchain
     if (!strcmp(name, "vkCreateSharedSwapchainsKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_display_swapchain");
-        return hasExt ? (void*)entry_vkCreateSharedSwapchainsKHR : nullptr;
+        return (void*)dynCheck_entry_vkCreateSharedSwapchainsKHR;
     }
 #endif
 #ifdef VK_KHR_xlib_surface
@@ -6222,8 +7547,7 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_KHR_device_group
     if (!strcmp(name, "vkGetDeviceGroupPeerMemoryFeaturesKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_device_group");
-        return hasExt ? (void*)entry_vkGetDeviceGroupPeerMemoryFeaturesKHR : nullptr;
+        return (void*)dynCheck_entry_vkGetDeviceGroupPeerMemoryFeaturesKHR;
     }
     if (!strcmp(name, "vkCmdSetDeviceMaskKHR"))
     {
@@ -6239,8 +7563,7 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_KHR_maintenance1
     if (!strcmp(name, "vkTrimCommandPoolKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_maintenance1");
-        return hasExt ? (void*)entry_vkTrimCommandPoolKHR : nullptr;
+        return (void*)dynCheck_entry_vkTrimCommandPoolKHR;
     }
 #endif
 #ifdef VK_KHR_device_group_creation
@@ -6260,25 +7583,21 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_KHR_external_memory_win32
     if (!strcmp(name, "vkGetMemoryWin32HandleKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_memory_win32");
-        return hasExt ? (void*)entry_vkGetMemoryWin32HandleKHR : nullptr;
+        return (void*)dynCheck_entry_vkGetMemoryWin32HandleKHR;
     }
     if (!strcmp(name, "vkGetMemoryWin32HandlePropertiesKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_memory_win32");
-        return hasExt ? (void*)entry_vkGetMemoryWin32HandlePropertiesKHR : nullptr;
+        return (void*)dynCheck_entry_vkGetMemoryWin32HandlePropertiesKHR;
     }
 #endif
 #ifdef VK_KHR_external_memory_fd
     if (!strcmp(name, "vkGetMemoryFdKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_memory_fd");
-        return hasExt ? (void*)entry_vkGetMemoryFdKHR : nullptr;
+        return (void*)dynCheck_entry_vkGetMemoryFdKHR;
     }
     if (!strcmp(name, "vkGetMemoryFdPropertiesKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_memory_fd");
-        return hasExt ? (void*)entry_vkGetMemoryFdPropertiesKHR : nullptr;
+        return (void*)dynCheck_entry_vkGetMemoryFdPropertiesKHR;
     }
 #endif
 #ifdef VK_KHR_external_semaphore_capabilities
@@ -6291,25 +7610,21 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_KHR_external_semaphore_win32
     if (!strcmp(name, "vkImportSemaphoreWin32HandleKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_semaphore_win32");
-        return hasExt ? (void*)entry_vkImportSemaphoreWin32HandleKHR : nullptr;
+        return (void*)dynCheck_entry_vkImportSemaphoreWin32HandleKHR;
     }
     if (!strcmp(name, "vkGetSemaphoreWin32HandleKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_semaphore_win32");
-        return hasExt ? (void*)entry_vkGetSemaphoreWin32HandleKHR : nullptr;
+        return (void*)dynCheck_entry_vkGetSemaphoreWin32HandleKHR;
     }
 #endif
 #ifdef VK_KHR_external_semaphore_fd
     if (!strcmp(name, "vkImportSemaphoreFdKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_semaphore_fd");
-        return hasExt ? (void*)entry_vkImportSemaphoreFdKHR : nullptr;
+        return (void*)dynCheck_entry_vkImportSemaphoreFdKHR;
     }
     if (!strcmp(name, "vkGetSemaphoreFdKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_semaphore_fd");
-        return hasExt ? (void*)entry_vkGetSemaphoreFdKHR : nullptr;
+        return (void*)dynCheck_entry_vkGetSemaphoreFdKHR;
     }
 #endif
 #ifdef VK_KHR_push_descriptor
@@ -6327,25 +7642,21 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_KHR_descriptor_update_template
     if (!strcmp(name, "vkCreateDescriptorUpdateTemplateKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_descriptor_update_template");
-        return hasExt ? (void*)entry_vkCreateDescriptorUpdateTemplateKHR : nullptr;
+        return (void*)dynCheck_entry_vkCreateDescriptorUpdateTemplateKHR;
     }
     if (!strcmp(name, "vkDestroyDescriptorUpdateTemplateKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_descriptor_update_template");
-        return hasExt ? (void*)entry_vkDestroyDescriptorUpdateTemplateKHR : nullptr;
+        return (void*)dynCheck_entry_vkDestroyDescriptorUpdateTemplateKHR;
     }
     if (!strcmp(name, "vkUpdateDescriptorSetWithTemplateKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_descriptor_update_template");
-        return hasExt ? (void*)entry_vkUpdateDescriptorSetWithTemplateKHR : nullptr;
+        return (void*)dynCheck_entry_vkUpdateDescriptorSetWithTemplateKHR;
     }
 #endif
 #ifdef VK_KHR_create_renderpass2
     if (!strcmp(name, "vkCreateRenderPass2KHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_create_renderpass2");
-        return hasExt ? (void*)entry_vkCreateRenderPass2KHR : nullptr;
+        return (void*)dynCheck_entry_vkCreateRenderPass2KHR;
     }
     if (!strcmp(name, "vkCmdBeginRenderPass2KHR"))
     {
@@ -6366,8 +7677,7 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_KHR_shared_presentable_image
     if (!strcmp(name, "vkGetSwapchainStatusKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_shared_presentable_image");
-        return hasExt ? (void*)entry_vkGetSwapchainStatusKHR : nullptr;
+        return (void*)dynCheck_entry_vkGetSwapchainStatusKHR;
     }
 #endif
 #ifdef VK_KHR_external_fence_capabilities
@@ -6380,25 +7690,21 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_KHR_external_fence_win32
     if (!strcmp(name, "vkImportFenceWin32HandleKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_fence_win32");
-        return hasExt ? (void*)entry_vkImportFenceWin32HandleKHR : nullptr;
+        return (void*)dynCheck_entry_vkImportFenceWin32HandleKHR;
     }
     if (!strcmp(name, "vkGetFenceWin32HandleKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_fence_win32");
-        return hasExt ? (void*)entry_vkGetFenceWin32HandleKHR : nullptr;
+        return (void*)dynCheck_entry_vkGetFenceWin32HandleKHR;
     }
 #endif
 #ifdef VK_KHR_external_fence_fd
     if (!strcmp(name, "vkImportFenceFdKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_fence_fd");
-        return hasExt ? (void*)entry_vkImportFenceFdKHR : nullptr;
+        return (void*)dynCheck_entry_vkImportFenceFdKHR;
     }
     if (!strcmp(name, "vkGetFenceFdKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_external_fence_fd");
-        return hasExt ? (void*)entry_vkGetFenceFdKHR : nullptr;
+        return (void*)dynCheck_entry_vkGetFenceFdKHR;
     }
 #endif
 #ifdef VK_KHR_get_surface_capabilities2
@@ -6438,49 +7744,41 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_KHR_get_memory_requirements2
     if (!strcmp(name, "vkGetImageMemoryRequirements2KHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_memory_requirements2");
-        return hasExt ? (void*)entry_vkGetImageMemoryRequirements2KHR : nullptr;
+        return (void*)dynCheck_entry_vkGetImageMemoryRequirements2KHR;
     }
     if (!strcmp(name, "vkGetBufferMemoryRequirements2KHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_memory_requirements2");
-        return hasExt ? (void*)entry_vkGetBufferMemoryRequirements2KHR : nullptr;
+        return (void*)dynCheck_entry_vkGetBufferMemoryRequirements2KHR;
     }
     if (!strcmp(name, "vkGetImageSparseMemoryRequirements2KHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_get_memory_requirements2");
-        return hasExt ? (void*)entry_vkGetImageSparseMemoryRequirements2KHR : nullptr;
+        return (void*)dynCheck_entry_vkGetImageSparseMemoryRequirements2KHR;
     }
 #endif
 #ifdef VK_KHR_sampler_ycbcr_conversion
     if (!strcmp(name, "vkCreateSamplerYcbcrConversionKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_sampler_ycbcr_conversion");
-        return hasExt ? (void*)entry_vkCreateSamplerYcbcrConversionKHR : nullptr;
+        return (void*)dynCheck_entry_vkCreateSamplerYcbcrConversionKHR;
     }
     if (!strcmp(name, "vkDestroySamplerYcbcrConversionKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_sampler_ycbcr_conversion");
-        return hasExt ? (void*)entry_vkDestroySamplerYcbcrConversionKHR : nullptr;
+        return (void*)dynCheck_entry_vkDestroySamplerYcbcrConversionKHR;
     }
 #endif
 #ifdef VK_KHR_bind_memory2
     if (!strcmp(name, "vkBindBufferMemory2KHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_bind_memory2");
-        return hasExt ? (void*)entry_vkBindBufferMemory2KHR : nullptr;
+        return (void*)dynCheck_entry_vkBindBufferMemory2KHR;
     }
     if (!strcmp(name, "vkBindImageMemory2KHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_bind_memory2");
-        return hasExt ? (void*)entry_vkBindImageMemory2KHR : nullptr;
+        return (void*)dynCheck_entry_vkBindImageMemory2KHR;
     }
 #endif
 #ifdef VK_KHR_maintenance3
     if (!strcmp(name, "vkGetDescriptorSetLayoutSupportKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_maintenance3");
-        return hasExt ? (void*)entry_vkGetDescriptorSetLayoutSupportKHR : nullptr;
+        return (void*)dynCheck_entry_vkGetDescriptorSetLayoutSupportKHR;
     }
 #endif
 #ifdef VK_KHR_draw_indirect_count
@@ -6498,13 +7796,11 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_ANDROID_native_buffer
     if (!strcmp(name, "vkGetSwapchainGrallocUsageANDROID"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_ANDROID_native_buffer");
-        return hasExt ? (void*)entry_vkGetSwapchainGrallocUsageANDROID : nullptr;
+        return (void*)dynCheck_entry_vkGetSwapchainGrallocUsageANDROID;
     }
     if (!strcmp(name, "vkAcquireImageANDROID"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_ANDROID_native_buffer");
-        return hasExt ? (void*)entry_vkAcquireImageANDROID : nullptr;
+        return (void*)dynCheck_entry_vkAcquireImageANDROID;
     }
     if (!strcmp(name, "vkQueueSignalReleaseImageANDROID"))
     {
@@ -6532,13 +7828,11 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_EXT_debug_marker
     if (!strcmp(name, "vkDebugMarkerSetObjectTagEXT"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_marker");
-        return hasExt ? (void*)entry_vkDebugMarkerSetObjectTagEXT : nullptr;
+        return (void*)dynCheck_entry_vkDebugMarkerSetObjectTagEXT;
     }
     if (!strcmp(name, "vkDebugMarkerSetObjectNameEXT"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_marker");
-        return hasExt ? (void*)entry_vkDebugMarkerSetObjectNameEXT : nullptr;
+        return (void*)dynCheck_entry_vkDebugMarkerSetObjectNameEXT;
     }
     if (!strcmp(name, "vkCmdDebugMarkerBeginEXT"))
     {
@@ -6571,8 +7865,7 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_AMD_shader_info
     if (!strcmp(name, "vkGetShaderInfoAMD"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_AMD_shader_info");
-        return hasExt ? (void*)entry_vkGetShaderInfoAMD : nullptr;
+        return (void*)dynCheck_entry_vkGetShaderInfoAMD;
     }
 #endif
 #ifdef VK_NV_external_memory_capabilities
@@ -6585,8 +7878,7 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_NV_external_memory_win32
     if (!strcmp(name, "vkGetMemoryWin32HandleNV"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_NV_external_memory_win32");
-        return hasExt ? (void*)entry_vkGetMemoryWin32HandleNV : nullptr;
+        return (void*)dynCheck_entry_vkGetMemoryWin32HandleNV;
     }
 #endif
 #ifdef VK_NN_vi_surface
@@ -6621,33 +7913,27 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     }
     if (!strcmp(name, "vkCreateIndirectCommandsLayoutNVX"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_NVX_device_generated_commands");
-        return hasExt ? (void*)entry_vkCreateIndirectCommandsLayoutNVX : nullptr;
+        return (void*)dynCheck_entry_vkCreateIndirectCommandsLayoutNVX;
     }
     if (!strcmp(name, "vkDestroyIndirectCommandsLayoutNVX"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_NVX_device_generated_commands");
-        return hasExt ? (void*)entry_vkDestroyIndirectCommandsLayoutNVX : nullptr;
+        return (void*)dynCheck_entry_vkDestroyIndirectCommandsLayoutNVX;
     }
     if (!strcmp(name, "vkCreateObjectTableNVX"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_NVX_device_generated_commands");
-        return hasExt ? (void*)entry_vkCreateObjectTableNVX : nullptr;
+        return (void*)dynCheck_entry_vkCreateObjectTableNVX;
     }
     if (!strcmp(name, "vkDestroyObjectTableNVX"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_NVX_device_generated_commands");
-        return hasExt ? (void*)entry_vkDestroyObjectTableNVX : nullptr;
+        return (void*)dynCheck_entry_vkDestroyObjectTableNVX;
     }
     if (!strcmp(name, "vkRegisterObjectsNVX"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_NVX_device_generated_commands");
-        return hasExt ? (void*)entry_vkRegisterObjectsNVX : nullptr;
+        return (void*)dynCheck_entry_vkRegisterObjectsNVX;
     }
     if (!strcmp(name, "vkUnregisterObjectsNVX"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_NVX_device_generated_commands");
-        return hasExt ? (void*)entry_vkUnregisterObjectsNVX : nullptr;
+        return (void*)dynCheck_entry_vkUnregisterObjectsNVX;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX"))
     {
@@ -6691,35 +7977,29 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_EXT_display_control
     if (!strcmp(name, "vkDisplayPowerControlEXT"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_display_control");
-        return hasExt ? (void*)entry_vkDisplayPowerControlEXT : nullptr;
+        return (void*)dynCheck_entry_vkDisplayPowerControlEXT;
     }
     if (!strcmp(name, "vkRegisterDeviceEventEXT"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_display_control");
-        return hasExt ? (void*)entry_vkRegisterDeviceEventEXT : nullptr;
+        return (void*)dynCheck_entry_vkRegisterDeviceEventEXT;
     }
     if (!strcmp(name, "vkRegisterDisplayEventEXT"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_display_control");
-        return hasExt ? (void*)entry_vkRegisterDisplayEventEXT : nullptr;
+        return (void*)dynCheck_entry_vkRegisterDisplayEventEXT;
     }
     if (!strcmp(name, "vkGetSwapchainCounterEXT"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_display_control");
-        return hasExt ? (void*)entry_vkGetSwapchainCounterEXT : nullptr;
+        return (void*)dynCheck_entry_vkGetSwapchainCounterEXT;
     }
 #endif
 #ifdef VK_GOOGLE_display_timing
     if (!strcmp(name, "vkGetRefreshCycleDurationGOOGLE"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_display_timing");
-        return hasExt ? (void*)entry_vkGetRefreshCycleDurationGOOGLE : nullptr;
+        return (void*)dynCheck_entry_vkGetRefreshCycleDurationGOOGLE;
     }
     if (!strcmp(name, "vkGetPastPresentationTimingGOOGLE"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_display_timing");
-        return hasExt ? (void*)entry_vkGetPastPresentationTimingGOOGLE : nullptr;
+        return (void*)dynCheck_entry_vkGetPastPresentationTimingGOOGLE;
     }
 #endif
 #ifdef VK_EXT_discard_rectangles
@@ -6732,8 +8012,7 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_EXT_hdr_metadata
     if (!strcmp(name, "vkSetHdrMetadataEXT"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_hdr_metadata");
-        return hasExt ? (void*)entry_vkSetHdrMetadataEXT : nullptr;
+        return (void*)dynCheck_entry_vkSetHdrMetadataEXT;
     }
 #endif
 #ifdef VK_MVK_ios_surface
@@ -6753,13 +8032,11 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_EXT_debug_utils
     if (!strcmp(name, "vkSetDebugUtilsObjectNameEXT"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
-        return hasExt ? (void*)entry_vkSetDebugUtilsObjectNameEXT : nullptr;
+        return (void*)dynCheck_entry_vkSetDebugUtilsObjectNameEXT;
     }
     if (!strcmp(name, "vkSetDebugUtilsObjectTagEXT"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
-        return hasExt ? (void*)entry_vkSetDebugUtilsObjectTagEXT : nullptr;
+        return (void*)dynCheck_entry_vkSetDebugUtilsObjectTagEXT;
     }
     if (!strcmp(name, "vkQueueBeginDebugUtilsLabelEXT"))
     {
@@ -6810,13 +8087,11 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
     if (!strcmp(name, "vkGetAndroidHardwareBufferPropertiesANDROID"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_ANDROID_external_memory_android_hardware_buffer");
-        return hasExt ? (void*)entry_vkGetAndroidHardwareBufferPropertiesANDROID : nullptr;
+        return (void*)dynCheck_entry_vkGetAndroidHardwareBufferPropertiesANDROID;
     }
     if (!strcmp(name, "vkGetMemoryAndroidHardwareBufferANDROID"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_ANDROID_external_memory_android_hardware_buffer");
-        return hasExt ? (void*)entry_vkGetMemoryAndroidHardwareBufferANDROID : nullptr;
+        return (void*)dynCheck_entry_vkGetMemoryAndroidHardwareBufferANDROID;
     }
 #endif
 #ifdef VK_EXT_sample_locations
@@ -6834,30 +8109,25 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_EXT_validation_cache
     if (!strcmp(name, "vkCreateValidationCacheEXT"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_validation_cache");
-        return hasExt ? (void*)entry_vkCreateValidationCacheEXT : nullptr;
+        return (void*)dynCheck_entry_vkCreateValidationCacheEXT;
     }
     if (!strcmp(name, "vkDestroyValidationCacheEXT"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_validation_cache");
-        return hasExt ? (void*)entry_vkDestroyValidationCacheEXT : nullptr;
+        return (void*)dynCheck_entry_vkDestroyValidationCacheEXT;
     }
     if (!strcmp(name, "vkMergeValidationCachesEXT"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_validation_cache");
-        return hasExt ? (void*)entry_vkMergeValidationCachesEXT : nullptr;
+        return (void*)dynCheck_entry_vkMergeValidationCachesEXT;
     }
     if (!strcmp(name, "vkGetValidationCacheDataEXT"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_validation_cache");
-        return hasExt ? (void*)entry_vkGetValidationCacheDataEXT : nullptr;
+        return (void*)dynCheck_entry_vkGetValidationCacheDataEXT;
     }
 #endif
 #ifdef VK_EXT_external_memory_host
     if (!strcmp(name, "vkGetMemoryHostPointerPropertiesEXT"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_external_memory_host");
-        return hasExt ? (void*)entry_vkGetMemoryHostPointerPropertiesEXT : nullptr;
+        return (void*)dynCheck_entry_vkGetMemoryHostPointerPropertiesEXT;
     }
 #endif
 #ifdef VK_AMD_buffer_marker
@@ -6882,27 +8152,23 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_GOOGLE_address_space
     if (!strcmp(name, "vkMapMemoryIntoAddressSpaceGOOGLE"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_address_space");
-        return hasExt ? (void*)entry_vkMapMemoryIntoAddressSpaceGOOGLE : nullptr;
+        return (void*)dynCheck_entry_vkMapMemoryIntoAddressSpaceGOOGLE;
     }
 #endif
 #ifdef VK_GOOGLE_color_buffer
     if (!strcmp(name, "vkRegisterImageColorBufferGOOGLE"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_color_buffer");
-        return hasExt ? (void*)entry_vkRegisterImageColorBufferGOOGLE : nullptr;
+        return (void*)dynCheck_entry_vkRegisterImageColorBufferGOOGLE;
     }
     if (!strcmp(name, "vkRegisterBufferColorBufferGOOGLE"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_color_buffer");
-        return hasExt ? (void*)entry_vkRegisterBufferColorBufferGOOGLE : nullptr;
+        return (void*)dynCheck_entry_vkRegisterBufferColorBufferGOOGLE;
     }
 #endif
 #ifdef VK_GOOGLE_sized_descriptor_update_template
     if (!strcmp(name, "vkUpdateDescriptorSetWithTemplateSizedGOOGLE"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_sized_descriptor_update_template");
-        return hasExt ? (void*)entry_vkUpdateDescriptorSetWithTemplateSizedGOOGLE : nullptr;
+        return (void*)dynCheck_entry_vkUpdateDescriptorSetWithTemplateSizedGOOGLE;
     }
 #endif
 #ifdef VK_GOOGLE_async_command_buffers
@@ -6930,13 +8196,11 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_GOOGLE_create_resources_with_requirements
     if (!strcmp(name, "vkCreateImageWithRequirementsGOOGLE"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_create_resources_with_requirements");
-        return hasExt ? (void*)entry_vkCreateImageWithRequirementsGOOGLE : nullptr;
+        return (void*)dynCheck_entry_vkCreateImageWithRequirementsGOOGLE;
     }
     if (!strcmp(name, "vkCreateBufferWithRequirementsGOOGLE"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_create_resources_with_requirements");
-        return hasExt ? (void*)entry_vkCreateBufferWithRequirementsGOOGLE : nullptr;
+        return (void*)dynCheck_entry_vkCreateBufferWithRequirementsGOOGLE;
     }
 #endif
     return nullptr;
