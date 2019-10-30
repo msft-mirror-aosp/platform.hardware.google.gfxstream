@@ -99,7 +99,8 @@ struct cb_handle_old_t : public cb_handle_t {
                           p_glFormat,
                           p_glType,
                           p_ashmemSize,
-                          NULL),
+                          NULL,
+                          ~uint64_t(0)),
               ashmemBasePid(0),
               mappedPid(0) {
         numInts = CB_HANDLE_NUM_INTS(numFds);
