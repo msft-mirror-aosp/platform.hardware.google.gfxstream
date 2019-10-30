@@ -38,7 +38,8 @@ struct cb_handle_t : public native_handle_t {
                 int32_t p_glFormat,
                 int32_t p_glType,
                 uint32_t p_bufSize,
-                void* p_bufPtr)
+                void* p_bufPtr,
+                uint64_t p_mmapedOffset)
         : bufferFd(p_bufferFd),
           hostHandleRefCountFd(p_hostHandleRefCountFd),
           magic(p_magic),
@@ -50,6 +51,8 @@ struct cb_handle_t : public native_handle_t {
           glFormat(p_glFormat),
           glType(p_glType),
           bufferSize(p_bufSize),
+          mmapedOffsetLo(static_cast<uint32_t>(p_mmapedOffset)),
+          mmapedOffsetHi(static_cast<uint32_t>(p_mmapedOffset >> 32)),
           lockedLeft(0),
           lockedTop(0),
           lockedWidth(0),
@@ -69,6 +72,10 @@ struct cb_handle_t : public native_handle_t {
         const uint64_t addr = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(ptr));
         bufferPtrLo = uint32_t(addr);
         bufferPtrHi = uint32_t(addr >> 32);
+    }
+
+    uint64_t getMmapedOffset() const {
+        return (uint64_t(mmapedOffsetHi) << 32) | mmapedOffsetLo;
     }
 
     uint32_t allocatedSize() const {
@@ -110,6 +117,8 @@ struct cb_handle_t : public native_handle_t {
     uint32_t bufferSize;    // buffer size and location
     uint32_t bufferPtrLo;
     uint32_t bufferPtrHi;
+    uint32_t mmapedOffsetLo;
+    uint32_t mmapedOffsetHi;
     int32_t  lockedLeft;    // region of buffer locked for s/w write
     int32_t  lockedTop;
     int32_t  lockedWidth;
