@@ -69,71 +69,6 @@
 namespace {
 
 const char GOLDFISH_GRALLOC_MODULE_NAME[] = "Graphics Memory Allocator Module";
-const uint32_t CB_HANDLE_MAGIC_30 = CB_HANDLE_MAGIC_BASE | 0x2;
-
-struct cb_handle_30_t : public cb_handle_t {
-    cb_handle_30_t(address_space_handle_t p_bufferFd,
-                   QEMU_PIPE_HANDLE p_hostHandleRefCountFd,
-                   uint32_t p_hostHandle,
-                   int32_t p_usage,
-                   int32_t p_width,
-                   int32_t p_height,
-                   int32_t p_format,
-                   int32_t p_glFormat,
-                   int32_t p_glType,
-                   uint32_t p_bufSize,
-                   void* p_bufPtr,
-                   int32_t p_bufferPtrPid,
-                   uint32_t p_mmapedSize,
-                   uint64_t p_mmapedOffset,
-                   uint64_t p_mmapedPhysAddr)
-            : cb_handle_t(p_bufferFd,
-                          p_hostHandleRefCountFd,
-                          CB_HANDLE_MAGIC_30,
-                          p_hostHandle,
-                          p_usage,
-                          p_width,
-                          p_height,
-                          p_format,
-                          p_glFormat,
-                          p_glType,
-                          p_bufSize,
-                          p_bufPtr,
-                          p_mmapedOffset),
-              bufferFdAsInt(p_bufferFd),
-              bufferPtrPid(p_bufferPtrPid),
-              mmapedSize(p_mmapedSize),
-              mmapedPhysAddrLo(static_cast<uint32_t>(p_mmapedPhysAddr)),
-              mmapedPhysAddrHi(static_cast<uint32_t>(p_mmapedPhysAddr >> 32)) {
-        numInts = CB_HANDLE_NUM_INTS(numFds);
-    }
-
-    uint64_t getMmapedPhysAddr() const {
-        return (uint64_t(mmapedPhysAddrHi) << 32) | mmapedPhysAddrLo;
-    }
-
-    bool isValid() const { return (version == sizeof(native_handle_t)) && (magic == CB_HANDLE_MAGIC_30); }
-
-    static cb_handle_30_t* from(void* p) {
-        if (!p) { return nullptr; }
-        cb_handle_30_t* cb = static_cast<cb_handle_30_t*>(p);
-        return cb->isValid() ? cb : nullptr;
-    }
-
-    static const cb_handle_30_t* from(const void* p) {
-        return from(const_cast<void*>(p));
-    }
-
-    static cb_handle_30_t* from_unconst(const void* p) {
-        return from(const_cast<void*>(p));
-    }
-
-    int32_t  bufferFdAsInt;         // int copy of bufferFd, to check if fd was duped
-    int32_t  bufferPtrPid;          // pid where bufferPtr belongs to
-    uint32_t mmapedSize;            // real allocation side
-    uint32_t mmapedPhysAddrLo;
-    uint32_t mmapedPhysAddrHi;
-};
 
 hw_device_t make_hw_device(hw_module_t* module, int (*close)(hw_device_t*)) {
     hw_device_t result = {};
@@ -195,6 +130,8 @@ public:
     buffer_manager_t& operator=(buffer_manager_t&&) = delete;
     virtual ~buffer_manager_t() {}
 
+    virtual uint64_t getMmapedPhysAddr(uint64_t offset) const = 0;
+
     virtual int alloc_buffer(int usage,
                              int width, int height, int format,
                              EmulatorFrameworkFormat emulatorFrameworkFormat,
@@ -246,7 +183,7 @@ public:
         return m_bufferManager->unregister_buffer(h);
     }
 
-    int lock(cb_handle_30_t& handle,
+    int lock(cb_handle_t& handle,
              const int usage,
              const int left, const int top, const int width, const int height,
              void** vaddr) {
@@ -266,7 +203,7 @@ public:
         return 0;
     }
 
-    int unlock(cb_handle_30_t& handle) {
+    int unlock(cb_handle_t& handle) {
         if (!handle.bufferSize) { RETURN_ERROR_CODE(-EINVAL); }
 
         char* const bufferBits = static_cast<char*>(handle.getBufferPtr());
@@ -279,7 +216,7 @@ public:
         return 0;
     }
 
-    int lock_ycbcr(cb_handle_30_t& handle,
+    int lock_ycbcr(cb_handle_t& handle,
                    const int usage,
                    const int left, const int top, const int width, const int height,
                    android_ycbcr* ycbcr) {
@@ -345,7 +282,7 @@ public:
     }
 
 private:
-    int lock_impl(cb_handle_30_t& handle,
+    int lock_impl(cb_handle_t& handle,
                   const int usage,
                   const int left, const int top, const int width, const int height,
                   char* const bufferBits) {
@@ -437,7 +374,7 @@ private:
         return 0;
     }
 
-    void unlock_impl(cb_handle_30_t& handle, char* const bufferBits) {
+    void unlock_impl(cb_handle_t& handle, char* const bufferBits) {
         const int bpp = glUtilsPixelBitSize(handle.glFormat, handle.glType) >> 3;
         const int left = handle.lockedLeft;
         const int top = handle.lockedTop;
@@ -477,7 +414,8 @@ private:
             const HostConnectionSession conn = getHostConnectionSession();
             ExtendedRCEncoderContext *const rcEnc = conn.getRcEncoder();
 
-            rcEnc->bindDmaDirectly(bufferBits, handle.getMmapedPhysAddr());
+            rcEnc->bindDmaDirectly(bufferBits,
+                                   m_bufferManager->getMmapedPhysAddr(handle.getMmapedOffset()));
             rcEnc->rcUpdateColorBufferDMA(rcEnc, handle.hostHandle,
                     left, top, width, height,
                     handle.glFormat, handle.glType,
@@ -881,6 +819,63 @@ private:
     }
 };
 
+const uint32_t CB_HANDLE_MAGIC_30 = CB_HANDLE_MAGIC_BASE | 0x2;
+
+struct cb_handle_30_t : public cb_handle_t {
+    cb_handle_30_t(address_space_handle_t p_bufferFd,
+                   QEMU_PIPE_HANDLE p_hostHandleRefCountFd,
+                   uint32_t p_hostHandle,
+                   int32_t p_usage,
+                   int32_t p_width,
+                   int32_t p_height,
+                   int32_t p_format,
+                   int32_t p_glFormat,
+                   int32_t p_glType,
+                   uint32_t p_bufSize,
+                   void* p_bufPtr,
+                   int32_t p_bufferPtrPid,
+                   uint32_t p_mmapedSize,
+                   uint64_t p_mmapedOffset)
+            : cb_handle_t(p_bufferFd,
+                          p_hostHandleRefCountFd,
+                          CB_HANDLE_MAGIC_30,
+                          p_hostHandle,
+                          p_usage,
+                          p_width,
+                          p_height,
+                          p_format,
+                          p_glFormat,
+                          p_glType,
+                          p_bufSize,
+                          p_bufPtr,
+                          p_mmapedOffset),
+              bufferFdAsInt(p_bufferFd),
+              bufferPtrPid(p_bufferPtrPid),
+              mmapedSize(p_mmapedSize) {
+        numInts = CB_HANDLE_NUM_INTS(numFds);
+    }
+
+    bool isValid() const { return (version == sizeof(native_handle_t)) && (magic == CB_HANDLE_MAGIC_30); }
+
+    static cb_handle_30_t* from(void* p) {
+        if (!p) { return nullptr; }
+        cb_handle_30_t* cb = static_cast<cb_handle_30_t*>(p);
+        return cb->isValid() ? cb : nullptr;
+    }
+
+    static const cb_handle_30_t* from(const void* p) {
+        return from(const_cast<void*>(p));
+    }
+
+    static cb_handle_30_t* from_unconst(const void* p) {
+        return from(const_cast<void*>(p));
+    }
+
+    int32_t  bufferFdAsInt;         // int copy of bufferFd, to check if fd was duped
+    int32_t  bufferPtrPid;          // pid where bufferPtr belongs to
+    uint32_t mmapedSize;            // real allocation side
+};
+
 // goldfish_address_space_host_malloc_handle_manager_t uses
 // GoldfishAddressSpaceHostMemoryAllocator and GoldfishAddressSpaceBlock
 // to allocate buffers on the host.
@@ -888,7 +883,21 @@ private:
 // on the guest by qemu_pipe_open("refcount").
 class goldfish_address_space_host_malloc_buffer_manager_t : public buffer_manager_t {
 public:
-    goldfish_address_space_host_malloc_buffer_manager_t(goldfish_gralloc30_module_t* gr): m_gr(gr) {}
+    goldfish_address_space_host_malloc_buffer_manager_t(goldfish_gralloc30_module_t* gr): m_gr(gr) {
+        GoldfishAddressSpaceHostMemoryAllocator host_memory_allocator;
+        CRASH_IF(!host_memory_allocator.is_opened(),
+                 "GoldfishAddressSpaceHostMemoryAllocator failed to open");
+
+        GoldfishAddressSpaceBlock bufferBits;
+        CRASH_IF(host_memory_allocator.hostMalloc(&bufferBits, 256),
+                 "hostMalloc failed");
+
+        m_physAddrToOffset = bufferBits.physAddr() - bufferBits.offset();
+    }
+
+    uint64_t getMmapedPhysAddr(uint64_t offset) const override {
+        return m_physAddrToOffset + offset;
+    }
 
     int alloc_buffer(int usage,
                      int width, int height, int format,
@@ -936,7 +945,7 @@ public:
                 usage, width, height,
                 format, glFormat, glType,
                 bufferSize, bufferBits.guestPtr(), getpid(),
-                bufferBits.size(), bufferBits.offset(), bufferBits.physAddr());
+                bufferBits.size(), bufferBits.offset());
         bufferBits.release();
 
         *pHandle = handle.release();
@@ -1035,6 +1044,7 @@ public:
 
 private:
     goldfish_gralloc30_module_t* m_gr;
+    uint64_t m_physAddrToOffset;
 };
 
 std::unique_ptr<buffer_manager_t> create_buffer_manager(goldfish_gralloc30_module_t* gr) {
@@ -1074,7 +1084,7 @@ int gralloc_lock(const gralloc_module_t* gralloc_module,
         RETURN_ERROR_CODE(-EINVAL);
     }
 
-    cb_handle_30_t* handle = cb_handle_30_t::from_unconst(bh);
+    cb_handle_t* handle = cb_handle_t::from_unconst(bh);
     if (!handle) {
         RETURN_ERROR_CODE(-EINVAL);
     }
@@ -1088,7 +1098,7 @@ int gralloc_unlock(const gralloc_module_t* gralloc_module, buffer_handle_t bh) {
         RETURN_ERROR_CODE(-EINVAL);
     }
 
-    cb_handle_30_t* handle = cb_handle_30_t::from_unconst(bh);
+    cb_handle_t* handle = cb_handle_t::from_unconst(bh);
     if (!handle) {
         RETURN_ERROR_CODE(-EINVAL);
     }
@@ -1105,7 +1115,7 @@ int gralloc_lock_ycbcr(const gralloc_module_t* gralloc_module,
         RETURN_ERROR_CODE(-EINVAL);
     }
 
-    cb_handle_30_t* handle = cb_handle_30_t::from_unconst(bh);
+    cb_handle_t* handle = cb_handle_t::from_unconst(bh);
     if (!handle) {
         RETURN_ERROR_CODE(-EINVAL);
     }
