@@ -3957,12 +3957,12 @@ void GL2Encoder::s_glTexImage3D(void* self, GLenum target, GLint level, GLint in
     SET_ERROR_IF(level > ilog2(max_3d_texture_size), GL_INVALID_VALUE);
 
     SET_ERROR_IF(width < 0 || height < 0 || depth < 0, GL_INVALID_VALUE);
-    SET_ERROR_IF(width > GL_MAX_TEXTURE_SIZE, GL_INVALID_VALUE);
-    SET_ERROR_IF(height > GL_MAX_TEXTURE_SIZE, GL_INVALID_VALUE);
-    SET_ERROR_IF(depth > GL_MAX_TEXTURE_SIZE, GL_INVALID_VALUE);
-    SET_ERROR_IF(width > GL_MAX_3D_TEXTURE_SIZE, GL_INVALID_VALUE);
-    SET_ERROR_IF(height > GL_MAX_3D_TEXTURE_SIZE, GL_INVALID_VALUE);
-    SET_ERROR_IF(depth > GL_MAX_3D_TEXTURE_SIZE, GL_INVALID_VALUE);
+    SET_ERROR_IF(width > max_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(height > max_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(depth > max_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(width > max_3d_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(height > max_3d_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(depth > max_3d_texture_size, GL_INVALID_VALUE);
     SET_ERROR_IF(border != 0, GL_INVALID_VALUE);
     // If unpack buffer is nonzero, verify buffer data fits and is evenly divisible by the type.
     SET_ERROR_IF(ctx->boundBuffer(GL_PIXEL_UNPACK_BUFFER) &&
