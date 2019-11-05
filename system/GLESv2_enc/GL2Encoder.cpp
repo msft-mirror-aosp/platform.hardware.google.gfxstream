@@ -1817,7 +1817,6 @@ void GL2Encoder::s_glLinkProgram(void * self, GLuint program)
         location = ctx->m_glGetUniformLocation_enc(self, program, name);
         ctx->m_shared->setProgramIndexInfo(program, i, location, size, type, name);
     }
-    ctx->m_shared->setupLocationShiftWAR(program);
 
     delete[] name;
 }
@@ -1836,7 +1835,7 @@ void GL2Encoder::s_glGetUniformiv(void *self, GLuint program, GLint location, GL
     SET_ERROR_IF(!ctx->m_shared->isShaderOrProgramObject(program), GL_INVALID_VALUE);
     SET_ERROR_IF(!ctx->m_shared->isProgram(program), GL_INVALID_OPERATION);
     SET_ERROR_IF(!ctx->m_shared->isProgramInitialized(program), GL_INVALID_OPERATION);
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     SET_ERROR_IF(ctx->m_shared->getProgramUniformType(program,hostLoc)==0, GL_INVALID_OPERATION);
     ctx->m_glGetUniformiv_enc(self, program, hostLoc, params);
 }
@@ -1846,7 +1845,7 @@ void GL2Encoder::s_glGetUniformfv(void *self, GLuint program, GLint location, GL
     SET_ERROR_IF(!ctx->m_shared->isShaderOrProgramObject(program), GL_INVALID_VALUE);
     SET_ERROR_IF(!ctx->m_shared->isProgram(program), GL_INVALID_OPERATION);
     SET_ERROR_IF(!ctx->m_shared->isProgramInitialized(program), GL_INVALID_OPERATION);
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program,location);
+    GLint hostLoc = location;
     SET_ERROR_IF(ctx->m_shared->getProgramUniformType(program,hostLoc)==0, GL_INVALID_OPERATION);
     ctx->m_glGetUniformfv_enc(self, program, hostLoc, params);
 }
@@ -1957,24 +1956,8 @@ int sArrIndexOfUniformExpr(const char* name, int* err) {
 int GL2Encoder::s_glGetUniformLocation(void *self, GLuint program, const GLchar *name)
 {
     if (!name) return -1;
-
     GL2Encoder *ctx = (GL2Encoder*)self;
-
-    // if we need the uniform location WAR
-    // parse array index from the end of the name string
-    int arrIndex = 0;
-    bool needLocationWAR = ctx->m_shared->needUniformLocationWAR(program);
-    if (needLocationWAR) {
-        int err;
-        arrIndex = sArrIndexOfUniformExpr(name, &err);
-        if (err) return -1;
-    }
-
-    int hostLoc = ctx->m_glGetUniformLocation_enc(self, program, name);
-    if (hostLoc >= 0 && needLocationWAR) {
-        return ctx->m_shared->locationWARHostToApp(program, hostLoc, arrIndex);
-    }
-    return hostLoc;
+    return ctx->m_glGetUniformLocation_enc(self, program, name);
 }
 
 bool GL2Encoder::updateHostTexture2DBinding(GLenum texUnit, GLenum newTarget)
@@ -2045,14 +2028,14 @@ void GL2Encoder::s_glUseProgram(void *self, GLuint program)
 void GL2Encoder::s_glUniform1f(void *self , GLint location, GLfloat x)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform1f_enc(self, hostLoc, x);
 }
 
 void GL2Encoder::s_glUniform1fv(void *self , GLint location, GLsizei count, const GLfloat* v)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform1fv_enc(self, hostLoc, count, v);
 }
 
@@ -2062,7 +2045,7 @@ void GL2Encoder::s_glUniform1i(void *self , GLint location, GLint x)
     GLClientState* state = ctx->m_state;
     GLSharedGroupPtr shared = ctx->m_shared;
 
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform1i_enc(self, hostLoc, x);
 
     GLenum target;
@@ -2078,112 +2061,112 @@ void GL2Encoder::s_glUniform1i(void *self , GLint location, GLint x)
 void GL2Encoder::s_glUniform1iv(void *self , GLint location, GLsizei count, const GLint* v)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform1iv_enc(self, hostLoc, count, v);
 }
 
 void GL2Encoder::s_glUniform2f(void *self , GLint location, GLfloat x, GLfloat y)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform2f_enc(self, hostLoc, x, y);
 }
 
 void GL2Encoder::s_glUniform2fv(void *self , GLint location, GLsizei count, const GLfloat* v)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform2fv_enc(self, hostLoc, count, v);
 }
 
 void GL2Encoder::s_glUniform2i(void *self , GLint location, GLint x, GLint y)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform2i_enc(self, hostLoc, x, y);
 }
 
 void GL2Encoder::s_glUniform2iv(void *self , GLint location, GLsizei count, const GLint* v)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform2iv_enc(self, hostLoc, count, v);
 }
 
 void GL2Encoder::s_glUniform3f(void *self , GLint location, GLfloat x, GLfloat y, GLfloat z)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform3f_enc(self, hostLoc, x, y, z);
 }
 
 void GL2Encoder::s_glUniform3fv(void *self , GLint location, GLsizei count, const GLfloat* v)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform3fv_enc(self, hostLoc, count, v);
 }
 
 void GL2Encoder::s_glUniform3i(void *self , GLint location, GLint x, GLint y, GLint z)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform3i_enc(self, hostLoc, x, y, z);
 }
 
 void GL2Encoder::s_glUniform3iv(void *self , GLint location, GLsizei count, const GLint* v)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform3iv_enc(self, hostLoc, count, v);
 }
 
 void GL2Encoder::s_glUniform4f(void *self , GLint location, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform4f_enc(self, hostLoc, x, y, z, w);
 }
 
 void GL2Encoder::s_glUniform4fv(void *self , GLint location, GLsizei count, const GLfloat* v)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform4fv_enc(self, hostLoc, count, v);
 }
 
 void GL2Encoder::s_glUniform4i(void *self , GLint location, GLint x, GLint y, GLint z, GLint w)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform4i_enc(self, hostLoc, x, y, z, w);
 }
 
 void GL2Encoder::s_glUniform4iv(void *self , GLint location, GLsizei count, const GLint* v)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform4iv_enc(self, hostLoc, count, v);
 }
 
 void GL2Encoder::s_glUniformMatrix2fv(void *self , GLint location, GLsizei count, GLboolean transpose, const GLfloat* value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniformMatrix2fv_enc(self, hostLoc, count, transpose, value);
 }
 
 void GL2Encoder::s_glUniformMatrix3fv(void *self , GLint location, GLsizei count, GLboolean transpose, const GLfloat* value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniformMatrix3fv_enc(self, hostLoc, count, transpose, value);
 }
 
 void GL2Encoder::s_glUniformMatrix4fv(void *self , GLint location, GLsizei count, GLboolean transpose, const GLfloat* value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniformMatrix4fv_enc(self, hostLoc, count, transpose, value);
 }
 
@@ -3536,7 +3519,6 @@ void GL2Encoder::s_glGetUniformIndices(void* self, GLuint program, GLsizei unifo
     std::string packed = packVarNames(uniformCount, (const char**)uniformNames, &err);
     SET_ERROR_IF(err != GL_NO_ERROR, GL_INVALID_OPERATION);
 
-    bool needLocationWAR = ctx->m_shared->needUniformLocationWAR(program);
     std::vector<int> arrIndices;
     for (size_t i = 0; i < uniformCount; i++) {
         int err;
@@ -3548,13 +3530,6 @@ void GL2Encoder::s_glGetUniformIndices(void* self, GLuint program, GLsizei unifo
     }
 
     ctx->glGetUniformIndicesAEMU(ctx, program, uniformCount, (const GLchar*)&packed[0], packed.size() + 1, uniformIndices);
-
-    for (int i = 0; i < uniformCount; i++) {
-        if (uniformIndices[i] >= 0 && needLocationWAR) {
-            uniformIndices[i] =
-                ctx->m_shared->locationWARHostToApp(program, uniformIndices[i], arrIndices[i]);
-        }
-    }
 }
 
 void GL2Encoder::s_glUniform1ui(void* self, GLint location, GLuint v0) {
@@ -3562,7 +3537,7 @@ void GL2Encoder::s_glUniform1ui(void* self, GLint location, GLuint v0) {
     GLClientState* state = ctx->m_state;
     GLSharedGroupPtr shared = ctx->m_shared;
 
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform1ui_enc(self, hostLoc, v0);
 
     GLenum target;
@@ -3577,79 +3552,79 @@ void GL2Encoder::s_glUniform1ui(void* self, GLint location, GLuint v0) {
 
 void GL2Encoder::s_glUniform2ui(void* self, GLint location, GLuint v0, GLuint v1) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform2ui_enc(self, hostLoc, v0, v1);
 }
 
 void GL2Encoder::s_glUniform3ui(void* self, GLint location, GLuint v0, GLuint v1, GLuint v2) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform3ui_enc(self, hostLoc, v0, v1, v2);
 }
 
 void GL2Encoder::s_glUniform4ui(void* self, GLint location, GLint v0, GLuint v1, GLuint v2, GLuint v3) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform4ui_enc(self, hostLoc, v0, v1, v2, v3);
 }
 
 void GL2Encoder::s_glUniform1uiv(void* self, GLint location, GLsizei count, const GLuint *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform1uiv_enc(self, hostLoc, count, value);
 }
 
 void GL2Encoder::s_glUniform2uiv(void* self, GLint location, GLsizei count, const GLuint *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform2uiv_enc(self, hostLoc, count, value);
 }
 
 void GL2Encoder::s_glUniform3uiv(void* self, GLint location, GLsizei count, const GLuint *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform3uiv_enc(self, hostLoc, count, value);
 }
 
 void GL2Encoder::s_glUniform4uiv(void* self, GLint location, GLsizei count, const GLuint *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniform4uiv_enc(self, hostLoc, count, value);
 }
 
 void GL2Encoder::s_glUniformMatrix2x3fv(void* self, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniformMatrix2x3fv_enc(self, hostLoc, count, transpose, value);
 }
 
 void GL2Encoder::s_glUniformMatrix3x2fv(void* self, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniformMatrix3x2fv_enc(self, hostLoc, count, transpose, value);
 }
 
 void GL2Encoder::s_glUniformMatrix2x4fv(void* self, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniformMatrix2x4fv_enc(self, hostLoc, count, transpose, value);
 }
 
 void GL2Encoder::s_glUniformMatrix4x2fv(void* self, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniformMatrix4x2fv_enc(self, hostLoc, count, transpose, value);
 }
 
 void GL2Encoder::s_glUniformMatrix3x4fv(void* self, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniformMatrix3x4fv_enc(self, hostLoc, count, transpose, value);
 }
 
 void GL2Encoder::s_glUniformMatrix4x3fv(void* self, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(ctx->m_state->currentShaderProgram(),location);
+    GLint hostLoc = location;
     ctx->m_glUniformMatrix4x3fv_enc(self, hostLoc, count, transpose, value);
 }
 
@@ -3658,7 +3633,7 @@ void GL2Encoder::s_glGetUniformuiv(void* self, GLuint program, GLint location, G
     SET_ERROR_IF(!ctx->m_shared->isShaderOrProgramObject(program), GL_INVALID_VALUE);
     SET_ERROR_IF(!ctx->m_shared->isProgram(program), GL_INVALID_OPERATION);
     SET_ERROR_IF(!ctx->m_shared->isProgramInitialized(program), GL_INVALID_OPERATION);
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     SET_ERROR_IF(ctx->m_shared->getProgramUniformType(program,hostLoc)==0, GL_INVALID_OPERATION);
     ctx->m_glGetUniformuiv_enc(self, program, hostLoc, params);
 }
@@ -4911,8 +4886,6 @@ GLuint GL2Encoder::s_glCreateShaderProgramv(void* self, GLenum type, GLsizei cou
         ctx->m_shared->setShaderProgramIndexInfo(res, i, location, size, uniformType, name);
     }
 
-    ctx->m_shared->setupShaderProgramLocationShiftWAR(res);
-
     delete [] name;
 
     return res;
@@ -4921,21 +4894,21 @@ GLuint GL2Encoder::s_glCreateShaderProgramv(void* self, GLenum type, GLsizei cou
 void GL2Encoder::s_glProgramUniform1f(void* self, GLuint program, GLint location, GLfloat v0)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform1f_enc(self, program, hostLoc, v0);
 }
 
 void GL2Encoder::s_glProgramUniform1fv(void* self, GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform1fv_enc(self, program, hostLoc, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform1i(void* self, GLuint program, GLint location, GLint v0)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform1i_enc(self, program, hostLoc, v0);
 
     GLClientState* state = ctx->m_state;
@@ -4954,14 +4927,14 @@ void GL2Encoder::s_glProgramUniform1i(void* self, GLuint program, GLint location
 void GL2Encoder::s_glProgramUniform1iv(void* self, GLuint program, GLint location, GLsizei count, const GLint *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform1iv_enc(self, program, hostLoc, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform1ui(void* self, GLuint program, GLint location, GLuint v0)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform1ui_enc(self, program, hostLoc, v0);
 
     GLClientState* state = ctx->m_state;
@@ -4980,196 +4953,196 @@ void GL2Encoder::s_glProgramUniform1ui(void* self, GLuint program, GLint locatio
 void GL2Encoder::s_glProgramUniform1uiv(void* self, GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform1uiv_enc(self, program, hostLoc, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform2f(void* self, GLuint program, GLint location, GLfloat v0, GLfloat v1)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform2f_enc(self, program, hostLoc, v0, v1);
 }
 
 void GL2Encoder::s_glProgramUniform2fv(void* self, GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform2fv_enc(self, program, hostLoc, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform2i(void* self, GLuint program, GLint location, GLint v0, GLint v1)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform2i_enc(self, program, hostLoc, v0, v1);
 }
 
 void GL2Encoder::s_glProgramUniform2iv(void* self, GLuint program, GLint location, GLsizei count, const GLint *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform2iv_enc(self, program, hostLoc, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform2ui(void* self, GLuint program, GLint location, GLint v0, GLuint v1)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform2ui_enc(self, program, hostLoc, v0, v1);
 }
 
 void GL2Encoder::s_glProgramUniform2uiv(void* self, GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform2uiv_enc(self, program, hostLoc, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform3f(void* self, GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform3f_enc(self, program, hostLoc, v0, v1, v2);
 }
 
 void GL2Encoder::s_glProgramUniform3fv(void* self, GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform3fv_enc(self, program, hostLoc, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform3i(void* self, GLuint program, GLint location, GLint v0, GLint v1, GLint v2)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform3i_enc(self, program, hostLoc, v0, v1, v2);
 }
 
 void GL2Encoder::s_glProgramUniform3iv(void* self, GLuint program, GLint location, GLsizei count, const GLint *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform3iv_enc(self, program, hostLoc, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform3ui(void* self, GLuint program, GLint location, GLint v0, GLint v1, GLuint v2)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform3ui_enc(self, program, hostLoc, v0, v1, v2);
 }
 
 void GL2Encoder::s_glProgramUniform3uiv(void* self, GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform3uiv_enc(self, program, hostLoc, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform4f(void* self, GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform4f_enc(self, program, hostLoc, v0, v1, v2, v3);
 }
 
 void GL2Encoder::s_glProgramUniform4fv(void* self, GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform4fv_enc(self, program, hostLoc, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform4i(void* self, GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform4i_enc(self, program, hostLoc, v0, v1, v2, v3);
 }
 
 void GL2Encoder::s_glProgramUniform4iv(void* self, GLuint program, GLint location, GLsizei count, const GLint *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform4iv_enc(self, program, hostLoc, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform4ui(void* self, GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLuint v3)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform4ui_enc(self, program, hostLoc, v0, v1, v2, v3);
 }
 
 void GL2Encoder::s_glProgramUniform4uiv(void* self, GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniform4uiv_enc(self, program, hostLoc, count, value);
 }
 
 void GL2Encoder::s_glProgramUniformMatrix2fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniformMatrix2fv_enc(self, program, hostLoc, count, transpose, value);
 }
 
 void GL2Encoder::s_glProgramUniformMatrix2x3fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniformMatrix2x3fv_enc(self, program, hostLoc, count, transpose, value);
 }
 
 void GL2Encoder::s_glProgramUniformMatrix2x4fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniformMatrix2x4fv_enc(self, program, hostLoc, count, transpose, value);
 }
 
 void GL2Encoder::s_glProgramUniformMatrix3fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniformMatrix3fv_enc(self, program, hostLoc, count, transpose, value);
 }
 
 void GL2Encoder::s_glProgramUniformMatrix3x2fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniformMatrix3x2fv_enc(self, program, hostLoc, count, transpose, value);
 }
 
 void GL2Encoder::s_glProgramUniformMatrix3x4fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniformMatrix3x4fv_enc(self, program, hostLoc, count, transpose, value);
 }
 
 void GL2Encoder::s_glProgramUniformMatrix4fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniformMatrix4fv_enc(self, program, hostLoc, count, transpose, value);
 }
 
 void GL2Encoder::s_glProgramUniformMatrix4x2fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniformMatrix4x2fv_enc(self, program, hostLoc, count, transpose, value);
 }
 
 void GL2Encoder::s_glProgramUniformMatrix4x3fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = ctx->m_shared->locationWARAppToHost(program, location);
+    GLint hostLoc = location;
     ctx->m_glProgramUniformMatrix4x3fv_enc(self, program, hostLoc, count, transpose, value);
 }
 
