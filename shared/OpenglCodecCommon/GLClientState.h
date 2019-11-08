@@ -139,6 +139,7 @@ public:
         GLsizeiptr size;
         GLuint buffer;
         GLuint divisor;
+        GLint vertexAttribLoc;
     };
 
     typedef std::vector<VertexAttribState> VertexAttribStateVector;
@@ -221,6 +222,7 @@ public:
     const BufferBinding& getCurrAttributeBindingInfo(int attribindex);
     void setVertexAttribBinding(int attribindex, int bindingindex);
     void setVertexAttribFormat(int location, int size, GLenum type, GLboolean normalized, GLuint reloffset, bool isInt = false);
+    void getVBOUsage(bool* hasClientArrays, bool* hasVBOs);
     const VertexAttribState& getState(int location);
     const VertexAttribState& getStateAndEnableDirty(int location, bool *enableChanged);
     void updateEnableDirtyArrayForDraw();
@@ -449,6 +451,11 @@ private:
     GLuint m_arrayBuffer_lastEncode;
     VAOStateMap m_vaoMap;
     VAOStateRef m_currVaoState;
+
+    uint16_t m_attribEnableCache = 0;
+    uint16_t m_vaoAttribBindingCacheInvalid = 0xffff;
+    uint16_t m_vaoAttribBindingHasClientArrayCache = 0;
+    uint16_t m_vaoAttribBindingHasVboCache = 0;
 
     // Other buffer id's, other targets
     GLuint m_copyReadBuffer;
