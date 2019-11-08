@@ -1186,19 +1186,7 @@ void GL2Encoder::getVBOUsage(bool* hasClientArrays, bool* hasVBOs) const {
     if (hasClientArrays) *hasClientArrays = false;
     if (hasVBOs) *hasVBOs = false;
 
-    for (int i = 0; i < m_state->nLocations(); i++) {
-        const GLClientState::VertexAttribState& state = m_state->getState(i);
-        if (state.enabled) {
-            const GLClientState::BufferBinding& curr_binding = m_state->getCurrAttributeBindingInfo(i);
-            GLuint bufferObject = curr_binding.buffer;
-            if (bufferObject == 0 && curr_binding.offset && hasClientArrays) {
-                *hasClientArrays = true;
-            }
-            if (bufferObject != 0 && hasVBOs) {
-                *hasVBOs = true;
-            }
-        }
-    }
+    m_state->getVBOUsage(hasClientArrays, hasVBOs);
 }
 
 void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count, bool hasClientArrays, GLsizei primcount)
@@ -1344,7 +1332,6 @@ void GL2Encoder::s_glDrawArrays(void *self, GLenum mode, GLint first, GLsizei co
         ctx->sendVertexAttributes(first, count, true);
         ctx->m_glDrawArrays_enc(ctx, mode, 0, count);
     } else {
-        ctx->sendVertexAttributes(0, count, false);
         ctx->m_glDrawArrays_enc(ctx, mode, first, count);
     }
 }
@@ -1408,7 +1395,6 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
     bool adjustIndices = true;
     if (ctx->m_state->currentIndexVbo() != 0) {
         if (!has_client_vertex_arrays) {
-            ctx->sendVertexAttributes(0, maxIndex + 1, false);
             ctx->doBindBufferEncodeCached(GL_ELEMENT_ARRAY_BUFFER, ctx->m_state->currentIndexVbo());
             ctx->glDrawElementsOffset(ctx, mode, count, type, offset);
             ctx->flushDrawCall();
@@ -1458,7 +1444,6 @@ void GL2Encoder::s_glDrawArraysNullAEMU(void *self, GLenum mode, GLint first, GL
         ctx->sendVertexAttributes(first, count, true);
         ctx->m_glDrawArraysNullAEMU_enc(ctx, mode, 0, count);
     } else {
-        ctx->sendVertexAttributes(0, count, false);
         ctx->m_glDrawArraysNullAEMU_enc(ctx, mode, first, count);
     }
     ctx->flushDrawCall();
@@ -1522,8 +1507,7 @@ void GL2Encoder::s_glDrawElementsNullAEMU(void *self, GLenum mode, GLsizei count
     bool adjustIndices = true;
     if (ctx->m_state->currentIndexVbo() != 0) {
         if (!has_client_vertex_arrays) {
-            ctx->sendVertexAttributes(0, maxIndex + 1, false);
-            ctx->m_glBindBuffer_enc(self, GL_ELEMENT_ARRAY_BUFFER, ctx->m_state->currentIndexVbo());
+            ctx->doBindBufferEncodeCached(GL_ELEMENT_ARRAY_BUFFER, ctx->m_state->currentIndexVbo());
             ctx->glDrawElementsOffsetNullAEMU(ctx, mode, count, type, offset);
             ctx->flushDrawCall();
             adjustIndices = false;
