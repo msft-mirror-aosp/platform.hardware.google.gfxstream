@@ -130,6 +130,11 @@ void GLClientState::enable(int location, int state)
 {
     m_currVaoState[location].enableDirty |= (state != m_currVaoState[location].enabled);
     m_currVaoState[location].enabled = state;
+    if (state) {
+        m_attribEnableCache |= (1 << location);
+    } else {
+        m_attribEnableCache &= ~(1 << location);
+    }
 }
 
 void GLClientState::setVertexAttribState(int location, int size, GLenum type, GLboolean normalized, GLsizei stride, const void *data, bool isInt)
@@ -163,6 +168,8 @@ const GLClientState::BufferBinding& GLClientState::getCurrAttributeBindingInfo(i
 
 void GLClientState::setVertexAttribBinding(int attribindex, int bindingindex) {
     m_currVaoState[attribindex].bindingindex = bindingindex;
+    m_currVaoState.bufferBinding(bindingindex).vertexAttribLoc = attribindex;
+    m_vaoAttribBindingCacheInvalid |= (1 << attribindex);
 }
 
 void GLClientState::setVertexAttribFormat(int location, int size, GLenum type, GLboolean normalized, GLuint reloffset, bool isInt) {
@@ -267,8 +274,52 @@ bool GLClientState::isVertexArrayObject(GLuint vao) const {
     return m_vaoMap.find(vao) != m_vaoMap.end();
 }
 
-const GLClientState::VertexAttribState& GLClientState::getState(int location)
-{
+void GLClientState::getVBOUsage(bool* hasClientArrays, bool* hasVBOs) {
+    uint8_t todo_count = 0;
+    uint8_t todo[CODEC_MAX_VERTEX_ATTRIBUTES];
+
+    for (int i = 0; i < CODEC_MAX_VERTEX_ATTRIBUTES; i++) {
+        if ((1 << i) & (m_attribEnableCache)) {
+            todo[todo_count] = i;
+            ++todo_count;
+        }
+    }
+
+    for (int k = 0; k < todo_count; ++k) {
+        int i = todo[k];
+
+        if ((1 << i) & m_vaoAttribBindingCacheInvalid) {
+            const GLClientState::BufferBinding& curr_binding =
+                m_currVaoState.bufferBindings_const()[
+                    m_currVaoState[i].bindingindex];
+            GLuint bufferObject = curr_binding.buffer;
+            if (bufferObject == 0 && curr_binding.offset && hasClientArrays) {
+                *hasClientArrays = true;
+                m_vaoAttribBindingHasClientArrayCache |= (1 << i);
+            } else {
+                m_vaoAttribBindingHasClientArrayCache &= ~(1 << i);
+            }
+            if (bufferObject != 0 && hasVBOs) {
+                *hasVBOs = true;
+                m_vaoAttribBindingHasVboCache |= (1 << i);
+            } else {
+                m_vaoAttribBindingHasVboCache &= ~(1 << i);
+            }
+            m_vaoAttribBindingCacheInvalid &= ~(1 << i);
+            if (*hasClientArrays && *hasVBOs) return;
+        } else {
+            if ((1 << i) & m_vaoAttribBindingHasClientArrayCache) {
+                *hasClientArrays = true;
+            }
+            if ((1 << i) & m_vaoAttribBindingHasVboCache) {
+                *hasVBOs = true;
+            }
+            if (*hasClientArrays && *hasVBOs) return;
+        }
+    }
+}
+
+const GLClientState::VertexAttribState& GLClientState::getState(int location) {
     return m_currVaoState[location];
 }
 
@@ -394,6 +445,7 @@ void GLClientState::unBindBuffer(GLuint id) {
     sClearIndexedBufferBinding(id, m_indexedAtomicCounterBuffers);
     sClearIndexedBufferBinding(id, m_indexedShaderStorageBuffers);
     sClearIndexedBufferBinding(id, m_currVaoState.bufferBindings());
+    m_vaoAttribBindingCacheInvalid = 0xffff;
 }
 
 int GLClientState::bindBuffer(GLenum target, GLuint id)
@@ -474,6 +526,7 @@ void GLClientState::bindIndexedBuffer(GLenum target, GLuint index, GLuint buffer
         m_currVaoState.bufferBinding(index).size = size;
         m_currVaoState.bufferBinding(index).stride = stride;
         m_currVaoState.bufferBinding(index).effectiveStride = effectiveStride;
+        m_vaoAttribBindingCacheInvalid |= (1 << m_currVaoState.bufferBinding(index).vertexAttribLoc);
         return;
     }
 }
@@ -654,7 +707,7 @@ void GLClientState::getClientStatePointer(GLenum pname, GLvoid** params)
         }
     }
     if (which_state != -1)
-        *params = getState(which_state).data;
+        *params = m_currVaoState[which_state].data;
 }
 
 int GLClientState::setPixelStore(GLenum param, GLint value)
