@@ -452,10 +452,10 @@ private:
     VAOStateMap m_vaoMap;
     VAOStateRef m_currVaoState;
 
-    uint16_t m_attribEnableCache = 0;
-    uint16_t m_vaoAttribBindingCacheInvalid = 0xffff;
-    uint16_t m_vaoAttribBindingHasClientArrayCache = 0;
-    uint16_t m_vaoAttribBindingHasVboCache = 0;
+    uint16_t m_attribEnableCache;
+    uint16_t m_vaoAttribBindingCacheInvalid;
+    uint16_t m_vaoAttribBindingHasClientArrayCache;
+    uint16_t m_vaoAttribBindingHasVboCache;
 
     // Other buffer id's, other targets
     GLuint m_copyReadBuffer;
