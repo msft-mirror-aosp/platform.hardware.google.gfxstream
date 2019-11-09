@@ -41,6 +41,12 @@ void GLClientState::init() {
 
     m_arrayBuffer = 0;
     m_arrayBuffer_lastEncode = 0;
+
+    m_attribEnableCache = 0;
+    m_vaoAttribBindingCacheInvalid = 0xffff;
+    m_vaoAttribBindingHasClientArrayCache = 0;
+    m_vaoAttribBindingHasVboCache = 0;
+
     m_max_vertex_attrib_bindings = m_nLocations;
     addVertexArrayObject(0);
     setVertexArrayObject(0);
