@@ -1032,7 +1032,9 @@ public:
 
     static bool need_host_cb(const int usage, const int format) {
         return ((usage & GOLDFISH_GRALLOC_USAGE_GPU_DATA_BUFFER)
-                   || (format != HAL_PIXEL_FORMAT_BLOB))
+                   || (format != HAL_PIXEL_FORMAT_BLOB &&
+                       format != HAL_PIXEL_FORMAT_RAW16 &&
+                       format != HAL_PIXEL_FORMAT_Y16))
                && (usage & (GRALLOC_USAGE_HW_TEXTURE
                             | GRALLOC_USAGE_HW_RENDER
                             | GRALLOC_USAGE_HW_2D
