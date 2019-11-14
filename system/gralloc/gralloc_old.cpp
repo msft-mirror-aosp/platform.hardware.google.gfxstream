@@ -650,6 +650,7 @@ static int gralloc_alloc(alloc_device_t* dev,
 #endif // PLATFORM_SDK_VERSION
 
     bool yuv_format = false;
+    bool raw_format = false;
     int ashmem_size = 0;
     int stride = w;
 
@@ -711,6 +712,7 @@ static int gralloc_alloc(alloc_device_t* dev,
             // Not expecting to actually create any GL surfaces for this
             glFormat = GL_LUMINANCE;
             glType = GL_UNSIGNED_SHORT;
+            raw_format = true;
             break;
 #if PLATFORM_SDK_VERSION >= 17
         case HAL_PIXEL_FORMAT_BLOB:
@@ -771,6 +773,7 @@ static int gralloc_alloc(alloc_device_t* dev,
 #endif // !(PLATFORM_SDK_VERSION >= 17)
                        frameworkFormat == HAL_PIXEL_FORMAT_YV12 ||
                        frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) &&
+                       !raw_format &&
 #if PLATFORM_SDK_VERSION >= 15
                       (usage & (GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_RENDER |
                                 GRALLOC_USAGE_HW_2D | GRALLOC_USAGE_HW_COMPOSER |
