@@ -133,6 +133,7 @@ shared_library("libvulkan_goldfish") {
       "//zircon/system/fidl/fuchsia-sysmem",
       "//zircon/public/lib/trace-with-static-engine",
       "//zircon/public/lib/zx",
+      "//zircon/public/lib/zxio",
     ]
 
     defines += [
