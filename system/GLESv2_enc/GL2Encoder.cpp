@@ -5316,7 +5316,8 @@ void GL2Encoder::s_glDrawArraysIndirect(void* self, GLenum mode, const void* ind
     GLClientState* state = ctx->m_state;
 
     bool hasClientArrays = false;
-    ctx->getVBOUsage(&hasClientArrays, NULL);
+    bool hasVBOs = false;
+    ctx->getVBOUsage(&hasClientArrays, &hasVBOs);
 
     SET_ERROR_IF(hasClientArrays, GL_INVALID_OPERATION);
     SET_ERROR_IF(!state->currentVertexArrayObject(), GL_INVALID_OPERATION);
@@ -5342,7 +5343,8 @@ void GL2Encoder::s_glDrawElementsIndirect(void* self, GLenum mode, GLenum type, 
     GLClientState* state = ctx->m_state;
 
     bool hasClientArrays = false;
-    ctx->getVBOUsage(&hasClientArrays, NULL);
+    bool hasVBOs = false;
+    ctx->getVBOUsage(&hasClientArrays, &hasVBOs);
 
     SET_ERROR_IF(hasClientArrays, GL_INVALID_OPERATION);
     SET_ERROR_IF(!state->currentVertexArrayObject(), GL_INVALID_OPERATION);
