@@ -19,6 +19,8 @@
 #include <string.h>
 #ifdef VK_USE_PLATFORM_FUCHSIA
 #include <lib/zx/channel.h>
+#include <lib/zxio/zxio.h>
+#include <lib/zxio/inception.h>
 #include <unistd.h>
 
 #include "services/service_connector.h"
@@ -665,8 +667,27 @@ int OpenDevice(const hw_module_t* /*module*/,
 
 class VulkanDevice {
 public:
-    VulkanDevice() : mHostSupportsGoldfish(access(QEMU_PIPE_PATH, F_OK) != -1) {
+    VulkanDevice() : mHostSupportsGoldfish(IsAccessible(QEMU_PIPE_PATH)) {
         goldfish_vk::ResourceTracker::get();
+    }
+
+    static bool IsAccessible(const char* name) {
+        zx_handle_t handle = GetConnectToServiceFunction()(name);
+        if (handle == ZX_HANDLE_INVALID)
+            return false;
+
+        zxio_storage_t io_storage;
+        zx_status_t status = zxio_remote_init(&io_storage, handle, ZX_HANDLE_INVALID);
+        if (status != ZX_OK)
+            return false;
+
+        zxio_node_attr_t attr;
+        status = zxio_attr_get(&io_storage.io, &attr);
+        zxio_close(&io_storage.io);
+        if (status != ZX_OK)
+            return false;
+
+        return true;
     }
 
     static VulkanDevice& GetInstance() {
