@@ -91,6 +91,10 @@ try:
   os.remove(full_name)
 except:
   pass
+try:
+  os.makedirs(package_dir)
+except:
+  pass
 shutil.copyfile(source_file_name, full_name)
 
 git_rev = subprocess.check_output(
