@@ -456,6 +456,7 @@ private:
     uint16_t m_vaoAttribBindingCacheInvalid;
     uint16_t m_vaoAttribBindingHasClientArrayCache;
     uint16_t m_vaoAttribBindingHasVboCache;
+    uint8_t m_noClientArraysCache;
 
     // Other buffer id's, other targets
     GLuint m_copyReadBuffer;
