@@ -1461,7 +1461,7 @@ void GL2Encoder::s_glDrawElementsNullAEMU(void *self, GLenum mode, GLsizei count
 
     bool has_client_vertex_arrays = false;
     bool has_indirect_arrays = false;
-    GLintptr offset = 0;
+    GLintptr offset = (GLintptr)indices;
 
     ctx->getVBOUsage(&has_client_vertex_arrays, &has_indirect_arrays);
 
@@ -1481,15 +1481,19 @@ void GL2Encoder::s_glDrawElementsNullAEMU(void *self, GLenum mode, GLsizei count
     // can more quickly get min/max vertex index by
     // caching previous results.
     if (ctx->m_state->currentIndexVbo() != 0) {
-        buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
-        offset = (GLintptr)indices;
-        indices = (void*)((GLintptr)buf->m_fixedBuffer.ptr() + (GLintptr)indices);
-        ctx->getBufferIndexRange(buf,
-                                 indices,
-                                 type,
-                                 (size_t)count,
-                                 (size_t)offset,
-                                 &minIndex, &maxIndex);
+        if (!has_client_vertex_arrays && has_indirect_arrays) {
+            // Don't do anything
+        } else {
+            buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
+            offset = (GLintptr)indices;
+            indices = (void*)((GLintptr)buf->m_fixedBuffer.ptr() + (GLintptr)indices);
+            ctx->getBufferIndexRange(buf,
+                                     indices,
+                                     type,
+                                     (size_t)count,
+                                     (size_t)offset,
+                                     &minIndex, &maxIndex);
+        }
     } else {
         // In this case, the |indices| field holds a real
         // array, so calculate the indices now. They will
