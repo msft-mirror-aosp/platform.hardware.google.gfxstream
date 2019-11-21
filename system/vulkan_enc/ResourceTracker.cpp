@@ -592,7 +592,7 @@ public:
         if (mFeatureInfo->hasDirectMem) {
             mGoldfishAddressSpaceBlockProvider.reset(
                 new GoldfishAddressSpaceBlockProvider(
-                    GoldfishAddressSpaceBlockProvider::SUBDEVICE_TYPE_NO_SUBDEVICE_ID));
+                    GoldfishAddressSpaceSubdeviceType::NoSubdevice));
         }
 
 #ifdef VK_USE_PLATFORM_FUCHSIA

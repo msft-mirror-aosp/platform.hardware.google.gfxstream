@@ -26,8 +26,6 @@
 #include <unistd.h>
 #include <string.h>
 
-static const uint32_t kDeviceId = 0;
-
 static const size_t kReadSize = 512 * 1024;
 static const size_t kWriteOffset = kReadSize;
 
@@ -36,29 +34,28 @@ AddressSpaceStream* createAddressSpaceStream(size_t ignored_bufSize) {
     (void)ignored_bufSize;
 
     auto handle = goldfish_address_space_open();
+    address_space_handle_t child_device_handle;
 
-    struct goldfish_address_space_ping request;
-    request.metadata = kDeviceId;
-
-    if (!goldfish_address_space_ping(handle, &request)) {
+    if (!goldfish_address_space_set_subdevice_type(handle, GoldfishAddressSpaceSubdeviceType::Graphics, &child_device_handle)) {
         ALOGE("AddressSpaceStream::create failed (initial device create)\n");
         goldfish_address_space_close(handle);
         return nullptr;
     }
 
+    struct goldfish_address_space_ping request;
     request.metadata = ASG_GET_RING;
-    if (!goldfish_address_space_ping(handle, &request)) {
+    if (!goldfish_address_space_ping(child_device_handle, &request)) {
         ALOGE("AddressSpaceStream::create failed (get ring)\n");
-        goldfish_address_space_close(handle);
+        goldfish_address_space_close(child_device_handle);
         return nullptr;
     }
 
     uint64_t ringOffset = request.metadata;
 
     request.metadata = ASG_GET_BUFFER;
-    if (!goldfish_address_space_ping(handle, &request)) {
+    if (!goldfish_address_space_ping(child_device_handle, &request)) {
         ALOGE("AddressSpaceStream::create failed (get buffer)\n");
-        goldfish_address_space_close(handle);
+        goldfish_address_space_close(child_device_handle);
         return nullptr;
     }
 
@@ -66,40 +63,40 @@ AddressSpaceStream* createAddressSpaceStream(size_t ignored_bufSize) {
     uint64_t bufferSize = request.size;
 
     if (!goldfish_address_space_claim_shared(
-        handle, ringOffset, sizeof(asg_ring_storage))) {
+        child_device_handle, ringOffset, sizeof(asg_ring_storage))) {
         ALOGE("AddressSpaceStream::create failed (claim ring storage)\n");
-        goldfish_address_space_close(handle);
+        goldfish_address_space_close(child_device_handle);
         return nullptr;
     }
 
     if (!goldfish_address_space_claim_shared(
-        handle, bufferOffset, bufferSize)) {
+        child_device_handle, bufferOffset, bufferSize)) {
         ALOGE("AddressSpaceStream::create failed (claim buffer storage)\n");
-        goldfish_address_space_unclaim_shared(handle, ringOffset);
-        goldfish_address_space_close(handle);
+        goldfish_address_space_unclaim_shared(child_device_handle, ringOffset);
+        goldfish_address_space_close(child_device_handle);
         return nullptr;
     }
 
     char* ringPtr = (char*)goldfish_address_space_map(
-        handle, ringOffset, sizeof(struct asg_ring_storage));
+        child_device_handle, ringOffset, sizeof(struct asg_ring_storage));
 
     if (!ringPtr) {
         ALOGE("AddressSpaceStream::create failed (map ring storage)\n");
-        goldfish_address_space_unclaim_shared(handle, bufferOffset);
-        goldfish_address_space_unclaim_shared(handle, ringOffset);
-        goldfish_address_space_close(handle);
+        goldfish_address_space_unclaim_shared(child_device_handle, bufferOffset);
+        goldfish_address_space_unclaim_shared(child_device_handle, ringOffset);
+        goldfish_address_space_close(child_device_handle);
         return nullptr;
     }
 
     char* bufferPtr = (char*)goldfish_address_space_map(
-        handle, bufferOffset, bufferSize);
+        child_device_handle, bufferOffset, bufferSize);
 
     if (!bufferPtr) {
         ALOGE("AddressSpaceStream::create failed (map buffer storage)\n");
         goldfish_address_space_unmap(ringPtr, sizeof(struct asg_ring_storage));
-        goldfish_address_space_unclaim_shared(handle, bufferOffset);
-        goldfish_address_space_unclaim_shared(handle, ringOffset);
-        goldfish_address_space_close(handle);
+        goldfish_address_space_unclaim_shared(child_device_handle, bufferOffset);
+        goldfish_address_space_unclaim_shared(child_device_handle, ringOffset);
+        goldfish_address_space_close(child_device_handle);
         return nullptr;
     }
 
@@ -110,13 +107,13 @@ AddressSpaceStream* createAddressSpaceStream(size_t ignored_bufSize) {
     request.metadata = ASG_SET_VERSION;
     request.size = 1; // version 1
 
-    if (!goldfish_address_space_ping(handle, &request)) {
+    if (!goldfish_address_space_ping(child_device_handle, &request)) {
         ALOGE("AddressSpaceStream::create failed (get buffer)\n");
         goldfish_address_space_unmap(bufferPtr, bufferSize);
         goldfish_address_space_unmap(ringPtr, sizeof(struct asg_ring_storage));
-        goldfish_address_space_unclaim_shared(handle, bufferOffset);
-        goldfish_address_space_unclaim_shared(handle, ringOffset);
-        goldfish_address_space_close(handle);
+        goldfish_address_space_unclaim_shared(child_device_handle, bufferOffset);
+        goldfish_address_space_unclaim_shared(child_device_handle, ringOffset);
+        goldfish_address_space_close(child_device_handle);
         return nullptr;
     }
 
@@ -128,7 +125,7 @@ AddressSpaceStream* createAddressSpaceStream(size_t ignored_bufSize) {
 
     AddressSpaceStream* res =
         new AddressSpaceStream(
-            handle, version, context,
+            child_device_handle, version, context,
             ringOffset, bufferOffset);
 
     return res;

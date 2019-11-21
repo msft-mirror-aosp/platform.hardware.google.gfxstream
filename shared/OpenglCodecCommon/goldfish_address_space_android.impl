@@ -101,10 +101,10 @@ long ioctl_unclaim_shared(int fd, uint64_t offset)
 
 }  // namespace
 
-GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider(uint64_t subdevice)
+GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider(GoldfishAddressSpaceSubdeviceType subdevice)
   : m_handle(create_address_space_fd())
 {
-    if ((subdevice != SUBDEVICE_TYPE_NO_SUBDEVICE_ID) && is_opened()) {
+    if ((subdevice != GoldfishAddressSpaceSubdeviceType::NoSubdevice) && is_opened()) {
         const long ret = set_address_space_subdevice_type(m_handle, subdevice);
         if (ret) {
             ALOGE("%s: set_address_space_subdevice_type failed for device_type=%lu, ret=%ld",
@@ -338,7 +338,7 @@ void GoldfishAddressSpaceBlock::memoryUnmap(void *ptr, size_t size)
 }
 
 GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator()
-  : m_provider(GoldfishAddressSpaceBlockProvider::SUBDEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID) {}
+  : m_provider(GoldfishAddressSpaceSubdeviceType::HostMemoryAllocator) {}
 
 bool GoldfishAddressSpaceHostMemoryAllocator::is_opened() const { return m_provider.is_opened(); }
 
@@ -486,6 +486,15 @@ void* goldfish_address_space_map(
 void goldfish_address_space_unmap(void* ptr, uint64_t size) {
     void* pagePtr = (void*)(((uintptr_t)ptr) & ~(PAGE_SIZE - 1));
     ::munmap(pagePtr, size);
+}
+
+bool goldfish_address_space_set_subdevice_type(
+    address_space_handle_t handle, GoldfishAddressSpaceSubdeviceType type,
+    address_space_handle_t* handle_out) {
+    struct goldfish_address_space_ping request;
+    request.metadata = (uint64_t)type;
+    *handle_out = handle;
+    return goldfish_address_space_ping(handle, &request);
 }
 
 bool goldfish_address_space_ping(
