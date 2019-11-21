@@ -36,10 +36,10 @@ const int HOST_MEMORY_ALLOCATOR_COMMAND_UNALLOCATE_ID = 2;
 using android::HostAddressSpaceDevice;
 using android::emulation::AddressSpaceDevicePingInfo;
 
-GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider(uint64_t subdevice)
+GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider(GoldfishAddressSpaceSubdeviceType subdevice)
     : m_handle(HostAddressSpaceDevice::get()->open())
 {
-    if ((subdevice != SUBDEVICE_TYPE_NO_SUBDEVICE_ID) && is_opened()) {
+    if ((subdevice != GoldfishAddressSpaceSubdeviceType::NoSubdevice) && is_opened()) {
         AddressSpaceDevicePingInfo request;
         ::memset(&request, 0, sizeof(request));
         request.metadata = subdevice;
@@ -232,7 +232,7 @@ int GoldfishAddressSpaceBlock::memoryMap(void *addr,
 void GoldfishAddressSpaceBlock::memoryUnmap(void *ptr, size_t size) {}
 
 GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator()
-  : m_provider(GoldfishAddressSpaceBlockProvider::SUBDEVICE_TYPE_HOST_MEMORY_ALLOCATOR_ID) {}
+  : m_provider(GoldfishAddressSpaceSubdeviceType::HostMemoryAllocator) {}
 
 bool GoldfishAddressSpaceHostMemoryAllocator::is_opened() const { return m_provider.is_opened(); }
 
@@ -355,6 +355,15 @@ void* goldfish_address_space_map(
 
 // same address space
 void goldfish_address_space_unmap(void*, uint64_t) { }
+
+bool goldfish_address_space_set_subdevice_type(
+    address_space_handle_t handle, GoldfishAddressSpaceSubdeviceType type,
+    address_space_handle_t* handle_out) {
+    struct goldfish_address_space_ping request;
+    request.metadata = (uint64_t)type;
+    *handle_out = handle;
+    return goldfish_address_space_ping(handle, &request);
+}
 
 bool goldfish_address_space_ping(
     address_space_handle_t handle,
