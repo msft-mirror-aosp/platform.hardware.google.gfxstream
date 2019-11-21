@@ -85,6 +85,9 @@ using goldfish_vk::VkEncoder;
 #define STREAM_PORT_NUM     22468
 
 static HostConnectionType getConnectionTypeFromProperty() {
+#ifdef __Fuchsia__
+    return HOST_CONNECTION_ADDRESS_SPACE;
+#else
     char transportValue[PROPERTY_VALUE_MAX] = "";
     property_get("ro.kernel.qemu.gltransport", transportValue, "");
 
@@ -97,6 +100,7 @@ static HostConnectionType getConnectionTypeFromProperty() {
     if (!strcmp("asg", transportValue)) return HOST_CONNECTION_ADDRESS_SPACE;
 
     return HOST_CONNECTION_QEMU_PIPE;
+#endif
 }
 
 static uint32_t getDrawCallFlushIntervalFromProperty() {
