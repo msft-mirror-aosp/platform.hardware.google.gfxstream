@@ -1743,8 +1743,15 @@ void GL2Encoder::s_glShaderSource(void *self, GLuint shader, GLsizei count, cons
 
     // Track original sources---they may be translated in the backend
     std::vector<std::string> orig_sources;
-    for (int i = 0; i < count; i++) {
-        orig_sources.push_back(std::string((const char*)(string[i])));
+    if (length) {
+        for (int i = 0; i < count; i++) {
+            orig_sources.push_back(std::string((const char*)(string[i]),
+                                               (const char*)(string[i]) + length[i]));
+        }
+    } else {
+        for (int i = 0; i < count; i++) {
+            orig_sources.push_back(std::string((const char*)(string[i])));
+        }
     }
     shaderData->sources = orig_sources;
 
