@@ -419,13 +419,6 @@ static bool put_ashmem_region(ExtendedRCEncoderContext *rcEnc, cb_handle_old_t *
     return should_unmap;
 }
 
-//
-// Our framebuffer device structure
-//
-struct fb_device_t {
-    framebuffer_device_t  device;
-};
-
 static int map_buffer(cb_handle_old_t *cb, void **vaddr)
 {
     if (cb->bufferFd < 0) {
@@ -1001,107 +994,6 @@ static int gralloc_device_close(struct hw_device_t *dev)
     return 0;
 }
 
-static int fb_compositionComplete(struct framebuffer_device_t* dev)
-{
-    (void)dev;
-
-    return 0;
-}
-
-//
-// Framebuffer device functions
-//
-static int fb_post(struct framebuffer_device_t* dev, buffer_handle_t buffer)
-{
-    fb_device_t *fbdev = (fb_device_t *)dev;
-    if (!fbdev) {
-        return -EINVAL;
-    }
-    const cb_handle_old_t *cb = cb_handle_old_t::from(buffer);
-    if (!cb) {
-        return -EINVAL;
-    }
-    if (!cb->canBePosted()) {
-        return -EINVAL;
-    }
-
-    // Make sure we have host connection
-    DEFINE_AND_VALIDATE_HOST_CONNECTION;
-
-    // increment the post count of the buffer
-    int32_t *postCountPtr = (int32_t *)cb->getBufferPtr();
-    if (!postCountPtr) {
-        // This should not happen
-        return -EINVAL;
-    }
-    (*postCountPtr)++;
-
-    // send post request to host
-    hostCon->lock();
-    rcEnc->rcFBPost(rcEnc, cb->hostHandle);
-    hostCon->flush();
-    hostCon->unlock();
-
-    return 0;
-}
-
-/* unused (for now)
-static int fb_setUpdateRect(struct framebuffer_device_t* dev,
-        int l, int t, int w, int h)
-{
-    fb_device_t *fbdev = (fb_device_t *)dev;
-
-    (void)l;
-    (void)t;
-    (void)w;
-    (void)h;
-
-    if (!fbdev) {
-        return -EINVAL;
-    }
-
-    // Make sure we have host connection
-    DEFINE_AND_VALIDATE_HOST_CONNECTION;
-
-    // send request to host
-    // TODO: XXX - should be implemented
-    //rcEnc->rc_XXX
-
-    return 0;
-}
-*/
-
-static int fb_setSwapInterval(struct framebuffer_device_t* dev,
-            int interval)
-{
-    fb_device_t *fbdev = (fb_device_t *)dev;
-
-    if (!fbdev) {
-        return -EINVAL;
-    }
-
-    // Make sure we have host connection
-    DEFINE_AND_VALIDATE_HOST_CONNECTION;
-
-    // send request to host
-    hostCon->lock();
-    rcEnc->rcFBSetSwapInterval(rcEnc, interval);
-    hostCon->flush();
-    hostCon->unlock();
-
-    return 0;
-}
-
-static int fb_close(struct hw_device_t *dev)
-{
-    fb_device_t *fbdev = (fb_device_t *)dev;
-
-    free(fbdev);
-
-    return 0;
-}
-
-
 //
 // gralloc module functions - refcount + locking interface
 //
@@ -1596,67 +1488,6 @@ static int gralloc_device_open(const hw_module_t* module,
         pthread_mutex_init(&dev->lock, NULL);
 
         *device = &dev->device.common;
-        status = 0;
-    }
-    else if (!strcmp(name, GRALLOC_HARDWARE_FB0)) {
-
-        // return error if connection with host can not be established
-        DEFINE_AND_VALIDATE_HOST_CONNECTION;
-        hostCon->lock();
-
-        //
-        // Query the host for Framebuffer attributes
-        //
-        D("gralloc: query Frabuffer attribs\n");
-        EGLint width = rcEnc->rcGetFBParam(rcEnc, FB_WIDTH);
-        D("gralloc: width=%d\n", width);
-        EGLint height = rcEnc->rcGetFBParam(rcEnc, FB_HEIGHT);
-        D("gralloc: height=%d\n", height);
-        EGLint xdpi = rcEnc->rcGetFBParam(rcEnc, FB_XDPI);
-        D("gralloc: xdpi=%d\n", xdpi);
-        EGLint ydpi = rcEnc->rcGetFBParam(rcEnc, FB_YDPI);
-        D("gralloc: ydpi=%d\n", ydpi);
-        EGLint fps = rcEnc->rcGetFBParam(rcEnc, FB_FPS);
-        D("gralloc: fps=%d\n", fps);
-        EGLint min_si = rcEnc->rcGetFBParam(rcEnc, FB_MIN_SWAP_INTERVAL);
-        D("gralloc: min_swap=%d\n", min_si);
-        EGLint max_si = rcEnc->rcGetFBParam(rcEnc, FB_MAX_SWAP_INTERVAL);
-        D("gralloc: max_swap=%d\n", max_si);
-        hostCon->unlock();
-
-        //
-        // Allocate memory for the framebuffer device
-        //
-        fb_device_t *dev;
-        dev = (fb_device_t*)malloc(sizeof(fb_device_t));
-        if (NULL == dev) {
-            return -ENOMEM;
-        }
-        memset(dev, 0, sizeof(fb_device_t));
-
-        // Initialize our device structure
-        //
-        dev->device.common.tag = HARDWARE_DEVICE_TAG;
-        dev->device.common.version = 0;
-        dev->device.common.module = const_cast<hw_module_t*>(module);
-        dev->device.common.close = fb_close;
-        dev->device.setSwapInterval = fb_setSwapInterval;
-        dev->device.post            = fb_post;
-        dev->device.setUpdateRect   = 0; //fb_setUpdateRect;
-        dev->device.compositionComplete = fb_compositionComplete; //XXX: this is a dummy
-
-        const_cast<uint32_t&>(dev->device.flags) = 0;
-        const_cast<uint32_t&>(dev->device.width) = width;
-        const_cast<uint32_t&>(dev->device.height) = height;
-        const_cast<int&>(dev->device.stride) = width;
-        const_cast<int&>(dev->device.format) = HAL_PIXEL_FORMAT_RGBA_8888;
-        const_cast<float&>(dev->device.xdpi) = xdpi;
-        const_cast<float&>(dev->device.ydpi) = ydpi;
-        const_cast<float&>(dev->device.fps) = fps;
-        const_cast<int&>(dev->device.minSwapInterval) = min_si;
-        const_cast<int&>(dev->device.maxSwapInterval) = max_si;
-        *device = &dev->device.common;
-
         status = 0;
     }
 
