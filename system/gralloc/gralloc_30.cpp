@@ -709,116 +709,6 @@ private:
 
 template <class T> T& unconst(const T& x) { return const_cast<T&>(x); }
 
-class goldfish_fb30_device_t {
-private:
-    framebuffer_device_t device;
-    goldfish_gralloc30_module_t* gralloc_module;
-
-public:
-    goldfish_fb30_device_t(private_module_t* module)
-            : device({}), gralloc_module(module->impl()) {
-        device.common = make_hw_device(module->to_hw_module(),
-                                       &s_goldfish_fb30_device_close);
-        device.setSwapInterval     = &s_setSwapInterval;
-        device.post                = &s_post;
-
-        {
-            const HostConnectionSession conn = gralloc_module->getHostConnectionSession();
-            ExtendedRCEncoderContext *const rcEnc = conn.getRcEncoder();
-
-            unconst(device.flags) = 0;
-            unconst(device.width) = rcEnc->rcGetFBParam(rcEnc, FB_WIDTH);
-            unconst(device.height) = rcEnc->rcGetFBParam(rcEnc, FB_HEIGHT);;
-            unconst(device.stride) = device.width;
-            unconst(device.format) = HAL_PIXEL_FORMAT_RGBA_8888;
-            unconst(device.xdpi) = rcEnc->rcGetFBParam(rcEnc, FB_XDPI);
-            unconst(device.ydpi) = rcEnc->rcGetFBParam(rcEnc, FB_YDPI);
-            unconst(device.fps) = rcEnc->rcGetFBParam(rcEnc, FB_FPS);
-            unconst(device.minSwapInterval) = rcEnc->rcGetFBParam(rcEnc, FB_MIN_SWAP_INTERVAL);
-            unconst(device.maxSwapInterval) = rcEnc->rcGetFBParam(rcEnc, FB_MAX_SWAP_INTERVAL);
-        }
-    }
-
-    hw_device_t* get_hw_device_ptr() { return &device.common; }
-
-private:
-    int setSwapInterval(const int interval) {
-        const HostConnectionSession conn = gralloc_module->getHostConnectionSession();
-        ExtendedRCEncoderContext *const rcEnc = conn.getRcEncoder();
-
-        rcEnc->rcFBSetSwapInterval(rcEnc, interval);
-        return 0;
-    }
-
-    int post(cb_handle_t& handle) {
-        if (!(handle.usage & GRALLOC_USAGE_HW_FB)) {
-            RETURN_ERROR_CODE(-EINVAL);
-        }
-
-        if (handle.hostHandle) {
-            const HostConnectionSession conn = gralloc_module->getHostConnectionSession();
-            ExtendedRCEncoderContext *const rcEnc = conn.getRcEncoder();
-
-            rcEnc->rcFBPost(rcEnc, handle.hostHandle);
-        }
-
-        return 0;
-    }
-
-    static int s_goldfish_fb30_device_close(struct hw_device_t *d) {
-        goldfish_fb30_device_t* fbd = from_hw_device(d);
-        if (!fbd) {
-            RETURN_ERROR_CODE(-EINVAL);
-        }
-
-        std::unique_ptr<goldfish_fb30_device_t> deleter(fbd);
-        return 0;
-    }
-
-    static int s_setSwapInterval(struct framebuffer_device_t* d, int interval) {
-        goldfish_fb30_device_t* fbd = from_framebuffer_device(d);
-        if (!fbd) {
-            RETURN_ERROR_CODE(-EINVAL);
-        }
-
-        return fbd->setSwapInterval(interval);
-    }
-
-    static int s_post(struct framebuffer_device_t* d, buffer_handle_t h) {
-        goldfish_fb30_device_t* fbd = from_framebuffer_device(d);
-        if (!fbd) {
-            RETURN_ERROR_CODE(-EINVAL);
-        }
-
-        cb_handle_t* handle = cb_handle_t::from_unconst(h);
-        if (!handle) {
-            RETURN_ERROR_CODE(-EINVAL);
-        }
-
-        return fbd->post(*handle);
-    }
-
-    static goldfish_fb30_device_t* from_hw_device(hw_device_t* d) {
-        if (!d) {
-            RETURN_ERROR(nullptr);
-        }
-
-        if (d->close == &s_goldfish_fb30_device_close) {
-            return reinterpret_cast<goldfish_fb30_device_t*>(d);
-        } else {
-            RETURN_ERROR(nullptr);
-        }
-    }
-
-    static goldfish_fb30_device_t* from_framebuffer_device(framebuffer_device_t* d) {
-        if (!d) {
-            RETURN_ERROR(nullptr);
-        }
-
-        return from_hw_device(&d->common);
-    }
-};
-
 const uint32_t CB_HANDLE_MAGIC_30 = CB_HANDLE_MAGIC_BASE | 0x2;
 
 struct cb_handle_30_t : public cb_handle_t {
@@ -1137,18 +1027,6 @@ int gralloc_device_open_gpu0(private_module_t* module, hw_device_t** device) {
     return 0;
 }
 
-int gralloc_device_open_fb0(private_module_t* module, hw_device_t** device) {
-    std::unique_ptr<goldfish_fb30_device_t> fb_device =
-        std::make_unique<goldfish_fb30_device_t>(module);
-    if (!fb_device) {
-        RETURN_ERROR_CODE(-ENOMEM);
-    }
-
-    *device = fb_device->get_hw_device_ptr();
-    fb_device.release();
-    return 0;
-}
-
 int gralloc_device_open(const hw_module_t* hw_module,
                         const char* name,
                         hw_device_t** device) {
@@ -1165,10 +1043,6 @@ int gralloc_device_open(const hw_module_t* hw_module,
 
     if (!strcmp(name, GRALLOC_HARDWARE_GPU0)) {
         return gralloc_device_open_gpu0(module, device);
-    }
-
-    if (!strcmp(name, GRALLOC_HARDWARE_FB0)) {
-        return gralloc_device_open_fb0(module, device);
     }
 
     RETURN_ERROR_CODE(-EINVAL);
