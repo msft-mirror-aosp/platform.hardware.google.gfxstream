@@ -390,7 +390,6 @@ EmuHWC2::GrallocModule::GrallocModule() {
 
 EmuHWC2::GrallocModule::~GrallocModule() {
     if (mHandle != nullptr) {
-        mGralloc->unregisterBuffer(mGralloc, mHandle);
         mAllocDev->free(mAllocDev, mHandle);
         ALOGI("free targetCb %u", cb_handle_t::from(mHandle)->hostHandle);
         gralloc_close(mAllocDev);
@@ -407,7 +406,6 @@ uint32_t EmuHWC2::GrallocModule::getTargetCb() {
                                GRALLOC_USAGE_HW_COMPOSER|GRALLOC_USAGE_HW_RENDER,
                                &mHandle, &stride);
         assert(ret == 0 && "Fail to allocate target ColorBuffer");
-        mGralloc->registerBuffer(mGralloc, mHandle);
         ALOGI("targetCb %u", cb_handle_t::from(mHandle)->hostHandle);
     }
     return cb_handle_t::from(mHandle)->hostHandle;
