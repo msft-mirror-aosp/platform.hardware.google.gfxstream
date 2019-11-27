@@ -1154,7 +1154,7 @@ Error EmuHWC2::Display::getClientTargetSupport(uint32_t width, uint32_t height,
 // approved pnp ids can be found here: https://uefi.org/pnp_id_list
 // pnp id: GGL, name: EMU_display_0, last byte is checksum
 // display id is local:8141603649153536
-static const std::vector<uint8_t> sEDID0 {
+static const uint8_t sEDID0[] = {
     0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x1c, 0xec, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00,
     0x1b, 0x10, 0x01, 0x03, 0x80, 0x50, 0x2d, 0x78, 0x0a, 0x0d, 0xc9, 0xa0, 0x57, 0x47, 0x98, 0x27,
     0x12, 0x48, 0x4c, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
@@ -1167,7 +1167,7 @@ static const std::vector<uint8_t> sEDID0 {
 
 // pnp id: GGL, name: EMU_display_1
 // display id is local:8140900251843329
-static const std::vector<uint8_t> sEDID1 {
+static const uint8_t sEDID1[] = {
     0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x1c, 0xec, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00,
     0x1b, 0x10, 0x01, 0x03, 0x80, 0x50, 0x2d, 0x78, 0x0a, 0x0d, 0xc9, 0xa0, 0x57, 0x47, 0x98, 0x27,
     0x12, 0x48, 0x4c, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
@@ -1180,7 +1180,7 @@ static const std::vector<uint8_t> sEDID1 {
 
 // pnp id: GGL, name: EMU_display_2
 // display id is local:8140940453066754
-static const std::vector<uint8_t> sEDID2 {
+static const uint8_t sEDID2[] = {
     0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x1c, 0xec, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00,
     0x1b, 0x10, 0x01, 0x03, 0x80, 0x50, 0x2d, 0x78, 0x0a, 0x0d, 0xc9, 0xa0, 0x57, 0x47, 0x98, 0x27,
     0x12, 0x48, 0x4c, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
@@ -1191,42 +1191,44 @@ static const std::vector<uint8_t> sEDID2 {
     0x00, 0x45, 0x4d, 0x55, 0x5f, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x5f, 0x32, 0x00, 0x49
 };
 
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
+
 Error EmuHWC2::Display::getDisplayIdentificationData(uint8_t* outPort,
         uint32_t* outDataSize, uint8_t* outData) {
     ALOGVV("%s DisplayId %u", __FUNCTION__, (uint32_t)mId);
     if (outPort == nullptr || outDataSize == nullptr)
         return Error::BadParameter;
 
-    uint32_t len = std::min(*outDataSize, (uint32_t)(sEDID0.size()));
-    if (outData != nullptr && len < (uint32_t)(sEDID0.size())) {
+    uint32_t len = std::min(*outDataSize, (uint32_t)ARRAY_SIZE(sEDID0));
+    if (outData != nullptr && len < (uint32_t)ARRAY_SIZE(sEDID0)) {
         ALOGW("%s DisplayId %u, small buffer size: %u is specified",
                 __FUNCTION__, (uint32_t)mId, len);
     }
-    *outDataSize = (int32_t)(sEDID0.size());
+    *outDataSize = ARRAY_SIZE(sEDID0);
     switch (mId) {
         case 0:
             *outPort = 0;
             if (outData)
-                memcpy(outData, sEDID0.data(), len);
+                memcpy(outData, sEDID0, len);
             break;
 
         case 1:
             *outPort = 1;
             if (outData)
-                memcpy(outData, sEDID1.data(), len);
+                memcpy(outData, sEDID1, len);
             break;
 
         case 2:
             *outPort = 2;
             if (outData)
-                memcpy(outData, sEDID2.data(), len);
+                memcpy(outData, sEDID2, len);
             break;
 
         default:
             *outPort = (uint8_t)mId;
             if (outData) {
-                memcpy(outData, sEDID2.data(), len);
-                uint32_t size = sEDID0.size();
+                memcpy(outData, sEDID2, len);
+                uint32_t size = ARRAY_SIZE(sEDID0);
                 // change the name to EMU_display_<mID>
                 // note the 3rd char from back is the number, _0, _1, _2, etc.
                 if (len >= size - 2)
