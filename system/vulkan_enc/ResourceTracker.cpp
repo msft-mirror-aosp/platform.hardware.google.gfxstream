@@ -605,7 +605,7 @@ public:
             mControlDevice.Bind(std::move(channel));
 
             zx::channel sysmem_channel(GetConnectToServiceFunction()("/svc/fuchsia.sysmem.Allocator"));
-            if (!channel) {
+            if (!sysmem_channel) {
                 ALOGE("failed to open sysmem connection");
             }
             mSysmemAllocator.Bind(std::move(sysmem_channel));
