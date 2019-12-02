@@ -393,6 +393,7 @@ EmuHWC2::GrallocModule::~GrallocModule() {
         mGralloc->unregisterBuffer(mGralloc, mHandle);
         mAllocDev->free(mAllocDev, mHandle);
         ALOGI("free targetCb %u", cb_handle_t::from(mHandle)->hostHandle);
+        gralloc_close(mAllocDev);
     }
 }
 
