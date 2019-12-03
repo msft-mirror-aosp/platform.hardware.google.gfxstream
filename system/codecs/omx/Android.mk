@@ -20,6 +20,7 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
     GoldfishOMXComponent.cpp \
     GoldfishOMXPlugin.cpp \
+    GoldfishVideoDecoderOMXComponent.cpp \
     SimpleGoldfishOMXComponent.cpp \
 
 
@@ -28,13 +29,20 @@ LOCAL_CFLAGS := $(PV_CFLAGS_MINUS_VISIBILITY) -Werror
 
 LOCAL_C_INCLUDES:= \
         $(call include-path-for, frameworks-native)/media/hardware \
-        $(call include-path-for, frameworks-native)/media/openmax
+        $(call include-path-for, frameworks-native)/media/openmax \
+
+LOCAL_HEADER_LIBRARIES := media_plugin_headers \
+	                      libmedia_headers \
+	                      libbinder_headers \
+	                      libhidlbase_impl_internal \
+	                      libbase
 
 LOCAL_SHARED_LIBRARIES :=       \
         libbinder               \
         libutils                \
         liblog                  \
         libcutils               \
+        android.hardware.media.omx@1.0 \
         libstagefright_foundation
 
 LOCAL_MODULE := libstagefrighthw
