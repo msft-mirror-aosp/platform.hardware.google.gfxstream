@@ -46,6 +46,7 @@ class HostAddressSpaceDevice;
 enum GoldfishAddressSpaceSubdeviceType {
     NoSubdevice = -1,
     Graphics = 0,
+    Media = 1,
     HostMemoryAllocator = 5,
 };
 
