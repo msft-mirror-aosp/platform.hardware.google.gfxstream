@@ -31,7 +31,6 @@
 #include "../egl/goldfish_sync.h"
 
 #include "ThreadInfo.h"
-#include "gralloc_cb.h"
 
 #if defined(LOG_NNDEBUG) && LOG_NNDEBUG == 0
 #define ALOGVV ALOGV
@@ -81,6 +80,21 @@ EmuHWC2::EmuHWC2()
     getCapabilities = getCapabilitiesHook;
     getFunction = getFunctionHook;
     populateCapabilities();
+    initDisplayParameters();
+}
+
+Error EmuHWC2::initDisplayParameters() {
+    DEFINE_AND_VALIDATE_HOST_CONNECTION
+    hostCon->lock();
+
+    mDisplayWidth = rcEnc->rcGetFBParam(rcEnc, FB_WIDTH);
+    mDisplayHeight = rcEnc->rcGetFBParam(rcEnc, FB_HEIGHT);
+    mDisplayDpiX = rcEnc->rcGetFBParam(rcEnc, FB_XDPI);
+    mDisplayDpiY = rcEnc->rcGetFBParam(rcEnc, FB_YDPI);
+
+    hostCon->unlock();
+
+    return HWC2::Error::None;
 }
 
 void EmuHWC2::doGetCapabilities(uint32_t* outCount, int32_t* outCapabilities) {
@@ -376,6 +390,18 @@ Error EmuHWC2::registerCallback(Callback descriptor,
     return Error::None;
 }
 
+const cb_handle_t* EmuHWC2::allocateDisplayColorBuffer() {
+    // HAL_PIXEL_FORMAT_RGBA_8888 was hardcoded in framebuffer_device_t in
+    // gralloc
+
+    return mGrallocModule.allocateBuffer(mDisplayWidth, mDisplayHeight,
+                                         HAL_PIXEL_FORMAT_RGBA_8888);
+}
+
+void EmuHWC2::freeDisplayColorBuffer(const cb_handle_t* h) {
+    mGrallocModule.freeBuffer(h);
+}
+
 //Gralloc Functions
 EmuHWC2::GrallocModule::GrallocModule() {
     int ret;
@@ -383,32 +409,32 @@ EmuHWC2::GrallocModule::GrallocModule() {
     ret = hw_get_module(GRALLOC_HARDWARE_MODULE_ID, &mHw);
     assert(ret == 0 && "Gralloc moudle not found");
     mGralloc = reinterpret_cast<const gralloc_module_t*>(mHw);
-
-    ret = framebuffer_open(mHw, &mFbDev);
-    assert(ret == 0 && "Fail to open FrameBuffer device");
+    ret = gralloc_open(mHw, &mAllocDev);
+    assert(ret == 0 && "Fail to open GPU device");
 }
 
 EmuHWC2::GrallocModule::~GrallocModule() {
-    if (mHandle != nullptr) {
-        mAllocDev->free(mAllocDev, mHandle);
-        ALOGI("free targetCb %u", cb_handle_t::from(mHandle)->hostHandle);
-        gralloc_close(mAllocDev);
-    }
+    gralloc_close(mAllocDev);
 }
 
-uint32_t EmuHWC2::GrallocModule::getTargetCb() {
-    if (mHandle == nullptr) {
-        int ret, stride;
-        ret = gralloc_open(mHw, &mAllocDev);
-        assert(ret == 0 && "Fail to open GPU device");
-        ret = mAllocDev->alloc(mAllocDev,
-                               mFbDev->width, mFbDev->height, mFbDev->format,
-                               GRALLOC_USAGE_HW_COMPOSER|GRALLOC_USAGE_HW_RENDER,
-                               &mHandle, &stride);
-        assert(ret == 0 && "Fail to allocate target ColorBuffer");
-        ALOGI("targetCb %u", cb_handle_t::from(mHandle)->hostHandle);
-    }
-    return cb_handle_t::from(mHandle)->hostHandle;
+const cb_handle_t* EmuHWC2::GrallocModule::allocateBuffer(int width, int height, int format) {
+    int ret;
+    int stride;
+    buffer_handle_t handle;
+
+    ret = mAllocDev->alloc(mAllocDev, width, height, format,
+                           GRALLOC_USAGE_HW_COMPOSER|GRALLOC_USAGE_HW_RENDER,
+                           &handle, &stride);
+    assert(ret == 0 && "Fail to allocate target ColorBuffer");
+
+    return cb_handle_t::from(handle);
+}
+
+void EmuHWC2::GrallocModule::freeBuffer(const cb_handle_t* h) {
+    int ret;
+
+    ret = mAllocDev->free(mAllocDev, h);
+    assert(ret == 0 && "Fail to free target ColorBuffer");
 }
 
 // Display functions
@@ -452,10 +478,14 @@ EmuHWC2::Display::Display(EmuHWC2& device, DisplayType type)
     mActiveConfig(nullptr),
     mColorModes(),
     mSetColorTransform(false),
-    mStateMutex()
-    {
+    mStateMutex() {
         mVsyncThread.run("", -19 /* ANDROID_PRIORITY_URGENT_AUDIO */);
-    }
+        mTargetCb = device.allocateDisplayColorBuffer();
+}
+
+EmuHWC2::Display::~Display() {
+    mDevice.freeDisplayColorBuffer(mTargetCb);
+}
 
 Error EmuHWC2::Display::acceptChanges() {
     ALOGVV("%s: displayId %u", __FUNCTION__, (uint32_t)mId);
@@ -759,7 +789,7 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
 
         if (numLayer == 0) {
             ALOGVV("No layers, exit");
-            mGralloc->getFb()->post(mGralloc->getFb(), mClientTarget.getBuffer());
+            post(hostCon, rcEnc, mClientTarget.getBuffer());
             *outRetireFence = mClientTarget.getFence();
             return Error::None;
         }
@@ -842,12 +872,12 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
         }
         if (hostCompositionV1) {
             p->version = 1;
-            p->targetHandle = mGralloc->getTargetCb();
+            p->targetHandle = mTargetCb->hostHandle;
             p->numLayers = numLayer;
         } else {
             p2->version = 2;
             p2->displayId = mHostDisplayId;
-            p2->targetHandle = mGralloc->getTargetCb();
+            p2->targetHandle = mTargetCb->hostHandle;
             p2->numLayers = numLayer;
         }
 
@@ -891,7 +921,7 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
         hostCon->unlock();
     } else {
         // we set all layers Composition::Client, so do nothing.
-        mGralloc->getFb()->post(mGralloc->getFb(), mClientTarget.getBuffer());
+        post(hostCon, rcEnc, mClientTarget.getBuffer());
         *outRetireFence = mClientTarget.getFence();
         ALOGV("%s fallback to post, returns outRetireFence %d",
               __FUNCTION__, *outRetireFence);
@@ -1279,18 +1309,17 @@ Error EmuHWC2::Display::setDisplayBrightness(float brightness) {
     return Error::None;
 }
 
-int EmuHWC2::Display::populatePrimaryConfigs() {
+int EmuHWC2::Display::populatePrimaryConfigs(int width, int height, int dpiX, int dpiY) {
     ALOGVV("%s DisplayId %u", __FUNCTION__, (uint32_t)mId);
     std::unique_lock<std::mutex> lock(mStateMutex);
 
-    mGralloc.reset(new GrallocModule());
     auto newConfig = std::make_shared<Config>(*this);
     // vsync is 60 hz;
     newConfig->setAttribute(Attribute::VsyncPeriod, mVsyncPeriod);
-    newConfig->setAttribute(Attribute::Width, mGralloc->getFb()->width);
-    newConfig->setAttribute(Attribute::Height, mGralloc->getFb()->height);
-    newConfig->setAttribute(Attribute::DpiX, mGralloc->getFb()->xdpi*1000);
-    newConfig->setAttribute(Attribute::DpiY, mGralloc->getFb()->ydpi*1000);
+    newConfig->setAttribute(Attribute::Width, width);
+    newConfig->setAttribute(Attribute::Height, height);
+    newConfig->setAttribute(Attribute::DpiX, dpiX * 1000);
+    newConfig->setAttribute(Attribute::DpiY, dpiY * 1000);
 
     newConfig->setId(static_cast<hwc2_config_t>(mConfigs.size()));
     ALOGV("Found new config %d: %s", (uint32_t)newConfig->getId(),
@@ -1307,13 +1336,23 @@ int EmuHWC2::Display::populatePrimaryConfigs() {
     return 0;
 }
 
+void EmuHWC2::Display::post(HostConnection *hostCon,
+                            ExtendedRCEncoderContext *rcEnc,
+                            buffer_handle_t h) {
+    const cb_handle_t* cb = cb_handle_t::from(h);
+    assert(cb && "cb_handle_t::from(h) failed");
+
+    hostCon->lock();
+    rcEnc->rcFBPost(rcEnc, cb->hostHandle);
+    hostCon->unlock();
+}
+
 HWC2::Error EmuHWC2::Display::populateSecondaryConfigs(uint32_t width, uint32_t height,
         uint32_t dpi) {
     ALOGVV("%s DisplayId %u, width %u, height %u, dpi %u",
             __FUNCTION__, (uint32_t)mId, width, height, dpi);
     std::unique_lock<std::mutex> lock(mStateMutex);
 
-    mGralloc.reset(new GrallocModule());
     auto newConfig = std::make_shared<Config>(*this);
     // vsync is 60 hz;
     newConfig->setAttribute(Attribute::VsyncPeriod, mVsyncPeriod);
@@ -1597,7 +1636,8 @@ void EmuHWC2::populateCapabilities() {
 int EmuHWC2::populatePrimary() {
     int ret = 0;
     auto display = std::make_shared<Display>(*this, HWC2::DisplayType::Physical);
-    ret = display->populatePrimaryConfigs();
+    ret = display->populatePrimaryConfigs(mDisplayWidth, mDisplayHeight,
+                                          mDisplayDpiX, mDisplayDpiY);
     if (ret != 0) {
         return ret;
     }
