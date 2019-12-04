@@ -18,10 +18,6 @@
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
-#include <GLES/gl.h>
-
-#include <hardware/hardware.h>
-#include <hardware/gralloc.h>
 
 #if PLATFORM_SDK_VERSION >= 16
 #if EMULATOR_OPENGL_POST_O >= 1
