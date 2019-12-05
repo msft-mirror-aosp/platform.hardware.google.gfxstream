@@ -54,6 +54,16 @@ GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider(GoldfishAdd
         return;
     }
     m_device.Bind(std::move(channel));
+
+    zx_status_t status = (*m_device).OpenChildDriver(
+        static_cast<fuchsia::hardware::goldfish::AddressSpaceChildDriverType>(0 /* graphics */),
+        m_child_driver.NewRequest());
+
+    if (status != ZX_OK) {
+        ALOGE("%s: failed to open child driver: %d",
+              __FUNCTION__, status);
+        return;
+    }
 }
 
 GoldfishAddressSpaceBlockProvider::~GoldfishAddressSpaceBlockProvider()
@@ -69,7 +79,7 @@ bool GoldfishAddressSpaceBlockProvider::is_opened() const
 // address_space_handle_t GoldfishAddressSpaceBlockProvider::release() - not imeplemented
 
 GoldfishAddressSpaceBlock::GoldfishAddressSpaceBlock()
-    : m_device(NULL)
+    : m_driver(NULL)
     , m_vmo(ZX_HANDLE_INVALID)
     , m_mmaped_ptr(NULL)
     , m_phys_addr(0)
@@ -90,7 +100,7 @@ GoldfishAddressSpaceBlock &GoldfishAddressSpaceBlock::operator=(const GoldfishAd
     m_host_addr = rhs.m_host_addr;
     m_offset = rhs.m_offset;
     m_size = rhs.m_size;
-    m_device = rhs.m_device;
+    m_driver = rhs.m_driver;
 
     return *this;
 }
@@ -106,11 +116,11 @@ bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *prov
         return false;
     }
 
-    fuchsia::hardware::goldfish::AddressSpaceDeviceSyncPtr* device = &provider->m_device;
+    fuchsia::hardware::goldfish::AddressSpaceChildDriverSyncPtr* driver = &provider->m_child_driver;
 
     int32_t res = ZX_OK;
     zx::vmo vmo;
-    zx_status_t status = (*device)->AllocateBlock(size, &res, &m_phys_addr, &vmo);
+    zx_status_t status = (*driver)->AllocateBlock(size, &res, &m_phys_addr, &vmo);
     if (status != ZX_OK || res != ZX_OK) {
         ALOGE("%s: allocate block failed: %d:%d", __func__, status, res);
         return false;
@@ -124,7 +134,7 @@ bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *prov
           (unsigned long long)m_offset,
           (unsigned long long)m_size);
 
-    m_device = device;
+    m_driver = driver;
     return true;
 }
 
@@ -198,18 +208,18 @@ void GoldfishAddressSpaceBlock::destroy()
             ALOGE("%s: unsupported: GoldfishAddressSpaceBlock destroy() for shared regions\n", __func__);
             abort();
             // int32_t res = ZX_OK;
-            // zx_status_t status = (*m_device)->UnclaimShared(m_offset, &res);
+            // zx_status_t status = (*m_driver)->UnclaimShared(m_offset, &res);
             // if (status != ZX_OK || res != ZX_OK) {
             //     ALOGE("%s: unclaim shared block failed: %d:%d", __func__, status, res);
             // }
         } else {
             int32_t res = ZX_OK;
-            zx_status_t status = (*m_device)->DeallocateBlock(m_phys_addr, &res);
+            zx_status_t status = (*m_driver)->DeallocateBlock(m_phys_addr, &res);
             if (status != ZX_OK || res != ZX_OK) {
                 ALOGE("%s: deallocate block failed: %d:%d", __func__, status, res);
             }
         }
-        m_device = NULL;
+        m_driver = NULL;
         m_phys_addr = 0;
         m_host_addr = 0;
         m_offset = 0;

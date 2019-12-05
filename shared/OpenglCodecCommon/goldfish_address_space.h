@@ -65,6 +65,7 @@ private:
 
 #ifdef __Fuchsia__
     fuchsia::hardware::goldfish::AddressSpaceDeviceSyncPtr m_device;
+    fuchsia::hardware::goldfish::AddressSpaceChildDriverSyncPtr m_child_driver;
 #else // __Fuchsia__
     address_space_handle_t m_handle;
 #endif // !__Fuchsia__
@@ -96,7 +97,7 @@ private:
     GoldfishAddressSpaceBlock &operator=(const GoldfishAddressSpaceBlock &);
 
 #ifdef __Fuchsia__
-    fuchsia::hardware::goldfish::AddressSpaceDeviceSyncPtr* m_device;
+    fuchsia::hardware::goldfish::AddressSpaceChildDriverSyncPtr* m_driver;
     uint32_t  m_vmo;
 #else // __Fuchsia__
     address_space_handle_t m_handle;
