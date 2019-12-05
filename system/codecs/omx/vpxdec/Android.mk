@@ -1,5 +1,5 @@
 #
-# Copyright 2018 The Android Open-Source Project
+# Copyright 2019 The Android Open-Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,26 +16,17 @@
 LOCAL_PATH := $(call my-dir)
 
 commonSources := \
-    GoldfishOMXComponent.cpp \
-    GoldfishOMXPlugin.cpp \
-    GoldfishVideoDecoderOMXComponent.cpp \
-    SimpleGoldfishOMXComponent.cpp \
+        GoldfishVPX.cpp  \
+        goldfish_vpx_impl.cpp
 
-$(call emugl-begin-shared-library,libstagefrighthw$(GOLDFISH_OPENGL_LIB_SUFFIX))
+$(call emugl-begin-shared-library,libstagefright_goldfish_vpxdec$(GOLDFISH_OPENGL_LIB_SUFFIX))
 
 LOCAL_SRC_FILES := $(commonSources)
 
-LOCAL_CFLAGS += $(PV_CFLAGS_MINUS_VISIBILITY) -Werror
+LOCAL_CFLAGS += -DLOG_TAG=\"goldfish_vpxdec\"
 LOCAL_CFLAGS += -Wno-unused-private-field
 
-LOCAL_C_INCLUDES += \
-        $(call include-path-for, frameworks-native)/media/hardware \
-        $(call include-path-for, frameworks-native)/media/openmax \
-
 $(call emugl-export,SHARED_LIBRARIES,libcutils libutils liblog)
-$(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
-
-
 
 LOCAL_HEADER_LIBRARIES := media_plugin_headers \
 	                      libmedia_headers \
@@ -51,6 +42,7 @@ LOCAL_SHARED_LIBRARIES :=       \
         android.hardware.media.omx@1.0 \
         libstagefright_foundation
 
-LOCAL_VENDOR_MODULE := true
-
+$(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
+$(call emugl-import,libgoldfish_codecs_common)
+$(call emugl-import,libstagefrighthw)
 $(call emugl-end-module)
