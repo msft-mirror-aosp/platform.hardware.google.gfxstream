@@ -1,5 +1,5 @@
 #
-# Copyright 2018 The Android Open-Source Project
+# Copyright 2019 The Android Open-Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,4 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-include $(call all-subdir-makefiles)
+LOCAL_PATH := $(call my-dir)
+
+commonSources := \
+        goldfish_media_utils.cpp
+
+$(call emugl-begin-shared-library,libgoldfish_codecs_common$(GOLDFISH_OPENGL_LIB_SUFFIX))
+
+LOCAL_SRC_FILES := $(commonSources)
+
+LOCAL_CFLAGS += -DLOG_TAG=\"goldfish_codecs_common\"
+LOCAL_CFLAGS += -Wno-unused-private-field
+
+$(call emugl-export,SHARED_LIBRARIES,libcutils libutils liblog)
+
+$(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
+$(call emugl-import,libOpenglSystemCommon)
+$(call emugl-end-module)
