@@ -33,9 +33,9 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <set>
+#include <cutils/native_handle.h>
 
 #include "gralloc_cb.h"
-#include "cbmanager.h"
 #include "MiniFence.h"
 #include "HostConnection.h"
 
@@ -136,6 +136,20 @@ private:
         private:
             buffer_handle_t mBuffer;
             sp<MiniFence> mFence;
+    };
+
+    class GrallocModule {
+    public:
+        GrallocModule();
+        ~GrallocModule();
+
+        const cb_handle_t* allocateBuffer(int width, int height, int format);
+        void freeBuffer(const cb_handle_t*);
+
+    private:
+        const hw_module_t* mHw = nullptr;
+        const gralloc_module_t* mGralloc = nullptr;
+        alloc_device_t* mAllocDev = nullptr;
     };
 
     typedef struct compose_layer {
@@ -466,7 +480,7 @@ private:
     const cb_handle_t* allocateDisplayColorBuffer();
     void freeDisplayColorBuffer(const cb_handle_t* h);
 
-    CbManager mCbManager;
+    GrallocModule mGrallocModule;
     std::unordered_set<HWC2::Capability> mCapabilities;
 
     // These are potentially accessed from multiple threads, and are protected
