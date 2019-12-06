@@ -66,7 +66,6 @@ static HostConnection* createOrGetHostConnection() {
         return Error::NoResources; \
     }
 
-
 using namespace HWC2;
 
 namespace android {
@@ -391,50 +390,12 @@ Error EmuHWC2::registerCallback(Callback descriptor,
 }
 
 const cb_handle_t* EmuHWC2::allocateDisplayColorBuffer() {
-    // HAL_PIXEL_FORMAT_RGBA_8888 was hardcoded in framebuffer_device_t in
-    // gralloc
-
-    return mGrallocModule.allocateBuffer(mDisplayWidth, mDisplayHeight,
-                                         HAL_PIXEL_FORMAT_RGBA_8888);
+    return mCbManager.allocateBuffer(mDisplayWidth, mDisplayHeight,
+                                     HAL_PIXEL_FORMAT_RGBA_8888);
 }
 
 void EmuHWC2::freeDisplayColorBuffer(const cb_handle_t* h) {
-    mGrallocModule.freeBuffer(h);
-}
-
-//Gralloc Functions
-EmuHWC2::GrallocModule::GrallocModule() {
-    int ret;
-
-    ret = hw_get_module(GRALLOC_HARDWARE_MODULE_ID, &mHw);
-    assert(ret == 0 && "Gralloc moudle not found");
-    mGralloc = reinterpret_cast<const gralloc_module_t*>(mHw);
-    ret = gralloc_open(mHw, &mAllocDev);
-    assert(ret == 0 && "Fail to open GPU device");
-}
-
-EmuHWC2::GrallocModule::~GrallocModule() {
-    gralloc_close(mAllocDev);
-}
-
-const cb_handle_t* EmuHWC2::GrallocModule::allocateBuffer(int width, int height, int format) {
-    int ret;
-    int stride;
-    buffer_handle_t handle;
-
-    ret = mAllocDev->alloc(mAllocDev, width, height, format,
-                           GRALLOC_USAGE_HW_COMPOSER|GRALLOC_USAGE_HW_RENDER,
-                           &handle, &stride);
-    assert(ret == 0 && "Fail to allocate target ColorBuffer");
-
-    return cb_handle_t::from(handle);
-}
-
-void EmuHWC2::GrallocModule::freeBuffer(const cb_handle_t* h) {
-    int ret;
-
-    ret = mAllocDev->free(mAllocDev, h);
-    assert(ret == 0 && "Fail to free target ColorBuffer");
+    mCbManager.freeBuffer(h);
 }
 
 // Display functions
