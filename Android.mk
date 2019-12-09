@@ -149,6 +149,7 @@ include $(GOLDFISH_OPENGL_PATH)/system/GLESv1/Android.mk
 include $(GOLDFISH_OPENGL_PATH)/system/GLESv2/Android.mk
 
 include $(GOLDFISH_OPENGL_PATH)/system/gralloc/Android.mk
+include $(GOLDFISH_OPENGL_PATH)/system/cbmanager/Android.mk
 
 include $(GOLDFISH_OPENGL_PATH)/system/egl/Android.mk
 
