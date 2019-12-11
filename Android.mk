@@ -163,6 +163,7 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 28 -o $(IS_AT_LEAST_QPR1) = true 
     # hardware codecs enabled after P
     include $(GOLDFISH_OPENGL_PATH)/system/codecs/omx/common/Android.mk
     include $(GOLDFISH_OPENGL_PATH)/system/codecs/omx/plugin/Android.mk
+    include $(GOLDFISH_OPENGL_PATH)/system/codecs/omx/avcdec/Android.mk
     include $(GOLDFISH_OPENGL_PATH)/system/codecs/omx/vpxdec/Android.mk
 endif
 
