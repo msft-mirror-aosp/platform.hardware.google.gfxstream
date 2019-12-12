@@ -120,8 +120,9 @@ static bool WriteFully(QEMU_PIPE_HANDLE fd, const void* data, size_t byte_count)
  * except for a few special cases (e.g. GSM modem), where EBUSY will be
  * returned if more than one client tries to connect to it.
  */
+
 static __inline__ QEMU_PIPE_HANDLE
-qemu_pipe_open(const char* pipeName) {
+qemu_pipe_open_ns(const char* ns, const char* pipeName) {
     char  buff[256];
     int   buffLen;
     QEMU_PIPE_HANDLE   fd;
@@ -131,7 +132,11 @@ qemu_pipe_open(const char* pipeName) {
         return -1;
     }
 
-    snprintf(buff, sizeof buff, "pipe:%s", pipeName);
+    if (ns) {
+        buffLen = snprintf(buff, sizeof(buff), "pipe:%s:%s", ns, pipeName);
+    } else {
+        buffLen = snprintf(buff, sizeof(buff), "pipe:%s", pipeName);
+    }
 
     fd = QEMU_PIPE_RETRY(open(QEMU_PIPE_PATH, O_RDWR | O_NONBLOCK));
     if (fd < 0 && errno == ENOENT) {
@@ -143,14 +148,22 @@ qemu_pipe_open(const char* pipeName) {
         return -1;
     }
 
-    buffLen = strlen(buff);
-
     if (!WriteFully(fd, buff, buffLen + 1)) {
         D("%s: Could not connect to %s pipe service: %s", __FUNCTION__, pipeName, strerror(errno));
         return -1;
     }
 
     return fd;
+}
+
+static __inline__ QEMU_PIPE_HANDLE
+qemu_pipe_open_qemud(const char* pipeName) {
+    return qemu_pipe_open_ns("qemud", pipeName);
+}
+
+static __inline__ QEMU_PIPE_HANDLE
+qemu_pipe_open(const char* pipeName) {
+    return qemu_pipe_open_ns(NULL, pipeName);
 }
 
 static __inline__ void
