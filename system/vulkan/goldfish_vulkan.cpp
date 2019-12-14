@@ -18,7 +18,10 @@
 #include <errno.h>
 #include <string.h>
 #ifdef VK_USE_PLATFORM_FUCHSIA
+#include <fuchsia/logger/llcpp/fidl.h>
+#include <lib/syslog/global.h>
 #include <lib/zx/channel.h>
+#include <lib/zx/socket.h>
 #include <lib/zxio/zxio.h>
 #include <lib/zxio/inception.h>
 #include <unistd.h>
@@ -668,8 +671,11 @@ int OpenDevice(const hw_module_t* /*module*/,
 class VulkanDevice {
 public:
     VulkanDevice() : mHostSupportsGoldfish(IsAccessible(QEMU_PIPE_PATH)) {
+        InitLogger();
         goldfish_vk::ResourceTracker::get();
     }
+
+    static void InitLogger();
 
     static bool IsAccessible(const char* name) {
         zx_handle_t handle = GetConnectToServiceFunction()(name);
@@ -706,6 +712,32 @@ private:
     const bool mHostSupportsGoldfish;
 };
 
+void VulkanDevice::InitLogger() {
+   zx_handle_t channel = GetConnectToServiceFunction()("/svc/fuchsia.logger.LogSink");
+   if (channel == ZX_HANDLE_INVALID)
+      return;
+
+  zx::socket local_socket, remote_socket;
+  zx_status_t status = zx::socket::create(ZX_SOCKET_DATAGRAM, &local_socket, &remote_socket);
+  if (status != ZX_OK)
+    return;
+
+  auto result = llcpp::fuchsia::logger::LogSink::Call::Connect(
+      zx::unowned_channel(channel), std::move(remote_socket));
+  zx_handle_close(channel);
+
+  if (result.status() != ZX_OK)
+    return;
+
+  fx_logger_config_t config = {.min_severity = FX_LOG_INFO,
+                               .console_fd = -1,
+                               .log_service_channel = local_socket.release(),
+                               .tags = nullptr,
+                               .num_tags = 0};
+
+  fx_log_init_with_config(&config);
+}
+
 extern "C" __attribute__((visibility("default"))) PFN_vkVoidFunction
 vk_icdGetInstanceProcAddr(VkInstance instance, const char* name) {
     return VulkanDevice::GetInstance().GetInstanceProcAddr(instance, name);
@@ -736,6 +768,7 @@ zx_handle_t LocalConnectToServiceFunction(const char* pName) {
     }
     return local_endpoint.release();
 }
+
 }
 
 extern "C" __attribute__((visibility("default"))) void

@@ -114,6 +114,7 @@ shared_library("libvulkan_goldfish") {
   if (target_os == "fuchsia") {
     sources -= [ "system/OpenglSystemCommon/QemuPipeStream.cpp" ]
     sources += [
+      "fuchsia/fuchsia_stdio.cc",
       "fuchsia/port.cc",
       "fuchsia/service_connector.cc",
       "system/OpenglSystemCommon/QemuPipeStreamFuchsia.cpp",
@@ -132,8 +133,10 @@ shared_library("libvulkan_goldfish") {
       "//sdk/fidl/fuchsia.hardware.goldfish",
       "//zircon/system/fidl/fuchsia-sysmem",
       "//zircon/public/lib/trace-with-static-engine",
+      "//zircon/public/lib/syslog-static",
       "//zircon/public/lib/zx",
       "//zircon/public/lib/zxio",
+      "//zircon/system/fidl/fuchsia-logger:llcpp",
     ]
 
     defines += [
