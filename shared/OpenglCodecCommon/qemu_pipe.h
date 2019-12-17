@@ -16,9 +16,11 @@
 #ifndef ANDROID_INCLUDE_HARDWARE_QEMU_PIPE_H
 #define ANDROID_INCLUDE_HARDWARE_QEMU_PIPE_H
 
-#ifdef HOST_BUILD
-
 #include <sys/types.h>
+#include <stdint.h>
+#include <errno.h>
+
+#ifdef HOST_BUILD
 
 typedef void* QEMU_PIPE_HANDLE;
 
@@ -55,16 +57,6 @@ typedef int QEMU_PIPE_HANDLE;
 #define QEMU_PIPE_PATH "/dev/qemu_pipe"
 #endif
 
-#ifndef TEMP_FAILURE_RETRY
-#define TEMP_FAILURE_RETRY(exp) ({         \
-    __typeof__(exp) _rc;                   \
-    do {                                   \
-        _rc = (exp);                       \
-    } while (_rc == -1 && errno == EINTR); \
-    _rc; })
-#include <stdint.h>
-#endif
-
 #if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
 #else
@@ -80,7 +72,6 @@ typedef int QEMU_PIPE_HANDLE;
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 
 #ifndef D
 #  define  D(...)   do{}while(0)
@@ -184,6 +175,15 @@ qemu_pipe_print_error(QEMU_PIPE_HANDLE pipe) {
 
 
 #endif // !HOST_BUILD
+
+#ifndef TEMP_FAILURE_RETRY
+#define TEMP_FAILURE_RETRY(exp) ({         \
+    __typeof__(exp) _rc;                   \
+    do {                                   \
+        _rc = (exp);                       \
+    } while (_rc == -1 && errno == EINTR); \
+    _rc; })
+#endif
 
 static __inline__ ssize_t
 qemu_pipe_read_fully(QEMU_PIPE_HANDLE pipe, void* buffer, ssize_t len) {
