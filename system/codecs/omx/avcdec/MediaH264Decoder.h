@@ -41,15 +41,21 @@ struct h264_image_t {
     int ret;
 };
 
+enum class RenderMode {
+  RENDER_BY_HOST_GPU = 1,
+  RENDER_BY_GUEST_CPU = 2,
+};
+
 class MediaH264Decoder {
     uint64_t mHostHandle = 0;
-    const uint32_t mVersion = 100;
+    uint32_t mVersion = 100;
+    RenderMode  mRenderMode = RenderMode::RENDER_BY_GUEST_CPU;
 
     bool mHasAddressSpaceMemory = false;
     uint64_t mAddressOffSet = 0;
 
 public:
-    MediaH264Decoder() = default;
+    MediaH264Decoder(RenderMode renderMode);
     virtual ~MediaH264Decoder() = default;
 
     enum class PixelFormat : uint8_t {
@@ -80,6 +86,11 @@ public:
     void destroyH264Context();
     h264_result_t decodeFrame(uint8_t* img, size_t szBytes, uint64_t pts);
     void flush();
+    // ask host to copy image data back to guest, with image metadata
+    // to guest as well
     h264_image_t getImage();
+    // ask host to render to hostColorBufferId, return only image metadata back to
+    // guest
+    h264_image_t renderOnHostAndReturnImageMetadata(int hostColorBufferId);
 };
 #endif
