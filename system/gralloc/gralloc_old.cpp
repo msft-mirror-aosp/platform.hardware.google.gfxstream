@@ -1562,13 +1562,39 @@ fallback_init(void)
     char  prop[PROPERTY_VALUE_MAX];
     void* module;
 
+    // cuttlefish case: no fallback (if we use sw rendering,
+    // we are not using this lib anyway (would use minigbm))
+    property_get("ro.boot.hardware", prop, "");
+
+    bool isValid = prop[0] != '\0';
+
+    if (isValid && !strcmp(prop, "cutf_cvm")) {
+        return;
+    }
+
     // qemu.gles=0 -> no GLES 2.x support (only 1.x through software).
     // qemu.gles=1 -> host-side GPU emulation through EmuGL
     // qemu.gles=2 -> guest-side GPU emulation.
-    property_get("ro.kernel.qemu.gles", prop, "0");
-    if (atoi(prop) == 1) {
-        return;
+    property_get("ro.kernel.qemu.gles", prop, "999");
+
+    bool useFallback = false;
+    switch (atoi(prop)) {
+        case 0:
+            useFallback = true;
+            break;
+        case 1:
+            useFallback = false;
+            break;
+        case 2:
+            useFallback = true;
+            break;
+        default:
+            useFallback = false;
+            break;
     }
+
+    if (!useFallback) return;
+
     ALOGD("Emulator without host-side GPU emulation detected. "
           "Loading gralloc.default.so from %s...",
           kGrallocDefaultVendorPath);

@@ -93,6 +93,12 @@ static HostConnectionType getConnectionTypeFromProperty() {
     property_get("ro.kernel.qemu.gltransport", transportValue, "");
 
     bool isValid = transportValue[0] != '\0';
+
+    if (!isValid) {
+        property_get("ro.boot.hardware.gltransport", transportValue, "");
+        isValid = transportValue[0] != '\0';
+    }
+
     if (!isValid) return HOST_CONNECTION_QEMU_PIPE;
 
     if (!strcmp("tcp", transportValue)) return HOST_CONNECTION_TCP;

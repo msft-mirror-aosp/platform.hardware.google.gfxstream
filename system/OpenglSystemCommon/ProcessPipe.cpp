@@ -177,7 +177,7 @@ static void processPipeInitOnce() {
 bool processPipeInit(HostConnectionType connType, renderControl_encoder_context_t *rcEnc) {
     sConnType = connType;
     pthread_once(&sProcPipeOnce, processPipeInitOnce);
-    if (!sProcPipe) return false;
+    if (!sProcPipe && !sVirtioGpuPipeStream) return false;
     rcEnc->rcSetPuid(rcEnc, sProcUID);
     return true;
 }
