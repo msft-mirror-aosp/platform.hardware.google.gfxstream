@@ -17,8 +17,10 @@
 #include <cutils/native_handle.h>
 #include <android/hardware/graphics/allocator/2.0/IAllocator.h>
 #include <android/hardware/graphics/mapper/2.0/IMapper.h>
+#include <log/log.h>
 
 #include "cbmanager.h"
+#include "debug.h"
 
 namespace android {
 namespace {
@@ -30,9 +32,9 @@ using ::android::hardware::graphics::common::V1_0::BufferUsage;
 namespace IMapper2ns = ::android::hardware::graphics::mapper::V2_0;
 namespace IAllocator2ns = ::android::hardware::graphics::allocator::V2_0;
 
-class CbManagerHidlV3Impl : public CbManager::CbManagerImpl {
+class CbManagerHidlV2Impl : public CbManager::CbManagerImpl {
 public:
-    CbManagerHidlV3Impl(::android::sp<IMapper2ns::IMapper> mapper,
+    CbManagerHidlV2Impl(::android::sp<IMapper2ns::IMapper> mapper,
                         ::android::sp<IAllocator2ns::IAllocator> allocator)
       : mMapper(mapper), mAllocator(allocator) {}
 
@@ -57,19 +59,20 @@ public:
             descriptor = _descriptor;
         });
         if (hidl_err != Error::NONE) {
-          return nullptr;
+            RETURN_ERROR(nullptr);
         }
 
         hidl_handle raw_handle = nullptr;
         mAllocator->allocate(descriptor, 1,
                              [&](const Error &_error,
-                                 uint32_t /*_stride*/,
+                                 uint32_t _stride,
                                  const hidl_vec<hidl_handle> &_buffers) {
             hidl_err = _error;
+            (void)_stride;
             raw_handle = _buffers[0];
         });
         if (hidl_err != Error::NONE) {
-            return nullptr;
+            RETURN_ERROR(nullptr);
         }
 
         const cb_handle_t *buf = nullptr;
@@ -79,10 +82,10 @@ public:
             buf = cb_handle_t::from(_buf);
         });
         if (hidl_err != Error::NONE) {
-          return nullptr;
+            RETURN_ERROR(nullptr);
         }
 
-        return buf;
+        RETURN(buf);
     }
 
     void freeBuffer(const cb_handle_t* _h) {
@@ -95,25 +98,107 @@ public:
         native_handle_delete(h);
     }
 
+    int lockBuffer(cb_handle_t& handle,
+                   const int usage,
+                   const int left, const int top, const int width, const int height,
+                   void** vaddr) {
+        using IMapper2ns::Error;
+
+        Error hidl_err = Error::NONE;
+        mMapper->lock(
+            &handle,
+            usage,
+            { left, top, width, height },  // rect
+            hidl_handle(),  // fence
+            [&hidl_err, vaddr](const Error &_error,
+                               void* _ptr) {
+                hidl_err = _error;
+                if (_error == Error::NONE) {
+                    *vaddr = _ptr;
+                }
+            });
+
+        if (hidl_err == Error::NONE) {
+            RETURN(0);
+        } else {
+            RETURN_ERROR(-1);
+        }
+    }
+
+    int lockYCbCrBuffer(cb_handle_t& handle,
+                        const int usage,
+                        const int left, const int top, const int width, const int height,
+                        android_ycbcr* a_ycbcr) {
+        using IMapper2ns::Error;
+        using IMapper2ns::YCbCrLayout;
+
+        Error hidl_err = Error::NONE;
+        mMapper->lockYCbCr(
+            &handle,
+            usage,
+            { left, top, width, height },  // rect
+            hidl_handle(),  // fence
+            [&hidl_err, &a_ycbcr](const Error &_error,
+                                  const YCbCrLayout &h_ycbcr) {
+                hidl_err = _error;
+                if (_error == Error::NONE) {
+                    a_ycbcr->y = h_ycbcr.y;
+                    a_ycbcr->cb = h_ycbcr.cb;
+                    a_ycbcr->cr = h_ycbcr.cr;
+                    a_ycbcr->ystride = h_ycbcr.yStride;
+                    a_ycbcr->cstride = h_ycbcr.cStride;
+                    a_ycbcr->chroma_step = h_ycbcr.chromaStep;
+                }
+            });
+
+        if (hidl_err == Error::NONE) {
+            RETURN(0);
+        } else {
+            RETURN_ERROR(-1);
+        }
+    }
+
+    int unlockBuffer(cb_handle_t& handle) {
+        using IMapper2ns::Error;
+
+        Error hidl_err = Error::NONE;
+        int fence = -1;
+        mMapper->unlock(
+            &handle,
+            [&hidl_err, &fence](const Error &_error,
+                                const hidl_handle &_fence) {
+                hidl_err = _error;
+                (void)_fence;
+            });
+
+        if (hidl_err == Error::NONE) {
+            RETURN(0);
+        } else {
+            RETURN_ERROR(-1);
+        }
+    }
+
 private:
     const ::android::sp<IMapper2ns::IMapper> mMapper;
     const ::android::sp<IAllocator2ns::IAllocator> mAllocator;
 };
 
 std::unique_ptr<CbManager::CbManagerImpl> buildHidlImpl() {
-    {
-        ::android::sp<IMapper2ns::IMapper> mapper =
-            IMapper2ns::IMapper::getService();
-        ::android::sp<IAllocator2ns::IAllocator> allocator =
-            IAllocator2ns::IAllocator::getService();
-        if (mapper && allocator) {
-            return std::make_unique<CbManagerHidlV3Impl>(mapper, allocator);
-        }
+    ::android::sp<IMapper2ns::IMapper> mapper =
+        IMapper2ns::IMapper::getService();
+    if (!mapper) {
+        ALOGE("%s:%d: no IMapper implementation found", __func__, __LINE__);
+        RETURN_ERROR(nullptr);
     }
 
-    ALOGE("%s:%d: no IMapper and IAllocator implementations found",
-          __func__, __LINE__);
-    return nullptr;
+    ::android::sp<IAllocator2ns::IAllocator> allocator =
+        IAllocator2ns::IAllocator::getService();
+    if (!allocator) {
+        ALOGE("%s:%d: no IAllocator implementation found", __func__, __LINE__);
+        RETURN_ERROR(nullptr);
+    }
+
+    return std::make_unique<CbManagerHidlV2Impl>(mapper, allocator);
 }
 
 }  // namespace
