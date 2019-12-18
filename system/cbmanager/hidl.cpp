@@ -24,19 +24,22 @@ namespace android {
 namespace {
 using ::android::hardware::hidl_handle;
 using ::android::hardware::hidl_vec;
-using PixelFormat10 = ::android::hardware::graphics::common::V1_0::PixelFormat;
-using ::android::hardware::graphics::common::V1_0::BufferUsage;
 
-namespace IMapper2ns = ::android::hardware::graphics::mapper::V2_0;
-namespace IAllocator2ns = ::android::hardware::graphics::allocator::V2_0;
+namespace IMapper2ns = hardware::graphics::mapper::V2_0;
+namespace IAllocator2ns = hardware::graphics::allocator::V2_0;
 
 class CbManagerHidlV2Impl : public CbManager::CbManagerImpl {
 public:
+    typedef CbManager::BufferUsage BufferUsage;
+    typedef CbManager::PixelFormat PixelFormat;
+    typedef hardware::hidl_bitfield<BufferUsage> BufferUsageBits;
+
     CbManagerHidlV2Impl(::android::sp<IMapper2ns::IMapper> mapper,
                         ::android::sp<IAllocator2ns::IAllocator> allocator)
       : mMapper(mapper), mAllocator(allocator) {}
 
-    const cb_handle_t* allocateBuffer(int width, int height, int format) {
+    const cb_handle_t* allocateBuffer(int width, int height,
+                                      PixelFormat format, BufferUsageBits usage) {
         using IMapper2ns::Error;
         using IMapper2ns::BufferDescriptor;
 
@@ -44,9 +47,8 @@ public:
         descriptor_info.width = width;
         descriptor_info.height = height;
         descriptor_info.layerCount = 1;
-        descriptor_info.format = static_cast<PixelFormat10>(format);
-        descriptor_info.usage =
-            BufferUsage::COMPOSER_OVERLAY | BufferUsage::GPU_RENDER_TARGET;
+        descriptor_info.format = format;
+        descriptor_info.usage = usage;
         Error hidl_err = Error::NONE;
 
         BufferDescriptor descriptor;
