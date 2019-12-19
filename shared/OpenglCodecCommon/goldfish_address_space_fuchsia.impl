@@ -129,6 +129,7 @@ bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *prov
     m_size = size;
     m_vmo = vmo.release();
     m_offset = 0;
+    m_is_shared_mapping = false;
 
     ALOGD("%s: allocate returned offset 0x%llx size 0x%llx\n", __func__,
           (unsigned long long)m_offset,
