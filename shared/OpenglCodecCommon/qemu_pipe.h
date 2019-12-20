@@ -22,6 +22,10 @@
 
 #ifdef HOST_BUILD
 
+#ifndef QEMU_PIPE_RETRY
+#define QEMU_PIPE_RETRY TEMP_FAILURE_RETRY
+#endif
+
 typedef void* QEMU_PIPE_HANDLE;
 
 #define QEMU_PIPE_INVALID_HANDLE NULL
