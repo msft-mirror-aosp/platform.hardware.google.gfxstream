@@ -32,7 +32,8 @@ public:
 
     explicit VirtioGpuPipeStream(size_t bufsize = 10000);
     ~VirtioGpuPipeStream();
-    int connect(void);
+    int connect(const char* serviceName = 0);
+    uint64_t initProcessPipe();
 
     virtual void *allocBuffer(size_t minSize);
     virtual int commitBuffer(size_t size);
