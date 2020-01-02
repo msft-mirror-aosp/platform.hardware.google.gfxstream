@@ -122,19 +122,12 @@ public:
 // Abstraction for process pipe helper
 class ProcessPipe {
 public:
-    virtual bool processPipeInit(renderControl_encoder_context_t *rcEnc) = 0;
+    virtual bool processPipeInit(HostConnectionType connType, renderControl_encoder_context_t *rcEnc) = 0;
     virtual ~ProcessPipe() {}
 };
 
 struct EGLThreadInfo;
 
-enum HostConnectionType {
-    HOST_CONNECTION_TCP = 0,
-    HOST_CONNECTION_QEMU_PIPE = 1,
-    HOST_CONNECTION_VIRTIO_GPU = 2,
-    HOST_CONNECTION_ADDRESS_SPACE = 3,
-    HOST_CONNECTION_VIRTIO_GPU_PIPE = 4,
-};
 
 class HostConnection
 {

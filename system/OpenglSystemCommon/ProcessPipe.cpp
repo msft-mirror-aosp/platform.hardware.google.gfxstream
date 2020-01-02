@@ -32,13 +32,19 @@
 #include "services/service_connector.h"
 
 static QEMU_PIPE_HANDLE   sProcDevice = 0;
-#endif
+#else // __Fuchsia__
+
+#include "VirtioGpuPipeStream.h"
+static VirtioGpuPipeStream* sVirtioGpuPipeStream = 0;
+
+#endif // !__Fuchsia__
 
 static QEMU_PIPE_HANDLE   sProcPipe = 0;
 static pthread_once_t     sProcPipeOnce = PTHREAD_ONCE_INIT;
 // sProcUID is a unique ID per process assigned by the host.
 // It is different from getpid().
 static uint64_t           sProcUID = 0;
+static volatile HostConnectionType sConnType = HOST_CONNECTION_VIRTIO_GPU_PIPE;
 
 // processPipeInitOnce is used to generate a process unique ID (puid).
 // processPipeInitOnce will only be called at most once per process.
@@ -105,8 +111,9 @@ static void processPipeInitOnce() {
     sProcDevice = device.Unbind().TakeChannel().release();
     sProcPipe = pipe.Unbind().TakeChannel().release();
 }
-#else
-static void processPipeInitOnce() {
+#else // __Fuchsia__
+
+static void sQemuPipeInit() {
     sProcPipe = qemu_pipe_open("GLProcessPipe");
     if (!qemu_pipe_valid(sProcPipe)) {
         sProcPipe = 0;
@@ -144,9 +151,31 @@ static void processPipeInitOnce() {
         return;
     }
 }
-#endif
 
-bool processPipeInit(renderControl_encoder_context_t *rcEnc) {
+static void processPipeInitOnce() {
+#ifdef HOST_BUILD
+    sQemuPipeInit();
+#else // HOST_BUILD
+    switch (sConnType) {
+        // TODO: Move those over too
+        case HOST_CONNECTION_QEMU_PIPE:
+        case HOST_CONNECTION_ADDRESS_SPACE:
+        case HOST_CONNECTION_TCP:
+        case HOST_CONNECTION_VIRTIO_GPU:
+            sQemuPipeInit();
+            break;
+        case HOST_CONNECTION_VIRTIO_GPU_PIPE: {
+            sVirtioGpuPipeStream = new VirtioGpuPipeStream(4096);
+            sProcUID = sVirtioGpuPipeStream->initProcessPipe();
+            break;
+        }
+    }
+#endif // !HOST_BUILD
+}
+#endif // !__Fuchsia__
+
+bool processPipeInit(HostConnectionType connType, renderControl_encoder_context_t *rcEnc) {
+    sConnType = connType;
     pthread_once(&sProcPipeOnce, processPipeInitOnce);
     if (!sProcPipe) return false;
     rcEnc->rcSetPuid(rcEnc, sProcUID);
