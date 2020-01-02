@@ -137,9 +137,9 @@ public:
 class GoldfishProcessPipe : public ProcessPipe
 {
 public:
-    bool processPipeInit(renderControl_encoder_context_t *rcEnc)
+    bool processPipeInit(HostConnectionType connType, renderControl_encoder_context_t *rcEnc)
     {
-        return ::processPipeInit(rcEnc);
+        return ::processPipeInit(connType, rcEnc);
     }
 };
 
@@ -390,7 +390,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetYUVCache(m_rcEnc);
         queryAndSetAsyncUnmapBuffer(m_rcEnc);
         if (m_processPipe) {
-            m_processPipe->processPipeInit(m_rcEnc);
+            m_processPipe->processPipeInit(m_connectionType, m_rcEnc);
         }
     }
     return m_rcEnc;

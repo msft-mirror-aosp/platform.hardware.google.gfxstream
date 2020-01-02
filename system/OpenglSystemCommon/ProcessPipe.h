@@ -13,8 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-
 #pragma once
+
+#include "EmulatorFeatureInfo.h"
 
 #include <stdint.h>
 
@@ -32,4 +33,4 @@
 
 struct renderControl_client_context_t;
 
-extern bool processPipeInit(renderControl_encoder_context_t *rcEnc);
+extern bool processPipeInit(HostConnectionType connType, renderControl_encoder_context_t *rcEnc);

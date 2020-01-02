@@ -123,4 +123,12 @@ struct EmulatorFeatureInfo {
     bool hasAsyncUnmapBuffer;
 };
 
+enum HostConnectionType {
+    HOST_CONNECTION_TCP = 0,
+    HOST_CONNECTION_QEMU_PIPE = 1,
+    HOST_CONNECTION_VIRTIO_GPU = 2,
+    HOST_CONNECTION_ADDRESS_SPACE = 3,
+    HOST_CONNECTION_VIRTIO_GPU_PIPE = 4,
+};
+
 #endif // __COMMON_EMULATOR_FEATURE_INFO_H

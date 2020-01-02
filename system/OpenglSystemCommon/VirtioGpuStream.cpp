@@ -70,7 +70,7 @@ int CrosGralloc::getFormat(native_handle_t const* handle)
     return ((cros_gralloc_handle *)handle)->droid_format;
 }
 
-bool VirtioGpuProcessPipe::processPipeInit(renderControl_encoder_context_t *rcEnc)
+bool VirtioGpuProcessPipe::processPipeInit(HostConnectionType, renderControl_encoder_context_t *rcEnc)
 {
   union {
       uint64_t proto;
