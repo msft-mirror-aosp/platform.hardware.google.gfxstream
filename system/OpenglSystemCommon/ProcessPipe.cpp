@@ -153,7 +153,7 @@ static void sQemuPipeInit() {
 }
 
 static void processPipeInitOnce() {
-#ifdef HOST_BUILD
+#if defined(HOST_BUILD) || !defined(GOLDFISH_VULKAN)
     sQemuPipeInit();
 #else // HOST_BUILD
     switch (sConnType) {
