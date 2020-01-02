@@ -70,7 +70,7 @@ VirtioGpuPipeStream::~VirtioGpuPipeStream()
     free(m_buf);
 }
 
-int VirtioGpuPipeStream::connect()
+int VirtioGpuPipeStream::connect(const char* serviceName)
 {
     if (m_fd < 0) {
         m_fd = drmOpenRender(RENDERNODE_MINOR);
@@ -143,10 +143,23 @@ int VirtioGpuPipeStream::connect()
 
     wait();
 
-    static const char kPipeString[] = "pipe:opengles";
-    std::string pipeStr(kPipeString);
-    writeFully(kPipeString, sizeof(kPipeString));
+    if (serviceName) {
+        writeFully(serviceName, strlen(serviceName) + 1);
+    } else {
+        static const char kPipeString[] = "pipe:opengles";
+        std::string pipeStr(kPipeString);
+        writeFully(kPipeString, sizeof(kPipeString));
+    }
     return 0;
+}
+
+uint64_t VirtioGpuPipeStream::initProcessPipe() {
+    connect("pipe:GLProcessPipe");
+    int32_t confirmInt = 100;
+    writeFully(&confirmInt, sizeof(confirmInt));
+    uint64_t res;
+    readFully(&res, sizeof(res));
+    return res;
 }
 
 void *VirtioGpuPipeStream::allocBuffer(size_t minSize) {
