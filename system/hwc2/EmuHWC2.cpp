@@ -1391,7 +1391,6 @@ std::string EmuHWC2::Display::Config::toString() const {
     return output;
 }
 
-
 // VsyncThread function
 bool EmuHWC2::Display::VsyncThread::threadLoop() {
     struct timespec rt;
@@ -1402,21 +1401,41 @@ bool EmuHWC2::Display::VsyncThread::threadLoop() {
     }
     const int logInterval = 60;
     int64_t lastLogged = rt.tv_sec;
+    int64_t phaseOffset = 0;
     int sent = 0;
     int lastSent = 0;
     bool vsyncEnabled = false;
+
     struct timespec wait_time;
     wait_time.tv_sec = 0;
     wait_time.tv_nsec = mDisplay.mVsyncPeriod;
+    const int64_t kOneRefreshNs = mDisplay.mVsyncPeriod;
+    const int64_t kOneSecondNs = 1000ULL * 1000ULL * 1000ULL;
+    int64_t lastTimeNs = -1;
+    int64_t phasedWaitNs = 0;
+    int64_t currentNs = 0;
 
     while (true) {
-        int err = nanosleep(&wait_time, NULL);
-        if (err == -1) {
-            if (errno == EINTR) {
-                break;
-            }
-            ALOGE("%s: error in vsync thread: %s", __FUNCTION__, strerror(errno));
+        clock_gettime(CLOCK_MONOTONIC, &rt);
+        currentNs = rt.tv_nsec + rt.tv_sec * kOneSecondNs;
+
+        if (lastTimeNs < 0) {
+            phasedWaitNs = currentNs + kOneRefreshNs;
+        } else {
+            phasedWaitNs = kOneRefreshNs *
+                (( currentNs - lastTimeNs) / kOneRefreshNs + 1) +
+                lastTimeNs;
         }
+
+        wait_time.tv_sec = phasedWaitNs / kOneSecondNs;
+        wait_time.tv_nsec = phasedWaitNs - wait_time.tv_sec * kOneSecondNs;
+
+        int ret;
+        do {
+            ret = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &wait_time, NULL);
+        } while (ret == -1 && errno == EINTR);
+
+        lastTimeNs = phasedWaitNs;
 
         std::unique_lock<std::mutex> lock(mDisplay.mStateMutex);
         vsyncEnabled = (mDisplay.mVsyncEnabled == Vsync::Enable);
@@ -1426,20 +1445,13 @@ bool EmuHWC2::Display::VsyncThread::threadLoop() {
             continue;
         }
 
-        if (clock_gettime(CLOCK_MONOTONIC, &rt) == -1) {
-            ALOGE("%s: error in vsync thread clock_gettime: %s",
-                 __FUNCTION__, strerror(errno));
-        }
-
-        int64_t timestamp = int64_t(rt.tv_sec) * 1e9 + rt.tv_nsec;
-
         lock.lock();
         const auto& callbackInfo = mDisplay.mDevice.mCallbacks[Callback::Vsync];
         auto vsync = reinterpret_cast<HWC2_PFN_VSYNC>(callbackInfo.pointer);
         lock.unlock();
 
         if (vsync) {
-            vsync(callbackInfo.data, mDisplay.mId, timestamp);
+            vsync(callbackInfo.data, mDisplay.mId, lastTimeNs);
         }
 
         if (rt.tv_sec - lastLogged >= logInterval) {
