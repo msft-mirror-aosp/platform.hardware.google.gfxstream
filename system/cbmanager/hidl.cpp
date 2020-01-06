@@ -66,9 +66,10 @@ public:
         hidl_handle raw_handle = nullptr;
         mAllocator->allocate(descriptor, 1,
                              [&](const Error &_error,
-                                 uint32_t /*_stride*/,
+                                 uint32_t _stride,
                                  const hidl_vec<hidl_handle> &_buffers) {
             hidl_err = _error;
+            (void)_stride;
             raw_handle = _buffers[0];
         });
         if (hidl_err != Error::NONE) {
