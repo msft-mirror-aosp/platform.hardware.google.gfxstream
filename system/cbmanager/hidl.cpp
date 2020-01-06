@@ -17,6 +17,7 @@
 #include <cutils/native_handle.h>
 #include <android/hardware/graphics/allocator/2.0/IAllocator.h>
 #include <android/hardware/graphics/mapper/2.0/IMapper.h>
+#include <log/log.h>
 
 #include "cbmanager.h"
 #include "debug.h"
@@ -105,19 +106,21 @@ private:
 };
 
 std::unique_ptr<CbManager::CbManagerImpl> buildHidlImpl() {
-    {
-        sp<IMapper2ns::IMapper> mapper =
-            IMapper2ns::IMapper::getService();
-        sp<IAllocator2ns::IAllocator> allocator =
-            IAllocator2ns::IAllocator::getService();
-        if (mapper && allocator) {
-            return std::make_unique<CbManagerHidlV2Impl>(mapper, allocator);
-        }
+    sp<IMapper2ns::IMapper> mapper =
+        IMapper2ns::IMapper::getService();
+    if (!mapper) {
+        ALOGE("%s:%d: no IMapper implementation found", __func__, __LINE__);
+        RETURN_ERROR(nullptr);
     }
 
-    ALOGE("%s:%d: no IMapper and IAllocator implementations found",
-          __func__, __LINE__);
-    return nullptr;
+    sp<IAllocator2ns::IAllocator> allocator =
+        IAllocator2ns::IAllocator::getService();
+    if (!allocator) {
+        ALOGE("%s:%d: no IAllocator implementation found", __func__, __LINE__);
+        RETURN_ERROR(nullptr);
+    }
+
+    return std::make_unique<CbManagerHidlV2Impl>(mapper, allocator);
 }
 
 }  // namespace
