@@ -22,8 +22,8 @@
 
 namespace android {
 namespace {
-using ::android::hardware::hidl_handle;
-using ::android::hardware::hidl_vec;
+using hardware::hidl_handle;
+using hardware::hidl_vec;
 
 namespace IMapper2ns = hardware::graphics::mapper::V2_0;
 namespace IAllocator2ns = hardware::graphics::allocator::V2_0;
@@ -34,8 +34,8 @@ public:
     typedef CbManager::PixelFormat PixelFormat;
     typedef hardware::hidl_bitfield<BufferUsage> BufferUsageBits;
 
-    CbManagerHidlV2Impl(::android::sp<IMapper2ns::IMapper> mapper,
-                        ::android::sp<IAllocator2ns::IAllocator> allocator)
+    CbManagerHidlV2Impl(sp<IMapper2ns::IMapper> mapper,
+                        sp<IAllocator2ns::IAllocator> allocator)
       : mMapper(mapper), mAllocator(allocator) {}
 
     const cb_handle_t* allocateBuffer(int width, int height,
@@ -98,15 +98,15 @@ public:
     }
 
 private:
-    const ::android::sp<IMapper2ns::IMapper> mMapper;
-    const ::android::sp<IAllocator2ns::IAllocator> mAllocator;
+    const sp<IMapper2ns::IMapper> mMapper;
+    const sp<IAllocator2ns::IAllocator> mAllocator;
 };
 
 std::unique_ptr<CbManager::CbManagerImpl> buildHidlImpl() {
     {
-        ::android::sp<IMapper2ns::IMapper> mapper =
+        sp<IMapper2ns::IMapper> mapper =
             IMapper2ns::IMapper::getService();
-        ::android::sp<IAllocator2ns::IAllocator> allocator =
+        sp<IAllocator2ns::IAllocator> allocator =
             IAllocator2ns::IAllocator::getService();
         if (mapper && allocator) {
             return std::make_unique<CbManagerHidlV2Impl>(mapper, allocator);
