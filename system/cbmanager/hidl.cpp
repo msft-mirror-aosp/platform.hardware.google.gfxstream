@@ -19,6 +19,7 @@
 #include <android/hardware/graphics/mapper/2.0/IMapper.h>
 
 #include "cbmanager.h"
+#include "debug.h"
 
 namespace android {
 namespace {
@@ -59,7 +60,7 @@ public:
             descriptor = _descriptor;
         });
         if (hidl_err != Error::NONE) {
-          return nullptr;
+            RETURN_ERROR(nullptr);
         }
 
         hidl_handle raw_handle = nullptr;
@@ -71,7 +72,7 @@ public:
             raw_handle = _buffers[0];
         });
         if (hidl_err != Error::NONE) {
-            return nullptr;
+            RETURN_ERROR(nullptr);
         }
 
         const cb_handle_t *buf = nullptr;
@@ -81,10 +82,10 @@ public:
             buf = cb_handle_t::from(_buf);
         });
         if (hidl_err != Error::NONE) {
-          return nullptr;
+            RETURN_ERROR(nullptr);
         }
 
-        return buf;
+        RETURN(buf);
     }
 
     void freeBuffer(const cb_handle_t* _h) {
