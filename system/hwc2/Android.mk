@@ -27,6 +27,7 @@ emulator_hwcomposer_shared_libraries := \
     libhardware \
     libsync \
     libui \
+    android.hardware.graphics.mapper@2.0 \
 
 emulator_hwcomposer_cflags += \
     -DLOG_TAG=\"hwc2\" \
