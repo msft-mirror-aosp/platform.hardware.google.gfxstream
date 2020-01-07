@@ -34,6 +34,7 @@ class CbManagerHidlV2Impl : public CbManager::CbManagerImpl {
 public:
     typedef CbManager::BufferUsage BufferUsage;
     typedef CbManager::PixelFormat PixelFormat;
+    typedef CbManager::YCbCrLayout YCbCrLayout;
     typedef hardware::hidl_bitfield<BufferUsage> BufferUsageBits;
 
     CbManagerHidlV2Impl(sp<IMapper2ns::IMapper> mapper,
@@ -98,6 +99,80 @@ public:
         mMapper->freeBuffer(h);
         native_handle_close(h);
         native_handle_delete(h);
+    }
+
+    int lockBuffer(cb_handle_t& handle,
+                   BufferUsageBits usage,
+                   int left, int top, int width, int height,
+                   void** vaddr) {
+        using IMapper2ns::Error;
+
+        Error hidl_err = Error::NONE;
+        mMapper->lock(
+            &handle,
+            usage,
+            { left, top, width, height },  // rect
+            hidl_handle(),  // fence
+            [&hidl_err, vaddr](const Error &_error,
+                               void* _ptr) {
+                hidl_err = _error;
+                if (_error == Error::NONE) {
+                    *vaddr = _ptr;
+                }
+            });
+
+        if (hidl_err == Error::NONE) {
+            RETURN(0);
+        } else {
+            RETURN_ERROR(-1);
+        }
+    }
+
+    int lockYCbCrBuffer(cb_handle_t& handle,
+                        BufferUsageBits usage,
+                        int left, int top, int width, int height,
+                        YCbCrLayout* ycbcr) {
+        using IMapper2ns::Error;
+
+        Error hidl_err = Error::NONE;
+        mMapper->lockYCbCr(
+            &handle,
+            usage,
+            { left, top, width, height },  // rect
+            hidl_handle(),  // fence
+            [&hidl_err, ycbcr](const Error &_error,
+                               const YCbCrLayout &_ycbcr) {
+                hidl_err = _error;
+                if (_error == Error::NONE) {
+                    *ycbcr = _ycbcr;
+                }
+            });
+
+        if (hidl_err == Error::NONE) {
+            RETURN(0);
+        } else {
+            RETURN_ERROR(-1);
+        }
+    }
+
+    int unlockBuffer(cb_handle_t& handle) {
+        using IMapper2ns::Error;
+
+        Error hidl_err = Error::NONE;
+        int fence = -1;
+        mMapper->unlock(
+            &handle,
+            [&hidl_err, &fence](const Error &_error,
+                                const hidl_handle &_fence) {
+                hidl_err = _error;
+                (void)_fence;
+            });
+
+        if (hidl_err == Error::NONE) {
+            RETURN(0);
+        } else {
+            RETURN_ERROR(-1);
+        }
     }
 
 private:
