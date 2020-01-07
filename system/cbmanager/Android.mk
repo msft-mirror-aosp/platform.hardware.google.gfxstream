@@ -29,22 +29,16 @@ else
 LOCAL_SHARED_LIBRARIES += \
     liblog \
     libcutils \
-    libutils
+    libutils \
+    libhidlbase \
+    android.hardware.graphics.mapper@2.0 \
+    android.hardware.graphics.allocator@2.0
 
 LOCAL_CFLAGS += \
     -DPLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION) \
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 30; echo $$?), 0)
 LOCAL_SRC_FILES := hidl.cpp
-LOCAL_SHARED_LIBRARIES += \
-    libhidlbase \
-    android.hardware.graphics.mapper@2.0 \
-    android.hardware.graphics.allocator@2.0
-else
-LOCAL_SRC_FILES := gralloc.cpp
-LOCAL_SHARED_LIBRARIES += \
-    libhardware
-endif
+
 endif
 
 LOCAL_C_INCLUDES += \
