@@ -390,8 +390,13 @@ Error EmuHWC2::registerCallback(Callback descriptor,
 }
 
 const cb_handle_t* EmuHWC2::allocateDisplayColorBuffer() {
-    return mCbManager.allocateBuffer(mDisplayWidth, mDisplayHeight,
-                                     HAL_PIXEL_FORMAT_RGBA_8888);
+    typedef CbManager::BufferUsage BufferUsage;
+
+    return mCbManager.allocateBuffer(
+        mDisplayWidth,
+        mDisplayHeight,
+        CbManager::PixelFormat::RGBA_8888,
+        (BufferUsage::COMPOSER_OVERLAY | BufferUsage::GPU_RENDER_TARGET));
 }
 
 void EmuHWC2::freeDisplayColorBuffer(const cb_handle_t* h) {
