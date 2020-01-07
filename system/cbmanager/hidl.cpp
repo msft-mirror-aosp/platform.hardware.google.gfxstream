@@ -30,9 +30,9 @@ using ::android::hardware::graphics::common::V1_0::BufferUsage;
 namespace IMapper2ns = ::android::hardware::graphics::mapper::V2_0;
 namespace IAllocator2ns = ::android::hardware::graphics::allocator::V2_0;
 
-class CbManagerHidlV3Impl : public CbManager::CbManagerImpl {
+class CbManagerHidlV2Impl : public CbManager::CbManagerImpl {
 public:
-    CbManagerHidlV3Impl(::android::sp<IMapper2ns::IMapper> mapper,
+    CbManagerHidlV2Impl(::android::sp<IMapper2ns::IMapper> mapper,
                         ::android::sp<IAllocator2ns::IAllocator> allocator)
       : mMapper(mapper), mAllocator(allocator) {}
 
@@ -107,7 +107,7 @@ std::unique_ptr<CbManager::CbManagerImpl> buildHidlImpl() {
         ::android::sp<IAllocator2ns::IAllocator> allocator =
             IAllocator2ns::IAllocator::getService();
         if (mapper && allocator) {
-            return std::make_unique<CbManagerHidlV3Impl>(mapper, allocator);
+            return std::make_unique<CbManagerHidlV2Impl>(mapper, allocator);
         }
     }
 
