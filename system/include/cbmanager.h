@@ -18,12 +18,17 @@
 #define ANDROID_GOLDFISH_OPENGL_SYSTEM_CBMANAGER_CBMANAGER_H
 
 #include <memory>
+#include <android/hardware/graphics/common/1.0/types.h>
 #include "gralloc_cb.h"
 
 namespace android {
 
 class CbManager {
 public:
+    typedef hardware::graphics::common::V1_0::BufferUsage BufferUsage;
+    typedef hardware::graphics::common::V1_0::PixelFormat PixelFormat;
+    typedef hardware::hidl_bitfield<BufferUsage> BufferUsageBits;
+
     CbManager();
 
     class CbManagerImpl {
@@ -31,12 +36,13 @@ public:
         virtual ~CbManagerImpl() {}
         virtual const cb_handle_t* allocateBuffer(int width,
                                                   int height,
-                                                  int format) = 0;
+                                                  PixelFormat format,
+                                                  BufferUsageBits usage) = 0;
         virtual void freeBuffer(const cb_handle_t* h) = 0;
     };
 
-    const cb_handle_t* allocateBuffer(int width, int height, int format) {
-        return mImpl->allocateBuffer(width, height, format);
+    const cb_handle_t* allocateBuffer(int width, int height, PixelFormat format, BufferUsageBits usage) {
+        return mImpl->allocateBuffer(width, height, format, usage);
     }
 
     void freeBuffer(const cb_handle_t* h) {
