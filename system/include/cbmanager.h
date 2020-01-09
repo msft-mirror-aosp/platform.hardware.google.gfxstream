@@ -34,14 +34,14 @@ public:
     class CbManagerImpl {
     public:
         virtual ~CbManagerImpl() {}
-        virtual const cb_handle_t* allocateBuffer(int width,
-                                                  int height,
-                                                  PixelFormat format,
-                                                  BufferUsageBits usage) = 0;
+        virtual cb_handle_t* allocateBuffer(int width,
+                                            int height,
+                                            PixelFormat format,
+                                            BufferUsageBits usage) = 0;
         virtual void freeBuffer(const cb_handle_t* h) = 0;
     };
 
-    const cb_handle_t* allocateBuffer(int width, int height, PixelFormat format, BufferUsageBits usage) {
+    cb_handle_t* allocateBuffer(int width, int height, PixelFormat format, BufferUsageBits usage) {
         return mImpl->allocateBuffer(width, height, format, usage);
     }
 
