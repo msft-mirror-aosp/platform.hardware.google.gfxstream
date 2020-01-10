@@ -49,7 +49,7 @@ public:
 
     int getSocket() const;
 private:
-    // sync
+    // sync. Also resets the write position.
     void wait();
 
     // transfer to/from host ops
@@ -67,6 +67,8 @@ private:
     unsigned char *m_buf;
     size_t m_read;
     size_t m_readLeft;
+
+    size_t m_writtenPos;
 
     VirtioGpuPipeStream(int sock, size_t bufSize);
 };
