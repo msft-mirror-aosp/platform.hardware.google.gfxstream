@@ -370,15 +370,7 @@ ssize_t VirtioGpuPipeStream::transferToHost(const void* buffer, size_t len) {
         done += toXfer;
         readPtr += toXfer;
 		todo -= toXfer;
-
-        // Note; One does not simply increment |m_writtenPos| by exactly
-        // |toXfer| because the way the underlying memory works (esp going
-        // through TTM/GEM), we have no guarantee that things will stay
-        // coherent byte-by-byte as it gets to the host. To be safe, skip a
-        // page each time.
-        const size_t kWrittenPosIncrement = PAGE_SIZE;
-        m_writtenPos += ((toXfer + kWrittenPosIncrement - 1) /
-                kWrittenPosIncrement) * kWrittenPosIncrement;
+        m_writtenPos += toXfer;
     }
 
     return len;
