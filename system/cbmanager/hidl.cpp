@@ -40,8 +40,8 @@ public:
                         sp<IAllocator2ns::IAllocator> allocator)
       : mMapper(mapper), mAllocator(allocator) {}
 
-    const cb_handle_t* allocateBuffer(int width, int height,
-                                      PixelFormat format, BufferUsageBits usage) {
+    cb_handle_t* allocateBuffer(int width, int height,
+                                PixelFormat format, BufferUsageBits usage) {
         using IMapper2ns::Error;
         using IMapper2ns::BufferDescriptor;
 
@@ -77,7 +77,7 @@ public:
             RETURN_ERROR(nullptr);
         }
 
-        const cb_handle_t *buf = nullptr;
+        cb_handle_t *buf = nullptr;
         mMapper->importBuffer(raw_handle, [&](const Error &_error,
                                               void *_buf) {
             hidl_err = _error;
