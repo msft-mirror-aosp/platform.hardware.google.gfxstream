@@ -48,7 +48,8 @@ VirtioGpuPipeStream::VirtioGpuPipeStream(size_t bufSize) :
     m_bufsize(bufSize),
     m_buf(nullptr),
     m_read(0),
-    m_readLeft(0) { }
+    m_readLeft(0),
+    m_writtenPos(0) { }
 
 VirtioGpuPipeStream::~VirtioGpuPipeStream()
 {
@@ -329,6 +330,7 @@ void VirtioGpuPipeStream::wait() {
     if (ret) {
         ERR("VirtioGpuPipeStream: DRM_IOCTL_VIRTGPU_WAIT failed with %d (%s)\n", errno, strerror(errno));
     }
+    m_writtenPos = 0;
 }
 
 ssize_t VirtioGpuPipeStream::transferToHost(const void* buffer, size_t len) {
@@ -338,16 +340,21 @@ ssize_t VirtioGpuPipeStream::transferToHost(const void* buffer, size_t len) {
     struct drm_virtgpu_3d_transfer_to_host xfer;
 
     unsigned char* virtioPtr = m_virtio_mapped;
+
     const unsigned char* readPtr = reinterpret_cast<const unsigned char*>(buffer);
 
     while (done < len) {
         size_t toXfer = todo > kTransferBufferSize ? kTransferBufferSize : todo;
 
-        memcpy(virtioPtr, readPtr, toXfer);
+        if (toXfer > (kTransferBufferSize - m_writtenPos)) {
+            wait();
+        }
+
+        memcpy(virtioPtr + m_writtenPos, readPtr, toXfer);
 
         memset(&xfer, 0, sizeof(xfer));
         xfer.bo_handle = m_virtio_bo;
-        xfer.box.x = 0;
+        xfer.box.x = m_writtenPos;
         xfer.box.y = 0;
         xfer.box.w = toXfer;
         xfer.box.h = 1;
@@ -360,11 +367,18 @@ ssize_t VirtioGpuPipeStream::transferToHost(const void* buffer, size_t len) {
             return (ssize_t)ret;
         }
 
-        wait();
-
         done += toXfer;
         readPtr += toXfer;
 		todo -= toXfer;
+
+        // Note; One does not simply increment |m_writtenPos| by exactly
+        // |toXfer| because the way the underlying memory works (esp going
+        // through TTM/GEM), we have no guarantee that things will stay
+        // coherent byte-by-byte as it gets to the host. To be safe, skip a
+        // page each time.
+        const size_t kWrittenPosIncrement = PAGE_SIZE;
+        m_writtenPos += ((toXfer + kWrittenPosIncrement - 1) /
+                kWrittenPosIncrement) * kWrittenPosIncrement;
     }
 
     return len;
@@ -378,6 +392,10 @@ ssize_t VirtioGpuPipeStream::transferFromHost(void* buffer, size_t len) {
 
     const unsigned char* virtioPtr = m_virtio_mapped;
     unsigned char* readPtr = reinterpret_cast<unsigned char*>(buffer);
+
+    if (m_writtenPos) {
+        wait();
+    }
 
     while (done < len) {
         size_t toXfer = todo > kTransferBufferSize ? kTransferBufferSize : todo;
