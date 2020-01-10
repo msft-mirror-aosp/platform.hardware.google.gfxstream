@@ -1527,13 +1527,13 @@ struct private_module_t HAL_MODULE_INFO_SYM = {
         lock: gralloc_lock,
         unlock: gralloc_unlock,
         perform: NULL,
-#if PLATFORM_SDK_VERSION >= 29 // For Q and later
-        validateBufferSize: NULL,
-        getTransportSize: NULL,
-#endif // PLATFORM_SDK_VERSION >= 29
 #if PLATFORM_SDK_VERSION >= 18
         lock_ycbcr: gralloc_lock_ycbcr,
 #endif // PLATFORM_SDK_VERSION >= 18
+#if PLATFORM_SDK_VERSION >= 29 // For Q and later
+        getTransportSize: NULL,
+        validateBufferSize: NULL,
+#endif // PLATFORM_SDK_VERSION >= 29
     }
 };
 
