@@ -754,9 +754,11 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
         mReleaseFences.clear();
 
         if (numLayer == 0) {
-            ALOGVV("No layers, exit");
-            post(hostCon, rcEnc, mClientTarget.getBuffer());
-            *outRetireFence = mClientTarget.getFence();
+            ALOGW("No layers, exit, buffer %p", mClientTarget.getBuffer());
+            if (mClientTarget.getBuffer()) {
+                post(hostCon, rcEnc, mClientTarget.getBuffer());
+                *outRetireFence = mClientTarget.getFence();
+            }
             return Error::None;
         }
 
