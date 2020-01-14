@@ -14,7 +14,8 @@
 // limitations under the License.
 #include "AndroidHardwareBuffer.h"
 
-#include "gralloc_cb.h"
+#include "../OpenglSystemCommon/HostConnection.h"
+
 #include "vk_format_info.h"
 #include "vk_util.h"
 
@@ -53,6 +54,7 @@ getAndroidHardwareBufferUsageFromVkUsage(const VkImageCreateFlags vk_create,
 }
 
 VkResult getAndroidHardwareBufferPropertiesANDROID(
+    Gralloc* grallocHelper,
     const HostVisibleMemoryVirtualizationInfo* hostMemVirtInfo,
     VkDevice,
     const AHardwareBuffer* buffer,
@@ -111,12 +113,8 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
 
     const native_handle_t *handle =
        AHardwareBuffer_getNativeHandle(buffer);
-    const cb_handle_t* cb_handle = cb_handle_t::from(handle);
-    if (!cb_handle) {
-        return VK_ERROR_INVALID_EXTERNAL_HANDLE;
-    }
-
-    uint32_t colorBufferHandle = cb_handle->hostHandle;
+    uint32_t colorBufferHandle =
+        grallocHelper->getHostHandle(handle);
     if (!colorBufferHandle) {
         return VK_ERROR_INVALID_EXTERNAL_HANDLE;
     }
@@ -131,7 +129,8 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
     }
 
     pProperties->memoryTypeBits = memoryTypeBits;
-    pProperties->allocationSize = cb_handle->allocatedSize();
+    pProperties->allocationSize =
+        grallocHelper->getAllocatedSize(handle);
 
     return VK_SUCCESS;
 }
@@ -158,6 +157,7 @@ VkResult getMemoryAndroidHardwareBufferANDROID(struct AHardwareBuffer **pBuffer)
 }
 
 VkResult importAndroidHardwareBuffer(
+    Gralloc* grallocHelper,
     const VkImportAndroidHardwareBufferInfoANDROID* info,
     struct AHardwareBuffer **importOut) {
 
@@ -165,14 +165,9 @@ VkResult importAndroidHardwareBuffer(
         return VK_ERROR_INVALID_EXTERNAL_HANDLE;
     }
 
-    const native_handle_t *handle =
-       AHardwareBuffer_getNativeHandle(info->buffer);
-    const cb_handle_t* cb_handle = cb_handle_t::from(handle);
-    if (!cb_handle) {
-        return VK_ERROR_INVALID_EXTERNAL_HANDLE;
-    }
-
-    uint32_t colorBufferHandle = cb_handle->hostHandle;
+    uint32_t colorBufferHandle =
+        grallocHelper->getHostHandle(
+            AHardwareBuffer_getNativeHandle(info->buffer));
     if (!colorBufferHandle) {
         return VK_ERROR_INVALID_EXTERNAL_HANDLE;
     }

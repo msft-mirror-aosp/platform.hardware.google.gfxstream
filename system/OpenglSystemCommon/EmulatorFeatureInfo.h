@@ -131,4 +131,10 @@ enum HostConnectionType {
     HOST_CONNECTION_VIRTIO_GPU_PIPE = 4,
 };
 
+enum GrallocType {
+    GRALLOC_TYPE_RANCHU = 0,
+    GRALLOC_TYPE_MINIGBM = 1,
+    GRALLOC_TYPE_DYN_ALLOC_MINIGBM = 2,
+};
+
 #endif // __COMMON_EMULATOR_FEATURE_INFO_H
