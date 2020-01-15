@@ -1408,7 +1408,6 @@ bool EmuHWC2::Display::VsyncThread::threadLoop() {
     }
     const int logInterval = 60;
     int64_t lastLogged = rt.tv_sec;
-    int64_t phaseOffset = 0;
     int sent = 0;
     int lastSent = 0;
     bool vsyncEnabled = false;
@@ -1671,11 +1670,11 @@ int EmuHWC2::populateSecondaryDisplays() {
         return -1;
     }
     while (!values.empty()) {
-        uint64_t physicalId = values[0];
+        // uint64_t physicalId = values[0];
         uint32_t width = values[1];
         uint32_t height = values[2];
         uint32_t dpi = values[3];
-        uint32_t flags = values[4];
+        // uint32_t flags = values[4];
         values.erase(values.begin(), values.begin() + 5);
 
         Error ret = Error::None;
