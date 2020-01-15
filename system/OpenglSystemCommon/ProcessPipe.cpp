@@ -14,6 +14,7 @@
 * limitations under the License.
 */
 
+#include "ProcessPipe.h"
 #include "renderControl_enc.h"
 #include "qemu_pipe.h"
 
@@ -177,7 +178,11 @@ static void processPipeInitOnce() {
 bool processPipeInit(HostConnectionType connType, renderControl_encoder_context_t *rcEnc) {
     sConnType = connType;
     pthread_once(&sProcPipeOnce, processPipeInitOnce);
-    if (!sProcPipe && !sVirtioGpuPipeStream) return false;
+    bool pipeHandleInvalid = !sProcPipe;
+#ifndef __Fuchsia__
+    pipeHandleInvalid = pipeHandleInvalid && !sVirtioGpuPipeStream;
+#endif // !__Fuchsia__
+    if (pipeHandleInvalid) return false;
     rcEnc->rcSetPuid(rcEnc, sProcUID);
     return true;
 }
