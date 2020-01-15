@@ -31,6 +31,6 @@
 //
 // This is called when creating rcEncoder.
 
-struct renderControl_client_context_t;
+struct renderControl_encoder_context_t;
 
 extern bool processPipeInit(HostConnectionType connType, renderControl_encoder_context_t *rcEnc);
