@@ -41,8 +41,8 @@ public:
                         sp<IAllocator2ns::IAllocator> allocator)
       : mMapper(mapper), mAllocator(allocator) {}
 
-    cb_handle_t* allocateBuffer(int width, int height,
-                                PixelFormat format, BufferUsageBits usage) {
+    native_handle_t* allocateBuffer(int width, int height,
+                                    PixelFormat format, BufferUsageBits usage) {
         using IMapper2ns::Error;
         using IMapper2ns::BufferDescriptor;
 
@@ -78,11 +78,11 @@ public:
             RETURN_ERROR(nullptr);
         }
 
-        cb_handle_t *buf = nullptr;
+        native_handle_t *buf = nullptr;
         mMapper->importBuffer(raw_handle, [&](const Error &_error,
                                               void *_buf) {
             hidl_err = _error;
-            buf = cb_handle_t::from(_buf);
+            buf = static_cast<native_handle_t*>(_buf);
         });
         if (hidl_err != Error::NONE) {
             RETURN_ERROR(nullptr);
@@ -91,17 +91,17 @@ public:
         RETURN(buf);
     }
 
-    void freeBuffer(const cb_handle_t* _h) {
+    void freeBuffer(const native_handle_t* _h) {
         using IMapper2ns::Error;
 
-        cb_handle_t* h = const_cast<cb_handle_t*>(_h);
+        native_handle_t* h = const_cast<native_handle_t*>(_h);
 
         mMapper->freeBuffer(h);
         native_handle_close(h);
         native_handle_delete(h);
     }
 
-    int lockBuffer(cb_handle_t& handle,
+    int lockBuffer(native_handle_t& handle,
                    BufferUsageBits usage,
                    int left, int top, int width, int height,
                    void** vaddr) {
@@ -128,7 +128,7 @@ public:
         }
     }
 
-    int lockYCbCrBuffer(cb_handle_t& handle,
+    int lockYCbCrBuffer(native_handle_t& handle,
                         BufferUsageBits usage,
                         int left, int top, int width, int height,
                         YCbCrLayout* ycbcr) {
@@ -155,7 +155,7 @@ public:
         }
     }
 
-    int unlockBuffer(cb_handle_t& handle) {
+    int unlockBuffer(native_handle_t& handle) {
         using IMapper2ns::Error;
 
         Error hidl_err = Error::NONE;

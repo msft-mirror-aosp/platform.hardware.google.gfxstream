@@ -389,7 +389,7 @@ Error EmuHWC2::registerCallback(Callback descriptor,
     return Error::None;
 }
 
-const cb_handle_t* EmuHWC2::allocateDisplayColorBuffer() {
+const native_handle_t* EmuHWC2::allocateDisplayColorBuffer() {
     typedef CbManager::BufferUsage BufferUsage;
 
     return mCbManager.allocateBuffer(
@@ -399,7 +399,7 @@ const cb_handle_t* EmuHWC2::allocateDisplayColorBuffer() {
         (BufferUsage::COMPOSER_OVERLAY | BufferUsage::GPU_RENDER_TARGET));
 }
 
-void EmuHWC2::freeDisplayColorBuffer(const cb_handle_t* h) {
+void EmuHWC2::freeDisplayColorBuffer(const native_handle_t* h) {
     mCbManager.freeBuffer(h);
 }
 
@@ -809,10 +809,10 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
                     ALOGV("%s: acquire fence not set for layer %u",
                           __FUNCTION__, (uint32_t)layer->getId());
                 }
-                const cb_handle_t *cb =
-                    cb_handle_t::from(layer->getLayerBuffer().getBuffer());
+                const native_handle_t *cb =
+                    layer->getLayerBuffer().getBuffer();
                 if (cb != nullptr) {
-                    l->cbHandle = cb->hostHandle;
+                    l->cbHandle = hostCon->grallocHelper()->getHostHandle(cb);
                 }
                 else {
                     ALOGE("%s null buffer for layer %d", __FUNCTION__,
@@ -840,12 +840,12 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
         }
         if (hostCompositionV1) {
             p->version = 1;
-            p->targetHandle = mTargetCb->hostHandle;
+            p->targetHandle = hostCon->grallocHelper()->getHostHandle(mTargetCb);
             p->numLayers = numLayer;
         } else {
             p2->version = 2;
             p2->displayId = mHostDisplayId;
-            p2->targetHandle = mTargetCb->hostHandle;
+            p2->targetHandle = hostCon->grallocHelper()->getHostHandle(mTargetCb);
             p2->numLayers = numLayer;
         }
 
@@ -920,9 +920,6 @@ Error EmuHWC2::Display::setClientTarget(buffer_handle_t target,
         int32_t acquireFence, int32_t /*dataspace*/, hwc_region_t /*damage*/) {
     ALOGVV("%s", __FUNCTION__);
 
-    const cb_handle_t *cb = cb_handle_t::from(target);
-    ALOGV("%s: display(%u) buffer handle %p cb %d, acquireFence %d", __FUNCTION__,
-          (uint32_t)mId, target, cb->hostHandle, acquireFence);
     std::unique_lock<std::mutex> lock(mStateMutex);
     mClientTarget.setBuffer(target);
     mClientTarget.setFence(acquireFence);
@@ -1307,11 +1304,10 @@ int EmuHWC2::Display::populatePrimaryConfigs(int width, int height, int dpiX, in
 void EmuHWC2::Display::post(HostConnection *hostCon,
                             ExtendedRCEncoderContext *rcEnc,
                             buffer_handle_t h) {
-    const cb_handle_t* cb = cb_handle_t::from(h);
-    assert(cb && "cb_handle_t::from(h) failed");
+    assert(cb && "native_handle_t::from(h) failed");
 
     hostCon->lock();
-    rcEnc->rcFBPost(rcEnc, cb->hostHandle);
+    rcEnc->rcFBPost(rcEnc, hostCon->grallocHelper()->getHostHandle(h));
     hostCon->unlock();
 }
 

@@ -114,8 +114,11 @@ private:
 // Abstraction for gralloc handle conversion
 class Gralloc {
 public:
+    virtual uint32_t createColorBuffer(
+        ExtendedRCEncoderContext* rcEnc, int width, int height, uint32_t glformat);
     virtual uint32_t getHostHandle(native_handle_t const* handle) = 0;
     virtual int getFormat(native_handle_t const* handle) = 0;
+    virtual size_t getAllocatedSize(native_handle_t const* handle) = 0;
     virtual ~Gralloc() {}
 };
 
@@ -202,6 +205,7 @@ private:
 
 private:
     HostConnectionType m_connectionType;
+    GrallocType m_grallocType;
     IOStream *m_stream;
     GLEncoder   *m_glEnc;
     GL2Encoder  *m_gl2Enc;
