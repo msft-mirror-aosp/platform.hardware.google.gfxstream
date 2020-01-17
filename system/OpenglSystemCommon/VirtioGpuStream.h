@@ -27,19 +27,6 @@
 
 struct VirtioGpuCmd;
 
-class CrosGralloc : public Gralloc
-{
-    friend class VirtioGpuStream;
-
-public:
-    virtual uint32_t getHostHandle(native_handle_t const* handle);
-    virtual int getFormat(native_handle_t const* handle);
-
-private:
-    inline void setFd(int fd) { m_fd = fd; }
-    int m_fd = -1;
-};
-
 class VirtioGpuProcessPipe : public ProcessPipe
 {
 public:
@@ -53,7 +40,6 @@ public:
     ~VirtioGpuStream();
 
     int connect();
-    Gralloc *getGralloc() { return &m_gralloc; }
     ProcessPipe *getProcessPipe() { return &m_processPipe; }
 
     // override IOStream so we can see non-rounded allocation sizes
@@ -82,6 +68,8 @@ public:
     {
         return m_fd >= 0 && m_cmdResp_bo > 0 && m_cmdResp;
     }
+
+    int getRendernodeFd() { return m_fd; }
 
 private:
     // rendernode fd
@@ -114,9 +102,6 @@ private:
 
     // bytes of an alloc flushed through flush() API
     size_t m_allocFlushSize;
-
-    // CrOS gralloc interface
-    CrosGralloc m_gralloc;
 
     // Fake process pipe implementation
     VirtioGpuProcessPipe m_processPipe;

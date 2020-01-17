@@ -34,7 +34,8 @@
 #include <unordered_map>
 #include <set>
 
-#include "gralloc_cb.h"
+#include <cutils/native_handle.h>
+
 #include "cbmanager.h"
 #include "MiniFence.h"
 #include "HostConnection.h"
@@ -373,7 +374,7 @@ private:
         std::unique_ptr<ComposeMsg> mComposeMsg;
         std::unique_ptr<ComposeMsg_v2> mComposeMsg_v2;
         int mSyncDeviceFd;
-        const cb_handle_t* mTargetCb;
+        const native_handle_t* mTargetCb;
     };
 
     template<typename MF, MF memFunc, typename ...Args>
@@ -463,8 +464,8 @@ private:
             hwc2_layer_t layerId);
 
     HWC2::Error initDisplayParameters();
-    const cb_handle_t* allocateDisplayColorBuffer();
-    void freeDisplayColorBuffer(const cb_handle_t* h);
+    const native_handle_t* allocateDisplayColorBuffer();
+    void freeDisplayColorBuffer(const native_handle_t* h);
 
     CbManager mCbManager;
     std::unordered_set<HWC2::Capability> mCapabilities;

@@ -101,7 +101,6 @@ VkResult getMemoryAndroidHardwareBufferANDROID(struct AHardwareBuffer **) { retu
 #include "android/base/AlignedBuf.h"
 #include "android/base/synchronization/AndroidLock.h"
 
-#include "gralloc_cb.h"
 #include "goldfish_address_space.h"
 #include "goldfish_vk_private_defs.h"
 #include "vk_format_info.h"
@@ -1237,7 +1236,10 @@ public:
         VkDevice device,
         const AHardwareBuffer* buffer,
         VkAndroidHardwareBufferPropertiesANDROID* pProperties) {
+        auto grallocHelper =
+            mThreadingCallbacks.hostConnectionGetFunc()->grallocHelper();
         return getAndroidHardwareBufferPropertiesANDROID(
+            grallocHelper,
             &mHostVisibleMemoryVirtInfo,
             device, buffer, pProperties);
     }
@@ -1822,15 +1824,15 @@ public:
             ahw = importAhbInfoPtr->buffer;
             // We still need to acquire the AHardwareBuffer.
             importAndroidHardwareBuffer(
+                mThreadingCallbacks.hostConnectionGetFunc()->grallocHelper(),
                 importAhbInfoPtr, nullptr);
         }
 
         if (ahw) {
-            ALOGD("%s: Import AHardwareBulffer", __func__);
-            const native_handle_t *handle =
-                AHardwareBuffer_getNativeHandle(ahw);
-            const cb_handle_t* cb_handle = cb_handle_t::from(handle);
-            importCbInfo.colorBuffer = cb_handle->hostHandle;
+            ALOGD("%s: Import AHardwareBuffer", __func__);
+            importCbInfo.colorBuffer =
+                mThreadingCallbacks.hostConnectionGetFunc()->grallocHelper()->
+                    getHostHandle(AHardwareBuffer_getNativeHandle(ahw));
             vk_append_struct(&structChainIter, &importCbInfo);
         }
 
@@ -3456,8 +3458,7 @@ public:
             return;
         }
 
-        const cb_handle_t* cb_handle = cb_handle_t::from(nativeInfo->handle);
-        if (!cb_handle) return;
+        if (!nativeInfo->handle) return;
 
         VkNativeBufferANDROID* nativeInfoOut =
             reinterpret_cast<VkNativeBufferANDROID*>(
@@ -3469,7 +3470,10 @@ public:
             abort();
         }
 
-        *(uint32_t*)(nativeInfoOut->handle) = cb_handle->hostHandle;
+        *(uint32_t*)(nativeInfoOut->handle) =
+            mThreadingCallbacks.hostConnectionGetFunc()->
+                grallocHelper()->getHostHandle(
+                    (const native_handle_t*)nativeInfo->handle);
     }
 
     void unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int*) {
