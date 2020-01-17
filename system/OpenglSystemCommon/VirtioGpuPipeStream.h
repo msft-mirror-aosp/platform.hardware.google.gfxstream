@@ -43,6 +43,7 @@ public:
     virtual const unsigned char *read( void *buf, size_t *inout_len);
 
     bool valid() { return m_fd >= 0; }
+    int getRendernodeFd() { return m_fd; }
     int recv(void *buf, size_t len);
 
     virtual int writeFully(const void *buf, size_t len);
