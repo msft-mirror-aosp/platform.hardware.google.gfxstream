@@ -64,13 +64,6 @@ private:
     nsecs_t mTimeStart;   // Time at the start of decode()
     nsecs_t mTimeEnd;     // Time at the end of decode()
 
-    // Status of entries in the timestamp array
-    bool mTimeStampsValid[MAX_TIME_STAMPS];
-
-    // Timestamp array - Since codec does not take 64 bit timestamps,
-    // they are maintained in the plugin
-    OMX_S64 mTimeStamps[MAX_TIME_STAMPS];
-
 #ifdef FILE_DUMP_ENABLE
     char mInFile[200];
 #endif /* FILE_DUMP_ENABLE */
@@ -98,13 +91,11 @@ private:
 
     bool setDecodeArgs(
             OMX_BUFFERHEADERTYPE *inHeader,
-            OMX_BUFFERHEADERTYPE *outHeader,
-            size_t timeStampIx);
+            OMX_BUFFERHEADERTYPE *outHeader);
 
-    bool getVUIParams();
+    bool getVUIParams(h264_image_t& img);
 
     std::unique_ptr<MediaH264Decoder> mContext;
-    uint64_t mCurrentTs = 0;
     uint64_t mConsumedBytes = 0;
     uint8_t* mInPBuffer = nullptr;
     uint8_t* mOutHeaderBuf = nullptr;
