@@ -184,19 +184,26 @@ public:
 
         // Only supported format for pbuffers in gfxstream
         // should be RGBA8
+        const uint32_t kGlRGB = 0x1907;
         const uint32_t kGlRGBA = 0x1908;
         const uint32_t kVirglFormatRGBA = 67; // VIRGL_FORMAT_R8G8B8A8_UNORM;
         uint32_t virtgpu_format = 0;
         uint32_t bpp = 0;
         switch (glformat) {
+            case kGlRGB:
+                ALOGD("Note: egl wanted GL_RGB, still using RGBA");
+                virtgpu_format = kVirglFormatRGBA;
+                bpp = 4;
+                break;
             case kGlRGBA:
                 virtgpu_format = kVirglFormatRGBA;
                 bpp = 4;
                 break;
             default:
-                ALOGE("%s: error, unsupported format: 0x%x\n", __func__,
-                      glformat);
-                abort();
+                ALOGD("Note: egl wanted 0x%x, still using RGBA", glformat);
+                virtgpu_format = kVirglFormatRGBA;
+                bpp = 4;
+                break;
         }
         const uint32_t kPipeTexture2D = 2; // PIPE_TEXTURE_2D
         const uint32_t kBindRenderTarget = 1 << 1; // VIRGL_BIND_RENDER_TARGET
