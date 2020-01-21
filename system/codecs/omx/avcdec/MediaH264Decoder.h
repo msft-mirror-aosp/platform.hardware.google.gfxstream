@@ -26,6 +26,11 @@ struct h264_image_t {
     const uint8_t* data;
     uint32_t width;
     uint32_t height;
+    uint64_t pts; // presentation time stamp
+    uint64_t color_primaries;
+    uint64_t color_range;
+    uint64_t color_trc;
+    uint64_t colorspace;
     // on success, |ret| will indicate the size of |data|.
     // If failed, |ret| will contain some negative error code.
     int ret;
@@ -56,7 +61,7 @@ public:
                          unsigned int outHeight,
                          PixelFormat pixFmt);
     void destroyH264Context();
-    h264_result_t decodeFrame(uint8_t* img, size_t szBytes);
+    h264_result_t decodeFrame(uint8_t* img, size_t szBytes, uint64_t pts);
     void flush();
     h264_image_t getImage();
 };

@@ -92,9 +92,6 @@ status_t GoldfishAVCDec::resetPlugin() {
     mIsInFlush = false;
     mReceivedEOS = false;
 
-    memset(mTimeStamps, 0, sizeof(mTimeStamps));
-    memset(mTimeStampsValid, 0, sizeof(mTimeStampsValid));
-
     /* Initialize both start and end times */
     mTimeStart = mTimeEnd = systemTime();
 
@@ -105,20 +102,15 @@ status_t GoldfishAVCDec::resetDecoder() {
     // The resolution may have changed, so our safest bet is to just destroy the
     // current context and recreate another one, with the new width and height.
     mContext->destroyH264Context();
-    mContext->initH264Context(mWidth,
-                              mHeight,
-                              outputBufferWidth(),
-                              outputBufferHeight(),
-                              MediaH264Decoder::PixelFormat::YUV420P);
+    mContext.reset(nullptr);
 
     return OK;
 }
 
 status_t GoldfishAVCDec::setFlushMode() {
     /* Set the decoder in Flush mode, subsequent decode() calls will flush */
-    mContext->flush();
-
     mIsInFlush = true;
+    mContext->flush();
     return OK;
 }
 
@@ -127,8 +119,8 @@ status_t GoldfishAVCDec::initDecoder() {
     mContext.reset(new MediaH264Decoder());
     mContext->initH264Context(mWidth,
                               mHeight,
-                              outputBufferWidth(),
-                              outputBufferHeight(),
+                              mWidth,
+                              mHeight,
                               MediaH264Decoder::PixelFormat::YUV420P);
 
     /* Reset the plugin state */
@@ -160,36 +152,11 @@ void GoldfishAVCDec::onReset() {
     resetPlugin();
 }
 
-bool GoldfishAVCDec::getVUIParams() {
-    ALOGE("%s: NOT IMPLEMENTED", __func__);
-    /*
-    IV_API_CALL_STATUS_T status;
-    ih264d_ctl_get_vui_params_ip_t s_ctl_get_vui_params_ip;
-    ih264d_ctl_get_vui_params_op_t s_ctl_get_vui_params_op;
-
-    s_ctl_get_vui_params_ip.e_cmd = IVD_CMD_VIDEO_CTL;
-    s_ctl_get_vui_params_ip.e_sub_cmd =
-        (IVD_CONTROL_API_COMMAND_TYPE_T)IH264D_CMD_CTL_GET_VUI_PARAMS;
-
-    s_ctl_get_vui_params_ip.u4_size =
-        sizeof(ih264d_ctl_get_vui_params_ip_t);
-
-    s_ctl_get_vui_params_op.u4_size = sizeof(ih264d_ctl_get_vui_params_op_t);
-
-    status = ivdec_api_function(
-            (iv_obj_t *)mCodecCtx, (void *)&s_ctl_get_vui_params_ip,
-            (void *)&s_ctl_get_vui_params_op);
-
-    if (status != IV_SUCCESS) {
-        ALOGW("Error in getting VUI params: 0x%x",
-                s_ctl_get_vui_params_op.u4_error_code);
-        return false;
-    }
-
-    int32_t primaries = s_ctl_get_vui_params_op.u1_colour_primaries;
-    int32_t transfer = s_ctl_get_vui_params_op.u1_tfr_chars;
-    int32_t coeffs = s_ctl_get_vui_params_op.u1_matrix_coeffs;
-    bool fullRange = s_ctl_get_vui_params_op.u1_video_full_range_flag;
+bool GoldfishAVCDec::getVUIParams(h264_image_t& img) {
+    int32_t primaries = img.color_primaries;
+    bool fullRange = img.color_range == 2 ? true : false;
+    int32_t transfer = img.color_trc;
+    int32_t coeffs = img.colorspace;
 
     ColorAspects colorAspects;
     ColorUtils::convertIsoColorAspectsToCodecAspects(
@@ -202,31 +169,29 @@ bool GoldfishAVCDec::getVUIParams() {
         CHECK(err == OK);
     }
     return true;
-    */
-    return false;
 }
 
 bool GoldfishAVCDec::setDecodeArgs(
         OMX_BUFFERHEADERTYPE *inHeader,
-        OMX_BUFFERHEADERTYPE *outHeader,
-        size_t timeStampIx) {
+        OMX_BUFFERHEADERTYPE *outHeader) {
     size_t sizeY = outputBufferWidth() * outputBufferHeight();
     size_t sizeUV = sizeY / 4;
 
     /* When in flush and after EOS with zero byte input,
      * inHeader is set to zero. Hence check for non-null */
     if (inHeader) {
-        mCurrentTs = timeStampIx;
         mConsumedBytes = inHeader->nFilledLen - mInputOffset;
         mInPBuffer = inHeader->pBuffer + inHeader->nOffset + mInputOffset;
+        ALOGD("got input timestamp %lld in-addr-base %p real-data-offset %d inputoffset %d", (long long)(inHeader->nTimeStamp),
+                inHeader->pBuffer, (int)(inHeader->nOffset + mInputOffset), (int)mInputOffset);
     } else {
-        mCurrentTs = 0;
         mConsumedBytes = 0;
         mInPBuffer = nullptr;
     }
 
     if (outHeader) {
         if (outHeader->nAllocLen < sizeY + (sizeUV * 2)) {
+            ALOGE("outHeader->nAllocLen %d < needed size %d", outHeader->nAllocLen, (int)(sizeY + sizeUV * 2));
             android_errorWriteLog(0x534e4554, "27833616");
             return false;
         }
@@ -250,6 +215,8 @@ void GoldfishAVCDec::onPortFlushCompleted(OMX_U32 portIndex) {
 }
 
 void GoldfishAVCDec::onQueueFilled(OMX_U32 portIndex) {
+    static int count1=0;
+    ALOGD("calling %s count %d", __func__, ++count1);
     UNUSED(portIndex);
     OMX_BUFFERHEADERTYPE *inHeader = NULL;
     BufferInfo *inInfo = NULL;
@@ -273,10 +240,11 @@ void GoldfishAVCDec::onQueueFilled(OMX_U32 portIndex) {
     List<BufferInfo *> &inQueue = getPortQueue(kInputPortIndex);
     List<BufferInfo *> &outQueue = getPortQueue(kOutputPortIndex);
 
+    int count2=0;
     while (!outQueue.empty()) {
+        ALOGD("calling %s in while loop count %d", __func__, ++count2);
         BufferInfo *outInfo;
         OMX_BUFFERHEADERTYPE *outHeader;
-        size_t timeStampIx = 0;
 
         if (!mIsInFlush && (NULL == inHeader)) {
             if (!inQueue.empty()) {
@@ -319,26 +287,10 @@ void GoldfishAVCDec::onQueueFilled(OMX_U32 portIndex) {
             }
         }
 
-        /* Get a free slot in timestamp array to hold input timestamp */
-        {
-            size_t i;
-            timeStampIx = 0;
-            for (i = 0; i < MAX_TIME_STAMPS; i++) {
-                if (!mTimeStampsValid[i]) {
-                    timeStampIx = i;
-                    break;
-                }
-            }
-            if (inHeader != NULL) {
-                mTimeStampsValid[timeStampIx] = true;
-                mTimeStamps[timeStampIx] = inHeader->nTimeStamp;
-            }
-        }
-
         {
             nsecs_t timeDelay, timeTaken;
 
-            if (!setDecodeArgs(inHeader, outHeader, timeStampIx)) {
+            if (!setDecodeArgs(inHeader, outHeader)) {
                 ALOGE("Decoder arg setup failed");
                 notify(OMX_EventError, OMX_ErrorUndefined, 0, NULL);
                 mSignalledError = true;
@@ -353,68 +305,74 @@ void GoldfishAVCDec::onQueueFilled(OMX_U32 portIndex) {
             // TODO: We also need to send the timestamp
             h264_result_t h264Res = {(int)MediaH264Decoder::Err::NoErr, 0};
             if (inHeader != nullptr) {
-                ALOGE("Decoding frame(sz=%lu)", (unsigned long)(inHeader->nFilledLen - mInputOffset));
+                ALOGD("Decoding frame(sz=%lu)", (unsigned long)(inHeader->nFilledLen - mInputOffset));
                 h264Res = mContext->decodeFrame(mInPBuffer,
-                                                inHeader->nFilledLen - mInputOffset);
+                                                inHeader->nFilledLen - mInputOffset,
+                                                inHeader->nTimeStamp);
                 mConsumedBytes = h264Res.bytesProcessed;
                 if (h264Res.ret == (int)MediaH264Decoder::Err::DecoderRestarted) {
-                    // The host will always restart when given a new set of SPS
-                    // and PPS frames.
                     mChangingResolution = true;
                 }
             } else {
-                ALOGE("No more input data. Attempting to get a decoded frame, if any.");
+                ALOGD("No more input data. Attempting to get a decoded frame, if any.");
             }
             h264_image_t img = mContext->getImage();
 
 
-            // TODO: support getVUIParams()
-//            getVUIParams();
+            getVUIParams(img);
 
             mTimeEnd = systemTime();
             /* Compute time taken for decode() */
             timeTaken = mTimeEnd - mTimeStart;
 
-            ALOGV("timeTaken=%6lldus delay=%6lldus numBytes=Nan",
-                    (long long) (timeTaken / 1000LL), (long long) (timeDelay / 1000LL));
 
-            if ((inHeader != NULL) && (img.data == nullptr)) {
-                /* If the input did not contain picture data, then ignore
-                 * the associated timestamp */
-                mTimeStampsValid[timeStampIx] = false;
+            if (inHeader) {
+                ALOGD("input time stamp %lld flag %d", inHeader->nTimeStamp, (int)(inHeader->nFlags));
             }
 
             // If the decoder is in the changing resolution mode and there is no output present,
             // that means the switching is done and it's ready to reset the decoder and the plugin.
             if (mChangingResolution && img.data == nullptr) {
                 mChangingResolution = false;
-                resetPlugin();
-                // The decoder on the host has actually already restarted given
-                // the new information, so we don't have to refeed the same
-                // information again.
-                mInputOffset += mConsumedBytes;
-                continue;
-            }
-
-            // Combine the resolution change and coloraspects change in one
-            // PortSettingChange event if necessary.
-            if (img.data != nullptr) {
+                ALOGD("re-create decoder because resolution changed");
                 bool portWillReset = false;
                 handlePortSettingsChange(&portWillReset, img.width, img.height);
-                if (portWillReset) {
-                    ALOGE("port resetting (img.width=%u, img.height=%u, mWidth=%u, mHeight=%u)",
+                {
+                    ALOGD("handling port reset");
+                    ALOGD("port resetting (img.width=%u, img.height=%u, mWidth=%u, mHeight=%u)",
                           img.width, img.height, mWidth, mHeight);
                     resetDecoder();
                     resetPlugin();
-                    return;
+
+                mContext->destroyH264Context();
+                mContext.reset(new MediaH264Decoder());
+                mContext->initH264Context(mWidth,
+                              mHeight,
+                              mWidth,
+                              mHeight,
+                              MediaH264Decoder::PixelFormat::YUV420P);
+                //mInputOffset += mConsumedBytes;
+                return;
                 }
             }
 
             if (img.data != nullptr) {
-                outHeader->nFilledLen = img.ret;
-                memcpy(outHeader->pBuffer, img.data, img.ret);
-                outHeader->nTimeStamp = mTimeStamps[mCurrentTs];
-                mTimeStampsValid[mCurrentTs] = false;
+                outHeader->nFilledLen =  (outputBufferWidth() * outputBufferHeight() * 3) / 2;
+                int myStride = outputBufferWidth();
+                for (int i=0; i < mHeight; ++i) {
+                    memcpy(outHeader->pBuffer + i * myStride, img.data + i * mWidth, mWidth);
+                }
+                int Y = myStride * outputBufferHeight();
+                for (int i=0; i < mHeight/2; ++i) {
+                    memcpy(outHeader->pBuffer + Y + i * myStride / 2 , img.data + mWidth * mHeight + i * mWidth/2, mWidth/2);
+                }
+                int UV = Y/4;
+                for (int i=0; i < mHeight/2; ++i) {
+                    memcpy(outHeader->pBuffer + Y + UV + i * myStride / 2 , img.data + mWidth * mHeight * 5/4 + i * mWidth/2, mWidth/2);
+                }
+
+                outHeader->nTimeStamp = img.pts;
+                ALOGD("got output timestamp %lld", (long long)(img.pts));
 
                 outInfo->mOwnedByUs = false;
                 outQueue.erase(outQueue.begin());
@@ -422,6 +380,7 @@ void GoldfishAVCDec::onQueueFilled(OMX_U32 portIndex) {
                 notifyFillBufferDone(outHeader);
                 outHeader = NULL;
             } else if (mIsInFlush) {
+                ALOGD("not img.data and it is in flush mode");
                 /* If in flush mode and no output is returned by the codec,
                  * then come out of flush mode */
                 mIsInFlush = false;
@@ -429,6 +388,7 @@ void GoldfishAVCDec::onQueueFilled(OMX_U32 portIndex) {
                 /* If EOS was recieved on input port and there is no output
                  * from the codec, then signal EOS on output port */
                 if (mReceivedEOS) {
+                    ALOGD("recived EOS, re-create host context");
                     outHeader->nFilledLen = 0;
                     outHeader->nFlags |= OMX_BUFFERFLAG_EOS;
 
@@ -438,6 +398,14 @@ void GoldfishAVCDec::onQueueFilled(OMX_U32 portIndex) {
                     notifyFillBufferDone(outHeader);
                     outHeader = NULL;
                     resetPlugin();
+                                    mContext->destroyH264Context();
+                mContext.reset(new MediaH264Decoder());
+                mContext->initH264Context(mWidth,
+                              mHeight,
+                              mWidth,
+                              mHeight,
+                              MediaH264Decoder::PixelFormat::YUV420P);
+
                 }
             }
             mInputOffset += mConsumedBytes;

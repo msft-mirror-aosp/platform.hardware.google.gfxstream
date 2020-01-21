@@ -41,7 +41,7 @@ void MediaH264Decoder::destroyH264Context() {
                              MediaOperation::DestroyContext);
 }
 
-h264_result_t MediaH264Decoder::decodeFrame(uint8_t* img, size_t szBytes) {
+h264_result_t MediaH264Decoder::decodeFrame(uint8_t* img, size_t szBytes, uint64_t pts) {
     auto transport = GoldfishMediaTransport::getInstance();
     uint8_t* hostSrc = transport->getInputAddr();
     if (img != nullptr && szBytes > 0) {
@@ -49,6 +49,7 @@ h264_result_t MediaH264Decoder::decodeFrame(uint8_t* img, size_t szBytes) {
     }
     transport->writeParam(transport->offsetOf((uint64_t)(hostSrc)), 0);
     transport->writeParam((uint64_t)szBytes, 1);
+    transport->writeParam((uint64_t)pts, 2);
     transport->sendOperation(MediaCodecType::H264Codec,
                              MediaOperation::DecodeImage);
 
@@ -68,7 +69,7 @@ void MediaH264Decoder::flush() {
 }
 
 h264_image_t MediaH264Decoder::getImage() {
-    h264_image_t res = { nullptr, 0, 0, 0 };
+    h264_image_t res { };
     auto transport = GoldfishMediaTransport::getInstance();
     uint8_t* dst = transport->getOutputAddr();
     transport->writeParam(transport->offsetOf((uint64_t)(dst)), 0);
@@ -78,6 +79,14 @@ h264_image_t MediaH264Decoder::getImage() {
     res.ret = *(int*)(retptr);
     if (res.ret >= 0) {
         res.data = dst;
+        res.width = *(uint32_t*)(retptr + 8);
+        res.height = *(uint32_t*)(retptr + 16);
+        res.pts = *(uint32_t*)(retptr + 24);
+        res.color_primaries = *(uint32_t*)(retptr + 32);
+        res.color_range = *(uint32_t*)(retptr + 40);
+        res.color_trc = *(uint32_t*)(retptr + 48);
+        res.colorspace = *(uint32_t*)(retptr + 56);
+    } else if (res.ret == (int)(Err::DecoderRestarted)) {
         res.width = *(uint32_t*)(retptr + 8);
         res.height = *(uint32_t*)(retptr + 16);
     }
