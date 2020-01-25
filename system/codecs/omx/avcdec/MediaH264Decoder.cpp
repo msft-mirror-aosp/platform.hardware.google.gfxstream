@@ -26,36 +26,83 @@ void MediaH264Decoder::initH264Context(unsigned int width,
                                        unsigned int outHeight,
                                        PixelFormat pixFmt) {
     auto transport = GoldfishMediaTransport::getInstance();
-    transport->writeParam(width, 0);
-    transport->writeParam(height, 1);
-    transport->writeParam(outWidth, 2);
-    transport->writeParam(outHeight, 3);
-    transport->writeParam(static_cast<uint64_t>(pixFmt), 4);
+    if (!mHasAddressSpaceMemory) {
+        int slot = transport->getMemorySlot();
+        if (slot < 0) {
+            ALOGE("ERROR: Failed to initH264Context: cannot get memory slot");
+            return;
+        }
+        mAddressOffSet = static_cast<unsigned int>(slot) * 8 * (1 << 20);
+        ALOGD("got memory lot %d addrr %x", slot, mAddressOffSet);
+        mHasAddressSpaceMemory = true;
+    }
+    transport->writeParam(mVersion, 0, mAddressOffSet);
+    transport->writeParam(width, 1, mAddressOffSet);
+    transport->writeParam(height, 2, mAddressOffSet);
+    transport->writeParam(outWidth, 3, mAddressOffSet);
+    transport->writeParam(outHeight, 4, mAddressOffSet);
+    transport->writeParam(static_cast<uint64_t>(pixFmt), 5, mAddressOffSet);
     transport->sendOperation(MediaCodecType::H264Codec,
-                             MediaOperation::InitContext);
+                             MediaOperation::InitContext, mAddressOffSet);
+    auto* retptr = transport->getReturnAddr(mAddressOffSet);
+    mHostHandle = *(uint64_t*)(retptr);
+    ALOGD("initH264Context: got handle to host %lld", mHostHandle);
 }
 
-void MediaH264Decoder::destroyH264Context() {
+
+void MediaH264Decoder::resetH264Context(unsigned int width,
+                                       unsigned int height,
+                                       unsigned int outWidth,
+                                       unsigned int outHeight,
+                                       PixelFormat pixFmt) {
     auto transport = GoldfishMediaTransport::getInstance();
+    if (!mHasAddressSpaceMemory) {
+        ALOGE("%s no address space memory");
+        return;
+    }
+    transport->writeParam((uint64_t)mHostHandle, 0, mAddressOffSet);
+    transport->writeParam(width, 1, mAddressOffSet);
+    transport->writeParam(height, 2, mAddressOffSet);
+    transport->writeParam(outWidth, 3, mAddressOffSet);
+    transport->writeParam(outHeight, 4, mAddressOffSet);
+    transport->writeParam(static_cast<uint64_t>(pixFmt), 5, mAddressOffSet);
+    transport->sendOperation(MediaCodecType::H264Codec,
+                             MediaOperation::Reset, mAddressOffSet);
+    ALOGD("resetH264Context: done");
+}
+
+
+void MediaH264Decoder::destroyH264Context() {
+
+    auto transport = GoldfishMediaTransport::getInstance();
+    transport->writeParam((uint64_t)mHostHandle, 0, mAddressOffSet);
     transport->sendOperation(MediaCodecType::H264Codec,
                              MediaOperation::DestroyContext);
+    transport->returnMemorySlot(mAddressOffSet >> 23);
+    mHasAddressSpaceMemory = false;
 }
 
 h264_result_t MediaH264Decoder::decodeFrame(uint8_t* img, size_t szBytes, uint64_t pts) {
+    ALOGD("decode frame: use handle to host %lld", mHostHandle);
+    h264_result_t res = {0, 0};
+    if (!mHasAddressSpaceMemory) {
+        ALOGE("%s no address space memory");
+        return res;
+    }
     auto transport = GoldfishMediaTransport::getInstance();
-    uint8_t* hostSrc = transport->getInputAddr();
+    uint8_t* hostSrc = transport->getInputAddr(mAddressOffSet);
     if (img != nullptr && szBytes > 0) {
         memcpy(hostSrc, img, szBytes);
     }
-    transport->writeParam(transport->offsetOf((uint64_t)(hostSrc)), 0);
-    transport->writeParam((uint64_t)szBytes, 1);
-    transport->writeParam((uint64_t)pts, 2);
+    transport->writeParam((uint64_t)mHostHandle, 0, mAddressOffSet);
+    transport->writeParam(transport->offsetOf((uint64_t)(hostSrc)) - mAddressOffSet, 1, mAddressOffSet);
+    transport->writeParam((uint64_t)szBytes, 2, mAddressOffSet);
+    transport->writeParam((uint64_t)pts, 3, mAddressOffSet);
     transport->sendOperation(MediaCodecType::H264Codec,
-                             MediaOperation::DecodeImage);
+                             MediaOperation::DecodeImage, mAddressOffSet);
 
-    h264_result_t res = {0, 0};
 
-    auto* retptr = transport->getReturnAddr();
+    auto* retptr = transport->getReturnAddr(mAddressOffSet);
     res.bytesProcessed = *(uint64_t*)(retptr);
     res.ret = *(int*)(retptr + 8);
 
@@ -63,19 +110,31 @@ h264_result_t MediaH264Decoder::decodeFrame(uint8_t* img, size_t szBytes, uint64
 }
 
 void MediaH264Decoder::flush() {
+    if (!mHasAddressSpaceMemory) {
+        ALOGE("%s no address space memory");
+        return;
+    }
+    ALOGD("flush: use handle to host %lld", mHostHandle);
     auto transport = GoldfishMediaTransport::getInstance();
+    transport->writeParam((uint64_t)mHostHandle, 0, mAddressOffSet);
     transport->sendOperation(MediaCodecType::H264Codec,
-                             MediaOperation::Flush);
+                             MediaOperation::Flush, mAddressOffSet);
 }
 
 h264_image_t MediaH264Decoder::getImage() {
+    ALOGD("getImage: use handle to host %lld", mHostHandle);
     h264_image_t res { };
+    if (!mHasAddressSpaceMemory) {
+        ALOGE("%s no address space memory");
+        return res;
+    }
     auto transport = GoldfishMediaTransport::getInstance();
-    uint8_t* dst = transport->getOutputAddr();
-    transport->writeParam(transport->offsetOf((uint64_t)(dst)), 0);
+    uint8_t* dst = transport->getInputAddr(mAddressOffSet); // Note: reuse the same addr for input and output
+    transport->writeParam((uint64_t)mHostHandle, 0, mAddressOffSet);
+    transport->writeParam(transport->offsetOf((uint64_t)(dst)) - mAddressOffSet, 1, mAddressOffSet);
     transport->sendOperation(MediaCodecType::H264Codec,
-                             MediaOperation::GetImage);
-    auto* retptr = transport->getReturnAddr();
+                             MediaOperation::GetImage, mAddressOffSet);
+    auto* retptr = transport->getReturnAddr(mAddressOffSet);
     res.ret = *(int*)(retptr);
     if (res.ret >= 0) {
         res.data = dst;
@@ -90,6 +149,5 @@ h264_image_t MediaH264Decoder::getImage() {
         res.width = *(uint32_t*)(retptr + 8);
         res.height = *(uint32_t*)(retptr + 16);
     }
-
     return res;
 }

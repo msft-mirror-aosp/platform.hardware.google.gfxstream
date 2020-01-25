@@ -18,9 +18,10 @@
 
 #include <log/log.h>
 #include <memory>
+#include <vector>
+#include <mutex>
 
 
-namespace {
 
 std::unique_ptr<GoldfishMediaTransport> sTransport;
 
@@ -29,14 +30,41 @@ public:
     GoldfishMediaTransportImpl();
     ~GoldfishMediaTransportImpl();
 
-    virtual void writeParam(__u64 val, unsigned int num) override;
-    virtual bool sendOperation(MediaCodecType type, MediaOperation op) override;
-    virtual uint8_t* getInputAddr() const override;
+    virtual void writeParam(__u64 val, unsigned int num, unsigned int offSetToStartAddr = 0) override;
+    virtual bool sendOperation(MediaCodecType type, MediaOperation op, unsigned int offSetToStartAddr = 0) override;
+    virtual uint8_t* getBaseAddr() const override;
+    virtual uint8_t* getInputAddr(unsigned int offSet = 0) const override;
     virtual uint8_t* getOutputAddr() const override;
-    virtual uint8_t* getReturnAddr() const override;
+    virtual uint8_t* getReturnAddr(unsigned int offSet = 0) const override;
     virtual __u64 offsetOf(uint64_t addr) const override;
 
+public:
+    // each lot has 8 M
+    virtual int getMemorySlot() override {
+        std::lock_guard<std::mutex> g{mMemoryMutex};
+        for (int i = mMemoryLotsAvailable.size() - 1; i >=0 ; --i) {
+            if (mMemoryLotsAvailable[i]) {
+                mMemoryLotsAvailable[i] = false;
+                return i;
+            }
+        }
+        return -1;
+    }
+    virtual void returnMemorySlot(int lot) override {
+        if (lot < 0 || lot >= mMemoryLotsAvailable.size()) {
+            return;
+        }
+        std::lock_guard<std::mutex> g{mMemoryMutex};
+        if (mMemoryLotsAvailable[lot] == false) {
+            mMemoryLotsAvailable[lot] = true;
+        } else {
+            ALOGE("Error, cannot twice");
+        }
+    }
 private:
+    std::mutex mMemoryMutex;
+    std::vector<bool> mMemoryLotsAvailable = {true, true, true, true};
+
     address_space_handle_t mHandle;
     uint64_t  mOffset;
     uint64_t  mPhysAddr;
@@ -46,7 +74,7 @@ private:
     // MediaCodecType will be or'd together with the metadata, so the highest 8-bits
     // will have the type.
     static __u64 makeMetadata(MediaCodecType type,
-                              MediaOperation op);
+                              MediaOperation op, uint64_t offset);
 
     // Chunk size for parameters/return data
     static constexpr size_t kParamSizeBytes = 4096; // 4K
@@ -60,7 +88,6 @@ private:
     // a parameter in bytes)
     static constexpr size_t kReturnOffset = 8 * kMaxParams;
 };
-}  // namespace
 
 GoldfishMediaTransportImpl::~GoldfishMediaTransportImpl() {
   if(mHandle >= 0) {
@@ -113,39 +140,44 @@ GoldfishMediaTransport* GoldfishMediaTransport::getInstance() {
 
 // static
 __u64 GoldfishMediaTransportImpl::makeMetadata(MediaCodecType type,
-                                               MediaOperation op) {
+                                               MediaOperation op, uint64_t offset) {
     // Shift |type| into the highest 8-bits, leaving the lower bits for other
     // metadata.
-    return ((__u64)type << (64 - 8)) | static_cast<uint8_t>(op);
+    offset = offset >> 20;
+    return ((__u64)type << (64 - 8)) | (offset << 8) | static_cast<uint8_t>(op);
 }
 
-uint8_t* GoldfishMediaTransportImpl::getInputAddr() const {
-    return (uint8_t*)mStartPtr + kParamSizeBytes;
+uint8_t* GoldfishMediaTransportImpl::getInputAddr(unsigned int offSet) const {
+    return (uint8_t*)mStartPtr + kParamSizeBytes + offSet;
 }
 
 uint8_t* GoldfishMediaTransportImpl::getOutputAddr() const {
     return getInputAddr() + kInputSizeBytes;
 }
 
-uint8_t* GoldfishMediaTransportImpl::getReturnAddr() const {
-    return (uint8_t*)mStartPtr + kReturnOffset;
+uint8_t* GoldfishMediaTransportImpl::getBaseAddr() const {
+    return (uint8_t*)mStartPtr;
+}
+
+uint8_t* GoldfishMediaTransportImpl::getReturnAddr(unsigned int offSet) const {
+    return (uint8_t*)mStartPtr + kReturnOffset + offSet;
 }
 
 __u64 GoldfishMediaTransportImpl::offsetOf(uint64_t addr) const {
     return addr - (uint64_t)mStartPtr;
 }
 
-void GoldfishMediaTransportImpl::writeParam(__u64 val, unsigned int num) {
-    uint8_t* p = (uint8_t*)mStartPtr;
+void GoldfishMediaTransportImpl::writeParam(__u64 val, unsigned int num, unsigned int offSetToStartAddr) {
+    uint8_t* p = (uint8_t*)mStartPtr + (offSetToStartAddr);
     uint64_t* pint = (uint64_t*)(p + 8 * num);
     *pint = val;
 }
 
 bool GoldfishMediaTransportImpl::sendOperation(MediaCodecType type,
-                                               MediaOperation op) {
+                                               MediaOperation op, unsigned int offSetToStartAddr) {
     struct goldfish_address_space_ping pingInfo;
-    pingInfo.metadata = makeMetadata(type, op);
-    pingInfo.offset = mOffset;
+    pingInfo.metadata = makeMetadata(type, op, offSetToStartAddr);
+    pingInfo.offset = mOffset; // + (offSetToStartAddr);
     if (goldfish_address_space_ping(mHandle, &pingInfo) == false) {
         ALOGE("failed to ping host");
         abort();
