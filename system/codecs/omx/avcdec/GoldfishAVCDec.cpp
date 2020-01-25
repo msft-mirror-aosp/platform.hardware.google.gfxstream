@@ -341,12 +341,12 @@ void GoldfishAVCDec::onQueueFilled(OMX_U32 portIndex) {
                     ALOGD("handling port reset");
                     ALOGD("port resetting (img.width=%u, img.height=%u, mWidth=%u, mHeight=%u)",
                           img.width, img.height, mWidth, mHeight);
-                    resetDecoder();
+                    //resetDecoder();
                     resetPlugin();
 
-                mContext->destroyH264Context();
-                mContext.reset(new MediaH264Decoder());
-                mContext->initH264Context(mWidth,
+                //mContext->destroyH264Context();
+                //mContext.reset(new MediaH264Decoder());
+                mContext->resetH264Context(mWidth,
                               mHeight,
                               mWidth,
                               mHeight,
@@ -398,9 +398,10 @@ void GoldfishAVCDec::onQueueFilled(OMX_U32 portIndex) {
                     notifyFillBufferDone(outHeader);
                     outHeader = NULL;
                     resetPlugin();
-                                    mContext->destroyH264Context();
-                mContext.reset(new MediaH264Decoder());
-                mContext->initH264Context(mWidth,
+
+                    //mContext->destroyH264Context();
+                //mContext.reset(new MediaH264Decoder());
+                    mContext->resetH264Context(mWidth,
                               mHeight,
                               mWidth,
                               mHeight,
