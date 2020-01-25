@@ -17,6 +17,11 @@
 #ifndef GOLDFISH_MEDIA_H264_DEC_H_
 #define GOLDFISH_MEDIA_H264_DEC_H_
 
+struct h264_init_result_t {
+    uint64_t host_handle;
+    int ret;
+};
+
 struct h264_result_t {
     int ret;
     uint64_t bytesProcessed;
@@ -37,6 +42,12 @@ struct h264_image_t {
 };
 
 class MediaH264Decoder {
+    uint64_t mHostHandle = 0;
+    const uint32_t mVersion = 100;
+
+    bool mHasAddressSpaceMemory = false;
+    uint64_t mAddressOffSet = 0;
+
 public:
     MediaH264Decoder() = default;
     virtual ~MediaH264Decoder() = default;
@@ -55,7 +66,13 @@ public:
         NALUIgnored = -4,
     };
 
+    bool getAddressSpaceMemory();
     void initH264Context(unsigned int width,
+                         unsigned int height,
+                         unsigned int outWidth,
+                         unsigned int outHeight,
+                         PixelFormat pixFmt);
+    void resetH264Context(unsigned int width,
                          unsigned int height,
                          unsigned int outWidth,
                          unsigned int outHeight,
