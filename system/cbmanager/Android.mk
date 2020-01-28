@@ -32,7 +32,9 @@ LOCAL_SHARED_LIBRARIES += \
     libutils \
     libhidlbase \
     android.hardware.graphics.mapper@2.0 \
-    android.hardware.graphics.allocator@2.0
+    android.hardware.graphics.mapper@3.0 \
+    android.hardware.graphics.allocator@2.0 \
+    android.hardware.graphics.allocator@3.0 \
 
 LOCAL_CFLAGS += \
     -DPLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION) \
