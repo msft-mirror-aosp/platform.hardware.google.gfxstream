@@ -357,6 +357,15 @@ void GoldfishAVCDec::onQueueFilled(OMX_U32 portIndex) {
             }
 
             if (img.data != nullptr) {
+                int myWidth = img.width;
+                int myHeight = img.height;
+                if (myWidth != mWidth || myHeight != mHeight) {
+                    bool portWillReset = false;
+                    handlePortSettingsChange(&portWillReset, myWidth, myHeight);
+                    resetPlugin();
+                    mWidth = myWidth;
+                    mHeight = myHeight;
+                }
                 outHeader->nFilledLen =  (outputBufferWidth() * outputBufferHeight() * 3) / 2;
                 int myStride = outputBufferWidth();
                 for (int i=0; i < mHeight; ++i) {
