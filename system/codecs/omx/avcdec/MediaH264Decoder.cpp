@@ -77,7 +77,7 @@ void MediaH264Decoder::destroyH264Context() {
     auto transport = GoldfishMediaTransport::getInstance();
     transport->writeParam((uint64_t)mHostHandle, 0, mAddressOffSet);
     transport->sendOperation(MediaCodecType::H264Codec,
-                             MediaOperation::DestroyContext);
+                             MediaOperation::DestroyContext, mAddressOffSet);
     transport->returnMemorySlot(mAddressOffSet >> 23);
     mHasAddressSpaceMemory = false;
 }
