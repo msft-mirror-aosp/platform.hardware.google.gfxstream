@@ -23,6 +23,7 @@
 
 
 
+std::mutex sSingletonMutex;
 std::unique_ptr<GoldfishMediaTransport> sTransport;
 
 class GoldfishMediaTransportImpl : public GoldfishMediaTransport {
@@ -132,6 +133,7 @@ GoldfishMediaTransportImpl::GoldfishMediaTransportImpl() {
 
 // static
 GoldfishMediaTransport* GoldfishMediaTransport::getInstance() {
+    std::lock_guard<std::mutex> g{sSingletonMutex};
     if (sTransport == nullptr) {
         sTransport.reset(new GoldfishMediaTransportImpl());
     }
