@@ -365,6 +365,9 @@ void GoldfishAVCDec::onQueueFilled(OMX_U32 portIndex) {
                     resetPlugin();
                     mWidth = myWidth;
                     mHeight = myHeight;
+                    if (portWillReset) {
+                        return;
+                    }
                 }
                 outHeader->nFilledLen =  (outputBufferWidth() * outputBufferHeight() * 3) / 2;
                 int myStride = outputBufferWidth();
