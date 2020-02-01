@@ -162,6 +162,9 @@ bool GoldfishAVCDec::getVUIParams(h264_image_t& img) {
     ColorUtils::convertIsoColorAspectsToCodecAspects(
             primaries, transfer, coeffs, fullRange, colorAspects);
 
+    ALOGD("img pts %lld, primaries %d, range %d transfer %d colorspace %d", (long long)img.pts,
+            (int)img.color_primaries, (int)img.color_range, (int)img.color_trc, (int)img.colorspace);
+
     // Update color aspects if necessary.
     if (colorAspectsDiffer(colorAspects, mBitstreamColorAspects)) {
         mBitstreamColorAspects = colorAspects;
@@ -319,7 +322,9 @@ void GoldfishAVCDec::onQueueFilled(OMX_U32 portIndex) {
             h264_image_t img = mContext->getImage();
 
 
-            getVUIParams(img);
+            if (img.data != nullptr) {
+                getVUIParams(img);
+            }
 
             mTimeEnd = systemTime();
             /* Compute time taken for decode() */
