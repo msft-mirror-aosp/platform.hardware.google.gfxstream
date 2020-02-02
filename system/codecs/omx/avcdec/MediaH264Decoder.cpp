@@ -57,7 +57,7 @@ void MediaH264Decoder::resetH264Context(unsigned int width,
                                        PixelFormat pixFmt) {
     auto transport = GoldfishMediaTransport::getInstance();
     if (!mHasAddressSpaceMemory) {
-        ALOGE("%s no address space memory");
+        ALOGE("%s no address space memory", __func__);
         return;
     }
     transport->writeParam((uint64_t)mHostHandle, 0, mAddressOffSet);
@@ -74,6 +74,7 @@ void MediaH264Decoder::resetH264Context(unsigned int width,
 
 void MediaH264Decoder::destroyH264Context() {
 
+    ALOGD("return memory lot %d addrr %x", (int)(mAddressOffSet >> 23), mAddressOffSet);
     auto transport = GoldfishMediaTransport::getInstance();
     transport->writeParam((uint64_t)mHostHandle, 0, mAddressOffSet);
     transport->sendOperation(MediaCodecType::H264Codec,
@@ -86,7 +87,7 @@ h264_result_t MediaH264Decoder::decodeFrame(uint8_t* img, size_t szBytes, uint64
     ALOGD("decode frame: use handle to host %lld", mHostHandle);
     h264_result_t res = {0, 0};
     if (!mHasAddressSpaceMemory) {
-        ALOGE("%s no address space memory");
+        ALOGE("%s no address space memory", __func__);
         return res;
     }
     auto transport = GoldfishMediaTransport::getInstance();
@@ -111,7 +112,7 @@ h264_result_t MediaH264Decoder::decodeFrame(uint8_t* img, size_t szBytes, uint64
 
 void MediaH264Decoder::flush() {
     if (!mHasAddressSpaceMemory) {
-        ALOGE("%s no address space memory");
+        ALOGE("%s no address space memory", __func__);
         return;
     }
     ALOGD("flush: use handle to host %lld", mHostHandle);
@@ -125,7 +126,7 @@ h264_image_t MediaH264Decoder::getImage() {
     ALOGD("getImage: use handle to host %lld", mHostHandle);
     h264_image_t res { };
     if (!mHasAddressSpaceMemory) {
-        ALOGE("%s no address space memory");
+        ALOGE("%s no address space memory", __func__);
         return res;
     }
     auto transport = GoldfishMediaTransport::getInstance();
