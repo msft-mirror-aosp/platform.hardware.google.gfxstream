@@ -89,6 +89,8 @@ private:
     status_t resetPlugin();
 
 
+    void readAndDiscardAllHostBuffers();
+
     bool setDecodeArgs(
             OMX_BUFFERHEADERTYPE *inHeader,
             OMX_BUFFERHEADERTYPE *outHeader);
@@ -96,6 +98,8 @@ private:
     bool getVUIParams(h264_image_t& img);
 
     std::unique_ptr<MediaH264Decoder> mContext;
+    std::vector<uint8_t> mCsd0;
+    std::vector<uint8_t> mCsd1;
     uint64_t mConsumedBytes = 0;
     uint8_t* mInPBuffer = nullptr;
     uint8_t* mOutHeaderBuf = nullptr;
