@@ -17,6 +17,7 @@
 #include <vulkan/vulkan.h>
 
 #ifdef __cplusplus
+#include <algorithm>
 extern "C" {
 #endif
 
@@ -540,4 +541,14 @@ typedef struct VkSemaphoreGetZirconHandleInfoFUCHSIA {
 
 #ifdef __cplusplus
 } // extern "C"
+#endif
+
+#ifdef __cplusplus
+
+template<class T, typename F>
+bool arrayany(const T* arr, uint32_t begin, uint32_t end, const F& func) {
+    const T* e = arr + end;
+    return std::find_if(arr + begin, e, func) != e;
+}
+
 #endif
