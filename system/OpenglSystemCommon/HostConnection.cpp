@@ -133,7 +133,7 @@ static uint32_t getDrawCallFlushIntervalFromProperty() {
 
 static GrallocType getGrallocTypeFromProperty() {
     char prop[PROPERTY_VALUE_MAX] = "";
-    property_get("ro.boot.hardware.gralloc", prop, "");
+    property_get("ro.hardware.gralloc", prop, "");
 
     bool isValid = prop[0] != '\0';
 
