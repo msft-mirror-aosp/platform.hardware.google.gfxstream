@@ -534,6 +534,7 @@ typedef struct VkSemaphoreGetZirconHandleInfoFUCHSIA {
 
 // VulkanStream features
 #define VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT (1 << 0)
+#define VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT (1 << 1)
 
 #define VK_YCBCR_CONVERSION_DO_NOTHING ((VkSamplerYcbcrConversion)0x1111111111111111)
 

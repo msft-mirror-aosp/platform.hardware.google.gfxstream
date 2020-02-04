@@ -614,6 +614,9 @@ public:
         if (mFeatureInfo->hasVulkanNullOptionalStrings) {
             mStreamFeatureBits |= VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT;
         }
+        if (mFeatureInfo->hasVulkanIgnoredHandles) {
+            mStreamFeatureBits |= VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT;
+        }
     }
 
     void setThreadingCallbacks(const ResourceTracker::ThreadingCallbacks& callbacks) {

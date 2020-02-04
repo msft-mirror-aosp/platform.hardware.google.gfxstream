@@ -3223,7 +3223,7 @@ void marshal_VkWriteDescriptorSet(
     vkStream->putBe64(cgen_var_109);
     if (forMarshaling->pImageInfo)
     {
-        if ((VK_DESCRIPTOR_TYPE_SAMPLER == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_IMAGE == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT == forMarshaling->descriptorType))
+        if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) || ((VK_DESCRIPTOR_TYPE_SAMPLER == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_IMAGE == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT == forMarshaling->descriptorType))))
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->descriptorCount; ++i)
             {
@@ -3236,7 +3236,7 @@ void marshal_VkWriteDescriptorSet(
     vkStream->putBe64(cgen_var_110);
     if (forMarshaling->pBufferInfo)
     {
-        if ((VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_BUFFER == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC == forMarshaling->descriptorType))
+        if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) || ((VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_BUFFER == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC == forMarshaling->descriptorType))))
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->descriptorCount; ++i)
             {
@@ -3249,7 +3249,7 @@ void marshal_VkWriteDescriptorSet(
     vkStream->putBe64(cgen_var_111);
     if (forMarshaling->pTexelBufferView)
     {
-        if ((VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER == forMarshaling->descriptorType))
+        if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) || ((VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER == forMarshaling->descriptorType))))
         {
             if (forMarshaling->descriptorCount)
             {
@@ -3291,7 +3291,7 @@ void unmarshal_VkWriteDescriptorSet(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pImageInfo inconsistent between guest and host\n");
         }
-        if ((VK_DESCRIPTOR_TYPE_SAMPLER == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_IMAGE == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT == forUnmarshaling->descriptorType))
+        if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) || ((VK_DESCRIPTOR_TYPE_SAMPLER == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_IMAGE == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT == forUnmarshaling->descriptorType))))
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->descriptorCount; ++i)
             {
@@ -3312,7 +3312,7 @@ void unmarshal_VkWriteDescriptorSet(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pBufferInfo inconsistent between guest and host\n");
         }
-        if ((VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_BUFFER == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC == forUnmarshaling->descriptorType))
+        if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) || ((VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_BUFFER == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC == forUnmarshaling->descriptorType))))
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->descriptorCount; ++i)
             {
@@ -3333,7 +3333,7 @@ void unmarshal_VkWriteDescriptorSet(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pTexelBufferView inconsistent between guest and host\n");
         }
-        if ((VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER == forUnmarshaling->descriptorType))
+        if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) || ((VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER == forUnmarshaling->descriptorType))))
         {
             if (forUnmarshaling->descriptorCount)
             {
