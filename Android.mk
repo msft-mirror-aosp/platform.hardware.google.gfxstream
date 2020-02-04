@@ -149,7 +149,11 @@ include $(GOLDFISH_OPENGL_PATH)/system/GLESv1/Android.mk
 include $(GOLDFISH_OPENGL_PATH)/system/GLESv2/Android.mk
 
 include $(GOLDFISH_OPENGL_PATH)/system/gralloc/Android.mk
+
+ifneq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 include $(GOLDFISH_OPENGL_PATH)/system/hals/Android.mk
+endif
+
 include $(GOLDFISH_OPENGL_PATH)/system/cbmanager/Android.mk
 
 include $(GOLDFISH_OPENGL_PATH)/system/egl/Android.mk
