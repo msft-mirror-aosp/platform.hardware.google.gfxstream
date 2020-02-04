@@ -97,6 +97,8 @@ private:
 
     bool getVUIParams(h264_image_t& img);
 
+    void copyImageData( OMX_BUFFERHEADERTYPE *outHeader, h264_image_t & img);
+
     std::unique_ptr<MediaH264Decoder> mContext;
     std::vector<uint8_t> mCsd0;
     std::vector<uint8_t> mCsd1;
