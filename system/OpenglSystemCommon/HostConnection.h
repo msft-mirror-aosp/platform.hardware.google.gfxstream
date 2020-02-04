@@ -200,6 +200,7 @@ private:
     void queryAndSetDeferredVulkanCommandsSupport(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanNullOptionalStringsSupport(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanCreateResourcesWithRequirementsSupport(ExtendedRCEncoderContext *rcEnc);
+    void queryAndSetVulkanIgnoredHandles(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetYUVCache(ExtendedRCEncoderContext *mrcEnc);
     void queryAndSetAsyncUnmapBuffer(ExtendedRCEncoderContext *rcEnc);
 
