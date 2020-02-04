@@ -237,6 +237,21 @@ void GoldfishAVCDec::onPortFlushCompleted(OMX_U32 portIndex) {
     }
 }
 
+void GoldfishAVCDec::copyImageData( OMX_BUFFERHEADERTYPE *outHeader, h264_image_t & img) {
+    int myStride = outputBufferWidth();
+    for (int i=0; i < mHeight; ++i) {
+        memcpy(outHeader->pBuffer + i * myStride, img.data + i * mWidth, mWidth);
+    }
+    int Y = myStride * outputBufferHeight();
+    for (int i=0; i < mHeight/2; ++i) {
+        memcpy(outHeader->pBuffer + Y + i * myStride / 2 , img.data + mWidth * mHeight + i * mWidth/2, mWidth/2);
+    }
+    int UV = Y/4;
+    for (int i=0; i < mHeight/2; ++i) {
+        memcpy(outHeader->pBuffer + Y + UV + i * myStride / 2 , img.data + mWidth * mHeight * 5/4 + i * mWidth/2, mWidth/2);
+    }
+}
+
 void GoldfishAVCDec::onQueueFilled(OMX_U32 portIndex) {
     static int count1=0;
     ALOGD("calling %s count %d", __func__, ++count1);
@@ -404,17 +419,10 @@ void GoldfishAVCDec::onQueueFilled(OMX_U32 portIndex) {
                     }
                 }
                 outHeader->nFilledLen =  (outputBufferWidth() * outputBufferHeight() * 3) / 2;
-                int myStride = outputBufferWidth();
-                for (int i=0; i < mHeight; ++i) {
-                    memcpy(outHeader->pBuffer + i * myStride, img.data + i * mWidth, mWidth);
-                }
-                int Y = myStride * outputBufferHeight();
-                for (int i=0; i < mHeight/2; ++i) {
-                    memcpy(outHeader->pBuffer + Y + i * myStride / 2 , img.data + mWidth * mHeight + i * mWidth/2, mWidth/2);
-                }
-                int UV = Y/4;
-                for (int i=0; i < mHeight/2; ++i) {
-                    memcpy(outHeader->pBuffer + Y + UV + i * myStride / 2 , img.data + mWidth * mHeight * 5/4 + i * mWidth/2, mWidth/2);
+                if (outputBufferWidth() == mWidth && outputBufferHeight() == mHeight) {
+                    memcpy(outHeader->pBuffer, img.data, outHeader->nFilledLen);
+                } else {
+                    copyImageData(outHeader, img);
                 }
 
                 outHeader->nTimeStamp = img.pts;
