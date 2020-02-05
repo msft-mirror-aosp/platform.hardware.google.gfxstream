@@ -88,9 +88,9 @@ def generate_module(module):
         'android_validate_sha256("${GOLDFISH_DEVICE_ROOT}/%s" "%s")' % (mkfile, sha256))
     make.append('set(%s_src %s)' % (name, ' '.join(module['src'])))
     if module['type'] == 'SHARED_LIBRARY':
-        make.append('android_add_shared_library(%s)' % name)
+        make.append('android_add_library(TARGET {} SHARED LICENSE Apache-2.0 SRC {})'.format(name, ' '.join(module['src'])))
     elif module['type'] == 'STATIC_LIBRARY':
-        make.append('android_add_library(%s)' % name)
+        make.append('android_add_library(TARGET {} LICENSE Apache-2.0 SRC {})'.format(name, ' '.join(module['src'])))
     else:
         raise ValueError('Unexpected module type: %s' % module['type'])
 
