@@ -19,6 +19,8 @@
 #include "Resources.h"
 #include "VkEncoder.h"
 
+#include "../OpenglSystemCommon/EmulatorFeatureInfo.h"
+
 #include <log/log.h>
 
 #include <set>
@@ -62,7 +64,7 @@ bool canFitVirtualHostVisibleMemoryInfo(
 void initHostVisibleMemoryVirtualizationInfo(
     VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceMemoryProperties* memoryProperties,
-    bool hasDirectMem,
+    const EmulatorFeatureInfo* featureInfo,
     HostVisibleMemoryVirtualizationInfo* info_out) {
 
     if (info_out->initialized) return;
@@ -73,10 +75,12 @@ void initHostVisibleMemoryVirtualizationInfo(
     info_out->memoryPropertiesSupported =
         canFitVirtualHostVisibleMemoryInfo(memoryProperties);
 
-    info_out->directMemSupported = hasDirectMem;
+    info_out->directMemSupported = featureInfo->hasDirectMem;
+    info_out->virtioGpuNextSupported = featureInfo->hasVirtioGpuNext;
 
     if (!info_out->memoryPropertiesSupported ||
-        !info_out->directMemSupported) {
+        (!info_out->directMemSupported &&
+         !info_out->virtioGpuNextSupported)) {
         info_out->virtualizationSupported = false;
         return;
     }

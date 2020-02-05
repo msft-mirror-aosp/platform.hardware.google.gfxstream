@@ -613,6 +613,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetVulkanIgnoredHandles(m_rcEnc);
         queryAndSetYUVCache(m_rcEnc);
         queryAndSetAsyncUnmapBuffer(m_rcEnc);
+        queryAndSetVirtioGpuNext(m_rcEnc);
         if (m_processPipe) {
             m_processPipe->processPipeInit(m_connectionType, m_rcEnc);
         }
@@ -810,3 +811,9 @@ void HostConnection::queryAndSetAsyncUnmapBuffer(ExtendedRCEncoderContext* rcEnc
     }
 }
 
+void HostConnection::queryAndSetVirtioGpuNext(ExtendedRCEncoderContext* rcEnc) {
+    std::string glExtensions = queryGLExtensions(rcEnc);
+    if (glExtensions.find(kVirtioGpuNext) != std::string::npos) {
+        rcEnc->featureInfo()->hasVirtioGpuNext = true;
+    }
+}
