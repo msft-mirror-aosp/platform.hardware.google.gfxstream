@@ -3,7 +3,7 @@
 # which will re-generate this file.
 android_validate_sha256("${GOLDFISH_DEVICE_ROOT}/system/vulkan/Android.mk" "691427017f29de6b082ad25cb73b87443d4072a04b4316897bb92983674ad5bf")
 set(vulkan.ranchu_src func_table.cpp goldfish_vulkan.cpp)
-android_add_shared_library(vulkan.ranchu)
+android_add_library(TARGET vulkan.ranchu SHARED LICENSE Apache-2.0 SRC func_table.cpp goldfish_vulkan.cpp)
 target_include_directories(vulkan.ranchu PRIVATE ${GOLDFISH_DEVICE_ROOT}/system/OpenglSystemCommon/bionic-include ${GOLDFISH_DEVICE_ROOT}/system/OpenglSystemCommon ${GOLDFISH_DEVICE_ROOT}/bionic/libc/private ${GOLDFISH_DEVICE_ROOT}/bionic/libc/platform ${GOLDFISH_DEVICE_ROOT}/system/vulkan_enc ${GOLDFISH_DEVICE_ROOT}/android-emu ${GOLDFISH_DEVICE_ROOT}/system/renderControl_enc ${GOLDFISH_DEVICE_ROOT}/system/GLESv2_enc ${GOLDFISH_DEVICE_ROOT}/system/GLESv1_enc ${GOLDFISH_DEVICE_ROOT}/shared/OpenglCodecCommon ${GOLDFISH_DEVICE_ROOT}/system/vulkan ${GOLDFISH_DEVICE_ROOT}/./host/include/libOpenglRender ${GOLDFISH_DEVICE_ROOT}/./system/include ${GOLDFISH_DEVICE_ROOT}/./../../../external/qemu/android/android-emugl/guest ${GOLDFISH_DEVICE_ROOT}/./../../../external/qemu/android/android-emugl/host/include)
 target_compile_definitions(vulkan.ranchu PRIVATE "-DWITH_GLES2" "-DPLATFORM_SDK_VERSION=29" "-DGOLDFISH_HIDL_GRALLOC" "-DEMULATOR_OPENGL_POST_O=1" "-DHOST_BUILD" "-DANDROID" "-DGL_GLEXT_PROTOTYPES" "-DPAGE_SIZE=4096" "-DGOLDFISH_VULKAN" "-DLOG_TAG=\"goldfish_vulkan\"" "-DVK_USE_PLATFORM_ANDROID_KHR" "-DVK_NO_PROTOTYPES")
 target_compile_options(vulkan.ranchu PRIVATE "-fvisibility=default" "-Wno-unused-parameter" "-Wno-missing-field-initializers" "-fvisibility=hidden" "-fstrict-aliasing" "-Wno-unused-function")
