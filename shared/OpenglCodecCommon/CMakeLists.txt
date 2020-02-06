@@ -3,7 +3,7 @@
 # which will re-generate this file.
 android_validate_sha256("${GOLDFISH_DEVICE_ROOT}/shared/OpenglCodecCommon/Android.mk" "b93e7098601bba92b0e1b4d4a94cee25d2181a9842c7902d5f339c405c862cea")
 set(OpenglCodecCommon_host_src GLClientState.cpp GLESTextureUtils.cpp ChecksumCalculator.cpp GLSharedGroup.cpp glUtils.cpp IndexRangeCache.cpp SocketStream.cpp TcpStream.cpp auto_goldfish_dma_context.cpp goldfish_address_space.cpp goldfish_dma_host.cpp qemu_pipe_host.cpp)
-android_add_shared_library(OpenglCodecCommon_host)
+android_add_library(TARGET OpenglCodecCommon_host SHARED LICENSE Apache-2.0 SRC GLClientState.cpp GLESTextureUtils.cpp ChecksumCalculator.cpp GLSharedGroup.cpp glUtils.cpp IndexRangeCache.cpp SocketStream.cpp TcpStream.cpp auto_goldfish_dma_context.cpp goldfish_address_space.cpp goldfish_dma_host.cpp qemu_pipe_host.cpp)
 target_include_directories(OpenglCodecCommon_host PRIVATE ${GOLDFISH_DEVICE_ROOT}/shared/OpenglCodecCommon ${GOLDFISH_DEVICE_ROOT}/./host/include/libOpenglRender ${GOLDFISH_DEVICE_ROOT}/./system/include ${GOLDFISH_DEVICE_ROOT}/./../../../external/qemu/android/android-emugl/guest)
 target_compile_definitions(OpenglCodecCommon_host PRIVATE "-DWITH_GLES2" "-DPLATFORM_SDK_VERSION=29" "-DGOLDFISH_HIDL_GRALLOC" "-DEMULATOR_OPENGL_POST_O=1" "-DHOST_BUILD" "-DANDROID" "-DGL_GLEXT_PROTOTYPES" "-DPAGE_SIZE=4096" "-DGOLDFISH_VULKAN" "-DLOG_TAG=\"eglCodecCommon\"")
 target_compile_options(OpenglCodecCommon_host PRIVATE "-fvisibility=default" "-Wno-unused-parameter" "-Wno-unused-private-field")
