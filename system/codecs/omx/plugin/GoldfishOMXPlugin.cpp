@@ -33,7 +33,7 @@
 namespace android {
 
 OMXPluginBase *createOMXPlugin() {
-    ALOGE("called createOMXPlugin for Goldfish");
+    ALOGD("called createOMXPlugin for Goldfish");
     return new GoldfishOMXPlugin;
 }
 
@@ -45,21 +45,41 @@ struct GoldfishComponent {
     const char *mRole;
 };
 
-static bool useGoldfishComponentInstance(const char* libname) {
+static bool useGoogleGoldfishComponentInstance(const char* libname) {
     // We have a property set indicating whether to use the host side codec
     // or not (ro.kernel.qemu.hwcodec.<mLibNameSuffix>).
     char propValue[PROP_VALUE_MAX];
     AString prop = "ro.kernel.qemu.hwcodec.";
     prop.append(libname);
 
-    return property_get(prop.c_str(), propValue, "") > 0 &&
+    bool myret = property_get(prop.c_str(), propValue, "") > 0 &&
            strcmp("1", propValue) == 0;
+    if (myret) {
+        ALOGD("%s %d found prop %s val %s", __func__, __LINE__, prop.c_str(), propValue);
+    }
+    return myret;
+}
+
+static bool useAndroidGoldfishComponentInstance(const char* libname) {
+    // We have a property set indicating whether to use the host side codec
+    // or not (ro.kernel.qemu.hwcodec.<mLibNameSuffix>).
+    char propValue[PROP_VALUE_MAX];
+    AString prop = "ro.kernel.qemu.hwcodec.";
+    prop.append(libname);
+
+    bool myret = property_get(prop.c_str(), propValue, "") > 0 &&
+           strcmp("2", propValue) == 0;
+    if (myret) {
+        ALOGD("%s %d found prop %s val %s", __func__, __LINE__, prop.c_str(), propValue);
+    }
+    return myret;
 }
 
 static const GoldfishComponent kComponents[] = {
     { "OMX.google.goldfish.vp8.decoder", "vpxdec", "video_decoder.vp8" },
     { "OMX.google.goldfish.vp9.decoder", "vpxdec", "video_decoder.vp9" },
     { "OMX.google.goldfish.h264.decoder", "avcdec", "video_decoder.avc" },
+    { "OMX.android.goldfish.h264.decoder", "avcdec", "video_decoder.avc" },
 };
 
 static std::vector<GoldfishComponent> kActiveComponents;
@@ -69,7 +89,13 @@ static const size_t kNumComponents =
 
 GoldfishOMXPlugin::GoldfishOMXPlugin() {
     for (int i = 0; i < kNumComponents; ++i) {
-        if (useGoldfishComponentInstance(kComponents[i].mLibNameSuffix)) {
+        if ( !strncmp("OMX.google", kComponents[i].mName, 10) &&
+             useGoogleGoldfishComponentInstance(kComponents[i].mLibNameSuffix)) {
+            ALOGD("found and use kComponents[i].name %s", kComponents[i].mName);
+            kActiveComponents.push_back(kComponents[i]);
+        } else if (!strncmp("OMX.android", kComponents[i].mName, 11) &&
+                   useAndroidGoldfishComponentInstance(kComponents[i].mLibNameSuffix)) {
+            ALOGD("found and use kComponents[i].name %s", kComponents[i].mName);
             kActiveComponents.push_back(kComponents[i]);
         }
     }
@@ -172,7 +198,7 @@ OMX_ERRORTYPE GoldfishOMXPlugin::enumerateComponents(
         return OMX_ErrorNoMore;
     }
 
-    ALOGE("enumerate %s component", kActiveComponents[index].mName);
+    ALOGD("enumerate %s component", kActiveComponents[index].mName);
     strcpy(name, kActiveComponents[index].mName);
 
     return OMX_ErrorNone;
