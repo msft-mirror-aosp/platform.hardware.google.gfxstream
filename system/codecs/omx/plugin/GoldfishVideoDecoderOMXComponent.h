@@ -51,6 +51,9 @@ protected:
         kDescribeColorAspectsIndex = kPrepareForAdaptivePlaybackIndex + 1,
         kDescribeHdrStaticInfoIndex = kPrepareForAdaptivePlaybackIndex + 2,
         kDescribeHdr10PlusInfoIndex = kPrepareForAdaptivePlaybackIndex + 3,
+        kEnableAndroidNativeBuffersIndex = kPrepareForAdaptivePlaybackIndex + 4,
+        kUseAndroidNativeBufferIndex = kPrepareForAdaptivePlaybackIndex + 5,
+        kGetAndroidNativeBufferUsageIndex = kPrepareForAdaptivePlaybackIndex + 6,
     };
 
     enum {

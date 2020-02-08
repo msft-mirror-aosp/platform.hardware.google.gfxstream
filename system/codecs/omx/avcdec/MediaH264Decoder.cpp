@@ -20,6 +20,14 @@
 #include "goldfish_media_utils.h"
 #include <string.h>
 
+MediaH264Decoder::MediaH264Decoder(RenderMode renderMode) :mRenderMode(renderMode) {
+  if (renderMode == RenderMode::RENDER_BY_HOST_GPU) {
+      mVersion = 200;
+  } else if (renderMode == RenderMode::RENDER_BY_GUEST_CPU) {
+      mVersion = 100;
+  }
+}
+
 void MediaH264Decoder::initH264Context(unsigned int width,
                                        unsigned int height,
                                        unsigned int outWidth,
@@ -139,6 +147,44 @@ h264_image_t MediaH264Decoder::getImage() {
     res.ret = *(int*)(retptr);
     if (res.ret >= 0) {
         res.data = dst;
+        res.width = *(uint32_t*)(retptr + 8);
+        res.height = *(uint32_t*)(retptr + 16);
+        res.pts = *(uint32_t*)(retptr + 24);
+        res.color_primaries = *(uint32_t*)(retptr + 32);
+        res.color_range = *(uint32_t*)(retptr + 40);
+        res.color_trc = *(uint32_t*)(retptr + 48);
+        res.colorspace = *(uint32_t*)(retptr + 56);
+    } else if (res.ret == (int)(Err::DecoderRestarted)) {
+        res.width = *(uint32_t*)(retptr + 8);
+        res.height = *(uint32_t*)(retptr + 16);
+    }
+    return res;
+}
+
+
+h264_image_t MediaH264Decoder::renderOnHostAndReturnImageMetadata(int hostColorBufferId) {
+    ALOGD("%s: use handle to host %lld", __func__, mHostHandle);
+    h264_image_t res { };
+    if (hostColorBufferId < 0) {
+      ALOGE("%s negative color buffer id %d", __func__, hostColorBufferId);
+      return res;
+    }
+    ALOGD("%s send color buffer id %d", __func__, hostColorBufferId);
+    if (!mHasAddressSpaceMemory) {
+        ALOGE("%s no address space memory", __func__);
+        return res;
+    }
+    auto transport = GoldfishMediaTransport::getInstance();
+    uint8_t* dst = transport->getInputAddr(mAddressOffSet); // Note: reuse the same addr for input and output
+    transport->writeParam((uint64_t)mHostHandle, 0, mAddressOffSet);
+    transport->writeParam(transport->offsetOf((uint64_t)(dst)) - mAddressOffSet, 1, mAddressOffSet);
+    transport->writeParam((uint64_t)hostColorBufferId, 2, mAddressOffSet);
+    transport->sendOperation(MediaCodecType::H264Codec,
+                             MediaOperation::GetImage, mAddressOffSet);
+    auto* retptr = transport->getReturnAddr(mAddressOffSet);
+    res.ret = *(int*)(retptr);
+    if (res.ret >= 0) {
+        res.data = dst; // note: the data could be junk
         res.width = *(uint32_t*)(retptr + 8);
         res.height = *(uint32_t*)(retptr + 16);
         res.pts = *(uint32_t*)(retptr + 24);
