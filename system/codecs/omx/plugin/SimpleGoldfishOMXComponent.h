@@ -91,7 +91,7 @@ protected:
 
     PortInfo *editPortInfo(OMX_U32 portIndex);
 
-private:
+protected:
     enum {
         kWhatSendCommand,
         kWhatEmptyThisBuffer,
@@ -125,6 +125,13 @@ private:
             OMX_INDEXTYPE index, const OMX_PTR params);
 
     virtual OMX_ERRORTYPE useBuffer(
+            OMX_BUFFERHEADERTYPE **buffer,
+            OMX_U32 portIndex,
+            OMX_PTR appPrivate,
+            OMX_U32 size,
+            OMX_U8 *ptr);
+
+    OMX_ERRORTYPE useBufferCallerLockedAlready(
             OMX_BUFFERHEADERTYPE **buffer,
             OMX_U32 portIndex,
             OMX_PTR appPrivate,

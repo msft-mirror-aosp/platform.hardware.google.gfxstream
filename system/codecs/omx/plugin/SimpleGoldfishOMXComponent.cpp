@@ -227,6 +227,16 @@ OMX_ERRORTYPE SimpleGoldfishOMXComponent::useBuffer(
         OMX_U32 size,
         OMX_U8 *ptr) {
     Mutex::Autolock autoLock(mLock);
+    return useBufferCallerLockedAlready(header, portIndex, appPrivate, size, ptr);
+}
+
+OMX_ERRORTYPE SimpleGoldfishOMXComponent::useBufferCallerLockedAlready(
+        OMX_BUFFERHEADERTYPE **header,
+        OMX_U32 portIndex,
+        OMX_PTR appPrivate,
+        OMX_U32 size,
+        OMX_U8 *ptr) {
+    CHECK_LT(portIndex, mPorts.size());
     CHECK_LT(portIndex, mPorts.size());
 
     PortInfo *port = &mPorts.editItemAt(portIndex);
