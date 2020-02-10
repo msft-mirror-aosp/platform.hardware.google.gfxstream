@@ -270,6 +270,9 @@ public:
         VkDeviceSize currentBackingSize = 0;
         bool baseRequirementsKnown = false;
         VkMemoryRequirements baseRequirements;
+#ifdef VK_USE_PLATFORM_FUCHSIA
+        bool isSysmemBackedMemory = false;
+#endif
     };
 
     struct VkBuffer_Info {
@@ -2210,6 +2213,8 @@ public:
         }
 
         transformExternalResourceMemoryRequirementsForGuest(reqs);
+
+        setMemoryRequirementsForSysmemBackedImage(image, reqs);
     }
 
     void transformBufferMemoryRequirementsForGuestLocked(
@@ -2249,6 +2254,8 @@ public:
         }
 
         transformExternalResourceMemoryRequirementsForGuest(&reqs2->memoryRequirements);
+
+        setMemoryRequirementsForSysmemBackedImage(image, &reqs2->memoryRequirements);
 
         VkMemoryDedicatedRequirements* dedicatedReqs =
             vk_find_struct<VkMemoryDedicatedRequirements>(reqs2);
@@ -2336,6 +2343,7 @@ public:
 #ifdef VK_USE_PLATFORM_FUCHSIA
         const VkBufferCollectionImageCreateInfoFUCHSIA* extBufferCollectionPtr =
             vk_find_struct<VkBufferCollectionImageCreateInfoFUCHSIA>(pCreateInfo);
+        bool isSysmemBackedMemory = false;
         if (extBufferCollectionPtr) {
             auto collection = reinterpret_cast<fuchsia::sysmem::BufferCollectionSyncPtr*>(
                 extBufferCollectionPtr->collection);
@@ -2365,6 +2373,7 @@ public:
                     ALOGE("CreateColorBuffer failed: %d:%d", status, status2);
                 }
             }
+            isSysmemBackedMemory = true;
         }
 #endif
 
@@ -2399,11 +2408,16 @@ public:
             info.externalCreateInfo = *extImgCiPtr;
         }
 
+#ifdef VK_USE_PLATFORM_FUCHSIA
+        if (isSysmemBackedMemory) {
+            info.isSysmemBackedMemory = true;
+        }
+#endif
+
         if (info.baseRequirementsKnown) {
             transformImageMemoryRequirementsForGuestLocked(*pImage, &memReqs);
             info.baseRequirements = memReqs;
         }
-
         return res;
     }
 
@@ -2898,6 +2912,24 @@ public:
         enc->vkDestroyImage(device, image, pAllocator);
     }
 
+    void setMemoryRequirementsForSysmemBackedImage(
+        VkImage image, VkMemoryRequirements *pMemoryRequirements) {
+#ifdef VK_USE_PLATFORM_FUCHSIA
+        auto it = info_VkImage.find(image);
+        if (it == info_VkImage.end()) return;
+        auto& info = it->second;
+        if (info.isSysmemBackedMemory) {
+            auto width = info.createInfo.extent.width;
+            auto height = info.createInfo.extent.height;
+            pMemoryRequirements->size = width * height * 4;
+        }
+#else
+        // Bypass "unused parameter" checks.
+        (void)image;
+        (void)pMemoryRequirements;
+#endif
+    }
+
     void on_vkGetImageMemoryRequirements(
         void *context, VkDevice device, VkImage image,
         VkMemoryRequirements *pMemoryRequirements) {
@@ -2925,6 +2957,7 @@ public:
 
         transformImageMemoryRequirementsForGuestLocked(
             image, pMemoryRequirements);
+
         info.baseRequirementsKnown = true;
         info.baseRequirements = *pMemoryRequirements;
     }
