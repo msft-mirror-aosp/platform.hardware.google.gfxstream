@@ -61,6 +61,7 @@ uint64_t getAndroidHardwareBufferUsageFromVkUsage(
 }
 
 VkResult importAndroidHardwareBuffer(
+    Gralloc *grallocHelper,
     const VkImportAndroidHardwareBufferInfoANDROID* info,
     struct AHardwareBuffer **importOut) {
   return VK_SUCCESS;
@@ -85,6 +86,7 @@ struct HostVisibleMemoryVirtualizationInfo;
 }
 
 VkResult getAndroidHardwareBufferPropertiesANDROID(
+    Gralloc *grallocHelper,
     const goldfish_vk::HostVisibleMemoryVirtualizationInfo*,
     VkDevice,
     const AHardwareBuffer*,
@@ -3480,6 +3482,7 @@ public:
     }
 
     void unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int*) {
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
         if (fd != -1) {
             // Implicit Synchronization
             sync_wait(fd, 3000);
@@ -3496,6 +3499,7 @@ public:
             // Therefore, assume contract where we need to close fd in this driver
             close(fd);
         }
+#endif
     }
 
     // Action of vkMapMemoryIntoAddressSpaceGOOGLE:
