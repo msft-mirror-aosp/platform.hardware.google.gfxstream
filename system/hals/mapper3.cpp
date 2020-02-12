@@ -586,7 +586,7 @@ private:  // **** impl ****
     }
 
     HostConnectionSession getHostConnectionSession() const {
-        return HostConnectionSession(m_hostConn);
+        return HostConnectionSession(m_hostConn.get());
     }
 
     static void encodeBufferDescriptorInfo(const BufferDescriptorInfo& d,
@@ -604,8 +604,7 @@ private:  // **** impl ****
         return m_physAddrToOffset + offset;
     }
 
-    //std::unique_ptr<HostConnection> m_hostConn;  // b/142677230
-    HostConnection* m_hostConn;
+    std::unique_ptr<HostConnection> m_hostConn;
     uint64_t m_physAddrToOffset;
 };
 }  // namespace

@@ -399,11 +399,10 @@ private:
     }
 
     HostConnectionSession getHostConnectionSession() const {
-        return HostConnectionSession(m_hostConn);
+        return HostConnectionSession(m_hostConn.get());
     }
 
-    //std::unique_ptr<HostConnection> m_hostConn;  // b/142677230
-    HostConnection* m_hostConn;
+    std::unique_ptr<HostConnection> m_hostConn;
 };
 
 int main(int, char**) {
