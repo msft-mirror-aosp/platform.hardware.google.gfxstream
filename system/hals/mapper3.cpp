@@ -42,7 +42,7 @@ size_t align(const size_t v, const size_t a) { return (v + a - 1) & ~(a - 1); }
 
 static int waitFenceFd(const int fd, const char* logname) {
     const int warningTimeout = 5000;
-    if (sync_wait(dup(fd), warningTimeout) < 0) {
+    if (sync_wait(fd, warningTimeout) < 0) {
         if (errno == ETIME) {
             ALOGW("%s: fence %d didn't signal in %d ms", logname, fd, warningTimeout);
             if (sync_wait(fd, -1) < 0) {
