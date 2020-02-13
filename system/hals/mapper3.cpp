@@ -42,7 +42,7 @@ size_t align(const size_t v, const size_t a) { return (v + a - 1) & ~(a - 1); }
 
 static int waitFenceFd(const int fd, const char* logname) {
     const int warningTimeout = 5000;
-    if (sync_wait(dup(fd), warningTimeout) < 0) {
+    if (sync_wait(fd, warningTimeout) < 0) {
         if (errno == ETIME) {
             ALOGW("%s: fence %d didn't signal in %d ms", logname, fd, warningTimeout);
             if (sync_wait(fd, -1) < 0) {
@@ -586,7 +586,7 @@ private:  // **** impl ****
     }
 
     HostConnectionSession getHostConnectionSession() const {
-        return HostConnectionSession(m_hostConn);
+        return HostConnectionSession(m_hostConn.get());
     }
 
     static void encodeBufferDescriptorInfo(const BufferDescriptorInfo& d,
@@ -604,8 +604,7 @@ private:  // **** impl ****
         return m_physAddrToOffset + offset;
     }
 
-    //std::unique_ptr<HostConnection> m_hostConn;  // b/142677230
-    HostConnection* m_hostConn;
+    std::unique_ptr<HostConnection> m_hostConn;
     uint64_t m_physAddrToOffset;
 };
 }  // namespace
