@@ -1807,6 +1807,14 @@ public:
         VkBuffer* pBuffer,
         VkMemoryRequirements* pMemoryRequirements);
 #endif
+#ifdef VK_GOOGLE_address_space_info
+    VkResult vkGetMemoryHostAddressInfoGOOGLE(
+    VkDevice device,
+        VkDeviceMemory memory,
+        uint64_t* pAddress,
+        uint64_t* pSize,
+        uint64_t* pHostmemId);
+#endif
 
 private:
     class Impl;

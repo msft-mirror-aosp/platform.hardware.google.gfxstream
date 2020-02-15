@@ -97,6 +97,9 @@ static const char kYUVCache[] = "ANDROID_EMU_YUV_Cache";
 // GL protocol v2
 static const char kAsyncUnmapBuffer[] = "ANDROID_EMU_async_unmap_buffer";
 
+// virtio-gpu-next
+static const char kVirtioGpuNext[] = "ANDROID_EMU_virtio_gpu_next";
+
 // Struct describing available emulator features
 struct EmulatorFeatureInfo {
 
@@ -112,7 +115,8 @@ struct EmulatorFeatureInfo {
         hasVulkanCreateResourcesWithRequirements(false),
         hasVulkanIgnoredHandles(false),
         hasYUVCache (false),
-        hasAsyncUnmapBuffer (false) { }
+        hasAsyncUnmapBuffer (false),
+        hasVirtioGpuNext (false) { }
 
     SyncImpl syncImpl;
     DmaImpl dmaImpl;
@@ -126,6 +130,7 @@ struct EmulatorFeatureInfo {
     bool hasVulkanIgnoredHandles;
     bool hasYUVCache;
     bool hasAsyncUnmapBuffer;
+    bool hasVirtioGpuNext;
 };
 
 enum HostConnectionType {

@@ -18,6 +18,8 @@
 
 #define VIRTUAL_HOST_VISIBLE_HEAP_SIZE 512ULL * (1048576ULL)
 
+struct EmulatorFeatureInfo;
+
 namespace android {
 namespace base {
 namespace guest {
@@ -37,6 +39,7 @@ struct HostVisibleMemoryVirtualizationInfo {
     bool memoryPropertiesSupported;
     bool directMemSupported;
     bool virtualizationSupported;
+    bool virtioGpuNextSupported;
 
     VkPhysicalDevice physicalDevice;
 
@@ -58,7 +61,7 @@ bool canFitVirtualHostVisibleMemoryInfo(
 void initHostVisibleMemoryVirtualizationInfo(
     VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceMemoryProperties* memoryProperties,
-    bool directMemSupported,
+    const EmulatorFeatureInfo* featureInfo,
     HostVisibleMemoryVirtualizationInfo* info_out);
 
 bool isHostVisibleMemoryTypeIndexForGuest(
