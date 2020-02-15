@@ -33,6 +33,13 @@ void zx_event_create(int, zx_handle_t*) { }
 
 #include "AndroidHardwareBuffer.h"
 
+#ifndef HOST_BUILD
+#include <drm/virtgpu_drm.h>
+#include <xf86drm.h>
+#endif
+
+#include "VirtioGpuNext.h"
+
 #endif // VK_USE_PLATFORM_ANDROID_KHR
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
@@ -240,6 +247,11 @@ public:
         std::set<std::string> enabledExtensions;
     };
 
+    struct VirtioGpuHostmemResourceInfo {
+        uint32_t resourceId = 0;
+        int primeFd = -1;
+    };
+
     struct VkDeviceMemory_Info {
         VkDeviceSize allocationSize = 0;
         VkDeviceSize mappedSize = 0;
@@ -249,6 +261,7 @@ public:
         bool directMapped = false;
         GoldfishAddressSpaceBlock*
             goldfishAddressSpaceBlock = nullptr;
+        VirtioGpuHostmemResourceInfo resInfo;
         SubAlloc subAlloc;
         AHardwareBuffer* ahw = nullptr;
         zx_handle_t vmoHandle = ZX_HANDLE_INVALID;
@@ -487,7 +500,7 @@ public:
         info.memProps = memProps;
         initHostVisibleMemoryVirtualizationInfo(
             physdev, &memProps,
-            mFeatureInfo->hasDirectMem,
+            mFeatureInfo.get(),
             &mHostVisibleMemoryVirtInfo);
         info.apiVersion = props.apiVersion;
 
@@ -622,6 +635,13 @@ public:
         if (mFeatureInfo->hasVulkanIgnoredHandles) {
             mStreamFeatureBits |= VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT;
         }
+
+#if !defined(HOST_BUILD) && defined(VK_USE_PLATFORM_ANDROID_KHR)
+        if (mFeatureInfo->hasVirtioGpuNext) {
+            ALOGD("%s: has virtio-gpu-next; create hostmem rendernode\n", __func__);
+            mRendernodeFd = drmOpenRender(128 /* RENDERNODE_MINOR */);
+        }
+#endif
     }
 
     void setThreadingCallbacks(const ResourceTracker::ThreadingCallbacks& callbacks) {
@@ -1145,7 +1165,7 @@ public:
         initHostVisibleMemoryVirtualizationInfo(
             physdev,
             out,
-            mFeatureInfo->hasDirectMem,
+            mFeatureInfo.get(),
             &mHostVisibleMemoryVirtInfo);
 
         if (mHostVisibleMemoryVirtInfo.virtualizationSupported) {
@@ -1161,7 +1181,7 @@ public:
         initHostVisibleMemoryVirtualizationInfo(
             physdev,
             &out->memoryProperties,
-            mFeatureInfo->hasDirectMem,
+            mFeatureInfo.get(),
             &mHostVisibleMemoryVirtInfo);
 
         if (mHostVisibleMemoryVirtInfo.virtualizationSupported) {
@@ -1631,11 +1651,67 @@ public:
 
             uint64_t directMappedAddr = 0;
 
-            mLock.unlock();
-            VkResult directMapResult =
-                enc->vkMapMemoryIntoAddressSpaceGOOGLE(
-                    device, hostMemAlloc.memory, &directMappedAddr);
-            mLock.lock();
+
+            VkResult directMapResult = VK_SUCCESS;
+            if (mFeatureInfo->hasDirectMem) {
+                mLock.unlock();
+                directMapResult =
+                    enc->vkMapMemoryIntoAddressSpaceGOOGLE(
+                            device, hostMemAlloc.memory, &directMappedAddr);
+                mLock.lock();
+            } else if (mFeatureInfo->hasVirtioGpuNext) {
+#if !defined(HOST_BUILD) && defined(VK_USE_PLATFORM_ANDROID_KHR)
+                uint64_t hvaSizeId[3];
+
+                mLock.unlock();
+                enc->vkGetMemoryHostAddressInfoGOOGLE(
+                        device, hostMemAlloc.memory,
+                        &hvaSizeId[0], &hvaSizeId[1], &hvaSizeId[2]);
+                ALOGD("%s: hvaOff, size: 0x%llx 0x%llx id: 0x%llx\n", __func__,
+                        (unsigned long long)hvaSizeId[0],
+                        (unsigned long long)hvaSizeId[1],
+                        (unsigned long long)hvaSizeId[2]);
+                mLock.lock();
+
+                struct drm_virtgpu_resource_create_v2 drm_rc_v2 = { 0 };
+                drm_rc_v2.args = (uint64_t)&hvaSizeId[2];
+                drm_rc_v2.args_size = sizeof(uint64_t);
+                drm_rc_v2.size = hvaSizeId[1];
+                drm_rc_v2.flags = VIRTGPU_RESOURCE_TYPE_HOST;
+
+                int res = drmIoctl(
+                    mRendernodeFd, DRM_IOCTL_VIRTGPU_RESOURCE_CREATE_V2, &drm_rc_v2);
+
+                if (res) {
+                    ALOGE("%s: Failed to resource create v2: sterror: %s errno: %d\n", __func__,
+                            strerror(errno), errno);
+                    abort();
+                }
+
+                struct drm_virtgpu_map map_info = {
+                    .handle = drm_rc_v2.bo_handle,
+                };
+
+                res = drmIoctl(mRendernodeFd, DRM_IOCTL_VIRTGPU_MAP, &map_info);
+                if (res) {
+                    ALOGE("%s: Failed to virtgpu map: sterror: %s errno: %d\n", __func__,
+                            strerror(errno), errno);
+                    abort();
+                }
+
+                directMappedAddr = (uint64_t)(uintptr_t)
+                    mmap64(0, hvaSizeId[1], PROT_WRITE, MAP_SHARED, mRendernodeFd, map_info.offset);
+
+                if (!directMappedAddr) {
+                    ALOGE("%s: mmap of virtio gpu resource failed\n", __func__);
+                    abort();
+                }
+
+                // add the host's page offset
+                directMappedAddr += (uint64_t)(uintptr_t)(hvaSizeId[0]) & (PAGE_SIZE - 1);
+				directMapResult = VK_SUCCESS;
+#endif // VK_USE_PLATFORM_ANDROID_KHR
+            }
 
             if (directMapResult != VK_SUCCESS) {
                 hostMemAlloc.initialized = true;
@@ -4024,6 +4100,9 @@ private:
     std::vector<VkExtensionProperties> mHostDeviceExtensions;
 
     int mSyncDeviceFd = -1;
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+    int mRendernodeFd = -1;
+#endif
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
     fuchsia::hardware::goldfish::ControlDeviceSyncPtr mControlDevice;

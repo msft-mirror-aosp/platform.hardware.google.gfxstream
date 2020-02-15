@@ -5216,6 +5216,39 @@ static VkResult dynCheck_entry_vkCreateBufferWithRequirementsGOOGLE(
     return vkCreateBufferWithRequirementsGOOGLE_VkResult_return;
 }
 #endif
+#ifdef VK_GOOGLE_address_space_info
+static VkResult entry_vkGetMemoryHostAddressInfoGOOGLE(
+    VkDevice device,
+    VkDeviceMemory memory,
+    uint64_t* pAddress,
+    uint64_t* pSize,
+    uint64_t* pHostmemId)
+{
+    AEMU_SCOPED_TRACE("vkGetMemoryHostAddressInfoGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetMemoryHostAddressInfoGOOGLE_VkResult_return = (VkResult)0;
+    vkGetMemoryHostAddressInfoGOOGLE_VkResult_return = vkEnc->vkGetMemoryHostAddressInfoGOOGLE(device, memory, pAddress, pSize, pHostmemId);
+    return vkGetMemoryHostAddressInfoGOOGLE_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetMemoryHostAddressInfoGOOGLE(
+    VkDevice device,
+    VkDeviceMemory memory,
+    uint64_t* pAddress,
+    uint64_t* pSize,
+    uint64_t* pHostmemId)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_address_space_info"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryHostAddressInfoGOOGLE", "VK_GOOGLE_address_space_info");
+    }
+    AEMU_SCOPED_TRACE("vkGetMemoryHostAddressInfoGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkGetMemoryHostAddressInfoGOOGLE_VkResult_return = (VkResult)0;
+    vkGetMemoryHostAddressInfoGOOGLE_VkResult_return = vkEnc->vkGetMemoryHostAddressInfoGOOGLE(device, memory, pAddress, pSize, pHostmemId);
+    return vkGetMemoryHostAddressInfoGOOGLE_VkResult_return;
+}
+#endif
 void* goldfish_vulkan_get_proc_address(const char* name){
 #ifdef VK_VERSION_1_0
     if (!strcmp(name, "vkCreateInstance"))
@@ -6657,6 +6690,12 @@ void* goldfish_vulkan_get_proc_address(const char* name){
         return nullptr;
     }
     if (!strcmp(name, "vkCreateBufferWithRequirementsGOOGLE"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_address_space_info
+    if (!strcmp(name, "vkGetMemoryHostAddressInfoGOOGLE"))
     {
         return nullptr;
     }
@@ -8201,6 +8240,12 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     if (!strcmp(name, "vkCreateBufferWithRequirementsGOOGLE"))
     {
         return (void*)dynCheck_entry_vkCreateBufferWithRequirementsGOOGLE;
+    }
+#endif
+#ifdef VK_GOOGLE_address_space_info
+    if (!strcmp(name, "vkGetMemoryHostAddressInfoGOOGLE"))
+    {
+        return (void*)dynCheck_entry_vkGetMemoryHostAddressInfoGOOGLE;
     }
 #endif
     return nullptr;
@@ -9812,6 +9857,13 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     {
         bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_create_resources_with_requirements");
         return hasExt ? (void*)entry_vkCreateBufferWithRequirementsGOOGLE : nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_address_space_info
+    if (!strcmp(name, "vkGetMemoryHostAddressInfoGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_address_space_info");
+        return hasExt ? (void*)entry_vkGetMemoryHostAddressInfoGOOGLE : nullptr;
     }
 #endif
     return nullptr;

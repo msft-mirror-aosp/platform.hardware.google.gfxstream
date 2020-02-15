@@ -23305,5 +23305,133 @@ VkResult VkEncoder::vkCreateBufferWithRequirementsGOOGLE(
 }
 
 #endif
+#ifdef VK_GOOGLE_address_space_info
+VkResult VkEncoder::vkGetMemoryHostAddressInfoGOOGLE(
+    VkDevice device,
+    VkDeviceMemory memory,
+    uint64_t* pAddress,
+    uint64_t* pSize,
+    uint64_t* pHostmemId)
+{
+    AutoLock encoderLock(mImpl->lock);
+    AEMU_SCOPED_TRACE("vkGetMemoryHostAddressInfoGOOGLE encode");
+    mImpl->log("start vkGetMemoryHostAddressInfoGOOGLE");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkDevice local_device;
+    VkDeviceMemory local_memory;
+    local_device = device;
+    local_memory = memory;
+    mImpl->resources()->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1534;
+        countingStream->handleMapping()->mapHandles_VkDevice_u64(&local_device, &cgen_var_1534, 1);
+        countingStream->write((uint64_t*)&cgen_var_1534, 1 * 8);
+        uint64_t cgen_var_1535;
+        countingStream->handleMapping()->mapHandles_VkDeviceMemory_u64(&local_memory, &cgen_var_1535, 1);
+        countingStream->write((uint64_t*)&cgen_var_1535, 1 * 8);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1536 = (uint64_t)(uintptr_t)pAddress;
+        countingStream->putBe64(cgen_var_1536);
+        if (pAddress)
+        {
+            countingStream->write((uint64_t*)pAddress, sizeof(uint64_t));
+        }
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1537 = (uint64_t)(uintptr_t)pSize;
+        countingStream->putBe64(cgen_var_1537);
+        if (pSize)
+        {
+            countingStream->write((uint64_t*)pSize, sizeof(uint64_t));
+        }
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1538 = (uint64_t)(uintptr_t)pHostmemId;
+        countingStream->putBe64(cgen_var_1538);
+        if (pHostmemId)
+        {
+            countingStream->write((uint64_t*)pHostmemId, sizeof(uint64_t));
+        }
+    }
+    uint32_t packetSize_vkGetMemoryHostAddressInfoGOOGLE = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkGetMemoryHostAddressInfoGOOGLE = OP_vkGetMemoryHostAddressInfoGOOGLE;
+    stream->write(&opcode_vkGetMemoryHostAddressInfoGOOGLE, sizeof(uint32_t));
+    stream->write(&packetSize_vkGetMemoryHostAddressInfoGOOGLE, sizeof(uint32_t));
+    uint64_t cgen_var_1539;
+    stream->handleMapping()->mapHandles_VkDevice_u64(&local_device, &cgen_var_1539, 1);
+    stream->write((uint64_t*)&cgen_var_1539, 1 * 8);
+    uint64_t cgen_var_1540;
+    stream->handleMapping()->mapHandles_VkDeviceMemory_u64(&local_memory, &cgen_var_1540, 1);
+    stream->write((uint64_t*)&cgen_var_1540, 1 * 8);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1541 = (uint64_t)(uintptr_t)pAddress;
+    stream->putBe64(cgen_var_1541);
+    if (pAddress)
+    {
+        stream->write((uint64_t*)pAddress, sizeof(uint64_t));
+    }
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1542 = (uint64_t)(uintptr_t)pSize;
+    stream->putBe64(cgen_var_1542);
+    if (pSize)
+    {
+        stream->write((uint64_t*)pSize, sizeof(uint64_t));
+    }
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1543 = (uint64_t)(uintptr_t)pHostmemId;
+    stream->putBe64(cgen_var_1543);
+    if (pHostmemId)
+    {
+        stream->write((uint64_t*)pHostmemId, sizeof(uint64_t));
+    }
+    AEMU_SCOPED_TRACE("vkGetMemoryHostAddressInfoGOOGLE readParams");
+    // WARNING PTR CHECK
+    uint64_t* check_pAddress;
+    check_pAddress = (uint64_t*)(uintptr_t)stream->getBe64();
+    if (pAddress)
+    {
+        if (!(check_pAddress))
+        {
+            fprintf(stderr, "fatal: pAddress inconsistent between guest and host\n");
+        }
+        stream->read((uint64_t*)pAddress, sizeof(uint64_t));
+    }
+    // WARNING PTR CHECK
+    uint64_t* check_pSize;
+    check_pSize = (uint64_t*)(uintptr_t)stream->getBe64();
+    if (pSize)
+    {
+        if (!(check_pSize))
+        {
+            fprintf(stderr, "fatal: pSize inconsistent between guest and host\n");
+        }
+        stream->read((uint64_t*)pSize, sizeof(uint64_t));
+    }
+    // WARNING PTR CHECK
+    uint64_t* check_pHostmemId;
+    check_pHostmemId = (uint64_t*)(uintptr_t)stream->getBe64();
+    if (pHostmemId)
+    {
+        if (!(check_pHostmemId))
+        {
+            fprintf(stderr, "fatal: pHostmemId inconsistent between guest and host\n");
+        }
+        stream->read((uint64_t*)pHostmemId, sizeof(uint64_t));
+    }
+    AEMU_SCOPED_TRACE("vkGetMemoryHostAddressInfoGOOGLE returnUnmarshal");
+    VkResult vkGetMemoryHostAddressInfoGOOGLE_VkResult_return = (VkResult)0;
+    stream->read(&vkGetMemoryHostAddressInfoGOOGLE_VkResult_return, sizeof(VkResult));
+    countingStream->clearPool();
+    stream->clearPool();
+    pool->freeAll();
+    mImpl->log("finish vkGetMemoryHostAddressInfoGOOGLE");;
+    return vkGetMemoryHostAddressInfoGOOGLE_VkResult_return;
+}
+
+#endif
 
 } // namespace goldfish_vk
