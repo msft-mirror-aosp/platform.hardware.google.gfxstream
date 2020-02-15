@@ -203,6 +203,7 @@ private:
     void queryAndSetVulkanIgnoredHandles(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetYUVCache(ExtendedRCEncoderContext *mrcEnc);
     void queryAndSetAsyncUnmapBuffer(ExtendedRCEncoderContext *rcEnc);
+    void queryAndSetVirtioGpuNext(ExtendedRCEncoderContext *rcEnc);
 
 private:
     HostConnectionType m_connectionType;

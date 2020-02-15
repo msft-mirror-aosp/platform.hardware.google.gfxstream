@@ -13613,6 +13613,8 @@ void unmarshal_VkImportPhysicalAddressGOOGLE(
 #endif
 #ifdef VK_GOOGLE_create_resources_with_requirements
 #endif
+#ifdef VK_GOOGLE_address_space_info
+#endif
 void marshal_extension_struct(
     VulkanStreamGuest* vkStream,
     const void* structExtension)
@@ -16386,6 +16388,12 @@ const char* api_opcode_to_string(
         case OP_vkCreateBufferWithRequirementsGOOGLE:
         {
             return "OP_vkCreateBufferWithRequirementsGOOGLE";
+        }
+#endif
+#ifdef VK_GOOGLE_address_space_info
+        case OP_vkGetMemoryHostAddressInfoGOOGLE:
+        {
+            return "OP_vkGetMemoryHostAddressInfoGOOGLE";
         }
 #endif
         default:
