@@ -127,7 +127,7 @@ OMX_ERRORTYPE SimpleGoldfishOMXComponent::setParameter(
         OMX_INDEXTYPE index, const OMX_PTR params) {
     Mutex::Autolock autoLock(mLock);
 
-    CHECK(isSetParameterAllowed(index, params));
+    //CHECK(isSetParameterAllowed(index, params));
 
     return internalSetParameter(index, params);
 }

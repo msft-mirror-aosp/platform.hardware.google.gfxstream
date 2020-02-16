@@ -76,6 +76,8 @@
 
 #define GOLDFISH_OFFSET_UNIT 8
 
+#define OMX_COLOR_FormatYUV420Planar 19
+
 #ifdef GOLDFISH_HIDL_GRALLOC
 static const bool isHidlGralloc = true;
 #else
@@ -591,6 +593,12 @@ static int gralloc_get_buffer_format(const int frameworkFormat, const int usage)
     } else if (frameworkFormat == HAL_PIXEL_FORMAT_YCbCr_420_888) {
         ALOGW("gralloc_alloc: Requested YCbCr_420_888, taking experimental path. "
               "usage=%x", usage);
+    } else if (frameworkFormat == OMX_COLOR_FormatYUV420Planar &&
+               (usage & GOLDFISH_GRALLOC_USAGE_GPU_DATA_BUFFER)) {
+        ALOGW("gralloc_alloc: Requested OMX_COLOR_FormatYUV420Planar, given "
+              "YCbCr_420_888, taking experimental path. "
+              "usage=%x", usage);
+        return HAL_PIXEL_FORMAT_YCbCr_420_888;
     }
 #endif // PLATFORM_SDK_VERSION >= 17
 
