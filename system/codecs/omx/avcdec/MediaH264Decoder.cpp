@@ -141,6 +141,7 @@ h264_image_t MediaH264Decoder::getImage() {
     uint8_t* dst = transport->getInputAddr(mAddressOffSet); // Note: reuse the same addr for input and output
     transport->writeParam((uint64_t)mHostHandle, 0, mAddressOffSet);
     transport->writeParam(transport->offsetOf((uint64_t)(dst)) - mAddressOffSet, 1, mAddressOffSet);
+    transport->writeParam(-1, 2, mAddressOffSet);
     transport->sendOperation(MediaCodecType::H264Codec,
                              MediaOperation::GetImage, mAddressOffSet);
     auto* retptr = transport->getReturnAddr(mAddressOffSet);
