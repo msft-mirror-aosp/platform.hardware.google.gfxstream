@@ -77,9 +77,6 @@ GoldfishAVCDec::GoldfishAVCDec(
       mChangingResolution(false),
       mSignalledError(false),
       mInputOffset(0), mRenderMode(renderMode){
-          if (renderMode == RenderMode::RENDER_BY_HOST_GPU) {
-              mOutputFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_YCBCR_420_888;
-          }
     initPorts(
             1 /* numMinInputBuffers */, kNumBuffers, INPUT_BUF_SIZE,
             1 /* numMinOutputBuffers */, kNumBuffers, CODEC_MIME_TYPE);
@@ -89,10 +86,12 @@ GoldfishAVCDec::GoldfishAVCDec(
     // If input dump is enabled, then open create an empty file
     GENERATE_FILE_NAMES();
     CREATE_DUMP_FILE(mInFile);
+    ALOGD("created %s %d object %p", __func__, __LINE__, this);
 }
 
 GoldfishAVCDec::~GoldfishAVCDec() {
     CHECK_EQ(deInitDecoder(), (status_t)OK);
+    ALOGD("destroyed %s %d object %p", __func__, __LINE__, this);
 }
 
 void GoldfishAVCDec::logVersion() {
@@ -266,16 +265,18 @@ void GoldfishAVCDec::copyImageData( OMX_BUFFERHEADERTYPE *outHeader, h264_image_
 
 int GoldfishAVCDec::getHostColorBufferId(void* header) {
   if (mNWBuffers.find(header) == mNWBuffers.end()) {
+      ALOGD("cannot find color buffer for header %p", header);
     return -1;
   }
   sp<ANativeWindowBuffer> nBuf = mNWBuffers[header];
   cb_handle_t *handle = (cb_handle_t*)nBuf->handle;
+  ALOGD("found color buffer for header %p --> %d", header, handle->hostHandle);
   return handle->hostHandle;
 }
 
 void GoldfishAVCDec::onQueueFilled(OMX_U32 portIndex) {
     static int count1=0;
-    ALOGD("calling %s count %d", __func__, ++count1);
+    ALOGD("calling %s count %d object %p", __func__, ++count1, this);
     UNUSED(portIndex);
     OMX_BUFFERHEADERTYPE *inHeader = NULL;
     BufferInfo *inInfo = NULL;
@@ -386,10 +387,17 @@ void GoldfishAVCDec::onQueueFilled(OMX_U32 portIndex) {
             }
             h264_image_t img = {};
 
+            bool readBackPixels = true;
             if (mRenderMode == RenderMode::RENDER_BY_GUEST_CPU) {
               img = mContext->getImage();
             } else {
-              img = mContext->renderOnHostAndReturnImageMetadata(getHostColorBufferId(outHeader));
+                int hostColorBufferId = getHostColorBufferId(outHeader);
+                if (hostColorBufferId >= 0) {
+                    img = mContext->renderOnHostAndReturnImageMetadata(getHostColorBufferId(outHeader));
+                    readBackPixels = false;
+                } else {
+                    img = mContext->getImage();
+                }
             }
 
 
@@ -442,11 +450,14 @@ void GoldfishAVCDec::onQueueFilled(OMX_U32 portIndex) {
                     mWidth = myWidth;
                     mHeight = myHeight;
                     if (portWillReset) {
+                        ALOGD("port will reset return now");
                         return;
+                    } else {
+                        ALOGD("port will NOT reset keep going now");
                     }
                 }
                 outHeader->nFilledLen =  (outputBufferWidth() * outputBufferHeight() * 3) / 2;
-                if (mRenderMode == RenderMode::RENDER_BY_GUEST_CPU) {
+                if (readBackPixels) {
                   if (outputBufferWidth() == mWidth && outputBufferHeight() == mHeight) {
                     memcpy(outHeader->pBuffer, img.data, outHeader->nFilledLen);
                   } else {
