@@ -110,11 +110,13 @@ status_t GoldfishAVCDec::resetPlugin() {
 }
 
 status_t GoldfishAVCDec::resetDecoder() {
+    if (mContext) {
     // The resolution may have changed, so our safest bet is to just destroy the
     // current context and recreate another one, with the new width and height.
     mContext->destroyH264Context();
     mContext.reset(nullptr);
 
+    }
     return OK;
 }
 

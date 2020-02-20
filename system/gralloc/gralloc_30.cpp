@@ -66,6 +66,8 @@
         return (X); \
     } while (false)
 
+#define OMX_COLOR_FormatYUV420Planar 19
+
 namespace {
 
 const char GOLDFISH_GRALLOC_MODULE_NAME[] = "Graphics Memory Allocator Module";
@@ -495,7 +497,14 @@ private:
             }
 
             RETURN_ERROR_CODE(-EINVAL);
-        } else  {
+        } else if (frameworkFormat == OMX_COLOR_FormatYUV420Planar &&
+               (usage & GOLDFISH_GRALLOC_USAGE_GPU_DATA_BUFFER)) {
+            ALOGW("gralloc_alloc: Requested OMX_COLOR_FormatYUV420Planar, given "
+              "YCbCr_420_888, taking experimental path. "
+              "usage=%x", usage);
+            return HAL_PIXEL_FORMAT_YCbCr_420_888;
+        }
+        else  {
             return frameworkFormat;
         }
     }
