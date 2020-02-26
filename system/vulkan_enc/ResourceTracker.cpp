@@ -2285,11 +2285,9 @@ public:
         if (!info.external ||
             !info.externalCreateInfo.handleTypes) {
             transformNonExternalResourceMemoryRequirementsForGuest(reqs);
-            return;
+        } else {
+            transformExternalResourceMemoryRequirementsForGuest(reqs);
         }
-
-        transformExternalResourceMemoryRequirementsForGuest(reqs);
-
         setMemoryRequirementsForSysmemBackedImage(image, reqs);
     }
 
@@ -2326,6 +2324,7 @@ public:
             !info.externalCreateInfo.handleTypes) {
             transformNonExternalResourceMemoryRequirementsForGuest(
                 &reqs2->memoryRequirements);
+            setMemoryRequirementsForSysmemBackedImage(image, &reqs2->memoryRequirements);
             return;
         }
 
