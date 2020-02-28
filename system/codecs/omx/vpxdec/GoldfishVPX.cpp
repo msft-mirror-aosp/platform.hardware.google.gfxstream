@@ -56,7 +56,7 @@ GoldfishVPX::GoldfishVPX(
     // arbitrary from avc/hevc as vpx does not specify a min compression ratio
     const size_t kMinCompressionRatio = mMode == MODE_VP8 ? 2 : 4;
     const char *mime = mMode == MODE_VP8 ? MEDIA_MIMETYPE_VIDEO_VP8 : MEDIA_MIMETYPE_VIDEO_VP9;
-    const size_t kMaxOutputBufferSize = 2048 * 2048 * 3 / 2;
+    const size_t kMaxOutputBufferSize = 2560 * 2560 * 3 / 2;
     initPorts(
             kNumBuffers, kMaxOutputBufferSize / kMinCompressionRatio /* inputBufferSize */,
             kNumBuffers, mime, kMinCompressionRatio);
