@@ -1308,6 +1308,7 @@ void EmuHWC2::Display::post(HostConnection *hostCon,
 
     hostCon->lock();
     rcEnc->rcFBPost(rcEnc, hostCon->grallocHelper()->getHostHandle(h));
+    hostCon->flush();
     hostCon->unlock();
 }
 
