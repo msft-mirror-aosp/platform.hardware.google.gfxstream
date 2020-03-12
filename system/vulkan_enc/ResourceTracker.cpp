@@ -883,9 +883,11 @@ public:
             return VK_SUCCESS;
         } else {
             auto actualExtensionCount = (uint32_t)filteredExts.size();
-            auto toWrite = actualExtensionCount < *pPropertyCount ? actualExtensionCount : *pPropertyCount;
+            if (*pPropertyCount > actualExtensionCount) {
+              *pPropertyCount = actualExtensionCount;
+            }
 
-            for (uint32_t i = 0; i < toWrite; ++i) {
+            for (uint32_t i = 0; i < *pPropertyCount; ++i) {
                 pProperties[i] = filteredExts[i];
             }
 
@@ -1051,9 +1053,11 @@ public:
             return VK_SUCCESS;
         } else {
             auto actualExtensionCount = (uint32_t)filteredExts.size();
-            auto toWrite = actualExtensionCount < *pPropertyCount ? actualExtensionCount : *pPropertyCount;
+            if (*pPropertyCount > actualExtensionCount) {
+              *pPropertyCount = actualExtensionCount;
+            }
 
-            for (uint32_t i = 0; i < toWrite; ++i) {
+            for (uint32_t i = 0; i < *pPropertyCount; ++i) {
                 pProperties[i] = filteredExts[i];
             }
 
