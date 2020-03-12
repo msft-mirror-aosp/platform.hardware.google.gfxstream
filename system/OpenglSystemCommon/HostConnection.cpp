@@ -614,6 +614,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetYUVCache(m_rcEnc);
         queryAndSetAsyncUnmapBuffer(m_rcEnc);
         queryAndSetVirtioGpuNext(m_rcEnc);
+        queryHasSharedSlotsHostMemoryAllocator(m_rcEnc);
         if (m_processPipe) {
             m_processPipe->processPipeInit(m_connectionType, m_rcEnc);
         }
@@ -815,5 +816,12 @@ void HostConnection::queryAndSetVirtioGpuNext(ExtendedRCEncoderContext* rcEnc) {
     std::string glExtensions = queryGLExtensions(rcEnc);
     if (glExtensions.find(kVirtioGpuNext) != std::string::npos) {
         rcEnc->featureInfo()->hasVirtioGpuNext = true;
+    }
+}
+
+void HostConnection::queryHasSharedSlotsHostMemoryAllocator(ExtendedRCEncoderContext *rcEnc) {
+    const std::string& glExtensions = queryGLExtensions(rcEnc);
+    if (glExtensions.find(kHasSharedSlotsHostMemoryAllocator) != std::string::npos) {
+        rcEnc->featureInfo()->hasSharedSlotsHostMemoryAllocator = true;
     }
 }
