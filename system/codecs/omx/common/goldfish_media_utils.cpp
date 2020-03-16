@@ -17,6 +17,14 @@
 #include "goldfish_address_space.h"
 
 #include <log/log.h>
+
+#define DEBUG  0
+#if DEBUG
+#  define  DDD(...)    ALOGD(__VA_ARGS__)
+#else
+#  define  DDD(...)    ((void)0)
+#endif
+
 #include <memory>
 #include <vector>
 #include <mutex>
@@ -111,9 +119,9 @@ GoldfishMediaTransportImpl::GoldfishMediaTransportImpl() {
     mSize = kParamSizeBytes + kInputSizeBytes + kOutputSizeBytes;
     bool success = goldfish_address_space_allocate(mHandle, mSize, &mPhysAddr, &mOffset);
     if (success) {
-        ALOGD("successfully allocated %d bytes in goldfish_address_block", (int)mSize);
+        ALOGI("successfully allocated %d bytes in goldfish_address_block", (int)mSize);
         mStartPtr = goldfish_address_space_map(mHandle, mOffset, mSize);
-        ALOGD("guest address is %p", mStartPtr);
+        ALOGI("guest address is %p", mStartPtr);
 
         struct goldfish_address_space_ping pingInfo;
         pingInfo.metadata = GoldfishAddressSpaceSubdeviceType::Media;
@@ -123,7 +131,7 @@ GoldfishMediaTransportImpl::GoldfishMediaTransportImpl() {
             abort();
             return;
         } else {
-            ALOGD("successfully pinged host to allocate memory");
+            ALOGI("successfully pinged host to allocate memory");
         }
     } else {
         ALOGE("failed to allocate %d bytes in goldfish_address_block", (int)mSize);
@@ -185,7 +193,7 @@ bool GoldfishMediaTransportImpl::sendOperation(MediaCodecType type,
         abort();
         return false;
     } else {
-        ALOGD("successfully pinged host for operation type=%d, op=%d", (int)type, (int)op);
+        DDD("successfully pinged host for operation type=%d, op=%d", (int)type, (int)op);
     }
 
     return true;
