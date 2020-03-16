@@ -329,7 +329,7 @@ private:
                       const int32_t bytesPerPixel,
                       const int32_t stride,
                       cb_handle_30_t** cb) {
-        GoldfishAddressSpaceHostMemoryAllocator host_memory_allocator;
+        GoldfishAddressSpaceHostMemoryAllocator host_memory_allocator(true);
         if (!host_memory_allocator.is_opened()) {
             RETURN_ERROR(Error3::NO_RESOURCES);
         }
