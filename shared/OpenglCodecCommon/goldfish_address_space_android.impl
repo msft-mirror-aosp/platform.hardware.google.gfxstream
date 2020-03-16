@@ -108,6 +108,7 @@ long ioctl_unclaim_shared(int fd, uint64_t offset)
 }  // namespace
 
 GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider(GoldfishAddressSpaceSubdeviceType subdevice)
+    : m_handle(-1)
 {
     open(subdevice);
 }
