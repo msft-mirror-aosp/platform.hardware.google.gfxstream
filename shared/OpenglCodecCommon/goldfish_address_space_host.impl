@@ -231,13 +231,8 @@ int GoldfishAddressSpaceBlock::memoryMap(void *addr,
 
 void GoldfishAddressSpaceBlock::memoryUnmap(void *ptr, size_t size) {}
 
-GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator(bool trySharedSlots)
-  : m_provider(trySharedSlots ? GoldfishAddressSpaceSubdeviceType::SharedSlotsHostMemoryAllocator
-                              : GoldfishAddressSpaceSubdeviceType::HostMemoryAllocator) {
-    if (trySharedSlots && !m_provider.is_opened()) {
-        m_provider.open(GoldfishAddressSpaceSubdeviceType::HostMemoryAllocator);
-    }
-}
+GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator()
+  : m_provider(GoldfishAddressSpaceSubdeviceType::HostMemoryAllocator) {}
 
 bool GoldfishAddressSpaceHostMemoryAllocator::is_opened() const { return m_provider.is_opened(); }
 
