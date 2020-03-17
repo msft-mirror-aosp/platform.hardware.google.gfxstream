@@ -48,12 +48,15 @@ enum GoldfishAddressSpaceSubdeviceType {
     Graphics = 0,
     Media = 1,
     HostMemoryAllocator = 5,
+    SharedSlotsHostMemoryAllocator = 6,
 };
 
 class GoldfishAddressSpaceBlockProvider {
 public:
     GoldfishAddressSpaceBlockProvider(GoldfishAddressSpaceSubdeviceType subdevice);
     ~GoldfishAddressSpaceBlockProvider();
+
+    bool open(GoldfishAddressSpaceSubdeviceType subdevice);
 
 private:
     GoldfishAddressSpaceBlockProvider(const GoldfishAddressSpaceBlockProvider &rhs);
@@ -114,7 +117,7 @@ private:
 
 class GoldfishAddressSpaceHostMemoryAllocator {
 public:
-    GoldfishAddressSpaceHostMemoryAllocator();
+    GoldfishAddressSpaceHostMemoryAllocator(bool trySharedSlots = true);
 
     long hostMalloc(GoldfishAddressSpaceBlock *block, size_t size);
     void hostFree(GoldfishAddressSpaceBlock *block);
