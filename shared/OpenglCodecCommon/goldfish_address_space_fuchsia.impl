@@ -228,7 +228,7 @@ void GoldfishAddressSpaceBlock::destroy()
     }
 }
 
-GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator()
+GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator(bool trySharedSlots)
   : m_provider(GoldfishAddressSpaceSubdeviceType::HostMemoryAllocator) { }
 
 long GoldfishAddressSpaceHostMemoryAllocator::hostMalloc(GoldfishAddressSpaceBlock *block, size_t size)
@@ -238,6 +238,18 @@ long GoldfishAddressSpaceHostMemoryAllocator::hostMalloc(GoldfishAddressSpaceBlo
 
 void GoldfishAddressSpaceHostMemoryAllocator::hostFree(GoldfishAddressSpaceBlock *block)
 {
+}
+
+bool GoldfishAddressSpaceHostMemoryAllocator::is_opened() const {
+    return false;
+}
+
+address_space_handle_t GoldfishAddressSpaceHostMemoryAllocator::release() {
+    return m_provider.release();
+}
+
+void GoldfishAddressSpaceHostMemoryAllocator::closeHandle(address_space_handle_t handle) {
+    GoldfishAddressSpaceBlockProvider::closeHandle(handle);
 }
 
 class VmoStore {
