@@ -37,17 +37,8 @@ using android::HostAddressSpaceDevice;
 using android::emulation::AddressSpaceDevicePingInfo;
 
 GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider(GoldfishAddressSpaceSubdeviceType subdevice)
-    : m_handle(0)
+    : m_handle(HostAddressSpaceDevice::get()->open())
 {
-    open(subdevice);
-}
-
-bool GoldfishAddressSpaceBlockProvider::open(GoldfishAddressSpaceSubdeviceType subdevice)
-{
-    close();
-
-    m_handle = HostAddressSpaceDevice::get()->open();
-
     if ((subdevice != GoldfishAddressSpaceSubdeviceType::NoSubdevice) && is_opened()) {
         AddressSpaceDevicePingInfo request;
         ::memset(&request, 0, sizeof(request));
@@ -55,8 +46,6 @@ bool GoldfishAddressSpaceBlockProvider::open(GoldfishAddressSpaceSubdeviceType s
 
         HostAddressSpaceDevice::get()->ping(m_handle, &request);
     }
-
-    return is_opened();
 }
 
 GoldfishAddressSpaceBlockProvider::~GoldfishAddressSpaceBlockProvider()
