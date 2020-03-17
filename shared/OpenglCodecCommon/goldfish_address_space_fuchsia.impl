@@ -70,11 +70,6 @@ GoldfishAddressSpaceBlockProvider::~GoldfishAddressSpaceBlockProvider()
 {
 }
 
-bool GoldfishAddressSpaceBlockProvider::open(GoldfishAddressSpaceSubdeviceType subdevice) {
-    ALOGE("%s: not implemented\n", __func__);
-    abort();
-}
-
 bool GoldfishAddressSpaceBlockProvider::is_opened() const
 {
     return m_device.is_bound();
