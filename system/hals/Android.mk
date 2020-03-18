@@ -45,7 +45,7 @@ include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := android.hardware.graphics.mapper@3.0-impl
+LOCAL_MODULE := android.hardware.graphics.mapper@3.0-impl-ranchu
 LOCAL_MODULE_RELATIVE_PATH := hw
 LOCAL_VENDOR_MODULE := true
 LOCAL_SRC_FILES := mapper3.cpp
