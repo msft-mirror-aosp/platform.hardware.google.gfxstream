@@ -687,7 +687,7 @@ public:
         if (status != ZX_OK)
             return false;
 
-        zxio_node_attr_t attr;
+        zxio_node_attributes_t attr;
         status = zxio_attr_get(&io_storage.io, &attr);
         zxio_close(&io_storage.io);
         if (status != ZX_OK)
