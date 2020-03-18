@@ -192,8 +192,8 @@ private:
 
         case PixelFormat::YCBCR_420_888:
             yuv_format = true;
-            // We are going to use RGB888 on the host
-            glFormat = GL_RGB;
+            // We are going to use RGBA 8888 on the host
+            glFormat = GL_RGBA;
             glType = GL_UNSIGNED_BYTE;
             emulatorFrameworkFormat = EmulatorFrameworkFormat::YUV_420_888;
             break;
