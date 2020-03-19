@@ -86,7 +86,12 @@ long set_address_space_subdevice_type(int fd, uint64_t type)
     request.version = sizeof(request);
     request.metadata = type;
 
-    return ioctl_ping(fd, &request);
+    long ret = ioctl_ping(fd, &request);
+    if (ret) {
+        return ret;
+    }
+
+    return request.metadata;
 }
 
 long ioctl_claim_shared(int fd, struct goldfish_address_space_claim_shared *request)
@@ -106,7 +111,7 @@ GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider(GoldfishAdd
 {
     if ((subdevice != GoldfishAddressSpaceSubdeviceType::NoSubdevice) && is_opened()) {
         const long ret = set_address_space_subdevice_type(m_handle, subdevice);
-        if (ret) {
+        if (ret != 0 && ret != subdevice) {  // TODO: retire the 'ret != subdevice' check
             ALOGE("%s: set_address_space_subdevice_type failed for device_type=%lu, ret=%ld",
                   __func__, static_cast<unsigned long>(subdevice), ret);
             close();
@@ -337,8 +342,12 @@ void GoldfishAddressSpaceBlock::memoryUnmap(void *ptr, size_t size)
     ::munmap(ptr, size);
 }
 
-GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator()
-  : m_provider(GoldfishAddressSpaceSubdeviceType::HostMemoryAllocator) {}
+GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator(bool useSharedSlots)
+  : m_provider(useSharedSlots
+        ? GoldfishAddressSpaceSubdeviceType::SharedSlotsHostMemoryAllocator
+        : GoldfishAddressSpaceSubdeviceType::HostMemoryAllocator),
+    m_useSharedSlots(useSharedSlots)
+{}
 
 bool GoldfishAddressSpaceHostMemoryAllocator::is_opened() const { return m_provider.is_opened(); }
 
@@ -353,24 +362,45 @@ long GoldfishAddressSpaceHostMemoryAllocator::hostMalloc(GoldfishAddressSpaceBlo
     if (!m_provider.is_opened()) {
         return -ENODEV;
     }
-    if (!block->allocate(&m_provider, size)) {
-        return -ENOMEM;
-    }
 
     struct goldfish_address_space_ping request;
-    ::memset(&request, 0, sizeof(request));
-    request.version = sizeof(request);
-    request.offset = block->offset();
-    request.size = block->size();
-    request.metadata = HOST_MEMORY_ALLOCATOR_COMMAND_ALLOCATE_ID;
+    if (m_useSharedSlots) {
+        // shared memory slots are supported
+        ::memset(&request, 0, sizeof(request));
+        request.version = sizeof(request);
+        request.size = size;
+        request.metadata = HOST_MEMORY_ALLOCATOR_COMMAND_ALLOCATE_ID;
 
-    long ret = ioctl_ping(m_provider.m_handle, &request);
-    if (ret) {
-        return ret;
-    }
-    ret = static_cast<long>(request.metadata);
-    if (ret) {
-        return ret;
+        long ret = ioctl_ping(m_provider.m_handle, &request);
+        if (ret) {
+            return ret;
+        }
+        ret = static_cast<long>(request.metadata);
+        if (ret) {
+            return ret;
+        }
+
+        block->claimShared(&m_provider, request.offset, request.size);
+    } else {
+        // shared memory slots are not supported
+        if (!block->allocate(&m_provider, size)) {
+            return -ENOMEM;
+        }
+
+        ::memset(&request, 0, sizeof(request));
+        request.version = sizeof(request);
+        request.offset = block->offset();
+        request.size = block->size();
+        request.metadata = HOST_MEMORY_ALLOCATOR_COMMAND_ALLOCATE_ID;
+
+        long ret = ioctl_ping(m_provider.m_handle, &request);
+        if (ret) {
+            return ret;
+        }
+        ret = static_cast<long>(request.metadata);
+        if (ret) {
+            return ret;
+        }
     }
 
     block->mmap(0);
