@@ -329,7 +329,12 @@ private:
                       const int32_t bytesPerPixel,
                       const int32_t stride,
                       cb_handle_30_t** cb) {
-        GoldfishAddressSpaceHostMemoryAllocator host_memory_allocator;
+        const HostConnectionSession conn = getHostConnectionSession();
+        ExtendedRCEncoderContext *const rcEnc = conn.getRcEncoder();
+        CRASH_IF(!rcEnc, "conn.getRcEncoder() failed");
+
+        GoldfishAddressSpaceHostMemoryAllocator host_memory_allocator(
+            rcEnc->featureInfo_const()->hasSharedSlotsHostMemoryAllocator);
         if (!host_memory_allocator.is_opened()) {
             RETURN_ERROR(Error3::NO_RESOURCES);
         }
@@ -349,10 +354,6 @@ private:
 
             const GLenum allocFormat =
                 (PixelFormat::RGBX_8888 == format) ? GL_RGB : glFormat;
-
-            const HostConnectionSession conn = getHostConnectionSession();
-            ExtendedRCEncoderContext *const rcEnc = conn.getRcEncoder();
-            CRASH_IF(!rcEnc, "conn.getRcEncoder() failed");
 
             hostHandle = rcEnc->rcCreateColorBufferDMA(
                 rcEnc,
