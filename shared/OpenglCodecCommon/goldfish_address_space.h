@@ -48,6 +48,7 @@ enum GoldfishAddressSpaceSubdeviceType {
     Graphics = 0,
     Media = 1,
     HostMemoryAllocator = 5,
+    SharedSlotsHostMemoryAllocator = 6,
 };
 
 class GoldfishAddressSpaceBlockProvider {
@@ -114,7 +115,7 @@ private:
 
 class GoldfishAddressSpaceHostMemoryAllocator {
 public:
-    GoldfishAddressSpaceHostMemoryAllocator();
+    GoldfishAddressSpaceHostMemoryAllocator(bool useSharedSlots);
 
     long hostMalloc(GoldfishAddressSpaceBlock *block, size_t size);
     void hostFree(GoldfishAddressSpaceBlock *block);
@@ -125,6 +126,7 @@ public:
 
 private:
     GoldfishAddressSpaceBlockProvider m_provider;
+    bool                              m_useSharedSlots;
 };
 
 // Convenience functions that run address space driver api without wrapping in

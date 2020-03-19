@@ -228,7 +228,7 @@ void GoldfishAddressSpaceBlock::destroy()
     }
 }
 
-GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator()
+GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator(bool useSharedSlots)
   : m_provider(GoldfishAddressSpaceSubdeviceType::HostMemoryAllocator) { }
 
 long GoldfishAddressSpaceHostMemoryAllocator::hostMalloc(GoldfishAddressSpaceBlock *block, size_t size)
