@@ -136,6 +136,9 @@ status_t GoldfishAVCDec::setFlushMode() {
 
 status_t GoldfishAVCDec::initDecoder() {
     /* Initialize the decoder */
+    if (mEnableAndroidNativeBuffers == false) {
+        mRenderMode = RenderMode::RENDER_BY_GUEST_CPU;
+    }
     mContext.reset(new MediaH264Decoder(mRenderMode));
     mContext->initH264Context(mWidth,
                               mHeight,
