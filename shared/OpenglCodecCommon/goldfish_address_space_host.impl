@@ -231,8 +231,12 @@ int GoldfishAddressSpaceBlock::memoryMap(void *addr,
 
 void GoldfishAddressSpaceBlock::memoryUnmap(void *ptr, size_t size) {}
 
-GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator()
-  : m_provider(GoldfishAddressSpaceSubdeviceType::HostMemoryAllocator) {}
+GoldfishAddressSpaceHostMemoryAllocator::GoldfishAddressSpaceHostMemoryAllocator(bool useSharedSlots)
+  : m_provider(useSharedSlots
+        ? GoldfishAddressSpaceSubdeviceType::SharedSlotsHostMemoryAllocator
+        : GoldfishAddressSpaceSubdeviceType::HostMemoryAllocator),
+    m_useSharedSlots(useSharedSlots)
+{}
 
 bool GoldfishAddressSpaceHostMemoryAllocator::is_opened() const { return m_provider.is_opened(); }
 
@@ -247,20 +251,34 @@ long GoldfishAddressSpaceHostMemoryAllocator::hostMalloc(GoldfishAddressSpaceBlo
     if (!m_provider.is_opened()) {
         return -ENODEV;
     }
-    if (!block->allocate(&m_provider, size)) {
-        return -ENOMEM;
-    }
 
     AddressSpaceDevicePingInfo request;
-    ::memset(&request, 0, sizeof(request));
-    request.phys_addr = block->physAddr();
-    request.size = block->size();
-    request.metadata = HOST_MEMORY_ALLOCATOR_COMMAND_ALLOCATE_ID;
+    if (m_useSharedSlots) {
+        ::memset(&request, 0, sizeof(request));
+        request.size = block->size();
+        request.metadata = HOST_MEMORY_ALLOCATOR_COMMAND_ALLOCATE_ID;
 
-    HostAddressSpaceDevice::get()->ping(m_provider.m_handle, &request);
+        HostAddressSpaceDevice::get()->ping(m_provider.m_handle, &request);
 
-    void *hostPtr = HostAddressSpaceDevice::get()->getHostAddr(block->physAddr());
-    block->mmap(static_cast<uint64_t>(reinterpret_cast<uintptr_t>(hostPtr)));
+        block->claimShared(&m_provider, request.phys_addr, request.size);
+
+        void *hostPtr = HostAddressSpaceDevice::get()->getHostAddr(block->physAddr());
+        block->mmap(static_cast<uint64_t>(reinterpret_cast<uintptr_t>(hostPtr)));
+    } else {
+        if (!block->allocate(&m_provider, size)) {
+            return -ENOMEM;
+        }
+
+        ::memset(&request, 0, sizeof(request));
+        request.phys_addr = block->physAddr();
+        request.size = block->size();
+        request.metadata = HOST_MEMORY_ALLOCATOR_COMMAND_ALLOCATE_ID;
+
+        HostAddressSpaceDevice::get()->ping(m_provider.m_handle, &request);
+
+        void *hostPtr = HostAddressSpaceDevice::get()->getHostAddr(block->physAddr());
+        block->mmap(static_cast<uint64_t>(reinterpret_cast<uintptr_t>(hostPtr)));
+    }
 
     return 0;
 }
