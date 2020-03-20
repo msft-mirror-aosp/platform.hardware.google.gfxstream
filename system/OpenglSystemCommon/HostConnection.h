@@ -204,6 +204,7 @@ private:
     void queryAndSetYUVCache(ExtendedRCEncoderContext *mrcEnc);
     void queryAndSetAsyncUnmapBuffer(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVirtioGpuNext(ExtendedRCEncoderContext *rcEnc);
+    void queryHasSharedSlotsHostMemoryAllocator(ExtendedRCEncoderContext *rcEnc);
 
 private:
     HostConnectionType m_connectionType;

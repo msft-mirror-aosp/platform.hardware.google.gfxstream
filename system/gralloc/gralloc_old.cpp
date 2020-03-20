@@ -197,7 +197,11 @@ struct gralloc_memregions_t {
 #define INITIAL_DMA_REGION_SIZE 4096
 struct gralloc_dmaregion_t {
     gralloc_dmaregion_t(ExtendedRCEncoderContext *rcEnc)
-      : sz(INITIAL_DMA_REGION_SIZE), refcount(0), bigbufCount(0) {
+      : host_memory_allocator(
+            rcEnc->featureInfo_const()->hasSharedSlotsHostMemoryAllocator),
+        sz(INITIAL_DMA_REGION_SIZE),
+        refcount(0),
+        bigbufCount(0) {
         memset(&goldfish_dma, 0, sizeof(goldfish_dma));
         pthread_mutex_init(&lock, NULL);
 
