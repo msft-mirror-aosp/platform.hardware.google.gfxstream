@@ -9,6 +9,11 @@
 
 typedef unsigned char uint8_t;
 
+enum class RenderMode {
+    RENDER_BY_HOST_GPU = 1,
+    RENDER_BY_GUEST_CPU = 2,
+};
+
 enum vpx_img_fmt_t {
   VPX_IMG_FMT_NONE,
   VPX_IMG_FMT_YV12 =
@@ -34,6 +39,11 @@ struct vpx_image_t {
 
 struct vpx_codec_ctx_t {
     int vpversion; //8: vp8 or 9: vp9
+    int version;   // 100: return decoded frame to guest; 200: render on host
+    int hostColorBufferId;
+    uint64_t id;  // >= 1, unique
+    int memory_slot;
+    uint64_t address_offset = 0;
     size_t outputBufferWidth;
     size_t outputBufferHeight;
     size_t width;
@@ -41,11 +51,12 @@ struct vpx_codec_ctx_t {
     size_t bpp;
     uint8_t *data;
     uint8_t *dst;
+    vpx_image_t myImg;
 };
 
 int vpx_codec_destroy(vpx_codec_ctx_t*);
 int vpx_codec_dec_init(vpx_codec_ctx_t*);
-vpx_image_t *vpx_codec_get_frame(vpx_codec_ctx_t*);
+vpx_image_t* vpx_codec_get_frame(vpx_codec_ctx_t*, int hostColorBufferId = -1);
 int vpx_codec_flush(vpx_codec_ctx_t *ctx);
 int vpx_codec_decode(vpx_codec_ctx_t *ctx, const uint8_t *data,
                                  unsigned int data_sz, void *user_priv,
