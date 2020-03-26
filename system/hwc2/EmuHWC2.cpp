@@ -445,7 +445,7 @@ EmuHWC2::Display::Display(EmuHWC2& device, DisplayType type)
     mColorModes(),
     mSetColorTransform(false),
     mStateMutex() {
-        mVsyncThread.run("", -19 /* ANDROID_PRIORITY_URGENT_AUDIO */);
+        mVsyncThread.run("", ANDROID_PRIORITY_URGENT_DISPLAY);
         mTargetCb = device.allocateDisplayColorBuffer();
 }
 
