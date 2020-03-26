@@ -115,9 +115,10 @@ VkResult getMemoryAndroidHardwareBufferANDROID(struct AHardwareBuffer **) { retu
 #include "vk_format_info.h"
 #include "vk_util.h"
 
+#include <set>
 #include <string>
 #include <unordered_map>
-#include <set>
+#include <unordered_set>
 
 #include <vndk/hardware_buffer.h>
 #include <log/log.h>
@@ -327,6 +328,15 @@ public:
 #endif
     };
 
+    struct VkDescriptorPool_Info {
+        std::unordered_set<VkDescriptorSet> allocedSets;
+        VkDescriptorPoolCreateFlags createFlags;
+    };
+
+    struct VkDescriptorSet_Info {
+        VkDescriptorPool pool;
+    };
+
 #define HANDLE_REGISTER_IMPL_IMPL(type) \
     std::unordered_map<type, type##_Info> info_##type; \
     void register_##type(type obj) { \
@@ -468,7 +478,94 @@ public:
         info_VkFence.erase(fence);
     }
 
-    // TODO: Upgrade to 1.1
+    void unregister_VkDescriptorSet_locked(VkDescriptorSet set) {
+        auto it = info_VkDescriptorSet.find(set);
+        if (it == info_VkDescriptorSet.end()) return;
+
+        const auto& setInfo = it->second;
+
+        auto poolIt = info_VkDescriptorPool.find(setInfo.pool);
+
+        info_VkDescriptorSet.erase(set);
+
+        if (poolIt == info_VkDescriptorPool.end()) return;
+
+        auto& poolInfo = poolIt->second;
+        poolInfo.allocedSets.erase(set);
+    }
+
+    void unregister_VkDescriptorSet(VkDescriptorSet set) {
+        AutoLock lock(mLock);
+        unregister_VkDescriptorSet_locked(set);
+    }
+
+    void addAllocedDescriptorSetsToPoolLocked(const VkDescriptorSetAllocateInfo* ci, const VkDescriptorSet* sets) {
+        auto it = info_VkDescriptorPool.find(ci->descriptorPool);
+        if (it == info_VkDescriptorPool.end()) return;
+
+        auto& info = it->second;
+        for (uint32_t i = 0; i < ci->descriptorSetCount; ++i) {
+            info.allocedSets.insert(sets[i]);
+
+            auto setIt = info_VkDescriptorSet.find(sets[i]);
+            if (setIt == info_VkDescriptorSet.end()) continue;
+
+            auto& setInfo = setIt->second;
+            setInfo.pool = ci->descriptorPool;
+        }
+    }
+
+    // Also unregisters underlying descriptor sets
+    // and deletes their guest-side wrapped handles.
+    void clearDescriptorPoolLocked(VkDescriptorPool pool) {
+        auto it = info_VkDescriptorPool.find(pool);
+        if (it == info_VkDescriptorPool.end()) return;
+
+        std::vector<VkDescriptorSet> toClear;
+        for (auto set : it->second.allocedSets) {
+            toClear.push_back(set);
+        }
+
+        for (auto set : toClear) {
+            unregister_VkDescriptorSet_locked(set);
+            delete_goldfish_VkDescriptorSet(set);
+        }
+    }
+
+    void unregister_VkDescriptorPool(VkDescriptorPool pool) {
+        AutoLock lock(mLock);
+        clearDescriptorPoolLocked(pool);
+        info_VkDescriptorPool.erase(pool);
+    }
+
+    bool descriptorPoolSupportsIndividualFreeLocked(VkDescriptorPool pool) {
+        auto it = info_VkDescriptorPool.find(pool);
+        if (it == info_VkDescriptorPool.end()) return false;
+
+        const auto& info = it->second;
+
+        return VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT &
+            info.createFlags;
+    }
+
+    bool descriptorSetReallyAllocedFromPoolLocked(VkDescriptorSet set, VkDescriptorPool pool) {
+        auto it = info_VkDescriptorSet.find(set);
+        if (it == info_VkDescriptorSet.end()) return false;
+
+        const auto& info = it->second;
+
+        if (pool != info.pool) return false;
+
+        auto poolIt = info_VkDescriptorPool.find(info.pool);
+        if (poolIt == info_VkDescriptorPool.end()) return false;
+
+        const auto& poolInfo = poolIt->second;
+
+        if (poolInfo.allocedSets.find(set) == poolInfo.allocedSets.end()) return false;
+
+        return true;
+    }
+
     static constexpr uint32_t kMaxApiVersion = VK_MAKE_VERSION(1, 1, 0);
     static constexpr uint32_t kMinApiVersion = VK_MAKE_VERSION(1, 0, 0);
 
@@ -2984,6 +3081,115 @@ public:
 #endif
     }
 
+    VkResult on_vkCreateDescriptorPool(
+        void* context,
+        VkResult,
+        VkDevice device,
+        const VkDescriptorPoolCreateInfo* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkDescriptorPool* pDescriptorPool) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        VkResult res = enc->vkCreateDescriptorPool(
+            device, pCreateInfo, pAllocator, pDescriptorPool);
+
+        if (res != VK_SUCCESS) return res;
+
+        AutoLock lock(mLock);
+        auto it = info_VkDescriptorPool.find(*pDescriptorPool);
+        if (it == info_VkDescriptorPool.end()) return res;
+
+        auto &info = it->second;
+        info.createFlags = pCreateInfo->flags;
+
+        return res;
+    }
+
+    void on_vkDestroyDescriptorPool(
+        void* context,
+        VkDevice device,
+        VkDescriptorPool descriptorPool,
+        const VkAllocationCallbacks* pAllocator) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        enc->vkDestroyDescriptorPool(device, descriptorPool, pAllocator);
+    }
+
+    VkResult on_vkResetDescriptorPool(
+        void* context,
+        VkResult,
+        VkDevice device,
+        VkDescriptorPool descriptorPool,
+        VkDescriptorPoolResetFlags flags) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        VkResult res = enc->vkResetDescriptorPool(device, descriptorPool, flags);
+
+        if (res != VK_SUCCESS) return res;
+
+        AutoLock lock(mLock);
+        clearDescriptorPoolLocked(descriptorPool);
+        return res;
+    }
+
+    VkResult on_vkAllocateDescriptorSets(
+        void* context,
+        VkResult,
+        VkDevice                                    device,
+        const VkDescriptorSetAllocateInfo*          pAllocateInfo,
+        VkDescriptorSet*                            pDescriptorSets) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        VkResult res = enc->vkAllocateDescriptorSets(device, pAllocateInfo, pDescriptorSets);
+
+        if (res != VK_SUCCESS) return res;
+
+        AutoLock lock(mLock);
+        addAllocedDescriptorSetsToPoolLocked(pAllocateInfo, pDescriptorSets);
+        return res;
+    }
+
+    VkResult on_vkFreeDescriptorSets(
+        void* context,
+        VkResult,
+        VkDevice                                    device,
+        VkDescriptorPool                            descriptorPool,
+        uint32_t                                    descriptorSetCount,
+        const VkDescriptorSet*                      pDescriptorSets) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        // Bit of robustness so that we can double free descriptor sets
+        // and do other invalid usages
+        // https://github.com/KhronosGroup/Vulkan-Docs/issues/1070
+        // (people expect VK_SUCCESS to always be returned by vkFreeDescriptorSets)
+        std::vector<VkDescriptorSet> toActuallyFree;
+        {
+            AutoLock lock(mLock);
+
+            if (!descriptorPoolSupportsIndividualFreeLocked(descriptorPool))
+                return VK_SUCCESS;
+
+            for (uint32_t i = 0; i < descriptorSetCount; ++i) {
+                if (descriptorSetReallyAllocedFromPoolLocked(
+                        pDescriptorSets[i], descriptorPool)) {
+                    toActuallyFree.push_back(pDescriptorSets[i]);
+                }
+            }
+
+            if (toActuallyFree.empty()) return VK_SUCCESS;
+        }
+
+        return enc->vkFreeDescriptorSets(
+            device, descriptorPool,
+            (uint32_t)toActuallyFree.size(),
+            toActuallyFree.data());
+    }
+
     void on_vkDestroyImage(
         void* context,
         VkDevice device, VkImage image, const VkAllocationCallbacks *pAllocator) {
@@ -4718,6 +4924,56 @@ VkResult ResourceTracker::on_vkWaitForFences(
     uint64_t timeout) {
     return mImpl->on_vkWaitForFences(
         context, input_result, device, fenceCount, pFences, waitAll, timeout);
+}
+
+VkResult ResourceTracker::on_vkCreateDescriptorPool(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    const VkDescriptorPoolCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDescriptorPool* pDescriptorPool) {
+    return mImpl->on_vkCreateDescriptorPool(
+        context, input_result, device, pCreateInfo, pAllocator, pDescriptorPool);
+}
+
+void ResourceTracker::on_vkDestroyDescriptorPool(
+    void* context,
+    VkDevice device,
+    VkDescriptorPool descriptorPool,
+    const VkAllocationCallbacks* pAllocator) {
+    mImpl->on_vkDestroyDescriptorPool(context, device, descriptorPool, pAllocator);
+}
+
+VkResult ResourceTracker::on_vkResetDescriptorPool(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    VkDescriptorPool descriptorPool,
+    VkDescriptorPoolResetFlags flags) {
+    return mImpl->on_vkResetDescriptorPool(
+        context, input_result, device, descriptorPool, flags);
+}
+
+VkResult ResourceTracker::on_vkAllocateDescriptorSets(
+    void* context,
+    VkResult input_result,
+    VkDevice                                    device,
+    const VkDescriptorSetAllocateInfo*          pAllocateInfo,
+    VkDescriptorSet*                            pDescriptorSets) {
+    return mImpl->on_vkAllocateDescriptorSets(
+        context, input_result, device, pAllocateInfo, pDescriptorSets);
+}
+
+VkResult ResourceTracker::on_vkFreeDescriptorSets(
+    void* context,
+    VkResult input_result,
+    VkDevice                                    device,
+    VkDescriptorPool                            descriptorPool,
+    uint32_t                                    descriptorSetCount,
+    const VkDescriptorSet*                      pDescriptorSets) {
+    return mImpl->on_vkFreeDescriptorSets(
+        context, input_result, device, descriptorPool, descriptorSetCount, pDescriptorSets);
 }
 
 VkResult ResourceTracker::on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(
