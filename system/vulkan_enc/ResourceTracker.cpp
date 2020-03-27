@@ -335,6 +335,11 @@ public:
 
     struct VkDescriptorSet_Info {
         VkDescriptorPool pool;
+        std::vector<bool> bindingIsImmutableSampler;
+    };
+
+    struct VkDescriptorSetLayout_Info {
+        std::vector<VkDescriptorSetLayoutBinding> bindings;
     };
 
 #define HANDLE_REGISTER_IMPL_IMPL(type) \
@@ -499,7 +504,12 @@ public:
         unregister_VkDescriptorSet_locked(set);
     }
 
-    void addAllocedDescriptorSetsToPoolLocked(const VkDescriptorSetAllocateInfo* ci, const VkDescriptorSet* sets) {
+    void unregister_VkDescriptorSetLayout(VkDescriptorSetLayout setLayout) {
+        AutoLock lock(mLock);
+        info_VkDescriptorSetLayout.erase(setLayout);
+    }
+
+    void initDescriptorSetStateLocked(const VkDescriptorSetAllocateInfo* ci, const VkDescriptorSet* sets) {
         auto it = info_VkDescriptorPool.find(ci->descriptorPool);
         if (it == info_VkDescriptorPool.end()) return;
 
@@ -512,7 +522,65 @@ public:
 
             auto& setInfo = setIt->second;
             setInfo.pool = ci->descriptorPool;
+
+            VkDescriptorSetLayout setLayout = ci->pSetLayouts[i];
+            auto layoutIt = info_VkDescriptorSetLayout.find(setLayout);
+            if (layoutIt == info_VkDescriptorSetLayout.end()) continue;
+
+            const auto& layoutInfo = layoutIt->second;
+            for (size_t i = 0; i < layoutInfo.bindings.size(); ++i) {
+                // Bindings can be sparsely defined
+                const auto& binding = layoutInfo.bindings[i];
+                uint32_t bindingIndex = binding.binding;
+                if (setInfo.bindingIsImmutableSampler.size() <= bindingIndex) {
+                    setInfo.bindingIsImmutableSampler.resize(bindingIndex + 1, false);
+                }
+                setInfo.bindingIsImmutableSampler[bindingIndex] =
+                    binding.descriptorCount > 0 &&
+                     (binding.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLER ||
+                      binding.descriptorType ==
+                          VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) &&
+                    binding.pImmutableSamplers;
+            }
         }
+    }
+
+    VkWriteDescriptorSet
+    createImmutableSamplersFilteredWriteDescriptorSetLocked(
+        const VkWriteDescriptorSet* descriptorWrite,
+        std::vector<VkDescriptorImageInfo>* imageInfoArray) {
+
+        VkWriteDescriptorSet res = *descriptorWrite;
+
+        if  (descriptorWrite->descriptorCount == 0) return res;
+
+        if  (descriptorWrite->descriptorType != VK_DESCRIPTOR_TYPE_SAMPLER &&
+             descriptorWrite->descriptorType != VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) return res;
+
+        VkDescriptorSet set = descriptorWrite->dstSet;
+        auto descSetIt = info_VkDescriptorSet.find(set);
+        if (descSetIt == info_VkDescriptorSet.end()) {
+            ALOGE("%s: error: descriptor set 0x%llx not found\n", __func__,
+                  (unsigned long long)set);
+            return res;
+        }
+
+        const auto& descInfo = descSetIt->second;
+        uint32_t binding = descriptorWrite->dstBinding;
+
+        bool immutableSampler = descInfo.bindingIsImmutableSampler[binding];
+
+        if (!immutableSampler) return res;
+
+        for (uint32_t i = 0; i < descriptorWrite->descriptorCount; ++i) {
+            VkDescriptorImageInfo imageInfo = descriptorWrite->pImageInfo[i];
+            imageInfo.sampler = 0;
+            imageInfoArray->push_back(imageInfo);
+        }
+
+        res.pImageInfo = imageInfoArray->data();
+
+        return res;
     }
 
     // Also unregisters underlying descriptor sets
@@ -3149,7 +3217,7 @@ public:
         if (res != VK_SUCCESS) return res;
 
         AutoLock lock(mLock);
-        addAllocedDescriptorSetsToPoolLocked(pAllocateInfo, pDescriptorSets);
+        initDescriptorSetStateLocked(pAllocateInfo, pDescriptorSets);
         return res;
     }
 
@@ -3188,6 +3256,64 @@ public:
             device, descriptorPool,
             (uint32_t)toActuallyFree.size(),
             toActuallyFree.data());
+    }
+
+    VkResult on_vkCreateDescriptorSetLayout(
+        void* context,
+        VkResult,
+        VkDevice device,
+        const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkDescriptorSetLayout* pSetLayout) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        VkResult res = enc->vkCreateDescriptorSetLayout(
+            device, pCreateInfo, pAllocator, pSetLayout);
+
+        if (res != VK_SUCCESS) return res;
+
+        AutoLock lock(mLock);
+
+        auto it = info_VkDescriptorSetLayout.find(*pSetLayout);
+        if (it == info_VkDescriptorSetLayout.end()) return res;
+
+        auto& info = it->second;
+        for (uint32_t i = 0; i < pCreateInfo->bindingCount; ++i) {
+            info.bindings.push_back(pCreateInfo->pBindings[i]);
+        }
+
+        return res;
+    }
+
+    void on_vkUpdateDescriptorSets(
+        void* context,
+        VkDevice device,
+        uint32_t descriptorWriteCount,
+        const VkWriteDescriptorSet* pDescriptorWrites,
+        uint32_t descriptorCopyCount,
+        const VkCopyDescriptorSet* pDescriptorCopies) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        std::vector<std::vector<VkDescriptorImageInfo>> imageInfosPerWrite(
+            descriptorWriteCount);
+
+        std::vector<VkWriteDescriptorSet> writesWithSuppressedSamplers;
+
+        {
+            AutoLock lock(mLock);
+            for (uint32_t i = 0; i < descriptorWriteCount; ++i) {
+                writesWithSuppressedSamplers.push_back(
+                    createImmutableSamplersFilteredWriteDescriptorSetLocked(
+                        pDescriptorWrites + i,
+                        imageInfosPerWrite.data() + i));
+            }
+        }
+
+        enc->vkUpdateDescriptorSets(
+            device, descriptorWriteCount, writesWithSuppressedSamplers.data(),
+            descriptorCopyCount, pDescriptorCopies);
     }
 
     void on_vkDestroyImage(
@@ -4974,6 +5100,28 @@ VkResult ResourceTracker::on_vkFreeDescriptorSets(
     const VkDescriptorSet*                      pDescriptorSets) {
     return mImpl->on_vkFreeDescriptorSets(
         context, input_result, device, descriptorPool, descriptorSetCount, pDescriptorSets);
+}
+
+VkResult ResourceTracker::on_vkCreateDescriptorSetLayout(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDescriptorSetLayout* pSetLayout) {
+    return mImpl->on_vkCreateDescriptorSetLayout(
+        context, input_result, device, pCreateInfo, pAllocator, pSetLayout);
+}
+
+void ResourceTracker::on_vkUpdateDescriptorSets(
+    void* context,
+    VkDevice device,
+    uint32_t descriptorWriteCount,
+    const VkWriteDescriptorSet* pDescriptorWrites,
+    uint32_t descriptorCopyCount,
+    const VkCopyDescriptorSet* pDescriptorCopies) {
+    return mImpl->on_vkUpdateDescriptorSets(
+        context, device, descriptorWriteCount, pDescriptorWrites, descriptorCopyCount, pDescriptorCopies);
 }
 
 VkResult ResourceTracker::on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(
