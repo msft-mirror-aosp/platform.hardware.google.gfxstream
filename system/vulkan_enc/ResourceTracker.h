@@ -399,6 +399,22 @@ public:
         uint32_t                                    descriptorSetCount,
         const VkDescriptorSet*                      pDescriptorSets);
 
+    VkResult on_vkCreateDescriptorSetLayout(
+        void* context,
+        VkResult input_result,
+        VkDevice device,
+        const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkDescriptorSetLayout* pSetLayout);
+
+    void on_vkUpdateDescriptorSets(
+        void* context,
+        VkDevice device,
+        uint32_t descriptorWriteCount,
+        const VkWriteDescriptorSet* pDescriptorWrites,
+        uint32_t descriptorCopyCount,
+        const VkCopyDescriptorSet* pDescriptorCopies);
+
     VkResult on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(
         void* context,
         VkResult input_result,
