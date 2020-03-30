@@ -24,7 +24,7 @@
 #include "types.h"
 #include "debug.h"
 
-#define OMX_COLOR_FormatYUV420Planar 19
+const int kOMX_COLOR_FormatYUV420Planar = 19;
 
 using ::android::hardware::hidl_handle;
 using ::android::hardware::hidl_vec;
@@ -294,7 +294,7 @@ private:
                 }
             }
             RETURN_ERROR(Error3::UNSUPPORTED);
-        } else if ((int)frameworkFormat == OMX_COLOR_FormatYUV420Planar &&
+        } else if (static_cast<int>(frameworkFormat) == kOMX_COLOR_FormatYUV420Planar &&
                (usage & BufferUsage::GPU_DATA_BUFFER)) {
             ALOGW("gralloc_alloc: Requested OMX_COLOR_FormatYUV420Planar, given "
               "YCbCr_420_888, taking experimental path. "
