@@ -23,6 +23,8 @@
 #include "FormatConversions.h"
 #include "debug.h"
 
+const int kOMX_COLOR_FormatYUV420Planar = 19;
+
 using ::android::hardware::hidl_handle;
 using ::android::hardware::hidl_vec;
 using ::android::hardware::Return;
@@ -577,6 +579,10 @@ private:  // **** impl ****
             RETURN(usageSwRead);
 
         default:
+            if (static_cast<int>(descriptor.format) == kOMX_COLOR_FormatYUV420Planar) {
+                return (usage & BufferUsage::GPU_DATA_BUFFER) != 0;
+            }
+
             RETURN(false);
         }
     }
