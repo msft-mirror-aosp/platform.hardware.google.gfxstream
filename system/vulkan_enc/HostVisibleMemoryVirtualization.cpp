@@ -162,7 +162,8 @@ void initHostVisibleMemoryVirtualizationInfo(
             // Was the original memory type also a device local type? If so,
             // advertise both types in resulting type bits.
             info_out->memoryTypeBitsShouldAdvertiseBoth[i] =
-                type.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+                type.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT ||
+                type.propertyFlags == 0;
 
             ++firstFreeTypeIndex;
 
@@ -202,16 +203,6 @@ bool isDeviceLocalMemoryTypeIndexForGuest(
         info->hostMemoryProperties;
 
     return props.memoryTypes[index].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-}
-
-bool isNoFlagsMemoryTypeIndexForGuest(
-    const HostVisibleMemoryVirtualizationInfo* info,
-    uint32_t index) {
-    const auto& props =
-        info->virtualizationSupported ?
-        info->guestMemoryProperties :
-        info->hostMemoryProperties;
-    return props.memoryTypes[index].propertyFlags == 0;
 }
 
 VkResult finishHostMemAllocInit(
