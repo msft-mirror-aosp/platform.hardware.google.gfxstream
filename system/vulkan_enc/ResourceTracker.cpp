@@ -634,8 +634,7 @@ public:
         return true;
     }
 
-    static constexpr uint32_t kMaxApiVersion = VK_MAKE_VERSION(1, 1, 0);
-    static constexpr uint32_t kMinApiVersion = VK_MAKE_VERSION(1, 0, 0);
+    static constexpr uint32_t kDefaultApiVersion = VK_MAKE_VERSION(1, 1, 0);
 
     void setInstanceInfo(VkInstance instance,
                          uint32_t enabledExtensionCount,
@@ -2398,8 +2397,6 @@ public:
         uint32_t hostBits) {
         uint32_t res = 0;
         for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
-            if (isNoFlagsMemoryTypeIndexForGuest(
-                    &mHostVisibleMemoryVirtInfo, i)) continue;
             if (hostBits & (1 << i)) {
                 res |= (1 << i);
             }
@@ -2411,8 +2408,6 @@ public:
         uint32_t normalBits) {
         uint32_t res = 0;
         for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
-            if (isNoFlagsMemoryTypeIndexForGuest(
-                    &mHostVisibleMemoryVirtInfo, i)) continue;
             if (normalBits & (1 << i) &&
                 !isHostVisibleMemoryTypeIndexForGuest(
                     &mHostVisibleMemoryVirtInfo, i)) {
@@ -4380,7 +4375,7 @@ public:
 
     uint32_t getApiVersionFromInstance(VkInstance instance) const {
         AutoLock lock(mLock);
-        uint32_t api = kMinApiVersion;
+        uint32_t api = kDefaultApiVersion;
 
         auto it = info_VkInstance.find(instance);
         if (it == info_VkInstance.end()) return api;
@@ -4393,7 +4388,7 @@ public:
     uint32_t getApiVersionFromDevice(VkDevice device) const {
         AutoLock lock(mLock);
 
-        uint32_t api = kMinApiVersion;
+        uint32_t api = kDefaultApiVersion;
 
         auto it = info_VkDevice.find(device);
         if (it == info_VkDevice.end()) return api;
