@@ -234,7 +234,12 @@ VkResult finishHostMemAllocInit(
     // because it's not just nonCoherentAtomSize granularity,
     // people will also use it for uniform buffers, images, etc.
     // that need some bigger alignment
-#define HIGHEST_BUFFER_OR_IMAGE_ALIGNMENT 1024
+// #define HIGHEST_BUFFER_OR_IMAGE_ALIGNMENT 1024
+// bug: 145153816
+// HACK: Make it 65k so yuv images are happy on vk cts 1.2.1
+// TODO: Use a munmap/mmap MAP_FIXED scheme to realign memories
+// if it's found that the buffer or image bind alignment will be violated
+#define HIGHEST_BUFFER_OR_IMAGE_ALIGNMENT 65536
 
     uint64_t neededPageSize = out->nonCoherentAtomSize;
     if (HIGHEST_BUFFER_OR_IMAGE_ALIGNMENT >
