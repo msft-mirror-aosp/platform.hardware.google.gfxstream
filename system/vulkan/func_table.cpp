@@ -845,7 +845,8 @@ static VkResult entry_vkCreateDescriptorSetLayout(
     AEMU_SCOPED_TRACE("vkCreateDescriptorSetLayout");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateDescriptorSetLayout_VkResult_return = (VkResult)0;
-    vkCreateDescriptorSetLayout_VkResult_return = vkEnc->vkCreateDescriptorSetLayout(device, pCreateInfo, pAllocator, pSetLayout);
+    auto resources = ResourceTracker::get();
+    vkCreateDescriptorSetLayout_VkResult_return = resources->on_vkCreateDescriptorSetLayout(vkEnc, VK_SUCCESS, device, pCreateInfo, pAllocator, pSetLayout);
     return vkCreateDescriptorSetLayout_VkResult_return;
 }
 static void entry_vkDestroyDescriptorSetLayout(
@@ -926,7 +927,8 @@ static void entry_vkUpdateDescriptorSets(
 {
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSets");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkUpdateDescriptorSets(device, descriptorWriteCount, pDescriptorWrites, descriptorCopyCount, pDescriptorCopies);
+    auto resources = ResourceTracker::get();
+    resources->on_vkUpdateDescriptorSets(vkEnc, device, descriptorWriteCount, pDescriptorWrites, descriptorCopyCount, pDescriptorCopies);
 }
 static VkResult entry_vkCreateFramebuffer(
     VkDevice device,
