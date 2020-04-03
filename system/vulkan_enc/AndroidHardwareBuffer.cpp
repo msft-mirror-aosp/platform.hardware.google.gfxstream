@@ -123,7 +123,6 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
     // (hard to make actual dedicated allocs)
     uint32_t memoryTypeBits = 0;
     for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
-        if (isNoFlagsMemoryTypeIndexForGuest(hostMemVirtInfo, i)) continue;
         if (isHostVisibleMemoryTypeIndexForGuest(hostMemVirtInfo, i)) continue;
         memoryTypeBits |= (1 << i);
     }
