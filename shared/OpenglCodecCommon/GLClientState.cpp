@@ -875,6 +875,29 @@ void GLClientState::getPackingOffsets2D(GLsizei width, GLsizei height, GLenum fo
     *skipRows = m_pixelStore.pack_skip_rows;
 }
 
+void GLClientState::getUnpackingOffsets2D(GLsizei width, GLsizei height, GLenum format, GLenum type, int* startOffset, int* pixelRowSize, int* totalRowSize, int* skipRows) const
+{
+    if (width <= 0 || height <= 0) {
+        *startOffset = 0;
+        *pixelRowSize = 0;
+        *totalRowSize = 0;
+        return;
+    }
+
+    GLESTextureUtils::computePackingOffsets2D(
+            width, height,
+            format, type,
+            m_pixelStore.unpack_alignment,
+            m_pixelStore.unpack_row_length,
+            m_pixelStore.unpack_skip_pixels,
+            m_pixelStore.unpack_skip_rows,
+            startOffset,
+            pixelRowSize,
+            totalRowSize);
+
+    *skipRows = m_pixelStore.unpack_skip_rows;
+}
+
 void GLClientState::setNumActiveUniformsInUniformBlock(GLuint program, GLuint uniformBlockIndex, GLint numActiveUniforms) {
     UniformBlockInfoKey key;
     key.program = program;
