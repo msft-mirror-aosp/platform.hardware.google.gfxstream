@@ -3344,7 +3344,7 @@ void glTexImage2D_enc(void *self , GLenum target, GLint level, GLint internalfor
 	stream->writeFully(&__size_pixels,4);
 	if (useChecksum) checksumCalculator->addBuffer(&__size_pixels,4);
 	if (pixels != NULL) {
-		stream->writeFully(pixels, __size_pixels);
+	    stream->uploadPixels(self, width, height, format, type, pixels);
 		if (useChecksum) checksumCalculator->addBuffer(pixels, __size_pixels);
 	}
 	buf = stream->alloc(checksumSize);
@@ -3497,7 +3497,7 @@ void glTexSubImage2D_enc(void *self , GLenum target, GLint level, GLint xoffset,
 	stream->writeFully(&__size_pixels,4);
 	if (useChecksum) checksumCalculator->addBuffer(&__size_pixels,4);
 	if (pixels != NULL) {
-		stream->writeFully(pixels, __size_pixels);
+	    stream->uploadPixels(self, width, height, format, type, pixels);
 		if (useChecksum) checksumCalculator->addBuffer(pixels, __size_pixels);
 	}
 	buf = stream->alloc(checksumSize);
