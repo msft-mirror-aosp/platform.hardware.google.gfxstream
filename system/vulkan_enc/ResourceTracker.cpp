@@ -1845,14 +1845,14 @@ public:
                         (unsigned long long)hvaSizeId[2]);
                 mLock.lock();
 
-                struct drm_virtgpu_resource_create_v2 drm_rc_v2 = { 0 };
-                drm_rc_v2.args = (uint64_t)&hvaSizeId[2];
-                drm_rc_v2.args_size = sizeof(uint64_t);
-                drm_rc_v2.size = hvaSizeId[1];
-                drm_rc_v2.flags = VIRTGPU_RESOURCE_TYPE_HOST;
+                struct drm_virtgpu_resource_create_blob drm_rc_blob = { 0 };
+                drm_rc_blob.blob_mem = VIRTGPU_BLOB_MEM_HOST;
+                drm_rc_blob.blob_flags = VIRTGPU_BLOB_FLAG_MAPPABLE;
+                drm_rc_blob.blob_id = hvaSizeId[2];
+                drm_rc_blob.size = hvaSizeId[1];
 
                 int res = drmIoctl(
-                    mRendernodeFd, DRM_IOCTL_VIRTGPU_RESOURCE_CREATE_V2, &drm_rc_v2);
+                    mRendernodeFd, DRM_IOCTL_VIRTGPU_RESOURCE_CREATE_BLOB, &drm_rc_blob);
 
                 if (res) {
                     ALOGE("%s: Failed to resource create v2: sterror: %s errno: %d\n", __func__,
@@ -1861,7 +1861,7 @@ public:
                 }
 
                 struct drm_virtgpu_map map_info = {
-                    .handle = drm_rc_v2.bo_handle,
+                    .handle = drm_rc_blob.bo_handle,
                 };
 
                 res = drmIoctl(mRendernodeFd, DRM_IOCTL_VIRTGPU_MAP, &map_info);
