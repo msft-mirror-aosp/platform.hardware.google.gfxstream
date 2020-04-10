@@ -1143,7 +1143,6 @@ public:
             { "VK_KHR_external_memory", 1 },
             { "VK_KHR_external_semaphore", 1 },
             { "VK_FUCHSIA_external_semaphore", 1 },
-            { "VK_FUCHSIA_buffer_collection", 1 },
 #endif
         };
 
@@ -1151,11 +1150,13 @@ public:
             filteredExts.push_back(anbExtProp);
         }
 
+#ifndef VK_USE_PLATFORM_FUCHSIA
         if (hostSupportsExternalSemaphore &&
             !hostHasPosixExternalSemaphore) {
             filteredExts.push_back(
                 { "VK_KHR_external_semaphore_fd", 1});
         }
+#endif
 
         bool win32ExtMemAvailable =
             getHostDeviceExtensionIndex(
@@ -1163,12 +1164,12 @@ public:
         bool posixExtMemAvailable =
             getHostDeviceExtensionIndex(
                 "VK_KHR_external_memory_fd") != -1;
-        bool extMoltenVkAvailable =
-            getHostDeviceExtensionIndex(
+        bool moltenVkExtAvailable =
+            getHostInstanceExtensionIndex(
                 "VK_MVK_moltenvk") != -1;
 
         bool hostHasExternalMemorySupport =
-            win32ExtMemAvailable || posixExtMemAvailable || extMoltenVkAvailable;
+            win32ExtMemAvailable || posixExtMemAvailable || moltenVkExtAvailable;
 
         if (hostHasExternalMemorySupport) {
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
@@ -1182,6 +1183,9 @@ public:
 #ifdef VK_USE_PLATFORM_FUCHSIA
             filteredExts.push_back({
                 "VK_FUCHSIA_external_memory", 1
+            });
+            filteredExts.push_back({
+                "VK_FUCHSIA_buffer_collection", 1
             });
 #endif
         }
