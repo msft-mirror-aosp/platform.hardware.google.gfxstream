@@ -735,7 +735,7 @@ void VulkanDevice::InitLogger() {
                                .tags = nullptr,
                                .num_tags = 0};
 
-  fx_log_init_with_config(&config);
+  fx_log_reconfigure(&config);
 }
 
 extern "C" __attribute__((visibility("default"))) PFN_vkVoidFunction
