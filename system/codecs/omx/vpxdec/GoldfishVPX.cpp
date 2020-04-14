@@ -19,11 +19,29 @@
 #include <utils/misc.h>
 //#include "OMX_VideoExt.h"
 
+#define DEBUG 0
+#if DEBUG
+#define DDD(...) ALOGD(__VA_ARGS__)
+#else
+#define DDD(...) ((void)0)
+#endif
+
 #include "GoldfishVPX.h"
 
 #include <media/stagefright/foundation/ADebug.h>
 #include <media/stagefright/MediaDefs.h>
 
+#include <OMX_VideoExt.h>
+#include <inttypes.h>
+
+#include <nativebase/nativebase.h>
+
+#include <android/hardware/graphics/allocator/3.0/IAllocator.h>
+#include <android/hardware/graphics/mapper/3.0/IMapper.h>
+#include <hidl/LegacySupport.h>
+
+using ::android::hardware::graphics::common::V1_0::BufferUsage;
+using ::android::hardware::graphics::common::V1_2::PixelFormat;
 
 namespace android {
 
@@ -35,19 +53,26 @@ static const CodecProfileLevel kVP9ProfileLevels[] = {
     { OMX_VIDEO_VP9Profile2HDR10Plus, OMX_VIDEO_VP9Level5 },
 };
 
-GoldfishVPX::GoldfishVPX(
-        const char *name,
-        const char *componentRole,
-        OMX_VIDEO_CODINGTYPE codingType,
-        const OMX_CALLBACKTYPE *callbacks,
-        OMX_PTR appData,
-        OMX_COMPONENTTYPE **component)
+GoldfishVPX::GoldfishVPX(const char* name,
+                         const char* componentRole,
+                         OMX_VIDEO_CODINGTYPE codingType,
+                         const OMX_CALLBACKTYPE* callbacks,
+                         OMX_PTR appData,
+                         OMX_COMPONENTTYPE** component,
+                         RenderMode renderMode)
     : GoldfishVideoDecoderOMXComponent(
-            name, componentRole, codingType,
-            codingType == OMX_VIDEO_CodingVP8 ? NULL : kVP9ProfileLevels,
-            codingType == OMX_VIDEO_CodingVP8 ?  0 : NELEM(kVP9ProfileLevels),
-            320 /* width */, 240 /* height */, callbacks, appData, component),
+              name,
+              componentRole,
+              codingType,
+              codingType == OMX_VIDEO_CodingVP8 ? NULL : kVP9ProfileLevels,
+              codingType == OMX_VIDEO_CodingVP8 ? 0 : NELEM(kVP9ProfileLevels),
+              320 /* width */,
+              240 /* height */,
+              callbacks,
+              appData,
+              component),
       mMode(codingType == OMX_VIDEO_CodingVP8 ? MODE_VP8 : MODE_VP9),
+      mRenderMode(renderMode),
       mEOSStatus(INPUT_DATA_AVAILABLE),
       mCtx(NULL),
       mFrameParallelMode(false),
@@ -55,17 +80,19 @@ GoldfishVPX::GoldfishVPX(
       mImg(NULL) {
     // arbitrary from avc/hevc as vpx does not specify a min compression ratio
     const size_t kMinCompressionRatio = mMode == MODE_VP8 ? 2 : 4;
-    const char *mime = mMode == MODE_VP8 ? MEDIA_MIMETYPE_VIDEO_VP8 : MEDIA_MIMETYPE_VIDEO_VP9;
-    const size_t kMaxOutputBufferSize = 2560 * 2560 * 3 / 2;
-    initPorts(
-            kNumBuffers, kMaxOutputBufferSize / kMinCompressionRatio /* inputBufferSize */,
-            kNumBuffers, mime, kMinCompressionRatio);
-    ALOGE("calling constructor of GoldfishVPX");
-    CHECK_EQ(initDecoder(), (status_t)OK);
+    const char* mime = mMode == MODE_VP8 ? MEDIA_MIMETYPE_VIDEO_VP8
+                                         : MEDIA_MIMETYPE_VIDEO_VP9;
+    const size_t kMaxOutputBufferSize = 3840 * 2160 * 3 / 2;  // 4k
+    initPorts(kNumBuffers,
+              kMaxOutputBufferSize / kMinCompressionRatio /* inputBufferSize */,
+              kNumBuffers, mime, kMinCompressionRatio);
+    ALOGI("calling constructor of GoldfishVPX");
+    // wait till later
+    // CHECK_EQ(initDecoder(), (status_t)OK);
 }
 
 GoldfishVPX::~GoldfishVPX() {
-    ALOGE("calling destructor of GoldfishVPX");
+    ALOGI("calling destructor of GoldfishVPX");
     destroyDecoder();
 }
 
@@ -81,25 +108,33 @@ status_t GoldfishVPX::initDecoder() {
     mCtx = new vpx_codec_ctx_t;
     mCtx->vpversion = mMode == MODE_VP8 ? 8 : 9;
 
+    mCtx->version = mEnableAndroidNativeBuffers ? 200 : 100;
+
     int vpx_err = 0;
     if ((vpx_err = vpx_codec_dec_init(mCtx))) {
         ALOGE("vpx decoder failed to initialize. (%d)", vpx_err);
         return UNKNOWN_ERROR;
     }
 
+    ALOGI("calling init GoldfishVPX ctx %p", mCtx);
     return OK;
 }
 
 status_t GoldfishVPX::destroyDecoder() {
-    vpx_codec_destroy(mCtx);
-    delete mCtx;
-    mCtx = NULL;
+    if (mCtx) {
+        ALOGI("calling destroying GoldfishVPX ctx %p", mCtx);
+        vpx_codec_destroy(mCtx);
+        delete mCtx;
+        mCtx = NULL;
+    }
     return OK;
 }
 
-void GoldfishVPX::setup_ctx_parameters(vpx_codec_ctx_t* ctx) {
+void GoldfishVPX::setup_ctx_parameters(vpx_codec_ctx_t* ctx,
+                                       int hostColorBufferId) {
     ctx->width = mWidth;
     ctx->height = mHeight;
+    ctx->hostColorBufferId = hostColorBufferId;
     ctx->outputBufferWidth = outputBufferWidth();
     ctx->outputBufferHeight = outputBufferHeight();
     OMX_PARAM_PORTDEFINITIONTYPE *outDef = &editPortInfo(kOutputPortIndex)->mDef;
@@ -111,6 +146,7 @@ bool GoldfishVPX::outputBuffers(bool flushDecoder, bool display, bool eos, bool 
     List<BufferInfo *> &outQueue = getPortQueue(1);
     BufferInfo *outInfo = NULL;
     OMX_BUFFERHEADERTYPE *outHeader = NULL;
+    DDD("%s %d", __func__, __LINE__);
 
     if (flushDecoder && mFrameParallelMode) {
         // Flush decoder by passing NULL data ptr and 0 size.
@@ -136,8 +172,11 @@ bool GoldfishVPX::outputBuffers(bool flushDecoder, bool display, bool eos, bool 
     }
 
     while (!outQueue.empty()) {
+        DDD("%s %d", __func__, __LINE__);
+        outInfo = *outQueue.begin();
+        outHeader = outInfo->mHeader;
         if (mImg == NULL) {
-            setup_ctx_parameters(mCtx);
+            setup_ctx_parameters(mCtx, getHostColorBufferId(outHeader));
             mImg = vpx_codec_get_frame(mCtx);
             if (mImg == NULL) {
                 break;
@@ -145,8 +184,6 @@ bool GoldfishVPX::outputBuffers(bool flushDecoder, bool display, bool eos, bool 
         }
         uint32_t width = mImg->d_w;
         uint32_t height = mImg->d_h;
-        outInfo = *outQueue.begin();
-        outHeader = outInfo->mHeader;
         CHECK(mImg->fmt == VPX_IMG_FMT_I420 || mImg->fmt == VPX_IMG_FMT_I42016);
         OMX_COLOR_FORMATTYPE outputColorFormat = OMX_COLOR_FormatYUV420Planar;
         int32_t bpp = 1;
@@ -168,11 +205,12 @@ bool GoldfishVPX::outputBuffers(bool flushDecoder, bool display, bool eos, bool 
             queueOutputFrameConfig(privInfo->mHdr10PlusInfo);
         }
 
-        if (outputBufferSafe(outHeader)) {
+        if (outputBufferSafe(outHeader) &&
+            getHostColorBufferId(outHeader) < 0) {
             uint8_t *dst = outHeader->pBuffer;
             memcpy(dst, mCtx->dst, outHeader->nFilledLen);
         } else {
-            outHeader->nFilledLen = 0;
+            // outHeader->nFilledLen = 0;
         }
 
         mImg = NULL;
@@ -202,6 +240,7 @@ bool GoldfishVPX::outputBuffers(bool flushDecoder, bool display, bool eos, bool 
 }
 
 bool GoldfishVPX::outputBufferSafe(OMX_BUFFERHEADERTYPE *outHeader) {
+    DDD("%s %d", __func__, __LINE__);
     uint32_t width = outputBufferWidth();
     uint32_t height = outputBufferHeight();
     uint64_t nFilledLen = width;
@@ -221,8 +260,17 @@ bool GoldfishVPX::outputBufferSafe(OMX_BUFFERHEADERTYPE *outHeader) {
 }
 
 void GoldfishVPX::onQueueFilled(OMX_U32 /* portIndex */) {
+    DDD("%s %d", __func__, __LINE__);
     if (mOutputPortSettingsChange != NONE || mEOSStatus == OUTPUT_FRAMES_FLUSHED) {
         return;
+    }
+
+    if (mCtx == nullptr) {
+        if (OK != initDecoder()) {
+            ALOGE("Failed to initialize decoder");
+            notify(OMX_EventError, OMX_ErrorUnsupportedSetting, 0, NULL);
+            return;
+        }
     }
 
     List<BufferInfo *> &inQueue = getPortQueue(0);
@@ -313,6 +361,7 @@ void GoldfishVPX::onQueueFilled(OMX_U32 /* portIndex */) {
 }
 
 void GoldfishVPX::onPortFlushCompleted(OMX_U32 portIndex) {
+    DDD("%s %d", __func__, __LINE__);
     if (portIndex == kInputPortIndex) {
         bool portWillReset = false;
         if (!outputBuffers(
@@ -326,6 +375,7 @@ void GoldfishVPX::onPortFlushCompleted(OMX_U32 portIndex) {
 }
 
 void GoldfishVPX::onReset() {
+    DDD("%s %d", __func__, __LINE__);
     bool portWillReset = false;
     if (!outputBuffers(
              true /* flushDecoder */, false /* display */, false /* eos */, &portWillReset)) {
@@ -336,21 +386,141 @@ void GoldfishVPX::onReset() {
     mEOSStatus = INPUT_DATA_AVAILABLE;
 }
 
+int GoldfishVPX::getHostColorBufferId(void* header) {
+    DDD("%s %d", __func__, __LINE__);
+    if (mNWBuffers.find(header) == mNWBuffers.end()) {
+        DDD("cannot find color buffer for header %p", header);
+        return -1;
+    }
+    sp<ANativeWindowBuffer> nBuf = mNWBuffers[header];
+    cb_handle_t* handle = (cb_handle_t*)nBuf->handle;
+    DDD("found color buffer for header %p --> %d", header, handle->hostHandle);
+    return handle->hostHandle;
+}
+
+OMX_ERRORTYPE GoldfishVPX::internalGetParameter(OMX_INDEXTYPE index,
+                                                OMX_PTR params) {
+    const int32_t indexFull = index;
+    switch (indexFull) {
+        case kGetAndroidNativeBufferUsageIndex: {
+            DDD("calling kGetAndroidNativeBufferUsageIndex");
+            GetAndroidNativeBufferUsageParams* nativeBuffersUsage =
+                    (GetAndroidNativeBufferUsageParams*)params;
+            nativeBuffersUsage->nUsage =
+                    (unsigned int)(BufferUsage::GPU_DATA_BUFFER);
+            return OMX_ErrorNone;
+        }
+
+        default:
+            return GoldfishVideoDecoderOMXComponent::internalGetParameter(
+                    index, params);
+    }
+}
+
+OMX_ERRORTYPE GoldfishVPX::internalSetParameter(OMX_INDEXTYPE index,
+                                                const OMX_PTR params) {
+    // Include extension index OMX_INDEXEXTTYPE.
+    const int32_t indexFull = index;
+
+    switch (indexFull) {
+        case kEnableAndroidNativeBuffersIndex: {
+            DDD("calling kEnableAndroidNativeBuffersIndex");
+            EnableAndroidNativeBuffersParams* enableNativeBuffers =
+                    (EnableAndroidNativeBuffersParams*)params;
+            if (enableNativeBuffers) {
+                mEnableAndroidNativeBuffers = enableNativeBuffers->enable;
+                if (mEnableAndroidNativeBuffers == false) {
+                    mNWBuffers.clear();
+                    DDD("disabled kEnableAndroidNativeBuffersIndex");
+                } else {
+                    DDD("enabled kEnableAndroidNativeBuffersIndex");
+                }
+            }
+            return OMX_ErrorNone;
+        }
+
+        case kUseAndroidNativeBufferIndex: {
+            if (mEnableAndroidNativeBuffers == false) {
+                ALOGE("Error: not enabled Android Native Buffers");
+                return OMX_ErrorBadParameter;
+            }
+            UseAndroidNativeBufferParams* use_buffer_params =
+                    (UseAndroidNativeBufferParams*)params;
+            if (use_buffer_params) {
+                sp<ANativeWindowBuffer> nBuf = use_buffer_params->nativeBuffer;
+                cb_handle_t* handle = (cb_handle_t*)nBuf->handle;
+                void* dst = NULL;
+                DDD("kUseAndroidNativeBufferIndex with handle %p host color "
+                    "handle %d "
+                    "calling usebuffer",
+                    handle, handle->hostHandle);
+                useBufferCallerLockedAlready(use_buffer_params->bufferHeader,
+                                             use_buffer_params->nPortIndex,
+                                             use_buffer_params->pAppPrivate,
+                                             handle->allocatedSize(),
+                                             (OMX_U8*)dst);
+                mNWBuffers[*(use_buffer_params->bufferHeader)] =
+                        use_buffer_params->nativeBuffer;
+                ;
+            }
+            return OMX_ErrorNone;
+        }
+
+        default:
+            return GoldfishVideoDecoderOMXComponent::internalSetParameter(
+                    index, params);
+    }
+}
+
+OMX_ERRORTYPE GoldfishVPX::getExtensionIndex(const char* name,
+                                             OMX_INDEXTYPE* index) {
+    if (mRenderMode == RenderMode::RENDER_BY_HOST_GPU) {
+        if (!strcmp(name,
+                    "OMX.google.android.index.enableAndroidNativeBuffers")) {
+            DDD("calling getExtensionIndex for enable ANB");
+            *(int32_t*)index = kEnableAndroidNativeBuffersIndex;
+            return OMX_ErrorNone;
+        } else if (!strcmp(name,
+                           "OMX.google.android.index.useAndroidNativeBuffer")) {
+            *(int32_t*)index = kUseAndroidNativeBufferIndex;
+            return OMX_ErrorNone;
+        } else if (!strcmp(name,
+                           "OMX.google.android.index."
+                           "getAndroidNativeBufferUsage")) {
+            *(int32_t*)index = kGetAndroidNativeBufferUsageIndex;
+            return OMX_ErrorNone;
+        }
+    }
+    return GoldfishVideoDecoderOMXComponent::getExtensionIndex(name, index);
+}
+
 }  // namespace android
 
 android::GoldfishOMXComponent *createGoldfishOMXComponent(
         const char *name, const OMX_CALLBACKTYPE *callbacks,
         OMX_PTR appData, OMX_COMPONENTTYPE **component) {
-    if (!strcmp(name, "OMX.google.goldfish.vp8.decoder")) {
+    DDD("%s %d", __func__, __LINE__);
+    // only support vp9 to use host hardware decoder, for now
+    if (!strncmp("OMX.android.goldfish.vp9.decoder", name, 32)) {
         return new android::GoldfishVPX(
-                name, "video_decoder.vp8", OMX_VIDEO_CodingVP8,
-                callbacks, appData, component);
-    } else if (!strcmp(name, "OMX.google.goldfish.vp9.decoder")) {
-        return new android::GoldfishVPX(
-                name, "video_decoder.vp9", OMX_VIDEO_CodingVP9,
-                callbacks, appData, component);
-    } else {
-        CHECK(!"Unknown component");
+                name, "video_decoder.vp9", OMX_VIDEO_CodingVP9, callbacks,
+                appData, component, RenderMode::RENDER_BY_HOST_GPU);
     }
+    if (!strncmp("OMX.android.goldfish.vp8.decoder", name, 32)) {
+        return new android::GoldfishVPX(
+                name, "video_decoder.vp8", OMX_VIDEO_CodingVP8, callbacks,
+                appData, component, RenderMode::RENDER_BY_HOST_GPU);
+    }
+    if (!strncmp("OMX.google.goldfish.vp9.decoder", name, 30)) {
+        return new android::GoldfishVPX(
+                name, "video_decoder.vp9", OMX_VIDEO_CodingVP9, callbacks,
+                appData, component, RenderMode::RENDER_BY_GUEST_CPU);
+    }
+    if (!strncmp("OMX.google.goldfish.vp8.decoder", name, 30)) {
+        return new android::GoldfishVPX(
+                name, "video_decoder.vp8", OMX_VIDEO_CodingVP8, callbacks,
+                appData, component, RenderMode::RENDER_BY_GUEST_CPU);
+    }
+    { CHECK(!"Unknown component"); }
     return NULL;
 }
