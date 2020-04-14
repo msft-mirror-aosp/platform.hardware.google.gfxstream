@@ -34,12 +34,21 @@ LOCAL_HEADER_LIBRARIES := media_plugin_headers \
 	                      libhidlbase_impl_internal \
 	                      libbase
 
+LOCAL_HEADER_LIBRARIES += libui_headers \
+                          libnativewindow_headers \
+                          libhardware_headers \
+                          libarect_headers \
+                          libarect_headers_for_ndk
+
 LOCAL_SHARED_LIBRARIES :=       \
         libbinder               \
         libutils                \
         liblog                  \
         libcutils               \
+        libui                   \
         android.hardware.media.omx@1.0 \
+        android.hardware.graphics.allocator@3.0 \
+        android.hardware.graphics.mapper@3.0 \
         libstagefright_foundation
 
 $(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
