@@ -21,17 +21,30 @@
 #include "GoldfishVideoDecoderOMXComponent.h"
 #include "goldfish_vpx_defs.h"
 
+#include <sys/time.h>
+
+#include <map>
+#include <vector>
+
+#include <ui/GraphicBuffer.h>
+#include <utils/List.h>
+#include <utils/RefBase.h>
+#include <utils/Vector.h>
+#include <utils/threads.h>
+#include "gralloc_cb.h"
+
 namespace android {
 
 struct ABuffer;
 
 struct GoldfishVPX : public GoldfishVideoDecoderOMXComponent {
-    GoldfishVPX(const char *name,
-            const char *componentRole,
-            OMX_VIDEO_CODINGTYPE codingType,
-            const OMX_CALLBACKTYPE *callbacks,
-            OMX_PTR appData,
-            OMX_COMPONENTTYPE **component);
+    GoldfishVPX(const char* name,
+                const char* componentRole,
+                OMX_VIDEO_CODINGTYPE codingType,
+                const OMX_CALLBACKTYPE* callbacks,
+                OMX_PTR appData,
+                OMX_COMPONENTTYPE** component,
+                RenderMode renderMode);
 
 protected:
     virtual ~GoldfishVPX();
@@ -42,6 +55,15 @@ protected:
     virtual bool supportDescribeHdrStaticInfo();
     virtual bool supportDescribeHdr10PlusInfo();
 
+    virtual OMX_ERRORTYPE internalGetParameter(OMX_INDEXTYPE index,
+                                               OMX_PTR params);
+
+    virtual OMX_ERRORTYPE internalSetParameter(OMX_INDEXTYPE index,
+                                               const OMX_PTR params);
+
+    virtual OMX_ERRORTYPE getExtensionIndex(const char* name,
+                                            OMX_INDEXTYPE* index);
+
 private:
     enum {
         kNumBuffers = 10
@@ -51,6 +73,12 @@ private:
         MODE_VP8,
         MODE_VP9
     } mMode;
+
+    RenderMode mRenderMode = RenderMode::RENDER_BY_GUEST_CPU;
+    bool mEnableAndroidNativeBuffers = false;
+    std::map<void*, sp<ANativeWindowBuffer>> mNWBuffers;
+
+    int getHostColorBufferId(void* header);
 
     enum {
         INPUT_DATA_AVAILABLE,  // VPX component is ready to decode data.
@@ -73,7 +101,7 @@ private:
     bool outputBuffers(bool flushDecoder, bool display, bool eos, bool *portWillReset);
     bool outputBufferSafe(OMX_BUFFERHEADERTYPE *outHeader);
 
-    void setup_ctx_parameters(vpx_codec_ctx_t*);
+    void setup_ctx_parameters(vpx_codec_ctx_t*, int hostColorBufferId = -1);
 
     DISALLOW_EVIL_CONSTRUCTORS(GoldfishVPX);
 };

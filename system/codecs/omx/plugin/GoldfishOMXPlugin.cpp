@@ -76,10 +76,12 @@ static bool useAndroidGoldfishComponentInstance(const char* libname) {
 }
 
 static const GoldfishComponent kComponents[] = {
-    { "OMX.google.goldfish.vp8.decoder", "vpxdec", "video_decoder.vp8" },
-    { "OMX.google.goldfish.vp9.decoder", "vpxdec", "video_decoder.vp9" },
-    { "OMX.google.goldfish.h264.decoder", "avcdec", "video_decoder.avc" },
-    { "OMX.android.goldfish.h264.decoder", "avcdec", "video_decoder.avc" },
+        {"OMX.google.goldfish.vp8.decoder", "vpxdec", "video_decoder.vp8"},
+        {"OMX.google.goldfish.vp9.decoder", "vpxdec", "video_decoder.vp9"},
+        {"OMX.google.goldfish.h264.decoder", "avcdec", "video_decoder.avc"},
+        {"OMX.android.goldfish.vp8.decoder", "vpxdec", "video_decoder.vp8"},
+        {"OMX.android.goldfish.vp9.decoder", "vpxdec", "video_decoder.vp9"},
+        {"OMX.android.goldfish.h264.decoder", "avcdec", "video_decoder.avc"},
 };
 
 static std::vector<GoldfishComponent> kActiveComponents;
