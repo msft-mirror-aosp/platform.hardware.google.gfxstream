@@ -1420,9 +1420,13 @@ public:
 
         VkEncoder* enc = (VkEncoder*)context;
 
+        bool freeMemorySyncSupported =
+            mFeatureInfo->hasVulkanFreeMemorySync;
         for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
             for (auto& block : info.hostMemBlocks[i]) {
-                destroyHostMemAlloc(enc, device, &block);
+                destroyHostMemAlloc(
+                    freeMemorySyncSupported,
+                    enc, device, &block);
             }
         }
     }

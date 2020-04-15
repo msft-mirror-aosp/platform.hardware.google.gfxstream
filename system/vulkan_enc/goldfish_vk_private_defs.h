@@ -119,6 +119,10 @@ typedef VkResult (VKAPI_PTR *PFN_vkRegisterBufferColorBufferGOOGLE)(VkDevice dev
 
 typedef VkResult (VKAPI_PTR *PFN_vkGetMemoryHostAddressInfoGOOGLE)(VkDevice device, VkDeviceMemory memory, uint64_t* pAddress, uint64_t* pSize);
 
+#define VK_GOOGLE_free_memory_sync 1
+
+typedef VkResult (VKAPI_PTR *PFN_vkFreeMemorySyncGOOGLE)(VkDevice device, VkDeviceMemory memory, const VkAllocationCallbacks* pAllocationCallbacks);
+
 #define VK_ANDROID_external_memory_android_hardware_buffer 1
 struct AHardwareBuffer;
 struct VkAndroidHardwareBufferPropertiesANDROID;
