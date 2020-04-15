@@ -94,6 +94,7 @@ public:
     }
 
     void readbackPixels(void* context, int width, int height, unsigned int format, unsigned int type, void* pixels);
+    void uploadPixels(void* context, int width, int height, unsigned int format, unsigned int type, const void* pixels);
 
 
 private:
