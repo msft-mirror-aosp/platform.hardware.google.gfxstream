@@ -23433,5 +23433,79 @@ VkResult VkEncoder::vkGetMemoryHostAddressInfoGOOGLE(
 }
 
 #endif
+#ifdef VK_GOOGLE_free_memory_sync
+VkResult VkEncoder::vkFreeMemorySyncGOOGLE(
+    VkDevice device,
+    VkDeviceMemory memory,
+    const VkAllocationCallbacks* pAllocator)
+{
+    AutoLock encoderLock(mImpl->lock);
+    AEMU_SCOPED_TRACE("vkFreeMemorySyncGOOGLE encode");
+    mImpl->log("start vkFreeMemorySyncGOOGLE");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkDevice local_device;
+    VkDeviceMemory local_memory;
+    VkAllocationCallbacks* local_pAllocator;
+    local_device = device;
+    local_memory = memory;
+    local_pAllocator = nullptr;
+    if (pAllocator)
+    {
+        local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
+        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+    }
+    local_pAllocator = nullptr;
+    mImpl->resources()->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1547;
+        countingStream->handleMapping()->mapHandles_VkDevice_u64(&local_device, &cgen_var_1547, 1);
+        countingStream->write((uint64_t*)&cgen_var_1547, 1 * 8);
+        uint64_t cgen_var_1548;
+        countingStream->handleMapping()->mapHandles_VkDeviceMemory_u64(&local_memory, &cgen_var_1548, 1);
+        countingStream->write((uint64_t*)&cgen_var_1548, 1 * 8);
+        // WARNING PTR CHECK
+        uint64_t cgen_var_1549 = (uint64_t)(uintptr_t)local_pAllocator;
+        countingStream->putBe64(cgen_var_1549);
+        if (local_pAllocator)
+        {
+            marshal_VkAllocationCallbacks(countingStream, (VkAllocationCallbacks*)(local_pAllocator));
+        }
+    }
+    uint32_t packetSize_vkFreeMemorySyncGOOGLE = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkFreeMemorySyncGOOGLE = OP_vkFreeMemorySyncGOOGLE;
+    stream->write(&opcode_vkFreeMemorySyncGOOGLE, sizeof(uint32_t));
+    stream->write(&packetSize_vkFreeMemorySyncGOOGLE, sizeof(uint32_t));
+    uint64_t cgen_var_1550;
+    stream->handleMapping()->mapHandles_VkDevice_u64(&local_device, &cgen_var_1550, 1);
+    stream->write((uint64_t*)&cgen_var_1550, 1 * 8);
+    uint64_t cgen_var_1551;
+    stream->handleMapping()->mapHandles_VkDeviceMemory_u64(&local_memory, &cgen_var_1551, 1);
+    stream->write((uint64_t*)&cgen_var_1551, 1 * 8);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1552 = (uint64_t)(uintptr_t)local_pAllocator;
+    stream->putBe64(cgen_var_1552);
+    if (local_pAllocator)
+    {
+        marshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator));
+    }
+    AEMU_SCOPED_TRACE("vkFreeMemorySyncGOOGLE readParams");
+    AEMU_SCOPED_TRACE("vkFreeMemorySyncGOOGLE returnUnmarshal");
+    VkResult vkFreeMemorySyncGOOGLE_VkResult_return = (VkResult)0;
+    stream->read(&vkFreeMemorySyncGOOGLE_VkResult_return, sizeof(VkResult));
+    countingStream->clearPool();
+    stream->clearPool();
+    pool->freeAll();
+    resources->destroyMapping()->mapHandles_VkDeviceMemory((VkDeviceMemory*)&memory);
+    mImpl->log("finish vkFreeMemorySyncGOOGLE");;
+    return vkFreeMemorySyncGOOGLE_VkResult_return;
+}
+
+#endif
 
 } // namespace goldfish_vk
