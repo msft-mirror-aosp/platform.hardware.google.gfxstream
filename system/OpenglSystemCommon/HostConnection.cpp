@@ -615,6 +615,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetAsyncUnmapBuffer(m_rcEnc);
         queryAndSetVirtioGpuNext(m_rcEnc);
         queryHasSharedSlotsHostMemoryAllocator(m_rcEnc);
+        queryAndSetVulkanFreeMemorySync(m_rcEnc);
         if (m_processPipe) {
             m_processPipe->processPipeInit(m_connectionType, m_rcEnc);
         }
@@ -823,5 +824,12 @@ void HostConnection::queryHasSharedSlotsHostMemoryAllocator(ExtendedRCEncoderCon
     const std::string& glExtensions = queryGLExtensions(rcEnc);
     if (glExtensions.find(kHasSharedSlotsHostMemoryAllocator) != std::string::npos) {
         rcEnc->featureInfo()->hasSharedSlotsHostMemoryAllocator = true;
+    }
+}
+
+void HostConnection::queryAndSetVulkanFreeMemorySync(ExtendedRCEncoderContext *rcEnc) {
+    const std::string& glExtensions = queryGLExtensions(rcEnc);
+    if (glExtensions.find(kVulkanFreeMemorySync) != std::string::npos) {
+        rcEnc->featureInfo()->hasVulkanFreeMemorySync = true;
     }
 }

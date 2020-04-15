@@ -96,6 +96,7 @@ VkResult finishHostMemAllocInit(
     HostMemAlloc* out);
 
 void destroyHostMemAlloc(
+    bool freeMemorySyncSupported,
     VkEncoder* enc,
     VkDevice device,
     HostMemAlloc* toDestroy);
