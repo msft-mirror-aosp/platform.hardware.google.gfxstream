@@ -1815,6 +1815,12 @@ public:
         uint64_t* pSize,
         uint64_t* pHostmemId);
 #endif
+#ifdef VK_GOOGLE_free_memory_sync
+    VkResult vkFreeMemorySyncGOOGLE(
+    VkDevice device,
+        VkDeviceMemory memory,
+        const VkAllocationCallbacks* pAllocator);
+#endif
 
 private:
     class Impl;

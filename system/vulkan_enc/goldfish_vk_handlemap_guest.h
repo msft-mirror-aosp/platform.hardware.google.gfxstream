@@ -1683,5 +1683,7 @@ void handlemap_VkImportPhysicalAddressGOOGLE(
 #endif
 #ifdef VK_GOOGLE_address_space_info
 #endif
+#ifdef VK_GOOGLE_free_memory_sync
+#endif
 
 } // namespace goldfish_vk
