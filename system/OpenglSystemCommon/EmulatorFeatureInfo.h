@@ -102,6 +102,9 @@ static const char kVirtioGpuNext[] = "ANDROID_EMU_virtio_gpu_next";
 
 static const char kHasSharedSlotsHostMemoryAllocator[] = "ANDROID_EMU_has_shared_slots_host_memory_allocator";
 
+// Vulkan free memory sync
+static const char kVulkanFreeMemorySync[] = "ANDROID_EMU_vulkan_free_memory_sync";
+
 // Struct describing available emulator features
 struct EmulatorFeatureInfo {
 
@@ -119,7 +122,8 @@ struct EmulatorFeatureInfo {
         hasYUVCache (false),
         hasAsyncUnmapBuffer (false),
         hasVirtioGpuNext (false),
-        hasSharedSlotsHostMemoryAllocator(false)
+        hasSharedSlotsHostMemoryAllocator(false),
+        hasVulkanFreeMemorySync(false)
     { }
 
     SyncImpl syncImpl;
@@ -136,6 +140,7 @@ struct EmulatorFeatureInfo {
     bool hasAsyncUnmapBuffer;
     bool hasVirtioGpuNext;
     bool hasSharedSlotsHostMemoryAllocator;
+    bool hasVulkanFreeMemorySync;
 };
 
 enum HostConnectionType {
