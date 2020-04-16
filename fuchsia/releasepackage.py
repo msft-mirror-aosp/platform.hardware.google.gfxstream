@@ -110,5 +110,5 @@ if not args.dry_run:
 print ("""
   <package name="%s"
            version="git_revision:%s"
-           path="prebuild/third_party/%s"/>
+           path="prebuilt/third_party/%s"/>
 """ % (package_name, git_rev, package_dir))[1:-1]
