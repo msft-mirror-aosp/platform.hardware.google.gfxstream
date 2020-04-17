@@ -24,8 +24,10 @@
 #undef HWC2_USE_CPP11
 #include <utils/Thread.h>
 
+#include <android-base/unique_fd.h>
 #include <atomic>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <numeric>
 #include <sstream>
@@ -37,7 +39,6 @@
 #include <cutils/native_handle.h>
 
 #include "cbmanager.h"
-#include "MiniFence.h"
 #include "HostConnection.h"
 
 namespace android {
@@ -126,17 +127,19 @@ private:
     // layer. This class is a container for these two.
     class FencedBuffer {
         public:
-            FencedBuffer() : mBuffer(nullptr), mFence(MiniFence::NO_FENCE) {}
+            FencedBuffer() : mBuffer(nullptr) {}
 
             void setBuffer(buffer_handle_t buffer) { mBuffer = buffer; }
-            void setFence(int fenceFd) { mFence = new MiniFence(fenceFd); }
+            void setFence(int fenceFd) {
+                mFence = std::make_shared<base::unique_fd>(fenceFd);
+            }
 
             buffer_handle_t getBuffer() const { return mBuffer; }
-            int getFence() const { return mFence->dup(); }
+            int getFence() const { return mFence ? dup(mFence->get()) : -1; }
 
         private:
             buffer_handle_t mBuffer;
-            sp<MiniFence> mFence;
+            std::shared_ptr<base::unique_fd> mFence;
     };
 
     typedef struct compose_layer {
