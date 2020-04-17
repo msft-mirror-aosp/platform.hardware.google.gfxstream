@@ -32,6 +32,7 @@ emulator_hwcomposer_shared_libraries := \
 emulator_hwcomposer_cflags += \
     -DLOG_TAG=\"hwc2\" \
     -DPLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION) \
+    -DANDROID_BASE_UNIQUE_FD_DISABLE_IMPLICIT_CONVERSION
 
 emulator_hwcomposer_c_includes += \
     system/core/libsync \
@@ -45,8 +46,7 @@ emulator_hwcomposer_c_includes += \
 emulator_hwcomposer_relative_path := hw
 
 emulator_hwcomposer2_src_files := \
-    EmuHWC2.cpp \
-    MiniFence.cpp
+    EmuHWC2.cpp
 
 include $(CLEAR_VARS)
 
