@@ -27,6 +27,8 @@
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+#include <ui/GraphicBuffer.h>
+#include <ui/GraphicBufferAllocator.h>
 
 #include "../egl/goldfish_sync.h"
 
@@ -390,17 +392,27 @@ Error EmuHWC2::registerCallback(Callback descriptor,
 }
 
 const native_handle_t* EmuHWC2::allocateDisplayColorBuffer() {
-    typedef CbManager::BufferUsage BufferUsage;
+    const uint32_t layerCount = 1;
+    const uint64_t graphicBufferId = 0; // not used
 
-    return mCbManager.allocateBuffer(
-        mDisplayWidth,
-        mDisplayHeight,
-        CbManager::PixelFormat::RGBA_8888,
-        (BufferUsage::COMPOSER_OVERLAY | BufferUsage::GPU_RENDER_TARGET));
+    buffer_handle_t h;
+    uint32_t stride;
+
+    if (GraphicBufferAllocator::get().allocate(
+        mDisplayWidth, mDisplayHeight,
+        PIXEL_FORMAT_RGBA_8888,
+        layerCount,
+        (GraphicBuffer::USAGE_HW_COMPOSER | GraphicBuffer::USAGE_HW_RENDER),
+        &h, &stride,
+        graphicBufferId, "EmuHWC2") == OK) {
+        return static_cast<const native_handle_t*>(h);
+    } else {
+        return nullptr;
+    }
 }
 
 void EmuHWC2::freeDisplayColorBuffer(const native_handle_t* h) {
-    mCbManager.freeBuffer(h);
+    GraphicBufferAllocator::get().free(h);
 }
 
 // Display functions
