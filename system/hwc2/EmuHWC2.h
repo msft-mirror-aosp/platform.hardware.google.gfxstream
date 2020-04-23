@@ -38,7 +38,6 @@
 
 #include <cutils/native_handle.h>
 
-#include "cbmanager.h"
 #include "HostConnection.h"
 
 namespace android {
@@ -470,7 +469,6 @@ private:
     const native_handle_t* allocateDisplayColorBuffer();
     void freeDisplayColorBuffer(const native_handle_t* h);
 
-    CbManager mCbManager;
     std::unordered_set<HWC2::Capability> mCapabilities;
 
     // These are potentially accessed from multiple threads, and are protected
