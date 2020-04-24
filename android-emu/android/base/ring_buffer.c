@@ -415,25 +415,11 @@ static void ring_buffer_sleep() {
 #endif
 }
 
-static uint64_t ring_buffer_curr_us() {
-    uint64_t res;
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    res = tv.tv_sec * 1000000ULL + tv.tv_usec;
-    return res;
-}
-
-static const uint32_t yield_backoff_us = 1000;
-static const uint32_t sleep_backoff_us = 2000;
-
 bool ring_buffer_wait_write(
     const struct ring_buffer* r,
     const struct ring_buffer_view* v,
     uint32_t bytes,
     uint64_t timeout_us) {
-
-    uint64_t start_us = ring_buffer_curr_us();
-    uint64_t curr_wait_us;
 
     bool can_write =
         v ? ring_buffer_view_can_write(r, v, bytes) :
@@ -475,7 +461,6 @@ static uint32_t get_step_size(
     struct ring_buffer_view* v,
     uint32_t bytes) {
 
-    uint32_t step_shift = 0;
     uint32_t available = v ? (v->size >> 1) : (RING_BUFFER_SIZE >> 1);
     uint32_t res = available < bytes ? available : bytes;
 
