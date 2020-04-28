@@ -17,7 +17,7 @@
 #ifndef SYSTEM_HALS_CB_HANDLE_30_H
 #define SYSTEM_HALS_CB_HANDLE_30_H
 
-#include "gralloc_cb.h"
+#include <gralloc_cb_bp.h>
 #include "goldfish_address_space.h"
 
 const uint32_t CB_HANDLE_MAGIC_30 = CB_HANDLE_MAGIC_BASE | 0x2;

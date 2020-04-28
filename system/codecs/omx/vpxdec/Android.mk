@@ -40,7 +40,9 @@ LOCAL_HEADER_LIBRARIES += libui_headers \
                           libarect_headers \
                           libarect_headers_for_ndk
 
-LOCAL_SHARED_LIBRARIES :=       \
+LOCAL_HEADER_LIBRARIES += libgralloc_cb.ranchu
+
+LOCAL_SHARED_LIBRARIES +=       \
         libbinder               \
         libutils                \
         liblog                  \
