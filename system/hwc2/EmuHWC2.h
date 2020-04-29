@@ -260,7 +260,7 @@ private:
         // Read configs from PRIMARY Display
         int populatePrimaryConfigs(int width, int height, int dpiX, int dpiY);
         HWC2::Error populateSecondaryConfigs(uint32_t width, uint32_t height,
-                 uint32_t dpi);
+                 uint32_t dpi, uint32_t idx);
 
     private:
         void post(HostConnection *hostCon, ExtendedRCEncoderContext *rcEnc,
@@ -346,6 +346,7 @@ private:
         EmuHWC2& mDevice;
         // Display ID generator.
         static std::atomic<hwc2_display_t> sNextId;
+        static const uint32_t hostDisplayIdStart = 6;
         const hwc2_display_t mId;
         // emulator side displayId
         uint32_t mHostDisplayId;
