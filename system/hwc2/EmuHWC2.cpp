@@ -1325,7 +1325,7 @@ void EmuHWC2::Display::post(HostConnection *hostCon,
 }
 
 HWC2::Error EmuHWC2::Display::populateSecondaryConfigs(uint32_t width, uint32_t height,
-        uint32_t dpi) {
+        uint32_t dpi, uint32_t idx) {
     ALOGVV("%s DisplayId %u, width %u, height %u, dpi %u",
             __FUNCTION__, (uint32_t)mId, width, height, dpi);
     std::unique_lock<std::mutex> lock(mStateMutex);
@@ -1348,14 +1348,19 @@ HWC2::Error EmuHWC2::Display::populateSecondaryConfigs(uint32_t width, uint32_t 
     mActiveColorMode = HAL_COLOR_MODE_NATIVE;
     mColorModes.emplace((android_color_mode_t)HAL_COLOR_MODE_NATIVE);
 
-    uint32_t displayId = 0;
+    uint32_t displayId = hostDisplayIdStart + idx;
     DEFINE_AND_VALIDATE_HOST_CONNECTION
 
     hostCon->lock();
+    rcEnc->rcDestroyDisplay(rcEnc, displayId);
     rcEnc->rcCreateDisplay(rcEnc, &displayId);
     rcEnc->rcSetDisplayPose(rcEnc, displayId, -1, -1, width, height);
     hostCon->unlock();
 
+    if (displayId != hostDisplayIdStart + idx) {
+        ALOGE("Something wrong with host displayId allocation, want %d "
+              "allocated %d", hostDisplayIdStart + idx, displayId);
+    }
     mHostDisplayId = displayId;
     ALOGVV("%s: mHostDisplayId=%d", __FUNCTION__, mHostDisplayId);
 
@@ -1678,6 +1683,7 @@ int EmuHWC2::populateSecondaryDisplays() {
         ALOGE("%s: invalid value for system property: %s", __FUNCTION__, EXTERANL_DISPLAY_PROP);
         return -1;
     }
+    uint32_t idx = 0;
     while (!values.empty()) {
         // uint64_t physicalId = values[0];
         uint32_t width = values[1];
@@ -1688,7 +1694,7 @@ int EmuHWC2::populateSecondaryDisplays() {
 
         Error ret = Error::None;
         auto display = std::make_shared<Display>(*this, HWC2::DisplayType::Physical);
-        ret = display->populateSecondaryConfigs(width, height, dpi);
+        ret = display->populateSecondaryConfigs(width, height, dpi, idx++);
         if (ret != Error::None) {
             return -2;
         }
