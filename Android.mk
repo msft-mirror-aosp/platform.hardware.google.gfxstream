@@ -154,8 +154,6 @@ ifneq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 include $(GOLDFISH_OPENGL_PATH)/system/hals/Android.mk
 endif
 
-include $(GOLDFISH_OPENGL_PATH)/system/cbmanager/Android.mk
-
 include $(GOLDFISH_OPENGL_PATH)/system/egl/Android.mk
 
 ifeq (true,$(BUILD_EMULATOR_VULKAN)) # Vulkan libs
