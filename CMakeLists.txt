@@ -2,7 +2,7 @@
 # instead run make from .../device/generic/goldfish-opengl
 # which will re-generate this file.
 set(GOLDFISH_DEVICE_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
-android_validate_sha256("${GOLDFISH_DEVICE_ROOT}/./Android.mk" "c8e5536771d09cd120c3e396beac994a1e2d2880f37b4e3bd1844be4cfc31555")
+android_validate_sha256("${GOLDFISH_DEVICE_ROOT}/./Android.mk" "fa06707a3536204e7a71728c5aca307ff81e7badfefeac790d2fcba19ff59746")
 add_subdirectory(shared/OpenglCodecCommon)
 add_subdirectory(system/GLESv1_enc)
 add_subdirectory(system/GLESv2_enc)
