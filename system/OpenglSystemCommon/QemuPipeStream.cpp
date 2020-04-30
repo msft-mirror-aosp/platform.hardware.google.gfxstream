@@ -105,43 +105,7 @@ int QemuPipeStream::commitBuffer(size_t size)
 
 int QemuPipeStream::writeFully(const void *buf, size_t len)
 {
-    //DBG(">> QemuPipeStream::writeFully %d\n", len);
-    if (!valid()) return -1;
-    if (!buf) {
-       if (len>0) {
-            // If len is non-zero, buf must not be NULL. Otherwise the pipe would be
-            // in a corrupted state, which is lethal for the emulator.
-           ERR("QemuPipeStream::writeFully failed, buf=NULL, len %zu,"
-                   " lethal error, exiting", len);
-           abort();
-       }
-       return 0;
-    }
-
-    size_t res = len;
-    int retval = 0;
-
-    while (res > 0) {
-        ssize_t stat = qemu_pipe_write(m_sock, (const char *)(buf) + (len - res), res);
-        if (stat > 0) {
-            res -= stat;
-            continue;
-        }
-        if (stat == 0) { /* EOF */
-            ERR("QemuPipeStream::writeFully failed: premature EOF\n");
-            retval = -1;
-            break;
-        }
-        if (qemu_pipe_try_again(stat)) {
-            continue;
-        }
-        retval =  stat;
-        ERR("QemuPipeStream::writeFully failed: %s, lethal error, exiting.\n",
-                strerror(errno));
-        abort();
-    }
-    //DBG("<< QemuPipeStream::writeFully %d\n", len );
-    return retval;
+    return qemu_pipe_write_fully(m_sock, buf, len);
 }
 
 QEMU_PIPE_HANDLE QemuPipeStream::getSocket() const {
