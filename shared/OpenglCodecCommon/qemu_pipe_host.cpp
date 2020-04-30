@@ -41,9 +41,13 @@ ssize_t qemu_pipe_write(QEMU_PIPE_HANDLE pipe, const void* buffer, size_t len) {
     return HostGoldfishPipeDevice::get()->write(pipe, buffer, len);
 }
 
-bool qemu_pipe_try_again() {
-    int err = HostGoldfishPipeDevice::get()->getErrno();
-    return err == EINTR || err == EAGAIN;
+bool qemu_pipe_try_again(int ret) {
+    if (ret < 0) {
+        int err = HostGoldfishPipeDevice::get()->getErrno();
+        return err == EINTR || err == EAGAIN;
+    } else {
+        return false;
+    }
 }
 
 bool qemu_pipe_valid(QEMU_PIPE_HANDLE pipe) {
