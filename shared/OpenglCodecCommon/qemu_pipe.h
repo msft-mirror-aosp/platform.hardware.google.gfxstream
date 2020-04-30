@@ -20,11 +20,14 @@
 #include <stdint.h>
 #include <errno.h>
 
-#ifdef HOST_BUILD
+#define QEMU_PIPE_RETRY(exp) ({ \
+    __typeof__(exp) _rc; \
+    do { \
+        _rc = (exp); \
+    } while (qemu_pipe_try_again(_rc)); \
+    _rc; })
 
-#ifndef QEMU_PIPE_RETRY
-#define QEMU_PIPE_RETRY TEMP_FAILURE_RETRY
-#endif
+#ifdef HOST_BUILD
 
 typedef void* QEMU_PIPE_HANDLE;
 
@@ -36,7 +39,7 @@ void qemu_pipe_close(QEMU_PIPE_HANDLE pipe);
 ssize_t qemu_pipe_read(QEMU_PIPE_HANDLE pipe, void* buffer, size_t len);
 ssize_t qemu_pipe_write(QEMU_PIPE_HANDLE pipe, const void* buffer, size_t len);
 
-bool qemu_pipe_try_again();
+bool qemu_pipe_try_again(int ret);
 bool qemu_pipe_valid(QEMU_PIPE_HANDLE pipe);
 
 void qemu_pipe_print_error(QEMU_PIPE_HANDLE pipe);
@@ -46,16 +49,6 @@ void qemu_pipe_print_error(QEMU_PIPE_HANDLE pipe);
 typedef int QEMU_PIPE_HANDLE;
 
 #define QEMU_PIPE_INVALID_HANDLE (-1)
-
-#ifndef QEMU_PIPE_RETRY
-#define QEMU_PIPE_RETRY(exp) ({ \
-    __typeof__(exp) _rc; \
-    do { \
-        _rc = (exp); \
-    } while (_rc == -1 && (errno == EINTR || errno == EAGAIN)); \
-    _rc; }) \
-
-#endif
 
 #ifndef QEMU_PIPE_PATH
 #define QEMU_PIPE_PATH "/dev/qemu_pipe"
@@ -103,6 +96,11 @@ typedef int QEMU_PIPE_HANDLE;
  * except for a few special cases (e.g. GSM modem), where EBUSY will be
  * returned if more than one client tries to connect to it.
  */
+
+static __inline__ bool
+qemu_pipe_try_again(int ret) {
+    return (ret < 0) && (errno == EINTR || errno == EAGAIN);
+}
 
 static __inline__ ssize_t
 qemu_pipe_write_fully(QEMU_PIPE_HANDLE pipe, const void* buffer, ssize_t len);
@@ -163,11 +161,6 @@ qemu_pipe_write(QEMU_PIPE_HANDLE pipe, const void* buffer, size_t len) {
 }
 
 static __inline__ bool
-qemu_pipe_try_again() {
-    return errno == EINTR || errno == EAGAIN;
-}
-
-static __inline__ bool
 qemu_pipe_valid(QEMU_PIPE_HANDLE pipe) {
     return pipe >= 0;
 }
@@ -179,15 +172,6 @@ qemu_pipe_print_error(QEMU_PIPE_HANDLE pipe) {
 
 
 #endif // !HOST_BUILD
-
-#ifndef TEMP_FAILURE_RETRY
-#define TEMP_FAILURE_RETRY(exp) ({         \
-    __typeof__(exp) _rc;                   \
-    do {                                   \
-        _rc = (exp);                       \
-    } while (_rc == -1 && errno == EINTR); \
-    _rc; })
-#endif
 
 static __inline__ ssize_t
 qemu_pipe_read_fully(QEMU_PIPE_HANDLE pipe, void* buffer, ssize_t len) {
