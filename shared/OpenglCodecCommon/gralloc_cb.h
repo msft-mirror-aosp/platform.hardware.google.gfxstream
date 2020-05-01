@@ -14,10 +14,6 @@
 * limitations under the License.
 */
 
-#if !(defined(HOST_BUILD) || defined(ALLOW_DEPRECATED_QEMU_PIPE_HEADERS))
-#error include <gralloc_cb_bp.h> instead from libgralloc_cb.ranchu
-#endif
-
 #ifndef __GRALLOC_CB_H__
 #define __GRALLOC_CB_H__
 
