@@ -14,6 +14,7 @@
 * limitations under the License.
 */
 #include "QemuPipeStream.h"
+#include <qemu_pipe.h>
 
 #if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>

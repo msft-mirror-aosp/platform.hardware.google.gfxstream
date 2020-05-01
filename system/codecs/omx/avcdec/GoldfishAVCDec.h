@@ -25,7 +25,7 @@
 #include <vector>
 #include <map>
 
-#include "gralloc_cb.h"
+#include <gralloc_cb_bp.h>
 #include <utils/RefBase.h>
 #include <utils/threads.h>
 #include <utils/Vector.h>
