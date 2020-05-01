@@ -33,9 +33,7 @@
 #include "ClientAPIExts.h"
 #include "EGLImage.h"
 #include "ProcessPipe.h"
-
-#define ALLOW_DEPRECATED_QEMU_PIPE_HEADERS
-#include <qemu_pipe.h>
+#include "qemu_pipe.h"
 
 #include "GLEncoder.h"
 #ifdef WITH_GLES2
