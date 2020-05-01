@@ -13,7 +13,9 @@
 // limitations under the License.
 
 #include "goldfish_dma.h"
-#include "qemu_pipe.h"
+
+#define ALLOW_DEPRECATED_QEMU_PIPE_HEADERS
+#include <qemu_pipe.h>
 
 #if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>

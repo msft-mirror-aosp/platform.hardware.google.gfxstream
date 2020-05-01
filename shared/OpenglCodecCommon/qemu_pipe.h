@@ -13,6 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#if !(defined(HOST_BUILD) || defined(ALLOW_DEPRECATED_QEMU_PIPE_HEADERS))
+#error include <qemu_pipe_bp.h> instead from libqemupipe.ranchu
+#endif
+
 #ifndef ANDROID_INCLUDE_HARDWARE_QEMU_PIPE_H
 #define ANDROID_INCLUDE_HARDWARE_QEMU_PIPE_H
 
