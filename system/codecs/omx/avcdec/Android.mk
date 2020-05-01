@@ -49,8 +49,6 @@ LOCAL_SHARED_LIBRARIES :=       \
 		android.hardware.graphics.mapper@3.0 \
         libstagefright_foundation
 
-LOCAL_HEADER_LIBRARIES += libgralloc_cb.ranchu
-
 $(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
 $(call emugl-import,libgoldfish_codecs_common)
 $(call emugl-import,libstagefrighthw)
