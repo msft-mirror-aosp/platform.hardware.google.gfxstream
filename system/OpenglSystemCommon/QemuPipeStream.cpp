@@ -132,7 +132,7 @@ int QemuPipeStream::writeFully(const void *buf, size_t len)
             retval = -1;
             break;
         }
-        if (qemu_pipe_try_again()) {
+        if (qemu_pipe_try_again(stat)) {
             continue;
         }
         retval =  stat;
@@ -233,7 +233,7 @@ const unsigned char *QemuPipeStream::commitBufferAndReadFully(size_t writeSize, 
             continue;
         }
 
-        if (!qemu_pipe_try_again()) {
+        if (!qemu_pipe_try_again(actual)) {
             ALOGD("%s: Error reading from pipe: %d", __FUNCTION__, errno);
             return NULL;
         }
@@ -278,7 +278,7 @@ int QemuPipeStream::recv(void *buf, size_t len)
         if (res == 0) { /* EOF */
              break;
         }
-        if (qemu_pipe_try_again()) {
+        if (qemu_pipe_try_again(res)) {
             continue;
         }
 
