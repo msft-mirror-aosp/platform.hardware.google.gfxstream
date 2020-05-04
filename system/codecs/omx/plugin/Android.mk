@@ -35,15 +35,13 @@ LOCAL_C_INCLUDES += \
 $(call emugl-export,SHARED_LIBRARIES,libcutils libutils liblog)
 $(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
 
-
-
-LOCAL_HEADER_LIBRARIES := media_plugin_headers \
+LOCAL_HEADER_LIBRARIES += media_plugin_headers \
 	                      libmedia_headers \
 	                      libbinder_headers \
 	                      libhidlbase_impl_internal \
 	                      libbase
 
-LOCAL_SHARED_LIBRARIES :=       \
+LOCAL_SHARED_LIBRARIES +=       \
         libbinder               \
         libutils                \
         liblog                  \
