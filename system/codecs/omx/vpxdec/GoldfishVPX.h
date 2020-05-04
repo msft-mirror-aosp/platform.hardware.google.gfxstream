@@ -31,7 +31,7 @@
 #include <utils/RefBase.h>
 #include <utils/Vector.h>
 #include <utils/threads.h>
-#include "gralloc_cb.h"
+#include <gralloc_cb_bp.h>
 
 namespace android {
 
