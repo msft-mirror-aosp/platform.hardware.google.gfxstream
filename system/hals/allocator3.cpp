@@ -17,6 +17,7 @@
 #include <android/hardware/graphics/allocator/3.0/IAllocator.h>
 #include <android/hardware/graphics/mapper/3.0/IMapper.h>
 #include <hidl/LegacySupport.h>
+#include <qemu_pipe_bp.h>
 
 #include "glUtils.h"
 #include "cb_handle_30.h"

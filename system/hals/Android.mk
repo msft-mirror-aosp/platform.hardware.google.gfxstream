@@ -34,6 +34,9 @@ LOCAL_SHARED_LIBRARIES += \
     liblog \
     libutils
 
+LOCAL_STATIC_LIBRARIES += libqemupipe.ranchu
+LOCAL_HEADER_LIBRARIES += libgralloc_cb.ranchu
+
 LOCAL_C_INCLUDES += \
     device/generic/goldfish-opengl/system/include \
     device/generic/goldfish-opengl/system/OpenglSystemCommon \
@@ -62,6 +65,9 @@ LOCAL_SHARED_LIBRARIES += \
     liblog \
     libutils \
     libsync
+
+LOCAL_STATIC_LIBRARIES += libqemupipe.ranchu
+LOCAL_HEADER_LIBRARIES += libgralloc_cb.ranchu
 
 LOCAL_C_INCLUDES += \
     device/generic/goldfish-opengl/system/include \
