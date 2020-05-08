@@ -32,6 +32,7 @@
 #include <hardware/hardware.h>
 #include <hardware/gralloc.h>
 
+#define ALLOW_DEPRECATED_QEMU_PIPE_HEADERS
 #include "../../shared/OpenglCodecCommon/gralloc_cb.h"
 #include "gralloc_common.h"
 #include "goldfish_address_space.h"

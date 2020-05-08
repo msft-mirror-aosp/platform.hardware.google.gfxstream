@@ -23,6 +23,7 @@
 #include <sys/mman.h>
 #include <hardware/gralloc.h>
 
+#define ALLOW_DEPRECATED_QEMU_PIPE_HEADERS
 #if PLATFORM_SDK_VERSION < 28
 #include "gralloc_cb.h"
 #else
