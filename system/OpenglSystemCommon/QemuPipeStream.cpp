@@ -14,6 +14,8 @@
 * limitations under the License.
 */
 #include "QemuPipeStream.h"
+#define ALLOW_DEPRECATED_QEMU_PIPE_HEADERS
+#include <qemu_pipe.h>
 
 #if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
