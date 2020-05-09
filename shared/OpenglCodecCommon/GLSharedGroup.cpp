@@ -25,11 +25,13 @@ BufferData::BufferData() : m_size(0), m_usage(0), m_mapped(false) {};
 BufferData::BufferData(GLsizeiptr size, const void* data) :
     m_size(size), m_usage(0), m_mapped(false) {
 
-    void * buffer = NULL;
+    if (size > 0) {
+        m_fixedBuffer.resize(size);
+    }
 
-    if (size>0) buffer = m_fixedBuffer.alloc(size);
-
-    if (data) memcpy(buffer, data, size);
+    if (data) {
+        memcpy(m_fixedBuffer.data(), data, size);
+    }
 }
 
 /**** ProgramData ****/
@@ -271,7 +273,7 @@ GLenum GLSharedGroup::subUpdateBufferData(GLuint bufferId, GLintptr offset, GLsi
         return GL_INVALID_VALUE;
     }
 
-    memcpy((char*)buf->m_fixedBuffer.ptr() + offset, data, size);
+    memcpy(&buf->m_fixedBuffer[offset], data, size);
 
     buf->m_indexRangeCache.invalidateRange((size_t)offset, (size_t)size);
     return GL_NO_ERROR;
