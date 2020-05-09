@@ -12,7 +12,12 @@ LOCAL_PATH := $(call my-dir)
 
 $(call emugl-begin-shared-library,libvulkan_enc)
 $(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
-$(call emugl-import,libOpenglCodecCommon$(GOLDFISH_OPENGL_LIB_SUFFIX) libandroidemu lib_renderControl_enc)
+$(call emugl-import,libOpenglCodecCommon$(GOLDFISH_OPENGL_LIB_SUFFIX) lib_renderControl_enc)
+ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
+$(call emugl-import,libandroidemu)
+else
+$(call emugl-export,SHARED_LIBRARIES,libandroidemu)
+endif
 
 # Vulkan include dir
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
