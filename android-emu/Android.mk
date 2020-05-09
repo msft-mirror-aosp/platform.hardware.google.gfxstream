@@ -1,3 +1,4 @@
+ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 LOCAL_PATH := $(call my-dir)
 
 $(call emugl-begin-shared-library,libandroidemu)
@@ -28,3 +29,4 @@ LOCAL_SRC_FILES := \
     android/utils/debug.c \
 
 $(call emugl-end-module)
+endif
