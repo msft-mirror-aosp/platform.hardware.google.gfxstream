@@ -15,7 +15,6 @@
 */
 #include "GLEncoder.h"
 #include "glUtils.h"
-#include "FixedBuffer.h"
 
 #if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
@@ -24,6 +23,7 @@
 #endif
 
 #include <assert.h>
+#include <vector>
 
 #ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -584,7 +584,7 @@ void GLEncoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum 
         } else {
             BufferData * buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
             ctx->m_glBindBuffer_enc(self, GL_ELEMENT_ARRAY_BUFFER, 0);
-            indices = (void*)((GLintptr)buf->m_fixedBuffer.ptr() + (GLintptr)indices);
+            indices = &buf->m_fixedBuffer[(GLintptr)indices];
         }
     }
     if (adjustIndices) {
@@ -596,7 +596,8 @@ void GLEncoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum 
         case GL_UNSIGNED_BYTE:
             GLUtils::minmax<unsigned char>((unsigned char *)indices, count, &minIndex, &maxIndex);
             if (minIndex != 0) {
-                adjustedIndices =  ctx->m_fixedBuffer.alloc(glSizeof(type) * count);
+                ctx->m_fixedBuffer.resize(glSizeof(type) * count);
+                adjustedIndices = ctx->m_fixedBuffer.data();
                 GLUtils::shiftIndices<unsigned char>((unsigned char *)indices,
                                                  (unsigned char *)adjustedIndices,
                                                  count, -minIndex);
@@ -606,7 +607,8 @@ void GLEncoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum 
         case GL_UNSIGNED_SHORT:
             GLUtils::minmax<unsigned short>((unsigned short *)indices, count, &minIndex, &maxIndex);
             if (minIndex != 0) {
-                adjustedIndices = ctx->m_fixedBuffer.alloc(glSizeof(type) * count);
+                ctx->m_fixedBuffer.resize(glSizeof(type) * count);
+                adjustedIndices = ctx->m_fixedBuffer.data();
                 GLUtils::shiftIndices<unsigned short>((unsigned short *)indices,
                                                  (unsigned short *)adjustedIndices,
                                                  count, -minIndex);
@@ -616,7 +618,8 @@ void GLEncoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum 
         case GL_UNSIGNED_INT:
             GLUtils::minmax<unsigned int>((unsigned int *)indices, count, &minIndex, &maxIndex);
             if (minIndex != 0) {
-                adjustedIndices = ctx->m_fixedBuffer.alloc(glSizeof(type) * count);
+                ctx->m_fixedBuffer.resize(glSizeof(type) * count);
+                adjustedIndices = ctx->m_fixedBuffer.data();
                 GLUtils::shiftIndices<unsigned int>((unsigned int *)indices,
                                                  (unsigned int *)adjustedIndices,
                                                  count, -minIndex);
