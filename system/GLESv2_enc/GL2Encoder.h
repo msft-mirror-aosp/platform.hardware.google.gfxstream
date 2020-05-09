@@ -16,10 +16,11 @@
 #ifndef _GL2_ENCODER_H_
 #define _GL2_ENCODER_H_
 
+#include <vector>
+
 #include "gl2_enc.h"
 #include "GLClientState.h"
 #include "GLSharedGroup.h"
-#include "FixedBuffer.h"
 
 #include <string>
 #include <vector>
@@ -136,7 +137,7 @@ private:
     GLuint m_ssbo_offset_align;
     GLuint m_ubo_offset_align;
 
-    FixedBuffer m_fixedBuffer;
+    std::vector<char> m_fixedBuffer;
 
     uint32_t m_drawCallFlushInterval;
     uint32_t m_drawCallFlushCount;
