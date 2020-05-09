@@ -1119,7 +1119,8 @@ void* GL2Encoder::recenterIndices(const void* src,
     void* adjustedIndices = (void*)src;
 
     if (minIndex != 0) {
-        adjustedIndices = m_fixedBuffer.alloc(glSizeof(type) * count);
+        m_fixedBuffer.resize(glSizeof(type) * count);
+        adjustedIndices = m_fixedBuffer.data();
         switch(type) {
         case GL_BYTE:
         case GL_UNSIGNED_BYTE:
@@ -1371,7 +1372,7 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
     if (ctx->m_state->currentIndexVbo() != 0) {
         buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
         offset = (GLintptr)indices;
-        indices = (void*)((GLintptr)buf->m_fixedBuffer.ptr() + (GLintptr)indices);
+        indices = &buf->m_fixedBuffer[offset];
         ctx->getBufferIndexRange(buf,
                                  indices,
                                  type,
@@ -1486,7 +1487,7 @@ void GL2Encoder::s_glDrawElementsNullAEMU(void *self, GLenum mode, GLsizei count
         } else {
             buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
             offset = (GLintptr)indices;
-            indices = (void*)((GLintptr)buf->m_fixedBuffer.ptr() + (GLintptr)indices);
+            indices = &buf->m_fixedBuffer[offset];
             ctx->getBufferIndexRange(buf,
                                      indices,
                                      type,
@@ -2937,7 +2938,7 @@ GLboolean GL2Encoder::s_glUnmapBufferOES(void* self, GLenum target) {
 void* GL2Encoder::s_glMapBufferRangeAEMUImpl(GL2Encoder* ctx, GLenum target,
                                              GLintptr offset, GLsizeiptr length,
                                              GLbitfield access, BufferData* buf) {
-    char* bits = (char*)buf->m_fixedBuffer.ptr() + offset;
+    char* bits = &buf->m_fixedBuffer[offset];
 
     if ((access & GL_MAP_READ_BIT) ||
         ((access & GL_MAP_WRITE_BIT) &&
@@ -3048,7 +3049,7 @@ GLboolean GL2Encoder::s_glUnmapBuffer(void* self, GLenum target) {
     GLboolean host_res = GL_TRUE;
 
     if (buf->dma_buffer.get().mapped_addr) {
-        memcpy(static_cast<char*>(buf->m_fixedBuffer.ptr()) + buf->m_mappedOffset,
+        memcpy(&buf->m_fixedBuffer[buf->m_mappedOffset],
                reinterpret_cast<void*>(buf->dma_buffer.get().mapped_addr),
                buf->m_mappedLength);
 
@@ -3066,7 +3067,7 @@ GLboolean GL2Encoder::s_glUnmapBuffer(void* self, GLenum target) {
                     buf->m_mappedOffset,
                     buf->m_mappedLength,
                     buf->m_mappedAccess,
-                    (void*)((char*)buf->m_fixedBuffer.ptr() + buf->m_mappedOffset),
+                    &buf->m_fixedBuffer[buf->m_mappedOffset],
                     &host_res);
         } else {
             if (buf->m_mappedAccess & GL_MAP_WRITE_BIT) {
@@ -3075,7 +3076,7 @@ GLboolean GL2Encoder::s_glUnmapBuffer(void* self, GLenum target) {
                         buf->m_mappedOffset,
                         buf->m_mappedLength,
                         buf->m_mappedAccess,
-                        (void*)((char*)buf->m_fixedBuffer.ptr() + buf->m_mappedOffset),
+                        &buf->m_fixedBuffer[buf->m_mappedOffset],
                         &host_res);
             }
         }
@@ -3116,14 +3117,14 @@ void GL2Encoder::s_glFlushMappedBufferRange(void* self, GLenum target, GLintptr 
                 totalOffset,
                 length,
                 buf->m_mappedAccess,
-                (void*)((char*)buf->m_fixedBuffer.ptr() + totalOffset));
+                &buf->m_fixedBuffer[totalOffset]);
     } else {
         ctx->glFlushMappedBufferRangeAEMU(
                 ctx, target,
                 totalOffset,
                 length,
                 buf->m_mappedAccess,
-                (void*)((char*)buf->m_fixedBuffer.ptr() + totalOffset));
+                &buf->m_fixedBuffer[totalOffset]);
     }
 }
 
@@ -3482,7 +3483,7 @@ void GL2Encoder::s_glGetBufferPointerv(void* self, GLenum target, GLenum pname, 
 
     if (!buf || !buf->m_mapped) { *params = NULL; return; }
 
-    *params = (GLvoid*)((char*)buf->m_fixedBuffer.ptr() + buf->m_mappedOffset);
+    *params = &buf->m_fixedBuffer[buf->m_mappedOffset];
 }
 
 static const char* const kNameDelimiter = ";";
@@ -4174,7 +4175,7 @@ void GL2Encoder::s_glDrawElementsInstanced(void* self, GLenum mode, GLsizei coun
     if (ctx->m_state->currentIndexVbo() != 0) {
         buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
         offset = (GLintptr)indices;
-        indices = (void*)((GLintptr)buf->m_fixedBuffer.ptr() + (GLintptr)indices);
+        indices = &buf->m_fixedBuffer[offset];
         ctx->getBufferIndexRange(buf,
                                  indices,
                                  type,
@@ -4264,13 +4265,13 @@ void GL2Encoder::s_glDrawRangeElements(void* self, GLenum mode, GLuint start, GL
     // caching previous results.
     if (ctx->m_state->currentIndexVbo() != 0) {
         buf = ctx->m_shared->getBufferData(ctx->m_state->currentIndexVbo());
-        ALOGV("%s: current index vbo: %p len %zu count %zu\n", __func__, buf, (size_t)buf->m_fixedBuffer.len(), (size_t)count);
+        ALOGV("%s: current index vbo: %p len %zu count %zu\n", __func__, buf, buf->m_fixedBuffer.size(), (size_t)count);
         offset = (GLintptr)indices;
         void* oldIndices = (void*)indices;
-        indices = (void*)((GLintptr)buf->m_fixedBuffer.ptr() + (GLintptr)indices);
+        indices = &buf->m_fixedBuffer[offset];
         ALOGV("%s: indices arg: %p buffer start: %p indices: %p\n", __func__,
                 (void*)(uintptr_t)(oldIndices),
-                buf->m_fixedBuffer.ptr(),
+                buf->m_fixedBuffer.data(),
                 indices);
         ctx->getBufferIndexRange(buf,
                                  indices,
