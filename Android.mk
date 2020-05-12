@@ -130,6 +130,7 @@ ifeq (true,$(GOLDFISH_OPENGL_SHOULD_BUILD))
 # Note that the build system will complain if you try to import a
 # module that hasn't been declared yet anyway.
 #
+include $(GOLDFISH_OPENGL_PATH)/shared/GoldfishAddressSpace/Android.mk
 include $(GOLDFISH_OPENGL_PATH)/shared/OpenglCodecCommon/Android.mk
 
 # Encoder shared libraries
