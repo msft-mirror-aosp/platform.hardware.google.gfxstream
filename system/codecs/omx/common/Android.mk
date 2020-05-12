@@ -28,5 +28,5 @@ LOCAL_CFLAGS += -Wno-unused-private-field
 $(call emugl-export,SHARED_LIBRARIES,libcutils libutils liblog)
 
 $(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
-$(call emugl-import,libOpenglSystemCommon)
+$(call emugl-import,libGoldfishAddressSpace)
 $(call emugl-end-module)
