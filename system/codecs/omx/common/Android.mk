@@ -28,5 +28,11 @@ LOCAL_CFLAGS += -Wno-unused-private-field
 $(call emugl-export,SHARED_LIBRARIES,libcutils libutils liblog)
 
 $(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
-$(call emugl-import,libGoldfishAddressSpace)
+
+ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
+$(call emugl-import,libGoldfishAddressSpace$(GOLDFISH_OPENGL_LIB_SUFFIX))
+else
+$(call emugl-export,STATIC_LIBRARIES,libGoldfishAddressSpace)
+endif
+
 $(call emugl-end-module)
