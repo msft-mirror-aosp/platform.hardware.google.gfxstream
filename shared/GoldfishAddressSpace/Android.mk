@@ -1,4 +1,4 @@
-#ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
+ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 
 LOCAL_PATH := $(call my-dir)
 
@@ -8,13 +8,8 @@ LOCAL_SRC_FILES := goldfish_address_space.cpp
 
 LOCAL_CFLAGS += -DLOG_TAG=\"goldfish-address-space\"
 
-$(call emugl-export,SHARED_LIBRARIES,liblog)
-
-ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
-$(call emugl-export,SHARED_LIBRARIES,android-emu-shared)
-endif
-
+$(call emugl-export,SHARED_LIBRARIES,liblog android-emu-shared)
 $(call emugl-export,C_INCLUDES,$(LOCAL_PATH)/include)
 $(call emugl-end-module)
 
-#endif
+endif
