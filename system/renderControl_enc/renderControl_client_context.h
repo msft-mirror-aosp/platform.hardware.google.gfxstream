@@ -58,6 +58,7 @@ struct renderControl_client_context_t {
 	rcSetColorBufferVulkanMode_client_proc_t rcSetColorBufferVulkanMode;
 	rcReadColorBufferYUV_client_proc_t rcReadColorBufferYUV;
 	rcIsSyncSignaled_client_proc_t rcIsSyncSignaled;
+	rcCreateColorBufferWithHandle_client_proc_t rcCreateColorBufferWithHandle;
 	virtual ~renderControl_client_context_t() {}
 
 	typedef renderControl_client_context_t *CONTEXT_ACCESSOR_TYPE(void);

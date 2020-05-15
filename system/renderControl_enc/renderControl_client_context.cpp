@@ -58,6 +58,7 @@ int renderControl_client_context_t::initDispatchByName(void *(*getProc)(const ch
 	rcSetColorBufferVulkanMode = (rcSetColorBufferVulkanMode_client_proc_t) getProc("rcSetColorBufferVulkanMode", userData);
 	rcReadColorBufferYUV = (rcReadColorBufferYUV_client_proc_t) getProc("rcReadColorBufferYUV", userData);
 	rcIsSyncSignaled = (rcIsSyncSignaled_client_proc_t) getProc("rcIsSyncSignaled", userData);
+	rcCreateColorBufferWithHandle = (rcCreateColorBufferWithHandle_client_proc_t) getProc("rcCreateColorBufferWithHandle", userData);
 	return 0;
 }
 
