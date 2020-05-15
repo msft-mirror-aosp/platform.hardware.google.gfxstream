@@ -60,6 +60,7 @@ typedef int (renderControl_APIENTRY *rcSetDisplayPose_client_proc_t) (void * ctx
 typedef GLint (renderControl_APIENTRY *rcSetColorBufferVulkanMode_client_proc_t) (void * ctx, uint32_t, uint32_t);
 typedef void (renderControl_APIENTRY *rcReadColorBufferYUV_client_proc_t) (void * ctx, uint32_t, GLint, GLint, GLint, GLint, void*, uint32_t);
 typedef int (renderControl_APIENTRY *rcIsSyncSignaled_client_proc_t) (void * ctx, uint64_t);
+typedef void (renderControl_APIENTRY *rcCreateColorBufferWithHandle_client_proc_t) (void * ctx, uint32_t, uint32_t, GLenum, uint32_t);
 
 
 #endif
