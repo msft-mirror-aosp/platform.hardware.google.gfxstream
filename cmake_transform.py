@@ -106,7 +106,7 @@ def generate_module(module):
     flags = [escape(d) for d in module['cflags'] if not d.startswith('-D')]
 
     # Make sure we remove the lib prefix from all our dependencies.
-    libs = [remove_lib_prefix(l) for l in module['libs']]
+    libs = [remove_lib_prefix(l) for l in module.get('libs', [])]
     staticlibs = [remove_lib_prefix(l) for l in
                       module.get('staticlibs', [])
                       if l != "libandroidemu"]
