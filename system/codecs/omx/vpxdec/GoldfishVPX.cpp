@@ -36,8 +36,7 @@
 
 #include <nativebase/nativebase.h>
 
-#include <android/hardware/graphics/allocator/3.0/IAllocator.h>
-#include <android/hardware/graphics/mapper/3.0/IMapper.h>
+#include <android/hardware/graphics/common/1.2/types.h>
 #include <hidl/LegacySupport.h>
 
 using ::android::hardware::graphics::common::V1_0::BufferUsage;
