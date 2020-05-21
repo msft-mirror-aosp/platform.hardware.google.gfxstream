@@ -26,6 +26,18 @@
     f(VkCommandBuffer) \
     GOLDFISH_VK_LIST_TRIVIAL_DISPATCHABLE_HANDLE_TYPES(f)
 
+#ifdef VK_NVX_device_generated_commands
+
+#define __GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES_NVX_DEVICE_GENERATED_COMMANDS(f) \
+    f(VkObjectTableNVX) \
+    f(VkIndirectCommandsLayoutNVX) \
+
+#else
+
+#define __GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES_NVX_DEVICE_GENERATED_COMMANDS(f)
+
+#endif // VK_NVX_device_generated_commands
+
 #define GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(f) \
     f(VkBufferView) \
     f(VkImageView) \
@@ -44,11 +56,10 @@
     f(VkSwapchainKHR) \
     f(VkDisplayKHR) \
     f(VkDisplayModeKHR) \
-    f(VkObjectTableNVX) \
-    f(VkIndirectCommandsLayoutNVX) \
     f(VkValidationCacheEXT) \
     f(VkDebugReportCallbackEXT) \
     f(VkDebugUtilsMessengerEXT) \
+    __GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES_NVX_DEVICE_GENERATED_COMMANDS(f)
 
 #define GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(f) \
     f(VkDeviceMemory) \
