@@ -11,7 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "qemu_pipe.h"
+
+#include <qemu_pipe_bp.h>
 
 #include "android/emulation/hostdevices/HostGoldfishPipe.h"
 
@@ -33,25 +34,21 @@ void qemu_pipe_close(QEMU_PIPE_HANDLE pipe) {
     HostGoldfishPipeDevice::get()->close(pipe);
 }
 
-ssize_t qemu_pipe_read(QEMU_PIPE_HANDLE pipe, void* buffer, size_t len) {
+int qemu_pipe_read(QEMU_PIPE_HANDLE pipe, void* buffer, int len) {
     return HostGoldfishPipeDevice::get()->read(pipe, buffer, len);
 }
 
-ssize_t qemu_pipe_write(QEMU_PIPE_HANDLE pipe, const void* buffer, size_t len) {
+int qemu_pipe_write(QEMU_PIPE_HANDLE pipe, const void* buffer, int len) {
     return HostGoldfishPipeDevice::get()->write(pipe, buffer, len);
 }
 
-bool qemu_pipe_try_again(int ret) {
+int qemu_pipe_try_again(int ret) {
     if (ret < 0) {
         int err = HostGoldfishPipeDevice::get()->getErrno();
         return err == EINTR || err == EAGAIN;
     } else {
         return false;
     }
-}
-
-bool qemu_pipe_valid(QEMU_PIPE_HANDLE pipe) {
-    return pipe != NULL;
 }
 
 void qemu_pipe_print_error(QEMU_PIPE_HANDLE pipe) {

@@ -23,8 +23,7 @@
 #include <stdlib.h>
 #include "IOStream.h"
 
-#define ALLOW_DEPRECATED_QEMU_PIPE_HEADERS
-#include <qemu_pipe.h>
+#include <qemu_pipe_bp.h>
 
 #ifdef __Fuchsia__
 #include <fuchsia/hardware/goldfish/cpp/fidl.h>

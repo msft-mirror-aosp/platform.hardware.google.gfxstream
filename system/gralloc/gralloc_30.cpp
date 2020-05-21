@@ -32,13 +32,12 @@
 #include <hardware/hardware.h>
 #include <hardware/gralloc.h>
 
-#define ALLOW_DEPRECATED_QEMU_PIPE_HEADERS
-#include "../../shared/OpenglCodecCommon/gralloc_cb.h"
+#include <gralloc_cb_bp.h>
 #include "gralloc_common.h"
 #include "goldfish_address_space.h"
 #include "HostConnection.h"
 #include "FormatConversions.h"
-#include "qemu_pipe.h"
+#include <qemu_pipe_bp.h>
 
 #define CRASH(MSG) \
     do { \
