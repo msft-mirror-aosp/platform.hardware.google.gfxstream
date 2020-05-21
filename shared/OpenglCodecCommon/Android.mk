@@ -18,7 +18,6 @@ ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 
 commonSources += \
         goldfish_dma_host.cpp \
-        qemu_pipe_host.cpp \
 
 else
 
@@ -29,6 +28,12 @@ endif
 
 ### CodecCommon  guest ##############################################
 $(call emugl-begin-shared-library,libOpenglCodecCommon$(GOLDFISH_OPENGL_LIB_SUFFIX))
+
+ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
+$(call emugl-import,libqemupipe$(GOLDFISH_OPENGL_LIB_SUFFIX))
+else
+$(call emugl-export,STATIC_LIBRARIES,libqemupipe.ranchu)
+endif
 
 LOCAL_SRC_FILES := $(commonSources)
 
