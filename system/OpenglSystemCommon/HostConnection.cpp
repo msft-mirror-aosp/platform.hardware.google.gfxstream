@@ -66,8 +66,7 @@ using goldfish_vk::VkEncoder;
 #include "QemuPipeStream.h"
 #include "TcpStream.h"
 #include "ThreadInfo.h"
-#define ALLOW_DEPRECATED_QEMU_PIPE_HEADERS
-#include "gralloc_cb.h"
+#include <gralloc_cb_bp.h>
 
 #ifdef VIRTIO_GPU
 

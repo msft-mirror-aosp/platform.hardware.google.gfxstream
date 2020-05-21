@@ -14,8 +14,7 @@
 
 #include "goldfish_dma.h"
 
-#define ALLOW_DEPRECATED_QEMU_PIPE_HEADERS
-#include <qemu_pipe.h>
+#include <qemu_pipe_bp.h>
 
 #if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
@@ -34,6 +33,7 @@
 #include <stdlib.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 /* There is an ioctl associated with goldfish dma driver.
  * Make it conflict with ioctls that are not likely to be used
