@@ -180,7 +180,7 @@ int QemuPipeStream::commitBuffer(size_t size)
 
     uint64_t actual = 0;
     zx_status_t status2 = ZX_OK;
-    zx_status_t status = m_pipe->Call(size, kWriteOffset, 0, 0, &status2, &actual);
+    zx_status_t status = m_pipe->DoCall(size, kWriteOffset, 0, 0, &status2, &actual);
     if (status != ZX_OK || status2 != ZX_OK) {
         ALOGD("%s: Pipe call failed: %d:%d", __FUNCTION__, status, status2);
         return -1;
@@ -238,7 +238,7 @@ const unsigned char *QemuPipeStream::commitBufferAndReadFully(size_t size, void 
     size_t maxRead = (m_readLeft || !remaining) ? 0 : kReadSize;
     uint64_t actual = 0;
     zx_status_t status2 = ZX_OK;
-    zx_status_t status = m_pipe->Call(size, kWriteOffset, maxRead, 0, &status2, &actual);
+    zx_status_t status = m_pipe->DoCall(size, kWriteOffset, maxRead, 0, &status2, &actual);
     if (status != ZX_OK) {
         ALOGD("%s: Pipe call failed: %d", __FUNCTION__, status);
         return nullptr;
