@@ -142,9 +142,9 @@ shared_library("libvulkan_goldfish") {
       "//sdk/fidl/fuchsia.hardware.goldfish",
       "//sdk/fidl/fuchsia.logger:fuchsia.logger_llcpp",
       "//sdk/fidl/fuchsia.sysmem",
-      "//zircon/public/lib/syslog-static",
       "//zircon/public/lib/zx",
       "//zircon/public/lib/zxio",
+      "//zircon/system/ulib/syslog:syslog-static",
       "//zircon/system/ulib/trace:trace-with-static-engine",
     ]
 
