@@ -74,34 +74,6 @@ void qemu_pipe_close(int pipe) {
     close(pipe);
 }
 
-int qemu_pipe_read_fully(int pipe, void* buffer, int size) {
-    char* p = (char*)buffer;
-
-    while (size > 0) {
-      int n = QEMU_PIPE_RETRY(qemu_pipe_read(pipe, p, size));
-      if (n < 0) return n;
-
-      p += n;
-      size -= n;
-    }
-
-    return 0;
-}
-
-int qemu_pipe_write_fully(int pipe, const void* buffer, int size) {
-    const char* p = (const char*)buffer;
-
-    while (size > 0) {
-      int n = QEMU_PIPE_RETRY(qemu_pipe_write(pipe, p, size));
-      if (n < 0) return n;
-
-      p += n;
-      size -= n;
-    }
-
-    return 0;
-}
-
 int qemu_pipe_read(int pipe, void* buffer, int size) {
     return read(pipe, buffer, size);
 }
