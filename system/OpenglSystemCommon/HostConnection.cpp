@@ -354,7 +354,9 @@ HostConnection::HostConnection() :
     m_checksumHelper(),
     m_glExtensions(),
     m_grallocOnly(true),
-    m_noHostError(false) { }
+    m_noHostError(false),
+    m_rendernodeFd(-1),
+    m_rendernodeFdOwned(false) { }
 
 HostConnection::~HostConnection()
 {
@@ -370,6 +372,10 @@ HostConnection::~HostConnection()
     delete m_glEnc;
     delete m_gl2Enc;
     delete m_rcEnc;
+
+    if (m_rendernodeFdOwned) {
+        close(m_rendernodeFd);
+    }
 }
 
 // static
@@ -459,6 +465,8 @@ HostConnection* HostConnection::connect(HostConnection* con) {
             con->m_connectionType = HOST_CONNECTION_VIRTIO_GPU;
             con->m_grallocType = GRALLOC_TYPE_MINIGBM;
             con->m_stream = stream;
+            con->m_rendernodeFdOwned = false;
+            con->m_rendernodeFdOwned = stream->getRendernodeFd();
             MinigbmGralloc* m = new MinigbmGralloc;
             m->setFd(stream->getRendernodeFd());
             con->m_grallocHelper = m;
@@ -481,6 +489,8 @@ HostConnection* HostConnection::connect(HostConnection* con) {
             con->m_connectionType = HOST_CONNECTION_VIRTIO_GPU_PIPE;
             con->m_grallocType = getGrallocTypeFromProperty();
             con->m_stream = stream;
+            con->m_rendernodeFdOwned = false;
+            con->m_rendernodeFdOwned = stream->getRendernodeFd();
             switch (con->m_grallocType) {
                 case GRALLOC_TYPE_RANCHU:
                     con->m_grallocHelper = &m_goldfishGralloc;
@@ -615,11 +625,36 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetVirtioGpuNext(m_rcEnc);
         queryHasSharedSlotsHostMemoryAllocator(m_rcEnc);
         queryAndSetVulkanFreeMemorySync(m_rcEnc);
+        queryAndSetVirtioGpuNativeSync(m_rcEnc);
         if (m_processPipe) {
             m_processPipe->processPipeInit(m_connectionType, m_rcEnc);
         }
     }
     return m_rcEnc;
+}
+
+int HostConnection::getOrCreateRendernodeFd() {
+    if (m_rendernodeFd >= 0) return m_rendernodeFd;
+#ifdef __Fuchsia__
+    return -1;
+#else
+#ifdef VIRTIO_GPU
+    m_rendernodeFd = VirtioGpuPipeStream::openRendernode();
+    if (m_rendernodeFd < 0) {
+        ALOGE("%s: failed to create secondary "
+              "rendernode for host connection. "
+              "error: %s (%d)\n", __FUNCTION__,
+              strerror(errno), errno);
+        return -1;
+    }
+
+    // Remember to close it on exit
+    m_rendernodeFdOwned = true;
+    return m_rendernodeFd;
+#else
+    return -1;
+#endif
+#endif
 }
 
 gl_client_context_t *HostConnection::s_getGLContext()
@@ -832,3 +867,11 @@ void HostConnection::queryAndSetVulkanFreeMemorySync(ExtendedRCEncoderContext *r
         rcEnc->featureInfo()->hasVulkanFreeMemorySync = true;
     }
 }
+
+void HostConnection::queryAndSetVirtioGpuNativeSync(ExtendedRCEncoderContext* rcEnc) {
+    std::string glExtensions = queryGLExtensions(rcEnc);
+    if (glExtensions.find(kVirtioGpuNativeSync) != std::string::npos) {
+        rcEnc->featureInfo()->hasVirtioGpuNativeSync = true;
+    }
+}
+
