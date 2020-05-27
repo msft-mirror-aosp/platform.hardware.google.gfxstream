@@ -37,7 +37,7 @@ void ScopedTrace::endTraceImpl(const char*) {
 #elif __Fuchsia__
 
 #ifndef FUCHSIA_NO_TRACE
-#include <trace/event.h>
+#include <lib/trace/event.h>
 #endif
 
 #define VK_TRACE_TAG "gfx"
