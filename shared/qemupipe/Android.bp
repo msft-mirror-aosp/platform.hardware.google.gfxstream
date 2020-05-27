@@ -23,7 +23,10 @@ cc_library_headers {
 cc_library {
     name: "libqemupipe.ranchu",
     vendor_available: true,
-    srcs: ["qemu_pipe.cpp"],
+    srcs: [
+        "qemu_pipe_common.cpp",
+        "qemu_pipe_guest.cpp",
+    ],
     header_libs: ["libqemupipe-types.ranchu"],
     export_header_lib_headers: ["libqemupipe-types.ranchu"],
     shared_libs: ["liblog"],
