@@ -2775,7 +2775,7 @@ public:
         VkSamplerCreateInfo localCreateInfo = vk_make_orphan_copy(*pCreateInfo);
         vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&localCreateInfo);
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(VK_USE_PLATFORM_FUCHSIA_KHR)
         VkSamplerYcbcrConversionInfo localVkSamplerYcbcrConversionInfo;
         const VkSamplerYcbcrConversionInfo* samplerYcbcrConversionInfo =
             vk_find_struct<VkSamplerYcbcrConversionInfo>(pCreateInfo);
