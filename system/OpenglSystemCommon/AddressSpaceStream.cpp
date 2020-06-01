@@ -388,7 +388,12 @@ ssize_t AddressSpaceStream::speculativeRead(unsigned char* readBuffer, size_t tr
     ensureType1Finished();
 
     size_t actuallyRead = 0;
+    size_t readIters = 0;
+    size_t backedOffIters = 0;
+    const size_t kSpeculativeReadBackoffIters = 10000000ULL;
     while (!actuallyRead) {
+        ++readIters;
+
         uint32_t readAvail =
             ring_buffer_available_read(
                 m_context.from_host_large_xfer.ring,
@@ -397,6 +402,11 @@ ssize_t AddressSpaceStream::speculativeRead(unsigned char* readBuffer, size_t tr
         if (!readAvail) {
             ring_buffer_yield();
             continue;
+        }
+
+        if (readAvail && readIters > kSpeculativeReadBackoffIters) {
+            usleep(10);
+            ++backedOffIters;
         }
 
         uint32_t toRead = readAvail > trySize ?  trySize : readAvail;
@@ -411,6 +421,12 @@ ssize_t AddressSpaceStream::speculativeRead(unsigned char* readBuffer, size_t tr
         if (isInError()) {
             return -1;
         }
+    }
+
+    if (backedOffIters > 0) {
+        ALOGE("%s: warning: backed off %zu times due to host slowness.\n",
+              __func__,
+              backedOffIters);
     }
 
     return actuallyRead;
