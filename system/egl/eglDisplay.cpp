@@ -357,11 +357,11 @@ static char *buildExtensionString()
 
         std::string dynamicEGLExtensions;
 
-        if (hcon->rcEncoder()->hasNativeSync() &&
+        if ((hcon->rcEncoder()->hasVirtioGpuNativeSync() || hcon->rcEncoder()->hasNativeSync()) &&
             !strstr(initialEGLExts, kDynamicEGLExtNativeSync)) {
             dynamicEGLExtensions += kDynamicEGLExtNativeSync;
 
-            if (hcon->rcEncoder()->hasNativeSyncV3()) {
+            if (hcon->rcEncoder()->hasVirtioGpuNativeSync() || hcon->rcEncoder()->hasNativeSyncV3()) {
                 dynamicEGLExtensions += kDynamicEGLExtWaitSync;
             }
         }
