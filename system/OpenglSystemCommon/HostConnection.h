@@ -55,6 +55,7 @@ public:
     bool hasNativeSync() const { return m_featureInfo.syncImpl >= SYNC_IMPL_NATIVE_SYNC_V2; }
     bool hasNativeSyncV3() const { return m_featureInfo.syncImpl >= SYNC_IMPL_NATIVE_SYNC_V3; }
     bool hasNativeSyncV4() const { return m_featureInfo.syncImpl >= SYNC_IMPL_NATIVE_SYNC_V4; }
+    bool hasVirtioGpuNativeSync() const { return m_featureInfo.hasVirtioGpuNativeSync; }
     bool hasHostCompositionV1() const {
         return m_featureInfo.hostComposition == HOST_COMPOSITION_V1; }
     bool hasHostCompositionV2() const {
@@ -152,6 +153,12 @@ public:
     GL2Encoder *gl2Encoder();
     goldfish_vk::VkEncoder *vkEncoder();
     ExtendedRCEncoderContext *rcEncoder();
+
+    // Returns rendernode fd, in case the stream is virtio-gpu based.
+    // Otherwise, attempts to create a rendernode fd assuming
+    // virtio-gpu is available.
+    int getOrCreateRendernodeFd();
+
     ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
     Gralloc *grallocHelper() { return m_grallocHelper; }
 
@@ -206,6 +213,7 @@ private:
     void queryAndSetVirtioGpuNext(ExtendedRCEncoderContext *rcEnc);
     void queryHasSharedSlotsHostMemoryAllocator(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanFreeMemorySync(ExtendedRCEncoderContext *rcEnc);
+    void queryAndSetVirtioGpuNativeSync(ExtendedRCEncoderContext *rcEnc);
 
 private:
     HostConnectionType m_connectionType;
@@ -226,6 +234,8 @@ private:
 #else
     mutable android::Mutex m_lock;
 #endif
+    int m_rendernodeFd;
+    bool m_rendernodeFdOwned;
 };
 
 #endif

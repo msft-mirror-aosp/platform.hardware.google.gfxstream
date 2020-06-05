@@ -43,6 +43,12 @@
 
 #include <GLES3/gl31.h>
 
+#ifdef VIRTIO_GPU
+#include <drm/virtgpu_drm.h>
+#include <xf86drm.h>
+#include <poll.h>
+#endif // VIRTIO_GPU
+
 #if PLATFORM_SDK_VERSION < 18
 #define override
 #endif
@@ -494,6 +500,101 @@ static uint64_t createNativeSync(EGLenum type,
     return sync_handle;
 }
 
+// our cmd
+#define VIRTIO_GPU_NATIVE_SYNC_CREATE_EXPORT_FD 0x9000
+#define VIRTIO_GPU_NATIVE_SYNC_CREATE_IMPORT_FD 0x9001
+
+// createNativeSync_virtioGpu()
+// creates an OpenGL sync object on the host
+// using rcCreateSyncKHR.
+// If necessary, a native fence FD will be exported or imported.
+// Returns a handle to the host-side FenceSync object.
+static uint64_t createNativeSync_virtioGpu(
+    EGLenum type,
+    const EGLint* attrib_list,
+    int num_actual_attribs,
+    bool destroy_when_signaled,
+    int fd_in,
+    int* fd_out) {
+#ifndef VIRTIO_GPU
+    ALOGE("%s: Error: called with no virtio-gpu support built in\n", __func__);
+    return 0;
+#else
+    DEFINE_HOST_CONNECTION;
+
+    uint64_t sync_handle;
+    uint64_t thread_handle;
+
+    EGLint* actual_attribs =
+        (EGLint*)(num_actual_attribs == 0 ? NULL : attrib_list);
+
+    // Create a normal sync obj
+    rcEnc->rcCreateSyncKHR(rcEnc, type,
+                           actual_attribs,
+                           num_actual_attribs * sizeof(EGLint),
+                           destroy_when_signaled,
+                           &sync_handle,
+                           &thread_handle);
+
+    // Import fence fd; dup and close
+    if (type == EGL_SYNC_NATIVE_FENCE_ANDROID && fd_in >= 0) {
+        int importedFd = dup(fd_in);
+
+        if (importedFd < 0) {
+            ALOGE("%s: error: failed to dup imported fd. original: %d errno %d\n",
+                  __func__, fd_in, errno);
+        }
+
+        *fd_out = importedFd;
+
+        if (close(fd_in)) {
+            ALOGE("%s: error: failed to close imported fd. original: %d errno %d\n",
+                  __func__, fd_in, errno);
+        }
+
+    } else if (type == EGL_SYNC_NATIVE_FENCE_ANDROID && fd_in < 0) {
+        // Export fence fd
+
+        uint32_t sync_handle_lo = (uint32_t)sync_handle;
+        uint32_t sync_handle_hi = (uint32_t)(sync_handle >> 32);
+
+        uint32_t cmdDwords[3] = {
+            VIRTIO_GPU_NATIVE_SYNC_CREATE_EXPORT_FD,
+            sync_handle_lo,
+            sync_handle_hi,
+        };
+
+        drm_virtgpu_execbuffer createSyncExport = {
+            .flags = VIRTGPU_EXECBUF_FENCE_FD_OUT,
+            .size = 3 * sizeof(uint32_t),
+            .command = (uint64_t)(cmdDwords),
+            .bo_handles = 0,
+            .num_bo_handles = 0,
+            .fence_fd = -1,
+        };
+
+        int queue_work_err =
+            drmIoctl(
+                hostCon->getOrCreateRendernodeFd(),
+                DRM_IOCTL_VIRTGPU_EXECBUFFER, &createSyncExport);
+
+        if (queue_work_err) {
+            ERR("%s: failed with %d executing command buffer (%s)",  __func__,
+                queue_work_err, strerror(errno));
+            return 0;
+        }
+
+        *fd_out = createSyncExport.fence_fd;
+
+        DPRINT("virtio-gpu: got native fence fd=%d queue_work_err=%d",
+               *fd_out, queue_work_err);
+
+    }
+
+    return sync_handle;
+#endif
+}
+
 // createGoldfishOpenGLNativeSync() is for creating host-only sync objects
 // that are needed by only this goldfish opengl driver,
 // such as in swapBuffers().
@@ -544,7 +645,16 @@ EGLBoolean egl_window_surface_t::swapBuffers()
     eglWaitClient();
     nativeWindow->queueBuffer(nativeWindow, buffer);
 #else
-    if (rcEnc->hasNativeSync()) {
+    if (rcEnc->hasVirtioGpuNativeSync()) {
+        rcEnc->rcFlushWindowColorBufferAsync(rcEnc, rcSurface);
+        createNativeSync_virtioGpu(EGL_SYNC_NATIVE_FENCE_ANDROID,
+                     NULL /* empty attrib list */,
+                     0 /* 0 attrib count */,
+                     true /* destroy when signaled. this is host-only
+                             and there will only be one waiter */,
+                     -1 /* we want a new fd */,
+                     &presentFenceFd);
+    } else if (rcEnc->hasNativeSync()) {
         rcEnc->rcFlushWindowColorBufferAsync(rcEnc, rcSurface);
         createGoldfishOpenGLNativeSync(&presentFenceFd);
     } else {
@@ -2097,7 +2207,8 @@ EGLSyncKHR eglCreateSyncKHR(EGLDisplay dpy, EGLenum type,
     if ((type != EGL_SYNC_FENCE_KHR &&
          type != EGL_SYNC_NATIVE_FENCE_ANDROID) ||
         (type != EGL_SYNC_FENCE_KHR &&
-         !rcEnc->hasNativeSync())) {
+         !rcEnc->hasNativeSync() &&
+         !rcEnc->hasVirtioGpuNativeSync())) {
         setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_NO_SYNC_KHR);
     }
 
@@ -2150,14 +2261,23 @@ EGLSyncKHR eglCreateSyncKHR(EGLDisplay dpy, EGLenum type,
     uint64_t sync_handle = 0;
     int newFenceFd = -1;
 
-    if (rcEnc->hasNativeSync()) {
+    if (rcEnc->hasVirtioGpuNativeSync()) {
         sync_handle =
-            createNativeSync(type, attrib_list, num_actual_attribs,
-                             false /* don't destroy when signaled on the host;
-                                      let the guest clean this up,
-                                      because the guest called eglCreateSyncKHR. */,
-                             inputFenceFd,
-                             &newFenceFd);
+            createNativeSync_virtioGpu(
+                type, attrib_list, num_actual_attribs,
+                false /* don't destroy when signaled on the host;
+                         let the guest clean this up,
+                         because the guest called eglCreateSyncKHR. */,
+                inputFenceFd, &newFenceFd);
+    } else if (rcEnc->hasNativeSync()) {
+        sync_handle =
+            createNativeSync(
+                type, attrib_list, num_actual_attribs,
+                false /* don't destroy when signaled on the host;
+                         let the guest clean this up,
+                         because the guest called eglCreateSyncKHR. */,
+                inputFenceFd,
+                &newFenceFd);
 
     } else {
         // Just trigger a glFinish if the native sync on host
@@ -2170,17 +2290,21 @@ EGLSyncKHR eglCreateSyncKHR(EGLDisplay dpy, EGLenum type,
     if (type == EGL_SYNC_NATIVE_FENCE_ANDROID) {
         syncRes->type = EGL_SYNC_NATIVE_FENCE_ANDROID;
 
-        if (inputFenceFd < 0) {
+        if (rcEnc->hasVirtioGpuNativeSync()) {
             syncRes->android_native_fence_fd = newFenceFd;
         } else {
-            DPRINT("has input fence fd %d",
-                    inputFenceFd);
-            syncRes->android_native_fence_fd = inputFenceFd;
+            if (inputFenceFd < 0) {
+                syncRes->android_native_fence_fd = newFenceFd;
+            } else {
+                DPRINT("has input fence fd %d",
+                        inputFenceFd);
+                syncRes->android_native_fence_fd = inputFenceFd;
+            }
         }
     } else {
         syncRes->type = EGL_SYNC_FENCE_KHR;
         syncRes->android_native_fence_fd = -1;
-        if (!rcEnc->hasNativeSync()) {
+        if (!rcEnc->hasNativeSync() && !rcEnc->hasVirtioGpuNativeSync()) {
             syncRes->status = EGL_SIGNALED_KHR;
         }
     }
@@ -2206,7 +2330,7 @@ EGLBoolean eglDestroySyncKHR(EGLDisplay dpy, EGLSyncKHR eglsync)
 
     if (sync) {
         DEFINE_HOST_CONNECTION;
-        if (rcEnc->hasNativeSync()) {
+        if (rcEnc->hasVirtioGpuNativeSync() || rcEnc->hasNativeSync()) {
             rcEnc->rcDestroySyncKHR(rcEnc, sync->handle);
         }
         delete sync;
@@ -2233,7 +2357,7 @@ EGLint eglClientWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR eglsync, EGLint flags,
     DEFINE_HOST_CONNECTION;
 
     EGLint retval;
-    if (rcEnc->hasNativeSync()) {
+    if (rcEnc->hasVirtioGpuNativeSync() || rcEnc->hasNativeSync()) {
         retval = rcEnc->rcClientWaitSyncKHR
             (rcEnc, sync->handle, flags, timeout);
     } else {
@@ -2272,7 +2396,7 @@ EGLBoolean eglGetSyncAttribKHR(EGLDisplay dpy, EGLSyncKHR eglsync,
         } else {
             // ask the host again
             DEFINE_HOST_CONNECTION;
-            if (rcEnc->hasNativeSyncV4()) {
+            if (rcEnc->hasVirtioGpuNativeSync() || rcEnc->hasNativeSyncV4()) {
                 if (rcEnc->rcIsSyncSignaled(rcEnc, sync->handle)) {
                     sync->status = EGL_SIGNALED_KHR;
                 }
@@ -2317,7 +2441,7 @@ EGLint eglWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR eglsync, EGLint flags) {
     }
 
     DEFINE_HOST_CONNECTION;
-    if (rcEnc->hasNativeSyncV3()) {
+    if (rcEnc->hasVirtioGpuNativeSync() || rcEnc->hasNativeSyncV3()) {
         EGLSync_t* sync = (EGLSync_t*)eglsync;
         rcEnc->rcWaitSyncKHR(rcEnc, sync->handle, flags);
     }
