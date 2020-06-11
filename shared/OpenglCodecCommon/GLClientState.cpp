@@ -852,7 +852,7 @@ size_t GLClientState::clearBufferNumElts(GLenum buffer) const
     return 1;
 }
 
-void GLClientState::getPackingOffsets2D(GLsizei width, GLsizei height, GLenum format, GLenum type, int* startOffset, int* pixelRowSize, int* totalRowSize, int* skipRows) const
+void GLClientState::getPackingOffsets2D(GLsizei width, GLsizei height, GLenum format, GLenum type, int* bpp, int* startOffset, int* pixelRowSize, int* totalRowSize, int* skipRows) const
 {
     if (width <= 0 || height <= 0) {
         *startOffset = 0;
@@ -868,6 +868,7 @@ void GLClientState::getPackingOffsets2D(GLsizei width, GLsizei height, GLenum fo
             m_pixelStore.pack_row_length,
             m_pixelStore.pack_skip_pixels,
             m_pixelStore.pack_skip_rows,
+            bpp,
             startOffset,
             pixelRowSize,
             totalRowSize);
@@ -875,7 +876,7 @@ void GLClientState::getPackingOffsets2D(GLsizei width, GLsizei height, GLenum fo
     *skipRows = m_pixelStore.pack_skip_rows;
 }
 
-void GLClientState::getUnpackingOffsets2D(GLsizei width, GLsizei height, GLenum format, GLenum type, int* startOffset, int* pixelRowSize, int* totalRowSize, int* skipRows) const
+void GLClientState::getUnpackingOffsets2D(GLsizei width, GLsizei height, GLenum format, GLenum type, int* bpp, int* startOffset, int* pixelRowSize, int* totalRowSize, int* skipRows) const
 {
     if (width <= 0 || height <= 0) {
         *startOffset = 0;
@@ -891,11 +892,41 @@ void GLClientState::getUnpackingOffsets2D(GLsizei width, GLsizei height, GLenum 
             m_pixelStore.unpack_row_length,
             m_pixelStore.unpack_skip_pixels,
             m_pixelStore.unpack_skip_rows,
+            bpp,
             startOffset,
             pixelRowSize,
             totalRowSize);
 
     *skipRows = m_pixelStore.unpack_skip_rows;
+}
+
+void GLClientState::getUnpackingOffsets3D(GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, int* bpp, int* startOffset, int* pixelRowSize, int* totalRowSize, int* pixelImageSize, int* totalImageSize, int* skipRows, int* skipImages) const
+{
+    if (width <= 0 || height <= 0) {
+        *startOffset = 0;
+        *pixelRowSize = 0;
+        *totalRowSize = 0;
+        return;
+    }
+
+    GLESTextureUtils::computePackingOffsets3D(
+            width, height, depth,
+            format, type,
+            m_pixelStore.unpack_alignment,
+            m_pixelStore.unpack_row_length,
+            m_pixelStore.unpack_image_height,
+            m_pixelStore.unpack_skip_pixels,
+            m_pixelStore.unpack_skip_rows,
+            m_pixelStore.unpack_skip_images,
+            bpp,
+            startOffset,
+            pixelRowSize,
+            totalRowSize,
+            pixelImageSize,
+            totalImageSize);
+
+    *skipRows = m_pixelStore.unpack_skip_rows;
+    *skipImages = m_pixelStore.unpack_skip_images;
 }
 
 void GLClientState::setNumActiveUniformsInUniformBlock(GLuint program, GLuint uniformBlockIndex, GLint numActiveUniforms) {
