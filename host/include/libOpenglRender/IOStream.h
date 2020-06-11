@@ -97,7 +97,7 @@ public:
     // outside of GLESv2_enc will produce a link error. This is intentional
     // (technical debt).
     void readbackPixels(void* context, int width, int height, unsigned int format, unsigned int type, void* pixels);
-    void uploadPixels(void* context, int width, int height, unsigned int format, unsigned int type, const void* pixels);
+    void uploadPixels(void* context, int width, int height, int depth, unsigned int format, unsigned int type, const void* pixels);
 
 
 private:
