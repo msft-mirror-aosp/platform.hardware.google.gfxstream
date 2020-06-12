@@ -1902,7 +1902,10 @@ void GL2Encoder::s_glGetShaderSource(void *self, GLuint shader, GLsizei bufsize,
                 break;
             }
         }
-        memcpy(source, returned.substr(0, bufsize - 1).c_str(), bufsize);
+        std::string ret = returned.substr(0, bufsize - 1);
+
+        size_t toCopy = bufsize < (ret.size() + 1) ? bufsize : ret.size() + 1;
+        memcpy(source, ret.c_str(), toCopy);
     }
 }
 
@@ -4123,6 +4126,7 @@ void GL2Encoder::s_glDrawArraysInstanced(void* self, GLenum mode, GLint first, G
     assert(ctx->m_state != NULL);
     SET_ERROR_IF(!isValidDrawMode(mode), GL_INVALID_ENUM);
     SET_ERROR_IF(count < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(primcount < 0, GL_INVALID_VALUE);
 
     bool has_client_vertex_arrays = false;
     bool has_indirect_arrays = false;
@@ -4148,6 +4152,7 @@ void GL2Encoder::s_glDrawElementsInstanced(void* self, GLenum mode, GLsizei coun
     assert(ctx->m_state != NULL);
     SET_ERROR_IF(!isValidDrawMode(mode), GL_INVALID_ENUM);
     SET_ERROR_IF(count < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(primcount < 0, GL_INVALID_VALUE);
     SET_ERROR_IF(!(type == GL_UNSIGNED_BYTE || type == GL_UNSIGNED_SHORT || type == GL_UNSIGNED_INT), GL_INVALID_ENUM);
     SET_ERROR_IF(ctx->m_state->getTransformFeedbackActiveUnpaused(), GL_INVALID_OPERATION);
 
