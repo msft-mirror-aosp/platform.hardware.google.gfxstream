@@ -67,6 +67,7 @@ using goldfish_vk::VkEncoder;
 #include "TcpStream.h"
 #include "ThreadInfo.h"
 #include <gralloc_cb_bp.h>
+#include <unistd.h>
 
 #ifdef VIRTIO_GPU
 
