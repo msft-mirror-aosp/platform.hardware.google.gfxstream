@@ -372,6 +372,9 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     OVERRIDE_CUSTOM(glReadnPixelsEXT);
     OVERRIDE_CUSTOM(glGetnUniformfvEXT);
     OVERRIDE_CUSTOM(glGetnUniformivEXT);
+
+    OVERRIDE(glInvalidateFramebuffer);
+    OVERRIDE(glInvalidateSubFramebuffer);
 }
 
 GL2Encoder::~GL2Encoder()
@@ -5440,4 +5443,18 @@ void GL2Encoder::s_glGetnUniformivEXT(void *self, GLuint program, GLint location
     SET_ERROR_IF(bufSize < glSizeof(glesv2_enc::uniformType(self, program,
         location)), GL_INVALID_OPERATION);
     s_glGetUniformiv(self, program, location, params);
+}
+
+void GL2Encoder::s_glInvalidateFramebuffer(void* self, GLenum target, GLsizei numAttachments, const GLenum *attachments) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(numAttachments < 0, GL_INVALID_VALUE);
+    ctx->m_glInvalidateFramebuffer_enc(ctx, target, numAttachments, attachments);
+}
+
+void GL2Encoder::s_glInvalidateSubFramebuffer(void* self, GLenum target, GLsizei numAttachments, const GLenum *attachments, GLint x, GLint y, GLsizei width, GLsizei height) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(numAttachments < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(width < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(height < 0, GL_INVALID_VALUE);
+    ctx->m_glInvalidateSubFramebuffer_enc(ctx, target, numAttachments, attachments, x, y, width, height);
 }

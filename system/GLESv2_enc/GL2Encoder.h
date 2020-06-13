@@ -761,6 +761,14 @@ private:
             GLsizei bufSize, GLfloat* params);
     static void s_glGetnUniformivEXT(void *self, GLuint program, GLint location,
             GLsizei bufSize, GLint* params);
+
+    // Invalidate framebuffer
+    static void s_glInvalidateFramebuffer(void* self, GLenum target, GLsizei numAttachments, const GLenum *attachments);
+    static void s_glInvalidateSubFramebuffer(void* self, GLenum target, GLsizei numAttachments, const GLenum *attachments, GLint x, GLint y, GLsizei width, GLsizei height);
+
+    glInvalidateFramebuffer_client_proc_t m_glInvalidateFramebuffer_enc;
+    glInvalidateSubFramebuffer_client_proc_t m_glInvalidateSubFramebuffer_enc;;
+
 public:
     glEGLImageTargetTexture2DOES_client_proc_t m_glEGLImageTargetTexture2DOES_enc;
 
