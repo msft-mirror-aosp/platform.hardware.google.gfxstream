@@ -253,8 +253,9 @@ public:
     size_t pixelDataSize(GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, int pack) const;
     size_t pboNeededDataSize(GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, int pack) const;
     size_t clearBufferNumElts(GLenum buffer) const;
-    void getPackingOffsets2D(GLsizei width, GLsizei height, GLenum format, GLenum type, int* startOffset, int* pixelRowSize, int* totalRowSize, int* skipRows) const;
-    void getUnpackingOffsets2D(GLsizei width, GLsizei height, GLenum format, GLenum type, int* startOffset, int* pixelRowSize, int* totalRowSize, int* skipRows) const;
+    void getPackingOffsets2D(GLsizei width, GLsizei height, GLenum format, GLenum type, int* bpp, int* startOffset, int* pixelRowSize, int* totalRowSize, int* skipRows) const;
+    void getUnpackingOffsets2D(GLsizei width, GLsizei height, GLenum format, GLenum type, int* bpp, int* startOffset, int* pixelRowSize, int* totalRowSize, int* skipRows) const;
+    void getUnpackingOffsets3D(GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, int* bpp, int* startOffset, int* pixelRowSize, int* totalRowSize, int* pixelImageSize, int* totalImageSize, int* skipRows, int* skipImages) const;
 
     void setCurrentProgram(GLint program) { m_currentProgram = program; }
     void setCurrentShaderProgram(GLint program) { m_currentShaderProgram = program; }
