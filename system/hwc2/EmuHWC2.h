@@ -205,7 +205,7 @@ private:
 
     class Display {
     public:
-        Display(EmuHWC2& device, HWC2::DisplayType type);
+        Display(EmuHWC2& device, HWC2::DisplayType type, int width, int height);
         ~Display();
         hwc2_display_t getId() const {return mId;}
 
@@ -467,7 +467,7 @@ private:
             hwc2_layer_t layerId);
 
     HWC2::Error initDisplayParameters();
-    const native_handle_t* allocateDisplayColorBuffer();
+    const native_handle_t* allocateDisplayColorBuffer(int width, int height);
     void freeDisplayColorBuffer(const native_handle_t* h);
 
     std::unordered_set<HWC2::Capability> mCapabilities;
