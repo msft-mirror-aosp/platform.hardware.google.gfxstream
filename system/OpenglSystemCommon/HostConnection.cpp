@@ -58,10 +58,6 @@ AddressSpaceStream* createAddressSpaceStream(size_t bufSize) {
     ALOGE("%s: FATAL: Trying to create ASG stream in unsupported build\n", __func__);
     abort();
 }
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t bufSize) {
-    ALOGE("%s: FATAL: Trying to create virtgpu ASG stream in unsupported build\n", __func__);
-    abort();
-}
 #endif
 
 using goldfish_vk::VkEncoder;
@@ -116,7 +112,6 @@ static HostConnectionType getConnectionTypeFromProperty() {
     if (!strcmp("virtio-gpu", transportValue)) return HOST_CONNECTION_VIRTIO_GPU;
     if (!strcmp("asg", transportValue)) return HOST_CONNECTION_ADDRESS_SPACE;
     if (!strcmp("virtio-gpu-pipe", transportValue)) return HOST_CONNECTION_VIRTIO_GPU_PIPE;
-    if (!strcmp("virtio-gpu-asg", transportValue)) return HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE;
 
     return HOST_CONNECTION_QEMU_PIPE;
 #endif
@@ -496,7 +491,7 @@ HostConnection* HostConnection::connect(HostConnection* con) {
             con->m_grallocType = getGrallocTypeFromProperty();
             con->m_stream = stream;
             con->m_rendernodeFdOwned = false;
-            con->m_rendernodeFd = stream->getRendernodeFd();
+            con->m_rendernodeFdOwned = stream->getRendernodeFd();
             switch (con->m_grallocType) {
                 case GRALLOC_TYPE_RANCHU:
                     con->m_grallocHelper = &m_goldfishGralloc;
@@ -514,37 +509,6 @@ HostConnection* HostConnection::connect(HostConnection* con) {
             con->m_processPipe = &m_goldfishProcessPipe;
             break;
         }
-#ifndef HOST_BUILD
-        case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
-            AddressSpaceStream *stream = createVirtioGpuAddressSpaceStream(STREAM_BUFFER_SIZE);
-            if (!stream) {
-                ALOGE("Failed to create virtgpu AddressSpaceStream for host connection!!!\n");
-                delete con;
-                return NULL;
-            }
-            con->m_connectionType = HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE;
-            con->m_grallocType = getGrallocTypeFromProperty();
-            con->m_stream = stream;
-            con->m_rendernodeFdOwned = false;
-            con->m_rendernodeFd = stream->getRendernodeFd();
-            switch (con->m_grallocType) {
-                case GRALLOC_TYPE_RANCHU:
-                    con->m_grallocHelper = &m_goldfishGralloc;
-                    break;
-                case GRALLOC_TYPE_MINIGBM: {
-                    MinigbmGralloc* m = new MinigbmGralloc;
-                    m->setFd(stream->getRendernodeFd());
-                    con->m_grallocHelper = m;
-                    break;
-                }
-                default:
-                    ALOGE("Fatal: Unknown gralloc type 0x%x\n", con->m_grallocType);
-                    abort();
-            }
-            con->m_processPipe = &m_goldfishProcessPipe;
-            break;
-        }
-#endif // !HOST_BUILD
 #else
         default:
             break;
