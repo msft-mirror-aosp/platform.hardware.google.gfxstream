@@ -123,7 +123,7 @@ GoldfishMediaTransportImpl::GoldfishMediaTransportImpl() {
         mStartPtr = goldfish_address_space_map(mHandle, mOffset, mSize);
         ALOGI("guest address is %p", mStartPtr);
 
-        struct goldfish_address_space_ping pingInfo;
+        struct address_space_ping pingInfo;
         pingInfo.metadata = GoldfishAddressSpaceSubdeviceType::Media;
         pingInfo.offset = mOffset;
         if (goldfish_address_space_ping(mHandle, &pingInfo) == false) {
@@ -185,7 +185,7 @@ void GoldfishMediaTransportImpl::writeParam(__u64 val, unsigned int num, unsigne
 
 bool GoldfishMediaTransportImpl::sendOperation(MediaCodecType type,
                                                MediaOperation op, unsigned int offSetToStartAddr) {
-    struct goldfish_address_space_ping pingInfo;
+    struct address_space_ping pingInfo;
     pingInfo.metadata = makeMetadata(type, op, offSetToStartAddr);
     pingInfo.offset = mOffset; // + (offSetToStartAddr);
     if (goldfish_address_space_ping(mHandle, &pingInfo) == false) {
