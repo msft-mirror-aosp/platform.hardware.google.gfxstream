@@ -166,8 +166,7 @@ static void processPipeInitOnce() {
         case HOST_CONNECTION_VIRTIO_GPU:
             sQemuPipeInit();
             break;
-        case HOST_CONNECTION_VIRTIO_GPU_PIPE:
-        case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
+        case HOST_CONNECTION_VIRTIO_GPU_PIPE: {
             sVirtioGpuPipeStream = new VirtioGpuPipeStream(4096);
             sProcUID = sVirtioGpuPipeStream->initProcessPipe();
             break;
