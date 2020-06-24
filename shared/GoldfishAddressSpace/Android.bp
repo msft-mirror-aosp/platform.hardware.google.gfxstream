@@ -6,11 +6,13 @@ cc_library_static {
     ],
     shared_libs: [
         "liblog",
+        "libdrm",
     ],
     export_include_dirs: [
         "include",
     ],
     cflags: [
         "-DLOG_TAG=\"goldfish-address-space\"",
+        "-DVIRTIO_GPU",
     ],
 }
