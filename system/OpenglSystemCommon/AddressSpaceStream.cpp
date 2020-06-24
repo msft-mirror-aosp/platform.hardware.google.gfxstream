@@ -42,7 +42,7 @@ AddressSpaceStream* createAddressSpaceStream(size_t ignored_bufSize) {
         return nullptr;
     }
 
-    struct address_space_ping request;
+    struct goldfish_address_space_ping request;
     request.metadata = ASG_GET_RING;
     if (!goldfish_address_space_ping(child_device_handle, &request)) {
         ALOGE("AddressSpaceStream::create failed (get ring)\n");
@@ -123,156 +123,21 @@ AddressSpaceStream* createAddressSpaceStream(size_t ignored_bufSize) {
     context.ring_config->host_consumed_pos = 0;
     context.ring_config->guest_write_pos = 0;
 
-    struct address_space_ops ops = {
-        .open = goldfish_address_space_open,
-        .close = goldfish_address_space_close,
-        .claim_shared = goldfish_address_space_claim_shared,
-        .unclaim_shared = goldfish_address_space_unclaim_shared,
-        .map = goldfish_address_space_map,
-        .unmap = goldfish_address_space_unmap,
-        .set_subdevice_type = goldfish_address_space_set_subdevice_type,
-        .ping = goldfish_address_space_ping,
-    };
-
     AddressSpaceStream* res =
         new AddressSpaceStream(
             child_device_handle, version, context,
-            ringOffset, bufferOffset, false /* not virtio */, ops);
+            ringOffset, bufferOffset);
 
     return res;
 }
-
-#ifdef HOST_BUILD
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t ignored_bufSize) {
-    // Ignore incoming ignored_bufSize
-    (void)ignored_bufSize;
-    return nullptr;
-}
-#else
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t ignored_bufSize) {
-    // Ignore incoming ignored_bufSize
-    (void)ignored_bufSize;
-
-    auto handle = virtgpu_address_space_open();
-
-    if (handle <= 0) {
-        ALOGE("AddressSpaceStream::create failed (open device)\n");
-        return nullptr;
-    }
-
-    struct address_space_virtgpu_info virtgpu_info;
-
-    ALOGD("%s: create subdevice and get resp\n", __func__);
-    if (!virtgpu_address_space_create_context_with_subdevice(
-            handle, GoldfishAddressSpaceSubdeviceType::VirtioGpuGraphics,
-            &virtgpu_info)) {
-        ALOGE("AddressSpaceStream::create failed (create subdevice)\n");
-        virtgpu_address_space_close(handle);
-        return nullptr;
-    }
-    ALOGD("%s: create subdevice and get resp (done)\n", __func__);
-
-    struct address_space_ping request;
-    uint32_t ringSize = 0;
-    uint32_t bufferSize = 0;
-
-    request.metadata = ASG_GET_RING;
-    if (!virtgpu_address_space_ping_with_response(
-        &virtgpu_info, &request)) {
-        ALOGE("AddressSpaceStream::create failed (get ring version)\n");
-        virtgpu_address_space_close(handle);
-        return nullptr;
-    }
-    ringSize = request.size;
-
-    request.metadata = ASG_GET_BUFFER;
-    if (!virtgpu_address_space_ping_with_response(
-        &virtgpu_info, &request)) {
-        ALOGE("AddressSpaceStream::create failed (get ring version)\n");
-        virtgpu_address_space_close(handle);
-        return nullptr;
-    }
-    bufferSize = request.size;
-
-    request.metadata = ASG_SET_VERSION;
-    request.size = 1; // version 1
-
-    if (!virtgpu_address_space_ping_with_response(
-        &virtgpu_info, &request)) {
-        ALOGE("AddressSpaceStream::create failed (set version)\n");
-        virtgpu_address_space_close(handle);
-        return nullptr;
-    }
-
-    ALOGD("%s: ping returned. context ring and buffer sizes %u %u\n", __func__,
-            ringSize, bufferSize);
-
-    uint64_t hostmem_id = request.metadata;
-    uint32_t version = request.size;
-    size_t hostmem_alloc_size =
-        (size_t)(ringSize + bufferSize);
-
-    ALOGD("%s: hostmem size: %zu\n", __func__, hostmem_alloc_size);
-
-    struct address_space_virtgpu_hostmem_info hostmem_info;
-    if (!virtgpu_address_space_allocate_hostmem(
-            handle,
-            hostmem_alloc_size,
-            hostmem_id,
-            &hostmem_info)) {
-        ALOGE("AddressSpaceStream::create failed (alloc hostmem)\n");
-        virtgpu_address_space_close(handle);
-        return nullptr;
-    }
-
-    request.metadata = ASG_GET_CONFIG;
-    if (!virtgpu_address_space_ping_with_response(
-        &virtgpu_info, &request)) {
-        ALOGE("AddressSpaceStream::create failed (get config)\n");
-        virtgpu_address_space_close(handle);
-        return nullptr;
-    }
-
-    char* ringPtr = (char*)hostmem_info.ptr;
-    char* bufferPtr = ((char*)hostmem_info.ptr) + sizeof(struct asg_ring_storage);
-
-    struct asg_context context =
-        asg_context_create(
-            (char*)ringPtr, (char*)bufferPtr, bufferSize);
-
-    context.ring_config->transfer_mode = 1;
-    context.ring_config->host_consumed_pos = 0;
-    context.ring_config->guest_write_pos = 0;
-
-    struct address_space_ops ops = {
-        .open = virtgpu_address_space_open,
-        .close = virtgpu_address_space_close,
-        .ping = virtgpu_address_space_ping,
-        .allocate_hostmem = virtgpu_address_space_allocate_hostmem,
-        .ping_with_response = virtgpu_address_space_ping_with_response,
-    };
-
-    AddressSpaceStream* res =
-        new AddressSpaceStream(
-            handle, version, context,
-            0, 0, true /* is virtio */, ops);
-
-    return res;
-}
-#endif
-
 
 AddressSpaceStream::AddressSpaceStream(
     address_space_handle_t handle,
     uint32_t version,
     struct asg_context context,
     uint64_t ringOffset,
-    uint64_t writeBufferOffset,
-    bool virtioMode,
-    struct address_space_ops ops) :
+    uint64_t writeBufferOffset) :
     IOStream(context.ring_config->flush_interval),
-    m_virtioMode(virtioMode),
-    m_ops(ops),
     m_tmpBuf(0),
     m_tmpBufSize(0),
     m_tmpBufXferSize(0),
@@ -298,13 +163,11 @@ AddressSpaceStream::AddressSpaceStream(
 }
 
 AddressSpaceStream::~AddressSpaceStream() {
-    if (!m_virtioMode) {
-        m_ops.unmap(m_context.to_host, sizeof(struct asg_ring_storage));
-        m_ops.unmap(m_context.buffer, m_writeBufferSize);
-        m_ops.unclaim_shared(m_handle, m_ringOffset);
-        m_ops.unclaim_shared(m_handle, m_writeBufferOffset);
-    }
-    m_ops.close(m_handle);
+    goldfish_address_space_unmap(m_context.to_host, sizeof(struct asg_ring_storage));
+    goldfish_address_space_unmap(m_context.buffer, m_writeBufferSize);
+    goldfish_address_space_unclaim_shared(m_handle, m_ringOffset);
+    goldfish_address_space_unclaim_shared(m_handle, m_writeBufferOffset);
+    goldfish_address_space_close(m_handle);
     if (m_readBuf) free(m_readBuf);
     if (m_tmpBuf) free(m_tmpBuf);
 }
@@ -570,9 +433,9 @@ ssize_t AddressSpaceStream::speculativeRead(unsigned char* readBuffer, size_t tr
 }
 
 void AddressSpaceStream::notifyAvailable() {
-    struct address_space_ping request;
+    struct goldfish_address_space_ping request;
     request.metadata = ASG_NOTIFY_AVAILABLE;
-    m_ops.ping(m_handle, &request);
+    goldfish_address_space_ping(m_handle, &request);
     ++m_notifs;
 }
 
