@@ -594,6 +594,9 @@ void VkEncoder::vkGetPhysicalDeviceProperties(
         transform_fromhost_VkPhysicalDeviceProperties(mImpl->resources(), (VkPhysicalDeviceProperties*)(pProperties));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceProperties returnUnmarshal");
+    encoderLock.unlock();
+    mImpl->resources()->on_vkGetPhysicalDeviceProperties(this, physicalDevice, pProperties);
+    encoderLock.lock();
     mImpl->log("finish vkGetPhysicalDeviceProperties");;
 }
 
@@ -10634,6 +10637,9 @@ void VkEncoder::vkGetPhysicalDeviceProperties2(
         transform_fromhost_VkPhysicalDeviceProperties2(mImpl->resources(), (VkPhysicalDeviceProperties2*)(pProperties));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceProperties2 returnUnmarshal");
+    encoderLock.unlock();
+    mImpl->resources()->on_vkGetPhysicalDeviceProperties2(this, physicalDevice, pProperties);
+    encoderLock.lock();
     mImpl->log("finish vkGetPhysicalDeviceProperties2");;
 }
 
@@ -14515,6 +14521,9 @@ void VkEncoder::vkGetPhysicalDeviceProperties2KHR(
         transform_fromhost_VkPhysicalDeviceProperties2(mImpl->resources(), (VkPhysicalDeviceProperties2*)(pProperties));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceProperties2KHR returnUnmarshal");
+    encoderLock.unlock();
+    mImpl->resources()->on_vkGetPhysicalDeviceProperties2KHR(this, physicalDevice, pProperties);
+    encoderLock.lock();
     mImpl->log("finish vkGetPhysicalDeviceProperties2KHR");;
 }
 
