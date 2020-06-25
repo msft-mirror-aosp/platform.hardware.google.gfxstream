@@ -25,9 +25,6 @@ int property_get(const char* key, char* value, const char* default_value) {
 
 int __android_log_print(int priority, const char* tag, const char* format,
                         ...) {
-  if (priority == ANDROID_LOG_VERBOSE || priority == ANDROID_LOG_DEBUG) {
-    return 1;
-  }
   const char* local_tag = tag;
   if (!local_tag) {
     local_tag = "<NO_TAG>";
@@ -35,12 +32,18 @@ int __android_log_print(int priority, const char* tag, const char* format,
   va_list ap;
   va_start(ap, format);
   switch (priority) {
+    case ANDROID_LOG_VERBOSE:
+    case ANDROID_LOG_DEBUG:
+      FX_LOGVF(DEBUG, local_tag, format, ap);
+      break;
     case ANDROID_LOG_WARN:
       FX_LOGVF(WARNING, local_tag, format, ap);
       break;
     case ANDROID_LOG_ERROR:
-    case ANDROID_LOG_FATAL:
       FX_LOGVF(ERROR, local_tag, format, ap);
+      break;
+    case ANDROID_LOG_FATAL:
+      FX_LOGVF(FATAL, local_tag, format, ap);
       break;
     case ANDROID_LOG_INFO:
     default:
