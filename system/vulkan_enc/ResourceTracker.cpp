@@ -1329,6 +1329,25 @@ public:
         }
     }
 
+    void on_vkGetPhysicalDeviceProperties(
+        void*,
+        VkPhysicalDevice,
+        VkPhysicalDeviceProperties* pProperties) {
+        if (pProperties) {
+            pProperties->deviceType = VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
+        }
+    }
+
+    void on_vkGetPhysicalDeviceProperties2(
+        void*,
+        VkPhysicalDevice,
+        VkPhysicalDeviceProperties2* pProperties) {
+        if (pProperties) {
+            pProperties->properties.deviceType =
+                VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
+        }
+    }
+
     void on_vkGetPhysicalDeviceMemoryProperties(
         void*,
         VkPhysicalDevice physdev,
@@ -4628,6 +4647,30 @@ VkResult ResourceTracker::on_vkEnumeratePhysicalDevices(
     return mImpl->on_vkEnumeratePhysicalDevices(
         context, input_result, instance, pPhysicalDeviceCount,
         pPhysicalDevices);
+}
+
+void ResourceTracker::on_vkGetPhysicalDeviceProperties(
+    void* context,
+    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceProperties* pProperties) {
+    mImpl->on_vkGetPhysicalDeviceProperties(context, physicalDevice,
+        pProperties);
+}
+
+void ResourceTracker::on_vkGetPhysicalDeviceProperties2(
+    void* context,
+    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceProperties2* pProperties) {
+    mImpl->on_vkGetPhysicalDeviceProperties2(context, physicalDevice,
+        pProperties);
+}
+
+void ResourceTracker::on_vkGetPhysicalDeviceProperties2KHR(
+    void* context,
+    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceProperties2* pProperties) {
+    mImpl->on_vkGetPhysicalDeviceProperties2(context, physicalDevice,
+        pProperties);
 }
 
 void ResourceTracker::on_vkGetPhysicalDeviceMemoryProperties(
