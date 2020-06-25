@@ -424,7 +424,7 @@ ssize_t AddressSpaceStream::speculativeRead(unsigned char* readBuffer, size_t tr
     }
 
     if (backedOffIters > 0) {
-        ALOGE("%s: warning: backed off %zu times due to host slowness.\n",
+        ALOGW("%s: backed off %zu times due to host slowness.\n",
               __func__,
               backedOffIters);
     }
