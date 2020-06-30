@@ -45,6 +45,10 @@ LOCAL_C_INCLUDES += \
     device/generic/goldfish-opengl/host/include/libOpenglRender \
     device/generic/goldfish-opengl/system/renderControl_enc \
 
+LOCAL_CFLAGS += -DVIRTIO_GPU
+LOCAL_C_INCLUDES += external/libdrm external/minigbm/cros_gralloc
+LOCAL_SHARED_LIBRARIES += libdrm
+
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
@@ -77,6 +81,10 @@ LOCAL_C_INCLUDES += \
     device/generic/goldfish-opengl/shared/OpenglCodecCommon \
     device/generic/goldfish-opengl/host/include/libOpenglRender \
     device/generic/goldfish-opengl/system/renderControl_enc \
+
+LOCAL_CFLAGS += -DVIRTIO_GPU
+LOCAL_C_INCLUDES += external/libdrm external/minigbm/cros_gralloc
+LOCAL_SHARED_LIBRARIES += libdrm
 
 include $(BUILD_SHARED_LIBRARY)
 
