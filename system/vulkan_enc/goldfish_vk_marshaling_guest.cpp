@@ -13567,6 +13567,37 @@ void unmarshal_VkImportColorBufferGOOGLE(
     vkStream->read((uint32_t*)&forUnmarshaling->colorBuffer, sizeof(uint32_t));
 }
 
+void marshal_VkImportBufferGOOGLE(
+    VulkanStreamGuest* vkStream,
+    const VkImportBufferGOOGLE* forMarshaling)
+{
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
+    vkStream->putBe32(pNext_size);
+    if (pNext_size)
+    {
+        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
+        marshal_extension_struct(vkStream, forMarshaling->pNext);
+    }
+    vkStream->write((uint32_t*)&forMarshaling->buffer, sizeof(uint32_t));
+}
+
+void unmarshal_VkImportBufferGOOGLE(
+    VulkanStreamGuest* vkStream,
+    VkImportBufferGOOGLE* forUnmarshaling)
+{
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    size_t pNext_size;
+    pNext_size = vkStream->getBe32();
+    if (pNext_size)
+    {
+        uint64_t pNext_placeholder;
+        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
+        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
+    }
+    vkStream->read((uint32_t*)&forUnmarshaling->buffer, sizeof(uint32_t));
+}
+
 void marshal_VkImportPhysicalAddressGOOGLE(
     VulkanStreamGuest* vkStream,
     const VkImportPhysicalAddressGOOGLE* forMarshaling)
@@ -14267,6 +14298,11 @@ void marshal_extension_struct(
             marshal_VkImportColorBufferGOOGLE(vkStream, reinterpret_cast<const VkImportColorBufferGOOGLE*>(structExtension));
             break;
         }
+        case VK_STRUCTURE_TYPE_IMPORT_BUFFER_GOOGLE:
+        {
+            marshal_VkImportBufferGOOGLE(vkStream, reinterpret_cast<const VkImportBufferGOOGLE*>(structExtension));
+            break;
+        }
         case VK_STRUCTURE_TYPE_IMPORT_PHYSICAL_ADDRESS_GOOGLE:
         {
             marshal_VkImportPhysicalAddressGOOGLE(vkStream, reinterpret_cast<const VkImportPhysicalAddressGOOGLE*>(structExtension));
@@ -14928,6 +14964,11 @@ void unmarshal_extension_struct(
         case VK_STRUCTURE_TYPE_IMPORT_COLOR_BUFFER_GOOGLE:
         {
             unmarshal_VkImportColorBufferGOOGLE(vkStream, reinterpret_cast<VkImportColorBufferGOOGLE*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMPORT_BUFFER_GOOGLE:
+        {
+            unmarshal_VkImportBufferGOOGLE(vkStream, reinterpret_cast<VkImportBufferGOOGLE*>(structExtension_out));
             break;
         }
         case VK_STRUCTURE_TYPE_IMPORT_PHYSICAL_ADDRESS_GOOGLE:

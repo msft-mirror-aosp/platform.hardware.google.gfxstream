@@ -3054,6 +3054,14 @@ void transform_fromhost_VkImportColorBufferGOOGLE(
     ResourceTracker* resourceTracker,
     VkImportColorBufferGOOGLE* toTransform);
 
+void transform_tohost_VkImportBufferGOOGLE(
+    ResourceTracker* resourceTracker,
+    VkImportBufferGOOGLE* toTransform);
+
+void transform_fromhost_VkImportBufferGOOGLE(
+    ResourceTracker* resourceTracker,
+    VkImportBufferGOOGLE* toTransform);
+
 void transform_tohost_VkImportPhysicalAddressGOOGLE(
     ResourceTracker* resourceTracker,
     VkImportPhysicalAddressGOOGLE* toTransform);
