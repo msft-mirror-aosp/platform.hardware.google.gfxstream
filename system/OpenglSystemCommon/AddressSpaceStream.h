@@ -47,8 +47,12 @@ public:
     virtual const unsigned char *commitBufferAndReadFully(size_t size, void *buf, size_t len);
 
     int getRendernodeFd() const {
+#if defined(__Fuchsia__)
+        return -1;
+#else
         if (!m_virtioMode) return -1;
         return m_handle;
+#endif
     }
 
 private:
