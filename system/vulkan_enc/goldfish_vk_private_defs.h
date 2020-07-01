@@ -477,6 +477,13 @@ typedef struct VkBufferCollectionImageCreateInfoFUCHSIA {
     uint32_t                     index;
 } VkBufferCollectionImageCreateInfoFUCHSIA;
 
+typedef struct VkBufferCollectionBufferCreateInfoFUCHSIA {
+    VkStructureType              sType;
+    const void*                  pNext;
+    VkBufferCollectionFUCHSIA    collection;
+    uint32_t                     index;
+} VkBufferCollectionBufferCreateInfoFUCHSIA;
+
 typedef struct VkBufferCollectionPropertiesFUCHSIA {
     VkStructureType    sType;
     void*              pNext;
@@ -488,6 +495,8 @@ typedef struct VkBufferCollectionPropertiesFUCHSIA {
     ((VkStructureType)1001004004)
 #define VK_STRUCTURE_TYPE_BUFFER_COLLECTION_IMAGE_CREATE_INFO_FUCHSIA \
     ((VkStructureType)1001004005)
+#define VK_STRUCTURE_TYPE_BUFFER_COLLECTION_BUFFER_CREATE_INFO_FUCHSIA \
+    ((VkStructureType)1001004008)
 #endif  // VK_FUCHSIA_buffer_collection
 
 #ifndef VK_FUCHSIA_external_memory
