@@ -799,6 +799,9 @@ public:
         if (mFeatureInfo->hasVulkanIgnoredHandles) {
             mStreamFeatureBits |= VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT;
         }
+        if (mFeatureInfo->hasVulkanShaderFloat16Int8) {
+            mStreamFeatureBits |= VULKAN_STREAM_FEATURE_SHADER_FLOAT16_INT8_BIT;
+        }
 
 #if !defined(HOST_BUILD) && defined(VK_USE_PLATFORM_ANDROID_KHR)
         if (mFeatureInfo->hasVirtioGpuNext) {

@@ -3679,6 +3679,8 @@ static void entry_vkCmdDrawIndexedIndirectCountKHR(
 #endif
 #ifdef VK_KHR_8bit_storage
 #endif
+#ifdef VK_KHR_shader_float16_int8
+#endif
 #ifdef VK_ANDROID_native_buffer
 static VkResult entry_vkGetSwapchainGrallocUsageANDROID(
     VkDevice device,

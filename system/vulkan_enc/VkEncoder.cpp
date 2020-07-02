@@ -18067,6 +18067,8 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountKHR(
 #endif
 #ifdef VK_KHR_8bit_storage
 #endif
+#ifdef VK_KHR_shader_float16_int8
+#endif
 #ifdef VK_ANDROID_native_buffer
 VkResult VkEncoder::vkGetSwapchainGrallocUsageANDROID(
     VkDevice device,
