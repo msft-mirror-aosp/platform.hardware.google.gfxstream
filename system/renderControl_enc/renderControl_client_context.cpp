@@ -59,6 +59,8 @@ int renderControl_client_context_t::initDispatchByName(void *(*getProc)(const ch
 	rcReadColorBufferYUV = (rcReadColorBufferYUV_client_proc_t) getProc("rcReadColorBufferYUV", userData);
 	rcIsSyncSignaled = (rcIsSyncSignaled_client_proc_t) getProc("rcIsSyncSignaled", userData);
 	rcCreateColorBufferWithHandle = (rcCreateColorBufferWithHandle_client_proc_t) getProc("rcCreateColorBufferWithHandle", userData);
+	rcCreateBuffer = (rcCreateBuffer_client_proc_t) getProc("rcCreateBuffer", userData);
+	rcCloseBuffer = (rcCloseBuffer_client_proc_t) getProc("rcCloseBuffer", userData);
 	return 0;
 }
 
