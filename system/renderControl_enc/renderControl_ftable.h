@@ -57,6 +57,8 @@ static const struct _renderControl_funcs_by_name {
 	{"rcReadColorBufferYUV", (void*)rcReadColorBufferYUV},
 	{"rcIsSyncSignaled", (void*)rcIsSyncSignaled},
 	{"rcCreateColorBufferWithHandle", (void*)rcCreateColorBufferWithHandle},
+	{"rcCreateBuffer", (void*)rcCreateBuffer},
+	{"rcCloseBuffer", (void*)rcCloseBuffer},
 };
 static const int renderControl_num_funcs = sizeof(renderControl_funcs_by_name) / sizeof(struct _renderControl_funcs_by_name);
 

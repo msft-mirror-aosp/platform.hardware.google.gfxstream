@@ -52,7 +52,9 @@
 #define OP_rcReadColorBufferYUV 					10046
 #define OP_rcIsSyncSignaled 					10047
 #define OP_rcCreateColorBufferWithHandle 					10048
-#define OP_last 					10049
+#define OP_rcCreateBuffer 					10049
+#define OP_rcCloseBuffer 					10050
+#define OP_last 					10051
 
 
 #endif
