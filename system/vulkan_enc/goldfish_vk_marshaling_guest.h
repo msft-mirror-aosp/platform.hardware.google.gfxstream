@@ -3370,6 +3370,14 @@ void unmarshal_VkImportColorBufferGOOGLE(
     VulkanStreamGuest* vkStream,
     VkImportColorBufferGOOGLE* forUnmarshaling);
 
+void marshal_VkImportBufferGOOGLE(
+    VulkanStreamGuest* vkStream,
+    const VkImportBufferGOOGLE* forMarshaling);
+
+void unmarshal_VkImportBufferGOOGLE(
+    VulkanStreamGuest* vkStream,
+    VkImportBufferGOOGLE* forUnmarshaling);
+
 void marshal_VkImportPhysicalAddressGOOGLE(
     VulkanStreamGuest* vkStream,
     const VkImportPhysicalAddressGOOGLE* forMarshaling);
