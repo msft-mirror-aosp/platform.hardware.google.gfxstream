@@ -354,9 +354,11 @@ int CloseDevice(struct hw_device_t* /*device*/) {
     } \
     goldfish_vk::ResourceTracker::get()->setupFeatures(rcEnc->featureInfo_const()); \
     goldfish_vk::ResourceTracker::ThreadingCallbacks threadingCallbacks = { \
-        [] { auto hostCon = HostConnection::get(); \
-            ExtendedRCEncoderContext *rcEnc = hostCon->rcEncoder(); \
-            return hostCon; }, \
+        [] { \
+          auto hostCon = HostConnection::get(); \
+          hostCon->rcEncoder(); \
+          return hostCon; \
+        }, \
         [](HostConnection* hostCon) { return hostCon->vkEncoder(); }, \
     }; \
     goldfish_vk::ResourceTracker::get()->setThreadingCallbacks(threadingCallbacks); \
