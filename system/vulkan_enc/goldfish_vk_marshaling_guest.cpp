@@ -45,13 +45,7 @@ void marshal_VkApplicationInfo(
     const VkApplicationInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
     {
         // WARNING PTR CHECK
@@ -90,14 +84,7 @@ void unmarshal_VkApplicationInfo(
     VkApplicationInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
     {
         // WARNING PTR CHECK
@@ -144,13 +131,7 @@ void marshal_VkInstanceCreateInfo(
     const VkInstanceCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkInstanceCreateFlags*)&forMarshaling->flags, sizeof(VkInstanceCreateFlags));
     // WARNING PTR CHECK
     uint64_t cgen_var_4 = (uint64_t)(uintptr_t)forMarshaling->pApplicationInfo;
@@ -170,14 +151,7 @@ void unmarshal_VkInstanceCreateInfo(
     VkInstanceCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkInstanceCreateFlags*)&forUnmarshaling->flags, sizeof(VkInstanceCreateFlags));
     // WARNING PTR CHECK
     const VkApplicationInfo* check_pApplicationInfo;
@@ -787,13 +761,7 @@ void marshal_VkDeviceQueueCreateInfo(
     const VkDeviceQueueCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDeviceQueueCreateFlags*)&forMarshaling->flags, sizeof(VkDeviceQueueCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->queueFamilyIndex, sizeof(uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->queueCount, sizeof(uint32_t));
@@ -805,14 +773,7 @@ void unmarshal_VkDeviceQueueCreateInfo(
     VkDeviceQueueCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDeviceQueueCreateFlags*)&forUnmarshaling->flags, sizeof(VkDeviceQueueCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->queueFamilyIndex, sizeof(uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->queueCount, sizeof(uint32_t));
@@ -824,13 +785,7 @@ void marshal_VkDeviceCreateInfo(
     const VkDeviceCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDeviceCreateFlags*)&forMarshaling->flags, sizeof(VkDeviceCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->queueCreateInfoCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forMarshaling->queueCreateInfoCount; ++i)
@@ -855,14 +810,7 @@ void unmarshal_VkDeviceCreateInfo(
     VkDeviceCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDeviceCreateFlags*)&forUnmarshaling->flags, sizeof(VkDeviceCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->queueCreateInfoCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->queueCreateInfoCount; ++i)
@@ -927,13 +875,7 @@ void marshal_VkSubmitInfo(
     const VkSubmitInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->waitSemaphoreCount, sizeof(uint32_t));
     if (forMarshaling->waitSemaphoreCount)
     {
@@ -966,14 +908,7 @@ void unmarshal_VkSubmitInfo(
     VkSubmitInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->waitSemaphoreCount, sizeof(uint32_t));
     if (forUnmarshaling->waitSemaphoreCount)
     {
@@ -1006,13 +941,7 @@ void marshal_VkMemoryAllocateInfo(
     const VkMemoryAllocateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDeviceSize*)&forMarshaling->allocationSize, sizeof(VkDeviceSize));
     vkStream->write((uint32_t*)&forMarshaling->memoryTypeIndex, sizeof(uint32_t));
 }
@@ -1022,14 +951,7 @@ void unmarshal_VkMemoryAllocateInfo(
     VkMemoryAllocateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDeviceSize*)&forUnmarshaling->allocationSize, sizeof(VkDeviceSize));
     vkStream->read((uint32_t*)&forUnmarshaling->memoryTypeIndex, sizeof(uint32_t));
 }
@@ -1039,13 +961,7 @@ void marshal_VkMappedMemoryRange(
     const VkMappedMemoryRange* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_28;
     vkStream->handleMapping()->mapHandles_VkDeviceMemory_u64(&forMarshaling->memory, &cgen_var_28, 1);
     vkStream->write((uint64_t*)&cgen_var_28, 1 * 8);
@@ -1058,14 +974,7 @@ void unmarshal_VkMappedMemoryRange(
     VkMappedMemoryRange* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_29;
     vkStream->read((uint64_t*)&cgen_var_29, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkDeviceMemory(&cgen_var_29, (VkDeviceMemory*)&forUnmarshaling->memory, 1);
@@ -1310,13 +1219,7 @@ void marshal_VkBindSparseInfo(
     const VkBindSparseInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->waitSemaphoreCount, sizeof(uint32_t));
     if (forMarshaling->waitSemaphoreCount)
     {
@@ -1355,14 +1258,7 @@ void unmarshal_VkBindSparseInfo(
     VkBindSparseInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->waitSemaphoreCount, sizeof(uint32_t));
     if (forUnmarshaling->waitSemaphoreCount)
     {
@@ -1401,13 +1297,7 @@ void marshal_VkFenceCreateInfo(
     const VkFenceCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkFenceCreateFlags*)&forMarshaling->flags, sizeof(VkFenceCreateFlags));
 }
 
@@ -1416,14 +1306,7 @@ void unmarshal_VkFenceCreateInfo(
     VkFenceCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkFenceCreateFlags*)&forUnmarshaling->flags, sizeof(VkFenceCreateFlags));
 }
 
@@ -1432,13 +1315,7 @@ void marshal_VkSemaphoreCreateInfo(
     const VkSemaphoreCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkSemaphoreCreateFlags*)&forMarshaling->flags, sizeof(VkSemaphoreCreateFlags));
 }
 
@@ -1447,14 +1324,7 @@ void unmarshal_VkSemaphoreCreateInfo(
     VkSemaphoreCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkSemaphoreCreateFlags*)&forUnmarshaling->flags, sizeof(VkSemaphoreCreateFlags));
 }
 
@@ -1463,13 +1333,7 @@ void marshal_VkEventCreateInfo(
     const VkEventCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkEventCreateFlags*)&forMarshaling->flags, sizeof(VkEventCreateFlags));
 }
 
@@ -1478,14 +1342,7 @@ void unmarshal_VkEventCreateInfo(
     VkEventCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkEventCreateFlags*)&forUnmarshaling->flags, sizeof(VkEventCreateFlags));
 }
 
@@ -1494,13 +1351,7 @@ void marshal_VkQueryPoolCreateInfo(
     const VkQueryPoolCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkQueryPoolCreateFlags*)&forMarshaling->flags, sizeof(VkQueryPoolCreateFlags));
     vkStream->write((VkQueryType*)&forMarshaling->queryType, sizeof(VkQueryType));
     vkStream->write((uint32_t*)&forMarshaling->queryCount, sizeof(uint32_t));
@@ -1512,14 +1363,7 @@ void unmarshal_VkQueryPoolCreateInfo(
     VkQueryPoolCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkQueryPoolCreateFlags*)&forUnmarshaling->flags, sizeof(VkQueryPoolCreateFlags));
     vkStream->read((VkQueryType*)&forUnmarshaling->queryType, sizeof(VkQueryType));
     vkStream->read((uint32_t*)&forUnmarshaling->queryCount, sizeof(uint32_t));
@@ -1531,13 +1375,7 @@ void marshal_VkBufferCreateInfo(
     const VkBufferCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBufferCreateFlags*)&forMarshaling->flags, sizeof(VkBufferCreateFlags));
     vkStream->write((VkDeviceSize*)&forMarshaling->size, sizeof(VkDeviceSize));
     vkStream->write((VkBufferUsageFlags*)&forMarshaling->usage, sizeof(VkBufferUsageFlags));
@@ -1557,14 +1395,7 @@ void unmarshal_VkBufferCreateInfo(
     VkBufferCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBufferCreateFlags*)&forUnmarshaling->flags, sizeof(VkBufferCreateFlags));
     vkStream->read((VkDeviceSize*)&forUnmarshaling->size, sizeof(VkDeviceSize));
     vkStream->read((VkBufferUsageFlags*)&forUnmarshaling->usage, sizeof(VkBufferUsageFlags));
@@ -1588,13 +1419,7 @@ void marshal_VkBufferViewCreateInfo(
     const VkBufferViewCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBufferViewCreateFlags*)&forMarshaling->flags, sizeof(VkBufferViewCreateFlags));
     uint64_t cgen_var_46;
     vkStream->handleMapping()->mapHandles_VkBuffer_u64(&forMarshaling->buffer, &cgen_var_46, 1);
@@ -1609,14 +1434,7 @@ void unmarshal_VkBufferViewCreateInfo(
     VkBufferViewCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBufferViewCreateFlags*)&forUnmarshaling->flags, sizeof(VkBufferViewCreateFlags));
     uint64_t cgen_var_47;
     vkStream->read((uint64_t*)&cgen_var_47, 1 * 8);
@@ -1631,13 +1449,7 @@ void marshal_VkImageCreateInfo(
     const VkImageCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkImageCreateFlags*)&forMarshaling->flags, sizeof(VkImageCreateFlags));
     vkStream->write((VkImageType*)&forMarshaling->imageType, sizeof(VkImageType));
     vkStream->write((VkFormat*)&forMarshaling->format, sizeof(VkFormat));
@@ -1664,14 +1476,7 @@ void unmarshal_VkImageCreateInfo(
     VkImageCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkImageCreateFlags*)&forUnmarshaling->flags, sizeof(VkImageCreateFlags));
     vkStream->read((VkImageType*)&forUnmarshaling->imageType, sizeof(VkImageType));
     vkStream->read((VkFormat*)&forUnmarshaling->format, sizeof(VkFormat));
@@ -1766,13 +1571,7 @@ void marshal_VkImageViewCreateInfo(
     const VkImageViewCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkImageViewCreateFlags*)&forMarshaling->flags, sizeof(VkImageViewCreateFlags));
     uint64_t cgen_var_50;
     vkStream->handleMapping()->mapHandles_VkImage_u64(&forMarshaling->image, &cgen_var_50, 1);
@@ -1788,14 +1587,7 @@ void unmarshal_VkImageViewCreateInfo(
     VkImageViewCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkImageViewCreateFlags*)&forUnmarshaling->flags, sizeof(VkImageViewCreateFlags));
     uint64_t cgen_var_51;
     vkStream->read((uint64_t*)&cgen_var_51, 1 * 8);
@@ -1811,13 +1603,7 @@ void marshal_VkShaderModuleCreateInfo(
     const VkShaderModuleCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkShaderModuleCreateFlags*)&forMarshaling->flags, sizeof(VkShaderModuleCreateFlags));
     uint64_t cgen_var_52 = (uint64_t)forMarshaling->codeSize;
     vkStream->putBe64(cgen_var_52);
@@ -1829,14 +1615,7 @@ void unmarshal_VkShaderModuleCreateInfo(
     VkShaderModuleCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkShaderModuleCreateFlags*)&forUnmarshaling->flags, sizeof(VkShaderModuleCreateFlags));
     forUnmarshaling->codeSize = (size_t)vkStream->getBe64();
     vkStream->read((uint32_t*)forUnmarshaling->pCode, (forUnmarshaling->codeSize / 4) * sizeof(const uint32_t));
@@ -1847,13 +1626,7 @@ void marshal_VkPipelineCacheCreateInfo(
     const VkPipelineCacheCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineCacheCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineCacheCreateFlags));
     uint64_t cgen_var_54 = (uint64_t)forMarshaling->initialDataSize;
     vkStream->putBe64(cgen_var_54);
@@ -1865,14 +1638,7 @@ void unmarshal_VkPipelineCacheCreateInfo(
     VkPipelineCacheCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineCacheCreateFlags*)&forUnmarshaling->flags, sizeof(VkPipelineCacheCreateFlags));
     forUnmarshaling->initialDataSize = (size_t)vkStream->getBe64();
     vkStream->read((void*)forUnmarshaling->pInitialData, forUnmarshaling->initialDataSize * sizeof(const uint8_t));
@@ -1929,13 +1695,7 @@ void marshal_VkPipelineShaderStageCreateInfo(
     const VkPipelineShaderStageCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineShaderStageCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineShaderStageCreateFlags));
     vkStream->write((VkShaderStageFlagBits*)&forMarshaling->stage, sizeof(VkShaderStageFlagBits));
     uint64_t cgen_var_60;
@@ -1956,14 +1716,7 @@ void unmarshal_VkPipelineShaderStageCreateInfo(
     VkPipelineShaderStageCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineShaderStageCreateFlags*)&forUnmarshaling->flags, sizeof(VkPipelineShaderStageCreateFlags));
     vkStream->read((VkShaderStageFlagBits*)&forUnmarshaling->stage, sizeof(VkShaderStageFlagBits));
     uint64_t cgen_var_62;
@@ -2026,13 +1779,7 @@ void marshal_VkPipelineVertexInputStateCreateInfo(
     const VkPipelineVertexInputStateCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineVertexInputStateCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineVertexInputStateCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->vertexBindingDescriptionCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forMarshaling->vertexBindingDescriptionCount; ++i)
@@ -2051,14 +1798,7 @@ void unmarshal_VkPipelineVertexInputStateCreateInfo(
     VkPipelineVertexInputStateCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineVertexInputStateCreateFlags*)&forUnmarshaling->flags, sizeof(VkPipelineVertexInputStateCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->vertexBindingDescriptionCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->vertexBindingDescriptionCount; ++i)
@@ -2077,13 +1817,7 @@ void marshal_VkPipelineInputAssemblyStateCreateInfo(
     const VkPipelineInputAssemblyStateCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineInputAssemblyStateCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineInputAssemblyStateCreateFlags));
     vkStream->write((VkPrimitiveTopology*)&forMarshaling->topology, sizeof(VkPrimitiveTopology));
     vkStream->write((VkBool32*)&forMarshaling->primitiveRestartEnable, sizeof(VkBool32));
@@ -2094,14 +1828,7 @@ void unmarshal_VkPipelineInputAssemblyStateCreateInfo(
     VkPipelineInputAssemblyStateCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineInputAssemblyStateCreateFlags*)&forUnmarshaling->flags, sizeof(VkPipelineInputAssemblyStateCreateFlags));
     vkStream->read((VkPrimitiveTopology*)&forUnmarshaling->topology, sizeof(VkPrimitiveTopology));
     vkStream->read((VkBool32*)&forUnmarshaling->primitiveRestartEnable, sizeof(VkBool32));
@@ -2112,13 +1839,7 @@ void marshal_VkPipelineTessellationStateCreateInfo(
     const VkPipelineTessellationStateCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineTessellationStateCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineTessellationStateCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->patchControlPoints, sizeof(uint32_t));
 }
@@ -2128,14 +1849,7 @@ void unmarshal_VkPipelineTessellationStateCreateInfo(
     VkPipelineTessellationStateCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineTessellationStateCreateFlags*)&forUnmarshaling->flags, sizeof(VkPipelineTessellationStateCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->patchControlPoints, sizeof(uint32_t));
 }
@@ -2217,13 +1931,7 @@ void marshal_VkPipelineViewportStateCreateInfo(
     const VkPipelineViewportStateCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineViewportStateCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineViewportStateCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->viewportCount, sizeof(uint32_t));
     // WARNING PTR CHECK
@@ -2254,14 +1962,7 @@ void unmarshal_VkPipelineViewportStateCreateInfo(
     VkPipelineViewportStateCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineViewportStateCreateFlags*)&forUnmarshaling->flags, sizeof(VkPipelineViewportStateCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->viewportCount, sizeof(uint32_t));
     // WARNING PTR CHECK
@@ -2300,13 +2001,7 @@ void marshal_VkPipelineRasterizationStateCreateInfo(
     const VkPipelineRasterizationStateCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineRasterizationStateCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineRasterizationStateCreateFlags));
     vkStream->write((VkBool32*)&forMarshaling->depthClampEnable, sizeof(VkBool32));
     vkStream->write((VkBool32*)&forMarshaling->rasterizerDiscardEnable, sizeof(VkBool32));
@@ -2325,14 +2020,7 @@ void unmarshal_VkPipelineRasterizationStateCreateInfo(
     VkPipelineRasterizationStateCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineRasterizationStateCreateFlags*)&forUnmarshaling->flags, sizeof(VkPipelineRasterizationStateCreateFlags));
     vkStream->read((VkBool32*)&forUnmarshaling->depthClampEnable, sizeof(VkBool32));
     vkStream->read((VkBool32*)&forUnmarshaling->rasterizerDiscardEnable, sizeof(VkBool32));
@@ -2351,13 +2039,7 @@ void marshal_VkPipelineMultisampleStateCreateInfo(
     const VkPipelineMultisampleStateCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineMultisampleStateCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineMultisampleStateCreateFlags));
     vkStream->write((VkSampleCountFlagBits*)&forMarshaling->rasterizationSamples, sizeof(VkSampleCountFlagBits));
     vkStream->write((VkBool32*)&forMarshaling->sampleShadingEnable, sizeof(VkBool32));
@@ -2378,14 +2060,7 @@ void unmarshal_VkPipelineMultisampleStateCreateInfo(
     VkPipelineMultisampleStateCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineMultisampleStateCreateFlags*)&forUnmarshaling->flags, sizeof(VkPipelineMultisampleStateCreateFlags));
     vkStream->read((VkSampleCountFlagBits*)&forUnmarshaling->rasterizationSamples, sizeof(VkSampleCountFlagBits));
     vkStream->read((VkBool32*)&forUnmarshaling->sampleShadingEnable, sizeof(VkBool32));
@@ -2436,13 +2111,7 @@ void marshal_VkPipelineDepthStencilStateCreateInfo(
     const VkPipelineDepthStencilStateCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineDepthStencilStateCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineDepthStencilStateCreateFlags));
     vkStream->write((VkBool32*)&forMarshaling->depthTestEnable, sizeof(VkBool32));
     vkStream->write((VkBool32*)&forMarshaling->depthWriteEnable, sizeof(VkBool32));
@@ -2460,14 +2129,7 @@ void unmarshal_VkPipelineDepthStencilStateCreateInfo(
     VkPipelineDepthStencilStateCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineDepthStencilStateCreateFlags*)&forUnmarshaling->flags, sizeof(VkPipelineDepthStencilStateCreateFlags));
     vkStream->read((VkBool32*)&forUnmarshaling->depthTestEnable, sizeof(VkBool32));
     vkStream->read((VkBool32*)&forUnmarshaling->depthWriteEnable, sizeof(VkBool32));
@@ -2513,13 +2175,7 @@ void marshal_VkPipelineColorBlendStateCreateInfo(
     const VkPipelineColorBlendStateCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineColorBlendStateCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineColorBlendStateCreateFlags));
     vkStream->write((VkBool32*)&forMarshaling->logicOpEnable, sizeof(VkBool32));
     vkStream->write((VkLogicOp*)&forMarshaling->logicOp, sizeof(VkLogicOp));
@@ -2536,14 +2192,7 @@ void unmarshal_VkPipelineColorBlendStateCreateInfo(
     VkPipelineColorBlendStateCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineColorBlendStateCreateFlags*)&forUnmarshaling->flags, sizeof(VkPipelineColorBlendStateCreateFlags));
     vkStream->read((VkBool32*)&forUnmarshaling->logicOpEnable, sizeof(VkBool32));
     vkStream->read((VkLogicOp*)&forUnmarshaling->logicOp, sizeof(VkLogicOp));
@@ -2560,13 +2209,7 @@ void marshal_VkPipelineDynamicStateCreateInfo(
     const VkPipelineDynamicStateCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineDynamicStateCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineDynamicStateCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->dynamicStateCount, sizeof(uint32_t));
     vkStream->write((const VkDynamicState*)forMarshaling->pDynamicStates, forMarshaling->dynamicStateCount * sizeof(const VkDynamicState));
@@ -2577,14 +2220,7 @@ void unmarshal_VkPipelineDynamicStateCreateInfo(
     VkPipelineDynamicStateCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineDynamicStateCreateFlags*)&forUnmarshaling->flags, sizeof(VkPipelineDynamicStateCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->dynamicStateCount, sizeof(uint32_t));
     vkStream->read((VkDynamicState*)forUnmarshaling->pDynamicStates, forUnmarshaling->dynamicStateCount * sizeof(const VkDynamicState));
@@ -2609,13 +2245,7 @@ void marshal_VkGraphicsPipelineCreateInfo(
         vkStream->putBe32(cgen_var_71);
     }
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->stageCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forMarshaling->stageCount; ++i)
@@ -2737,14 +2367,7 @@ void unmarshal_VkGraphicsPipelineCreateInfo(
         hasTessellation = (const uint32_t)vkStream->getBe32();
     }
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineCreateFlags*)&forUnmarshaling->flags, sizeof(VkPipelineCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->stageCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->stageCount; ++i)
@@ -2900,13 +2523,7 @@ void marshal_VkComputePipelineCreateInfo(
     const VkComputePipelineCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineCreateFlags));
     marshal_VkPipelineShaderStageCreateInfo(vkStream, (VkPipelineShaderStageCreateInfo*)(&forMarshaling->stage));
     uint64_t cgen_var_98;
@@ -2923,14 +2540,7 @@ void unmarshal_VkComputePipelineCreateInfo(
     VkComputePipelineCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineCreateFlags*)&forUnmarshaling->flags, sizeof(VkPipelineCreateFlags));
     unmarshal_VkPipelineShaderStageCreateInfo(vkStream, (VkPipelineShaderStageCreateInfo*)(&forUnmarshaling->stage));
     uint64_t cgen_var_100;
@@ -2965,13 +2575,7 @@ void marshal_VkPipelineLayoutCreateInfo(
     const VkPipelineLayoutCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineLayoutCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineLayoutCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->setLayoutCount, sizeof(uint32_t));
     if (forMarshaling->setLayoutCount)
@@ -2993,14 +2597,7 @@ void unmarshal_VkPipelineLayoutCreateInfo(
     VkPipelineLayoutCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineLayoutCreateFlags*)&forUnmarshaling->flags, sizeof(VkPipelineLayoutCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->setLayoutCount, sizeof(uint32_t));
     if (forUnmarshaling->setLayoutCount)
@@ -3022,13 +2619,7 @@ void marshal_VkSamplerCreateInfo(
     const VkSamplerCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkSamplerCreateFlags*)&forMarshaling->flags, sizeof(VkSamplerCreateFlags));
     vkStream->write((VkFilter*)&forMarshaling->magFilter, sizeof(VkFilter));
     vkStream->write((VkFilter*)&forMarshaling->minFilter, sizeof(VkFilter));
@@ -3052,14 +2643,7 @@ void unmarshal_VkSamplerCreateInfo(
     VkSamplerCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkSamplerCreateFlags*)&forUnmarshaling->flags, sizeof(VkSamplerCreateFlags));
     vkStream->read((VkFilter*)&forUnmarshaling->magFilter, sizeof(VkFilter));
     vkStream->read((VkFilter*)&forUnmarshaling->minFilter, sizeof(VkFilter));
@@ -3133,13 +2717,7 @@ void marshal_VkDescriptorSetLayoutCreateInfo(
     const VkDescriptorSetLayoutCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDescriptorSetLayoutCreateFlags*)&forMarshaling->flags, sizeof(VkDescriptorSetLayoutCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->bindingCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forMarshaling->bindingCount; ++i)
@@ -3153,14 +2731,7 @@ void unmarshal_VkDescriptorSetLayoutCreateInfo(
     VkDescriptorSetLayoutCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDescriptorSetLayoutCreateFlags*)&forUnmarshaling->flags, sizeof(VkDescriptorSetLayoutCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->bindingCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->bindingCount; ++i)
@@ -3190,13 +2761,7 @@ void marshal_VkDescriptorPoolCreateInfo(
     const VkDescriptorPoolCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDescriptorPoolCreateFlags*)&forMarshaling->flags, sizeof(VkDescriptorPoolCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->maxSets, sizeof(uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->poolSizeCount, sizeof(uint32_t));
@@ -3211,14 +2776,7 @@ void unmarshal_VkDescriptorPoolCreateInfo(
     VkDescriptorPoolCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDescriptorPoolCreateFlags*)&forUnmarshaling->flags, sizeof(VkDescriptorPoolCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->maxSets, sizeof(uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->poolSizeCount, sizeof(uint32_t));
@@ -3233,13 +2791,7 @@ void marshal_VkDescriptorSetAllocateInfo(
     const VkDescriptorSetAllocateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_108;
     vkStream->handleMapping()->mapHandles_VkDescriptorPool_u64(&forMarshaling->descriptorPool, &cgen_var_108, 1);
     vkStream->write((uint64_t*)&cgen_var_108, 1 * 8);
@@ -3258,14 +2810,7 @@ void unmarshal_VkDescriptorSetAllocateInfo(
     VkDescriptorSetAllocateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_110;
     vkStream->read((uint64_t*)&cgen_var_110, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkDescriptorPool(&cgen_var_110, (VkDescriptorPool*)&forUnmarshaling->descriptorPool, 1);
@@ -3332,13 +2877,7 @@ void marshal_VkWriteDescriptorSet(
     const VkWriteDescriptorSet* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_118;
     vkStream->handleMapping()->mapHandles_VkDescriptorSet_u64(&forMarshaling->dstSet, &cgen_var_118, 1);
     vkStream->write((uint64_t*)&cgen_var_118, 1 * 8);
@@ -3395,14 +2934,7 @@ void unmarshal_VkWriteDescriptorSet(
     VkWriteDescriptorSet* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_123;
     vkStream->read((uint64_t*)&cgen_var_123, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkDescriptorSet(&cgen_var_123, (VkDescriptorSet*)&forUnmarshaling->dstSet, 1);
@@ -3483,13 +3015,7 @@ void marshal_VkCopyDescriptorSet(
     const VkCopyDescriptorSet* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_128;
     vkStream->handleMapping()->mapHandles_VkDescriptorSet_u64(&forMarshaling->srcSet, &cgen_var_128, 1);
     vkStream->write((uint64_t*)&cgen_var_128, 1 * 8);
@@ -3508,14 +3034,7 @@ void unmarshal_VkCopyDescriptorSet(
     VkCopyDescriptorSet* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_130;
     vkStream->read((uint64_t*)&cgen_var_130, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkDescriptorSet(&cgen_var_130, (VkDescriptorSet*)&forUnmarshaling->srcSet, 1);
@@ -3534,13 +3053,7 @@ void marshal_VkFramebufferCreateInfo(
     const VkFramebufferCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkFramebufferCreateFlags*)&forMarshaling->flags, sizeof(VkFramebufferCreateFlags));
     uint64_t cgen_var_132;
     vkStream->handleMapping()->mapHandles_VkRenderPass_u64(&forMarshaling->renderPass, &cgen_var_132, 1);
@@ -3563,14 +3076,7 @@ void unmarshal_VkFramebufferCreateInfo(
     VkFramebufferCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkFramebufferCreateFlags*)&forUnmarshaling->flags, sizeof(VkFramebufferCreateFlags));
     uint64_t cgen_var_134;
     vkStream->read((uint64_t*)&cgen_var_134, 1 * 8);
@@ -3747,13 +3253,7 @@ void marshal_VkRenderPassCreateInfo(
     const VkRenderPassCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkRenderPassCreateFlags*)&forMarshaling->flags, sizeof(VkRenderPassCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->attachmentCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forMarshaling->attachmentCount; ++i)
@@ -3777,14 +3277,7 @@ void unmarshal_VkRenderPassCreateInfo(
     VkRenderPassCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkRenderPassCreateFlags*)&forUnmarshaling->flags, sizeof(VkRenderPassCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->attachmentCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->attachmentCount; ++i)
@@ -3808,13 +3301,7 @@ void marshal_VkCommandPoolCreateInfo(
     const VkCommandPoolCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkCommandPoolCreateFlags*)&forMarshaling->flags, sizeof(VkCommandPoolCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->queueFamilyIndex, sizeof(uint32_t));
 }
@@ -3824,14 +3311,7 @@ void unmarshal_VkCommandPoolCreateInfo(
     VkCommandPoolCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkCommandPoolCreateFlags*)&forUnmarshaling->flags, sizeof(VkCommandPoolCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->queueFamilyIndex, sizeof(uint32_t));
 }
@@ -3841,13 +3321,7 @@ void marshal_VkCommandBufferAllocateInfo(
     const VkCommandBufferAllocateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_140;
     vkStream->handleMapping()->mapHandles_VkCommandPool_u64(&forMarshaling->commandPool, &cgen_var_140, 1);
     vkStream->write((uint64_t*)&cgen_var_140, 1 * 8);
@@ -3860,14 +3334,7 @@ void unmarshal_VkCommandBufferAllocateInfo(
     VkCommandBufferAllocateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_141;
     vkStream->read((uint64_t*)&cgen_var_141, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkCommandPool(&cgen_var_141, (VkCommandPool*)&forUnmarshaling->commandPool, 1);
@@ -3880,13 +3347,7 @@ void marshal_VkCommandBufferInheritanceInfo(
     const VkCommandBufferInheritanceInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_142;
     vkStream->handleMapping()->mapHandles_VkRenderPass_u64(&forMarshaling->renderPass, &cgen_var_142, 1);
     vkStream->write((uint64_t*)&cgen_var_142, 1 * 8);
@@ -3904,14 +3365,7 @@ void unmarshal_VkCommandBufferInheritanceInfo(
     VkCommandBufferInheritanceInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_144;
     vkStream->read((uint64_t*)&cgen_var_144, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkRenderPass(&cgen_var_144, (VkRenderPass*)&forUnmarshaling->renderPass, 1);
@@ -3929,13 +3383,7 @@ void marshal_VkCommandBufferBeginInfo(
     const VkCommandBufferBeginInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkCommandBufferUsageFlags*)&forMarshaling->flags, sizeof(VkCommandBufferUsageFlags));
     // WARNING PTR CHECK
     uint64_t cgen_var_146 = (uint64_t)(uintptr_t)forMarshaling->pInheritanceInfo;
@@ -3951,14 +3399,7 @@ void unmarshal_VkCommandBufferBeginInfo(
     VkCommandBufferBeginInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkCommandBufferUsageFlags*)&forUnmarshaling->flags, sizeof(VkCommandBufferUsageFlags));
     // WARNING PTR CHECK
     const VkCommandBufferInheritanceInfo* check_pInheritanceInfo;
@@ -4196,13 +3637,7 @@ void marshal_VkMemoryBarrier(
     const VkMemoryBarrier* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkAccessFlags*)&forMarshaling->srcAccessMask, sizeof(VkAccessFlags));
     vkStream->write((VkAccessFlags*)&forMarshaling->dstAccessMask, sizeof(VkAccessFlags));
 }
@@ -4212,14 +3647,7 @@ void unmarshal_VkMemoryBarrier(
     VkMemoryBarrier* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkAccessFlags*)&forUnmarshaling->srcAccessMask, sizeof(VkAccessFlags));
     vkStream->read((VkAccessFlags*)&forUnmarshaling->dstAccessMask, sizeof(VkAccessFlags));
 }
@@ -4229,13 +3657,7 @@ void marshal_VkBufferMemoryBarrier(
     const VkBufferMemoryBarrier* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkAccessFlags*)&forMarshaling->srcAccessMask, sizeof(VkAccessFlags));
     vkStream->write((VkAccessFlags*)&forMarshaling->dstAccessMask, sizeof(VkAccessFlags));
     vkStream->write((uint32_t*)&forMarshaling->srcQueueFamilyIndex, sizeof(uint32_t));
@@ -4252,14 +3674,7 @@ void unmarshal_VkBufferMemoryBarrier(
     VkBufferMemoryBarrier* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkAccessFlags*)&forUnmarshaling->srcAccessMask, sizeof(VkAccessFlags));
     vkStream->read((VkAccessFlags*)&forUnmarshaling->dstAccessMask, sizeof(VkAccessFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->srcQueueFamilyIndex, sizeof(uint32_t));
@@ -4276,13 +3691,7 @@ void marshal_VkImageMemoryBarrier(
     const VkImageMemoryBarrier* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkAccessFlags*)&forMarshaling->srcAccessMask, sizeof(VkAccessFlags));
     vkStream->write((VkAccessFlags*)&forMarshaling->dstAccessMask, sizeof(VkAccessFlags));
     vkStream->write((VkImageLayout*)&forMarshaling->oldLayout, sizeof(VkImageLayout));
@@ -4300,14 +3709,7 @@ void unmarshal_VkImageMemoryBarrier(
     VkImageMemoryBarrier* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkAccessFlags*)&forUnmarshaling->srcAccessMask, sizeof(VkAccessFlags));
     vkStream->read((VkAccessFlags*)&forUnmarshaling->dstAccessMask, sizeof(VkAccessFlags));
     vkStream->read((VkImageLayout*)&forUnmarshaling->oldLayout, sizeof(VkImageLayout));
@@ -4325,13 +3727,7 @@ void marshal_VkRenderPassBeginInfo(
     const VkRenderPassBeginInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_152;
     vkStream->handleMapping()->mapHandles_VkRenderPass_u64(&forMarshaling->renderPass, &cgen_var_152, 1);
     vkStream->write((uint64_t*)&cgen_var_152, 1 * 8);
@@ -4357,14 +3753,7 @@ void unmarshal_VkRenderPassBeginInfo(
     VkRenderPassBeginInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_155;
     vkStream->read((uint64_t*)&cgen_var_155, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkRenderPass(&cgen_var_155, (VkRenderPass*)&forUnmarshaling->renderPass, 1);
@@ -4454,13 +3843,7 @@ void marshal_VkBaseOutStructure(
     const VkBaseOutStructure* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((VkBaseOutStructure*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
 }
 
 void unmarshal_VkBaseOutStructure(
@@ -4468,14 +3851,7 @@ void unmarshal_VkBaseOutStructure(
     VkBaseOutStructure* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((VkBaseOutStructure*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
 }
 
 void marshal_VkBaseInStructure(
@@ -4483,13 +3859,7 @@ void marshal_VkBaseInStructure(
     const VkBaseInStructure* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const VkBaseInStructure*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
 }
 
 void unmarshal_VkBaseInStructure(
@@ -4497,14 +3867,7 @@ void unmarshal_VkBaseInStructure(
     VkBaseInStructure* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((VkBaseInStructure*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
 }
 
 #endif
@@ -4514,13 +3877,7 @@ void marshal_VkPhysicalDeviceSubgroupProperties(
     const VkPhysicalDeviceSubgroupProperties* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->subgroupSize, sizeof(uint32_t));
     vkStream->write((VkShaderStageFlags*)&forMarshaling->supportedStages, sizeof(VkShaderStageFlags));
     vkStream->write((VkSubgroupFeatureFlags*)&forMarshaling->supportedOperations, sizeof(VkSubgroupFeatureFlags));
@@ -4532,14 +3889,7 @@ void unmarshal_VkPhysicalDeviceSubgroupProperties(
     VkPhysicalDeviceSubgroupProperties* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->subgroupSize, sizeof(uint32_t));
     vkStream->read((VkShaderStageFlags*)&forUnmarshaling->supportedStages, sizeof(VkShaderStageFlags));
     vkStream->read((VkSubgroupFeatureFlags*)&forUnmarshaling->supportedOperations, sizeof(VkSubgroupFeatureFlags));
@@ -4551,13 +3901,7 @@ void marshal_VkBindBufferMemoryInfo(
     const VkBindBufferMemoryInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_158;
     vkStream->handleMapping()->mapHandles_VkBuffer_u64(&forMarshaling->buffer, &cgen_var_158, 1);
     vkStream->write((uint64_t*)&cgen_var_158, 1 * 8);
@@ -4572,14 +3916,7 @@ void unmarshal_VkBindBufferMemoryInfo(
     VkBindBufferMemoryInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_160;
     vkStream->read((uint64_t*)&cgen_var_160, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkBuffer(&cgen_var_160, (VkBuffer*)&forUnmarshaling->buffer, 1);
@@ -4594,13 +3931,7 @@ void marshal_VkBindImageMemoryInfo(
     const VkBindImageMemoryInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_162;
     vkStream->handleMapping()->mapHandles_VkImage_u64(&forMarshaling->image, &cgen_var_162, 1);
     vkStream->write((uint64_t*)&cgen_var_162, 1 * 8);
@@ -4615,14 +3946,7 @@ void unmarshal_VkBindImageMemoryInfo(
     VkBindImageMemoryInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_164;
     vkStream->read((uint64_t*)&cgen_var_164, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkImage(&cgen_var_164, (VkImage*)&forUnmarshaling->image, 1);
@@ -4637,13 +3961,7 @@ void marshal_VkPhysicalDevice16BitStorageFeatures(
     const VkPhysicalDevice16BitStorageFeatures* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->storageBuffer16BitAccess, sizeof(VkBool32));
     vkStream->write((VkBool32*)&forMarshaling->uniformAndStorageBuffer16BitAccess, sizeof(VkBool32));
     vkStream->write((VkBool32*)&forMarshaling->storagePushConstant16, sizeof(VkBool32));
@@ -4655,14 +3973,7 @@ void unmarshal_VkPhysicalDevice16BitStorageFeatures(
     VkPhysicalDevice16BitStorageFeatures* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->storageBuffer16BitAccess, sizeof(VkBool32));
     vkStream->read((VkBool32*)&forUnmarshaling->uniformAndStorageBuffer16BitAccess, sizeof(VkBool32));
     vkStream->read((VkBool32*)&forUnmarshaling->storagePushConstant16, sizeof(VkBool32));
@@ -4674,13 +3985,7 @@ void marshal_VkMemoryDedicatedRequirements(
     const VkMemoryDedicatedRequirements* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->prefersDedicatedAllocation, sizeof(VkBool32));
     vkStream->write((VkBool32*)&forMarshaling->requiresDedicatedAllocation, sizeof(VkBool32));
 }
@@ -4690,14 +3995,7 @@ void unmarshal_VkMemoryDedicatedRequirements(
     VkMemoryDedicatedRequirements* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->prefersDedicatedAllocation, sizeof(VkBool32));
     vkStream->read((VkBool32*)&forUnmarshaling->requiresDedicatedAllocation, sizeof(VkBool32));
 }
@@ -4707,13 +4005,7 @@ void marshal_VkMemoryDedicatedAllocateInfo(
     const VkMemoryDedicatedAllocateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_166;
     vkStream->handleMapping()->mapHandles_VkImage_u64(&forMarshaling->image, &cgen_var_166, 1);
     vkStream->write((uint64_t*)&cgen_var_166, 1 * 8);
@@ -4727,14 +4019,7 @@ void unmarshal_VkMemoryDedicatedAllocateInfo(
     VkMemoryDedicatedAllocateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_168;
     vkStream->read((uint64_t*)&cgen_var_168, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkImage(&cgen_var_168, (VkImage*)&forUnmarshaling->image, 1);
@@ -4748,13 +4033,7 @@ void marshal_VkMemoryAllocateFlagsInfo(
     const VkMemoryAllocateFlagsInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkMemoryAllocateFlags*)&forMarshaling->flags, sizeof(VkMemoryAllocateFlags));
     vkStream->write((uint32_t*)&forMarshaling->deviceMask, sizeof(uint32_t));
 }
@@ -4764,14 +4043,7 @@ void unmarshal_VkMemoryAllocateFlagsInfo(
     VkMemoryAllocateFlagsInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkMemoryAllocateFlags*)&forUnmarshaling->flags, sizeof(VkMemoryAllocateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->deviceMask, sizeof(uint32_t));
 }
@@ -4781,13 +4053,7 @@ void marshal_VkDeviceGroupRenderPassBeginInfo(
     const VkDeviceGroupRenderPassBeginInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->deviceMask, sizeof(uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->deviceRenderAreaCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forMarshaling->deviceRenderAreaCount; ++i)
@@ -4801,14 +4067,7 @@ void unmarshal_VkDeviceGroupRenderPassBeginInfo(
     VkDeviceGroupRenderPassBeginInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->deviceMask, sizeof(uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->deviceRenderAreaCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->deviceRenderAreaCount; ++i)
@@ -4822,13 +4081,7 @@ void marshal_VkDeviceGroupCommandBufferBeginInfo(
     const VkDeviceGroupCommandBufferBeginInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->deviceMask, sizeof(uint32_t));
 }
 
@@ -4837,14 +4090,7 @@ void unmarshal_VkDeviceGroupCommandBufferBeginInfo(
     VkDeviceGroupCommandBufferBeginInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->deviceMask, sizeof(uint32_t));
 }
 
@@ -4853,13 +4099,7 @@ void marshal_VkDeviceGroupSubmitInfo(
     const VkDeviceGroupSubmitInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->waitSemaphoreCount, sizeof(uint32_t));
     vkStream->write((const uint32_t*)forMarshaling->pWaitSemaphoreDeviceIndices, forMarshaling->waitSemaphoreCount * sizeof(const uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->commandBufferCount, sizeof(uint32_t));
@@ -4873,14 +4113,7 @@ void unmarshal_VkDeviceGroupSubmitInfo(
     VkDeviceGroupSubmitInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->waitSemaphoreCount, sizeof(uint32_t));
     vkStream->read((uint32_t*)forUnmarshaling->pWaitSemaphoreDeviceIndices, forUnmarshaling->waitSemaphoreCount * sizeof(const uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->commandBufferCount, sizeof(uint32_t));
@@ -4894,13 +4127,7 @@ void marshal_VkDeviceGroupBindSparseInfo(
     const VkDeviceGroupBindSparseInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->resourceDeviceIndex, sizeof(uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->memoryDeviceIndex, sizeof(uint32_t));
 }
@@ -4910,14 +4137,7 @@ void unmarshal_VkDeviceGroupBindSparseInfo(
     VkDeviceGroupBindSparseInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->resourceDeviceIndex, sizeof(uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->memoryDeviceIndex, sizeof(uint32_t));
 }
@@ -4927,13 +4147,7 @@ void marshal_VkBindBufferMemoryDeviceGroupInfo(
     const VkBindBufferMemoryDeviceGroupInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->deviceIndexCount, sizeof(uint32_t));
     vkStream->write((const uint32_t*)forMarshaling->pDeviceIndices, forMarshaling->deviceIndexCount * sizeof(const uint32_t));
 }
@@ -4943,14 +4157,7 @@ void unmarshal_VkBindBufferMemoryDeviceGroupInfo(
     VkBindBufferMemoryDeviceGroupInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->deviceIndexCount, sizeof(uint32_t));
     vkStream->read((uint32_t*)forUnmarshaling->pDeviceIndices, forUnmarshaling->deviceIndexCount * sizeof(const uint32_t));
 }
@@ -4960,13 +4167,7 @@ void marshal_VkBindImageMemoryDeviceGroupInfo(
     const VkBindImageMemoryDeviceGroupInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->deviceIndexCount, sizeof(uint32_t));
     vkStream->write((const uint32_t*)forMarshaling->pDeviceIndices, forMarshaling->deviceIndexCount * sizeof(const uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->splitInstanceBindRegionCount, sizeof(uint32_t));
@@ -4981,14 +4182,7 @@ void unmarshal_VkBindImageMemoryDeviceGroupInfo(
     VkBindImageMemoryDeviceGroupInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->deviceIndexCount, sizeof(uint32_t));
     vkStream->read((uint32_t*)forUnmarshaling->pDeviceIndices, forUnmarshaling->deviceIndexCount * sizeof(const uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->splitInstanceBindRegionCount, sizeof(uint32_t));
@@ -5003,13 +4197,7 @@ void marshal_VkPhysicalDeviceGroupProperties(
     const VkPhysicalDeviceGroupProperties* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->physicalDeviceCount, sizeof(uint32_t));
     vkStream->write((VkPhysicalDevice*)forMarshaling->physicalDevices, VK_MAX_DEVICE_GROUP_SIZE * sizeof(VkPhysicalDevice));
     vkStream->write((VkBool32*)&forMarshaling->subsetAllocation, sizeof(VkBool32));
@@ -5020,14 +4208,7 @@ void unmarshal_VkPhysicalDeviceGroupProperties(
     VkPhysicalDeviceGroupProperties* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->physicalDeviceCount, sizeof(uint32_t));
     vkStream->read((VkPhysicalDevice*)forUnmarshaling->physicalDevices, VK_MAX_DEVICE_GROUP_SIZE * sizeof(VkPhysicalDevice));
     vkStream->read((VkBool32*)&forUnmarshaling->subsetAllocation, sizeof(VkBool32));
@@ -5038,13 +4219,7 @@ void marshal_VkDeviceGroupDeviceCreateInfo(
     const VkDeviceGroupDeviceCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->physicalDeviceCount, sizeof(uint32_t));
     if (forMarshaling->physicalDeviceCount)
     {
@@ -5060,14 +4235,7 @@ void unmarshal_VkDeviceGroupDeviceCreateInfo(
     VkDeviceGroupDeviceCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->physicalDeviceCount, sizeof(uint32_t));
     if (forUnmarshaling->physicalDeviceCount)
     {
@@ -5083,13 +4251,7 @@ void marshal_VkBufferMemoryRequirementsInfo2(
     const VkBufferMemoryRequirementsInfo2* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_172;
     vkStream->handleMapping()->mapHandles_VkBuffer_u64(&forMarshaling->buffer, &cgen_var_172, 1);
     vkStream->write((uint64_t*)&cgen_var_172, 1 * 8);
@@ -5100,14 +4262,7 @@ void unmarshal_VkBufferMemoryRequirementsInfo2(
     VkBufferMemoryRequirementsInfo2* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_173;
     vkStream->read((uint64_t*)&cgen_var_173, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkBuffer(&cgen_var_173, (VkBuffer*)&forUnmarshaling->buffer, 1);
@@ -5118,13 +4273,7 @@ void marshal_VkImageMemoryRequirementsInfo2(
     const VkImageMemoryRequirementsInfo2* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_174;
     vkStream->handleMapping()->mapHandles_VkImage_u64(&forMarshaling->image, &cgen_var_174, 1);
     vkStream->write((uint64_t*)&cgen_var_174, 1 * 8);
@@ -5135,14 +4284,7 @@ void unmarshal_VkImageMemoryRequirementsInfo2(
     VkImageMemoryRequirementsInfo2* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_175;
     vkStream->read((uint64_t*)&cgen_var_175, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkImage(&cgen_var_175, (VkImage*)&forUnmarshaling->image, 1);
@@ -5153,13 +4295,7 @@ void marshal_VkImageSparseMemoryRequirementsInfo2(
     const VkImageSparseMemoryRequirementsInfo2* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_176;
     vkStream->handleMapping()->mapHandles_VkImage_u64(&forMarshaling->image, &cgen_var_176, 1);
     vkStream->write((uint64_t*)&cgen_var_176, 1 * 8);
@@ -5170,14 +4306,7 @@ void unmarshal_VkImageSparseMemoryRequirementsInfo2(
     VkImageSparseMemoryRequirementsInfo2* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_177;
     vkStream->read((uint64_t*)&cgen_var_177, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkImage(&cgen_var_177, (VkImage*)&forUnmarshaling->image, 1);
@@ -5188,13 +4317,7 @@ void marshal_VkMemoryRequirements2(
     const VkMemoryRequirements2* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkMemoryRequirements(vkStream, (VkMemoryRequirements*)(&forMarshaling->memoryRequirements));
 }
 
@@ -5203,14 +4326,7 @@ void unmarshal_VkMemoryRequirements2(
     VkMemoryRequirements2* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkMemoryRequirements(vkStream, (VkMemoryRequirements*)(&forUnmarshaling->memoryRequirements));
 }
 
@@ -5219,13 +4335,7 @@ void marshal_VkSparseImageMemoryRequirements2(
     const VkSparseImageMemoryRequirements2* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkSparseImageMemoryRequirements(vkStream, (VkSparseImageMemoryRequirements*)(&forMarshaling->memoryRequirements));
 }
 
@@ -5234,14 +4344,7 @@ void unmarshal_VkSparseImageMemoryRequirements2(
     VkSparseImageMemoryRequirements2* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkSparseImageMemoryRequirements(vkStream, (VkSparseImageMemoryRequirements*)(&forUnmarshaling->memoryRequirements));
 }
 
@@ -5250,13 +4353,7 @@ void marshal_VkPhysicalDeviceFeatures2(
     const VkPhysicalDeviceFeatures2* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkPhysicalDeviceFeatures(vkStream, (VkPhysicalDeviceFeatures*)(&forMarshaling->features));
 }
 
@@ -5265,14 +4362,7 @@ void unmarshal_VkPhysicalDeviceFeatures2(
     VkPhysicalDeviceFeatures2* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkPhysicalDeviceFeatures(vkStream, (VkPhysicalDeviceFeatures*)(&forUnmarshaling->features));
 }
 
@@ -5281,13 +4371,7 @@ void marshal_VkPhysicalDeviceProperties2(
     const VkPhysicalDeviceProperties2* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkPhysicalDeviceProperties(vkStream, (VkPhysicalDeviceProperties*)(&forMarshaling->properties));
 }
 
@@ -5296,14 +4380,7 @@ void unmarshal_VkPhysicalDeviceProperties2(
     VkPhysicalDeviceProperties2* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkPhysicalDeviceProperties(vkStream, (VkPhysicalDeviceProperties*)(&forUnmarshaling->properties));
 }
 
@@ -5312,13 +4389,7 @@ void marshal_VkFormatProperties2(
     const VkFormatProperties2* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkFormatProperties(vkStream, (VkFormatProperties*)(&forMarshaling->formatProperties));
 }
 
@@ -5327,14 +4398,7 @@ void unmarshal_VkFormatProperties2(
     VkFormatProperties2* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkFormatProperties(vkStream, (VkFormatProperties*)(&forUnmarshaling->formatProperties));
 }
 
@@ -5343,13 +4407,7 @@ void marshal_VkImageFormatProperties2(
     const VkImageFormatProperties2* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkImageFormatProperties(vkStream, (VkImageFormatProperties*)(&forMarshaling->imageFormatProperties));
 }
 
@@ -5358,14 +4416,7 @@ void unmarshal_VkImageFormatProperties2(
     VkImageFormatProperties2* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkImageFormatProperties(vkStream, (VkImageFormatProperties*)(&forUnmarshaling->imageFormatProperties));
 }
 
@@ -5374,13 +4425,7 @@ void marshal_VkPhysicalDeviceImageFormatInfo2(
     const VkPhysicalDeviceImageFormatInfo2* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkFormat*)&forMarshaling->format, sizeof(VkFormat));
     vkStream->write((VkImageType*)&forMarshaling->type, sizeof(VkImageType));
     vkStream->write((VkImageTiling*)&forMarshaling->tiling, sizeof(VkImageTiling));
@@ -5393,14 +4438,7 @@ void unmarshal_VkPhysicalDeviceImageFormatInfo2(
     VkPhysicalDeviceImageFormatInfo2* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkFormat*)&forUnmarshaling->format, sizeof(VkFormat));
     vkStream->read((VkImageType*)&forUnmarshaling->type, sizeof(VkImageType));
     vkStream->read((VkImageTiling*)&forUnmarshaling->tiling, sizeof(VkImageTiling));
@@ -5413,13 +4451,7 @@ void marshal_VkQueueFamilyProperties2(
     const VkQueueFamilyProperties2* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkQueueFamilyProperties(vkStream, (VkQueueFamilyProperties*)(&forMarshaling->queueFamilyProperties));
 }
 
@@ -5428,14 +4460,7 @@ void unmarshal_VkQueueFamilyProperties2(
     VkQueueFamilyProperties2* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkQueueFamilyProperties(vkStream, (VkQueueFamilyProperties*)(&forUnmarshaling->queueFamilyProperties));
 }
 
@@ -5444,13 +4469,7 @@ void marshal_VkPhysicalDeviceMemoryProperties2(
     const VkPhysicalDeviceMemoryProperties2* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkPhysicalDeviceMemoryProperties(vkStream, (VkPhysicalDeviceMemoryProperties*)(&forMarshaling->memoryProperties));
 }
 
@@ -5459,14 +4478,7 @@ void unmarshal_VkPhysicalDeviceMemoryProperties2(
     VkPhysicalDeviceMemoryProperties2* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkPhysicalDeviceMemoryProperties(vkStream, (VkPhysicalDeviceMemoryProperties*)(&forUnmarshaling->memoryProperties));
 }
 
@@ -5475,13 +4487,7 @@ void marshal_VkSparseImageFormatProperties2(
     const VkSparseImageFormatProperties2* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkSparseImageFormatProperties(vkStream, (VkSparseImageFormatProperties*)(&forMarshaling->properties));
 }
 
@@ -5490,14 +4496,7 @@ void unmarshal_VkSparseImageFormatProperties2(
     VkSparseImageFormatProperties2* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkSparseImageFormatProperties(vkStream, (VkSparseImageFormatProperties*)(&forUnmarshaling->properties));
 }
 
@@ -5506,13 +4505,7 @@ void marshal_VkPhysicalDeviceSparseImageFormatInfo2(
     const VkPhysicalDeviceSparseImageFormatInfo2* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkFormat*)&forMarshaling->format, sizeof(VkFormat));
     vkStream->write((VkImageType*)&forMarshaling->type, sizeof(VkImageType));
     vkStream->write((VkSampleCountFlagBits*)&forMarshaling->samples, sizeof(VkSampleCountFlagBits));
@@ -5525,14 +4518,7 @@ void unmarshal_VkPhysicalDeviceSparseImageFormatInfo2(
     VkPhysicalDeviceSparseImageFormatInfo2* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkFormat*)&forUnmarshaling->format, sizeof(VkFormat));
     vkStream->read((VkImageType*)&forUnmarshaling->type, sizeof(VkImageType));
     vkStream->read((VkSampleCountFlagBits*)&forUnmarshaling->samples, sizeof(VkSampleCountFlagBits));
@@ -5545,13 +4531,7 @@ void marshal_VkPhysicalDevicePointClippingProperties(
     const VkPhysicalDevicePointClippingProperties* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPointClippingBehavior*)&forMarshaling->pointClippingBehavior, sizeof(VkPointClippingBehavior));
 }
 
@@ -5560,14 +4540,7 @@ void unmarshal_VkPhysicalDevicePointClippingProperties(
     VkPhysicalDevicePointClippingProperties* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPointClippingBehavior*)&forUnmarshaling->pointClippingBehavior, sizeof(VkPointClippingBehavior));
 }
 
@@ -5594,13 +4567,7 @@ void marshal_VkRenderPassInputAttachmentAspectCreateInfo(
     const VkRenderPassInputAttachmentAspectCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->aspectReferenceCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forMarshaling->aspectReferenceCount; ++i)
     {
@@ -5613,14 +4580,7 @@ void unmarshal_VkRenderPassInputAttachmentAspectCreateInfo(
     VkRenderPassInputAttachmentAspectCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->aspectReferenceCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->aspectReferenceCount; ++i)
     {
@@ -5633,13 +4593,7 @@ void marshal_VkImageViewUsageCreateInfo(
     const VkImageViewUsageCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkImageUsageFlags*)&forMarshaling->usage, sizeof(VkImageUsageFlags));
 }
 
@@ -5648,14 +4602,7 @@ void unmarshal_VkImageViewUsageCreateInfo(
     VkImageViewUsageCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkImageUsageFlags*)&forUnmarshaling->usage, sizeof(VkImageUsageFlags));
 }
 
@@ -5664,13 +4611,7 @@ void marshal_VkPipelineTessellationDomainOriginStateCreateInfo(
     const VkPipelineTessellationDomainOriginStateCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkTessellationDomainOrigin*)&forMarshaling->domainOrigin, sizeof(VkTessellationDomainOrigin));
 }
 
@@ -5679,14 +4620,7 @@ void unmarshal_VkPipelineTessellationDomainOriginStateCreateInfo(
     VkPipelineTessellationDomainOriginStateCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkTessellationDomainOrigin*)&forUnmarshaling->domainOrigin, sizeof(VkTessellationDomainOrigin));
 }
 
@@ -5695,13 +4629,7 @@ void marshal_VkRenderPassMultiviewCreateInfo(
     const VkRenderPassMultiviewCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->subpassCount, sizeof(uint32_t));
     vkStream->write((const uint32_t*)forMarshaling->pViewMasks, forMarshaling->subpassCount * sizeof(const uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->dependencyCount, sizeof(uint32_t));
@@ -5715,14 +4643,7 @@ void unmarshal_VkRenderPassMultiviewCreateInfo(
     VkRenderPassMultiviewCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->subpassCount, sizeof(uint32_t));
     vkStream->read((uint32_t*)forUnmarshaling->pViewMasks, forUnmarshaling->subpassCount * sizeof(const uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->dependencyCount, sizeof(uint32_t));
@@ -5736,13 +4657,7 @@ void marshal_VkPhysicalDeviceMultiviewFeatures(
     const VkPhysicalDeviceMultiviewFeatures* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->multiview, sizeof(VkBool32));
     vkStream->write((VkBool32*)&forMarshaling->multiviewGeometryShader, sizeof(VkBool32));
     vkStream->write((VkBool32*)&forMarshaling->multiviewTessellationShader, sizeof(VkBool32));
@@ -5753,14 +4668,7 @@ void unmarshal_VkPhysicalDeviceMultiviewFeatures(
     VkPhysicalDeviceMultiviewFeatures* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->multiview, sizeof(VkBool32));
     vkStream->read((VkBool32*)&forUnmarshaling->multiviewGeometryShader, sizeof(VkBool32));
     vkStream->read((VkBool32*)&forUnmarshaling->multiviewTessellationShader, sizeof(VkBool32));
@@ -5771,13 +4679,7 @@ void marshal_VkPhysicalDeviceMultiviewProperties(
     const VkPhysicalDeviceMultiviewProperties* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->maxMultiviewViewCount, sizeof(uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->maxMultiviewInstanceIndex, sizeof(uint32_t));
 }
@@ -5787,14 +4689,7 @@ void unmarshal_VkPhysicalDeviceMultiviewProperties(
     VkPhysicalDeviceMultiviewProperties* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->maxMultiviewViewCount, sizeof(uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->maxMultiviewInstanceIndex, sizeof(uint32_t));
 }
@@ -5804,13 +4699,7 @@ void marshal_VkPhysicalDeviceVariablePointerFeatures(
     const VkPhysicalDeviceVariablePointerFeatures* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->variablePointersStorageBuffer, sizeof(VkBool32));
     vkStream->write((VkBool32*)&forMarshaling->variablePointers, sizeof(VkBool32));
 }
@@ -5820,14 +4709,7 @@ void unmarshal_VkPhysicalDeviceVariablePointerFeatures(
     VkPhysicalDeviceVariablePointerFeatures* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->variablePointersStorageBuffer, sizeof(VkBool32));
     vkStream->read((VkBool32*)&forUnmarshaling->variablePointers, sizeof(VkBool32));
 }
@@ -5837,13 +4719,7 @@ void marshal_VkPhysicalDeviceProtectedMemoryFeatures(
     const VkPhysicalDeviceProtectedMemoryFeatures* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->protectedMemory, sizeof(VkBool32));
 }
 
@@ -5852,14 +4728,7 @@ void unmarshal_VkPhysicalDeviceProtectedMemoryFeatures(
     VkPhysicalDeviceProtectedMemoryFeatures* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->protectedMemory, sizeof(VkBool32));
 }
 
@@ -5868,13 +4737,7 @@ void marshal_VkPhysicalDeviceProtectedMemoryProperties(
     const VkPhysicalDeviceProtectedMemoryProperties* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->protectedNoFault, sizeof(VkBool32));
 }
 
@@ -5883,14 +4746,7 @@ void unmarshal_VkPhysicalDeviceProtectedMemoryProperties(
     VkPhysicalDeviceProtectedMemoryProperties* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->protectedNoFault, sizeof(VkBool32));
 }
 
@@ -5899,13 +4755,7 @@ void marshal_VkDeviceQueueInfo2(
     const VkDeviceQueueInfo2* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDeviceQueueCreateFlags*)&forMarshaling->flags, sizeof(VkDeviceQueueCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->queueFamilyIndex, sizeof(uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->queueIndex, sizeof(uint32_t));
@@ -5916,14 +4766,7 @@ void unmarshal_VkDeviceQueueInfo2(
     VkDeviceQueueInfo2* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDeviceQueueCreateFlags*)&forUnmarshaling->flags, sizeof(VkDeviceQueueCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->queueFamilyIndex, sizeof(uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->queueIndex, sizeof(uint32_t));
@@ -5934,13 +4777,7 @@ void marshal_VkProtectedSubmitInfo(
     const VkProtectedSubmitInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->protectedSubmit, sizeof(VkBool32));
 }
 
@@ -5949,14 +4786,7 @@ void unmarshal_VkProtectedSubmitInfo(
     VkProtectedSubmitInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->protectedSubmit, sizeof(VkBool32));
 }
 
@@ -5965,13 +4795,7 @@ void marshal_VkSamplerYcbcrConversionCreateInfo(
     const VkSamplerYcbcrConversionCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkFormat*)&forMarshaling->format, sizeof(VkFormat));
     vkStream->write((VkSamplerYcbcrModelConversion*)&forMarshaling->ycbcrModel, sizeof(VkSamplerYcbcrModelConversion));
     vkStream->write((VkSamplerYcbcrRange*)&forMarshaling->ycbcrRange, sizeof(VkSamplerYcbcrRange));
@@ -5987,14 +4811,7 @@ void unmarshal_VkSamplerYcbcrConversionCreateInfo(
     VkSamplerYcbcrConversionCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkFormat*)&forUnmarshaling->format, sizeof(VkFormat));
     vkStream->read((VkSamplerYcbcrModelConversion*)&forUnmarshaling->ycbcrModel, sizeof(VkSamplerYcbcrModelConversion));
     vkStream->read((VkSamplerYcbcrRange*)&forUnmarshaling->ycbcrRange, sizeof(VkSamplerYcbcrRange));
@@ -6010,13 +4827,7 @@ void marshal_VkSamplerYcbcrConversionInfo(
     const VkSamplerYcbcrConversionInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_178;
     vkStream->handleMapping()->mapHandles_VkSamplerYcbcrConversion_u64(&forMarshaling->conversion, &cgen_var_178, 1);
     vkStream->write((uint64_t*)&cgen_var_178, 1 * 8);
@@ -6027,14 +4838,7 @@ void unmarshal_VkSamplerYcbcrConversionInfo(
     VkSamplerYcbcrConversionInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_179;
     vkStream->read((uint64_t*)&cgen_var_179, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkSamplerYcbcrConversion(&cgen_var_179, (VkSamplerYcbcrConversion*)&forUnmarshaling->conversion, 1);
@@ -6045,13 +4849,7 @@ void marshal_VkBindImagePlaneMemoryInfo(
     const VkBindImagePlaneMemoryInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkImageAspectFlagBits*)&forMarshaling->planeAspect, sizeof(VkImageAspectFlagBits));
 }
 
@@ -6060,14 +4858,7 @@ void unmarshal_VkBindImagePlaneMemoryInfo(
     VkBindImagePlaneMemoryInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkImageAspectFlagBits*)&forUnmarshaling->planeAspect, sizeof(VkImageAspectFlagBits));
 }
 
@@ -6076,13 +4867,7 @@ void marshal_VkImagePlaneMemoryRequirementsInfo(
     const VkImagePlaneMemoryRequirementsInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkImageAspectFlagBits*)&forMarshaling->planeAspect, sizeof(VkImageAspectFlagBits));
 }
 
@@ -6091,14 +4876,7 @@ void unmarshal_VkImagePlaneMemoryRequirementsInfo(
     VkImagePlaneMemoryRequirementsInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkImageAspectFlagBits*)&forUnmarshaling->planeAspect, sizeof(VkImageAspectFlagBits));
 }
 
@@ -6107,13 +4885,7 @@ void marshal_VkPhysicalDeviceSamplerYcbcrConversionFeatures(
     const VkPhysicalDeviceSamplerYcbcrConversionFeatures* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->samplerYcbcrConversion, sizeof(VkBool32));
 }
 
@@ -6122,14 +4894,7 @@ void unmarshal_VkPhysicalDeviceSamplerYcbcrConversionFeatures(
     VkPhysicalDeviceSamplerYcbcrConversionFeatures* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->samplerYcbcrConversion, sizeof(VkBool32));
 }
 
@@ -6138,13 +4903,7 @@ void marshal_VkSamplerYcbcrConversionImageFormatProperties(
     const VkSamplerYcbcrConversionImageFormatProperties* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->combinedImageSamplerDescriptorCount, sizeof(uint32_t));
 }
 
@@ -6153,14 +4912,7 @@ void unmarshal_VkSamplerYcbcrConversionImageFormatProperties(
     VkSamplerYcbcrConversionImageFormatProperties* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->combinedImageSamplerDescriptorCount, sizeof(uint32_t));
 }
 
@@ -6195,13 +4947,7 @@ void marshal_VkDescriptorUpdateTemplateCreateInfo(
     const VkDescriptorUpdateTemplateCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDescriptorUpdateTemplateCreateFlags*)&forMarshaling->flags, sizeof(VkDescriptorUpdateTemplateCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->descriptorUpdateEntryCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forMarshaling->descriptorUpdateEntryCount; ++i)
@@ -6224,14 +4970,7 @@ void unmarshal_VkDescriptorUpdateTemplateCreateInfo(
     VkDescriptorUpdateTemplateCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDescriptorUpdateTemplateCreateFlags*)&forUnmarshaling->flags, sizeof(VkDescriptorUpdateTemplateCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->descriptorUpdateEntryCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->descriptorUpdateEntryCount; ++i)
@@ -6272,13 +5011,7 @@ void marshal_VkPhysicalDeviceExternalImageFormatInfo(
     const VkPhysicalDeviceExternalImageFormatInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkExternalMemoryHandleTypeFlagBits*)&forMarshaling->handleType, sizeof(VkExternalMemoryHandleTypeFlagBits));
 }
 
@@ -6287,14 +5020,7 @@ void unmarshal_VkPhysicalDeviceExternalImageFormatInfo(
     VkPhysicalDeviceExternalImageFormatInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkExternalMemoryHandleTypeFlagBits*)&forUnmarshaling->handleType, sizeof(VkExternalMemoryHandleTypeFlagBits));
 }
 
@@ -6303,13 +5029,7 @@ void marshal_VkExternalImageFormatProperties(
     const VkExternalImageFormatProperties* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkExternalMemoryProperties(vkStream, (VkExternalMemoryProperties*)(&forMarshaling->externalMemoryProperties));
 }
 
@@ -6318,14 +5038,7 @@ void unmarshal_VkExternalImageFormatProperties(
     VkExternalImageFormatProperties* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkExternalMemoryProperties(vkStream, (VkExternalMemoryProperties*)(&forUnmarshaling->externalMemoryProperties));
 }
 
@@ -6334,13 +5047,7 @@ void marshal_VkPhysicalDeviceExternalBufferInfo(
     const VkPhysicalDeviceExternalBufferInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBufferCreateFlags*)&forMarshaling->flags, sizeof(VkBufferCreateFlags));
     vkStream->write((VkBufferUsageFlags*)&forMarshaling->usage, sizeof(VkBufferUsageFlags));
     vkStream->write((VkExternalMemoryHandleTypeFlagBits*)&forMarshaling->handleType, sizeof(VkExternalMemoryHandleTypeFlagBits));
@@ -6351,14 +5058,7 @@ void unmarshal_VkPhysicalDeviceExternalBufferInfo(
     VkPhysicalDeviceExternalBufferInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBufferCreateFlags*)&forUnmarshaling->flags, sizeof(VkBufferCreateFlags));
     vkStream->read((VkBufferUsageFlags*)&forUnmarshaling->usage, sizeof(VkBufferUsageFlags));
     vkStream->read((VkExternalMemoryHandleTypeFlagBits*)&forUnmarshaling->handleType, sizeof(VkExternalMemoryHandleTypeFlagBits));
@@ -6369,13 +5069,7 @@ void marshal_VkExternalBufferProperties(
     const VkExternalBufferProperties* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkExternalMemoryProperties(vkStream, (VkExternalMemoryProperties*)(&forMarshaling->externalMemoryProperties));
 }
 
@@ -6384,14 +5078,7 @@ void unmarshal_VkExternalBufferProperties(
     VkExternalBufferProperties* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkExternalMemoryProperties(vkStream, (VkExternalMemoryProperties*)(&forUnmarshaling->externalMemoryProperties));
 }
 
@@ -6400,13 +5087,7 @@ void marshal_VkPhysicalDeviceIDProperties(
     const VkPhysicalDeviceIDProperties* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint8_t*)forMarshaling->deviceUUID, VK_UUID_SIZE * sizeof(uint8_t));
     vkStream->write((uint8_t*)forMarshaling->driverUUID, VK_UUID_SIZE * sizeof(uint8_t));
     vkStream->write((uint8_t*)forMarshaling->deviceLUID, VK_LUID_SIZE * sizeof(uint8_t));
@@ -6419,14 +5100,7 @@ void unmarshal_VkPhysicalDeviceIDProperties(
     VkPhysicalDeviceIDProperties* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint8_t*)forUnmarshaling->deviceUUID, VK_UUID_SIZE * sizeof(uint8_t));
     vkStream->read((uint8_t*)forUnmarshaling->driverUUID, VK_UUID_SIZE * sizeof(uint8_t));
     vkStream->read((uint8_t*)forUnmarshaling->deviceLUID, VK_LUID_SIZE * sizeof(uint8_t));
@@ -6439,13 +5113,7 @@ void marshal_VkExternalMemoryImageCreateInfo(
     const VkExternalMemoryImageCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkExternalMemoryHandleTypeFlags*)&forMarshaling->handleTypes, sizeof(VkExternalMemoryHandleTypeFlags));
 }
 
@@ -6454,14 +5122,7 @@ void unmarshal_VkExternalMemoryImageCreateInfo(
     VkExternalMemoryImageCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkExternalMemoryHandleTypeFlags*)&forUnmarshaling->handleTypes, sizeof(VkExternalMemoryHandleTypeFlags));
 }
 
@@ -6470,13 +5131,7 @@ void marshal_VkExternalMemoryBufferCreateInfo(
     const VkExternalMemoryBufferCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkExternalMemoryHandleTypeFlags*)&forMarshaling->handleTypes, sizeof(VkExternalMemoryHandleTypeFlags));
 }
 
@@ -6485,14 +5140,7 @@ void unmarshal_VkExternalMemoryBufferCreateInfo(
     VkExternalMemoryBufferCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkExternalMemoryHandleTypeFlags*)&forUnmarshaling->handleTypes, sizeof(VkExternalMemoryHandleTypeFlags));
 }
 
@@ -6501,13 +5149,7 @@ void marshal_VkExportMemoryAllocateInfo(
     const VkExportMemoryAllocateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkExternalMemoryHandleTypeFlags*)&forMarshaling->handleTypes, sizeof(VkExternalMemoryHandleTypeFlags));
 }
 
@@ -6516,14 +5158,7 @@ void unmarshal_VkExportMemoryAllocateInfo(
     VkExportMemoryAllocateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkExternalMemoryHandleTypeFlags*)&forUnmarshaling->handleTypes, sizeof(VkExternalMemoryHandleTypeFlags));
 }
 
@@ -6532,13 +5167,7 @@ void marshal_VkPhysicalDeviceExternalFenceInfo(
     const VkPhysicalDeviceExternalFenceInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkExternalFenceHandleTypeFlagBits*)&forMarshaling->handleType, sizeof(VkExternalFenceHandleTypeFlagBits));
 }
 
@@ -6547,14 +5176,7 @@ void unmarshal_VkPhysicalDeviceExternalFenceInfo(
     VkPhysicalDeviceExternalFenceInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkExternalFenceHandleTypeFlagBits*)&forUnmarshaling->handleType, sizeof(VkExternalFenceHandleTypeFlagBits));
 }
 
@@ -6563,13 +5185,7 @@ void marshal_VkExternalFenceProperties(
     const VkExternalFenceProperties* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkExternalFenceHandleTypeFlags*)&forMarshaling->exportFromImportedHandleTypes, sizeof(VkExternalFenceHandleTypeFlags));
     vkStream->write((VkExternalFenceHandleTypeFlags*)&forMarshaling->compatibleHandleTypes, sizeof(VkExternalFenceHandleTypeFlags));
     vkStream->write((VkExternalFenceFeatureFlags*)&forMarshaling->externalFenceFeatures, sizeof(VkExternalFenceFeatureFlags));
@@ -6580,14 +5196,7 @@ void unmarshal_VkExternalFenceProperties(
     VkExternalFenceProperties* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkExternalFenceHandleTypeFlags*)&forUnmarshaling->exportFromImportedHandleTypes, sizeof(VkExternalFenceHandleTypeFlags));
     vkStream->read((VkExternalFenceHandleTypeFlags*)&forUnmarshaling->compatibleHandleTypes, sizeof(VkExternalFenceHandleTypeFlags));
     vkStream->read((VkExternalFenceFeatureFlags*)&forUnmarshaling->externalFenceFeatures, sizeof(VkExternalFenceFeatureFlags));
@@ -6598,13 +5207,7 @@ void marshal_VkExportFenceCreateInfo(
     const VkExportFenceCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkExternalFenceHandleTypeFlags*)&forMarshaling->handleTypes, sizeof(VkExternalFenceHandleTypeFlags));
 }
 
@@ -6613,14 +5216,7 @@ void unmarshal_VkExportFenceCreateInfo(
     VkExportFenceCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkExternalFenceHandleTypeFlags*)&forUnmarshaling->handleTypes, sizeof(VkExternalFenceHandleTypeFlags));
 }
 
@@ -6629,13 +5225,7 @@ void marshal_VkExportSemaphoreCreateInfo(
     const VkExportSemaphoreCreateInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkExternalSemaphoreHandleTypeFlags*)&forMarshaling->handleTypes, sizeof(VkExternalSemaphoreHandleTypeFlags));
 }
 
@@ -6644,14 +5234,7 @@ void unmarshal_VkExportSemaphoreCreateInfo(
     VkExportSemaphoreCreateInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkExternalSemaphoreHandleTypeFlags*)&forUnmarshaling->handleTypes, sizeof(VkExternalSemaphoreHandleTypeFlags));
 }
 
@@ -6660,13 +5243,7 @@ void marshal_VkPhysicalDeviceExternalSemaphoreInfo(
     const VkPhysicalDeviceExternalSemaphoreInfo* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkExternalSemaphoreHandleTypeFlagBits*)&forMarshaling->handleType, sizeof(VkExternalSemaphoreHandleTypeFlagBits));
 }
 
@@ -6675,14 +5252,7 @@ void unmarshal_VkPhysicalDeviceExternalSemaphoreInfo(
     VkPhysicalDeviceExternalSemaphoreInfo* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkExternalSemaphoreHandleTypeFlagBits*)&forUnmarshaling->handleType, sizeof(VkExternalSemaphoreHandleTypeFlagBits));
 }
 
@@ -6691,13 +5261,7 @@ void marshal_VkExternalSemaphoreProperties(
     const VkExternalSemaphoreProperties* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkExternalSemaphoreHandleTypeFlags*)&forMarshaling->exportFromImportedHandleTypes, sizeof(VkExternalSemaphoreHandleTypeFlags));
     vkStream->write((VkExternalSemaphoreHandleTypeFlags*)&forMarshaling->compatibleHandleTypes, sizeof(VkExternalSemaphoreHandleTypeFlags));
     vkStream->write((VkExternalSemaphoreFeatureFlags*)&forMarshaling->externalSemaphoreFeatures, sizeof(VkExternalSemaphoreFeatureFlags));
@@ -6708,14 +5272,7 @@ void unmarshal_VkExternalSemaphoreProperties(
     VkExternalSemaphoreProperties* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkExternalSemaphoreHandleTypeFlags*)&forUnmarshaling->exportFromImportedHandleTypes, sizeof(VkExternalSemaphoreHandleTypeFlags));
     vkStream->read((VkExternalSemaphoreHandleTypeFlags*)&forUnmarshaling->compatibleHandleTypes, sizeof(VkExternalSemaphoreHandleTypeFlags));
     vkStream->read((VkExternalSemaphoreFeatureFlags*)&forUnmarshaling->externalSemaphoreFeatures, sizeof(VkExternalSemaphoreFeatureFlags));
@@ -6726,13 +5283,7 @@ void marshal_VkPhysicalDeviceMaintenance3Properties(
     const VkPhysicalDeviceMaintenance3Properties* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->maxPerSetDescriptors, sizeof(uint32_t));
     vkStream->write((VkDeviceSize*)&forMarshaling->maxMemoryAllocationSize, sizeof(VkDeviceSize));
 }
@@ -6742,14 +5293,7 @@ void unmarshal_VkPhysicalDeviceMaintenance3Properties(
     VkPhysicalDeviceMaintenance3Properties* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->maxPerSetDescriptors, sizeof(uint32_t));
     vkStream->read((VkDeviceSize*)&forUnmarshaling->maxMemoryAllocationSize, sizeof(VkDeviceSize));
 }
@@ -6759,13 +5303,7 @@ void marshal_VkDescriptorSetLayoutSupport(
     const VkDescriptorSetLayoutSupport* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->supported, sizeof(VkBool32));
 }
 
@@ -6774,14 +5312,7 @@ void unmarshal_VkDescriptorSetLayoutSupport(
     VkDescriptorSetLayoutSupport* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->supported, sizeof(VkBool32));
 }
 
@@ -6790,13 +5321,7 @@ void marshal_VkPhysicalDeviceShaderDrawParameterFeatures(
     const VkPhysicalDeviceShaderDrawParameterFeatures* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->shaderDrawParameters, sizeof(VkBool32));
 }
 
@@ -6805,14 +5330,7 @@ void unmarshal_VkPhysicalDeviceShaderDrawParameterFeatures(
     VkPhysicalDeviceShaderDrawParameterFeatures* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->shaderDrawParameters, sizeof(VkBool32));
 }
 
@@ -6873,13 +5391,7 @@ void marshal_VkSwapchainCreateInfoKHR(
     const VkSwapchainCreateInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkSwapchainCreateFlagsKHR*)&forMarshaling->flags, sizeof(VkSwapchainCreateFlagsKHR));
     uint64_t cgen_var_188;
     vkStream->handleMapping()->mapHandles_VkSurfaceKHR_u64(&forMarshaling->surface, &cgen_var_188, 1);
@@ -6913,14 +5425,7 @@ void unmarshal_VkSwapchainCreateInfoKHR(
     VkSwapchainCreateInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkSwapchainCreateFlagsKHR*)&forUnmarshaling->flags, sizeof(VkSwapchainCreateFlagsKHR));
     uint64_t cgen_var_191;
     vkStream->read((uint64_t*)&cgen_var_191, 1 * 8);
@@ -6958,13 +5463,7 @@ void marshal_VkPresentInfoKHR(
     const VkPresentInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->waitSemaphoreCount, sizeof(uint32_t));
     if (forMarshaling->waitSemaphoreCount)
     {
@@ -6996,14 +5495,7 @@ void unmarshal_VkPresentInfoKHR(
     VkPresentInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->waitSemaphoreCount, sizeof(uint32_t));
     if (forUnmarshaling->waitSemaphoreCount)
     {
@@ -7039,13 +5531,7 @@ void marshal_VkImageSwapchainCreateInfoKHR(
     const VkImageSwapchainCreateInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_200;
     vkStream->handleMapping()->mapHandles_VkSwapchainKHR_u64(&forMarshaling->swapchain, &cgen_var_200, 1);
     vkStream->write((uint64_t*)&cgen_var_200, 1 * 8);
@@ -7056,14 +5542,7 @@ void unmarshal_VkImageSwapchainCreateInfoKHR(
     VkImageSwapchainCreateInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_201;
     vkStream->read((uint64_t*)&cgen_var_201, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkSwapchainKHR(&cgen_var_201, (VkSwapchainKHR*)&forUnmarshaling->swapchain, 1);
@@ -7074,13 +5553,7 @@ void marshal_VkBindImageMemorySwapchainInfoKHR(
     const VkBindImageMemorySwapchainInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_202;
     vkStream->handleMapping()->mapHandles_VkSwapchainKHR_u64(&forMarshaling->swapchain, &cgen_var_202, 1);
     vkStream->write((uint64_t*)&cgen_var_202, 1 * 8);
@@ -7092,14 +5565,7 @@ void unmarshal_VkBindImageMemorySwapchainInfoKHR(
     VkBindImageMemorySwapchainInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_203;
     vkStream->read((uint64_t*)&cgen_var_203, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkSwapchainKHR(&cgen_var_203, (VkSwapchainKHR*)&forUnmarshaling->swapchain, 1);
@@ -7111,13 +5577,7 @@ void marshal_VkAcquireNextImageInfoKHR(
     const VkAcquireNextImageInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_204;
     vkStream->handleMapping()->mapHandles_VkSwapchainKHR_u64(&forMarshaling->swapchain, &cgen_var_204, 1);
     vkStream->write((uint64_t*)&cgen_var_204, 1 * 8);
@@ -7136,14 +5596,7 @@ void unmarshal_VkAcquireNextImageInfoKHR(
     VkAcquireNextImageInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_207;
     vkStream->read((uint64_t*)&cgen_var_207, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkSwapchainKHR(&cgen_var_207, (VkSwapchainKHR*)&forUnmarshaling->swapchain, 1);
@@ -7162,13 +5615,7 @@ void marshal_VkDeviceGroupPresentCapabilitiesKHR(
     const VkDeviceGroupPresentCapabilitiesKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)forMarshaling->presentMask, VK_MAX_DEVICE_GROUP_SIZE * sizeof(uint32_t));
     vkStream->write((VkDeviceGroupPresentModeFlagsKHR*)&forMarshaling->modes, sizeof(VkDeviceGroupPresentModeFlagsKHR));
 }
@@ -7178,14 +5625,7 @@ void unmarshal_VkDeviceGroupPresentCapabilitiesKHR(
     VkDeviceGroupPresentCapabilitiesKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)forUnmarshaling->presentMask, VK_MAX_DEVICE_GROUP_SIZE * sizeof(uint32_t));
     vkStream->read((VkDeviceGroupPresentModeFlagsKHR*)&forUnmarshaling->modes, sizeof(VkDeviceGroupPresentModeFlagsKHR));
 }
@@ -7195,13 +5635,7 @@ void marshal_VkDeviceGroupPresentInfoKHR(
     const VkDeviceGroupPresentInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->swapchainCount, sizeof(uint32_t));
     vkStream->write((const uint32_t*)forMarshaling->pDeviceMasks, forMarshaling->swapchainCount * sizeof(const uint32_t));
     vkStream->write((VkDeviceGroupPresentModeFlagBitsKHR*)&forMarshaling->mode, sizeof(VkDeviceGroupPresentModeFlagBitsKHR));
@@ -7212,14 +5646,7 @@ void unmarshal_VkDeviceGroupPresentInfoKHR(
     VkDeviceGroupPresentInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->swapchainCount, sizeof(uint32_t));
     vkStream->read((uint32_t*)forUnmarshaling->pDeviceMasks, forUnmarshaling->swapchainCount * sizeof(const uint32_t));
     vkStream->read((VkDeviceGroupPresentModeFlagBitsKHR*)&forUnmarshaling->mode, sizeof(VkDeviceGroupPresentModeFlagBitsKHR));
@@ -7230,13 +5657,7 @@ void marshal_VkDeviceGroupSwapchainCreateInfoKHR(
     const VkDeviceGroupSwapchainCreateInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDeviceGroupPresentModeFlagsKHR*)&forMarshaling->modes, sizeof(VkDeviceGroupPresentModeFlagsKHR));
 }
 
@@ -7245,14 +5666,7 @@ void unmarshal_VkDeviceGroupSwapchainCreateInfoKHR(
     VkDeviceGroupSwapchainCreateInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDeviceGroupPresentModeFlagsKHR*)&forUnmarshaling->modes, sizeof(VkDeviceGroupPresentModeFlagsKHR));
 }
 
@@ -7329,13 +5743,7 @@ void marshal_VkDisplayModeCreateInfoKHR(
     const VkDisplayModeCreateInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDisplayModeCreateFlagsKHR*)&forMarshaling->flags, sizeof(VkDisplayModeCreateFlagsKHR));
     marshal_VkDisplayModeParametersKHR(vkStream, (VkDisplayModeParametersKHR*)(&forMarshaling->parameters));
 }
@@ -7345,14 +5753,7 @@ void unmarshal_VkDisplayModeCreateInfoKHR(
     VkDisplayModeCreateInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDisplayModeCreateFlagsKHR*)&forUnmarshaling->flags, sizeof(VkDisplayModeCreateFlagsKHR));
     unmarshal_VkDisplayModeParametersKHR(vkStream, (VkDisplayModeParametersKHR*)(&forUnmarshaling->parameters));
 }
@@ -7412,13 +5813,7 @@ void marshal_VkDisplaySurfaceCreateInfoKHR(
     const VkDisplaySurfaceCreateInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDisplaySurfaceCreateFlagsKHR*)&forMarshaling->flags, sizeof(VkDisplaySurfaceCreateFlagsKHR));
     uint64_t cgen_var_216;
     vkStream->handleMapping()->mapHandles_VkDisplayModeKHR_u64(&forMarshaling->displayMode, &cgen_var_216, 1);
@@ -7436,14 +5831,7 @@ void unmarshal_VkDisplaySurfaceCreateInfoKHR(
     VkDisplaySurfaceCreateInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDisplaySurfaceCreateFlagsKHR*)&forUnmarshaling->flags, sizeof(VkDisplaySurfaceCreateFlagsKHR));
     uint64_t cgen_var_217;
     vkStream->read((uint64_t*)&cgen_var_217, 1 * 8);
@@ -7463,13 +5851,7 @@ void marshal_VkDisplayPresentInfoKHR(
     const VkDisplayPresentInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkRect2D(vkStream, (VkRect2D*)(&forMarshaling->srcRect));
     marshal_VkRect2D(vkStream, (VkRect2D*)(&forMarshaling->dstRect));
     vkStream->write((VkBool32*)&forMarshaling->persistent, sizeof(VkBool32));
@@ -7480,14 +5862,7 @@ void unmarshal_VkDisplayPresentInfoKHR(
     VkDisplayPresentInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkRect2D(vkStream, (VkRect2D*)(&forUnmarshaling->srcRect));
     unmarshal_VkRect2D(vkStream, (VkRect2D*)(&forUnmarshaling->dstRect));
     vkStream->read((VkBool32*)&forUnmarshaling->persistent, sizeof(VkBool32));
@@ -7500,13 +5875,7 @@ void marshal_VkXlibSurfaceCreateInfoKHR(
     const VkXlibSurfaceCreateInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkXlibSurfaceCreateFlagsKHR*)&forMarshaling->flags, sizeof(VkXlibSurfaceCreateFlagsKHR));
     // WARNING PTR CHECK
     uint64_t cgen_var_218 = (uint64_t)(uintptr_t)forMarshaling->dpy;
@@ -7523,14 +5892,7 @@ void unmarshal_VkXlibSurfaceCreateInfoKHR(
     VkXlibSurfaceCreateInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkXlibSurfaceCreateFlagsKHR*)&forUnmarshaling->flags, sizeof(VkXlibSurfaceCreateFlagsKHR));
     // WARNING PTR CHECK
     Display* check_dpy;
@@ -7553,13 +5915,7 @@ void marshal_VkXcbSurfaceCreateInfoKHR(
     const VkXcbSurfaceCreateInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkXcbSurfaceCreateFlagsKHR*)&forMarshaling->flags, sizeof(VkXcbSurfaceCreateFlagsKHR));
     // WARNING PTR CHECK
     uint64_t cgen_var_220 = (uint64_t)(uintptr_t)forMarshaling->connection;
@@ -7576,14 +5932,7 @@ void unmarshal_VkXcbSurfaceCreateInfoKHR(
     VkXcbSurfaceCreateInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkXcbSurfaceCreateFlagsKHR*)&forUnmarshaling->flags, sizeof(VkXcbSurfaceCreateFlagsKHR));
     // WARNING PTR CHECK
     xcb_connection_t* check_connection;
@@ -7606,13 +5955,7 @@ void marshal_VkWaylandSurfaceCreateInfoKHR(
     const VkWaylandSurfaceCreateInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkWaylandSurfaceCreateFlagsKHR*)&forMarshaling->flags, sizeof(VkWaylandSurfaceCreateFlagsKHR));
     // WARNING PTR CHECK
     uint64_t cgen_var_222 = (uint64_t)(uintptr_t)forMarshaling->display;
@@ -7635,14 +5978,7 @@ void unmarshal_VkWaylandSurfaceCreateInfoKHR(
     VkWaylandSurfaceCreateInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkWaylandSurfaceCreateFlagsKHR*)&forUnmarshaling->flags, sizeof(VkWaylandSurfaceCreateFlagsKHR));
     // WARNING PTR CHECK
     wl_display* check_display;
@@ -7675,13 +6011,7 @@ void marshal_VkMirSurfaceCreateInfoKHR(
     const VkMirSurfaceCreateInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkMirSurfaceCreateFlagsKHR*)&forMarshaling->flags, sizeof(VkMirSurfaceCreateFlagsKHR));
     // WARNING PTR CHECK
     uint64_t cgen_var_226 = (uint64_t)(uintptr_t)forMarshaling->connection;
@@ -7704,14 +6034,7 @@ void unmarshal_VkMirSurfaceCreateInfoKHR(
     VkMirSurfaceCreateInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkMirSurfaceCreateFlagsKHR*)&forUnmarshaling->flags, sizeof(VkMirSurfaceCreateFlagsKHR));
     // WARNING PTR CHECK
     MirConnection* check_connection;
@@ -7744,13 +6067,7 @@ void marshal_VkAndroidSurfaceCreateInfoKHR(
     const VkAndroidSurfaceCreateInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkAndroidSurfaceCreateFlagsKHR*)&forMarshaling->flags, sizeof(VkAndroidSurfaceCreateFlagsKHR));
     // WARNING PTR CHECK
     uint64_t cgen_var_230 = (uint64_t)(uintptr_t)forMarshaling->window;
@@ -7766,14 +6083,7 @@ void unmarshal_VkAndroidSurfaceCreateInfoKHR(
     VkAndroidSurfaceCreateInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkAndroidSurfaceCreateFlagsKHR*)&forUnmarshaling->flags, sizeof(VkAndroidSurfaceCreateFlagsKHR));
     // WARNING PTR CHECK
     ANativeWindow* check_window;
@@ -7795,13 +6105,7 @@ void marshal_VkWin32SurfaceCreateInfoKHR(
     const VkWin32SurfaceCreateInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkWin32SurfaceCreateFlagsKHR*)&forMarshaling->flags, sizeof(VkWin32SurfaceCreateFlagsKHR));
     vkStream->write((HINSTANCE*)&forMarshaling->hinstance, sizeof(HINSTANCE));
     vkStream->write((HWND*)&forMarshaling->hwnd, sizeof(HWND));
@@ -7812,14 +6116,7 @@ void unmarshal_VkWin32SurfaceCreateInfoKHR(
     VkWin32SurfaceCreateInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkWin32SurfaceCreateFlagsKHR*)&forUnmarshaling->flags, sizeof(VkWin32SurfaceCreateFlagsKHR));
     vkStream->read((HINSTANCE*)&forUnmarshaling->hinstance, sizeof(HINSTANCE));
     vkStream->read((HWND*)&forUnmarshaling->hwnd, sizeof(HWND));
@@ -7850,13 +6147,7 @@ void marshal_VkImportMemoryWin32HandleInfoKHR(
     const VkImportMemoryWin32HandleInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkExternalMemoryHandleTypeFlagBits*)&forMarshaling->handleType, sizeof(VkExternalMemoryHandleTypeFlagBits));
     vkStream->write((HANDLE*)&forMarshaling->handle, sizeof(HANDLE));
     vkStream->write((LPCWSTR*)&forMarshaling->name, sizeof(LPCWSTR));
@@ -7867,14 +6158,7 @@ void unmarshal_VkImportMemoryWin32HandleInfoKHR(
     VkImportMemoryWin32HandleInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkExternalMemoryHandleTypeFlagBits*)&forUnmarshaling->handleType, sizeof(VkExternalMemoryHandleTypeFlagBits));
     vkStream->read((HANDLE*)&forUnmarshaling->handle, sizeof(HANDLE));
     vkStream->read((LPCWSTR*)&forUnmarshaling->name, sizeof(LPCWSTR));
@@ -7885,13 +6169,7 @@ void marshal_VkExportMemoryWin32HandleInfoKHR(
     const VkExportMemoryWin32HandleInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     // WARNING PTR CHECK
     uint64_t cgen_var_232 = (uint64_t)(uintptr_t)forMarshaling->pAttributes;
     vkStream->putBe64(cgen_var_232);
@@ -7908,14 +6186,7 @@ void unmarshal_VkExportMemoryWin32HandleInfoKHR(
     VkExportMemoryWin32HandleInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     // WARNING PTR CHECK
     const SECURITY_ATTRIBUTES* check_pAttributes;
     check_pAttributes = (const SECURITY_ATTRIBUTES*)(uintptr_t)vkStream->getBe64();
@@ -7936,13 +6207,7 @@ void marshal_VkMemoryWin32HandlePropertiesKHR(
     const VkMemoryWin32HandlePropertiesKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->memoryTypeBits, sizeof(uint32_t));
 }
 
@@ -7951,14 +6216,7 @@ void unmarshal_VkMemoryWin32HandlePropertiesKHR(
     VkMemoryWin32HandlePropertiesKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->memoryTypeBits, sizeof(uint32_t));
 }
 
@@ -7967,13 +6225,7 @@ void marshal_VkMemoryGetWin32HandleInfoKHR(
     const VkMemoryGetWin32HandleInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_234;
     vkStream->handleMapping()->mapHandles_VkDeviceMemory_u64(&forMarshaling->memory, &cgen_var_234, 1);
     vkStream->write((uint64_t*)&cgen_var_234, 1 * 8);
@@ -7985,14 +6237,7 @@ void unmarshal_VkMemoryGetWin32HandleInfoKHR(
     VkMemoryGetWin32HandleInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_235;
     vkStream->read((uint64_t*)&cgen_var_235, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkDeviceMemory(&cgen_var_235, (VkDeviceMemory*)&forUnmarshaling->memory, 1);
@@ -8006,13 +6251,7 @@ void marshal_VkImportMemoryFdInfoKHR(
     const VkImportMemoryFdInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkExternalMemoryHandleTypeFlagBits*)&forMarshaling->handleType, sizeof(VkExternalMemoryHandleTypeFlagBits));
     vkStream->write((int*)&forMarshaling->fd, sizeof(int));
 }
@@ -8022,14 +6261,7 @@ void unmarshal_VkImportMemoryFdInfoKHR(
     VkImportMemoryFdInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkExternalMemoryHandleTypeFlagBits*)&forUnmarshaling->handleType, sizeof(VkExternalMemoryHandleTypeFlagBits));
     vkStream->read((int*)&forUnmarshaling->fd, sizeof(int));
 }
@@ -8039,13 +6271,7 @@ void marshal_VkMemoryFdPropertiesKHR(
     const VkMemoryFdPropertiesKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->memoryTypeBits, sizeof(uint32_t));
 }
 
@@ -8054,14 +6280,7 @@ void unmarshal_VkMemoryFdPropertiesKHR(
     VkMemoryFdPropertiesKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->memoryTypeBits, sizeof(uint32_t));
 }
 
@@ -8070,13 +6289,7 @@ void marshal_VkMemoryGetFdInfoKHR(
     const VkMemoryGetFdInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_236;
     vkStream->handleMapping()->mapHandles_VkDeviceMemory_u64(&forMarshaling->memory, &cgen_var_236, 1);
     vkStream->write((uint64_t*)&cgen_var_236, 1 * 8);
@@ -8088,14 +6301,7 @@ void unmarshal_VkMemoryGetFdInfoKHR(
     VkMemoryGetFdInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_237;
     vkStream->read((uint64_t*)&cgen_var_237, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkDeviceMemory(&cgen_var_237, (VkDeviceMemory*)&forUnmarshaling->memory, 1);
@@ -8109,13 +6315,7 @@ void marshal_VkWin32KeyedMutexAcquireReleaseInfoKHR(
     const VkWin32KeyedMutexAcquireReleaseInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->acquireCount, sizeof(uint32_t));
     if (forMarshaling->acquireCount)
     {
@@ -8142,14 +6342,7 @@ void unmarshal_VkWin32KeyedMutexAcquireReleaseInfoKHR(
     VkWin32KeyedMutexAcquireReleaseInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->acquireCount, sizeof(uint32_t));
     if (forUnmarshaling->acquireCount)
     {
@@ -8182,13 +6375,7 @@ void marshal_VkImportSemaphoreWin32HandleInfoKHR(
     const VkImportSemaphoreWin32HandleInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_242;
     vkStream->handleMapping()->mapHandles_VkSemaphore_u64(&forMarshaling->semaphore, &cgen_var_242, 1);
     vkStream->write((uint64_t*)&cgen_var_242, 1 * 8);
@@ -8203,14 +6390,7 @@ void unmarshal_VkImportSemaphoreWin32HandleInfoKHR(
     VkImportSemaphoreWin32HandleInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_243;
     vkStream->read((uint64_t*)&cgen_var_243, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkSemaphore(&cgen_var_243, (VkSemaphore*)&forUnmarshaling->semaphore, 1);
@@ -8225,13 +6405,7 @@ void marshal_VkExportSemaphoreWin32HandleInfoKHR(
     const VkExportSemaphoreWin32HandleInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     // WARNING PTR CHECK
     uint64_t cgen_var_244 = (uint64_t)(uintptr_t)forMarshaling->pAttributes;
     vkStream->putBe64(cgen_var_244);
@@ -8248,14 +6422,7 @@ void unmarshal_VkExportSemaphoreWin32HandleInfoKHR(
     VkExportSemaphoreWin32HandleInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     // WARNING PTR CHECK
     const SECURITY_ATTRIBUTES* check_pAttributes;
     check_pAttributes = (const SECURITY_ATTRIBUTES*)(uintptr_t)vkStream->getBe64();
@@ -8276,13 +6443,7 @@ void marshal_VkD3D12FenceSubmitInfoKHR(
     const VkD3D12FenceSubmitInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->waitSemaphoreValuesCount, sizeof(uint32_t));
     // WARNING PTR CHECK
     uint64_t cgen_var_246 = (uint64_t)(uintptr_t)forMarshaling->pWaitSemaphoreValues;
@@ -8306,14 +6467,7 @@ void unmarshal_VkD3D12FenceSubmitInfoKHR(
     VkD3D12FenceSubmitInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->waitSemaphoreValuesCount, sizeof(uint32_t));
     // WARNING PTR CHECK
     const uint64_t* check_pWaitSemaphoreValues;
@@ -8345,13 +6499,7 @@ void marshal_VkSemaphoreGetWin32HandleInfoKHR(
     const VkSemaphoreGetWin32HandleInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_250;
     vkStream->handleMapping()->mapHandles_VkSemaphore_u64(&forMarshaling->semaphore, &cgen_var_250, 1);
     vkStream->write((uint64_t*)&cgen_var_250, 1 * 8);
@@ -8363,14 +6511,7 @@ void unmarshal_VkSemaphoreGetWin32HandleInfoKHR(
     VkSemaphoreGetWin32HandleInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_251;
     vkStream->read((uint64_t*)&cgen_var_251, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkSemaphore(&cgen_var_251, (VkSemaphore*)&forUnmarshaling->semaphore, 1);
@@ -8384,13 +6525,7 @@ void marshal_VkImportSemaphoreFdInfoKHR(
     const VkImportSemaphoreFdInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_252;
     vkStream->handleMapping()->mapHandles_VkSemaphore_u64(&forMarshaling->semaphore, &cgen_var_252, 1);
     vkStream->write((uint64_t*)&cgen_var_252, 1 * 8);
@@ -8404,14 +6539,7 @@ void unmarshal_VkImportSemaphoreFdInfoKHR(
     VkImportSemaphoreFdInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_253;
     vkStream->read((uint64_t*)&cgen_var_253, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkSemaphore(&cgen_var_253, (VkSemaphore*)&forUnmarshaling->semaphore, 1);
@@ -8425,13 +6553,7 @@ void marshal_VkSemaphoreGetFdInfoKHR(
     const VkSemaphoreGetFdInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_254;
     vkStream->handleMapping()->mapHandles_VkSemaphore_u64(&forMarshaling->semaphore, &cgen_var_254, 1);
     vkStream->write((uint64_t*)&cgen_var_254, 1 * 8);
@@ -8443,14 +6565,7 @@ void unmarshal_VkSemaphoreGetFdInfoKHR(
     VkSemaphoreGetFdInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_255;
     vkStream->read((uint64_t*)&cgen_var_255, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkSemaphore(&cgen_var_255, (VkSemaphore*)&forUnmarshaling->semaphore, 1);
@@ -8464,13 +6579,7 @@ void marshal_VkPhysicalDevicePushDescriptorPropertiesKHR(
     const VkPhysicalDevicePushDescriptorPropertiesKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->maxPushDescriptors, sizeof(uint32_t));
 }
 
@@ -8479,14 +6588,7 @@ void unmarshal_VkPhysicalDevicePushDescriptorPropertiesKHR(
     VkPhysicalDevicePushDescriptorPropertiesKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->maxPushDescriptors, sizeof(uint32_t));
 }
 
@@ -8555,13 +6657,7 @@ void marshal_VkPresentRegionsKHR(
     const VkPresentRegionsKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->swapchainCount, sizeof(uint32_t));
     // WARNING PTR CHECK
     uint64_t cgen_var_258 = (uint64_t)(uintptr_t)forMarshaling->pRegions;
@@ -8580,14 +6676,7 @@ void unmarshal_VkPresentRegionsKHR(
     VkPresentRegionsKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->swapchainCount, sizeof(uint32_t));
     // WARNING PTR CHECK
     const VkPresentRegionKHR* check_pRegions;
@@ -8614,13 +6703,7 @@ void marshal_VkAttachmentDescription2KHR(
     const VkAttachmentDescription2KHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkAttachmentDescriptionFlags*)&forMarshaling->flags, sizeof(VkAttachmentDescriptionFlags));
     vkStream->write((VkFormat*)&forMarshaling->format, sizeof(VkFormat));
     vkStream->write((VkSampleCountFlagBits*)&forMarshaling->samples, sizeof(VkSampleCountFlagBits));
@@ -8637,14 +6720,7 @@ void unmarshal_VkAttachmentDescription2KHR(
     VkAttachmentDescription2KHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkAttachmentDescriptionFlags*)&forUnmarshaling->flags, sizeof(VkAttachmentDescriptionFlags));
     vkStream->read((VkFormat*)&forUnmarshaling->format, sizeof(VkFormat));
     vkStream->read((VkSampleCountFlagBits*)&forUnmarshaling->samples, sizeof(VkSampleCountFlagBits));
@@ -8661,13 +6737,7 @@ void marshal_VkAttachmentReference2KHR(
     const VkAttachmentReference2KHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->attachment, sizeof(uint32_t));
     vkStream->write((VkImageLayout*)&forMarshaling->layout, sizeof(VkImageLayout));
     vkStream->write((VkImageAspectFlags*)&forMarshaling->aspectMask, sizeof(VkImageAspectFlags));
@@ -8678,14 +6748,7 @@ void unmarshal_VkAttachmentReference2KHR(
     VkAttachmentReference2KHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->attachment, sizeof(uint32_t));
     vkStream->read((VkImageLayout*)&forUnmarshaling->layout, sizeof(VkImageLayout));
     vkStream->read((VkImageAspectFlags*)&forUnmarshaling->aspectMask, sizeof(VkImageAspectFlags));
@@ -8696,13 +6759,7 @@ void marshal_VkSubpassDescription2KHR(
     const VkSubpassDescription2KHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkSubpassDescriptionFlags*)&forMarshaling->flags, sizeof(VkSubpassDescriptionFlags));
     vkStream->write((VkPipelineBindPoint*)&forMarshaling->pipelineBindPoint, sizeof(VkPipelineBindPoint));
     vkStream->write((uint32_t*)&forMarshaling->viewMask, sizeof(uint32_t));
@@ -8742,14 +6799,7 @@ void unmarshal_VkSubpassDescription2KHR(
     VkSubpassDescription2KHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkSubpassDescriptionFlags*)&forUnmarshaling->flags, sizeof(VkSubpassDescriptionFlags));
     vkStream->read((VkPipelineBindPoint*)&forUnmarshaling->pipelineBindPoint, sizeof(VkPipelineBindPoint));
     vkStream->read((uint32_t*)&forUnmarshaling->viewMask, sizeof(uint32_t));
@@ -8797,13 +6847,7 @@ void marshal_VkSubpassDependency2KHR(
     const VkSubpassDependency2KHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->srcSubpass, sizeof(uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->dstSubpass, sizeof(uint32_t));
     vkStream->write((VkPipelineStageFlags*)&forMarshaling->srcStageMask, sizeof(VkPipelineStageFlags));
@@ -8819,14 +6863,7 @@ void unmarshal_VkSubpassDependency2KHR(
     VkSubpassDependency2KHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->srcSubpass, sizeof(uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->dstSubpass, sizeof(uint32_t));
     vkStream->read((VkPipelineStageFlags*)&forUnmarshaling->srcStageMask, sizeof(VkPipelineStageFlags));
@@ -8842,13 +6879,7 @@ void marshal_VkRenderPassCreateInfo2KHR(
     const VkRenderPassCreateInfo2KHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkRenderPassCreateFlags*)&forMarshaling->flags, sizeof(VkRenderPassCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->attachmentCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forMarshaling->attachmentCount; ++i)
@@ -8874,14 +6905,7 @@ void unmarshal_VkRenderPassCreateInfo2KHR(
     VkRenderPassCreateInfo2KHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkRenderPassCreateFlags*)&forUnmarshaling->flags, sizeof(VkRenderPassCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->attachmentCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->attachmentCount; ++i)
@@ -8907,13 +6931,7 @@ void marshal_VkSubpassBeginInfoKHR(
     const VkSubpassBeginInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkSubpassContents*)&forMarshaling->contents, sizeof(VkSubpassContents));
 }
 
@@ -8922,14 +6940,7 @@ void unmarshal_VkSubpassBeginInfoKHR(
     VkSubpassBeginInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkSubpassContents*)&forUnmarshaling->contents, sizeof(VkSubpassContents));
 }
 
@@ -8938,13 +6949,7 @@ void marshal_VkSubpassEndInfoKHR(
     const VkSubpassEndInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
 }
 
 void unmarshal_VkSubpassEndInfoKHR(
@@ -8952,14 +6957,7 @@ void unmarshal_VkSubpassEndInfoKHR(
     VkSubpassEndInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
 }
 
 #endif
@@ -8969,13 +6967,7 @@ void marshal_VkSharedPresentSurfaceCapabilitiesKHR(
     const VkSharedPresentSurfaceCapabilitiesKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkImageUsageFlags*)&forMarshaling->sharedPresentSupportedUsageFlags, sizeof(VkImageUsageFlags));
 }
 
@@ -8984,14 +6976,7 @@ void unmarshal_VkSharedPresentSurfaceCapabilitiesKHR(
     VkSharedPresentSurfaceCapabilitiesKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkImageUsageFlags*)&forUnmarshaling->sharedPresentSupportedUsageFlags, sizeof(VkImageUsageFlags));
 }
 
@@ -9006,13 +6991,7 @@ void marshal_VkImportFenceWin32HandleInfoKHR(
     const VkImportFenceWin32HandleInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_264;
     vkStream->handleMapping()->mapHandles_VkFence_u64(&forMarshaling->fence, &cgen_var_264, 1);
     vkStream->write((uint64_t*)&cgen_var_264, 1 * 8);
@@ -9027,14 +7006,7 @@ void unmarshal_VkImportFenceWin32HandleInfoKHR(
     VkImportFenceWin32HandleInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_265;
     vkStream->read((uint64_t*)&cgen_var_265, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkFence(&cgen_var_265, (VkFence*)&forUnmarshaling->fence, 1);
@@ -9049,13 +7021,7 @@ void marshal_VkExportFenceWin32HandleInfoKHR(
     const VkExportFenceWin32HandleInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     // WARNING PTR CHECK
     uint64_t cgen_var_266 = (uint64_t)(uintptr_t)forMarshaling->pAttributes;
     vkStream->putBe64(cgen_var_266);
@@ -9072,14 +7038,7 @@ void unmarshal_VkExportFenceWin32HandleInfoKHR(
     VkExportFenceWin32HandleInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     // WARNING PTR CHECK
     const SECURITY_ATTRIBUTES* check_pAttributes;
     check_pAttributes = (const SECURITY_ATTRIBUTES*)(uintptr_t)vkStream->getBe64();
@@ -9100,13 +7059,7 @@ void marshal_VkFenceGetWin32HandleInfoKHR(
     const VkFenceGetWin32HandleInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_268;
     vkStream->handleMapping()->mapHandles_VkFence_u64(&forMarshaling->fence, &cgen_var_268, 1);
     vkStream->write((uint64_t*)&cgen_var_268, 1 * 8);
@@ -9118,14 +7071,7 @@ void unmarshal_VkFenceGetWin32HandleInfoKHR(
     VkFenceGetWin32HandleInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_269;
     vkStream->read((uint64_t*)&cgen_var_269, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkFence(&cgen_var_269, (VkFence*)&forUnmarshaling->fence, 1);
@@ -9139,13 +7085,7 @@ void marshal_VkImportFenceFdInfoKHR(
     const VkImportFenceFdInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_270;
     vkStream->handleMapping()->mapHandles_VkFence_u64(&forMarshaling->fence, &cgen_var_270, 1);
     vkStream->write((uint64_t*)&cgen_var_270, 1 * 8);
@@ -9159,14 +7099,7 @@ void unmarshal_VkImportFenceFdInfoKHR(
     VkImportFenceFdInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_271;
     vkStream->read((uint64_t*)&cgen_var_271, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkFence(&cgen_var_271, (VkFence*)&forUnmarshaling->fence, 1);
@@ -9180,13 +7113,7 @@ void marshal_VkFenceGetFdInfoKHR(
     const VkFenceGetFdInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_272;
     vkStream->handleMapping()->mapHandles_VkFence_u64(&forMarshaling->fence, &cgen_var_272, 1);
     vkStream->write((uint64_t*)&cgen_var_272, 1 * 8);
@@ -9198,14 +7125,7 @@ void unmarshal_VkFenceGetFdInfoKHR(
     VkFenceGetFdInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_273;
     vkStream->read((uint64_t*)&cgen_var_273, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkFence(&cgen_var_273, (VkFence*)&forUnmarshaling->fence, 1);
@@ -9221,13 +7141,7 @@ void marshal_VkPhysicalDeviceSurfaceInfo2KHR(
     const VkPhysicalDeviceSurfaceInfo2KHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_274;
     vkStream->handleMapping()->mapHandles_VkSurfaceKHR_u64(&forMarshaling->surface, &cgen_var_274, 1);
     vkStream->write((uint64_t*)&cgen_var_274, 1 * 8);
@@ -9238,14 +7152,7 @@ void unmarshal_VkPhysicalDeviceSurfaceInfo2KHR(
     VkPhysicalDeviceSurfaceInfo2KHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_275;
     vkStream->read((uint64_t*)&cgen_var_275, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkSurfaceKHR(&cgen_var_275, (VkSurfaceKHR*)&forUnmarshaling->surface, 1);
@@ -9256,13 +7163,7 @@ void marshal_VkSurfaceCapabilities2KHR(
     const VkSurfaceCapabilities2KHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkSurfaceCapabilitiesKHR(vkStream, (VkSurfaceCapabilitiesKHR*)(&forMarshaling->surfaceCapabilities));
 }
 
@@ -9271,14 +7172,7 @@ void unmarshal_VkSurfaceCapabilities2KHR(
     VkSurfaceCapabilities2KHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkSurfaceCapabilitiesKHR(vkStream, (VkSurfaceCapabilitiesKHR*)(&forUnmarshaling->surfaceCapabilities));
 }
 
@@ -9287,13 +7181,7 @@ void marshal_VkSurfaceFormat2KHR(
     const VkSurfaceFormat2KHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkSurfaceFormatKHR(vkStream, (VkSurfaceFormatKHR*)(&forMarshaling->surfaceFormat));
 }
 
@@ -9302,14 +7190,7 @@ void unmarshal_VkSurfaceFormat2KHR(
     VkSurfaceFormat2KHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkSurfaceFormatKHR(vkStream, (VkSurfaceFormatKHR*)(&forUnmarshaling->surfaceFormat));
 }
 
@@ -9322,13 +7203,7 @@ void marshal_VkDisplayProperties2KHR(
     const VkDisplayProperties2KHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkDisplayPropertiesKHR(vkStream, (VkDisplayPropertiesKHR*)(&forMarshaling->displayProperties));
 }
 
@@ -9337,14 +7212,7 @@ void unmarshal_VkDisplayProperties2KHR(
     VkDisplayProperties2KHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkDisplayPropertiesKHR(vkStream, (VkDisplayPropertiesKHR*)(&forUnmarshaling->displayProperties));
 }
 
@@ -9353,13 +7221,7 @@ void marshal_VkDisplayPlaneProperties2KHR(
     const VkDisplayPlaneProperties2KHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkDisplayPlanePropertiesKHR(vkStream, (VkDisplayPlanePropertiesKHR*)(&forMarshaling->displayPlaneProperties));
 }
 
@@ -9368,14 +7230,7 @@ void unmarshal_VkDisplayPlaneProperties2KHR(
     VkDisplayPlaneProperties2KHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkDisplayPlanePropertiesKHR(vkStream, (VkDisplayPlanePropertiesKHR*)(&forUnmarshaling->displayPlaneProperties));
 }
 
@@ -9384,13 +7239,7 @@ void marshal_VkDisplayModeProperties2KHR(
     const VkDisplayModeProperties2KHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkDisplayModePropertiesKHR(vkStream, (VkDisplayModePropertiesKHR*)(&forMarshaling->displayModeProperties));
 }
 
@@ -9399,14 +7248,7 @@ void unmarshal_VkDisplayModeProperties2KHR(
     VkDisplayModeProperties2KHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkDisplayModePropertiesKHR(vkStream, (VkDisplayModePropertiesKHR*)(&forUnmarshaling->displayModeProperties));
 }
 
@@ -9415,13 +7257,7 @@ void marshal_VkDisplayPlaneInfo2KHR(
     const VkDisplayPlaneInfo2KHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_276;
     vkStream->handleMapping()->mapHandles_VkDisplayModeKHR_u64(&forMarshaling->mode, &cgen_var_276, 1);
     vkStream->write((uint64_t*)&cgen_var_276, 1 * 8);
@@ -9433,14 +7269,7 @@ void unmarshal_VkDisplayPlaneInfo2KHR(
     VkDisplayPlaneInfo2KHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_277;
     vkStream->read((uint64_t*)&cgen_var_277, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkDisplayModeKHR(&cgen_var_277, (VkDisplayModeKHR*)&forUnmarshaling->mode, 1);
@@ -9452,13 +7281,7 @@ void marshal_VkDisplayPlaneCapabilities2KHR(
     const VkDisplayPlaneCapabilities2KHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkDisplayPlaneCapabilitiesKHR(vkStream, (VkDisplayPlaneCapabilitiesKHR*)(&forMarshaling->capabilities));
 }
 
@@ -9467,14 +7290,7 @@ void unmarshal_VkDisplayPlaneCapabilities2KHR(
     VkDisplayPlaneCapabilities2KHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkDisplayPlaneCapabilitiesKHR(vkStream, (VkDisplayPlaneCapabilitiesKHR*)(&forUnmarshaling->capabilities));
 }
 
@@ -9493,13 +7309,7 @@ void marshal_VkImageFormatListCreateInfoKHR(
     const VkImageFormatListCreateInfoKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->viewFormatCount, sizeof(uint32_t));
     vkStream->write((const VkFormat*)forMarshaling->pViewFormats, forMarshaling->viewFormatCount * sizeof(const VkFormat));
 }
@@ -9509,14 +7319,7 @@ void unmarshal_VkImageFormatListCreateInfoKHR(
     VkImageFormatListCreateInfoKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->viewFormatCount, sizeof(uint32_t));
     vkStream->read((VkFormat*)forUnmarshaling->pViewFormats, forUnmarshaling->viewFormatCount * sizeof(const VkFormat));
 }
@@ -9536,13 +7339,7 @@ void marshal_VkPhysicalDevice8BitStorageFeaturesKHR(
     const VkPhysicalDevice8BitStorageFeaturesKHR* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->storageBuffer8BitAccess, sizeof(VkBool32));
     vkStream->write((VkBool32*)&forMarshaling->uniformAndStorageBuffer8BitAccess, sizeof(VkBool32));
     vkStream->write((VkBool32*)&forMarshaling->storagePushConstant8, sizeof(VkBool32));
@@ -9553,17 +7350,32 @@ void unmarshal_VkPhysicalDevice8BitStorageFeaturesKHR(
     VkPhysicalDevice8BitStorageFeaturesKHR* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->storageBuffer8BitAccess, sizeof(VkBool32));
     vkStream->read((VkBool32*)&forUnmarshaling->uniformAndStorageBuffer8BitAccess, sizeof(VkBool32));
     vkStream->read((VkBool32*)&forUnmarshaling->storagePushConstant8, sizeof(VkBool32));
+}
+
+#endif
+#ifdef VK_KHR_shader_float16_int8
+void marshal_VkPhysicalDeviceShaderFloat16Int8Features(
+    VulkanStreamGuest* vkStream,
+    const VkPhysicalDeviceShaderFloat16Int8Features* forMarshaling)
+{
+    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
+    vkStream->write((VkBool32*)&forMarshaling->shaderFloat16, sizeof(VkBool32));
+    vkStream->write((VkBool32*)&forMarshaling->shaderInt8, sizeof(VkBool32));
+}
+
+void unmarshal_VkPhysicalDeviceShaderFloat16Int8Features(
+    VulkanStreamGuest* vkStream,
+    VkPhysicalDeviceShaderFloat16Int8Features* forUnmarshaling)
+{
+    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
+    vkStream->read((VkBool32*)&forUnmarshaling->shaderFloat16, sizeof(VkBool32));
+    vkStream->read((VkBool32*)&forUnmarshaling->shaderInt8, sizeof(VkBool32));
 }
 
 #endif
@@ -9573,13 +7385,7 @@ void marshal_VkNativeBufferANDROID(
     const VkNativeBufferANDROID* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     // WARNING PTR CHECK
     uint64_t cgen_var_278 = (uint64_t)(uintptr_t)forMarshaling->handle;
     vkStream->putBe64(cgen_var_278);
@@ -9599,14 +7405,7 @@ void unmarshal_VkNativeBufferANDROID(
     VkNativeBufferANDROID* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     // WARNING PTR CHECK
     const uint32_t* check_handle;
     check_handle = (const uint32_t*)(uintptr_t)vkStream->getBe64();
@@ -9632,13 +7431,7 @@ void marshal_VkDebugReportCallbackCreateInfoEXT(
     const VkDebugReportCallbackCreateInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDebugReportFlagsEXT*)&forMarshaling->flags, sizeof(VkDebugReportFlagsEXT));
     uint64_t cgen_var_280 = (uint64_t)forMarshaling->pfnCallback;
     vkStream->putBe64(cgen_var_280);
@@ -9656,14 +7449,7 @@ void unmarshal_VkDebugReportCallbackCreateInfoEXT(
     VkDebugReportCallbackCreateInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDebugReportFlagsEXT*)&forUnmarshaling->flags, sizeof(VkDebugReportFlagsEXT));
     forUnmarshaling->pfnCallback = (PFN_vkDebugReportCallbackEXT)vkStream->getBe64();
     // WARNING PTR CHECK
@@ -9692,13 +7478,7 @@ void marshal_VkPipelineRasterizationStateRasterizationOrderAMD(
     const VkPipelineRasterizationStateRasterizationOrderAMD* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkRasterizationOrderAMD*)&forMarshaling->rasterizationOrder, sizeof(VkRasterizationOrderAMD));
 }
 
@@ -9707,14 +7487,7 @@ void unmarshal_VkPipelineRasterizationStateRasterizationOrderAMD(
     VkPipelineRasterizationStateRasterizationOrderAMD* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkRasterizationOrderAMD*)&forUnmarshaling->rasterizationOrder, sizeof(VkRasterizationOrderAMD));
 }
 
@@ -9729,13 +7502,7 @@ void marshal_VkDebugMarkerObjectNameInfoEXT(
     const VkDebugMarkerObjectNameInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDebugReportObjectTypeEXT*)&forMarshaling->objectType, sizeof(VkDebugReportObjectTypeEXT));
     vkStream->write((uint64_t*)&forMarshaling->object, sizeof(uint64_t));
     vkStream->putString(forMarshaling->pObjectName);
@@ -9746,14 +7513,7 @@ void unmarshal_VkDebugMarkerObjectNameInfoEXT(
     VkDebugMarkerObjectNameInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDebugReportObjectTypeEXT*)&forUnmarshaling->objectType, sizeof(VkDebugReportObjectTypeEXT));
     vkStream->read((uint64_t*)&forUnmarshaling->object, sizeof(uint64_t));
     vkStream->loadStringInPlace((char**)&forUnmarshaling->pObjectName);
@@ -9764,13 +7524,7 @@ void marshal_VkDebugMarkerObjectTagInfoEXT(
     const VkDebugMarkerObjectTagInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDebugReportObjectTypeEXT*)&forMarshaling->objectType, sizeof(VkDebugReportObjectTypeEXT));
     vkStream->write((uint64_t*)&forMarshaling->object, sizeof(uint64_t));
     vkStream->write((uint64_t*)&forMarshaling->tagName, sizeof(uint64_t));
@@ -9784,14 +7538,7 @@ void unmarshal_VkDebugMarkerObjectTagInfoEXT(
     VkDebugMarkerObjectTagInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDebugReportObjectTypeEXT*)&forUnmarshaling->objectType, sizeof(VkDebugReportObjectTypeEXT));
     vkStream->read((uint64_t*)&forUnmarshaling->object, sizeof(uint64_t));
     vkStream->read((uint64_t*)&forUnmarshaling->tagName, sizeof(uint64_t));
@@ -9804,13 +7551,7 @@ void marshal_VkDebugMarkerMarkerInfoEXT(
     const VkDebugMarkerMarkerInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->putString(forMarshaling->pMarkerName);
     vkStream->write((float*)forMarshaling->color, 4 * sizeof(float));
 }
@@ -9820,14 +7561,7 @@ void unmarshal_VkDebugMarkerMarkerInfoEXT(
     VkDebugMarkerMarkerInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->loadStringInPlace((char**)&forUnmarshaling->pMarkerName);
     vkStream->read((float*)forUnmarshaling->color, 4 * sizeof(float));
 }
@@ -9841,13 +7575,7 @@ void marshal_VkDedicatedAllocationImageCreateInfoNV(
     const VkDedicatedAllocationImageCreateInfoNV* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->dedicatedAllocation, sizeof(VkBool32));
 }
 
@@ -9856,14 +7584,7 @@ void unmarshal_VkDedicatedAllocationImageCreateInfoNV(
     VkDedicatedAllocationImageCreateInfoNV* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->dedicatedAllocation, sizeof(VkBool32));
 }
 
@@ -9872,13 +7593,7 @@ void marshal_VkDedicatedAllocationBufferCreateInfoNV(
     const VkDedicatedAllocationBufferCreateInfoNV* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->dedicatedAllocation, sizeof(VkBool32));
 }
 
@@ -9887,14 +7602,7 @@ void unmarshal_VkDedicatedAllocationBufferCreateInfoNV(
     VkDedicatedAllocationBufferCreateInfoNV* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->dedicatedAllocation, sizeof(VkBool32));
 }
 
@@ -9903,13 +7611,7 @@ void marshal_VkDedicatedAllocationMemoryAllocateInfoNV(
     const VkDedicatedAllocationMemoryAllocateInfoNV* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_286;
     vkStream->handleMapping()->mapHandles_VkImage_u64(&forMarshaling->image, &cgen_var_286, 1);
     vkStream->write((uint64_t*)&cgen_var_286, 1 * 8);
@@ -9923,14 +7625,7 @@ void unmarshal_VkDedicatedAllocationMemoryAllocateInfoNV(
     VkDedicatedAllocationMemoryAllocateInfoNV* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_288;
     vkStream->read((uint64_t*)&cgen_var_288, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkImage(&cgen_var_288, (VkImage*)&forUnmarshaling->image, 1);
@@ -9954,13 +7649,7 @@ void marshal_VkTextureLODGatherFormatPropertiesAMD(
     const VkTextureLODGatherFormatPropertiesAMD* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->supportsTextureGatherLODBiasAMD, sizeof(VkBool32));
 }
 
@@ -9969,14 +7658,7 @@ void unmarshal_VkTextureLODGatherFormatPropertiesAMD(
     VkTextureLODGatherFormatPropertiesAMD* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->supportsTextureGatherLODBiasAMD, sizeof(VkBool32));
 }
 
@@ -10065,13 +7747,7 @@ void marshal_VkExternalMemoryImageCreateInfoNV(
     const VkExternalMemoryImageCreateInfoNV* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkExternalMemoryHandleTypeFlagsNV*)&forMarshaling->handleTypes, sizeof(VkExternalMemoryHandleTypeFlagsNV));
 }
 
@@ -10080,14 +7756,7 @@ void unmarshal_VkExternalMemoryImageCreateInfoNV(
     VkExternalMemoryImageCreateInfoNV* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkExternalMemoryHandleTypeFlagsNV*)&forUnmarshaling->handleTypes, sizeof(VkExternalMemoryHandleTypeFlagsNV));
 }
 
@@ -10096,13 +7765,7 @@ void marshal_VkExportMemoryAllocateInfoNV(
     const VkExportMemoryAllocateInfoNV* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkExternalMemoryHandleTypeFlagsNV*)&forMarshaling->handleTypes, sizeof(VkExternalMemoryHandleTypeFlagsNV));
 }
 
@@ -10111,14 +7774,7 @@ void unmarshal_VkExportMemoryAllocateInfoNV(
     VkExportMemoryAllocateInfoNV* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkExternalMemoryHandleTypeFlagsNV*)&forUnmarshaling->handleTypes, sizeof(VkExternalMemoryHandleTypeFlagsNV));
 }
 
@@ -10129,13 +7785,7 @@ void marshal_VkImportMemoryWin32HandleInfoNV(
     const VkImportMemoryWin32HandleInfoNV* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkExternalMemoryHandleTypeFlagsNV*)&forMarshaling->handleType, sizeof(VkExternalMemoryHandleTypeFlagsNV));
     vkStream->write((HANDLE*)&forMarshaling->handle, sizeof(HANDLE));
 }
@@ -10145,14 +7795,7 @@ void unmarshal_VkImportMemoryWin32HandleInfoNV(
     VkImportMemoryWin32HandleInfoNV* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkExternalMemoryHandleTypeFlagsNV*)&forUnmarshaling->handleType, sizeof(VkExternalMemoryHandleTypeFlagsNV));
     vkStream->read((HANDLE*)&forUnmarshaling->handle, sizeof(HANDLE));
 }
@@ -10162,13 +7805,7 @@ void marshal_VkExportMemoryWin32HandleInfoNV(
     const VkExportMemoryWin32HandleInfoNV* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     // WARNING PTR CHECK
     uint64_t cgen_var_294 = (uint64_t)(uintptr_t)forMarshaling->pAttributes;
     vkStream->putBe64(cgen_var_294);
@@ -10184,14 +7821,7 @@ void unmarshal_VkExportMemoryWin32HandleInfoNV(
     VkExportMemoryWin32HandleInfoNV* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     // WARNING PTR CHECK
     const SECURITY_ATTRIBUTES* check_pAttributes;
     check_pAttributes = (const SECURITY_ATTRIBUTES*)(uintptr_t)vkStream->getBe64();
@@ -10213,13 +7843,7 @@ void marshal_VkWin32KeyedMutexAcquireReleaseInfoNV(
     const VkWin32KeyedMutexAcquireReleaseInfoNV* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->acquireCount, sizeof(uint32_t));
     if (forMarshaling->acquireCount)
     {
@@ -10246,14 +7870,7 @@ void unmarshal_VkWin32KeyedMutexAcquireReleaseInfoNV(
     VkWin32KeyedMutexAcquireReleaseInfoNV* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->acquireCount, sizeof(uint32_t));
     if (forUnmarshaling->acquireCount)
     {
@@ -10282,13 +7899,7 @@ void marshal_VkValidationFlagsEXT(
     const VkValidationFlagsEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->disabledValidationCheckCount, sizeof(uint32_t));
     vkStream->write((const VkValidationCheckEXT*)forMarshaling->pDisabledValidationChecks, forMarshaling->disabledValidationCheckCount * sizeof(const VkValidationCheckEXT));
 }
@@ -10298,14 +7909,7 @@ void unmarshal_VkValidationFlagsEXT(
     VkValidationFlagsEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->disabledValidationCheckCount, sizeof(uint32_t));
     vkStream->read((VkValidationCheckEXT*)forUnmarshaling->pDisabledValidationChecks, forUnmarshaling->disabledValidationCheckCount * sizeof(const VkValidationCheckEXT));
 }
@@ -10317,13 +7921,7 @@ void marshal_VkViSurfaceCreateInfoNN(
     const VkViSurfaceCreateInfoNN* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkViSurfaceCreateFlagsNN*)&forMarshaling->flags, sizeof(VkViSurfaceCreateFlagsNN));
     // WARNING PTR CHECK
     uint64_t cgen_var_300 = (uint64_t)(uintptr_t)forMarshaling->window;
@@ -10339,14 +7937,7 @@ void unmarshal_VkViSurfaceCreateInfoNN(
     VkViSurfaceCreateInfoNN* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkViSurfaceCreateFlagsNN*)&forUnmarshaling->flags, sizeof(VkViSurfaceCreateFlagsNN));
     // WARNING PTR CHECK
     void* check_window;
@@ -10372,13 +7963,7 @@ void marshal_VkConditionalRenderingBeginInfoEXT(
     const VkConditionalRenderingBeginInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_302;
     vkStream->handleMapping()->mapHandles_VkBuffer_u64(&forMarshaling->buffer, &cgen_var_302, 1);
     vkStream->write((uint64_t*)&cgen_var_302, 1 * 8);
@@ -10391,14 +7976,7 @@ void unmarshal_VkConditionalRenderingBeginInfoEXT(
     VkConditionalRenderingBeginInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_303;
     vkStream->read((uint64_t*)&cgen_var_303, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkBuffer(&cgen_var_303, (VkBuffer*)&forUnmarshaling->buffer, 1);
@@ -10411,13 +7989,7 @@ void marshal_VkPhysicalDeviceConditionalRenderingFeaturesEXT(
     const VkPhysicalDeviceConditionalRenderingFeaturesEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->conditionalRendering, sizeof(VkBool32));
     vkStream->write((VkBool32*)&forMarshaling->inheritedConditionalRendering, sizeof(VkBool32));
 }
@@ -10427,14 +7999,7 @@ void unmarshal_VkPhysicalDeviceConditionalRenderingFeaturesEXT(
     VkPhysicalDeviceConditionalRenderingFeaturesEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->conditionalRendering, sizeof(VkBool32));
     vkStream->read((VkBool32*)&forUnmarshaling->inheritedConditionalRendering, sizeof(VkBool32));
 }
@@ -10444,13 +8009,7 @@ void marshal_VkCommandBufferInheritanceConditionalRenderingInfoEXT(
     const VkCommandBufferInheritanceConditionalRenderingInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->conditionalRenderingEnable, sizeof(VkBool32));
 }
 
@@ -10459,14 +8018,7 @@ void unmarshal_VkCommandBufferInheritanceConditionalRenderingInfoEXT(
     VkCommandBufferInheritanceConditionalRenderingInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->conditionalRenderingEnable, sizeof(VkBool32));
 }
 
@@ -10477,13 +8029,7 @@ void marshal_VkDeviceGeneratedCommandsFeaturesNVX(
     const VkDeviceGeneratedCommandsFeaturesNVX* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->computeBindingPointSupport, sizeof(VkBool32));
 }
 
@@ -10492,14 +8038,7 @@ void unmarshal_VkDeviceGeneratedCommandsFeaturesNVX(
     VkDeviceGeneratedCommandsFeaturesNVX* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->computeBindingPointSupport, sizeof(VkBool32));
 }
 
@@ -10508,13 +8047,7 @@ void marshal_VkDeviceGeneratedCommandsLimitsNVX(
     const VkDeviceGeneratedCommandsLimitsNVX* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->maxIndirectCommandsLayoutTokenCount, sizeof(uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->maxObjectEntryCounts, sizeof(uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->minSequenceCountBufferOffsetAlignment, sizeof(uint32_t));
@@ -10527,14 +8060,7 @@ void unmarshal_VkDeviceGeneratedCommandsLimitsNVX(
     VkDeviceGeneratedCommandsLimitsNVX* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->maxIndirectCommandsLayoutTokenCount, sizeof(uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->maxObjectEntryCounts, sizeof(uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->minSequenceCountBufferOffsetAlignment, sizeof(uint32_t));
@@ -10589,13 +8115,7 @@ void marshal_VkIndirectCommandsLayoutCreateInfoNVX(
     const VkIndirectCommandsLayoutCreateInfoNVX* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineBindPoint*)&forMarshaling->pipelineBindPoint, sizeof(VkPipelineBindPoint));
     vkStream->write((VkIndirectCommandsLayoutUsageFlagsNVX*)&forMarshaling->flags, sizeof(VkIndirectCommandsLayoutUsageFlagsNVX));
     vkStream->write((uint32_t*)&forMarshaling->tokenCount, sizeof(uint32_t));
@@ -10610,14 +8130,7 @@ void unmarshal_VkIndirectCommandsLayoutCreateInfoNVX(
     VkIndirectCommandsLayoutCreateInfoNVX* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineBindPoint*)&forUnmarshaling->pipelineBindPoint, sizeof(VkPipelineBindPoint));
     vkStream->read((VkIndirectCommandsLayoutUsageFlagsNVX*)&forUnmarshaling->flags, sizeof(VkIndirectCommandsLayoutUsageFlagsNVX));
     vkStream->read((uint32_t*)&forUnmarshaling->tokenCount, sizeof(uint32_t));
@@ -10632,13 +8145,7 @@ void marshal_VkCmdProcessCommandsInfoNVX(
     const VkCmdProcessCommandsInfoNVX* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_306;
     vkStream->handleMapping()->mapHandles_VkObjectTableNVX_u64(&forMarshaling->objectTable, &cgen_var_306, 1);
     vkStream->write((uint64_t*)&cgen_var_306, 1 * 8);
@@ -10669,14 +8176,7 @@ void unmarshal_VkCmdProcessCommandsInfoNVX(
     VkCmdProcessCommandsInfoNVX* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_311;
     vkStream->read((uint64_t*)&cgen_var_311, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkObjectTableNVX(&cgen_var_311, (VkObjectTableNVX*)&forUnmarshaling->objectTable, 1);
@@ -10707,13 +8207,7 @@ void marshal_VkCmdReserveSpaceForCommandsInfoNVX(
     const VkCmdReserveSpaceForCommandsInfoNVX* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_316;
     vkStream->handleMapping()->mapHandles_VkObjectTableNVX_u64(&forMarshaling->objectTable, &cgen_var_316, 1);
     vkStream->write((uint64_t*)&cgen_var_316, 1 * 8);
@@ -10728,14 +8222,7 @@ void unmarshal_VkCmdReserveSpaceForCommandsInfoNVX(
     VkCmdReserveSpaceForCommandsInfoNVX* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_318;
     vkStream->read((uint64_t*)&cgen_var_318, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkObjectTableNVX(&cgen_var_318, (VkObjectTableNVX*)&forUnmarshaling->objectTable, 1);
@@ -10750,13 +8237,7 @@ void marshal_VkObjectTableCreateInfoNVX(
     const VkObjectTableCreateInfoNVX* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->objectCount, sizeof(uint32_t));
     vkStream->write((const VkObjectEntryTypeNVX*)forMarshaling->pObjectEntryTypes, forMarshaling->objectCount * sizeof(const VkObjectEntryTypeNVX));
     vkStream->write((const uint32_t*)forMarshaling->pObjectEntryCounts, forMarshaling->objectCount * sizeof(const uint32_t));
@@ -10773,14 +8254,7 @@ void unmarshal_VkObjectTableCreateInfoNVX(
     VkObjectTableCreateInfoNVX* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->objectCount, sizeof(uint32_t));
     vkStream->read((VkObjectEntryTypeNVX*)forUnmarshaling->pObjectEntryTypes, forUnmarshaling->objectCount * sizeof(const VkObjectEntryTypeNVX));
     vkStream->read((uint32_t*)forUnmarshaling->pObjectEntryCounts, forUnmarshaling->objectCount * sizeof(const uint32_t));
@@ -10951,13 +8425,7 @@ void marshal_VkPipelineViewportWScalingStateCreateInfoNV(
     const VkPipelineViewportWScalingStateCreateInfoNV* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->viewportWScalingEnable, sizeof(VkBool32));
     vkStream->write((uint32_t*)&forMarshaling->viewportCount, sizeof(uint32_t));
     // WARNING PTR CHECK
@@ -10977,14 +8445,7 @@ void unmarshal_VkPipelineViewportWScalingStateCreateInfoNV(
     VkPipelineViewportWScalingStateCreateInfoNV* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->viewportWScalingEnable, sizeof(VkBool32));
     vkStream->read((uint32_t*)&forUnmarshaling->viewportCount, sizeof(uint32_t));
     // WARNING PTR CHECK
@@ -11014,13 +8475,7 @@ void marshal_VkSurfaceCapabilities2EXT(
     const VkSurfaceCapabilities2EXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->minImageCount, sizeof(uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->maxImageCount, sizeof(uint32_t));
     marshal_VkExtent2D(vkStream, (VkExtent2D*)(&forMarshaling->currentExtent));
@@ -11039,14 +8494,7 @@ void unmarshal_VkSurfaceCapabilities2EXT(
     VkSurfaceCapabilities2EXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->minImageCount, sizeof(uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->maxImageCount, sizeof(uint32_t));
     unmarshal_VkExtent2D(vkStream, (VkExtent2D*)(&forUnmarshaling->currentExtent));
@@ -11067,13 +8515,7 @@ void marshal_VkDisplayPowerInfoEXT(
     const VkDisplayPowerInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDisplayPowerStateEXT*)&forMarshaling->powerState, sizeof(VkDisplayPowerStateEXT));
 }
 
@@ -11082,14 +8524,7 @@ void unmarshal_VkDisplayPowerInfoEXT(
     VkDisplayPowerInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDisplayPowerStateEXT*)&forUnmarshaling->powerState, sizeof(VkDisplayPowerStateEXT));
 }
 
@@ -11098,13 +8533,7 @@ void marshal_VkDeviceEventInfoEXT(
     const VkDeviceEventInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDeviceEventTypeEXT*)&forMarshaling->deviceEvent, sizeof(VkDeviceEventTypeEXT));
 }
 
@@ -11113,14 +8542,7 @@ void unmarshal_VkDeviceEventInfoEXT(
     VkDeviceEventInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDeviceEventTypeEXT*)&forUnmarshaling->deviceEvent, sizeof(VkDeviceEventTypeEXT));
 }
 
@@ -11129,13 +8551,7 @@ void marshal_VkDisplayEventInfoEXT(
     const VkDisplayEventInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDisplayEventTypeEXT*)&forMarshaling->displayEvent, sizeof(VkDisplayEventTypeEXT));
 }
 
@@ -11144,14 +8560,7 @@ void unmarshal_VkDisplayEventInfoEXT(
     VkDisplayEventInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDisplayEventTypeEXT*)&forUnmarshaling->displayEvent, sizeof(VkDisplayEventTypeEXT));
 }
 
@@ -11160,13 +8569,7 @@ void marshal_VkSwapchainCounterCreateInfoEXT(
     const VkSwapchainCounterCreateInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkSurfaceCounterFlagsEXT*)&forMarshaling->surfaceCounters, sizeof(VkSurfaceCounterFlagsEXT));
 }
 
@@ -11175,14 +8578,7 @@ void unmarshal_VkSwapchainCounterCreateInfoEXT(
     VkSwapchainCounterCreateInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkSurfaceCounterFlagsEXT*)&forUnmarshaling->surfaceCounters, sizeof(VkSurfaceCounterFlagsEXT));
 }
 
@@ -11245,13 +8641,7 @@ void marshal_VkPresentTimesInfoGOOGLE(
     const VkPresentTimesInfoGOOGLE* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->swapchainCount, sizeof(uint32_t));
     // WARNING PTR CHECK
     uint64_t cgen_var_334 = (uint64_t)(uintptr_t)forMarshaling->pTimes;
@@ -11270,14 +8660,7 @@ void unmarshal_VkPresentTimesInfoGOOGLE(
     VkPresentTimesInfoGOOGLE* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->swapchainCount, sizeof(uint32_t));
     // WARNING PTR CHECK
     const VkPresentTimeGOOGLE* check_pTimes;
@@ -11308,13 +8691,7 @@ void marshal_VkPhysicalDeviceMultiviewPerViewAttributesPropertiesNVX(
     const VkPhysicalDeviceMultiviewPerViewAttributesPropertiesNVX* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->perViewPositionAllComponents, sizeof(VkBool32));
 }
 
@@ -11323,14 +8700,7 @@ void unmarshal_VkPhysicalDeviceMultiviewPerViewAttributesPropertiesNVX(
     VkPhysicalDeviceMultiviewPerViewAttributesPropertiesNVX* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->perViewPositionAllComponents, sizeof(VkBool32));
 }
 
@@ -11361,13 +8731,7 @@ void marshal_VkPipelineViewportSwizzleStateCreateInfoNV(
     const VkPipelineViewportSwizzleStateCreateInfoNV* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineViewportSwizzleStateCreateFlagsNV*)&forMarshaling->flags, sizeof(VkPipelineViewportSwizzleStateCreateFlagsNV));
     vkStream->write((uint32_t*)&forMarshaling->viewportCount, sizeof(uint32_t));
     // WARNING PTR CHECK
@@ -11387,14 +8751,7 @@ void unmarshal_VkPipelineViewportSwizzleStateCreateInfoNV(
     VkPipelineViewportSwizzleStateCreateInfoNV* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineViewportSwizzleStateCreateFlagsNV*)&forUnmarshaling->flags, sizeof(VkPipelineViewportSwizzleStateCreateFlagsNV));
     vkStream->read((uint32_t*)&forUnmarshaling->viewportCount, sizeof(uint32_t));
     // WARNING PTR CHECK
@@ -11420,13 +8777,7 @@ void marshal_VkPhysicalDeviceDiscardRectanglePropertiesEXT(
     const VkPhysicalDeviceDiscardRectanglePropertiesEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->maxDiscardRectangles, sizeof(uint32_t));
 }
 
@@ -11435,14 +8786,7 @@ void unmarshal_VkPhysicalDeviceDiscardRectanglePropertiesEXT(
     VkPhysicalDeviceDiscardRectanglePropertiesEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->maxDiscardRectangles, sizeof(uint32_t));
 }
 
@@ -11451,13 +8795,7 @@ void marshal_VkPipelineDiscardRectangleStateCreateInfoEXT(
     const VkPipelineDiscardRectangleStateCreateInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineDiscardRectangleStateCreateFlagsEXT*)&forMarshaling->flags, sizeof(VkPipelineDiscardRectangleStateCreateFlagsEXT));
     vkStream->write((VkDiscardRectangleModeEXT*)&forMarshaling->discardRectangleMode, sizeof(VkDiscardRectangleModeEXT));
     vkStream->write((uint32_t*)&forMarshaling->discardRectangleCount, sizeof(uint32_t));
@@ -11478,14 +8816,7 @@ void unmarshal_VkPipelineDiscardRectangleStateCreateInfoEXT(
     VkPipelineDiscardRectangleStateCreateInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineDiscardRectangleStateCreateFlagsEXT*)&forUnmarshaling->flags, sizeof(VkPipelineDiscardRectangleStateCreateFlagsEXT));
     vkStream->read((VkDiscardRectangleModeEXT*)&forUnmarshaling->discardRectangleMode, sizeof(VkDiscardRectangleModeEXT));
     vkStream->read((uint32_t*)&forUnmarshaling->discardRectangleCount, sizeof(uint32_t));
@@ -11512,13 +8843,7 @@ void marshal_VkPhysicalDeviceConservativeRasterizationPropertiesEXT(
     const VkPhysicalDeviceConservativeRasterizationPropertiesEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((float*)&forMarshaling->primitiveOverestimationSize, sizeof(float));
     vkStream->write((float*)&forMarshaling->maxExtraPrimitiveOverestimationSize, sizeof(float));
     vkStream->write((float*)&forMarshaling->extraPrimitiveOverestimationSizeGranularity, sizeof(float));
@@ -11535,14 +8860,7 @@ void unmarshal_VkPhysicalDeviceConservativeRasterizationPropertiesEXT(
     VkPhysicalDeviceConservativeRasterizationPropertiesEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((float*)&forUnmarshaling->primitiveOverestimationSize, sizeof(float));
     vkStream->read((float*)&forUnmarshaling->maxExtraPrimitiveOverestimationSize, sizeof(float));
     vkStream->read((float*)&forUnmarshaling->extraPrimitiveOverestimationSizeGranularity, sizeof(float));
@@ -11559,13 +8877,7 @@ void marshal_VkPipelineRasterizationConservativeStateCreateInfoEXT(
     const VkPipelineRasterizationConservativeStateCreateInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineRasterizationConservativeStateCreateFlagsEXT*)&forMarshaling->flags, sizeof(VkPipelineRasterizationConservativeStateCreateFlagsEXT));
     vkStream->write((VkConservativeRasterizationModeEXT*)&forMarshaling->conservativeRasterizationMode, sizeof(VkConservativeRasterizationModeEXT));
     vkStream->write((float*)&forMarshaling->extraPrimitiveOverestimationSize, sizeof(float));
@@ -11576,14 +8888,7 @@ void unmarshal_VkPipelineRasterizationConservativeStateCreateInfoEXT(
     VkPipelineRasterizationConservativeStateCreateInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineRasterizationConservativeStateCreateFlagsEXT*)&forUnmarshaling->flags, sizeof(VkPipelineRasterizationConservativeStateCreateFlagsEXT));
     vkStream->read((VkConservativeRasterizationModeEXT*)&forUnmarshaling->conservativeRasterizationMode, sizeof(VkConservativeRasterizationModeEXT));
     vkStream->read((float*)&forUnmarshaling->extraPrimitiveOverestimationSize, sizeof(float));
@@ -11614,13 +8919,7 @@ void marshal_VkHdrMetadataEXT(
     const VkHdrMetadataEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkXYColorEXT(vkStream, (VkXYColorEXT*)(&forMarshaling->displayPrimaryRed));
     marshal_VkXYColorEXT(vkStream, (VkXYColorEXT*)(&forMarshaling->displayPrimaryGreen));
     marshal_VkXYColorEXT(vkStream, (VkXYColorEXT*)(&forMarshaling->displayPrimaryBlue));
@@ -11636,14 +8935,7 @@ void unmarshal_VkHdrMetadataEXT(
     VkHdrMetadataEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkXYColorEXT(vkStream, (VkXYColorEXT*)(&forUnmarshaling->displayPrimaryRed));
     unmarshal_VkXYColorEXT(vkStream, (VkXYColorEXT*)(&forUnmarshaling->displayPrimaryGreen));
     unmarshal_VkXYColorEXT(vkStream, (VkXYColorEXT*)(&forUnmarshaling->displayPrimaryBlue));
@@ -11661,13 +8953,7 @@ void marshal_VkIOSSurfaceCreateInfoMVK(
     const VkIOSSurfaceCreateInfoMVK* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkIOSSurfaceCreateFlagsMVK*)&forMarshaling->flags, sizeof(VkIOSSurfaceCreateFlagsMVK));
     // WARNING PTR CHECK
     uint64_t cgen_var_340 = (uint64_t)(uintptr_t)forMarshaling->pView;
@@ -11683,14 +8969,7 @@ void unmarshal_VkIOSSurfaceCreateInfoMVK(
     VkIOSSurfaceCreateInfoMVK* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkIOSSurfaceCreateFlagsMVK*)&forUnmarshaling->flags, sizeof(VkIOSSurfaceCreateFlagsMVK));
     // WARNING PTR CHECK
     const void* check_pView;
@@ -11712,13 +8991,7 @@ void marshal_VkMacOSSurfaceCreateInfoMVK(
     const VkMacOSSurfaceCreateInfoMVK* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkMacOSSurfaceCreateFlagsMVK*)&forMarshaling->flags, sizeof(VkMacOSSurfaceCreateFlagsMVK));
     // WARNING PTR CHECK
     uint64_t cgen_var_342 = (uint64_t)(uintptr_t)forMarshaling->pView;
@@ -11734,14 +9007,7 @@ void unmarshal_VkMacOSSurfaceCreateInfoMVK(
     VkMacOSSurfaceCreateInfoMVK* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkMacOSSurfaceCreateFlagsMVK*)&forUnmarshaling->flags, sizeof(VkMacOSSurfaceCreateFlagsMVK));
     // WARNING PTR CHECK
     const void* check_pView;
@@ -11767,13 +9033,7 @@ void marshal_VkDebugUtilsObjectNameInfoEXT(
     const VkDebugUtilsObjectNameInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkObjectType*)&forMarshaling->objectType, sizeof(VkObjectType));
     vkStream->write((uint64_t*)&forMarshaling->objectHandle, sizeof(uint64_t));
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
@@ -11797,14 +9057,7 @@ void unmarshal_VkDebugUtilsObjectNameInfoEXT(
     VkDebugUtilsObjectNameInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkObjectType*)&forUnmarshaling->objectType, sizeof(VkObjectType));
     vkStream->read((uint64_t*)&forUnmarshaling->objectHandle, sizeof(uint64_t));
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
@@ -11832,13 +9085,7 @@ void marshal_VkDebugUtilsObjectTagInfoEXT(
     const VkDebugUtilsObjectTagInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkObjectType*)&forMarshaling->objectType, sizeof(VkObjectType));
     vkStream->write((uint64_t*)&forMarshaling->objectHandle, sizeof(uint64_t));
     vkStream->write((uint64_t*)&forMarshaling->tagName, sizeof(uint64_t));
@@ -11852,14 +9099,7 @@ void unmarshal_VkDebugUtilsObjectTagInfoEXT(
     VkDebugUtilsObjectTagInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkObjectType*)&forUnmarshaling->objectType, sizeof(VkObjectType));
     vkStream->read((uint64_t*)&forUnmarshaling->objectHandle, sizeof(uint64_t));
     vkStream->read((uint64_t*)&forUnmarshaling->tagName, sizeof(uint64_t));
@@ -11872,13 +9112,7 @@ void marshal_VkDebugUtilsLabelEXT(
     const VkDebugUtilsLabelEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->putString(forMarshaling->pLabelName);
     vkStream->write((float*)forMarshaling->color, 4 * sizeof(float));
 }
@@ -11888,14 +9122,7 @@ void unmarshal_VkDebugUtilsLabelEXT(
     VkDebugUtilsLabelEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->loadStringInPlace((char**)&forUnmarshaling->pLabelName);
     vkStream->read((float*)forUnmarshaling->color, 4 * sizeof(float));
 }
@@ -11905,13 +9132,7 @@ void marshal_VkDebugUtilsMessengerCallbackDataEXT(
     const VkDebugUtilsMessengerCallbackDataEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDebugUtilsMessengerCallbackDataFlagsEXT*)&forMarshaling->flags, sizeof(VkDebugUtilsMessengerCallbackDataFlagsEXT));
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
     {
@@ -11969,14 +9190,7 @@ void unmarshal_VkDebugUtilsMessengerCallbackDataEXT(
     VkDebugUtilsMessengerCallbackDataEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDebugUtilsMessengerCallbackDataFlagsEXT*)&forUnmarshaling->flags, sizeof(VkDebugUtilsMessengerCallbackDataFlagsEXT));
     if (vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
     {
@@ -12050,13 +9264,7 @@ void marshal_VkDebugUtilsMessengerCreateInfoEXT(
     const VkDebugUtilsMessengerCreateInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDebugUtilsMessengerCreateFlagsEXT*)&forMarshaling->flags, sizeof(VkDebugUtilsMessengerCreateFlagsEXT));
     vkStream->write((VkDebugUtilsMessageSeverityFlagsEXT*)&forMarshaling->messageSeverity, sizeof(VkDebugUtilsMessageSeverityFlagsEXT));
     vkStream->write((VkDebugUtilsMessageTypeFlagsEXT*)&forMarshaling->messageType, sizeof(VkDebugUtilsMessageTypeFlagsEXT));
@@ -12076,14 +9284,7 @@ void unmarshal_VkDebugUtilsMessengerCreateInfoEXT(
     VkDebugUtilsMessengerCreateInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDebugUtilsMessengerCreateFlagsEXT*)&forUnmarshaling->flags, sizeof(VkDebugUtilsMessengerCreateFlagsEXT));
     vkStream->read((VkDebugUtilsMessageSeverityFlagsEXT*)&forUnmarshaling->messageSeverity, sizeof(VkDebugUtilsMessageSeverityFlagsEXT));
     vkStream->read((VkDebugUtilsMessageTypeFlagsEXT*)&forUnmarshaling->messageType, sizeof(VkDebugUtilsMessageTypeFlagsEXT));
@@ -12108,13 +9309,7 @@ void marshal_VkAndroidHardwareBufferUsageANDROID(
     const VkAndroidHardwareBufferUsageANDROID* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint64_t*)&forMarshaling->androidHardwareBufferUsage, sizeof(uint64_t));
 }
 
@@ -12123,14 +9318,7 @@ void unmarshal_VkAndroidHardwareBufferUsageANDROID(
     VkAndroidHardwareBufferUsageANDROID* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint64_t*)&forUnmarshaling->androidHardwareBufferUsage, sizeof(uint64_t));
 }
 
@@ -12139,13 +9327,7 @@ void marshal_VkAndroidHardwareBufferPropertiesANDROID(
     const VkAndroidHardwareBufferPropertiesANDROID* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDeviceSize*)&forMarshaling->allocationSize, sizeof(VkDeviceSize));
     vkStream->write((uint32_t*)&forMarshaling->memoryTypeBits, sizeof(uint32_t));
 }
@@ -12155,14 +9337,7 @@ void unmarshal_VkAndroidHardwareBufferPropertiesANDROID(
     VkAndroidHardwareBufferPropertiesANDROID* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDeviceSize*)&forUnmarshaling->allocationSize, sizeof(VkDeviceSize));
     vkStream->read((uint32_t*)&forUnmarshaling->memoryTypeBits, sizeof(uint32_t));
 }
@@ -12172,13 +9347,7 @@ void marshal_VkAndroidHardwareBufferFormatPropertiesANDROID(
     const VkAndroidHardwareBufferFormatPropertiesANDROID* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkFormat*)&forMarshaling->format, sizeof(VkFormat));
     vkStream->write((uint64_t*)&forMarshaling->externalFormat, sizeof(uint64_t));
     vkStream->write((VkFormatFeatureFlags*)&forMarshaling->formatFeatures, sizeof(VkFormatFeatureFlags));
@@ -12194,14 +9363,7 @@ void unmarshal_VkAndroidHardwareBufferFormatPropertiesANDROID(
     VkAndroidHardwareBufferFormatPropertiesANDROID* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkFormat*)&forUnmarshaling->format, sizeof(VkFormat));
     vkStream->read((uint64_t*)&forUnmarshaling->externalFormat, sizeof(uint64_t));
     vkStream->read((VkFormatFeatureFlags*)&forUnmarshaling->formatFeatures, sizeof(VkFormatFeatureFlags));
@@ -12217,13 +9379,7 @@ void marshal_VkImportAndroidHardwareBufferInfoANDROID(
     const VkImportAndroidHardwareBufferInfoANDROID* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((AHardwareBuffer*)forMarshaling->buffer, sizeof(AHardwareBuffer));
 }
 
@@ -12232,14 +9388,7 @@ void unmarshal_VkImportAndroidHardwareBufferInfoANDROID(
     VkImportAndroidHardwareBufferInfoANDROID* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((AHardwareBuffer*)forUnmarshaling->buffer, sizeof(AHardwareBuffer));
 }
 
@@ -12248,13 +9397,7 @@ void marshal_VkMemoryGetAndroidHardwareBufferInfoANDROID(
     const VkMemoryGetAndroidHardwareBufferInfoANDROID* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_360;
     vkStream->handleMapping()->mapHandles_VkDeviceMemory_u64(&forMarshaling->memory, &cgen_var_360, 1);
     vkStream->write((uint64_t*)&cgen_var_360, 1 * 8);
@@ -12265,14 +9408,7 @@ void unmarshal_VkMemoryGetAndroidHardwareBufferInfoANDROID(
     VkMemoryGetAndroidHardwareBufferInfoANDROID* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_361;
     vkStream->read((uint64_t*)&cgen_var_361, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkDeviceMemory(&cgen_var_361, (VkDeviceMemory*)&forUnmarshaling->memory, 1);
@@ -12283,13 +9419,7 @@ void marshal_VkExternalFormatANDROID(
     const VkExternalFormatANDROID* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint64_t*)&forMarshaling->externalFormat, sizeof(uint64_t));
 }
 
@@ -12298,14 +9428,7 @@ void unmarshal_VkExternalFormatANDROID(
     VkExternalFormatANDROID* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint64_t*)&forUnmarshaling->externalFormat, sizeof(uint64_t));
 }
 
@@ -12316,13 +9439,7 @@ void marshal_VkSamplerReductionModeCreateInfoEXT(
     const VkSamplerReductionModeCreateInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkSamplerReductionModeEXT*)&forMarshaling->reductionMode, sizeof(VkSamplerReductionModeEXT));
 }
 
@@ -12331,14 +9448,7 @@ void unmarshal_VkSamplerReductionModeCreateInfoEXT(
     VkSamplerReductionModeCreateInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkSamplerReductionModeEXT*)&forUnmarshaling->reductionMode, sizeof(VkSamplerReductionModeEXT));
 }
 
@@ -12347,13 +9457,7 @@ void marshal_VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT(
     const VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->filterMinmaxSingleComponentFormats, sizeof(VkBool32));
     vkStream->write((VkBool32*)&forMarshaling->filterMinmaxImageComponentMapping, sizeof(VkBool32));
 }
@@ -12363,14 +9467,7 @@ void unmarshal_VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT(
     VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->filterMinmaxSingleComponentFormats, sizeof(VkBool32));
     vkStream->read((VkBool32*)&forUnmarshaling->filterMinmaxImageComponentMapping, sizeof(VkBool32));
 }
@@ -12406,13 +9503,7 @@ void marshal_VkSampleLocationsInfoEXT(
     const VkSampleLocationsInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkSampleCountFlagBits*)&forMarshaling->sampleLocationsPerPixel, sizeof(VkSampleCountFlagBits));
     marshal_VkExtent2D(vkStream, (VkExtent2D*)(&forMarshaling->sampleLocationGridSize));
     vkStream->write((uint32_t*)&forMarshaling->sampleLocationsCount, sizeof(uint32_t));
@@ -12427,14 +9518,7 @@ void unmarshal_VkSampleLocationsInfoEXT(
     VkSampleLocationsInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkSampleCountFlagBits*)&forUnmarshaling->sampleLocationsPerPixel, sizeof(VkSampleCountFlagBits));
     unmarshal_VkExtent2D(vkStream, (VkExtent2D*)(&forUnmarshaling->sampleLocationGridSize));
     vkStream->read((uint32_t*)&forUnmarshaling->sampleLocationsCount, sizeof(uint32_t));
@@ -12481,13 +9565,7 @@ void marshal_VkRenderPassSampleLocationsBeginInfoEXT(
     const VkRenderPassSampleLocationsBeginInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->attachmentInitialSampleLocationsCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forMarshaling->attachmentInitialSampleLocationsCount; ++i)
     {
@@ -12505,14 +9583,7 @@ void unmarshal_VkRenderPassSampleLocationsBeginInfoEXT(
     VkRenderPassSampleLocationsBeginInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->attachmentInitialSampleLocationsCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->attachmentInitialSampleLocationsCount; ++i)
     {
@@ -12530,13 +9601,7 @@ void marshal_VkPipelineSampleLocationsStateCreateInfoEXT(
     const VkPipelineSampleLocationsStateCreateInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->sampleLocationsEnable, sizeof(VkBool32));
     marshal_VkSampleLocationsInfoEXT(vkStream, (VkSampleLocationsInfoEXT*)(&forMarshaling->sampleLocationsInfo));
 }
@@ -12546,14 +9611,7 @@ void unmarshal_VkPipelineSampleLocationsStateCreateInfoEXT(
     VkPipelineSampleLocationsStateCreateInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->sampleLocationsEnable, sizeof(VkBool32));
     unmarshal_VkSampleLocationsInfoEXT(vkStream, (VkSampleLocationsInfoEXT*)(&forUnmarshaling->sampleLocationsInfo));
 }
@@ -12563,13 +9621,7 @@ void marshal_VkPhysicalDeviceSampleLocationsPropertiesEXT(
     const VkPhysicalDeviceSampleLocationsPropertiesEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkSampleCountFlags*)&forMarshaling->sampleLocationSampleCounts, sizeof(VkSampleCountFlags));
     marshal_VkExtent2D(vkStream, (VkExtent2D*)(&forMarshaling->maxSampleLocationGridSize));
     vkStream->write((float*)forMarshaling->sampleLocationCoordinateRange, 2 * sizeof(float));
@@ -12582,14 +9634,7 @@ void unmarshal_VkPhysicalDeviceSampleLocationsPropertiesEXT(
     VkPhysicalDeviceSampleLocationsPropertiesEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkSampleCountFlags*)&forUnmarshaling->sampleLocationSampleCounts, sizeof(VkSampleCountFlags));
     unmarshal_VkExtent2D(vkStream, (VkExtent2D*)(&forUnmarshaling->maxSampleLocationGridSize));
     vkStream->read((float*)forUnmarshaling->sampleLocationCoordinateRange, 2 * sizeof(float));
@@ -12602,13 +9647,7 @@ void marshal_VkMultisamplePropertiesEXT(
     const VkMultisamplePropertiesEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkExtent2D(vkStream, (VkExtent2D*)(&forMarshaling->maxSampleLocationGridSize));
 }
 
@@ -12617,14 +9656,7 @@ void unmarshal_VkMultisamplePropertiesEXT(
     VkMultisamplePropertiesEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkExtent2D(vkStream, (VkExtent2D*)(&forUnmarshaling->maxSampleLocationGridSize));
 }
 
@@ -12635,13 +9667,7 @@ void marshal_VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT(
     const VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->advancedBlendCoherentOperations, sizeof(VkBool32));
 }
 
@@ -12650,14 +9676,7 @@ void unmarshal_VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT(
     VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->advancedBlendCoherentOperations, sizeof(VkBool32));
 }
 
@@ -12666,13 +9685,7 @@ void marshal_VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT(
     const VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->advancedBlendMaxColorAttachments, sizeof(uint32_t));
     vkStream->write((VkBool32*)&forMarshaling->advancedBlendIndependentBlend, sizeof(VkBool32));
     vkStream->write((VkBool32*)&forMarshaling->advancedBlendNonPremultipliedSrcColor, sizeof(VkBool32));
@@ -12686,14 +9699,7 @@ void unmarshal_VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT(
     VkPhysicalDeviceBlendOperationAdvancedPropertiesEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->advancedBlendMaxColorAttachments, sizeof(uint32_t));
     vkStream->read((VkBool32*)&forUnmarshaling->advancedBlendIndependentBlend, sizeof(VkBool32));
     vkStream->read((VkBool32*)&forUnmarshaling->advancedBlendNonPremultipliedSrcColor, sizeof(VkBool32));
@@ -12707,13 +9713,7 @@ void marshal_VkPipelineColorBlendAdvancedStateCreateInfoEXT(
     const VkPipelineColorBlendAdvancedStateCreateInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->srcPremultiplied, sizeof(VkBool32));
     vkStream->write((VkBool32*)&forMarshaling->dstPremultiplied, sizeof(VkBool32));
     vkStream->write((VkBlendOverlapEXT*)&forMarshaling->blendOverlap, sizeof(VkBlendOverlapEXT));
@@ -12724,14 +9724,7 @@ void unmarshal_VkPipelineColorBlendAdvancedStateCreateInfoEXT(
     VkPipelineColorBlendAdvancedStateCreateInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->srcPremultiplied, sizeof(VkBool32));
     vkStream->read((VkBool32*)&forUnmarshaling->dstPremultiplied, sizeof(VkBool32));
     vkStream->read((VkBlendOverlapEXT*)&forUnmarshaling->blendOverlap, sizeof(VkBlendOverlapEXT));
@@ -12744,13 +9737,7 @@ void marshal_VkPipelineCoverageToColorStateCreateInfoNV(
     const VkPipelineCoverageToColorStateCreateInfoNV* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineCoverageToColorStateCreateFlagsNV*)&forMarshaling->flags, sizeof(VkPipelineCoverageToColorStateCreateFlagsNV));
     vkStream->write((VkBool32*)&forMarshaling->coverageToColorEnable, sizeof(VkBool32));
     vkStream->write((uint32_t*)&forMarshaling->coverageToColorLocation, sizeof(uint32_t));
@@ -12761,14 +9748,7 @@ void unmarshal_VkPipelineCoverageToColorStateCreateInfoNV(
     VkPipelineCoverageToColorStateCreateInfoNV* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineCoverageToColorStateCreateFlagsNV*)&forUnmarshaling->flags, sizeof(VkPipelineCoverageToColorStateCreateFlagsNV));
     vkStream->read((VkBool32*)&forUnmarshaling->coverageToColorEnable, sizeof(VkBool32));
     vkStream->read((uint32_t*)&forUnmarshaling->coverageToColorLocation, sizeof(uint32_t));
@@ -12781,13 +9761,7 @@ void marshal_VkPipelineCoverageModulationStateCreateInfoNV(
     const VkPipelineCoverageModulationStateCreateInfoNV* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineCoverageModulationStateCreateFlagsNV*)&forMarshaling->flags, sizeof(VkPipelineCoverageModulationStateCreateFlagsNV));
     vkStream->write((VkCoverageModulationModeNV*)&forMarshaling->coverageModulationMode, sizeof(VkCoverageModulationModeNV));
     vkStream->write((VkBool32*)&forMarshaling->coverageModulationTableEnable, sizeof(VkBool32));
@@ -12806,14 +9780,7 @@ void unmarshal_VkPipelineCoverageModulationStateCreateInfoNV(
     VkPipelineCoverageModulationStateCreateInfoNV* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineCoverageModulationStateCreateFlagsNV*)&forUnmarshaling->flags, sizeof(VkPipelineCoverageModulationStateCreateFlagsNV));
     vkStream->read((VkCoverageModulationModeNV*)&forUnmarshaling->coverageModulationMode, sizeof(VkCoverageModulationModeNV));
     vkStream->read((VkBool32*)&forUnmarshaling->coverageModulationTableEnable, sizeof(VkBool32));
@@ -12842,13 +9809,7 @@ void marshal_VkValidationCacheCreateInfoEXT(
     const VkValidationCacheCreateInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkValidationCacheCreateFlagsEXT*)&forMarshaling->flags, sizeof(VkValidationCacheCreateFlagsEXT));
     uint64_t cgen_var_364 = (uint64_t)forMarshaling->initialDataSize;
     vkStream->putBe64(cgen_var_364);
@@ -12860,14 +9821,7 @@ void unmarshal_VkValidationCacheCreateInfoEXT(
     VkValidationCacheCreateInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkValidationCacheCreateFlagsEXT*)&forUnmarshaling->flags, sizeof(VkValidationCacheCreateFlagsEXT));
     forUnmarshaling->initialDataSize = (size_t)vkStream->getBe64();
     vkStream->read((void*)forUnmarshaling->pInitialData, forUnmarshaling->initialDataSize * sizeof(const uint8_t));
@@ -12878,13 +9832,7 @@ void marshal_VkShaderModuleValidationCacheCreateInfoEXT(
     const VkShaderModuleValidationCacheCreateInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     uint64_t cgen_var_366;
     vkStream->handleMapping()->mapHandles_VkValidationCacheEXT_u64(&forMarshaling->validationCache, &cgen_var_366, 1);
     vkStream->write((uint64_t*)&cgen_var_366, 1 * 8);
@@ -12895,14 +9843,7 @@ void unmarshal_VkShaderModuleValidationCacheCreateInfoEXT(
     VkShaderModuleValidationCacheCreateInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     uint64_t cgen_var_367;
     vkStream->read((uint64_t*)&cgen_var_367, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkValidationCacheEXT(&cgen_var_367, (VkValidationCacheEXT*)&forUnmarshaling->validationCache, 1);
@@ -12915,13 +9856,7 @@ void marshal_VkDescriptorSetLayoutBindingFlagsCreateInfoEXT(
     const VkDescriptorSetLayoutBindingFlagsCreateInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->bindingCount, sizeof(uint32_t));
     vkStream->write((const VkDescriptorBindingFlagsEXT*)forMarshaling->pBindingFlags, forMarshaling->bindingCount * sizeof(const VkDescriptorBindingFlagsEXT));
 }
@@ -12931,14 +9866,7 @@ void unmarshal_VkDescriptorSetLayoutBindingFlagsCreateInfoEXT(
     VkDescriptorSetLayoutBindingFlagsCreateInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->bindingCount, sizeof(uint32_t));
     vkStream->read((VkDescriptorBindingFlagsEXT*)forUnmarshaling->pBindingFlags, forUnmarshaling->bindingCount * sizeof(const VkDescriptorBindingFlagsEXT));
 }
@@ -12948,13 +9876,7 @@ void marshal_VkPhysicalDeviceDescriptorIndexingFeaturesEXT(
     const VkPhysicalDeviceDescriptorIndexingFeaturesEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkBool32*)&forMarshaling->shaderInputAttachmentArrayDynamicIndexing, sizeof(VkBool32));
     vkStream->write((VkBool32*)&forMarshaling->shaderUniformTexelBufferArrayDynamicIndexing, sizeof(VkBool32));
     vkStream->write((VkBool32*)&forMarshaling->shaderStorageTexelBufferArrayDynamicIndexing, sizeof(VkBool32));
@@ -12982,14 +9904,7 @@ void unmarshal_VkPhysicalDeviceDescriptorIndexingFeaturesEXT(
     VkPhysicalDeviceDescriptorIndexingFeaturesEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkBool32*)&forUnmarshaling->shaderInputAttachmentArrayDynamicIndexing, sizeof(VkBool32));
     vkStream->read((VkBool32*)&forUnmarshaling->shaderUniformTexelBufferArrayDynamicIndexing, sizeof(VkBool32));
     vkStream->read((VkBool32*)&forUnmarshaling->shaderStorageTexelBufferArrayDynamicIndexing, sizeof(VkBool32));
@@ -13017,13 +9932,7 @@ void marshal_VkPhysicalDeviceDescriptorIndexingPropertiesEXT(
     const VkPhysicalDeviceDescriptorIndexingPropertiesEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->maxUpdateAfterBindDescriptorsInAllPools, sizeof(uint32_t));
     vkStream->write((VkBool32*)&forMarshaling->shaderUniformBufferArrayNonUniformIndexingNative, sizeof(VkBool32));
     vkStream->write((VkBool32*)&forMarshaling->shaderSampledImageArrayNonUniformIndexingNative, sizeof(VkBool32));
@@ -13054,14 +9963,7 @@ void unmarshal_VkPhysicalDeviceDescriptorIndexingPropertiesEXT(
     VkPhysicalDeviceDescriptorIndexingPropertiesEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->maxUpdateAfterBindDescriptorsInAllPools, sizeof(uint32_t));
     vkStream->read((VkBool32*)&forUnmarshaling->shaderUniformBufferArrayNonUniformIndexingNative, sizeof(VkBool32));
     vkStream->read((VkBool32*)&forUnmarshaling->shaderSampledImageArrayNonUniformIndexingNative, sizeof(VkBool32));
@@ -13092,13 +9994,7 @@ void marshal_VkDescriptorSetVariableDescriptorCountAllocateInfoEXT(
     const VkDescriptorSetVariableDescriptorCountAllocateInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->descriptorSetCount, sizeof(uint32_t));
     vkStream->write((const uint32_t*)forMarshaling->pDescriptorCounts, forMarshaling->descriptorSetCount * sizeof(const uint32_t));
 }
@@ -13108,14 +10004,7 @@ void unmarshal_VkDescriptorSetVariableDescriptorCountAllocateInfoEXT(
     VkDescriptorSetVariableDescriptorCountAllocateInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->descriptorSetCount, sizeof(uint32_t));
     vkStream->read((uint32_t*)forUnmarshaling->pDescriptorCounts, forUnmarshaling->descriptorSetCount * sizeof(const uint32_t));
 }
@@ -13125,13 +10014,7 @@ void marshal_VkDescriptorSetVariableDescriptorCountLayoutSupportEXT(
     const VkDescriptorSetVariableDescriptorCountLayoutSupportEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->maxVariableDescriptorCount, sizeof(uint32_t));
 }
 
@@ -13140,14 +10023,7 @@ void unmarshal_VkDescriptorSetVariableDescriptorCountLayoutSupportEXT(
     VkDescriptorSetVariableDescriptorCountLayoutSupportEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->maxVariableDescriptorCount, sizeof(uint32_t));
 }
 
@@ -13160,13 +10036,7 @@ void marshal_VkDeviceQueueGlobalPriorityCreateInfoEXT(
     const VkDeviceQueueGlobalPriorityCreateInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkQueueGlobalPriorityEXT*)&forMarshaling->globalPriority, sizeof(VkQueueGlobalPriorityEXT));
 }
 
@@ -13175,14 +10045,7 @@ void unmarshal_VkDeviceQueueGlobalPriorityCreateInfoEXT(
     VkDeviceQueueGlobalPriorityCreateInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkQueueGlobalPriorityEXT*)&forUnmarshaling->globalPriority, sizeof(VkQueueGlobalPriorityEXT));
 }
 
@@ -13193,13 +10056,7 @@ void marshal_VkImportMemoryHostPointerInfoEXT(
     const VkImportMemoryHostPointerInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkExternalMemoryHandleTypeFlagBits*)&forMarshaling->handleType, sizeof(VkExternalMemoryHandleTypeFlagBits));
     // WARNING PTR CHECK
     uint64_t cgen_var_368 = (uint64_t)(uintptr_t)forMarshaling->pHostPointer;
@@ -13215,14 +10072,7 @@ void unmarshal_VkImportMemoryHostPointerInfoEXT(
     VkImportMemoryHostPointerInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkExternalMemoryHandleTypeFlagBits*)&forUnmarshaling->handleType, sizeof(VkExternalMemoryHandleTypeFlagBits));
     // WARNING PTR CHECK
     void* check_pHostPointer;
@@ -13242,13 +10092,7 @@ void marshal_VkMemoryHostPointerPropertiesEXT(
     const VkMemoryHostPointerPropertiesEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->memoryTypeBits, sizeof(uint32_t));
 }
 
@@ -13257,14 +10101,7 @@ void unmarshal_VkMemoryHostPointerPropertiesEXT(
     VkMemoryHostPointerPropertiesEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->memoryTypeBits, sizeof(uint32_t));
 }
 
@@ -13273,13 +10110,7 @@ void marshal_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
     const VkPhysicalDeviceExternalMemoryHostPropertiesEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDeviceSize*)&forMarshaling->minImportedHostPointerAlignment, sizeof(VkDeviceSize));
 }
 
@@ -13288,14 +10119,7 @@ void unmarshal_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
     VkPhysicalDeviceExternalMemoryHostPropertiesEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDeviceSize*)&forUnmarshaling->minImportedHostPointerAlignment, sizeof(VkDeviceSize));
 }
 
@@ -13308,13 +10132,7 @@ void marshal_VkPhysicalDeviceShaderCorePropertiesAMD(
     const VkPhysicalDeviceShaderCorePropertiesAMD* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->shaderEngineCount, sizeof(uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->shaderArraysPerEngineCount, sizeof(uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->computeUnitsPerShaderArray, sizeof(uint32_t));
@@ -13336,14 +10154,7 @@ void unmarshal_VkPhysicalDeviceShaderCorePropertiesAMD(
     VkPhysicalDeviceShaderCorePropertiesAMD* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->shaderEngineCount, sizeof(uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->shaderArraysPerEngineCount, sizeof(uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->computeUnitsPerShaderArray, sizeof(uint32_t));
@@ -13367,13 +10178,7 @@ void marshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
     const VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->maxVertexAttribDivisor, sizeof(uint32_t));
 }
 
@@ -13382,14 +10187,7 @@ void unmarshal_VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT(
     VkPhysicalDeviceVertexAttributeDivisorPropertiesEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->maxVertexAttribDivisor, sizeof(uint32_t));
 }
 
@@ -13414,13 +10212,7 @@ void marshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
     const VkPipelineVertexInputDivisorStateCreateInfoEXT* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((const void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->vertexBindingDivisorCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forMarshaling->vertexBindingDivisorCount; ++i)
     {
@@ -13433,14 +10225,7 @@ void unmarshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
     VkPipelineVertexInputDivisorStateCreateInfoEXT* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->vertexBindingDivisorCount, sizeof(uint32_t));
     for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->vertexBindingDivisorCount; ++i)
     {
@@ -13457,13 +10242,7 @@ void marshal_VkQueueFamilyCheckpointPropertiesNV(
     const VkQueueFamilyCheckpointPropertiesNV* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineStageFlags*)&forMarshaling->checkpointExecutionStageMask, sizeof(VkPipelineStageFlags));
 }
 
@@ -13472,14 +10251,7 @@ void unmarshal_VkQueueFamilyCheckpointPropertiesNV(
     VkQueueFamilyCheckpointPropertiesNV* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineStageFlags*)&forUnmarshaling->checkpointExecutionStageMask, sizeof(VkPipelineStageFlags));
 }
 
@@ -13488,13 +10260,7 @@ void marshal_VkCheckpointDataNV(
     const VkCheckpointDataNV* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineStageFlagBits*)&forMarshaling->stage, sizeof(VkPipelineStageFlagBits));
     // WARNING PTR CHECK
     uint64_t cgen_var_370 = (uint64_t)(uintptr_t)forMarshaling->pCheckpointMarker;
@@ -13510,14 +10276,7 @@ void unmarshal_VkCheckpointDataNV(
     VkCheckpointDataNV* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineStageFlagBits*)&forUnmarshaling->stage, sizeof(VkPipelineStageFlagBits));
     // WARNING PTR CHECK
     void* check_pCheckpointMarker;
@@ -13541,13 +10300,7 @@ void marshal_VkImportColorBufferGOOGLE(
     const VkImportColorBufferGOOGLE* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->colorBuffer, sizeof(uint32_t));
 }
 
@@ -13556,14 +10309,7 @@ void unmarshal_VkImportColorBufferGOOGLE(
     VkImportColorBufferGOOGLE* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->colorBuffer, sizeof(uint32_t));
 }
 
@@ -13572,13 +10318,7 @@ void marshal_VkImportBufferGOOGLE(
     const VkImportBufferGOOGLE* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->buffer, sizeof(uint32_t));
 }
 
@@ -13587,14 +10327,7 @@ void unmarshal_VkImportBufferGOOGLE(
     VkImportBufferGOOGLE* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->buffer, sizeof(uint32_t));
 }
 
@@ -13603,13 +10336,7 @@ void marshal_VkImportPhysicalAddressGOOGLE(
     const VkImportPhysicalAddressGOOGLE* forMarshaling)
 {
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size = goldfish_vk_extension_struct_size(forMarshaling->pNext);
-    vkStream->putBe32(pNext_size);
-    if (pNext_size)
-    {
-        vkStream->write((void*)forMarshaling->pNext, sizeof(VkStructureType));
-        marshal_extension_struct(vkStream, forMarshaling->pNext);
-    }
+    marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint64_t*)&forMarshaling->physicalAddress, sizeof(uint64_t));
     vkStream->write((VkDeviceSize*)&forMarshaling->size, sizeof(VkDeviceSize));
     vkStream->write((VkFormat*)&forMarshaling->format, sizeof(VkFormat));
@@ -13622,14 +10349,7 @@ void unmarshal_VkImportPhysicalAddressGOOGLE(
     VkImportPhysicalAddressGOOGLE* forUnmarshaling)
 {
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    size_t pNext_size;
-    pNext_size = vkStream->getBe32();
-    if (pNext_size)
-    {
-        uint64_t pNext_placeholder;
-        vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
-        unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
-    }
+    unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint64_t*)&forUnmarshaling->physicalAddress, sizeof(uint64_t));
     vkStream->read((VkDeviceSize*)&forUnmarshaling->size, sizeof(VkDeviceSize));
     vkStream->read((VkFormat*)&forUnmarshaling->format, sizeof(VkFormat));
@@ -13652,6 +10372,25 @@ void marshal_extension_struct(
     VulkanStreamGuest* vkStream,
     const void* structExtension)
 {
+    VkInstanceCreateInfo* structAccess = (VkInstanceCreateInfo*)(structExtension);
+    size_t currExtSize = goldfish_vk_extension_struct_size_with_stream_features(vkStream->getFeatureBits(), structExtension);
+    if (!currExtSize && structExtension)
+    {
+        // unknown struct extension; skip and call on its pNext field
+        marshal_extension_struct(vkStream, (void*)structAccess->pNext);
+        return;
+    }
+    else
+    {
+        // known or null extension struct
+        vkStream->putBe32(currExtSize);
+        if (!currExtSize)
+        {
+            // exit if this was a null extension struct (size == 0 in this branch)
+            return;
+        }
+    }
+    vkStream->write(structExtension, sizeof(VkStructureType));
     if (!structExtension)
     {
         return;
@@ -13962,6 +10701,13 @@ void marshal_extension_struct(
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES_KHR:
         {
             marshal_VkPhysicalDevice8BitStorageFeaturesKHR(vkStream, reinterpret_cast<const VkPhysicalDevice8BitStorageFeaturesKHR*>(structExtension));
+            break;
+        }
+#endif
+#ifdef VK_KHR_shader_float16_int8
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT16_INT8_FEATURES:
+        {
+            marshal_VkPhysicalDeviceShaderFloat16Int8Features(vkStream, reinterpret_cast<const VkPhysicalDeviceShaderFloat16Int8Features*>(structExtension));
             break;
         }
 #endif
@@ -14311,7 +11057,8 @@ void marshal_extension_struct(
 #endif
         default:
         {
-            return;
+            // fatal; the switch is only taken if the extension struct is known
+            abort();
         }
     }
 }
@@ -14320,6 +11067,27 @@ void unmarshal_extension_struct(
     VulkanStreamGuest* vkStream,
     void* structExtension_out)
 {
+    VkInstanceCreateInfo* structAccess = (VkInstanceCreateInfo*)(structExtension_out);
+    size_t currExtSize = goldfish_vk_extension_struct_size_with_stream_features(vkStream->getFeatureBits(), structExtension_out);
+    if (!currExtSize && structExtension_out)
+    {
+        // unknown struct extension; skip and call on its pNext field
+        unmarshal_extension_struct(vkStream, (void*)structAccess->pNext);
+        return;
+    }
+    else
+    {
+        // known or null extension struct
+        vkStream->getBe32();
+        if (!currExtSize)
+        {
+            // exit if this was a null extension struct (size == 0 in this branch)
+            return;
+        }
+    }
+    uint64_t pNext_placeholder;
+    vkStream->read((void*)(&pNext_placeholder), sizeof(VkStructureType));
+    (void)pNext_placeholder;
     if (!structExtension_out)
     {
         return;
@@ -14630,6 +11398,13 @@ void unmarshal_extension_struct(
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES_KHR:
         {
             unmarshal_VkPhysicalDevice8BitStorageFeaturesKHR(vkStream, reinterpret_cast<VkPhysicalDevice8BitStorageFeaturesKHR*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_shader_float16_int8
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT16_INT8_FEATURES:
+        {
+            unmarshal_VkPhysicalDeviceShaderFloat16Int8Features(vkStream, reinterpret_cast<VkPhysicalDeviceShaderFloat16Int8Features*>(structExtension_out));
             break;
         }
 #endif
@@ -14979,7 +11754,8 @@ void unmarshal_extension_struct(
 #endif
         default:
         {
-            return;
+            // fatal; the switch is only taken if the extension struct is known
+            abort();
         }
     }
 }
