@@ -108,6 +108,9 @@ static const char kVulkanFreeMemorySync[] = "ANDROID_EMU_vulkan_free_memory_sync
 // virtio-gpu syncfd support
 static const char kVirtioGpuNativeSync[] = "ANDROID_EMU_virtio_gpu_native_sync";
 
+// Vulkan extension that required a protocol update (new marshaling structs)
+static const char kVulkanShaderFloat16Int8[] = "ANDROID_EMU_vulkan_shader_float16_int8";
+
 // Struct describing available emulator features
 struct EmulatorFeatureInfo {
 
@@ -127,7 +130,8 @@ struct EmulatorFeatureInfo {
         hasVirtioGpuNext (false),
         hasSharedSlotsHostMemoryAllocator(false),
         hasVulkanFreeMemorySync(false),
-        hasVirtioGpuNativeSync(false)
+        hasVirtioGpuNativeSync(false),
+        hasVulkanShaderFloat16Int8(false)
     { }
 
     SyncImpl syncImpl;
@@ -146,6 +150,7 @@ struct EmulatorFeatureInfo {
     bool hasSharedSlotsHostMemoryAllocator;
     bool hasVulkanFreeMemorySync;
     bool hasVirtioGpuNativeSync;
+    bool hasVulkanShaderFloat16Int8;
 };
 
 enum HostConnectionType {
