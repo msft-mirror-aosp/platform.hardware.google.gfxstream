@@ -214,6 +214,7 @@ private:
     void queryHasSharedSlotsHostMemoryAllocator(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanFreeMemorySync(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVirtioGpuNativeSync(ExtendedRCEncoderContext *rcEnc);
+    void queryAndSetVulkanShaderFloat16Int8Support(ExtendedRCEncoderContext *rcEnc);
 
 private:
     HostConnectionType m_connectionType;
