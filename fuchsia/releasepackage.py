@@ -111,7 +111,7 @@ if not elf_info:
   sys.exit(1)
 
 build_id = elf_info.group(1)
-debug_output_dir = os.path.join(debug_dir, '.build-id', build_id[:2])
+debug_output_dir = os.path.join(debug_dir, build_id[:2])
 
 try:
   shutil.rmtree(debug_dir)
@@ -148,6 +148,6 @@ print ("""
 print ("""
   <package name="%s"
            version="git_revision:%s"
-           path="prebuilt/third_party/%s"
+           path="prebuilt/.build-id"
            attributes="debug-symbols,debug-symbols-%s"/>
-""" % (debug_package_name, git_rev, debug_dir, arch))[1:-1]
+""" % (debug_package_name, git_rev, arch))[1:-1]
