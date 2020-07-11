@@ -1680,18 +1680,15 @@ public:
         delete sysmem_collection;
     }
 
-    VkResult setBufferCollectionConstraints(fuchsia::sysmem::BufferCollectionSyncPtr* collection,
-                                            const VkImageCreateInfo* pImageInfo,
-                                            size_t min_size_bytes) {
+    inline fuchsia::sysmem::BufferCollectionConstraints
+    defaultBufferCollectionConstraints(size_t min_size_bytes,
+                                       size_t buffer_count) {
         fuchsia::sysmem::BufferCollectionConstraints constraints = {};
-        constraints.usage.vulkan = fuchsia::sysmem::vulkanUsageColorAttachment |
-                                   fuchsia::sysmem::vulkanUsageTransferSrc |
-                                   fuchsia::sysmem::vulkanUsageTransferDst |
-                                   fuchsia::sysmem::vulkanUsageSampled;
-        constraints.min_buffer_count = 1;
+        constraints.min_buffer_count = buffer_count;
         constraints.has_buffer_memory_constraints = true;
         fuchsia::sysmem::BufferMemoryConstraints& buffer_constraints =
             constraints.buffer_memory_constraints;
+
         buffer_constraints.min_size_bytes = min_size_bytes;
         buffer_constraints.max_size_bytes = 0xffffffff;
         buffer_constraints.physically_contiguous_required = false;
@@ -1702,6 +1699,72 @@ public:
         buffer_constraints.heap_permitted_count = 1;
         buffer_constraints.heap_permitted[0] =
             fuchsia::sysmem::HeapType::GOLDFISH_DEVICE_LOCAL;
+
+        return constraints;
+    }
+
+    uint32_t getBufferCollectionConstraintsVulkanImageUsage(
+        const VkImageCreateInfo* pImageInfo) {
+        uint32_t usage = 0u;
+        VkImageUsageFlags imageUsage = pImageInfo->usage;
+
+#define SetUsageBit(USAGE)                                    \
+    if (imageUsage & VK_IMAGE_USAGE_##USAGE##_BIT) {          \
+        usage |= fuchsia::sysmem::VULKAN_IMAGE_USAGE_##USAGE; \
+    }
+
+        SetUsageBit(COLOR_ATTACHMENT);
+        SetUsageBit(TRANSFER_SRC);
+        SetUsageBit(TRANSFER_DST);
+        SetUsageBit(SAMPLED);
+
+#undef SetUsageBit
+        return usage;
+    }
+
+    uint32_t getBufferCollectionConstraintsVulkanBufferUsage(
+        const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo) {
+        uint32_t usage = 0u;
+        VkBufferUsageFlags bufferUsage =
+            pBufferConstraintsInfo->pBufferCreateInfo->usage;
+
+#define SetUsageBit(USAGE)                                     \
+    if (bufferUsage & VK_BUFFER_USAGE_##USAGE##_BIT) {         \
+        usage |= fuchsia::sysmem::VULKAN_BUFFER_USAGE_##USAGE; \
+    }
+
+        SetUsageBit(TRANSFER_SRC);
+        SetUsageBit(TRANSFER_DST);
+        SetUsageBit(UNIFORM_TEXEL_BUFFER);
+        SetUsageBit(STORAGE_TEXEL_BUFFER);
+        SetUsageBit(UNIFORM_BUFFER);
+        SetUsageBit(STORAGE_BUFFER);
+        SetUsageBit(INDEX_BUFFER);
+        SetUsageBit(VERTEX_BUFFER);
+        SetUsageBit(INDIRECT_BUFFER);
+
+#undef SetUsageBit
+        return usage;
+    }
+
+    VkResult setBufferCollectionConstraints(
+        fuchsia::sysmem::BufferCollectionSyncPtr* collection,
+        const VkImageCreateInfo* pImageInfo) {
+        if (pImageInfo == nullptr) {
+            ALOGE("setBufferCollectionConstraints: pImageInfo cannot be null.");
+            return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+        }
+
+        // TODO(liyl): Currently the size only works for RGBA8 and BGRA8 images.
+        // We should set the size based on its actual format.
+        fuchsia::sysmem::BufferCollectionConstraints constraints =
+            defaultBufferCollectionConstraints(
+                /* min_size_bytes */ pImageInfo->extent.width *
+                    pImageInfo->extent.height * 4,
+                /* buffer_count */ 1u);
+
+        constraints.usage.vulkan =
+            getBufferCollectionConstraintsVulkanImageUsage(pImageInfo);
 
         // Set image format constraints for VkImage allocation.
         if (pImageInfo) {
@@ -1768,17 +1831,49 @@ public:
         return VK_SUCCESS;
     }
 
+    VkResult setBufferCollectionBufferConstraints(
+        fuchsia::sysmem::BufferCollectionSyncPtr* collection,
+        const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo) {
+        if (pBufferConstraintsInfo == nullptr) {
+            ALOGE(
+                "setBufferCollectionBufferConstraints: "
+                "pBufferConstraintsInfo cannot be null.");
+            return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+        }
+
+        fuchsia::sysmem::BufferCollectionConstraints constraints =
+            defaultBufferCollectionConstraints(
+                /* min_size_bytes */ pBufferConstraintsInfo->pBufferCreateInfo
+                    ->size,
+                /* buffer_count */ pBufferConstraintsInfo->minCount);
+        constraints.usage.vulkan =
+            getBufferCollectionConstraintsVulkanBufferUsage(
+                pBufferConstraintsInfo);
+
+        (*collection)->SetConstraints(true, constraints);
+        return VK_SUCCESS;
+    }
+
     VkResult on_vkSetBufferCollectionConstraintsFUCHSIA(
         void*, VkResult, VkDevice,
         VkBufferCollectionFUCHSIA collection,
         const VkImageCreateInfo* pImageInfo) {
         auto sysmem_collection =
             reinterpret_cast<fuchsia::sysmem::BufferCollectionSyncPtr*>(collection);
-        size_t minSizeBytes = pImageInfo ? pImageInfo->extent.width *
-                                                   pImageInfo->extent.height * 4
-                                         : 0u;
-        return setBufferCollectionConstraints(sysmem_collection, pImageInfo,
-                                              minSizeBytes);
+        return setBufferCollectionConstraints(sysmem_collection, pImageInfo);
+    }
+
+    VkResult on_vkSetBufferCollectionBufferConstraintsFUCHSIA(
+        void*,
+        VkResult,
+        VkDevice,
+        VkBufferCollectionFUCHSIA collection,
+        const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo) {
+        auto sysmem_collection =
+            reinterpret_cast<fuchsia::sysmem::BufferCollectionSyncPtr*>(
+                collection);
+        return setBufferCollectionBufferConstraints(sysmem_collection,
+                                                    pBufferConstraintsInfo);
     }
 
     VkResult on_vkGetBufferCollectionPropertiesFUCHSIA(
@@ -2234,9 +2329,9 @@ public:
                     ALOGE("BindSharedCollection failed: %d", status);
                     abort();
                 }
+
                 VkResult res = setBufferCollectionConstraints(&collection,
-                                                              &imageCreateInfo,
-                                                              finalAllocInfo.allocationSize);
+                                                              &imageCreateInfo);
                 if (res != VK_SUCCESS) {
                     ALOGE("setBufferCollectionConstraints failed: %d", res);
                     abort();
@@ -5086,6 +5181,15 @@ VkResult ResourceTracker::on_vkSetBufferCollectionConstraintsFUCHSIA(
         const VkImageCreateInfo* pImageInfo) {
     return mImpl->on_vkSetBufferCollectionConstraintsFUCHSIA(
         context, input_result, device, collection, pImageInfo);
+}
+
+VkResult ResourceTracker::on_vkSetBufferCollectionBufferConstraintsFUCHSIA(
+        void* context, VkResult input_result,
+        VkDevice device,
+        VkBufferCollectionFUCHSIA collection,
+        const VkBufferConstraintsInfoFUCHSIA* pBufferDConstraintsInfo) {
+    return mImpl->on_vkSetBufferCollectionBufferConstraintsFUCHSIA(
+        context, input_result, device, collection, pBufferDConstraintsInfo);
 }
 
 VkResult ResourceTracker::on_vkGetBufferCollectionPropertiesFUCHSIA(
