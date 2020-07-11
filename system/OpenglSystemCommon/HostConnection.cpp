@@ -376,20 +376,19 @@ HostConnection::~HostConnection()
 }
 
 // static
-HostConnection* HostConnection::connect(HostConnection* con) {
-    if (!con) return con;
-
+std::unique_ptr<HostConnection> HostConnection::connect() {
     const enum HostConnectionType connType = getConnectionTypeFromProperty();
     // const enum HostConnectionType connType = HOST_CONNECTION_VIRTIO_GPU;
 
+    // Use "new" to access a non-public constructor.
+    auto con = std::unique_ptr<HostConnection>(new HostConnection);
     switch (connType) {
         case HOST_CONNECTION_ADDRESS_SPACE: {
             auto stream = std::unique_ptr<AddressSpaceStream>(
                 createAddressSpaceStream(STREAM_BUFFER_SIZE));
             if (!stream) {
                 ALOGE("Failed to create AddressSpaceStream for host connection!!!\n");
-                delete con;
-                return NULL;
+                return nullptr;
             }
             con->m_connectionType = HOST_CONNECTION_ADDRESS_SPACE;
             con->m_grallocType = GRALLOC_TYPE_RANCHU;
@@ -402,13 +401,11 @@ HostConnection* HostConnection::connect(HostConnection* con) {
             auto stream = std::make_unique<QemuPipeStream>(STREAM_BUFFER_SIZE);
             if (!stream) {
                 ALOGE("Failed to create QemuPipeStream for host connection!!!\n");
-                delete con;
-                return NULL;
+                return nullptr;
             }
             if (stream->connect() < 0) {
                 ALOGE("Failed to connect to host (QemuPipeStream)!!!\n");
-                delete con;
-                return NULL;
+                return nullptr;
             }
             con->m_connectionType = HOST_CONNECTION_QEMU_PIPE;
             con->m_grallocType = GRALLOC_TYPE_RANCHU;
@@ -420,21 +417,18 @@ HostConnection* HostConnection::connect(HostConnection* con) {
         case HOST_CONNECTION_TCP: {
 #ifdef __Fuchsia__
             ALOGE("Fuchsia doesn't support HOST_CONNECTION_TCP!!!\n");
-            delete con;
-            return NULL;
+            return nullptr;
             break;
 #else
             auto stream = std::make_unique<TcpStream>(STREAM_BUFFER_SIZE);
             if (!stream) {
                 ALOGE("Failed to create TcpStream for host connection!!!\n");
-                delete con;
-                return NULL;
+                return nullptr;
             }
 
             if (stream->connect("10.0.2.2", STREAM_PORT_NUM) < 0) {
                 ALOGE("Failed to connect to host (TcpStream)!!!\n");
-                delete con;
-                return NULL;
+                return nullptr;
             }
             con->m_connectionType = HOST_CONNECTION_TCP;
             con->m_grallocType = GRALLOC_TYPE_RANCHU;
@@ -449,13 +443,11 @@ HostConnection* HostConnection::connect(HostConnection* con) {
             auto stream = std::make_unique<VirtioGpuStream>(STREAM_BUFFER_SIZE);
             if (!stream) {
                 ALOGE("Failed to create VirtioGpu for host connection!!!\n");
-                delete con;
-                return NULL;
+                return nullptr;
             }
             if (stream->connect() < 0) {
                 ALOGE("Failed to connect to host (VirtioGpu)!!!\n");
-                delete con;
-                return NULL;
+                return nullptr;
             }
             con->m_connectionType = HOST_CONNECTION_VIRTIO_GPU;
             con->m_grallocType = GRALLOC_TYPE_MINIGBM;
@@ -473,13 +465,11 @@ HostConnection* HostConnection::connect(HostConnection* con) {
                 std::make_unique<VirtioGpuPipeStream>(STREAM_BUFFER_SIZE);
             if (!stream) {
                 ALOGE("Failed to create VirtioGpu for host connection!!!\n");
-                delete con;
-                return NULL;
+                return nullptr;
             }
             if (stream->connect() < 0) {
                 ALOGE("Failed to connect to host (VirtioGpu)!!!\n");
-                delete con;
-                return NULL;
+                return nullptr;
             }
             con->m_connectionType = HOST_CONNECTION_VIRTIO_GPU_PIPE;
             con->m_grallocType = getGrallocTypeFromProperty();
@@ -509,8 +499,7 @@ HostConnection* HostConnection::connect(HostConnection* con) {
                 createVirtioGpuAddressSpaceStream(STREAM_BUFFER_SIZE));
             if (!stream) {
                 ALOGE("Failed to create virtgpu AddressSpaceStream for host connection!!!\n");
-                delete con;
-                return NULL;
+                return nullptr;
             }
             con->m_connectionType = HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE;
             con->m_grallocType = getGrallocTypeFromProperty();
@@ -548,7 +537,7 @@ HostConnection* HostConnection::connect(HostConnection* con) {
     con->m_stream->commitBuffer(sizeof(unsigned int));
 
     ALOGD("HostConnection::get() New Host Connection established %p, tid %d\n",
-          con, getCurrentThreadId());
+          con.get(), getCurrentThreadId());
 
     // ALOGD("Address space echo latency check done\n");
     return con;
@@ -565,13 +554,10 @@ HostConnection *HostConnection::getWithThreadInfo(EGLThreadInfo* tinfo) {
     }
 
     if (tinfo->hostConn == NULL) {
-        HostConnection *con = new HostConnection();
-        con = connect(con);
-
-        tinfo->hostConn = con;
+        tinfo->hostConn = HostConnection::createUnique();
     }
 
-    return tinfo->hostConn;
+    return tinfo->hostConn.get();
 }
 
 void HostConnection::exit() {
@@ -580,21 +566,13 @@ void HostConnection::exit() {
         return;
     }
 
-    if (tinfo->hostConn) {
-        delete tinfo->hostConn;
-        tinfo->hostConn = NULL;
-    }
+    tinfo->hostConn.reset();
 }
 
 // static
-HostConnection *HostConnection::createUnique() {
+std::unique_ptr<HostConnection> HostConnection::createUnique() {
     ALOGD("%s: call\n", __func__);
-    return connect(new HostConnection());
-}
-
-// static
-void HostConnection::teardownUnique(HostConnection* con) {
-    delete con;
+    return connect();
 }
 
 GLEncoder *HostConnection::glEncoder()

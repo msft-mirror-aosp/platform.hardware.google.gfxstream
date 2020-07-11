@@ -45,7 +45,6 @@ static void tlsDestruct(void *ptr)
 #endif
         ) {
         EGLThreadInfo *ti = (EGLThreadInfo *)ptr;
-        delete ti->hostConn;
         delete ti;
 #ifdef __ANDROID__
         ((void **)__get_tls())[TLS_SLOT_OPENGL] = NULL;

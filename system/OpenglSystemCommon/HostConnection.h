@@ -141,8 +141,8 @@ public:
     static HostConnection *getWithThreadInfo(EGLThreadInfo* tInfo);
     static void exit();
 
-    static HostConnection *createUnique();
-    static void teardownUnique(HostConnection* con);
+    static std::unique_ptr<HostConnection> createUnique();
+    HostConnection(const HostConnection&) = delete;
 
     ~HostConnection();
 
@@ -188,7 +188,7 @@ public:
 private:
     // If the connection failed, |conn| is deleted.
     // Returns NULL if connection failed.
-    static HostConnection* connect(HostConnection* con);
+    static std::unique_ptr<HostConnection> connect();
 
     HostConnection();
     static gl_client_context_t  *s_getGLContext();
