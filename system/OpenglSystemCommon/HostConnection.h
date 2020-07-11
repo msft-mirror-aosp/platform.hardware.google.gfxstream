@@ -30,6 +30,7 @@
 #include <utils/threads.h>
 #endif
 
+#include <memory>
 #include <string>
 
 class GLEncoder;
@@ -219,14 +220,16 @@ private:
 private:
     HostConnectionType m_connectionType;
     GrallocType m_grallocType;
-    IOStream *m_stream;
-    GLEncoder   *m_glEnc;
-    GL2Encoder  *m_gl2Enc;
-    goldfish_vk::VkEncoder  *m_vkEnc;
-    ExtendedRCEncoderContext *m_rcEnc;
+
+    std::unique_ptr<IOStream> m_stream;
+    std::unique_ptr<GLEncoder> m_glEnc;
+    std::unique_ptr<GL2Encoder> m_gl2Enc;
+    std::unique_ptr<goldfish_vk::VkEncoder> m_vkEnc;
+    std::unique_ptr<ExtendedRCEncoderContext> m_rcEnc;
+
     ChecksumCalculator m_checksumHelper;
-    Gralloc *m_grallocHelper;
-    ProcessPipe *m_processPipe;
+    Gralloc* m_grallocHelper = nullptr;
+    ProcessPipe* m_processPipe = nullptr;
     std::string m_glExtensions;
     bool m_grallocOnly;
     bool m_noHostError;
