@@ -2297,9 +2297,30 @@ public:
         if (exportVmo) {
             bool hasDedicatedImage = dedicatedAllocInfoPtr &&
                 (dedicatedAllocInfoPtr->image != VK_NULL_HANDLE);
-            VkImageCreateInfo imageCreateInfo = {};
+            bool hasDedicatedBuffer =
+                dedicatedAllocInfoPtr &&
+                (dedicatedAllocInfoPtr->buffer != VK_NULL_HANDLE);
 
-            // TODO(liyl): Handle dedicated buffer allocation as well.
+            if (hasDedicatedImage && hasDedicatedBuffer) {
+                ALOGE(
+                    "Invalid VkMemoryDedicatedAllocationInfo: At least one "
+                    "of image and buffer must be VK_NULL_HANDLE.");
+                return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+            }
+
+            const VkImageCreateInfo* pImageCreateInfo = nullptr;
+
+            VkBufferConstraintsInfoFUCHSIA bufferConstraintsInfo = {
+                .sType =
+                    VK_STRUCTURE_TYPE_BUFFER_COLLECTION_CREATE_INFO_FUCHSIA,
+                .pNext = nullptr,
+                .pBufferCreateInfo = nullptr,
+                .requiredFormatFeatures = 0,
+                .minCount = 1,
+            };
+            const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo =
+                nullptr;
+
             if (hasDedicatedImage) {
                 AutoLock lock(mLock);
 
@@ -2307,13 +2328,31 @@ public:
                 if (it == info_VkImage.end()) return VK_ERROR_INITIALIZATION_FAILED;
                 const auto& imageInfo = it->second;
 
-                imageCreateInfo = imageInfo.createInfo;
+                pImageCreateInfo = &imageInfo.createInfo;
             }
 
-            if (imageCreateInfo.usage & (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-                                         VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                                         VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
-                                         VK_IMAGE_USAGE_SAMPLED_BIT)) {
+            if (hasDedicatedBuffer) {
+                AutoLock lock(mLock);
+
+                auto it = info_VkBuffer.find(dedicatedAllocInfoPtr->buffer);
+                if (it == info_VkBuffer.end())
+                    return VK_ERROR_INITIALIZATION_FAILED;
+                const auto& bufferInfo = it->second;
+
+                bufferConstraintsInfo.pBufferCreateInfo =
+                    &bufferInfo.createInfo;
+                pBufferConstraintsInfo = &bufferConstraintsInfo;
+            }
+
+            hasDedicatedImage = hasDedicatedImage &&
+                                getBufferCollectionConstraintsVulkanImageUsage(
+                                    pImageCreateInfo);
+            hasDedicatedBuffer =
+                hasDedicatedBuffer &&
+                getBufferCollectionConstraintsVulkanBufferUsage(
+                    pBufferConstraintsInfo);
+
+            if (hasDedicatedImage || hasDedicatedBuffer) {
                 fuchsia::sysmem::BufferCollectionTokenSyncPtr token;
                 zx_status_t status = mSysmemAllocator->AllocateSharedCollection(
                     token.NewRequest());
@@ -2330,11 +2369,23 @@ public:
                     abort();
                 }
 
-                VkResult res = setBufferCollectionConstraints(&collection,
-                                                              &imageCreateInfo);
-                if (res != VK_SUCCESS) {
-                    ALOGE("setBufferCollectionConstraints failed: %d", res);
-                    abort();
+                if (hasDedicatedImage) {
+                    VkResult res = setBufferCollectionConstraints(
+                        &collection, pImageCreateInfo);
+                    if (res != VK_SUCCESS) {
+                        ALOGE("setBufferCollectionConstraints failed: %d", res);
+                        abort();
+                    }
+                }
+
+                if (hasDedicatedBuffer) {
+                    VkResult res = setBufferCollectionBufferConstraints(
+                        &collection, pBufferConstraintsInfo);
+                    if (res != VK_SUCCESS) {
+                        ALOGE("setBufferCollectionBufferConstraints failed: %d",
+                              res);
+                        abort();
+                    }
                 }
 
                 fuchsia::sysmem::BufferCollectionInfo_2 info;
@@ -2362,38 +2413,52 @@ public:
                     abort();
                 }
 
-                fuchsia::hardware::goldfish::ColorBufferFormatType format;
-                switch (imageCreateInfo.format) {
-                case VK_FORMAT_B8G8R8A8_SINT:
-                case VK_FORMAT_B8G8R8A8_UNORM:
-                case VK_FORMAT_B8G8R8A8_SRGB:
-                case VK_FORMAT_B8G8R8A8_SNORM:
-                case VK_FORMAT_B8G8R8A8_SSCALED:
-                case VK_FORMAT_B8G8R8A8_USCALED:
-                    format = fuchsia::hardware::goldfish::ColorBufferFormatType::BGRA;
-                    break;
-                case VK_FORMAT_R8G8B8A8_SINT:
-                case VK_FORMAT_R8G8B8A8_UNORM:
-                case VK_FORMAT_R8G8B8A8_SRGB:
-                case VK_FORMAT_R8G8B8A8_SNORM:
-                case VK_FORMAT_R8G8B8A8_SSCALED:
-                case VK_FORMAT_R8G8B8A8_USCALED:
-                    format = fuchsia::hardware::goldfish::ColorBufferFormatType::RGBA;
-                    break;
-                default:
-                    ALOGE("Unsupported format: %d", imageCreateInfo.format);
-                    abort();
+                if (pImageCreateInfo) {
+                    fuchsia::hardware::goldfish::ColorBufferFormatType format;
+                    switch (pImageCreateInfo->format) {
+                        case VK_FORMAT_B8G8R8A8_SINT:
+                        case VK_FORMAT_B8G8R8A8_UNORM:
+                        case VK_FORMAT_B8G8R8A8_SRGB:
+                        case VK_FORMAT_B8G8R8A8_SNORM:
+                        case VK_FORMAT_B8G8R8A8_SSCALED:
+                        case VK_FORMAT_B8G8R8A8_USCALED:
+                            format = fuchsia::hardware::goldfish::
+                                ColorBufferFormatType::BGRA;
+                            break;
+                        case VK_FORMAT_R8G8B8A8_SINT:
+                        case VK_FORMAT_R8G8B8A8_UNORM:
+                        case VK_FORMAT_R8G8B8A8_SRGB:
+                        case VK_FORMAT_R8G8B8A8_SNORM:
+                        case VK_FORMAT_R8G8B8A8_SSCALED:
+                        case VK_FORMAT_R8G8B8A8_USCALED:
+                            format = fuchsia::hardware::goldfish::
+                                ColorBufferFormatType::RGBA;
+                            break;
+                        default:
+                            ALOGE("Unsupported format: %d",
+                                  pImageCreateInfo->format);
+                            abort();
+                    }
+
+                    status = mControlDevice->CreateColorBuffer(
+                        std::move(vmo_copy), pImageCreateInfo->extent.width,
+                        pImageCreateInfo->extent.height, format, &status2);
+                    if (status != ZX_OK || status2 != ZX_OK) {
+                        ALOGE("CreateColorBuffer failed: %d:%d", status,
+                              status2);
+                        abort();
+                    }
                 }
 
-                status = mControlDevice->CreateColorBuffer(
-                    std::move(vmo_copy),
-                    imageCreateInfo.extent.width,
-                    imageCreateInfo.extent.height,
-                    format,
-                    &status2);
-                if (status != ZX_OK || status2 != ZX_OK) {
-                    ALOGE("CreateColorBuffer failed: %d:%d", status, status2);
-                    abort();
+                if (pBufferConstraintsInfo) {
+                    status = mControlDevice->CreateBuffer(
+                        std::move(vmo_copy),
+                        pBufferConstraintsInfo->pBufferCreateInfo->size,
+                        &status2);
+                    if (status != ZX_OK || status2 != ZX_OK) {
+                        ALOGE("CreateBuffer failed: %d:%d", status, status2);
+                        abort();
+                    }
                 }
             }
         }
