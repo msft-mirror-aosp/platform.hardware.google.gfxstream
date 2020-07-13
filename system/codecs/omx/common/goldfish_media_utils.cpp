@@ -48,13 +48,24 @@ public:
     virtual __u64 offsetOf(uint64_t addr) const override;
 
 public:
-    // each lot has 8 M
+    // each lot has 2 M
     virtual int getMemorySlot() override {
         std::lock_guard<std::mutex> g{mMemoryMutex};
-        for (int i = mMemoryLotsAvailable.size() - 1; i >=0 ; --i) {
-            if (mMemoryLotsAvailable[i]) {
-                mMemoryLotsAvailable[i] = false;
-                return i;
+        // when there are just 1 decoder, it can pretty
+        // much use all the memory starting from 0;
+        // when there are two, each can use at least half
+        // the total memory, etc.
+        constexpr size_t search_order[] = {
+                0, 8, 4, 12,
+                2, 6, 10, 14,
+                1, 5, 9, 13,
+                3, 7, 11, 15
+        };
+        for (size_t i = 0; i < sizeof(search_order)/sizeof(search_order[0]); ++i) {
+            int slot = search_order[i];
+            if (mMemoryLotsAvailable[slot]) {
+                mMemoryLotsAvailable[slot] = false;
+                return slot;
             }
         }
         return -1;
@@ -72,7 +83,7 @@ public:
     }
 private:
     std::mutex mMemoryMutex;
-    std::vector<bool> mMemoryLotsAvailable = {true, true, true, true};
+    std::vector<bool> mMemoryLotsAvailable = std::vector<bool>(16,true);
 
     address_space_handle_t mHandle;
     uint64_t  mOffset;
@@ -154,6 +165,10 @@ __u64 GoldfishMediaTransportImpl::makeMetadata(MediaCodecType type,
     // Shift |type| into the highest 8-bits, leaving the lower bits for other
     // metadata.
     offset = offset >> 20;
+    if (offset < 0 || offset >= 32) {
+        ALOGE("offset %d is wrong", (int)offset);
+        abort();
+    }
     return ((__u64)type << (64 - 8)) | (offset << 8) | static_cast<uint8_t>(op);
 }
 
