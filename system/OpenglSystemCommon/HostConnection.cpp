@@ -639,7 +639,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetVulkanFreeMemorySync(rcEnc);
         queryAndSetVirtioGpuNativeSync(rcEnc);
         queryAndSetVulkanShaderFloat16Int8Support(rcEnc);
-        queryAndSetVulkanAsyncQueueSubmitSupport(m_rcEnc);
+        queryAndSetVulkanAsyncQueueSubmitSupport(rcEnc);
         if (m_processPipe) {
             m_processPipe->processPipeInit(m_connectionType, rcEnc);
         }
