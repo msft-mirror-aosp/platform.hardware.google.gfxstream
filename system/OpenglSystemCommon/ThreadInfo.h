@@ -24,10 +24,10 @@ struct EGLContext_t;
 
 struct EGLThreadInfo
 {
-    EGLThreadInfo() : currentContext(NULL), hostConn(NULL), eglError(EGL_SUCCESS) { }
+    EGLThreadInfo() : currentContext(NULL), eglError(EGL_SUCCESS) {}
 
     EGLContext_t *currentContext;
-    HostConnection *hostConn;
+    std::unique_ptr<HostConnection> hostConn;
     int           eglError;
 };
 

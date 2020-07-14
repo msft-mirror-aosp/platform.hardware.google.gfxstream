@@ -121,6 +121,8 @@ private:
 VkEncoder::VkEncoder(IOStream *stream) :
     mImpl(new VkEncoder::Impl(stream)) { }
 
+VkEncoder::~VkEncoder() = default;
+
 void VkEncoder::flush() {
     mImpl->flush();
 }
