@@ -47,13 +47,13 @@ static hwc2_function_pointer_t asFP(T function)
     return reinterpret_cast<hwc2_function_pointer_t>(function);
 }
 
-static HostConnection *sHostCon = nullptr;
+static std::unique_ptr<HostConnection> sHostCon;
 
 static HostConnection* createOrGetHostConnection() {
     if (!sHostCon) {
         sHostCon = HostConnection::createUnique();
     }
-    return sHostCon;
+    return sHostCon.get();
 }
 
 #define DEFINE_AND_VALIDATE_HOST_CONNECTION \

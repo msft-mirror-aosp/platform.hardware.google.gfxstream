@@ -446,7 +446,7 @@ static HostConnection* sHostCon = NULL;
 
 static HostConnection* createOrGetHostConnection() {
     if (!sHostCon) {
-        sHostCon = HostConnection::createUnique();
+        sHostCon = HostConnection::createUnique().release();
     }
     return sHostCon;
 }
