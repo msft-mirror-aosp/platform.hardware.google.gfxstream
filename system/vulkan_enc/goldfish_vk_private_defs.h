@@ -504,6 +504,14 @@ typedef struct VkBufferCollectionPropertiesFUCHSIA {
 #define VK_FUCHSIA_EXTERNAL_MEMORY_SPEC_VERSION 1
 #define VK_FUCHSIA_EXTERNAL_MEMORY_EXTENSION_NAME "VK_FUCHSIA_external_memory"
 
+typedef struct VkBufferConstraintsInfoFUCHSIA {
+    VkStructureType sType;
+    const void* pNext;
+    const VkBufferCreateInfo* pBufferCreateInfo;
+    VkFormatFeatureFlags requiredFormatFeatures;
+    uint32_t minCount;
+} VkBufferConstraintsInfoFUCHSIA;
+
 typedef struct VkImportMemoryZirconHandleInfoFUCHSIA {
     VkStructureType                       sType;
     const void*                           pNext;
@@ -524,6 +532,8 @@ typedef struct VkMemoryGetZirconHandleInfoFUCHSIA {
     VkExternalMemoryHandleTypeFlagBits    handleType;
 } VkMemoryGetZirconHandleInfoFUCHSIA;
 
+#define VK_STRUCTURE_TYPE_BUFFER_COLLECTION_BUFFER_CREATE_INFO_FUCHSIA \
+    ((VkStructureType)1001004008)
 #define VK_STRUCTURE_TYPE_TEMP_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA \
     ((VkStructureType)1001005000)
 #define VK_STRUCTURE_TYPE_TEMP_MEMORY_ZIRCON_HANDLE_PROPERTIES_FUCHSIA \
