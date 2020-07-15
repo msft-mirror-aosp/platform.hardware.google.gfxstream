@@ -407,14 +407,6 @@ long ring_buffer_view_read(
 
 void ring_buffer_yield() { }
 
-static void ring_buffer_sleep() {
-#ifdef _WIN32
-    Sleep(2);
-#else
-    usleep(2000);
-#endif
-}
-
 bool ring_buffer_wait_write(
     const struct ring_buffer* r,
     const struct ring_buffer_view* v,
