@@ -275,6 +275,11 @@ public:
         uint32_t sequenceNumber = 0;
     };
 
+    struct VkQueue_Info {
+        VkEncoder** lastUsedEncoderPtr = nullptr;
+        uint32_t sequenceNumber = 0;
+    };
+
     // custom guest-side structs for images/buffers because of AHardwareBuffer :((
     struct VkImage_Info {
         VkDevice device;
@@ -399,6 +404,24 @@ public:
         }
 
         info_VkCommandBuffer.erase(commandBuffer);
+    }
+
+    void unregister_VkQueue(VkQueue queue) {
+        AutoLock lock(mLock);
+
+        auto it = info_VkQueue.find(queue);
+        if (it == info_VkQueue.end()) return;
+        auto& info = it->second;
+        auto lastUsedEncoder =
+            info.lastUsedEncoderPtr ?
+            *(info.lastUsedEncoderPtr) : nullptr;
+
+        if (lastUsedEncoder) {
+            lastUsedEncoder->unregisterCleanupCallback(queue);
+            delete info.lastUsedEncoderPtr;
+        }
+
+        info_VkQueue.erase(queue);
     }
 
     void unregister_VkDeviceMemory(VkDeviceMemory mem) {
@@ -837,6 +860,11 @@ public:
     bool supportsDeferredCommands() const {
         if (!mFeatureInfo) return false;
         return mFeatureInfo->hasDeferredVulkanCommands;
+    }
+
+    bool supportsAsyncQueueSubmit() const {
+        if (!mFeatureInfo) return false;
+        return mFeatureInfo->hasVulkanAsyncQueueSubmit;
     }
 
     bool supportsCreateResourcesWithRequirements() const {
@@ -4101,8 +4129,13 @@ public:
         lock.unlock();
 
         if (pre_signal_semaphores.empty()) {
-            input_result = enc->vkQueueSubmit(queue, submitCount, pSubmits, fence);
-            if (input_result != VK_SUCCESS) return input_result;
+            if (supportsAsyncQueueSubmit()) {
+                enc->vkQueueSubmitAsyncGOOGLE(queue, submitCount, pSubmits, fence);
+                input_result = VK_SUCCESS;
+            } else {
+                input_result = enc->vkQueueSubmit(queue, submitCount, pSubmits, fence);
+                if (input_result != VK_SUCCESS) return input_result;
+            }
         } else {
             // Schedule waits on the OS external objects and
             // signal the wait semaphores
@@ -4137,10 +4170,20 @@ public:
                 .pWaitDstStageMask = nullptr,
                 .signalSemaphoreCount = static_cast<uint32_t>(pre_signal_semaphores.size()),
                 .pSignalSemaphores = pre_signal_semaphores.data()};
-            enc->vkQueueSubmit(queue, 1, &submit_info, VK_NULL_HANDLE);
 
-            input_result = enc->vkQueueSubmit(queue, submitCount, pSubmits, fence);
-            if (input_result != VK_SUCCESS) return input_result;
+            if (supportsAsyncQueueSubmit()) {
+                enc->vkQueueSubmitAsyncGOOGLE(queue, 1, &submit_info, VK_NULL_HANDLE);
+            } else {
+                enc->vkQueueSubmit(queue, 1, &submit_info, VK_NULL_HANDLE);
+            }
+
+            if (supportsAsyncQueueSubmit()) {
+                enc->vkQueueSubmitAsyncGOOGLE(queue, submitCount, pSubmits, fence);
+                input_result = VK_SUCCESS;
+            } else {
+                input_result = enc->vkQueueSubmit(queue, submitCount, pSubmits, fence);
+                if (input_result != VK_SUCCESS) return input_result;
+            }
         }
 
         lock.lock();
@@ -4612,15 +4655,65 @@ public:
         if (!lastEncoder) return 0;
         if (lastEncoder == currentEncoder) return 0;
 
-        info.sequenceNumber++;
-        lastEncoder->vkCommandBufferHostSyncGOOGLE(commandBuffer, false, info.sequenceNumber);
+        auto oldSeq = info.sequenceNumber;
+
+        lock.unlock();
+
+        lastEncoder->vkCommandBufferHostSyncGOOGLE(commandBuffer, false, oldSeq + 1);
         lastEncoder->flush();
-        info.sequenceNumber++;
-        currentEncoder->vkCommandBufferHostSyncGOOGLE(commandBuffer, true, info.sequenceNumber);
+        currentEncoder->vkCommandBufferHostSyncGOOGLE(commandBuffer, true, oldSeq + 2);
 
         lastEncoder->unregisterCleanupCallback(commandBuffer);
 
         currentEncoder->registerCleanupCallback(commandBuffer, [currentEncoder, lastUsedEncoderPtr]() {
+            if (*(lastUsedEncoderPtr) == currentEncoder) {
+                *(lastUsedEncoderPtr) = nullptr;
+            }
+        });
+
+        return 1;
+    }
+
+    uint32_t syncEncodersForQueue(VkQueue queue, VkEncoder* currentEncoder) {
+        AutoLock lock(mLock);
+
+        auto it = info_VkQueue.find(queue);
+        if (it == info_VkQueue.end()) return 0;
+
+        auto& info = it->second;
+
+        if (!info.lastUsedEncoderPtr) {
+            info.lastUsedEncoderPtr = new VkEncoder*;
+            *(info.lastUsedEncoderPtr) = currentEncoder;
+        }
+
+        auto lastUsedEncoderPtr = info.lastUsedEncoderPtr;
+
+        auto lastEncoder = *(lastUsedEncoderPtr);
+
+        // We always make lastUsedEncoderPtr track
+        // the current encoder, even if the last encoder
+        // is null.
+        *(lastUsedEncoderPtr) = currentEncoder;
+
+        if (!lastEncoder) return 0;
+        if (lastEncoder == currentEncoder) return 0;
+
+        auto oldSeq = info.sequenceNumber;
+
+        info.sequenceNumber += 2;
+
+        lock.unlock();
+
+        // at this point the seqno for the old thread is determined
+
+        lastEncoder->vkQueueHostSyncGOOGLE(queue, false, oldSeq + 1);
+        lastEncoder->flush();
+        currentEncoder->vkQueueHostSyncGOOGLE(queue, true, oldSeq + 2);
+
+        lastEncoder->unregisterCleanupCallback(queue);
+
+        currentEncoder->registerCleanupCallback(queue, [currentEncoder, lastUsedEncoderPtr]() {
             if (*(lastUsedEncoderPtr) == currentEncoder) {
                 *(lastUsedEncoderPtr) = nullptr;
             }
@@ -5558,6 +5651,10 @@ VkResult ResourceTracker::on_vkGetPhysicalDeviceImageFormatProperties2KHR(
 
 uint32_t ResourceTracker::syncEncodersForCommandBuffer(VkCommandBuffer commandBuffer, VkEncoder* current) {
     return mImpl->syncEncodersForCommandBuffer(commandBuffer, current);
+}
+
+uint32_t ResourceTracker::syncEncodersForQueue(VkQueue queue, VkEncoder* current) {
+    return mImpl->syncEncodersForQueue(queue, current);
 }
 
 VkResult ResourceTracker::on_vkBeginCommandBuffer(
