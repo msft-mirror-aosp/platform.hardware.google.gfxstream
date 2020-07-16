@@ -451,13 +451,14 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
             }
             con->m_connectionType = HOST_CONNECTION_VIRTIO_GPU;
             con->m_grallocType = GRALLOC_TYPE_MINIGBM;
+            auto rendernodeFd = stream->getRendernodeFd();
+            con->m_processPipe = stream->getProcessPipe();
             con->m_stream = std::move(stream);
             con->m_rendernodeFdOwned = false;
-            con->m_rendernodeFdOwned = stream->getRendernodeFd();
+            con->m_rendernodeFdOwned = rendernodeFd;
             MinigbmGralloc* m = new MinigbmGralloc;
-            m->setFd(stream->getRendernodeFd());
+            m->setFd(rendernodeFd);
             con->m_grallocHelper = m;
-            con->m_processPipe = stream->getProcessPipe();
             break;
         }
         case HOST_CONNECTION_VIRTIO_GPU_PIPE: {
@@ -473,16 +474,17 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
             }
             con->m_connectionType = HOST_CONNECTION_VIRTIO_GPU_PIPE;
             con->m_grallocType = getGrallocTypeFromProperty();
-            con->m_stream = std::move(stream);
             con->m_rendernodeFdOwned = false;
-            con->m_rendernodeFd = stream->getRendernodeFd();
+            auto rendernodeFd = stream->getRendernodeFd();
+            con->m_stream = std::move(stream);
+            con->m_rendernodeFd = rendernodeFd;
             switch (con->m_grallocType) {
                 case GRALLOC_TYPE_RANCHU:
                     con->m_grallocHelper = &m_goldfishGralloc;
                     break;
                 case GRALLOC_TYPE_MINIGBM: {
                     MinigbmGralloc* m = new MinigbmGralloc;
-                    m->setFd(stream->getRendernodeFd());
+                    m->setFd(rendernodeFd);
                     con->m_grallocHelper = m;
                     break;
                 }
@@ -503,16 +505,17 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
             }
             con->m_connectionType = HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE;
             con->m_grallocType = getGrallocTypeFromProperty();
-            con->m_stream = std::move(stream);
             con->m_rendernodeFdOwned = false;
-            con->m_rendernodeFd = stream->getRendernodeFd();
+            auto rendernodeFd = stream->getRendernodeFd();
+            con->m_stream = std::move(stream);
+            con->m_rendernodeFd = rendernodeFd;
             switch (con->m_grallocType) {
                 case GRALLOC_TYPE_RANCHU:
                     con->m_grallocHelper = &m_goldfishGralloc;
                     break;
                 case GRALLOC_TYPE_MINIGBM: {
                     MinigbmGralloc* m = new MinigbmGralloc;
-                    m->setFd(stream->getRendernodeFd());
+                    m->setFd(rendernodeFd);
                     con->m_grallocHelper = m;
                     break;
                 }
