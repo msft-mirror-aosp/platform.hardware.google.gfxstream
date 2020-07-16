@@ -1210,6 +1210,7 @@ EGLSurface eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLin
             case EGL_VG_COLORSPACE:
                 break;
             default:
+                ALOGE("%s:%d unknown attribute: 0x%x\n", __func__, __LINE__, attrib_list[0]);
                 setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
         };
         attrib_list+=2;
@@ -1703,6 +1704,8 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
         }
         break;
     default:
+        ALOGE("%s:%d EGL_BAD_CONFIG: invalid major GLES version: %d\n",
+              __func__, __LINE__, majorVersion);
         setErrorReturn(EGL_BAD_CONFIG, EGL_NO_CONTEXT);
     }
 
@@ -1977,6 +1980,7 @@ EGLSurface eglGetCurrentSurface(EGLint readdraw)
         case EGL_DRAW:
             return context->draw;
         default:
+            ALOGE("%s:%d unknown parameter: 0x%x\n", __func__, __LINE__, readdraw);
             setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_SURFACE);
     }
 }
@@ -2127,7 +2131,11 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
             case HAL_PIXEL_FORMAT_YCBCR_420_888:
 #endif
                 break;
+            case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED:
+                ALOGW("%s:%d using HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED\n", __func__, __LINE__);
+                break;
             default:
+                ALOGE("%s:%d unknown parameter: 0x%x\n", __func__, __LINE__, format);
                 setErrorReturn(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
         }
 
