@@ -69,12 +69,7 @@ public:
         }
     }
 
-    ~Impl() {
-        for (auto it : mCleanupCallbacks) {
-            fprintf(stderr, "%s: run cleanup callback for %p\n", __func__, it.first);
-            it.second();
-        }
-    }
+    ~Impl() { }
 
     VulkanCountingStream* countingStream() { return &m_countingStream; }
     VulkanStreamGuest* stream() { return &m_stream; }
@@ -88,24 +83,34 @@ public:
     }
 
     void flush() {
-        AutoLock encoderLock(lock);
+        lock();
         m_stream.flush();
+        unlock();
     }
 
-    // Assume the lock for the current encoder is held.
-    void registerCleanupCallback(void* handle, VkEncoder::CleanupCallback cb) {
-        if (mCleanupCallbacks.end() == mCleanupCallbacks.find(handle)) {
-            mCleanupCallbacks[handle] = cb;
-        } else {
+    // can be recursive
+    void lock() {
+        if (this == sAcquiredEncoderThreadLocal) {
+            ++sAcquiredEncoderThreadLockLevels;
+            return; // recursive
+        }
+        while (mLock.test_and_set(std::memory_order_acquire));
+        sAcquiredEncoderThreadLocal = this;
+        sAcquiredEncoderThreadLockLevels = 1;
+    }
+
+    void unlock() {
+        if (this != sAcquiredEncoderThreadLocal) {
+            // error, trying to unlock without having locked first
             return;
         }
-    }
 
-    void unregisterCleanupCallback(void* handle) {
-        mCleanupCallbacks.erase(handle);
+        --sAcquiredEncoderThreadLockLevels;
+        if (0 == sAcquiredEncoderThreadLockLevels) {
+            mLock.clear(std::memory_order_release);
+            sAcquiredEncoderThreadLocal = nullptr;
+        }
     }
-
-    Lock lock;
 
 private:
     VulkanCountingStream m_countingStream;
@@ -114,25 +119,44 @@ private:
 
     Validation m_validation;
     bool m_logEncodes;
+    std::atomic_flag mLock = ATOMIC_FLAG_INIT;
+    static thread_local Impl* sAcquiredEncoderThreadLocal;
+    static thread_local uint32_t sAcquiredEncoderThreadLockLevels;
+};
 
-    std::unordered_map<void*, VkEncoder::CleanupCallback> mCleanupCallbacks;
+VkEncoder::~VkEncoder() {
+    auto rt = ResourceTracker::get();
+    if (!rt) return;
+    rt->onEncoderDeleted(this);
+}
+
+// static
+thread_local VkEncoder::Impl* VkEncoder::Impl::sAcquiredEncoderThreadLocal = nullptr;
+thread_local uint32_t VkEncoder::Impl::sAcquiredEncoderThreadLockLevels = 0;
+
+struct EncoderAutoLock {
+    EncoderAutoLock(VkEncoder* enc) : mEnc(enc) {
+        mEnc->lock();
+    }
+    ~EncoderAutoLock() {
+        mEnc->unlock();
+    }
+    VkEncoder* mEnc;
 };
 
 VkEncoder::VkEncoder(IOStream *stream) :
     mImpl(new VkEncoder::Impl(stream)) { }
 
-VkEncoder::~VkEncoder() = default;
-
 void VkEncoder::flush() {
     mImpl->flush();
 }
 
-void VkEncoder::registerCleanupCallback(void* handle, VkEncoder::CleanupCallback cb) {
-    mImpl->registerCleanupCallback(handle, cb);
+void VkEncoder::lock() {
+    mImpl->lock();
 }
 
-void VkEncoder::unregisterCleanupCallback(void* handle) {
-    mImpl->unregisterCleanupCallback(handle);
+void VkEncoder::unlock() {
+    mImpl->unlock();
 }
 
 #define VALIDATE_RET(retType, success, validate) \
@@ -149,7 +173,7 @@ VkResult VkEncoder::vkCreateInstance(
     const VkAllocationCallbacks* pAllocator,
     VkInstance* pInstance)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateInstance encode");
     mImpl->log("start vkCreateInstance");
     auto stream = mImpl->stream();
@@ -221,12 +245,10 @@ VkResult VkEncoder::vkCreateInstance(
     AEMU_SCOPED_TRACE("vkCreateInstance returnUnmarshal");
     VkResult vkCreateInstance_VkResult_return = (VkResult)0;
     stream->read(&vkCreateInstance_VkResult_return, sizeof(VkResult));
+    mImpl->resources()->on_vkCreateInstance(this, vkCreateInstance_VkResult_return, pCreateInfo, pAllocator, pInstance);
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
-    encoderLock.unlock();
-    mImpl->resources()->on_vkCreateInstance(this, vkCreateInstance_VkResult_return, pCreateInfo, pAllocator, pInstance);
-    encoderLock.lock();
     mImpl->log("finish vkCreateInstance");;
     return vkCreateInstance_VkResult_return;
 }
@@ -235,7 +257,7 @@ void VkEncoder::vkDestroyInstance(
     VkInstance instance,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyInstance encode");
     mImpl->log("start vkDestroyInstance");
     auto stream = mImpl->stream();
@@ -288,6 +310,9 @@ void VkEncoder::vkDestroyInstance(
     AEMU_SCOPED_TRACE("vkDestroyInstance readParams");
     AEMU_SCOPED_TRACE("vkDestroyInstance returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkInstance((VkInstance*)&instance);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyInstance");;
 }
 
@@ -296,7 +321,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDevices(
     uint32_t* pPhysicalDeviceCount,
     VkPhysicalDevice* pPhysicalDevices)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkEnumeratePhysicalDevices encode");
     mImpl->log("start vkEnumeratePhysicalDevices");
     auto stream = mImpl->stream();
@@ -396,9 +421,9 @@ VkResult VkEncoder::vkEnumeratePhysicalDevices(
     AEMU_SCOPED_TRACE("vkEnumeratePhysicalDevices returnUnmarshal");
     VkResult vkEnumeratePhysicalDevices_VkResult_return = (VkResult)0;
     stream->read(&vkEnumeratePhysicalDevices_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkEnumeratePhysicalDevices");;
     return vkEnumeratePhysicalDevices_VkResult_return;
 }
@@ -407,7 +432,7 @@ void VkEncoder::vkGetPhysicalDeviceFeatures(
     VkPhysicalDevice physicalDevice,
     VkPhysicalDeviceFeatures* pFeatures)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFeatures encode");
     mImpl->log("start vkGetPhysicalDeviceFeatures");
     auto stream = mImpl->stream();
@@ -440,6 +465,9 @@ void VkEncoder::vkGetPhysicalDeviceFeatures(
         transform_fromhost_VkPhysicalDeviceFeatures(mImpl->resources(), (VkPhysicalDeviceFeatures*)(pFeatures));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFeatures returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceFeatures");;
 }
 
@@ -448,7 +476,7 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties(
     VkFormat format,
     VkFormatProperties* pFormatProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFormatProperties encode");
     mImpl->log("start vkGetPhysicalDeviceFormatProperties");
     auto stream = mImpl->stream();
@@ -485,6 +513,9 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties(
         transform_fromhost_VkFormatProperties(mImpl->resources(), (VkFormatProperties*)(pFormatProperties));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFormatProperties returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceFormatProperties");;
 }
 
@@ -497,7 +528,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties(
     VkImageCreateFlags flags,
     VkImageFormatProperties* pImageFormatProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceImageFormatProperties encode");
     mImpl->log("start vkGetPhysicalDeviceImageFormatProperties");
     auto stream = mImpl->stream();
@@ -552,9 +583,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceImageFormatProperties returnUnmarshal");
     VkResult vkGetPhysicalDeviceImageFormatProperties_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceImageFormatProperties_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceImageFormatProperties");;
     return vkGetPhysicalDeviceImageFormatProperties_VkResult_return;
 }
@@ -563,7 +594,7 @@ void VkEncoder::vkGetPhysicalDeviceProperties(
     VkPhysicalDevice physicalDevice,
     VkPhysicalDeviceProperties* pProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceProperties encode");
     mImpl->log("start vkGetPhysicalDeviceProperties");
     auto stream = mImpl->stream();
@@ -596,9 +627,10 @@ void VkEncoder::vkGetPhysicalDeviceProperties(
         transform_fromhost_VkPhysicalDeviceProperties(mImpl->resources(), (VkPhysicalDeviceProperties*)(pProperties));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceProperties returnUnmarshal");
-    encoderLock.unlock();
     mImpl->resources()->on_vkGetPhysicalDeviceProperties(this, physicalDevice, pProperties);
-    encoderLock.lock();
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceProperties");;
 }
 
@@ -607,7 +639,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
     uint32_t* pQueueFamilyPropertyCount,
     VkQueueFamilyProperties* pQueueFamilyProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceQueueFamilyProperties encode");
     mImpl->log("start vkGetPhysicalDeviceQueueFamilyProperties");
     auto stream = mImpl->stream();
@@ -699,6 +731,9 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
         }
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceQueueFamilyProperties returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceQueueFamilyProperties");;
 }
 
@@ -706,7 +741,7 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties(
     VkPhysicalDevice physicalDevice,
     VkPhysicalDeviceMemoryProperties* pMemoryProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceMemoryProperties encode");
     mImpl->log("start vkGetPhysicalDeviceMemoryProperties");
     auto stream = mImpl->stream();
@@ -739,9 +774,10 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties(
         transform_fromhost_VkPhysicalDeviceMemoryProperties(mImpl->resources(), (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceMemoryProperties returnUnmarshal");
-    encoderLock.unlock();
     mImpl->resources()->on_vkGetPhysicalDeviceMemoryProperties(this, physicalDevice, pMemoryProperties);
-    encoderLock.lock();
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceMemoryProperties");;
 }
 
@@ -749,7 +785,7 @@ PFN_vkVoidFunction VkEncoder::vkGetInstanceProcAddr(
     VkInstance instance,
     const char* pName)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetInstanceProcAddr encode");
     mImpl->log("start vkGetInstanceProcAddr");
     auto stream = mImpl->stream();
@@ -785,9 +821,9 @@ PFN_vkVoidFunction VkEncoder::vkGetInstanceProcAddr(
     AEMU_SCOPED_TRACE("vkGetInstanceProcAddr returnUnmarshal");
     PFN_vkVoidFunction vkGetInstanceProcAddr_PFN_vkVoidFunction_return = (PFN_vkVoidFunction)0;
     stream->read(&vkGetInstanceProcAddr_PFN_vkVoidFunction_return, sizeof(PFN_vkVoidFunction));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetInstanceProcAddr");;
     return vkGetInstanceProcAddr_PFN_vkVoidFunction_return;
 }
@@ -796,7 +832,7 @@ PFN_vkVoidFunction VkEncoder::vkGetDeviceProcAddr(
     VkDevice device,
     const char* pName)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetDeviceProcAddr encode");
     mImpl->log("start vkGetDeviceProcAddr");
     auto stream = mImpl->stream();
@@ -832,9 +868,9 @@ PFN_vkVoidFunction VkEncoder::vkGetDeviceProcAddr(
     AEMU_SCOPED_TRACE("vkGetDeviceProcAddr returnUnmarshal");
     PFN_vkVoidFunction vkGetDeviceProcAddr_PFN_vkVoidFunction_return = (PFN_vkVoidFunction)0;
     stream->read(&vkGetDeviceProcAddr_PFN_vkVoidFunction_return, sizeof(PFN_vkVoidFunction));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetDeviceProcAddr");;
     return vkGetDeviceProcAddr_PFN_vkVoidFunction_return;
 }
@@ -845,7 +881,7 @@ VkResult VkEncoder::vkCreateDevice(
     const VkAllocationCallbacks* pAllocator,
     VkDevice* pDevice)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateDevice encode");
     mImpl->log("start vkCreateDevice");
     auto stream = mImpl->stream();
@@ -925,12 +961,10 @@ VkResult VkEncoder::vkCreateDevice(
     AEMU_SCOPED_TRACE("vkCreateDevice returnUnmarshal");
     VkResult vkCreateDevice_VkResult_return = (VkResult)0;
     stream->read(&vkCreateDevice_VkResult_return, sizeof(VkResult));
+    mImpl->resources()->on_vkCreateDevice(this, vkCreateDevice_VkResult_return, physicalDevice, pCreateInfo, pAllocator, pDevice);
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
-    encoderLock.unlock();
-    mImpl->resources()->on_vkCreateDevice(this, vkCreateDevice_VkResult_return, physicalDevice, pCreateInfo, pAllocator, pDevice);
-    encoderLock.lock();
     mImpl->log("finish vkCreateDevice");;
     return vkCreateDevice_VkResult_return;
 }
@@ -939,12 +973,10 @@ void VkEncoder::vkDestroyDevice(
     VkDevice device,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyDevice encode");
     mImpl->log("start vkDestroyDevice");
-    encoderLock.unlock();
     mImpl->resources()->on_vkDestroyDevice_pre(this, device, pAllocator);
-    encoderLock.lock();
     auto stream = mImpl->stream();
     auto countingStream = mImpl->countingStream();
     auto resources = mImpl->resources();
@@ -996,6 +1028,9 @@ void VkEncoder::vkDestroyDevice(
     AEMU_SCOPED_TRACE("vkDestroyDevice returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkDevice((VkDevice*)&device);
     stream->flush();
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyDevice");;
 }
 
@@ -1004,7 +1039,7 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
     uint32_t* pPropertyCount,
     VkExtensionProperties* pProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkEnumerateInstanceExtensionProperties encode");
     mImpl->log("start vkEnumerateInstanceExtensionProperties");
     auto stream = mImpl->stream();
@@ -1124,9 +1159,9 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
     AEMU_SCOPED_TRACE("vkEnumerateInstanceExtensionProperties returnUnmarshal");
     VkResult vkEnumerateInstanceExtensionProperties_VkResult_return = (VkResult)0;
     stream->read(&vkEnumerateInstanceExtensionProperties_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkEnumerateInstanceExtensionProperties");;
     return vkEnumerateInstanceExtensionProperties_VkResult_return;
 }
@@ -1137,7 +1172,7 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
     uint32_t* pPropertyCount,
     VkExtensionProperties* pProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkEnumerateDeviceExtensionProperties encode");
     mImpl->log("start vkEnumerateDeviceExtensionProperties");
     auto stream = mImpl->stream();
@@ -1265,9 +1300,9 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
     AEMU_SCOPED_TRACE("vkEnumerateDeviceExtensionProperties returnUnmarshal");
     VkResult vkEnumerateDeviceExtensionProperties_VkResult_return = (VkResult)0;
     stream->read(&vkEnumerateDeviceExtensionProperties_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkEnumerateDeviceExtensionProperties");;
     return vkEnumerateDeviceExtensionProperties_VkResult_return;
 }
@@ -1276,7 +1311,7 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
     uint32_t* pPropertyCount,
     VkLayerProperties* pProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkEnumerateInstanceLayerProperties encode");
     mImpl->log("start vkEnumerateInstanceLayerProperties");
     auto stream = mImpl->stream();
@@ -1362,9 +1397,9 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
     AEMU_SCOPED_TRACE("vkEnumerateInstanceLayerProperties returnUnmarshal");
     VkResult vkEnumerateInstanceLayerProperties_VkResult_return = (VkResult)0;
     stream->read(&vkEnumerateInstanceLayerProperties_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkEnumerateInstanceLayerProperties");;
     return vkEnumerateInstanceLayerProperties_VkResult_return;
 }
@@ -1374,7 +1409,7 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
     uint32_t* pPropertyCount,
     VkLayerProperties* pProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkEnumerateDeviceLayerProperties encode");
     mImpl->log("start vkEnumerateDeviceLayerProperties");
     auto stream = mImpl->stream();
@@ -1468,9 +1503,9 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
     AEMU_SCOPED_TRACE("vkEnumerateDeviceLayerProperties returnUnmarshal");
     VkResult vkEnumerateDeviceLayerProperties_VkResult_return = (VkResult)0;
     stream->read(&vkEnumerateDeviceLayerProperties_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkEnumerateDeviceLayerProperties");;
     return vkEnumerateDeviceLayerProperties_VkResult_return;
 }
@@ -1481,7 +1516,7 @@ void VkEncoder::vkGetDeviceQueue(
     uint32_t queueIndex,
     VkQueue* pQueue)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetDeviceQueue encode");
     mImpl->log("start vkGetDeviceQueue");
     auto stream = mImpl->stream();
@@ -1528,6 +1563,9 @@ void VkEncoder::vkGetDeviceQueue(
     stream->handleMapping()->mapHandles_u64_VkQueue(&cgen_var_89, (VkQueue*)pQueue, 1);
     stream->unsetHandleMapping();
     AEMU_SCOPED_TRACE("vkGetDeviceQueue returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetDeviceQueue");;
 }
 
@@ -1537,7 +1575,7 @@ VkResult VkEncoder::vkQueueSubmit(
     const VkSubmitInfo* pSubmits,
     VkFence fence)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkQueueSubmit encode");
     mImpl->log("start vkQueueSubmit");
     auto stream = mImpl->stream();
@@ -1602,9 +1640,9 @@ VkResult VkEncoder::vkQueueSubmit(
     AEMU_SCOPED_TRACE("vkQueueSubmit returnUnmarshal");
     VkResult vkQueueSubmit_VkResult_return = (VkResult)0;
     stream->read(&vkQueueSubmit_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkQueueSubmit");;
     return vkQueueSubmit_VkResult_return;
 }
@@ -1612,7 +1650,7 @@ VkResult VkEncoder::vkQueueSubmit(
 VkResult VkEncoder::vkQueueWaitIdle(
     VkQueue queue)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkQueueWaitIdle encode");
     mImpl->log("start vkQueueWaitIdle");
     auto stream = mImpl->stream();
@@ -1640,9 +1678,9 @@ VkResult VkEncoder::vkQueueWaitIdle(
     AEMU_SCOPED_TRACE("vkQueueWaitIdle returnUnmarshal");
     VkResult vkQueueWaitIdle_VkResult_return = (VkResult)0;
     stream->read(&vkQueueWaitIdle_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkQueueWaitIdle");;
     return vkQueueWaitIdle_VkResult_return;
 }
@@ -1650,7 +1688,7 @@ VkResult VkEncoder::vkQueueWaitIdle(
 VkResult VkEncoder::vkDeviceWaitIdle(
     VkDevice device)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDeviceWaitIdle encode");
     mImpl->log("start vkDeviceWaitIdle");
     auto stream = mImpl->stream();
@@ -1678,9 +1716,9 @@ VkResult VkEncoder::vkDeviceWaitIdle(
     AEMU_SCOPED_TRACE("vkDeviceWaitIdle returnUnmarshal");
     VkResult vkDeviceWaitIdle_VkResult_return = (VkResult)0;
     stream->read(&vkDeviceWaitIdle_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkDeviceWaitIdle");;
     return vkDeviceWaitIdle_VkResult_return;
 }
@@ -1691,7 +1729,7 @@ VkResult VkEncoder::vkAllocateMemory(
     const VkAllocationCallbacks* pAllocator,
     VkDeviceMemory* pMemory)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkAllocateMemory encode");
     mImpl->log("start vkAllocateMemory");
     auto stream = mImpl->stream();
@@ -1771,9 +1809,9 @@ VkResult VkEncoder::vkAllocateMemory(
     AEMU_SCOPED_TRACE("vkAllocateMemory returnUnmarshal");
     VkResult vkAllocateMemory_VkResult_return = (VkResult)0;
     stream->read(&vkAllocateMemory_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkAllocateMemory");;
     return vkAllocateMemory_VkResult_return;
 }
@@ -1783,7 +1821,7 @@ void VkEncoder::vkFreeMemory(
     VkDeviceMemory memory,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkFreeMemory encode");
     mImpl->log("start vkFreeMemory");
     auto stream = mImpl->stream();
@@ -1841,6 +1879,9 @@ void VkEncoder::vkFreeMemory(
     AEMU_SCOPED_TRACE("vkFreeMemory readParams");
     AEMU_SCOPED_TRACE("vkFreeMemory returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkDeviceMemory((VkDeviceMemory*)&memory);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkFreeMemory");;
 }
 
@@ -1872,7 +1913,7 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
     uint32_t memoryRangeCount,
     const VkMappedMemoryRange* pMemoryRanges)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkFlushMappedMemoryRanges encode");
     mImpl->log("start vkFlushMappedMemoryRanges");
     VALIDATE_RET(VkResult, VK_SUCCESS, mImpl->validation()->on_vkFlushMappedMemoryRanges(this, VK_SUCCESS, device, memoryRangeCount, pMemoryRanges));
@@ -1968,9 +2009,9 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
     AEMU_SCOPED_TRACE("vkFlushMappedMemoryRanges returnUnmarshal");
     VkResult vkFlushMappedMemoryRanges_VkResult_return = (VkResult)0;
     stream->read(&vkFlushMappedMemoryRanges_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkFlushMappedMemoryRanges");;
     return vkFlushMappedMemoryRanges_VkResult_return;
 }
@@ -1980,7 +2021,7 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
     uint32_t memoryRangeCount,
     const VkMappedMemoryRange* pMemoryRanges)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkInvalidateMappedMemoryRanges encode");
     mImpl->log("start vkInvalidateMappedMemoryRanges");
     VALIDATE_RET(VkResult, VK_SUCCESS, mImpl->validation()->on_vkInvalidateMappedMemoryRanges(this, VK_SUCCESS, device, memoryRangeCount, pMemoryRanges));
@@ -2038,9 +2079,6 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
     AEMU_SCOPED_TRACE("vkInvalidateMappedMemoryRanges returnUnmarshal");
     VkResult vkInvalidateMappedMemoryRanges_VkResult_return = (VkResult)0;
     stream->read(&vkInvalidateMappedMemoryRanges_VkResult_return, sizeof(VkResult));
-    countingStream->clearPool();
-    stream->clearPool();
-    pool->freeAll();
     if (!resources->usingDirectMapping())
     {
         for (uint32_t i = 0; i < memoryRangeCount; ++i)
@@ -2060,6 +2098,9 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
             stream->read(targetRange, actualSize);
         }
     }
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkInvalidateMappedMemoryRanges");;
     return vkInvalidateMappedMemoryRanges_VkResult_return;
 }
@@ -2069,7 +2110,7 @@ void VkEncoder::vkGetDeviceMemoryCommitment(
     VkDeviceMemory memory,
     VkDeviceSize* pCommittedMemoryInBytes)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetDeviceMemoryCommitment encode");
     mImpl->log("start vkGetDeviceMemoryCommitment");
     auto stream = mImpl->stream();
@@ -2107,6 +2148,9 @@ void VkEncoder::vkGetDeviceMemoryCommitment(
     AEMU_SCOPED_TRACE("vkGetDeviceMemoryCommitment readParams");
     stream->read((VkDeviceSize*)pCommittedMemoryInBytes, sizeof(VkDeviceSize));
     AEMU_SCOPED_TRACE("vkGetDeviceMemoryCommitment returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetDeviceMemoryCommitment");;
 }
 
@@ -2116,7 +2160,7 @@ VkResult VkEncoder::vkBindBufferMemory(
     VkDeviceMemory memory,
     VkDeviceSize memoryOffset)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkBindBufferMemory encode");
     mImpl->log("start vkBindBufferMemory");
     auto stream = mImpl->stream();
@@ -2165,9 +2209,9 @@ VkResult VkEncoder::vkBindBufferMemory(
     AEMU_SCOPED_TRACE("vkBindBufferMemory returnUnmarshal");
     VkResult vkBindBufferMemory_VkResult_return = (VkResult)0;
     stream->read(&vkBindBufferMemory_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkBindBufferMemory");;
     return vkBindBufferMemory_VkResult_return;
 }
@@ -2178,7 +2222,7 @@ VkResult VkEncoder::vkBindImageMemory(
     VkDeviceMemory memory,
     VkDeviceSize memoryOffset)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkBindImageMemory encode");
     mImpl->log("start vkBindImageMemory");
     auto stream = mImpl->stream();
@@ -2227,9 +2271,9 @@ VkResult VkEncoder::vkBindImageMemory(
     AEMU_SCOPED_TRACE("vkBindImageMemory returnUnmarshal");
     VkResult vkBindImageMemory_VkResult_return = (VkResult)0;
     stream->read(&vkBindImageMemory_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkBindImageMemory");;
     return vkBindImageMemory_VkResult_return;
 }
@@ -2239,7 +2283,7 @@ void VkEncoder::vkGetBufferMemoryRequirements(
     VkBuffer buffer,
     VkMemoryRequirements* pMemoryRequirements)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetBufferMemoryRequirements encode");
     mImpl->log("start vkGetBufferMemoryRequirements");
     auto stream = mImpl->stream();
@@ -2280,6 +2324,9 @@ void VkEncoder::vkGetBufferMemoryRequirements(
         transform_fromhost_VkMemoryRequirements(mImpl->resources(), (VkMemoryRequirements*)(pMemoryRequirements));
     }
     AEMU_SCOPED_TRACE("vkGetBufferMemoryRequirements returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetBufferMemoryRequirements");;
 }
 
@@ -2288,7 +2335,7 @@ void VkEncoder::vkGetImageMemoryRequirements(
     VkImage image,
     VkMemoryRequirements* pMemoryRequirements)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetImageMemoryRequirements encode");
     mImpl->log("start vkGetImageMemoryRequirements");
     auto stream = mImpl->stream();
@@ -2329,6 +2376,9 @@ void VkEncoder::vkGetImageMemoryRequirements(
         transform_fromhost_VkMemoryRequirements(mImpl->resources(), (VkMemoryRequirements*)(pMemoryRequirements));
     }
     AEMU_SCOPED_TRACE("vkGetImageMemoryRequirements returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetImageMemoryRequirements");;
 }
 
@@ -2338,7 +2388,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
     uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements* pSparseMemoryRequirements)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetImageSparseMemoryRequirements encode");
     mImpl->log("start vkGetImageSparseMemoryRequirements");
     auto stream = mImpl->stream();
@@ -2438,6 +2488,9 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
         }
     }
     AEMU_SCOPED_TRACE("vkGetImageSparseMemoryRequirements returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetImageSparseMemoryRequirements");;
 }
 
@@ -2451,7 +2504,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
     uint32_t* pPropertyCount,
     VkSparseImageFormatProperties* pProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSparseImageFormatProperties encode");
     mImpl->log("start vkGetPhysicalDeviceSparseImageFormatProperties");
     auto stream = mImpl->stream();
@@ -2563,6 +2616,9 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
         }
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSparseImageFormatProperties returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceSparseImageFormatProperties");;
 }
 
@@ -2572,7 +2628,7 @@ VkResult VkEncoder::vkQueueBindSparse(
     const VkBindSparseInfo* pBindInfo,
     VkFence fence)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkQueueBindSparse encode");
     mImpl->log("start vkQueueBindSparse");
     auto stream = mImpl->stream();
@@ -2637,9 +2693,9 @@ VkResult VkEncoder::vkQueueBindSparse(
     AEMU_SCOPED_TRACE("vkQueueBindSparse returnUnmarshal");
     VkResult vkQueueBindSparse_VkResult_return = (VkResult)0;
     stream->read(&vkQueueBindSparse_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkQueueBindSparse");;
     return vkQueueBindSparse_VkResult_return;
 }
@@ -2650,7 +2706,7 @@ VkResult VkEncoder::vkCreateFence(
     const VkAllocationCallbacks* pAllocator,
     VkFence* pFence)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateFence encode");
     mImpl->log("start vkCreateFence");
     auto stream = mImpl->stream();
@@ -2730,9 +2786,9 @@ VkResult VkEncoder::vkCreateFence(
     AEMU_SCOPED_TRACE("vkCreateFence returnUnmarshal");
     VkResult vkCreateFence_VkResult_return = (VkResult)0;
     stream->read(&vkCreateFence_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateFence");;
     return vkCreateFence_VkResult_return;
 }
@@ -2742,7 +2798,7 @@ void VkEncoder::vkDestroyFence(
     VkFence fence,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyFence encode");
     mImpl->log("start vkDestroyFence");
     auto stream = mImpl->stream();
@@ -2803,6 +2859,9 @@ void VkEncoder::vkDestroyFence(
     AEMU_SCOPED_TRACE("vkDestroyFence readParams");
     AEMU_SCOPED_TRACE("vkDestroyFence returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkFence((VkFence*)&fence);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyFence");;
 }
 
@@ -2811,7 +2870,7 @@ VkResult VkEncoder::vkResetFences(
     uint32_t fenceCount,
     const VkFence* pFences)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkResetFences encode");
     mImpl->log("start vkResetFences");
     auto stream = mImpl->stream();
@@ -2863,9 +2922,9 @@ VkResult VkEncoder::vkResetFences(
     AEMU_SCOPED_TRACE("vkResetFences returnUnmarshal");
     VkResult vkResetFences_VkResult_return = (VkResult)0;
     stream->read(&vkResetFences_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkResetFences");;
     return vkResetFences_VkResult_return;
 }
@@ -2874,7 +2933,7 @@ VkResult VkEncoder::vkGetFenceStatus(
     VkDevice device,
     VkFence fence)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetFenceStatus encode");
     mImpl->log("start vkGetFenceStatus");
     auto stream = mImpl->stream();
@@ -2910,9 +2969,9 @@ VkResult VkEncoder::vkGetFenceStatus(
     AEMU_SCOPED_TRACE("vkGetFenceStatus returnUnmarshal");
     VkResult vkGetFenceStatus_VkResult_return = (VkResult)0;
     stream->read(&vkGetFenceStatus_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetFenceStatus");;
     return vkGetFenceStatus_VkResult_return;
 }
@@ -2924,7 +2983,7 @@ VkResult VkEncoder::vkWaitForFences(
     VkBool32 waitAll,
     uint64_t timeout)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkWaitForFences encode");
     mImpl->log("start vkWaitForFences");
     auto stream = mImpl->stream();
@@ -2984,9 +3043,9 @@ VkResult VkEncoder::vkWaitForFences(
     AEMU_SCOPED_TRACE("vkWaitForFences returnUnmarshal");
     VkResult vkWaitForFences_VkResult_return = (VkResult)0;
     stream->read(&vkWaitForFences_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkWaitForFences");;
     return vkWaitForFences_VkResult_return;
 }
@@ -2997,7 +3056,7 @@ VkResult VkEncoder::vkCreateSemaphore(
     const VkAllocationCallbacks* pAllocator,
     VkSemaphore* pSemaphore)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateSemaphore encode");
     mImpl->log("start vkCreateSemaphore");
     auto stream = mImpl->stream();
@@ -3077,9 +3136,9 @@ VkResult VkEncoder::vkCreateSemaphore(
     AEMU_SCOPED_TRACE("vkCreateSemaphore returnUnmarshal");
     VkResult vkCreateSemaphore_VkResult_return = (VkResult)0;
     stream->read(&vkCreateSemaphore_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateSemaphore");;
     return vkCreateSemaphore_VkResult_return;
 }
@@ -3089,7 +3148,7 @@ void VkEncoder::vkDestroySemaphore(
     VkSemaphore semaphore,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroySemaphore encode");
     mImpl->log("start vkDestroySemaphore");
     auto stream = mImpl->stream();
@@ -3150,6 +3209,9 @@ void VkEncoder::vkDestroySemaphore(
     AEMU_SCOPED_TRACE("vkDestroySemaphore readParams");
     AEMU_SCOPED_TRACE("vkDestroySemaphore returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkSemaphore((VkSemaphore*)&semaphore);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroySemaphore");;
 }
 
@@ -3159,7 +3221,7 @@ VkResult VkEncoder::vkCreateEvent(
     const VkAllocationCallbacks* pAllocator,
     VkEvent* pEvent)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateEvent encode");
     mImpl->log("start vkCreateEvent");
     auto stream = mImpl->stream();
@@ -3239,9 +3301,9 @@ VkResult VkEncoder::vkCreateEvent(
     AEMU_SCOPED_TRACE("vkCreateEvent returnUnmarshal");
     VkResult vkCreateEvent_VkResult_return = (VkResult)0;
     stream->read(&vkCreateEvent_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateEvent");;
     return vkCreateEvent_VkResult_return;
 }
@@ -3251,7 +3313,7 @@ void VkEncoder::vkDestroyEvent(
     VkEvent event,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyEvent encode");
     mImpl->log("start vkDestroyEvent");
     auto stream = mImpl->stream();
@@ -3312,6 +3374,9 @@ void VkEncoder::vkDestroyEvent(
     AEMU_SCOPED_TRACE("vkDestroyEvent readParams");
     AEMU_SCOPED_TRACE("vkDestroyEvent returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkEvent((VkEvent*)&event);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyEvent");;
 }
 
@@ -3319,7 +3384,7 @@ VkResult VkEncoder::vkGetEventStatus(
     VkDevice device,
     VkEvent event)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetEventStatus encode");
     mImpl->log("start vkGetEventStatus");
     auto stream = mImpl->stream();
@@ -3355,9 +3420,9 @@ VkResult VkEncoder::vkGetEventStatus(
     AEMU_SCOPED_TRACE("vkGetEventStatus returnUnmarshal");
     VkResult vkGetEventStatus_VkResult_return = (VkResult)0;
     stream->read(&vkGetEventStatus_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetEventStatus");;
     return vkGetEventStatus_VkResult_return;
 }
@@ -3366,7 +3431,7 @@ VkResult VkEncoder::vkSetEvent(
     VkDevice device,
     VkEvent event)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkSetEvent encode");
     mImpl->log("start vkSetEvent");
     auto stream = mImpl->stream();
@@ -3402,9 +3467,9 @@ VkResult VkEncoder::vkSetEvent(
     AEMU_SCOPED_TRACE("vkSetEvent returnUnmarshal");
     VkResult vkSetEvent_VkResult_return = (VkResult)0;
     stream->read(&vkSetEvent_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkSetEvent");;
     return vkSetEvent_VkResult_return;
 }
@@ -3413,7 +3478,7 @@ VkResult VkEncoder::vkResetEvent(
     VkDevice device,
     VkEvent event)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkResetEvent encode");
     mImpl->log("start vkResetEvent");
     auto stream = mImpl->stream();
@@ -3449,9 +3514,9 @@ VkResult VkEncoder::vkResetEvent(
     AEMU_SCOPED_TRACE("vkResetEvent returnUnmarshal");
     VkResult vkResetEvent_VkResult_return = (VkResult)0;
     stream->read(&vkResetEvent_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkResetEvent");;
     return vkResetEvent_VkResult_return;
 }
@@ -3462,7 +3527,7 @@ VkResult VkEncoder::vkCreateQueryPool(
     const VkAllocationCallbacks* pAllocator,
     VkQueryPool* pQueryPool)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateQueryPool encode");
     mImpl->log("start vkCreateQueryPool");
     auto stream = mImpl->stream();
@@ -3542,9 +3607,9 @@ VkResult VkEncoder::vkCreateQueryPool(
     AEMU_SCOPED_TRACE("vkCreateQueryPool returnUnmarshal");
     VkResult vkCreateQueryPool_VkResult_return = (VkResult)0;
     stream->read(&vkCreateQueryPool_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateQueryPool");;
     return vkCreateQueryPool_VkResult_return;
 }
@@ -3554,7 +3619,7 @@ void VkEncoder::vkDestroyQueryPool(
     VkQueryPool queryPool,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyQueryPool encode");
     mImpl->log("start vkDestroyQueryPool");
     auto stream = mImpl->stream();
@@ -3615,6 +3680,9 @@ void VkEncoder::vkDestroyQueryPool(
     AEMU_SCOPED_TRACE("vkDestroyQueryPool readParams");
     AEMU_SCOPED_TRACE("vkDestroyQueryPool returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkQueryPool((VkQueryPool*)&queryPool);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyQueryPool");;
 }
 
@@ -3628,7 +3696,7 @@ VkResult VkEncoder::vkGetQueryPoolResults(
     VkDeviceSize stride,
     VkQueryResultFlags flags)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetQueryPoolResults encode");
     mImpl->log("start vkGetQueryPoolResults");
     auto stream = mImpl->stream();
@@ -3689,9 +3757,9 @@ VkResult VkEncoder::vkGetQueryPoolResults(
     AEMU_SCOPED_TRACE("vkGetQueryPoolResults returnUnmarshal");
     VkResult vkGetQueryPoolResults_VkResult_return = (VkResult)0;
     stream->read(&vkGetQueryPoolResults_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetQueryPoolResults");;
     return vkGetQueryPoolResults_VkResult_return;
 }
@@ -3702,7 +3770,7 @@ VkResult VkEncoder::vkCreateBuffer(
     const VkAllocationCallbacks* pAllocator,
     VkBuffer* pBuffer)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateBuffer encode");
     mImpl->log("start vkCreateBuffer");
     auto stream = mImpl->stream();
@@ -3782,9 +3850,9 @@ VkResult VkEncoder::vkCreateBuffer(
     AEMU_SCOPED_TRACE("vkCreateBuffer returnUnmarshal");
     VkResult vkCreateBuffer_VkResult_return = (VkResult)0;
     stream->read(&vkCreateBuffer_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateBuffer");;
     return vkCreateBuffer_VkResult_return;
 }
@@ -3794,7 +3862,7 @@ void VkEncoder::vkDestroyBuffer(
     VkBuffer buffer,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyBuffer encode");
     mImpl->log("start vkDestroyBuffer");
     auto stream = mImpl->stream();
@@ -3855,6 +3923,9 @@ void VkEncoder::vkDestroyBuffer(
     AEMU_SCOPED_TRACE("vkDestroyBuffer readParams");
     AEMU_SCOPED_TRACE("vkDestroyBuffer returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkBuffer((VkBuffer*)&buffer);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyBuffer");;
 }
 
@@ -3864,7 +3935,7 @@ VkResult VkEncoder::vkCreateBufferView(
     const VkAllocationCallbacks* pAllocator,
     VkBufferView* pView)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateBufferView encode");
     mImpl->log("start vkCreateBufferView");
     auto stream = mImpl->stream();
@@ -3944,9 +4015,9 @@ VkResult VkEncoder::vkCreateBufferView(
     AEMU_SCOPED_TRACE("vkCreateBufferView returnUnmarshal");
     VkResult vkCreateBufferView_VkResult_return = (VkResult)0;
     stream->read(&vkCreateBufferView_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateBufferView");;
     return vkCreateBufferView_VkResult_return;
 }
@@ -3956,7 +4027,7 @@ void VkEncoder::vkDestroyBufferView(
     VkBufferView bufferView,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyBufferView encode");
     mImpl->log("start vkDestroyBufferView");
     auto stream = mImpl->stream();
@@ -4017,6 +4088,9 @@ void VkEncoder::vkDestroyBufferView(
     AEMU_SCOPED_TRACE("vkDestroyBufferView readParams");
     AEMU_SCOPED_TRACE("vkDestroyBufferView returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkBufferView((VkBufferView*)&bufferView);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyBufferView");;
 }
 
@@ -4026,7 +4100,7 @@ VkResult VkEncoder::vkCreateImage(
     const VkAllocationCallbacks* pAllocator,
     VkImage* pImage)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateImage encode");
     mImpl->log("start vkCreateImage");
     auto stream = mImpl->stream();
@@ -4107,9 +4181,9 @@ VkResult VkEncoder::vkCreateImage(
     AEMU_SCOPED_TRACE("vkCreateImage returnUnmarshal");
     VkResult vkCreateImage_VkResult_return = (VkResult)0;
     stream->read(&vkCreateImage_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateImage");;
     return vkCreateImage_VkResult_return;
 }
@@ -4119,7 +4193,7 @@ void VkEncoder::vkDestroyImage(
     VkImage image,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyImage encode");
     mImpl->log("start vkDestroyImage");
     auto stream = mImpl->stream();
@@ -4180,6 +4254,9 @@ void VkEncoder::vkDestroyImage(
     AEMU_SCOPED_TRACE("vkDestroyImage readParams");
     AEMU_SCOPED_TRACE("vkDestroyImage returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkImage((VkImage*)&image);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyImage");;
 }
 
@@ -4189,7 +4266,7 @@ void VkEncoder::vkGetImageSubresourceLayout(
     const VkImageSubresource* pSubresource,
     VkSubresourceLayout* pLayout)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetImageSubresourceLayout encode");
     mImpl->log("start vkGetImageSubresourceLayout");
     auto stream = mImpl->stream();
@@ -4243,6 +4320,9 @@ void VkEncoder::vkGetImageSubresourceLayout(
         transform_fromhost_VkSubresourceLayout(mImpl->resources(), (VkSubresourceLayout*)(pLayout));
     }
     AEMU_SCOPED_TRACE("vkGetImageSubresourceLayout returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetImageSubresourceLayout");;
 }
 
@@ -4252,7 +4332,7 @@ VkResult VkEncoder::vkCreateImageView(
     const VkAllocationCallbacks* pAllocator,
     VkImageView* pView)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateImageView encode");
     mImpl->log("start vkCreateImageView");
     auto stream = mImpl->stream();
@@ -4332,9 +4412,9 @@ VkResult VkEncoder::vkCreateImageView(
     AEMU_SCOPED_TRACE("vkCreateImageView returnUnmarshal");
     VkResult vkCreateImageView_VkResult_return = (VkResult)0;
     stream->read(&vkCreateImageView_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateImageView");;
     return vkCreateImageView_VkResult_return;
 }
@@ -4344,7 +4424,7 @@ void VkEncoder::vkDestroyImageView(
     VkImageView imageView,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyImageView encode");
     mImpl->log("start vkDestroyImageView");
     auto stream = mImpl->stream();
@@ -4405,6 +4485,9 @@ void VkEncoder::vkDestroyImageView(
     AEMU_SCOPED_TRACE("vkDestroyImageView readParams");
     AEMU_SCOPED_TRACE("vkDestroyImageView returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkImageView((VkImageView*)&imageView);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyImageView");;
 }
 
@@ -4414,7 +4497,7 @@ VkResult VkEncoder::vkCreateShaderModule(
     const VkAllocationCallbacks* pAllocator,
     VkShaderModule* pShaderModule)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateShaderModule encode");
     mImpl->log("start vkCreateShaderModule");
     auto stream = mImpl->stream();
@@ -4494,9 +4577,9 @@ VkResult VkEncoder::vkCreateShaderModule(
     AEMU_SCOPED_TRACE("vkCreateShaderModule returnUnmarshal");
     VkResult vkCreateShaderModule_VkResult_return = (VkResult)0;
     stream->read(&vkCreateShaderModule_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateShaderModule");;
     return vkCreateShaderModule_VkResult_return;
 }
@@ -4506,7 +4589,7 @@ void VkEncoder::vkDestroyShaderModule(
     VkShaderModule shaderModule,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyShaderModule encode");
     mImpl->log("start vkDestroyShaderModule");
     auto stream = mImpl->stream();
@@ -4567,6 +4650,9 @@ void VkEncoder::vkDestroyShaderModule(
     AEMU_SCOPED_TRACE("vkDestroyShaderModule readParams");
     AEMU_SCOPED_TRACE("vkDestroyShaderModule returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkShaderModule((VkShaderModule*)&shaderModule);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyShaderModule");;
 }
 
@@ -4576,7 +4662,7 @@ VkResult VkEncoder::vkCreatePipelineCache(
     const VkAllocationCallbacks* pAllocator,
     VkPipelineCache* pPipelineCache)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreatePipelineCache encode");
     mImpl->log("start vkCreatePipelineCache");
     auto stream = mImpl->stream();
@@ -4656,9 +4742,9 @@ VkResult VkEncoder::vkCreatePipelineCache(
     AEMU_SCOPED_TRACE("vkCreatePipelineCache returnUnmarshal");
     VkResult vkCreatePipelineCache_VkResult_return = (VkResult)0;
     stream->read(&vkCreatePipelineCache_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreatePipelineCache");;
     return vkCreatePipelineCache_VkResult_return;
 }
@@ -4668,7 +4754,7 @@ void VkEncoder::vkDestroyPipelineCache(
     VkPipelineCache pipelineCache,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyPipelineCache encode");
     mImpl->log("start vkDestroyPipelineCache");
     auto stream = mImpl->stream();
@@ -4729,6 +4815,9 @@ void VkEncoder::vkDestroyPipelineCache(
     AEMU_SCOPED_TRACE("vkDestroyPipelineCache readParams");
     AEMU_SCOPED_TRACE("vkDestroyPipelineCache returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkPipelineCache((VkPipelineCache*)&pipelineCache);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyPipelineCache");;
 }
 
@@ -4738,7 +4827,7 @@ VkResult VkEncoder::vkGetPipelineCacheData(
     size_t* pDataSize,
     void* pData)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPipelineCacheData encode");
     mImpl->log("start vkGetPipelineCacheData");
     auto stream = mImpl->stream();
@@ -4826,9 +4915,9 @@ VkResult VkEncoder::vkGetPipelineCacheData(
     AEMU_SCOPED_TRACE("vkGetPipelineCacheData returnUnmarshal");
     VkResult vkGetPipelineCacheData_VkResult_return = (VkResult)0;
     stream->read(&vkGetPipelineCacheData_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPipelineCacheData");;
     return vkGetPipelineCacheData_VkResult_return;
 }
@@ -4839,7 +4928,7 @@ VkResult VkEncoder::vkMergePipelineCaches(
     uint32_t srcCacheCount,
     const VkPipelineCache* pSrcCaches)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkMergePipelineCaches encode");
     mImpl->log("start vkMergePipelineCaches");
     auto stream = mImpl->stream();
@@ -4899,9 +4988,9 @@ VkResult VkEncoder::vkMergePipelineCaches(
     AEMU_SCOPED_TRACE("vkMergePipelineCaches returnUnmarshal");
     VkResult vkMergePipelineCaches_VkResult_return = (VkResult)0;
     stream->read(&vkMergePipelineCaches_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkMergePipelineCaches");;
     return vkMergePipelineCaches_VkResult_return;
 }
@@ -4914,7 +5003,7 @@ VkResult VkEncoder::vkCreateGraphicsPipelines(
     const VkAllocationCallbacks* pAllocator,
     VkPipeline* pPipelines)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateGraphicsPipelines encode");
     mImpl->log("start vkCreateGraphicsPipelines");
     auto stream = mImpl->stream();
@@ -5030,9 +5119,9 @@ VkResult VkEncoder::vkCreateGraphicsPipelines(
     AEMU_SCOPED_TRACE("vkCreateGraphicsPipelines returnUnmarshal");
     VkResult vkCreateGraphicsPipelines_VkResult_return = (VkResult)0;
     stream->read(&vkCreateGraphicsPipelines_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateGraphicsPipelines");;
     return vkCreateGraphicsPipelines_VkResult_return;
 }
@@ -5045,7 +5134,7 @@ VkResult VkEncoder::vkCreateComputePipelines(
     const VkAllocationCallbacks* pAllocator,
     VkPipeline* pPipelines)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateComputePipelines encode");
     mImpl->log("start vkCreateComputePipelines");
     auto stream = mImpl->stream();
@@ -5161,9 +5250,9 @@ VkResult VkEncoder::vkCreateComputePipelines(
     AEMU_SCOPED_TRACE("vkCreateComputePipelines returnUnmarshal");
     VkResult vkCreateComputePipelines_VkResult_return = (VkResult)0;
     stream->read(&vkCreateComputePipelines_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateComputePipelines");;
     return vkCreateComputePipelines_VkResult_return;
 }
@@ -5173,7 +5262,7 @@ void VkEncoder::vkDestroyPipeline(
     VkPipeline pipeline,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyPipeline encode");
     mImpl->log("start vkDestroyPipeline");
     auto stream = mImpl->stream();
@@ -5234,6 +5323,9 @@ void VkEncoder::vkDestroyPipeline(
     AEMU_SCOPED_TRACE("vkDestroyPipeline readParams");
     AEMU_SCOPED_TRACE("vkDestroyPipeline returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkPipeline((VkPipeline*)&pipeline);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyPipeline");;
 }
 
@@ -5243,7 +5335,7 @@ VkResult VkEncoder::vkCreatePipelineLayout(
     const VkAllocationCallbacks* pAllocator,
     VkPipelineLayout* pPipelineLayout)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreatePipelineLayout encode");
     mImpl->log("start vkCreatePipelineLayout");
     auto stream = mImpl->stream();
@@ -5323,9 +5415,9 @@ VkResult VkEncoder::vkCreatePipelineLayout(
     AEMU_SCOPED_TRACE("vkCreatePipelineLayout returnUnmarshal");
     VkResult vkCreatePipelineLayout_VkResult_return = (VkResult)0;
     stream->read(&vkCreatePipelineLayout_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreatePipelineLayout");;
     return vkCreatePipelineLayout_VkResult_return;
 }
@@ -5335,7 +5427,7 @@ void VkEncoder::vkDestroyPipelineLayout(
     VkPipelineLayout pipelineLayout,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyPipelineLayout encode");
     mImpl->log("start vkDestroyPipelineLayout");
     auto stream = mImpl->stream();
@@ -5396,6 +5488,9 @@ void VkEncoder::vkDestroyPipelineLayout(
     AEMU_SCOPED_TRACE("vkDestroyPipelineLayout readParams");
     AEMU_SCOPED_TRACE("vkDestroyPipelineLayout returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkPipelineLayout((VkPipelineLayout*)&pipelineLayout);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyPipelineLayout");;
 }
 
@@ -5405,7 +5500,7 @@ VkResult VkEncoder::vkCreateSampler(
     const VkAllocationCallbacks* pAllocator,
     VkSampler* pSampler)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateSampler encode");
     mImpl->log("start vkCreateSampler");
     auto stream = mImpl->stream();
@@ -5485,9 +5580,9 @@ VkResult VkEncoder::vkCreateSampler(
     AEMU_SCOPED_TRACE("vkCreateSampler returnUnmarshal");
     VkResult vkCreateSampler_VkResult_return = (VkResult)0;
     stream->read(&vkCreateSampler_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateSampler");;
     return vkCreateSampler_VkResult_return;
 }
@@ -5497,7 +5592,7 @@ void VkEncoder::vkDestroySampler(
     VkSampler sampler,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroySampler encode");
     mImpl->log("start vkDestroySampler");
     auto stream = mImpl->stream();
@@ -5558,6 +5653,9 @@ void VkEncoder::vkDestroySampler(
     AEMU_SCOPED_TRACE("vkDestroySampler readParams");
     AEMU_SCOPED_TRACE("vkDestroySampler returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkSampler((VkSampler*)&sampler);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroySampler");;
 }
 
@@ -5567,7 +5665,7 @@ VkResult VkEncoder::vkCreateDescriptorSetLayout(
     const VkAllocationCallbacks* pAllocator,
     VkDescriptorSetLayout* pSetLayout)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateDescriptorSetLayout encode");
     mImpl->log("start vkCreateDescriptorSetLayout");
     auto stream = mImpl->stream();
@@ -5647,9 +5745,9 @@ VkResult VkEncoder::vkCreateDescriptorSetLayout(
     AEMU_SCOPED_TRACE("vkCreateDescriptorSetLayout returnUnmarshal");
     VkResult vkCreateDescriptorSetLayout_VkResult_return = (VkResult)0;
     stream->read(&vkCreateDescriptorSetLayout_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateDescriptorSetLayout");;
     return vkCreateDescriptorSetLayout_VkResult_return;
 }
@@ -5659,7 +5757,7 @@ void VkEncoder::vkDestroyDescriptorSetLayout(
     VkDescriptorSetLayout descriptorSetLayout,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyDescriptorSetLayout encode");
     mImpl->log("start vkDestroyDescriptorSetLayout");
     auto stream = mImpl->stream();
@@ -5720,6 +5818,9 @@ void VkEncoder::vkDestroyDescriptorSetLayout(
     AEMU_SCOPED_TRACE("vkDestroyDescriptorSetLayout readParams");
     AEMU_SCOPED_TRACE("vkDestroyDescriptorSetLayout returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkDescriptorSetLayout((VkDescriptorSetLayout*)&descriptorSetLayout);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyDescriptorSetLayout");;
 }
 
@@ -5729,7 +5830,7 @@ VkResult VkEncoder::vkCreateDescriptorPool(
     const VkAllocationCallbacks* pAllocator,
     VkDescriptorPool* pDescriptorPool)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateDescriptorPool encode");
     mImpl->log("start vkCreateDescriptorPool");
     auto stream = mImpl->stream();
@@ -5809,9 +5910,9 @@ VkResult VkEncoder::vkCreateDescriptorPool(
     AEMU_SCOPED_TRACE("vkCreateDescriptorPool returnUnmarshal");
     VkResult vkCreateDescriptorPool_VkResult_return = (VkResult)0;
     stream->read(&vkCreateDescriptorPool_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateDescriptorPool");;
     return vkCreateDescriptorPool_VkResult_return;
 }
@@ -5821,7 +5922,7 @@ void VkEncoder::vkDestroyDescriptorPool(
     VkDescriptorPool descriptorPool,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyDescriptorPool encode");
     mImpl->log("start vkDestroyDescriptorPool");
     auto stream = mImpl->stream();
@@ -5882,6 +5983,9 @@ void VkEncoder::vkDestroyDescriptorPool(
     AEMU_SCOPED_TRACE("vkDestroyDescriptorPool readParams");
     AEMU_SCOPED_TRACE("vkDestroyDescriptorPool returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkDescriptorPool((VkDescriptorPool*)&descriptorPool);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyDescriptorPool");;
 }
 
@@ -5890,7 +5994,7 @@ VkResult VkEncoder::vkResetDescriptorPool(
     VkDescriptorPool descriptorPool,
     VkDescriptorPoolResetFlags flags)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkResetDescriptorPool encode");
     mImpl->log("start vkResetDescriptorPool");
     auto stream = mImpl->stream();
@@ -5930,9 +6034,9 @@ VkResult VkEncoder::vkResetDescriptorPool(
     AEMU_SCOPED_TRACE("vkResetDescriptorPool returnUnmarshal");
     VkResult vkResetDescriptorPool_VkResult_return = (VkResult)0;
     stream->read(&vkResetDescriptorPool_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkResetDescriptorPool");;
     return vkResetDescriptorPool_VkResult_return;
 }
@@ -5942,7 +6046,7 @@ VkResult VkEncoder::vkAllocateDescriptorSets(
     const VkDescriptorSetAllocateInfo* pAllocateInfo,
     VkDescriptorSet* pDescriptorSets)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkAllocateDescriptorSets encode");
     mImpl->log("start vkAllocateDescriptorSets");
     auto stream = mImpl->stream();
@@ -6008,9 +6112,9 @@ VkResult VkEncoder::vkAllocateDescriptorSets(
     AEMU_SCOPED_TRACE("vkAllocateDescriptorSets returnUnmarshal");
     VkResult vkAllocateDescriptorSets_VkResult_return = (VkResult)0;
     stream->read(&vkAllocateDescriptorSets_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkAllocateDescriptorSets");;
     return vkAllocateDescriptorSets_VkResult_return;
 }
@@ -6021,7 +6125,7 @@ VkResult VkEncoder::vkFreeDescriptorSets(
     uint32_t descriptorSetCount,
     const VkDescriptorSet* pDescriptorSets)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkFreeDescriptorSets encode");
     mImpl->log("start vkFreeDescriptorSets");
     auto stream = mImpl->stream();
@@ -6093,13 +6197,13 @@ VkResult VkEncoder::vkFreeDescriptorSets(
     AEMU_SCOPED_TRACE("vkFreeDescriptorSets returnUnmarshal");
     VkResult vkFreeDescriptorSets_VkResult_return = (VkResult)0;
     stream->read(&vkFreeDescriptorSets_VkResult_return, sizeof(VkResult));
-    countingStream->clearPool();
-    stream->clearPool();
-    pool->freeAll();
     if (pDescriptorSets)
     {
         resources->destroyMapping()->mapHandles_VkDescriptorSet((VkDescriptorSet*)pDescriptorSets, ((descriptorSetCount)));
     }
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkFreeDescriptorSets");;
     return vkFreeDescriptorSets_VkResult_return;
 }
@@ -6111,7 +6215,7 @@ void VkEncoder::vkUpdateDescriptorSets(
     uint32_t descriptorCopyCount,
     const VkCopyDescriptorSet* pDescriptorCopies)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSets encode");
     mImpl->log("start vkUpdateDescriptorSets");
     auto stream = mImpl->stream();
@@ -6195,6 +6299,9 @@ void VkEncoder::vkUpdateDescriptorSets(
     }
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSets readParams");
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSets returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkUpdateDescriptorSets");;
 }
 
@@ -6204,7 +6311,7 @@ VkResult VkEncoder::vkCreateFramebuffer(
     const VkAllocationCallbacks* pAllocator,
     VkFramebuffer* pFramebuffer)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateFramebuffer encode");
     mImpl->log("start vkCreateFramebuffer");
     auto stream = mImpl->stream();
@@ -6284,9 +6391,9 @@ VkResult VkEncoder::vkCreateFramebuffer(
     AEMU_SCOPED_TRACE("vkCreateFramebuffer returnUnmarshal");
     VkResult vkCreateFramebuffer_VkResult_return = (VkResult)0;
     stream->read(&vkCreateFramebuffer_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateFramebuffer");;
     return vkCreateFramebuffer_VkResult_return;
 }
@@ -6296,7 +6403,7 @@ void VkEncoder::vkDestroyFramebuffer(
     VkFramebuffer framebuffer,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyFramebuffer encode");
     mImpl->log("start vkDestroyFramebuffer");
     auto stream = mImpl->stream();
@@ -6357,6 +6464,9 @@ void VkEncoder::vkDestroyFramebuffer(
     AEMU_SCOPED_TRACE("vkDestroyFramebuffer readParams");
     AEMU_SCOPED_TRACE("vkDestroyFramebuffer returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkFramebuffer((VkFramebuffer*)&framebuffer);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyFramebuffer");;
 }
 
@@ -6366,7 +6476,7 @@ VkResult VkEncoder::vkCreateRenderPass(
     const VkAllocationCallbacks* pAllocator,
     VkRenderPass* pRenderPass)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateRenderPass encode");
     mImpl->log("start vkCreateRenderPass");
     auto stream = mImpl->stream();
@@ -6446,9 +6556,9 @@ VkResult VkEncoder::vkCreateRenderPass(
     AEMU_SCOPED_TRACE("vkCreateRenderPass returnUnmarshal");
     VkResult vkCreateRenderPass_VkResult_return = (VkResult)0;
     stream->read(&vkCreateRenderPass_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateRenderPass");;
     return vkCreateRenderPass_VkResult_return;
 }
@@ -6458,7 +6568,7 @@ void VkEncoder::vkDestroyRenderPass(
     VkRenderPass renderPass,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyRenderPass encode");
     mImpl->log("start vkDestroyRenderPass");
     auto stream = mImpl->stream();
@@ -6519,6 +6629,9 @@ void VkEncoder::vkDestroyRenderPass(
     AEMU_SCOPED_TRACE("vkDestroyRenderPass readParams");
     AEMU_SCOPED_TRACE("vkDestroyRenderPass returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkRenderPass((VkRenderPass*)&renderPass);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyRenderPass");;
 }
 
@@ -6527,7 +6640,7 @@ void VkEncoder::vkGetRenderAreaGranularity(
     VkRenderPass renderPass,
     VkExtent2D* pGranularity)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetRenderAreaGranularity encode");
     mImpl->log("start vkGetRenderAreaGranularity");
     auto stream = mImpl->stream();
@@ -6568,6 +6681,9 @@ void VkEncoder::vkGetRenderAreaGranularity(
         transform_fromhost_VkExtent2D(mImpl->resources(), (VkExtent2D*)(pGranularity));
     }
     AEMU_SCOPED_TRACE("vkGetRenderAreaGranularity returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetRenderAreaGranularity");;
 }
 
@@ -6577,7 +6693,7 @@ VkResult VkEncoder::vkCreateCommandPool(
     const VkAllocationCallbacks* pAllocator,
     VkCommandPool* pCommandPool)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateCommandPool encode");
     mImpl->log("start vkCreateCommandPool");
     auto stream = mImpl->stream();
@@ -6657,9 +6773,9 @@ VkResult VkEncoder::vkCreateCommandPool(
     AEMU_SCOPED_TRACE("vkCreateCommandPool returnUnmarshal");
     VkResult vkCreateCommandPool_VkResult_return = (VkResult)0;
     stream->read(&vkCreateCommandPool_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateCommandPool");;
     return vkCreateCommandPool_VkResult_return;
 }
@@ -6669,7 +6785,7 @@ void VkEncoder::vkDestroyCommandPool(
     VkCommandPool commandPool,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyCommandPool encode");
     mImpl->log("start vkDestroyCommandPool");
     auto stream = mImpl->stream();
@@ -6730,6 +6846,9 @@ void VkEncoder::vkDestroyCommandPool(
     AEMU_SCOPED_TRACE("vkDestroyCommandPool readParams");
     AEMU_SCOPED_TRACE("vkDestroyCommandPool returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkCommandPool((VkCommandPool*)&commandPool);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyCommandPool");;
 }
 
@@ -6738,7 +6857,7 @@ VkResult VkEncoder::vkResetCommandPool(
     VkCommandPool commandPool,
     VkCommandPoolResetFlags flags)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkResetCommandPool encode");
     mImpl->log("start vkResetCommandPool");
     auto stream = mImpl->stream();
@@ -6778,9 +6897,9 @@ VkResult VkEncoder::vkResetCommandPool(
     AEMU_SCOPED_TRACE("vkResetCommandPool returnUnmarshal");
     VkResult vkResetCommandPool_VkResult_return = (VkResult)0;
     stream->read(&vkResetCommandPool_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkResetCommandPool");;
     return vkResetCommandPool_VkResult_return;
 }
@@ -6790,7 +6909,7 @@ VkResult VkEncoder::vkAllocateCommandBuffers(
     const VkCommandBufferAllocateInfo* pAllocateInfo,
     VkCommandBuffer* pCommandBuffers)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkAllocateCommandBuffers encode");
     mImpl->log("start vkAllocateCommandBuffers");
     auto stream = mImpl->stream();
@@ -6856,9 +6975,9 @@ VkResult VkEncoder::vkAllocateCommandBuffers(
     AEMU_SCOPED_TRACE("vkAllocateCommandBuffers returnUnmarshal");
     VkResult vkAllocateCommandBuffers_VkResult_return = (VkResult)0;
     stream->read(&vkAllocateCommandBuffers_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkAllocateCommandBuffers");;
     return vkAllocateCommandBuffers_VkResult_return;
 }
@@ -6869,7 +6988,7 @@ void VkEncoder::vkFreeCommandBuffers(
     uint32_t commandBufferCount,
     const VkCommandBuffer* pCommandBuffers)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkFreeCommandBuffers encode");
     mImpl->log("start vkFreeCommandBuffers");
     auto stream = mImpl->stream();
@@ -6943,6 +7062,9 @@ void VkEncoder::vkFreeCommandBuffers(
     {
         resources->destroyMapping()->mapHandles_VkCommandBuffer((VkCommandBuffer*)pCommandBuffers, ((commandBufferCount)));
     }
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkFreeCommandBuffers");;
 }
 
@@ -6950,7 +7072,7 @@ VkResult VkEncoder::vkBeginCommandBuffer(
     VkCommandBuffer commandBuffer,
     const VkCommandBufferBeginInfo* pBeginInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkBeginCommandBuffer encode");
     mImpl->log("start vkBeginCommandBuffer");
     auto stream = mImpl->stream();
@@ -6991,9 +7113,9 @@ VkResult VkEncoder::vkBeginCommandBuffer(
     AEMU_SCOPED_TRACE("vkBeginCommandBuffer returnUnmarshal");
     VkResult vkBeginCommandBuffer_VkResult_return = (VkResult)0;
     stream->read(&vkBeginCommandBuffer_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkBeginCommandBuffer");;
     return vkBeginCommandBuffer_VkResult_return;
 }
@@ -7001,7 +7123,7 @@ VkResult VkEncoder::vkBeginCommandBuffer(
 VkResult VkEncoder::vkEndCommandBuffer(
     VkCommandBuffer commandBuffer)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkEndCommandBuffer encode");
     mImpl->log("start vkEndCommandBuffer");
     auto stream = mImpl->stream();
@@ -7029,9 +7151,9 @@ VkResult VkEncoder::vkEndCommandBuffer(
     AEMU_SCOPED_TRACE("vkEndCommandBuffer returnUnmarshal");
     VkResult vkEndCommandBuffer_VkResult_return = (VkResult)0;
     stream->read(&vkEndCommandBuffer_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkEndCommandBuffer");;
     return vkEndCommandBuffer_VkResult_return;
 }
@@ -7040,7 +7162,7 @@ VkResult VkEncoder::vkResetCommandBuffer(
     VkCommandBuffer commandBuffer,
     VkCommandBufferResetFlags flags)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkResetCommandBuffer encode");
     mImpl->log("start vkResetCommandBuffer");
     auto stream = mImpl->stream();
@@ -7072,9 +7194,9 @@ VkResult VkEncoder::vkResetCommandBuffer(
     AEMU_SCOPED_TRACE("vkResetCommandBuffer returnUnmarshal");
     VkResult vkResetCommandBuffer_VkResult_return = (VkResult)0;
     stream->read(&vkResetCommandBuffer_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkResetCommandBuffer");;
     return vkResetCommandBuffer_VkResult_return;
 }
@@ -7084,7 +7206,7 @@ void VkEncoder::vkCmdBindPipeline(
     VkPipelineBindPoint pipelineBindPoint,
     VkPipeline pipeline)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdBindPipeline encode");
     mImpl->log("start vkCmdBindPipeline");
     auto stream = mImpl->stream();
@@ -7122,6 +7244,9 @@ void VkEncoder::vkCmdBindPipeline(
     stream->write((uint64_t*)&cgen_var_508, 1 * 8);
     AEMU_SCOPED_TRACE("vkCmdBindPipeline readParams");
     AEMU_SCOPED_TRACE("vkCmdBindPipeline returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdBindPipeline");;
 }
 
@@ -7131,7 +7256,7 @@ void VkEncoder::vkCmdSetViewport(
     uint32_t viewportCount,
     const VkViewport* pViewports)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdSetViewport encode");
     mImpl->log("start vkCmdSetViewport");
     auto stream = mImpl->stream();
@@ -7190,6 +7315,9 @@ void VkEncoder::vkCmdSetViewport(
     }
     AEMU_SCOPED_TRACE("vkCmdSetViewport readParams");
     AEMU_SCOPED_TRACE("vkCmdSetViewport returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdSetViewport");;
 }
 
@@ -7199,7 +7327,7 @@ void VkEncoder::vkCmdSetScissor(
     uint32_t scissorCount,
     const VkRect2D* pScissors)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdSetScissor encode");
     mImpl->log("start vkCmdSetScissor");
     auto stream = mImpl->stream();
@@ -7258,6 +7386,9 @@ void VkEncoder::vkCmdSetScissor(
     }
     AEMU_SCOPED_TRACE("vkCmdSetScissor readParams");
     AEMU_SCOPED_TRACE("vkCmdSetScissor returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdSetScissor");;
 }
 
@@ -7265,7 +7396,7 @@ void VkEncoder::vkCmdSetLineWidth(
     VkCommandBuffer commandBuffer,
     float lineWidth)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdSetLineWidth encode");
     mImpl->log("start vkCmdSetLineWidth");
     auto stream = mImpl->stream();
@@ -7295,6 +7426,9 @@ void VkEncoder::vkCmdSetLineWidth(
     stream->write((float*)&local_lineWidth, sizeof(float));
     AEMU_SCOPED_TRACE("vkCmdSetLineWidth readParams");
     AEMU_SCOPED_TRACE("vkCmdSetLineWidth returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdSetLineWidth");;
 }
 
@@ -7304,7 +7438,7 @@ void VkEncoder::vkCmdSetDepthBias(
     float depthBiasClamp,
     float depthBiasSlopeFactor)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdSetDepthBias encode");
     mImpl->log("start vkCmdSetDepthBias");
     auto stream = mImpl->stream();
@@ -7342,6 +7476,9 @@ void VkEncoder::vkCmdSetDepthBias(
     stream->write((float*)&local_depthBiasSlopeFactor, sizeof(float));
     AEMU_SCOPED_TRACE("vkCmdSetDepthBias readParams");
     AEMU_SCOPED_TRACE("vkCmdSetDepthBias returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdSetDepthBias");;
 }
 
@@ -7349,7 +7486,7 @@ void VkEncoder::vkCmdSetBlendConstants(
     VkCommandBuffer commandBuffer,
     const float blendConstants[4])
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdSetBlendConstants encode");
     mImpl->log("start vkCmdSetBlendConstants");
     auto stream = mImpl->stream();
@@ -7379,6 +7516,9 @@ void VkEncoder::vkCmdSetBlendConstants(
     stream->write((float*)local_blendConstants, 4 * sizeof(float));
     AEMU_SCOPED_TRACE("vkCmdSetBlendConstants readParams");
     AEMU_SCOPED_TRACE("vkCmdSetBlendConstants returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdSetBlendConstants");;
 }
 
@@ -7387,7 +7527,7 @@ void VkEncoder::vkCmdSetDepthBounds(
     float minDepthBounds,
     float maxDepthBounds)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdSetDepthBounds encode");
     mImpl->log("start vkCmdSetDepthBounds");
     auto stream = mImpl->stream();
@@ -7421,6 +7561,9 @@ void VkEncoder::vkCmdSetDepthBounds(
     stream->write((float*)&local_maxDepthBounds, sizeof(float));
     AEMU_SCOPED_TRACE("vkCmdSetDepthBounds readParams");
     AEMU_SCOPED_TRACE("vkCmdSetDepthBounds returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdSetDepthBounds");;
 }
 
@@ -7429,7 +7572,7 @@ void VkEncoder::vkCmdSetStencilCompareMask(
     VkStencilFaceFlags faceMask,
     uint32_t compareMask)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdSetStencilCompareMask encode");
     mImpl->log("start vkCmdSetStencilCompareMask");
     auto stream = mImpl->stream();
@@ -7463,6 +7606,9 @@ void VkEncoder::vkCmdSetStencilCompareMask(
     stream->write((uint32_t*)&local_compareMask, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdSetStencilCompareMask readParams");
     AEMU_SCOPED_TRACE("vkCmdSetStencilCompareMask returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdSetStencilCompareMask");;
 }
 
@@ -7471,7 +7617,7 @@ void VkEncoder::vkCmdSetStencilWriteMask(
     VkStencilFaceFlags faceMask,
     uint32_t writeMask)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdSetStencilWriteMask encode");
     mImpl->log("start vkCmdSetStencilWriteMask");
     auto stream = mImpl->stream();
@@ -7505,6 +7651,9 @@ void VkEncoder::vkCmdSetStencilWriteMask(
     stream->write((uint32_t*)&local_writeMask, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdSetStencilWriteMask readParams");
     AEMU_SCOPED_TRACE("vkCmdSetStencilWriteMask returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdSetStencilWriteMask");;
 }
 
@@ -7513,7 +7662,7 @@ void VkEncoder::vkCmdSetStencilReference(
     VkStencilFaceFlags faceMask,
     uint32_t reference)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdSetStencilReference encode");
     mImpl->log("start vkCmdSetStencilReference");
     auto stream = mImpl->stream();
@@ -7547,6 +7696,9 @@ void VkEncoder::vkCmdSetStencilReference(
     stream->write((uint32_t*)&local_reference, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdSetStencilReference readParams");
     AEMU_SCOPED_TRACE("vkCmdSetStencilReference returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdSetStencilReference");;
 }
 
@@ -7560,7 +7712,7 @@ void VkEncoder::vkCmdBindDescriptorSets(
     uint32_t dynamicOffsetCount,
     const uint32_t* pDynamicOffsets)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdBindDescriptorSets encode");
     mImpl->log("start vkCmdBindDescriptorSets");
     auto stream = mImpl->stream();
@@ -7638,6 +7790,9 @@ void VkEncoder::vkCmdBindDescriptorSets(
     stream->write((uint32_t*)local_pDynamicOffsets, ((dynamicOffsetCount)) * sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdBindDescriptorSets readParams");
     AEMU_SCOPED_TRACE("vkCmdBindDescriptorSets returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdBindDescriptorSets");;
 }
 
@@ -7647,7 +7802,7 @@ void VkEncoder::vkCmdBindIndexBuffer(
     VkDeviceSize offset,
     VkIndexType indexType)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdBindIndexBuffer encode");
     mImpl->log("start vkCmdBindIndexBuffer");
     auto stream = mImpl->stream();
@@ -7689,6 +7844,9 @@ void VkEncoder::vkCmdBindIndexBuffer(
     stream->write((VkIndexType*)&local_indexType, sizeof(VkIndexType));
     AEMU_SCOPED_TRACE("vkCmdBindIndexBuffer readParams");
     AEMU_SCOPED_TRACE("vkCmdBindIndexBuffer returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdBindIndexBuffer");;
 }
 
@@ -7699,7 +7857,7 @@ void VkEncoder::vkCmdBindVertexBuffers(
     const VkBuffer* pBuffers,
     const VkDeviceSize* pOffsets)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdBindVertexBuffers encode");
     mImpl->log("start vkCmdBindVertexBuffers");
     auto stream = mImpl->stream();
@@ -7761,6 +7919,9 @@ void VkEncoder::vkCmdBindVertexBuffers(
     stream->write((VkDeviceSize*)local_pOffsets, ((bindingCount)) * sizeof(VkDeviceSize));
     AEMU_SCOPED_TRACE("vkCmdBindVertexBuffers readParams");
     AEMU_SCOPED_TRACE("vkCmdBindVertexBuffers returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdBindVertexBuffers");;
 }
 
@@ -7771,7 +7932,7 @@ void VkEncoder::vkCmdDraw(
     uint32_t firstVertex,
     uint32_t firstInstance)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdDraw encode");
     mImpl->log("start vkCmdDraw");
     auto stream = mImpl->stream();
@@ -7813,6 +7974,9 @@ void VkEncoder::vkCmdDraw(
     stream->write((uint32_t*)&local_firstInstance, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdDraw readParams");
     AEMU_SCOPED_TRACE("vkCmdDraw returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdDraw");;
 }
 
@@ -7824,7 +7988,7 @@ void VkEncoder::vkCmdDrawIndexed(
     int32_t vertexOffset,
     uint32_t firstInstance)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdDrawIndexed encode");
     mImpl->log("start vkCmdDrawIndexed");
     auto stream = mImpl->stream();
@@ -7870,6 +8034,9 @@ void VkEncoder::vkCmdDrawIndexed(
     stream->write((uint32_t*)&local_firstInstance, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdDrawIndexed readParams");
     AEMU_SCOPED_TRACE("vkCmdDrawIndexed returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdDrawIndexed");;
 }
 
@@ -7880,7 +8047,7 @@ void VkEncoder::vkCmdDrawIndirect(
     uint32_t drawCount,
     uint32_t stride)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdDrawIndirect encode");
     mImpl->log("start vkCmdDrawIndirect");
     auto stream = mImpl->stream();
@@ -7926,6 +8093,9 @@ void VkEncoder::vkCmdDrawIndirect(
     stream->write((uint32_t*)&local_stride, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdDrawIndirect readParams");
     AEMU_SCOPED_TRACE("vkCmdDrawIndirect returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdDrawIndirect");;
 }
 
@@ -7936,7 +8106,7 @@ void VkEncoder::vkCmdDrawIndexedIndirect(
     uint32_t drawCount,
     uint32_t stride)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdDrawIndexedIndirect encode");
     mImpl->log("start vkCmdDrawIndexedIndirect");
     auto stream = mImpl->stream();
@@ -7982,6 +8152,9 @@ void VkEncoder::vkCmdDrawIndexedIndirect(
     stream->write((uint32_t*)&local_stride, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdDrawIndexedIndirect readParams");
     AEMU_SCOPED_TRACE("vkCmdDrawIndexedIndirect returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdDrawIndexedIndirect");;
 }
 
@@ -7991,7 +8164,7 @@ void VkEncoder::vkCmdDispatch(
     uint32_t groupCountY,
     uint32_t groupCountZ)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdDispatch encode");
     mImpl->log("start vkCmdDispatch");
     auto stream = mImpl->stream();
@@ -8029,6 +8202,9 @@ void VkEncoder::vkCmdDispatch(
     stream->write((uint32_t*)&local_groupCountZ, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdDispatch readParams");
     AEMU_SCOPED_TRACE("vkCmdDispatch returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdDispatch");;
 }
 
@@ -8037,7 +8213,7 @@ void VkEncoder::vkCmdDispatchIndirect(
     VkBuffer buffer,
     VkDeviceSize offset)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdDispatchIndirect encode");
     mImpl->log("start vkCmdDispatchIndirect");
     auto stream = mImpl->stream();
@@ -8075,6 +8251,9 @@ void VkEncoder::vkCmdDispatchIndirect(
     stream->write((VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
     AEMU_SCOPED_TRACE("vkCmdDispatchIndirect readParams");
     AEMU_SCOPED_TRACE("vkCmdDispatchIndirect returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdDispatchIndirect");;
 }
 
@@ -8085,7 +8264,7 @@ void VkEncoder::vkCmdCopyBuffer(
     uint32_t regionCount,
     const VkBufferCopy* pRegions)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdCopyBuffer encode");
     mImpl->log("start vkCmdCopyBuffer");
     auto stream = mImpl->stream();
@@ -8156,6 +8335,9 @@ void VkEncoder::vkCmdCopyBuffer(
     }
     AEMU_SCOPED_TRACE("vkCmdCopyBuffer readParams");
     AEMU_SCOPED_TRACE("vkCmdCopyBuffer returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdCopyBuffer");;
 }
 
@@ -8168,7 +8350,7 @@ void VkEncoder::vkCmdCopyImage(
     uint32_t regionCount,
     const VkImageCopy* pRegions)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdCopyImage encode");
     mImpl->log("start vkCmdCopyImage");
     auto stream = mImpl->stream();
@@ -8247,6 +8429,9 @@ void VkEncoder::vkCmdCopyImage(
     }
     AEMU_SCOPED_TRACE("vkCmdCopyImage readParams");
     AEMU_SCOPED_TRACE("vkCmdCopyImage returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdCopyImage");;
 }
 
@@ -8260,7 +8445,7 @@ void VkEncoder::vkCmdBlitImage(
     const VkImageBlit* pRegions,
     VkFilter filter)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdBlitImage encode");
     mImpl->log("start vkCmdBlitImage");
     auto stream = mImpl->stream();
@@ -8343,6 +8528,9 @@ void VkEncoder::vkCmdBlitImage(
     stream->write((VkFilter*)&local_filter, sizeof(VkFilter));
     AEMU_SCOPED_TRACE("vkCmdBlitImage readParams");
     AEMU_SCOPED_TRACE("vkCmdBlitImage returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdBlitImage");;
 }
 
@@ -8354,7 +8542,7 @@ void VkEncoder::vkCmdCopyBufferToImage(
     uint32_t regionCount,
     const VkBufferImageCopy* pRegions)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdCopyBufferToImage encode");
     mImpl->log("start vkCmdCopyBufferToImage");
     auto stream = mImpl->stream();
@@ -8429,6 +8617,9 @@ void VkEncoder::vkCmdCopyBufferToImage(
     }
     AEMU_SCOPED_TRACE("vkCmdCopyBufferToImage readParams");
     AEMU_SCOPED_TRACE("vkCmdCopyBufferToImage returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdCopyBufferToImage");;
 }
 
@@ -8440,7 +8631,7 @@ void VkEncoder::vkCmdCopyImageToBuffer(
     uint32_t regionCount,
     const VkBufferImageCopy* pRegions)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdCopyImageToBuffer encode");
     mImpl->log("start vkCmdCopyImageToBuffer");
     auto stream = mImpl->stream();
@@ -8515,6 +8706,9 @@ void VkEncoder::vkCmdCopyImageToBuffer(
     }
     AEMU_SCOPED_TRACE("vkCmdCopyImageToBuffer readParams");
     AEMU_SCOPED_TRACE("vkCmdCopyImageToBuffer returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdCopyImageToBuffer");;
 }
 
@@ -8525,7 +8719,7 @@ void VkEncoder::vkCmdUpdateBuffer(
     VkDeviceSize dataSize,
     const void* pData)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdUpdateBuffer encode");
     mImpl->log("start vkCmdUpdateBuffer");
     auto stream = mImpl->stream();
@@ -8575,6 +8769,9 @@ void VkEncoder::vkCmdUpdateBuffer(
     stream->write((void*)local_pData, ((dataSize)) * sizeof(uint8_t));
     AEMU_SCOPED_TRACE("vkCmdUpdateBuffer readParams");
     AEMU_SCOPED_TRACE("vkCmdUpdateBuffer returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdUpdateBuffer");;
 }
 
@@ -8585,7 +8782,7 @@ void VkEncoder::vkCmdFillBuffer(
     VkDeviceSize size,
     uint32_t data)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdFillBuffer encode");
     mImpl->log("start vkCmdFillBuffer");
     auto stream = mImpl->stream();
@@ -8631,6 +8828,9 @@ void VkEncoder::vkCmdFillBuffer(
     stream->write((uint32_t*)&local_data, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdFillBuffer readParams");
     AEMU_SCOPED_TRACE("vkCmdFillBuffer returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdFillBuffer");;
 }
 
@@ -8642,7 +8842,7 @@ void VkEncoder::vkCmdClearColorImage(
     uint32_t rangeCount,
     const VkImageSubresourceRange* pRanges)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdClearColorImage encode");
     mImpl->log("start vkCmdClearColorImage");
     auto stream = mImpl->stream();
@@ -8722,6 +8922,9 @@ void VkEncoder::vkCmdClearColorImage(
     }
     AEMU_SCOPED_TRACE("vkCmdClearColorImage readParams");
     AEMU_SCOPED_TRACE("vkCmdClearColorImage returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdClearColorImage");;
 }
 
@@ -8733,7 +8936,7 @@ void VkEncoder::vkCmdClearDepthStencilImage(
     uint32_t rangeCount,
     const VkImageSubresourceRange* pRanges)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdClearDepthStencilImage encode");
     mImpl->log("start vkCmdClearDepthStencilImage");
     auto stream = mImpl->stream();
@@ -8813,6 +9016,9 @@ void VkEncoder::vkCmdClearDepthStencilImage(
     }
     AEMU_SCOPED_TRACE("vkCmdClearDepthStencilImage readParams");
     AEMU_SCOPED_TRACE("vkCmdClearDepthStencilImage returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdClearDepthStencilImage");;
 }
 
@@ -8823,7 +9029,7 @@ void VkEncoder::vkCmdClearAttachments(
     uint32_t rectCount,
     const VkClearRect* pRects)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdClearAttachments encode");
     mImpl->log("start vkCmdClearAttachments");
     auto stream = mImpl->stream();
@@ -8907,6 +9113,9 @@ void VkEncoder::vkCmdClearAttachments(
     }
     AEMU_SCOPED_TRACE("vkCmdClearAttachments readParams");
     AEMU_SCOPED_TRACE("vkCmdClearAttachments returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdClearAttachments");;
 }
 
@@ -8919,7 +9128,7 @@ void VkEncoder::vkCmdResolveImage(
     uint32_t regionCount,
     const VkImageResolve* pRegions)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdResolveImage encode");
     mImpl->log("start vkCmdResolveImage");
     auto stream = mImpl->stream();
@@ -8998,6 +9207,9 @@ void VkEncoder::vkCmdResolveImage(
     }
     AEMU_SCOPED_TRACE("vkCmdResolveImage readParams");
     AEMU_SCOPED_TRACE("vkCmdResolveImage returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdResolveImage");;
 }
 
@@ -9006,7 +9218,7 @@ void VkEncoder::vkCmdSetEvent(
     VkEvent event,
     VkPipelineStageFlags stageMask)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdSetEvent encode");
     mImpl->log("start vkCmdSetEvent");
     auto stream = mImpl->stream();
@@ -9044,6 +9256,9 @@ void VkEncoder::vkCmdSetEvent(
     stream->write((VkPipelineStageFlags*)&local_stageMask, sizeof(VkPipelineStageFlags));
     AEMU_SCOPED_TRACE("vkCmdSetEvent readParams");
     AEMU_SCOPED_TRACE("vkCmdSetEvent returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdSetEvent");;
 }
 
@@ -9052,7 +9267,7 @@ void VkEncoder::vkCmdResetEvent(
     VkEvent event,
     VkPipelineStageFlags stageMask)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdResetEvent encode");
     mImpl->log("start vkCmdResetEvent");
     auto stream = mImpl->stream();
@@ -9090,6 +9305,9 @@ void VkEncoder::vkCmdResetEvent(
     stream->write((VkPipelineStageFlags*)&local_stageMask, sizeof(VkPipelineStageFlags));
     AEMU_SCOPED_TRACE("vkCmdResetEvent readParams");
     AEMU_SCOPED_TRACE("vkCmdResetEvent returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdResetEvent");;
 }
 
@@ -9106,7 +9324,7 @@ void VkEncoder::vkCmdWaitEvents(
     uint32_t imageMemoryBarrierCount,
     const VkImageMemoryBarrier* pImageMemoryBarriers)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdWaitEvents encode");
     mImpl->log("start vkCmdWaitEvents");
     auto stream = mImpl->stream();
@@ -9251,6 +9469,9 @@ void VkEncoder::vkCmdWaitEvents(
     }
     AEMU_SCOPED_TRACE("vkCmdWaitEvents readParams");
     AEMU_SCOPED_TRACE("vkCmdWaitEvents returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdWaitEvents");;
 }
 
@@ -9266,7 +9487,7 @@ void VkEncoder::vkCmdPipelineBarrier(
     uint32_t imageMemoryBarrierCount,
     const VkImageMemoryBarrier* pImageMemoryBarriers)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdPipelineBarrier encode");
     mImpl->log("start vkCmdPipelineBarrier");
     auto stream = mImpl->stream();
@@ -9391,6 +9612,9 @@ void VkEncoder::vkCmdPipelineBarrier(
     }
     AEMU_SCOPED_TRACE("vkCmdPipelineBarrier readParams");
     AEMU_SCOPED_TRACE("vkCmdPipelineBarrier returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdPipelineBarrier");;
 }
 
@@ -9400,7 +9624,7 @@ void VkEncoder::vkCmdBeginQuery(
     uint32_t query,
     VkQueryControlFlags flags)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdBeginQuery encode");
     mImpl->log("start vkCmdBeginQuery");
     auto stream = mImpl->stream();
@@ -9442,6 +9666,9 @@ void VkEncoder::vkCmdBeginQuery(
     stream->write((VkQueryControlFlags*)&local_flags, sizeof(VkQueryControlFlags));
     AEMU_SCOPED_TRACE("vkCmdBeginQuery readParams");
     AEMU_SCOPED_TRACE("vkCmdBeginQuery returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdBeginQuery");;
 }
 
@@ -9450,7 +9677,7 @@ void VkEncoder::vkCmdEndQuery(
     VkQueryPool queryPool,
     uint32_t query)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdEndQuery encode");
     mImpl->log("start vkCmdEndQuery");
     auto stream = mImpl->stream();
@@ -9488,6 +9715,9 @@ void VkEncoder::vkCmdEndQuery(
     stream->write((uint32_t*)&local_query, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdEndQuery readParams");
     AEMU_SCOPED_TRACE("vkCmdEndQuery returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdEndQuery");;
 }
 
@@ -9497,7 +9727,7 @@ void VkEncoder::vkCmdResetQueryPool(
     uint32_t firstQuery,
     uint32_t queryCount)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdResetQueryPool encode");
     mImpl->log("start vkCmdResetQueryPool");
     auto stream = mImpl->stream();
@@ -9539,6 +9769,9 @@ void VkEncoder::vkCmdResetQueryPool(
     stream->write((uint32_t*)&local_queryCount, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdResetQueryPool readParams");
     AEMU_SCOPED_TRACE("vkCmdResetQueryPool returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdResetQueryPool");;
 }
 
@@ -9548,7 +9781,7 @@ void VkEncoder::vkCmdWriteTimestamp(
     VkQueryPool queryPool,
     uint32_t query)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdWriteTimestamp encode");
     mImpl->log("start vkCmdWriteTimestamp");
     auto stream = mImpl->stream();
@@ -9590,6 +9823,9 @@ void VkEncoder::vkCmdWriteTimestamp(
     stream->write((uint32_t*)&local_query, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdWriteTimestamp readParams");
     AEMU_SCOPED_TRACE("vkCmdWriteTimestamp returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdWriteTimestamp");;
 }
 
@@ -9603,7 +9839,7 @@ void VkEncoder::vkCmdCopyQueryPoolResults(
     VkDeviceSize stride,
     VkQueryResultFlags flags)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdCopyQueryPoolResults encode");
     mImpl->log("start vkCmdCopyQueryPoolResults");
     auto stream = mImpl->stream();
@@ -9665,6 +9901,9 @@ void VkEncoder::vkCmdCopyQueryPoolResults(
     stream->write((VkQueryResultFlags*)&local_flags, sizeof(VkQueryResultFlags));
     AEMU_SCOPED_TRACE("vkCmdCopyQueryPoolResults readParams");
     AEMU_SCOPED_TRACE("vkCmdCopyQueryPoolResults returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdCopyQueryPoolResults");;
 }
 
@@ -9676,7 +9915,7 @@ void VkEncoder::vkCmdPushConstants(
     uint32_t size,
     const void* pValues)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdPushConstants encode");
     mImpl->log("start vkCmdPushConstants");
     auto stream = mImpl->stream();
@@ -9730,6 +9969,9 @@ void VkEncoder::vkCmdPushConstants(
     stream->write((void*)local_pValues, ((size)) * sizeof(uint8_t));
     AEMU_SCOPED_TRACE("vkCmdPushConstants readParams");
     AEMU_SCOPED_TRACE("vkCmdPushConstants returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdPushConstants");;
 }
 
@@ -9738,7 +9980,7 @@ void VkEncoder::vkCmdBeginRenderPass(
     const VkRenderPassBeginInfo* pRenderPassBegin,
     VkSubpassContents contents)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdBeginRenderPass encode");
     mImpl->log("start vkCmdBeginRenderPass");
     auto stream = mImpl->stream();
@@ -9781,6 +10023,9 @@ void VkEncoder::vkCmdBeginRenderPass(
     stream->write((VkSubpassContents*)&local_contents, sizeof(VkSubpassContents));
     AEMU_SCOPED_TRACE("vkCmdBeginRenderPass readParams");
     AEMU_SCOPED_TRACE("vkCmdBeginRenderPass returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdBeginRenderPass");;
 }
 
@@ -9788,7 +10033,7 @@ void VkEncoder::vkCmdNextSubpass(
     VkCommandBuffer commandBuffer,
     VkSubpassContents contents)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdNextSubpass encode");
     mImpl->log("start vkCmdNextSubpass");
     auto stream = mImpl->stream();
@@ -9818,13 +10063,16 @@ void VkEncoder::vkCmdNextSubpass(
     stream->write((VkSubpassContents*)&local_contents, sizeof(VkSubpassContents));
     AEMU_SCOPED_TRACE("vkCmdNextSubpass readParams");
     AEMU_SCOPED_TRACE("vkCmdNextSubpass returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdNextSubpass");;
 }
 
 void VkEncoder::vkCmdEndRenderPass(
     VkCommandBuffer commandBuffer)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdEndRenderPass encode");
     mImpl->log("start vkCmdEndRenderPass");
     auto stream = mImpl->stream();
@@ -9850,6 +10098,9 @@ void VkEncoder::vkCmdEndRenderPass(
     stream->write((uint64_t*)&cgen_var_658, 1 * 8);
     AEMU_SCOPED_TRACE("vkCmdEndRenderPass readParams");
     AEMU_SCOPED_TRACE("vkCmdEndRenderPass returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdEndRenderPass");;
 }
 
@@ -9858,7 +10109,7 @@ void VkEncoder::vkCmdExecuteCommands(
     uint32_t commandBufferCount,
     const VkCommandBuffer* pCommandBuffers)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdExecuteCommands encode");
     mImpl->log("start vkCmdExecuteCommands");
     auto stream = mImpl->stream();
@@ -9908,6 +10159,9 @@ void VkEncoder::vkCmdExecuteCommands(
     }
     AEMU_SCOPED_TRACE("vkCmdExecuteCommands readParams");
     AEMU_SCOPED_TRACE("vkCmdExecuteCommands returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdExecuteCommands");;
 }
 
@@ -9916,7 +10170,7 @@ void VkEncoder::vkCmdExecuteCommands(
 VkResult VkEncoder::vkEnumerateInstanceVersion(
     uint32_t* pApiVersion)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkEnumerateInstanceVersion encode");
     mImpl->log("start vkEnumerateInstanceVersion");
     auto stream = mImpl->stream();
@@ -9939,9 +10193,9 @@ VkResult VkEncoder::vkEnumerateInstanceVersion(
     AEMU_SCOPED_TRACE("vkEnumerateInstanceVersion returnUnmarshal");
     VkResult vkEnumerateInstanceVersion_VkResult_return = (VkResult)0;
     stream->read(&vkEnumerateInstanceVersion_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkEnumerateInstanceVersion");;
     return vkEnumerateInstanceVersion_VkResult_return;
 }
@@ -9951,7 +10205,7 @@ VkResult VkEncoder::vkBindBufferMemory2(
     uint32_t bindInfoCount,
     const VkBindBufferMemoryInfo* pBindInfos)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkBindBufferMemory2 encode");
     mImpl->log("start vkBindBufferMemory2");
     auto stream = mImpl->stream();
@@ -10008,9 +10262,9 @@ VkResult VkEncoder::vkBindBufferMemory2(
     AEMU_SCOPED_TRACE("vkBindBufferMemory2 returnUnmarshal");
     VkResult vkBindBufferMemory2_VkResult_return = (VkResult)0;
     stream->read(&vkBindBufferMemory2_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkBindBufferMemory2");;
     return vkBindBufferMemory2_VkResult_return;
 }
@@ -10020,7 +10274,7 @@ VkResult VkEncoder::vkBindImageMemory2(
     uint32_t bindInfoCount,
     const VkBindImageMemoryInfo* pBindInfos)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkBindImageMemory2 encode");
     mImpl->log("start vkBindImageMemory2");
     auto stream = mImpl->stream();
@@ -10077,9 +10331,9 @@ VkResult VkEncoder::vkBindImageMemory2(
     AEMU_SCOPED_TRACE("vkBindImageMemory2 returnUnmarshal");
     VkResult vkBindImageMemory2_VkResult_return = (VkResult)0;
     stream->read(&vkBindImageMemory2_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkBindImageMemory2");;
     return vkBindImageMemory2_VkResult_return;
 }
@@ -10091,7 +10345,7 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeatures(
     uint32_t remoteDeviceIndex,
     VkPeerMemoryFeatureFlags* pPeerMemoryFeatures)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetDeviceGroupPeerMemoryFeatures encode");
     mImpl->log("start vkGetDeviceGroupPeerMemoryFeatures");
     auto stream = mImpl->stream();
@@ -10132,6 +10386,9 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeatures(
     AEMU_SCOPED_TRACE("vkGetDeviceGroupPeerMemoryFeatures readParams");
     stream->read((VkPeerMemoryFeatureFlags*)pPeerMemoryFeatures, sizeof(VkPeerMemoryFeatureFlags));
     AEMU_SCOPED_TRACE("vkGetDeviceGroupPeerMemoryFeatures returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetDeviceGroupPeerMemoryFeatures");;
 }
 
@@ -10139,7 +10396,7 @@ void VkEncoder::vkCmdSetDeviceMask(
     VkCommandBuffer commandBuffer,
     uint32_t deviceMask)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdSetDeviceMask encode");
     mImpl->log("start vkCmdSetDeviceMask");
     auto stream = mImpl->stream();
@@ -10169,6 +10426,9 @@ void VkEncoder::vkCmdSetDeviceMask(
     stream->write((uint32_t*)&local_deviceMask, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdSetDeviceMask readParams");
     AEMU_SCOPED_TRACE("vkCmdSetDeviceMask returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdSetDeviceMask");;
 }
 
@@ -10181,7 +10441,7 @@ void VkEncoder::vkCmdDispatchBase(
     uint32_t groupCountY,
     uint32_t groupCountZ)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdDispatchBase encode");
     mImpl->log("start vkCmdDispatchBase");
     auto stream = mImpl->stream();
@@ -10231,6 +10491,9 @@ void VkEncoder::vkCmdDispatchBase(
     stream->write((uint32_t*)&local_groupCountZ, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdDispatchBase readParams");
     AEMU_SCOPED_TRACE("vkCmdDispatchBase returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdDispatchBase");;
 }
 
@@ -10239,7 +10502,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
     uint32_t* pPhysicalDeviceGroupCount,
     VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkEnumeratePhysicalDeviceGroups encode");
     mImpl->log("start vkEnumeratePhysicalDeviceGroups");
     auto stream = mImpl->stream();
@@ -10333,9 +10596,9 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
     AEMU_SCOPED_TRACE("vkEnumeratePhysicalDeviceGroups returnUnmarshal");
     VkResult vkEnumeratePhysicalDeviceGroups_VkResult_return = (VkResult)0;
     stream->read(&vkEnumeratePhysicalDeviceGroups_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkEnumeratePhysicalDeviceGroups");;
     return vkEnumeratePhysicalDeviceGroups_VkResult_return;
 }
@@ -10345,7 +10608,7 @@ void VkEncoder::vkGetImageMemoryRequirements2(
     const VkImageMemoryRequirementsInfo2* pInfo,
     VkMemoryRequirements2* pMemoryRequirements)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetImageMemoryRequirements2 encode");
     mImpl->log("start vkGetImageMemoryRequirements2");
     auto stream = mImpl->stream();
@@ -10391,6 +10654,9 @@ void VkEncoder::vkGetImageMemoryRequirements2(
         transform_fromhost_VkMemoryRequirements2(mImpl->resources(), (VkMemoryRequirements2*)(pMemoryRequirements));
     }
     AEMU_SCOPED_TRACE("vkGetImageMemoryRequirements2 returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetImageMemoryRequirements2");;
 }
 
@@ -10399,7 +10665,7 @@ void VkEncoder::vkGetBufferMemoryRequirements2(
     const VkBufferMemoryRequirementsInfo2* pInfo,
     VkMemoryRequirements2* pMemoryRequirements)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetBufferMemoryRequirements2 encode");
     mImpl->log("start vkGetBufferMemoryRequirements2");
     auto stream = mImpl->stream();
@@ -10445,6 +10711,9 @@ void VkEncoder::vkGetBufferMemoryRequirements2(
         transform_fromhost_VkMemoryRequirements2(mImpl->resources(), (VkMemoryRequirements2*)(pMemoryRequirements));
     }
     AEMU_SCOPED_TRACE("vkGetBufferMemoryRequirements2 returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetBufferMemoryRequirements2");;
 }
 
@@ -10454,7 +10723,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
     uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetImageSparseMemoryRequirements2 encode");
     mImpl->log("start vkGetImageSparseMemoryRequirements2");
     auto stream = mImpl->stream();
@@ -10559,6 +10828,9 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
         }
     }
     AEMU_SCOPED_TRACE("vkGetImageSparseMemoryRequirements2 returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetImageSparseMemoryRequirements2");;
 }
 
@@ -10566,7 +10838,7 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2(
     VkPhysicalDevice physicalDevice,
     VkPhysicalDeviceFeatures2* pFeatures)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFeatures2 encode");
     mImpl->log("start vkGetPhysicalDeviceFeatures2");
     auto stream = mImpl->stream();
@@ -10599,6 +10871,9 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2(
         transform_fromhost_VkPhysicalDeviceFeatures2(mImpl->resources(), (VkPhysicalDeviceFeatures2*)(pFeatures));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFeatures2 returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceFeatures2");;
 }
 
@@ -10606,7 +10881,7 @@ void VkEncoder::vkGetPhysicalDeviceProperties2(
     VkPhysicalDevice physicalDevice,
     VkPhysicalDeviceProperties2* pProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceProperties2 encode");
     mImpl->log("start vkGetPhysicalDeviceProperties2");
     auto stream = mImpl->stream();
@@ -10639,9 +10914,10 @@ void VkEncoder::vkGetPhysicalDeviceProperties2(
         transform_fromhost_VkPhysicalDeviceProperties2(mImpl->resources(), (VkPhysicalDeviceProperties2*)(pProperties));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceProperties2 returnUnmarshal");
-    encoderLock.unlock();
     mImpl->resources()->on_vkGetPhysicalDeviceProperties2(this, physicalDevice, pProperties);
-    encoderLock.lock();
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceProperties2");;
 }
 
@@ -10650,7 +10926,7 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2(
     VkFormat format,
     VkFormatProperties2* pFormatProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFormatProperties2 encode");
     mImpl->log("start vkGetPhysicalDeviceFormatProperties2");
     auto stream = mImpl->stream();
@@ -10687,6 +10963,9 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2(
         transform_fromhost_VkFormatProperties2(mImpl->resources(), (VkFormatProperties2*)(pFormatProperties));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFormatProperties2 returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceFormatProperties2");;
 }
 
@@ -10695,7 +10974,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2(
     const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
     VkImageFormatProperties2* pImageFormatProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceImageFormatProperties2 encode");
     mImpl->log("start vkGetPhysicalDeviceImageFormatProperties2");
     auto stream = mImpl->stream();
@@ -10743,9 +11022,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceImageFormatProperties2 returnUnmarshal");
     VkResult vkGetPhysicalDeviceImageFormatProperties2_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceImageFormatProperties2_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceImageFormatProperties2");;
     return vkGetPhysicalDeviceImageFormatProperties2_VkResult_return;
 }
@@ -10755,7 +11034,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
     uint32_t* pQueueFamilyPropertyCount,
     VkQueueFamilyProperties2* pQueueFamilyProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceQueueFamilyProperties2 encode");
     mImpl->log("start vkGetPhysicalDeviceQueueFamilyProperties2");
     auto stream = mImpl->stream();
@@ -10847,6 +11126,9 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
         }
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceQueueFamilyProperties2 returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceQueueFamilyProperties2");;
 }
 
@@ -10854,7 +11136,7 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2(
     VkPhysicalDevice physicalDevice,
     VkPhysicalDeviceMemoryProperties2* pMemoryProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceMemoryProperties2 encode");
     mImpl->log("start vkGetPhysicalDeviceMemoryProperties2");
     auto stream = mImpl->stream();
@@ -10887,9 +11169,10 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2(
         transform_fromhost_VkPhysicalDeviceMemoryProperties2(mImpl->resources(), (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceMemoryProperties2 returnUnmarshal");
-    encoderLock.unlock();
     mImpl->resources()->on_vkGetPhysicalDeviceMemoryProperties2(this, physicalDevice, pMemoryProperties);
-    encoderLock.lock();
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceMemoryProperties2");;
 }
 
@@ -10899,7 +11182,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
     uint32_t* pPropertyCount,
     VkSparseImageFormatProperties2* pProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSparseImageFormatProperties2 encode");
     mImpl->log("start vkGetPhysicalDeviceSparseImageFormatProperties2");
     auto stream = mImpl->stream();
@@ -11004,6 +11287,9 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
         }
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSparseImageFormatProperties2 returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceSparseImageFormatProperties2");;
 }
 
@@ -11012,7 +11298,7 @@ void VkEncoder::vkTrimCommandPool(
     VkCommandPool commandPool,
     VkCommandPoolTrimFlags flags)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkTrimCommandPool encode");
     mImpl->log("start vkTrimCommandPool");
     auto stream = mImpl->stream();
@@ -11050,6 +11336,9 @@ void VkEncoder::vkTrimCommandPool(
     stream->write((VkCommandPoolTrimFlags*)&local_flags, sizeof(VkCommandPoolTrimFlags));
     AEMU_SCOPED_TRACE("vkTrimCommandPool readParams");
     AEMU_SCOPED_TRACE("vkTrimCommandPool returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkTrimCommandPool");;
 }
 
@@ -11058,7 +11347,7 @@ void VkEncoder::vkGetDeviceQueue2(
     const VkDeviceQueueInfo2* pQueueInfo,
     VkQueue* pQueue)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetDeviceQueue2 encode");
     mImpl->log("start vkGetDeviceQueue2");
     auto stream = mImpl->stream();
@@ -11108,6 +11397,9 @@ void VkEncoder::vkGetDeviceQueue2(
     stream->read((uint64_t*)&cgen_var_727, 8);
     stream->handleMapping()->mapHandles_u64_VkQueue(&cgen_var_727, (VkQueue*)pQueue, 1);
     AEMU_SCOPED_TRACE("vkGetDeviceQueue2 returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetDeviceQueue2");;
 }
 
@@ -11117,7 +11409,7 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversion(
     const VkAllocationCallbacks* pAllocator,
     VkSamplerYcbcrConversion* pYcbcrConversion)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateSamplerYcbcrConversion encode");
     mImpl->log("start vkCreateSamplerYcbcrConversion");
     auto stream = mImpl->stream();
@@ -11197,9 +11489,9 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversion(
     AEMU_SCOPED_TRACE("vkCreateSamplerYcbcrConversion returnUnmarshal");
     VkResult vkCreateSamplerYcbcrConversion_VkResult_return = (VkResult)0;
     stream->read(&vkCreateSamplerYcbcrConversion_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateSamplerYcbcrConversion");;
     return vkCreateSamplerYcbcrConversion_VkResult_return;
 }
@@ -11209,7 +11501,7 @@ void VkEncoder::vkDestroySamplerYcbcrConversion(
     VkSamplerYcbcrConversion ycbcrConversion,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroySamplerYcbcrConversion encode");
     mImpl->log("start vkDestroySamplerYcbcrConversion");
     auto stream = mImpl->stream();
@@ -11270,6 +11562,9 @@ void VkEncoder::vkDestroySamplerYcbcrConversion(
     AEMU_SCOPED_TRACE("vkDestroySamplerYcbcrConversion readParams");
     AEMU_SCOPED_TRACE("vkDestroySamplerYcbcrConversion returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkSamplerYcbcrConversion((VkSamplerYcbcrConversion*)&ycbcrConversion);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroySamplerYcbcrConversion");;
 }
 
@@ -11279,7 +11574,7 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplate(
     const VkAllocationCallbacks* pAllocator,
     VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateDescriptorUpdateTemplate encode");
     mImpl->log("start vkCreateDescriptorUpdateTemplate");
     auto stream = mImpl->stream();
@@ -11359,12 +11654,10 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplate(
     AEMU_SCOPED_TRACE("vkCreateDescriptorUpdateTemplate returnUnmarshal");
     VkResult vkCreateDescriptorUpdateTemplate_VkResult_return = (VkResult)0;
     stream->read(&vkCreateDescriptorUpdateTemplate_VkResult_return, sizeof(VkResult));
+    mImpl->resources()->on_vkCreateDescriptorUpdateTemplate(this, vkCreateDescriptorUpdateTemplate_VkResult_return, device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
-    encoderLock.unlock();
-    mImpl->resources()->on_vkCreateDescriptorUpdateTemplate(this, vkCreateDescriptorUpdateTemplate_VkResult_return, device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
-    encoderLock.lock();
     mImpl->log("finish vkCreateDescriptorUpdateTemplate");;
     return vkCreateDescriptorUpdateTemplate_VkResult_return;
 }
@@ -11374,7 +11667,7 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplate(
     VkDescriptorUpdateTemplate descriptorUpdateTemplate,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyDescriptorUpdateTemplate encode");
     mImpl->log("start vkDestroyDescriptorUpdateTemplate");
     auto stream = mImpl->stream();
@@ -11435,6 +11728,9 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplate(
     AEMU_SCOPED_TRACE("vkDestroyDescriptorUpdateTemplate readParams");
     AEMU_SCOPED_TRACE("vkDestroyDescriptorUpdateTemplate returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkDescriptorUpdateTemplate((VkDescriptorUpdateTemplate*)&descriptorUpdateTemplate);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyDescriptorUpdateTemplate");;
 }
 
@@ -11444,7 +11740,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplate(
     VkDescriptorUpdateTemplate descriptorUpdateTemplate,
     const void* pData)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplate encode");
     mImpl->log("start vkUpdateDescriptorSetWithTemplate");
     auto stream = mImpl->stream();
@@ -11506,6 +11802,9 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplate(
     }
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplate readParams");
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplate returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkUpdateDescriptorSetWithTemplate");;
 }
 
@@ -11514,7 +11813,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
     const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
     VkExternalBufferProperties* pExternalBufferProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalBufferProperties encode");
     mImpl->log("start vkGetPhysicalDeviceExternalBufferProperties");
     auto stream = mImpl->stream();
@@ -11562,6 +11861,9 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
         transform_fromhost_VkExternalBufferProperties(mImpl->resources(), (VkExternalBufferProperties*)(pExternalBufferProperties));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalBufferProperties returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceExternalBufferProperties");;
 }
 
@@ -11570,7 +11872,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalFenceProperties(
     const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
     VkExternalFenceProperties* pExternalFenceProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalFenceProperties encode");
     mImpl->log("start vkGetPhysicalDeviceExternalFenceProperties");
     auto stream = mImpl->stream();
@@ -11616,6 +11918,9 @@ void VkEncoder::vkGetPhysicalDeviceExternalFenceProperties(
         transform_fromhost_VkExternalFenceProperties(mImpl->resources(), (VkExternalFenceProperties*)(pExternalFenceProperties));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalFenceProperties returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceExternalFenceProperties");;
 }
 
@@ -11624,7 +11929,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphoreProperties(
     const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
     VkExternalSemaphoreProperties* pExternalSemaphoreProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalSemaphoreProperties encode");
     mImpl->log("start vkGetPhysicalDeviceExternalSemaphoreProperties");
     auto stream = mImpl->stream();
@@ -11670,6 +11975,9 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphoreProperties(
         transform_fromhost_VkExternalSemaphoreProperties(mImpl->resources(), (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalSemaphoreProperties returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceExternalSemaphoreProperties");;
 }
 
@@ -11678,7 +11986,7 @@ void VkEncoder::vkGetDescriptorSetLayoutSupport(
     const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
     VkDescriptorSetLayoutSupport* pSupport)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutSupport encode");
     mImpl->log("start vkGetDescriptorSetLayoutSupport");
     auto stream = mImpl->stream();
@@ -11724,6 +12032,9 @@ void VkEncoder::vkGetDescriptorSetLayoutSupport(
         transform_fromhost_VkDescriptorSetLayoutSupport(mImpl->resources(), (VkDescriptorSetLayoutSupport*)(pSupport));
     }
     AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutSupport returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetDescriptorSetLayoutSupport");;
 }
 
@@ -11734,7 +12045,7 @@ void VkEncoder::vkDestroySurfaceKHR(
     VkSurfaceKHR surface,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroySurfaceKHR encode");
     mImpl->log("start vkDestroySurfaceKHR");
     auto stream = mImpl->stream();
@@ -11795,6 +12106,9 @@ void VkEncoder::vkDestroySurfaceKHR(
     AEMU_SCOPED_TRACE("vkDestroySurfaceKHR readParams");
     AEMU_SCOPED_TRACE("vkDestroySurfaceKHR returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkSurfaceKHR((VkSurfaceKHR*)&surface);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroySurfaceKHR");;
 }
 
@@ -11804,7 +12118,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceSupportKHR(
     VkSurfaceKHR surface,
     VkBool32* pSupported)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceSupportKHR encode");
     mImpl->log("start vkGetPhysicalDeviceSurfaceSupportKHR");
     auto stream = mImpl->stream();
@@ -11847,9 +12161,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceSupportKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceSupportKHR returnUnmarshal");
     VkResult vkGetPhysicalDeviceSurfaceSupportKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceSurfaceSupportKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceSurfaceSupportKHR");;
     return vkGetPhysicalDeviceSurfaceSupportKHR_VkResult_return;
 }
@@ -11859,7 +12173,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
     VkSurfaceKHR surface,
     VkSurfaceCapabilitiesKHR* pSurfaceCapabilities)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceCapabilitiesKHR encode");
     mImpl->log("start vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
     auto stream = mImpl->stream();
@@ -11902,9 +12216,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceCapabilitiesKHR returnUnmarshal");
     VkResult vkGetPhysicalDeviceSurfaceCapabilitiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceSurfaceCapabilitiesKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceSurfaceCapabilitiesKHR");;
     return vkGetPhysicalDeviceSurfaceCapabilitiesKHR_VkResult_return;
 }
@@ -11915,7 +12229,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
     uint32_t* pSurfaceFormatCount,
     VkSurfaceFormatKHR* pSurfaceFormats)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceFormatsKHR encode");
     mImpl->log("start vkGetPhysicalDeviceSurfaceFormatsKHR");
     auto stream = mImpl->stream();
@@ -12017,9 +12331,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceFormatsKHR returnUnmarshal");
     VkResult vkGetPhysicalDeviceSurfaceFormatsKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceSurfaceFormatsKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceSurfaceFormatsKHR");;
     return vkGetPhysicalDeviceSurfaceFormatsKHR_VkResult_return;
 }
@@ -12030,7 +12344,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModesKHR(
     uint32_t* pPresentModeCount,
     VkPresentModeKHR* pPresentModes)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfacePresentModesKHR encode");
     mImpl->log("start vkGetPhysicalDeviceSurfacePresentModesKHR");
     auto stream = mImpl->stream();
@@ -12116,9 +12430,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModesKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfacePresentModesKHR returnUnmarshal");
     VkResult vkGetPhysicalDeviceSurfacePresentModesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceSurfacePresentModesKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceSurfacePresentModesKHR");;
     return vkGetPhysicalDeviceSurfacePresentModesKHR_VkResult_return;
 }
@@ -12131,7 +12445,7 @@ VkResult VkEncoder::vkCreateSwapchainKHR(
     const VkAllocationCallbacks* pAllocator,
     VkSwapchainKHR* pSwapchain)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateSwapchainKHR encode");
     mImpl->log("start vkCreateSwapchainKHR");
     auto stream = mImpl->stream();
@@ -12211,9 +12525,9 @@ VkResult VkEncoder::vkCreateSwapchainKHR(
     AEMU_SCOPED_TRACE("vkCreateSwapchainKHR returnUnmarshal");
     VkResult vkCreateSwapchainKHR_VkResult_return = (VkResult)0;
     stream->read(&vkCreateSwapchainKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateSwapchainKHR");;
     return vkCreateSwapchainKHR_VkResult_return;
 }
@@ -12223,7 +12537,7 @@ void VkEncoder::vkDestroySwapchainKHR(
     VkSwapchainKHR swapchain,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroySwapchainKHR encode");
     mImpl->log("start vkDestroySwapchainKHR");
     auto stream = mImpl->stream();
@@ -12284,6 +12598,9 @@ void VkEncoder::vkDestroySwapchainKHR(
     AEMU_SCOPED_TRACE("vkDestroySwapchainKHR readParams");
     AEMU_SCOPED_TRACE("vkDestroySwapchainKHR returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkSwapchainKHR((VkSwapchainKHR*)&swapchain);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroySwapchainKHR");;
 }
 
@@ -12293,7 +12610,7 @@ VkResult VkEncoder::vkGetSwapchainImagesKHR(
     uint32_t* pSwapchainImageCount,
     VkImage* pSwapchainImages)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetSwapchainImagesKHR encode");
     mImpl->log("start vkGetSwapchainImagesKHR");
     auto stream = mImpl->stream();
@@ -12399,9 +12716,9 @@ VkResult VkEncoder::vkGetSwapchainImagesKHR(
     AEMU_SCOPED_TRACE("vkGetSwapchainImagesKHR returnUnmarshal");
     VkResult vkGetSwapchainImagesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetSwapchainImagesKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetSwapchainImagesKHR");;
     return vkGetSwapchainImagesKHR_VkResult_return;
 }
@@ -12414,7 +12731,7 @@ VkResult VkEncoder::vkAcquireNextImageKHR(
     VkFence fence,
     uint32_t* pImageIndex)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkAcquireNextImageKHR encode");
     mImpl->log("start vkAcquireNextImageKHR");
     auto stream = mImpl->stream();
@@ -12473,9 +12790,9 @@ VkResult VkEncoder::vkAcquireNextImageKHR(
     AEMU_SCOPED_TRACE("vkAcquireNextImageKHR returnUnmarshal");
     VkResult vkAcquireNextImageKHR_VkResult_return = (VkResult)0;
     stream->read(&vkAcquireNextImageKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkAcquireNextImageKHR");;
     return vkAcquireNextImageKHR_VkResult_return;
 }
@@ -12484,7 +12801,7 @@ VkResult VkEncoder::vkQueuePresentKHR(
     VkQueue queue,
     const VkPresentInfoKHR* pPresentInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkQueuePresentKHR encode");
     mImpl->log("start vkQueuePresentKHR");
     auto stream = mImpl->stream();
@@ -12525,9 +12842,9 @@ VkResult VkEncoder::vkQueuePresentKHR(
     AEMU_SCOPED_TRACE("vkQueuePresentKHR returnUnmarshal");
     VkResult vkQueuePresentKHR_VkResult_return = (VkResult)0;
     stream->read(&vkQueuePresentKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkQueuePresentKHR");;
     return vkQueuePresentKHR_VkResult_return;
 }
@@ -12536,7 +12853,7 @@ VkResult VkEncoder::vkGetDeviceGroupPresentCapabilitiesKHR(
     VkDevice device,
     VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetDeviceGroupPresentCapabilitiesKHR encode");
     mImpl->log("start vkGetDeviceGroupPresentCapabilitiesKHR");
     auto stream = mImpl->stream();
@@ -12571,9 +12888,9 @@ VkResult VkEncoder::vkGetDeviceGroupPresentCapabilitiesKHR(
     AEMU_SCOPED_TRACE("vkGetDeviceGroupPresentCapabilitiesKHR returnUnmarshal");
     VkResult vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetDeviceGroupPresentCapabilitiesKHR");;
     return vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return;
 }
@@ -12583,7 +12900,7 @@ VkResult VkEncoder::vkGetDeviceGroupSurfacePresentModesKHR(
     VkSurfaceKHR surface,
     VkDeviceGroupPresentModeFlagsKHR* pModes)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetDeviceGroupSurfacePresentModesKHR encode");
     mImpl->log("start vkGetDeviceGroupSurfacePresentModesKHR");
     auto stream = mImpl->stream();
@@ -12644,9 +12961,9 @@ VkResult VkEncoder::vkGetDeviceGroupSurfacePresentModesKHR(
     AEMU_SCOPED_TRACE("vkGetDeviceGroupSurfacePresentModesKHR returnUnmarshal");
     VkResult vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetDeviceGroupSurfacePresentModesKHR");;
     return vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return;
 }
@@ -12657,7 +12974,7 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
     uint32_t* pRectCount,
     VkRect2D* pRects)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDevicePresentRectanglesKHR encode");
     mImpl->log("start vkGetPhysicalDevicePresentRectanglesKHR");
     auto stream = mImpl->stream();
@@ -12759,9 +13076,9 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDevicePresentRectanglesKHR returnUnmarshal");
     VkResult vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDevicePresentRectanglesKHR");;
     return vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return;
 }
@@ -12771,7 +13088,7 @@ VkResult VkEncoder::vkAcquireNextImage2KHR(
     const VkAcquireNextImageInfoKHR* pAcquireInfo,
     uint32_t* pImageIndex)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkAcquireNextImage2KHR encode");
     mImpl->log("start vkAcquireNextImage2KHR");
     auto stream = mImpl->stream();
@@ -12815,9 +13132,9 @@ VkResult VkEncoder::vkAcquireNextImage2KHR(
     AEMU_SCOPED_TRACE("vkAcquireNextImage2KHR returnUnmarshal");
     VkResult vkAcquireNextImage2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkAcquireNextImage2KHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkAcquireNextImage2KHR");;
     return vkAcquireNextImage2KHR_VkResult_return;
 }
@@ -12829,7 +13146,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
     uint32_t* pPropertyCount,
     VkDisplayPropertiesKHR* pProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceDisplayPropertiesKHR encode");
     mImpl->log("start vkGetPhysicalDeviceDisplayPropertiesKHR");
     auto stream = mImpl->stream();
@@ -12923,9 +13240,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceDisplayPropertiesKHR returnUnmarshal");
     VkResult vkGetPhysicalDeviceDisplayPropertiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceDisplayPropertiesKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceDisplayPropertiesKHR");;
     return vkGetPhysicalDeviceDisplayPropertiesKHR_VkResult_return;
 }
@@ -12935,7 +13252,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
     uint32_t* pPropertyCount,
     VkDisplayPlanePropertiesKHR* pProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceDisplayPlanePropertiesKHR encode");
     mImpl->log("start vkGetPhysicalDeviceDisplayPlanePropertiesKHR");
     auto stream = mImpl->stream();
@@ -13029,9 +13346,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceDisplayPlanePropertiesKHR returnUnmarshal");
     VkResult vkGetPhysicalDeviceDisplayPlanePropertiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceDisplayPlanePropertiesKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceDisplayPlanePropertiesKHR");;
     return vkGetPhysicalDeviceDisplayPlanePropertiesKHR_VkResult_return;
 }
@@ -13042,7 +13359,7 @@ VkResult VkEncoder::vkGetDisplayPlaneSupportedDisplaysKHR(
     uint32_t* pDisplayCount,
     VkDisplayKHR* pDisplays)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetDisplayPlaneSupportedDisplaysKHR encode");
     mImpl->log("start vkGetDisplayPlaneSupportedDisplaysKHR");
     auto stream = mImpl->stream();
@@ -13144,9 +13461,9 @@ VkResult VkEncoder::vkGetDisplayPlaneSupportedDisplaysKHR(
     AEMU_SCOPED_TRACE("vkGetDisplayPlaneSupportedDisplaysKHR returnUnmarshal");
     VkResult vkGetDisplayPlaneSupportedDisplaysKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetDisplayPlaneSupportedDisplaysKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetDisplayPlaneSupportedDisplaysKHR");;
     return vkGetDisplayPlaneSupportedDisplaysKHR_VkResult_return;
 }
@@ -13157,7 +13474,7 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
     uint32_t* pPropertyCount,
     VkDisplayModePropertiesKHR* pProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetDisplayModePropertiesKHR encode");
     mImpl->log("start vkGetDisplayModePropertiesKHR");
     auto stream = mImpl->stream();
@@ -13259,9 +13576,9 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
     AEMU_SCOPED_TRACE("vkGetDisplayModePropertiesKHR returnUnmarshal");
     VkResult vkGetDisplayModePropertiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetDisplayModePropertiesKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetDisplayModePropertiesKHR");;
     return vkGetDisplayModePropertiesKHR_VkResult_return;
 }
@@ -13273,7 +13590,7 @@ VkResult VkEncoder::vkCreateDisplayModeKHR(
     const VkAllocationCallbacks* pAllocator,
     VkDisplayModeKHR* pMode)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateDisplayModeKHR encode");
     mImpl->log("start vkCreateDisplayModeKHR");
     auto stream = mImpl->stream();
@@ -13361,9 +13678,9 @@ VkResult VkEncoder::vkCreateDisplayModeKHR(
     AEMU_SCOPED_TRACE("vkCreateDisplayModeKHR returnUnmarshal");
     VkResult vkCreateDisplayModeKHR_VkResult_return = (VkResult)0;
     stream->read(&vkCreateDisplayModeKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateDisplayModeKHR");;
     return vkCreateDisplayModeKHR_VkResult_return;
 }
@@ -13374,7 +13691,7 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilitiesKHR(
     uint32_t planeIndex,
     VkDisplayPlaneCapabilitiesKHR* pCapabilities)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetDisplayPlaneCapabilitiesKHR encode");
     mImpl->log("start vkGetDisplayPlaneCapabilitiesKHR");
     auto stream = mImpl->stream();
@@ -13421,9 +13738,9 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilitiesKHR(
     AEMU_SCOPED_TRACE("vkGetDisplayPlaneCapabilitiesKHR returnUnmarshal");
     VkResult vkGetDisplayPlaneCapabilitiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetDisplayPlaneCapabilitiesKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetDisplayPlaneCapabilitiesKHR");;
     return vkGetDisplayPlaneCapabilitiesKHR_VkResult_return;
 }
@@ -13434,7 +13751,7 @@ VkResult VkEncoder::vkCreateDisplayPlaneSurfaceKHR(
     const VkAllocationCallbacks* pAllocator,
     VkSurfaceKHR* pSurface)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateDisplayPlaneSurfaceKHR encode");
     mImpl->log("start vkCreateDisplayPlaneSurfaceKHR");
     auto stream = mImpl->stream();
@@ -13512,9 +13829,9 @@ VkResult VkEncoder::vkCreateDisplayPlaneSurfaceKHR(
     AEMU_SCOPED_TRACE("vkCreateDisplayPlaneSurfaceKHR returnUnmarshal");
     VkResult vkCreateDisplayPlaneSurfaceKHR_VkResult_return = (VkResult)0;
     stream->read(&vkCreateDisplayPlaneSurfaceKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateDisplayPlaneSurfaceKHR");;
     return vkCreateDisplayPlaneSurfaceKHR_VkResult_return;
 }
@@ -13528,7 +13845,7 @@ VkResult VkEncoder::vkCreateSharedSwapchainsKHR(
     const VkAllocationCallbacks* pAllocator,
     VkSwapchainKHR* pSwapchains)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateSharedSwapchainsKHR encode");
     mImpl->log("start vkCreateSharedSwapchainsKHR");
     auto stream = mImpl->stream();
@@ -13634,9 +13951,9 @@ VkResult VkEncoder::vkCreateSharedSwapchainsKHR(
     AEMU_SCOPED_TRACE("vkCreateSharedSwapchainsKHR returnUnmarshal");
     VkResult vkCreateSharedSwapchainsKHR_VkResult_return = (VkResult)0;
     stream->read(&vkCreateSharedSwapchainsKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateSharedSwapchainsKHR");;
     return vkCreateSharedSwapchainsKHR_VkResult_return;
 }
@@ -13649,7 +13966,7 @@ VkResult VkEncoder::vkCreateXlibSurfaceKHR(
     const VkAllocationCallbacks* pAllocator,
     VkSurfaceKHR* pSurface)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateXlibSurfaceKHR encode");
     mImpl->log("start vkCreateXlibSurfaceKHR");
     auto stream = mImpl->stream();
@@ -13727,9 +14044,9 @@ VkResult VkEncoder::vkCreateXlibSurfaceKHR(
     AEMU_SCOPED_TRACE("vkCreateXlibSurfaceKHR returnUnmarshal");
     VkResult vkCreateXlibSurfaceKHR_VkResult_return = (VkResult)0;
     stream->read(&vkCreateXlibSurfaceKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateXlibSurfaceKHR");;
     return vkCreateXlibSurfaceKHR_VkResult_return;
 }
@@ -13740,7 +14057,7 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceXlibPresentationSupportKHR(
     Display* dpy,
     VisualID visualID)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceXlibPresentationSupportKHR encode");
     mImpl->log("start vkGetPhysicalDeviceXlibPresentationSupportKHR");
     auto stream = mImpl->stream();
@@ -13779,9 +14096,9 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceXlibPresentationSupportKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceXlibPresentationSupportKHR returnUnmarshal");
     VkBool32 vkGetPhysicalDeviceXlibPresentationSupportKHR_VkBool32_return = (VkBool32)0;
     stream->read(&vkGetPhysicalDeviceXlibPresentationSupportKHR_VkBool32_return, sizeof(VkBool32));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceXlibPresentationSupportKHR");;
     return vkGetPhysicalDeviceXlibPresentationSupportKHR_VkBool32_return;
 }
@@ -13794,7 +14111,7 @@ VkResult VkEncoder::vkCreateXcbSurfaceKHR(
     const VkAllocationCallbacks* pAllocator,
     VkSurfaceKHR* pSurface)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateXcbSurfaceKHR encode");
     mImpl->log("start vkCreateXcbSurfaceKHR");
     auto stream = mImpl->stream();
@@ -13872,9 +14189,9 @@ VkResult VkEncoder::vkCreateXcbSurfaceKHR(
     AEMU_SCOPED_TRACE("vkCreateXcbSurfaceKHR returnUnmarshal");
     VkResult vkCreateXcbSurfaceKHR_VkResult_return = (VkResult)0;
     stream->read(&vkCreateXcbSurfaceKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateXcbSurfaceKHR");;
     return vkCreateXcbSurfaceKHR_VkResult_return;
 }
@@ -13885,7 +14202,7 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceXcbPresentationSupportKHR(
     xcb_connection_t* connection,
     xcb_visualid_t visual_id)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceXcbPresentationSupportKHR encode");
     mImpl->log("start vkGetPhysicalDeviceXcbPresentationSupportKHR");
     auto stream = mImpl->stream();
@@ -13924,9 +14241,9 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceXcbPresentationSupportKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceXcbPresentationSupportKHR returnUnmarshal");
     VkBool32 vkGetPhysicalDeviceXcbPresentationSupportKHR_VkBool32_return = (VkBool32)0;
     stream->read(&vkGetPhysicalDeviceXcbPresentationSupportKHR_VkBool32_return, sizeof(VkBool32));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceXcbPresentationSupportKHR");;
     return vkGetPhysicalDeviceXcbPresentationSupportKHR_VkBool32_return;
 }
@@ -13939,7 +14256,7 @@ VkResult VkEncoder::vkCreateWaylandSurfaceKHR(
     const VkAllocationCallbacks* pAllocator,
     VkSurfaceKHR* pSurface)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateWaylandSurfaceKHR encode");
     mImpl->log("start vkCreateWaylandSurfaceKHR");
     auto stream = mImpl->stream();
@@ -14017,9 +14334,9 @@ VkResult VkEncoder::vkCreateWaylandSurfaceKHR(
     AEMU_SCOPED_TRACE("vkCreateWaylandSurfaceKHR returnUnmarshal");
     VkResult vkCreateWaylandSurfaceKHR_VkResult_return = (VkResult)0;
     stream->read(&vkCreateWaylandSurfaceKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateWaylandSurfaceKHR");;
     return vkCreateWaylandSurfaceKHR_VkResult_return;
 }
@@ -14029,7 +14346,7 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceWaylandPresentationSupportKHR(
     uint32_t queueFamilyIndex,
     wl_display* display)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceWaylandPresentationSupportKHR encode");
     mImpl->log("start vkGetPhysicalDeviceWaylandPresentationSupportKHR");
     auto stream = mImpl->stream();
@@ -14064,9 +14381,9 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceWaylandPresentationSupportKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceWaylandPresentationSupportKHR returnUnmarshal");
     VkBool32 vkGetPhysicalDeviceWaylandPresentationSupportKHR_VkBool32_return = (VkBool32)0;
     stream->read(&vkGetPhysicalDeviceWaylandPresentationSupportKHR_VkBool32_return, sizeof(VkBool32));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceWaylandPresentationSupportKHR");;
     return vkGetPhysicalDeviceWaylandPresentationSupportKHR_VkBool32_return;
 }
@@ -14079,7 +14396,7 @@ VkResult VkEncoder::vkCreateMirSurfaceKHR(
     const VkAllocationCallbacks* pAllocator,
     VkSurfaceKHR* pSurface)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateMirSurfaceKHR encode");
     mImpl->log("start vkCreateMirSurfaceKHR");
     auto stream = mImpl->stream();
@@ -14157,9 +14474,9 @@ VkResult VkEncoder::vkCreateMirSurfaceKHR(
     AEMU_SCOPED_TRACE("vkCreateMirSurfaceKHR returnUnmarshal");
     VkResult vkCreateMirSurfaceKHR_VkResult_return = (VkResult)0;
     stream->read(&vkCreateMirSurfaceKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateMirSurfaceKHR");;
     return vkCreateMirSurfaceKHR_VkResult_return;
 }
@@ -14169,7 +14486,7 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceMirPresentationSupportKHR(
     uint32_t queueFamilyIndex,
     MirConnection* connection)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceMirPresentationSupportKHR encode");
     mImpl->log("start vkGetPhysicalDeviceMirPresentationSupportKHR");
     auto stream = mImpl->stream();
@@ -14204,9 +14521,9 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceMirPresentationSupportKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceMirPresentationSupportKHR returnUnmarshal");
     VkBool32 vkGetPhysicalDeviceMirPresentationSupportKHR_VkBool32_return = (VkBool32)0;
     stream->read(&vkGetPhysicalDeviceMirPresentationSupportKHR_VkBool32_return, sizeof(VkBool32));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceMirPresentationSupportKHR");;
     return vkGetPhysicalDeviceMirPresentationSupportKHR_VkBool32_return;
 }
@@ -14219,7 +14536,7 @@ VkResult VkEncoder::vkCreateAndroidSurfaceKHR(
     const VkAllocationCallbacks* pAllocator,
     VkSurfaceKHR* pSurface)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateAndroidSurfaceKHR encode");
     mImpl->log("start vkCreateAndroidSurfaceKHR");
     auto stream = mImpl->stream();
@@ -14297,9 +14614,9 @@ VkResult VkEncoder::vkCreateAndroidSurfaceKHR(
     AEMU_SCOPED_TRACE("vkCreateAndroidSurfaceKHR returnUnmarshal");
     VkResult vkCreateAndroidSurfaceKHR_VkResult_return = (VkResult)0;
     stream->read(&vkCreateAndroidSurfaceKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateAndroidSurfaceKHR");;
     return vkCreateAndroidSurfaceKHR_VkResult_return;
 }
@@ -14312,7 +14629,7 @@ VkResult VkEncoder::vkCreateWin32SurfaceKHR(
     const VkAllocationCallbacks* pAllocator,
     VkSurfaceKHR* pSurface)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateWin32SurfaceKHR encode");
     mImpl->log("start vkCreateWin32SurfaceKHR");
     auto stream = mImpl->stream();
@@ -14390,9 +14707,9 @@ VkResult VkEncoder::vkCreateWin32SurfaceKHR(
     AEMU_SCOPED_TRACE("vkCreateWin32SurfaceKHR returnUnmarshal");
     VkResult vkCreateWin32SurfaceKHR_VkResult_return = (VkResult)0;
     stream->read(&vkCreateWin32SurfaceKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateWin32SurfaceKHR");;
     return vkCreateWin32SurfaceKHR_VkResult_return;
 }
@@ -14401,7 +14718,7 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceWin32PresentationSupportKHR(
     VkPhysicalDevice physicalDevice,
     uint32_t queueFamilyIndex)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceWin32PresentationSupportKHR encode");
     mImpl->log("start vkGetPhysicalDeviceWin32PresentationSupportKHR");
     auto stream = mImpl->stream();
@@ -14433,9 +14750,9 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceWin32PresentationSupportKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceWin32PresentationSupportKHR returnUnmarshal");
     VkBool32 vkGetPhysicalDeviceWin32PresentationSupportKHR_VkBool32_return = (VkBool32)0;
     stream->read(&vkGetPhysicalDeviceWin32PresentationSupportKHR_VkBool32_return, sizeof(VkBool32));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceWin32PresentationSupportKHR");;
     return vkGetPhysicalDeviceWin32PresentationSupportKHR_VkBool32_return;
 }
@@ -14450,7 +14767,7 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2KHR(
     VkPhysicalDevice physicalDevice,
     VkPhysicalDeviceFeatures2* pFeatures)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFeatures2KHR encode");
     mImpl->log("start vkGetPhysicalDeviceFeatures2KHR");
     auto stream = mImpl->stream();
@@ -14483,6 +14800,9 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2KHR(
         transform_fromhost_VkPhysicalDeviceFeatures2(mImpl->resources(), (VkPhysicalDeviceFeatures2*)(pFeatures));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFeatures2KHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceFeatures2KHR");;
 }
 
@@ -14490,7 +14810,7 @@ void VkEncoder::vkGetPhysicalDeviceProperties2KHR(
     VkPhysicalDevice physicalDevice,
     VkPhysicalDeviceProperties2* pProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceProperties2KHR encode");
     mImpl->log("start vkGetPhysicalDeviceProperties2KHR");
     auto stream = mImpl->stream();
@@ -14523,9 +14843,10 @@ void VkEncoder::vkGetPhysicalDeviceProperties2KHR(
         transform_fromhost_VkPhysicalDeviceProperties2(mImpl->resources(), (VkPhysicalDeviceProperties2*)(pProperties));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceProperties2KHR returnUnmarshal");
-    encoderLock.unlock();
     mImpl->resources()->on_vkGetPhysicalDeviceProperties2KHR(this, physicalDevice, pProperties);
-    encoderLock.lock();
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceProperties2KHR");;
 }
 
@@ -14534,7 +14855,7 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2KHR(
     VkFormat format,
     VkFormatProperties2* pFormatProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFormatProperties2KHR encode");
     mImpl->log("start vkGetPhysicalDeviceFormatProperties2KHR");
     auto stream = mImpl->stream();
@@ -14571,6 +14892,9 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2KHR(
         transform_fromhost_VkFormatProperties2(mImpl->resources(), (VkFormatProperties2*)(pFormatProperties));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFormatProperties2KHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceFormatProperties2KHR");;
 }
 
@@ -14579,7 +14903,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2KHR(
     const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
     VkImageFormatProperties2* pImageFormatProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceImageFormatProperties2KHR encode");
     mImpl->log("start vkGetPhysicalDeviceImageFormatProperties2KHR");
     auto stream = mImpl->stream();
@@ -14627,9 +14951,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2KHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceImageFormatProperties2KHR returnUnmarshal");
     VkResult vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceImageFormatProperties2KHR");;
     return vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return;
 }
@@ -14639,7 +14963,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
     uint32_t* pQueueFamilyPropertyCount,
     VkQueueFamilyProperties2* pQueueFamilyProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceQueueFamilyProperties2KHR encode");
     mImpl->log("start vkGetPhysicalDeviceQueueFamilyProperties2KHR");
     auto stream = mImpl->stream();
@@ -14731,6 +15055,9 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
         }
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceQueueFamilyProperties2KHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceQueueFamilyProperties2KHR");;
 }
 
@@ -14738,7 +15065,7 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2KHR(
     VkPhysicalDevice physicalDevice,
     VkPhysicalDeviceMemoryProperties2* pMemoryProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceMemoryProperties2KHR encode");
     mImpl->log("start vkGetPhysicalDeviceMemoryProperties2KHR");
     auto stream = mImpl->stream();
@@ -14771,9 +15098,10 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2KHR(
         transform_fromhost_VkPhysicalDeviceMemoryProperties2(mImpl->resources(), (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceMemoryProperties2KHR returnUnmarshal");
-    encoderLock.unlock();
     mImpl->resources()->on_vkGetPhysicalDeviceMemoryProperties2KHR(this, physicalDevice, pMemoryProperties);
-    encoderLock.lock();
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceMemoryProperties2KHR");;
 }
 
@@ -14783,7 +15111,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
     uint32_t* pPropertyCount,
     VkSparseImageFormatProperties2* pProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSparseImageFormatProperties2KHR encode");
     mImpl->log("start vkGetPhysicalDeviceSparseImageFormatProperties2KHR");
     auto stream = mImpl->stream();
@@ -14888,6 +15216,9 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
         }
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSparseImageFormatProperties2KHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceSparseImageFormatProperties2KHR");;
 }
 
@@ -14900,7 +15231,7 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeaturesKHR(
     uint32_t remoteDeviceIndex,
     VkPeerMemoryFeatureFlags* pPeerMemoryFeatures)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetDeviceGroupPeerMemoryFeaturesKHR encode");
     mImpl->log("start vkGetDeviceGroupPeerMemoryFeaturesKHR");
     auto stream = mImpl->stream();
@@ -14941,6 +15272,9 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeaturesKHR(
     AEMU_SCOPED_TRACE("vkGetDeviceGroupPeerMemoryFeaturesKHR readParams");
     stream->read((VkPeerMemoryFeatureFlags*)pPeerMemoryFeatures, sizeof(VkPeerMemoryFeatureFlags));
     AEMU_SCOPED_TRACE("vkGetDeviceGroupPeerMemoryFeaturesKHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetDeviceGroupPeerMemoryFeaturesKHR");;
 }
 
@@ -14948,7 +15282,7 @@ void VkEncoder::vkCmdSetDeviceMaskKHR(
     VkCommandBuffer commandBuffer,
     uint32_t deviceMask)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdSetDeviceMaskKHR encode");
     mImpl->log("start vkCmdSetDeviceMaskKHR");
     auto stream = mImpl->stream();
@@ -14978,6 +15312,9 @@ void VkEncoder::vkCmdSetDeviceMaskKHR(
     stream->write((uint32_t*)&local_deviceMask, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdSetDeviceMaskKHR readParams");
     AEMU_SCOPED_TRACE("vkCmdSetDeviceMaskKHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdSetDeviceMaskKHR");;
 }
 
@@ -14990,7 +15327,7 @@ void VkEncoder::vkCmdDispatchBaseKHR(
     uint32_t groupCountY,
     uint32_t groupCountZ)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdDispatchBaseKHR encode");
     mImpl->log("start vkCmdDispatchBaseKHR");
     auto stream = mImpl->stream();
@@ -15040,6 +15377,9 @@ void VkEncoder::vkCmdDispatchBaseKHR(
     stream->write((uint32_t*)&local_groupCountZ, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdDispatchBaseKHR readParams");
     AEMU_SCOPED_TRACE("vkCmdDispatchBaseKHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdDispatchBaseKHR");;
 }
 
@@ -15052,7 +15392,7 @@ void VkEncoder::vkTrimCommandPoolKHR(
     VkCommandPool commandPool,
     VkCommandPoolTrimFlags flags)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkTrimCommandPoolKHR encode");
     mImpl->log("start vkTrimCommandPoolKHR");
     auto stream = mImpl->stream();
@@ -15090,6 +15430,9 @@ void VkEncoder::vkTrimCommandPoolKHR(
     stream->write((VkCommandPoolTrimFlags*)&local_flags, sizeof(VkCommandPoolTrimFlags));
     AEMU_SCOPED_TRACE("vkTrimCommandPoolKHR readParams");
     AEMU_SCOPED_TRACE("vkTrimCommandPoolKHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkTrimCommandPoolKHR");;
 }
 
@@ -15100,7 +15443,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
     uint32_t* pPhysicalDeviceGroupCount,
     VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkEnumeratePhysicalDeviceGroupsKHR encode");
     mImpl->log("start vkEnumeratePhysicalDeviceGroupsKHR");
     auto stream = mImpl->stream();
@@ -15194,9 +15537,9 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
     AEMU_SCOPED_TRACE("vkEnumeratePhysicalDeviceGroupsKHR returnUnmarshal");
     VkResult vkEnumeratePhysicalDeviceGroupsKHR_VkResult_return = (VkResult)0;
     stream->read(&vkEnumeratePhysicalDeviceGroupsKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkEnumeratePhysicalDeviceGroupsKHR");;
     return vkEnumeratePhysicalDeviceGroupsKHR_VkResult_return;
 }
@@ -15208,7 +15551,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
     const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
     VkExternalBufferProperties* pExternalBufferProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalBufferPropertiesKHR encode");
     mImpl->log("start vkGetPhysicalDeviceExternalBufferPropertiesKHR");
     auto stream = mImpl->stream();
@@ -15256,6 +15599,9 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
         transform_fromhost_VkExternalBufferProperties(mImpl->resources(), (VkExternalBufferProperties*)(pExternalBufferProperties));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalBufferPropertiesKHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceExternalBufferPropertiesKHR");;
 }
 
@@ -15268,7 +15614,7 @@ VkResult VkEncoder::vkGetMemoryWin32HandleKHR(
     const VkMemoryGetWin32HandleInfoKHR* pGetWin32HandleInfo,
     HANDLE* pHandle)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetMemoryWin32HandleKHR encode");
     mImpl->log("start vkGetMemoryWin32HandleKHR");
     auto stream = mImpl->stream();
@@ -15312,9 +15658,9 @@ VkResult VkEncoder::vkGetMemoryWin32HandleKHR(
     AEMU_SCOPED_TRACE("vkGetMemoryWin32HandleKHR returnUnmarshal");
     VkResult vkGetMemoryWin32HandleKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetMemoryWin32HandleKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetMemoryWin32HandleKHR");;
     return vkGetMemoryWin32HandleKHR_VkResult_return;
 }
@@ -15325,7 +15671,7 @@ VkResult VkEncoder::vkGetMemoryWin32HandlePropertiesKHR(
     HANDLE handle,
     VkMemoryWin32HandlePropertiesKHR* pMemoryWin32HandleProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetMemoryWin32HandlePropertiesKHR encode");
     mImpl->log("start vkGetMemoryWin32HandlePropertiesKHR");
     auto stream = mImpl->stream();
@@ -15368,9 +15714,9 @@ VkResult VkEncoder::vkGetMemoryWin32HandlePropertiesKHR(
     AEMU_SCOPED_TRACE("vkGetMemoryWin32HandlePropertiesKHR returnUnmarshal");
     VkResult vkGetMemoryWin32HandlePropertiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetMemoryWin32HandlePropertiesKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetMemoryWin32HandlePropertiesKHR");;
     return vkGetMemoryWin32HandlePropertiesKHR_VkResult_return;
 }
@@ -15382,7 +15728,7 @@ VkResult VkEncoder::vkGetMemoryFdKHR(
     const VkMemoryGetFdInfoKHR* pGetFdInfo,
     int* pFd)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetMemoryFdKHR encode");
     mImpl->log("start vkGetMemoryFdKHR");
     auto stream = mImpl->stream();
@@ -15426,9 +15772,9 @@ VkResult VkEncoder::vkGetMemoryFdKHR(
     AEMU_SCOPED_TRACE("vkGetMemoryFdKHR returnUnmarshal");
     VkResult vkGetMemoryFdKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetMemoryFdKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetMemoryFdKHR");;
     return vkGetMemoryFdKHR_VkResult_return;
 }
@@ -15439,7 +15785,7 @@ VkResult VkEncoder::vkGetMemoryFdPropertiesKHR(
     int fd,
     VkMemoryFdPropertiesKHR* pMemoryFdProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetMemoryFdPropertiesKHR encode");
     mImpl->log("start vkGetMemoryFdPropertiesKHR");
     auto stream = mImpl->stream();
@@ -15482,9 +15828,9 @@ VkResult VkEncoder::vkGetMemoryFdPropertiesKHR(
     AEMU_SCOPED_TRACE("vkGetMemoryFdPropertiesKHR returnUnmarshal");
     VkResult vkGetMemoryFdPropertiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetMemoryFdPropertiesKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetMemoryFdPropertiesKHR");;
     return vkGetMemoryFdPropertiesKHR_VkResult_return;
 }
@@ -15498,7 +15844,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
     const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
     VkExternalSemaphoreProperties* pExternalSemaphoreProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalSemaphorePropertiesKHR encode");
     mImpl->log("start vkGetPhysicalDeviceExternalSemaphorePropertiesKHR");
     auto stream = mImpl->stream();
@@ -15544,6 +15890,9 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
         transform_fromhost_VkExternalSemaphoreProperties(mImpl->resources(), (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalSemaphorePropertiesKHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceExternalSemaphorePropertiesKHR");;
 }
 
@@ -15555,7 +15904,7 @@ VkResult VkEncoder::vkImportSemaphoreWin32HandleKHR(
     VkDevice device,
     const VkImportSemaphoreWin32HandleInfoKHR* pImportSemaphoreWin32HandleInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkImportSemaphoreWin32HandleKHR encode");
     mImpl->log("start vkImportSemaphoreWin32HandleKHR");
     auto stream = mImpl->stream();
@@ -15596,9 +15945,9 @@ VkResult VkEncoder::vkImportSemaphoreWin32HandleKHR(
     AEMU_SCOPED_TRACE("vkImportSemaphoreWin32HandleKHR returnUnmarshal");
     VkResult vkImportSemaphoreWin32HandleKHR_VkResult_return = (VkResult)0;
     stream->read(&vkImportSemaphoreWin32HandleKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkImportSemaphoreWin32HandleKHR");;
     return vkImportSemaphoreWin32HandleKHR_VkResult_return;
 }
@@ -15608,7 +15957,7 @@ VkResult VkEncoder::vkGetSemaphoreWin32HandleKHR(
     const VkSemaphoreGetWin32HandleInfoKHR* pGetWin32HandleInfo,
     HANDLE* pHandle)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetSemaphoreWin32HandleKHR encode");
     mImpl->log("start vkGetSemaphoreWin32HandleKHR");
     auto stream = mImpl->stream();
@@ -15652,9 +16001,9 @@ VkResult VkEncoder::vkGetSemaphoreWin32HandleKHR(
     AEMU_SCOPED_TRACE("vkGetSemaphoreWin32HandleKHR returnUnmarshal");
     VkResult vkGetSemaphoreWin32HandleKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetSemaphoreWin32HandleKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetSemaphoreWin32HandleKHR");;
     return vkGetSemaphoreWin32HandleKHR_VkResult_return;
 }
@@ -15665,7 +16014,7 @@ VkResult VkEncoder::vkImportSemaphoreFdKHR(
     VkDevice device,
     const VkImportSemaphoreFdInfoKHR* pImportSemaphoreFdInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkImportSemaphoreFdKHR encode");
     mImpl->log("start vkImportSemaphoreFdKHR");
     auto stream = mImpl->stream();
@@ -15706,9 +16055,9 @@ VkResult VkEncoder::vkImportSemaphoreFdKHR(
     AEMU_SCOPED_TRACE("vkImportSemaphoreFdKHR returnUnmarshal");
     VkResult vkImportSemaphoreFdKHR_VkResult_return = (VkResult)0;
     stream->read(&vkImportSemaphoreFdKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkImportSemaphoreFdKHR");;
     return vkImportSemaphoreFdKHR_VkResult_return;
 }
@@ -15718,7 +16067,7 @@ VkResult VkEncoder::vkGetSemaphoreFdKHR(
     const VkSemaphoreGetFdInfoKHR* pGetFdInfo,
     int* pFd)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetSemaphoreFdKHR encode");
     mImpl->log("start vkGetSemaphoreFdKHR");
     auto stream = mImpl->stream();
@@ -15762,9 +16111,9 @@ VkResult VkEncoder::vkGetSemaphoreFdKHR(
     AEMU_SCOPED_TRACE("vkGetSemaphoreFdKHR returnUnmarshal");
     VkResult vkGetSemaphoreFdKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetSemaphoreFdKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetSemaphoreFdKHR");;
     return vkGetSemaphoreFdKHR_VkResult_return;
 }
@@ -15779,7 +16128,7 @@ void VkEncoder::vkCmdPushDescriptorSetKHR(
     uint32_t descriptorWriteCount,
     const VkWriteDescriptorSet* pDescriptorWrites)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdPushDescriptorSetKHR encode");
     mImpl->log("start vkCmdPushDescriptorSetKHR");
     auto stream = mImpl->stream();
@@ -15850,6 +16199,9 @@ void VkEncoder::vkCmdPushDescriptorSetKHR(
     }
     AEMU_SCOPED_TRACE("vkCmdPushDescriptorSetKHR readParams");
     AEMU_SCOPED_TRACE("vkCmdPushDescriptorSetKHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdPushDescriptorSetKHR");;
 }
 
@@ -15860,7 +16212,7 @@ void VkEncoder::vkCmdPushDescriptorSetWithTemplateKHR(
     uint32_t set,
     const void* pData)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdPushDescriptorSetWithTemplateKHR encode");
     mImpl->log("start vkCmdPushDescriptorSetWithTemplateKHR");
     auto stream = mImpl->stream();
@@ -15926,6 +16278,9 @@ void VkEncoder::vkCmdPushDescriptorSetWithTemplateKHR(
     }
     AEMU_SCOPED_TRACE("vkCmdPushDescriptorSetWithTemplateKHR readParams");
     AEMU_SCOPED_TRACE("vkCmdPushDescriptorSetWithTemplateKHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdPushDescriptorSetWithTemplateKHR");;
 }
 
@@ -15941,7 +16296,7 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
     const VkAllocationCallbacks* pAllocator,
     VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateDescriptorUpdateTemplateKHR encode");
     mImpl->log("start vkCreateDescriptorUpdateTemplateKHR");
     auto stream = mImpl->stream();
@@ -16021,12 +16376,10 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
     AEMU_SCOPED_TRACE("vkCreateDescriptorUpdateTemplateKHR returnUnmarshal");
     VkResult vkCreateDescriptorUpdateTemplateKHR_VkResult_return = (VkResult)0;
     stream->read(&vkCreateDescriptorUpdateTemplateKHR_VkResult_return, sizeof(VkResult));
+    mImpl->resources()->on_vkCreateDescriptorUpdateTemplateKHR(this, vkCreateDescriptorUpdateTemplateKHR_VkResult_return, device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
-    encoderLock.unlock();
-    mImpl->resources()->on_vkCreateDescriptorUpdateTemplateKHR(this, vkCreateDescriptorUpdateTemplateKHR_VkResult_return, device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
-    encoderLock.lock();
     mImpl->log("finish vkCreateDescriptorUpdateTemplateKHR");;
     return vkCreateDescriptorUpdateTemplateKHR_VkResult_return;
 }
@@ -16036,7 +16389,7 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplateKHR(
     VkDescriptorUpdateTemplate descriptorUpdateTemplate,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyDescriptorUpdateTemplateKHR encode");
     mImpl->log("start vkDestroyDescriptorUpdateTemplateKHR");
     auto stream = mImpl->stream();
@@ -16097,6 +16450,9 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplateKHR(
     AEMU_SCOPED_TRACE("vkDestroyDescriptorUpdateTemplateKHR readParams");
     AEMU_SCOPED_TRACE("vkDestroyDescriptorUpdateTemplateKHR returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkDescriptorUpdateTemplate((VkDescriptorUpdateTemplate*)&descriptorUpdateTemplate);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyDescriptorUpdateTemplateKHR");;
 }
 
@@ -16106,7 +16462,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateKHR(
     VkDescriptorUpdateTemplate descriptorUpdateTemplate,
     const void* pData)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateKHR encode");
     mImpl->log("start vkUpdateDescriptorSetWithTemplateKHR");
     auto stream = mImpl->stream();
@@ -16168,6 +16524,9 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateKHR(
     }
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateKHR readParams");
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateKHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkUpdateDescriptorSetWithTemplateKHR");;
 }
 
@@ -16179,7 +16538,7 @@ VkResult VkEncoder::vkCreateRenderPass2KHR(
     const VkAllocationCallbacks* pAllocator,
     VkRenderPass* pRenderPass)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateRenderPass2KHR encode");
     mImpl->log("start vkCreateRenderPass2KHR");
     auto stream = mImpl->stream();
@@ -16257,9 +16616,9 @@ VkResult VkEncoder::vkCreateRenderPass2KHR(
     AEMU_SCOPED_TRACE("vkCreateRenderPass2KHR returnUnmarshal");
     VkResult vkCreateRenderPass2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkCreateRenderPass2KHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateRenderPass2KHR");;
     return vkCreateRenderPass2KHR_VkResult_return;
 }
@@ -16269,7 +16628,7 @@ void VkEncoder::vkCmdBeginRenderPass2KHR(
     const VkRenderPassBeginInfo* pRenderPassBegin,
     const VkSubpassBeginInfoKHR* pSubpassBeginInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdBeginRenderPass2KHR encode");
     mImpl->log("start vkCmdBeginRenderPass2KHR");
     auto stream = mImpl->stream();
@@ -16321,6 +16680,9 @@ void VkEncoder::vkCmdBeginRenderPass2KHR(
     marshal_VkSubpassBeginInfoKHR(stream, (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo));
     AEMU_SCOPED_TRACE("vkCmdBeginRenderPass2KHR readParams");
     AEMU_SCOPED_TRACE("vkCmdBeginRenderPass2KHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdBeginRenderPass2KHR");;
 }
 
@@ -16329,7 +16691,7 @@ void VkEncoder::vkCmdNextSubpass2KHR(
     const VkSubpassBeginInfoKHR* pSubpassBeginInfo,
     const VkSubpassEndInfoKHR* pSubpassEndInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdNextSubpass2KHR encode");
     mImpl->log("start vkCmdNextSubpass2KHR");
     auto stream = mImpl->stream();
@@ -16381,6 +16743,9 @@ void VkEncoder::vkCmdNextSubpass2KHR(
     marshal_VkSubpassEndInfoKHR(stream, (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo));
     AEMU_SCOPED_TRACE("vkCmdNextSubpass2KHR readParams");
     AEMU_SCOPED_TRACE("vkCmdNextSubpass2KHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdNextSubpass2KHR");;
 }
 
@@ -16388,7 +16753,7 @@ void VkEncoder::vkCmdEndRenderPass2KHR(
     VkCommandBuffer commandBuffer,
     const VkSubpassEndInfoKHR* pSubpassEndInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdEndRenderPass2KHR encode");
     mImpl->log("start vkCmdEndRenderPass2KHR");
     auto stream = mImpl->stream();
@@ -16427,6 +16792,9 @@ void VkEncoder::vkCmdEndRenderPass2KHR(
     marshal_VkSubpassEndInfoKHR(stream, (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo));
     AEMU_SCOPED_TRACE("vkCmdEndRenderPass2KHR readParams");
     AEMU_SCOPED_TRACE("vkCmdEndRenderPass2KHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdEndRenderPass2KHR");;
 }
 
@@ -16436,7 +16804,7 @@ VkResult VkEncoder::vkGetSwapchainStatusKHR(
     VkDevice device,
     VkSwapchainKHR swapchain)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetSwapchainStatusKHR encode");
     mImpl->log("start vkGetSwapchainStatusKHR");
     auto stream = mImpl->stream();
@@ -16472,9 +16840,9 @@ VkResult VkEncoder::vkGetSwapchainStatusKHR(
     AEMU_SCOPED_TRACE("vkGetSwapchainStatusKHR returnUnmarshal");
     VkResult vkGetSwapchainStatusKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetSwapchainStatusKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetSwapchainStatusKHR");;
     return vkGetSwapchainStatusKHR_VkResult_return;
 }
@@ -16486,7 +16854,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalFencePropertiesKHR(
     const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
     VkExternalFenceProperties* pExternalFenceProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalFencePropertiesKHR encode");
     mImpl->log("start vkGetPhysicalDeviceExternalFencePropertiesKHR");
     auto stream = mImpl->stream();
@@ -16532,6 +16900,9 @@ void VkEncoder::vkGetPhysicalDeviceExternalFencePropertiesKHR(
         transform_fromhost_VkExternalFenceProperties(mImpl->resources(), (VkExternalFenceProperties*)(pExternalFenceProperties));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalFencePropertiesKHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceExternalFencePropertiesKHR");;
 }
 
@@ -16543,7 +16914,7 @@ VkResult VkEncoder::vkImportFenceWin32HandleKHR(
     VkDevice device,
     const VkImportFenceWin32HandleInfoKHR* pImportFenceWin32HandleInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkImportFenceWin32HandleKHR encode");
     mImpl->log("start vkImportFenceWin32HandleKHR");
     auto stream = mImpl->stream();
@@ -16584,9 +16955,9 @@ VkResult VkEncoder::vkImportFenceWin32HandleKHR(
     AEMU_SCOPED_TRACE("vkImportFenceWin32HandleKHR returnUnmarshal");
     VkResult vkImportFenceWin32HandleKHR_VkResult_return = (VkResult)0;
     stream->read(&vkImportFenceWin32HandleKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkImportFenceWin32HandleKHR");;
     return vkImportFenceWin32HandleKHR_VkResult_return;
 }
@@ -16596,7 +16967,7 @@ VkResult VkEncoder::vkGetFenceWin32HandleKHR(
     const VkFenceGetWin32HandleInfoKHR* pGetWin32HandleInfo,
     HANDLE* pHandle)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetFenceWin32HandleKHR encode");
     mImpl->log("start vkGetFenceWin32HandleKHR");
     auto stream = mImpl->stream();
@@ -16640,9 +17011,9 @@ VkResult VkEncoder::vkGetFenceWin32HandleKHR(
     AEMU_SCOPED_TRACE("vkGetFenceWin32HandleKHR returnUnmarshal");
     VkResult vkGetFenceWin32HandleKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetFenceWin32HandleKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetFenceWin32HandleKHR");;
     return vkGetFenceWin32HandleKHR_VkResult_return;
 }
@@ -16653,7 +17024,7 @@ VkResult VkEncoder::vkImportFenceFdKHR(
     VkDevice device,
     const VkImportFenceFdInfoKHR* pImportFenceFdInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkImportFenceFdKHR encode");
     mImpl->log("start vkImportFenceFdKHR");
     auto stream = mImpl->stream();
@@ -16694,9 +17065,9 @@ VkResult VkEncoder::vkImportFenceFdKHR(
     AEMU_SCOPED_TRACE("vkImportFenceFdKHR returnUnmarshal");
     VkResult vkImportFenceFdKHR_VkResult_return = (VkResult)0;
     stream->read(&vkImportFenceFdKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkImportFenceFdKHR");;
     return vkImportFenceFdKHR_VkResult_return;
 }
@@ -16706,7 +17077,7 @@ VkResult VkEncoder::vkGetFenceFdKHR(
     const VkFenceGetFdInfoKHR* pGetFdInfo,
     int* pFd)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetFenceFdKHR encode");
     mImpl->log("start vkGetFenceFdKHR");
     auto stream = mImpl->stream();
@@ -16750,9 +17121,9 @@ VkResult VkEncoder::vkGetFenceFdKHR(
     AEMU_SCOPED_TRACE("vkGetFenceFdKHR returnUnmarshal");
     VkResult vkGetFenceFdKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetFenceFdKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetFenceFdKHR");;
     return vkGetFenceFdKHR_VkResult_return;
 }
@@ -16766,7 +17137,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2KHR(
     const VkPhysicalDeviceSurfaceInfo2KHR* pSurfaceInfo,
     VkSurfaceCapabilities2KHR* pSurfaceCapabilities)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceCapabilities2KHR encode");
     mImpl->log("start vkGetPhysicalDeviceSurfaceCapabilities2KHR");
     auto stream = mImpl->stream();
@@ -16814,9 +17185,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2KHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceCapabilities2KHR returnUnmarshal");
     VkResult vkGetPhysicalDeviceSurfaceCapabilities2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceSurfaceCapabilities2KHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceSurfaceCapabilities2KHR");;
     return vkGetPhysicalDeviceSurfaceCapabilities2KHR_VkResult_return;
 }
@@ -16827,7 +17198,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
     uint32_t* pSurfaceFormatCount,
     VkSurfaceFormat2KHR* pSurfaceFormats)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceFormats2KHR encode");
     mImpl->log("start vkGetPhysicalDeviceSurfaceFormats2KHR");
     auto stream = mImpl->stream();
@@ -16934,9 +17305,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceFormats2KHR returnUnmarshal");
     VkResult vkGetPhysicalDeviceSurfaceFormats2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceSurfaceFormats2KHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceSurfaceFormats2KHR");;
     return vkGetPhysicalDeviceSurfaceFormats2KHR_VkResult_return;
 }
@@ -16950,7 +17321,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
     uint32_t* pPropertyCount,
     VkDisplayProperties2KHR* pProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceDisplayProperties2KHR encode");
     mImpl->log("start vkGetPhysicalDeviceDisplayProperties2KHR");
     auto stream = mImpl->stream();
@@ -17044,9 +17415,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceDisplayProperties2KHR returnUnmarshal");
     VkResult vkGetPhysicalDeviceDisplayProperties2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceDisplayProperties2KHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceDisplayProperties2KHR");;
     return vkGetPhysicalDeviceDisplayProperties2KHR_VkResult_return;
 }
@@ -17056,7 +17427,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
     uint32_t* pPropertyCount,
     VkDisplayPlaneProperties2KHR* pProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceDisplayPlaneProperties2KHR encode");
     mImpl->log("start vkGetPhysicalDeviceDisplayPlaneProperties2KHR");
     auto stream = mImpl->stream();
@@ -17150,9 +17521,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceDisplayPlaneProperties2KHR returnUnmarshal");
     VkResult vkGetPhysicalDeviceDisplayPlaneProperties2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceDisplayPlaneProperties2KHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceDisplayPlaneProperties2KHR");;
     return vkGetPhysicalDeviceDisplayPlaneProperties2KHR_VkResult_return;
 }
@@ -17163,7 +17534,7 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
     uint32_t* pPropertyCount,
     VkDisplayModeProperties2KHR* pProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetDisplayModeProperties2KHR encode");
     mImpl->log("start vkGetDisplayModeProperties2KHR");
     auto stream = mImpl->stream();
@@ -17265,9 +17636,9 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
     AEMU_SCOPED_TRACE("vkGetDisplayModeProperties2KHR returnUnmarshal");
     VkResult vkGetDisplayModeProperties2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetDisplayModeProperties2KHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetDisplayModeProperties2KHR");;
     return vkGetDisplayModeProperties2KHR_VkResult_return;
 }
@@ -17277,7 +17648,7 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilities2KHR(
     const VkDisplayPlaneInfo2KHR* pDisplayPlaneInfo,
     VkDisplayPlaneCapabilities2KHR* pCapabilities)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetDisplayPlaneCapabilities2KHR encode");
     mImpl->log("start vkGetDisplayPlaneCapabilities2KHR");
     auto stream = mImpl->stream();
@@ -17325,9 +17696,9 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilities2KHR(
     AEMU_SCOPED_TRACE("vkGetDisplayPlaneCapabilities2KHR returnUnmarshal");
     VkResult vkGetDisplayPlaneCapabilities2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetDisplayPlaneCapabilities2KHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetDisplayPlaneCapabilities2KHR");;
     return vkGetDisplayPlaneCapabilities2KHR_VkResult_return;
 }
@@ -17345,7 +17716,7 @@ void VkEncoder::vkGetImageMemoryRequirements2KHR(
     const VkImageMemoryRequirementsInfo2* pInfo,
     VkMemoryRequirements2* pMemoryRequirements)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetImageMemoryRequirements2KHR encode");
     mImpl->log("start vkGetImageMemoryRequirements2KHR");
     auto stream = mImpl->stream();
@@ -17391,6 +17762,9 @@ void VkEncoder::vkGetImageMemoryRequirements2KHR(
         transform_fromhost_VkMemoryRequirements2(mImpl->resources(), (VkMemoryRequirements2*)(pMemoryRequirements));
     }
     AEMU_SCOPED_TRACE("vkGetImageMemoryRequirements2KHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetImageMemoryRequirements2KHR");;
 }
 
@@ -17399,7 +17773,7 @@ void VkEncoder::vkGetBufferMemoryRequirements2KHR(
     const VkBufferMemoryRequirementsInfo2* pInfo,
     VkMemoryRequirements2* pMemoryRequirements)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetBufferMemoryRequirements2KHR encode");
     mImpl->log("start vkGetBufferMemoryRequirements2KHR");
     auto stream = mImpl->stream();
@@ -17445,6 +17819,9 @@ void VkEncoder::vkGetBufferMemoryRequirements2KHR(
         transform_fromhost_VkMemoryRequirements2(mImpl->resources(), (VkMemoryRequirements2*)(pMemoryRequirements));
     }
     AEMU_SCOPED_TRACE("vkGetBufferMemoryRequirements2KHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetBufferMemoryRequirements2KHR");;
 }
 
@@ -17454,7 +17831,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
     uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetImageSparseMemoryRequirements2KHR encode");
     mImpl->log("start vkGetImageSparseMemoryRequirements2KHR");
     auto stream = mImpl->stream();
@@ -17559,6 +17936,9 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
         }
     }
     AEMU_SCOPED_TRACE("vkGetImageSparseMemoryRequirements2KHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetImageSparseMemoryRequirements2KHR");;
 }
 
@@ -17572,7 +17952,7 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
     const VkAllocationCallbacks* pAllocator,
     VkSamplerYcbcrConversion* pYcbcrConversion)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateSamplerYcbcrConversionKHR encode");
     mImpl->log("start vkCreateSamplerYcbcrConversionKHR");
     auto stream = mImpl->stream();
@@ -17652,9 +18032,9 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
     AEMU_SCOPED_TRACE("vkCreateSamplerYcbcrConversionKHR returnUnmarshal");
     VkResult vkCreateSamplerYcbcrConversionKHR_VkResult_return = (VkResult)0;
     stream->read(&vkCreateSamplerYcbcrConversionKHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateSamplerYcbcrConversionKHR");;
     return vkCreateSamplerYcbcrConversionKHR_VkResult_return;
 }
@@ -17664,7 +18044,7 @@ void VkEncoder::vkDestroySamplerYcbcrConversionKHR(
     VkSamplerYcbcrConversion ycbcrConversion,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroySamplerYcbcrConversionKHR encode");
     mImpl->log("start vkDestroySamplerYcbcrConversionKHR");
     auto stream = mImpl->stream();
@@ -17725,6 +18105,9 @@ void VkEncoder::vkDestroySamplerYcbcrConversionKHR(
     AEMU_SCOPED_TRACE("vkDestroySamplerYcbcrConversionKHR readParams");
     AEMU_SCOPED_TRACE("vkDestroySamplerYcbcrConversionKHR returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkSamplerYcbcrConversion((VkSamplerYcbcrConversion*)&ycbcrConversion);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroySamplerYcbcrConversionKHR");;
 }
 
@@ -17735,7 +18118,7 @@ VkResult VkEncoder::vkBindBufferMemory2KHR(
     uint32_t bindInfoCount,
     const VkBindBufferMemoryInfo* pBindInfos)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkBindBufferMemory2KHR encode");
     mImpl->log("start vkBindBufferMemory2KHR");
     auto stream = mImpl->stream();
@@ -17792,9 +18175,9 @@ VkResult VkEncoder::vkBindBufferMemory2KHR(
     AEMU_SCOPED_TRACE("vkBindBufferMemory2KHR returnUnmarshal");
     VkResult vkBindBufferMemory2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkBindBufferMemory2KHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkBindBufferMemory2KHR");;
     return vkBindBufferMemory2KHR_VkResult_return;
 }
@@ -17804,7 +18187,7 @@ VkResult VkEncoder::vkBindImageMemory2KHR(
     uint32_t bindInfoCount,
     const VkBindImageMemoryInfo* pBindInfos)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkBindImageMemory2KHR encode");
     mImpl->log("start vkBindImageMemory2KHR");
     auto stream = mImpl->stream();
@@ -17861,9 +18244,9 @@ VkResult VkEncoder::vkBindImageMemory2KHR(
     AEMU_SCOPED_TRACE("vkBindImageMemory2KHR returnUnmarshal");
     VkResult vkBindImageMemory2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkBindImageMemory2KHR_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkBindImageMemory2KHR");;
     return vkBindImageMemory2KHR_VkResult_return;
 }
@@ -17875,7 +18258,7 @@ void VkEncoder::vkGetDescriptorSetLayoutSupportKHR(
     const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
     VkDescriptorSetLayoutSupport* pSupport)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutSupportKHR encode");
     mImpl->log("start vkGetDescriptorSetLayoutSupportKHR");
     auto stream = mImpl->stream();
@@ -17921,6 +18304,9 @@ void VkEncoder::vkGetDescriptorSetLayoutSupportKHR(
         transform_fromhost_VkDescriptorSetLayoutSupport(mImpl->resources(), (VkDescriptorSetLayoutSupport*)(pSupport));
     }
     AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutSupportKHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetDescriptorSetLayoutSupportKHR");;
 }
 
@@ -17935,7 +18321,7 @@ void VkEncoder::vkCmdDrawIndirectCountKHR(
     uint32_t maxDrawCount,
     uint32_t stride)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdDrawIndirectCountKHR encode");
     mImpl->log("start vkCmdDrawIndirectCountKHR");
     auto stream = mImpl->stream();
@@ -17993,6 +18379,9 @@ void VkEncoder::vkCmdDrawIndirectCountKHR(
     stream->write((uint32_t*)&local_stride, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdDrawIndirectCountKHR readParams");
     AEMU_SCOPED_TRACE("vkCmdDrawIndirectCountKHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdDrawIndirectCountKHR");;
 }
 
@@ -18005,7 +18394,7 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountKHR(
     uint32_t maxDrawCount,
     uint32_t stride)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdDrawIndexedIndirectCountKHR encode");
     mImpl->log("start vkCmdDrawIndexedIndirectCountKHR");
     auto stream = mImpl->stream();
@@ -18063,6 +18452,9 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountKHR(
     stream->write((uint32_t*)&local_stride, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdDrawIndexedIndirectCountKHR readParams");
     AEMU_SCOPED_TRACE("vkCmdDrawIndexedIndirectCountKHR returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdDrawIndexedIndirectCountKHR");;
 }
 
@@ -18078,7 +18470,7 @@ VkResult VkEncoder::vkGetSwapchainGrallocUsageANDROID(
     VkImageUsageFlags imageUsage,
     int* grallocUsage)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetSwapchainGrallocUsageANDROID encode");
     mImpl->log("start vkGetSwapchainGrallocUsageANDROID");
     auto stream = mImpl->stream();
@@ -18117,9 +18509,9 @@ VkResult VkEncoder::vkGetSwapchainGrallocUsageANDROID(
     AEMU_SCOPED_TRACE("vkGetSwapchainGrallocUsageANDROID returnUnmarshal");
     VkResult vkGetSwapchainGrallocUsageANDROID_VkResult_return = (VkResult)0;
     stream->read(&vkGetSwapchainGrallocUsageANDROID_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetSwapchainGrallocUsageANDROID");;
     return vkGetSwapchainGrallocUsageANDROID_VkResult_return;
 }
@@ -18131,7 +18523,7 @@ VkResult VkEncoder::vkAcquireImageANDROID(
     VkSemaphore semaphore,
     VkFence fence)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkAcquireImageANDROID encode");
     mImpl->log("start vkAcquireImageANDROID");
     auto stream = mImpl->stream();
@@ -18188,9 +18580,9 @@ VkResult VkEncoder::vkAcquireImageANDROID(
     AEMU_SCOPED_TRACE("vkAcquireImageANDROID returnUnmarshal");
     VkResult vkAcquireImageANDROID_VkResult_return = (VkResult)0;
     stream->read(&vkAcquireImageANDROID_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkAcquireImageANDROID");;
     return vkAcquireImageANDROID_VkResult_return;
 }
@@ -18202,7 +18594,7 @@ VkResult VkEncoder::vkQueueSignalReleaseImageANDROID(
     VkImage image,
     int* pNativeFenceFd)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkQueueSignalReleaseImageANDROID encode");
     mImpl->log("start vkQueueSignalReleaseImageANDROID");
     auto stream = mImpl->stream();
@@ -18277,10 +18669,10 @@ VkResult VkEncoder::vkQueueSignalReleaseImageANDROID(
     AEMU_SCOPED_TRACE("vkQueueSignalReleaseImageANDROID returnUnmarshal");
     VkResult vkQueueSignalReleaseImageANDROID_VkResult_return = (VkResult)0;
     stream->read(&vkQueueSignalReleaseImageANDROID_VkResult_return, sizeof(VkResult));
+    stream->flush();
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
-    stream->flush();
     mImpl->log("finish vkQueueSignalReleaseImageANDROID");;
     return vkQueueSignalReleaseImageANDROID_VkResult_return;
 }
@@ -18293,7 +18685,7 @@ VkResult VkEncoder::vkCreateDebugReportCallbackEXT(
     const VkAllocationCallbacks* pAllocator,
     VkDebugReportCallbackEXT* pCallback)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateDebugReportCallbackEXT encode");
     mImpl->log("start vkCreateDebugReportCallbackEXT");
     auto stream = mImpl->stream();
@@ -18373,9 +18765,9 @@ VkResult VkEncoder::vkCreateDebugReportCallbackEXT(
     AEMU_SCOPED_TRACE("vkCreateDebugReportCallbackEXT returnUnmarshal");
     VkResult vkCreateDebugReportCallbackEXT_VkResult_return = (VkResult)0;
     stream->read(&vkCreateDebugReportCallbackEXT_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateDebugReportCallbackEXT");;
     return vkCreateDebugReportCallbackEXT_VkResult_return;
 }
@@ -18385,7 +18777,7 @@ void VkEncoder::vkDestroyDebugReportCallbackEXT(
     VkDebugReportCallbackEXT callback,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyDebugReportCallbackEXT encode");
     mImpl->log("start vkDestroyDebugReportCallbackEXT");
     auto stream = mImpl->stream();
@@ -18446,6 +18838,9 @@ void VkEncoder::vkDestroyDebugReportCallbackEXT(
     AEMU_SCOPED_TRACE("vkDestroyDebugReportCallbackEXT readParams");
     AEMU_SCOPED_TRACE("vkDestroyDebugReportCallbackEXT returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkDebugReportCallbackEXT((VkDebugReportCallbackEXT*)&callback);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyDebugReportCallbackEXT");;
 }
 
@@ -18459,7 +18854,7 @@ void VkEncoder::vkDebugReportMessageEXT(
     const char* pLayerPrefix,
     const char* pMessage)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDebugReportMessageEXT encode");
     mImpl->log("start vkDebugReportMessageEXT");
     auto stream = mImpl->stream();
@@ -18523,6 +18918,9 @@ void VkEncoder::vkDebugReportMessageEXT(
     stream->putString(local_pMessage);
     AEMU_SCOPED_TRACE("vkDebugReportMessageEXT readParams");
     AEMU_SCOPED_TRACE("vkDebugReportMessageEXT returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDebugReportMessageEXT");;
 }
 
@@ -18544,7 +18942,7 @@ VkResult VkEncoder::vkDebugMarkerSetObjectTagEXT(
     VkDevice device,
     const VkDebugMarkerObjectTagInfoEXT* pTagInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDebugMarkerSetObjectTagEXT encode");
     mImpl->log("start vkDebugMarkerSetObjectTagEXT");
     auto stream = mImpl->stream();
@@ -18585,9 +18983,9 @@ VkResult VkEncoder::vkDebugMarkerSetObjectTagEXT(
     AEMU_SCOPED_TRACE("vkDebugMarkerSetObjectTagEXT returnUnmarshal");
     VkResult vkDebugMarkerSetObjectTagEXT_VkResult_return = (VkResult)0;
     stream->read(&vkDebugMarkerSetObjectTagEXT_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkDebugMarkerSetObjectTagEXT");;
     return vkDebugMarkerSetObjectTagEXT_VkResult_return;
 }
@@ -18596,7 +18994,7 @@ VkResult VkEncoder::vkDebugMarkerSetObjectNameEXT(
     VkDevice device,
     const VkDebugMarkerObjectNameInfoEXT* pNameInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDebugMarkerSetObjectNameEXT encode");
     mImpl->log("start vkDebugMarkerSetObjectNameEXT");
     auto stream = mImpl->stream();
@@ -18637,9 +19035,9 @@ VkResult VkEncoder::vkDebugMarkerSetObjectNameEXT(
     AEMU_SCOPED_TRACE("vkDebugMarkerSetObjectNameEXT returnUnmarshal");
     VkResult vkDebugMarkerSetObjectNameEXT_VkResult_return = (VkResult)0;
     stream->read(&vkDebugMarkerSetObjectNameEXT_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkDebugMarkerSetObjectNameEXT");;
     return vkDebugMarkerSetObjectNameEXT_VkResult_return;
 }
@@ -18648,7 +19046,7 @@ void VkEncoder::vkCmdDebugMarkerBeginEXT(
     VkCommandBuffer commandBuffer,
     const VkDebugMarkerMarkerInfoEXT* pMarkerInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdDebugMarkerBeginEXT encode");
     mImpl->log("start vkCmdDebugMarkerBeginEXT");
     auto stream = mImpl->stream();
@@ -18687,13 +19085,16 @@ void VkEncoder::vkCmdDebugMarkerBeginEXT(
     marshal_VkDebugMarkerMarkerInfoEXT(stream, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
     AEMU_SCOPED_TRACE("vkCmdDebugMarkerBeginEXT readParams");
     AEMU_SCOPED_TRACE("vkCmdDebugMarkerBeginEXT returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdDebugMarkerBeginEXT");;
 }
 
 void VkEncoder::vkCmdDebugMarkerEndEXT(
     VkCommandBuffer commandBuffer)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdDebugMarkerEndEXT encode");
     mImpl->log("start vkCmdDebugMarkerEndEXT");
     auto stream = mImpl->stream();
@@ -18719,6 +19120,9 @@ void VkEncoder::vkCmdDebugMarkerEndEXT(
     stream->write((uint64_t*)&cgen_var_1224, 1 * 8);
     AEMU_SCOPED_TRACE("vkCmdDebugMarkerEndEXT readParams");
     AEMU_SCOPED_TRACE("vkCmdDebugMarkerEndEXT returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdDebugMarkerEndEXT");;
 }
 
@@ -18726,7 +19130,7 @@ void VkEncoder::vkCmdDebugMarkerInsertEXT(
     VkCommandBuffer commandBuffer,
     const VkDebugMarkerMarkerInfoEXT* pMarkerInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdDebugMarkerInsertEXT encode");
     mImpl->log("start vkCmdDebugMarkerInsertEXT");
     auto stream = mImpl->stream();
@@ -18765,6 +19169,9 @@ void VkEncoder::vkCmdDebugMarkerInsertEXT(
     marshal_VkDebugMarkerMarkerInfoEXT(stream, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
     AEMU_SCOPED_TRACE("vkCmdDebugMarkerInsertEXT readParams");
     AEMU_SCOPED_TRACE("vkCmdDebugMarkerInsertEXT returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdDebugMarkerInsertEXT");;
 }
 
@@ -18783,7 +19190,7 @@ void VkEncoder::vkCmdDrawIndirectCountAMD(
     uint32_t maxDrawCount,
     uint32_t stride)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdDrawIndirectCountAMD encode");
     mImpl->log("start vkCmdDrawIndirectCountAMD");
     auto stream = mImpl->stream();
@@ -18841,6 +19248,9 @@ void VkEncoder::vkCmdDrawIndirectCountAMD(
     stream->write((uint32_t*)&local_stride, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdDrawIndirectCountAMD readParams");
     AEMU_SCOPED_TRACE("vkCmdDrawIndirectCountAMD returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdDrawIndirectCountAMD");;
 }
 
@@ -18853,7 +19263,7 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountAMD(
     uint32_t maxDrawCount,
     uint32_t stride)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdDrawIndexedIndirectCountAMD encode");
     mImpl->log("start vkCmdDrawIndexedIndirectCountAMD");
     auto stream = mImpl->stream();
@@ -18911,6 +19321,9 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountAMD(
     stream->write((uint32_t*)&local_stride, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdDrawIndexedIndirectCountAMD readParams");
     AEMU_SCOPED_TRACE("vkCmdDrawIndexedIndirectCountAMD returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdDrawIndexedIndirectCountAMD");;
 }
 
@@ -18932,7 +19345,7 @@ VkResult VkEncoder::vkGetShaderInfoAMD(
     size_t* pInfoSize,
     void* pInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetShaderInfoAMD encode");
     mImpl->log("start vkGetShaderInfoAMD");
     auto stream = mImpl->stream();
@@ -19028,9 +19441,9 @@ VkResult VkEncoder::vkGetShaderInfoAMD(
     AEMU_SCOPED_TRACE("vkGetShaderInfoAMD returnUnmarshal");
     VkResult vkGetShaderInfoAMD_VkResult_return = (VkResult)0;
     stream->read(&vkGetShaderInfoAMD_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetShaderInfoAMD");;
     return vkGetShaderInfoAMD_VkResult_return;
 }
@@ -19051,7 +19464,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceExternalImageFormatPropertiesNV(
     VkExternalMemoryHandleTypeFlagsNV externalHandleType,
     VkExternalImageFormatPropertiesNV* pExternalImageFormatProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalImageFormatPropertiesNV encode");
     mImpl->log("start vkGetPhysicalDeviceExternalImageFormatPropertiesNV");
     auto stream = mImpl->stream();
@@ -19110,9 +19523,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceExternalImageFormatPropertiesNV(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalImageFormatPropertiesNV returnUnmarshal");
     VkResult vkGetPhysicalDeviceExternalImageFormatPropertiesNV_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceExternalImageFormatPropertiesNV_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceExternalImageFormatPropertiesNV");;
     return vkGetPhysicalDeviceExternalImageFormatPropertiesNV_VkResult_return;
 }
@@ -19127,7 +19540,7 @@ VkResult VkEncoder::vkGetMemoryWin32HandleNV(
     VkExternalMemoryHandleTypeFlagsNV handleType,
     HANDLE* pHandle)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetMemoryWin32HandleNV encode");
     mImpl->log("start vkGetMemoryWin32HandleNV");
     auto stream = mImpl->stream();
@@ -19171,9 +19584,9 @@ VkResult VkEncoder::vkGetMemoryWin32HandleNV(
     AEMU_SCOPED_TRACE("vkGetMemoryWin32HandleNV returnUnmarshal");
     VkResult vkGetMemoryWin32HandleNV_VkResult_return = (VkResult)0;
     stream->read(&vkGetMemoryWin32HandleNV_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetMemoryWin32HandleNV");;
     return vkGetMemoryWin32HandleNV_VkResult_return;
 }
@@ -19190,7 +19603,7 @@ VkResult VkEncoder::vkCreateViSurfaceNN(
     const VkAllocationCallbacks* pAllocator,
     VkSurfaceKHR* pSurface)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateViSurfaceNN encode");
     mImpl->log("start vkCreateViSurfaceNN");
     auto stream = mImpl->stream();
@@ -19268,9 +19681,9 @@ VkResult VkEncoder::vkCreateViSurfaceNN(
     AEMU_SCOPED_TRACE("vkCreateViSurfaceNN returnUnmarshal");
     VkResult vkCreateViSurfaceNN_VkResult_return = (VkResult)0;
     stream->read(&vkCreateViSurfaceNN_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateViSurfaceNN");;
     return vkCreateViSurfaceNN_VkResult_return;
 }
@@ -19285,7 +19698,7 @@ void VkEncoder::vkCmdBeginConditionalRenderingEXT(
     VkCommandBuffer commandBuffer,
     const VkConditionalRenderingBeginInfoEXT* pConditionalRenderingBegin)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdBeginConditionalRenderingEXT encode");
     mImpl->log("start vkCmdBeginConditionalRenderingEXT");
     auto stream = mImpl->stream();
@@ -19324,13 +19737,16 @@ void VkEncoder::vkCmdBeginConditionalRenderingEXT(
     marshal_VkConditionalRenderingBeginInfoEXT(stream, (VkConditionalRenderingBeginInfoEXT*)(local_pConditionalRenderingBegin));
     AEMU_SCOPED_TRACE("vkCmdBeginConditionalRenderingEXT readParams");
     AEMU_SCOPED_TRACE("vkCmdBeginConditionalRenderingEXT returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdBeginConditionalRenderingEXT");;
 }
 
 void VkEncoder::vkCmdEndConditionalRenderingEXT(
     VkCommandBuffer commandBuffer)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdEndConditionalRenderingEXT encode");
     mImpl->log("start vkCmdEndConditionalRenderingEXT");
     auto stream = mImpl->stream();
@@ -19356,6 +19772,9 @@ void VkEncoder::vkCmdEndConditionalRenderingEXT(
     stream->write((uint64_t*)&cgen_var_1268, 1 * 8);
     AEMU_SCOPED_TRACE("vkCmdEndConditionalRenderingEXT readParams");
     AEMU_SCOPED_TRACE("vkCmdEndConditionalRenderingEXT returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdEndConditionalRenderingEXT");;
 }
 
@@ -19365,7 +19784,7 @@ void VkEncoder::vkCmdProcessCommandsNVX(
     VkCommandBuffer commandBuffer,
     const VkCmdProcessCommandsInfoNVX* pProcessCommandsInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdProcessCommandsNVX encode");
     mImpl->log("start vkCmdProcessCommandsNVX");
     auto stream = mImpl->stream();
@@ -19404,6 +19823,9 @@ void VkEncoder::vkCmdProcessCommandsNVX(
     marshal_VkCmdProcessCommandsInfoNVX(stream, (VkCmdProcessCommandsInfoNVX*)(local_pProcessCommandsInfo));
     AEMU_SCOPED_TRACE("vkCmdProcessCommandsNVX readParams");
     AEMU_SCOPED_TRACE("vkCmdProcessCommandsNVX returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdProcessCommandsNVX");;
 }
 
@@ -19411,7 +19833,7 @@ void VkEncoder::vkCmdReserveSpaceForCommandsNVX(
     VkCommandBuffer commandBuffer,
     const VkCmdReserveSpaceForCommandsInfoNVX* pReserveSpaceInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdReserveSpaceForCommandsNVX encode");
     mImpl->log("start vkCmdReserveSpaceForCommandsNVX");
     auto stream = mImpl->stream();
@@ -19450,6 +19872,9 @@ void VkEncoder::vkCmdReserveSpaceForCommandsNVX(
     marshal_VkCmdReserveSpaceForCommandsInfoNVX(stream, (VkCmdReserveSpaceForCommandsInfoNVX*)(local_pReserveSpaceInfo));
     AEMU_SCOPED_TRACE("vkCmdReserveSpaceForCommandsNVX readParams");
     AEMU_SCOPED_TRACE("vkCmdReserveSpaceForCommandsNVX returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdReserveSpaceForCommandsNVX");;
 }
 
@@ -19459,7 +19884,7 @@ VkResult VkEncoder::vkCreateIndirectCommandsLayoutNVX(
     const VkAllocationCallbacks* pAllocator,
     VkIndirectCommandsLayoutNVX* pIndirectCommandsLayout)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateIndirectCommandsLayoutNVX encode");
     mImpl->log("start vkCreateIndirectCommandsLayoutNVX");
     auto stream = mImpl->stream();
@@ -19539,9 +19964,9 @@ VkResult VkEncoder::vkCreateIndirectCommandsLayoutNVX(
     AEMU_SCOPED_TRACE("vkCreateIndirectCommandsLayoutNVX returnUnmarshal");
     VkResult vkCreateIndirectCommandsLayoutNVX_VkResult_return = (VkResult)0;
     stream->read(&vkCreateIndirectCommandsLayoutNVX_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateIndirectCommandsLayoutNVX");;
     return vkCreateIndirectCommandsLayoutNVX_VkResult_return;
 }
@@ -19551,7 +19976,7 @@ void VkEncoder::vkDestroyIndirectCommandsLayoutNVX(
     VkIndirectCommandsLayoutNVX indirectCommandsLayout,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyIndirectCommandsLayoutNVX encode");
     mImpl->log("start vkDestroyIndirectCommandsLayoutNVX");
     auto stream = mImpl->stream();
@@ -19612,6 +20037,9 @@ void VkEncoder::vkDestroyIndirectCommandsLayoutNVX(
     AEMU_SCOPED_TRACE("vkDestroyIndirectCommandsLayoutNVX readParams");
     AEMU_SCOPED_TRACE("vkDestroyIndirectCommandsLayoutNVX returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkIndirectCommandsLayoutNVX((VkIndirectCommandsLayoutNVX*)&indirectCommandsLayout);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyIndirectCommandsLayoutNVX");;
 }
 
@@ -19621,7 +20049,7 @@ VkResult VkEncoder::vkCreateObjectTableNVX(
     const VkAllocationCallbacks* pAllocator,
     VkObjectTableNVX* pObjectTable)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateObjectTableNVX encode");
     mImpl->log("start vkCreateObjectTableNVX");
     auto stream = mImpl->stream();
@@ -19701,9 +20129,9 @@ VkResult VkEncoder::vkCreateObjectTableNVX(
     AEMU_SCOPED_TRACE("vkCreateObjectTableNVX returnUnmarshal");
     VkResult vkCreateObjectTableNVX_VkResult_return = (VkResult)0;
     stream->read(&vkCreateObjectTableNVX_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateObjectTableNVX");;
     return vkCreateObjectTableNVX_VkResult_return;
 }
@@ -19713,7 +20141,7 @@ void VkEncoder::vkDestroyObjectTableNVX(
     VkObjectTableNVX objectTable,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyObjectTableNVX encode");
     mImpl->log("start vkDestroyObjectTableNVX");
     auto stream = mImpl->stream();
@@ -19774,6 +20202,9 @@ void VkEncoder::vkDestroyObjectTableNVX(
     AEMU_SCOPED_TRACE("vkDestroyObjectTableNVX readParams");
     AEMU_SCOPED_TRACE("vkDestroyObjectTableNVX returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkObjectTableNVX((VkObjectTableNVX*)&objectTable);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyObjectTableNVX");;
 }
 
@@ -19784,7 +20215,7 @@ VkResult VkEncoder::vkRegisterObjectsNVX(
     const VkObjectTableEntryNVX* const* ppObjectTableEntries,
     const uint32_t* pObjectIndices)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkRegisterObjectsNVX encode");
     mImpl->log("start vkRegisterObjectsNVX");
     auto stream = mImpl->stream();
@@ -19837,9 +20268,9 @@ VkResult VkEncoder::vkRegisterObjectsNVX(
     AEMU_SCOPED_TRACE("vkRegisterObjectsNVX returnUnmarshal");
     VkResult vkRegisterObjectsNVX_VkResult_return = (VkResult)0;
     stream->read(&vkRegisterObjectsNVX_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkRegisterObjectsNVX");;
     return vkRegisterObjectsNVX_VkResult_return;
 }
@@ -19851,7 +20282,7 @@ VkResult VkEncoder::vkUnregisterObjectsNVX(
     const VkObjectEntryTypeNVX* pObjectEntryTypes,
     const uint32_t* pObjectIndices)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkUnregisterObjectsNVX encode");
     mImpl->log("start vkUnregisterObjectsNVX");
     auto stream = mImpl->stream();
@@ -19907,9 +20338,9 @@ VkResult VkEncoder::vkUnregisterObjectsNVX(
     AEMU_SCOPED_TRACE("vkUnregisterObjectsNVX returnUnmarshal");
     VkResult vkUnregisterObjectsNVX_VkResult_return = (VkResult)0;
     stream->read(&vkUnregisterObjectsNVX_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkUnregisterObjectsNVX");;
     return vkUnregisterObjectsNVX_VkResult_return;
 }
@@ -19919,7 +20350,7 @@ void VkEncoder::vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX(
     VkDeviceGeneratedCommandsFeaturesNVX* pFeatures,
     VkDeviceGeneratedCommandsLimitsNVX* pLimits)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX encode");
     mImpl->log("start vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX");
     auto stream = mImpl->stream();
@@ -19959,6 +20390,9 @@ void VkEncoder::vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX(
         transform_fromhost_VkDeviceGeneratedCommandsLimitsNVX(mImpl->resources(), (VkDeviceGeneratedCommandsLimitsNVX*)(pLimits));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX");;
 }
 
@@ -19970,7 +20404,7 @@ void VkEncoder::vkCmdSetViewportWScalingNV(
     uint32_t viewportCount,
     const VkViewportWScalingNV* pViewportWScalings)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdSetViewportWScalingNV encode");
     mImpl->log("start vkCmdSetViewportWScalingNV");
     auto stream = mImpl->stream();
@@ -20029,6 +20463,9 @@ void VkEncoder::vkCmdSetViewportWScalingNV(
     }
     AEMU_SCOPED_TRACE("vkCmdSetViewportWScalingNV readParams");
     AEMU_SCOPED_TRACE("vkCmdSetViewportWScalingNV returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdSetViewportWScalingNV");;
 }
 
@@ -20038,7 +20475,7 @@ VkResult VkEncoder::vkReleaseDisplayEXT(
     VkPhysicalDevice physicalDevice,
     VkDisplayKHR display)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkReleaseDisplayEXT encode");
     mImpl->log("start vkReleaseDisplayEXT");
     auto stream = mImpl->stream();
@@ -20074,9 +20511,9 @@ VkResult VkEncoder::vkReleaseDisplayEXT(
     AEMU_SCOPED_TRACE("vkReleaseDisplayEXT returnUnmarshal");
     VkResult vkReleaseDisplayEXT_VkResult_return = (VkResult)0;
     stream->read(&vkReleaseDisplayEXT_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkReleaseDisplayEXT");;
     return vkReleaseDisplayEXT_VkResult_return;
 }
@@ -20088,7 +20525,7 @@ VkResult VkEncoder::vkAcquireXlibDisplayEXT(
     Display* dpy,
     VkDisplayKHR display)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkAcquireXlibDisplayEXT encode");
     mImpl->log("start vkAcquireXlibDisplayEXT");
     auto stream = mImpl->stream();
@@ -20127,9 +20564,9 @@ VkResult VkEncoder::vkAcquireXlibDisplayEXT(
     AEMU_SCOPED_TRACE("vkAcquireXlibDisplayEXT returnUnmarshal");
     VkResult vkAcquireXlibDisplayEXT_VkResult_return = (VkResult)0;
     stream->read(&vkAcquireXlibDisplayEXT_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkAcquireXlibDisplayEXT");;
     return vkAcquireXlibDisplayEXT_VkResult_return;
 }
@@ -20140,7 +20577,7 @@ VkResult VkEncoder::vkGetRandROutputDisplayEXT(
     RROutput rrOutput,
     VkDisplayKHR* pDisplay)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetRandROutputDisplayEXT encode");
     mImpl->log("start vkGetRandROutputDisplayEXT");
     auto stream = mImpl->stream();
@@ -20186,9 +20623,9 @@ VkResult VkEncoder::vkGetRandROutputDisplayEXT(
     AEMU_SCOPED_TRACE("vkGetRandROutputDisplayEXT returnUnmarshal");
     VkResult vkGetRandROutputDisplayEXT_VkResult_return = (VkResult)0;
     stream->read(&vkGetRandROutputDisplayEXT_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetRandROutputDisplayEXT");;
     return vkGetRandROutputDisplayEXT_VkResult_return;
 }
@@ -20200,7 +20637,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2EXT(
     VkSurfaceKHR surface,
     VkSurfaceCapabilities2EXT* pSurfaceCapabilities)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceCapabilities2EXT encode");
     mImpl->log("start vkGetPhysicalDeviceSurfaceCapabilities2EXT");
     auto stream = mImpl->stream();
@@ -20243,9 +20680,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2EXT(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceCapabilities2EXT returnUnmarshal");
     VkResult vkGetPhysicalDeviceSurfaceCapabilities2EXT_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceSurfaceCapabilities2EXT_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPhysicalDeviceSurfaceCapabilities2EXT");;
     return vkGetPhysicalDeviceSurfaceCapabilities2EXT_VkResult_return;
 }
@@ -20257,7 +20694,7 @@ VkResult VkEncoder::vkDisplayPowerControlEXT(
     VkDisplayKHR display,
     const VkDisplayPowerInfoEXT* pDisplayPowerInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDisplayPowerControlEXT encode");
     mImpl->log("start vkDisplayPowerControlEXT");
     auto stream = mImpl->stream();
@@ -20306,9 +20743,9 @@ VkResult VkEncoder::vkDisplayPowerControlEXT(
     AEMU_SCOPED_TRACE("vkDisplayPowerControlEXT returnUnmarshal");
     VkResult vkDisplayPowerControlEXT_VkResult_return = (VkResult)0;
     stream->read(&vkDisplayPowerControlEXT_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkDisplayPowerControlEXT");;
     return vkDisplayPowerControlEXT_VkResult_return;
 }
@@ -20319,7 +20756,7 @@ VkResult VkEncoder::vkRegisterDeviceEventEXT(
     const VkAllocationCallbacks* pAllocator,
     VkFence* pFence)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkRegisterDeviceEventEXT encode");
     mImpl->log("start vkRegisterDeviceEventEXT");
     auto stream = mImpl->stream();
@@ -20397,9 +20834,9 @@ VkResult VkEncoder::vkRegisterDeviceEventEXT(
     AEMU_SCOPED_TRACE("vkRegisterDeviceEventEXT returnUnmarshal");
     VkResult vkRegisterDeviceEventEXT_VkResult_return = (VkResult)0;
     stream->read(&vkRegisterDeviceEventEXT_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkRegisterDeviceEventEXT");;
     return vkRegisterDeviceEventEXT_VkResult_return;
 }
@@ -20411,7 +20848,7 @@ VkResult VkEncoder::vkRegisterDisplayEventEXT(
     const VkAllocationCallbacks* pAllocator,
     VkFence* pFence)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkRegisterDisplayEventEXT encode");
     mImpl->log("start vkRegisterDisplayEventEXT");
     auto stream = mImpl->stream();
@@ -20497,9 +20934,9 @@ VkResult VkEncoder::vkRegisterDisplayEventEXT(
     AEMU_SCOPED_TRACE("vkRegisterDisplayEventEXT returnUnmarshal");
     VkResult vkRegisterDisplayEventEXT_VkResult_return = (VkResult)0;
     stream->read(&vkRegisterDisplayEventEXT_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkRegisterDisplayEventEXT");;
     return vkRegisterDisplayEventEXT_VkResult_return;
 }
@@ -20510,7 +20947,7 @@ VkResult VkEncoder::vkGetSwapchainCounterEXT(
     VkSurfaceCounterFlagBitsEXT counter,
     uint64_t* pCounterValue)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetSwapchainCounterEXT encode");
     mImpl->log("start vkGetSwapchainCounterEXT");
     auto stream = mImpl->stream();
@@ -20553,9 +20990,9 @@ VkResult VkEncoder::vkGetSwapchainCounterEXT(
     AEMU_SCOPED_TRACE("vkGetSwapchainCounterEXT returnUnmarshal");
     VkResult vkGetSwapchainCounterEXT_VkResult_return = (VkResult)0;
     stream->read(&vkGetSwapchainCounterEXT_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetSwapchainCounterEXT");;
     return vkGetSwapchainCounterEXT_VkResult_return;
 }
@@ -20567,7 +21004,7 @@ VkResult VkEncoder::vkGetRefreshCycleDurationGOOGLE(
     VkSwapchainKHR swapchain,
     VkRefreshCycleDurationGOOGLE* pDisplayTimingProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetRefreshCycleDurationGOOGLE encode");
     mImpl->log("start vkGetRefreshCycleDurationGOOGLE");
     auto stream = mImpl->stream();
@@ -20610,9 +21047,9 @@ VkResult VkEncoder::vkGetRefreshCycleDurationGOOGLE(
     AEMU_SCOPED_TRACE("vkGetRefreshCycleDurationGOOGLE returnUnmarshal");
     VkResult vkGetRefreshCycleDurationGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkGetRefreshCycleDurationGOOGLE_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetRefreshCycleDurationGOOGLE");;
     return vkGetRefreshCycleDurationGOOGLE_VkResult_return;
 }
@@ -20623,7 +21060,7 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
     uint32_t* pPresentationTimingCount,
     VkPastPresentationTimingGOOGLE* pPresentationTimings)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPastPresentationTimingGOOGLE encode");
     mImpl->log("start vkGetPastPresentationTimingGOOGLE");
     auto stream = mImpl->stream();
@@ -20725,9 +21162,9 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
     AEMU_SCOPED_TRACE("vkGetPastPresentationTimingGOOGLE returnUnmarshal");
     VkResult vkGetPastPresentationTimingGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkGetPastPresentationTimingGOOGLE_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetPastPresentationTimingGOOGLE");;
     return vkGetPastPresentationTimingGOOGLE_VkResult_return;
 }
@@ -20750,7 +21187,7 @@ void VkEncoder::vkCmdSetDiscardRectangleEXT(
     uint32_t discardRectangleCount,
     const VkRect2D* pDiscardRectangles)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdSetDiscardRectangleEXT encode");
     mImpl->log("start vkCmdSetDiscardRectangleEXT");
     auto stream = mImpl->stream();
@@ -20809,6 +21246,9 @@ void VkEncoder::vkCmdSetDiscardRectangleEXT(
     }
     AEMU_SCOPED_TRACE("vkCmdSetDiscardRectangleEXT readParams");
     AEMU_SCOPED_TRACE("vkCmdSetDiscardRectangleEXT returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdSetDiscardRectangleEXT");;
 }
 
@@ -20824,7 +21264,7 @@ void VkEncoder::vkSetHdrMetadataEXT(
     const VkSwapchainKHR* pSwapchains,
     const VkHdrMetadataEXT* pMetadata)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkSetHdrMetadataEXT encode");
     mImpl->log("start vkSetHdrMetadataEXT");
     auto stream = mImpl->stream();
@@ -20899,6 +21339,9 @@ void VkEncoder::vkSetHdrMetadataEXT(
     }
     AEMU_SCOPED_TRACE("vkSetHdrMetadataEXT readParams");
     AEMU_SCOPED_TRACE("vkSetHdrMetadataEXT returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkSetHdrMetadataEXT");;
 }
 
@@ -20910,7 +21353,7 @@ VkResult VkEncoder::vkCreateIOSSurfaceMVK(
     const VkAllocationCallbacks* pAllocator,
     VkSurfaceKHR* pSurface)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateIOSSurfaceMVK encode");
     mImpl->log("start vkCreateIOSSurfaceMVK");
     auto stream = mImpl->stream();
@@ -20988,9 +21431,9 @@ VkResult VkEncoder::vkCreateIOSSurfaceMVK(
     AEMU_SCOPED_TRACE("vkCreateIOSSurfaceMVK returnUnmarshal");
     VkResult vkCreateIOSSurfaceMVK_VkResult_return = (VkResult)0;
     stream->read(&vkCreateIOSSurfaceMVK_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateIOSSurfaceMVK");;
     return vkCreateIOSSurfaceMVK_VkResult_return;
 }
@@ -21003,7 +21446,7 @@ VkResult VkEncoder::vkCreateMacOSSurfaceMVK(
     const VkAllocationCallbacks* pAllocator,
     VkSurfaceKHR* pSurface)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateMacOSSurfaceMVK encode");
     mImpl->log("start vkCreateMacOSSurfaceMVK");
     auto stream = mImpl->stream();
@@ -21081,9 +21524,9 @@ VkResult VkEncoder::vkCreateMacOSSurfaceMVK(
     AEMU_SCOPED_TRACE("vkCreateMacOSSurfaceMVK returnUnmarshal");
     VkResult vkCreateMacOSSurfaceMVK_VkResult_return = (VkResult)0;
     stream->read(&vkCreateMacOSSurfaceMVK_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateMacOSSurfaceMVK");;
     return vkCreateMacOSSurfaceMVK_VkResult_return;
 }
@@ -21098,7 +21541,7 @@ VkResult VkEncoder::vkSetDebugUtilsObjectNameEXT(
     VkDevice device,
     const VkDebugUtilsObjectNameInfoEXT* pNameInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkSetDebugUtilsObjectNameEXT encode");
     mImpl->log("start vkSetDebugUtilsObjectNameEXT");
     auto stream = mImpl->stream();
@@ -21139,9 +21582,9 @@ VkResult VkEncoder::vkSetDebugUtilsObjectNameEXT(
     AEMU_SCOPED_TRACE("vkSetDebugUtilsObjectNameEXT returnUnmarshal");
     VkResult vkSetDebugUtilsObjectNameEXT_VkResult_return = (VkResult)0;
     stream->read(&vkSetDebugUtilsObjectNameEXT_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkSetDebugUtilsObjectNameEXT");;
     return vkSetDebugUtilsObjectNameEXT_VkResult_return;
 }
@@ -21150,7 +21593,7 @@ VkResult VkEncoder::vkSetDebugUtilsObjectTagEXT(
     VkDevice device,
     const VkDebugUtilsObjectTagInfoEXT* pTagInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkSetDebugUtilsObjectTagEXT encode");
     mImpl->log("start vkSetDebugUtilsObjectTagEXT");
     auto stream = mImpl->stream();
@@ -21191,9 +21634,9 @@ VkResult VkEncoder::vkSetDebugUtilsObjectTagEXT(
     AEMU_SCOPED_TRACE("vkSetDebugUtilsObjectTagEXT returnUnmarshal");
     VkResult vkSetDebugUtilsObjectTagEXT_VkResult_return = (VkResult)0;
     stream->read(&vkSetDebugUtilsObjectTagEXT_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkSetDebugUtilsObjectTagEXT");;
     return vkSetDebugUtilsObjectTagEXT_VkResult_return;
 }
@@ -21202,7 +21645,7 @@ void VkEncoder::vkQueueBeginDebugUtilsLabelEXT(
     VkQueue queue,
     const VkDebugUtilsLabelEXT* pLabelInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkQueueBeginDebugUtilsLabelEXT encode");
     mImpl->log("start vkQueueBeginDebugUtilsLabelEXT");
     auto stream = mImpl->stream();
@@ -21241,13 +21684,16 @@ void VkEncoder::vkQueueBeginDebugUtilsLabelEXT(
     marshal_VkDebugUtilsLabelEXT(stream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     AEMU_SCOPED_TRACE("vkQueueBeginDebugUtilsLabelEXT readParams");
     AEMU_SCOPED_TRACE("vkQueueBeginDebugUtilsLabelEXT returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkQueueBeginDebugUtilsLabelEXT");;
 }
 
 void VkEncoder::vkQueueEndDebugUtilsLabelEXT(
     VkQueue queue)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkQueueEndDebugUtilsLabelEXT encode");
     mImpl->log("start vkQueueEndDebugUtilsLabelEXT");
     auto stream = mImpl->stream();
@@ -21273,6 +21719,9 @@ void VkEncoder::vkQueueEndDebugUtilsLabelEXT(
     stream->write((uint64_t*)&cgen_var_1393, 1 * 8);
     AEMU_SCOPED_TRACE("vkQueueEndDebugUtilsLabelEXT readParams");
     AEMU_SCOPED_TRACE("vkQueueEndDebugUtilsLabelEXT returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkQueueEndDebugUtilsLabelEXT");;
 }
 
@@ -21280,7 +21729,7 @@ void VkEncoder::vkQueueInsertDebugUtilsLabelEXT(
     VkQueue queue,
     const VkDebugUtilsLabelEXT* pLabelInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkQueueInsertDebugUtilsLabelEXT encode");
     mImpl->log("start vkQueueInsertDebugUtilsLabelEXT");
     auto stream = mImpl->stream();
@@ -21319,6 +21768,9 @@ void VkEncoder::vkQueueInsertDebugUtilsLabelEXT(
     marshal_VkDebugUtilsLabelEXT(stream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     AEMU_SCOPED_TRACE("vkQueueInsertDebugUtilsLabelEXT readParams");
     AEMU_SCOPED_TRACE("vkQueueInsertDebugUtilsLabelEXT returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkQueueInsertDebugUtilsLabelEXT");;
 }
 
@@ -21326,7 +21778,7 @@ void VkEncoder::vkCmdBeginDebugUtilsLabelEXT(
     VkCommandBuffer commandBuffer,
     const VkDebugUtilsLabelEXT* pLabelInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdBeginDebugUtilsLabelEXT encode");
     mImpl->log("start vkCmdBeginDebugUtilsLabelEXT");
     auto stream = mImpl->stream();
@@ -21365,13 +21817,16 @@ void VkEncoder::vkCmdBeginDebugUtilsLabelEXT(
     marshal_VkDebugUtilsLabelEXT(stream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     AEMU_SCOPED_TRACE("vkCmdBeginDebugUtilsLabelEXT readParams");
     AEMU_SCOPED_TRACE("vkCmdBeginDebugUtilsLabelEXT returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdBeginDebugUtilsLabelEXT");;
 }
 
 void VkEncoder::vkCmdEndDebugUtilsLabelEXT(
     VkCommandBuffer commandBuffer)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdEndDebugUtilsLabelEXT encode");
     mImpl->log("start vkCmdEndDebugUtilsLabelEXT");
     auto stream = mImpl->stream();
@@ -21397,6 +21852,9 @@ void VkEncoder::vkCmdEndDebugUtilsLabelEXT(
     stream->write((uint64_t*)&cgen_var_1399, 1 * 8);
     AEMU_SCOPED_TRACE("vkCmdEndDebugUtilsLabelEXT readParams");
     AEMU_SCOPED_TRACE("vkCmdEndDebugUtilsLabelEXT returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdEndDebugUtilsLabelEXT");;
 }
 
@@ -21404,7 +21862,7 @@ void VkEncoder::vkCmdInsertDebugUtilsLabelEXT(
     VkCommandBuffer commandBuffer,
     const VkDebugUtilsLabelEXT* pLabelInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdInsertDebugUtilsLabelEXT encode");
     mImpl->log("start vkCmdInsertDebugUtilsLabelEXT");
     auto stream = mImpl->stream();
@@ -21443,6 +21901,9 @@ void VkEncoder::vkCmdInsertDebugUtilsLabelEXT(
     marshal_VkDebugUtilsLabelEXT(stream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     AEMU_SCOPED_TRACE("vkCmdInsertDebugUtilsLabelEXT readParams");
     AEMU_SCOPED_TRACE("vkCmdInsertDebugUtilsLabelEXT returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdInsertDebugUtilsLabelEXT");;
 }
 
@@ -21452,7 +21913,7 @@ VkResult VkEncoder::vkCreateDebugUtilsMessengerEXT(
     const VkAllocationCallbacks* pAllocator,
     VkDebugUtilsMessengerEXT* pMessenger)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateDebugUtilsMessengerEXT encode");
     mImpl->log("start vkCreateDebugUtilsMessengerEXT");
     auto stream = mImpl->stream();
@@ -21532,9 +21993,9 @@ VkResult VkEncoder::vkCreateDebugUtilsMessengerEXT(
     AEMU_SCOPED_TRACE("vkCreateDebugUtilsMessengerEXT returnUnmarshal");
     VkResult vkCreateDebugUtilsMessengerEXT_VkResult_return = (VkResult)0;
     stream->read(&vkCreateDebugUtilsMessengerEXT_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateDebugUtilsMessengerEXT");;
     return vkCreateDebugUtilsMessengerEXT_VkResult_return;
 }
@@ -21544,7 +22005,7 @@ void VkEncoder::vkDestroyDebugUtilsMessengerEXT(
     VkDebugUtilsMessengerEXT messenger,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyDebugUtilsMessengerEXT encode");
     mImpl->log("start vkDestroyDebugUtilsMessengerEXT");
     auto stream = mImpl->stream();
@@ -21605,6 +22066,9 @@ void VkEncoder::vkDestroyDebugUtilsMessengerEXT(
     AEMU_SCOPED_TRACE("vkDestroyDebugUtilsMessengerEXT readParams");
     AEMU_SCOPED_TRACE("vkDestroyDebugUtilsMessengerEXT returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkDebugUtilsMessengerEXT((VkDebugUtilsMessengerEXT*)&messenger);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyDebugUtilsMessengerEXT");;
 }
 
@@ -21614,7 +22078,7 @@ void VkEncoder::vkSubmitDebugUtilsMessageEXT(
     VkDebugUtilsMessageTypeFlagsEXT messageTypes,
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkSubmitDebugUtilsMessageEXT encode");
     mImpl->log("start vkSubmitDebugUtilsMessageEXT");
     auto stream = mImpl->stream();
@@ -21661,6 +22125,9 @@ void VkEncoder::vkSubmitDebugUtilsMessageEXT(
     marshal_VkDebugUtilsMessengerCallbackDataEXT(stream, (VkDebugUtilsMessengerCallbackDataEXT*)(local_pCallbackData));
     AEMU_SCOPED_TRACE("vkSubmitDebugUtilsMessageEXT readParams");
     AEMU_SCOPED_TRACE("vkSubmitDebugUtilsMessageEXT returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkSubmitDebugUtilsMessageEXT");;
 }
 
@@ -21671,7 +22138,7 @@ VkResult VkEncoder::vkGetAndroidHardwareBufferPropertiesANDROID(
     const AHardwareBuffer* buffer,
     VkAndroidHardwareBufferPropertiesANDROID* pProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetAndroidHardwareBufferPropertiesANDROID encode");
     mImpl->log("start vkGetAndroidHardwareBufferPropertiesANDROID");
     auto stream = mImpl->stream();
@@ -21714,9 +22181,9 @@ VkResult VkEncoder::vkGetAndroidHardwareBufferPropertiesANDROID(
     AEMU_SCOPED_TRACE("vkGetAndroidHardwareBufferPropertiesANDROID returnUnmarshal");
     VkResult vkGetAndroidHardwareBufferPropertiesANDROID_VkResult_return = (VkResult)0;
     stream->read(&vkGetAndroidHardwareBufferPropertiesANDROID_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetAndroidHardwareBufferPropertiesANDROID");;
     return vkGetAndroidHardwareBufferPropertiesANDROID_VkResult_return;
 }
@@ -21726,7 +22193,7 @@ VkResult VkEncoder::vkGetMemoryAndroidHardwareBufferANDROID(
     const VkMemoryGetAndroidHardwareBufferInfoANDROID* pInfo,
     AHardwareBuffer** pBuffer)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetMemoryAndroidHardwareBufferANDROID encode");
     mImpl->log("start vkGetMemoryAndroidHardwareBufferANDROID");
     auto stream = mImpl->stream();
@@ -21770,9 +22237,9 @@ VkResult VkEncoder::vkGetMemoryAndroidHardwareBufferANDROID(
     AEMU_SCOPED_TRACE("vkGetMemoryAndroidHardwareBufferANDROID returnUnmarshal");
     VkResult vkGetMemoryAndroidHardwareBufferANDROID_VkResult_return = (VkResult)0;
     stream->read(&vkGetMemoryAndroidHardwareBufferANDROID_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetMemoryAndroidHardwareBufferANDROID");;
     return vkGetMemoryAndroidHardwareBufferANDROID_VkResult_return;
 }
@@ -21793,7 +22260,7 @@ void VkEncoder::vkCmdSetSampleLocationsEXT(
     VkCommandBuffer commandBuffer,
     const VkSampleLocationsInfoEXT* pSampleLocationsInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdSetSampleLocationsEXT encode");
     mImpl->log("start vkCmdSetSampleLocationsEXT");
     auto stream = mImpl->stream();
@@ -21832,6 +22299,9 @@ void VkEncoder::vkCmdSetSampleLocationsEXT(
     marshal_VkSampleLocationsInfoEXT(stream, (VkSampleLocationsInfoEXT*)(local_pSampleLocationsInfo));
     AEMU_SCOPED_TRACE("vkCmdSetSampleLocationsEXT readParams");
     AEMU_SCOPED_TRACE("vkCmdSetSampleLocationsEXT returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdSetSampleLocationsEXT");;
 }
 
@@ -21840,7 +22310,7 @@ void VkEncoder::vkGetPhysicalDeviceMultisamplePropertiesEXT(
     VkSampleCountFlagBits samples,
     VkMultisamplePropertiesEXT* pMultisampleProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceMultisamplePropertiesEXT encode");
     mImpl->log("start vkGetPhysicalDeviceMultisamplePropertiesEXT");
     auto stream = mImpl->stream();
@@ -21877,6 +22347,9 @@ void VkEncoder::vkGetPhysicalDeviceMultisamplePropertiesEXT(
         transform_fromhost_VkMultisamplePropertiesEXT(mImpl->resources(), (VkMultisamplePropertiesEXT*)(pMultisampleProperties));
     }
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceMultisamplePropertiesEXT returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetPhysicalDeviceMultisamplePropertiesEXT");;
 }
 
@@ -21898,7 +22371,7 @@ VkResult VkEncoder::vkCreateValidationCacheEXT(
     const VkAllocationCallbacks* pAllocator,
     VkValidationCacheEXT* pValidationCache)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateValidationCacheEXT encode");
     mImpl->log("start vkCreateValidationCacheEXT");
     auto stream = mImpl->stream();
@@ -21978,9 +22451,9 @@ VkResult VkEncoder::vkCreateValidationCacheEXT(
     AEMU_SCOPED_TRACE("vkCreateValidationCacheEXT returnUnmarshal");
     VkResult vkCreateValidationCacheEXT_VkResult_return = (VkResult)0;
     stream->read(&vkCreateValidationCacheEXT_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateValidationCacheEXT");;
     return vkCreateValidationCacheEXT_VkResult_return;
 }
@@ -21990,7 +22463,7 @@ void VkEncoder::vkDestroyValidationCacheEXT(
     VkValidationCacheEXT validationCache,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkDestroyValidationCacheEXT encode");
     mImpl->log("start vkDestroyValidationCacheEXT");
     auto stream = mImpl->stream();
@@ -22051,6 +22524,9 @@ void VkEncoder::vkDestroyValidationCacheEXT(
     AEMU_SCOPED_TRACE("vkDestroyValidationCacheEXT readParams");
     AEMU_SCOPED_TRACE("vkDestroyValidationCacheEXT returnUnmarshal");
     resources->destroyMapping()->mapHandles_VkValidationCacheEXT((VkValidationCacheEXT*)&validationCache);
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkDestroyValidationCacheEXT");;
 }
 
@@ -22060,7 +22536,7 @@ VkResult VkEncoder::vkMergeValidationCachesEXT(
     uint32_t srcCacheCount,
     const VkValidationCacheEXT* pSrcCaches)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkMergeValidationCachesEXT encode");
     mImpl->log("start vkMergeValidationCachesEXT");
     auto stream = mImpl->stream();
@@ -22120,9 +22596,9 @@ VkResult VkEncoder::vkMergeValidationCachesEXT(
     AEMU_SCOPED_TRACE("vkMergeValidationCachesEXT returnUnmarshal");
     VkResult vkMergeValidationCachesEXT_VkResult_return = (VkResult)0;
     stream->read(&vkMergeValidationCachesEXT_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkMergeValidationCachesEXT");;
     return vkMergeValidationCachesEXT_VkResult_return;
 }
@@ -22133,7 +22609,7 @@ VkResult VkEncoder::vkGetValidationCacheDataEXT(
     size_t* pDataSize,
     void* pData)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetValidationCacheDataEXT encode");
     mImpl->log("start vkGetValidationCacheDataEXT");
     auto stream = mImpl->stream();
@@ -22221,9 +22697,9 @@ VkResult VkEncoder::vkGetValidationCacheDataEXT(
     AEMU_SCOPED_TRACE("vkGetValidationCacheDataEXT returnUnmarshal");
     VkResult vkGetValidationCacheDataEXT_VkResult_return = (VkResult)0;
     stream->read(&vkGetValidationCacheDataEXT_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetValidationCacheDataEXT");;
     return vkGetValidationCacheDataEXT_VkResult_return;
 }
@@ -22242,7 +22718,7 @@ VkResult VkEncoder::vkGetMemoryHostPointerPropertiesEXT(
     const void* pHostPointer,
     VkMemoryHostPointerPropertiesEXT* pMemoryHostPointerProperties)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetMemoryHostPointerPropertiesEXT encode");
     mImpl->log("start vkGetMemoryHostPointerPropertiesEXT");
     auto stream = mImpl->stream();
@@ -22301,9 +22777,9 @@ VkResult VkEncoder::vkGetMemoryHostPointerPropertiesEXT(
     AEMU_SCOPED_TRACE("vkGetMemoryHostPointerPropertiesEXT returnUnmarshal");
     VkResult vkGetMemoryHostPointerPropertiesEXT_VkResult_return = (VkResult)0;
     stream->read(&vkGetMemoryHostPointerPropertiesEXT_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetMemoryHostPointerPropertiesEXT");;
     return vkGetMemoryHostPointerPropertiesEXT_VkResult_return;
 }
@@ -22317,7 +22793,7 @@ void VkEncoder::vkCmdWriteBufferMarkerAMD(
     VkDeviceSize dstOffset,
     uint32_t marker)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdWriteBufferMarkerAMD encode");
     mImpl->log("start vkCmdWriteBufferMarkerAMD");
     auto stream = mImpl->stream();
@@ -22363,6 +22839,9 @@ void VkEncoder::vkCmdWriteBufferMarkerAMD(
     stream->write((uint32_t*)&local_marker, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCmdWriteBufferMarkerAMD readParams");
     AEMU_SCOPED_TRACE("vkCmdWriteBufferMarkerAMD returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdWriteBufferMarkerAMD");;
 }
 
@@ -22378,7 +22857,7 @@ void VkEncoder::vkCmdSetCheckpointNV(
     VkCommandBuffer commandBuffer,
     const void* pCheckpointMarker)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCmdSetCheckpointNV encode");
     mImpl->log("start vkCmdSetCheckpointNV");
     auto stream = mImpl->stream();
@@ -22424,6 +22903,9 @@ void VkEncoder::vkCmdSetCheckpointNV(
     }
     AEMU_SCOPED_TRACE("vkCmdSetCheckpointNV readParams");
     AEMU_SCOPED_TRACE("vkCmdSetCheckpointNV returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCmdSetCheckpointNV");;
 }
 
@@ -22432,7 +22914,7 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
     uint32_t* pCheckpointDataCount,
     VkCheckpointDataNV* pCheckpointData)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetQueueCheckpointDataNV encode");
     mImpl->log("start vkGetQueueCheckpointDataNV");
     auto stream = mImpl->stream();
@@ -22524,6 +23006,9 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
         }
     }
     AEMU_SCOPED_TRACE("vkGetQueueCheckpointDataNV returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkGetQueueCheckpointDataNV");;
 }
 
@@ -22534,12 +23019,10 @@ VkResult VkEncoder::vkMapMemoryIntoAddressSpaceGOOGLE(
     VkDeviceMemory memory,
     uint64_t* pAddress)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkMapMemoryIntoAddressSpaceGOOGLE encode");
     mImpl->log("start vkMapMemoryIntoAddressSpaceGOOGLE");
-    encoderLock.unlock();
     mImpl->resources()->on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(this, VK_SUCCESS, device, memory, pAddress);
-    encoderLock.lock();
     auto stream = mImpl->stream();
     auto countingStream = mImpl->countingStream();
     auto resources = mImpl->resources();
@@ -22599,12 +23082,10 @@ VkResult VkEncoder::vkMapMemoryIntoAddressSpaceGOOGLE(
     AEMU_SCOPED_TRACE("vkMapMemoryIntoAddressSpaceGOOGLE returnUnmarshal");
     VkResult vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return, sizeof(VkResult));
+    mImpl->resources()->on_vkMapMemoryIntoAddressSpaceGOOGLE(this, vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return, device, memory, pAddress);
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
-    encoderLock.unlock();
-    mImpl->resources()->on_vkMapMemoryIntoAddressSpaceGOOGLE(this, vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return, device, memory, pAddress);
-    encoderLock.lock();
     mImpl->log("finish vkMapMemoryIntoAddressSpaceGOOGLE");;
     return vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return;
 }
@@ -22616,7 +23097,7 @@ VkResult VkEncoder::vkRegisterImageColorBufferGOOGLE(
     VkImage image,
     uint32_t colorBuffer)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkRegisterImageColorBufferGOOGLE encode");
     mImpl->log("start vkRegisterImageColorBufferGOOGLE");
     auto stream = mImpl->stream();
@@ -22656,9 +23137,9 @@ VkResult VkEncoder::vkRegisterImageColorBufferGOOGLE(
     AEMU_SCOPED_TRACE("vkRegisterImageColorBufferGOOGLE returnUnmarshal");
     VkResult vkRegisterImageColorBufferGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkRegisterImageColorBufferGOOGLE_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkRegisterImageColorBufferGOOGLE");;
     return vkRegisterImageColorBufferGOOGLE_VkResult_return;
 }
@@ -22668,7 +23149,7 @@ VkResult VkEncoder::vkRegisterBufferColorBufferGOOGLE(
     VkBuffer buffer,
     uint32_t colorBuffer)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkRegisterBufferColorBufferGOOGLE encode");
     mImpl->log("start vkRegisterBufferColorBufferGOOGLE");
     auto stream = mImpl->stream();
@@ -22708,9 +23189,9 @@ VkResult VkEncoder::vkRegisterBufferColorBufferGOOGLE(
     AEMU_SCOPED_TRACE("vkRegisterBufferColorBufferGOOGLE returnUnmarshal");
     VkResult vkRegisterBufferColorBufferGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkRegisterBufferColorBufferGOOGLE_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkRegisterBufferColorBufferGOOGLE");;
     return vkRegisterBufferColorBufferGOOGLE_VkResult_return;
 }
@@ -22731,7 +23212,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     const VkDescriptorBufferInfo* pBufferInfos,
     const VkBufferView* pBufferViews)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateSizedGOOGLE encode");
     mImpl->log("start vkUpdateDescriptorSetWithTemplateSizedGOOGLE");
     auto stream = mImpl->stream();
@@ -22951,6 +23432,9 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     }
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateSizedGOOGLE readParams");
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateSizedGOOGLE returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkUpdateDescriptorSetWithTemplateSizedGOOGLE");;
 }
 
@@ -22960,7 +23444,7 @@ void VkEncoder::vkBeginCommandBufferAsyncGOOGLE(
     VkCommandBuffer commandBuffer,
     const VkCommandBufferBeginInfo* pBeginInfo)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkBeginCommandBufferAsyncGOOGLE encode");
     mImpl->log("start vkBeginCommandBufferAsyncGOOGLE");
     auto stream = mImpl->stream();
@@ -22999,13 +23483,16 @@ void VkEncoder::vkBeginCommandBufferAsyncGOOGLE(
     marshal_VkCommandBufferBeginInfo(stream, (VkCommandBufferBeginInfo*)(local_pBeginInfo));
     AEMU_SCOPED_TRACE("vkBeginCommandBufferAsyncGOOGLE readParams");
     AEMU_SCOPED_TRACE("vkBeginCommandBufferAsyncGOOGLE returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkBeginCommandBufferAsyncGOOGLE");;
 }
 
 void VkEncoder::vkEndCommandBufferAsyncGOOGLE(
     VkCommandBuffer commandBuffer)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkEndCommandBufferAsyncGOOGLE encode");
     mImpl->log("start vkEndCommandBufferAsyncGOOGLE");
     auto stream = mImpl->stream();
@@ -23032,6 +23519,9 @@ void VkEncoder::vkEndCommandBufferAsyncGOOGLE(
     AEMU_SCOPED_TRACE("vkEndCommandBufferAsyncGOOGLE readParams");
     AEMU_SCOPED_TRACE("vkEndCommandBufferAsyncGOOGLE returnUnmarshal");
     stream->flush();
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkEndCommandBufferAsyncGOOGLE");;
 }
 
@@ -23039,7 +23529,7 @@ void VkEncoder::vkResetCommandBufferAsyncGOOGLE(
     VkCommandBuffer commandBuffer,
     VkCommandBufferResetFlags flags)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkResetCommandBufferAsyncGOOGLE encode");
     mImpl->log("start vkResetCommandBufferAsyncGOOGLE");
     auto stream = mImpl->stream();
@@ -23069,6 +23559,9 @@ void VkEncoder::vkResetCommandBufferAsyncGOOGLE(
     stream->write((VkCommandBufferResetFlags*)&local_flags, sizeof(VkCommandBufferResetFlags));
     AEMU_SCOPED_TRACE("vkResetCommandBufferAsyncGOOGLE readParams");
     AEMU_SCOPED_TRACE("vkResetCommandBufferAsyncGOOGLE returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkResetCommandBufferAsyncGOOGLE");;
 }
 
@@ -23077,7 +23570,7 @@ void VkEncoder::vkCommandBufferHostSyncGOOGLE(
     uint32_t needHostSync,
     uint32_t sequenceNumber)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCommandBufferHostSyncGOOGLE encode");
     mImpl->log("start vkCommandBufferHostSyncGOOGLE");
     auto stream = mImpl->stream();
@@ -23111,6 +23604,9 @@ void VkEncoder::vkCommandBufferHostSyncGOOGLE(
     stream->write((uint32_t*)&local_sequenceNumber, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkCommandBufferHostSyncGOOGLE readParams");
     AEMU_SCOPED_TRACE("vkCommandBufferHostSyncGOOGLE returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkCommandBufferHostSyncGOOGLE");;
 }
 
@@ -23123,7 +23619,7 @@ VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
     VkImage* pImage,
     VkMemoryRequirements* pMemoryRequirements)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateImageWithRequirementsGOOGLE encode");
     mImpl->log("start vkCreateImageWithRequirementsGOOGLE");
     auto stream = mImpl->stream();
@@ -23211,9 +23707,9 @@ VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
     AEMU_SCOPED_TRACE("vkCreateImageWithRequirementsGOOGLE returnUnmarshal");
     VkResult vkCreateImageWithRequirementsGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkCreateImageWithRequirementsGOOGLE_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateImageWithRequirementsGOOGLE");;
     return vkCreateImageWithRequirementsGOOGLE_VkResult_return;
 }
@@ -23225,7 +23721,7 @@ VkResult VkEncoder::vkCreateBufferWithRequirementsGOOGLE(
     VkBuffer* pBuffer,
     VkMemoryRequirements* pMemoryRequirements)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkCreateBufferWithRequirementsGOOGLE encode");
     mImpl->log("start vkCreateBufferWithRequirementsGOOGLE");
     auto stream = mImpl->stream();
@@ -23312,9 +23808,9 @@ VkResult VkEncoder::vkCreateBufferWithRequirementsGOOGLE(
     AEMU_SCOPED_TRACE("vkCreateBufferWithRequirementsGOOGLE returnUnmarshal");
     VkResult vkCreateBufferWithRequirementsGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkCreateBufferWithRequirementsGOOGLE_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkCreateBufferWithRequirementsGOOGLE");;
     return vkCreateBufferWithRequirementsGOOGLE_VkResult_return;
 }
@@ -23328,7 +23824,7 @@ VkResult VkEncoder::vkGetMemoryHostAddressInfoGOOGLE(
     uint64_t* pSize,
     uint64_t* pHostmemId)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkGetMemoryHostAddressInfoGOOGLE encode");
     mImpl->log("start vkGetMemoryHostAddressInfoGOOGLE");
     auto stream = mImpl->stream();
@@ -23440,9 +23936,9 @@ VkResult VkEncoder::vkGetMemoryHostAddressInfoGOOGLE(
     AEMU_SCOPED_TRACE("vkGetMemoryHostAddressInfoGOOGLE returnUnmarshal");
     VkResult vkGetMemoryHostAddressInfoGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkGetMemoryHostAddressInfoGOOGLE_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
     mImpl->log("finish vkGetMemoryHostAddressInfoGOOGLE");;
     return vkGetMemoryHostAddressInfoGOOGLE_VkResult_return;
 }
@@ -23454,7 +23950,7 @@ VkResult VkEncoder::vkFreeMemorySyncGOOGLE(
     VkDeviceMemory memory,
     const VkAllocationCallbacks* pAllocator)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkFreeMemorySyncGOOGLE encode");
     mImpl->log("start vkFreeMemorySyncGOOGLE");
     auto stream = mImpl->stream();
@@ -23513,10 +24009,10 @@ VkResult VkEncoder::vkFreeMemorySyncGOOGLE(
     AEMU_SCOPED_TRACE("vkFreeMemorySyncGOOGLE returnUnmarshal");
     VkResult vkFreeMemorySyncGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkFreeMemorySyncGOOGLE_VkResult_return, sizeof(VkResult));
+    resources->destroyMapping()->mapHandles_VkDeviceMemory((VkDeviceMemory*)&memory);
+    pool->freeAll();
     countingStream->clearPool();
     stream->clearPool();
-    pool->freeAll();
-    resources->destroyMapping()->mapHandles_VkDeviceMemory((VkDeviceMemory*)&memory);
     mImpl->log("finish vkFreeMemorySyncGOOGLE");;
     return vkFreeMemorySyncGOOGLE_VkResult_return;
 }
@@ -23528,7 +24024,7 @@ void VkEncoder::vkQueueHostSyncGOOGLE(
     uint32_t needHostSync,
     uint32_t sequenceNumber)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkQueueHostSyncGOOGLE encode");
     mImpl->log("start vkQueueHostSyncGOOGLE");
     auto stream = mImpl->stream();
@@ -23562,6 +24058,9 @@ void VkEncoder::vkQueueHostSyncGOOGLE(
     stream->write((uint32_t*)&local_sequenceNumber, sizeof(uint32_t));
     AEMU_SCOPED_TRACE("vkQueueHostSyncGOOGLE readParams");
     AEMU_SCOPED_TRACE("vkQueueHostSyncGOOGLE returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkQueueHostSyncGOOGLE");;
 }
 
@@ -23571,7 +24070,7 @@ void VkEncoder::vkQueueSubmitAsyncGOOGLE(
     const VkSubmitInfo* pSubmits,
     VkFence fence)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkQueueSubmitAsyncGOOGLE encode");
     mImpl->log("start vkQueueSubmitAsyncGOOGLE");
     auto stream = mImpl->stream();
@@ -23635,13 +24134,16 @@ void VkEncoder::vkQueueSubmitAsyncGOOGLE(
     AEMU_SCOPED_TRACE("vkQueueSubmitAsyncGOOGLE readParams");
     AEMU_SCOPED_TRACE("vkQueueSubmitAsyncGOOGLE returnUnmarshal");
     stream->flush();
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkQueueSubmitAsyncGOOGLE");;
 }
 
 void VkEncoder::vkQueueWaitIdleAsyncGOOGLE(
     VkQueue queue)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkQueueWaitIdleAsyncGOOGLE encode");
     mImpl->log("start vkQueueWaitIdleAsyncGOOGLE");
     auto stream = mImpl->stream();
@@ -23668,6 +24170,9 @@ void VkEncoder::vkQueueWaitIdleAsyncGOOGLE(
     AEMU_SCOPED_TRACE("vkQueueWaitIdleAsyncGOOGLE readParams");
     AEMU_SCOPED_TRACE("vkQueueWaitIdleAsyncGOOGLE returnUnmarshal");
     stream->flush();
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkQueueWaitIdleAsyncGOOGLE");;
 }
 
@@ -23677,7 +24182,7 @@ void VkEncoder::vkQueueBindSparseAsyncGOOGLE(
     const VkBindSparseInfo* pBindInfo,
     VkFence fence)
 {
-    AutoLock encoderLock(mImpl->lock);
+    EncoderAutoLock encoderLock(this);
     AEMU_SCOPED_TRACE("vkQueueBindSparseAsyncGOOGLE encode");
     mImpl->log("start vkQueueBindSparseAsyncGOOGLE");
     auto stream = mImpl->stream();
@@ -23741,6 +24246,9 @@ void VkEncoder::vkQueueBindSparseAsyncGOOGLE(
     AEMU_SCOPED_TRACE("vkQueueBindSparseAsyncGOOGLE readParams");
     AEMU_SCOPED_TRACE("vkQueueBindSparseAsyncGOOGLE returnUnmarshal");
     stream->flush();
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
     mImpl->log("finish vkQueueBindSparseAsyncGOOGLE");;
 }
 
