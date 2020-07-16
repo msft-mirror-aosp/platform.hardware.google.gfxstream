@@ -240,6 +240,7 @@ static VkResult entry_vkQueueSubmit(
 {
     AEMU_SCOPED_TRACE("vkQueueSubmit");
     auto vkEnc = HostConnection::get()->vkEncoder();
+    ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
     VkResult vkQueueSubmit_VkResult_return = (VkResult)0;
     auto resources = ResourceTracker::get();
     vkQueueSubmit_VkResult_return = resources->on_vkQueueSubmit(vkEnc, VK_SUCCESS, queue, submitCount, pSubmits, fence);
@@ -250,6 +251,7 @@ static VkResult entry_vkQueueWaitIdle(
 {
     AEMU_SCOPED_TRACE("vkQueueWaitIdle");
     auto vkEnc = HostConnection::get()->vkEncoder();
+    ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
     VkResult vkQueueWaitIdle_VkResult_return = (VkResult)0;
     auto resources = ResourceTracker::get();
     vkQueueWaitIdle_VkResult_return = resources->on_vkQueueWaitIdle(vkEnc, VK_SUCCESS, queue);
@@ -418,6 +420,7 @@ static VkResult entry_vkQueueBindSparse(
 {
     AEMU_SCOPED_TRACE("vkQueueBindSparse");
     auto vkEnc = HostConnection::get()->vkEncoder();
+    ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
     VkResult vkQueueBindSparse_VkResult_return = (VkResult)0;
     vkQueueBindSparse_VkResult_return = vkEnc->vkQueueBindSparse(queue, bindInfoCount, pBindInfo, fence);
     return vkQueueBindSparse_VkResult_return;
@@ -2258,6 +2261,7 @@ static VkResult entry_vkQueuePresentKHR(
 {
     AEMU_SCOPED_TRACE("vkQueuePresentKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
+    ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
     VkResult vkQueuePresentKHR_VkResult_return = (VkResult)0;
     vkQueuePresentKHR_VkResult_return = vkEnc->vkQueuePresentKHR(queue, pPresentInfo);
     return vkQueuePresentKHR_VkResult_return;
@@ -3751,6 +3755,7 @@ static VkResult entry_vkQueueSignalReleaseImageANDROID(
 {
     AEMU_SCOPED_TRACE("vkQueueSignalReleaseImageANDROID");
     auto vkEnc = HostConnection::get()->vkEncoder();
+    ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
     VkResult vkQueueSignalReleaseImageANDROID_VkResult_return = (VkResult)0;
     vkQueueSignalReleaseImageANDROID_VkResult_return = vkEnc->vkQueueSignalReleaseImageANDROID(queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd);
     return vkQueueSignalReleaseImageANDROID_VkResult_return;
@@ -4633,6 +4638,7 @@ static void entry_vkQueueBeginDebugUtilsLabelEXT(
 {
     AEMU_SCOPED_TRACE("vkQueueBeginDebugUtilsLabelEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
+    ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
     vkEnc->vkQueueBeginDebugUtilsLabelEXT(queue, pLabelInfo);
 }
 static void entry_vkQueueEndDebugUtilsLabelEXT(
@@ -4640,6 +4646,7 @@ static void entry_vkQueueEndDebugUtilsLabelEXT(
 {
     AEMU_SCOPED_TRACE("vkQueueEndDebugUtilsLabelEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
+    ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
     vkEnc->vkQueueEndDebugUtilsLabelEXT(queue);
 }
 static void entry_vkQueueInsertDebugUtilsLabelEXT(
@@ -4648,6 +4655,7 @@ static void entry_vkQueueInsertDebugUtilsLabelEXT(
 {
     AEMU_SCOPED_TRACE("vkQueueInsertDebugUtilsLabelEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
+    ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
     vkEnc->vkQueueInsertDebugUtilsLabelEXT(queue, pLabelInfo);
 }
 static void entry_vkCmdBeginDebugUtilsLabelEXT(
@@ -4992,6 +5000,7 @@ static void entry_vkGetQueueCheckpointDataNV(
 {
     AEMU_SCOPED_TRACE("vkGetQueueCheckpointDataNV");
     auto vkEnc = HostConnection::get()->vkEncoder();
+    ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
     vkEnc->vkGetQueueCheckpointDataNV(queue, pCheckpointDataCount, pCheckpointData);
 }
 #endif
@@ -5285,6 +5294,48 @@ static VkResult dynCheck_entry_vkFreeMemorySyncGOOGLE(
     VkResult vkFreeMemorySyncGOOGLE_VkResult_return = (VkResult)0;
     vkFreeMemorySyncGOOGLE_VkResult_return = vkEnc->vkFreeMemorySyncGOOGLE(device, memory, pAllocator);
     return vkFreeMemorySyncGOOGLE_VkResult_return;
+}
+#endif
+#ifdef VK_GOOGLE_async_queue_submit
+static void entry_vkQueueHostSyncGOOGLE(
+    VkQueue queue,
+    uint32_t needHostSync,
+    uint32_t sequenceNumber)
+{
+    AEMU_SCOPED_TRACE("vkQueueHostSyncGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
+    vkEnc->vkQueueHostSyncGOOGLE(queue, needHostSync, sequenceNumber);
+}
+static void entry_vkQueueSubmitAsyncGOOGLE(
+    VkQueue queue,
+    uint32_t submitCount,
+    const VkSubmitInfo* pSubmits,
+    VkFence fence)
+{
+    AEMU_SCOPED_TRACE("vkQueueSubmitAsyncGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
+    vkEnc->vkQueueSubmitAsyncGOOGLE(queue, submitCount, pSubmits, fence);
+}
+static void entry_vkQueueWaitIdleAsyncGOOGLE(
+    VkQueue queue)
+{
+    AEMU_SCOPED_TRACE("vkQueueWaitIdleAsyncGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
+    vkEnc->vkQueueWaitIdleAsyncGOOGLE(queue);
+}
+static void entry_vkQueueBindSparseAsyncGOOGLE(
+    VkQueue queue,
+    uint32_t bindInfoCount,
+    const VkBindSparseInfo* pBindInfo,
+    VkFence fence)
+{
+    AEMU_SCOPED_TRACE("vkQueueBindSparseAsyncGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
+    vkEnc->vkQueueBindSparseAsyncGOOGLE(queue, bindInfoCount, pBindInfo, fence);
 }
 #endif
 void* goldfish_vulkan_get_proc_address(const char* name){
@@ -6740,6 +6791,24 @@ void* goldfish_vulkan_get_proc_address(const char* name){
 #endif
 #ifdef VK_GOOGLE_free_memory_sync
     if (!strcmp(name, "vkFreeMemorySyncGOOGLE"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_async_queue_submit
+    if (!strcmp(name, "vkQueueHostSyncGOOGLE"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkQueueSubmitAsyncGOOGLE"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkQueueWaitIdleAsyncGOOGLE"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkQueueBindSparseAsyncGOOGLE"))
     {
         return nullptr;
     }
@@ -8296,6 +8365,28 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     if (!strcmp(name, "vkFreeMemorySyncGOOGLE"))
     {
         return (void*)dynCheck_entry_vkFreeMemorySyncGOOGLE;
+    }
+#endif
+#ifdef VK_GOOGLE_async_queue_submit
+    if (!strcmp(name, "vkQueueHostSyncGOOGLE"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_async_queue_submit");
+        return hasExt ? (void*)entry_vkQueueHostSyncGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkQueueSubmitAsyncGOOGLE"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_async_queue_submit");
+        return hasExt ? (void*)entry_vkQueueSubmitAsyncGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkQueueWaitIdleAsyncGOOGLE"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_async_queue_submit");
+        return hasExt ? (void*)entry_vkQueueWaitIdleAsyncGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkQueueBindSparseAsyncGOOGLE"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_async_queue_submit");
+        return hasExt ? (void*)entry_vkQueueBindSparseAsyncGOOGLE : nullptr;
     }
 #endif
     return nullptr;
@@ -9921,6 +10012,28 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     {
         bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_free_memory_sync");
         return hasExt ? (void*)entry_vkFreeMemorySyncGOOGLE : nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_async_queue_submit
+    if (!strcmp(name, "vkQueueHostSyncGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_async_queue_submit");
+        return hasExt ? (void*)entry_vkQueueHostSyncGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkQueueSubmitAsyncGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_async_queue_submit");
+        return hasExt ? (void*)entry_vkQueueSubmitAsyncGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkQueueWaitIdleAsyncGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_async_queue_submit");
+        return hasExt ? (void*)entry_vkQueueWaitIdleAsyncGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkQueueBindSparseAsyncGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_async_queue_submit");
+        return hasExt ? (void*)entry_vkQueueBindSparseAsyncGOOGLE : nullptr;
     }
 #endif
     return nullptr;

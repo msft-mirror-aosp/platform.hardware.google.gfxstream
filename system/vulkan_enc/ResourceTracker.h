@@ -481,6 +481,7 @@ public:
         VkImageFormatProperties2* pImageFormatProperties);
 
     uint32_t syncEncodersForCommandBuffer(VkCommandBuffer commandBuffer, VkEncoder* current);
+    uint32_t syncEncodersForQueue(VkQueue queue, VkEncoder* current);
 
     VkResult on_vkBeginCommandBuffer(
         void* context, VkResult input_result,
