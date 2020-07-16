@@ -18280,6 +18280,7 @@ VkResult VkEncoder::vkQueueSignalReleaseImageANDROID(
     countingStream->clearPool();
     stream->clearPool();
     pool->freeAll();
+    stream->flush();
     mImpl->log("finish vkQueueSignalReleaseImageANDROID");;
     return vkQueueSignalReleaseImageANDROID_VkResult_return;
 }
@@ -23030,6 +23031,7 @@ void VkEncoder::vkEndCommandBufferAsyncGOOGLE(
     stream->write((uint64_t*)&cgen_var_1515, 1 * 8);
     AEMU_SCOPED_TRACE("vkEndCommandBufferAsyncGOOGLE readParams");
     AEMU_SCOPED_TRACE("vkEndCommandBufferAsyncGOOGLE returnUnmarshal");
+    stream->flush();
     mImpl->log("finish vkEndCommandBufferAsyncGOOGLE");;
 }
 
@@ -23517,6 +23519,229 @@ VkResult VkEncoder::vkFreeMemorySyncGOOGLE(
     resources->destroyMapping()->mapHandles_VkDeviceMemory((VkDeviceMemory*)&memory);
     mImpl->log("finish vkFreeMemorySyncGOOGLE");;
     return vkFreeMemorySyncGOOGLE_VkResult_return;
+}
+
+#endif
+#ifdef VK_GOOGLE_async_queue_submit
+void VkEncoder::vkQueueHostSyncGOOGLE(
+    VkQueue queue,
+    uint32_t needHostSync,
+    uint32_t sequenceNumber)
+{
+    AutoLock encoderLock(mImpl->lock);
+    AEMU_SCOPED_TRACE("vkQueueHostSyncGOOGLE encode");
+    mImpl->log("start vkQueueHostSyncGOOGLE");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkQueue local_queue;
+    uint32_t local_needHostSync;
+    uint32_t local_sequenceNumber;
+    local_queue = queue;
+    local_needHostSync = needHostSync;
+    local_sequenceNumber = sequenceNumber;
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1553;
+        countingStream->handleMapping()->mapHandles_VkQueue_u64(&local_queue, &cgen_var_1553, 1);
+        countingStream->write((uint64_t*)&cgen_var_1553, 1 * 8);
+        countingStream->write((uint32_t*)&local_needHostSync, sizeof(uint32_t));
+        countingStream->write((uint32_t*)&local_sequenceNumber, sizeof(uint32_t));
+    }
+    uint32_t packetSize_vkQueueHostSyncGOOGLE = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkQueueHostSyncGOOGLE = OP_vkQueueHostSyncGOOGLE;
+    stream->write(&opcode_vkQueueHostSyncGOOGLE, sizeof(uint32_t));
+    stream->write(&packetSize_vkQueueHostSyncGOOGLE, sizeof(uint32_t));
+    uint64_t cgen_var_1554;
+    stream->handleMapping()->mapHandles_VkQueue_u64(&local_queue, &cgen_var_1554, 1);
+    stream->write((uint64_t*)&cgen_var_1554, 1 * 8);
+    stream->write((uint32_t*)&local_needHostSync, sizeof(uint32_t));
+    stream->write((uint32_t*)&local_sequenceNumber, sizeof(uint32_t));
+    AEMU_SCOPED_TRACE("vkQueueHostSyncGOOGLE readParams");
+    AEMU_SCOPED_TRACE("vkQueueHostSyncGOOGLE returnUnmarshal");
+    mImpl->log("finish vkQueueHostSyncGOOGLE");;
+}
+
+void VkEncoder::vkQueueSubmitAsyncGOOGLE(
+    VkQueue queue,
+    uint32_t submitCount,
+    const VkSubmitInfo* pSubmits,
+    VkFence fence)
+{
+    AutoLock encoderLock(mImpl->lock);
+    AEMU_SCOPED_TRACE("vkQueueSubmitAsyncGOOGLE encode");
+    mImpl->log("start vkQueueSubmitAsyncGOOGLE");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkQueue local_queue;
+    uint32_t local_submitCount;
+    VkSubmitInfo* local_pSubmits;
+    VkFence local_fence;
+    local_queue = queue;
+    local_submitCount = submitCount;
+    local_pSubmits = nullptr;
+    if (pSubmits)
+    {
+        local_pSubmits = (VkSubmitInfo*)pool->alloc(((submitCount)) * sizeof(const VkSubmitInfo));
+        for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i)
+        {
+            deepcopy_VkSubmitInfo(pool, pSubmits + i, (VkSubmitInfo*)(local_pSubmits + i));
+        }
+    }
+    local_fence = fence;
+    if (local_pSubmits)
+    {
+        for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i)
+        {
+            transform_tohost_VkSubmitInfo(mImpl->resources(), (VkSubmitInfo*)(local_pSubmits + i));
+        }
+    }
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1555;
+        countingStream->handleMapping()->mapHandles_VkQueue_u64(&local_queue, &cgen_var_1555, 1);
+        countingStream->write((uint64_t*)&cgen_var_1555, 1 * 8);
+        countingStream->write((uint32_t*)&local_submitCount, sizeof(uint32_t));
+        for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i)
+        {
+            marshal_VkSubmitInfo(countingStream, (VkSubmitInfo*)(local_pSubmits + i));
+        }
+        uint64_t cgen_var_1556;
+        countingStream->handleMapping()->mapHandles_VkFence_u64(&local_fence, &cgen_var_1556, 1);
+        countingStream->write((uint64_t*)&cgen_var_1556, 1 * 8);
+    }
+    uint32_t packetSize_vkQueueSubmitAsyncGOOGLE = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkQueueSubmitAsyncGOOGLE = OP_vkQueueSubmitAsyncGOOGLE;
+    stream->write(&opcode_vkQueueSubmitAsyncGOOGLE, sizeof(uint32_t));
+    stream->write(&packetSize_vkQueueSubmitAsyncGOOGLE, sizeof(uint32_t));
+    uint64_t cgen_var_1557;
+    stream->handleMapping()->mapHandles_VkQueue_u64(&local_queue, &cgen_var_1557, 1);
+    stream->write((uint64_t*)&cgen_var_1557, 1 * 8);
+    stream->write((uint32_t*)&local_submitCount, sizeof(uint32_t));
+    for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i)
+    {
+        marshal_VkSubmitInfo(stream, (VkSubmitInfo*)(local_pSubmits + i));
+    }
+    uint64_t cgen_var_1558;
+    stream->handleMapping()->mapHandles_VkFence_u64(&local_fence, &cgen_var_1558, 1);
+    stream->write((uint64_t*)&cgen_var_1558, 1 * 8);
+    AEMU_SCOPED_TRACE("vkQueueSubmitAsyncGOOGLE readParams");
+    AEMU_SCOPED_TRACE("vkQueueSubmitAsyncGOOGLE returnUnmarshal");
+    stream->flush();
+    mImpl->log("finish vkQueueSubmitAsyncGOOGLE");;
+}
+
+void VkEncoder::vkQueueWaitIdleAsyncGOOGLE(
+    VkQueue queue)
+{
+    AutoLock encoderLock(mImpl->lock);
+    AEMU_SCOPED_TRACE("vkQueueWaitIdleAsyncGOOGLE encode");
+    mImpl->log("start vkQueueWaitIdleAsyncGOOGLE");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkQueue local_queue;
+    local_queue = queue;
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1559;
+        countingStream->handleMapping()->mapHandles_VkQueue_u64(&local_queue, &cgen_var_1559, 1);
+        countingStream->write((uint64_t*)&cgen_var_1559, 1 * 8);
+    }
+    uint32_t packetSize_vkQueueWaitIdleAsyncGOOGLE = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkQueueWaitIdleAsyncGOOGLE = OP_vkQueueWaitIdleAsyncGOOGLE;
+    stream->write(&opcode_vkQueueWaitIdleAsyncGOOGLE, sizeof(uint32_t));
+    stream->write(&packetSize_vkQueueWaitIdleAsyncGOOGLE, sizeof(uint32_t));
+    uint64_t cgen_var_1560;
+    stream->handleMapping()->mapHandles_VkQueue_u64(&local_queue, &cgen_var_1560, 1);
+    stream->write((uint64_t*)&cgen_var_1560, 1 * 8);
+    AEMU_SCOPED_TRACE("vkQueueWaitIdleAsyncGOOGLE readParams");
+    AEMU_SCOPED_TRACE("vkQueueWaitIdleAsyncGOOGLE returnUnmarshal");
+    stream->flush();
+    mImpl->log("finish vkQueueWaitIdleAsyncGOOGLE");;
+}
+
+void VkEncoder::vkQueueBindSparseAsyncGOOGLE(
+    VkQueue queue,
+    uint32_t bindInfoCount,
+    const VkBindSparseInfo* pBindInfo,
+    VkFence fence)
+{
+    AutoLock encoderLock(mImpl->lock);
+    AEMU_SCOPED_TRACE("vkQueueBindSparseAsyncGOOGLE encode");
+    mImpl->log("start vkQueueBindSparseAsyncGOOGLE");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkQueue local_queue;
+    uint32_t local_bindInfoCount;
+    VkBindSparseInfo* local_pBindInfo;
+    VkFence local_fence;
+    local_queue = queue;
+    local_bindInfoCount = bindInfoCount;
+    local_pBindInfo = nullptr;
+    if (pBindInfo)
+    {
+        local_pBindInfo = (VkBindSparseInfo*)pool->alloc(((bindInfoCount)) * sizeof(const VkBindSparseInfo));
+        for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
+        {
+            deepcopy_VkBindSparseInfo(pool, pBindInfo + i, (VkBindSparseInfo*)(local_pBindInfo + i));
+        }
+    }
+    local_fence = fence;
+    if (local_pBindInfo)
+    {
+        for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
+        {
+            transform_tohost_VkBindSparseInfo(mImpl->resources(), (VkBindSparseInfo*)(local_pBindInfo + i));
+        }
+    }
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1561;
+        countingStream->handleMapping()->mapHandles_VkQueue_u64(&local_queue, &cgen_var_1561, 1);
+        countingStream->write((uint64_t*)&cgen_var_1561, 1 * 8);
+        countingStream->write((uint32_t*)&local_bindInfoCount, sizeof(uint32_t));
+        for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
+        {
+            marshal_VkBindSparseInfo(countingStream, (VkBindSparseInfo*)(local_pBindInfo + i));
+        }
+        uint64_t cgen_var_1562;
+        countingStream->handleMapping()->mapHandles_VkFence_u64(&local_fence, &cgen_var_1562, 1);
+        countingStream->write((uint64_t*)&cgen_var_1562, 1 * 8);
+    }
+    uint32_t packetSize_vkQueueBindSparseAsyncGOOGLE = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkQueueBindSparseAsyncGOOGLE = OP_vkQueueBindSparseAsyncGOOGLE;
+    stream->write(&opcode_vkQueueBindSparseAsyncGOOGLE, sizeof(uint32_t));
+    stream->write(&packetSize_vkQueueBindSparseAsyncGOOGLE, sizeof(uint32_t));
+    uint64_t cgen_var_1563;
+    stream->handleMapping()->mapHandles_VkQueue_u64(&local_queue, &cgen_var_1563, 1);
+    stream->write((uint64_t*)&cgen_var_1563, 1 * 8);
+    stream->write((uint32_t*)&local_bindInfoCount, sizeof(uint32_t));
+    for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
+    {
+        marshal_VkBindSparseInfo(stream, (VkBindSparseInfo*)(local_pBindInfo + i));
+    }
+    uint64_t cgen_var_1564;
+    stream->handleMapping()->mapHandles_VkFence_u64(&local_fence, &cgen_var_1564, 1);
+    stream->write((uint64_t*)&cgen_var_1564, 1 * 8);
+    AEMU_SCOPED_TRACE("vkQueueBindSparseAsyncGOOGLE readParams");
+    AEMU_SCOPED_TRACE("vkQueueBindSparseAsyncGOOGLE returnUnmarshal");
+    stream->flush();
+    mImpl->log("finish vkQueueBindSparseAsyncGOOGLE");;
 }
 
 #endif

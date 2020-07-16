@@ -18,12 +18,12 @@
 
 #define GOLDFISH_VK_LIST_TRIVIAL_DISPATCHABLE_HANDLE_TYPES(f) \
     f(VkPhysicalDevice) \
-    f(VkQueue) \
 
 #define GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(f) \
     f(VkInstance) \
     f(VkDevice) \
     f(VkCommandBuffer) \
+    f(VkQueue) \
     GOLDFISH_VK_LIST_TRIVIAL_DISPATCHABLE_HANDLE_TYPES(f)
 
 #ifdef VK_NVX_device_generated_commands
