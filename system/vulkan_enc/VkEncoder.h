@@ -28,7 +28,6 @@
 
 
 #include "goldfish_vk_private_defs.h"
-#include <functional>
 #include <memory>
 class IOStream;
 
@@ -42,10 +41,8 @@ public:
     ~VkEncoder();
 
     void flush();
-
-    using CleanupCallback = std::function<void()>;
-    void registerCleanupCallback(void* handle, CleanupCallback cb);
-    void unregisterCleanupCallback(void* handle);
+    void lock();
+    void unlock();
 #ifdef VK_VERSION_1_0
     VkResult vkCreateInstance(
     const VkInstanceCreateInfo* pCreateInfo,
