@@ -1823,6 +1823,24 @@ public:
         VkDeviceMemory memory,
         const VkAllocationCallbacks* pAllocator);
 #endif
+#ifdef VK_GOOGLE_async_queue_submit
+    void vkQueueHostSyncGOOGLE(
+    VkQueue queue,
+        uint32_t needHostSync,
+        uint32_t sequenceNumber);
+    void vkQueueSubmitAsyncGOOGLE(
+    VkQueue queue,
+        uint32_t submitCount,
+        const VkSubmitInfo* pSubmits,
+        VkFence fence);
+    void vkQueueWaitIdleAsyncGOOGLE(
+    VkQueue queue);
+    void vkQueueBindSparseAsyncGOOGLE(
+    VkQueue queue,
+        uint32_t bindInfoCount,
+        const VkBindSparseInfo* pBindInfo,
+        VkFence fence);
+#endif
 
 private:
     class Impl;

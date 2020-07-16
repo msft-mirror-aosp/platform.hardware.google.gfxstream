@@ -216,6 +216,7 @@ private:
     void queryAndSetVulkanFreeMemorySync(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVirtioGpuNativeSync(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanShaderFloat16Int8Support(ExtendedRCEncoderContext *rcEnc);
+    void queryAndSetVulkanAsyncQueueSubmitSupport(ExtendedRCEncoderContext *rcEnc);
 
 private:
     HostConnectionType m_connectionType;
