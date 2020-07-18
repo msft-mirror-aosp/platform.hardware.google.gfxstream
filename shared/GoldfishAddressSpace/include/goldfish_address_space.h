@@ -19,7 +19,7 @@
 #include <stddef.h>
 
 #ifdef __Fuchsia__
-#include <fuchsia/hardware/goldfish/cpp/fidl.h>
+#include <fuchsia/hardware/goldfish/llcpp/fidl.h>
 #endif
 
 class GoldfishAddressSpaceBlock;
@@ -67,8 +67,12 @@ private:
     static void closeHandle(address_space_handle_t handle);
 
 #ifdef __Fuchsia__
-    fuchsia::hardware::goldfish::AddressSpaceDeviceSyncPtr m_device;
-    fuchsia::hardware::goldfish::AddressSpaceChildDriverSyncPtr m_child_driver;
+    std::unique_ptr<
+        llcpp::fuchsia::hardware::goldfish::AddressSpaceDevice::SyncClient>
+        m_device;
+    std::unique_ptr<
+        llcpp::fuchsia::hardware::goldfish::AddressSpaceChildDriver::SyncClient>
+        m_child_driver;
 #else // __Fuchsia__
     address_space_handle_t m_handle;
 #endif // !__Fuchsia__
@@ -100,7 +104,8 @@ private:
     GoldfishAddressSpaceBlock &operator=(const GoldfishAddressSpaceBlock &);
 
 #ifdef __Fuchsia__
-    fuchsia::hardware::goldfish::AddressSpaceChildDriverSyncPtr* m_driver;
+    llcpp::fuchsia::hardware::goldfish::AddressSpaceChildDriver::SyncClient*
+        m_driver;
     uint32_t  m_vmo;
 #else // __Fuchsia__
     address_space_handle_t m_handle;
