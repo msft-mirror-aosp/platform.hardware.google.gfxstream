@@ -2893,6 +2893,13 @@ public:
         const VkBufferCollectionImageCreateInfoFUCHSIA* extBufferCollectionPtr =
             vk_find_struct<VkBufferCollectionImageCreateInfoFUCHSIA>(pCreateInfo);
         bool isSysmemBackedMemory = false;
+
+        if (extImgCiPtr &&
+            (extImgCiPtr->handleTypes &
+             VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA)) {
+            isSysmemBackedMemory = true;
+        }
+
         if (extBufferCollectionPtr) {
             auto collection = reinterpret_cast<fuchsia::sysmem::BufferCollectionSyncPtr*>(
                 extBufferCollectionPtr->collection);
@@ -3732,6 +3739,14 @@ public:
 #ifdef VK_USE_PLATFORM_FUCHSIA
         Optional<zx::vmo> vmo;
         bool isSysmemBackedMemory = false;
+
+        const VkExternalMemoryBufferCreateInfo* extBufCiPtr =
+            vk_find_struct<VkExternalMemoryBufferCreateInfo>(pCreateInfo);
+        if (extBufCiPtr &&
+            (extBufCiPtr->handleTypes &
+             VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA)) {
+            isSysmemBackedMemory = true;
+        }
 
         const auto* extBufferCollectionPtr =
                 vk_find_struct<VkBufferCollectionBufferCreateInfoFUCHSIA>(
