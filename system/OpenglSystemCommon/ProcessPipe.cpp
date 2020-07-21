@@ -28,10 +28,13 @@
 #include <errno.h>
 
 #ifdef __Fuchsia__
-#include <fuchsia/hardware/goldfish/cpp/fidl.h>
+#include <fuchsia/hardware/goldfish/llcpp/fidl.h>
 #include <lib/zx/vmo.h>
 
 #include "services/service_connector.h"
+
+#define GET_STATUS_SAFE(result, member) \
+    ((result).ok() ? ((result).Unwrap()->member) : ZX_OK)
 
 static QEMU_PIPE_HANDLE   sProcDevice = 0;
 #else // __Fuchsia__
@@ -64,18 +67,29 @@ static void processPipeInitOnce() {
         return;
     }
 
-    fuchsia::hardware::goldfish::PipeDeviceSyncPtr device;
-    device.Bind(std::move(channel));
+    llcpp::fuchsia::hardware::goldfish::PipeDevice::SyncClient device(
+        std::move(channel));
 
-    fuchsia::hardware::goldfish::PipeSyncPtr pipe;
-    device->OpenPipe(pipe.NewRequest());
-
-    zx_status_t status, status2 = ZX_OK;
-    zx::vmo vmo;
-    status = pipe->GetBuffer(&status2, &vmo);
-    if (status != ZX_OK || status2 != ZX_OK) {
-        ALOGE("%s: failed to get buffer: %d:%d", __FUNCTION__, status, status2);
+    zx::channel pipe_server, pipe_client;
+    zx_status_t status = zx::channel::create(0, &pipe_server, &pipe_client);
+    if (status != ZX_OK) {
+        ALOGE("%s: zx_channel_create failed: %d", __FUNCTION__, status);
         return;
+    }
+
+    llcpp::fuchsia::hardware::goldfish::Pipe::SyncClient pipe(
+        std::move(pipe_client));
+    device.OpenPipe(std::move(pipe_server));
+
+    zx::vmo vmo;
+    {
+        auto result = pipe.GetBuffer();
+        if (!result.ok() || result.Unwrap()->res != ZX_OK) {
+            ALOGE("%s: failed to get buffer: %d:%d", __FUNCTION__,
+                  result.status(), GET_STATUS_SAFE(result, res));
+            return;
+        }
+        vmo = std::move(result.Unwrap()->vmo);
     }
 
     size_t len = strlen("pipe:GLProcessPipe");
@@ -84,12 +98,14 @@ static void processPipeInitOnce() {
         ALOGE("%s: failed write pipe name", __FUNCTION__);
         return;
     }
-    uint64_t actual;
-    status = pipe->Write(len + 1, 0, &status2, &actual);
-    if (status != ZX_OK || status2 != ZX_OK) {
-        ALOGD("%s: connecting to pipe service failed: %d:%d", __FUNCTION__,
-              status, status2);
-        return;
+
+    {
+        auto result = pipe.Write(len + 1, 0);
+        if (!result.ok() || result.Unwrap()->res != ZX_OK) {
+            ALOGD("%s: connecting to pipe service failed: %d:%d", __FUNCTION__,
+                  result.status(), GET_STATUS_SAFE(result, res));
+            return;
+        }
     }
 
     // Send a confirmation int to the host and get per-process unique ID back
@@ -99,19 +115,23 @@ static void processPipeInitOnce() {
         ALOGE("%s: failed write confirm int", __FUNCTION__);
         return;
     }
-    status = pipe->DoCall(sizeof(confirmInt), 0, sizeof(sProcUID), 0, &status2, &actual);
-    if (status != ZX_OK || status2 != ZX_OK) {
-        ALOGD("%s: failed to get per-process ID: %d:%d", __FUNCTION__,
-              status, status2);
-        return;
+
+    {
+        auto result = pipe.DoCall(sizeof(confirmInt), 0, sizeof(sProcUID), 0);
+        if (!result.ok() || result.Unwrap()->res != ZX_OK) {
+            ALOGD("%s: failed to get per-process ID: %d:%d", __FUNCTION__,
+                  result.status(), GET_STATUS_SAFE(result, res));
+            return;
+        }
     }
+
     status = vmo.read(&sProcUID, 0, sizeof(sProcUID));
     if (status != ZX_OK) {
         ALOGE("%s: failed read per-process ID: %d", __FUNCTION__, status);
         return;
     }
-    sProcDevice = device.Unbind().TakeChannel().release();
-    sProcPipe = pipe.Unbind().TakeChannel().release();
+    sProcDevice = device.mutable_channel()->release();
+    sProcPipe = pipe.mutable_channel()->release();
 }
 #else // __Fuchsia__
 
