@@ -129,7 +129,7 @@ int QemuPipeStream::connect(void)
     }
 
     {
-        result = m_pipe->Write(len + 1, 0);
+        auto result = m_pipe->Write(len + 1, 0);
         if (!result.ok() || result.Unwrap()->res != ZX_OK) {
             ALOGD("%s: connecting to pipe service failed: %d:%d", __FUNCTION__,
                   result.status(), GET_STATUS_SAFE(result, res));
