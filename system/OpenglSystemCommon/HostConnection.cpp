@@ -495,7 +495,7 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
             con->m_processPipe = &m_goldfishProcessPipe;
             break;
         }
-#ifndef HOST_BUILD
+#if !defined(HOST_BUILD) && !defined(__Fuchsia__)
         case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
             auto stream = std::unique_ptr<AddressSpaceStream>(
                 createVirtioGpuAddressSpaceStream(STREAM_BUFFER_SIZE));
@@ -526,7 +526,7 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
             con->m_processPipe = &m_goldfishProcessPipe;
             break;
         }
-#endif // !HOST_BUILD
+#endif // !HOST_BUILD && !__Fuchsia__
 #else
         default:
             break;
