@@ -142,7 +142,7 @@ AddressSpaceStream* createAddressSpaceStream(size_t ignored_bufSize) {
     return res;
 }
 
-#ifdef HOST_BUILD
+#if defined(HOST_BUILD) || defined(__Fuchsia__)
 AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t ignored_bufSize) {
     // Ignore incoming ignored_bufSize
     (void)ignored_bufSize;
@@ -259,7 +259,7 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t ignored_bufSize) {
 
     return res;
 }
-#endif
+#endif // HOST_BUILD || __Fuchsia__
 
 
 AddressSpaceStream::AddressSpaceStream(
