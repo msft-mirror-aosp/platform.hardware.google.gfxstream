@@ -113,6 +113,8 @@ status_t GoldfishVPX::initDecoder() {
     int vpx_err = 0;
     if ((vpx_err = vpx_codec_dec_init(mCtx))) {
         ALOGE("vpx decoder failed to initialize. (%d)", vpx_err);
+        delete mCtx;
+        mCtx = NULL;
         return UNKNOWN_ERROR;
     }
 
