@@ -54,7 +54,9 @@
 #define OP_rcCreateColorBufferWithHandle 					10048
 #define OP_rcCreateBuffer 					10049
 #define OP_rcCloseBuffer 					10050
-#define OP_last 					10051
+#define OP_rcSetColorBufferVulkanMode2 					10051
+#define OP_rcMapGpaToColorBuffer 					10052
+#define OP_last 					10053
 
 
 #endif
