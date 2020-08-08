@@ -61,6 +61,8 @@ struct renderControl_client_context_t {
 	rcCreateColorBufferWithHandle_client_proc_t rcCreateColorBufferWithHandle;
 	rcCreateBuffer_client_proc_t rcCreateBuffer;
 	rcCloseBuffer_client_proc_t rcCloseBuffer;
+	rcSetColorBufferVulkanMode2_client_proc_t rcSetColorBufferVulkanMode2;
+	rcMapGpaToColorBuffer_client_proc_t rcMapGpaToColorBuffer;
 	virtual ~renderControl_client_context_t() {}
 
 	typedef renderControl_client_context_t *CONTEXT_ACCESSOR_TYPE(void);
