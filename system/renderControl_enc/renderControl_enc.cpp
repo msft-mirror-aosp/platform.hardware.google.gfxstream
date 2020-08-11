@@ -2008,7 +2008,7 @@ GLint rcSetColorBufferVulkanMode2_enc(void *self , uint32_t colorBuffer, uint32_
 	return retval;
 }
 
-int rcMapGpaToColorBuffer_enc(void *self , uint32_t colorBuffer, uint64_t gpa)
+int rcMapGpaToBufferHandle_enc(void *self , uint32_t bufferHandle, uint64_t gpa)
 {
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
@@ -2023,10 +2023,10 @@ int rcMapGpaToColorBuffer_enc(void *self , uint32_t colorBuffer, uint64_t gpa)
 	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
 	buf = stream->alloc(totalSize);
 	ptr = buf;
-	int tmp = OP_rcMapGpaToColorBuffer;memcpy(ptr, &tmp, 4); ptr += 4;
+	int tmp = OP_rcMapGpaToBufferHandle;memcpy(ptr, &tmp, 4); ptr += 4;
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
-		memcpy(ptr, &colorBuffer, 4); ptr += 4;
+		memcpy(ptr, &bufferHandle, 4); ptr += 4;
 		memcpy(ptr, &gpa, 8); ptr += 8;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -2042,7 +2042,7 @@ int rcMapGpaToColorBuffer_enc(void *self , uint32_t colorBuffer, uint64_t gpa)
 		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
 		stream->readback(checksumBufPtr, checksumSize);
 		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
-			ALOGE("rcMapGpaToColorBuffer: GL communication error, please report this issue to b.android.com.\n");
+			ALOGE("rcMapGpaToBufferHandle: GL communication error, please report this issue to b.android.com.\n");
 			abort();
 		}
 	}
@@ -2108,6 +2108,6 @@ renderControl_encoder_context_t::renderControl_encoder_context_t(IOStream *strea
 	this->rcCreateBuffer = &rcCreateBuffer_enc;
 	this->rcCloseBuffer = &rcCloseBuffer_enc;
 	this->rcSetColorBufferVulkanMode2 = &rcSetColorBufferVulkanMode2_enc;
-	this->rcMapGpaToColorBuffer = &rcMapGpaToColorBuffer_enc;
+	this->rcMapGpaToBufferHandle = &rcMapGpaToBufferHandle_enc;
 }
 

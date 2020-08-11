@@ -64,7 +64,7 @@ typedef void (renderControl_APIENTRY *rcCreateColorBufferWithHandle_client_proc_
 typedef uint32_t (renderControl_APIENTRY *rcCreateBuffer_client_proc_t) (void * ctx, uint32_t);
 typedef void (renderControl_APIENTRY *rcCloseBuffer_client_proc_t) (void * ctx, uint32_t);
 typedef GLint (renderControl_APIENTRY *rcSetColorBufferVulkanMode2_client_proc_t) (void * ctx, uint32_t, uint32_t, uint32_t);
-typedef int (renderControl_APIENTRY *rcMapGpaToColorBuffer_client_proc_t) (void * ctx, uint32_t, uint64_t);
+typedef int (renderControl_APIENTRY *rcMapGpaToBufferHandle_client_proc_t) (void * ctx, uint32_t, uint64_t);
 
 
 #endif
