@@ -42,7 +42,7 @@ public:
 #include "GL2Encoder.h"
 #endif
 
-#ifdef GOLDFISH_VULKAN
+#ifdef GFXSTREAM
 #include "VkEncoder.h"
 #include "AddressSpaceStream.h"
 #else

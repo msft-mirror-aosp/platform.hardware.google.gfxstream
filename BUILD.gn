@@ -95,7 +95,7 @@ shared_library("libvulkan_goldfish") {
 
   defines = [
     "LOG_TAG=\"goldfish_vulkan\"",
-    "GOLDFISH_VULKAN",
+    "GFXSTREAM",
     "GOLDFISH_NO_GL",
     "VK_USE_PLATFORM_FUCHSIA",
     "PLATFORM_SDK_VERSION=1",

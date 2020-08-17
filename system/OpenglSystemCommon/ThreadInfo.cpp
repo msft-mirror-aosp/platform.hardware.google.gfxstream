@@ -17,7 +17,7 @@
 #include "ThreadInfo.h"
 #include "cutils/threads.h"
 
-#ifdef GOLDFISH_VULKAN
+#ifdef GFXSTREAM
 
 thread_local EGLThreadInfo sEglThreadInfoThreadLocal;
 
@@ -38,7 +38,7 @@ void setTlsDestructor(tlsDtorCallback func) {
     getEGLThreadInfo()->dtor = func;
 }
 
-#else // GOLDFISH_VULKAN
+#else // GFXSTREAM
 
 #ifdef __BIONIC__
 #include <bionic/tls.h>
@@ -110,4 +110,4 @@ int32_t getCurrentThreadId() {
     return (int32_t)gettid();
 }
 
-#endif // !GOLDFISH_VULKAN
+#endif // !GFXSTREAM
