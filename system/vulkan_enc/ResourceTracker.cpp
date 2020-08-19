@@ -2543,9 +2543,21 @@ public:
                             abort();
                     }
 
-                    auto result = mControlDevice->CreateColorBuffer(
-                        std::move(vmo_copy), pImageCreateInfo->extent.width,
-                        pImageCreateInfo->extent.height, format);
+                    auto createParams =
+                        llcpp::fuchsia::hardware::goldfish::CreateColorBuffer2Params::Builder(
+                            std::make_unique<llcpp::fuchsia::hardware::goldfish::
+                                                 CreateColorBuffer2Params::Frame>())
+                            .set_width(std::make_unique<uint32_t>(pImageCreateInfo->extent.width))
+                            .set_height(std::make_unique<uint32_t>(pImageCreateInfo->extent.height))
+                            .set_format(std::make_unique<
+                                        llcpp::fuchsia::hardware::goldfish::ColorBufferFormatType>(
+                                format))
+                            .set_memory_property(std::make_unique<uint32_t>(
+                                llcpp::fuchsia::hardware::goldfish::MEMORY_PROPERTY_DEVICE_LOCAL))
+                            .build();
+
+                    auto result = mControlDevice->CreateColorBuffer2(std::move(vmo_copy),
+                                                                     std::move(createParams));
                     if (!result.ok() || result.Unwrap()->res != ZX_OK) {
                         ALOGE("CreateColorBuffer failed: %d:%d",
                               result.status(), GET_STATUS_SAFE(result, res));
@@ -2996,19 +3008,31 @@ public:
             }
 
             if (vmo.is_valid()) {
-                auto result = mControlDevice->CreateColorBuffer(
-                    std::move(vmo),
-                    info.settings.image_format_constraints.min_coded_width,
-                    info.settings.image_format_constraints.min_coded_height,
-                    info.settings.image_format_constraints.pixel_format.type ==
-                            llcpp::fuchsia::sysmem::PixelFormatType::R8G8B8A8
-                        ? llcpp::fuchsia::hardware::goldfish::
-                              ColorBufferFormatType::RGBA
-                        : llcpp::fuchsia::hardware::goldfish::
-                              ColorBufferFormatType::BGRA);
-                if (!result.ok() || result.Unwrap()->res != ZX_OK) {
-                    ALOGE("CreateColorBuffer failed: %d:%d", result.status(),
-                          GET_STATUS_SAFE(result, res));
+              auto format = info.settings.image_format_constraints.pixel_format.type ==
+                                    llcpp::fuchsia::sysmem::PixelFormatType::R8G8B8A8
+                                ? llcpp::fuchsia::hardware::goldfish::ColorBufferFormatType::RGBA
+                                : llcpp::fuchsia::hardware::goldfish::ColorBufferFormatType::BGRA;
+
+              auto createParams =
+                  llcpp::fuchsia::hardware::goldfish::CreateColorBuffer2Params::Builder(
+                      std::make_unique<
+                          llcpp::fuchsia::hardware::goldfish::CreateColorBuffer2Params::Frame>())
+                      .set_width(std::make_unique<uint32_t>(
+                          info.settings.image_format_constraints.min_coded_width))
+                      .set_height(std::make_unique<uint32_t>(
+                          info.settings.image_format_constraints.min_coded_height))
+                      .set_format(
+                          std::make_unique<
+                              llcpp::fuchsia::hardware::goldfish::ColorBufferFormatType>(format))
+                      .set_memory_property(std::make_unique<uint32_t>(
+                          llcpp::fuchsia::hardware::goldfish::MEMORY_PROPERTY_DEVICE_LOCAL))
+                      .build();
+
+              auto result =
+                  mControlDevice->CreateColorBuffer2(std::move(vmo), std::move(createParams));
+              if (!result.ok() || result.Unwrap()->res != ZX_OK) {
+                ALOGE("CreateColorBuffer failed: %d:%d", result.status(),
+                      GET_STATUS_SAFE(result, res));
                 }
             }
             isSysmemBackedMemory = true;
