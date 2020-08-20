@@ -22,6 +22,10 @@
 #define GL_APIENTRYP
 #endif
 
+#ifdef GFXSTREAM
+#include "StateTrackingSupport.h"
+#endif
+
 #include "TextureSharedData.h"
 
 #include <GLES/gl.h>
@@ -240,11 +244,26 @@ public:
     bool bufferIdExists(GLuint id) const;
     void unBindBuffer(GLuint id);
 
+    void setBufferHostMapDirty(GLuint id, bool dirty);
+    bool isBufferHostMapDirty(GLuint id) const;
+
+    void setBoundPixelPackBufferDirtyForHostMap();
+    void setBoundTransformFeedbackBuffersDirtyForHostMap();
+    void setBoundShaderStorageBuffersDirtyForHostMap();
+    void setBoundAtomicCounterBuffersDirtyForHostMap();
+
     int bindBuffer(GLenum target, GLuint id);
     void bindIndexedBuffer(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size, GLintptr stride, GLintptr effectiveStride);
     int getMaxIndexedBufferBindings(GLenum target) const;
     bool isNonIndexedBindNoOp(GLenum target, GLuint buffer);
     bool isIndexedBindNoOp(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size, GLintptr stride, GLintptr effectiveStride);
+
+    void postDraw();
+    void postReadPixels();
+    void postDispatchCompute();
+
+    bool shouldSkipHostMapBuffer(GLenum target);
+    void onHostMappedBuffer(GLenum target);
 
     int getBuffer(GLenum target);
     GLuint getLastEncodedBufferBind(GLenum target);
@@ -446,7 +465,12 @@ private:
     bool m_initialized;
     PixelStoreState m_pixelStore;
 
+#ifdef GFXSTREAM
+    PredicateMap<false> mBufferIds;
+    PredicateMap<true> mHostMappedBufferDirty;
+#else
     std::set<GLuint> mBufferIds;
+#endif
 
     // GL_ARRAY_BUFFER_BINDING is separate from VAO state
     GLuint m_arrayBuffer;
