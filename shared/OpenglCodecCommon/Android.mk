@@ -40,10 +40,15 @@ LOCAL_SRC_FILES := $(commonSources)
 LOCAL_CFLAGS += -DLOG_TAG=\"eglCodecCommon\"
 LOCAL_CFLAGS += -Wno-unused-private-field
 
-$(call emugl-export,SHARED_LIBRARIES,libcutils libutils liblog)
 
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
-$(call emugl-export,SHARED_LIBRARIES,android-emu-shared)
+$(call emugl-export,SHARED_LIBRARIES,libcutils libutils liblog android-emu-shared)
+else
+ifeq (true,$(GFXSTREAM))
+$(call emugl-export,SHARED_LIBRARIES,libcutils libutils liblog libandroidemu)
+else
+$(call emugl-export,SHARED_LIBRARIES,libcutils libutils liblog)
+endif
 endif
 
 $(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
