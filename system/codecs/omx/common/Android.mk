@@ -34,7 +34,7 @@ $(call emugl-import,libGoldfishAddressSpace$(GOLDFISH_OPENGL_LIB_SUFFIX))
 else
 $(call emugl-export,STATIC_LIBRARIES,libGoldfishAddressSpace)
 
-ifeq (true,$(BUILD_EMULATOR_VULKAN))
+ifeq (true,$(GFXSTREAM))
 
 LOCAL_CFLAGS += -DVIRTIO_GPU
 LOCAL_C_INCLUDES += external/libdrm external/minigbm/cros_gralloc
