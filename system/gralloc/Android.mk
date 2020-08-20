@@ -20,7 +20,7 @@ endif
 ifneq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 LOCAL_SHARED_LIBRARIES += libdl
 
-ifeq (true,$(BUILD_EMULATOR_VULKAN))
+ifeq (true,$(GFXSTREAM))
 LOCAL_CFLAGS += -DVIRTIO_GPU
 LOCAL_C_INCLUDES += external/libdrm external/minigbm/cros_gralloc
 LOCAL_SHARED_LIBRARIES += libdrm

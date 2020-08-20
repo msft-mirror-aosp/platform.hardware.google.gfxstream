@@ -175,7 +175,7 @@ static void sQemuPipeInit() {
 }
 
 static void processPipeInitOnce() {
-#if defined(HOST_BUILD) || !defined(GOLDFISH_VULKAN)
+#if defined(HOST_BUILD) || !defined(GFXSTREAM)
     sQemuPipeInit();
 #else // HOST_BUILD
     switch (sConnType) {

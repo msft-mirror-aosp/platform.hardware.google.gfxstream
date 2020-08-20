@@ -35,7 +35,7 @@ EMUGL_COMMON_INCLUDES := $(GOLDFISH_OPENGL_PATH)/host/include/libOpenglRender $(
 EMUGL_COMMON_CFLAGS := -DWITH_GLES2
 
 # Whether or not to build the Vulkan library.
-BUILD_EMULATOR_VULKAN := false
+GFXSTREAM := false
 
 # Host build
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
@@ -43,7 +43,7 @@ ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 GOLDFISH_OPENGL_SHOULD_BUILD := true
 GOLDFISH_OPENGL_LIB_SUFFIX := _host
 
-BUILD_EMULATOR_VULKAN := true
+GFXSTREAM := true
 
 # Set modern defaults for the codename, version, etc.
 PLATFORM_VERSION_CODENAME:=Q
@@ -63,7 +63,7 @@ EMUGL_COMMON_CFLAGS += \
     -DGL_GLEXT_PROTOTYPES \
     -fvisibility=default \
     -DPAGE_SIZE=4096 \
-    -DGOLDFISH_VULKAN \
+    -DGFXSTREAM \
     -Wno-unused-parameter
 
 endif # GOLDFISH_OPENGL_BUILD_FOR_HOST
@@ -100,8 +100,8 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 16 && echo PreJellyBean),PreJelly
 endif
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 27 && echo isApi28OrHigher),isApi28OrHigher)
-    BUILD_EMULATOR_VULKAN := true
-    EMUGL_COMMON_CFLAGS += -DGOLDFISH_VULKAN
+    GFXSTREAM := true
+    EMUGL_COMMON_CFLAGS += -DGFXSTREAM
 endif
 
 # Include common definitions used by all the modules included later
@@ -140,7 +140,7 @@ include $(GOLDFISH_OPENGL_PATH)/system/GLESv1_enc/Android.mk
 include $(GOLDFISH_OPENGL_PATH)/system/GLESv2_enc/Android.mk
 include $(GOLDFISH_OPENGL_PATH)/system/renderControl_enc/Android.mk
 
-ifeq (true,$(BUILD_EMULATOR_VULKAN)) # Vulkan libs
+ifeq (true,$(GFXSTREAM)) # Vulkan libs
     include $(GOLDFISH_OPENGL_PATH)/android-emu/Android.mk
     include $(GOLDFISH_OPENGL_PATH)/system/vulkan_enc/Android.mk
 endif
@@ -159,7 +159,7 @@ endif
 
 include $(GOLDFISH_OPENGL_PATH)/system/egl/Android.mk
 
-ifeq (true,$(BUILD_EMULATOR_VULKAN)) # Vulkan libs
+ifeq (true,$(GFXSTREAM)) # Vulkan libs
     include $(GOLDFISH_OPENGL_PATH)/system/vulkan/Android.mk
 endif
 
