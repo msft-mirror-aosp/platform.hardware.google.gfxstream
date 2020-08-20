@@ -34,3 +34,4 @@
 struct renderControl_encoder_context_t;
 
 extern bool processPipeInit(HostConnectionType connType, renderControl_encoder_context_t *rcEnc);
+extern uint64_t getPuid();

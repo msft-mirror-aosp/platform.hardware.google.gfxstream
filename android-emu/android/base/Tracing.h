@@ -16,6 +16,7 @@
 
 // Library to perform tracing. Talks to platform-specific
 // tracing libraries.
+
 namespace android {
 namespace base {
 
@@ -23,6 +24,11 @@ namespace base {
 void initializeTracing();
 void enableTracing();
 void disableTracing();
+// Some platform tracing libraries such as Perfetto can be enabled/disabled at
+// runtime. Allow the user to query if they are disabled or not, and take
+// further action based on it. The use case is to enable/disable tracing on the
+// host alongside.
+bool isTracingEnabled();
 
 class ScopedTrace {
 public:
@@ -35,6 +41,8 @@ public:
     void* member = nullptr;
 };
 #endif
+
+bool isTracingEnabled();
 
 class ScopedTraceGuest {
 public:

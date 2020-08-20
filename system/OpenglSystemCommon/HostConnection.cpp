@@ -655,6 +655,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetVirtioGpuNativeSync(rcEnc);
         queryAndSetVulkanShaderFloat16Int8Support(rcEnc);
         queryAndSetVulkanAsyncQueueSubmitSupport(rcEnc);
+        queryAndSetHostSideTracingSupport(rcEnc);
         if (m_processPipe) {
             m_processPipe->processPipeInit(m_connectionType, rcEnc);
         }
@@ -915,5 +916,12 @@ void HostConnection::queryAndSetVulkanAsyncQueueSubmitSupport(ExtendedRCEncoderC
     std::string glExtensions = queryGLExtensions(rcEnc);
     if (glExtensions.find(kVulkanAsyncQueueSubmit) != std::string::npos) {
         rcEnc->featureInfo()->hasVulkanAsyncQueueSubmit = true;
+    }
+}
+
+void HostConnection::queryAndSetHostSideTracingSupport(ExtendedRCEncoderContext* rcEnc) {
+    std::string glExtensions = queryGLExtensions(rcEnc);
+    if (glExtensions.find(kHostSideTracing) != std::string::npos) {
+        rcEnc->featureInfo()->hasHostSideTracing = true;
     }
 }
