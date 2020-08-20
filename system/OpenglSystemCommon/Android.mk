@@ -18,7 +18,7 @@ LOCAL_SRC_FILES := \
     QemuPipeStream.cpp \
     ProcessPipe.cpp    \
 
-ifeq (true,$(BUILD_EMULATOR_VULKAN))
+ifeq (true,$(GFXSTREAM))
 $(call emugl-import,libvulkan_enc)
 
 LOCAL_SRC_FILES += AddressSpaceStream.cpp
@@ -34,7 +34,7 @@ LOCAL_SRC_FILES += \
 
 else
 
-ifeq (true,$(BUILD_EMULATOR_VULKAN))
+ifeq (true,$(GFXSTREAM))
 
 LOCAL_HEADER_LIBRARIES += vulkan_headers
 
