@@ -769,6 +769,13 @@ private:
     glInvalidateFramebuffer_client_proc_t m_glInvalidateFramebuffer_enc;
     glInvalidateSubFramebuffer_client_proc_t m_glInvalidateSubFramebuffer_enc;;
 
+    // Dispatch compute
+    static void s_glDispatchCompute(void* self, GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z);
+    static void s_glDispatchComputeIndirect(void* self, GLintptr indirect);
+
+    glDispatchCompute_client_proc_t m_glDispatchCompute_enc;
+    glDispatchComputeIndirect_client_proc_t m_glDispatchComputeIndirect_enc;
+
 public:
     glEGLImageTargetTexture2DOES_client_proc_t m_glEGLImageTargetTexture2DOES_enc;
 

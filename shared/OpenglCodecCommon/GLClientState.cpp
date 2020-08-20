@@ -421,6 +421,33 @@ static void sClearIndexedBufferBinding(GLuint id, std::vector<GLClientState::Buf
     }
 }
 
+#ifdef GFXSTREAM
+
+void GLClientState::addBuffer(GLuint id) {
+    mBufferIds.add(id);
+    mBufferIds.set(id, true);
+    mHostMappedBufferDirty.add(id);
+}
+
+void GLClientState::removeBuffer(GLuint id) {
+    mHostMappedBufferDirty.remove(id);
+    mBufferIds.remove(id);
+}
+
+bool GLClientState::bufferIdExists(GLuint id) const {
+    return mBufferIds.get(id);
+}
+
+void GLClientState::setBufferHostMapDirty(GLuint id, bool dirty) {
+    mHostMappedBufferDirty.set(id, dirty);
+}
+
+bool GLClientState::isBufferHostMapDirty(GLuint id) const {
+    return mHostMappedBufferDirty.get(id);
+}
+
+#else // GFXSTREAM
+
 void GLClientState::addBuffer(GLuint id) {
     mBufferIds.insert(id);
 }
@@ -431,6 +458,66 @@ void GLClientState::removeBuffer(GLuint id) {
 
 bool GLClientState::bufferIdExists(GLuint id) const {
     return mBufferIds.find(id) != mBufferIds.end();
+}
+
+void setBufferHostMapDirty(GLuint id, bool dirty) {
+    (void)id;
+    (void)dirty;
+}
+
+bool isBufferHostMapDirty(GLuint id) const {
+    (void)id;
+    return true;
+}
+
+#endif // !GFXSTREAM
+
+void GLClientState::setBoundPixelPackBufferDirtyForHostMap() {
+    if (m_pixelPackBuffer)
+        setBufferHostMapDirty(m_pixelPackBuffer, true /* dirty */);
+}
+
+void GLClientState::setBoundTransformFeedbackBuffersDirtyForHostMap() {
+    if (m_transformFeedbackBuffer)
+        setBufferHostMapDirty(
+            m_transformFeedbackBuffer,
+            true /* dirty */);
+
+    for (size_t i = 0; i < m_indexedTransformFeedbackBuffers.size(); ++i)
+        if (m_indexedTransformFeedbackBuffers[i].buffer)
+            setBufferHostMapDirty(
+                m_indexedTransformFeedbackBuffers[i].buffer,
+                true /* dirty */);
+}
+
+void GLClientState::setBoundShaderStorageBuffersDirtyForHostMap() {
+    if (m_glesMajorVersion == 3 && m_glesMinorVersion == 0) return;
+
+    if (m_shaderStorageBuffer)
+        setBufferHostMapDirty(
+            m_shaderStorageBuffer,
+            true /* dirty */);
+
+    for (size_t i = 0; i < m_indexedShaderStorageBuffers.size(); ++i)
+        if (m_indexedShaderStorageBuffers[i].buffer)
+            setBufferHostMapDirty(
+                m_indexedShaderStorageBuffers[i].buffer,
+                true /* dirty */);
+}
+
+void GLClientState::setBoundAtomicCounterBuffersDirtyForHostMap() {
+    if (m_glesMajorVersion == 3 && m_glesMinorVersion == 0) return;
+
+    if (m_atomicCounterBuffer)
+        setBufferHostMapDirty(
+            m_atomicCounterBuffer,
+            true /* dirty */);
+
+    for (size_t i = 0; i < m_indexedAtomicCounterBuffers.size(); ++i)
+        if (m_indexedAtomicCounterBuffers[i].buffer)
+            setBufferHostMapDirty(
+                m_indexedAtomicCounterBuffers[i].buffer,
+                true /* dirty */);
 }
 
 void GLClientState::unBindBuffer(GLuint id) {
@@ -617,6 +704,31 @@ bool GLClientState::isIndexedBindNoOp(GLenum target, GLuint index, GLuint buffer
                m_currVaoState.bufferBinding(index).stride == stride &&
                m_currVaoState.bufferBinding(index).effectiveStride == effectiveStride;
     }
+}
+
+void GLClientState::postDraw() {
+    setBoundTransformFeedbackBuffersDirtyForHostMap();
+    setBoundShaderStorageBuffersDirtyForHostMap();
+    setBoundAtomicCounterBuffersDirtyForHostMap();
+}
+
+void GLClientState::postReadPixels() {
+    setBoundPixelPackBufferDirtyForHostMap();
+}
+
+void GLClientState::postDispatchCompute() {
+    setBoundShaderStorageBuffersDirtyForHostMap();
+    setBoundAtomicCounterBuffersDirtyForHostMap();
+}
+
+bool GLClientState::shouldSkipHostMapBuffer(GLenum target) {
+    GLuint id = getBuffer(target);
+    return !isBufferHostMapDirty(id);
+}
+
+void GLClientState::onHostMappedBuffer(GLenum target) {
+    GLuint id = getBuffer(target);
+    setBufferHostMapDirty(id, false /* not dirty */);
 }
 
 int GLClientState::getBuffer(GLenum target) {
