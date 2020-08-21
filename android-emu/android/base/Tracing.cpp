@@ -16,6 +16,8 @@
 
 #if defined(__ANDROID__) || defined(HOST_BUILD)
 
+#define ATRACE_TAG ATRACE_TAG_GRAPHICS
+
 #include <cutils/trace.h>
 
 #define VK_TRACE_TAG ATRACE_TAG_GRAPHICS
