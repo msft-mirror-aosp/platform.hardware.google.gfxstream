@@ -12,6 +12,7 @@
 
 #include <stdio.h>
 
+#include "android/base/Tracing.h"
 namespace {
 
 void enc_unsupported()
@@ -21,6 +22,7 @@ void enc_unsupported()
 
 GLint rcGetRendererVersion_enc(void *self )
 {
+	AEMU_SCOPED_TRACE("rcGetRendererVersion encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -60,6 +62,7 @@ GLint rcGetRendererVersion_enc(void *self )
 
 EGLint rcGetEGLVersion_enc(void *self , EGLint* major, EGLint* minor)
 {
+	AEMU_SCOPED_TRACE("rcGetEGLVersion encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -107,6 +110,7 @@ EGLint rcGetEGLVersion_enc(void *self , EGLint* major, EGLint* minor)
 
 EGLint rcQueryEGLString_enc(void *self , EGLenum name, void* buffer, EGLint bufferSize)
 {
+	AEMU_SCOPED_TRACE("rcQueryEGLString encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -152,6 +156,7 @@ EGLint rcQueryEGLString_enc(void *self , EGLenum name, void* buffer, EGLint buff
 
 EGLint rcGetGLString_enc(void *self , EGLenum name, void* buffer, EGLint bufferSize)
 {
+	AEMU_SCOPED_TRACE("rcGetGLString encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -197,6 +202,7 @@ EGLint rcGetGLString_enc(void *self , EGLenum name, void* buffer, EGLint bufferS
 
 EGLint rcGetNumConfigs_enc(void *self , uint32_t* numAttribs)
 {
+	AEMU_SCOPED_TRACE("rcGetNumConfigs encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -240,6 +246,7 @@ EGLint rcGetNumConfigs_enc(void *self , uint32_t* numAttribs)
 
 EGLint rcGetConfigs_enc(void *self , uint32_t bufSize, GLuint* buffer)
 {
+	AEMU_SCOPED_TRACE("rcGetConfigs encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -284,6 +291,7 @@ EGLint rcGetConfigs_enc(void *self , uint32_t bufSize, GLuint* buffer)
 
 EGLint rcChooseConfig_enc(void *self , EGLint* attribs, uint32_t attribs_size, uint32_t* configs, uint32_t configs_size)
 {
+	AEMU_SCOPED_TRACE("rcChooseConfig encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -334,6 +342,7 @@ EGLint rcChooseConfig_enc(void *self , EGLint* attribs, uint32_t attribs_size, u
 
 EGLint rcGetFBParam_enc(void *self , EGLint param)
 {
+	AEMU_SCOPED_TRACE("rcGetFBParam encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -374,6 +383,7 @@ EGLint rcGetFBParam_enc(void *self , EGLint param)
 
 uint32_t rcCreateContext_enc(void *self , uint32_t config, uint32_t share, uint32_t glVersion)
 {
+	AEMU_SCOPED_TRACE("rcCreateContext encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -416,6 +426,7 @@ uint32_t rcCreateContext_enc(void *self , uint32_t config, uint32_t share, uint3
 
 void rcDestroyContext_enc(void *self , uint32_t context)
 {
+	AEMU_SCOPED_TRACE("rcDestroyContext encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -441,6 +452,7 @@ void rcDestroyContext_enc(void *self , uint32_t context)
 
 uint32_t rcCreateWindowSurface_enc(void *self , uint32_t config, uint32_t width, uint32_t height)
 {
+	AEMU_SCOPED_TRACE("rcCreateWindowSurface encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -483,6 +495,7 @@ uint32_t rcCreateWindowSurface_enc(void *self , uint32_t config, uint32_t width,
 
 void rcDestroyWindowSurface_enc(void *self , uint32_t windowSurface)
 {
+	AEMU_SCOPED_TRACE("rcDestroyWindowSurface encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -508,6 +521,7 @@ void rcDestroyWindowSurface_enc(void *self , uint32_t windowSurface)
 
 uint32_t rcCreateColorBuffer_enc(void *self , uint32_t width, uint32_t height, GLenum internalFormat)
 {
+	AEMU_SCOPED_TRACE("rcCreateColorBuffer encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -550,6 +564,7 @@ uint32_t rcCreateColorBuffer_enc(void *self , uint32_t width, uint32_t height, G
 
 void rcOpenColorBuffer_enc(void *self , uint32_t colorbuffer)
 {
+	AEMU_SCOPED_TRACE("rcOpenColorBuffer encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -575,6 +590,7 @@ void rcOpenColorBuffer_enc(void *self , uint32_t colorbuffer)
 
 void rcCloseColorBuffer_enc(void *self , uint32_t colorbuffer)
 {
+	AEMU_SCOPED_TRACE("rcCloseColorBuffer encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -601,6 +617,7 @@ void rcCloseColorBuffer_enc(void *self , uint32_t colorbuffer)
 
 void rcSetWindowColorBuffer_enc(void *self , uint32_t windowSurface, uint32_t colorBuffer)
 {
+	AEMU_SCOPED_TRACE("rcSetWindowColorBuffer encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -627,6 +644,7 @@ void rcSetWindowColorBuffer_enc(void *self , uint32_t windowSurface, uint32_t co
 
 int rcFlushWindowColorBuffer_enc(void *self , uint32_t windowSurface)
 {
+	AEMU_SCOPED_TRACE("rcFlushWindowColorBuffer encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -667,6 +685,7 @@ int rcFlushWindowColorBuffer_enc(void *self , uint32_t windowSurface)
 
 EGLint rcMakeCurrent_enc(void *self , uint32_t context, uint32_t drawSurf, uint32_t readSurf)
 {
+	AEMU_SCOPED_TRACE("rcMakeCurrent encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -709,6 +728,7 @@ EGLint rcMakeCurrent_enc(void *self , uint32_t context, uint32_t drawSurf, uint3
 
 void rcFBPost_enc(void *self , uint32_t colorBuffer)
 {
+	AEMU_SCOPED_TRACE("rcFBPost encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -734,6 +754,7 @@ void rcFBPost_enc(void *self , uint32_t colorBuffer)
 
 void rcFBSetSwapInterval_enc(void *self , EGLint interval)
 {
+	AEMU_SCOPED_TRACE("rcFBSetSwapInterval encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -759,6 +780,7 @@ void rcFBSetSwapInterval_enc(void *self , EGLint interval)
 
 void rcBindTexture_enc(void *self , uint32_t colorBuffer)
 {
+	AEMU_SCOPED_TRACE("rcBindTexture encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -784,6 +806,7 @@ void rcBindTexture_enc(void *self , uint32_t colorBuffer)
 
 void rcBindRenderbuffer_enc(void *self , uint32_t colorBuffer)
 {
+	AEMU_SCOPED_TRACE("rcBindRenderbuffer encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -809,6 +832,7 @@ void rcBindRenderbuffer_enc(void *self , uint32_t colorBuffer)
 
 EGLint rcColorBufferCacheFlush_enc(void *self , uint32_t colorbuffer, EGLint postCount, int forRead)
 {
+	AEMU_SCOPED_TRACE("rcColorBufferCacheFlush encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -851,6 +875,7 @@ EGLint rcColorBufferCacheFlush_enc(void *self , uint32_t colorbuffer, EGLint pos
 
 void rcReadColorBuffer_enc(void *self , uint32_t colorbuffer, GLint x, GLint y, GLint width, GLint height, GLenum format, GLenum type, void* pixels)
 {
+	AEMU_SCOPED_TRACE("rcReadColorBuffer encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -896,6 +921,7 @@ void rcReadColorBuffer_enc(void *self , uint32_t colorbuffer, GLint x, GLint y, 
 
 int rcUpdateColorBuffer_enc(void *self , uint32_t colorbuffer, GLint x, GLint y, GLint width, GLint height, GLenum format, GLenum type, void* pixels)
 {
+	AEMU_SCOPED_TRACE("rcUpdateColorBuffer encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -949,6 +975,7 @@ int rcUpdateColorBuffer_enc(void *self , uint32_t colorbuffer, GLint x, GLint y,
 
 int rcOpenColorBuffer2_enc(void *self , uint32_t colorbuffer)
 {
+	AEMU_SCOPED_TRACE("rcOpenColorBuffer2 encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -989,6 +1016,7 @@ int rcOpenColorBuffer2_enc(void *self , uint32_t colorbuffer)
 
 uint32_t rcCreateClientImage_enc(void *self , uint32_t context, EGLenum target, GLuint buffer)
 {
+	AEMU_SCOPED_TRACE("rcCreateClientImage encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1031,6 +1059,7 @@ uint32_t rcCreateClientImage_enc(void *self , uint32_t context, EGLenum target, 
 
 int rcDestroyClientImage_enc(void *self , uint32_t image)
 {
+	AEMU_SCOPED_TRACE("rcDestroyClientImage encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1071,6 +1100,7 @@ int rcDestroyClientImage_enc(void *self , uint32_t image)
 
 void rcSelectChecksumHelper_enc(void *self , uint32_t newProtocol, uint32_t reserved)
 {
+	AEMU_SCOPED_TRACE("rcSelectChecksumHelper encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1097,6 +1127,7 @@ void rcSelectChecksumHelper_enc(void *self , uint32_t newProtocol, uint32_t rese
 
 void rcCreateSyncKHR_enc(void *self , EGLenum type, EGLint* attribs, uint32_t num_attribs, int destroy_when_signaled, uint64_t* glsync_out, uint64_t* syncthread_out)
 {
+	AEMU_SCOPED_TRACE("rcCreateSyncKHR encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1145,6 +1176,7 @@ void rcCreateSyncKHR_enc(void *self , EGLenum type, EGLint* attribs, uint32_t nu
 
 EGLint rcClientWaitSyncKHR_enc(void *self , uint64_t sync, EGLint flags, uint64_t timeout)
 {
+	AEMU_SCOPED_TRACE("rcClientWaitSyncKHR encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1187,6 +1219,7 @@ EGLint rcClientWaitSyncKHR_enc(void *self , uint64_t sync, EGLint flags, uint64_
 
 void rcFlushWindowColorBufferAsync_enc(void *self , uint32_t windowSurface)
 {
+	AEMU_SCOPED_TRACE("rcFlushWindowColorBufferAsync encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1212,6 +1245,7 @@ void rcFlushWindowColorBufferAsync_enc(void *self , uint32_t windowSurface)
 
 int rcDestroySyncKHR_enc(void *self , uint64_t sync)
 {
+	AEMU_SCOPED_TRACE("rcDestroySyncKHR encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1252,6 +1286,7 @@ int rcDestroySyncKHR_enc(void *self , uint64_t sync)
 
 void rcSetPuid_enc(void *self , uint64_t puid)
 {
+	AEMU_SCOPED_TRACE("rcSetPuid encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1277,6 +1312,7 @@ void rcSetPuid_enc(void *self , uint64_t puid)
 
 int rcUpdateColorBufferDMA_enc(void *self , uint32_t colorbuffer, GLint x, GLint y, GLint width, GLint height, GLenum format, GLenum type, void* pixels, uint32_t pixels_size)
 {
+	AEMU_SCOPED_TRACE("rcUpdateColorBufferDMA encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1326,6 +1362,7 @@ int rcUpdateColorBufferDMA_enc(void *self , uint32_t colorbuffer, GLint x, GLint
 
 uint32_t rcCreateColorBufferDMA_enc(void *self , uint32_t width, uint32_t height, GLenum internalFormat, int frameworkFormat)
 {
+	AEMU_SCOPED_TRACE("rcCreateColorBufferDMA encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1369,6 +1406,7 @@ uint32_t rcCreateColorBufferDMA_enc(void *self , uint32_t width, uint32_t height
 
 void rcWaitSyncKHR_enc(void *self , uint64_t sync, EGLint flags)
 {
+	AEMU_SCOPED_TRACE("rcWaitSyncKHR encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1395,6 +1433,7 @@ void rcWaitSyncKHR_enc(void *self , uint64_t sync, EGLint flags)
 
 GLint rcCompose_enc(void *self , uint32_t bufferSize, void* buffer)
 {
+	AEMU_SCOPED_TRACE("rcCompose encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1438,6 +1477,7 @@ GLint rcCompose_enc(void *self , uint32_t bufferSize, void* buffer)
 
 int rcCreateDisplay_enc(void *self , uint32_t* displayId)
 {
+	AEMU_SCOPED_TRACE("rcCreateDisplay encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1481,6 +1521,7 @@ int rcCreateDisplay_enc(void *self , uint32_t* displayId)
 
 int rcDestroyDisplay_enc(void *self , uint32_t displayId)
 {
+	AEMU_SCOPED_TRACE("rcDestroyDisplay encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1521,6 +1562,7 @@ int rcDestroyDisplay_enc(void *self , uint32_t displayId)
 
 int rcSetDisplayColorBuffer_enc(void *self , uint32_t displayId, uint32_t colorBuffer)
 {
+	AEMU_SCOPED_TRACE("rcSetDisplayColorBuffer encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1562,6 +1604,7 @@ int rcSetDisplayColorBuffer_enc(void *self , uint32_t displayId, uint32_t colorB
 
 int rcGetDisplayColorBuffer_enc(void *self , uint32_t displayId, uint32_t* colorBuffer)
 {
+	AEMU_SCOPED_TRACE("rcGetDisplayColorBuffer encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1606,6 +1649,7 @@ int rcGetDisplayColorBuffer_enc(void *self , uint32_t displayId, uint32_t* color
 
 int rcGetColorBufferDisplay_enc(void *self , uint32_t colorBuffer, uint32_t* displayId)
 {
+	AEMU_SCOPED_TRACE("rcGetColorBufferDisplay encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1650,6 +1694,7 @@ int rcGetColorBufferDisplay_enc(void *self , uint32_t colorBuffer, uint32_t* dis
 
 int rcGetDisplayPose_enc(void *self , uint32_t displayId, GLint* x, GLint* y, uint32_t* w, uint32_t* h)
 {
+	AEMU_SCOPED_TRACE("rcGetDisplayPose encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1706,6 +1751,7 @@ int rcGetDisplayPose_enc(void *self , uint32_t displayId, GLint* x, GLint* y, ui
 
 int rcSetDisplayPose_enc(void *self , uint32_t displayId, GLint x, GLint y, uint32_t w, uint32_t h)
 {
+	AEMU_SCOPED_TRACE("rcSetDisplayPose encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1750,6 +1796,7 @@ int rcSetDisplayPose_enc(void *self , uint32_t displayId, GLint x, GLint y, uint
 
 GLint rcSetColorBufferVulkanMode_enc(void *self , uint32_t colorBuffer, uint32_t mode)
 {
+	AEMU_SCOPED_TRACE("rcSetColorBufferVulkanMode encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1791,6 +1838,7 @@ GLint rcSetColorBufferVulkanMode_enc(void *self , uint32_t colorBuffer, uint32_t
 
 void rcReadColorBufferYUV_enc(void *self , uint32_t colorbuffer, GLint x, GLint y, GLint width, GLint height, void* pixels, uint32_t pixels_size)
 {
+	AEMU_SCOPED_TRACE("rcReadColorBufferYUV encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1835,6 +1883,7 @@ void rcReadColorBufferYUV_enc(void *self , uint32_t colorbuffer, GLint x, GLint 
 
 int rcIsSyncSignaled_enc(void *self , uint64_t sync)
 {
+	AEMU_SCOPED_TRACE("rcIsSyncSignaled encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1875,6 +1924,7 @@ int rcIsSyncSignaled_enc(void *self , uint64_t sync)
 
 void rcCreateColorBufferWithHandle_enc(void *self , uint32_t width, uint32_t height, GLenum internalFormat, uint32_t handle)
 {
+	AEMU_SCOPED_TRACE("rcCreateColorBufferWithHandle encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1903,6 +1953,7 @@ void rcCreateColorBufferWithHandle_enc(void *self , uint32_t width, uint32_t hei
 
 uint32_t rcCreateBuffer_enc(void *self , uint32_t size)
 {
+	AEMU_SCOPED_TRACE("rcCreateBuffer encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1943,6 +1994,7 @@ uint32_t rcCreateBuffer_enc(void *self , uint32_t size)
 
 void rcCloseBuffer_enc(void *self , uint32_t buffer)
 {
+	AEMU_SCOPED_TRACE("rcCloseBuffer encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -1968,6 +2020,7 @@ void rcCloseBuffer_enc(void *self , uint32_t buffer)
 
 GLint rcSetColorBufferVulkanMode2_enc(void *self , uint32_t colorBuffer, uint32_t mode, uint32_t memoryProperty)
 {
+	AEMU_SCOPED_TRACE("rcSetColorBufferVulkanMode2 encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
@@ -2010,6 +2063,7 @@ GLint rcSetColorBufferVulkanMode2_enc(void *self , uint32_t colorBuffer, uint32_
 
 int rcMapGpaToBufferHandle_enc(void *self , uint32_t bufferHandle, uint64_t gpa)
 {
+	AEMU_SCOPED_TRACE("rcMapGpaToBufferHandle encode");
 
 	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
 	IOStream *stream = ctx->m_stream;
