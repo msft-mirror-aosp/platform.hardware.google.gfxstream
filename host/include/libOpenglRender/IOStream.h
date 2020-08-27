@@ -17,6 +17,7 @@
 #define __IO_STREAM_H__
 
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #include "ErrorLog.h"
@@ -28,6 +29,19 @@ public:
         m_iostreamBuf = NULL;
         m_bufsize = bufSize;
         m_free = 0;
+        m_refcount = 1;
+    }
+
+    void incRef() {
+        __atomic_add_fetch(&m_refcount, 1, __ATOMIC_SEQ_CST);
+    }
+
+    bool decRef() {
+        if (0 == __atomic_sub_fetch(&m_refcount, 1, __ATOMIC_SEQ_CST)) {
+            delete this;
+            return true;
+        }
+        return false;
     }
 
     virtual size_t idealAllocSize(size_t len) {
@@ -104,6 +118,7 @@ private:
     unsigned char *m_iostreamBuf;
     size_t m_bufsize;
     size_t m_free;
+    uint32_t m_refcount;
 };
 
 //

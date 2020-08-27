@@ -112,6 +112,19 @@ public:
         }
     }
 
+    void incRef() {
+        __atomic_add_fetch(&m_refCount, 1, __ATOMIC_SEQ_CST);
+        m_stream.incStreamRef();
+    }
+
+    bool decRef() {
+        m_stream.decStreamRef();
+        if (0 == __atomic_sub_fetch(&m_refCount, 1, __ATOMIC_SEQ_CST)) {
+            return true;
+        }
+        return false;
+    }
+
 private:
     VulkanCountingStream m_countingStream;
     VulkanStreamGuest m_stream;
@@ -122,13 +135,10 @@ private:
     std::atomic_flag mLock = ATOMIC_FLAG_INIT;
     static thread_local Impl* sAcquiredEncoderThreadLocal;
     static thread_local uint32_t sAcquiredEncoderThreadLockLevels;
+    uint32_t m_refCount = 1;
 };
 
-VkEncoder::~VkEncoder() {
-    auto rt = ResourceTracker::get();
-    if (!rt) return;
-    rt->onEncoderDeleted(this);
-}
+VkEncoder::~VkEncoder() { }
 
 // static
 thread_local VkEncoder::Impl* VkEncoder::Impl::sAcquiredEncoderThreadLocal = nullptr;
@@ -157,6 +167,18 @@ void VkEncoder::lock() {
 
 void VkEncoder::unlock() {
     mImpl->unlock();
+}
+
+void VkEncoder::incRef() {
+    mImpl->incRef();
+}
+
+bool VkEncoder::decRef() {
+    if (mImpl->decRef()) {
+        delete this;
+        return true;
+    }
+    return false;
 }
 
 #define VALIDATE_RET(retType, success, validate) \
