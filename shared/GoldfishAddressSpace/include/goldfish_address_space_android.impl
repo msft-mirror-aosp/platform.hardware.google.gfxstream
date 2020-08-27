@@ -619,9 +619,9 @@ bool virtgpu_address_space_create_context_with_subdevice(
         return false;
     }
 
-    drm_virtgpu_map map = {
-        .handle = create.bo_handle,
-    };
+    drm_virtgpu_map map;
+    memset(&map, 0, sizeof(map));
+    map.handle = create.bo_handle;
 
     ret = drmIoctl(fd, DRM_IOCTL_VIRTGPU_MAP, &map);
     if (ret) {
@@ -694,18 +694,18 @@ bool virtgpu_address_space_allocate_hostmem(
         abort();
     }
 
-    struct drm_virtgpu_map map_info = {
-        .handle = drm_rc_blob.bo_handle,
-    };
+    drm_virtgpu_map map;
+    memset(&map, 0, sizeof(map));
+    map.handle = drm_rc_blob.bo_handle;
 
-    res = drmIoctl(fd, DRM_IOCTL_VIRTGPU_MAP, &map_info);
+    res = drmIoctl(fd, DRM_IOCTL_VIRTGPU_MAP, &map);
     if (res) {
         ALOGE("%s: Failed to virtgpu map: sterror: %s errno: %d\n", __func__,
                 strerror(errno), errno);
         abort();
     }
 
-    void* directMappedAddr = mmap64(0, size, PROT_WRITE, MAP_SHARED, fd, map_info.offset);
+    void* directMappedAddr = mmap64(0, size, PROT_WRITE, MAP_SHARED, fd, map.offset);
 
     if (!directMappedAddr) {
         ALOGE("%s: mmap of virtio gpu resource failed\n", __func__);

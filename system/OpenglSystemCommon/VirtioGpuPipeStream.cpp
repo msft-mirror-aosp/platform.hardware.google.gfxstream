@@ -120,9 +120,9 @@ int VirtioGpuPipeStream::connect(const char* serviceName)
     }
 
     if (!m_virtio_mapped) {
-        drm_virtgpu_map map = {
-            .handle = m_virtio_bo,
-        };
+        drm_virtgpu_map map;
+        memset(&map, 0, sizeof(map));
+        map.handle = m_virtio_bo;
 
         int ret = drmIoctl(m_fd, DRM_IOCTL_VIRTGPU_MAP, &map);
         if (ret) {
