@@ -2102,9 +2102,9 @@ public:
                     abort();
                 }
 
-                struct drm_virtgpu_map map_info = {
-                    .handle = drm_rc_blob.bo_handle,
-                };
+                drm_virtgpu_map map_info;
+                memset(&map_info, 0, sizeof(map_info));
+                map_info.handle = drm_rc_blob.bo_handle;
 
                 res = drmIoctl(mRendernodeFd, DRM_IOCTL_VIRTGPU_MAP, &map_info);
                 if (res) {
