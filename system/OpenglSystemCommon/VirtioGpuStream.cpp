@@ -149,9 +149,10 @@ int VirtioGpuStream::connect()
     }
 
     if (!m_cmdResp) {
-        drm_virtgpu_map map = {
-            .handle = m_cmdResp_bo,
-        };
+        drm_virtgpu_map map;
+        memset(&map, 0, sizeof(map));
+        map.handle = m_cmdResp_bo;
+
         int ret = drmIoctl(m_fd, DRM_IOCTL_VIRTGPU_MAP, &map);
         if (ret) {
             ERR("%s: failed with %d mapping command response buffer (%s)",
