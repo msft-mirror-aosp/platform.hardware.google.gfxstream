@@ -50,6 +50,7 @@ void zx_event_create(int, zx_handle_t*) { }
 #include <fuchsia/sysmem/llcpp/fidl.h>
 #include <lib/zx/channel.h>
 #include <lib/zx/vmo.h>
+#include <zircon/errors.h>
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>
@@ -2564,9 +2565,16 @@ public:
                     auto result = mControlDevice->CreateColorBuffer2(std::move(vmo_copy),
                                                                      std::move(createParams));
                     if (!result.ok() || result.Unwrap()->res != ZX_OK) {
-                        ALOGE("CreateColorBuffer failed: %d:%d",
-                              result.status(), GET_STATUS_SAFE(result, res));
-                        abort();
+                        if (result.ok() &&
+                            result.Unwrap()->res == ZX_ERR_ALREADY_EXISTS) {
+                            ALOGD("CreateColorBuffer: color buffer already "
+                                  "exists\n");
+                        } else {
+                            ALOGE("CreateColorBuffer failed: %d:%d",
+                                  result.status(),
+                                  GET_STATUS_SAFE(result, res));
+                            abort();
+                        }
                     }
                 }
 
@@ -3036,8 +3044,13 @@ public:
               auto result =
                   mControlDevice->CreateColorBuffer2(std::move(vmo), std::move(createParams));
               if (!result.ok() || result.Unwrap()->res != ZX_OK) {
-                ALOGE("CreateColorBuffer failed: %d:%d", result.status(),
-                      GET_STATUS_SAFE(result, res));
+                  if (result.ok() &&
+                      result.Unwrap()->res == ZX_ERR_ALREADY_EXISTS) {
+                      ALOGD("CreateColorBuffer: color buffer already exists");
+                  } else {
+                      ALOGE("CreateColorBuffer failed: %d:%d", result.status(),
+                            GET_STATUS_SAFE(result, res));
+                  }
                 }
             }
             isSysmemBackedMemory = true;
