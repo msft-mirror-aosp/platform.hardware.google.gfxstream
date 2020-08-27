@@ -2469,6 +2469,11 @@ public:
                 if (hasDedicatedImage) {
                     VkResult res = setBufferCollectionConstraints(
                         &collection, pImageCreateInfo);
+                    if (res == VK_ERROR_FORMAT_NOT_SUPPORTED) {
+                      ALOGE("setBufferCollectionConstraints failed: format %u is not supported",
+                            pImageCreateInfo->format);
+                      return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                    }
                     if (res != VK_SUCCESS) {
                         ALOGE("setBufferCollectionConstraints failed: %d", res);
                         abort();
@@ -4700,6 +4705,35 @@ public:
 
         VkEncoder* enc = (VkEncoder*)context;
         (void)input_result;
+
+#ifdef VK_USE_PLATFORM_FUCHSIA
+
+        constexpr VkFormat kExternalImageSupportedFormats[] = {
+            VK_FORMAT_B8G8R8A8_SINT,
+            VK_FORMAT_B8G8R8A8_UNORM,
+            VK_FORMAT_B8G8R8A8_SRGB,
+            VK_FORMAT_B8G8R8A8_SNORM,
+            VK_FORMAT_B8G8R8A8_SSCALED,
+            VK_FORMAT_B8G8R8A8_USCALED,
+            VK_FORMAT_R8G8B8A8_SINT,
+            VK_FORMAT_R8G8B8A8_UNORM,
+            VK_FORMAT_R8G8B8A8_SRGB,
+            VK_FORMAT_R8G8B8A8_SNORM,
+            VK_FORMAT_R8G8B8A8_SSCALED,
+            VK_FORMAT_R8G8B8A8_USCALED,
+        };
+
+        VkExternalImageFormatProperties* ext_img_properties =
+            vk_find_struct<VkExternalImageFormatProperties>(pImageFormatProperties);
+
+        if (ext_img_properties) {
+          if (std::find(std::begin(kExternalImageSupportedFormats),
+                        std::end(kExternalImageSupportedFormats),
+                        pImageFormatInfo->format) == std::end(kExternalImageSupportedFormats)) {
+            return VK_ERROR_FORMAT_NOT_SUPPORTED;
+          }
+        }
+#endif
 
         VkAndroidHardwareBufferUsageANDROID* output_ahw_usage =
             vk_find_struct<VkAndroidHardwareBufferUsageANDROID>(pImageFormatProperties);
