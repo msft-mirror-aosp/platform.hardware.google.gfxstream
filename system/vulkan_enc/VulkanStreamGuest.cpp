@@ -84,6 +84,14 @@ public:
         return mFeatureBits;
     }
 
+    void incStreamRef() {
+        mStream->incRef();
+    }
+
+    bool decStreamRef() {
+        return mStream->decRef();
+    }
+
 private:
     size_t oustandingWriteBuffer() const {
         return mWritePos;
@@ -188,6 +196,14 @@ void VulkanStreamGuest::flush() {
 
 uint32_t VulkanStreamGuest::getFeatureBits() const {
     return mImpl->getFeatureBits();
+}
+
+void VulkanStreamGuest::incStreamRef() {
+    mImpl->incStreamRef();
+}
+
+bool VulkanStreamGuest::decStreamRef() {
+    return mImpl->decStreamRef();
 }
 
 VulkanCountingStream::VulkanCountingStream() : VulkanStreamGuest(nullptr) { }

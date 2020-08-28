@@ -403,7 +403,7 @@ public:
             *(info.lastUsedEncoderPtr) : nullptr;
 
         if (lastUsedEncoder) {
-            delete info.lastUsedEncoderPtr;
+            lastUsedEncoder->decRef();
             info.lastUsedEncoderPtr = nullptr;
         }
 
@@ -421,7 +421,7 @@ public:
             *(info.lastUsedEncoderPtr) : nullptr;
 
         if (lastUsedEncoder) {
-            delete info.lastUsedEncoderPtr;
+            lastUsedEncoder->decRef();
             info.lastUsedEncoderPtr = nullptr;
         }
 
@@ -4831,6 +4831,7 @@ public:
         if (!info.lastUsedEncoderPtr) {
             info.lastUsedEncoderPtr = new VkEncoder*;
             *(info.lastUsedEncoderPtr) = currentEncoder;
+            currentEncoder->incRef();
         }
 
         auto lastUsedEncoderPtr = info.lastUsedEncoderPtr;
@@ -4839,8 +4840,13 @@ public:
 
         // We always make lastUsedEncoderPtr track
         // the current encoder, even if the last encoder
-        // is null.
+        // is null. And also, increment the current encoder,
+        // and decrement refcount for the last one.
+        // (Decrement only after we are done)
         *(lastUsedEncoderPtr) = currentEncoder;
+        if (lastEncoder != currentEncoder) {
+            currentEncoder->incRef();
+        }
 
         if (!lastEncoder) return 0;
         if (lastEncoder == currentEncoder) return 0;
@@ -4851,23 +4857,11 @@ public:
 
         lastEncoder->vkCommandBufferHostSyncGOOGLE(commandBuffer, false, oldSeq + 1);
         lastEncoder->flush();
+
         currentEncoder->vkCommandBufferHostSyncGOOGLE(commandBuffer, true, oldSeq + 2);
 
-        unregisterEncoderCleanupCallback(lastEncoder, commandBuffer);
-
-        registerEncoderCleanupCallback(currentEncoder, commandBuffer, [this, currentEncoder, commandBuffer]() {
-            AutoLock lock(mLock);
-            auto it = info_VkCommandBuffer.find(commandBuffer);
-            if (it == info_VkCommandBuffer.end()) return;
-
-            auto& info = it->second;
-            if (!info.lastUsedEncoderPtr) return;
-            if (!*(info.lastUsedEncoderPtr)) return;
-
-            if (currentEncoder == *(info.lastUsedEncoderPtr)) {
-                *(info.lastUsedEncoderPtr) = nullptr;
-            }
-        });
+        lock.lock();
+        if (lastEncoder->decRef()) { *lastUsedEncoderPtr = nullptr; }
 
         return 1;
     }
@@ -4887,6 +4881,7 @@ public:
         if (!info.lastUsedEncoderPtr) {
             info.lastUsedEncoderPtr = new VkEncoder*;
             *(info.lastUsedEncoderPtr) = currentEncoder;
+            currentEncoder->incRef();
         }
 
         auto lastUsedEncoderPtr = info.lastUsedEncoderPtr;
@@ -4897,6 +4892,10 @@ public:
         // the current encoder, even if the last encoder
         // is null.
         *(lastUsedEncoderPtr) = currentEncoder;
+
+        if (lastEncoder != currentEncoder) {
+            currentEncoder->incRef();
+        }
 
         if (!lastEncoder) return 0;
         if (lastEncoder == currentEncoder) return 0;
@@ -4913,21 +4912,8 @@ public:
         lastEncoder->flush();
         currentEncoder->vkQueueHostSyncGOOGLE(queue, true, oldSeq + 2);
 
-        unregisterEncoderCleanupCallback(lastEncoder, queue);
-
-        registerEncoderCleanupCallback(currentEncoder, queue, [this, currentEncoder, queue]() {
-            AutoLock lock(mLock);
-            auto it = info_VkQueue.find(queue);
-            if (it == info_VkQueue.end()) return;
-
-            auto& info = it->second;
-            if (!info.lastUsedEncoderPtr) return;
-            if (!*(info.lastUsedEncoderPtr)) return;
-
-            if (currentEncoder == *(info.lastUsedEncoderPtr)) {
-                *(info.lastUsedEncoderPtr) = nullptr;
-            }
-        });
+        lock.lock();
+        if (lastEncoder->decRef()) { *lastUsedEncoderPtr = nullptr; }
 
         return 1;
     }
