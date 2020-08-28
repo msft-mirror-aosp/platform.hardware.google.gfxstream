@@ -54,6 +54,8 @@ vk_format_from_android(unsigned android_format)
       return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
    case HAL_PIXEL_FORMAT_NV12_Y_TILED_INTEL:
       return VK_FORMAT_G8_B8R8_2PLANE_420_UNORM;
+   case AHARDWAREBUFFER_FORMAT_Y8Cb8Cr8_420:
+      return VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM;
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
    case HAL_PIXEL_FORMAT_YV12:
       // YUV converter will convert this format to R8G8B8A8
