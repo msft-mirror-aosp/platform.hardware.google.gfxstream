@@ -56,6 +56,9 @@ public:
 
     uint32_t getFeatureBits() const;
 
+    void incStreamRef();
+    bool decStreamRef();
+
 private:
     class Impl;
     std::unique_ptr<Impl> mImpl;
