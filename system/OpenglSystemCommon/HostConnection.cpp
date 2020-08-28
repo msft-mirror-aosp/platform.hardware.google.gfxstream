@@ -49,6 +49,7 @@ public:
 namespace goldfish_vk {
 struct VkEncoder {
     VkEncoder(IOStream*) { }
+    void decRef() { }
     int placeholder;
 };
 } // namespace goldfish_vk
@@ -346,6 +347,7 @@ public:
     {
         return ::processPipeInit(connType, rcEnc);
     }
+    
 };
 
 static GoldfishGralloc m_goldfishGralloc;
@@ -373,6 +375,14 @@ HostConnection::~HostConnection()
     if (m_rendernodeFdOwned) {
         close(m_rendernodeFd);
     }
+
+    if (m_vkEnc) {
+        m_vkEnc->decRef();
+    }
+
+    if (m_stream) {
+        m_stream->decRef();
+    }
 }
 
 // static
@@ -384,21 +394,20 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
     auto con = std::unique_ptr<HostConnection>(new HostConnection);
     switch (connType) {
         case HOST_CONNECTION_ADDRESS_SPACE: {
-            auto stream = std::unique_ptr<AddressSpaceStream>(
-                createAddressSpaceStream(STREAM_BUFFER_SIZE));
+            auto stream = createAddressSpaceStream(STREAM_BUFFER_SIZE);
             if (!stream) {
                 ALOGE("Failed to create AddressSpaceStream for host connection!!!\n");
                 return nullptr;
             }
             con->m_connectionType = HOST_CONNECTION_ADDRESS_SPACE;
             con->m_grallocType = GRALLOC_TYPE_RANCHU;
-            con->m_stream = std::move(stream);
+            con->m_stream = stream;
             con->m_grallocHelper = &m_goldfishGralloc;
             con->m_processPipe = &m_goldfishProcessPipe;
             break;
         }
         case HOST_CONNECTION_QEMU_PIPE: {
-            auto stream = std::make_unique<QemuPipeStream>(STREAM_BUFFER_SIZE);
+            auto stream = new QemuPipeStream(STREAM_BUFFER_SIZE);
             if (!stream) {
                 ALOGE("Failed to create QemuPipeStream for host connection!!!\n");
                 return nullptr;
@@ -409,7 +418,7 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
             }
             con->m_connectionType = HOST_CONNECTION_QEMU_PIPE;
             con->m_grallocType = GRALLOC_TYPE_RANCHU;
-            con->m_stream = std::move(stream);
+            con->m_stream = stream;
             con->m_grallocHelper = &m_goldfishGralloc;
             con->m_processPipe = &m_goldfishProcessPipe;
             break;
@@ -420,7 +429,7 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
             return nullptr;
             break;
 #else
-            auto stream = std::make_unique<TcpStream>(STREAM_BUFFER_SIZE);
+            auto stream = new TcpStream(STREAM_BUFFER_SIZE);
             if (!stream) {
                 ALOGE("Failed to create TcpStream for host connection!!!\n");
                 return nullptr;
@@ -432,7 +441,7 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
             }
             con->m_connectionType = HOST_CONNECTION_TCP;
             con->m_grallocType = GRALLOC_TYPE_RANCHU;
-            con->m_stream = std::move(stream);
+            con->m_stream = stream;
             con->m_grallocHelper = &m_goldfishGralloc;
             con->m_processPipe = &m_goldfishProcessPipe;
             break;
@@ -440,7 +449,7 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
         }
 #ifdef VIRTIO_GPU
         case HOST_CONNECTION_VIRTIO_GPU: {
-            auto stream = std::make_unique<VirtioGpuStream>(STREAM_BUFFER_SIZE);
+            auto stream = new VirtioGpuStream(STREAM_BUFFER_SIZE);
             if (!stream) {
                 ALOGE("Failed to create VirtioGpu for host connection!!!\n");
                 return nullptr;
@@ -453,7 +462,7 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
             con->m_grallocType = GRALLOC_TYPE_MINIGBM;
             auto rendernodeFd = stream->getRendernodeFd();
             con->m_processPipe = stream->getProcessPipe();
-            con->m_stream = std::move(stream);
+            con->m_stream = stream;
             con->m_rendernodeFdOwned = false;
             con->m_rendernodeFdOwned = rendernodeFd;
             MinigbmGralloc* m = new MinigbmGralloc;
@@ -462,8 +471,7 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
             break;
         }
         case HOST_CONNECTION_VIRTIO_GPU_PIPE: {
-            auto stream =
-                std::make_unique<VirtioGpuPipeStream>(STREAM_BUFFER_SIZE);
+            auto stream = new VirtioGpuPipeStream(STREAM_BUFFER_SIZE);
             if (!stream) {
                 ALOGE("Failed to create VirtioGpu for host connection!!!\n");
                 return nullptr;
@@ -476,7 +484,7 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
             con->m_grallocType = getGrallocTypeFromProperty();
             con->m_rendernodeFdOwned = false;
             auto rendernodeFd = stream->getRendernodeFd();
-            con->m_stream = std::move(stream);
+            con->m_stream = stream;
             con->m_rendernodeFd = rendernodeFd;
             switch (con->m_grallocType) {
                 case GRALLOC_TYPE_RANCHU:
@@ -497,8 +505,7 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
         }
 #if !defined(HOST_BUILD) && !defined(__Fuchsia__)
         case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
-            auto stream = std::unique_ptr<AddressSpaceStream>(
-                createVirtioGpuAddressSpaceStream(STREAM_BUFFER_SIZE));
+            auto stream = createVirtioGpuAddressSpaceStream(STREAM_BUFFER_SIZE);
             if (!stream) {
                 ALOGE("Failed to create virtgpu AddressSpaceStream for host connection!!!\n");
                 return nullptr;
@@ -507,7 +514,7 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
             con->m_grallocType = getGrallocTypeFromProperty();
             con->m_rendernodeFdOwned = false;
             auto rendernodeFd = stream->getRendernodeFd();
-            con->m_stream = std::move(stream);
+            con->m_stream = stream;
             con->m_rendernodeFd = rendernodeFd;
             switch (con->m_grallocType) {
                 case GRALLOC_TYPE_RANCHU:
@@ -581,7 +588,7 @@ std::unique_ptr<HostConnection> HostConnection::createUnique() {
 GLEncoder *HostConnection::glEncoder()
 {
     if (!m_glEnc) {
-        m_glEnc = std::make_unique<GLEncoder>(m_stream.get(), checksumHelper());
+        m_glEnc = std::make_unique<GLEncoder>(m_stream, checksumHelper());
         DBG("HostConnection::glEncoder new encoder %p, tid %d",
             m_glEnc, getCurrentThreadId());
         m_glEnc->setContextAccessor(s_getGLContext);
@@ -593,7 +600,7 @@ GL2Encoder *HostConnection::gl2Encoder()
 {
     if (!m_gl2Enc) {
         m_gl2Enc =
-            std::make_unique<GL2Encoder>(m_stream.get(), checksumHelper());
+            std::make_unique<GL2Encoder>(m_stream, checksumHelper());
         DBG("HostConnection::gl2Encoder new encoder %p, tid %d",
             m_gl2Enc, getCurrentThreadId());
         m_gl2Enc->setContextAccessor(s_getGL2Context);
@@ -608,15 +615,15 @@ GL2Encoder *HostConnection::gl2Encoder()
 VkEncoder *HostConnection::vkEncoder()
 {
     if (!m_vkEnc) {
-        m_vkEnc = std::make_unique<VkEncoder>(m_stream.get());
+        m_vkEnc = new VkEncoder(m_stream);
     }
-    return m_vkEnc.get();
+    return m_vkEnc;
 }
 
 ExtendedRCEncoderContext *HostConnection::rcEncoder()
 {
     if (!m_rcEnc) {
-        m_rcEnc = std::make_unique<ExtendedRCEncoderContext>(m_stream.get(),
+        m_rcEnc = std::make_unique<ExtendedRCEncoderContext>(m_stream,
                                                              checksumHelper());
 
         ExtendedRCEncoderContext* rcEnc = m_rcEnc.get();
