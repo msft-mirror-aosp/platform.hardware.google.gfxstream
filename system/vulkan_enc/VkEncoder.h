@@ -1839,6 +1839,9 @@ public:
         VkFence fence);
 #endif
 
+    void incRef();
+    bool decRef();
+
 private:
     class Impl;
     std::unique_ptr<Impl> mImpl;
