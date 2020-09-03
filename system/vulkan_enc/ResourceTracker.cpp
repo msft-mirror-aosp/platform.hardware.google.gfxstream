@@ -3399,8 +3399,10 @@ public:
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
         if (exportSyncFd) {
-            ALOGV("%s: ensure sync device\n", __func__);
-            ensureSyncDeviceFd();
+            if (!mFeatureInfo->hasVirtioGpuNativeSync) {
+                ALOGV("%s: ensure sync device\n", __func__);
+                ensureSyncDeviceFd();
+            }
 
             ALOGV("%s: getting fence info\n", __func__);
             AutoLock lock(mLock);
@@ -3591,11 +3593,50 @@ public:
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
             }
 
-            goldfish_sync_queue_work(
-                mSyncDeviceFd,
-                get_host_u64_VkFence(pGetFdInfo->fence) /* the handle */,
-                GOLDFISH_SYNC_VULKAN_SEMAPHORE_SYNC /* thread handle (doubling as type field) */,
-                pFd);
+            if (mFeatureInfo->hasVirtioGpuNativeSync) {
+                uint64_t hostFenceHandle = get_host_u64_VkFence(pGetFdInfo->fence);
+                uint32_t hostFenceHandleLo = (uint32_t)hostFenceHandle;
+                uint32_t hostFenceHandleHi = (uint32_t)(hostFenceHandle >> 32);
+
+                uint64_t hostDeviceHandle = get_host_u64_VkDevice(device);
+                uint32_t hostDeviceHandleLo = (uint32_t)hostDeviceHandle;
+                uint32_t hostDeviceHandleHi = (uint32_t)(hostFenceHandle >> 32);
+
+                #define VIRTIO_GPU_NATIVE_SYNC_VULKAN_CREATE_EXPORT_FD 0xa000
+
+                uint32_t cmdDwords[5] = {
+                    VIRTIO_GPU_NATIVE_SYNC_VULKAN_CREATE_EXPORT_FD,
+                    hostDeviceHandleLo,
+                    hostDeviceHandleHi,
+                    hostFenceHandleLo,
+                    hostFenceHandleHi,
+                };
+
+                drm_virtgpu_execbuffer execbuffer = {
+                    .flags = VIRTGPU_EXECBUF_FENCE_FD_OUT,
+                    .size = 5 * sizeof(uint32_t),
+                    .command = (uint64_t)(cmdDwords),
+                    .bo_handles = 0,
+                    .num_bo_handles = 0,
+                    .fence_fd = -1,
+                };
+
+                int res = drmIoctl(mRendernodeFd, DRM_IOCTL_VIRTGPU_EXECBUFFER, &execbuffer);
+                if (res) {
+                    ALOGE("%s: Failed to virtgpu execbuffer: sterror: %s errno: %d\n", __func__,
+                            strerror(errno), errno);
+                    abort();
+                }
+
+                *pFd = execbuffer.fence_fd;
+            } else {
+                goldfish_sync_queue_work(
+                    mSyncDeviceFd,
+                    get_host_u64_VkFence(pGetFdInfo->fence) /* the handle */,
+                    GOLDFISH_SYNC_VULKAN_SEMAPHORE_SYNC /* thread handle (doubling as type field) */,
+                    pFd);
+            }
+
             // relinquish ownership
             info.syncFd = -1;
             ALOGV("%s: got fd: %d\n", __func__, *pFd);
@@ -4906,7 +4947,7 @@ public:
         auto& callbacks = mEncoderCleanupCallbacks[encoder];
         callbacks[object] = callback;
     }
-    
+
     void unregisterEncoderCleanupCallback(const VkEncoder* encoder, void* object) {
         AutoLock lock(mLock);
         mEncoderCleanupCallbacks[encoder].erase(object);
