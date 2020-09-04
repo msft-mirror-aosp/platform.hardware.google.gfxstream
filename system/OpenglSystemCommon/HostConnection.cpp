@@ -355,7 +355,7 @@ HostConnection::HostConnection() :
     m_checksumHelper(),
     m_glExtensions(),
     m_grallocOnly(true),
-    m_noHostError(false),
+    m_noHostError(true),
     m_rendernodeFd(-1),
     m_rendernodeFdOwned(false) { }
 
@@ -800,8 +800,8 @@ void HostConnection::queryAndSetGLESMaxVersion(ExtendedRCEncoderContext* rcEnc) 
 
 void HostConnection::queryAndSetNoErrorState(ExtendedRCEncoderContext* rcEnc) {
     std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kGLESNoHostError) != std::string::npos) {
-        m_noHostError = true;
+    if (glExtensions.find(kGLESUseHostError) != std::string::npos) {
+        m_noHostError = false;
     }
 }
 

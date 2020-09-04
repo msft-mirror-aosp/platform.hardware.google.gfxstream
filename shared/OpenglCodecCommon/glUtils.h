@@ -57,6 +57,12 @@ typedef enum {
     INDIRECT_COMMAND_DRAWELEMENTS = 1,
 } IndirectCommandType;
 
+    bool isSamplerType(GLenum type);
+    bool isIntegerType(GLenum type);
+    bool isUnsignedIntType(GLenum type);
+    bool isBoolType(GLenum type);
+    uint32_t getColumnsOfType(GLenum type);
+    uint32_t getRowsOfType(GLenum type);
     size_t glSizeof(GLenum type);
     size_t glUtilsParamSize(GLenum param);
     void   glUtilsPackPointerData(unsigned char *dst, unsigned char *str,
@@ -72,6 +78,11 @@ typedef enum {
     int glUtilsColorAttachmentIndex(GLenum attachment);
 
     GLuint glUtilsIndirectStructSize(IndirectCommandType cmdType);
+
+    bool colorRenderableFormat(GLint internalformat, GLenum texturetype, int majorVersion, int minorVersion, bool hasColorBufferFloatExtension, bool hasColorBufferHalfFloatExtension);
+
+    bool depthRenderableFormat(GLint internalformat);
+    bool stencilRenderableFormat(GLint internalformat);
 
 #ifdef __cplusplus
 };
