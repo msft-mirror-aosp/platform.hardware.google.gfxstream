@@ -71,5 +71,12 @@ void computePackingOffsets3D(
         int* packingPixelImageSize,
         int* packingTotalImageSize);
 
+// For calculating compressed sizes of ETC/EAC formatted images in the guest.
+GLsizei getCompressedImageSize(GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, bool* error);
+
+// Format queries
+bool isEtc2Format(GLenum internalformat);
+bool isAstcFormat(GLenum internalformat);
+
 } // namespace GLESTextureUtils
 #endif

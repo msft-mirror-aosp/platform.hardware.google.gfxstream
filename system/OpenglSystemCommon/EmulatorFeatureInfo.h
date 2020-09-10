@@ -114,6 +114,9 @@ static const char kVulkanShaderFloat16Int8[] = "ANDROID_EMU_vulkan_shader_float1
 // Vulkan async queue submit
 static const char kVulkanAsyncQueueSubmit[] = "ANDROID_EMU_vulkan_async_queue_submit";
 
+// A flag to _not_ ignore host opengl errors (now host opengl errors are ignored by default)
+static const char kGLESUseHostError[] = "ANDROID_EMU_gles_use_host_error";
+
 // Struct describing available emulator features
 struct EmulatorFeatureInfo {
 

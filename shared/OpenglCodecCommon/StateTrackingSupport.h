@@ -17,21 +17,24 @@
 #define _STATE_TRACKING_SUPPORT_H_
 
 #include "android/base/containers/HybridComponentManager.h"
+#include "android/base/synchronization/AndroidLock.h"
 
-template <bool initialIsTrue>
+#include <GLES2/gl2.h>
+
+template <class IndexType, bool initialIsTrue>
 class PredicateMap {
 public:
     static const uint64_t kBitsPerEntry = 64;
-    void add(uint32_t objId) {
+    void add(IndexType objId) {
         static const uint64_t kNone = 0ULL;
         static const uint64_t kAll = ~kNone;
-        uint32_t index = objId / kBitsPerEntry;
+        IndexType index = objId / kBitsPerEntry;
         if (!mStorage.get_const(index)) {
             mStorage.add(index, initialIsTrue ? kAll : kNone);
         }
     }
 
-    void remove(uint32_t objId) {
+    void remove(IndexType objId) {
         if (initialIsTrue) {
             set(objId, true);
         } else {
@@ -39,8 +42,8 @@ public:
         }
     }
 
-    void set(uint32_t objId, bool predicate) {
-        uint32_t index = objId / kBitsPerEntry;
+    void set(IndexType objId, bool predicate) {
+        IndexType index = objId / kBitsPerEntry;
 
         if (!mStorage.get_const(index)) return;
 
@@ -55,8 +58,8 @@ public:
         }
     }
 
-    bool get(uint32_t objId) const {
-        uint32_t index = objId / kBitsPerEntry;
+    bool get(IndexType objId) const {
+        IndexType index = objId / kBitsPerEntry;
 
         const uint64_t* current = mStorage.get_const(index);
 
@@ -67,8 +70,170 @@ public:
     }
 
 private:
-    using Storage = android::base::HybridComponentManager<10000, uint32_t, uint64_t>;
+    using Storage = android::base::HybridComponentManager<10000, IndexType, uint64_t>;
     Storage mStorage;
 };
+
+// A structure for fast validation of uniform uploads and other uniform related api calls.
+struct UniformLocationInfo {
+    bool valid = false;
+    uint32_t columns;
+    uint32_t rows;
+    bool isSampler;
+    bool isInt;
+    bool isArray;
+    bool isUnsigned;
+    bool isBool;
+};
+
+using UniformValidationInfo = android::base::HybridComponentManager<1000, uint32_t, UniformLocationInfo>;
+
+using LastQueryTargetInfo = android::base::HybridComponentManager<1000, uint32_t, uint32_t>;
+
+using ExistenceMap = PredicateMap<uint32_t, false>;
+
+struct RboProps {
+    GLenum format;
+    GLsizei multisamples;
+    GLsizei width;
+    GLsizei height;
+    bool previouslyBound;
+    uint32_t refcount;
+    bool boundEGLImage;
+};
+
+struct SamplerProps {
+    uint32_t refcount;
+};
+
+template <class T>
+class ScopedLockedView {
+public:
+    ScopedLockedView(T* info) : mInfo(info) {
+        mInfo->lock();
+    }
+    virtual ~ScopedLockedView() {
+        mInfo->unlock();
+    }
+protected:
+    T* mInfo;
+
+    T* internalInfo() { return mInfo; }
+    const T* internalInfo_const() const { return mInfo; }
+};
+
+struct RenderbufferInfo {
+    android::base::guest::Lock infoLock;
+    android::base::HybridComponentManager<1000, uint32_t, RboProps> component;
+
+    void lock() { infoLock.lock(); }
+    void unlock() { infoLock.unlock(); }
+
+    class ScopedView : public ScopedLockedView<RenderbufferInfo> {
+        public:
+            ScopedView(RenderbufferInfo* info) : ScopedLockedView<RenderbufferInfo>(info) { }
+            bool hasRbo(GLuint id) const {
+                const RboProps* info = internalInfo_const()->component.get_const(id);
+                if (!info) return false;
+                return 0 != info->refcount;
+            }
+            virtual ~ScopedView() = default;
+            RboProps* get(GLuint id) {
+                return internalInfo()->component.get(id);
+            }
+            const RboProps* get_const(GLuint id) {
+                return internalInfo_const()->component.get_const(id);
+            }
+            void addFresh(GLuint id) {
+                RboProps props;
+                props.format = GL_NONE;
+                props.multisamples = 0;
+                props.width = 0;
+                props.height = 0;
+                props.previouslyBound = false;
+                props.refcount = 1;
+                props.boundEGLImage = false;
+                internalInfo()->component.add(id, props);
+            }
+            RboProps* bind(GLuint id) {
+                if (!hasRbo(id)) addFresh(id);
+                ref(id);
+                RboProps* res = get(id);
+                res->previouslyBound = true;
+                return res;
+            }
+            void ref(GLuint id) {
+                RboProps* props = get(id);
+                if (!props) return;
+                ++props->refcount;
+            }
+            bool unref(GLuint id) {
+                RboProps* props = get(id);
+                if (!props) return false;
+                if (!props->refcount) return false;
+                --props->refcount;
+                bool gone = 0 == props->refcount;
+                if (gone) {
+                    props->format = 0;
+                    props->multisamples = 0;
+                    props->width = 0;
+                    props->height = 0;
+                    props->previouslyBound = false;
+                    props->boundEGLImage = false;
+                }
+                return gone;
+            }
+    };
+};
+
+struct SamplerInfo {
+    android::base::guest::Lock infoLock;
+    android::base::HybridComponentManager<1000, uint32_t, SamplerProps> component;
+
+    void lock() { infoLock.lock(); }
+    void unlock() { infoLock.unlock(); }
+
+    class ScopedView : public ScopedLockedView<SamplerInfo> {
+        public:
+            ScopedView(SamplerInfo* info) : ScopedLockedView<SamplerInfo>(info) { }
+            bool samplerExists(GLuint id) const {
+                const SamplerProps* info = internalInfo_const()->component.get_const(id);
+                if (!info) return false;
+                return 0 != info->refcount;
+            }
+            virtual ~ScopedView() = default;
+            SamplerProps* get(GLuint id) {
+                return internalInfo()->component.get(id);
+            }
+            const SamplerProps* get_const(GLuint id) {
+                return internalInfo_const()->component.get_const(id);
+            }
+            void addFresh(GLuint id) {
+                SamplerProps props;
+                props.refcount = 1;
+                internalInfo()->component.add(id, props);
+            }
+            SamplerProps* bind(GLuint id) {
+                if (!samplerExists(id)) return 0;
+                ref(id);
+                SamplerProps* res = get(id);
+                return res;
+            }
+            void ref(GLuint id) {
+                SamplerProps* props = get(id);
+                if (!props) return;
+                ++props->refcount;
+            }
+            bool unref(GLuint id) {
+                SamplerProps* props = get(id);
+                if (!props) return false;
+                if (!props->refcount) return false;
+                --props->refcount;
+                bool gone = 0 == props->refcount;
+                return gone;
+            }
+    };
+};
+
 
 #endif
