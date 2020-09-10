@@ -13,6 +13,7 @@ commonSources := \
         SocketStream.cpp \
         TcpStream.cpp \
         auto_goldfish_dma_context.cpp \
+        etc.cpp \
 
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 
@@ -42,7 +43,8 @@ LOCAL_CFLAGS += -Wno-unused-private-field
 
 
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
-$(call emugl-export,SHARED_LIBRARIES,libcutils libutils liblog android-emu-shared)
+$(call emugl-import,libandroidemu)
+$(call emugl-export,SHARED_LIBRARIES,libcutils libutils liblog)
 else
 ifeq (true,$(GFXSTREAM))
 $(call emugl-export,SHARED_LIBRARIES,libcutils libutils liblog libandroidemu)
