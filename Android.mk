@@ -133,6 +133,11 @@ ifeq (true,$(GOLDFISH_OPENGL_SHOULD_BUILD))
 include $(GOLDFISH_OPENGL_PATH)/shared/qemupipe/Android.mk
 include $(GOLDFISH_OPENGL_PATH)/shared/gralloc_cb/Android.mk
 include $(GOLDFISH_OPENGL_PATH)/shared/GoldfishAddressSpace/Android.mk
+
+ifeq (true,$(GFXSTREAM)) # android-emu
+    include $(GOLDFISH_OPENGL_PATH)/android-emu/Android.mk
+endif
+
 include $(GOLDFISH_OPENGL_PATH)/shared/OpenglCodecCommon/Android.mk
 
 # Encoder shared libraries
@@ -141,7 +146,6 @@ include $(GOLDFISH_OPENGL_PATH)/system/GLESv2_enc/Android.mk
 include $(GOLDFISH_OPENGL_PATH)/system/renderControl_enc/Android.mk
 
 ifeq (true,$(GFXSTREAM)) # Vulkan libs
-    include $(GOLDFISH_OPENGL_PATH)/android-emu/Android.mk
     include $(GOLDFISH_OPENGL_PATH)/system/vulkan_enc/Android.mk
 endif
 
