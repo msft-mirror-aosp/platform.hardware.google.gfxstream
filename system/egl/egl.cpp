@@ -1859,41 +1859,25 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
                 context->minorVersion,
                 context->deviceMajorVersion,
                 context->deviceMinorVersion);
-            // Get caps for indexed buffers from host.
-            // Some need a current context.
-            int max_transform_feedback_separate_attribs = 0;
-            int max_uniform_buffer_bindings = 0;
-            int max_atomic_counter_buffer_bindings = 0;
-            int max_shader_storage_buffer_bindings = 0;
-            int max_vertex_attrib_bindings = 0;
-            int max_color_attachments = 1;
-            int max_draw_buffers = 1;
-            if (context->majorVersion > 2) {
-                s_display.gles2_iface()->getIntegerv(
-                        GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS, &max_transform_feedback_separate_attribs);
-                s_display.gles2_iface()->getIntegerv(
-                        GL_MAX_UNIFORM_BUFFER_BINDINGS, &max_uniform_buffer_bindings);
-                if (context->minorVersion > 0) {
-                    s_display.gles2_iface()->getIntegerv(
-                            GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS, &max_atomic_counter_buffer_bindings);
-                    s_display.gles2_iface()->getIntegerv(
-                            GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &max_shader_storage_buffer_bindings);
-                    s_display.gles2_iface()->getIntegerv(
-                            GL_MAX_VERTEX_ATTRIB_BINDINGS, &max_vertex_attrib_bindings);
-                }
-                s_display.gles2_iface()->getIntegerv(
-                        GL_MAX_COLOR_ATTACHMENTS, &max_color_attachments);
-                s_display.gles2_iface()->getIntegerv(
-                        GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
+            hostCon->gl2Encoder()->setClientState(contextState);
+            if (context->majorVersion > 1) {
+                HostDriverCaps caps = s_display.getHostDriverCaps(
+                    context->majorVersion,
+                    context->minorVersion);
+                contextState->initFromCaps(caps);
+            } else {
+                // Just put some stuff here to make gles1 happy
+                HostDriverCaps gles1Caps = {
+                    .max_vertex_attribs = 16,
+                    .max_combined_texture_image_units = 8,
+                    .max_color_attachments = 8,
+
+                    .max_texture_size = 4096,
+                    .max_texture_size_cube_map = 2048,
+                    .max_renderbuffer_size = 4096,
+                };
+                contextState->initFromCaps(gles1Caps);
             }
-            contextState->initFromCaps(
-                    max_transform_feedback_separate_attribs,
-                    max_uniform_buffer_bindings,
-                    max_atomic_counter_buffer_bindings,
-                    max_shader_storage_buffer_bindings,
-                    max_vertex_attrib_bindings,
-                    max_color_attachments,
-                    max_draw_buffers);
         }
 
         // update the client state, share group, and version
