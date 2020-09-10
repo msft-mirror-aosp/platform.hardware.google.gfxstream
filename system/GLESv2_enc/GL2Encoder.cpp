@@ -16,6 +16,7 @@
 
 #include "GL2Encoder.h"
 #include "GLESv2Validation.h"
+#include "GLESTextureUtils.h"
 
 #include <string>
 #include <map>
@@ -81,6 +82,7 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     m_num_compressedTextureFormats = 0;
     m_max_combinedTextureImageUnits = 0;
     m_max_vertexTextureImageUnits = 0;
+    m_max_array_texture_layers = 0;
     m_max_textureImageUnits = 0;
     m_max_cubeMapTextureSize = 0;
     m_max_renderBufferSize = 0;
@@ -296,6 +298,7 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     OVERRIDE(glGenerateMipmap);
 
     OVERRIDE(glBindSampler);
+    OVERRIDE(glDeleteSamplers);
 
     OVERRIDE_CUSTOM(glFenceSync);
     OVERRIDE_CUSTOM(glClientWaitSync);
@@ -378,6 +381,78 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
 
     OVERRIDE(glDispatchCompute);
     OVERRIDE(glDispatchComputeIndirect);
+
+    OVERRIDE(glGenTransformFeedbacks);
+    OVERRIDE(glDeleteTransformFeedbacks);
+    OVERRIDE(glGenSamplers);
+    OVERRIDE(glGenQueries);
+    OVERRIDE(glDeleteQueries);
+
+    OVERRIDE(glBindTransformFeedback);
+    OVERRIDE(glBeginQuery);
+    OVERRIDE(glEndQuery);
+
+    OVERRIDE(glClear);
+    OVERRIDE(glClearBufferfi);
+    OVERRIDE(glCopyTexSubImage2D);
+    OVERRIDE(glCopyTexSubImage3D);
+    OVERRIDE(glCompileShader);
+    OVERRIDE(glValidateProgram);
+    OVERRIDE(glProgramBinary);
+
+    OVERRIDE(glGetSamplerParameterfv);
+    OVERRIDE(glGetSamplerParameteriv);
+    OVERRIDE(glSamplerParameterf);
+    OVERRIDE(glSamplerParameteri);
+    OVERRIDE(glSamplerParameterfv);
+    OVERRIDE(glSamplerParameteriv);
+
+    OVERRIDE(glGetAttribLocation);
+
+    OVERRIDE(glBindAttribLocation);
+    OVERRIDE(glUniformBlockBinding);
+    OVERRIDE(glGetTransformFeedbackVarying);
+    OVERRIDE(glScissor);
+    OVERRIDE(glDepthFunc);
+    OVERRIDE(glViewport);
+    OVERRIDE(glStencilFunc);
+    OVERRIDE(glStencilFuncSeparate);
+    OVERRIDE(glStencilOp);
+    OVERRIDE(glStencilOpSeparate);
+    OVERRIDE(glStencilMaskSeparate);
+    OVERRIDE(glBlendEquation);
+    OVERRIDE(glBlendEquationSeparate);
+    OVERRIDE(glBlendFunc);
+    OVERRIDE(glBlendFuncSeparate);
+    OVERRIDE(glCullFace);
+    OVERRIDE(glFrontFace);
+    OVERRIDE(glLineWidth);
+    OVERRIDE(glVertexAttrib1f);
+    OVERRIDE(glVertexAttrib2f);
+    OVERRIDE(glVertexAttrib3f);
+    OVERRIDE(glVertexAttrib4f);
+    OVERRIDE(glVertexAttrib1fv);
+    OVERRIDE(glVertexAttrib2fv);
+    OVERRIDE(glVertexAttrib3fv);
+    OVERRIDE(glVertexAttrib4fv);
+    OVERRIDE(glVertexAttribI4i);
+    OVERRIDE(glVertexAttribI4ui);
+    OVERRIDE(glVertexAttribI4iv);
+    OVERRIDE(glVertexAttribI4uiv);
+
+    OVERRIDE(glGetShaderPrecisionFormat);
+    OVERRIDE(glGetProgramiv);
+    OVERRIDE(glGetActiveUniform);
+    OVERRIDE(glGetActiveUniformsiv);
+    OVERRIDE(glGetActiveUniformBlockName);
+    OVERRIDE(glGetActiveAttrib);
+    OVERRIDE(glGetRenderbufferParameteriv);
+    OVERRIDE(glGetQueryiv);
+    OVERRIDE(glGetQueryObjectuiv);
+    OVERRIDE(glIsEnabled);
+    OVERRIDE(glHint);
+
+    OVERRIDE(glGetFragDataLocation);
 }
 
 GL2Encoder::~GL2Encoder()
@@ -390,7 +465,9 @@ GLenum GL2Encoder::s_glGetError(void * self)
     GL2Encoder *ctx = (GL2Encoder *)self;
     GLenum err = ctx->getError();
     if(err != GL_NO_ERROR) {
-        ctx->m_glGetError_enc(ctx); // also clear host error
+        if (!ctx->m_noHostError) {
+            ctx->m_glGetError_enc(ctx); // also clear host error
+        }
         ctx->setError(GL_NO_ERROR);
         return err;
     }
@@ -408,6 +485,9 @@ public:
         mCtx(ctx),
         guest_error(ctx->getError()),
         host_error(ctx->m_glGetError_enc(ctx)) {
+            if (ctx->m_noHostError) {
+                host_error = GL_NO_ERROR;
+            }
             // Preserve any existing GL error in the guest:
             // OpenGL ES 3.0.5 spec:
             // The command enum GetError( void ); is used to obtain error information.
@@ -580,6 +660,7 @@ void GL2Encoder::s_glBufferData(void * self, GLenum target, GLsizeiptr size, con
     GLuint bufferId = ctx->m_state->getBuffer(target);
     SET_ERROR_IF(bufferId==0, GL_INVALID_OPERATION);
     SET_ERROR_IF(size<0, GL_INVALID_VALUE);
+    SET_ERROR_IF(!GLESv2Validation::bufferUsage(ctx, usage), GL_INVALID_ENUM);
 
     ctx->m_shared->updateBufferData(bufferId, size, data);
     ctx->m_shared->setBufferUsage(bufferId, usage);
@@ -623,18 +704,8 @@ void GL2Encoder::s_glDeleteBuffers(void * self, GLsizei n, const GLuint * buffer
     }
 }
 
-static bool isValidVertexAttribIndex(void *self, GLuint indx)
-{
-    GL2Encoder *ctx = (GL2Encoder *)self;
-    GLint maxIndex;
-    ctx->glGetIntegerv(self, GL_MAX_VERTEX_ATTRIBS, &maxIndex);
-    return indx < maxIndex;
-}
-
 #define VALIDATE_VERTEX_ATTRIB_INDEX(index) \
-    SET_ERROR_WITH_MESSAGE_IF( \
-            !isValidVertexAttribIndex(self, index), GL_INVALID_VALUE, \
-            GLESv2Validation::vertexAttribIndexRangeErrorMsg, (ctx, index)); \
+    SET_ERROR_IF(index >= CODEC_MAX_VERTEX_ATTRIBUTES, GL_INVALID_VALUE); \
 
 void GL2Encoder::s_glVertexAttribPointer(void *self, GLuint indx, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid * ptr)
 {
@@ -722,6 +793,14 @@ void GL2Encoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
             ctx->m_max_vertexTextureImageUnits = *ptr;
         }
         break;
+    case GL_MAX_ARRAY_TEXTURE_LAYERS:
+        if (ctx->m_max_array_texture_layers != 0) {
+            *ptr = ctx->m_max_array_texture_layers;
+        } else {
+            ctx->safe_glGetIntegerv(param, ptr);
+            ctx->m_max_array_texture_layers = *ptr;
+        }
+        break;
     case GL_MAX_TEXTURE_IMAGE_UNITS:
         if (ctx->m_max_textureImageUnits != 0) {
             *ptr = ctx->m_max_textureImageUnits;
@@ -741,10 +820,7 @@ void GL2Encoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
 
     case GL_MAX_VERTEX_ATTRIBS:
         SET_ERROR_IF(!state, GL_INVALID_OPERATION);
-        if (!state->getClientStateParameter<GLint>(param, ptr)) {
-            ctx->safe_glGetIntegerv(param, ptr);
-            state->setMaxVertexAttribs(*ptr);
-        }
+        *ptr = CODEC_MAX_VERTEX_ATTRIBUTES;
         break;
     case GL_MAX_VERTEX_ATTRIB_STRIDE:
         if (ctx->m_max_vertexAttribStride != 0) {
@@ -776,6 +852,13 @@ void GL2Encoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
         } else {
             ctx->safe_glGetIntegerv(param, ptr);
             ctx->m_max_textureSize = *ptr;
+            if (ctx->m_max_textureSize > 0) {
+                uint32_t current = 1;
+                while (current < ctx->m_max_textureSize) {
+                    ++ctx->m_log2MaxTextureSize;
+                    current = current << 1;
+                }
+            }
         }
         break;
     case GL_MAX_3D_TEXTURE_SIZE:
@@ -1049,10 +1132,8 @@ void GL2Encoder::s_glDisableVertexAttribArray(void *self, GLuint index)
 void GL2Encoder::s_glGetVertexAttribiv(void *self, GLuint index, GLenum pname, GLint *params)
 {
     GL2Encoder *ctx = (GL2Encoder *)self;
-    assert(ctx->m_state);
-    GLint maxIndex;
-    ctx->glGetIntegerv(self, GL_MAX_VERTEX_ATTRIBS, &maxIndex);
-    SET_ERROR_IF(!(index < maxIndex), GL_INVALID_VALUE);
+    VALIDATE_VERTEX_ATTRIB_INDEX(index);
+    SET_ERROR_IF(!GLESv2Validation::allowedGetVertexAttrib(pname), GL_INVALID_ENUM);
 
     if (!ctx->m_state->getVertexAttribParameter<GLint>(index, pname, params)) {
         ctx->m_glGetVertexAttribiv_enc(self, index, pname, params);
@@ -1062,10 +1143,8 @@ void GL2Encoder::s_glGetVertexAttribiv(void *self, GLuint index, GLenum pname, G
 void GL2Encoder::s_glGetVertexAttribfv(void *self, GLuint index, GLenum pname, GLfloat *params)
 {
     GL2Encoder *ctx = (GL2Encoder *)self;
-    assert(ctx->m_state);
-    GLint maxIndex;
-    ctx->glGetIntegerv(self, GL_MAX_VERTEX_ATTRIBS, &maxIndex);
-    SET_ERROR_IF(!(index < maxIndex), GL_INVALID_VALUE);
+    VALIDATE_VERTEX_ATTRIB_INDEX(index);
+    SET_ERROR_IF(!GLESv2Validation::allowedGetVertexAttrib(pname), GL_INVALID_ENUM);
 
     if (!ctx->m_state->getVertexAttribParameter<GLfloat>(index, pname, params)) {
         ctx->m_glGetVertexAttribfv_enc(self, index, pname, params);
@@ -1076,9 +1155,7 @@ void GL2Encoder::s_glGetVertexAttribPointerv(void *self, GLuint index, GLenum pn
 {
     GL2Encoder *ctx = (GL2Encoder *)self;
     if (ctx->m_state == NULL) return;
-    GLint maxIndex;
-    ctx->glGetIntegerv(self, GL_MAX_VERTEX_ATTRIBS, &maxIndex);
-    SET_ERROR_IF(!(index < maxIndex), GL_INVALID_VALUE);
+    VALIDATE_VERTEX_ATTRIB_INDEX(index);
     SET_ERROR_IF(pname != GL_VERTEX_ATTRIB_ARRAY_POINTER, GL_INVALID_ENUM);
     (void)pname;
 
@@ -1327,6 +1404,7 @@ void GL2Encoder::s_glDrawArrays(void *self, GLenum mode, GLint first, GLsizei co
     assert(ctx->m_state != NULL);
     SET_ERROR_IF(!isValidDrawMode(mode), GL_INVALID_ENUM);
     SET_ERROR_IF(count < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(ctx->m_state->checkFramebufferCompleteness(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
 
     bool has_client_vertex_arrays = false;
     bool has_indirect_arrays = false;
@@ -1355,6 +1433,7 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
     SET_ERROR_IF(count < 0, GL_INVALID_VALUE);
     SET_ERROR_IF(!(type == GL_UNSIGNED_BYTE || type == GL_UNSIGNED_SHORT || type == GL_UNSIGNED_INT), GL_INVALID_ENUM);
     SET_ERROR_IF(ctx->m_state->getTransformFeedbackActiveUnpaused(), GL_INVALID_OPERATION);
+    SET_ERROR_IF(ctx->m_state->checkFramebufferCompleteness(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
 
     bool has_client_vertex_arrays = false;
     bool has_indirect_arrays = false;
@@ -1443,6 +1522,7 @@ void GL2Encoder::s_glDrawArraysNullAEMU(void *self, GLenum mode, GLint first, GL
     assert(ctx->m_state != NULL);
     SET_ERROR_IF(!isValidDrawMode(mode), GL_INVALID_ENUM);
     SET_ERROR_IF(count < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(ctx->m_state->checkFramebufferCompleteness(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
 
     bool has_client_vertex_arrays = false;
     bool has_indirect_arrays = false;
@@ -1470,6 +1550,7 @@ void GL2Encoder::s_glDrawElementsNullAEMU(void *self, GLenum mode, GLsizei count
     SET_ERROR_IF(count < 0, GL_INVALID_VALUE);
     SET_ERROR_IF(!(type == GL_UNSIGNED_BYTE || type == GL_UNSIGNED_SHORT || type == GL_UNSIGNED_INT), GL_INVALID_ENUM);
     SET_ERROR_IF(ctx->m_state->getTransformFeedbackActiveUnpaused(), GL_INVALID_OPERATION);
+    SET_ERROR_IF(ctx->m_state->checkFramebufferCompleteness(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
 
     bool has_client_vertex_arrays = false;
     bool has_indirect_arrays = false;
@@ -1804,22 +1885,31 @@ void GL2Encoder::s_glLinkProgram(void * self, GLuint program)
     SET_ERROR_IF(!isProgram && !ctx->m_shared->isShader(program), GL_INVALID_VALUE);
     SET_ERROR_IF(!isProgram, GL_INVALID_OPERATION);
 
+    if (program == ctx->m_state->currentProgram() ||
+        (!ctx->m_state->currentProgram() &&
+         (program == ctx->m_state->currentShaderProgram()))) {
+        SET_ERROR_IF(ctx->m_state->getTransformFeedbackActive(), GL_INVALID_OPERATION);
+    }
+
     ctx->m_glLinkProgram_enc(self, program);
 
     GLint linkStatus = 0;
-    ctx->glGetProgramiv(self, program, GL_LINK_STATUS, &linkStatus);
+    ctx->m_glGetProgramiv_enc(self, program, GL_LINK_STATUS, &linkStatus);
+    ctx->m_shared->setProgramLinkStatus(program, linkStatus);
     if (!linkStatus) {
         return;
     }
 
-    //get number of active uniforms in the program
+    // get number of active uniforms and attributes in the program
     GLint numUniforms=0;
-    ctx->glGetProgramiv(self, program, GL_ACTIVE_UNIFORMS, &numUniforms);
-    ctx->m_shared->initProgramData(program,numUniforms);
+    GLint numAttributes=0;
+    ctx->m_glGetProgramiv_enc(self, program, GL_ACTIVE_UNIFORMS, &numUniforms);
+    ctx->m_glGetProgramiv_enc(self, program, GL_ACTIVE_ATTRIBUTES, &numAttributes);
+    ctx->m_shared->initProgramData(program,numUniforms,numAttributes);
 
     //get the length of the longest uniform name
     GLint maxLength=0;
-    ctx->glGetProgramiv(self, program, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxLength);
+    ctx->m_glGetProgramiv_enc(self, program, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxLength);
 
     GLint size;
     GLenum type;
@@ -1828,17 +1918,54 @@ void GL2Encoder::s_glLinkProgram(void * self, GLuint program)
     //for each active uniform, get its size and starting location.
     for (GLint i=0 ; i<numUniforms ; ++i)
     {
-        ctx->glGetActiveUniform(self, program, i, maxLength, NULL, &size, &type, name);
+        ctx->m_glGetActiveUniform_enc(self, program, i, maxLength, NULL, &size, &type, name);
         location = ctx->m_glGetUniformLocation_enc(self, program, name);
         ctx->m_shared->setProgramIndexInfo(program, i, location, size, type, name);
+    }
+
+    if (ctx->majorVersion() > 2) {
+        GLint numBlocks;
+        ctx->m_glGetProgramiv_enc(ctx, program, GL_ACTIVE_UNIFORM_BLOCKS, &numBlocks);
+        ctx->m_shared->setActiveUniformBlockCountForProgram(program, numBlocks);
+
+        GLint tfVaryingsCount;
+        ctx->m_glGetProgramiv_enc(ctx, program, GL_TRANSFORM_FEEDBACK_VARYINGS, &tfVaryingsCount);
+        ctx->m_shared->setTransformFeedbackVaryingsCountForProgram(program, tfVaryingsCount);
     }
 
     delete[] name;
 }
 
+#define VALIDATE_PROGRAM_NAME(program) \
+    bool isShaderOrProgramObject = \
+        ctx->m_shared->isShaderOrProgramObject(program); \
+    bool isProgram = \
+        ctx->m_shared->isProgram(program); \
+    SET_ERROR_IF(!isShaderOrProgramObject, GL_INVALID_VALUE); \
+    SET_ERROR_IF(!isProgram, GL_INVALID_OPERATION); \
+
+#define VALIDATE_PROGRAM_NAME_RET(program, ret) \
+    bool isShaderOrProgramObject = \
+        ctx->m_shared->isShaderOrProgramObject(program); \
+    bool isProgram = \
+        ctx->m_shared->isProgram(program); \
+    RET_AND_SET_ERROR_IF(!isShaderOrProgramObject, GL_INVALID_VALUE, ret); \
+    RET_AND_SET_ERROR_IF(!isProgram, GL_INVALID_OPERATION, ret); \
+
+#define VALIDATE_SHADER_NAME(shader) \
+    bool isShaderOrProgramObject = \
+        ctx->m_shared->isShaderOrProgramObject(shader); \
+    bool isShader = \
+        ctx->m_shared->isShader(shader); \
+    SET_ERROR_IF(!isShaderOrProgramObject, GL_INVALID_VALUE); \
+    SET_ERROR_IF(!isShader, GL_INVALID_OPERATION); \
+
 void GL2Encoder::s_glDeleteProgram(void *self, GLuint program)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
+
+    VALIDATE_PROGRAM_NAME(program);
+
     ctx->m_glDeleteProgram_enc(self, program);
 
     ctx->m_shared->deleteProgramData(program);
@@ -1850,9 +1977,9 @@ void GL2Encoder::s_glGetUniformiv(void *self, GLuint program, GLint location, GL
     SET_ERROR_IF(!ctx->m_shared->isShaderOrProgramObject(program), GL_INVALID_VALUE);
     SET_ERROR_IF(!ctx->m_shared->isProgram(program), GL_INVALID_OPERATION);
     SET_ERROR_IF(!ctx->m_shared->isProgramInitialized(program), GL_INVALID_OPERATION);
-    GLint hostLoc = location;
-    SET_ERROR_IF(ctx->m_shared->getProgramUniformType(program,hostLoc)==0, GL_INVALID_OPERATION);
-    ctx->m_glGetUniformiv_enc(self, program, hostLoc, params);
+    SET_ERROR_IF(ctx->m_shared->getProgramUniformType(program,location)==0, GL_INVALID_OPERATION);
+    SET_ERROR_IF(!ctx->m_shared->isProgramUniformLocationValid(program,location), GL_INVALID_OPERATION);
+    ctx->m_glGetUniformiv_enc(self, program, location, params);
 }
 void GL2Encoder::s_glGetUniformfv(void *self, GLuint program, GLint location, GLfloat* params)
 {
@@ -1860,9 +1987,9 @@ void GL2Encoder::s_glGetUniformfv(void *self, GLuint program, GLint location, GL
     SET_ERROR_IF(!ctx->m_shared->isShaderOrProgramObject(program), GL_INVALID_VALUE);
     SET_ERROR_IF(!ctx->m_shared->isProgram(program), GL_INVALID_OPERATION);
     SET_ERROR_IF(!ctx->m_shared->isProgramInitialized(program), GL_INVALID_OPERATION);
-    GLint hostLoc = location;
-    SET_ERROR_IF(ctx->m_shared->getProgramUniformType(program,hostLoc)==0, GL_INVALID_OPERATION);
-    ctx->m_glGetUniformfv_enc(self, program, hostLoc, params);
+    SET_ERROR_IF(ctx->m_shared->getProgramUniformType(program,location)==0, GL_INVALID_OPERATION);
+    SET_ERROR_IF(!ctx->m_shared->isProgramUniformLocationValid(program,location), GL_INVALID_OPERATION);
+    ctx->m_glGetUniformfv_enc(self, program, location, params);
 }
 
 GLuint GL2Encoder::s_glCreateProgram(void * self)
@@ -1880,7 +2007,7 @@ GLuint GL2Encoder::s_glCreateShader(void *self, GLenum shaderType)
     RET_AND_SET_ERROR_IF(!GLESv2Validation::shaderType(ctx, shaderType), GL_INVALID_ENUM, 0);
     GLuint shader = ctx->m_glCreateShader_enc(self, shaderType);
     if (shader != 0) {
-        if (!ctx->m_shared->addShaderData(shader)) {
+        if (!ctx->m_shared->addShaderData(shader, shaderType)) {
             ctx->m_glDeleteShader_enc(self, shader);
             return 0;
         }
@@ -1892,6 +2019,7 @@ void GL2Encoder::s_glGetAttachedShaders(void *self, GLuint program, GLsizei maxC
         GLsizei* count, GLuint* shaders)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
+    VALIDATE_PROGRAM_NAME(program);
     SET_ERROR_IF(maxCount < 0, GL_INVALID_VALUE);
     ctx->m_glGetAttachedShaders_enc(self, program, maxCount, count, shaders);
 }
@@ -1900,6 +2028,7 @@ void GL2Encoder::s_glGetShaderSource(void *self, GLuint shader, GLsizei bufsize,
             GLsizei* length, GLchar* source)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
+    VALIDATE_SHADER_NAME(shader);
     SET_ERROR_IF(bufsize < 0, GL_INVALID_VALUE);
     ctx->m_glGetShaderSource_enc(self, shader, bufsize, length, source);
     ShaderData* shaderData = ctx->m_shared->getShaderData(shader);
@@ -1925,6 +2054,7 @@ void GL2Encoder::s_glGetShaderInfoLog(void *self, GLuint shader, GLsizei bufsize
         GLsizei* length, GLchar* infolog)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
+    VALIDATE_SHADER_NAME(shader);
     SET_ERROR_IF(bufsize < 0, GL_INVALID_VALUE);
     ctx->m_glGetShaderInfoLog_enc(self, shader, bufsize, length, infolog);
 }
@@ -1933,6 +2063,7 @@ void GL2Encoder::s_glGetProgramInfoLog(void *self, GLuint program, GLsizei bufsi
         GLsizei* length, GLchar* infolog)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
+    VALIDATE_PROGRAM_NAME(program);
     SET_ERROR_IF(bufsize < 0, GL_INVALID_VALUE);
     ctx->m_glGetProgramInfoLog_enc(self, program, bufsize, length, infolog);
 }
@@ -1940,6 +2071,15 @@ void GL2Encoder::s_glGetProgramInfoLog(void *self, GLuint program, GLsizei bufsi
 void GL2Encoder::s_glDeleteShader(void *self, GLenum shader)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
+
+    bool isShaderOrProgramObject =
+        ctx->m_shared->isShaderOrProgramObject(shader);
+    bool isShader =
+        ctx->m_shared->isShader(shader);
+
+    SET_ERROR_IF(isShaderOrProgramObject && !isShader, GL_INVALID_OPERATION);
+    SET_ERROR_IF(!isShaderOrProgramObject && !isShader, GL_INVALID_VALUE);
+
     ctx->m_glDeleteShader_enc(self,shader);
     ctx->m_shared->unrefShaderData(shader);
 }
@@ -1947,15 +2087,36 @@ void GL2Encoder::s_glDeleteShader(void *self, GLenum shader)
 void GL2Encoder::s_glAttachShader(void *self, GLuint program, GLuint shader)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
+    bool programIsShaderOrProgram = ctx->m_shared->isShaderOrProgramObject(program);
+    bool programIsProgram = ctx->m_shared->isProgram(program);
+    bool shaderIsShaderOrProgram = ctx->m_shared->isShaderOrProgramObject(shader);
+    bool shaderIsShader = ctx->m_shared->isShader(shader);
+
+    SET_ERROR_IF(!programIsShaderOrProgram, GL_INVALID_VALUE);
+    SET_ERROR_IF(!shaderIsShaderOrProgram, GL_INVALID_VALUE);
+    SET_ERROR_IF(!programIsProgram, GL_INVALID_OPERATION);
+    SET_ERROR_IF(!shaderIsShader, GL_INVALID_OPERATION);
+    SET_ERROR_IF(!ctx->m_shared->attachShader(program, shader), GL_INVALID_OPERATION);
+
     ctx->m_glAttachShader_enc(self, program, shader);
-    ctx->m_shared->attachShader(program, shader);
 }
 
 void GL2Encoder::s_glDetachShader(void *self, GLuint program, GLuint shader)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
+
+    bool programIsShaderOrProgram = ctx->m_shared->isShaderOrProgramObject(program);
+    bool programIsProgram = ctx->m_shared->isProgram(program);
+    bool shaderIsShaderOrProgram = ctx->m_shared->isShaderOrProgramObject(shader);
+    bool shaderIsShader = ctx->m_shared->isShader(shader);
+
+    SET_ERROR_IF(!programIsShaderOrProgram, GL_INVALID_VALUE);
+    SET_ERROR_IF(!shaderIsShaderOrProgram, GL_INVALID_VALUE);
+    SET_ERROR_IF(!programIsProgram, GL_INVALID_OPERATION);
+    SET_ERROR_IF(!shaderIsShader, GL_INVALID_OPERATION);
+    SET_ERROR_IF(!ctx->m_shared->detachShader(program, shader), GL_INVALID_OPERATION);
+
     ctx->m_glDetachShader_enc(self, program, shader);
-    ctx->m_shared->detachShader(program, shader);
 }
 
 int sArrIndexOfUniformExpr(const char* name, int* err) {
@@ -1975,6 +2136,16 @@ int GL2Encoder::s_glGetUniformLocation(void *self, GLuint program, const GLchar 
 {
     if (!name) return -1;
     GL2Encoder *ctx = (GL2Encoder*)self;
+
+    bool isShaderOrProgramObject =
+        ctx->m_shared->isShaderOrProgramObject(program);
+    bool isProgram =
+        ctx->m_shared->isProgram(program);
+
+    RET_AND_SET_ERROR_IF(!isShaderOrProgramObject, GL_INVALID_VALUE, -1);
+    RET_AND_SET_ERROR_IF(!isProgram, GL_INVALID_OPERATION, -1);
+    RET_AND_SET_ERROR_IF(!ctx->m_shared->getProgramLinkStatus(program), GL_INVALID_OPERATION, -1);
+
     return ctx->m_glGetUniformLocation_enc(self, program, name);
 }
 
@@ -2035,26 +2206,34 @@ void GL2Encoder::s_glUseProgram(void *self, GLuint program)
 
     SET_ERROR_IF(program && !shared->isShaderOrProgramObject(program), GL_INVALID_VALUE);
     SET_ERROR_IF(program && !shared->isProgram(program), GL_INVALID_OPERATION);
+    SET_ERROR_IF(ctx->m_state->getTransformFeedbackActiveUnpaused(), GL_INVALID_OPERATION);
 
     ctx->m_glUseProgram_enc(self, program);
+
+    GLuint currProgram = ctx->m_state->currentProgram();
+    ctx->m_shared->onUseProgram(currProgram, program);
+
     ctx->m_state->setCurrentProgram(program);
     ctx->m_state->setCurrentShaderProgram(program);
-
     ctx->updateHostTexture2DBindingsFromProgramData(program);
+
+    if (program) {
+        ctx->m_state->currentUniformValidationInfo = ctx->m_shared->getUniformValidationInfo(program);
+    }
 }
 
 void GL2Encoder::s_glUniform1f(void *self , GLint location, GLfloat x)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform1f_enc(self, hostLoc, x);
+    ctx->m_state->validateUniform(true /* is float? */, false /* is unsigned? */, 1 /* columns */, 1 /* rows */, location, 1 /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform1f_enc(self, location, x);
 }
 
 void GL2Encoder::s_glUniform1fv(void *self , GLint location, GLsizei count, const GLfloat* v)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform1fv_enc(self, hostLoc, count, v);
+    ctx->m_state->validateUniform(true /* is float? */, false /* is unsigned? */, 1 /* columns */, 1 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform1fv_enc(self, location, count, v);
 }
 
 void GL2Encoder::s_glUniform1i(void *self , GLint location, GLint x)
@@ -2063,8 +2242,9 @@ void GL2Encoder::s_glUniform1i(void *self , GLint location, GLint x)
     GLClientState* state = ctx->m_state;
     GLSharedGroupPtr shared = ctx->m_shared;
 
-    GLint hostLoc = location;
-    ctx->m_glUniform1i_enc(self, hostLoc, x);
+    ctx->m_state->validateUniform(false /* is float? */, false /* is unsigned? */, 1 /* columns */, 1 /* rows */, location, 1 /* count */, ctx->getErrorPtr());
+
+    ctx->m_glUniform1i_enc(self, location, x);
 
     GLenum target;
     if (shared->setSamplerUniform(state->currentShaderProgram(), location, x, &target)) {
@@ -2079,113 +2259,113 @@ void GL2Encoder::s_glUniform1i(void *self , GLint location, GLint x)
 void GL2Encoder::s_glUniform1iv(void *self , GLint location, GLsizei count, const GLint* v)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform1iv_enc(self, hostLoc, count, v);
+    ctx->m_state->validateUniform(false /* is float? */, false /* is unsigned? */, 1 /* columns */, 1 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform1iv_enc(self, location, count, v);
 }
 
 void GL2Encoder::s_glUniform2f(void *self , GLint location, GLfloat x, GLfloat y)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform2f_enc(self, hostLoc, x, y);
+    ctx->m_state->validateUniform(true /* is float? */, false /* is unsigned? */, 2 /* columns */, 1 /* rows */, location, 1 /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform2f_enc(self, location, x, y);
 }
 
 void GL2Encoder::s_glUniform2fv(void *self , GLint location, GLsizei count, const GLfloat* v)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform2fv_enc(self, hostLoc, count, v);
+    ctx->m_state->validateUniform(true /* is float? */, false /* is unsigned? */, 2 /* columns */, 1 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform2fv_enc(self, location, count, v);
 }
 
 void GL2Encoder::s_glUniform2i(void *self , GLint location, GLint x, GLint y)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform2i_enc(self, hostLoc, x, y);
+    ctx->m_state->validateUniform(false /* is float? */, false /* is unsigned? */, 2 /* columns */, 1 /* rows */, location, 1 /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform2i_enc(self, location, x, y);
 }
 
 void GL2Encoder::s_glUniform2iv(void *self , GLint location, GLsizei count, const GLint* v)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform2iv_enc(self, hostLoc, count, v);
+    ctx->m_state->validateUniform(false /* is float? */, false /* is unsigned? */, 2 /* columns */, 1 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform2iv_enc(self, location, count, v);
 }
 
 void GL2Encoder::s_glUniform3f(void *self , GLint location, GLfloat x, GLfloat y, GLfloat z)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform3f_enc(self, hostLoc, x, y, z);
+    ctx->m_state->validateUniform(true /* is float? */, false /* is unsigned? */, 3 /* columns */, 1 /* rows */, location, 1 /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform3f_enc(self, location, x, y, z);
 }
 
 void GL2Encoder::s_glUniform3fv(void *self , GLint location, GLsizei count, const GLfloat* v)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform3fv_enc(self, hostLoc, count, v);
+    ctx->m_state->validateUniform(true /* is float? */, false /* is unsigned? */, 3 /* columns */, 1 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform3fv_enc(self, location, count, v);
 }
 
 void GL2Encoder::s_glUniform3i(void *self , GLint location, GLint x, GLint y, GLint z)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform3i_enc(self, hostLoc, x, y, z);
+    ctx->m_state->validateUniform(false /* is float? */, false /* is unsigned? */, 3 /* columns */, 1 /* rows */, location, 1 /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform3i_enc(self, location, x, y, z);
 }
 
 void GL2Encoder::s_glUniform3iv(void *self , GLint location, GLsizei count, const GLint* v)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform3iv_enc(self, hostLoc, count, v);
+    ctx->m_state->validateUniform(false /* is float? */, false /* is unsigned? */, 3 /* columns */, 1 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform3iv_enc(self, location, count, v);
 }
 
 void GL2Encoder::s_glUniform4f(void *self , GLint location, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform4f_enc(self, hostLoc, x, y, z, w);
+    ctx->m_state->validateUniform(true /* is float? */, false /* is unsigned? */, 4 /* columns */, 1 /* rows */, location, 1 /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform4f_enc(self, location, x, y, z, w);
 }
 
 void GL2Encoder::s_glUniform4fv(void *self , GLint location, GLsizei count, const GLfloat* v)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform4fv_enc(self, hostLoc, count, v);
+    ctx->m_state->validateUniform(true /* is float? */, false /* is unsigned? */, 4 /* columns */, 1 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform4fv_enc(self, location, count, v);
 }
 
 void GL2Encoder::s_glUniform4i(void *self , GLint location, GLint x, GLint y, GLint z, GLint w)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform4i_enc(self, hostLoc, x, y, z, w);
+    ctx->m_state->validateUniform(false /* is float? */, false /* is unsigned? */, 4 /* columns */, 1 /* rows */, location, 1 /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform4i_enc(self, location, x, y, z, w);
 }
 
 void GL2Encoder::s_glUniform4iv(void *self , GLint location, GLsizei count, const GLint* v)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform4iv_enc(self, hostLoc, count, v);
+    ctx->m_state->validateUniform(false /* is float? */, false /* is unsigned? */, 4 /* columns */, 1 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform4iv_enc(self, location, count, v);
 }
 
 void GL2Encoder::s_glUniformMatrix2fv(void *self , GLint location, GLsizei count, GLboolean transpose, const GLfloat* value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniformMatrix2fv_enc(self, hostLoc, count, transpose, value);
+    ctx->m_state->validateUniform(true /* is float? */, false /* is unsigned? */, 2 /* columns */, 2 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniformMatrix2fv_enc(self, location, count, transpose, value);
 }
 
 void GL2Encoder::s_glUniformMatrix3fv(void *self , GLint location, GLsizei count, GLboolean transpose, const GLfloat* value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniformMatrix3fv_enc(self, hostLoc, count, transpose, value);
+    ctx->m_state->validateUniform(true /* is float? */, false /* is unsigned? */, 3 /* columns */, 3 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniformMatrix3fv_enc(self, location, count, transpose, value);
 }
 
 void GL2Encoder::s_glUniformMatrix4fv(void *self , GLint location, GLsizei count, GLboolean transpose, const GLfloat* value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniformMatrix4fv_enc(self, hostLoc, count, transpose, value);
+    ctx->m_state->validateUniform(true /* is float? */, false /* is unsigned? */, 4 /* columns */, 4 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniformMatrix4fv_enc(self, location, count, transpose, value);
 }
 
 void GL2Encoder::s_glActiveTexture(void* self, GLenum texture)
@@ -2194,6 +2374,10 @@ void GL2Encoder::s_glActiveTexture(void* self, GLenum texture)
     GLClientState* state = ctx->m_state;
     GLenum err;
 
+    GLint maxCombinedUnits;
+    ctx->glGetIntegerv(ctx, GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxCombinedUnits);
+
+    SET_ERROR_IF(texture - GL_TEXTURE0 > maxCombinedUnits - 1, GL_INVALID_ENUM);
     SET_ERROR_IF((err = state->setActiveTextureUnit(texture)) != GL_NO_ERROR, err);
 
     ctx->m_glActiveTexture_enc(ctx, texture);
@@ -2250,6 +2434,10 @@ void GL2Encoder::s_glGetTexParameterfv(void* self,
 {
     GL2Encoder* ctx = (GL2Encoder*)self;
 
+    SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, target), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::textureParams(ctx, pname), GL_INVALID_ENUM);
+    if (!params) return;
+
     if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
         ctx->override2DTextureTarget(target);
         ctx->m_glGetTexParameterfv_enc(ctx, GL_TEXTURE_2D, pname, params);
@@ -2263,6 +2451,11 @@ void GL2Encoder::s_glGetTexParameteriv(void* self,
         GLenum target, GLenum pname, GLint* params)
 {
     GL2Encoder* ctx = (GL2Encoder*)self;
+
+    SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, target), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::textureParams(ctx, pname), GL_INVALID_ENUM);
+
+    if (!params) return;
 
     switch (pname) {
     case GL_REQUIRED_TEXTURE_IMAGE_UNITS_OES:
@@ -2305,6 +2498,9 @@ void GL2Encoder::s_glTexParameterf(void* self,
     SET_ERROR_IF((target == GL_TEXTURE_EXTERNAL_OES &&
             !isValidTextureExternalParam(pname, (GLenum)param)),
             GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, target), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::textureParams(ctx, pname), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::textureParamValue(ctx, pname, (GLint)param, param, (GLenum)param), GL_INVALID_ENUM);
 
     if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
         ctx->override2DTextureTarget(target);
@@ -2323,6 +2519,11 @@ void GL2Encoder::s_glTexParameterfv(void* self,
     SET_ERROR_IF((target == GL_TEXTURE_EXTERNAL_OES &&
             !isValidTextureExternalParam(pname, (GLenum)params[0])),
             GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, target), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::textureParams(ctx, pname), GL_INVALID_ENUM);
+    SET_ERROR_IF(!params, GL_INVALID_VALUE);
+    GLfloat param = *params;
+    SET_ERROR_IF(!GLESv2Validation::textureParamValue(ctx, pname, (GLint)param, param, (GLenum)param), GL_INVALID_ENUM);
 
     if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
         ctx->override2DTextureTarget(target);
@@ -2341,6 +2542,9 @@ void GL2Encoder::s_glTexParameteri(void* self,
     SET_ERROR_IF((target == GL_TEXTURE_EXTERNAL_OES &&
             !isValidTextureExternalParam(pname, (GLenum)param)),
             GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, target), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::textureParams(ctx, pname), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::textureParamValue(ctx, pname, param, (GLfloat)param, (GLenum)param), GL_INVALID_ENUM);
 
     if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
         ctx->override2DTextureTarget(target);
@@ -2368,6 +2572,8 @@ void GL2Encoder::s_glTexImage2D(void* self, GLenum target, GLint level,
     SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, target), GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::pixelType(ctx, type), GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::pixelFormat(ctx, format), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::pixelFormat(ctx, internalformat) && !GLESv2Validation::pixelInternalFormat(internalformat), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::pixelSizedFormat(ctx, internalformat, format, type), GL_INVALID_OPERATION);
     // If unpack buffer is nonzero, verify unmapped state.
     SET_ERROR_IF(ctx->isBufferTargetMapped(GL_PIXEL_UNPACK_BUFFER), GL_INVALID_OPERATION);
 
@@ -2384,6 +2590,7 @@ void GL2Encoder::s_glTexImage2D(void* self, GLenum target, GLint level,
     SET_ERROR_IF(height > max_texture_size, GL_INVALID_VALUE);
     SET_ERROR_IF(GLESv2Validation::isCubeMapTarget(target) && width > max_cube_map_texture_size, GL_INVALID_VALUE);
     SET_ERROR_IF(GLESv2Validation::isCubeMapTarget(target) && height > max_cube_map_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(GLESv2Validation::isCubeMapTarget(target) && (width != height), GL_INVALID_VALUE);
     SET_ERROR_IF(border != 0, GL_INVALID_VALUE);
     // If unpack buffer is nonzero, verify buffer data fits and is evenly divisible by the type.
     SET_ERROR_IF(ctx->boundBuffer(GL_PIXEL_UNPACK_BUFFER) &&
@@ -2414,7 +2621,8 @@ void GL2Encoder::s_glTexImage2D(void* self, GLenum target, GLint level,
     state->setBoundTextureInternalFormat(stateTarget, internalformat);
     state->setBoundTextureFormat(stateTarget, format);
     state->setBoundTextureType(stateTarget, type);
-    state->setBoundTextureDims(stateTarget, level, width, height, 1);
+    state->setBoundTextureDims(stateTarget, target, level, width, height, 1);
+    state->addTextureCubeMapImage(stateTarget, target);
 
     if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
         ctx->override2DTextureTarget(target);
@@ -2475,14 +2683,15 @@ void GL2Encoder::s_glTexSubImage2D(void* self, GLenum target, GLint level,
     }
 
     // If unpack buffer is nonzero, verify buffer data fits and is evenly divisible by the type.
+
     SET_ERROR_IF(ctx->boundBuffer(GL_PIXEL_UNPACK_BUFFER) &&
                  ctx->getBufferData(GL_PIXEL_UNPACK_BUFFER) &&
-                 (state->pboNeededDataSize(width, height, 1, format, type, 0) >
+                 (state->pboNeededDataSize(width, height, 1, format, type, 0) + (uintptr_t)pixels >
                   ctx->getBufferData(GL_PIXEL_UNPACK_BUFFER)->m_size),
                  GL_INVALID_OPERATION);
     SET_ERROR_IF(ctx->boundBuffer(GL_PIXEL_UNPACK_BUFFER) &&
                  ctx->getBufferData(GL_PIXEL_UNPACK_BUFFER) &&
-                 (ctx->getBufferData(GL_PIXEL_UNPACK_BUFFER)->m_size %
+                 ((uintptr_t)pixels %
                   glSizeof(type)),
                  GL_INVALID_OPERATION);
     SET_ERROR_IF(!ctx->boundBuffer(GL_PIXEL_UNPACK_BUFFER) && !pixels, GL_INVALID_OPERATION);
@@ -2513,6 +2722,35 @@ void GL2Encoder::s_glCopyTexImage2D(void* self, GLenum target, GLint level,
     GL2Encoder* ctx = (GL2Encoder*)self;
     GLClientState* state = ctx->m_state;
 
+    SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, target), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::pixelFormat(ctx, internalformat) && !GLESv2Validation::pixelInternalFormat(internalformat), GL_INVALID_ENUM);
+    GLint max_texture_size;
+    GLint max_cube_map_texture_size;
+    ctx->glGetIntegerv(ctx, GL_MAX_TEXTURE_SIZE, &max_texture_size);
+    ctx->glGetIntegerv(ctx, GL_MAX_CUBE_MAP_TEXTURE_SIZE, &max_cube_map_texture_size);
+    SET_ERROR_IF(level < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(level > ilog2(max_texture_size), GL_INVALID_VALUE);
+    SET_ERROR_IF((target == GL_TEXTURE_CUBE_MAP) &&
+                 (level > ilog2(max_cube_map_texture_size)), GL_INVALID_VALUE);
+    SET_ERROR_IF(width < 0 || height < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(width > max_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(height > max_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(GLESv2Validation::isCubeMapTarget(target) && width > max_cube_map_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(GLESv2Validation::isCubeMapTarget(target) && height > max_cube_map_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(GLESv2Validation::isCubeMapTarget(target) && (width != height), GL_INVALID_VALUE);
+    SET_ERROR_IF(border != 0, GL_INVALID_VALUE);
+
+    GLenum stateTarget = target;
+    if (target == GL_TEXTURE_CUBE_MAP_POSITIVE_X ||
+        target == GL_TEXTURE_CUBE_MAP_POSITIVE_Y ||
+        target == GL_TEXTURE_CUBE_MAP_POSITIVE_Z ||
+        target == GL_TEXTURE_CUBE_MAP_NEGATIVE_X ||
+        target == GL_TEXTURE_CUBE_MAP_NEGATIVE_Y ||
+        target == GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
+        stateTarget = GL_TEXTURE_CUBE_MAP;
+
+    SET_ERROR_IF(state->isBoundTextureImmutableFormat(target), GL_INVALID_OPERATION);
+
     SET_ERROR_IF(ctx->glCheckFramebufferStatus(ctx, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE,
                  GL_INVALID_FRAMEBUFFER_OPERATION);
     // This is needed to work around underlying OpenGL drivers
@@ -2523,6 +2761,10 @@ void GL2Encoder::s_glCopyTexImage2D(void* self, GLenum target, GLint level,
         state->copyTexImageLuminanceCubeMapAMDWorkaround
             (target, level, internalformat);
 
+    state->setBoundTextureInternalFormat(stateTarget, internalformat);
+    state->setBoundTextureDims(stateTarget, target, level, width, height, 1);
+    state->addTextureCubeMapImage(stateTarget, target);
+
     if (extraTarget) {
         ctx->m_glCopyTexImage2D_enc(ctx, extraTarget, level, internalformat,
                                     x, y, width, height, border);
@@ -2530,9 +2772,6 @@ void GL2Encoder::s_glCopyTexImage2D(void* self, GLenum target, GLint level,
 
     ctx->m_glCopyTexImage2D_enc(ctx, target, level, internalformat,
                                 x, y, width, height, border);
-
-    state->setBoundTextureInternalFormat(target, internalformat);
-    state->setBoundTextureDims(target, level, width, height, 1);
 }
 
 void GL2Encoder::s_glTexParameteriv(void* self,
@@ -2543,6 +2782,11 @@ void GL2Encoder::s_glTexParameteriv(void* self,
     SET_ERROR_IF((target == GL_TEXTURE_EXTERNAL_OES &&
             !isValidTextureExternalParam(pname, (GLenum)params[0])),
             GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, target), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::textureParams(ctx, pname), GL_INVALID_ENUM);
+    SET_ERROR_IF(!params, GL_INVALID_VALUE);
+    GLint param = *params;
+    SET_ERROR_IF(!GLESv2Validation::textureParamValue(ctx, pname, param, (GLfloat)param, (GLenum)param), GL_INVALID_ENUM);
 
     if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
         ctx->override2DTextureTarget(target);
@@ -2643,7 +2887,7 @@ void GL2Encoder::s_glDeleteRenderbuffers(void* self,
     for (int i = 0; i < n; i++) {
         state->detachRbo(renderbuffers[i]);
     }
-    // state->removeRenderbuffers(n, renderbuffers);
+    state->removeRenderbuffers(n, renderbuffers);
 }
 
 void GL2Encoder::s_glBindRenderbuffer(void* self,
@@ -2669,8 +2913,14 @@ void GL2Encoder::s_glRenderbufferStorage(void* self,
         !GLESv2Validation::rboFormat(ctx, internalformat),
         GL_INVALID_ENUM);
 
+    SET_ERROR_IF(width < 0 || height < 0, GL_INVALID_VALUE);
+    GLint max_rb_size;
+    ctx->glGetIntegerv(ctx, GL_MAX_RENDERBUFFER_SIZE, &max_rb_size);
+    SET_ERROR_IF(width > max_rb_size || height > max_rb_size, GL_INVALID_VALUE);
+
     state->setBoundRenderbufferFormat(internalformat);
     state->setBoundRenderbufferSamples(0);
+    state->setBoundRenderbufferDimensions(width, height);
 
     ctx->m_glRenderbufferStorage_enc(self, target, internalformat,
                                      width, height);
@@ -2684,6 +2934,10 @@ void GL2Encoder::s_glFramebufferRenderbuffer(void* self,
 
     SET_ERROR_IF(!GLESv2Validation::framebufferTarget(ctx, target), GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::framebufferAttachment(ctx, attachment), GL_INVALID_ENUM);
+    SET_ERROR_IF(GL_RENDERBUFFER != renderbuffertarget, GL_INVALID_ENUM);
+    SET_ERROR_IF(!state->getBoundFramebuffer(target), GL_INVALID_OPERATION);
+    SET_ERROR_IF(!state->isRenderbufferThatWasBound(renderbuffer), GL_INVALID_OPERATION);
+
     state->attachRbo(target, attachment, renderbuffer);
 
     ctx->m_glFramebufferRenderbuffer_enc(self, target, attachment, renderbuffertarget, renderbuffer);
@@ -2730,8 +2984,21 @@ void GL2Encoder::s_glFramebufferTexture2D(void* self,
     GLClientState* state = ctx->m_state;
 
     SET_ERROR_IF(!GLESv2Validation::framebufferTarget(ctx, target), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, textarget), GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::framebufferAttachment(ctx, attachment), GL_INVALID_ENUM);
-    state->attachTextureObject(target, attachment, texture);
+    SET_ERROR_IF(!state->getBoundFramebuffer(target), GL_INVALID_OPERATION);
+    SET_ERROR_IF(texture && !state->isTexture(texture), GL_INVALID_OPERATION);
+    SET_ERROR_IF(GLESv2Validation::isCubeMapTarget(textarget) && !state->isTextureCubeMap(texture), GL_INVALID_OPERATION);
+    SET_ERROR_IF(!GLESv2Validation::isCubeMapTarget(textarget) && state->isTextureCubeMap(texture), GL_INVALID_OPERATION);
+    SET_ERROR_IF((texture && (level < 0)), GL_INVALID_VALUE);
+
+    if (target == GL_TEXTURE_2D) {
+        SET_ERROR_IF(level > ilog2(ctx->m_state->getMaxTextureSize()), GL_INVALID_VALUE);
+    } else {
+        SET_ERROR_IF(level > ilog2(ctx->m_state->getMaxTextureSizeCubeMap()), GL_INVALID_VALUE);
+    }
+
+    state->attachTextureObject(target, attachment, texture, level, 0);
 
     ctx->m_glFramebufferTexture2D_enc(self, target, attachment, textarget, texture, level);
 }
@@ -2742,7 +3009,7 @@ void GL2Encoder::s_glFramebufferTexture3DOES(void* self,
     GL2Encoder* ctx = (GL2Encoder*)self;
     GLClientState* state = ctx->m_state;
 
-    state->attachTextureObject(target, attachment, texture);
+    state->attachTextureObject(target, attachment, texture, level, zoffset);
 
     ctx->m_glFramebufferTexture3DOES_enc(self, target, attachment, textarget, texture, level, zoffset);
 }
@@ -2752,6 +3019,12 @@ void GL2Encoder::s_glGetFramebufferAttachmentParameteriv(void* self,
     GL2Encoder* ctx = (GL2Encoder*)self;
     const GLClientState* state = ctx->m_state;
     SET_ERROR_IF(!GLESv2Validation::framebufferTarget(ctx, target), GL_INVALID_ENUM);
+    SET_ERROR_IF(!state->boundFramebuffer(target) &&
+                 attachment != GL_BACK &&
+                 attachment != GL_FRONT &&
+                 attachment != GL_DEPTH &&
+                 attachment != GL_STENCIL,
+                 GL_INVALID_OPERATION);
     SET_ERROR_IF(pname != GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME &&
                  pname != GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE &&
                  !state->attachmentHasObject(target, attachment),
@@ -2764,6 +3037,11 @@ void GL2Encoder::s_glGetFramebufferAttachmentParameteriv(void* self,
                   FBO_ATTACHMENT_TEXTURE),
                  !state->attachmentHasObject(target, attachment) ?
                  GL_INVALID_OPERATION : GL_INVALID_ENUM);
+    SET_ERROR_IF(
+        (attachment == GL_FRONT ||
+         attachment == GL_BACK) &&
+        (pname == GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME),
+        GL_INVALID_ENUM);
     SET_ERROR_IF(attachment == GL_DEPTH_STENCIL_ATTACHMENT &&
                  pname == GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME &&
                  (state->objectOfAttachment(target, GL_DEPTH_ATTACHMENT) !=
@@ -2771,129 +3049,23 @@ void GL2Encoder::s_glGetFramebufferAttachmentParameteriv(void* self,
                  GL_INVALID_OPERATION);
     SET_ERROR_IF(state->boundFramebuffer(target) &&
                  (attachment == GL_BACK ||
-                  attachment == GL_FRONT),
+                  attachment == GL_FRONT ||
+                  attachment == GL_DEPTH || 
+                  attachment == GL_STENCIL),
                  GL_INVALID_OPERATION);
     ctx->m_glGetFramebufferAttachmentParameteriv_enc(self, target, attachment, pname, params);
 }
 
-bool GL2Encoder::isCompleteFbo(GLenum target, const GLClientState* state,
-                               GLenum attachment) const {
-    FboFormatInfo fbo_format_info;
-    state->getBoundFramebufferFormat(target, attachment, &fbo_format_info);
-
-    bool res;
-    switch (fbo_format_info.type) {
-    case FBO_ATTACHMENT_RENDERBUFFER:
-        switch (fbo_format_info.rb_format) {
-        case GL_R16F:
-        case GL_RG16F:
-        case GL_RGBA16F:
-        case GL_R32F:
-        case GL_RG32F:
-        case GL_RGBA32F:
-        case GL_R11F_G11F_B10F:
-            res = majorVersion() >= 3 && hasExtension("GL_EXT_color_buffer_float");
-            break;
-        case GL_RGB16F:
-            res = majorVersion() >= 3 && hasExtension("GL_EXT_color_buffer_half_float");
-            break;
-        case GL_STENCIL_INDEX8:
-            if (attachment == GL_STENCIL_ATTACHMENT) {
-                res = true;
-            } else {
-                res = false;
-            }
-            break;
-        default:
-            res = true;
-        }
-        break;
-    case FBO_ATTACHMENT_TEXTURE:
-        switch (fbo_format_info.tex_internalformat) {
-        case GL_R16F:
-        case GL_RG16F:
-        case GL_RGBA16F:
-        case GL_R32F:
-        case GL_RG32F:
-        case GL_RGBA32F:
-        case GL_R11F_G11F_B10F:
-            res = majorVersion() >= 3 && hasExtension("GL_EXT_color_buffer_float");
-            break;
-        case GL_RGB16F:
-            res = majorVersion() >= 3 && hasExtension("GL_EXT_color_buffer_half_float");
-            break;
-        case GL_RED:
-        case GL_RG:
-        case GL_SRGB8:
-        case GL_RGB32UI:
-        case GL_RGB16UI:
-        case GL_RGB8UI:
-        case GL_RGB32I:
-        case GL_RGB16I:
-        case GL_RGB8I:
-        case GL_R8_SNORM:
-        case GL_RG8_SNORM:
-        case GL_RGB8_SNORM:
-        case GL_RGBA8_SNORM:
-            res = false;
-            break;
-        // No float/half-float formats allowed for RGB(A)
-        case GL_RGB:
-        case GL_RGBA:
-            switch (fbo_format_info.tex_type) {
-            case GL_FLOAT:
-            case GL_HALF_FLOAT_OES:
-            case GL_UNSIGNED_INT_10F_11F_11F_REV:
-            case GL_UNSIGNED_INT_2_10_10_10_REV:
-                res = false;
-                break;
-            default:
-                res = true;
-            }
-            break;
-        default:
-            res = true;
-        }
-        break;
-    case FBO_ATTACHMENT_NONE:
-        res = true;
-        break;
-    default:
-        res = true;
-    }
-    return res;
-}
-
-bool GL2Encoder::checkFramebufferCompleteness(GLenum target, const GLClientState* state) const {
-    bool res = true;
-
-    for (int i = 0; i < state->getMaxColorAttachments(); i++) {
-        res = res && isCompleteFbo(target, state, glUtilsColorAttachmentName(i));
-    }
-
-    res = res && isCompleteFbo(target, state, GL_DEPTH_ATTACHMENT);
-    res = res && isCompleteFbo(target, state, GL_STENCIL_ATTACHMENT);
-
-    return res;
-}
-
 GLenum GL2Encoder::s_glCheckFramebufferStatus(void* self, GLenum target) {
     GL2Encoder* ctx = (GL2Encoder*)self;
+
+    RET_AND_SET_ERROR_IF(
+        target != GL_DRAW_FRAMEBUFFER && target != GL_FRAMEBUFFER && target != GL_READ_FRAMEBUFFER,
+        GL_INVALID_ENUM, 0);
+
     GLClientState* state = ctx->m_state;
 
-    bool fboCompleteByCodec =
-        ctx->checkFramebufferCompleteness(target, state);
-
-    if (!fboCompleteByCodec) {
-        state->setCheckFramebufferStatus(target, GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT);
-        return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
-    } else {
-        // double check with underlying opengl to avoid craziness.
-        GLenum host_checkstatus = ctx->m_glCheckFramebufferStatus_enc(self, target);
-        state->setCheckFramebufferStatus(target, host_checkstatus);
-        if (host_checkstatus == GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS) return GL_FRAMEBUFFER_COMPLETE;
-        return host_checkstatus;
-    }
+    return state->checkFramebufferCompleteness(target);
 }
 
 void GL2Encoder::s_glGenVertexArrays(void* self, GLsizei n, GLuint* arrays) {
@@ -3154,6 +3326,7 @@ void GL2Encoder::s_glCompressedTexImage2D(void* self, GLenum target, GLint level
     GLClientState* state = ctx->m_state;
 
     SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, target), GL_INVALID_ENUM);
+    SET_ERROR_IF(target == GL_TEXTURE_CUBE_MAP, GL_INVALID_ENUM);
     // Filter compressed formats support.
     SET_ERROR_IF(!GLESv2Validation::supportedCompressedFormat(ctx, internalformat), GL_INVALID_ENUM);
     // Verify level <= log2(GL_MAX_TEXTURE_SIZE).
@@ -3170,14 +3343,13 @@ void GL2Encoder::s_glCompressedTexImage2D(void* self, GLenum target, GLint level
     // If unpack buffer is nonzero, verify unmapped state.
     SET_ERROR_IF(ctx->isBufferTargetMapped(GL_PIXEL_UNPACK_BUFFER), GL_INVALID_OPERATION);
     SET_ERROR_IF(width < 0 || height < 0, GL_INVALID_VALUE);
+
     // If unpack buffer is nonzero, verify buffer data fits.
     SET_ERROR_IF(ctx->boundBuffer(GL_PIXEL_UNPACK_BUFFER) &&
                  ctx->getBufferData(GL_PIXEL_UNPACK_BUFFER) &&
                  (imageSize > ctx->getBufferData(GL_PIXEL_UNPACK_BUFFER)->m_size),
                  GL_INVALID_OPERATION);
-    // TODO: Fix:
-    // If |imageSize| is inconsistent with compressed dimensions.
-    // SET_ERROR_IF(GLESv2Validation::compressedTexImageSize(internalformat, width, height, 1) != imageSize, GL_INVALID_VALUE);
+    SET_ERROR_IF(!ctx->m_state->compressedTexImageSizeCompatible(internalformat, width, height, 1, imageSize), GL_INVALID_VALUE);
 
     GLenum stateTarget = target;
     if (target == GL_TEXTURE_CUBE_MAP_POSITIVE_X ||
@@ -3188,7 +3360,7 @@ void GL2Encoder::s_glCompressedTexImage2D(void* self, GLenum target, GLint level
         target == GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
         stateTarget = GL_TEXTURE_CUBE_MAP;
     state->setBoundTextureInternalFormat(stateTarget, (GLint)internalformat);
-    state->setBoundTextureDims(stateTarget, level, width, height, 1);
+    state->setBoundTextureDims(stateTarget, target, level, width, height, 1);
 
     if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
         ctx->override2DTextureTarget(target);
@@ -3215,13 +3387,28 @@ void GL2Encoder::s_glCompressedTexSubImage2D(void* self, GLenum target, GLint le
     GL2Encoder* ctx = (GL2Encoder*)self;
 
     SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, target), GL_INVALID_ENUM);
+    SET_ERROR_IF(target == GL_TEXTURE_CUBE_MAP, GL_INVALID_ENUM);
     // If unpack buffer is nonzero, verify unmapped state.
     SET_ERROR_IF(ctx->isBufferTargetMapped(GL_PIXEL_UNPACK_BUFFER), GL_INVALID_OPERATION);
+
+    GLenum stateTarget = target;
+    if (target == GL_TEXTURE_CUBE_MAP_POSITIVE_X ||
+        target == GL_TEXTURE_CUBE_MAP_POSITIVE_Y ||
+        target == GL_TEXTURE_CUBE_MAP_POSITIVE_Z ||
+        target == GL_TEXTURE_CUBE_MAP_NEGATIVE_X ||
+        target == GL_TEXTURE_CUBE_MAP_NEGATIVE_Y ||
+        target == GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
+        stateTarget = GL_TEXTURE_CUBE_MAP;
+    GLuint tex = ctx->m_state->getBoundTexture(stateTarget);
+
+    GLint internalFormat = ctx->m_state->queryTexInternalFormat(tex);
+    SET_ERROR_IF(internalFormat != format, GL_INVALID_OPERATION);
+    SET_ERROR_IF(level < 0, GL_INVALID_VALUE);
+
     GLint max_texture_size;
     GLint max_cube_map_texture_size;
     ctx->glGetIntegerv(ctx, GL_MAX_TEXTURE_SIZE, &max_texture_size);
     ctx->glGetIntegerv(ctx, GL_MAX_CUBE_MAP_TEXTURE_SIZE, &max_cube_map_texture_size);
-    SET_ERROR_IF(level < 0, GL_INVALID_VALUE);
     SET_ERROR_IF(level > ilog2(max_texture_size), GL_INVALID_VALUE);
     SET_ERROR_IF(level > ilog2(max_cube_map_texture_size), GL_INVALID_VALUE);
     SET_ERROR_IF(width < 0 || height < 0, GL_INVALID_VALUE);
@@ -3231,6 +3418,20 @@ void GL2Encoder::s_glCompressedTexSubImage2D(void* self, GLenum target, GLint le
                  (imageSize > ctx->getBufferData(GL_PIXEL_UNPACK_BUFFER)->m_size),
                  GL_INVALID_OPERATION);
     SET_ERROR_IF(xoffset < 0 || yoffset < 0, GL_INVALID_VALUE);
+
+    GLint totalWidth = ctx->m_state->queryTexWidth(level, tex);
+    GLint totalHeight = ctx->m_state->queryTexHeight(level, tex);
+
+    if (GLESTextureUtils::isEtc2Format(internalFormat)) {
+        SET_ERROR_IF((width % 4) && (totalWidth != xoffset + width), GL_INVALID_OPERATION);
+        SET_ERROR_IF((height % 4) && (totalHeight != yoffset + height), GL_INVALID_OPERATION);
+        SET_ERROR_IF((xoffset % 4) || (yoffset % 4), GL_INVALID_OPERATION);
+    }
+
+    SET_ERROR_IF(totalWidth < xoffset + width, GL_INVALID_VALUE);
+    SET_ERROR_IF(totalHeight < yoffset + height, GL_INVALID_VALUE);
+
+    SET_ERROR_IF(!ctx->m_state->compressedTexImageSizeCompatible(internalFormat, width, height, 1, imageSize), GL_INVALID_VALUE);
 
     if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
         ctx->override2DTextureTarget(target);
@@ -3360,22 +3561,33 @@ void GL2Encoder::s_glCopyBufferSubData(void *self , GLenum readtarget, GLenum wr
                   writetarget == GL_DISPATCH_INDIRECT_BUFFER ||
                   writetarget == GL_DRAW_INDIRECT_BUFFER ||
                   writetarget == GL_SHADER_STORAGE_BUFFER), GL_INVALID_ENUM);
-    SET_ERROR_IF(!ctx->boundBuffer(readtarget), GL_INVALID_OPERATION);
-    SET_ERROR_IF(!ctx->boundBuffer(writetarget), GL_INVALID_OPERATION);
+
+    GLuint readBufferId = ctx->boundBuffer(readtarget);
+    GLuint writeBufferId = ctx->boundBuffer(writetarget);
+
+    SET_ERROR_IF(!readBufferId || !writeBufferId, GL_INVALID_OPERATION);
+
     SET_ERROR_IF(ctx->isBufferTargetMapped(readtarget), GL_INVALID_OPERATION);
     SET_ERROR_IF(ctx->isBufferTargetMapped(writetarget), GL_INVALID_OPERATION);
+
     SET_ERROR_IF(readoffset < 0, GL_INVALID_VALUE);
     SET_ERROR_IF(writeoffset < 0, GL_INVALID_VALUE);
     SET_ERROR_IF(size < 0, GL_INVALID_VALUE);
+
+    BufferData* readBufferData = ctx->getBufferData(readtarget);
+    BufferData* writeBufferData = ctx->getBufferData(writetarget);
+
     SET_ERROR_IF(
-        ctx->getBufferData(readtarget) &&
-        (readoffset + size > ctx->getBufferData(readtarget)->m_size),
+        readBufferData &&
+        (readoffset + size > readBufferData->m_size),
         GL_INVALID_VALUE);
+
     SET_ERROR_IF(
-        ctx->getBufferData(writetarget) &&
-        (writeoffset + size > ctx->getBufferData(writetarget)->m_size),
+        writeBufferData &&
+        (writeoffset + size > writeBufferData->m_size),
         GL_INVALID_VALUE);
-    SET_ERROR_IF(readtarget == writetarget &&
+
+    SET_ERROR_IF(readBufferId == writeBufferId &&
                  !((writeoffset >= readoffset + size) ||
                    (readoffset >= writeoffset + size)),
                  GL_INVALID_VALUE);
@@ -3537,6 +3749,8 @@ static std::string packVarNames(GLsizei count, const char** names, GLint* err_ou
 void GL2Encoder::s_glGetUniformIndices(void* self, GLuint program, GLsizei uniformCount, const GLchar ** uniformNames, GLuint* uniformIndices) {
     GL2Encoder* ctx = (GL2Encoder*)self;
 
+    VALIDATE_PROGRAM_NAME(program);
+
     if (!uniformCount) return;
 
     GLint err = GL_NO_ERROR;
@@ -3561,8 +3775,8 @@ void GL2Encoder::s_glUniform1ui(void* self, GLint location, GLuint v0) {
     GLClientState* state = ctx->m_state;
     GLSharedGroupPtr shared = ctx->m_shared;
 
-    GLint hostLoc = location;
-    ctx->m_glUniform1ui_enc(self, hostLoc, v0);
+    ctx->m_state->validateUniform(false /* is float? */, true /* is unsigned? */, 1 /* columns */, 1 /* rows */, location, 1 /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform1ui_enc(self, location, v0);
 
     GLenum target;
     if (shared->setSamplerUniform(state->currentShaderProgram(), location, v0, &target)) {
@@ -3576,80 +3790,80 @@ void GL2Encoder::s_glUniform1ui(void* self, GLint location, GLuint v0) {
 
 void GL2Encoder::s_glUniform2ui(void* self, GLint location, GLuint v0, GLuint v1) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform2ui_enc(self, hostLoc, v0, v1);
+    ctx->m_state->validateUniform(false /* is float? */, true /* is unsigned? */, 2 /* columns */, 1 /* rows */, location, 1 /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform2ui_enc(self, location, v0, v1);
 }
 
 void GL2Encoder::s_glUniform3ui(void* self, GLint location, GLuint v0, GLuint v1, GLuint v2) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform3ui_enc(self, hostLoc, v0, v1, v2);
+    ctx->m_state->validateUniform(false /* is float? */, true /* is unsigned? */, 3 /* columns */, 1 /* rows */, location, 1 /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform3ui_enc(self, location, v0, v1, v2);
 }
 
 void GL2Encoder::s_glUniform4ui(void* self, GLint location, GLint v0, GLuint v1, GLuint v2, GLuint v3) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform4ui_enc(self, hostLoc, v0, v1, v2, v3);
+    ctx->m_state->validateUniform(false /* is float? */, true /* is unsigned? */, 4 /* columns */, 1 /* rows */, location, 1 /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform4ui_enc(self, location, v0, v1, v2, v3);
 }
 
 void GL2Encoder::s_glUniform1uiv(void* self, GLint location, GLsizei count, const GLuint *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform1uiv_enc(self, hostLoc, count, value);
+    ctx->m_state->validateUniform(false /* is float? */, true /* is unsigned? */, 1 /* columns */, 1 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform1uiv_enc(self, location, count, value);
 }
 
 void GL2Encoder::s_glUniform2uiv(void* self, GLint location, GLsizei count, const GLuint *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform2uiv_enc(self, hostLoc, count, value);
+    ctx->m_state->validateUniform(false /* is float? */, true /* is unsigned? */, 2 /* columns */, 1 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform2uiv_enc(self, location, count, value);
 }
 
 void GL2Encoder::s_glUniform3uiv(void* self, GLint location, GLsizei count, const GLuint *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform3uiv_enc(self, hostLoc, count, value);
+    ctx->m_state->validateUniform(false /* is float? */, true /* is unsigned? */, 3 /* columns */, 1 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform3uiv_enc(self, location, count, value);
 }
 
 void GL2Encoder::s_glUniform4uiv(void* self, GLint location, GLsizei count, const GLuint *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniform4uiv_enc(self, hostLoc, count, value);
+    ctx->m_state->validateUniform(false /* is float? */, true /* is unsigned? */, 4 /* columns */, 1 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniform4uiv_enc(self, location, count, value);
 }
 
 void GL2Encoder::s_glUniformMatrix2x3fv(void* self, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniformMatrix2x3fv_enc(self, hostLoc, count, transpose, value);
+    ctx->m_state->validateUniform(true /* is float? */, false /* is unsigned? */, 2 /* columns */, 3 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniformMatrix2x3fv_enc(self, location, count, transpose, value);
 }
 
 void GL2Encoder::s_glUniformMatrix3x2fv(void* self, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniformMatrix3x2fv_enc(self, hostLoc, count, transpose, value);
+    ctx->m_state->validateUniform(true /* is float? */, false /* is unsigned? */, 3 /* columns */, 2 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniformMatrix3x2fv_enc(self, location, count, transpose, value);
 }
 
 void GL2Encoder::s_glUniformMatrix2x4fv(void* self, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniformMatrix2x4fv_enc(self, hostLoc, count, transpose, value);
+    ctx->m_state->validateUniform(true /* is float? */, false /* is unsigned? */, 2 /* columns */, 4 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniformMatrix2x4fv_enc(self, location, count, transpose, value);
 }
 
 void GL2Encoder::s_glUniformMatrix4x2fv(void* self, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniformMatrix4x2fv_enc(self, hostLoc, count, transpose, value);
+    ctx->m_state->validateUniform(true /* is float? */, false /* is unsigned? */, 4 /* columns */, 2 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniformMatrix4x2fv_enc(self, location, count, transpose, value);
 }
 
 void GL2Encoder::s_glUniformMatrix3x4fv(void* self, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniformMatrix3x4fv_enc(self, hostLoc, count, transpose, value);
+    ctx->m_state->validateUniform(true /* is float? */, false /* is unsigned? */, 3 /* columns */, 4 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniformMatrix3x4fv_enc(self, location, count, transpose, value);
 }
 
 void GL2Encoder::s_glUniformMatrix4x3fv(void* self, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value) {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glUniformMatrix4x3fv_enc(self, hostLoc, count, transpose, value);
+    ctx->m_state->validateUniform(true /* is float? */, false /* is unsigned? */, 4 /* columns */, 3 /* rows */, location, count /* count */, ctx->getErrorPtr());
+    ctx->m_glUniformMatrix4x3fv_enc(self, location, count, transpose, value);
 }
 
 void GL2Encoder::s_glGetUniformuiv(void* self, GLuint program, GLint location, GLuint* params) {
@@ -3657,13 +3871,17 @@ void GL2Encoder::s_glGetUniformuiv(void* self, GLuint program, GLint location, G
     SET_ERROR_IF(!ctx->m_shared->isShaderOrProgramObject(program), GL_INVALID_VALUE);
     SET_ERROR_IF(!ctx->m_shared->isProgram(program), GL_INVALID_OPERATION);
     SET_ERROR_IF(!ctx->m_shared->isProgramInitialized(program), GL_INVALID_OPERATION);
-    GLint hostLoc = location;
-    SET_ERROR_IF(ctx->m_shared->getProgramUniformType(program,hostLoc)==0, GL_INVALID_OPERATION);
-    ctx->m_glGetUniformuiv_enc(self, program, hostLoc, params);
+    SET_ERROR_IF(ctx->m_shared->getProgramUniformType(program,location)==0, GL_INVALID_OPERATION);
+    SET_ERROR_IF(!ctx->m_shared->isProgramUniformLocationValid(program,location), GL_INVALID_OPERATION);
+    ctx->m_glGetUniformuiv_enc(self, program, location, params);
 }
 
 void GL2Encoder::s_glGetActiveUniformBlockiv(void* self, GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint* params) {
     GL2Encoder* ctx = (GL2Encoder*)self;
+
+    VALIDATE_PROGRAM_NAME(program);
+    SET_ERROR_IF(!GLESv2Validation::allowedGetActiveUniformBlock(pname), GL_INVALID_ENUM);
+    SET_ERROR_IF(uniformBlockIndex >= ctx->m_shared->getActiveUniformBlockCount(program), GL_INVALID_VALUE);
 
     // refresh client state's # active uniforms in this block
     if (pname == GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES) {
@@ -3685,10 +3903,8 @@ void GL2Encoder::s_glGetActiveUniformBlockiv(void* self, GLuint program, GLuint 
 
 void GL2Encoder::s_glGetVertexAttribIiv(void* self, GLuint index, GLenum pname, GLint* params) {
     GL2Encoder *ctx = (GL2Encoder *)self;
-    assert(ctx->m_state);
-    GLint maxIndex;
-    ctx->glGetIntegerv(self, GL_MAX_VERTEX_ATTRIBS, &maxIndex);
-    SET_ERROR_IF(!(index < maxIndex), GL_INVALID_VALUE);
+    VALIDATE_VERTEX_ATTRIB_INDEX(index);
+    SET_ERROR_IF(!GLESv2Validation::allowedGetVertexAttrib(pname), GL_INVALID_ENUM);
 
     if (!ctx->m_state->getVertexAttribParameter<GLint>(index, pname, params)) {
         ctx->m_glGetVertexAttribIiv_enc(self, index, pname, params);
@@ -3697,10 +3913,8 @@ void GL2Encoder::s_glGetVertexAttribIiv(void* self, GLuint index, GLenum pname, 
 
 void GL2Encoder::s_glGetVertexAttribIuiv(void* self, GLuint index, GLenum pname, GLuint* params) {
     GL2Encoder *ctx = (GL2Encoder *)self;
-    assert(ctx->m_state);
-    GLint maxIndex;
-    ctx->glGetIntegerv(self, GL_MAX_VERTEX_ATTRIBS, &maxIndex);
-    SET_ERROR_IF(!(index < maxIndex), GL_INVALID_VALUE);
+    VALIDATE_VERTEX_ATTRIB_INDEX(index);
+    SET_ERROR_IF(!GLESv2Validation::allowedGetVertexAttrib(pname), GL_INVALID_ENUM);
 
     if (!ctx->m_state->getVertexAttribParameter<GLuint>(index, pname, params)) {
         ctx->m_glGetVertexAttribIuiv_enc(self, index, pname, params);
@@ -3756,12 +3970,18 @@ void GL2Encoder::s_glRenderbufferStorageMultisample(void* self,
     SET_ERROR_IF(target != GL_RENDERBUFFER, GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::rboFormat(ctx, internalformat), GL_INVALID_ENUM);
 
+    SET_ERROR_IF(width < 0 || height < 0, GL_INVALID_VALUE);
+    GLint max_rb_size;
+    ctx->glGetIntegerv(ctx, GL_MAX_RENDERBUFFER_SIZE, &max_rb_size);
+    SET_ERROR_IF(width > max_rb_size || height > max_rb_size, GL_INVALID_VALUE);
+
     GLint max_samples;
     ctx->s_glGetInternalformativ(ctx, target, internalformat, GL_SAMPLES, 1, &max_samples);
     SET_ERROR_IF(samples > max_samples, GL_INVALID_OPERATION);
 
     state->setBoundRenderbufferFormat(internalformat);
     state->setBoundRenderbufferSamples(samples);
+    state->setBoundRenderbufferDimensions(width, height);
     ctx->m_glRenderbufferStorageMultisample_enc(
             self, target, samples, internalformat, width, height);
 }
@@ -3833,11 +4053,16 @@ void GL2Encoder::s_glFramebufferTextureLayer(void* self, GLenum target, GLenum a
 
     SET_ERROR_IF(!GLESv2Validation::framebufferTarget(ctx, target), GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::framebufferAttachment(ctx, attachment), GL_INVALID_ENUM);
+    SET_ERROR_IF(texture != 0 && layer < 0, GL_INVALID_VALUE);
+    GLint maxArrayTextureLayers;
+    ctx->glGetIntegerv(ctx, GL_MAX_ARRAY_TEXTURE_LAYERS, &maxArrayTextureLayers);
+    SET_ERROR_IF(texture != 0 && layer > maxArrayTextureLayers - 1, GL_INVALID_VALUE);
+    SET_ERROR_IF(!ctx->m_state->boundFramebuffer(target), GL_INVALID_OPERATION);
     GLenum lastBoundTarget = state->queryTexLastBoundTarget(texture);
     SET_ERROR_IF(lastBoundTarget != GL_TEXTURE_2D_ARRAY &&
                  lastBoundTarget != GL_TEXTURE_3D,
                  GL_INVALID_OPERATION);
-    state->attachTextureObject(target, attachment, texture);
+    state->attachTextureObject(target, attachment, texture, level, layer);
 
     GLint max3DTextureSize;
     ctx->glGetIntegerv(ctx, GL_MAX_3D_TEXTURE_SIZE, &max3DTextureSize);
@@ -3864,7 +4089,7 @@ void GL2Encoder::s_glTexStorage2D(void* self, GLenum target, GLsizei levels, GLe
     SET_ERROR_IF(state->isBoundTextureImmutableFormat(target), GL_INVALID_OPERATION);
 
     state->setBoundTextureInternalFormat(target, internalformat);
-    state->setBoundTextureDims(target, -1, width, height, 1);
+    state->setBoundTextureDims(target, -1 /* set all cube dimensions */, -1, width, height, 1);
     state->setBoundTextureImmutableFormat(target);
 
     if (target == GL_TEXTURE_2D) {
@@ -3895,6 +4120,11 @@ void GL2Encoder::s_glTransformFeedbackVaryings(void* self, GLuint program, GLsiz
         bufferMode != GL_SEPARATE_ATTRIBS,
         GL_INVALID_ENUM);
 
+    // NOTE: This only has an effect on the program that is being linked.
+    // The dEQP test in dEQP-GLES3.functional.negative_api doesn't know
+    // about this.
+    ctx->m_state->setTransformFeedbackVaryingsCountForLinking(count);
+
     if (!count) return;
 
     GLint err = GL_NO_ERROR;
@@ -3907,29 +4137,51 @@ void GL2Encoder::s_glTransformFeedbackVaryings(void* self, GLuint program, GLsiz
 void GL2Encoder::s_glBeginTransformFeedback(void* self, GLenum primitiveMode) {
     GL2Encoder* ctx = (GL2Encoder*)self;
     GLClientState* state = ctx->m_state;
+    SET_ERROR_IF(
+        primitiveMode != GL_POINTS &&
+        primitiveMode != GL_LINES &&
+        primitiveMode != GL_TRIANGLES,
+        GL_INVALID_ENUM);
+    SET_ERROR_IF(
+        ctx->m_state->getTransformFeedbackActive(),
+        GL_INVALID_OPERATION);
+    // TODO:
+    // dEQP-GLES3.functional.lifetime.attach.deleted_output.buffer_transform_feedback
+    // SET_ERROR_IF(
+    //     !ctx->boundBuffer(GL_TRANSFORM_FEEDBACK_BUFFER),
+    //     GL_INVALID_OPERATION);
+    SET_ERROR_IF(
+        !ctx->m_state->currentProgram(), GL_INVALID_OPERATION);
     ctx->m_glBeginTransformFeedback_enc(ctx, primitiveMode);
-    state->setTransformFeedbackActiveUnpaused(true);
+    state->setTransformFeedbackActive(true);
+    state->setTransformFeedbackUnpaused(true);
 }
 
 void GL2Encoder::s_glEndTransformFeedback(void* self) {
     GL2Encoder* ctx = (GL2Encoder*)self;
     GLClientState* state = ctx->m_state;
+    SET_ERROR_IF(!state->getTransformFeedbackActive(), GL_INVALID_OPERATION);
     ctx->m_glEndTransformFeedback_enc(ctx);
-    state->setTransformFeedbackActiveUnpaused(false);
+    state->setTransformFeedbackActive(false);
+    state->setTransformFeedbackUnpaused(false);
 }
 
 void GL2Encoder::s_glPauseTransformFeedback(void* self) {
     GL2Encoder* ctx = (GL2Encoder*)self;
     GLClientState* state = ctx->m_state;
+    SET_ERROR_IF(!state->getTransformFeedbackActive(), GL_INVALID_OPERATION);
+    SET_ERROR_IF(!state->getTransformFeedbackUnpaused(), GL_INVALID_OPERATION);
     ctx->m_glPauseTransformFeedback_enc(ctx);
-    state->setTransformFeedbackActiveUnpaused(false);
+    state->setTransformFeedbackUnpaused(false);
 }
 
 void GL2Encoder::s_glResumeTransformFeedback(void* self) {
     GL2Encoder* ctx = (GL2Encoder*)self;
     GLClientState* state = ctx->m_state;
+    SET_ERROR_IF(!state->getTransformFeedbackActive(), GL_INVALID_OPERATION);
+    SET_ERROR_IF(state->getTransformFeedbackUnpaused(), GL_INVALID_OPERATION);
     ctx->m_glResumeTransformFeedback_enc(ctx);
-    state->setTransformFeedbackActiveUnpaused(true);
+    state->setTransformFeedbackUnpaused(true);
 }
 
 void GL2Encoder::s_glTexImage3D(void* self, GLenum target, GLint level, GLint internalFormat,
@@ -3943,6 +4195,10 @@ void GL2Encoder::s_glTexImage3D(void* self, GLenum target, GLint level, GLint in
                  GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::pixelType(ctx, type), GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::pixelFormat(ctx, format), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::pixelSizedFormat(ctx, internalFormat, format, type), GL_INVALID_OPERATION);
+    SET_ERROR_IF(target == GL_TEXTURE_3D &&
+        ((format == GL_DEPTH_COMPONENT) ||
+         (format == GL_DEPTH_STENCIL)), GL_INVALID_OPERATION);
 
     // If unpack buffer is nonzero, verify unmapped state.
     SET_ERROR_IF(ctx->isBufferTargetMapped(GL_PIXEL_UNPACK_BUFFER), GL_INVALID_OPERATION);
@@ -3958,7 +4214,13 @@ void GL2Encoder::s_glTexImage3D(void* self, GLenum target, GLint level, GLint in
     SET_ERROR_IF(width < 0 || height < 0 || depth < 0, GL_INVALID_VALUE);
     SET_ERROR_IF(width > max_texture_size, GL_INVALID_VALUE);
     SET_ERROR_IF(height > max_texture_size, GL_INVALID_VALUE);
-    SET_ERROR_IF(depth > max_texture_size, GL_INVALID_VALUE);
+    if (target == GL_TEXTURE_3D) {
+        SET_ERROR_IF(depth > max_texture_size, GL_INVALID_VALUE);
+    } else {
+        GLint maxArrayTextureLayers;
+        ctx->glGetIntegerv(ctx, GL_MAX_ARRAY_TEXTURE_LAYERS, &maxArrayTextureLayers);
+        SET_ERROR_IF(depth > maxArrayTextureLayers, GL_INVALID_VALUE);
+    }
     SET_ERROR_IF(width > max_3d_texture_size, GL_INVALID_VALUE);
     SET_ERROR_IF(height > max_3d_texture_size, GL_INVALID_VALUE);
     SET_ERROR_IF(depth > max_3d_texture_size, GL_INVALID_VALUE);
@@ -3966,12 +4228,12 @@ void GL2Encoder::s_glTexImage3D(void* self, GLenum target, GLint level, GLint in
     // If unpack buffer is nonzero, verify buffer data fits and is evenly divisible by the type.
     SET_ERROR_IF(ctx->boundBuffer(GL_PIXEL_UNPACK_BUFFER) &&
                  ctx->getBufferData(GL_PIXEL_UNPACK_BUFFER) &&
-                 (ctx->m_state->pboNeededDataSize(width, height, depth, format, type, 0) >
+                 ((uintptr_t)data + ctx->m_state->pboNeededDataSize(width, height, depth, format, type, 0) >
                   ctx->getBufferData(GL_PIXEL_UNPACK_BUFFER)->m_size),
                  GL_INVALID_OPERATION);
     SET_ERROR_IF(ctx->boundBuffer(GL_PIXEL_UNPACK_BUFFER) &&
                  ctx->getBufferData(GL_PIXEL_UNPACK_BUFFER) &&
-                 (ctx->getBufferData(GL_PIXEL_UNPACK_BUFFER)->m_size %
+                 ((uintptr_t)data %
                   glSizeof(type)),
                  GL_INVALID_OPERATION);
     SET_ERROR_IF(state->isBoundTextureImmutableFormat(target), GL_INVALID_OPERATION);
@@ -3979,7 +4241,7 @@ void GL2Encoder::s_glTexImage3D(void* self, GLenum target, GLint level, GLint in
     state->setBoundTextureInternalFormat(target, internalFormat);
     state->setBoundTextureFormat(target, format);
     state->setBoundTextureType(target, type);
-    state->setBoundTextureDims(target, level, width, height, depth);
+    state->setBoundTextureDims(target, target, level, width, height, depth);
 
     if (ctx->boundBuffer(GL_PIXEL_UNPACK_BUFFER)) {
         ctx->glTexImage3DOffsetAEMU(
@@ -4027,13 +4289,12 @@ void GL2Encoder::s_glTexSubImage3D(void* self, GLenum target, GLint level, GLint
     // If unpack buffer is nonzero, verify buffer data fits and is evenly divisible by the type.
     SET_ERROR_IF(ctx->boundBuffer(GL_PIXEL_UNPACK_BUFFER) &&
                  ctx->getBufferData(GL_PIXEL_UNPACK_BUFFER) &&
-                 (ctx->m_state->pboNeededDataSize(width, height, depth, format, type, 0) >
+                 ((uintptr_t)data + ctx->m_state->pboNeededDataSize(width, height, depth, format, type, 0) >
                   ctx->getBufferData(GL_PIXEL_UNPACK_BUFFER)->m_size),
                  GL_INVALID_OPERATION);
     SET_ERROR_IF(ctx->boundBuffer(GL_PIXEL_UNPACK_BUFFER) &&
                  ctx->getBufferData(GL_PIXEL_UNPACK_BUFFER) &&
-                 (ctx->getBufferData(GL_PIXEL_UNPACK_BUFFER)->m_size %
-                  glSizeof(type)),
+                 ((uintptr_t)data % glSizeof(type)),
                  GL_INVALID_OPERATION);
     SET_ERROR_IF(!ctx->boundBuffer(GL_PIXEL_UNPACK_BUFFER) && !data, GL_INVALID_OPERATION);
     SET_ERROR_IF(xoffset < 0 || yoffset < 0 || zoffset < 0, GL_INVALID_VALUE);
@@ -4057,22 +4318,48 @@ void GL2Encoder::s_glCompressedTexImage3D(void* self, GLenum target, GLint level
     GL2Encoder* ctx = (GL2Encoder*)self;
     GLClientState* state = ctx->m_state;
 
+    SET_ERROR_IF(target != GL_TEXTURE_3D &&
+                 target != GL_TEXTURE_2D_ARRAY,
+                 GL_INVALID_ENUM);
     // Filter compressed formats support.
     SET_ERROR_IF(!GLESv2Validation::supportedCompressedFormat(ctx, internalformat), GL_INVALID_ENUM);
+    SET_ERROR_IF(target == GL_TEXTURE_CUBE_MAP, GL_INVALID_ENUM);
     // If unpack buffer is nonzero, verify unmapped state.
     SET_ERROR_IF(ctx->isBufferTargetMapped(GL_PIXEL_UNPACK_BUFFER), GL_INVALID_OPERATION);
     SET_ERROR_IF(width < 0 || height < 0 || depth < 0, GL_INVALID_VALUE);
     SET_ERROR_IF(border, GL_INVALID_VALUE);
+
+    GLint max_texture_size;
+    GLint max_3d_texture_size;
+    ctx->glGetIntegerv(ctx, GL_MAX_TEXTURE_SIZE, &max_texture_size);
+    ctx->glGetIntegerv(ctx, GL_MAX_3D_TEXTURE_SIZE, &max_3d_texture_size);
+    SET_ERROR_IF(level < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(level > ilog2(max_texture_size), GL_INVALID_VALUE);
+    SET_ERROR_IF(level > ilog2(max_3d_texture_size), GL_INVALID_VALUE);
+
+    SET_ERROR_IF(width < 0 || height < 0 || depth < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(width > max_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(height > max_texture_size, GL_INVALID_VALUE);
+    if (target == GL_TEXTURE_3D) {
+        SET_ERROR_IF(depth > max_texture_size, GL_INVALID_VALUE);
+    } else {
+        GLint maxArrayTextureLayers;
+        ctx->glGetIntegerv(ctx, GL_MAX_ARRAY_TEXTURE_LAYERS, &maxArrayTextureLayers);
+        SET_ERROR_IF(depth > maxArrayTextureLayers, GL_INVALID_VALUE);
+    }
+    SET_ERROR_IF(width > max_3d_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(height > max_3d_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(depth > max_3d_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(GLESTextureUtils::isAstcFormat(internalformat) && GL_TEXTURE_3D == target, GL_INVALID_OPERATION);
+
     // If unpack buffer is nonzero, verify buffer data fits.
     SET_ERROR_IF(ctx->boundBuffer(GL_PIXEL_UNPACK_BUFFER) &&
                  ctx->getBufferData(GL_PIXEL_UNPACK_BUFFER) &&
                  (imageSize > ctx->getBufferData(GL_PIXEL_UNPACK_BUFFER)->m_size),
                  GL_INVALID_OPERATION);
-    // TODO: Fix:
-    // If |imageSize| is too small for compressed dimensions.
-    // SET_ERROR_IF(GLESv2Validation::compressedTexImageSize(internalformat, width, height, depth) > imageSize, GL_INVALID_VALUE);
+    SET_ERROR_IF(!ctx->m_state->compressedTexImageSizeCompatible(internalformat, width, height, depth, imageSize), GL_INVALID_VALUE);
     state->setBoundTextureInternalFormat(target, (GLint)internalformat);
-    state->setBoundTextureDims(target, level, width, height, depth);
+    state->setBoundTextureDims(target, target, level, width, height, depth);
 
     if (ctx->boundBuffer(GL_PIXEL_UNPACK_BUFFER)) {
         ctx->glCompressedTexImage3DOffsetAEMU(
@@ -4091,6 +4378,7 @@ void GL2Encoder::s_glCompressedTexSubImage3D(void* self, GLenum target, GLint le
     GL2Encoder* ctx = (GL2Encoder*)self;
 
     SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, target), GL_INVALID_ENUM);
+    SET_ERROR_IF(target == GL_TEXTURE_CUBE_MAP, GL_INVALID_ENUM);
     // If unpack buffer is nonzero, verify unmapped state.
     SET_ERROR_IF(ctx->isBufferTargetMapped(GL_PIXEL_UNPACK_BUFFER), GL_INVALID_OPERATION);
     SET_ERROR_IF(width < 0 || height < 0 || depth < 0, GL_INVALID_VALUE);
@@ -4100,6 +4388,52 @@ void GL2Encoder::s_glCompressedTexSubImage3D(void* self, GLenum target, GLint le
                  (imageSize > ctx->getBufferData(GL_PIXEL_UNPACK_BUFFER)->m_size),
                  GL_INVALID_OPERATION);
     SET_ERROR_IF(xoffset < 0 || yoffset < 0 || zoffset < 0, GL_INVALID_VALUE);
+
+    GLint max_texture_size;
+    GLint max_3d_texture_size;
+    ctx->glGetIntegerv(ctx, GL_MAX_TEXTURE_SIZE, &max_texture_size);
+    ctx->glGetIntegerv(ctx, GL_MAX_3D_TEXTURE_SIZE, &max_3d_texture_size);
+    SET_ERROR_IF(level < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(level > ilog2(max_texture_size), GL_INVALID_VALUE);
+    SET_ERROR_IF(level > ilog2(max_3d_texture_size), GL_INVALID_VALUE);
+    SET_ERROR_IF(width < 0 || height < 0 || depth < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(xoffset < 0 || yoffset < 0 || zoffset < 0, GL_INVALID_VALUE);
+    GLenum stateTarget = target;
+    if (target == GL_TEXTURE_CUBE_MAP_POSITIVE_X ||
+        target == GL_TEXTURE_CUBE_MAP_POSITIVE_Y ||
+        target == GL_TEXTURE_CUBE_MAP_POSITIVE_Z ||
+        target == GL_TEXTURE_CUBE_MAP_NEGATIVE_X ||
+        target == GL_TEXTURE_CUBE_MAP_NEGATIVE_Y ||
+        target == GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
+        stateTarget = GL_TEXTURE_CUBE_MAP;
+
+    GLuint tex = ctx->m_state->getBoundTexture(stateTarget);
+    GLsizei neededWidth = xoffset + width;
+    GLsizei neededHeight = yoffset + height;
+    GLsizei neededDepth = zoffset + depth;
+
+    SET_ERROR_IF(tex &&
+                 (neededWidth > ctx->m_state->queryTexWidth(level, tex) ||
+                  neededHeight > ctx->m_state->queryTexHeight(level, tex) ||
+                  neededDepth > ctx->m_state->queryTexDepth(level, tex)),
+                 GL_INVALID_VALUE);
+
+    GLint internalFormat = ctx->m_state->queryTexInternalFormat(tex);
+    SET_ERROR_IF(internalFormat != format, GL_INVALID_OPERATION);
+
+    GLint totalWidth = ctx->m_state->queryTexWidth(level, tex);
+    GLint totalHeight = ctx->m_state->queryTexHeight(level, tex);
+
+    if (GLESTextureUtils::isEtc2Format(internalFormat)) {
+        SET_ERROR_IF((width % 4) && (totalWidth != xoffset + width), GL_INVALID_OPERATION);
+        SET_ERROR_IF((height % 4) && (totalHeight != yoffset + height), GL_INVALID_OPERATION);
+        SET_ERROR_IF((xoffset % 4) || (yoffset % 4), GL_INVALID_OPERATION);
+    }
+
+    SET_ERROR_IF(totalWidth < xoffset + width, GL_INVALID_VALUE);
+    SET_ERROR_IF(totalHeight < yoffset + height, GL_INVALID_VALUE);
+
+    SET_ERROR_IF(!ctx->m_state->compressedTexImageSizeCompatible(internalFormat, width, height, depth, imageSize), GL_INVALID_VALUE);
 
     if (ctx->boundBuffer(GL_PIXEL_UNPACK_BUFFER)) {
         ctx->glCompressedTexSubImage3DOffsetAEMU(
@@ -4125,7 +4459,27 @@ void GL2Encoder::s_glTexStorage3D(void* self, GLenum target, GLsizei levels, GLe
                  GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::pixelInternalFormat(internalformat), GL_INVALID_ENUM);
     SET_ERROR_IF(!state->getBoundTexture(target), GL_INVALID_OPERATION);
-    SET_ERROR_IF(levels < 1 || width < 1 || height < 1, GL_INVALID_VALUE);
+    SET_ERROR_IF(levels < 1 || width < 1 || height < 1 || depth < 1, GL_INVALID_VALUE);
+    GLint max_texture_size;
+    GLint max_3d_texture_size;
+    ctx->glGetIntegerv(ctx, GL_MAX_TEXTURE_SIZE, &max_texture_size);
+    ctx->glGetIntegerv(ctx, GL_MAX_3D_TEXTURE_SIZE, &max_3d_texture_size);
+    SET_ERROR_IF(width > max_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(height > max_texture_size, GL_INVALID_VALUE);
+    if (target == GL_TEXTURE_3D) {
+        SET_ERROR_IF(depth > max_texture_size, GL_INVALID_VALUE);
+    } else {
+        GLint maxArrayTextureLayers;
+        ctx->glGetIntegerv(ctx, GL_MAX_ARRAY_TEXTURE_LAYERS, &maxArrayTextureLayers);
+        SET_ERROR_IF(depth > maxArrayTextureLayers, GL_INVALID_VALUE);
+    }
+
+    SET_ERROR_IF(width > max_3d_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(height > max_3d_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(depth > max_3d_texture_size, GL_INVALID_VALUE);
+
+    SET_ERROR_IF(GLESTextureUtils::isAstcFormat(internalformat) && GL_TEXTURE_3D == target, GL_INVALID_OPERATION);
+
     SET_ERROR_IF(target == GL_TEXTURE_3D && (levels > ilog2((uint32_t)std::max(width, std::max(height, depth))) + 1),
                  GL_INVALID_OPERATION);
     SET_ERROR_IF(target == GL_TEXTURE_2D_ARRAY && (levels > ilog2((uint32_t)std::max(width, height)) + 1),
@@ -4133,7 +4487,7 @@ void GL2Encoder::s_glTexStorage3D(void* self, GLenum target, GLsizei levels, GLe
     SET_ERROR_IF(state->isBoundTextureImmutableFormat(target), GL_INVALID_OPERATION);
 
     state->setBoundTextureInternalFormat(target, internalformat);
-    state->setBoundTextureDims(target, -1, width, height, depth);
+    state->setBoundTextureDims(target, target, -1, width, height, depth);
     state->setBoundTextureImmutableFormat(target);
     ctx->m_glTexStorage3D_enc(ctx, target, levels, internalformat, width, height, depth);
     state->setBoundTextureImmutableFormat(target);
@@ -4145,6 +4499,7 @@ void GL2Encoder::s_glDrawArraysInstanced(void* self, GLenum mode, GLint first, G
     SET_ERROR_IF(!isValidDrawMode(mode), GL_INVALID_ENUM);
     SET_ERROR_IF(count < 0, GL_INVALID_VALUE);
     SET_ERROR_IF(primcount < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(ctx->m_state->checkFramebufferCompleteness(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
 
     bool has_client_vertex_arrays = false;
     bool has_indirect_arrays = false;
@@ -4174,6 +4529,7 @@ void GL2Encoder::s_glDrawElementsInstanced(void* self, GLenum mode, GLsizei coun
     SET_ERROR_IF(primcount < 0, GL_INVALID_VALUE);
     SET_ERROR_IF(!(type == GL_UNSIGNED_BYTE || type == GL_UNSIGNED_SHORT || type == GL_UNSIGNED_INT), GL_INVALID_ENUM);
     SET_ERROR_IF(ctx->m_state->getTransformFeedbackActiveUnpaused(), GL_INVALID_OPERATION);
+    SET_ERROR_IF(ctx->m_state->checkFramebufferCompleteness(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
 
     bool has_client_vertex_arrays = false;
     bool has_indirect_arrays = false;
@@ -4266,6 +4622,7 @@ void GL2Encoder::s_glDrawRangeElements(void* self, GLenum mode, GLuint start, GL
     SET_ERROR_IF(count < 0, GL_INVALID_VALUE);
     SET_ERROR_IF(!(type == GL_UNSIGNED_BYTE || type == GL_UNSIGNED_SHORT || type == GL_UNSIGNED_INT), GL_INVALID_ENUM);
     SET_ERROR_IF(ctx->m_state->getTransformFeedbackActiveUnpaused(), GL_INVALID_OPERATION);
+    SET_ERROR_IF(ctx->m_state->checkFramebufferCompleteness(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
 
     bool has_client_vertex_arrays = false;
     bool has_indirect_arrays = false;
@@ -4401,12 +4758,12 @@ const GLubyte* GL2Encoder::s_glGetStringi(void* self, GLenum name, GLuint index)
 void GL2Encoder::s_glGetProgramBinary(void* self, GLuint program, GLsizei bufSize, GLsizei* length, GLenum* binaryFormat, void* binary) {
     GL2Encoder *ctx = (GL2Encoder *)self;
 
-    SET_ERROR_IF(!ctx->m_shared->isProgram(program), GL_INVALID_OPERATION);
+    VALIDATE_PROGRAM_NAME(program);
 
     GLint linkStatus = 0;
-    ctx->glGetProgramiv(self, program, GL_LINK_STATUS, &linkStatus);
+    ctx->m_glGetProgramiv_enc(self, program, GL_LINK_STATUS, &linkStatus);
     GLint properLength = 0;
-    ctx->glGetProgramiv(self, program, GL_PROGRAM_BINARY_LENGTH, &properLength);
+    ctx->m_glGetProgramiv_enc(self, program, GL_PROGRAM_BINARY_LENGTH, &properLength);
 
     SET_ERROR_IF(!linkStatus, GL_INVALID_OPERATION);
     SET_ERROR_IF(bufSize < properLength, GL_INVALID_OPERATION);
@@ -4419,6 +4776,7 @@ void GL2Encoder::s_glReadPixels(void* self, GLint x, GLint y, GLsizei width, GLs
 
     SET_ERROR_IF(!GLESv2Validation::readPixelsFormat(format), GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::readPixelsType(type), GL_INVALID_ENUM);
+    SET_ERROR_IF(!(GLESv2Validation::pixelOp(format,type)),GL_INVALID_OPERATION);
     SET_ERROR_IF(width < 0 || height < 0, GL_INVALID_VALUE);
     SET_ERROR_IF(ctx->isBufferTargetMapped(GL_PIXEL_PACK_BUFFER), GL_INVALID_OPERATION);
     SET_ERROR_IF(ctx->boundBuffer(GL_PIXEL_PACK_BUFFER) &&
@@ -4426,6 +4784,24 @@ void GL2Encoder::s_glReadPixels(void* self, GLint x, GLint y, GLsizei width, GLs
                  (ctx->m_state->pboNeededDataSize(width, height, 1, format, type, 1) >
                   ctx->getBufferData(GL_PIXEL_PACK_BUFFER)->m_size),
                  GL_INVALID_OPERATION);
+    SET_ERROR_IF(ctx->s_glCheckFramebufferStatus(ctx, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
+
+    // now is complete
+    // GL_INVALID_OPERATION is generated if GL_READ_FRAMEBUFFER_BINDING is nonzero, the read fbo is complete, and the value of
+    // GL_SAMPLE_BUFFERS for the read framebuffer is greater than zero
+    if (ctx->m_state->boundFramebuffer(GL_READ_FRAMEBUFFER) &&
+        ctx->s_glCheckFramebufferStatus(ctx, GL_READ_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+        FboFormatInfo resInfo;
+        ctx->m_state->getBoundFramebufferFormat(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, &resInfo);
+        if (resInfo.type == FBO_ATTACHMENT_RENDERBUFFER) {
+            SET_ERROR_IF(resInfo.rb_multisamples > 0, GL_INVALID_OPERATION);
+        }
+        if (resInfo.type == FBO_ATTACHMENT_TEXTURE) {
+            SET_ERROR_IF(resInfo.tex_multisamples > 0, GL_INVALID_OPERATION);
+        }
+    }
+
+
     /*
 GL_INVALID_OPERATION is generated if the readbuffer of the currently bound framebuffer is a fixed point normalized surface and format and type are neither GL_RGBA and GL_UNSIGNED_BYTE, respectively, nor the format/type pair returned by querying GL_IMPLEMENTATION_COLOR_READ_FORMAT and GL_IMPLEMENTATION_COLOR_READ_TYPE.
 
@@ -4462,6 +4838,8 @@ GL_INVALID_OPERATION is generated if the readbuffer of the currently bound frame
 void GL2Encoder::s_glEnable(void* self, GLenum what) {
     GL2Encoder *ctx = (GL2Encoder *)self;
 
+	SET_ERROR_IF(!GLESv2Validation::allowedEnable(ctx->majorVersion(), ctx->minorVersion(), what), GL_INVALID_ENUM);
+
     switch (what) {
     case GL_PRIMITIVE_RESTART_FIXED_INDEX:
         ctx->m_primitiveRestartEnabled = true;
@@ -4473,6 +4851,8 @@ void GL2Encoder::s_glEnable(void* self, GLenum what) {
 
 void GL2Encoder::s_glDisable(void* self, GLenum what) {
     GL2Encoder *ctx = (GL2Encoder *)self;
+
+	SET_ERROR_IF(!GLESv2Validation::allowedEnable(ctx->majorVersion(), ctx->minorVersion(), what), GL_INVALID_ENUM);
 
     switch (what) {
     case GL_PRIMITIVE_RESTART_FIXED_INDEX:
@@ -4486,7 +4866,18 @@ void GL2Encoder::s_glDisable(void* self, GLenum what) {
 void GL2Encoder::s_glClearBufferiv(void* self, GLenum buffer, GLint drawBuffer, const GLint * value) {
     GL2Encoder *ctx = (GL2Encoder *)self;
 
-    SET_ERROR_IF(buffer == GL_DEPTH || buffer == GL_DEPTH_STENCIL, GL_INVALID_ENUM);
+    SET_ERROR_IF(buffer != GL_COLOR && buffer != GL_STENCIL, GL_INVALID_ENUM);
+
+    GLint maxDrawBuffers;
+    ctx->glGetIntegerv(ctx, GL_MAX_DRAW_BUFFERS, &maxDrawBuffers);
+
+    SET_ERROR_IF(!value, GL_INVALID_VALUE);
+
+    if (buffer == GL_COLOR) {
+        SET_ERROR_IF(drawBuffer < 0 || drawBuffer>= maxDrawBuffers, GL_INVALID_VALUE);
+    } else {
+        SET_ERROR_IF(drawBuffer != 0, GL_INVALID_VALUE);
+    }
 
     ctx->m_glClearBufferiv_enc(ctx, buffer, drawBuffer, value);
 }
@@ -4494,7 +4885,12 @@ void GL2Encoder::s_glClearBufferiv(void* self, GLenum buffer, GLint drawBuffer, 
 void GL2Encoder::s_glClearBufferuiv(void* self, GLenum buffer, GLint drawBuffer, const GLuint * value) {
     GL2Encoder *ctx = (GL2Encoder *)self;
 
-    SET_ERROR_IF(buffer == GL_DEPTH || buffer == GL_STENCIL || buffer == GL_DEPTH_STENCIL, GL_INVALID_ENUM);
+    SET_ERROR_IF(buffer != GL_COLOR, GL_INVALID_ENUM);
+    SET_ERROR_IF(!value, GL_INVALID_VALUE);
+
+    GLint maxDrawBuffers;
+    ctx->glGetIntegerv(ctx, GL_MAX_DRAW_BUFFERS, &maxDrawBuffers);
+    SET_ERROR_IF(drawBuffer < 0 || drawBuffer>= maxDrawBuffers, GL_INVALID_VALUE);
 
     ctx->m_glClearBufferuiv_enc(ctx, buffer, drawBuffer, value);
 }
@@ -4502,9 +4898,29 @@ void GL2Encoder::s_glClearBufferuiv(void* self, GLenum buffer, GLint drawBuffer,
 void GL2Encoder::s_glClearBufferfv(void* self, GLenum buffer, GLint drawBuffer, const GLfloat * value) {
     GL2Encoder *ctx = (GL2Encoder *)self;
 
-    SET_ERROR_IF(buffer == GL_STENCIL || buffer == GL_DEPTH_STENCIL, GL_INVALID_ENUM);
+    SET_ERROR_IF(buffer != GL_COLOR && buffer != GL_DEPTH, GL_INVALID_ENUM);
+
+    SET_ERROR_IF(!value, GL_INVALID_VALUE);
+
+    GLint maxDrawBuffers;
+    ctx->glGetIntegerv(ctx, GL_MAX_DRAW_BUFFERS, &maxDrawBuffers);
+
+    if (buffer == GL_COLOR) {
+        SET_ERROR_IF(drawBuffer < 0 || drawBuffer>= maxDrawBuffers, GL_INVALID_VALUE);
+    } else {
+        SET_ERROR_IF(drawBuffer != 0, GL_INVALID_VALUE);
+    }
 
     ctx->m_glClearBufferfv_enc(ctx, buffer, drawBuffer, value);
+}
+
+void GL2Encoder::s_glClearBufferfi(void* self, GLenum buffer, GLint drawBuffer, float depth, int stencil) {
+    GL2Encoder *ctx = (GL2Encoder *)self;
+
+    SET_ERROR_IF(buffer != GL_DEPTH_STENCIL, GL_INVALID_ENUM);
+    SET_ERROR_IF(drawBuffer != 0, GL_INVALID_VALUE);
+
+    ctx->m_glClearBufferfi_enc(ctx, buffer, drawBuffer, depth, stencil);
 }
 
 void GL2Encoder::s_glBlitFramebuffer(void* self, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter) {
@@ -4514,12 +4930,20 @@ void GL2Encoder::s_glBlitFramebuffer(void* self, GLint srcX0, GLint srcY0, GLint
     bool validateColor = mask & GL_COLOR_BUFFER_BIT;
     bool validateDepth = mask & GL_DEPTH_BUFFER_BIT;
     bool validateStencil = mask & GL_STENCIL_BUFFER_BIT;
+    bool validateDepthOrStencil = validateDepth || validateStencil;
 
     FboFormatInfo read_fbo_format_info;
     FboFormatInfo draw_fbo_format_info;
     if (validateColor) {
         state->getBoundFramebufferFormat(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, &read_fbo_format_info);
         state->getBoundFramebufferFormat(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, &draw_fbo_format_info);
+
+        if (read_fbo_format_info.type == FBO_ATTACHMENT_TEXTURE) {
+            SET_ERROR_IF(
+                GL_LINEAR == filter &&
+                GLESv2Validation::isIntegerFormat(read_fbo_format_info.tex_format),
+                    GL_INVALID_OPERATION);
+        }
 
         if (read_fbo_format_info.type == FBO_ATTACHMENT_TEXTURE &&
             draw_fbo_format_info.type == FBO_ATTACHMENT_TEXTURE) {
@@ -4563,6 +4987,10 @@ void GL2Encoder::s_glBlitFramebuffer(void* self, GLint srcX0, GLint srcY0, GLint
                         draw_fbo_format_info.rb_format),
                     GL_INVALID_OPERATION);
         }
+    }
+
+    if (validateDepthOrStencil) {
+        SET_ERROR_IF(filter != GL_NEAREST, GL_INVALID_OPERATION);
     }
 
     state->getBoundFramebufferFormat(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, &draw_fbo_format_info);
@@ -4652,6 +5080,17 @@ void GL2Encoder::s_glGenerateMipmap(void* self, GLenum target) {
                    GLESv2Validation::filterableTexFormat(ctx, internalformat)),
                  GL_INVALID_OPERATION);
 
+    GLenum stateTarget = target;
+    if (target == GL_TEXTURE_CUBE_MAP_POSITIVE_X ||
+        target == GL_TEXTURE_CUBE_MAP_POSITIVE_Y ||
+        target == GL_TEXTURE_CUBE_MAP_POSITIVE_Z ||
+        target == GL_TEXTURE_CUBE_MAP_NEGATIVE_X ||
+        target == GL_TEXTURE_CUBE_MAP_NEGATIVE_Y ||
+        target == GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
+        stateTarget = GL_TEXTURE_CUBE_MAP;
+
+    SET_ERROR_IF(!ctx->m_state->isBoundTextureComplete(stateTarget), GL_INVALID_OPERATION);
+
     if (target == GL_TEXTURE_2D) {
         ctx->override2DTextureTarget(target);
     }
@@ -4668,35 +5107,42 @@ void GL2Encoder::s_glBindSampler(void* self, GLuint unit, GLuint sampler) {
     GLint maxCombinedUnits;
     ctx->glGetIntegerv(ctx, GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxCombinedUnits);
     SET_ERROR_IF(unit >= maxCombinedUnits, GL_INVALID_VALUE);
-
-    ctx->doSamplerBindEncodeCached(unit, sampler);
-}
-
-void GL2Encoder::doSamplerBindEncodeCached(GLuint unit, GLuint sampler) {
-    if (m_state->isSamplerBindNoOp(unit, sampler)) return;
-    m_glBindSampler_enc(this, unit, sampler);
-    m_state->bindSampler(unit, sampler);
+    SET_ERROR_IF(!ctx->m_state->samplerExists(sampler), GL_INVALID_OPERATION);
+    if (ctx->m_state->isSamplerBindNoOp(unit, sampler)) return;
+    ctx->m_glBindSampler_enc(ctx, unit, sampler);
+    ctx->m_state->bindSampler(unit, sampler);
 }
 
 void GL2Encoder::s_glDeleteSamplers(void* self, GLsizei n, const GLuint* samplers) {
     GL2Encoder *ctx = (GL2Encoder *)self;
     ctx->m_state->onDeleteSamplers(n, samplers);
+    ctx->m_state->setExistence(GLClientState::ObjectType::Sampler, false, n, samplers);
     ctx->m_glDeleteSamplers_enc(ctx, n, samplers);
 }
 
 GLsync GL2Encoder::s_glFenceSync(void* self, GLenum condition, GLbitfield flags) {
     GL2Encoder *ctx = (GL2Encoder *)self;
+    RET_AND_SET_ERROR_IF(condition != GL_SYNC_GPU_COMMANDS_COMPLETE, GL_INVALID_ENUM, 0);
+    RET_AND_SET_ERROR_IF(flags != 0, GL_INVALID_VALUE, 0);
     uint64_t syncHandle = ctx->glFenceSyncAEMU(ctx, condition, flags);
-    return (GLsync)(uintptr_t)syncHandle;
+
+    GLsync res = (GLsync)(uintptr_t)syncHandle;
+    GLClientState::onFenceCreated(res);
+    return res;
 }
 
 GLenum GL2Encoder::s_glClientWaitSync(void* self, GLsync wait_on, GLbitfield flags, GLuint64 timeout) {
     GL2Encoder *ctx = (GL2Encoder *)self;
+    RET_AND_SET_ERROR_IF(!GLClientState::fenceExists(wait_on), GL_INVALID_VALUE, GL_WAIT_FAILED);
+    RET_AND_SET_ERROR_IF(flags && !(flags & GL_SYNC_FLUSH_COMMANDS_BIT), GL_INVALID_VALUE, GL_WAIT_FAILED);
     return ctx->glClientWaitSyncAEMU(ctx, (uint64_t)(uintptr_t)wait_on, flags, timeout);
 }
 
 void GL2Encoder::s_glWaitSync(void* self, GLsync wait_on, GLbitfield flags, GLuint64 timeout) {
     GL2Encoder *ctx = (GL2Encoder *)self;
+    SET_ERROR_IF(flags != 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(timeout != GL_TIMEOUT_IGNORED, GL_INVALID_VALUE);
+    SET_ERROR_IF(!GLClientState::fenceExists(wait_on), GL_INVALID_VALUE);
     ctx->glWaitSyncAEMU(ctx, (uint64_t)(uintptr_t)wait_on, flags, timeout);
 }
 
@@ -4705,6 +5151,8 @@ void GL2Encoder::s_glDeleteSync(void* self, GLsync sync) {
 
     if (!sync) return;
 
+    SET_ERROR_IF(!GLClientState::fenceExists(sync), GL_INVALID_VALUE);
+    GLClientState::onFenceDestroyed(sync);
     ctx->glDeleteSyncAEMU(ctx, (uint64_t)(uintptr_t)sync);
 }
 
@@ -4716,7 +5164,9 @@ GLboolean GL2Encoder::s_glIsSync(void* self, GLsync sync) {
 void GL2Encoder::s_glGetSynciv(void* self, GLsync sync, GLenum pname, GLsizei bufSize, GLsizei *length, GLint *values) {
     GL2Encoder *ctx = (GL2Encoder *)self;
 
+    SET_ERROR_IF(!GLESv2Validation::allowedGetSyncParam(pname), GL_INVALID_ENUM);
     SET_ERROR_IF(bufSize < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(!GLClientState::fenceExists(sync), GL_INVALID_VALUE);
 
     return ctx->glGetSyncivAEMU(ctx, (uint64_t)(uintptr_t)sync, pname, bufSize, length, values);
 }
@@ -4838,6 +5288,10 @@ void GL2Encoder::s_glGetBooleani_v(void* self, GLenum param, GLuint index, GLboo
 void GL2Encoder::s_glGetShaderiv(void* self, GLuint shader, GLenum pname, GLint* params) {
     GL2Encoder *ctx = (GL2Encoder *)self;
     ctx->m_glGetShaderiv_enc(self, shader, pname, params);
+
+    SET_ERROR_IF(!GLESv2Validation::allowedGetShader(pname), GL_INVALID_ENUM);
+    VALIDATE_SHADER_NAME(shader);
+	
     if (pname == GL_SHADER_SOURCE_LENGTH) {
         ShaderData* shaderData = ctx->m_shared->getShaderData(shader);
         if (shaderData) {
@@ -4893,7 +5347,8 @@ GLuint GL2Encoder::s_glCreateShaderProgramv(void* self, GLenum type, GLsizei cou
 
     // Phase 2: do glLinkProgram-related initialization for locationWorkARound
     GLint linkStatus = 0;
-    ctx->glGetProgramiv(self, res, GL_LINK_STATUS ,&linkStatus);
+    ctx->m_glGetProgramiv_enc(self, res, GL_LINK_STATUS ,&linkStatus);
+    ctx->m_shared->setProgramLinkStatus(res, linkStatus);
     if (!linkStatus) {
         ctx->m_shared->deleteShaderProgramDataById(spDataId);
         return -1;
@@ -4902,19 +5357,29 @@ GLuint GL2Encoder::s_glCreateShaderProgramv(void* self, GLenum type, GLsizei cou
     ctx->m_shared->associateGLShaderProgram(res, spDataId);
 
     GLint numUniforms = 0;
-    ctx->glGetProgramiv(self, res, GL_ACTIVE_UNIFORMS, &numUniforms);
-    ctx->m_shared->initShaderProgramData(res, numUniforms);
+    GLint numAttributes = 0;
+    ctx->m_glGetProgramiv_enc(self, res, GL_ACTIVE_UNIFORMS, &numUniforms);
+    ctx->m_glGetProgramiv_enc(self, res, GL_ACTIVE_ATTRIBUTES, &numAttributes);
+    ctx->m_shared->initShaderProgramData(res, numUniforms, numAttributes);
 
     GLint maxLength=0;
-    ctx->glGetProgramiv(self, res, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxLength);
+    ctx->m_glGetProgramiv_enc(self, res, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxLength);
 
     GLint size; GLenum uniformType; GLchar* name = new GLchar[maxLength + 1];
 
     for (GLint i = 0; i < numUniforms; ++i) {
-        ctx->glGetActiveUniform(self, res, i, maxLength, NULL, &size, &uniformType, name);
+        ctx->m_glGetActiveUniform_enc(self, res, i, maxLength, NULL, &size, &uniformType, name);
         GLint location = ctx->m_glGetUniformLocation_enc(self, res, name);
         ctx->m_shared->setShaderProgramIndexInfo(res, i, location, size, uniformType, name);
     }
+
+    GLint numBlocks;
+    ctx->m_glGetProgramiv_enc(ctx, res, GL_ACTIVE_UNIFORM_BLOCKS, &numBlocks);
+    ctx->m_shared->setActiveUniformBlockCountForProgram(res, numBlocks);
+
+    GLint tfVaryingsCount;
+    ctx->m_glGetProgramiv_enc(ctx, res, GL_TRANSFORM_FEEDBACK_VARYINGS, &tfVaryingsCount);
+    ctx->m_shared->setTransformFeedbackVaryingsCountForProgram(res, tfVaryingsCount);
 
     delete [] name;
 
@@ -4924,22 +5389,19 @@ GLuint GL2Encoder::s_glCreateShaderProgramv(void* self, GLenum type, GLsizei cou
 void GL2Encoder::s_glProgramUniform1f(void* self, GLuint program, GLint location, GLfloat v0)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform1f_enc(self, program, hostLoc, v0);
+    ctx->m_glProgramUniform1f_enc(self, program, location, v0);
 }
 
 void GL2Encoder::s_glProgramUniform1fv(void* self, GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform1fv_enc(self, program, hostLoc, count, value);
+    ctx->m_glProgramUniform1fv_enc(self, program, location, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform1i(void* self, GLuint program, GLint location, GLint v0)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform1i_enc(self, program, hostLoc, v0);
+    ctx->m_glProgramUniform1i_enc(self, program, location, v0);
 
     GLClientState* state = ctx->m_state;
     GLSharedGroupPtr shared = ctx->m_shared;
@@ -4957,15 +5419,13 @@ void GL2Encoder::s_glProgramUniform1i(void* self, GLuint program, GLint location
 void GL2Encoder::s_glProgramUniform1iv(void* self, GLuint program, GLint location, GLsizei count, const GLint *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform1iv_enc(self, program, hostLoc, count, value);
+    ctx->m_glProgramUniform1iv_enc(self, program, location, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform1ui(void* self, GLuint program, GLint location, GLuint v0)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform1ui_enc(self, program, hostLoc, v0);
+    ctx->m_glProgramUniform1ui_enc(self, program, location, v0);
 
     GLClientState* state = ctx->m_state;
     GLSharedGroupPtr shared = ctx->m_shared;
@@ -4983,201 +5443,176 @@ void GL2Encoder::s_glProgramUniform1ui(void* self, GLuint program, GLint locatio
 void GL2Encoder::s_glProgramUniform1uiv(void* self, GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform1uiv_enc(self, program, hostLoc, count, value);
+    ctx->m_glProgramUniform1uiv_enc(self, program, location, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform2f(void* self, GLuint program, GLint location, GLfloat v0, GLfloat v1)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform2f_enc(self, program, hostLoc, v0, v1);
+    ctx->m_glProgramUniform2f_enc(self, program, location, v0, v1);
 }
 
 void GL2Encoder::s_glProgramUniform2fv(void* self, GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform2fv_enc(self, program, hostLoc, count, value);
+    ctx->m_glProgramUniform2fv_enc(self, program, location, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform2i(void* self, GLuint program, GLint location, GLint v0, GLint v1)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform2i_enc(self, program, hostLoc, v0, v1);
+    ctx->m_glProgramUniform2i_enc(self, program, location, v0, v1);
 }
 
 void GL2Encoder::s_glProgramUniform2iv(void* self, GLuint program, GLint location, GLsizei count, const GLint *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform2iv_enc(self, program, hostLoc, count, value);
+    ctx->m_glProgramUniform2iv_enc(self, program, location, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform2ui(void* self, GLuint program, GLint location, GLint v0, GLuint v1)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform2ui_enc(self, program, hostLoc, v0, v1);
+    ctx->m_glProgramUniform2ui_enc(self, program, location, v0, v1);
 }
 
 void GL2Encoder::s_glProgramUniform2uiv(void* self, GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform2uiv_enc(self, program, hostLoc, count, value);
+    ctx->m_glProgramUniform2uiv_enc(self, program, location, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform3f(void* self, GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform3f_enc(self, program, hostLoc, v0, v1, v2);
+    ctx->m_glProgramUniform3f_enc(self, program, location, v0, v1, v2);
 }
 
 void GL2Encoder::s_glProgramUniform3fv(void* self, GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform3fv_enc(self, program, hostLoc, count, value);
+    ctx->m_glProgramUniform3fv_enc(self, program, location, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform3i(void* self, GLuint program, GLint location, GLint v0, GLint v1, GLint v2)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform3i_enc(self, program, hostLoc, v0, v1, v2);
+    ctx->m_glProgramUniform3i_enc(self, program, location, v0, v1, v2);
 }
 
 void GL2Encoder::s_glProgramUniform3iv(void* self, GLuint program, GLint location, GLsizei count, const GLint *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform3iv_enc(self, program, hostLoc, count, value);
+    ctx->m_glProgramUniform3iv_enc(self, program, location, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform3ui(void* self, GLuint program, GLint location, GLint v0, GLint v1, GLuint v2)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform3ui_enc(self, program, hostLoc, v0, v1, v2);
+    ctx->m_glProgramUniform3ui_enc(self, program, location, v0, v1, v2);
 }
 
 void GL2Encoder::s_glProgramUniform3uiv(void* self, GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform3uiv_enc(self, program, hostLoc, count, value);
+    ctx->m_glProgramUniform3uiv_enc(self, program, location, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform4f(void* self, GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform4f_enc(self, program, hostLoc, v0, v1, v2, v3);
+    ctx->m_glProgramUniform4f_enc(self, program, location, v0, v1, v2, v3);
 }
 
 void GL2Encoder::s_glProgramUniform4fv(void* self, GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform4fv_enc(self, program, hostLoc, count, value);
+    ctx->m_glProgramUniform4fv_enc(self, program, location, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform4i(void* self, GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform4i_enc(self, program, hostLoc, v0, v1, v2, v3);
+    ctx->m_glProgramUniform4i_enc(self, program, location, v0, v1, v2, v3);
 }
 
 void GL2Encoder::s_glProgramUniform4iv(void* self, GLuint program, GLint location, GLsizei count, const GLint *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform4iv_enc(self, program, hostLoc, count, value);
+    ctx->m_glProgramUniform4iv_enc(self, program, location, count, value);
 }
 
 void GL2Encoder::s_glProgramUniform4ui(void* self, GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLuint v3)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform4ui_enc(self, program, hostLoc, v0, v1, v2, v3);
+    ctx->m_glProgramUniform4ui_enc(self, program, location, v0, v1, v2, v3);
 }
 
 void GL2Encoder::s_glProgramUniform4uiv(void* self, GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniform4uiv_enc(self, program, hostLoc, count, value);
+    ctx->m_glProgramUniform4uiv_enc(self, program, location, count, value);
 }
 
 void GL2Encoder::s_glProgramUniformMatrix2fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniformMatrix2fv_enc(self, program, hostLoc, count, transpose, value);
+    ctx->m_glProgramUniformMatrix2fv_enc(self, program, location, count, transpose, value);
 }
 
 void GL2Encoder::s_glProgramUniformMatrix2x3fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniformMatrix2x3fv_enc(self, program, hostLoc, count, transpose, value);
+    ctx->m_glProgramUniformMatrix2x3fv_enc(self, program, location, count, transpose, value);
 }
 
 void GL2Encoder::s_glProgramUniformMatrix2x4fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniformMatrix2x4fv_enc(self, program, hostLoc, count, transpose, value);
+    ctx->m_glProgramUniformMatrix2x4fv_enc(self, program, location, count, transpose, value);
 }
 
 void GL2Encoder::s_glProgramUniformMatrix3fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniformMatrix3fv_enc(self, program, hostLoc, count, transpose, value);
+    ctx->m_glProgramUniformMatrix3fv_enc(self, program, location, count, transpose, value);
 }
 
 void GL2Encoder::s_glProgramUniformMatrix3x2fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniformMatrix3x2fv_enc(self, program, hostLoc, count, transpose, value);
+    ctx->m_glProgramUniformMatrix3x2fv_enc(self, program, location, count, transpose, value);
 }
 
 void GL2Encoder::s_glProgramUniformMatrix3x4fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniformMatrix3x4fv_enc(self, program, hostLoc, count, transpose, value);
+    ctx->m_glProgramUniformMatrix3x4fv_enc(self, program, location, count, transpose, value);
 }
 
 void GL2Encoder::s_glProgramUniformMatrix4fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniformMatrix4fv_enc(self, program, hostLoc, count, transpose, value);
+    ctx->m_glProgramUniformMatrix4fv_enc(self, program, location, count, transpose, value);
 }
 
 void GL2Encoder::s_glProgramUniformMatrix4x2fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniformMatrix4x2fv_enc(self, program, hostLoc, count, transpose, value);
+    ctx->m_glProgramUniformMatrix4x2fv_enc(self, program, location, count, transpose, value);
 }
 
 void GL2Encoder::s_glProgramUniformMatrix4x3fv(void* self, GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
     GL2Encoder *ctx = (GL2Encoder*)self;
-    GLint hostLoc = location;
-    ctx->m_glProgramUniformMatrix4x3fv_enc(self, program, hostLoc, count, transpose, value);
+    ctx->m_glProgramUniformMatrix4x3fv_enc(self, program, location, count, transpose, value);
 }
 
 void GL2Encoder::s_glProgramParameteri(void* self, GLuint program, GLenum pname, GLint value) {
     GL2Encoder* ctx = (GL2Encoder*)self;
+    VALIDATE_PROGRAM_NAME(program);
+    SET_ERROR_IF(pname != GL_PROGRAM_BINARY_RETRIEVABLE_HINT && pname != GL_PROGRAM_SEPARABLE, GL_INVALID_ENUM);
+    SET_ERROR_IF(value != GL_FALSE && value != GL_TRUE, GL_INVALID_VALUE);
     ctx->m_glProgramParameteri_enc(self, program, pname, value);
 }
 
@@ -5368,6 +5803,7 @@ void GL2Encoder::s_glDrawArraysIndirect(void* self, GLenum mode, const void* ind
     SET_ERROR_IF(hasClientArrays, GL_INVALID_OPERATION);
     SET_ERROR_IF(!state->currentVertexArrayObject(), GL_INVALID_OPERATION);
     SET_ERROR_IF(!ctx->boundBuffer(GL_DRAW_INDIRECT_BUFFER), GL_INVALID_OPERATION);
+    SET_ERROR_IF(ctx->m_state->checkFramebufferCompleteness(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
 
     GLuint indirectStructSize = glUtilsIndirectStructSize(INDIRECT_COMMAND_DRAWARRAYS);
     if (ctx->boundBuffer(GL_DRAW_INDIRECT_BUFFER)) {
@@ -5398,6 +5834,7 @@ void GL2Encoder::s_glDrawElementsIndirect(void* self, GLenum mode, GLenum type, 
     SET_ERROR_IF(!ctx->boundBuffer(GL_DRAW_INDIRECT_BUFFER), GL_INVALID_OPERATION);
 
     SET_ERROR_IF(ctx->m_state->getTransformFeedbackActiveUnpaused(), GL_INVALID_OPERATION);
+    SET_ERROR_IF(ctx->m_state->checkFramebufferCompleteness(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
 
     GLuint indirectStructSize = glUtilsIndirectStructSize(INDIRECT_COMMAND_DRAWELEMENTS);
     if (ctx->boundBuffer(GL_DRAW_INDIRECT_BUFFER)) {
@@ -5428,7 +5865,7 @@ void GL2Encoder::s_glTexStorage2DMultisample(void* self, GLenum target, GLsizei 
     SET_ERROR_IF(samples > max_samples, GL_INVALID_OPERATION);
 
     state->setBoundTextureInternalFormat(target, internalformat);
-    state->setBoundTextureDims(target, 0, width, height, 1);
+    state->setBoundTextureDims(target, target, 0, width, height, 1);
     state->setBoundTextureImmutableFormat(target);
     state->setBoundTextureSamples(target, samples);
 
@@ -5468,15 +5905,35 @@ void GL2Encoder::s_glGetnUniformivEXT(void *self, GLuint program, GLint location
 
 void GL2Encoder::s_glInvalidateFramebuffer(void* self, GLenum target, GLsizei numAttachments, const GLenum *attachments) {
     GL2Encoder *ctx = (GL2Encoder*)self;
+    SET_ERROR_IF((target != GL_FRAMEBUFFER) &&
+                 (target != GL_READ_FRAMEBUFFER) &&
+                 (target != GL_DRAW_FRAMEBUFFER), GL_INVALID_ENUM);
     SET_ERROR_IF(numAttachments < 0, GL_INVALID_VALUE);
+
+    GLint maxColorAttachments;
+    ctx->glGetIntegerv(ctx, GL_MAX_COLOR_ATTACHMENTS, &maxColorAttachments);
+    for (GLsizei i = 0; i < numAttachments; ++i) {
+        if (attachments[i] != GL_DEPTH_ATTACHMENT && attachments[i] != GL_STENCIL_ATTACHMENT && attachments[i] != GL_DEPTH_STENCIL_ATTACHMENT) {
+            SET_ERROR_IF(attachments[i] >= GL_COLOR_ATTACHMENT0 + maxColorAttachments, GL_INVALID_OPERATION);
+        }
+    }
+
     ctx->m_glInvalidateFramebuffer_enc(ctx, target, numAttachments, attachments);
 }
 
 void GL2Encoder::s_glInvalidateSubFramebuffer(void* self, GLenum target, GLsizei numAttachments, const GLenum *attachments, GLint x, GLint y, GLsizei width, GLsizei height) {
     GL2Encoder *ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(target != GL_FRAMEBUFFER && target != GL_READ_FRAMEBUFFER && target != GL_DRAW_FRAMEBUFFER, GL_INVALID_ENUM);
     SET_ERROR_IF(numAttachments < 0, GL_INVALID_VALUE);
     SET_ERROR_IF(width < 0, GL_INVALID_VALUE);
     SET_ERROR_IF(height < 0, GL_INVALID_VALUE);
+    GLint maxColorAttachments;
+    ctx->glGetIntegerv(ctx, GL_MAX_COLOR_ATTACHMENTS, &maxColorAttachments);
+    for (GLsizei i = 0; i < numAttachments; ++i) {
+        if (attachments[i] != GL_DEPTH_ATTACHMENT && attachments[i] != GL_STENCIL_ATTACHMENT && attachments[i] != GL_DEPTH_STENCIL_ATTACHMENT) {
+            SET_ERROR_IF(attachments[i] >= GL_COLOR_ATTACHMENT0 + maxColorAttachments, GL_INVALID_OPERATION);
+        }
+    }
     ctx->m_glInvalidateSubFramebuffer_enc(ctx, target, numAttachments, attachments, x, y, width, height);
 }
 
@@ -5490,4 +5947,584 @@ void GL2Encoder::s_glDispatchComputeIndirect(void* self, GLintptr indirect) {
     GL2Encoder *ctx = (GL2Encoder*)self;
     ctx->m_glDispatchComputeIndirect_enc(ctx, indirect);
     ctx->m_state->postDispatchCompute();
+}
+
+void GL2Encoder::s_glGenTransformFeedbacks(void* self, GLsizei n, GLuint* ids) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    ctx->m_glGenTransformFeedbacks_enc(ctx, n, ids);
+    ctx->m_state->setExistence(GLClientState::ObjectType::TransformFeedback, true, n, ids);
+}
+
+void GL2Encoder::s_glDeleteTransformFeedbacks(void* self, GLsizei n, const GLuint* ids) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(ctx->m_state->getTransformFeedbackActive(), GL_INVALID_OPERATION);
+
+    ctx->m_state->setExistence(GLClientState::ObjectType::TransformFeedback, false, n, ids);
+    ctx->m_glDeleteTransformFeedbacks_enc(ctx, n, ids);
+}
+
+void GL2Encoder::s_glGenSamplers(void* self, GLsizei n, GLuint* ids) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    ctx->m_glGenSamplers_enc(ctx, n, ids);
+    ctx->m_state->setExistence(GLClientState::ObjectType::Sampler, true, n, ids);
+}
+
+void GL2Encoder::s_glGenQueries(void* self, GLsizei n, GLuint* ids) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    ctx->m_glGenQueries_enc(ctx, n, ids);
+    ctx->m_state->setExistence(GLClientState::ObjectType::Query, true, n, ids);
+}
+
+void GL2Encoder::s_glDeleteQueries(void* self, GLsizei n, const GLuint* ids) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    ctx->m_state->setExistence(GLClientState::ObjectType::Query, false, n, ids);
+    ctx->m_glDeleteQueries_enc(ctx, n, ids);
+}
+
+void GL2Encoder::s_glBindTransformFeedback(void* self, GLenum target, GLuint id) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(GL_TRANSFORM_FEEDBACK != target, GL_INVALID_ENUM);
+    SET_ERROR_IF(ctx->m_state->getTransformFeedbackActiveUnpaused(), GL_INVALID_OPERATION);
+    SET_ERROR_IF(!ctx->m_state->tryBind(target, id), GL_INVALID_OPERATION);
+    ctx->m_glBindTransformFeedback_enc(ctx, target, id);
+}
+
+void GL2Encoder::s_glBeginQuery(void* self, GLenum target, GLuint query) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(!GLESv2Validation::allowedQueryTarget(target), GL_INVALID_ENUM);
+
+    if (target != GL_ANY_SAMPLES_PASSED_CONSERVATIVE &&
+        target != GL_ANY_SAMPLES_PASSED) {
+        SET_ERROR_IF(ctx->m_state->isQueryBound(target), GL_INVALID_OPERATION);
+    } else {
+        SET_ERROR_IF(ctx->m_state->isQueryBound(GL_ANY_SAMPLES_PASSED_CONSERVATIVE), GL_INVALID_OPERATION);
+        SET_ERROR_IF(ctx->m_state->isQueryBound(GL_ANY_SAMPLES_PASSED), GL_INVALID_OPERATION);
+    }
+
+    GLenum lastTarget = ctx->m_state->getLastQueryTarget(query);
+
+    if (lastTarget) {
+        SET_ERROR_IF(target != lastTarget, GL_INVALID_OPERATION);
+    }
+
+    SET_ERROR_IF(!query, GL_INVALID_OPERATION);
+    SET_ERROR_IF(!ctx->m_state->tryBind(target, query), GL_INVALID_OPERATION);
+    ctx->m_state->setLastQueryTarget(target, query);
+    ctx->m_glBeginQuery_enc(ctx, target, query);
+}
+
+void GL2Encoder::s_glEndQuery(void* self, GLenum target) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(!GLESv2Validation::allowedQueryTarget(target), GL_INVALID_ENUM);
+    SET_ERROR_IF(!ctx->m_state->isBoundTargetValid(target), GL_INVALID_OPERATION);
+    SET_ERROR_IF(!ctx->m_state->tryBind(target, 0), GL_INVALID_OPERATION);
+    ctx->m_glEndQuery_enc(ctx, target);
+}
+
+void GL2Encoder::s_glClear(void* self, GLbitfield mask) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+
+    GLbitfield allowed_bits = GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
+    GLbitfield has_disallowed_bits = (mask & ~allowed_bits);
+    SET_ERROR_IF(has_disallowed_bits, GL_INVALID_VALUE);
+
+    ctx->m_glClear_enc(ctx, mask);
+}
+
+void GL2Encoder::s_glCopyTexSubImage2D(void *self , GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, target), GL_INVALID_ENUM);
+    SET_ERROR_IF(level < 0, GL_INVALID_VALUE);
+    GLint max_texture_size;
+    GLint max_cube_map_texture_size;
+    ctx->glGetIntegerv(ctx, GL_MAX_TEXTURE_SIZE, &max_texture_size);
+    ctx->glGetIntegerv(ctx, GL_MAX_CUBE_MAP_TEXTURE_SIZE, &max_cube_map_texture_size);
+    SET_ERROR_IF(level > ilog2(max_texture_size), GL_INVALID_VALUE);
+    SET_ERROR_IF((target == GL_TEXTURE_CUBE_MAP) &&
+                 (level > ilog2(max_cube_map_texture_size)), GL_INVALID_VALUE);
+    SET_ERROR_IF(xoffset < 0 || yoffset < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(width < 0 || height < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(width > max_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(height > max_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(GLESv2Validation::isCubeMapTarget(target) && width > max_cube_map_texture_size, GL_INVALID_VALUE);
+    SET_ERROR_IF(GLESv2Validation::isCubeMapTarget(target) && height > max_cube_map_texture_size, GL_INVALID_VALUE);
+    GLuint tex = ctx->m_state->getBoundTexture(target);
+    GLsizei neededWidth = xoffset + width;
+    GLsizei neededHeight = yoffset + height;
+    SET_ERROR_IF(tex &&
+                 (neededWidth > ctx->m_state->queryTexWidth(level, tex) ||
+                  neededHeight > ctx->m_state->queryTexHeight(level, tex)),
+                 GL_INVALID_VALUE);
+    SET_ERROR_IF(ctx->glCheckFramebufferStatus(ctx, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE,
+                 GL_INVALID_FRAMEBUFFER_OPERATION);
+
+    ctx->m_glCopyTexSubImage2D_enc(ctx, target, level, xoffset, yoffset, x, y, width, height);
+}
+
+void GL2Encoder::s_glCopyTexSubImage3D(void *self , GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(target != GL_TEXTURE_3D &&
+                 target != GL_TEXTURE_2D_ARRAY,
+                 GL_INVALID_ENUM);
+    GLint max_texture_size;
+    GLint max_3d_texture_size;
+    ctx->glGetIntegerv(ctx, GL_MAX_TEXTURE_SIZE, &max_texture_size);
+    ctx->glGetIntegerv(ctx, GL_MAX_3D_TEXTURE_SIZE, &max_3d_texture_size);
+    SET_ERROR_IF(level < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(level > ilog2(max_texture_size), GL_INVALID_VALUE);
+    SET_ERROR_IF(level > ilog2(max_3d_texture_size), GL_INVALID_VALUE);
+    SET_ERROR_IF(width < 0 || height < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(xoffset < 0 || yoffset < 0 || zoffset < 0, GL_INVALID_VALUE);
+    GLuint tex = ctx->m_state->getBoundTexture(target);
+    GLsizei neededWidth = xoffset + width;
+    GLsizei neededHeight = yoffset + height;
+    GLsizei neededDepth = zoffset + 1;
+    SET_ERROR_IF(tex &&
+                 (neededWidth > ctx->m_state->queryTexWidth(level, tex) ||
+                  neededHeight > ctx->m_state->queryTexHeight(level, tex) ||
+                  neededDepth > ctx->m_state->queryTexDepth(level, tex)),
+                 GL_INVALID_VALUE);
+    SET_ERROR_IF(ctx->glCheckFramebufferStatus(ctx, GL_READ_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE,
+                 GL_INVALID_FRAMEBUFFER_OPERATION);
+
+    ctx->m_glCopyTexSubImage3D_enc(ctx, target, level, xoffset, yoffset, zoffset, x, y, width, height);
+}
+
+void GL2Encoder::s_glCompileShader(void* self, GLuint shader) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    bool isShaderOrProgramObject =
+        ctx->m_shared->isShaderOrProgramObject(shader);
+    bool isShader =
+        ctx->m_shared->isShader(shader);
+
+    SET_ERROR_IF(isShaderOrProgramObject && !isShader, GL_INVALID_OPERATION);
+    SET_ERROR_IF(!isShaderOrProgramObject && !isShader, GL_INVALID_VALUE);
+
+    ctx->m_glCompileShader_enc(ctx, shader);
+}
+
+void GL2Encoder::s_glValidateProgram(void* self, GLuint program ) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+
+    VALIDATE_PROGRAM_NAME(program);
+
+    ctx->m_glValidateProgram_enc(self, program);
+}
+
+void GL2Encoder::s_glProgramBinary(void *self , GLuint program, GLenum binaryFormat, const void* binary, GLsizei length) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+
+    VALIDATE_PROGRAM_NAME(program);
+
+    SET_ERROR_IF(~0 == binaryFormat, GL_INVALID_ENUM);
+
+    ctx->m_glProgramBinary_enc(self, program, binaryFormat, binary, length);
+}
+
+void GL2Encoder::s_glGetSamplerParameterfv(void *self, GLuint sampler, GLenum pname, GLfloat* params) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+
+    SET_ERROR_IF(!ctx->m_state->samplerExists(sampler), GL_INVALID_OPERATION);
+    SET_ERROR_IF(!GLESv2Validation::samplerParams(ctx, pname), GL_INVALID_ENUM);
+
+    if (!params) return;
+
+    ctx->m_glGetSamplerParameterfv_enc(ctx, sampler, pname, params);
+}
+
+void GL2Encoder::s_glGetSamplerParameteriv(void *self, GLuint sampler, GLenum pname, GLint* params) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(!ctx->m_state->samplerExists(sampler), GL_INVALID_OPERATION);
+    SET_ERROR_IF(!GLESv2Validation::samplerParams(ctx, pname), GL_INVALID_ENUM);
+
+    if (!params) return;
+
+    ctx->m_glGetSamplerParameteriv_enc(ctx, sampler, pname, params);
+}
+
+void GL2Encoder::s_glSamplerParameterf(void *self , GLuint sampler, GLenum pname, GLfloat param) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(!ctx->m_state->samplerExists(sampler), GL_INVALID_OPERATION);
+    SET_ERROR_IF(!GLESv2Validation::samplerParams(ctx, pname), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::textureParamValue(ctx, pname, (GLint)param, param, (GLenum)param), GL_INVALID_ENUM);
+
+    ctx->m_glSamplerParameterf_enc(ctx, sampler, pname, param);
+}
+
+void GL2Encoder::s_glSamplerParameteri(void *self , GLuint sampler, GLenum pname, GLint param) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(!ctx->m_state->samplerExists(sampler), GL_INVALID_OPERATION);
+    SET_ERROR_IF(!GLESv2Validation::samplerParams(ctx, pname), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::textureParamValue(ctx, pname, param, (GLfloat)param, (GLenum)param), GL_INVALID_ENUM);
+
+    ctx->m_glSamplerParameteri_enc(ctx, sampler, pname, param);
+}
+
+void GL2Encoder::s_glSamplerParameterfv(void *self , GLuint sampler, GLenum pname, const GLfloat* params) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(!ctx->m_state->samplerExists(sampler), GL_INVALID_OPERATION);
+    SET_ERROR_IF(!GLESv2Validation::samplerParams(ctx, pname), GL_INVALID_ENUM);
+    SET_ERROR_IF(!params, GL_INVALID_VALUE);
+    GLfloat param = *params;
+    SET_ERROR_IF(!GLESv2Validation::textureParamValue(ctx, pname, (GLint)param, param, (GLenum)param), GL_INVALID_ENUM);
+
+    ctx->m_glSamplerParameterfv_enc(ctx, sampler, pname, params);
+}
+
+void GL2Encoder::s_glSamplerParameteriv(void *self , GLuint sampler, GLenum pname, const GLint* params) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(!ctx->m_state->samplerExists(sampler), GL_INVALID_OPERATION);
+    SET_ERROR_IF(!GLESv2Validation::samplerParams(ctx, pname), GL_INVALID_ENUM);
+    SET_ERROR_IF(!params, GL_INVALID_VALUE);
+    GLint param = *params;
+    SET_ERROR_IF(!GLESv2Validation::textureParamValue(ctx, pname, (GLint)param, param, (GLenum)param), GL_INVALID_ENUM);
+
+    ctx->m_glSamplerParameteriv_enc(ctx, sampler, pname, params);
+}
+
+int GL2Encoder::s_glGetAttribLocation(void *self , GLuint program, const GLchar* name) {
+    GL2Encoder *ctx = (GL2Encoder*)self;
+
+    bool isShaderOrProgramObject =
+        ctx->m_shared->isShaderOrProgramObject(program);
+    bool isProgram =
+        ctx->m_shared->isProgram(program);
+
+    RET_AND_SET_ERROR_IF(!isShaderOrProgramObject, GL_INVALID_VALUE, -1);
+    RET_AND_SET_ERROR_IF(!isProgram, GL_INVALID_OPERATION, -1);
+    RET_AND_SET_ERROR_IF(!ctx->m_shared->getProgramLinkStatus(program), GL_INVALID_OPERATION, -1);
+
+    return ctx->m_glGetAttribLocation_enc(ctx, program, name);
+}
+
+void GL2Encoder::s_glBindAttribLocation(void *self , GLuint program, GLuint index, const GLchar* name) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+
+    VALIDATE_PROGRAM_NAME(program);
+
+    GLint maxVertexAttribs;
+    ctx->glGetIntegerv(self, GL_MAX_VERTEX_ATTRIBS, &maxVertexAttribs);
+    SET_ERROR_IF(!(index < maxVertexAttribs), GL_INVALID_VALUE);
+    SET_ERROR_IF(index > maxVertexAttribs, GL_INVALID_VALUE);
+    SET_ERROR_IF(name && !strncmp("gl_", name, 3), GL_INVALID_OPERATION);
+
+    ctx->m_glBindAttribLocation_enc(ctx, program, index, name);
+}
+
+// TODO-SLOW
+void GL2Encoder::s_glUniformBlockBinding(void *self , GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+
+    VALIDATE_PROGRAM_NAME(program);
+    SET_ERROR_IF(uniformBlockIndex >= ctx->m_shared->getActiveUniformBlockCount(program), GL_INVALID_VALUE);
+
+    GLint maxUniformBufferBindings;
+    ctx->glGetIntegerv(ctx, GL_MAX_UNIFORM_BUFFER_BINDINGS, &maxUniformBufferBindings);
+    SET_ERROR_IF(uniformBlockBinding >= maxUniformBufferBindings, GL_INVALID_VALUE);
+
+    ctx->m_glUniformBlockBinding_enc(ctx, program, uniformBlockIndex, uniformBlockBinding);
+}
+
+void GL2Encoder::s_glGetTransformFeedbackVarying(void *self , GLuint program, GLuint index, GLsizei bufSize, GLsizei* length, GLsizei* size, GLenum* type, char* name) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+
+    VALIDATE_PROGRAM_NAME(program);
+    SET_ERROR_IF(!ctx->m_shared->getProgramLinkStatus(program), GL_INVALID_OPERATION);
+    SET_ERROR_IF(index >= ctx->m_shared->getTransformFeedbackVaryingsCountForProgram(program), GL_INVALID_VALUE);
+
+    ctx->m_glGetTransformFeedbackVarying_enc(ctx, program, index, bufSize, length, size, type, name);
+}
+
+void GL2Encoder::s_glScissor(void *self , GLint x, GLint y, GLsizei width, GLsizei height) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(width < 0 || height < 0, GL_INVALID_VALUE);
+    ctx->m_glScissor_enc(ctx, x, y, width, height);
+}
+
+void GL2Encoder::s_glDepthFunc(void *self , GLenum func) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(
+        (func != GL_NEVER) &&
+        (func != GL_ALWAYS) &&
+        (func != GL_LESS) &&
+        (func != GL_LEQUAL) &&
+        (func != GL_EQUAL) &&
+        (func != GL_GREATER) &&
+        (func != GL_GEQUAL) &&
+        (func != GL_NOTEQUAL),
+        GL_INVALID_ENUM);
+    ctx->m_glDepthFunc_enc(ctx, func);
+}
+
+void GL2Encoder::s_glViewport(void *self , GLint x, GLint y, GLsizei width, GLsizei height) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(width < 0 || height < 0, GL_INVALID_VALUE);
+    ctx->m_glViewport_enc(ctx, x, y, width, height);
+}
+
+void GL2Encoder::s_glStencilFunc(void *self , GLenum func, GLint ref, GLuint mask) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(!GLESv2Validation::allowedFunc(func), GL_INVALID_ENUM);
+    ctx->m_glStencilFunc_enc(ctx, func, ref, mask);
+}
+
+void GL2Encoder::s_glStencilFuncSeparate(void *self , GLenum face, GLenum func, GLint ref, GLuint mask) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(!GLESv2Validation::allowedFace(face) || !GLESv2Validation::allowedFunc(func), GL_INVALID_ENUM);
+    ctx->m_glStencilFuncSeparate_enc(ctx, face, func, ref, mask);
+}
+
+void GL2Encoder::s_glStencilOp(void *self , GLenum fail, GLenum zfail, GLenum zpass) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(
+        !GLESv2Validation::allowedStencilOp(fail) ||
+        !GLESv2Validation::allowedStencilOp(zfail) ||
+        !GLESv2Validation::allowedStencilOp(zpass),
+        GL_INVALID_ENUM);
+    ctx->m_glStencilOp_enc(ctx, fail, zfail, zpass);
+}
+
+void GL2Encoder::s_glStencilOpSeparate(void *self , GLenum face, GLenum fail, GLenum zfail, GLenum zpass) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(
+        !GLESv2Validation::allowedFace(face) ||
+        !GLESv2Validation::allowedStencilOp(fail) ||
+        !GLESv2Validation::allowedStencilOp(zfail) ||
+        !GLESv2Validation::allowedStencilOp(zpass),
+        GL_INVALID_ENUM);
+    ctx->m_glStencilOpSeparate_enc(ctx, face, fail, zfail, zpass);
+}
+
+void GL2Encoder::s_glStencilMaskSeparate(void *self , GLenum face, GLuint mask) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(
+        !GLESv2Validation::allowedFace(face),
+        GL_INVALID_ENUM);
+    ctx->m_glStencilMaskSeparate_enc(ctx, face, mask);
+}
+
+void GL2Encoder::s_glBlendEquation(void *self , GLenum mode) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(
+        !GLESv2Validation::allowedBlendEquation(mode),
+        GL_INVALID_ENUM);
+    ctx->m_glBlendEquation_enc(ctx, mode);
+}
+
+void GL2Encoder::s_glBlendEquationSeparate(void *self , GLenum modeRGB, GLenum modeAlpha) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(
+        !GLESv2Validation::allowedBlendEquation(modeRGB) ||
+        !GLESv2Validation::allowedBlendEquation(modeAlpha),
+        GL_INVALID_ENUM);
+    ctx->m_glBlendEquationSeparate_enc(ctx, modeRGB, modeAlpha);
+}
+
+void GL2Encoder::s_glBlendFunc(void *self , GLenum sfactor, GLenum dfactor) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(
+        !GLESv2Validation::allowedBlendFunc(sfactor) ||
+        !GLESv2Validation::allowedBlendFunc(dfactor),
+        GL_INVALID_ENUM);
+    ctx->m_glBlendFunc_enc(ctx, sfactor, dfactor);
+}
+
+void GL2Encoder::s_glBlendFuncSeparate(void *self , GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(
+        !GLESv2Validation::allowedBlendFunc(srcRGB) ||
+        !GLESv2Validation::allowedBlendFunc(dstRGB) ||
+        !GLESv2Validation::allowedBlendFunc(srcAlpha) ||
+        !GLESv2Validation::allowedBlendFunc(dstAlpha),
+        GL_INVALID_ENUM);
+    ctx->m_glBlendFuncSeparate_enc(ctx, srcRGB, dstRGB, srcAlpha, dstAlpha);
+}
+
+void GL2Encoder::s_glCullFace(void *self , GLenum mode) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(
+        !GLESv2Validation::allowedCullFace(mode),
+        GL_INVALID_ENUM);
+    ctx->m_glCullFace_enc(ctx, mode);
+}
+
+void GL2Encoder::s_glFrontFace(void *self , GLenum mode) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(
+        !GLESv2Validation::allowedFrontFace(mode),
+        GL_INVALID_ENUM);
+    ctx->m_glFrontFace_enc(ctx, mode);
+}
+
+void GL2Encoder::s_glLineWidth(void *self , GLfloat width) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(width <= 0.0f, GL_INVALID_VALUE);
+    ctx->m_glLineWidth_enc(ctx, width);
+}
+
+void GL2Encoder::s_glVertexAttrib1f(void *self , GLuint indx, GLfloat x) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    VALIDATE_VERTEX_ATTRIB_INDEX(indx);
+    ctx->m_glVertexAttrib1f_enc(ctx, indx, x);
+}
+
+void GL2Encoder::s_glVertexAttrib2f(void *self , GLuint indx, GLfloat x, GLfloat y) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    VALIDATE_VERTEX_ATTRIB_INDEX(indx);
+    ctx->m_glVertexAttrib2f_enc(ctx, indx, x, y);
+}
+
+void GL2Encoder::s_glVertexAttrib3f(void *self , GLuint indx, GLfloat x, GLfloat y, GLfloat z) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    VALIDATE_VERTEX_ATTRIB_INDEX(indx);
+    ctx->m_glVertexAttrib3f_enc(ctx, indx, x, y, z);
+}
+
+void GL2Encoder::s_glVertexAttrib4f(void *self , GLuint indx, GLfloat x, GLfloat y, GLfloat z, GLfloat w) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    VALIDATE_VERTEX_ATTRIB_INDEX(indx);
+    ctx->m_glVertexAttrib4f_enc(ctx, indx, x, y, z, w);
+}
+
+void GL2Encoder::s_glVertexAttrib1fv(void *self , GLuint indx, const GLfloat* values) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    VALIDATE_VERTEX_ATTRIB_INDEX(indx);
+    ctx->m_glVertexAttrib1fv_enc(ctx, indx, values);
+}
+
+void GL2Encoder::s_glVertexAttrib2fv(void *self , GLuint indx, const GLfloat* values) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    VALIDATE_VERTEX_ATTRIB_INDEX(indx);
+    ctx->m_glVertexAttrib2fv_enc(ctx, indx, values);
+}
+
+void GL2Encoder::s_glVertexAttrib3fv(void *self , GLuint indx, const GLfloat* values) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    VALIDATE_VERTEX_ATTRIB_INDEX(indx);
+    ctx->m_glVertexAttrib3fv_enc(ctx, indx, values);
+}
+
+void GL2Encoder::s_glVertexAttrib4fv(void *self , GLuint indx, const GLfloat* values) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    VALIDATE_VERTEX_ATTRIB_INDEX(indx);
+    ctx->m_glVertexAttrib4fv_enc(ctx, indx, values);
+}
+
+void GL2Encoder::s_glVertexAttribI4i(void *self , GLuint index, GLint v0, GLint v1, GLint v2, GLint v3) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    VALIDATE_VERTEX_ATTRIB_INDEX(index);
+    ctx->m_glVertexAttribI4i_enc(ctx, index, v0, v1, v2, v3);
+}
+
+void GL2Encoder::s_glVertexAttribI4ui(void *self , GLuint index, GLuint v0, GLuint v1, GLuint v2, GLuint v3) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    VALIDATE_VERTEX_ATTRIB_INDEX(index);
+    ctx->m_glVertexAttribI4ui_enc(ctx, index, v0, v1, v2, v3);
+}
+
+void GL2Encoder::s_glVertexAttribI4iv(void *self , GLuint index, const GLint* v) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    VALIDATE_VERTEX_ATTRIB_INDEX(index);
+    ctx->m_glVertexAttribI4iv_enc(ctx, index, v);
+}
+
+void GL2Encoder::s_glVertexAttribI4uiv(void *self , GLuint index, const GLuint* v) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    VALIDATE_VERTEX_ATTRIB_INDEX(index);
+    ctx->m_glVertexAttribI4uiv_enc(ctx, index, v);
+}
+
+void GL2Encoder::s_glGetShaderPrecisionFormat(void *self , GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(!GLESv2Validation::allowedShaderType(shadertype), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::allowedPrecisionType(precisiontype), GL_INVALID_ENUM);
+    ctx->m_glGetShaderPrecisionFormat_enc(ctx, shadertype, precisiontype, range, precision);
+}
+
+void GL2Encoder::s_glGetProgramiv(void *self , GLuint program, GLenum pname, GLint* params) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(!GLESv2Validation::allowedGetProgram(ctx->majorVersion(), ctx->minorVersion(), pname), GL_INVALID_ENUM);
+    VALIDATE_PROGRAM_NAME(program);
+    ctx->m_glGetProgramiv_enc(ctx, program, pname, params);
+}
+
+void GL2Encoder::s_glGetActiveUniform(void *self , GLuint program, GLuint index, GLsizei bufsize, GLsizei* length, GLint* size, GLenum* type, GLchar* name) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    VALIDATE_PROGRAM_NAME(program);
+    SET_ERROR_IF(index >= ctx->m_shared->getActiveUniformsCountForProgram(program), GL_INVALID_VALUE);
+    ctx->m_glGetActiveUniform_enc(ctx, program, index, bufsize, length, size, type, name);
+}
+
+void GL2Encoder::s_glGetActiveUniformsiv(void *self , GLuint program, GLsizei uniformCount, const GLuint* uniformIndices, GLenum pname, GLint* params) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    VALIDATE_PROGRAM_NAME(program);
+    SET_ERROR_IF(uniformCount < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(!GLESv2Validation::allowedGetActiveUniforms(pname), GL_INVALID_ENUM);
+    int activeUniformsCount = ctx->m_shared->getActiveUniformsCountForProgram(program);
+    for (GLsizei i = 0; i < uniformCount; ++i) {
+        SET_ERROR_IF(uniformIndices[i] >= activeUniformsCount, GL_INVALID_VALUE);
+    }
+    ctx->m_glGetActiveUniformsiv_enc(ctx, program, uniformCount, uniformIndices, pname, params);
+}
+
+void GL2Encoder::s_glGetActiveUniformBlockName(void *self , GLuint program, GLuint uniformBlockIndex, GLsizei bufSize, GLsizei* length, GLchar* uniformBlockName) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    VALIDATE_PROGRAM_NAME(program);
+    SET_ERROR_IF(bufSize < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(uniformBlockIndex >= ctx->m_shared->getActiveUniformBlockCount(program), GL_INVALID_VALUE);
+    ctx->m_glGetActiveUniformBlockName_enc(ctx, program, uniformBlockIndex, bufSize, length, uniformBlockName);
+}
+
+void GL2Encoder::s_glGetActiveAttrib(void *self , GLuint program, GLuint index, GLsizei bufsize, GLsizei* length, GLint* size, GLenum* type, GLchar* name) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    VALIDATE_PROGRAM_NAME(program);
+    VALIDATE_VERTEX_ATTRIB_INDEX(index);
+    SET_ERROR_IF(bufsize < 0, GL_INVALID_VALUE);
+    SET_ERROR_IF(index >= ctx->m_shared->getActiveAttributesCountForProgram(program), GL_INVALID_VALUE);
+    ctx->m_glGetActiveAttrib_enc(ctx, program, index, bufsize, length, size, type, name);
+}
+
+void GL2Encoder::s_glGetRenderbufferParameteriv(void *self , GLenum target, GLenum pname, GLint* params) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(target != GL_RENDERBUFFER, GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::allowedGetRenderbufferParameter(pname), GL_INVALID_ENUM);
+    ctx->m_glGetRenderbufferParameteriv_enc(ctx, target, pname, params);
+}
+
+void GL2Encoder::s_glGetQueryiv(void *self , GLenum target, GLenum pname, GLint* params) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(!GLESv2Validation::allowedQueryTarget(target), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::allowedQueryParam(pname), GL_INVALID_ENUM);
+    ctx->m_glGetQueryiv_enc(ctx, target, pname, params);
+}
+
+void GL2Encoder::s_glGetQueryObjectuiv(void *self , GLuint query, GLenum pname, GLuint* params) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    GLClientState* state = ctx->m_state;
+    SET_ERROR_IF(!GLESv2Validation::allowedQueryObjectParam(pname), GL_INVALID_ENUM);
+    SET_ERROR_IF(!state->queryExistence(GLClientState::ObjectType::Query, query), GL_INVALID_OPERATION);
+    SET_ERROR_IF(!state->getLastQueryTarget(query), GL_INVALID_OPERATION);
+    SET_ERROR_IF(ctx->m_state->isQueryObjectActive(query), GL_INVALID_OPERATION);
+
+    ctx->m_glGetQueryObjectuiv_enc(ctx, query, pname, params);
+}
+
+GLboolean GL2Encoder::s_glIsEnabled(void *self , GLenum cap) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+	RET_AND_SET_ERROR_IF(!GLESv2Validation::allowedEnable(ctx->majorVersion(), ctx->minorVersion(), cap), GL_INVALID_ENUM, 0);
+    return ctx->m_glIsEnabled_enc(ctx, cap);
+}
+
+void GL2Encoder::s_glHint(void *self , GLenum target, GLenum mode) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    SET_ERROR_IF(!GLESv2Validation::allowedHintTarget(target), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::allowedHintMode(mode), GL_INVALID_ENUM);
+    ctx->m_glHint_enc(ctx, target, mode);
+}
+
+GLint GL2Encoder::s_glGetFragDataLocation (void *self , GLuint program, const char* name) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    VALIDATE_PROGRAM_NAME_RET(program, -1);
+    RET_AND_SET_ERROR_IF(!ctx->m_shared->getProgramLinkStatus(program), GL_INVALID_OPERATION, -1);
+    return ctx->m_glGetFragDataLocation_enc(ctx, program, name);
 }
