@@ -668,11 +668,12 @@ HostDriverCaps eglDisplay::getHostDriverCaps(int majorVersion, int minorVersion)
 
     memset(&m_hostDriverCaps, 0x0, sizeof(m_hostDriverCaps));
 
+    m_hostDriverCaps.max_color_attachments = 8;
+
     // Can we query gles2?
     if (majorVersion >= 1) {
         m_gles2_iface->getIntegerv(GL_MAX_VERTEX_ATTRIBS, &m_hostDriverCaps.max_vertex_attribs);
         m_gles2_iface->getIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &m_hostDriverCaps.max_combined_texture_image_units);
-        m_gles2_iface->getIntegerv(GL_MAX_COLOR_ATTACHMENTS, &m_hostDriverCaps.max_color_attachments);
 
         m_gles2_iface->getIntegerv(GL_MAX_TEXTURE_SIZE, &m_hostDriverCaps.max_texture_size);
         m_gles2_iface->getIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &m_hostDriverCaps.max_texture_size_cube_map);
@@ -682,6 +683,7 @@ HostDriverCaps eglDisplay::getHostDriverCaps(int majorVersion, int minorVersion)
 
     // Can we query gles3.0?
     if (majorVersion >= 3) {
+        m_gles2_iface->getIntegerv(GL_MAX_COLOR_ATTACHMENTS, &m_hostDriverCaps.max_color_attachments);
         m_gles2_iface->getIntegerv(GL_MAX_DRAW_BUFFERS, &m_hostDriverCaps.max_draw_buffers);
         m_gles2_iface->getIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &m_hostDriverCaps.ubo_offset_alignment);
         m_gles2_iface->getIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &m_hostDriverCaps.max_uniform_buffer_bindings);
