@@ -2689,12 +2689,21 @@ public:
                 }
 
                 if (pBufferConstraintsInfo) {
-                    auto result = mControlDevice->CreateBuffer(
-                        std::move(vmo_copy),
-                        pBufferConstraintsInfo->pBufferCreateInfo->size);
-                    if (!result.ok() || result.Unwrap()->res != ZX_OK) {
-                        ALOGE("CreateBuffer failed: %d:%d", result.status(),
-                              GET_STATUS_SAFE(result, res));
+                    auto createParams =
+                        llcpp::fuchsia::hardware::goldfish::CreateBuffer2Params::Builder(
+                            std::make_unique<
+                                llcpp::fuchsia::hardware::goldfish::CreateBuffer2Params::Frame>())
+                            .set_size(std::make_unique<uint64_t>(
+                                pBufferConstraintsInfo->pBufferCreateInfo->size))
+                            .set_memory_property(std::make_unique<uint32_t>(
+                                llcpp::fuchsia::hardware::goldfish::MEMORY_PROPERTY_DEVICE_LOCAL))
+                            .build();
+
+                    auto result =
+                        mControlDevice->CreateBuffer2(std::move(vmo_copy), std::move(createParams));
+                    if (!result.ok() || result.Unwrap()->result.is_err()) {
+                        ALOGE("CreateBuffer2 failed: %d:%d", result.status(),
+                              GET_STATUS_SAFE(result, result.err()));
                         abort();
                     }
                 }
@@ -4115,13 +4124,22 @@ public:
             }
 
             if (vmo && vmo->is_valid()) {
-                auto result = mControlDevice->CreateBuffer(std::move(*vmo),
-                                                           pCreateInfo->size);
+                auto createParams =
+                    llcpp::fuchsia::hardware::goldfish::CreateBuffer2Params::Builder(
+                        std::make_unique<
+                            llcpp::fuchsia::hardware::goldfish::CreateBuffer2Params::Frame>())
+                        .set_size(std::make_unique<uint64_t>(pCreateInfo->size))
+                        .set_memory_property(std::make_unique<uint32_t>(
+                            llcpp::fuchsia::hardware::goldfish::MEMORY_PROPERTY_DEVICE_LOCAL))
+                        .build();
+
+                auto result =
+                    mControlDevice->CreateBuffer2(std::move(*vmo), std::move(createParams));
                 if (!result.ok() ||
-                    (result.Unwrap()->res != ZX_OK &&
-                     result.Unwrap()->res != ZX_ERR_ALREADY_EXISTS)) {
-                    ALOGE("CreateBuffer failed: %d:%d", result.status(),
-                          GET_STATUS_SAFE(result, res));
+                    (result.Unwrap()->result.is_err() != ZX_OK &&
+                     result.Unwrap()->result.err() != ZX_ERR_ALREADY_EXISTS)) {
+                    ALOGE("CreateBuffer2 failed: %d:%d", result.status(),
+                          GET_STATUS_SAFE(result, result.err()));
                 }
                 isSysmemBackedMemory = true;
             }
