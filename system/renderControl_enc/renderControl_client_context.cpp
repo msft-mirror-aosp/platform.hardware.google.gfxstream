@@ -63,6 +63,7 @@ int renderControl_client_context_t::initDispatchByName(void *(*getProc)(const ch
 	rcCloseBuffer = (rcCloseBuffer_client_proc_t) getProc("rcCloseBuffer", userData);
 	rcSetColorBufferVulkanMode2 = (rcSetColorBufferVulkanMode2_client_proc_t) getProc("rcSetColorBufferVulkanMode2", userData);
 	rcMapGpaToBufferHandle = (rcMapGpaToBufferHandle_client_proc_t) getProc("rcMapGpaToBufferHandle", userData);
+	rcCreateBuffer2 = (rcCreateBuffer2_client_proc_t) getProc("rcCreateBuffer2", userData);
 	return 0;
 }
 

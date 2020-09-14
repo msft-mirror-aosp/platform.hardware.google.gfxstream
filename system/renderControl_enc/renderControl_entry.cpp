@@ -58,6 +58,7 @@ extern "C" {
 	void rcCloseBuffer(uint32_t buffer);
 	GLint rcSetColorBufferVulkanMode2(uint32_t colorBuffer, uint32_t mode, uint32_t memoryProperty);
 	int rcMapGpaToBufferHandle(uint32_t bufferHandle, uint64_t gpa);
+	uint32_t rcCreateBuffer2(uint64_t size, uint32_t memoryProperty);
 };
 
 #ifndef GET_CONTEXT
@@ -382,5 +383,11 @@ int rcMapGpaToBufferHandle(uint32_t bufferHandle, uint64_t gpa)
 {
 	GET_CONTEXT;
 	return ctx->rcMapGpaToBufferHandle(ctx, bufferHandle, gpa);
+}
+
+uint32_t rcCreateBuffer2(uint64_t size, uint32_t memoryProperty)
+{
+	GET_CONTEXT;
+	return ctx->rcCreateBuffer2(ctx, size, memoryProperty);
 }
 
