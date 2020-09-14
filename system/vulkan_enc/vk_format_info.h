@@ -29,6 +29,11 @@
 #include <stdbool.h>
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
 #include <system/graphics.h>
+#else
+/* See system/graphics.h. */
+enum {
+    HAL_PIXEL_FORMAT_YV12 = 842094169,
+};
 #endif
 #include <vulkan/vulkan.h>
 #include <vndk/hardware_buffer.h>
