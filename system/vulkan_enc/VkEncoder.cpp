@@ -24275,5 +24275,55 @@ void VkEncoder::vkQueueBindSparseAsyncGOOGLE(
 }
 
 #endif
+#ifdef VK_GOOGLE_linear_image_layout
+void VkEncoder::vkGetLinearImageLayoutGOOGLE(
+    VkDevice device,
+    VkFormat format,
+    VkDeviceSize* pOffset,
+    VkDeviceSize* pRowPitchAlignment)
+{
+    EncoderAutoLock encoderLock(this);
+    AEMU_SCOPED_TRACE("vkGetLinearImageLayoutGOOGLE encode");
+    mImpl->log("start vkGetLinearImageLayoutGOOGLE");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkDevice local_device;
+    VkFormat local_format;
+    local_device = device;
+    local_format = format;
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1565;
+        countingStream->handleMapping()->mapHandles_VkDevice_u64(&local_device, &cgen_var_1565, 1);
+        countingStream->write((uint64_t*)&cgen_var_1565, 1 * 8);
+        countingStream->write((VkFormat*)&local_format, sizeof(VkFormat));
+        countingStream->write((VkDeviceSize*)pOffset, sizeof(VkDeviceSize));
+        countingStream->write((VkDeviceSize*)pRowPitchAlignment, sizeof(VkDeviceSize));
+    }
+    uint32_t packetSize_vkGetLinearImageLayoutGOOGLE = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkGetLinearImageLayoutGOOGLE = OP_vkGetLinearImageLayoutGOOGLE;
+    stream->write(&opcode_vkGetLinearImageLayoutGOOGLE, sizeof(uint32_t));
+    stream->write(&packetSize_vkGetLinearImageLayoutGOOGLE, sizeof(uint32_t));
+    uint64_t cgen_var_1566;
+    stream->handleMapping()->mapHandles_VkDevice_u64(&local_device, &cgen_var_1566, 1);
+    stream->write((uint64_t*)&cgen_var_1566, 1 * 8);
+    stream->write((VkFormat*)&local_format, sizeof(VkFormat));
+    stream->write((VkDeviceSize*)pOffset, sizeof(VkDeviceSize));
+    stream->write((VkDeviceSize*)pRowPitchAlignment, sizeof(VkDeviceSize));
+    AEMU_SCOPED_TRACE("vkGetLinearImageLayoutGOOGLE readParams");
+    stream->read((VkDeviceSize*)pOffset, sizeof(VkDeviceSize));
+    stream->read((VkDeviceSize*)pRowPitchAlignment, sizeof(VkDeviceSize));
+    AEMU_SCOPED_TRACE("vkGetLinearImageLayoutGOOGLE returnUnmarshal");
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
+    mImpl->log("finish vkGetLinearImageLayoutGOOGLE");;
+}
+
+#endif
 
 } // namespace goldfish_vk
