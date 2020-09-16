@@ -275,12 +275,12 @@ public:
     };
 
     struct VkCommandBuffer_Info {
-        VkEncoder** lastUsedEncoderPtr = nullptr;
+        VkEncoder* lastUsedEncoder = nullptr;
         uint32_t sequenceNumber = 0;
     };
 
     struct VkQueue_Info {
-        VkEncoder** lastUsedEncoderPtr = nullptr;
+        VkEncoder* lastUsedEncoder = nullptr;
         uint32_t sequenceNumber = 0;
     };
 
@@ -398,15 +398,7 @@ public:
         auto it = info_VkCommandBuffer.find(commandBuffer);
         if (it == info_VkCommandBuffer.end()) return;
         auto& info = it->second;
-        auto lastUsedEncoder =
-            info.lastUsedEncoderPtr ?
-            *(info.lastUsedEncoderPtr) : nullptr;
-
-        if (lastUsedEncoder) {
-            lastUsedEncoder->decRef();
-            info.lastUsedEncoderPtr = nullptr;
-        }
-
+        info.lastUsedEncoder = nullptr;
         info_VkCommandBuffer.erase(commandBuffer);
     }
 
@@ -416,15 +408,8 @@ public:
         auto it = info_VkQueue.find(queue);
         if (it == info_VkQueue.end()) return;
         auto& info = it->second;
-        auto lastUsedEncoder =
-            info.lastUsedEncoderPtr ?
-            *(info.lastUsedEncoderPtr) : nullptr;
-
-        if (lastUsedEncoder) {
-            lastUsedEncoder->decRef();
-            info.lastUsedEncoderPtr = nullptr;
-        }
-
+        auto lastUsedEncoder = info.lastUsedEncoder;
+        info.lastUsedEncoder = nullptr;
         info_VkQueue.erase(queue);
     }
 
@@ -4828,42 +4813,39 @@ public:
 
         auto& info = it->second;
 
-        if (!info.lastUsedEncoderPtr) {
-            info.lastUsedEncoderPtr = new VkEncoder*;
-            *(info.lastUsedEncoderPtr) = currentEncoder;
-            currentEncoder->incRef();
-        }
+        currentEncoder->incRef();
 
-        auto lastUsedEncoderPtr = info.lastUsedEncoderPtr;
-
-        auto lastEncoder = *(lastUsedEncoderPtr);
-
-        // We always make lastUsedEncoderPtr track
-        // the current encoder, even if the last encoder
-        // is null. And also, increment the current encoder,
-        // and decrement refcount for the last one.
-        // (Decrement only after we are done)
-        *(lastUsedEncoderPtr) = currentEncoder;
-        if (lastEncoder != currentEncoder) {
-            currentEncoder->incRef();
-        }
-
+        auto lastEncoder = info.lastUsedEncoder;
+        info.lastUsedEncoder = currentEncoder;
         if (!lastEncoder) return 0;
-        if (lastEncoder == currentEncoder) return 0;
-
         auto oldSeq = info.sequenceNumber;
+        bool lookupAgain = false;
 
-        lock.unlock();
+        if (lastEncoder != currentEncoder) {
+            info.sequenceNumber += 2;
+            lookupAgain = true;
+            lock.unlock();
 
-        lastEncoder->vkCommandBufferHostSyncGOOGLE(commandBuffer, false, oldSeq + 1);
-        lastEncoder->flush();
+            lastEncoder->vkCommandBufferHostSyncGOOGLE(commandBuffer, false, oldSeq + 1);
+            lastEncoder->flush();
 
-        currentEncoder->vkCommandBufferHostSyncGOOGLE(commandBuffer, true, oldSeq + 2);
+            currentEncoder->vkCommandBufferHostSyncGOOGLE(commandBuffer, true, oldSeq + 2);
 
-        lock.lock();
-        if (lastEncoder->decRef()) { *lastUsedEncoderPtr = nullptr; }
+            lock.lock();
+        }
 
-        return 1;
+        if (lastEncoder->decRef()) {
+            if (lookupAgain) {
+                auto it2 = info_VkCommandBuffer.find(commandBuffer);
+                if (it2 == info_VkCommandBuffer.end()) return 0;
+                auto& info2 = it2->second;
+                info2.lastUsedEncoder = nullptr;
+            } else {
+                info.lastUsedEncoder = nullptr;
+            }
+        }
+
+        return 0;
     }
 
     uint32_t syncEncodersForQueue(VkQueue queue, VkEncoder* currentEncoder) {
@@ -4878,44 +4860,38 @@ public:
 
         auto& info = it->second;
 
-        if (!info.lastUsedEncoderPtr) {
-            info.lastUsedEncoderPtr = new VkEncoder*;
-            *(info.lastUsedEncoderPtr) = currentEncoder;
-            currentEncoder->incRef();
-        }
+        currentEncoder->incRef();
 
-        auto lastUsedEncoderPtr = info.lastUsedEncoderPtr;
-
-        auto lastEncoder = *(lastUsedEncoderPtr);
-
-        // We always make lastUsedEncoderPtr track
-        // the current encoder, even if the last encoder
-        // is null.
-        *(lastUsedEncoderPtr) = currentEncoder;
+        auto lastEncoder = info.lastUsedEncoder;
+        info.lastUsedEncoder = currentEncoder;
+        if (!lastEncoder) return 0;
+        auto oldSeq = info.sequenceNumber;
+        bool lookupAgain = false;
 
         if (lastEncoder != currentEncoder) {
-            currentEncoder->incRef();
+            info.sequenceNumber += 2;
+            lookupAgain = true;
+            lock.unlock();
+
+            lastEncoder->vkQueueHostSyncGOOGLE(queue, false, oldSeq + 1);
+            lastEncoder->flush();
+            currentEncoder->vkQueueHostSyncGOOGLE(queue, true, oldSeq + 2);
+
+            lock.lock();
         }
 
-        if (!lastEncoder) return 0;
-        if (lastEncoder == currentEncoder) return 0;
+        if (lastEncoder->decRef()) {
+            if (lookupAgain) {
+                auto it2 = info_VkQueue.find(queue);
+                if (it2 == info_VkQueue.end()) return 0;
+                auto& info2 = it2->second;
+                info2.lastUsedEncoder = nullptr;
+            } else {
+                info.lastUsedEncoder = nullptr;
+            }
+        }
 
-        auto oldSeq = info.sequenceNumber;
-
-        info.sequenceNumber += 2;
-
-        lock.unlock();
-
-        // at this point the seqno for the old thread is determined
-
-        lastEncoder->vkQueueHostSyncGOOGLE(queue, false, oldSeq + 1);
-        lastEncoder->flush();
-        currentEncoder->vkQueueHostSyncGOOGLE(queue, true, oldSeq + 2);
-
-        lock.lock();
-        if (lastEncoder->decRef()) { *lastUsedEncoderPtr = nullptr; }
-
-        return 1;
+        return 0;
     }
 
     VkResult on_vkBeginCommandBuffer(

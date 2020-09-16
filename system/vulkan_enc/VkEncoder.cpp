@@ -62,6 +62,7 @@ using android::base::Pool;
 class VkEncoder::Impl {
 public:
     Impl(IOStream* stream) : m_stream(stream), m_logEncodes(false) {
+        m_stream.incStreamRef();
         const char* emuVkLogEncodesPropName = "qemu.vk.log";
         char encodeProp[PROPERTY_VALUE_MAX];
         if (property_get(emuVkLogEncodesPropName, encodeProp, nullptr) > 0) {
@@ -69,7 +70,9 @@ public:
         }
     }
 
-    ~Impl() { }
+    ~Impl() {
+        m_stream.decStreamRef();
+    }
 
     VulkanCountingStream* countingStream() { return &m_countingStream; }
     VulkanStreamGuest* stream() { return &m_stream; }
@@ -114,11 +117,9 @@ public:
 
     void incRef() {
         __atomic_add_fetch(&m_refCount, 1, __ATOMIC_SEQ_CST);
-        m_stream.incStreamRef();
     }
 
     bool decRef() {
-        m_stream.decStreamRef();
         if (0 == __atomic_sub_fetch(&m_refCount, 1, __ATOMIC_SEQ_CST)) {
             return true;
         }
