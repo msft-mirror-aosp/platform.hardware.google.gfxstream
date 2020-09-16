@@ -52,6 +52,7 @@ void zx_event_create(int, zx_handle_t*) { }
 #include <lib/zx/vmo.h>
 #include <zircon/errors.h>
 #include <zircon/process.h>
+#include <zircon/rights.h>
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>
 
@@ -1731,9 +1732,9 @@ public:
         delete sysmem_collection;
     }
 
-    inline llcpp::fuchsia::sysmem::BufferCollectionConstraints
-    defaultBufferCollectionConstraints(size_t min_size_bytes,
-                                       size_t buffer_count) {
+    inline llcpp::fuchsia::sysmem::BufferCollectionConstraints defaultBufferCollectionConstraints(
+        size_t min_size_bytes,
+        size_t buffer_count) {
         llcpp::fuchsia::sysmem::BufferCollectionConstraints constraints = {};
         constraints.min_buffer_count = buffer_count;
         constraints.has_buffer_memory_constraints = true;
@@ -1744,12 +1745,16 @@ public:
         buffer_constraints.max_size_bytes = 0xffffffff;
         buffer_constraints.physically_contiguous_required = false;
         buffer_constraints.secure_required = false;
-        buffer_constraints.ram_domain_supported = false;
-        buffer_constraints.cpu_domain_supported = false;
+
+        // No restrictions on coherency domain or Heaps.
+        buffer_constraints.ram_domain_supported = true;
+        buffer_constraints.cpu_domain_supported = true;
         buffer_constraints.inaccessible_domain_supported = true;
-        buffer_constraints.heap_permitted_count = 1;
+        buffer_constraints.heap_permitted_count = 2;
         buffer_constraints.heap_permitted[0] =
             llcpp::fuchsia::sysmem::HeapType::GOLDFISH_DEVICE_LOCAL;
+        buffer_constraints.heap_permitted[1] =
+            llcpp::fuchsia::sysmem::HeapType::GOLDFISH_HOST_VISIBLE;
 
         return constraints;
     }
@@ -1799,6 +1804,7 @@ public:
     }
 
     VkResult setBufferCollectionConstraints(
+        VkEncoder* enc, VkDevice device,
         llcpp::fuchsia::sysmem::BufferCollection::SyncClient* collection,
         const VkImageCreateInfo* pImageInfo) {
         if (pImageInfo == nullptr) {
@@ -1806,13 +1812,9 @@ public:
             return VK_ERROR_OUT_OF_DEVICE_MEMORY;
         }
 
-        // TODO(liyl): Currently the size only works for RGBA8 and BGRA8 images.
-        // We should set the size based on its actual format.
         llcpp::fuchsia::sysmem::BufferCollectionConstraints constraints =
             defaultBufferCollectionConstraints(
-                /* min_size_bytes */ pImageInfo->extent.width *
-                    pImageInfo->extent.height * 4,
-                /* buffer_count */ 1u);
+                /* min_size_bytes */ 0, /* buffer_count */ 1u);
 
         constraints.usage.vulkan =
             getBufferCollectionConstraintsVulkanImageUsage(pImageInfo);
@@ -1832,6 +1834,14 @@ public:
             constraints.image_format_constraints_count = formats.size();
             uint32_t format_index = 0;
             for (VkFormat format : formats) {
+                // Get row alignment from host GPU.
+                VkDeviceSize offset;
+                VkDeviceSize rowPitchAlignment;
+                enc->vkGetLinearImageLayoutGOOGLE(device, format, &offset, &rowPitchAlignment);
+
+                ALOGD("vkGetLinearImageLayoutGOOGLE: format %d offset %lu rowPitchAlignment = %lu",
+                    (int)format, offset, rowPitchAlignment);
+
                 llcpp::fuchsia::sysmem::ImageFormatConstraints&
                     image_constraints =
                         constraints.image_format_constraints[format_index++];
@@ -1864,15 +1874,16 @@ public:
                 image_constraints.max_coded_width = 0xfffffff;
                 image_constraints.min_coded_height = pImageInfo->extent.height;
                 image_constraints.max_coded_height = 0xffffffff;
-                image_constraints.min_bytes_per_row =
-                        pImageInfo->extent.width * 4;
+                // The min_bytes_per_row can be calculated by sysmem using
+                // |min_coded_width|, |bytes_per_row_divisor| and color format.
+                image_constraints.min_bytes_per_row = 0;
                 image_constraints.max_bytes_per_row = 0xffffffff;
                 image_constraints.max_coded_width_times_coded_height =
                         0xffffffff;
                 image_constraints.layers = 1;
                 image_constraints.coded_width_divisor = 1;
                 image_constraints.coded_height_divisor = 1;
-                image_constraints.bytes_per_row_divisor = 1;
+                image_constraints.bytes_per_row_divisor = rowPitchAlignment;
                 image_constraints.start_offset_divisor = 1;
                 image_constraints.display_width_divisor = 1;
                 image_constraints.display_height_divisor = 1;
@@ -1900,8 +1911,7 @@ public:
 
         llcpp::fuchsia::sysmem::BufferCollectionConstraints constraints =
             defaultBufferCollectionConstraints(
-                /* min_size_bytes */ pBufferConstraintsInfo->pBufferCreateInfo
-                    ->size,
+                /* min_size_bytes */ pBufferConstraintsInfo->pBufferCreateInfo->size,
                 /* buffer_count */ pBufferConstraintsInfo->minCount);
         constraints.usage.vulkan =
             getBufferCollectionConstraintsVulkanBufferUsage(
@@ -1917,12 +1927,13 @@ public:
     }
 
     VkResult on_vkSetBufferCollectionConstraintsFUCHSIA(
-        void*, VkResult, VkDevice,
+        void* context, VkResult, VkDevice device,
         VkBufferCollectionFUCHSIA collection,
         const VkImageCreateInfo* pImageInfo) {
+        VkEncoder* enc = (VkEncoder*)context;
         auto sysmem_collection = reinterpret_cast<
             llcpp::fuchsia::sysmem::BufferCollection::SyncClient*>(collection);
-        return setBufferCollectionConstraints(sysmem_collection, pImageInfo);
+        return setBufferCollectionConstraints(enc, device, sysmem_collection, pImageInfo);
     }
 
     VkResult on_vkSetBufferCollectionBufferConstraintsFUCHSIA(
@@ -1954,9 +1965,11 @@ public:
         llcpp::fuchsia::sysmem::BufferCollectionInfo_2 info =
             std::move(result.Unwrap()->buffer_collection_info);
 
-        if (!info.settings.has_image_format_constraints) {
-            return VK_ERROR_INITIALIZATION_FAILED;
-        }
+        bool is_host_visible = info.settings.buffer_settings.coherency_domain ==
+                               llcpp::fuchsia::sysmem::CoherencyDomain::CPU;
+        bool is_device_local = info.settings.buffer_settings.coherency_domain ==
+                               llcpp::fuchsia::sysmem::CoherencyDomain::INACCESSIBLE;
+
         pProperties->count = info.buffer_count;
 
         AutoLock lock(mLock);
@@ -1972,8 +1985,10 @@ public:
         // Device local memory type supported.
         pProperties->memoryTypeBits = 0;
         for (uint32_t i = 0; i < deviceInfo.memProps.memoryTypeCount; ++i) {
-            if (deviceInfo.memProps.memoryTypes[i].propertyFlags &
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
+            if ((is_device_local && (deviceInfo.memProps.memoryTypes[i].propertyFlags &
+                                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) ||
+                (is_host_visible && (deviceInfo.memProps.memoryTypes[i].propertyFlags &
+                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT))) {
                 pProperties->memoryTypeBits |= 1ull << i;
             }
         }
@@ -2460,7 +2475,7 @@ public:
                     std::move(collection_client));
                 if (hasDedicatedImage) {
                     VkResult res = setBufferCollectionConstraints(
-                        &collection, pImageCreateInfo);
+                        enc, device, &collection, pImageCreateInfo);
                     if (res == VK_ERROR_FORMAT_NOT_SUPPORTED) {
                       ALOGE("setBufferCollectionConstraints failed: format %u is not supported",
                             pImageCreateInfo->format);
@@ -2645,12 +2660,44 @@ public:
             abort();
         }
 
+#ifdef VK_USE_PLATFORM_FUCHSIA
         if (vmo_handle != ZX_HANDLE_INVALID) {
-            ALOGE("%s: Host visible export/import allocation "
-                  "of VMO is not supported yet.",
-                  __func__);
-            abort();
+            input_result = enc->vkAllocateMemory(device, &finalAllocInfo, pAllocator, pMemory);
+
+            // Get VMO handle rights, and only use allowed rights to map the
+            // host memory.
+            zx_info_handle_basic handle_info;
+            zx_status_t status = zx_object_get_info(vmo_handle, ZX_INFO_HANDLE_BASIC, &handle_info,
+                                        sizeof(handle_info), nullptr, nullptr);
+            if (status != ZX_OK) {
+                ALOGE("%s: cannot get vmo object info: vmo = %u status: %d.", __func__, vmo_handle,
+                      status);
+                return VK_ERROR_OUT_OF_HOST_MEMORY;
+            }
+
+            zx_vm_option_t vm_permission = 0u;
+            vm_permission |= (handle_info.rights & ZX_RIGHT_READ) ? ZX_VM_PERM_READ : 0;
+            vm_permission |= (handle_info.rights & ZX_RIGHT_WRITE) ? ZX_VM_PERM_WRITE : 0;
+
+            zx_paddr_t addr;
+            status = zx_vmar_map(zx_vmar_root_self(), vm_permission, 0, vmo_handle, 0,
+                finalAllocInfo.allocationSize, &addr);
+            if (status != ZX_OK) {
+                ALOGE("%s: cannot map vmar: status %d.", __func__, status);
+                return VK_ERROR_OUT_OF_HOST_MEMORY;
+            }
+
+            D("host visible alloc (external): "
+              "size 0x%llx host ptr %p mapped size 0x%llx",
+              (unsigned long long)finalAllocInfo.allocationSize, mappedPtr,
+              (unsigned long long)mappedSize);
+            setDeviceMemoryInfo(device, *pMemory,
+                finalAllocInfo.allocationSize, finalAllocInfo.allocationSize,
+                reinterpret_cast<uint8_t*>(addr), finalAllocInfo.memoryTypeIndex,
+                /*ahw=*/nullptr, vmo_handle);
+            return VK_SUCCESS;
         }
+#endif
 
         // Host visible memory, non external
         bool directMappingSupported = usingDirectMapping();
@@ -2745,6 +2792,17 @@ public:
         auto it = info_VkDeviceMemory.find(memory);
         if (it == info_VkDeviceMemory.end()) return;
         auto& info = it->second;
+
+#ifdef VK_USE_PLATFORM_FUCHSIA
+        if (info.vmoHandle && info.mappedPtr) {
+            zx_status_t status = zx_vmar_unmap(
+                zx_vmar_root_self(), reinterpret_cast<zx_paddr_t>(info.mappedPtr), info.mappedSize);
+            if (status != ZX_OK) {
+                ALOGE("%s: Cannot unmap mappedPtr: status %d", status);
+            }
+            info.mappedPtr = nullptr;
+        }
+#endif
 
         if (!info.directMapped) {
             lock.unlock();
@@ -3012,36 +3070,62 @@ public:
             }
 
             if (vmo.is_valid()) {
-              auto format = info.settings.image_format_constraints.pixel_format.type ==
-                                    llcpp::fuchsia::sysmem::PixelFormatType::R8G8B8A8
-                                ? llcpp::fuchsia::hardware::goldfish::ColorBufferFormatType::RGBA
-                                : llcpp::fuchsia::hardware::goldfish::ColorBufferFormatType::BGRA;
+                zx::vmo vmo_dup;
+                if (zx_status_t status = vmo.duplicate(ZX_RIGHT_SAME_RIGHTS, &vmo_dup);
+                    status != ZX_OK) {
+                    ALOGE("%s: zx_vmo_duplicate failed: %d", __func__, status);
+                    abort();
+                }
 
-              auto createParams =
-                  llcpp::fuchsia::hardware::goldfish::CreateColorBuffer2Params::Builder(
-                      std::make_unique<
-                          llcpp::fuchsia::hardware::goldfish::CreateColorBuffer2Params::Frame>())
-                      .set_width(std::make_unique<uint32_t>(
-                          info.settings.image_format_constraints.min_coded_width))
-                      .set_height(std::make_unique<uint32_t>(
-                          info.settings.image_format_constraints.min_coded_height))
-                      .set_format(
-                          std::make_unique<
-                              llcpp::fuchsia::hardware::goldfish::ColorBufferFormatType>(format))
-                      .set_memory_property(std::make_unique<uint32_t>(
-                          llcpp::fuchsia::hardware::goldfish::MEMORY_PROPERTY_DEVICE_LOCAL))
-                      .build();
+                auto buffer_handle_result = mControlDevice->GetBufferHandle(std::move(vmo_dup));
+                if (!buffer_handle_result.ok()) {
+                    ALOGE("%s: GetBufferHandle FIDL error: %d", __func__,
+                          buffer_handle_result.status());
+                    abort();
+                }
+                if (buffer_handle_result.value().res == ZX_OK) {
+                    // Buffer handle already exists.
+                    // If it is a ColorBuffer, no-op; Otherwise return error.
+                    if (buffer_handle_result.value().type !=
+                        llcpp::fuchsia::hardware::goldfish::BufferHandleType::COLOR_BUFFER) {
+                        ALOGE("%s: BufferHandle %u is not a ColorBuffer", __func__,
+                              buffer_handle_result.value().id);
+                        return VK_ERROR_OUT_OF_HOST_MEMORY;
+                    }
+                } else if (buffer_handle_result.value().res == ZX_ERR_NOT_FOUND) {
+                    // Buffer handle not found. Create ColorBuffer based on buffer settings.
+                    auto format =
+                        info.settings.image_format_constraints.pixel_format.type ==
+                                llcpp::fuchsia::sysmem::PixelFormatType::R8G8B8A8
+                            ? llcpp::fuchsia::hardware::goldfish::ColorBufferFormatType::RGBA
+                            : llcpp::fuchsia::hardware::goldfish::ColorBufferFormatType::BGRA;
 
-              auto result =
-                  mControlDevice->CreateColorBuffer2(std::move(vmo), std::move(createParams));
-              if (!result.ok() || result.Unwrap()->res != ZX_OK) {
-                  if (result.ok() &&
-                      result.Unwrap()->res == ZX_ERR_ALREADY_EXISTS) {
-                      ALOGD("CreateColorBuffer: color buffer already exists");
-                  } else {
-                      ALOGE("CreateColorBuffer failed: %d:%d", result.status(),
-                            GET_STATUS_SAFE(result, res));
-                  }
+                    uint32_t memory_property =
+                        info.settings.buffer_settings.heap ==
+                                llcpp::fuchsia::sysmem::HeapType::GOLDFISH_DEVICE_LOCAL
+                            ? llcpp::fuchsia::hardware::goldfish::MEMORY_PROPERTY_DEVICE_LOCAL
+                            : llcpp::fuchsia::hardware::goldfish::MEMORY_PROPERTY_HOST_VISIBLE;
+
+                    auto createParams =
+                        llcpp::fuchsia::hardware::goldfish::CreateColorBuffer2Params::Builder(
+                            std::make_unique<llcpp::fuchsia::hardware::goldfish::
+                                                 CreateColorBuffer2Params::Frame>())
+                            .set_width(std::make_unique<uint32_t>(
+                                info.settings.image_format_constraints.min_coded_width))
+                            .set_height(std::make_unique<uint32_t>(
+                                info.settings.image_format_constraints.min_coded_height))
+                            .set_format(std::make_unique<
+                                        llcpp::fuchsia::hardware::goldfish::ColorBufferFormatType>(
+                                format))
+                            .set_memory_property(std::make_unique<uint32_t>(memory_property))
+                            .build();
+
+                    auto result =
+                        mControlDevice->CreateColorBuffer2(std::move(vmo), std::move(createParams));
+                    if (!result.ok() || result.Unwrap()->res != ZX_OK) {
+                        ALOGE("CreateColorBuffer failed: %d:%d", result.status(),
+                              GET_STATUS_SAFE(result, res));
+                    }
                 }
             }
             isSysmemBackedMemory = true;
