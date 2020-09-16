@@ -1838,6 +1838,13 @@ public:
         const VkBindSparseInfo* pBindInfo,
         VkFence fence);
 #endif
+#ifdef VK_GOOGLE_linear_image_layout
+    void vkGetLinearImageLayoutGOOGLE(
+    VkDevice device,
+        VkFormat format,
+        VkDeviceSize* pOffset,
+        VkDeviceSize* pRowPitchAlignment);
+#endif
 
     void incRef();
     bool decRef();

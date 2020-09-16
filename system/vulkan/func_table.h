@@ -294,6 +294,8 @@ namespace goldfish_vk {
 #endif
 #ifdef VK_GOOGLE_async_queue_submit
 #endif
+#ifdef VK_GOOGLE_linear_image_layout
+#endif
 void* goldfish_vulkan_get_proc_address(const char* name);
 void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char* name);
 void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name);
