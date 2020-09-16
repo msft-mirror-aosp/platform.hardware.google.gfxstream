@@ -398,6 +398,9 @@ public:
         auto it = info_VkCommandBuffer.find(commandBuffer);
         if (it == info_VkCommandBuffer.end()) return;
         auto& info = it->second;
+        if (info.lastUsedEncoder) {
+            info.lastUsedEncoder->decRef();
+        }
         info.lastUsedEncoder = nullptr;
         info_VkCommandBuffer.erase(commandBuffer);
     }
@@ -409,6 +412,9 @@ public:
         if (it == info_VkQueue.end()) return;
         auto& info = it->second;
         auto lastUsedEncoder = info.lastUsedEncoder;
+        if (info.lastUsedEncoder) {
+            info.lastUsedEncoder->decRef();
+        }
         info.lastUsedEncoder = nullptr;
         info_VkQueue.erase(queue);
     }
