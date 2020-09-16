@@ -5338,6 +5338,33 @@ static void entry_vkQueueBindSparseAsyncGOOGLE(
     vkEnc->vkQueueBindSparseAsyncGOOGLE(queue, bindInfoCount, pBindInfo, fence);
 }
 #endif
+#ifdef VK_GOOGLE_linear_image_layout
+static void entry_vkGetLinearImageLayoutGOOGLE(
+    VkDevice device,
+    VkFormat format,
+    VkDeviceSize* pOffset,
+    VkDeviceSize* pRowPitchAlignment)
+{
+    AEMU_SCOPED_TRACE("vkGetLinearImageLayoutGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkGetLinearImageLayoutGOOGLE(device, format, pOffset, pRowPitchAlignment);
+}
+static void dynCheck_entry_vkGetLinearImageLayoutGOOGLE(
+    VkDevice device,
+    VkFormat format,
+    VkDeviceSize* pOffset,
+    VkDeviceSize* pRowPitchAlignment)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_linear_image_layout"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetLinearImageLayoutGOOGLE", "VK_GOOGLE_linear_image_layout");
+    }
+    AEMU_SCOPED_TRACE("vkGetLinearImageLayoutGOOGLE");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkGetLinearImageLayoutGOOGLE(device, format, pOffset, pRowPitchAlignment);
+}
+#endif
 void* goldfish_vulkan_get_proc_address(const char* name){
 #ifdef VK_VERSION_1_0
     if (!strcmp(name, "vkCreateInstance"))
@@ -6809,6 +6836,12 @@ void* goldfish_vulkan_get_proc_address(const char* name){
         return nullptr;
     }
     if (!strcmp(name, "vkQueueBindSparseAsyncGOOGLE"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_linear_image_layout
+    if (!strcmp(name, "vkGetLinearImageLayoutGOOGLE"))
     {
         return nullptr;
     }
@@ -8387,6 +8420,12 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     {
         bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_async_queue_submit");
         return hasExt ? (void*)entry_vkQueueBindSparseAsyncGOOGLE : nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_linear_image_layout
+    if (!strcmp(name, "vkGetLinearImageLayoutGOOGLE"))
+    {
+        return (void*)dynCheck_entry_vkGetLinearImageLayoutGOOGLE;
     }
 #endif
     return nullptr;
@@ -10034,6 +10073,13 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     {
         bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_async_queue_submit");
         return hasExt ? (void*)entry_vkQueueBindSparseAsyncGOOGLE : nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_linear_image_layout
+    if (!strcmp(name, "vkGetLinearImageLayoutGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_linear_image_layout");
+        return hasExt ? (void*)entry_vkGetLinearImageLayoutGOOGLE : nullptr;
     }
 #endif
     return nullptr;
