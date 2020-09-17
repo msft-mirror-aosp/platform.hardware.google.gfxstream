@@ -541,12 +541,14 @@ public:
     int getMaxColorAttachments() const;
     int getMaxDrawBuffers() const;
 
-    // Uniform validation info
+    // Uniform/attribute validation info
     UniformValidationInfo currentUniformValidationInfo;
-    // TODO: Program uniform validation info
+    AttribValidationInfo currentAttribValidationInfo;;
 
     // Uniform validation api
     void validateUniform(bool isFloat, bool isUnsigned, GLint columns, GLint rows, GLint location, GLsizei count, GLenum* err);
+    // Attrib validation
+    bool isAttribIndexUsedByProgram(int attribIndex);
 
 private:
     void init();

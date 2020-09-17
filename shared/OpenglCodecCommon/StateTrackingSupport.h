@@ -74,7 +74,8 @@ private:
     Storage mStorage;
 };
 
-// A structure for fast validation of uniform uploads and other uniform related api calls.
+// Structures for fast validation of uniforms/attribs.
+
 struct UniformLocationInfo {
     bool valid = false;
     uint32_t columns;
@@ -86,7 +87,12 @@ struct UniformLocationInfo {
     bool isBool;
 };
 
+struct AttribIndexInfo {
+    bool validInProgram = false;
+};
+
 using UniformValidationInfo = android::base::HybridComponentManager<1000, uint32_t, UniformLocationInfo>;
+using AttribValidationInfo = android::base::HybridComponentManager<16, uint32_t, AttribIndexInfo>;
 
 using LastQueryTargetInfo = android::base::HybridComponentManager<1000, uint32_t, uint32_t>;
 
