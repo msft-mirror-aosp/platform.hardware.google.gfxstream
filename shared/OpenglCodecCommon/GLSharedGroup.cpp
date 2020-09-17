@@ -40,6 +40,7 @@ ProgramData::ProgramData() : m_numIndexes(0),
                              m_numAttributes(0),
                              m_initialized(false) {
     m_Indexes = NULL;
+    m_attribIndexes = NULL;
     m_refcount = 1;
     m_linkStatus = 0;
     m_activeUniformBlockCount = 0;
@@ -52,8 +53,10 @@ void ProgramData::initProgramData(GLuint numIndexes, GLuint numAttributes) {
     m_numAttributes = numAttributes;
 
     delete [] m_Indexes;
+    delete [] m_attribIndexes;
 
     m_Indexes = new IndexInfo[numIndexes];
+    m_attribIndexes = new AttribInfo[m_numAttributes];
 }
 
 bool ProgramData::isInitialized() {
@@ -63,6 +66,7 @@ bool ProgramData::isInitialized() {
 ProgramData::~ProgramData() {
 
     delete [] m_Indexes;
+    delete [] m_attribIndexes;
 
     m_Indexes = NULL;
 }
@@ -78,6 +82,16 @@ void ProgramData::setIndexInfo(
     m_Indexes[index].hostLocsPerElement = 1;
     m_Indexes[index].flags = 0;
     m_Indexes[index].samplerValue = 0;
+}
+
+void ProgramData::setAttribInfo(
+    GLuint index, GLint attribLoc, GLint size, GLenum type) {
+
+    if (index >= m_numAttributes) return;
+
+    m_attribIndexes[index].attribLoc = attribLoc;
+    m_attribIndexes[index].size = size;
+    m_attribIndexes[index].type = type;
 }
 
 void ProgramData::setIndexFlags(GLuint index, GLuint flags) {
@@ -228,6 +242,27 @@ UniformValidationInfo ProgramData::compileValidationInfo(bool* error) const {
     return res;
 }
 
+AttribValidationInfo ProgramData::compileAttribValidationInfo(bool* error) const {
+    AttribValidationInfo res;
+    if (!m_attribIndexes) {
+        *error = true;
+        return res;
+    }
+
+    for (GLuint i = 0; i < m_numAttributes; ++i) {
+        if (m_attribIndexes[i].attribLoc < 0) continue;
+
+        AttribIndexInfo info = {
+            .validInProgram = true,
+        };
+
+        for (GLuint j = 0; j < getAttributeCountOfType(m_attribIndexes[i].type) * m_attribIndexes[i].size ; ++j) {
+            res.add(m_attribIndexes[i].attribLoc + j, info);
+        }
+    }
+
+    return res;
+}
 /***** GLSharedGroup ****/
 
 GLSharedGroup::GLSharedGroup() { }
@@ -521,6 +556,19 @@ void GLSharedGroup::setProgramIndexInfo(
     }
 }
 
+void GLSharedGroup::setProgramAttribInfo(
+    GLuint program, GLuint index, GLint attribLoc,
+    GLint size, GLenum type, const char* name) {
+
+    android::AutoMutex _lock(m_lock);
+
+    ProgramData* pData = getProgramDataLocked(program);
+
+    if (pData) {
+        pData->setAttribInfo(index,attribLoc,size,type);
+    }
+}
+
 GLenum GLSharedGroup::getProgramUniformType(GLuint program, GLint location) {
 
     android::AutoMutex _lock(m_lock);
@@ -799,6 +847,20 @@ UniformValidationInfo GLSharedGroup::getUniformValidationInfo(GLuint program) {
 
     bool error; (void)error;
     return pData->compileValidationInfo(&error);
+}
+
+AttribValidationInfo GLSharedGroup::getAttribValidationInfo(GLuint program) {
+    AttribValidationInfo res;
+
+    android::AutoMutex _lock(m_lock);
+
+    ProgramData* pData =
+        getProgramDataLocked(program);
+
+    if (!pData) return res;
+
+    bool error; (void)error;
+    return pData->compileAttribValidationInfo(&error);
 }
 
 void GLSharedGroup::setProgramLinkStatus(GLuint program, GLint linkStatus) {
