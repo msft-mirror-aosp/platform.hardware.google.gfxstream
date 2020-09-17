@@ -1965,10 +1965,15 @@ public:
         llcpp::fuchsia::sysmem::BufferCollectionInfo_2 info =
             std::move(result.Unwrap()->buffer_collection_info);
 
-        bool is_host_visible = info.settings.buffer_settings.coherency_domain ==
-                               llcpp::fuchsia::sysmem::CoherencyDomain::CPU;
-        bool is_device_local = info.settings.buffer_settings.coherency_domain ==
-                               llcpp::fuchsia::sysmem::CoherencyDomain::INACCESSIBLE;
+        bool is_host_visible = info.settings.buffer_settings.heap ==
+                               llcpp::fuchsia::sysmem::HeapType::GOLDFISH_HOST_VISIBLE;
+        bool is_device_local = info.settings.buffer_settings.heap ==
+                               llcpp::fuchsia::sysmem::HeapType::GOLDFISH_DEVICE_LOCAL;
+        if (!is_host_visible && !is_device_local) {
+            ALOGE("buffer collection uses a non-goldfish heap (type 0x%lu)",
+                static_cast<uint64_t>(info.settings.buffer_settings.heap));
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
 
         pProperties->count = info.buffer_count;
 
