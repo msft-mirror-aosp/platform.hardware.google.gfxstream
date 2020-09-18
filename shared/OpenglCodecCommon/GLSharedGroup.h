@@ -76,9 +76,16 @@ private:
         GLint samplerValue; // only set for sampler uniforms
     } IndexInfo;
 
+    typedef struct _AttribInfo {
+        GLint attribLoc;
+        GLint size;
+        GLenum type;
+    } AttribInfo;
+
     GLuint m_numIndexes;
     GLuint m_numAttributes;
     IndexInfo* m_Indexes;
+    AttribInfo* m_attribIndexes;
     bool m_initialized;
 
     std::vector<GLuint> m_shaders;
@@ -100,6 +107,7 @@ public:
     bool isInitialized();
     virtual ~ProgramData();
     void setIndexInfo(GLuint index, GLint base, GLint size, GLenum type);
+    void setAttribInfo(GLuint index, GLint base, GLint size, GLenum type);
     void setIndexFlags(GLuint index, GLuint flags);
     GLuint getIndexForLocation(GLint location);
     GLenum getTypeForLocation(GLint location);
@@ -120,6 +128,7 @@ public:
     }
 
     UniformValidationInfo compileValidationInfo(bool* error) const;
+    AttribValidationInfo compileAttribValidationInfo(bool* error) const;
     void setLinkStatus(GLint status) { m_linkStatus = status; }
     GLint getLinkStatus() { return m_linkStatus; }
 
@@ -210,6 +219,7 @@ public:
     void    deleteProgramData(GLuint program);
     void    deleteProgramDataLocked(GLuint program);
     void    setProgramIndexInfo(GLuint program, GLuint index, GLint base, GLint size, GLenum type, const char* name);
+    void    setProgramAttribInfo(GLuint program, GLuint index, GLint attribLoc, GLint size, GLenum type, const char* name);
     GLenum  getProgramUniformType(GLuint program, GLint location);
     GLint   getNextSamplerUniform(GLuint program, GLint index, GLint* val, GLenum* target) const;
     bool    setSamplerUniform(GLuint program, GLint appLoc, GLint val, GLenum* target);
@@ -233,6 +243,7 @@ public:
 
     // Validation info
     UniformValidationInfo getUniformValidationInfo(GLuint program);
+    AttribValidationInfo getAttribValidationInfo(GLuint program);
 
     void setProgramLinkStatus(GLuint program, GLint linkStatus);
     GLint getProgramLinkStatus(GLuint program);
