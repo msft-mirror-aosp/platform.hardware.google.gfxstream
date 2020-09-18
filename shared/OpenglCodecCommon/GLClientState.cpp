@@ -2406,6 +2406,13 @@ void GLClientState::validateUniform(bool isFloat, bool isUnsigned, GLint columns
     }
 }
 
+bool GLClientState::isAttribIndexUsedByProgram(int index) {
+    auto info = currentAttribValidationInfo.get_const(index);
+    if (!info) return false;
+    if (!info->validInProgram) return false;
+    return true;
+}
+
 void GLClientState::addFreshFramebuffer(GLuint name) {
     FboProps props;
     props.name = name;
