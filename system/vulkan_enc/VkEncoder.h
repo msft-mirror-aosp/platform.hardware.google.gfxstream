@@ -40,9 +40,7 @@ public:
     VkEncoder(IOStream* stream);
     ~VkEncoder();
 
-    void flush();
-    void lock();
-    void unlock();
+#include "VkEncoder.h.inl"
 #ifdef VK_VERSION_1_0
     VkResult vkCreateInstance(
     const VkInstanceCreateInfo* pCreateInfo,
@@ -1845,9 +1843,6 @@ public:
         VkDeviceSize* pOffset,
         VkDeviceSize* pRowPitchAlignment);
 #endif
-
-    void incRef();
-    bool decRef();
 
 private:
     class Impl;
