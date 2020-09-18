@@ -1319,20 +1319,24 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count, bool hasClient
                 }
                 if (state.elementSize == 0) {
                     // The vertex attribute array is uninitialized. Abandon it.
-                    ALOGE("a vertex attribute array is uninitialized. Skipping corresponding vertex attribute.");
                     this->m_glDisableVertexAttribArray_enc(this, i);
                     continue;
                 }
                 m_glEnableVertexAttribArray_enc(this, i);
 
                 if (datalen && (!offset || !((unsigned char*)offset + firstIndex))) {
-                    ALOGD("%s: bad offset / len!!!!!", __FUNCTION__);
                     continue;
                 }
+
+                unsigned char* data = (unsigned char*)offset + firstIndex;
+                if (!m_state->isAttribIndexUsedByProgram(i)) {
+                    continue;
+                }
+
                 if (state.isInt) {
-                    this->glVertexAttribIPointerDataAEMU(this, i, state.size, state.type, stride, (unsigned char *)offset + firstIndex, datalen);
+                    this->glVertexAttribIPointerDataAEMU(this, i, state.size, state.type, stride, data, datalen);
                 } else {
-                    this->glVertexAttribPointerData(this, i, state.size, state.type, state.normalized, stride, (unsigned char *)offset + firstIndex, datalen);
+                    this->glVertexAttribPointerData(this, i, state.size, state.type, state.normalized, stride, data, datalen);
                 }
             } else {
                 const BufferData* buf = m_shared->getBufferData(bufferObject);
@@ -1347,20 +1351,24 @@ void GL2Encoder::sendVertexAttributes(GLint first, GLsizei count, bool hasClient
                 if (buf && firstIndex >= 0 && firstIndex + bufLen <= buf->m_size) {
                     if (hasClientArrays) {
                         m_glEnableVertexAttribArray_enc(this, i);
-                        if (state.isInt) {
-                            this->glVertexAttribIPointerOffsetAEMU(this, i, state.size, state.type, stride, offset + firstIndex);
-                        } else {
-                            this->glVertexAttribPointerOffset(this, i, state.size, state.type, state.normalized, stride, offset + firstIndex);
+                        if (firstIndex) {
+                            if (state.isInt) {
+                                this->glVertexAttribIPointerOffsetAEMU(this, i, state.size, state.type, stride, offset + firstIndex);
+                            } else {
+                                this->glVertexAttribPointerOffset(this, i, state.size, state.type, state.normalized, stride, offset + firstIndex);
+                            }
                         }
                     }
                 } else {
-                    ALOGE("a vertex attribute index out of boundary is detected. Skipping corresponding vertex attribute. buf=%p", buf);
-                    if (buf) {
-                        ALOGE("Out of bounds vertex attribute info: "
-                                "clientArray? %d attribute %d vbo %u allocedBufferSize %u bufferDataSpecified? %d wantedStart %u wantedEnd %u",
-                                hasClientArrays, i, bufferObject, (unsigned int)buf->m_size, buf != NULL, firstIndex, firstIndex + bufLen);
+                    if (m_state->isAttribIndexUsedByProgram(i)) {
+                        ALOGE("a vertex attribute index out of boundary is detected. Skipping corresponding vertex attribute. buf=%p", buf);
+                        if (buf) {
+                            ALOGE("Out of bounds vertex attribute info: "
+                                    "clientArray? %d attribute %d vbo %u allocedBufferSize %u bufferDataSpecified? %d wantedStart %u wantedEnd %u",
+                                    hasClientArrays, i, bufferObject, (unsigned int)buf->m_size, buf != NULL, firstIndex, firstIndex + bufLen);
+                        }
+                        m_glDisableVertexAttribArray_enc(this, i);
                     }
-                    m_glDisableVertexAttribArray_enc(this, i);
                 }
             }
         } else {
@@ -1909,11 +1917,14 @@ void GL2Encoder::s_glLinkProgram(void * self, GLuint program)
 
     //get the length of the longest uniform name
     GLint maxLength=0;
+    GLint maxAttribLength=0;
     ctx->m_glGetProgramiv_enc(self, program, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxLength);
+    ctx->m_glGetProgramiv_enc(self, program, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxAttribLength);
 
     GLint size;
     GLenum type;
-    GLchar *name = new GLchar[maxLength+1];
+    size_t bufLen = maxLength > maxAttribLength ? maxLength : maxAttribLength;
+    GLchar *name = new GLchar[bufLen + 1];
     GLint location;
     //for each active uniform, get its size and starting location.
     for (GLint i=0 ; i<numUniforms ; ++i)
@@ -1921,6 +1932,12 @@ void GL2Encoder::s_glLinkProgram(void * self, GLuint program)
         ctx->m_glGetActiveUniform_enc(self, program, i, maxLength, NULL, &size, &type, name);
         location = ctx->m_glGetUniformLocation_enc(self, program, name);
         ctx->m_shared->setProgramIndexInfo(program, i, location, size, type, name);
+    }
+
+    for (GLint i = 0; i < numAttributes; ++i) {
+        ctx->m_glGetActiveAttrib_enc(self, program, i, maxAttribLength,  NULL, &size, &type, name);
+        location = ctx->m_glGetAttribLocation_enc(self, program, name);
+        ctx->m_shared->setProgramAttribInfo(program, i, location, size, type, name);
     }
 
     if (ctx->majorVersion() > 2) {
@@ -2219,6 +2236,7 @@ void GL2Encoder::s_glUseProgram(void *self, GLuint program)
 
     if (program) {
         ctx->m_state->currentUniformValidationInfo = ctx->m_shared->getUniformValidationInfo(program);
+        ctx->m_state->currentAttribValidationInfo = ctx->m_shared->getAttribValidationInfo(program);
     }
 }
 
@@ -5321,7 +5339,7 @@ void GL2Encoder::s_glActiveShaderProgram(void* self, GLuint pipeline, GLuint pro
     }
 }
 
-GLuint GL2Encoder::s_glCreateShaderProgramv(void* self, GLenum type, GLsizei count, const char** strings) {
+GLuint GL2Encoder::s_glCreateShaderProgramv(void* self, GLenum shaderType, GLsizei count, const char** strings) {
 
     GLint* length = NULL;
     GL2Encoder* ctx = (GL2Encoder*)self;
@@ -5342,7 +5360,7 @@ GLuint GL2Encoder::s_glCreateShaderProgramv(void* self, GLenum type, GLsizei cou
         return -1;
     }
 
-    GLuint res = ctx->glCreateShaderProgramvAEMU(ctx, type, count, str, len + 1);
+    GLuint res = ctx->glCreateShaderProgramvAEMU(ctx, shaderType, count, str, len + 1);
     delete [] str;
 
     // Phase 2: do glLinkProgram-related initialization for locationWorkARound
@@ -5363,14 +5381,23 @@ GLuint GL2Encoder::s_glCreateShaderProgramv(void* self, GLenum type, GLsizei cou
     ctx->m_shared->initShaderProgramData(res, numUniforms, numAttributes);
 
     GLint maxLength=0;
+    GLint maxAttribLength=0;
     ctx->m_glGetProgramiv_enc(self, res, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxLength);
+    ctx->m_glGetProgramiv_enc(self, res, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxAttribLength);
 
-    GLint size; GLenum uniformType; GLchar* name = new GLchar[maxLength + 1];
+    size_t bufLen = maxLength > maxAttribLength ? maxLength : maxAttribLength;
+    GLint size; GLenum type; GLchar *name = new GLchar[bufLen + 1];
 
     for (GLint i = 0; i < numUniforms; ++i) {
-        ctx->m_glGetActiveUniform_enc(self, res, i, maxLength, NULL, &size, &uniformType, name);
+        ctx->m_glGetActiveUniform_enc(self, res, i, maxLength, NULL, &size, &type, name);
         GLint location = ctx->m_glGetUniformLocation_enc(self, res, name);
-        ctx->m_shared->setShaderProgramIndexInfo(res, i, location, size, uniformType, name);
+        ctx->m_shared->setShaderProgramIndexInfo(res, i, location, size, type, name);
+    }
+
+    for (GLint i = 0; i < numAttributes; ++i) {
+        ctx->m_glGetActiveAttrib_enc(self, res, i, maxAttribLength,  NULL, &size, &type, name);
+        GLint location = ctx->m_glGetAttribLocation_enc(self, res, name);
+        ctx->m_shared->setProgramAttribInfo(res, i, location, size, type, name);
     }
 
     GLint numBlocks;
@@ -5636,6 +5663,11 @@ void GL2Encoder::s_glUseProgramStages(void *self, GLuint pipeline, GLbitfield st
 
     // Otherwise, update host texture 2D bindings.
     ctx->updateHostTexture2DBindingsFromProgramData(program);
+
+    if (program) {
+        ctx->m_state->currentUniformValidationInfo = ctx->m_shared->getUniformValidationInfo(program);
+        ctx->m_state->currentAttribValidationInfo = ctx->m_shared->getAttribValidationInfo(program);
+    }
 }
 
 void GL2Encoder::s_glBindProgramPipeline(void* self, GLuint pipeline)
@@ -6208,6 +6240,7 @@ void GL2Encoder::s_glBindAttribLocation(void *self , GLuint program, GLuint inde
     SET_ERROR_IF(index > maxVertexAttribs, GL_INVALID_VALUE);
     SET_ERROR_IF(name && !strncmp("gl_", name, 3), GL_INVALID_OPERATION);
 
+    fprintf(stderr, "%s: bind attrib %u name %s\n", __func__, index, name);
     ctx->m_glBindAttribLocation_enc(ctx, program, index, name);
 }
 

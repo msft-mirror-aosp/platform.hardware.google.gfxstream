@@ -63,6 +63,7 @@ typedef enum {
     bool isBoolType(GLenum type);
     uint32_t getColumnsOfType(GLenum type);
     uint32_t getRowsOfType(GLenum type);
+    uint32_t getAttributeCountOfType(GLenum type);
     size_t glSizeof(GLenum type);
     size_t glUtilsParamSize(GLenum param);
     void   glUtilsPackPointerData(unsigned char *dst, unsigned char *str,
