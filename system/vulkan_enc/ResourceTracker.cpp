@@ -1830,6 +1830,32 @@ public:
                         VK_FORMAT_B8G8R8A8_UNORM,
                         VK_FORMAT_R8G8B8A8_UNORM,
                 };
+            } else {
+                // If image format is predefined, check on host if the format,
+                // tiling and usage is supported.
+                AutoLock lock(mLock);
+                auto deviceIt = info_VkDevice.find(device);
+                if (deviceIt == info_VkDevice.end()) {
+                    return VK_ERROR_INITIALIZATION_FAILED;
+                }
+                auto& deviceInfo = deviceIt->second;
+
+                VkImageFormatProperties format_properties;
+                auto result = enc->vkGetPhysicalDeviceImageFormatProperties(
+                    deviceInfo.physdev, pImageInfo->format, pImageInfo->imageType,
+                    pImageInfo->tiling, pImageInfo->usage, pImageInfo->flags, &format_properties);
+                if (result != VK_SUCCESS) {
+                    ALOGE(
+                        "%s: Image format (%u) type (%u) tiling (%u) "
+                        "usage (%u) flags (%u) not supported by physical "
+                        "device",
+                        __func__, static_cast<uint32_t>(pImageInfo->format),
+                        static_cast<uint32_t>(pImageInfo->imageType),
+                        static_cast<uint32_t>(pImageInfo->tiling),
+                        static_cast<uint32_t>(pImageInfo->usage),
+                        static_cast<uint32_t>(pImageInfo->flags));
+                    return VK_ERROR_FORMAT_NOT_SUPPORTED;
+                }
             }
             constraints.image_format_constraints_count = formats.size();
             uint32_t format_index = 0;
