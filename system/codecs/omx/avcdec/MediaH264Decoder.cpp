@@ -48,7 +48,7 @@ void MediaH264Decoder::initH264Context(unsigned int width,
             return;
         }
         mSlot = slot;
-        mAddressOffSet = static_cast<unsigned int>(mSlot) * (1 << 21);
+        mAddressOffSet = static_cast<unsigned int>(mSlot) * (1 << 20);
         DDD("got memory lot %d addrr %x", mSlot, mAddressOffSet);
         mHasAddressSpaceMemory = true;
     }
