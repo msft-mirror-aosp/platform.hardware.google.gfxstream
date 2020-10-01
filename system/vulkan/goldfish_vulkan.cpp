@@ -785,11 +785,11 @@ vk_icdNegotiateLoaderICDInterfaceVersion(uint32_t* pSupportedVersion) {
     return VK_SUCCESS;
 }
 
-typedef VkResult(VKAPI_PTR *PFN_vkOpenInNamespaceAddr)(const char *pName, uint32_t handle);
+typedef VkResult(VKAPI_PTR *PFN_vkConnectToServiceAddr)(const char *pName, uint32_t handle);
 
 namespace {
 
-PFN_vkOpenInNamespaceAddr g_vulkan_connector;
+PFN_vkConnectToServiceAddr g_vulkan_connector;
 
 zx_handle_t LocalConnectToServiceFunction(const char* pName) {
     zx::channel remote_endpoint, local_endpoint;
@@ -808,7 +808,7 @@ zx_handle_t LocalConnectToServiceFunction(const char* pName) {
 }
 
 extern "C" __attribute__((visibility("default"))) void
-vk_icdInitializeOpenInNamespaceCallback(PFN_vkOpenInNamespaceAddr callback) {
+vk_icdInitializeConnectToServiceCallback(PFN_vkConnectToServiceAddr callback) {
     g_vulkan_connector = callback;
     SetConnectToServiceFunction(&LocalConnectToServiceFunction);
 }
