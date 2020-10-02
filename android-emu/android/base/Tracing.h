@@ -19,13 +19,30 @@
 namespace android {
 namespace base {
 
+#ifdef HOST_BUILD
+void initializeTracing();
+void enableTracing();
+void disableTracing();
+
 class ScopedTrace {
 public:
-    ScopedTrace(const char* name) : name_(name) {
+    ScopedTrace(const char* name);
+    ~ScopedTrace();
+};
+
+class ScopedTraceDerived : public ScopedTrace {
+public:
+    void* member = nullptr;
+};
+#endif
+
+class ScopedTraceGuest {
+public:
+    ScopedTraceGuest(const char* name) : name_(name) {
         beginTraceImpl(name_);
     }
 
-    ~ScopedTrace() {
+    ~ScopedTraceGuest() {
         endTraceImpl(name_);
     }
 private:
@@ -42,4 +59,8 @@ private:
 #define __AEMU_GENSYM1(x,y) __AEMU_GENSYM2(x,y)
 #define AEMU_GENSYM(x) __AEMU_GENSYM1(x,__COUNTER__)
 
+#ifdef HOST_BUILD
 #define AEMU_SCOPED_TRACE(tag) __attribute__ ((unused)) android::base::ScopedTrace AEMU_GENSYM(aemuScopedTrace_)(tag)
+#else
+#define AEMU_SCOPED_TRACE(tag) __attribute__ ((unused)) android::base::ScopedTraceGuest AEMU_GENSYM(aemuScopedTrace_)(tag)
+#endif
