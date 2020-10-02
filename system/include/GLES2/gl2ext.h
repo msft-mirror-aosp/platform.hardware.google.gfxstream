@@ -1282,6 +1282,14 @@ GL_APICALL void GL_APIENTRY glTexBufferRangeEXT (GLenum target, GLenum internalf
 #endif
 #endif /* GL_EXT_texture_buffer */
 
+#ifndef GL_EXT_texture_compression_bptc
+#define GL_EXT_texture_compression_bptc 1
+#define GL_COMPRESSED_RGBA_BPTC_UNORM_EXT 0x8E8C
+#define GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_EXT 0x8E8D
+#define GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_EXT 0x8E8E
+#define GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_EXT 0x8E8F
+#endif /* GL_EXT_texture_compression_bptc */
+
 #ifndef GL_EXT_texture_compression_dxt1
 #define GL_EXT_texture_compression_dxt1 1
 #define GL_COMPRESSED_RGB_S3TC_DXT1_EXT   0x83F0
