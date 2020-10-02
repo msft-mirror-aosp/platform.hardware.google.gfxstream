@@ -16,7 +16,7 @@ public:
 
     VulkanCountingStream* countingStream() { return &m_countingStream; }
     VulkanStreamGuest* stream() { return &m_stream; }
-    Pool* pool() { return &m_pool; }
+    BumpPool* pool() { return &m_pool; }
     ResourceTracker* resources() { return ResourceTracker::get(); }
     Validation* validation() { return &m_validation; }
 
@@ -69,7 +69,7 @@ public:
 private:
     VulkanCountingStream m_countingStream;
     VulkanStreamGuest m_stream;
-    Pool m_pool { 8, 4096, 64 };
+    BumpPool m_pool;
 
     Validation m_validation;
     bool m_logEncodes;
