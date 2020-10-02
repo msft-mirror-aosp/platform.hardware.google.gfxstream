@@ -17,10 +17,6 @@
 
 #include "cutils/properties.h"
 
-#ifdef HOST_BUILD
-#include "android/base/Tracing.h"
-#endif
-
 #ifdef GOLDFISH_NO_GL
 struct gl_client_context_t {
     int placeholder;
@@ -363,11 +359,7 @@ HostConnection::HostConnection() :
     m_grallocOnly(true),
     m_noHostError(true),
     m_rendernodeFd(-1),
-    m_rendernodeFdOwned(false) {
-#ifdef HOST_BUILD
-    android::base::initializeTracing();
-#endif
-}
+    m_rendernodeFdOwned(false) { }
 
 HostConnection::~HostConnection()
 {
