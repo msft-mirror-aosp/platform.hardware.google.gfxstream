@@ -60,6 +60,7 @@ int qemu_pipe_open_ns(const char* ns, const char* pipeName, int flags) {
     if (qemu_pipe_write_fully(fd, buf, bufLen + 1)) {
         ALOGE("%s:%d: Could not connect to the '%s' service: %s",
               __func__, __LINE__, buf, strerror(errno));
+        close(fd);
         return -1;
     }
 
