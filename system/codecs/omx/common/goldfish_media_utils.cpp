@@ -56,10 +56,12 @@ public:
         // when there are two, each can use at least half
         // the total memory, etc.
         constexpr size_t search_order[] = {
-                0, 8, 4, 12,
-                2, 6, 10, 14,
-                1, 5, 9, 13,
-                3, 7, 11, 15
+                0, // use 32M
+                16, // use 16M
+                8, 24, // use 8M
+                4, 12, 20, 28, // use 4M
+                2, 6, 10, 12, 18, 22, 26, 30, // use 2M
+                1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31 // use 1M
         };
         for (size_t i = 0; i < sizeof(search_order)/sizeof(search_order[0]); ++i) {
             int slot = search_order[i];
@@ -83,7 +85,7 @@ public:
     }
 private:
     std::mutex mMemoryMutex;
-    std::vector<bool> mMemoryLotsAvailable = std::vector<bool>(16,true);
+    std::vector<bool> mMemoryLotsAvailable = std::vector<bool>(32,true);
 
     address_space_handle_t mHandle;
     uint64_t  mOffset;
