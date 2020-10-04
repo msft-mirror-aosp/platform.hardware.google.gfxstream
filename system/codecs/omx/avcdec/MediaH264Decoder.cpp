@@ -47,8 +47,9 @@ void MediaH264Decoder::initH264Context(unsigned int width,
             ALOGE("ERROR: Failed to initH264Context: cannot get memory slot");
             return;
         }
-        mAddressOffSet = static_cast<unsigned int>(slot) * 8 * (1 << 20);
-        DDD("got memory lot %d addrr %x", slot, mAddressOffSet);
+        mSlot = slot;
+        mAddressOffSet = static_cast<unsigned int>(mSlot) * (1 << 21);
+        DDD("got memory lot %d addrr %x", mSlot, mAddressOffSet);
         mHasAddressSpaceMemory = true;
     }
     transport->writeParam(mVersion, 0, mAddressOffSet);
@@ -94,7 +95,7 @@ void MediaH264Decoder::destroyH264Context() {
     transport->writeParam((uint64_t)mHostHandle, 0, mAddressOffSet);
     transport->sendOperation(MediaCodecType::H264Codec,
                              MediaOperation::DestroyContext, mAddressOffSet);
-    transport->returnMemorySlot(mAddressOffSet >> 23);
+    transport->returnMemorySlot(mSlot);
     mHasAddressSpaceMemory = false;
 }
 

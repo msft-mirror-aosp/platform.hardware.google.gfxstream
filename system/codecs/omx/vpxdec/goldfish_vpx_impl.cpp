@@ -71,7 +71,7 @@ int vpx_codec_dec_init(vpx_codec_ctx_t* ctx) {
     }
     ctx->id = applyForOneId();
     ctx->memory_slot = slot;
-    ctx->address_offset = static_cast<unsigned int>(slot) * 8 * (1 << 20);
+    ctx->address_offset = static_cast<unsigned int>(ctx->memory_slot) * (1 << 21);
     DDD("got address offset 0x%x version %d", (int)(ctx->address_offset),
         ctx->version);
 
