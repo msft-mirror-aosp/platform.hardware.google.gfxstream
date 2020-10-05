@@ -38,6 +38,8 @@ extern "C" {
         } \
         res->dispatch.magic = HWVULKAN_DISPATCH_MAGIC; \
         res->underlying = (uint64_t)underlying; \
+        res->lastUsedEncoder = nullptr; \
+        res->sequenceNumber = 0; \
         return reinterpret_cast<type>(res); \
     } \
 
@@ -82,6 +84,8 @@ extern "C" {
         } \
         res->dispatch.magic = HWVULKAN_DISPATCH_MAGIC; \
         res->underlying = underlying; \
+        res->lastUsedEncoder = nullptr; \
+        res->sequenceNumber = 0; \
         return reinterpret_cast<type>(res); \
     } \
 
