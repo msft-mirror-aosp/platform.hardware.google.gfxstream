@@ -20,12 +20,18 @@
 
 #include <inttypes.h>
 
+namespace goldfish_vk {
+class VkEncoder;
+} // namespace goldfish_vk
+
 extern "C" {
 
 #define GOLDFISH_VK_DEFINE_DISPATCHABLE_HANDLE_STRUCT(type) \
     struct goldfish_##type { \
         hwvulkan_dispatch_t dispatch; \
         uint64_t underlying; \
+        goldfish_vk::VkEncoder* lastUsedEncoder; \
+        uint32_t sequenceNumber; \
     }; \
 
 #define GOLDFISH_VK_DEFINE_TRIVIAL_NON_DISPATCHABLE_HANDLE_STRUCT(type) \
