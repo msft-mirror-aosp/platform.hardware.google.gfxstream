@@ -724,6 +724,20 @@ uint64_t buildu64(uint32_t lo, uint32_t hi) {
     return res | (hi64 << 32);
 }
 
+/* Used to retry DRM_IOCTL_VIRTGPU_WAIT, which can also return EBUSY. */
+#define TEMP_FAILURE_RETRY_BUSY(tag, exp) ({                                            \
+    __typeof__(exp) _rc;                                                                \
+    do {                                                                                \
+        uint32_t busy_times = 0;                                                        \
+        _rc = (exp);                                                                    \
+        if (errno == EBUSY) {                                                           \
+            ++busy_times;                                                               \
+            usleep(10000);                                                              \
+            ALOGE("%s:%s busy! waited %u times on EBUSY\n", __func__, tag, busy_times); \
+        }                                                                               \
+    } while (_rc != 0 && (errno == EINTR || errno == EBUSY));                           \
+    _rc; })
+
 // Ping with response
 bool virtgpu_address_space_ping_with_response(
     struct address_space_virtgpu_info* info,
@@ -760,7 +774,7 @@ bool virtgpu_address_space_ping_with_response(
     memset(&waitcmd, 0, sizeof(waitcmd));
     waitcmd.handle = info->resp_bo;
 
-    int ret = drmIoctl(info->fd, DRM_IOCTL_VIRTGPU_WAIT, &waitcmd);
+    int ret = TEMP_FAILURE_RETRY_BUSY("DRM_IOCTL_VIRTGPU_WAIT", drmIoctl(info->fd, DRM_IOCTL_VIRTGPU_WAIT, &waitcmd));
     if (ret) {
         ALOGE("%s: DRM_IOCTL_VIRTGPU_WAIT failed with %d (%s)\n", __func__, errno, strerror(errno));
         return false;
