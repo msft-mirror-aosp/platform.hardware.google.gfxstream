@@ -60,6 +60,8 @@ extern "C" {
 	int rcMapGpaToBufferHandle(uint32_t bufferHandle, uint64_t gpa);
 	uint32_t rcCreateBuffer2(uint64_t size, uint32_t memoryProperty);
 	int rcMapGpaToBufferHandle2(uint32_t bufferHandle, uint64_t gpa, uint64_t size);
+	void rcFlushWindowColorBufferAsyncWithFrameNumber(uint32_t windowSurface, uint32_t frameNumber);
+	void rcSetTracingForPuid(uint64_t puid, uint32_t enable, uint64_t guestTime);
 };
 
 #ifndef GET_CONTEXT
@@ -396,5 +398,17 @@ int rcMapGpaToBufferHandle2(uint32_t bufferHandle, uint64_t gpa, uint64_t size)
 {
 	GET_CONTEXT;
 	return ctx->rcMapGpaToBufferHandle2(ctx, bufferHandle, gpa, size);
+}
+
+void rcFlushWindowColorBufferAsyncWithFrameNumber(uint32_t windowSurface, uint32_t frameNumber)
+{
+	GET_CONTEXT;
+	ctx->rcFlushWindowColorBufferAsyncWithFrameNumber(ctx, windowSurface, frameNumber);
+}
+
+void rcSetTracingForPuid(uint64_t puid, uint32_t enable, uint64_t guestTime)
+{
+	GET_CONTEXT;
+	ctx->rcSetTracingForPuid(ctx, puid, enable, guestTime);
 }
 

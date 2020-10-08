@@ -208,3 +208,7 @@ bool processPipeInit(HostConnectionType connType, renderControl_encoder_context_
     rcEnc->rcSetPuid(rcEnc, sProcUID);
     return true;
 }
+
+uint64_t getPuid() {
+    return sProcUID;
+}

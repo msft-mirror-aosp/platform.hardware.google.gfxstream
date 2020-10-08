@@ -2188,6 +2188,61 @@ int rcMapGpaToBufferHandle2_enc(void *self , uint32_t bufferHandle, uint64_t gpa
 	return retval;
 }
 
+void rcFlushWindowColorBufferAsyncWithFrameNumber_enc(void *self , uint32_t windowSurface, uint32_t frameNumber)
+{
+	AEMU_SCOPED_TRACE("rcFlushWindowColorBufferAsyncWithFrameNumber encode");
+
+	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + 4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_rcFlushWindowColorBufferAsyncWithFrameNumber;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &windowSurface, 4); ptr += 4;
+		memcpy(ptr, &frameNumber, 4); ptr += 4;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+}
+
+void rcSetTracingForPuid_enc(void *self , uint64_t puid, uint32_t enable, uint64_t guestTime)
+{
+	AEMU_SCOPED_TRACE("rcSetTracingForPuid encode");
+
+	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 8 + 4 + 8;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_rcSetTracingForPuid;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &puid, 8); ptr += 8;
+		memcpy(ptr, &enable, 4); ptr += 4;
+		memcpy(ptr, &guestTime, 8); ptr += 8;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+}
+
 }  // namespace
 
 renderControl_encoder_context_t::renderControl_encoder_context_t(IOStream *stream, ChecksumCalculator *checksumCalculator)
@@ -2250,5 +2305,7 @@ renderControl_encoder_context_t::renderControl_encoder_context_t(IOStream *strea
 	this->rcMapGpaToBufferHandle = &rcMapGpaToBufferHandle_enc;
 	this->rcCreateBuffer2 = &rcCreateBuffer2_enc;
 	this->rcMapGpaToBufferHandle2 = &rcMapGpaToBufferHandle2_enc;
+	this->rcFlushWindowColorBufferAsyncWithFrameNumber = &rcFlushWindowColorBufferAsyncWithFrameNumber_enc;
+	this->rcSetTracingForPuid = &rcSetTracingForPuid_enc;
 }
 

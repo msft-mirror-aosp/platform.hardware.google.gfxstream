@@ -65,6 +65,9 @@ public:
         return m_featureInfo.hasYUVCache; }
     bool hasAsyncUnmapBuffer() const {
         return m_featureInfo.hasAsyncUnmapBuffer; }
+    bool hasHostSideTracing() const {
+        return m_featureInfo.hasHostSideTracing;
+    }
     DmaImpl getDmaVersion() const { return m_featureInfo.dmaImpl; }
     void bindDmaContext(struct goldfish_dma_context* cxt) { m_dmaCxt = cxt; }
     void bindDmaDirectly(void* dmaPtr, uint64_t dmaPhysAddr) {
@@ -217,6 +220,7 @@ private:
     void queryAndSetVirtioGpuNativeSync(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanShaderFloat16Int8Support(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanAsyncQueueSubmitSupport(ExtendedRCEncoderContext *rcEnc);
+    void queryAndSetHostSideTracingSupport(ExtendedRCEncoderContext *rcEnc);
 
 private:
     HostConnectionType m_connectionType;
