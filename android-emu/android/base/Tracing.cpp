@@ -25,6 +25,10 @@
 namespace android {
 namespace base {
 
+bool isTracingEnabled() {
+    return atrace_is_tag_enabled(ATRACE_TAG_GRAPHICS);
+}
+
 void ScopedTraceGuest::beginTraceImpl(const char* name) {
     atrace_begin(VK_TRACE_TAG, name);
 }
@@ -46,6 +50,11 @@ void ScopedTraceGuest::endTraceImpl(const char*) {
 
 namespace android {
 namespace base {
+
+bool isTracingEnabled() {
+    // TODO: Fuchsia
+    return false;
+}
 
 void ScopedTraceGuest::beginTraceImpl(const char* name) {
 #ifndef FUCHSIA_NO_TRACE
