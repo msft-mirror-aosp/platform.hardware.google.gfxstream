@@ -3586,6 +3586,7 @@ public:
             }
 
             if (mFeatureInfo->hasVirtioGpuNativeSync) {
+#if !defined(HOST_BUILD) && defined(VK_USE_PLATFORM_ANDROID_KHR)
                 uint64_t hostFenceHandle = get_host_u64_VkFence(pGetFdInfo->fence);
                 uint32_t hostFenceHandleLo = (uint32_t)hostFenceHandle;
                 uint32_t hostFenceHandleHi = (uint32_t)(hostFenceHandle >> 32);
@@ -3621,6 +3622,7 @@ public:
                 }
 
                 *pFd = execbuffer.fence_fd;
+#endif
             } else {
                 goldfish_sync_queue_work(
                     mSyncDeviceFd,
