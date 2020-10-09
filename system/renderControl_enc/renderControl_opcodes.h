@@ -58,7 +58,9 @@
 #define OP_rcMapGpaToBufferHandle 					10052
 #define OP_rcCreateBuffer2 					10053
 #define OP_rcMapGpaToBufferHandle2 					10054
-#define OP_last 					10055
+#define OP_rcFlushWindowColorBufferAsyncWithFrameNumber 					10055
+#define OP_rcSetTracingForPuid 					10056
+#define OP_last 					10057
 
 
 #endif

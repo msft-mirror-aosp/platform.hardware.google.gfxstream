@@ -65,6 +65,8 @@ struct renderControl_client_context_t {
 	rcMapGpaToBufferHandle_client_proc_t rcMapGpaToBufferHandle;
 	rcCreateBuffer2_client_proc_t rcCreateBuffer2;
 	rcMapGpaToBufferHandle2_client_proc_t rcMapGpaToBufferHandle2;
+	rcFlushWindowColorBufferAsyncWithFrameNumber_client_proc_t rcFlushWindowColorBufferAsyncWithFrameNumber;
+	rcSetTracingForPuid_client_proc_t rcSetTracingForPuid;
 	virtual ~renderControl_client_context_t() {}
 
 	typedef renderControl_client_context_t *CONTEXT_ACCESSOR_TYPE(void);
