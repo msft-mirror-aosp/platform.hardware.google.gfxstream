@@ -144,14 +144,7 @@ static void sQemuPipeInit() {
     }
     // Send a confirmation int to the host
     int32_t confirmInt = 100;
-    ssize_t stat = 0;
-    do {
-        stat =
-            qemu_pipe_write(sProcPipe, (const char*)&confirmInt,
-                sizeof(confirmInt));
-    } while (stat < 0 && errno == EINTR);
-
-    if (stat != sizeof(confirmInt)) { // failed
+    if (qemu_pipe_write_fully(sProcPipe, &confirmInt, sizeof(confirmInt))) { // failed
         qemu_pipe_close(sProcPipe);
         sProcPipe = 0;
         ALOGW("Process pipe failed");
@@ -159,13 +152,7 @@ static void sQemuPipeInit() {
     }
 
     // Ask the host for per-process unique ID
-    do {
-        stat =
-            qemu_pipe_read(sProcPipe, (char*)&sProcUID,
-                sizeof(sProcUID));
-    } while (stat < 0 && (errno == EINTR || errno == EAGAIN));
-
-    if (stat != sizeof(sProcUID)) {
+    if (qemu_pipe_read_fully(sProcPipe, &sProcUID, sizeof(sProcUID))) {
         qemu_pipe_close(sProcPipe);
         sProcPipe = 0;
         sProcUID = 0;
