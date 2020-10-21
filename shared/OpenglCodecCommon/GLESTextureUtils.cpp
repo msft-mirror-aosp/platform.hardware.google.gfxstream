@@ -470,6 +470,22 @@ bool isBptcFormat(GLenum internalformat) {
     }
 }
 
+bool isS3tcFormat(GLenum internalformat) {
+    switch (internalformat) {
+        case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+        case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+        case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+        case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+        case GL_COMPRESSED_SRGB_S3TC_DXT1_EXT:
+        case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT:
+        case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT:
+        case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT:
+            return true;
+    }
+
+    return false;
+}
+
 void getAstcFormatInfo(GLenum internalformat,
                        astc_codec::FootprintType* footprint,
                        bool* srgb) {
@@ -560,8 +576,31 @@ GLsizei getAstcCompressedSize(GLenum internalformat, GLsizei width, GLsizei heig
     return res;
 }
 
-GLsizei getBptcCompressedSize(GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, bool* error) {
-    return 16 * ((width + 3) / 4) * ((height + 3) / 4) * depth;
+GLsizei getCompressedImageBlocksize(GLenum internalformat) {
+    if (isBptcFormat(internalformat)) {
+        return 16;
+    }
+
+    switch (internalformat) {
+        case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+        case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+        case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+        case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT:
+            return 8;
+        case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+        case GL_COMPRESSED_SRGB_S3TC_DXT1_EXT:
+        case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT:
+        case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT:
+            return 16;
+    }
+
+    ALOGE("%s: Unknown blocksize for internal format: 0x%x\n", __func__, internalformat);
+    abort();
+}
+
+GLsizei get4x4CompressedSize(GLsizei width, GLsizei height, GLsizei depth, GLsizei blocksize, bool* error) {
+    *error = false;
+    return blocksize * ((width + 3) / 4) * ((height + 3) / 4) * depth;
 }
 
 GLsizei getCompressedImageSize(GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, bool* error) {
@@ -578,8 +617,9 @@ GLsizei getCompressedImageSize(GLenum internalformat, GLsizei width, GLsizei hei
         return getAstcCompressedSize(internalformat, width, height, depth, error);
     }
 
-    if (isBptcFormat(internalformat)) {
-        return getBptcCompressedSize(internalformat, width, height, depth, error);
+    if (isBptcFormat(internalformat) || isS3tcFormat(internalformat)) {
+        GLsizei blocksize = getCompressedImageBlocksize(internalformat);
+        return get4x4CompressedSize(width, height, depth, blocksize, error);
     }
 
     ALOGE("%s: Unknown compressed internal format: 0x%x\n", __func__, internalformat);
