@@ -143,6 +143,7 @@ public:
     static HostConnection *get();
     static HostConnection *getWithThreadInfo(EGLThreadInfo* tInfo);
     static void exit();
+    static void exitUnclean(); // for testing purposes
 
     static std::unique_ptr<HostConnection> createUnique();
     HostConnection(const HostConnection&) = delete;
@@ -187,6 +188,8 @@ public:
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
+
+    bool exitUncleanly; // for testing purposes
 
 private:
     // If the connection failed, |conn| is deleted.
