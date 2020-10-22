@@ -15,6 +15,7 @@
 */
 
 #include "ProcessPipe.h"
+#include "HostConnection.h"
 #include "renderControl_enc.h"
 
 #include <qemu_pipe_bp.h>
@@ -227,8 +228,10 @@ void processPipeRestart() {
             sProcPipe = 0;
         }
     } else {
+#ifndef __Fuchsia__
         delete sVirtioGpuPipeStream;
         sVirtioGpuPipeStream = nullptr;
+#endif
     }
 
     processPipeInitOnce();
