@@ -997,6 +997,11 @@ static int gralloc_device_close(struct hw_device_t *dev)
         }
 
         delete d;
+
+        if (sHostCon) {
+            delete sHostCon;
+            sHostCon = nullptr;
+        }
     }
     return 0;
 }

@@ -358,6 +358,7 @@ static GoldfishGralloc m_goldfishGralloc;
 static GoldfishProcessPipe m_goldfishProcessPipe;
 
 HostConnection::HostConnection() :
+    exitUncleanly(false),
     m_checksumHelper(),
     m_glExtensions(),
     m_grallocOnly(true),
@@ -373,9 +374,10 @@ HostConnection::~HostConnection()
 {
     // round-trip to ensure that queued commands have been processed
     // before process pipe closure is detected.
-    if (m_rcEnc) {
+    if (m_rcEnc && !exitUncleanly) {
         (void)m_rcEnc->rcGetRendererVersion(m_rcEnc.get());
     }
+
     if (m_grallocType == GRALLOC_TYPE_MINIGBM) {
         delete m_grallocHelper;
     }
@@ -584,6 +586,16 @@ void HostConnection::exit() {
         return;
     }
 
+    tinfo->hostConn.reset();
+}
+
+void HostConnection::exitUnclean() {
+    EGLThreadInfo *tinfo = getEGLThreadInfo();
+    if (!tinfo) {
+        return;
+    }
+
+    tinfo->hostConn->exitUncleanly = true;
     tinfo->hostConn.reset();
 }
 
