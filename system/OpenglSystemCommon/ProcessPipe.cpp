@@ -199,3 +199,43 @@ bool processPipeInit(HostConnectionType connType, renderControl_encoder_context_
 uint64_t getPuid() {
     return sProcUID;
 }
+
+void processPipeRestart() {
+    ALOGW("%s: restarting process pipe\n", __func__);
+    bool isPipe = false;
+
+    switch (sConnType) {
+        // TODO: Move those over too
+        case HOST_CONNECTION_QEMU_PIPE:
+        case HOST_CONNECTION_ADDRESS_SPACE:
+        case HOST_CONNECTION_TCP:
+        case HOST_CONNECTION_VIRTIO_GPU:
+            isPipe = true;
+            break;
+        case HOST_CONNECTION_VIRTIO_GPU_PIPE:
+        case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
+            isPipe = false;
+            break;
+        }
+    }
+
+    sProcUID = 0;
+
+    if (isPipe) {
+        if (qemu_pipe_valid(sProcPipe)) {
+            qemu_pipe_close(sProcPipe);
+            sProcPipe = 0;
+        }
+    } else {
+        delete sVirtioGpuPipeStream;
+        sVirtioGpuPipeStream = nullptr;
+    }
+
+    processPipeInitOnce();
+};
+
+void refreshHostConnection() {
+    HostConnection* hostConn = HostConnection::get();
+    ExtendedRCEncoderContext* rcEnc = hostConn->rcEncoder();
+    rcEnc->rcSetPuid(rcEnc, sProcUID);
+}
