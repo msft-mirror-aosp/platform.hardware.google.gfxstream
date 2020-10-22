@@ -298,6 +298,9 @@ AddressSpaceStream::AddressSpaceStream(
 }
 
 AddressSpaceStream::~AddressSpaceStream() {
+    flush();
+    ensureType3Finished();
+    ensureType1Finished();
     if (!m_virtioMode) {
         m_ops.unmap(m_context.to_host, sizeof(struct asg_ring_storage));
         m_ops.unmap(m_context.buffer, m_writeBufferSize);
