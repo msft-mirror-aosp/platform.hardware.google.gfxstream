@@ -175,6 +175,10 @@ void *GoldfishAddressSpaceBlock::mmap(uint64_t host_addr)
         ::abort();
     }
 
+    bool nonzeroOffsetInPage = host_addr & (PAGE_SIZE - 1);
+    uint64_t extraBytes = nonzeroOffsetInPage ? PAGE_SIZE : 0;
+    m_size += extraBytes;
+
     zx_vaddr_t ptr = 0;
     zx_status_t status = zx_vmar_map(zx_vmar_root_self(),
                                      ZX_VM_PERM_READ | ZX_VM_PERM_WRITE,
