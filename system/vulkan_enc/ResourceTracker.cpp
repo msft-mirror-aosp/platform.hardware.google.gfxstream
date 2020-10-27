@@ -1882,6 +1882,26 @@ public:
                         image_constraints.pixel_format.type =
                             llcpp::fuchsia::sysmem::PixelFormatType::R8G8B8A8;
                         break;
+                    case VK_FORMAT_R8_UNORM:
+                    case VK_FORMAT_R8_UINT:
+                    case VK_FORMAT_R8_USCALED:
+                    case VK_FORMAT_R8_SNORM:
+                    case VK_FORMAT_R8_SINT:
+                    case VK_FORMAT_R8_SSCALED:
+                    case VK_FORMAT_R8_SRGB:
+                        image_constraints.pixel_format.type =
+                            llcpp::fuchsia::sysmem::PixelFormatType::R8;
+                        break;
+                    case VK_FORMAT_R8G8_UNORM:
+                    case VK_FORMAT_R8G8_UINT:
+                    case VK_FORMAT_R8G8_USCALED:
+                    case VK_FORMAT_R8G8_SNORM:
+                    case VK_FORMAT_R8G8_SINT:
+                    case VK_FORMAT_R8G8_SSCALED:
+                    case VK_FORMAT_R8G8_SRGB:
+                        image_constraints.pixel_format.type =
+                            llcpp::fuchsia::sysmem::PixelFormatType::R8G8;
+                        break;
                     default:
                         return VK_ERROR_FORMAT_NOT_SUPPORTED;
                 }
@@ -2571,6 +2591,25 @@ public:
                         case VK_FORMAT_R8G8B8A8_USCALED:
                             format = llcpp::fuchsia::hardware::goldfish::
                                 ColorBufferFormatType::RGBA;
+                            break;
+                        case VK_FORMAT_R8_UNORM:
+                        case VK_FORMAT_R8_UINT:
+                        case VK_FORMAT_R8_USCALED:
+                        case VK_FORMAT_R8_SNORM:
+                        case VK_FORMAT_R8_SINT:
+                        case VK_FORMAT_R8_SSCALED:
+                        case VK_FORMAT_R8_SRGB:
+                            format = llcpp::fuchsia::hardware::goldfish::ColorBufferFormatType::
+                                LUMINANCE;
+                            break;
+                        case VK_FORMAT_R8G8_UNORM:
+                        case VK_FORMAT_R8G8_UINT:
+                        case VK_FORMAT_R8G8_USCALED:
+                        case VK_FORMAT_R8G8_SNORM:
+                        case VK_FORMAT_R8G8_SINT:
+                        case VK_FORMAT_R8G8_SSCALED:
+                        case VK_FORMAT_R8G8_SRGB:
+                            format = llcpp::fuchsia::hardware::goldfish::ColorBufferFormatType::RG;
                             break;
                         default:
                             ALOGE("Unsupported format: %d",
@@ -4875,6 +4914,20 @@ public:
             VK_FORMAT_R8G8B8A8_SNORM,
             VK_FORMAT_R8G8B8A8_SSCALED,
             VK_FORMAT_R8G8B8A8_USCALED,
+            VK_FORMAT_R8_UNORM,
+            VK_FORMAT_R8_UINT,
+            VK_FORMAT_R8_USCALED,
+            VK_FORMAT_R8_SNORM,
+            VK_FORMAT_R8_SINT,
+            VK_FORMAT_R8_SSCALED,
+            VK_FORMAT_R8_SRGB,
+            VK_FORMAT_R8G8_UNORM,
+            VK_FORMAT_R8G8_UINT,
+            VK_FORMAT_R8G8_USCALED,
+            VK_FORMAT_R8G8_SNORM,
+            VK_FORMAT_R8G8_SINT,
+            VK_FORMAT_R8G8_SSCALED,
+            VK_FORMAT_R8G8_SRGB,
         };
 
         VkExternalImageFormatProperties* ext_img_properties =
