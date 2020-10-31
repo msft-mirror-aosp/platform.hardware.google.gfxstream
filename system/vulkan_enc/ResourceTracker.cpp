@@ -4959,6 +4959,17 @@ public:
 
         if (hostRes != VK_SUCCESS) return hostRes;
 
+#ifdef VK_USE_PLATFORM_FUCHSIA
+        if (ext_img_properties) {
+            ext_img_properties->externalMemoryProperties = {
+                .externalMemoryFeatures = VK_EXTERNAL_MEMORY_FEATURE_EXPORTABLE_BIT |
+                                          VK_EXTERNAL_MEMORY_FEATURE_IMPORTABLE_BIT,
+                .exportFromImportedHandleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA,
+                .compatibleHandleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA,
+            };
+        }
+#endif
+
         if (output_ahw_usage) {
             output_ahw_usage->androidHardwareBufferUsage =
                 getAndroidHardwareBufferUsageFromVkUsage(
