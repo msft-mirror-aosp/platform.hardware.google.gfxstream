@@ -44,11 +44,10 @@ int open_verbose_path(const char* name, const int flags) {
     return fd;
 }
 
-int open_verbose_vsock(const VsockPort port, const int flags, const bool logConnectError) {
+int open_verbose_vsock(const VsockPort port, const int flags) {
     const int fd = QEMU_PIPE_RETRY(socket(AF_VSOCK, SOCK_STREAM, 0));
     if (fd < 0) {
-        ALOGE("%s:%d socket(AF_VSOCK, SOCK_STREAM) failed with '%s' (%d)",
-              __func__, __LINE__, strerror(errno), errno);
+        // it is ok if socket(AF_VSOCK, ...) fails - vsock might be unsupported yet
         return -1;
     }
 
@@ -64,11 +63,7 @@ int open_verbose_vsock(const VsockPort port, const int flags, const bool logConn
                                 reinterpret_cast<const struct sockaddr*>(&sa),
                                 sizeof(sa)));
     if (r < 0) {
-        if (logConnectError) {
-            ALOGE("%s:%d connect(fd=%d, port=%d) failed with '%s' (%d)",
-                  __func__, __LINE__, fd, sa.svm_port, strerror(errno), errno);
-        }
-
+        // it is ok if connect(fd, &sa, ...) fails - vsock might be unsupported yet
         close(fd);
         return -1;
     }
@@ -97,21 +92,30 @@ int open_verbose_vsock(const VsockPort port, const int flags, const bool logConn
 }
 
 int open_verbose(const char *pipeName, const int flags) {
+    int fd;
+
     // "opengles" crashes the kernel, see b/171252755.
     // It should be ok to remove once the crash is fixed.
     if (strcmp(pipeName, "opengles")) {
-        const int fd = open_verbose_vsock(VsockPort::Data, flags, true);
+        fd = open_verbose_vsock(VsockPort::Data, flags);
         if (fd >= 0) {
             gVsockAvailable = true;
             return fd;
         }
     }
 
-    return open_verbose_path("/dev/goldfish_pipe", flags);
+    fd = open_verbose_path("/dev/goldfish_pipe", flags);
+    if (fd >= 0) {
+        return fd;
+    }
+
+    ALOGE("%s:%d: both vsock and goldfish_pipe paths failed",
+          __func__, __LINE__);
+    return -1;
 }
 
 void vsock_ping() {
-    const int fd = open_verbose_vsock(VsockPort::Ping, 0, false);
+    const int fd = open_verbose_vsock(VsockPort::Ping, 0);
     if (fd >= 0) {
         ALOGE("%s:%d open_verbose_vsock(kVsockPingPort) is expected to fail, "
               "but it succeeded, fd=%d", __func__, __LINE__, fd);
