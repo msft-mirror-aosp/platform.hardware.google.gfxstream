@@ -122,7 +122,11 @@ shared_library("libvulkan_goldfish") {
   ldflags = [ "-static-libstdc++" ]
 
   if (target_os == "fuchsia") {
-    sources -= [ "system/OpenglSystemCommon/QemuPipeStream.cpp" ]
+    sources -= [
+      "shared/qemupipe/qemu_pipe_common.cpp",
+      "shared/qemupipe/qemu_pipe_guest.cpp",
+      "system/OpenglSystemCommon/QemuPipeStream.cpp"
+    ]
     sources += [
       "fuchsia/fuchsia_stdio.cc",
       "fuchsia/port.cc",
