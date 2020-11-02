@@ -123,6 +123,8 @@ shared_library("libvulkan_goldfish") {
 
   if (target_os == "fuchsia") {
     sources -= [
+      "shared/OpenglCodecCommon/goldfish_dma.cpp",
+      "shared/OpenglCodecCommon/goldfish_dma.h",
       "shared/qemupipe/qemu_pipe_common.cpp",
       "shared/qemupipe/qemu_pipe_guest.cpp",
       "system/OpenglSystemCommon/QemuPipeStream.cpp"
