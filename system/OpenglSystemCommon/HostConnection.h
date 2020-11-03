@@ -20,7 +20,11 @@
 #include "IOStream.h"
 #include "renderControl_enc.h"
 #include "ChecksumCalculator.h"
+#ifdef __Fuchsia__
+struct goldfish_dma_context;
+#else
 #include "goldfish_dma.h"
+#endif
 
 #include <cutils/native_handle.h>
 
@@ -101,6 +105,10 @@ public:
 private:
     static uint64_t writeGoldfishDma(void* data, uint32_t size,
                                      struct goldfish_dma_context* dmaCxt) {
+#ifdef __Fuchsia__
+        ALOGE("%s Not implemented!", __FUNCTION__);
+        return 0u;
+#else
         ALOGV("%s(data=%p, size=%u): call", __func__, data, size);
 
         goldfish_dma_write(dmaCxt, data, size);
@@ -108,6 +116,7 @@ private:
 
         ALOGV("%s: paddr=0x%llx", __func__, (unsigned long long)paddr);
         return paddr;
+#endif
     }
 
     EmulatorFeatureInfo m_featureInfo;
