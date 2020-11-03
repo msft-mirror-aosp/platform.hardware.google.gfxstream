@@ -222,17 +222,20 @@ void processPipeRestart() {
 
     sProcUID = 0;
 
+#ifdef __Fuchsia__
+    zx_handle_close(sProcPipe);
+    sProcPipe = ZX_HANDLE_INVALID;
+#else
     if (isPipe) {
         if (qemu_pipe_valid(sProcPipe)) {
             qemu_pipe_close(sProcPipe);
             sProcPipe = 0;
         }
     } else {
-#ifndef __Fuchsia__
         delete sVirtioGpuPipeStream;
         sVirtioGpuPipeStream = nullptr;
-#endif
     }
+#endif // __Fuchsia__
 
     processPipeInitOnce();
 };
