@@ -4279,6 +4279,7 @@ public:
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
         if (exportSyncFd) {
             if (mFeatureInfo->hasVirtioGpuNativeSync) {
+#if !defined(HOST_BUILD)
                 uint64_t hostFenceHandle = get_host_u64_VkSemaphore(*pSemaphore);
                 uint32_t hostFenceHandleLo = (uint32_t)hostFenceHandle;
                 uint32_t hostFenceHandleHi = (uint32_t)(hostFenceHandle >> 32);
@@ -4314,6 +4315,7 @@ public:
                 }
 
                 info.syncFd = execbuffer.fence_fd;
+#endif
             } else {
                 ensureSyncDeviceFd();
 
