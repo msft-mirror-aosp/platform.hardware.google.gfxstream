@@ -514,6 +514,11 @@ public:
     bool getTransformFeedbackActiveUnpaused() const;
     uint32_t getTransformFeedbackVaryingsCountForLinking() const;
 
+    // Stencil state
+    void stencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask);
+    void stencilMaskSeparate(GLenum face, GLuint mask);
+    void stencilOpSeparate(GLenum face, GLenum fail, GLenum zfail, GLenum zpass);
+
     void setTextureData(SharedTextureDataMap* sharedTexData);
     void setRenderbufferInfo(RenderbufferInfo* rbInfo);
     void setSamplerInfo(SamplerInfo* samplerInfo);
@@ -554,6 +559,23 @@ public:
     // Attrib validation
     bool isAttribIndexUsedByProgram(int attribIndex);
 
+    // Fast access to some enables and stencil related glGet's
+    bool state_GL_STENCIL_TEST;
+    GLenum state_GL_STENCIL_FUNC;
+    unsigned int state_GL_STENCIL_VALUE_MASK;
+    int state_GL_STENCIL_REF;
+    GLenum state_GL_STENCIL_FAIL;
+    GLenum state_GL_STENCIL_PASS_DEPTH_FAIL;
+    GLenum state_GL_STENCIL_PASS_DEPTH_PASS;
+    GLenum state_GL_STENCIL_BACK_FUNC;
+    unsigned int state_GL_STENCIL_BACK_VALUE_MASK;
+    int state_GL_STENCIL_BACK_REF;
+    GLenum state_GL_STENCIL_BACK_FAIL;
+    GLenum state_GL_STENCIL_BACK_PASS_DEPTH_FAIL;
+    GLenum state_GL_STENCIL_BACK_PASS_DEPTH_PASS;
+    unsigned int state_GL_STENCIL_WRITEMASK;
+    unsigned int state_GL_STENCIL_BACK_WRITEMASK;
+    int state_GL_STENCIL_CLEAR_VALUE;
 private:
     void init();
     bool m_initialized;
@@ -967,6 +989,79 @@ public:
             isClientStateParam = true;
             break;
         }
+        case GL_FRAMEBUFFER_BINDING:
+        // also case GL_DRAW_FRAMEBUFFER_BINDING:
+            *out = (T)mFboState.boundDrawFramebuffer;
+            isClientStateParam = true;
+            break;
+        case 0x8CAA: // GL_READ_FRAMEBUFFER_BINDING
+            *out = (T)mFboState.boundReadFramebuffer;
+            isClientStateParam = true;
+            break;
+        case GL_STENCIL_TEST:
+            *out = (T)state_GL_STENCIL_TEST;
+            isClientStateParam = true;
+            break;
+        case GL_STENCIL_FUNC:
+            *out = (T)state_GL_STENCIL_FUNC;
+            isClientStateParam = true;
+            break;
+        case GL_STENCIL_VALUE_MASK:
+            *out = (T)state_GL_STENCIL_VALUE_MASK;
+            isClientStateParam = true;
+            break;
+        case GL_STENCIL_REF:
+            *out = (T)state_GL_STENCIL_REF;
+            isClientStateParam = true;
+            break;
+        case GL_STENCIL_FAIL:
+            *out = (T)state_GL_STENCIL_FAIL;
+            isClientStateParam = true;
+            break;
+        case GL_STENCIL_PASS_DEPTH_FAIL:
+            *out = (T)state_GL_STENCIL_PASS_DEPTH_FAIL;
+            isClientStateParam = true;
+            break;
+        case GL_STENCIL_PASS_DEPTH_PASS:
+            *out = (T)state_GL_STENCIL_PASS_DEPTH_PASS;
+            isClientStateParam = true;
+            break;
+        case GL_STENCIL_BACK_FUNC:
+            *out = (T)state_GL_STENCIL_BACK_FUNC;
+            isClientStateParam = true;
+            break;
+        case GL_STENCIL_BACK_VALUE_MASK:
+            *out = (T)state_GL_STENCIL_BACK_VALUE_MASK;
+            isClientStateParam = true;
+            break;
+        case GL_STENCIL_BACK_REF:
+            *out = (T)state_GL_STENCIL_BACK_REF;
+            isClientStateParam = true;
+            break;
+        case GL_STENCIL_BACK_FAIL:
+            *out = (T)state_GL_STENCIL_BACK_FAIL;
+            isClientStateParam = true;
+            break;
+        case GL_STENCIL_BACK_PASS_DEPTH_FAIL:
+            *out = (T)state_GL_STENCIL_BACK_PASS_DEPTH_FAIL;
+            isClientStateParam = true;
+            break;
+        case GL_STENCIL_BACK_PASS_DEPTH_PASS:
+            *out = (T)state_GL_STENCIL_BACK_PASS_DEPTH_PASS;
+            isClientStateParam = true;
+            break;
+        case GL_STENCIL_WRITEMASK:
+            *out = (T)state_GL_STENCIL_WRITEMASK;
+            isClientStateParam = true;
+            break;
+        case GL_STENCIL_BACK_WRITEMASK:
+            *out = (T)state_GL_STENCIL_BACK_WRITEMASK;
+            isClientStateParam = true;
+            break;
+        case GL_STENCIL_CLEAR_VALUE:
+            *out = (T)state_GL_STENCIL_CLEAR_VALUE;
+            isClientStateParam = true;
+            break;
         }
         return isClientStateParam;
     }

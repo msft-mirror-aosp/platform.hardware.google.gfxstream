@@ -890,6 +890,9 @@ private:
     static void s_glHint(void *self , GLenum target, GLenum mode);
     static GLint s_glGetFragDataLocation (void *self , GLuint program, const char* name);
 
+    static void s_glStencilMask(void* self, GLuint mask);
+    static void s_glClearStencil(void* self, int v);
+
 #define LIST_REMAINING_FUNCTIONS_FOR_VALIDATION(f) \
     f(glBindAttribLocation) \
     f(glUniformBlockBinding) \
@@ -933,6 +936,8 @@ private:
     f(glIsEnabled) \
     f(glHint) \
     f(glGetFragDataLocation) \
+    f(glStencilMask) \
+    f(glClearStencil) \
 
 #define DECLARE_CLIENT_ENCODER_PROC(n) \
     n##_client_proc_t m_##n##_enc;
