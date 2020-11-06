@@ -65,6 +65,9 @@ static const struct _renderControl_funcs_by_name {
 	{"rcMapGpaToBufferHandle2", (void*)rcMapGpaToBufferHandle2},
 	{"rcFlushWindowColorBufferAsyncWithFrameNumber", (void*)rcFlushWindowColorBufferAsyncWithFrameNumber},
 	{"rcSetTracingForPuid", (void*)rcSetTracingForPuid},
+	{"rcMakeCurrentAsync", (void*)rcMakeCurrentAsync},
+	{"rcComposeAsync", (void*)rcComposeAsync},
+	{"rcDestroySyncKHRAsync", (void*)rcDestroySyncKHRAsync},
 };
 static const int renderControl_num_funcs = sizeof(renderControl_funcs_by_name) / sizeof(struct _renderControl_funcs_by_name);
 

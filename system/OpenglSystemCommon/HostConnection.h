@@ -72,6 +72,9 @@ public:
     bool hasHostSideTracing() const {
         return m_featureInfo.hasHostSideTracing;
     }
+    bool hasAsyncFrameCommands() const {
+        return m_featureInfo.hasAsyncFrameCommands;
+    }
     DmaImpl getDmaVersion() const { return m_featureInfo.dmaImpl; }
     void bindDmaContext(struct goldfish_dma_context* cxt) { m_dmaCxt = cxt; }
     void bindDmaDirectly(void* dmaPtr, uint64_t dmaPhysAddr) {
@@ -233,6 +236,7 @@ private:
     void queryAndSetVulkanShaderFloat16Int8Support(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanAsyncQueueSubmitSupport(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetHostSideTracingSupport(ExtendedRCEncoderContext *rcEnc);
+    void queryAndSetAsyncFrameCommands(ExtendedRCEncoderContext *rcEnc);
 
 private:
     HostConnectionType m_connectionType;
