@@ -120,6 +120,9 @@ static const char kGLESUseHostError[] = "ANDROID_EMU_gles_use_host_error";
 // Host side tracing
 static const char kHostSideTracing[] = "ANDROID_EMU_host_side_tracing";
 
+// Make current async
+static const char kAsyncFrameCommands[] = "ANDROID_EMU_async_frame_commands";
+
 // Struct describing available emulator features
 struct EmulatorFeatureInfo {
 
@@ -142,7 +145,8 @@ struct EmulatorFeatureInfo {
         hasVirtioGpuNativeSync(false),
         hasVulkanShaderFloat16Int8(false),
         hasVulkanAsyncQueueSubmit(false),
-        hasHostSideTracing(false)
+        hasHostSideTracing(false),
+        hasAsyncFrameCommands(false)
     { }
 
     SyncImpl syncImpl;
@@ -164,6 +168,7 @@ struct EmulatorFeatureInfo {
     bool hasVulkanShaderFloat16Int8;
     bool hasVulkanAsyncQueueSubmit;
     bool hasHostSideTracing;
+    bool hasAsyncFrameCommands;
 };
 
 enum HostConnectionType {
