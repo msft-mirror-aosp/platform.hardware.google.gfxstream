@@ -2243,6 +2243,92 @@ void rcSetTracingForPuid_enc(void *self , uint64_t puid, uint32_t enable, uint64
 
 }
 
+void rcMakeCurrentAsync_enc(void *self , uint32_t context, uint32_t drawSurf, uint32_t readSurf)
+{
+	AEMU_SCOPED_TRACE("rcMakeCurrentAsync encode");
+
+	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_rcMakeCurrentAsync;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &context, 4); ptr += 4;
+		memcpy(ptr, &drawSurf, 4); ptr += 4;
+		memcpy(ptr, &readSurf, 4); ptr += 4;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+	stream->flush();
+}
+
+void rcComposeAsync_enc(void *self , uint32_t bufferSize, void* buffer)
+{
+	AEMU_SCOPED_TRACE("rcComposeAsync encode");
+
+	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	const unsigned int __size_buffer =  bufferSize;
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + __size_buffer + 1*4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_rcComposeAsync;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &bufferSize, 4); ptr += 4;
+	*(unsigned int *)(ptr) = __size_buffer; ptr += 4;
+	memcpy(ptr, buffer, __size_buffer);ptr += __size_buffer;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+	stream->flush();
+}
+
+void rcDestroySyncKHRAsync_enc(void *self , uint64_t sync)
+{
+	AEMU_SCOPED_TRACE("rcDestroySyncKHRAsync encode");
+
+	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 8;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_rcDestroySyncKHRAsync;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &sync, 8); ptr += 8;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+	stream->flush();
+}
+
 }  // namespace
 
 renderControl_encoder_context_t::renderControl_encoder_context_t(IOStream *stream, ChecksumCalculator *checksumCalculator)
@@ -2307,5 +2393,8 @@ renderControl_encoder_context_t::renderControl_encoder_context_t(IOStream *strea
 	this->rcMapGpaToBufferHandle2 = &rcMapGpaToBufferHandle2_enc;
 	this->rcFlushWindowColorBufferAsyncWithFrameNumber = &rcFlushWindowColorBufferAsyncWithFrameNumber_enc;
 	this->rcSetTracingForPuid = &rcSetTracingForPuid_enc;
+	this->rcMakeCurrentAsync = &rcMakeCurrentAsync_enc;
+	this->rcComposeAsync = &rcComposeAsync_enc;
+	this->rcDestroySyncKHRAsync = &rcDestroySyncKHRAsync_enc;
 }
 

@@ -895,6 +895,10 @@ static std::vector<std::string> getExtStringArray() {
         return res;
     }
 
+    if (tInfo->currentContext->extensionStringArray.size() > 0) {
+        return tInfo->currentContext->extensionStringArray;
+    }
+
 #define GL_EXTENSIONS                     0x1F03
 
     DEFINE_AND_VALIDATE_HOST_CONNECTION(res);
@@ -909,6 +913,7 @@ static std::vector<std::string> getExtStringArray() {
             hostStr = NULL;
         }
     }
+
     // push guest strings
     res.push_back("GL_EXT_robustness");
 
@@ -934,6 +939,8 @@ static std::vector<std::string> getExtStringArray() {
         }
         extEnd++;
     }
+
+    tInfo->currentContext->extensionStringArray = res;
 
     delete [] hostStr;
     return res;
@@ -974,6 +981,10 @@ static const char *getGLString(int glEnum)
 
     if (!strPtr) {
         return NULL;
+    }
+
+    if (*strPtr) {
+        return *strPtr;
     }
 
     char* hostStr = NULL;
@@ -1062,6 +1073,8 @@ EGLBoolean eglTerminate(EGLDisplay dpy)
     VALIDATE_DISPLAY_INIT(dpy, EGL_FALSE);
 
     s_display.terminate();
+    DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
+    rcEnc->rcGetRendererVersion(rcEnc);
     return EGL_TRUE;
 }
 
@@ -1879,9 +1892,10 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
     }
 
     DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
-    if (rcEnc->rcMakeCurrent(rcEnc, ctxHandle, drawHandle, readHandle) == EGL_FALSE) {
-        ALOGE("rcMakeCurrent returned EGL_FALSE");
-        setErrorReturn(EGL_BAD_CONTEXT, EGL_FALSE);
+    if (rcEnc->hasAsyncFrameCommands()) {
+        rcEnc->rcMakeCurrentAsync(rcEnc, ctxHandle, drawHandle, readHandle);
+    } else {
+        rcEnc->rcMakeCurrent(rcEnc, ctxHandle, drawHandle, readHandle);
     }
 
     //Now make the local bind
@@ -1980,7 +1994,7 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
 
     //Check maybe we need to init the encoder, if it's first eglMakeCurrent
     if (tInfo->currentContext) {
-        if (tInfo->currentContext->majorVersion  > 1) {
+        if (tInfo->currentContext->majorVersion > 1) {
             if (!hostCon->gl2Encoder()->isInitialized()) {
                 s_display.gles2_iface()->init();
                 hostCon->gl2Encoder()->setInitialized();
@@ -2382,7 +2396,11 @@ EGLBoolean eglDestroySyncKHR(EGLDisplay dpy, EGLSyncKHR eglsync)
     if (sync) {
         DEFINE_HOST_CONNECTION;
         if (rcEnc->hasVirtioGpuNativeSync() || rcEnc->hasNativeSync()) {
-            rcEnc->rcDestroySyncKHR(rcEnc, sync->handle);
+            if (rcEnc->hasAsyncFrameCommands()) {
+                rcEnc->rcDestroySyncKHRAsync(rcEnc, sync->handle);
+            } else {
+                rcEnc->rcDestroySyncKHR(rcEnc, sync->handle);
+            }
         }
         delete sync;
     }
