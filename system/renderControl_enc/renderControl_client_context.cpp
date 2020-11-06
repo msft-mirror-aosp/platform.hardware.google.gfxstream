@@ -67,6 +67,9 @@ int renderControl_client_context_t::initDispatchByName(void *(*getProc)(const ch
 	rcMapGpaToBufferHandle2 = (rcMapGpaToBufferHandle2_client_proc_t) getProc("rcMapGpaToBufferHandle2", userData);
 	rcFlushWindowColorBufferAsyncWithFrameNumber = (rcFlushWindowColorBufferAsyncWithFrameNumber_client_proc_t) getProc("rcFlushWindowColorBufferAsyncWithFrameNumber", userData);
 	rcSetTracingForPuid = (rcSetTracingForPuid_client_proc_t) getProc("rcSetTracingForPuid", userData);
+	rcMakeCurrentAsync = (rcMakeCurrentAsync_client_proc_t) getProc("rcMakeCurrentAsync", userData);
+	rcComposeAsync = (rcComposeAsync_client_proc_t) getProc("rcComposeAsync", userData);
+	rcDestroySyncKHRAsync = (rcDestroySyncKHRAsync_client_proc_t) getProc("rcDestroySyncKHRAsync", userData);
 	return 0;
 }
 
