@@ -108,6 +108,9 @@ struct FboProps {
     bool depthAttachment_hasRbo;
     bool stencilAttachment_hasRbo;
     bool depthstencilAttachment_hasRbo;
+
+    GLuint defaultWidth;
+    GLuint defaultHeight;
 };
 
 // Enum for describing whether a framebuffer attachment
@@ -480,6 +483,7 @@ public:
     bool usedFramebufferName(GLuint name) const;
     void bindFramebuffer(GLenum target, GLuint name);
     void setCheckFramebufferStatus(GLenum target, GLenum status);
+    void setFramebufferParameter(GLenum target, GLenum pname, GLint param);
     GLenum getCheckFramebufferStatus(GLenum target) const;
     GLuint boundFramebuffer(GLenum target) const;
 

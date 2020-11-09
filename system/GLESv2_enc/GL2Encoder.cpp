@@ -203,6 +203,7 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     OVERRIDE(glGenFramebuffers);
     OVERRIDE(glDeleteFramebuffers);
     OVERRIDE(glBindFramebuffer);
+    OVERRIDE(glFramebufferParameteri);
     OVERRIDE(glFramebufferTexture2D);
     OVERRIDE(glFramebufferTexture3DOES);
     OVERRIDE(glGetFramebufferAttachmentParameteriv);
@@ -2993,6 +2994,14 @@ void GL2Encoder::s_glBindFramebuffer(void* self,
     state->bindFramebuffer(target, framebuffer);
 
     ctx->m_glBindFramebuffer_enc(self, target, framebuffer);
+}
+
+void GL2Encoder::s_glFramebufferParameteri(void *self,
+        GLenum target, GLenum pname, GLint param) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    GLClientState* state = ctx->m_state;
+    state->setFramebufferParameter(target, pname, param);
+    ctx->m_glFramebufferParameteri_enc(self, target, pname, param);
 }
 
 void GL2Encoder::s_glFramebufferTexture2D(void* self,

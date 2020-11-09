@@ -407,6 +407,9 @@ private:
     glBindFramebuffer_client_proc_t m_glBindFramebuffer_enc;
     static void s_glBindFramebuffer(void* self, GLenum target, GLuint framebuffer);
 
+    glFramebufferParameteri_client_proc_t m_glFramebufferParameteri_enc;
+    static void s_glFramebufferParameteri(void *self, GLenum target, GLenum pname, GLint param);
+
     glFramebufferTexture2D_client_proc_t m_glFramebufferTexture2D_enc;
     static void s_glFramebufferTexture2D(void* self, GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
 
