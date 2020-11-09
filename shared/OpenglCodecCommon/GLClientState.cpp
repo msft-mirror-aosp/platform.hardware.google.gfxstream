@@ -1816,7 +1816,11 @@ GLenum GLClientState::checkFramebufferCompleteness(GLenum target) {
     }
 
     if (!hasAttachment) {
-        return GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
+        // Framebuffers may be missing an attachment if they have nonzero
+        // default width and height
+        if (props.defaultWidth == 0 || props.defaultHeight == 0) {
+            return GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
+        }
     }
 
     props.completenessDirty = false;
@@ -2528,6 +2532,19 @@ void GLClientState::setCheckFramebufferStatus(GLenum target, GLenum status) {
             break;
         case GL_FRAMEBUFFER:
             mFboState.drawFboCheckStatus = status;
+            break;
+    }
+}
+
+void GLClientState::setFramebufferParameter(GLenum target, GLenum pname, GLint param) {
+    switch (pname) {
+        case GL_FRAMEBUFFER_DEFAULT_WIDTH:
+            boundFboProps(target).defaultWidth = param;
+            boundFboProps(target).completenessDirty = true;
+            break;
+        case GL_FRAMEBUFFER_DEFAULT_HEIGHT:
+            boundFboProps(target).defaultHeight = param;
+            boundFboProps(target).completenessDirty = true;
             break;
     }
 }
