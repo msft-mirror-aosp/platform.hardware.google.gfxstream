@@ -454,6 +454,9 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     OVERRIDE(glHint);
 
     OVERRIDE(glGetFragDataLocation);
+
+    OVERRIDE(glStencilMask);
+    OVERRIDE(glClearStencil);
 }
 
 GL2Encoder::~GL2Encoder()
@@ -811,16 +814,15 @@ void GL2Encoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
         }
         break;
     case GL_TEXTURE_BINDING_2D:
-        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
+        if (!state) return;
         *ptr = state->getBoundTexture(GL_TEXTURE_2D);
         break;
     case GL_TEXTURE_BINDING_EXTERNAL_OES:
-        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
+        if (!state) return;
         *ptr = state->getBoundTexture(GL_TEXTURE_EXTERNAL_OES);
         break;
 
     case GL_MAX_VERTEX_ATTRIBS:
-        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
         *ptr = CODEC_MAX_VERTEX_ATTRIBUTES;
         break;
     case GL_MAX_VERTEX_ATTRIB_STRIDE:
@@ -973,7 +975,7 @@ void GL2Encoder::s_glGetIntegerv(void *self, GLenum param, GLint *ptr)
         *ptr = GL_LOSE_CONTEXT_ON_RESET_EXT;
         break;
     default:
-        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
+        if (!state) return;
         if (!state->getClientStateParameter<GLint>(param, ptr)) {
             ctx->safe_glGetIntegerv(param, ptr);
         }
@@ -1037,7 +1039,7 @@ void GL2Encoder::s_glGetFloatv(void *self, GLenum param, GLfloat *ptr)
     }
 
     default:
-        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
+        if (!state) return;
         if (!state->getClientStateParameter<GLfloat>(param, ptr)) {
             ctx->safe_glGetFloatv(param, ptr);
         }
@@ -1101,7 +1103,7 @@ void GL2Encoder::s_glGetBooleanv(void *self, GLenum param, GLboolean *ptr)
     }
 
     default:
-        SET_ERROR_IF(!state, GL_INVALID_OPERATION);
+        if (!state) return;
         if (!state->getClientStateParameter<GLboolean>(param, ptr)) {
             ctx->safe_glGetBooleanv(param, ptr);
         }
@@ -4866,10 +4868,14 @@ void GL2Encoder::s_glEnable(void* self, GLenum what) {
     GL2Encoder *ctx = (GL2Encoder *)self;
 
 	SET_ERROR_IF(!GLESv2Validation::allowedEnable(ctx->majorVersion(), ctx->minorVersion(), what), GL_INVALID_ENUM);
+    if (!ctx->m_state) return;
 
     switch (what) {
     case GL_PRIMITIVE_RESTART_FIXED_INDEX:
         ctx->m_primitiveRestartEnabled = true;
+        break;
+    case GL_STENCIL_TEST:
+        ctx->m_state->state_GL_STENCIL_TEST = true;
         break;
     }
 
@@ -4880,10 +4886,14 @@ void GL2Encoder::s_glDisable(void* self, GLenum what) {
     GL2Encoder *ctx = (GL2Encoder *)self;
 
 	SET_ERROR_IF(!GLESv2Validation::allowedEnable(ctx->majorVersion(), ctx->minorVersion(), what), GL_INVALID_ENUM);
+    if (!ctx->m_state) return;
 
     switch (what) {
     case GL_PRIMITIVE_RESTART_FIXED_INDEX:
         ctx->m_primitiveRestartEnabled = false;
+        break;
+    case GL_STENCIL_TEST:
+        ctx->m_state->state_GL_STENCIL_TEST = false;
         break;
     }
 
@@ -6307,12 +6317,16 @@ void GL2Encoder::s_glViewport(void *self , GLint x, GLint y, GLsizei width, GLsi
 void GL2Encoder::s_glStencilFunc(void *self , GLenum func, GLint ref, GLuint mask) {
     GL2Encoder* ctx = (GL2Encoder*)self;
     SET_ERROR_IF(!GLESv2Validation::allowedFunc(func), GL_INVALID_ENUM);
+    if (!ctx->m_state) return;
+    ctx->m_state->stencilFuncSeparate(GL_FRONT_AND_BACK, func, ref, mask);
     ctx->m_glStencilFunc_enc(ctx, func, ref, mask);
 }
 
 void GL2Encoder::s_glStencilFuncSeparate(void *self , GLenum face, GLenum func, GLint ref, GLuint mask) {
     GL2Encoder* ctx = (GL2Encoder*)self;
     SET_ERROR_IF(!GLESv2Validation::allowedFace(face) || !GLESv2Validation::allowedFunc(func), GL_INVALID_ENUM);
+    if (!ctx->m_state) return;
+    ctx->m_state->stencilFuncSeparate(face, func, ref, mask);
     ctx->m_glStencilFuncSeparate_enc(ctx, face, func, ref, mask);
 }
 
@@ -6323,6 +6337,8 @@ void GL2Encoder::s_glStencilOp(void *self , GLenum fail, GLenum zfail, GLenum zp
         !GLESv2Validation::allowedStencilOp(zfail) ||
         !GLESv2Validation::allowedStencilOp(zpass),
         GL_INVALID_ENUM);
+    if (!ctx->m_state) return;
+    ctx->m_state->stencilOpSeparate(GL_FRONT_AND_BACK, fail, zfail, zpass);
     ctx->m_glStencilOp_enc(ctx, fail, zfail, zpass);
 }
 
@@ -6334,6 +6350,8 @@ void GL2Encoder::s_glStencilOpSeparate(void *self , GLenum face, GLenum fail, GL
         !GLESv2Validation::allowedStencilOp(zfail) ||
         !GLESv2Validation::allowedStencilOp(zpass),
         GL_INVALID_ENUM);
+    if (!ctx->m_state) return;
+    ctx->m_state->stencilOpSeparate(face, fail, zfail, zpass);
     ctx->m_glStencilOpSeparate_enc(ctx, face, fail, zfail, zpass);
 }
 
@@ -6342,6 +6360,8 @@ void GL2Encoder::s_glStencilMaskSeparate(void *self , GLenum face, GLuint mask) 
     SET_ERROR_IF(
         !GLESv2Validation::allowedFace(face),
         GL_INVALID_ENUM);
+    if (!ctx->m_state) return;
+    ctx->m_state->stencilMaskSeparate(face, mask);
     ctx->m_glStencilMaskSeparate_enc(ctx, face, mask);
 }
 
@@ -6569,4 +6589,18 @@ GLint GL2Encoder::s_glGetFragDataLocation (void *self , GLuint program, const ch
     VALIDATE_PROGRAM_NAME_RET(program, -1);
     RET_AND_SET_ERROR_IF(!ctx->m_shared->getProgramLinkStatus(program), GL_INVALID_OPERATION, -1);
     return ctx->m_glGetFragDataLocation_enc(ctx, program, name);
+}
+
+void GL2Encoder::s_glStencilMask(void* self, GLuint mask) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    if (!ctx->m_state) return;
+    ctx->m_state->stencilMaskSeparate(GL_FRONT_AND_BACK, mask);
+    ctx->m_glStencilMask_enc(ctx, mask);
+}
+
+void GL2Encoder::s_glClearStencil(void* self, int v) {
+    GL2Encoder* ctx = (GL2Encoder*)self;
+    if (!ctx->m_state) return;
+    ctx->m_state->state_GL_STENCIL_CLEAR_VALUE = v;
+    ctx->m_glClearStencil_enc(ctx, v);
 }
