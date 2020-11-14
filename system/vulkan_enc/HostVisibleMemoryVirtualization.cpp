@@ -25,6 +25,10 @@
 
 #include <set>
 
+#ifdef ANDROID
+#include <unistd.h>
+#endif
+
 using android::base::guest::SubAllocator;
 
 namespace goldfish_vk {
@@ -257,6 +261,12 @@ void destroyHostMemAlloc(
 
     if (toDestroy->initResult != VK_SUCCESS) return;
     if (!toDestroy->initialized) return;
+
+#ifdef ANDROID
+    if (toDestroy->fd > 0) {
+        close(toDestroy->fd);
+    }
+#endif
 
     if (freeMemorySyncSupported) {
         enc->vkFreeMemorySyncGOOGLE(device, toDestroy->memory, nullptr);
