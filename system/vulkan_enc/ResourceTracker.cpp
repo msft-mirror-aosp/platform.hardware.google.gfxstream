@@ -821,12 +821,11 @@ public:
         if (mFeatureInfo->hasVulkanShaderFloat16Int8) {
             mStreamFeatureBits |= VULKAN_STREAM_FEATURE_SHADER_FLOAT16_INT8_BIT;
         }
-
 #if !defined(HOST_BUILD) && defined(VK_USE_PLATFORM_ANDROID_KHR)
-        if (mFeatureInfo->hasVirtioGpuNext) {
-            ALOGD("%s: has virtio-gpu-next; create hostmem rendernode\n", __func__);
-            mRendernodeFd = drmOpenRender(128 /* RENDERNODE_MINOR */);
-        }
+       if (mFeatureInfo->hasVirtioGpuNext) {
+           ALOGD("%s: has virtio-gpu-next; create hostmem rendernode\n", __func__);
+           mRendernodeFd = drmOpenRender(128 /* RENDERNODE_MINOR */);
+       }
 #endif
     }
 
@@ -2127,6 +2126,8 @@ public:
 #if !defined(HOST_BUILD) && defined(VK_USE_PLATFORM_ANDROID_KHR)
                 uint64_t hvaSizeId[3];
 
+                int rendernodeFdForMem = drmOpenRender(128 /* RENDERNODE_MINOR */);
+
                 mLock.unlock();
                 enc->vkGetMemoryHostAddressInfoGOOGLE(
                         device, hostMemAlloc.memory,
@@ -2144,7 +2145,7 @@ public:
                 drm_rc_blob.size = hvaSizeId[1];
 
                 int res = drmIoctl(
-                    mRendernodeFd, DRM_IOCTL_VIRTGPU_RESOURCE_CREATE_BLOB, &drm_rc_blob);
+                    rendernodeFdForMem, DRM_IOCTL_VIRTGPU_RESOURCE_CREATE_BLOB, &drm_rc_blob);
 
                 if (res) {
                     ALOGE("%s: Failed to resource create v2: sterror: %s errno: %d\n", __func__,
@@ -2156,7 +2157,7 @@ public:
                 memset(&map_info, 0, sizeof(map_info));
                 map_info.handle = drm_rc_blob.bo_handle;
 
-                res = drmIoctl(mRendernodeFd, DRM_IOCTL_VIRTGPU_MAP, &map_info);
+                res = drmIoctl(rendernodeFdForMem, DRM_IOCTL_VIRTGPU_MAP, &map_info);
                 if (res) {
                     ALOGE("%s: Failed to virtgpu map: sterror: %s errno: %d\n", __func__,
                             strerror(errno), errno);
@@ -2164,7 +2165,7 @@ public:
                 }
 
                 directMappedAddr = (uint64_t)(uintptr_t)
-                    mmap64(0, hvaSizeId[1], PROT_WRITE, MAP_SHARED, mRendernodeFd, map_info.offset);
+                    mmap64(0, hvaSizeId[1], PROT_WRITE, MAP_SHARED, rendernodeFdForMem, map_info.offset);
 
                 if (!directMappedAddr) {
                     ALOGE("%s: mmap of virtio gpu resource failed\n", __func__);
@@ -2174,6 +2175,9 @@ public:
                 // add the host's page offset
                 directMappedAddr += (uint64_t)(uintptr_t)(hvaSizeId[0]) & (PAGE_SIZE - 1);
 				directMapResult = VK_SUCCESS;
+
+                hostMemAlloc.fd = rendernodeFdForMem;
+
 #endif // VK_USE_PLATFORM_ANDROID_KHR
             }
 
