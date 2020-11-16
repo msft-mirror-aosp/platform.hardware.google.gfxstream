@@ -2127,6 +2127,7 @@ public:
                 uint64_t hvaSizeId[3];
 
                 int rendernodeFdForMem = drmOpenRender(128 /* RENDERNODE_MINOR */);
+                ALOGE("%s: render fd = %d\n", __func__, rendernodeFdForMem);
 
                 mLock.unlock();
                 enc->vkGetMemoryHostAddressInfoGOOGLE(
@@ -2172,12 +2173,14 @@ public:
                     abort();
                 }
 
+                hostMemAlloc.memoryAddr = directMappedAddr;
+                hostMemAlloc.memorySize = hvaSizeId[1];
+
                 // add the host's page offset
                 directMappedAddr += (uint64_t)(uintptr_t)(hvaSizeId[0]) & (PAGE_SIZE - 1);
 				directMapResult = VK_SUCCESS;
 
                 hostMemAlloc.fd = rendernodeFdForMem;
-
 #endif // VK_USE_PLATFORM_ANDROID_KHR
             }
 
