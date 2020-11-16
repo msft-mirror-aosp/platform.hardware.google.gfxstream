@@ -27,7 +27,9 @@
 
 #ifdef ANDROID
 #include <unistd.h>
+#include <errno.h>
 #endif
+#include <sys/mman.h>
 
 using android::base::guest::SubAllocator;
 
@@ -264,7 +266,19 @@ void destroyHostMemAlloc(
 
 #ifdef ANDROID
     if (toDestroy->fd > 0) {
-        close(toDestroy->fd);
+
+        if (toDestroy->memoryAddr) {
+            int ret = munmap((void*)toDestroy->memoryAddr, toDestroy->memorySize);
+            ALOGE("%s: trying to unmap addr = 0x%" PRIx64", size = %d, ret = %d, errno = %d\n", __func__, toDestroy->memoryAddr, (int32_t)toDestroy->memorySize, ret, errno);
+        }
+
+        ALOGE("%s: trying to close fd = %d\n", __func__, toDestroy->fd);
+        int ret = close(toDestroy->fd);
+        if (ret != 0) {
+            ALOGE("%s: fail to close fd = %d, ret = %d, errno = %d\n", __func__, toDestroy->fd, ret, errno);
+        } else {
+            ALOGE("%s: successfully close fd = %d, ret = %d\n", __func__, toDestroy->fd, ret);
+        }
     }
 #endif
 
