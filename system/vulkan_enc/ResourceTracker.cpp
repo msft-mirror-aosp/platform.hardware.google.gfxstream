@@ -1192,7 +1192,7 @@ public:
             getHostDeviceExtensionIndex(
                 "VK_KHR_external_memory_fd") != -1;
         bool moltenVkExtAvailable =
-            getHostInstanceExtensionIndex(
+            getHostDeviceExtensionIndex(
                 "VK_MVK_moltenvk") != -1;
 
         bool hostHasExternalMemorySupport =
