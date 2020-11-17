@@ -35,6 +35,14 @@ enum class VsockPort {
 
 std::atomic<bool> gVsockAvailable = false;
 
+bool is_graphics_pipe(const char* name) {
+    if (!strcmp(name, "opengles")) { return true; }
+    if (!strcmp(name, "GLProcessPipe")) { return true; }
+    if (!strcmp(name, "refcount")) { return true; }
+
+    return false;
+}
+
 int open_verbose_path(const char* name, const int flags) {
     const int fd = QEMU_PIPE_RETRY(open(name, flags));
     if (fd < 0) {
@@ -94,9 +102,9 @@ int open_verbose_vsock(const VsockPort port, const int flags) {
 int open_verbose(const char *pipeName, const int flags) {
     int fd;
 
-    // "opengles" crashes the kernel, see b/171252755.
-    // It should be ok to remove once the crash is fixed.
-    if (strcmp(pipeName, "opengles")) {
+    // We can't use vsock for grapshics for security reasons,
+    // virtio-gpu should be used instead.
+    if (!is_graphics_pipe(pipeName)) {
         fd = open_verbose_vsock(VsockPort::Data, flags);
         if (fd >= 0) {
             gVsockAvailable = true;
