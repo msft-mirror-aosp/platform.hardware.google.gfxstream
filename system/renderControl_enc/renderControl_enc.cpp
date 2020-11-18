@@ -81,8 +81,8 @@ EGLint rcGetEGLVersion_enc(void *self , EGLint* major, EGLint* minor)
 	int tmp = OP_rcGetEGLVersion;memcpy(ptr, &tmp, 4); ptr += 4;
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
-	*(unsigned int *)(ptr) = __size_major; ptr += 4;
-	*(unsigned int *)(ptr) = __size_minor; ptr += 4;
+	memcpy(ptr, &__size_major, 4); ptr += 4;
+	memcpy(ptr, &__size_minor, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -129,7 +129,7 @@ EGLint rcQueryEGLString_enc(void *self , EGLenum name, void* buffer, EGLint buff
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &name, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_buffer; ptr += 4;
+	memcpy(ptr, &__size_buffer, 4); ptr += 4;
 		memcpy(ptr, &bufferSize, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -175,7 +175,7 @@ EGLint rcGetGLString_enc(void *self , EGLenum name, void* buffer, EGLint bufferS
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &name, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_buffer; ptr += 4;
+	memcpy(ptr, &__size_buffer, 4); ptr += 4;
 		memcpy(ptr, &bufferSize, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -220,7 +220,7 @@ EGLint rcGetNumConfigs_enc(void *self , uint32_t* numAttribs)
 	int tmp = OP_rcGetNumConfigs;memcpy(ptr, &tmp, 4); ptr += 4;
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
-	*(unsigned int *)(ptr) = __size_numAttribs; ptr += 4;
+	memcpy(ptr, &__size_numAttribs, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -265,7 +265,7 @@ EGLint rcGetConfigs_enc(void *self , uint32_t bufSize, GLuint* buffer)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &bufSize, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_buffer; ptr += 4;
+	memcpy(ptr, &__size_buffer, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -310,10 +310,10 @@ EGLint rcChooseConfig_enc(void *self , EGLint* attribs, uint32_t attribs_size, u
 	int tmp = OP_rcChooseConfig;memcpy(ptr, &tmp, 4); ptr += 4;
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
-	*(unsigned int *)(ptr) = __size_attribs; ptr += 4;
+	memcpy(ptr, &__size_attribs, 4); ptr += 4;
 	memcpy(ptr, attribs, __size_attribs);ptr += __size_attribs;
 		memcpy(ptr, &attribs_size, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_configs; ptr += 4;
+	memcpy(ptr, &__size_configs, 4); ptr += 4;
 		memcpy(ptr, &configs_size, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -900,7 +900,7 @@ void rcReadColorBuffer_enc(void *self , uint32_t colorbuffer, GLint x, GLint y, 
 		memcpy(ptr, &height, 4); ptr += 4;
 		memcpy(ptr, &format, 4); ptr += 4;
 		memcpy(ptr, &type, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_pixels; ptr += 4;
+	memcpy(ptr, &__size_pixels, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -1148,12 +1148,12 @@ void rcCreateSyncKHR_enc(void *self , EGLenum type, EGLint* attribs, uint32_t nu
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &type, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_attribs; ptr += 4;
+	memcpy(ptr, &__size_attribs, 4); ptr += 4;
 	memcpy(ptr, attribs, __size_attribs);ptr += __size_attribs;
 		memcpy(ptr, &num_attribs, 4); ptr += 4;
 		memcpy(ptr, &destroy_when_signaled, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_glsync_out; ptr += 4;
-	*(unsigned int *)(ptr) = __size_syncthread_out; ptr += 4;
+	memcpy(ptr, &__size_glsync_out, 4); ptr += 4;
+	memcpy(ptr, &__size_syncthread_out, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -1452,7 +1452,7 @@ GLint rcCompose_enc(void *self , uint32_t bufferSize, void* buffer)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &bufferSize, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_buffer; ptr += 4;
+	memcpy(ptr, &__size_buffer, 4); ptr += 4;
 	memcpy(ptr, buffer, __size_buffer);ptr += __size_buffer;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -1495,7 +1495,7 @@ int rcCreateDisplay_enc(void *self , uint32_t* displayId)
 	int tmp = OP_rcCreateDisplay;memcpy(ptr, &tmp, 4); ptr += 4;
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
-	*(unsigned int *)(ptr) = __size_displayId; ptr += 4;
+	memcpy(ptr, &__size_displayId, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -1623,7 +1623,7 @@ int rcGetDisplayColorBuffer_enc(void *self , uint32_t displayId, uint32_t* color
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &displayId, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_colorBuffer; ptr += 4;
+	memcpy(ptr, &__size_colorBuffer, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -1668,7 +1668,7 @@ int rcGetColorBufferDisplay_enc(void *self , uint32_t colorBuffer, uint32_t* dis
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &colorBuffer, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_displayId; ptr += 4;
+	memcpy(ptr, &__size_displayId, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -1716,10 +1716,10 @@ int rcGetDisplayPose_enc(void *self , uint32_t displayId, GLint* x, GLint* y, ui
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &displayId, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_x; ptr += 4;
-	*(unsigned int *)(ptr) = __size_y; ptr += 4;
-	*(unsigned int *)(ptr) = __size_w; ptr += 4;
-	*(unsigned int *)(ptr) = __size_h; ptr += 4;
+	memcpy(ptr, &__size_x, 4); ptr += 4;
+	memcpy(ptr, &__size_y, 4); ptr += 4;
+	memcpy(ptr, &__size_w, 4); ptr += 4;
+	memcpy(ptr, &__size_h, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -1861,7 +1861,7 @@ void rcReadColorBufferYUV_enc(void *self , uint32_t colorbuffer, GLint x, GLint 
 		memcpy(ptr, &y, 4); ptr += 4;
 		memcpy(ptr, &width, 4); ptr += 4;
 		memcpy(ptr, &height, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_pixels; ptr += 4;
+	memcpy(ptr, &__size_pixels, 4); ptr += 4;
 		memcpy(ptr, &pixels_size, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -2293,7 +2293,7 @@ void rcComposeAsync_enc(void *self , uint32_t bufferSize, void* buffer)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &bufferSize, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_buffer; ptr += 4;
+	memcpy(ptr, &__size_buffer, 4); ptr += 4;
 	memcpy(ptr, buffer, __size_buffer);ptr += __size_buffer;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);

@@ -95,7 +95,7 @@ void glBindAttribLocation_enc(void *self , GLuint program, GLuint index, const G
 
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &index, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_name; ptr += 4;
+	memcpy(ptr, &__size_name, 4); ptr += 4;
 	memcpy(ptr, name, __size_name);ptr += __size_name;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -907,7 +907,7 @@ void glDeleteBuffers_enc(void *self , GLsizei n, const GLuint* buffers)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_buffers; ptr += 4;
+	memcpy(ptr, &__size_buffers, 4); ptr += 4;
 	memcpy(ptr, buffers, __size_buffers);ptr += __size_buffers;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -936,7 +936,7 @@ void glDeleteFramebuffers_enc(void *self , GLsizei n, const GLuint* framebuffers
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_framebuffers; ptr += 4;
+	memcpy(ptr, &__size_framebuffers, 4); ptr += 4;
 	memcpy(ptr, framebuffers, __size_framebuffers);ptr += __size_framebuffers;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -991,7 +991,7 @@ void glDeleteRenderbuffers_enc(void *self , GLsizei n, const GLuint* renderbuffe
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_renderbuffers; ptr += 4;
+	memcpy(ptr, &__size_renderbuffers, 4); ptr += 4;
 	memcpy(ptr, renderbuffers, __size_renderbuffers);ptr += __size_renderbuffers;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -1046,7 +1046,7 @@ void glDeleteTextures_enc(void *self , GLsizei n, const GLuint* textures)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_textures; ptr += 4;
+	memcpy(ptr, &__size_textures, 4); ptr += 4;
 	memcpy(ptr, textures, __size_textures);ptr += __size_textures;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -1448,7 +1448,7 @@ void glGenBuffers_enc(void *self , GLsizei n, GLuint* buffers)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_buffers; ptr += 4;
+	memcpy(ptr, &__size_buffers, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -1514,7 +1514,7 @@ void glGenFramebuffers_enc(void *self , GLsizei n, GLuint* framebuffers)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_framebuffers; ptr += 4;
+	memcpy(ptr, &__size_framebuffers, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -1554,7 +1554,7 @@ void glGenRenderbuffers_enc(void *self , GLsizei n, GLuint* renderbuffers)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_renderbuffers; ptr += 4;
+	memcpy(ptr, &__size_renderbuffers, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -1594,7 +1594,7 @@ void glGenTextures_enc(void *self , GLsizei n, GLuint* textures)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_textures; ptr += 4;
+	memcpy(ptr, &__size_textures, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -1639,10 +1639,10 @@ void glGetActiveAttrib_enc(void *self , GLuint program, GLuint index, GLsizei bu
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &index, 4); ptr += 4;
 		memcpy(ptr, &bufsize, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_length; ptr += 4;
-	*(unsigned int *)(ptr) = __size_size; ptr += 4;
-	*(unsigned int *)(ptr) = __size_type; ptr += 4;
-	*(unsigned int *)(ptr) = __size_name; ptr += 4;
+	memcpy(ptr, &__size_length, 4); ptr += 4;
+	memcpy(ptr, &__size_size, 4); ptr += 4;
+	memcpy(ptr, &__size_type, 4); ptr += 4;
+	memcpy(ptr, &__size_name, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -1701,10 +1701,10 @@ void glGetActiveUniform_enc(void *self , GLuint program, GLuint index, GLsizei b
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &index, 4); ptr += 4;
 		memcpy(ptr, &bufsize, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_length; ptr += 4;
-	*(unsigned int *)(ptr) = __size_size; ptr += 4;
-	*(unsigned int *)(ptr) = __size_type; ptr += 4;
-	*(unsigned int *)(ptr) = __size_name; ptr += 4;
+	memcpy(ptr, &__size_length, 4); ptr += 4;
+	memcpy(ptr, &__size_size, 4); ptr += 4;
+	memcpy(ptr, &__size_type, 4); ptr += 4;
+	memcpy(ptr, &__size_name, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -1760,8 +1760,8 @@ void glGetAttachedShaders_enc(void *self , GLuint program, GLsizei maxcount, GLs
 
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &maxcount, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_count; ptr += 4;
-	*(unsigned int *)(ptr) = __size_shaders; ptr += 4;
+	memcpy(ptr, &__size_count, 4); ptr += 4;
+	memcpy(ptr, &__size_shaders, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -1805,7 +1805,7 @@ int glGetAttribLocation_enc(void *self , GLuint program, const GLchar* name)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &program, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_name; ptr += 4;
+	memcpy(ptr, &__size_name, 4); ptr += 4;
 	memcpy(ptr, name, __size_name);ptr += __size_name;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -1849,7 +1849,7 @@ void glGetBooleanv_enc(void *self , GLenum pname, GLboolean* params)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -1890,7 +1890,7 @@ void glGetBufferParameteriv_enc(void *self , GLenum target, GLenum pname, GLint*
 
 		memcpy(ptr, &target, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -1970,7 +1970,7 @@ void glGetFloatv_enc(void *self , GLenum pname, GLfloat* params)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -2012,7 +2012,7 @@ void glGetFramebufferAttachmentParameteriv_enc(void *self , GLenum target, GLenu
 		memcpy(ptr, &target, 4); ptr += 4;
 		memcpy(ptr, &attachment, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -2052,7 +2052,7 @@ void glGetIntegerv_enc(void *self , GLenum pname, GLint* params)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -2093,7 +2093,7 @@ void glGetProgramiv_enc(void *self , GLuint program, GLenum pname, GLint* params
 
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -2135,8 +2135,8 @@ void glGetProgramInfoLog_enc(void *self , GLuint program, GLsizei bufsize, GLsiz
 
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &bufsize, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_length; ptr += 4;
-	*(unsigned int *)(ptr) = __size_infolog; ptr += 4;
+	memcpy(ptr, &__size_length, 4); ptr += 4;
+	memcpy(ptr, &__size_infolog, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -2181,7 +2181,7 @@ void glGetRenderbufferParameteriv_enc(void *self , GLenum target, GLenum pname, 
 
 		memcpy(ptr, &target, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -2222,7 +2222,7 @@ void glGetShaderiv_enc(void *self , GLuint shader, GLenum pname, GLint* params)
 
 		memcpy(ptr, &shader, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -2264,8 +2264,8 @@ void glGetShaderInfoLog_enc(void *self , GLuint shader, GLsizei bufsize, GLsizei
 
 		memcpy(ptr, &shader, 4); ptr += 4;
 		memcpy(ptr, &bufsize, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_length; ptr += 4;
-	*(unsigned int *)(ptr) = __size_infolog; ptr += 4;
+	memcpy(ptr, &__size_length, 4); ptr += 4;
+	memcpy(ptr, &__size_infolog, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -2311,8 +2311,8 @@ void glGetShaderPrecisionFormat_enc(void *self , GLenum shadertype, GLenum preci
 
 		memcpy(ptr, &shadertype, 4); ptr += 4;
 		memcpy(ptr, &precisiontype, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_range; ptr += 4;
-	*(unsigned int *)(ptr) = __size_precision; ptr += 4;
+	memcpy(ptr, &__size_range, 4); ptr += 4;
+	memcpy(ptr, &__size_precision, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -2356,8 +2356,8 @@ void glGetShaderSource_enc(void *self , GLuint shader, GLsizei bufsize, GLsizei*
 
 		memcpy(ptr, &shader, 4); ptr += 4;
 		memcpy(ptr, &bufsize, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_length; ptr += 4;
-	*(unsigned int *)(ptr) = __size_source; ptr += 4;
+	memcpy(ptr, &__size_length, 4); ptr += 4;
+	memcpy(ptr, &__size_source, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -2402,7 +2402,7 @@ void glGetTexParameterfv_enc(void *self , GLenum target, GLenum pname, GLfloat* 
 
 		memcpy(ptr, &target, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -2443,7 +2443,7 @@ void glGetTexParameteriv_enc(void *self , GLenum target, GLenum pname, GLint* pa
 
 		memcpy(ptr, &target, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -2484,7 +2484,7 @@ void glGetUniformfv_enc(void *self , GLuint program, GLint location, GLfloat* pa
 
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &location, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -2525,7 +2525,7 @@ void glGetUniformiv_enc(void *self , GLuint program, GLint location, GLint* para
 
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &location, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -2565,7 +2565,7 @@ int glGetUniformLocation_enc(void *self , GLuint program, const GLchar* name)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &program, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_name; ptr += 4;
+	memcpy(ptr, &__size_name, 4); ptr += 4;
 	memcpy(ptr, name, __size_name);ptr += __size_name;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -2610,7 +2610,7 @@ void glGetVertexAttribfv_enc(void *self , GLuint index, GLenum pname, GLfloat* p
 
 		memcpy(ptr, &index, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -2651,7 +2651,7 @@ void glGetVertexAttribiv_enc(void *self , GLuint index, GLenum pname, GLint* par
 
 		memcpy(ptr, &index, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -3116,7 +3116,7 @@ void glReadPixels_enc(void *self , GLint x, GLint y, GLsizei width, GLsizei heig
 		memcpy(ptr, &height, 4); ptr += 4;
 		memcpy(ptr, &format, 4); ptr += 4;
 		memcpy(ptr, &type, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_pixels; ptr += 4;
+	memcpy(ptr, &__size_pixels, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -3504,7 +3504,7 @@ void glTexParameterfv_enc(void *self , GLenum target, GLenum pname, const GLfloa
 
 		memcpy(ptr, &target, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 	memcpy(ptr, params, __size_params);ptr += __size_params;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -3562,7 +3562,7 @@ void glTexParameteriv_enc(void *self , GLenum target, GLenum pname, const GLint*
 
 		memcpy(ptr, &target, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 	memcpy(ptr, params, __size_params);ptr += __size_params;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -3661,7 +3661,7 @@ void glUniform1fv_enc(void *self , GLint location, GLsizei count, const GLfloat*
 
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_v; ptr += 4;
+	memcpy(ptr, &__size_v, 4); ptr += 4;
 	memcpy(ptr, v, __size_v);ptr += __size_v;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -3718,7 +3718,7 @@ void glUniform1iv_enc(void *self , GLint location, GLsizei count, const GLint* v
 
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_v; ptr += 4;
+	memcpy(ptr, &__size_v, 4); ptr += 4;
 	memcpy(ptr, v, __size_v);ptr += __size_v;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -3776,7 +3776,7 @@ void glUniform2fv_enc(void *self , GLint location, GLsizei count, const GLfloat*
 
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_v; ptr += 4;
+	memcpy(ptr, &__size_v, 4); ptr += 4;
 	memcpy(ptr, v, __size_v);ptr += __size_v;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -3834,7 +3834,7 @@ void glUniform2iv_enc(void *self , GLint location, GLsizei count, const GLint* v
 
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_v; ptr += 4;
+	memcpy(ptr, &__size_v, 4); ptr += 4;
 	memcpy(ptr, v, __size_v);ptr += __size_v;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -3893,7 +3893,7 @@ void glUniform3fv_enc(void *self , GLint location, GLsizei count, const GLfloat*
 
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_v; ptr += 4;
+	memcpy(ptr, &__size_v, 4); ptr += 4;
 	memcpy(ptr, v, __size_v);ptr += __size_v;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -3952,7 +3952,7 @@ void glUniform3iv_enc(void *self , GLint location, GLsizei count, const GLint* v
 
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_v; ptr += 4;
+	memcpy(ptr, &__size_v, 4); ptr += 4;
 	memcpy(ptr, v, __size_v);ptr += __size_v;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -4012,7 +4012,7 @@ void glUniform4fv_enc(void *self , GLint location, GLsizei count, const GLfloat*
 
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_v; ptr += 4;
+	memcpy(ptr, &__size_v, 4); ptr += 4;
 	memcpy(ptr, v, __size_v);ptr += __size_v;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -4072,7 +4072,7 @@ void glUniform4iv_enc(void *self , GLint location, GLsizei count, const GLint* v
 
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_v; ptr += 4;
+	memcpy(ptr, &__size_v, 4); ptr += 4;
 	memcpy(ptr, v, __size_v);ptr += __size_v;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -4103,7 +4103,7 @@ void glUniformMatrix2fv_enc(void *self , GLint location, GLsizei count, GLboolea
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &transpose, 1); ptr += 1;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -4134,7 +4134,7 @@ void glUniformMatrix3fv_enc(void *self , GLint location, GLsizei count, GLboolea
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &transpose, 1); ptr += 1;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -4165,7 +4165,7 @@ void glUniformMatrix4fv_enc(void *self , GLint location, GLsizei count, GLboolea
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &transpose, 1); ptr += 1;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -4273,7 +4273,7 @@ void glVertexAttrib1fv_enc(void *self , GLuint indx, const GLfloat* values)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &indx, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_values; ptr += 4;
+	memcpy(ptr, &__size_values, 4); ptr += 4;
 	memcpy(ptr, values, __size_values);ptr += __size_values;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -4330,7 +4330,7 @@ void glVertexAttrib2fv_enc(void *self , GLuint indx, const GLfloat* values)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &indx, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_values; ptr += 4;
+	memcpy(ptr, &__size_values, 4); ptr += 4;
 	memcpy(ptr, values, __size_values);ptr += __size_values;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -4388,7 +4388,7 @@ void glVertexAttrib3fv_enc(void *self , GLuint indx, const GLfloat* values)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &indx, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_values; ptr += 4;
+	memcpy(ptr, &__size_values, 4); ptr += 4;
 	memcpy(ptr, values, __size_values);ptr += __size_values;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -4447,7 +4447,7 @@ void glVertexAttrib4fv_enc(void *self , GLuint indx, const GLfloat* values)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &indx, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_values; ptr += 4;
+	memcpy(ptr, &__size_values, 4); ptr += 4;
 	memcpy(ptr, values, __size_values);ptr += __size_values;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -4864,7 +4864,7 @@ void glDeleteVertexArraysOES_enc(void *self , GLsizei n, const GLuint* arrays)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_arrays; ptr += 4;
+	memcpy(ptr, &__size_arrays, 4); ptr += 4;
 	memcpy(ptr, arrays, __size_arrays);ptr += __size_arrays;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -4893,7 +4893,7 @@ void glGenVertexArraysOES_enc(void *self , GLsizei n, GLuint* arrays)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_arrays; ptr += 4;
+	memcpy(ptr, &__size_arrays, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -4975,7 +4975,7 @@ void glDiscardFramebufferEXT_enc(void *self , GLenum target, GLsizei numAttachme
 
 		memcpy(ptr, &target, 4); ptr += 4;
 		memcpy(ptr, &numAttachments, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_attachments; ptr += 4;
+	memcpy(ptr, &__size_attachments, 4); ptr += 4;
 	memcpy(ptr, attachments, __size_attachments);ptr += __size_attachments;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -5008,7 +5008,7 @@ void glVertexAttribPointerData_enc(void *self , GLuint indx, GLint size, GLenum 
 		memcpy(ptr, &type, 4); ptr += 4;
 		memcpy(ptr, &normalized, 1); ptr += 1;
 		memcpy(ptr, &stride, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_data; ptr += 4;
+	memcpy(ptr, &__size_data, 4); ptr += 4;
 	 glUtilsPackPointerData((unsigned char *)ptr, (unsigned char *)data, size, type, stride, datalen);ptr += __size_data;
 		memcpy(ptr, &datalen, 4); ptr += 4;
 
@@ -5100,7 +5100,7 @@ void glDrawElementsData_enc(void *self , GLenum mode, GLsizei count, GLenum type
 		memcpy(ptr, &mode, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &type, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_data; ptr += 4;
+	memcpy(ptr, &__size_data, 4); ptr += 4;
 	memcpy(ptr, data, __size_data);ptr += __size_data;
 		memcpy(ptr, &datalen, 4); ptr += 4;
 
@@ -5130,7 +5130,7 @@ void glGetCompressedTextureFormats_enc(void *self , int count, GLint* formats)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_formats; ptr += 4;
+	memcpy(ptr, &__size_formats, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -5170,7 +5170,7 @@ void glShaderString_enc(void *self , GLuint shader, const GLchar* string, GLsize
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &shader, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_string; ptr += 4;
+	memcpy(ptr, &__size_string, 4); ptr += 4;
 	memcpy(ptr, string, __size_string);ptr += __size_string;
 		memcpy(ptr, &len, 4); ptr += 4;
 
@@ -5240,7 +5240,7 @@ void glGenVertexArrays_enc(void *self , GLsizei n, GLuint* arrays)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_arrays; ptr += 4;
+	memcpy(ptr, &__size_arrays, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -5306,7 +5306,7 @@ void glDeleteVertexArrays_enc(void *self , GLsizei n, const GLuint* arrays)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_arrays; ptr += 4;
+	memcpy(ptr, &__size_arrays, 4); ptr += 4;
 	memcpy(ptr, arrays, __size_arrays);ptr += __size_arrays;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -5379,7 +5379,7 @@ void glMapBufferRangeAEMU_enc(void *self , GLenum target, GLintptr offset, GLsiz
 		memcpy(ptr, &offset, 4); ptr += 4;
 		memcpy(ptr, &length, 4); ptr += 4;
 		memcpy(ptr, &access, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_mapped; ptr += 4;
+	memcpy(ptr, &__size_mapped, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -5425,9 +5425,9 @@ void glUnmapBufferAEMU_enc(void *self , GLenum target, GLintptr offset, GLsizeip
 		memcpy(ptr, &offset, 4); ptr += 4;
 		memcpy(ptr, &length, 4); ptr += 4;
 		memcpy(ptr, &access, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_guest_buffer; ptr += 4;
+	memcpy(ptr, &__size_guest_buffer, 4); ptr += 4;
 	if (guest_buffer != NULL) memcpy(ptr, guest_buffer, __size_guest_buffer);ptr += __size_guest_buffer;
-	*(unsigned int *)(ptr) = __size_out_res; ptr += 4;
+	memcpy(ptr, &__size_out_res, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -5470,7 +5470,7 @@ void glFlushMappedBufferRangeAEMU_enc(void *self , GLenum target, GLintptr offse
 		memcpy(ptr, &offset, 4); ptr += 4;
 		memcpy(ptr, &length, 4); ptr += 4;
 		memcpy(ptr, &access, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_guest_buffer; ptr += 4;
+	memcpy(ptr, &__size_guest_buffer, 4); ptr += 4;
 	if (guest_buffer != NULL) memcpy(ptr, guest_buffer, __size_guest_buffer);ptr += __size_guest_buffer;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -5756,7 +5756,7 @@ void glClearBufferiv_enc(void *self , GLenum buffer, GLint drawBuffer, const GLi
 
 		memcpy(ptr, &buffer, 4); ptr += 4;
 		memcpy(ptr, &drawBuffer, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -5786,7 +5786,7 @@ void glClearBufferuiv_enc(void *self , GLenum buffer, GLint drawBuffer, const GL
 
 		memcpy(ptr, &buffer, 4); ptr += 4;
 		memcpy(ptr, &drawBuffer, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -5816,7 +5816,7 @@ void glClearBufferfv_enc(void *self , GLenum buffer, GLint drawBuffer, const GLf
 
 		memcpy(ptr, &buffer, 4); ptr += 4;
 		memcpy(ptr, &drawBuffer, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -5902,7 +5902,7 @@ GLuint glGetUniformBlockIndex_enc(void *self , GLuint program, const GLchar* uni
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &program, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_uniformBlockName; ptr += 4;
+	memcpy(ptr, &__size_uniformBlockName, 4); ptr += 4;
 	memcpy(ptr, uniformBlockName, __size_uniformBlockName);ptr += __size_uniformBlockName;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -5948,10 +5948,10 @@ void glGetUniformIndicesAEMU_enc(void *self , GLuint program, GLsizei uniformCou
 
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &uniformCount, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_packedUniformNames; ptr += 4;
+	memcpy(ptr, &__size_packedUniformNames, 4); ptr += 4;
 	memcpy(ptr, packedUniformNames, __size_packedUniformNames);ptr += __size_packedUniformNames;
 		memcpy(ptr, &packedLen, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_uniformIndices; ptr += 4;
+	memcpy(ptr, &__size_uniformIndices, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -5993,7 +5993,7 @@ void glGetActiveUniformBlockiv_enc(void *self , GLuint program, GLuint uniformBl
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &uniformBlockIndex, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -6036,8 +6036,8 @@ void glGetActiveUniformBlockName_enc(void *self , GLuint program, GLuint uniform
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &uniformBlockIndex, 4); ptr += 4;
 		memcpy(ptr, &bufSize, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_length; ptr += 4;
-	*(unsigned int *)(ptr) = __size_uniformBlockName; ptr += 4;
+	memcpy(ptr, &__size_length, 4); ptr += 4;
+	memcpy(ptr, &__size_uniformBlockName, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -6198,7 +6198,7 @@ void glUniform1uiv_enc(void *self , GLint location, GLsizei count, const GLuint*
 
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -6228,7 +6228,7 @@ void glUniform2uiv_enc(void *self , GLint location, GLsizei count, const GLuint*
 
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -6258,7 +6258,7 @@ void glUniform3uiv_enc(void *self , GLint location, GLsizei count, const GLuint*
 
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -6288,7 +6288,7 @@ void glUniform4uiv_enc(void *self , GLint location, GLsizei count, const GLuint*
 
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -6319,7 +6319,7 @@ void glUniformMatrix2x3fv_enc(void *self , GLint location, GLsizei count, GLbool
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &transpose, 1); ptr += 1;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -6350,7 +6350,7 @@ void glUniformMatrix3x2fv_enc(void *self , GLint location, GLsizei count, GLbool
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &transpose, 1); ptr += 1;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -6381,7 +6381,7 @@ void glUniformMatrix2x4fv_enc(void *self , GLint location, GLsizei count, GLbool
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &transpose, 1); ptr += 1;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -6412,7 +6412,7 @@ void glUniformMatrix4x2fv_enc(void *self , GLint location, GLsizei count, GLbool
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &transpose, 1); ptr += 1;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -6443,7 +6443,7 @@ void glUniformMatrix3x4fv_enc(void *self , GLint location, GLsizei count, GLbool
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &transpose, 1); ptr += 1;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -6474,7 +6474,7 @@ void glUniformMatrix4x3fv_enc(void *self , GLint location, GLsizei count, GLbool
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &transpose, 1); ptr += 1;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -6504,7 +6504,7 @@ void glGetUniformuiv_enc(void *self , GLuint program, GLint location, GLuint* pa
 
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &location, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -6546,10 +6546,10 @@ void glGetActiveUniformsiv_enc(void *self , GLuint program, GLsizei uniformCount
 
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &uniformCount, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_uniformIndices; ptr += 4;
+	memcpy(ptr, &__size_uniformIndices, 4); ptr += 4;
 	memcpy(ptr, uniformIndices, __size_uniformIndices);ptr += __size_uniformIndices;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -6649,7 +6649,7 @@ void glVertexAttribI4iv_enc(void *self , GLuint index, const GLint* v)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &index, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_v; ptr += 4;
+	memcpy(ptr, &__size_v, 4); ptr += 4;
 	memcpy(ptr, v, __size_v);ptr += __size_v;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -6678,7 +6678,7 @@ void glVertexAttribI4uiv_enc(void *self , GLuint index, const GLuint* v)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &index, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_v; ptr += 4;
+	memcpy(ptr, &__size_v, 4); ptr += 4;
 	memcpy(ptr, v, __size_v);ptr += __size_v;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -6740,7 +6740,7 @@ void glVertexAttribIPointerDataAEMU_enc(void *self , GLuint index, GLint size, G
 		memcpy(ptr, &size, 4); ptr += 4;
 		memcpy(ptr, &type, 4); ptr += 4;
 		memcpy(ptr, &stride, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_data; ptr += 4;
+	memcpy(ptr, &__size_data, 4); ptr += 4;
 	 glUtilsPackPointerData((unsigned char *)ptr, (unsigned char *)data, size, type, stride, datalen);ptr += __size_data;
 		memcpy(ptr, &datalen, 4); ptr += 4;
 
@@ -6771,7 +6771,7 @@ void glGetVertexAttribIiv_enc(void *self , GLuint index, GLenum pname, GLint* pa
 
 		memcpy(ptr, &index, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -6812,7 +6812,7 @@ void glGetVertexAttribIuiv_enc(void *self , GLuint index, GLenum pname, GLuint* 
 
 		memcpy(ptr, &index, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -6910,7 +6910,7 @@ void glDrawElementsInstancedDataAEMU_enc(void *self , GLenum mode, GLsizei count
 		memcpy(ptr, &mode, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &type, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_indices; ptr += 4;
+	memcpy(ptr, &__size_indices, 4); ptr += 4;
 	memcpy(ptr, indices, __size_indices);ptr += __size_indices;
 		memcpy(ptr, &primcount, 4); ptr += 4;
 		memcpy(ptr, &datalen, 4); ptr += 4;
@@ -6975,7 +6975,7 @@ void glDrawRangeElementsDataAEMU_enc(void *self , GLenum mode, GLuint start, GLu
 		memcpy(ptr, &end, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &type, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_indices; ptr += 4;
+	memcpy(ptr, &__size_indices, 4); ptr += 4;
 	memcpy(ptr, indices, __size_indices);ptr += __size_indices;
 		memcpy(ptr, &datalen, 4); ptr += 4;
 
@@ -7219,8 +7219,8 @@ void glGetSyncivAEMU_enc(void *self , uint64_t sync, GLenum pname, GLsizei bufSi
 		memcpy(ptr, &sync, 8); ptr += 8;
 		memcpy(ptr, &pname, 4); ptr += 4;
 		memcpy(ptr, &bufSize, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_length; ptr += 4;
-	*(unsigned int *)(ptr) = __size_values; ptr += 4;
+	memcpy(ptr, &__size_length, 4); ptr += 4;
+	memcpy(ptr, &__size_values, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -7264,7 +7264,7 @@ void glDrawBuffers_enc(void *self , GLsizei n, const GLenum* bufs)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_bufs; ptr += 4;
+	memcpy(ptr, &__size_bufs, 4); ptr += 4;
 	memcpy(ptr, bufs, __size_bufs);ptr += __size_bufs;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -7355,7 +7355,7 @@ void glInvalidateFramebuffer_enc(void *self , GLenum target, GLsizei numAttachme
 
 		memcpy(ptr, &target, 4); ptr += 4;
 		memcpy(ptr, &numAttachments, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_attachments; ptr += 4;
+	memcpy(ptr, &__size_attachments, 4); ptr += 4;
 	memcpy(ptr, attachments, __size_attachments);ptr += __size_attachments;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -7385,7 +7385,7 @@ void glInvalidateSubFramebuffer_enc(void *self , GLenum target, GLsizei numAttac
 
 		memcpy(ptr, &target, 4); ptr += 4;
 		memcpy(ptr, &numAttachments, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_attachments; ptr += 4;
+	memcpy(ptr, &__size_attachments, 4); ptr += 4;
 	memcpy(ptr, attachments, __size_attachments);ptr += __size_attachments;
 		memcpy(ptr, &x, 4); ptr += 4;
 		memcpy(ptr, &y, 4); ptr += 4;
@@ -7511,7 +7511,7 @@ void glGetInternalformativ_enc(void *self , GLenum target, GLenum internalformat
 		memcpy(ptr, &internalformat, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
 		memcpy(ptr, &bufSize, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -7602,7 +7602,7 @@ void glGenTransformFeedbacks_enc(void *self , GLsizei n, GLuint* ids)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_ids; ptr += 4;
+	memcpy(ptr, &__size_ids, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -7642,7 +7642,7 @@ void glDeleteTransformFeedbacks_enc(void *self , GLsizei n, const GLuint* ids)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_ids; ptr += 4;
+	memcpy(ptr, &__size_ids, 4); ptr += 4;
 	memcpy(ptr, ids, __size_ids);ptr += __size_ids;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -7790,7 +7790,7 @@ void glTransformFeedbackVaryingsAEMU_enc(void *self , GLuint program, GLsizei co
 
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_packedVaryings; ptr += 4;
+	memcpy(ptr, &__size_packedVaryings, 4); ptr += 4;
 	memcpy(ptr, packedVaryings, __size_packedVaryings);ptr += __size_packedVaryings;
 		memcpy(ptr, &packedVaryingsLen, 4); ptr += 4;
 		memcpy(ptr, &bufferMode, 4); ptr += 4;
@@ -7826,10 +7826,10 @@ void glGetTransformFeedbackVarying_enc(void *self , GLuint program, GLuint index
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &index, 4); ptr += 4;
 		memcpy(ptr, &bufSize, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_length; ptr += 4;
-	*(unsigned int *)(ptr) = __size_size; ptr += 4;
-	*(unsigned int *)(ptr) = __size_type; ptr += 4;
-	*(unsigned int *)(ptr) = __size_name; ptr += 4;
+	memcpy(ptr, &__size_length, 4); ptr += 4;
+	memcpy(ptr, &__size_size, 4); ptr += 4;
+	memcpy(ptr, &__size_type, 4); ptr += 4;
+	memcpy(ptr, &__size_name, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -7881,7 +7881,7 @@ void glGenSamplers_enc(void *self , GLsizei n, GLuint* samplers)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_samplers; ptr += 4;
+	memcpy(ptr, &__size_samplers, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -7921,7 +7921,7 @@ void glDeleteSamplers_enc(void *self , GLsizei n, const GLuint* samplers)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_samplers; ptr += 4;
+	memcpy(ptr, &__size_samplers, 4); ptr += 4;
 	memcpy(ptr, samplers, __size_samplers);ptr += __size_samplers;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -8034,7 +8034,7 @@ void glSamplerParameterfv_enc(void *self , GLuint sampler, GLenum pname, const G
 
 		memcpy(ptr, &sampler, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 	memcpy(ptr, params, __size_params);ptr += __size_params;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -8064,7 +8064,7 @@ void glSamplerParameteriv_enc(void *self , GLuint sampler, GLenum pname, const G
 
 		memcpy(ptr, &sampler, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 	memcpy(ptr, params, __size_params);ptr += __size_params;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -8094,7 +8094,7 @@ void glGetSamplerParameterfv_enc(void *self , GLuint sampler, GLenum pname, GLfl
 
 		memcpy(ptr, &sampler, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -8135,7 +8135,7 @@ void glGetSamplerParameteriv_enc(void *self , GLuint sampler, GLenum pname, GLin
 
 		memcpy(ptr, &sampler, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -8216,7 +8216,7 @@ void glGenQueries_enc(void *self , GLsizei n, GLuint* queries)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_queries; ptr += 4;
+	memcpy(ptr, &__size_queries, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -8256,7 +8256,7 @@ void glDeleteQueries_enc(void *self , GLsizei n, const GLuint* queries)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_queries; ptr += 4;
+	memcpy(ptr, &__size_queries, 4); ptr += 4;
 	memcpy(ptr, queries, __size_queries);ptr += __size_queries;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -8339,7 +8339,7 @@ void glGetQueryiv_enc(void *self , GLenum target, GLenum pname, GLint* params)
 
 		memcpy(ptr, &target, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -8380,7 +8380,7 @@ void glGetQueryObjectuiv_enc(void *self , GLuint query, GLenum pname, GLuint* pa
 
 		memcpy(ptr, &query, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -8490,7 +8490,7 @@ void glProgramBinary_enc(void *self , GLuint program, GLenum binaryFormat, const
 
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &binaryFormat, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_binary; ptr += 4;
+	memcpy(ptr, &__size_binary, 4); ptr += 4;
 	memcpy(ptr, binary, __size_binary);ptr += __size_binary;
 		memcpy(ptr, &length, 4); ptr += 4;
 
@@ -8523,9 +8523,9 @@ void glGetProgramBinary_enc(void *self , GLuint program, GLsizei bufSize, GLsize
 
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &bufSize, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_length; ptr += 4;
-	*(unsigned int *)(ptr) = __size_binaryFormat; ptr += 4;
-	*(unsigned int *)(ptr) = __size_binary; ptr += 4;
+	memcpy(ptr, &__size_length, 4); ptr += 4;
+	memcpy(ptr, &__size_binaryFormat, 4); ptr += 4;
+	memcpy(ptr, &__size_binary, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -8571,7 +8571,7 @@ GLint glGetFragDataLocation_enc(void *self , GLuint program, const char* name)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &program, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_name; ptr += 4;
+	memcpy(ptr, &__size_name, 4); ptr += 4;
 	memcpy(ptr, name, __size_name);ptr += __size_name;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -8615,7 +8615,7 @@ void glGetInteger64v_enc(void *self , GLenum pname, GLint64* data)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_data; ptr += 4;
+	memcpy(ptr, &__size_data, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -8656,7 +8656,7 @@ void glGetIntegeri_v_enc(void *self , GLenum target, GLuint index, GLint* data)
 
 		memcpy(ptr, &target, 4); ptr += 4;
 		memcpy(ptr, &index, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_data; ptr += 4;
+	memcpy(ptr, &__size_data, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -8697,7 +8697,7 @@ void glGetInteger64i_v_enc(void *self , GLenum target, GLuint index, GLint64* da
 
 		memcpy(ptr, &target, 4); ptr += 4;
 		memcpy(ptr, &index, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_data; ptr += 4;
+	memcpy(ptr, &__size_data, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -9117,7 +9117,7 @@ void glGetBooleani_v_enc(void *self , GLenum target, GLuint index, GLboolean* da
 
 		memcpy(ptr, &target, 4); ptr += 4;
 		memcpy(ptr, &index, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_data; ptr += 4;
+	memcpy(ptr, &__size_data, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -9209,7 +9209,7 @@ void glGenProgramPipelines_enc(void *self , GLsizei n, GLuint* pipelines)
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_pipelines; ptr += 4;
+	memcpy(ptr, &__size_pipelines, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -9249,7 +9249,7 @@ void glDeleteProgramPipelines_enc(void *self , GLsizei n, const GLuint* pipeline
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &n, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_pipelines; ptr += 4;
+	memcpy(ptr, &__size_pipelines, 4); ptr += 4;
 	memcpy(ptr, pipelines, __size_pipelines);ptr += __size_pipelines;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -9305,7 +9305,7 @@ void glGetProgramPipelineiv_enc(void *self , GLuint pipeline, GLenum pname, GLin
 
 		memcpy(ptr, &pipeline, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -9347,8 +9347,8 @@ void glGetProgramPipelineInfoLog_enc(void *self , GLuint pipeline, GLsizei bufSi
 
 		memcpy(ptr, &pipeline, 4); ptr += 4;
 		memcpy(ptr, &bufSize, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_length; ptr += 4;
-	*(unsigned int *)(ptr) = __size_infoLog; ptr += 4;
+	memcpy(ptr, &__size_length, 4); ptr += 4;
+	memcpy(ptr, &__size_infoLog, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -9515,7 +9515,7 @@ GLuint glCreateShaderProgramvAEMU_enc(void *self , GLenum type, GLsizei count, c
 
 		memcpy(ptr, &type, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_packedStrings; ptr += 4;
+	memcpy(ptr, &__size_packedStrings, 4); ptr += 4;
 	memcpy(ptr, packedStrings, __size_packedStrings);ptr += __size_packedStrings;
 		memcpy(ptr, &packedLen, 4); ptr += 4;
 
@@ -9916,7 +9916,7 @@ void glProgramUniform1fv_enc(void *self , GLuint program, GLint location, GLsize
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -9947,7 +9947,7 @@ void glProgramUniform2fv_enc(void *self , GLuint program, GLint location, GLsize
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -9978,7 +9978,7 @@ void glProgramUniform3fv_enc(void *self , GLuint program, GLint location, GLsize
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10009,7 +10009,7 @@ void glProgramUniform4fv_enc(void *self , GLuint program, GLint location, GLsize
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10040,7 +10040,7 @@ void glProgramUniform1iv_enc(void *self , GLuint program, GLint location, GLsize
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10071,7 +10071,7 @@ void glProgramUniform2iv_enc(void *self , GLuint program, GLint location, GLsize
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10102,7 +10102,7 @@ void glProgramUniform3iv_enc(void *self , GLuint program, GLint location, GLsize
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10133,7 +10133,7 @@ void glProgramUniform4iv_enc(void *self , GLuint program, GLint location, GLsize
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10164,7 +10164,7 @@ void glProgramUniform1uiv_enc(void *self , GLuint program, GLint location, GLsiz
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10195,7 +10195,7 @@ void glProgramUniform2uiv_enc(void *self , GLuint program, GLint location, GLsiz
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10226,7 +10226,7 @@ void glProgramUniform3uiv_enc(void *self , GLuint program, GLint location, GLsiz
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10257,7 +10257,7 @@ void glProgramUniform4uiv_enc(void *self , GLuint program, GLint location, GLsiz
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10289,7 +10289,7 @@ void glProgramUniformMatrix2fv_enc(void *self , GLuint program, GLint location, 
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &transpose, 1); ptr += 1;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10321,7 +10321,7 @@ void glProgramUniformMatrix3fv_enc(void *self , GLuint program, GLint location, 
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &transpose, 1); ptr += 1;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10353,7 +10353,7 @@ void glProgramUniformMatrix4fv_enc(void *self , GLuint program, GLint location, 
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &transpose, 1); ptr += 1;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10385,7 +10385,7 @@ void glProgramUniformMatrix2x3fv_enc(void *self , GLuint program, GLint location
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &transpose, 1); ptr += 1;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10417,7 +10417,7 @@ void glProgramUniformMatrix3x2fv_enc(void *self , GLuint program, GLint location
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &transpose, 1); ptr += 1;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10449,7 +10449,7 @@ void glProgramUniformMatrix2x4fv_enc(void *self , GLuint program, GLint location
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &transpose, 1); ptr += 1;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10481,7 +10481,7 @@ void glProgramUniformMatrix4x2fv_enc(void *self , GLuint program, GLint location
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &transpose, 1); ptr += 1;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10513,7 +10513,7 @@ void glProgramUniformMatrix3x4fv_enc(void *self , GLuint program, GLint location
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &transpose, 1); ptr += 1;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10545,7 +10545,7 @@ void glProgramUniformMatrix4x3fv_enc(void *self , GLuint program, GLint location
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &transpose, 1); ptr += 1;
-	*(unsigned int *)(ptr) = __size_value; ptr += 4;
+	memcpy(ptr, &__size_value, 4); ptr += 4;
 	memcpy(ptr, value, __size_value);ptr += __size_value;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10576,7 +10576,7 @@ void glGetProgramInterfaceiv_enc(void *self , GLuint program, GLenum programInte
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &programInterface, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -10621,11 +10621,11 @@ void glGetProgramResourceiv_enc(void *self , GLuint program, GLenum programInter
 		memcpy(ptr, &programInterface, 4); ptr += 4;
 		memcpy(ptr, &index, 4); ptr += 4;
 		memcpy(ptr, &propCount, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_props; ptr += 4;
+	memcpy(ptr, &__size_props, 4); ptr += 4;
 	memcpy(ptr, props, __size_props);ptr += __size_props;
 		memcpy(ptr, &bufSize, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_length; ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_length, 4); ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -10670,7 +10670,7 @@ GLuint glGetProgramResourceIndex_enc(void *self , GLuint program, GLenum program
 
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &programInterface, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_name; ptr += 4;
+	memcpy(ptr, &__size_name, 4); ptr += 4;
 	memcpy(ptr, name, __size_name);ptr += __size_name;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10715,7 +10715,7 @@ GLint glGetProgramResourceLocation_enc(void *self , GLuint program, GLenum progr
 
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &programInterface, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_name; ptr += 4;
+	memcpy(ptr, &__size_name, 4); ptr += 4;
 	memcpy(ptr, name, __size_name);ptr += __size_name;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
@@ -10763,8 +10763,8 @@ void glGetProgramResourceName_enc(void *self , GLuint program, GLenum programInt
 		memcpy(ptr, &programInterface, 4); ptr += 4;
 		memcpy(ptr, &index, 4); ptr += 4;
 		memcpy(ptr, &bufSize, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_length; ptr += 4;
-	*(unsigned int *)(ptr) = __size_name; ptr += 4;
+	memcpy(ptr, &__size_length, 4); ptr += 4;
+	memcpy(ptr, &__size_name, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -11036,7 +11036,7 @@ void glDrawArraysIndirectDataAEMU_enc(void *self , GLenum mode, const void* indi
 	memcpy(ptr, &totalSize, 4);  ptr += 4;
 
 		memcpy(ptr, &mode, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_indirect; ptr += 4;
+	memcpy(ptr, &__size_indirect, 4); ptr += 4;
 	memcpy(ptr, indirect, __size_indirect);ptr += __size_indirect;
 		memcpy(ptr, &datalen, 4); ptr += 4;
 
@@ -11094,7 +11094,7 @@ void glDrawElementsIndirectDataAEMU_enc(void *self , GLenum mode, GLenum type, c
 
 		memcpy(ptr, &mode, 4); ptr += 4;
 		memcpy(ptr, &type, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_indirect; ptr += 4;
+	memcpy(ptr, &__size_indirect, 4); ptr += 4;
 	memcpy(ptr, indirect, __size_indirect);ptr += __size_indirect;
 		memcpy(ptr, &datalen, 4); ptr += 4;
 
@@ -11211,7 +11211,7 @@ void glGetMultisamplefv_enc(void *self , GLenum pname, GLuint index, GLfloat* va
 
 		memcpy(ptr, &pname, 4); ptr += 4;
 		memcpy(ptr, &index, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_val; ptr += 4;
+	memcpy(ptr, &__size_val, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -11280,7 +11280,7 @@ void glGetFramebufferParameteriv_enc(void *self , GLenum target, GLenum pname, G
 
 		memcpy(ptr, &target, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -11322,7 +11322,7 @@ void glGetTexLevelParameterfv_enc(void *self , GLenum target, GLint level, GLenu
 		memcpy(ptr, &target, 4); ptr += 4;
 		memcpy(ptr, &level, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -11364,7 +11364,7 @@ void glGetTexLevelParameteriv_enc(void *self , GLenum target, GLint level, GLenu
 		memcpy(ptr, &target, 4); ptr += 4;
 		memcpy(ptr, &level, 4); ptr += 4;
 		memcpy(ptr, &pname, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -11438,7 +11438,7 @@ void glUnmapBufferDMA_enc(void *self , GLenum target, GLintptr offset, GLsizeipt
 		memcpy(ptr, &length, 4); ptr += 4;
 		memcpy(ptr, &access, 4); ptr += 4;
 		memcpy(ptr, &paddr, 8); ptr += 8;
-	*(unsigned int *)(ptr) = __size_out_res; ptr += 4;
+	memcpy(ptr, &__size_out_res, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -11528,7 +11528,7 @@ void glUnmapBufferDirect_enc(void *self , GLenum target, GLintptr offset, GLsize
 		memcpy(ptr, &access, 4); ptr += 4;
 		memcpy(ptr, &paddr, 8); ptr += 8;
 		memcpy(ptr, &guest_ptr, 8); ptr += 8;
-	*(unsigned int *)(ptr) = __size_out_res; ptr += 4;
+	memcpy(ptr, &__size_out_res, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -11643,7 +11643,7 @@ void glReadnPixelsEXT_enc(void *self , GLint x, GLint y, GLsizei width, GLsizei 
 		memcpy(ptr, &format, 4); ptr += 4;
 		memcpy(ptr, &type, 4); ptr += 4;
 		memcpy(ptr, &bufSize, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_data; ptr += 4;
+	memcpy(ptr, &__size_data, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -11685,7 +11685,7 @@ void glGetnUniformfvEXT_enc(void *self , GLuint program, GLint location, GLsizei
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &bufSize, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -11727,7 +11727,7 @@ void glGetnUniformivEXT_enc(void *self , GLuint program, GLint location, GLsizei
 		memcpy(ptr, &program, 4); ptr += 4;
 		memcpy(ptr, &location, 4); ptr += 4;
 		memcpy(ptr, &bufSize, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_params; ptr += 4;
+	memcpy(ptr, &__size_params, 4); ptr += 4;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
 	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
@@ -11826,7 +11826,7 @@ void glDrawElementsDataNullAEMU_enc(void *self , GLenum mode, GLsizei count, GLe
 		memcpy(ptr, &mode, 4); ptr += 4;
 		memcpy(ptr, &count, 4); ptr += 4;
 		memcpy(ptr, &type, 4); ptr += 4;
-	*(unsigned int *)(ptr) = __size_data; ptr += 4;
+	memcpy(ptr, &__size_data, 4); ptr += 4;
 	memcpy(ptr, data, __size_data);ptr += __size_data;
 		memcpy(ptr, &datalen, 4); ptr += 4;
 
@@ -11871,7 +11871,7 @@ void glUnmapBufferAsyncAEMU_enc(void *self , GLenum target, GLintptr offset, GLs
 	}
 	buf = stream->alloc(__size_out_res + 1*4);
 	ptr = buf;
-	*(unsigned int *)(ptr) = __size_out_res; ptr += 4;
+	memcpy(ptr, &__size_out_res, 4); ptr += 4;
 	memcpy(ptr, out_res, __size_out_res);ptr += __size_out_res;
 
 	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
