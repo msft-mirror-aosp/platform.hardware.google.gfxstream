@@ -809,6 +809,14 @@ public:
             mSysmemAllocator =
                 std::make_unique<llcpp::fuchsia::sysmem::Allocator::SyncClient>(
                     std::move(sysmem_channel));
+            char name[ZX_MAX_NAME_LEN] = {};
+            zx_object_get_property(zx_process_self(), ZX_PROP_NAME, name, sizeof(name));
+            std::string client_name(name);
+            client_name += "-goldfish";
+            zx_info_handle_basic_t info;
+            zx_object_get_info(zx_process_self(), ZX_INFO_HANDLE_BASIC, &info, sizeof(info),
+                               nullptr, nullptr);
+            mSysmemAllocator->SetDebugClientInfo(fidl::unowned_str(client_name), info.koid);
         }
 #endif
 
