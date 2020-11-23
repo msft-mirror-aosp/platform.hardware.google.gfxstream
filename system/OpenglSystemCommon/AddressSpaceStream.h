@@ -66,6 +66,9 @@ private:
     void ensureType3Finished();
     int type1Write(uint32_t offset, size_t size);
 
+    void backoff();
+    void resetBackoff();
+
     bool m_virtioMode;
     struct address_space_ops m_ops;
 
@@ -93,6 +96,9 @@ private:
 
     uint32_t m_notifs;
     uint32_t m_written;
+
+    uint32_t m_backoffIters;
+    uint32_t m_backoffFactor;
 };
 
 #endif
