@@ -20,6 +20,7 @@
 #else
 #include <log/log.h>
 #endif
+#include <cutils/properties.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -291,7 +292,9 @@ AddressSpaceStream::AddressSpaceStream(
     m_writeStart(m_buf),
     m_writeStep(context.ring_config->flush_interval),
     m_notifs(0),
-    m_written(0) {
+    m_written(0),
+    m_backoffIters(0),
+    m_backoffFactor(1) {
     // We'll use this in the future, but at the moment,
     // it's a potential compile Werror.
     (void)m_version;
@@ -442,6 +445,7 @@ const unsigned char *AddressSpaceStream::readFully(void *ptr, size_t totalReadSi
         }
     }
 
+    resetBackoff();
     return userReadBuf;
 }
 
@@ -489,6 +493,7 @@ int AddressSpaceStream::writeFully(const void *buf, size_t size)
 
         if (sentChunks == 0) {
             ring_buffer_yield();
+            backoff();
         }
 
         sent += sentChunks * sendThisTime;
@@ -499,6 +504,7 @@ int AddressSpaceStream::writeFully(const void *buf, size_t size)
     }
 
     ensureType3Finished();
+    resetBackoff();
     m_context.ring_config->transfer_mode = 1;
     m_written += size;
     return 0;
@@ -529,8 +535,7 @@ ssize_t AddressSpaceStream::speculativeRead(unsigned char* readBuffer, size_t tr
 
     size_t actuallyRead = 0;
     size_t readIters = 0;
-    size_t backedOffIters = 0;
-    const size_t kSpeculativeReadBackoffIters = 10000000ULL;
+
     while (!actuallyRead) {
         ++readIters;
 
@@ -541,12 +546,8 @@ ssize_t AddressSpaceStream::speculativeRead(unsigned char* readBuffer, size_t tr
 
         if (!readAvail) {
             ring_buffer_yield();
+            backoff();
             continue;
-        }
-
-        if (readAvail && readIters > kSpeculativeReadBackoffIters) {
-            usleep(10);
-            ++backedOffIters;
         }
 
         uint32_t toRead = readAvail > trySize ?  trySize : readAvail;
@@ -561,12 +562,6 @@ ssize_t AddressSpaceStream::speculativeRead(unsigned char* readBuffer, size_t tr
         if (isInError()) {
             return -1;
         }
-    }
-
-    if (backedOffIters > 0) {
-        ALOGW("%s: backed off %zu times due to host slowness.\n",
-              __func__,
-              backedOffIters);
     }
 
     return actuallyRead;
@@ -606,6 +601,8 @@ void AddressSpaceStream::ensureConsumerFinishing() {
             notifyAvailable();
             break;
         }
+
+        backoff();
     }
 }
 
@@ -616,6 +613,7 @@ void AddressSpaceStream::ensureType1Finished() {
         ring_buffer_available_read(m_context.to_host, 0);
 
     while (currAvailRead) {
+        backoff();
         ring_buffer_yield();
         currAvailRead = ring_buffer_available_read(m_context.to_host, 0);
         if (isInError()) {
@@ -631,6 +629,7 @@ void AddressSpaceStream::ensureType3Finished() {
             &m_context.to_host_large_xfer.view);
     while (availReadLarge) {
         ring_buffer_yield();
+        backoff();
         availReadLarge =
             ring_buffer_available_read(
                 m_context.to_host_large_xfer.ring,
@@ -665,7 +664,6 @@ int AddressSpaceStream::type1Write(uint32_t bufferOffset, size_t size) {
 
     while (ringAvailReadNow >= maxOutstanding) {
         ensureConsumerFinishing();
-        ring_buffer_yield();
         ringAvailReadNow = ring_buffer_available_read(m_context.to_host, 0);
     }
 
@@ -682,6 +680,7 @@ int AddressSpaceStream::type1Write(uint32_t bufferOffset, size_t size) {
 
         if (sentChunks == 0) {
             ring_buffer_yield();
+            backoff();
         }
 
         sent += sentChunks * (sizeForRing - sent);
@@ -702,5 +701,27 @@ int AddressSpaceStream::type1Write(uint32_t bufferOffset, size_t size) {
         m_written = 0;
     }
 
+    resetBackoff();
     return 0;
+}
+
+void AddressSpaceStream::backoff() {
+    static const uint32_t kBackoffItersThreshold = property_get_int32("ro.boot.asg.backoffiters", 50000000);
+    static const uint32_t kBackoffFactorDoublingIncrement = property_get_int32("ro.boot.asg.backoffincrement", 50000000);
+    ++m_backoffIters;
+
+    if (m_backoffIters > kBackoffItersThreshold) {
+        usleep(m_backoffFactor);
+        uint32_t itersSoFarAfterThreshold = m_backoffIters - kBackoffItersThreshold;
+        if (itersSoFarAfterThreshold > kBackoffFactorDoublingIncrement) {
+            m_backoffFactor = m_backoffFactor << 1;
+            if (m_backoffFactor > 1000) m_backoffFactor = 1000;
+            m_backoffIters = kBackoffItersThreshold;
+        }
+    }
+}
+
+void AddressSpaceStream::resetBackoff() {
+    m_backoffIters = 0;
+    m_backoffFactor = 1;
 }
