@@ -706,8 +706,13 @@ int AddressSpaceStream::type1Write(uint32_t bufferOffset, size_t size) {
 }
 
 void AddressSpaceStream::backoff() {
+#if defined(__APPLE__) || defined(__MACOSX)
+    static const uint32_t kBackoffItersThreshold = 50000000;
+    static const uint32_t kBackoffFactorDoublingIncrement = 50000000;
+#else
     static const uint32_t kBackoffItersThreshold = property_get_int32("ro.boot.asg.backoffiters", 50000000);
     static const uint32_t kBackoffFactorDoublingIncrement = property_get_int32("ro.boot.asg.backoffincrement", 50000000);
+#endif
     ++m_backoffIters;
 
     if (m_backoffIters > kBackoffItersThreshold) {
