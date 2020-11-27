@@ -53,8 +53,8 @@ int __android_log_print(int priority, const char* tag, const char* file,
   return 1;
 }
 
-void __android_log_assert(const char* condition, const char* file, int line,
-                          const char* tag, const char* format, ...) {
+void __android_log_assert(const char* condition, const char* tag,
+                          const char* file, int line, const char* format, ...) {
   const char* local_tag = tag;
   if (!local_tag) {
     local_tag = "<NO_TAG>";
