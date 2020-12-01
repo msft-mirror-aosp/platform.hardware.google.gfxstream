@@ -26,13 +26,13 @@
 #include <lib/zxio/inception.h>
 #include <unistd.h>
 
+#include "TraceProviderFuchsia.h"
 #include "services/service_connector.h"
 #endif
 
 #include "HostConnection.h"
 #include "ResourceTracker.h"
 #include "VkEncoder.h"
-
 #include "func_table.h"
 
 // Used when there is no Vulkan support on the host.
@@ -708,6 +708,7 @@ class VulkanDevice {
 public:
     VulkanDevice() : mHostSupportsGoldfish(IsAccessible(QEMU_PIPE_PATH)) {
         InitLogger();
+        InitTraceProvider();
         goldfish_vk::ResourceTracker::get();
     }
 
@@ -745,6 +746,9 @@ public:
     }
 
 private:
+    void InitTraceProvider();
+
+    TraceProviderFuchsia mTraceProvider;
     const bool mHostSupportsGoldfish;
 };
 
@@ -772,6 +776,12 @@ void VulkanDevice::InitLogger() {
                                .num_tags = 0};
 
   fx_log_reconfigure(&config);
+}
+
+void VulkanDevice::InitTraceProvider() {
+    if (!mTraceProvider.Initialize()) {
+        ALOGE("Trace provider failed to initialize");
+    }
 }
 
 extern "C" __attribute__((visibility("default"))) PFN_vkVoidFunction
