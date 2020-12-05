@@ -29,8 +29,8 @@
 
 namespace {
 enum class VsockPort {
-    Data = 5555,
-    Ping = 5556,
+    Data = 5000,
+    Ping = 5001,
 };
 
 std::atomic<bool> gVsockAvailable = false;
