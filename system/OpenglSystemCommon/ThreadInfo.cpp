@@ -17,6 +17,8 @@
 #include "ThreadInfo.h"
 #include "cutils/threads.h"
 
+#include <pthread.h>
+
 #ifdef GFXSTREAM
 
 thread_local EGLThreadInfo sEglThreadInfoThreadLocal;
@@ -51,10 +53,6 @@ void setTlsDestructor(tlsDtorCallback func) {
 #endif
 #endif
 
-#include <pthread.h>
-
-thread_store_t s_tls = THREAD_STORE_INITIALIZER;
-
 static bool sDefaultTlsDestructorCallback(__attribute__((__unused__)) void* ptr) {
   return true;
 }
@@ -80,16 +78,20 @@ void setTlsDestructor(tlsDtorCallback func) {
     sTlsDestructorCallback = func;
 }
 
+static pthread_key_t s_tls;
+
+static void init_key()
+{
+    pthread_key_create(&s_tls, tlsDestruct);
+    pthread_setspecific(s_tls, new EGLThreadInfo);
+}
+
 EGLThreadInfo *goldfish_get_egl_tls()
 {
-   EGLThreadInfo* ti = (EGLThreadInfo*)thread_store_get(&s_tls);
+   static pthread_once_t once = PTHREAD_ONCE_INIT;
+   pthread_once(&once, init_key);
 
-   if (ti) return ti;
-
-   ti = new EGLThreadInfo();
-   thread_store_set(&s_tls, ti, tlsDestruct);
-
-   return ti;
+   return (EGLThreadInfo *) pthread_getspecific(s_tls);
 }
 
 EGLThreadInfo* getEGLThreadInfo() {

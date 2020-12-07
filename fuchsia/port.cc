@@ -71,25 +71,6 @@ int sync_wait(int fd, int timeout) {
   return -1;
 }
 
-void* thread_store_get(thread_store_t* store) {
-  return store->has_tls ? pthread_getspecific(store->tls) : nullptr;
-}
-
-void thread_store_set(thread_store_t* store,
-                      void* value,
-                      thread_store_destruct_t destroy) {
-    pthread_mutex_lock(&store->lock);
-    if (!store->has_tls) {
-        if (pthread_key_create(&store->tls, destroy) != 0) {
-            pthread_mutex_unlock(&store->lock);
-            return;
-        }
-        store->has_tls = 1;
-    }
-    pthread_mutex_unlock(&store->lock);
-    pthread_setspecific(store->tls, value);
-}
-
 pid_t gettid() {
   static thread_local pid_t id = 0;
   if (!id) {
