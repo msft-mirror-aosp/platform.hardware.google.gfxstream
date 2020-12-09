@@ -30,7 +30,9 @@
 #include "../egl/goldfish_sync.h"
 
 typedef uint32_t zx_handle_t;
+typedef uint64_t zx_koid_t;
 #define ZX_HANDLE_INVALID         ((zx_handle_t)0)
+#define ZX_KOID_INVALID ((zx_koid_t)0)
 void zx_handle_close(zx_handle_t) { }
 void zx_event_create(int, zx_handle_t*) { }
 
@@ -59,6 +61,10 @@ void zx_event_create(int, zx_handle_t*) { }
 #include <zircon/syscalls/object.h>
 
 #include "services/service_connector.h"
+
+#ifndef FUCHSIA_NO_TRACE
+#include <lib/trace/event.h>
+#endif
 
 #define GET_STATUS_SAFE(result, member) \
     ((result).ok() ? ((result).Unwrap()->member) : ZX_OK)
@@ -319,6 +325,7 @@ public:
     struct VkSemaphore_Info {
         VkDevice device;
         zx_handle_t eventHandle = ZX_HANDLE_INVALID;
+        zx_koid_t eventKoid = ZX_KOID_INVALID;
         int syncFd = -1;
     };
 
@@ -1604,6 +1611,23 @@ public:
         return VK_SUCCESS;
     }
 
+    zx_koid_t getEventKoid(zx_handle_t eventHandle) {
+        if (eventHandle == ZX_HANDLE_INVALID) {
+            return ZX_KOID_INVALID;
+        }
+
+        zx_info_handle_basic_t info;
+        zx_status_t status =
+            zx_object_get_info(eventHandle, ZX_INFO_HANDLE_BASIC, &info,
+                               sizeof(info), nullptr, nullptr);
+        if (status != ZX_OK) {
+            ALOGE("Cannot get object info of handle %u: %d", eventHandle,
+                  status);
+            return ZX_KOID_INVALID;
+        }
+        return info.koid;
+    }
+
     VkResult on_vkImportSemaphoreZirconHandleFUCHSIA(
         void*, VkResult,
         VkDevice device,
@@ -1632,6 +1656,9 @@ public:
             zx_handle_close(info.eventHandle);
         }
         info.eventHandle = pInfo->handle;
+        if (info.eventHandle != ZX_HANDLE_INVALID) {
+            info.eventKoid = getEventKoid(info.eventHandle);
+        }
 
         return VK_SUCCESS;
     }
@@ -4290,6 +4317,9 @@ public:
 
         info.device = device;
         info.eventHandle = event_handle;
+#ifdef VK_PLATFORM_FUCHSIA
+        info.eventKoid = getEventKoid(info.eventHandle);
+#endif
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
         if (exportSyncFd) {
@@ -4449,11 +4479,12 @@ public:
     VkResult on_vkQueueSubmit(
         void* context, VkResult input_result,
         VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
+        AEMU_SCOPED_TRACE("on_vkQueueSubmit");
 
         std::vector<VkSemaphore> pre_signal_semaphores;
         std::vector<zx_handle_t> pre_signal_events;
         std::vector<int> pre_signal_sync_fds;
-        std::vector<zx_handle_t> post_wait_events;
+        std::vector<std::pair<zx_handle_t, zx_koid_t>> post_wait_events;
         std::vector<int> post_wait_sync_fds;
 
         VkEncoder* enc = (VkEncoder*)context;
@@ -4485,7 +4516,19 @@ public:
                     auto& semInfo = it->second;
 #ifdef VK_USE_PLATFORM_FUCHSIA
                     if (semInfo.eventHandle) {
-                        post_wait_events.push_back(semInfo.eventHandle);
+                        post_wait_events.push_back(
+                            {semInfo.eventHandle, semInfo.eventKoid});
+#ifndef FUCHSIA_NO_TRACE
+                        if (semInfo.eventKoid != ZX_KOID_INVALID) {
+                            // TODO(fxbug.dev/66098): Remove the "semaphore"
+                            // FLOW_END events once it is removed from clients
+                            // (for example, gfx Engine).
+                            TRACE_FLOW_END("gfx", "semaphore",
+                                           semInfo.eventKoid);
+                            TRACE_FLOW_BEGIN("gfx", "goldfish_post_wait_event",
+                                             semInfo.eventKoid);
+                        }
+#endif
                     }
 #endif
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
@@ -4538,7 +4581,8 @@ public:
                 .waitSemaphoreCount = 0,
                 .pWaitSemaphores = nullptr,
                 .pWaitDstStageMask = nullptr,
-                .signalSemaphoreCount = static_cast<uint32_t>(pre_signal_semaphores.size()),
+                .signalSemaphoreCount =
+                    static_cast<uint32_t>(pre_signal_semaphores.size()),
                 .pSignalSemaphores = pre_signal_semaphores.data()};
 
             if (supportsAsyncQueueSubmit()) {
@@ -4583,8 +4627,15 @@ public:
                 auto vkEncoder = mThreadingCallbacks.vkEncoderGetFunc(hostConn);
                 auto waitIdleRes = vkEncoder->vkQueueWaitIdle(queue);
 #ifdef VK_USE_PLATFORM_FUCHSIA
+                AEMU_SCOPED_TRACE("on_vkQueueSubmit::SignalSemaphores");
                 (void)externalFenceFdToSignal;
-                for (auto& event : post_wait_events) {
+                for (auto& [event, koid] : post_wait_events) {
+#ifndef FUCHSIA_NO_TRACE
+                    if (koid != ZX_KOID_INVALID) {
+                        TRACE_FLOW_END("gfx", "goldfish_post_wait_event", koid);
+                        TRACE_FLOW_BEGIN("gfx", "event_signal", koid);
+                    }
+#endif
                     zx_object_signal(event, 0, ZX_EVENT_SIGNALED);
                 }
 #endif
