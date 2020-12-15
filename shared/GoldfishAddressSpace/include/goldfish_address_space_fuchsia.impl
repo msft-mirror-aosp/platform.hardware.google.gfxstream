@@ -58,22 +58,23 @@ GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider(GoldfishAdd
     }
     m_device = std::make_unique<AddressSpaceDevice::SyncClient>(std::move(channel));
 
-    zx::channel child_driver_server, child_driver_client;
-    zx_status_t status = zx::channel::create(0, &child_driver_server, &child_driver_client);
-    if (status != ZX_OK) {
-        ALOGE("%s: zx_channel_create failed: %d", __FUNCTION__, status);
+    auto child_driver_ends =
+        fidl::CreateEndpoints<::llcpp::fuchsia::hardware::goldfish::AddressSpaceChildDriver>();
+    if (!child_driver_ends.is_ok()) {
+        ALOGE("%s: zx_channel_create failed: %d", __FUNCTION__, child_driver_ends.status_value());
         return;
     }
 
     auto result = m_device->OpenChildDriver(
         static_cast<AddressSpaceChildDriverType>(0 /* graphics */),
-        std::move(child_driver_server));
+        std::move(child_driver_ends->server));
     if (!result.ok()) {
         ALOGE("%s: failed to open child driver: %d",
               __FUNCTION__, result.status());
         return;
     }
-    m_child_driver = std::make_unique<AddressSpaceChildDriver::SyncClient>(std::move(child_driver_client));
+    m_child_driver = std::make_unique<AddressSpaceChildDriver::SyncClient>(
+        std::move(child_driver_ends->client));
 }
 
 GoldfishAddressSpaceBlockProvider::~GoldfishAddressSpaceBlockProvider()
@@ -325,19 +326,19 @@ bool goldfish_address_space_set_subdevice_type(
         reinterpret_cast<
             AddressSpaceDevice::SyncClient*>(handle);
 
-    zx::channel child_driver_server, child_driver_client;
-    zx_status_t status = zx::channel::create(0, &child_driver_server, &child_driver_client);    
-    if (status != ZX_OK) {
-        ALOGE("%s: zx_channel_create failed: %d", __FUNCTION__, status);
+    auto child_driver_ends =
+        fidl::CreateEndpoints<::llcpp::fuchsia::hardware::goldfish::AddressSpaceChildDriver>();
+    if (!child_driver_ends.is_ok()) {
+        ALOGE("%s: zx_channel_create failed: %d", __FUNCTION__, child_driver_ends.status_value());
         return false;
     }
 
     deviceSync->OpenChildDriver(
         static_cast<AddressSpaceChildDriverType>(type),
-        std::move(child_driver_server));
+        std::move(child_driver_ends->server));
 
     AddressSpaceChildDriver::SyncClient*
-        childSync = new AddressSpaceChildDriver::SyncClient(std::move(child_driver_client));
+        childSync = new AddressSpaceChildDriver::SyncClient(std::move(child_driver_ends->client));
 
     // On creating a subdevice, in our use cases we wont be needing the
     // original device sync anymore, so get rid of it.

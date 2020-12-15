@@ -83,19 +83,19 @@ int QemuPipeStream::connect(void)
         llcpp::fuchsia::hardware::goldfish::PipeDevice::SyncClient>(
         std::move(channel));
 
-    zx::channel pipe_client, pipe_server;
-    zx_status_t status = zx::channel::create(0, &pipe_server, &pipe_client);
-    if (status != ZX_OK) {
-        ALOGE("zx::channel::create failed: %d", status);
+    auto pipe_ends =
+        fidl::CreateEndpoints<::llcpp::fuchsia::hardware::goldfish::Pipe>();
+    if (!pipe_ends.is_ok()) {
+        ALOGE("zx::channel::create failed: %d", pipe_ends.status_value());
         return ZX_HANDLE_INVALID;
     }
-    m_device->OpenPipe(std::move(pipe_server));
+    m_device->OpenPipe(std::move(pipe_ends->server));
     m_pipe =
         std::make_unique<llcpp::fuchsia::hardware::goldfish::Pipe::SyncClient>(
-            std::move(pipe_client));
+            std::move(pipe_ends->client));
 
     zx::event event;
-    status = zx::event::create(0, &event);
+    zx_status_t status = zx::event::create(0, &event);
     if (status != ZX_OK) {
         ALOGE("%s: failed to create event: %d", __FUNCTION__, status);
         return -1;
