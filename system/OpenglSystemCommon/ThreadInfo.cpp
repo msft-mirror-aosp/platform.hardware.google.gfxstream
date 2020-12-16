@@ -21,7 +21,7 @@
 
 #ifdef GFXSTREAM
 
-thread_local EGLThreadInfo sEglThreadInfoThreadLocal;
+static thread_local EGLThreadInfo sEglThreadInfoThreadLocal;
 
 EGLThreadInfo *goldfish_get_egl_tls()
 {
