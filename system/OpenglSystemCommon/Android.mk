@@ -25,7 +25,7 @@ LOCAL_SRC_FILES += AddressSpaceStream.cpp
 
 endif
 
-LOCAL_CFLAGS += -Wno-unused-variable -Wno-unused-parameter
+LOCAL_CFLAGS += -Wno-unused-variable -Wno-unused-parameter -fno-emulated-tls
 
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 
