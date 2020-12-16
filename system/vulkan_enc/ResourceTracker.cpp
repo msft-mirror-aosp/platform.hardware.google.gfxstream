@@ -1192,6 +1192,15 @@ public:
             filteredExts.push_back(anbExtProp);
         }
 
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        bool hostSupportsExternalFenceFd =
+            getHostDeviceExtensionIndex(
+                "VK_KHR_external_fence_fd") != -1;
+        if (!hostSupportsExternalFenceFd) {
+            filteredExts.push_back({ "VK_KHR_external_fence_fd", 1});
+        }
+#endif
+
 #ifndef VK_USE_PLATFORM_FUCHSIA
         if (hostSupportsExternalSemaphore &&
             !hostHasPosixExternalSemaphore) {
