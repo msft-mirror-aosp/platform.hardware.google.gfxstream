@@ -34,20 +34,20 @@ int __android_log_print(int priority, const char* tag, const char* file,
   switch (priority) {
     case ANDROID_LOG_VERBOSE:
     case ANDROID_LOG_DEBUG:
-      FX_LOGVF2(DEBUG, local_tag, file, line, format, ap);
+      FX_LOGVF(DEBUG, local_tag, file, line, format, ap);
       break;
     case ANDROID_LOG_WARN:
-      FX_LOGVF2(WARNING, local_tag, file, line, format, ap);
+      FX_LOGVF(WARNING, local_tag, file, line, format, ap);
       break;
     case ANDROID_LOG_ERROR:
-      FX_LOGVF2(ERROR, local_tag, file, line, format, ap);
+      FX_LOGVF(ERROR, local_tag, file, line, format, ap);
       break;
     case ANDROID_LOG_FATAL:
-      FX_LOGVF2(FATAL, local_tag, file, line, format, ap);
+      FX_LOGVF(FATAL, local_tag, file, line, format, ap);
       break;
     case ANDROID_LOG_INFO:
     default:
-      FX_LOGVF2(INFO, local_tag, file, line, format, ap);
+      FX_LOGVF(INFO, local_tag, file, line, format, ap);
       break;
   }
   return 1;
@@ -61,7 +61,7 @@ void __android_log_assert(const char* condition, const char* tag,
   }
   va_list ap;
   va_start(ap, format);
-  FX_LOGVF2(ERROR, local_tag, file, line, format, ap);
+  FX_LOGVF(ERROR, local_tag, file, line, format, ap);
   va_end(ap);
 
   abort();
