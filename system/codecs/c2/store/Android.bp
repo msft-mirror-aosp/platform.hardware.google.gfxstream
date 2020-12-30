@@ -1,0 +1,27 @@
+cc_library_shared {
+    name: "libgoldfish_codec2_store",
+    vendor: true,
+
+    defaults: [
+        "libcodec2-impl-defaults",
+    ],
+
+    srcs: [
+        "GoldfishComponentStore.cpp",
+    ],
+    export_include_dirs: [
+        "include",
+    ],
+
+    shared_libs: [
+        "libcutils",
+        "liblog",
+    ],
+
+    cflags: [
+      "-Werror",
+      "-Wall",
+      "-Wthread-safety",  // Check thread annotation at build time.
+    ],
+}
+
