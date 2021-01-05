@@ -71,16 +71,16 @@ static void processPipeInitOnce() {
     llcpp::fuchsia::hardware::goldfish::PipeDevice::SyncClient device(
         std::move(channel));
 
-    zx::channel pipe_server, pipe_client;
-    zx_status_t status = zx::channel::create(0, &pipe_server, &pipe_client);
-    if (status != ZX_OK) {
-        ALOGE("%s: zx_channel_create failed: %d", __FUNCTION__, status);
+    auto pipe_ends =
+        fidl::CreateEndpoints<::llcpp::fuchsia::hardware::goldfish::Pipe>();
+    if (!pipe_ends.is_ok()) {
+        ALOGE("%s: zx_channel_create failed: %d", __FUNCTION__, pipe_ends.status_value());
         return;
     }
 
     llcpp::fuchsia::hardware::goldfish::Pipe::SyncClient pipe(
-        std::move(pipe_client));
-    device.OpenPipe(std::move(pipe_server));
+        std::move(pipe_ends->client));
+    device.OpenPipe(std::move(pipe_ends->server));
 
     zx::vmo vmo;
     {
@@ -94,7 +94,7 @@ static void processPipeInitOnce() {
     }
 
     size_t len = strlen("pipe:GLProcessPipe");
-    status = vmo.write("pipe:GLProcessPipe", 0, len + 1);
+    zx_status_t status = vmo.write("pipe:GLProcessPipe", 0, len + 1);
     if (status != ZX_OK) {
         ALOGE("%s: failed write pipe name", __FUNCTION__);
         return;

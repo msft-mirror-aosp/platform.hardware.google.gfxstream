@@ -1711,34 +1711,34 @@ public:
         const VkBufferCollectionCreateInfoFUCHSIA* pInfo,
         const VkAllocationCallbacks*,
         VkBufferCollectionFUCHSIA* pCollection) {
-        zx::channel token_client;
+        fidl::ClientEnd<::llcpp::fuchsia::sysmem::BufferCollectionToken> token_client;
 
         if (pInfo->collectionToken) {
-            token_client = zx::channel(pInfo->collectionToken);
+            token_client = fidl::ClientEnd<::llcpp::fuchsia::sysmem::BufferCollectionToken>(
+                zx::channel(pInfo->collectionToken));
         } else {
-            zx::channel token_server;
-            zx_status_t status =
-                zx::channel::create(0, &token_server, &token_client);
-            if (status != ZX_OK) {
-                ALOGE("zx_channel_create failed: %d", status);
+            auto endpoints =
+                fidl::CreateEndpoints<::llcpp::fuchsia::sysmem::BufferCollectionToken>();
+            if (!endpoints.is_ok()) {
+                ALOGE("zx_channel_create failed: %d", endpoints.status_value());
                 return VK_ERROR_INITIALIZATION_FAILED;
             }
 
             auto result = mSysmemAllocator->AllocateSharedCollection(
-                std::move(token_server));
+                std::move(endpoints->server));
             if (!result.ok()) {
                 ALOGE("AllocateSharedCollection failed: %d", result.status());
                 return VK_ERROR_INITIALIZATION_FAILED;
             }
+            token_client = std::move(endpoints->client);
         }
 
-        zx::channel collection_client, collection_server;
-        zx_status_t status =
-            zx::channel::create(0, &collection_client, &collection_server);
-        if (status != ZX_OK) {
-            ALOGE("zx_channel_create failed: %d", status);
+        auto endpoints = fidl::CreateEndpoints<::llcpp::fuchsia::sysmem::BufferCollection>();
+        if (!endpoints.is_ok()) {
+            ALOGE("zx_channel_create failed: %d", endpoints.status_value());
             return VK_ERROR_INITIALIZATION_FAILED;
         }
+        auto [collection_client, collection_server] = std::move(endpoints.value());
 
         auto result = mSysmemAllocator->BindSharedCollection(
             std::move(token_client), std::move(collection_server));
@@ -1747,7 +1747,7 @@ public:
             return VK_ERROR_INITIALIZATION_FAILED;
         }
 
-        auto sysmem_collection =
+        auto* sysmem_collection =
             new llcpp::fuchsia::sysmem::BufferCollection::SyncClient(
                 std::move(collection_client));
         *pCollection = reinterpret_cast<VkBufferCollectionFUCHSIA>(sysmem_collection);
@@ -2529,17 +2529,16 @@ public:
                     pBufferConstraintsInfo);
 
             if (hasDedicatedImage || hasDedicatedBuffer) {
-                zx::channel token_server, token_client;
-                zx_status_t status =
-                    zx::channel::create(0, &token_server, &token_client);
-                if (status != ZX_OK) {
-                    ALOGE("zx_channel_create failed: %d", status);
+                auto token_ends =
+                    fidl::CreateEndpoints<::llcpp::fuchsia::sysmem::BufferCollectionToken>();
+                if (!token_ends.is_ok()) {
+                    ALOGE("zx_channel_create failed: %d", token_ends.status_value());
                     abort();
                 }
 
                 {
                     auto result = mSysmemAllocator->AllocateSharedCollection(
-                        std::move(token_server));
+                        std::move(token_ends->server));
                     if (!result.ok()) {
                         ALOGE("AllocateSharedCollection failed: %d",
                               result.status());
@@ -2547,17 +2546,16 @@ public:
                     }
                 }
 
-                zx::channel collection_server, collection_client;
-                status = zx::channel::create(0, &collection_server,
-                                             &collection_client);
-                if (status != ZX_OK) {
-                    ALOGE("zx_channel_create failed: %d", status);
+                auto collection_ends =
+                    fidl::CreateEndpoints<::llcpp::fuchsia::sysmem::BufferCollection>();
+                if (!collection_ends.is_ok()) {
+                    ALOGE("zx_channel_create failed: %d", collection_ends.status_value());
                     abort();
                 }
 
                 {
                     auto result = mSysmemAllocator->BindSharedCollection(
-                        std::move(token_client), std::move(collection_server));
+                        std::move(token_ends->client), std::move(collection_ends->server));
                     if (!result.ok()) {
                         ALOGE("BindSharedCollection failed: %d",
                               result.status());
@@ -2566,7 +2564,7 @@ public:
                 }
 
                 llcpp::fuchsia::sysmem::BufferCollection::SyncClient collection(
-                    std::move(collection_client));
+                    std::move(collection_ends->client));
                 if (hasDedicatedImage) {
                     VkResult res = setBufferCollectionConstraints(
                         enc, device, &collection, pImageCreateInfo);
@@ -2614,8 +2612,8 @@ public:
                 collection.Close();
 
                 zx::vmo vmo_copy;
-                status = zx_handle_duplicate(vmo_handle, ZX_RIGHT_SAME_RIGHTS,
-                                             vmo_copy.reset_and_get_address());
+                zx_status_t status = zx_handle_duplicate(vmo_handle, ZX_RIGHT_SAME_RIGHTS,
+                                                         vmo_copy.reset_and_get_address());
                 if (status != ZX_OK) {
                     ALOGE("Failed to duplicate VMO: %d", status);
                     abort();
