@@ -283,9 +283,9 @@ void destroyHostMemAlloc(
 #endif
 
     if (freeMemorySyncSupported) {
-        enc->vkFreeMemorySyncGOOGLE(device, toDestroy->memory, nullptr);
+        enc->vkFreeMemorySyncGOOGLE(device, toDestroy->memory, nullptr, false /* no lock */);
     } else {
-        enc->vkFreeMemory(device, toDestroy->memory, nullptr);
+        enc->vkFreeMemory(device, toDestroy->memory, nullptr, false /* no lock */);
     }
 
     delete toDestroy->subAlloc;

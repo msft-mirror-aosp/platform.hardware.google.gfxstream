@@ -1033,12 +1033,12 @@ public:
         // Only advertise a select set of extensions.
         if (mHostInstanceExtensions.empty()) {
             uint32_t hostPropCount = 0;
-            enc->vkEnumerateInstanceExtensionProperties(nullptr, &hostPropCount, nullptr);
+            enc->vkEnumerateInstanceExtensionProperties(nullptr, &hostPropCount, nullptr, true /* do lock */);
             mHostInstanceExtensions.resize(hostPropCount);
 
             VkResult hostRes =
                 enc->vkEnumerateInstanceExtensionProperties(
-                    nullptr, &hostPropCount, mHostInstanceExtensions.data());
+                    nullptr, &hostPropCount, mHostInstanceExtensions.data(), true /* do lock */);
 
             if (hostRes != VK_SUCCESS) {
                 return hostRes;
@@ -1140,12 +1140,12 @@ public:
 
         if (mHostDeviceExtensions.empty()) {
             uint32_t hostPropCount = 0;
-            enc->vkEnumerateDeviceExtensionProperties(physdev, nullptr, &hostPropCount, nullptr);
+            enc->vkEnumerateDeviceExtensionProperties(physdev, nullptr, &hostPropCount, nullptr, true /* do lock */);
             mHostDeviceExtensions.resize(hostPropCount);
 
             VkResult hostRes =
                 enc->vkEnumerateDeviceExtensionProperties(
-                    physdev, nullptr, &hostPropCount, mHostDeviceExtensions.data());
+                    physdev, nullptr, &hostPropCount, mHostDeviceExtensions.data(), true /* do lock */);
 
             if (hostRes != VK_SUCCESS) {
                 return hostRes;
@@ -1320,7 +1320,7 @@ public:
 
             lock.unlock();
             VkResult countRes = enc->vkEnumeratePhysicalDevices(
-                instance, &hostPhysicalDeviceCount, nullptr);
+                instance, &hostPhysicalDeviceCount, nullptr, false /* no lock */);
             lock.lock();
 
             if (countRes != VK_SUCCESS) {
@@ -1333,7 +1333,7 @@ public:
 
             lock.unlock();
             VkResult enumRes = enc->vkEnumeratePhysicalDevices(
-                instance, &hostPhysicalDeviceCount, info.physicalDevices.data());
+                instance, &hostPhysicalDeviceCount, info.physicalDevices.data(), false /* no lock */);
             lock.lock();
 
             if (enumRes != VK_SUCCESS) {
@@ -1444,7 +1444,7 @@ public:
 
         uint32_t apiVersion;
         VkResult enumInstanceVersionRes =
-            enc->vkEnumerateInstanceVersion(&apiVersion);
+            enc->vkEnumerateInstanceVersion(&apiVersion, false /* no lock */);
 
         setInstanceInfo(
             *pInstance,
@@ -1469,8 +1469,8 @@ public:
 
         VkPhysicalDeviceProperties props;
         VkPhysicalDeviceMemoryProperties memProps;
-        enc->vkGetPhysicalDeviceProperties(physicalDevice, &props);
-        enc->vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProps);
+        enc->vkGetPhysicalDeviceProperties(physicalDevice, &props, false /* no lock */);
+        enc->vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProps, false /* no lock */);
 
         setDeviceInfo(
             *pDevice, physicalDevice, props, memProps,
@@ -1878,7 +1878,7 @@ public:
                 VkImageFormatProperties format_properties;
                 auto result = enc->vkGetPhysicalDeviceImageFormatProperties(
                     deviceInfo.physdev, pImageInfo->format, pImageInfo->imageType,
-                    pImageInfo->tiling, pImageInfo->usage, pImageInfo->flags, &format_properties);
+                    pImageInfo->tiling, pImageInfo->usage, pImageInfo->flags, &format_properties, true /* do lock */);
                 if (result != VK_SUCCESS) {
                     ALOGE(
                         "%s: Image format (%u) type (%u) tiling (%u) "
@@ -1898,7 +1898,7 @@ public:
                 // Get row alignment from host GPU.
                 VkDeviceSize offset;
                 VkDeviceSize rowPitchAlignment;
-                enc->vkGetLinearImageLayoutGOOGLE(device, format, &offset, &rowPitchAlignment);
+                enc->vkGetLinearImageLayoutGOOGLE(device, format, &offset, &rowPitchAlignment, true /* do lock */);
 
                 ALOGD("vkGetLinearImageLayoutGOOGLE: format %d offset %lu rowPitchAlignment = %lu",
                     (int)format, offset, rowPitchAlignment);
@@ -2144,7 +2144,7 @@ public:
                     device,
                     &allocInfoForHost,
                     nullptr,
-                    &hostMemAlloc.memory);
+                    &hostMemAlloc.memory, true /* do lock */);
             mLock.lock();
 
             if (host_res != VK_SUCCESS) {
@@ -2172,7 +2172,7 @@ public:
                 mLock.unlock();
                 directMapResult =
                     enc->vkMapMemoryIntoAddressSpaceGOOGLE(
-                            device, hostMemAlloc.memory, &directMappedAddr);
+                            device, hostMemAlloc.memory, &directMappedAddr, true /* do lock */);
                 mLock.lock();
             } else if (mFeatureInfo->hasVirtioGpuNext) {
 #if !defined(HOST_BUILD) && defined(VK_USE_PLATFORM_ANDROID_KHR)
@@ -2184,7 +2184,7 @@ public:
                 mLock.unlock();
                 enc->vkGetMemoryHostAddressInfoGOOGLE(
                         device, hostMemAlloc.memory,
-                        &hvaSizeId[0], &hvaSizeId[1], &hvaSizeId[2]);
+                        &hvaSizeId[0], &hvaSizeId[1], &hvaSizeId[2], true /* do lock */);
                 ALOGD("%s: hvaOff, size: 0x%llx 0x%llx id: 0x%llx\n", __func__,
                         (unsigned long long)hvaSizeId[0],
                         (unsigned long long)hvaSizeId[1],
@@ -2240,7 +2240,7 @@ public:
                 hostMemAlloc.initialized = true;
                 hostMemAlloc.initResult = directMapResult;
                 mLock.unlock();
-                enc->vkFreeMemory(device, hostMemAlloc.memory, nullptr);
+                enc->vkFreeMemory(device, hostMemAlloc.memory, nullptr, true /* do lock */);
                 mLock.lock();
                 return INVALID_HOST_MEM_BLOCK;
             }
@@ -2762,7 +2762,7 @@ public:
                 finalAllocInfo.memoryTypeIndex)) {
             input_result =
                 enc->vkAllocateMemory(
-                    device, &finalAllocInfo, pAllocator, pMemory);
+                    device, &finalAllocInfo, pAllocator, pMemory, true /* do lock */);
 
             if (input_result != VK_SUCCESS) return input_result;
 
@@ -2790,7 +2790,7 @@ public:
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
         if (vmo_handle != ZX_HANDLE_INVALID) {
-            input_result = enc->vkAllocateMemory(device, &finalAllocInfo, pAllocator, pMemory);
+            input_result = enc->vkAllocateMemory(device, &finalAllocInfo, pAllocator, pMemory, true /* do lock */);
 
             // Get VMO handle rights, and only use allowed rights to map the
             // host memory.
@@ -2832,7 +2832,7 @@ public:
         if (!directMappingSupported) {
             input_result =
                 enc->vkAllocateMemory(
-                    device, &finalAllocInfo, pAllocator, pMemory);
+                    device, &finalAllocInfo, pAllocator, pMemory, true /* do lock */);
 
             if (input_result != VK_SUCCESS) return input_result;
 
@@ -2935,7 +2935,7 @@ public:
         if (!info.directMapped) {
             lock.unlock();
             VkEncoder* enc = (VkEncoder*)context;
-            enc->vkFreeMemory(device, memory, pAllocateInfo);
+            enc->vkFreeMemory(device, memory, pAllocateInfo, true /* do lock */);
             return;
         }
 
@@ -3264,9 +3264,9 @@ public:
         VkMemoryRequirements memReqs;
 
         if (supportsCreateResourcesWithRequirements()) {
-            res = enc->vkCreateImageWithRequirementsGOOGLE(device, &localCreateInfo, pAllocator, pImage, &memReqs);
+            res = enc->vkCreateImageWithRequirementsGOOGLE(device, &localCreateInfo, pAllocator, pImage, &memReqs, true /* do lock */);
         } else {
-            res = enc->vkCreateImage(device, &localCreateInfo, pAllocator, pImage);
+            res = enc->vkCreateImage(device, &localCreateInfo, pAllocator, pImage, true /* do lock */);
         }
 
         if (res != VK_SUCCESS) return res;
@@ -3334,7 +3334,7 @@ public:
 
         VkEncoder* enc = (VkEncoder*)context;
         VkResult res = enc->vkCreateSamplerYcbcrConversion(
-            device, &localCreateInfo, pAllocator, pYcbcrConversion);
+            device, &localCreateInfo, pAllocator, pYcbcrConversion, true /* do lock */);
 
         if (*pYcbcrConversion == VK_YCBCR_CONVERSION_DO_NOTHING) {
             ALOGE("FATAL: vkCreateSamplerYcbcrConversion returned a reserved value (VK_YCBCR_CONVERSION_DO_NOTHING)");
@@ -3350,7 +3350,7 @@ public:
         const VkAllocationCallbacks* pAllocator) {
         VkEncoder* enc = (VkEncoder*)context;
         if (ycbcrConversion != VK_YCBCR_CONVERSION_DO_NOTHING) {
-            enc->vkDestroySamplerYcbcrConversion(device, ycbcrConversion, pAllocator);
+            enc->vkDestroySamplerYcbcrConversion(device, ycbcrConversion, pAllocator, true /* do lock */);
         }
     }
 
@@ -3384,7 +3384,7 @@ public:
 
         VkEncoder* enc = (VkEncoder*)context;
         VkResult res = enc->vkCreateSamplerYcbcrConversionKHR(
-            device, &localCreateInfo, pAllocator, pYcbcrConversion);
+            device, &localCreateInfo, pAllocator, pYcbcrConversion, true /* do lock */);
 
         if (*pYcbcrConversion == VK_YCBCR_CONVERSION_DO_NOTHING) {
             ALOGE("FATAL: vkCreateSamplerYcbcrConversionKHR returned a reserved value (VK_YCBCR_CONVERSION_DO_NOTHING)");
@@ -3400,7 +3400,7 @@ public:
         const VkAllocationCallbacks* pAllocator) {
         VkEncoder* enc = (VkEncoder*)context;
         if (ycbcrConversion != VK_YCBCR_CONVERSION_DO_NOTHING) {
-            enc->vkDestroySamplerYcbcrConversionKHR(device, ycbcrConversion, pAllocator);
+            enc->vkDestroySamplerYcbcrConversionKHR(device, ycbcrConversion, pAllocator, true /* do lock */);
         }
     }
 
@@ -3427,7 +3427,7 @@ public:
 #endif
 
         VkEncoder* enc = (VkEncoder*)context;
-        return enc->vkCreateSampler(device, &localCreateInfo, pAllocator, pSampler);
+        return enc->vkCreateSampler(device, &localCreateInfo, pAllocator, pSampler, true /* do lock */);
     }
 
     void on_vkGetPhysicalDeviceExternalFenceProperties(
@@ -3490,7 +3490,7 @@ public:
 #endif
 
         input_result = enc->vkCreateFence(
-            device, &finalCreateInfo, pAllocator, pFence);
+            device, &finalCreateInfo, pAllocator, pFence, true /* do lock */);
 
         if (input_result != VK_SUCCESS) return input_result;
 
@@ -3527,7 +3527,7 @@ public:
         VkFence fence,
         const VkAllocationCallbacks* pAllocator) {
         VkEncoder* enc = (VkEncoder*)context;
-        enc->vkDestroyFence(device, fence, pAllocator);
+        enc->vkDestroyFence(device, fence, pAllocator, true /* do lock */);
     }
 
     VkResult on_vkResetFences(
@@ -3538,7 +3538,7 @@ public:
         const VkFence* pFences) {
 
         VkEncoder* enc = (VkEncoder*)context;
-        VkResult res = enc->vkResetFences(device, fenceCount, pFences);
+        VkResult res = enc->vkResetFences(device, fenceCount, pFences, true /* do lock */);
 
         if (res != VK_SUCCESS) return res;
 
@@ -3655,7 +3655,7 @@ public:
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
-        VkResult currentFenceStatus = enc->vkGetFenceStatus(device, pGetFdInfo->fence);
+        VkResult currentFenceStatus = enc->vkGetFenceStatus(device, pGetFdInfo->fence, true /* do lock */);
 
         if (VK_SUCCESS == currentFenceStatus) { // Fence already signaled
             ALOGV("%s: VK_SUCCESS: already signaled\n", __func__);
@@ -3780,7 +3780,7 @@ public:
         if (fencesExternal.empty()) {
             // No need for work pool, just wait with host driver.
             return enc->vkWaitForFences(
-                device, fenceCount, pFences, waitAll, timeout);
+                device, fenceCount, pFences, waitAll, timeout, true /* do lock */);
         } else {
             // Depending on wait any or wait all,
             // schedule a wait group with waitAny/waitAll
@@ -3803,7 +3803,7 @@ public:
                     auto hostConn = mThreadingCallbacks.hostConnectionGetFunc();
                     auto vkEncoder = mThreadingCallbacks.vkEncoderGetFunc(hostConn);
                     ALOGV("%s: vkWaitForFences to host\n", __func__);
-                    vkEncoder->vkWaitForFences(device, fencesNonExternal.size(), fencesNonExternal.data(), waitAll, timeout);
+                    vkEncoder->vkWaitForFences(device, fencesNonExternal.size(), fencesNonExternal.data(), waitAll, timeout, true /* do lock */);
                 });
             }
 
@@ -3827,7 +3827,7 @@ public:
         }
 #else
         return enc->vkWaitForFences(
-            device, fenceCount, pFences, waitAll, timeout);
+            device, fenceCount, pFences, waitAll, timeout, true /* do lock */);
 #endif
     }
 
@@ -3842,7 +3842,7 @@ public:
         VkEncoder* enc = (VkEncoder*)context;
 
         VkResult res = enc->vkCreateDescriptorPool(
-            device, pCreateInfo, pAllocator, pDescriptorPool);
+            device, pCreateInfo, pAllocator, pDescriptorPool, true /* do lock */);
 
         if (res != VK_SUCCESS) return res;
 
@@ -3864,7 +3864,7 @@ public:
 
         VkEncoder* enc = (VkEncoder*)context;
 
-        enc->vkDestroyDescriptorPool(device, descriptorPool, pAllocator);
+        enc->vkDestroyDescriptorPool(device, descriptorPool, pAllocator, true /* do lock */);
     }
 
     VkResult on_vkResetDescriptorPool(
@@ -3876,7 +3876,7 @@ public:
 
         VkEncoder* enc = (VkEncoder*)context;
 
-        VkResult res = enc->vkResetDescriptorPool(device, descriptorPool, flags);
+        VkResult res = enc->vkResetDescriptorPool(device, descriptorPool, flags, true /* do lock */);
 
         if (res != VK_SUCCESS) return res;
 
@@ -3894,7 +3894,7 @@ public:
 
         VkEncoder* enc = (VkEncoder*)context;
 
-        VkResult res = enc->vkAllocateDescriptorSets(device, pAllocateInfo, pDescriptorSets);
+        VkResult res = enc->vkAllocateDescriptorSets(device, pAllocateInfo, pDescriptorSets, true /* do lock */);
 
         if (res != VK_SUCCESS) return res;
 
@@ -3937,7 +3937,7 @@ public:
         return enc->vkFreeDescriptorSets(
             device, descriptorPool,
             (uint32_t)toActuallyFree.size(),
-            toActuallyFree.data());
+            toActuallyFree.data(), true /* do lock */);
     }
 
     VkResult on_vkCreateDescriptorSetLayout(
@@ -3951,7 +3951,7 @@ public:
         VkEncoder* enc = (VkEncoder*)context;
 
         VkResult res = enc->vkCreateDescriptorSetLayout(
-            device, pCreateInfo, pAllocator, pSetLayout);
+            device, pCreateInfo, pAllocator, pSetLayout, true /* do lock */);
 
         if (res != VK_SUCCESS) return res;
 
@@ -3995,14 +3995,14 @@ public:
 
         enc->vkUpdateDescriptorSets(
             device, descriptorWriteCount, writesWithSuppressedSamplers.data(),
-            descriptorCopyCount, pDescriptorCopies);
+            descriptorCopyCount, pDescriptorCopies, true /* do lock */);
     }
 
     void on_vkDestroyImage(
         void* context,
         VkDevice device, VkImage image, const VkAllocationCallbacks *pAllocator) {
         VkEncoder* enc = (VkEncoder*)context;
-        enc->vkDestroyImage(device, image, pAllocator);
+        enc->vkDestroyImage(device, image, pAllocator, true /* do lock */);
     }
 
     void setMemoryRequirementsForSysmemBackedImage(
@@ -4044,7 +4044,7 @@ public:
         VkEncoder* enc = (VkEncoder*)context;
 
         enc->vkGetImageMemoryRequirements(
-            device, image, pMemoryRequirements);
+            device, image, pMemoryRequirements, true /* do lock */);
 
         lock.lock();
 
@@ -4060,7 +4060,7 @@ public:
         VkMemoryRequirements2 *pMemoryRequirements) {
         VkEncoder* enc = (VkEncoder*)context;
         enc->vkGetImageMemoryRequirements2(
-            device, pInfo, pMemoryRequirements);
+            device, pInfo, pMemoryRequirements, true /* do lock */);
         transformImageMemoryRequirements2ForGuest(
             pInfo->image, pMemoryRequirements);
     }
@@ -4070,7 +4070,7 @@ public:
         VkMemoryRequirements2 *pMemoryRequirements) {
         VkEncoder* enc = (VkEncoder*)context;
         enc->vkGetImageMemoryRequirements2KHR(
-            device, pInfo, pMemoryRequirements);
+            device, pInfo, pMemoryRequirements, true /* do lock */);
         transformImageMemoryRequirements2ForGuest(
             pInfo->image, pMemoryRequirements);
     }
@@ -4080,21 +4080,21 @@ public:
         VkDevice device, VkImage image, VkDeviceMemory memory,
         VkDeviceSize memoryOffset) {
         VkEncoder* enc = (VkEncoder*)context;
-        return enc->vkBindImageMemory(device, image, memory, memoryOffset);
+        return enc->vkBindImageMemory(device, image, memory, memoryOffset, true /* do lock */);
     }
 
     VkResult on_vkBindImageMemory2(
         void* context, VkResult,
         VkDevice device, uint32_t bindingCount, const VkBindImageMemoryInfo* pBindInfos) {
         VkEncoder* enc = (VkEncoder*)context;
-        return enc->vkBindImageMemory2(device, bindingCount, pBindInfos);
+        return enc->vkBindImageMemory2(device, bindingCount, pBindInfos, true /* do lock */);
     }
 
     VkResult on_vkBindImageMemory2KHR(
         void* context, VkResult,
         VkDevice device, uint32_t bindingCount, const VkBindImageMemoryInfo* pBindInfos) {
         VkEncoder* enc = (VkEncoder*)context;
-        return enc->vkBindImageMemory2KHR(device, bindingCount, pBindInfos);
+        return enc->vkBindImageMemory2KHR(device, bindingCount, pBindInfos, true /* do lock */);
     }
 
     VkResult on_vkCreateBuffer(
@@ -4165,9 +4165,9 @@ public:
         VkMemoryRequirements memReqs;
 
         if (supportsCreateResourcesWithRequirements()) {
-            res = enc->vkCreateBufferWithRequirementsGOOGLE(device, pCreateInfo, pAllocator, pBuffer, &memReqs);
+            res = enc->vkCreateBufferWithRequirementsGOOGLE(device, pCreateInfo, pAllocator, pBuffer, &memReqs, true /* do lock */);
         } else {
-            res = enc->vkCreateBuffer(device, pCreateInfo, pAllocator, pBuffer);
+            res = enc->vkCreateBuffer(device, pCreateInfo, pAllocator, pBuffer, true /* do lock */);
         }
 
         if (res != VK_SUCCESS) return res;
@@ -4212,7 +4212,7 @@ public:
         void* context,
         VkDevice device, VkBuffer buffer, const VkAllocationCallbacks *pAllocator) {
         VkEncoder* enc = (VkEncoder*)context;
-        enc->vkDestroyBuffer(device, buffer, pAllocator);
+        enc->vkDestroyBuffer(device, buffer, pAllocator, true /* do lock */);
     }
 
     void on_vkGetBufferMemoryRequirements(
@@ -4234,7 +4234,7 @@ public:
 
         VkEncoder* enc = (VkEncoder*)context;
         enc->vkGetBufferMemoryRequirements(
-            device, buffer, pMemoryRequirements);
+            device, buffer, pMemoryRequirements, true /* do lock */);
 
         lock.lock();
 
@@ -4248,7 +4248,7 @@ public:
         void* context, VkDevice device, const VkBufferMemoryRequirementsInfo2* pInfo,
         VkMemoryRequirements2* pMemoryRequirements) {
         VkEncoder* enc = (VkEncoder*)context;
-        enc->vkGetBufferMemoryRequirements2(device, pInfo, pMemoryRequirements);
+        enc->vkGetBufferMemoryRequirements2(device, pInfo, pMemoryRequirements, true /* do lock */);
         transformBufferMemoryRequirements2ForGuest(
             pInfo->buffer, pMemoryRequirements);
     }
@@ -4257,7 +4257,7 @@ public:
         void* context, VkDevice device, const VkBufferMemoryRequirementsInfo2* pInfo,
         VkMemoryRequirements2* pMemoryRequirements) {
         VkEncoder* enc = (VkEncoder*)context;
-        enc->vkGetBufferMemoryRequirements2KHR(device, pInfo, pMemoryRequirements);
+        enc->vkGetBufferMemoryRequirements2KHR(device, pInfo, pMemoryRequirements, true /* do lock */);
         transformBufferMemoryRequirements2ForGuest(
             pInfo->buffer, pMemoryRequirements);
     }
@@ -4267,7 +4267,7 @@ public:
         VkDevice device, VkBuffer buffer, VkDeviceMemory memory, VkDeviceSize memoryOffset) {
         VkEncoder *enc = (VkEncoder *)context;
         return enc->vkBindBufferMemory(
-            device, buffer, memory, memoryOffset);
+            device, buffer, memory, memoryOffset, true /* do lock */);
     }
 
     VkResult on_vkBindBufferMemory2(
@@ -4275,7 +4275,7 @@ public:
         VkDevice device, uint32_t bindInfoCount, const VkBindBufferMemoryInfo *pBindInfos) {
         VkEncoder *enc = (VkEncoder *)context;
         return enc->vkBindBufferMemory2(
-            device, bindInfoCount, pBindInfos);
+            device, bindInfoCount, pBindInfos, true /* do lock */);
     }
 
     VkResult on_vkBindBufferMemory2KHR(
@@ -4283,7 +4283,7 @@ public:
         VkDevice device, uint32_t bindInfoCount, const VkBindBufferMemoryInfo *pBindInfos) {
         VkEncoder *enc = (VkEncoder *)context;
         return enc->vkBindBufferMemory2KHR(
-            device, bindInfoCount, pBindInfos);
+            device, bindInfoCount, pBindInfos, true /* do lock */);
     }
 
     void ensureSyncDeviceFd() {
@@ -4331,7 +4331,7 @@ public:
         }
 #endif
         input_result = enc->vkCreateSemaphore(
-            device, &finalCreateInfo, pAllocator, pSemaphore);
+            device, &finalCreateInfo, pAllocator, pSemaphore, true /* do lock */);
 
         zx_handle_t event_handle = ZX_HANDLE_INVALID;
 
@@ -4417,7 +4417,7 @@ public:
         void* context,
         VkDevice device, VkSemaphore semaphore, const VkAllocationCallbacks *pAllocator) {
         VkEncoder* enc = (VkEncoder*)context;
-        enc->vkDestroySemaphore(device, semaphore, pAllocator);
+        enc->vkDestroySemaphore(device, semaphore, pAllocator, true /* do lock */);
     }
 
     // https://www.khronos.org/registry/vulkan/specs/1.0-extensions/html/vkspec.html#vkGetSemaphoreFdKHR
@@ -4443,7 +4443,7 @@ public:
         } else {
             // opaque fd
             int hostFd = 0;
-            VkResult result = enc->vkGetSemaphoreFdKHR(device, pGetFdInfo, &hostFd);
+            VkResult result = enc->vkGetSemaphoreFdKHR(device, pGetFdInfo, &hostFd, true /* do lock */);
             if (result != VK_SUCCESS) {
                 return result;
             }
@@ -4496,7 +4496,7 @@ public:
             read(fd, &hostFd, sizeof(hostFd));
             VkImportSemaphoreFdInfoKHR tmpInfo = *pImportSemaphoreFdInfo;
             tmpInfo.fd = hostFd;
-            VkResult result = enc->vkImportSemaphoreFdKHR(device, &tmpInfo);
+            VkResult result = enc->vkImportSemaphoreFdKHR(device, &tmpInfo, true /* do lock */);
             close(fd);
             return result;
         }
@@ -4576,10 +4576,10 @@ public:
 
         if (pre_signal_semaphores.empty()) {
             if (supportsAsyncQueueSubmit()) {
-                enc->vkQueueSubmitAsyncGOOGLE(queue, submitCount, pSubmits, fence);
+                enc->vkQueueSubmitAsyncGOOGLE(queue, submitCount, pSubmits, fence, true /* do lock */);
                 input_result = VK_SUCCESS;
             } else {
-                input_result = enc->vkQueueSubmit(queue, submitCount, pSubmits, fence);
+                input_result = enc->vkQueueSubmit(queue, submitCount, pSubmits, fence, true /* do lock */);
                 if (input_result != VK_SUCCESS) return input_result;
             }
         } else {
@@ -4619,16 +4619,16 @@ public:
                 .pSignalSemaphores = pre_signal_semaphores.data()};
 
             if (supportsAsyncQueueSubmit()) {
-                enc->vkQueueSubmitAsyncGOOGLE(queue, 1, &submit_info, VK_NULL_HANDLE);
+                enc->vkQueueSubmitAsyncGOOGLE(queue, 1, &submit_info, VK_NULL_HANDLE, true /* do lock */);
             } else {
-                enc->vkQueueSubmit(queue, 1, &submit_info, VK_NULL_HANDLE);
+                enc->vkQueueSubmit(queue, 1, &submit_info, VK_NULL_HANDLE, true /* do lock */);
             }
 
             if (supportsAsyncQueueSubmit()) {
-                enc->vkQueueSubmitAsyncGOOGLE(queue, submitCount, pSubmits, fence);
+                enc->vkQueueSubmitAsyncGOOGLE(queue, submitCount, pSubmits, fence, true /* do lock */);
                 input_result = VK_SUCCESS;
             } else {
-                input_result = enc->vkQueueSubmit(queue, submitCount, pSubmits, fence);
+                input_result = enc->vkQueueSubmit(queue, submitCount, pSubmits, fence, true /* do lock */);
                 if (input_result != VK_SUCCESS) return input_result;
             }
         }
@@ -4658,7 +4658,7 @@ public:
                              post_wait_sync_fds /* copy of sync fds */] {
                 auto hostConn = mThreadingCallbacks.hostConnectionGetFunc();
                 auto vkEncoder = mThreadingCallbacks.vkEncoderGetFunc(hostConn);
-                auto waitIdleRes = vkEncoder->vkQueueWaitIdle(queue);
+                auto waitIdleRes = vkEncoder->vkQueueWaitIdle(queue, true /* do lock */);
 #ifdef VK_USE_PLATFORM_FUCHSIA
                 AEMU_SCOPED_TRACE("on_vkQueueSubmit::SignalSemaphores");
                 (void)externalFenceFdToSignal;
@@ -4705,7 +4705,7 @@ public:
 
         if (toWait.empty()) {
             ALOGV("%s: No queue-specific work pool items\n", __func__);
-            return enc->vkQueueWaitIdle(queue);
+            return enc->vkQueueWaitIdle(queue, true /* do lock */);
         }
 
         for (auto handle : toWait) {
@@ -4715,7 +4715,7 @@ public:
         }
 
         // now done waiting, get the host's opinion
-        return enc->vkQueueWaitIdle(queue);
+        return enc->vkQueueWaitIdle(queue, true /* do lock */);
     }
 
     void unwrap_VkNativeBufferANDROID(
@@ -5024,7 +5024,7 @@ public:
             info.bufferViewEntryIndices.data(),
             info.imageInfos.data(),
             info.bufferInfos.data(),
-            info.bufferViews.data());
+            info.bufferViews.data(), true /* do lock */);
     }
 
     VkResult on_vkGetPhysicalDeviceImageFormatProperties2_common(
@@ -5088,11 +5088,11 @@ public:
         if (isKhr) {
             hostRes = enc->vkGetPhysicalDeviceImageFormatProperties2KHR(
                 physicalDevice, pImageFormatInfo,
-                pImageFormatProperties);
+                pImageFormatProperties, true /* do lock */);
         } else {
             hostRes = enc->vkGetPhysicalDeviceImageFormatProperties2(
                 physicalDevice, pImageFormatInfo,
-                pImageFormatProperties);
+                pImageFormatProperties, true /* do lock */);
         }
 
         if (hostRes != VK_SUCCESS) return hostRes;
@@ -5167,21 +5167,21 @@ public:
         struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
         if (!cb) return 0;
 
-        currentEncoder->incRef();
-
         auto lastEncoder = cb->lastUsedEncoder;
+
+        if (lastEncoder == currentEncoder) return 0;
+
+        currentEncoder->incRef();
 
         cb->lastUsedEncoder = currentEncoder;
 
         if (!lastEncoder) return 0;
 
-        if (lastEncoder != currentEncoder) {
-            auto oldSeq = cb->sequenceNumber;
-            cb->sequenceNumber += 2;
-            lastEncoder->vkCommandBufferHostSyncGOOGLE(commandBuffer, false, oldSeq + 1);
-            lastEncoder->flush();
-            currentEncoder->vkCommandBufferHostSyncGOOGLE(commandBuffer, true, oldSeq + 2);
-        }
+        auto oldSeq = cb->sequenceNumber;
+        cb->sequenceNumber += 2;
+        lastEncoder->vkCommandBufferHostSyncGOOGLE(commandBuffer, false, oldSeq + 1, true /* do lock */);
+        lastEncoder->flush();
+        currentEncoder->vkCommandBufferHostSyncGOOGLE(commandBuffer, true, oldSeq + 2, true /* do lock */);
 
         if (lastEncoder->decRef()) {
             cb->lastUsedEncoder = nullptr;
@@ -5197,21 +5197,21 @@ public:
         struct goldfish_VkQueue* q = as_goldfish_VkQueue(queue);
         if (!q) return 0;
 
-        currentEncoder->incRef();
-
         auto lastEncoder = q->lastUsedEncoder;
+
+        if (lastEncoder == currentEncoder) return 0;
+
+        currentEncoder->incRef();
 
         q->lastUsedEncoder = currentEncoder;
 
         if (!lastEncoder) return 0;
 
-        if (lastEncoder != currentEncoder) {
-            auto oldSeq = q->sequenceNumber;
-            q->sequenceNumber += 2;
-            lastEncoder->vkQueueHostSyncGOOGLE(queue, false, oldSeq + 1);
-            lastEncoder->flush();
-            currentEncoder->vkQueueHostSyncGOOGLE(queue, true, oldSeq + 2);
-        }
+        auto oldSeq = q->sequenceNumber;
+        q->sequenceNumber += 2;
+        lastEncoder->vkQueueHostSyncGOOGLE(queue, false, oldSeq + 1, true /* do lock */);
+        lastEncoder->flush();
+        currentEncoder->vkQueueHostSyncGOOGLE(queue, true, oldSeq + 2, true /* do lock */);
 
         if (lastEncoder->decRef()) {
             q->lastUsedEncoder = nullptr;
@@ -5229,10 +5229,10 @@ public:
         (void)input_result;
 
         if (!supportsDeferredCommands()) {
-            return enc->vkBeginCommandBuffer(commandBuffer, pBeginInfo);
+            return enc->vkBeginCommandBuffer(commandBuffer, pBeginInfo, true /* do lock */);
         }
 
-        enc->vkBeginCommandBufferAsyncGOOGLE(commandBuffer, pBeginInfo);
+        enc->vkBeginCommandBufferAsyncGOOGLE(commandBuffer, pBeginInfo, true /* do lock */);
 
         return VK_SUCCESS;
     }
@@ -5245,10 +5245,10 @@ public:
         (void)input_result;
 
         if (!supportsDeferredCommands()) {
-            return enc->vkEndCommandBuffer(commandBuffer);
+            return enc->vkEndCommandBuffer(commandBuffer, true /* do lock */);
         }
 
-        enc->vkEndCommandBufferAsyncGOOGLE(commandBuffer);
+        enc->vkEndCommandBufferAsyncGOOGLE(commandBuffer, true /* do lock */);
 
         return VK_SUCCESS;
     }
@@ -5262,10 +5262,10 @@ public:
         (void)input_result;
 
         if (!supportsDeferredCommands()) {
-            return enc->vkResetCommandBuffer(commandBuffer, flags);
+            return enc->vkResetCommandBuffer(commandBuffer, flags, true /* do lock */);
         }
 
-        enc->vkResetCommandBufferAsyncGOOGLE(commandBuffer, flags);
+        enc->vkResetCommandBufferAsyncGOOGLE(commandBuffer, flags, true /* do lock */);
         return VK_SUCCESS;
     }
 
@@ -5292,7 +5292,7 @@ public:
         }
 #endif
 
-        return enc->vkCreateImageView(device, &localCreateInfo, pAllocator, pView);
+        return enc->vkCreateImageView(device, &localCreateInfo, pAllocator, pView, true /* do lock */);
     }
 
     uint32_t getApiVersionFromInstance(VkInstance instance) const {
