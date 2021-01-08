@@ -5365,6 +5365,60 @@ static void dynCheck_entry_vkGetLinearImageLayoutGOOGLE(
     vkEnc->vkGetLinearImageLayoutGOOGLE(device, format, pOffset, pRowPitchAlignment);
 }
 #endif
+#ifdef VK_MVK_moltenvk
+static void entry_vkGetMTLDeviceMVK(
+    VkPhysicalDevice physicalDevice,
+    void** pMTLDevice)
+{
+    AEMU_SCOPED_TRACE("vkGetMTLDeviceMVK");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkGetMTLDeviceMVK(physicalDevice, pMTLDevice);
+}
+static VkResult entry_vkSetMTLTextureMVK(
+    VkImage image,
+    void* mtlTexture)
+{
+    AEMU_SCOPED_TRACE("vkSetMTLTextureMVK");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkSetMTLTextureMVK_VkResult_return = (VkResult)0;
+    vkSetMTLTextureMVK_VkResult_return = vkEnc->vkSetMTLTextureMVK(image, mtlTexture);
+    return vkSetMTLTextureMVK_VkResult_return;
+}
+static void entry_vkGetMTLTextureMVK(
+    VkImage image,
+    void** pMTLTexture)
+{
+    AEMU_SCOPED_TRACE("vkGetMTLTextureMVK");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkGetMTLTextureMVK(image, pMTLTexture);
+}
+static void entry_vkGetMTLBufferMVK(
+    VkBuffer buffer,
+    void** pMTLBuffer)
+{
+    AEMU_SCOPED_TRACE("vkGetMTLBufferMVK");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkGetMTLBufferMVK(buffer, pMTLBuffer);
+}
+static VkResult entry_vkUseIOSurfaceMVK(
+    VkImage image,
+    void* ioSurface)
+{
+    AEMU_SCOPED_TRACE("vkUseIOSurfaceMVK");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    VkResult vkUseIOSurfaceMVK_VkResult_return = (VkResult)0;
+    vkUseIOSurfaceMVK_VkResult_return = vkEnc->vkUseIOSurfaceMVK(image, ioSurface);
+    return vkUseIOSurfaceMVK_VkResult_return;
+}
+static void entry_vkGetIOSurfaceMVK(
+    VkImage image,
+    void** pIOSurface)
+{
+    AEMU_SCOPED_TRACE("vkGetIOSurfaceMVK");
+    auto vkEnc = HostConnection::get()->vkEncoder();
+    vkEnc->vkGetIOSurfaceMVK(image, pIOSurface);
+}
+#endif
 void* goldfish_vulkan_get_proc_address(const char* name){
 #ifdef VK_VERSION_1_0
     if (!strcmp(name, "vkCreateInstance"))
@@ -6842,6 +6896,32 @@ void* goldfish_vulkan_get_proc_address(const char* name){
 #endif
 #ifdef VK_GOOGLE_linear_image_layout
     if (!strcmp(name, "vkGetLinearImageLayoutGOOGLE"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_MVK_moltenvk
+    if (!strcmp(name, "vkGetMTLDeviceMVK"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkSetMTLTextureMVK"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetMTLTextureMVK"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetMTLBufferMVK"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkUseIOSurfaceMVK"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetIOSurfaceMVK"))
     {
         return nullptr;
     }
@@ -8426,6 +8506,38 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     if (!strcmp(name, "vkGetLinearImageLayoutGOOGLE"))
     {
         return (void*)dynCheck_entry_vkGetLinearImageLayoutGOOGLE;
+    }
+#endif
+#ifdef VK_MVK_moltenvk
+    if (!strcmp(name, "vkGetMTLDeviceMVK"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_MVK_moltenvk");
+        return hasExt ? (void*)entry_vkGetMTLDeviceMVK : nullptr;
+    }
+    if (!strcmp(name, "vkSetMTLTextureMVK"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_MVK_moltenvk");
+        return hasExt ? (void*)entry_vkSetMTLTextureMVK : nullptr;
+    }
+    if (!strcmp(name, "vkGetMTLTextureMVK"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_MVK_moltenvk");
+        return hasExt ? (void*)entry_vkGetMTLTextureMVK : nullptr;
+    }
+    if (!strcmp(name, "vkGetMTLBufferMVK"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_MVK_moltenvk");
+        return hasExt ? (void*)entry_vkGetMTLBufferMVK : nullptr;
+    }
+    if (!strcmp(name, "vkUseIOSurfaceMVK"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_MVK_moltenvk");
+        return hasExt ? (void*)entry_vkUseIOSurfaceMVK : nullptr;
+    }
+    if (!strcmp(name, "vkGetIOSurfaceMVK"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_MVK_moltenvk");
+        return hasExt ? (void*)entry_vkGetIOSurfaceMVK : nullptr;
     }
 #endif
     return nullptr;
@@ -10080,6 +10192,38 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     {
         bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_linear_image_layout");
         return hasExt ? (void*)entry_vkGetLinearImageLayoutGOOGLE : nullptr;
+    }
+#endif
+#ifdef VK_MVK_moltenvk
+    if (!strcmp(name, "vkGetMTLDeviceMVK"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_MVK_moltenvk");
+        return hasExt ? (void*)entry_vkGetMTLDeviceMVK : nullptr;
+    }
+    if (!strcmp(name, "vkSetMTLTextureMVK"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_MVK_moltenvk");
+        return hasExt ? (void*)entry_vkSetMTLTextureMVK : nullptr;
+    }
+    if (!strcmp(name, "vkGetMTLTextureMVK"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_MVK_moltenvk");
+        return hasExt ? (void*)entry_vkGetMTLTextureMVK : nullptr;
+    }
+    if (!strcmp(name, "vkGetMTLBufferMVK"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_MVK_moltenvk");
+        return hasExt ? (void*)entry_vkGetMTLBufferMVK : nullptr;
+    }
+    if (!strcmp(name, "vkUseIOSurfaceMVK"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_MVK_moltenvk");
+        return hasExt ? (void*)entry_vkUseIOSurfaceMVK : nullptr;
+    }
+    if (!strcmp(name, "vkGetIOSurfaceMVK"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_MVK_moltenvk");
+        return hasExt ? (void*)entry_vkGetIOSurfaceMVK : nullptr;
     }
 #endif
     return nullptr;
