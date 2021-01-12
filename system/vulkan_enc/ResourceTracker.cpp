@@ -1973,7 +1973,7 @@ public:
 
         constexpr uint32_t kVulkanPriority = 5;
         const char* kName = "GoldfishSysmemShared";
-        collection->SetName(kVulkanPriority, fidl::unowned_ptr(kName, strlen(kName)));
+        collection->SetName(kVulkanPriority, fidl::unowned_str(kName, strlen(kName)));
 
         auto result = collection->SetConstraints(true, std::move(constraints));
         if (!result.ok()) {
@@ -2004,7 +2004,7 @@ public:
 
         constexpr uint32_t kVulkanPriority = 5;
         const char* kName = "GoldfishBufferSysmemShared";
-        collection->SetName(kVulkanPriority, fidl::unowned_ptr(kName, strlen(kName)));
+        collection->SetName(kVulkanPriority, fidl::unowned_str(kName, strlen(kName)));
 
         auto result = collection->SetConstraints(true, std::move(constraints));
         if (!result.ok()) {
