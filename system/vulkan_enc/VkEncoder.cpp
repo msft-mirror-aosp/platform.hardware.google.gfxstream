@@ -23207,5 +23207,229 @@ void VkEncoder::vkGetLinearImageLayoutGOOGLE(
 }
 
 #endif
+#ifdef VK_MVK_moltenvk
+void VkEncoder::vkGetMTLDeviceMVK(
+    VkPhysicalDevice physicalDevice,
+    void** pMTLDevice)
+{
+    EncoderAutoLock encoderLock(this);
+    mImpl->log("start vkGetMTLDeviceMVK");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkPhysicalDevice local_physicalDevice;
+    local_physicalDevice = physicalDevice;
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1567;
+        countingStream->handleMapping()->mapHandles_VkPhysicalDevice_u64(&local_physicalDevice, &cgen_var_1567, 1);
+        countingStream->write((uint64_t*)&cgen_var_1567, 1 * 8);
+        countingStream->write((void**)pMTLDevice, sizeof(void*));
+    }
+    uint32_t packetSize_vkGetMTLDeviceMVK = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkGetMTLDeviceMVK = OP_vkGetMTLDeviceMVK;
+    stream->write(&opcode_vkGetMTLDeviceMVK, sizeof(uint32_t));
+    stream->write(&packetSize_vkGetMTLDeviceMVK, sizeof(uint32_t));
+    uint64_t cgen_var_1568;
+    stream->handleMapping()->mapHandles_VkPhysicalDevice_u64(&local_physicalDevice, &cgen_var_1568, 1);
+    stream->write((uint64_t*)&cgen_var_1568, 1 * 8);
+    stream->write((void**)pMTLDevice, sizeof(void*));
+    stream->read((void**)pMTLDevice, sizeof(void*));
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
+    mImpl->log("finish vkGetMTLDeviceMVK");;
+}
+
+VkResult VkEncoder::vkSetMTLTextureMVK(
+    VkImage image,
+    void* mtlTexture)
+{
+    EncoderAutoLock encoderLock(this);
+    mImpl->log("start vkSetMTLTextureMVK");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkImage local_image;
+    local_image = image;
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1569;
+        countingStream->handleMapping()->mapHandles_VkImage_u64(&local_image, &cgen_var_1569, 1);
+        countingStream->write((uint64_t*)&cgen_var_1569, 1 * 8);
+        countingStream->write((void*)mtlTexture, sizeof(uint8_t));
+    }
+    uint32_t packetSize_vkSetMTLTextureMVK = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkSetMTLTextureMVK = OP_vkSetMTLTextureMVK;
+    stream->write(&opcode_vkSetMTLTextureMVK, sizeof(uint32_t));
+    stream->write(&packetSize_vkSetMTLTextureMVK, sizeof(uint32_t));
+    uint64_t cgen_var_1570;
+    stream->handleMapping()->mapHandles_VkImage_u64(&local_image, &cgen_var_1570, 1);
+    stream->write((uint64_t*)&cgen_var_1570, 1 * 8);
+    stream->write((void*)mtlTexture, sizeof(uint8_t));
+    stream->read((void*)mtlTexture, sizeof(uint8_t));
+    VkResult vkSetMTLTextureMVK_VkResult_return = (VkResult)0;
+    stream->read(&vkSetMTLTextureMVK_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
+    mImpl->log("finish vkSetMTLTextureMVK");;
+    return vkSetMTLTextureMVK_VkResult_return;
+}
+
+void VkEncoder::vkGetMTLTextureMVK(
+    VkImage image,
+    void** pMTLTexture)
+{
+    EncoderAutoLock encoderLock(this);
+    mImpl->log("start vkGetMTLTextureMVK");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkImage local_image;
+    local_image = image;
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1571;
+        countingStream->handleMapping()->mapHandles_VkImage_u64(&local_image, &cgen_var_1571, 1);
+        countingStream->write((uint64_t*)&cgen_var_1571, 1 * 8);
+        countingStream->write((void**)pMTLTexture, sizeof(void*));
+    }
+    uint32_t packetSize_vkGetMTLTextureMVK = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkGetMTLTextureMVK = OP_vkGetMTLTextureMVK;
+    stream->write(&opcode_vkGetMTLTextureMVK, sizeof(uint32_t));
+    stream->write(&packetSize_vkGetMTLTextureMVK, sizeof(uint32_t));
+    uint64_t cgen_var_1572;
+    stream->handleMapping()->mapHandles_VkImage_u64(&local_image, &cgen_var_1572, 1);
+    stream->write((uint64_t*)&cgen_var_1572, 1 * 8);
+    stream->write((void**)pMTLTexture, sizeof(void*));
+    stream->read((void**)pMTLTexture, sizeof(void*));
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
+    mImpl->log("finish vkGetMTLTextureMVK");;
+}
+
+void VkEncoder::vkGetMTLBufferMVK(
+    VkBuffer buffer,
+    void** pMTLBuffer)
+{
+    EncoderAutoLock encoderLock(this);
+    mImpl->log("start vkGetMTLBufferMVK");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkBuffer local_buffer;
+    local_buffer = buffer;
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1573;
+        countingStream->handleMapping()->mapHandles_VkBuffer_u64(&local_buffer, &cgen_var_1573, 1);
+        countingStream->write((uint64_t*)&cgen_var_1573, 1 * 8);
+        countingStream->write((void**)pMTLBuffer, sizeof(void*));
+    }
+    uint32_t packetSize_vkGetMTLBufferMVK = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkGetMTLBufferMVK = OP_vkGetMTLBufferMVK;
+    stream->write(&opcode_vkGetMTLBufferMVK, sizeof(uint32_t));
+    stream->write(&packetSize_vkGetMTLBufferMVK, sizeof(uint32_t));
+    uint64_t cgen_var_1574;
+    stream->handleMapping()->mapHandles_VkBuffer_u64(&local_buffer, &cgen_var_1574, 1);
+    stream->write((uint64_t*)&cgen_var_1574, 1 * 8);
+    stream->write((void**)pMTLBuffer, sizeof(void*));
+    stream->read((void**)pMTLBuffer, sizeof(void*));
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
+    mImpl->log("finish vkGetMTLBufferMVK");;
+}
+
+VkResult VkEncoder::vkUseIOSurfaceMVK(
+    VkImage image,
+    void* ioSurface)
+{
+    EncoderAutoLock encoderLock(this);
+    mImpl->log("start vkUseIOSurfaceMVK");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkImage local_image;
+    local_image = image;
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1575;
+        countingStream->handleMapping()->mapHandles_VkImage_u64(&local_image, &cgen_var_1575, 1);
+        countingStream->write((uint64_t*)&cgen_var_1575, 1 * 8);
+        countingStream->write((void*)ioSurface, sizeof(uint8_t));
+    }
+    uint32_t packetSize_vkUseIOSurfaceMVK = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkUseIOSurfaceMVK = OP_vkUseIOSurfaceMVK;
+    stream->write(&opcode_vkUseIOSurfaceMVK, sizeof(uint32_t));
+    stream->write(&packetSize_vkUseIOSurfaceMVK, sizeof(uint32_t));
+    uint64_t cgen_var_1576;
+    stream->handleMapping()->mapHandles_VkImage_u64(&local_image, &cgen_var_1576, 1);
+    stream->write((uint64_t*)&cgen_var_1576, 1 * 8);
+    stream->write((void*)ioSurface, sizeof(uint8_t));
+    stream->read((void*)ioSurface, sizeof(uint8_t));
+    VkResult vkUseIOSurfaceMVK_VkResult_return = (VkResult)0;
+    stream->read(&vkUseIOSurfaceMVK_VkResult_return, sizeof(VkResult));
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
+    mImpl->log("finish vkUseIOSurfaceMVK");;
+    return vkUseIOSurfaceMVK_VkResult_return;
+}
+
+void VkEncoder::vkGetIOSurfaceMVK(
+    VkImage image,
+    void** pIOSurface)
+{
+    EncoderAutoLock encoderLock(this);
+    mImpl->log("start vkGetIOSurfaceMVK");
+    auto stream = mImpl->stream();
+    auto countingStream = mImpl->countingStream();
+    auto resources = mImpl->resources();
+    auto pool = mImpl->pool();
+    stream->setHandleMapping(resources->unwrapMapping());
+    VkImage local_image;
+    local_image = image;
+    countingStream->rewind();
+    {
+        uint64_t cgen_var_1577;
+        countingStream->handleMapping()->mapHandles_VkImage_u64(&local_image, &cgen_var_1577, 1);
+        countingStream->write((uint64_t*)&cgen_var_1577, 1 * 8);
+        countingStream->write((void**)pIOSurface, sizeof(void*));
+    }
+    uint32_t packetSize_vkGetIOSurfaceMVK = 4 + 4 + (uint32_t)countingStream->bytesWritten();
+    countingStream->rewind();
+    uint32_t opcode_vkGetIOSurfaceMVK = OP_vkGetIOSurfaceMVK;
+    stream->write(&opcode_vkGetIOSurfaceMVK, sizeof(uint32_t));
+    stream->write(&packetSize_vkGetIOSurfaceMVK, sizeof(uint32_t));
+    uint64_t cgen_var_1578;
+    stream->handleMapping()->mapHandles_VkImage_u64(&local_image, &cgen_var_1578, 1);
+    stream->write((uint64_t*)&cgen_var_1578, 1 * 8);
+    stream->write((void**)pIOSurface, sizeof(void*));
+    stream->read((void**)pIOSurface, sizeof(void*));
+    pool->freeAll();
+    countingStream->clearPool();
+    stream->clearPool();
+    mImpl->log("finish vkGetIOSurfaceMVK");;
+}
+
+#endif
 
 } // namespace goldfish_vk
