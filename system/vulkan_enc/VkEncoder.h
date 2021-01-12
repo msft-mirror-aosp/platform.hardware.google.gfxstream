@@ -1843,6 +1843,26 @@ public:
         VkDeviceSize* pOffset,
         VkDeviceSize* pRowPitchAlignment);
 #endif
+#ifdef VK_MVK_moltenvk
+    void vkGetMTLDeviceMVK(
+    VkPhysicalDevice physicalDevice,
+        void** pMTLDevice);
+    VkResult vkSetMTLTextureMVK(
+    VkImage image,
+        void* mtlTexture);
+    void vkGetMTLTextureMVK(
+    VkImage image,
+        void** pMTLTexture);
+    void vkGetMTLBufferMVK(
+    VkBuffer buffer,
+        void** pMTLBuffer);
+    VkResult vkUseIOSurfaceMVK(
+    VkImage image,
+        void* ioSurface);
+    void vkGetIOSurfaceMVK(
+    VkImage image,
+        void** pIOSurface);
+#endif
 
 private:
     class Impl;
