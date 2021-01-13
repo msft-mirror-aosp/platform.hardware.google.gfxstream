@@ -92,6 +92,9 @@ public:
         return mStream->decRef();
     }
 
+    uint8_t* reserve(size_t size) {
+        return (uint8_t*)mStream->alloc(size);
+    }
 private:
     size_t oustandingWriteBuffer() const {
         return mWritePos;
@@ -165,6 +168,41 @@ void VulkanStreamGuest::loadStringArrayInPlace(char*** forOutput) {
     }
 }
 
+void VulkanStreamGuest::loadStringInPlaceWithStreamPtr(char** forOutput, uint8_t** streamPtr) {
+    uint32_t len;
+    memcpy(&len, *streamPtr, sizeof(uint32_t));
+    *streamPtr += sizeof(uint32_t);
+    android::base::Stream::fromBe32((uint8_t*)&len);
+
+    alloc((void**)forOutput, len + 1);
+
+    memset(*forOutput, 0x0, len + 1);
+
+    if (len > 0) {
+        memcpy(*forOutput, *streamPtr, len);
+        *streamPtr += len;
+    }
+}
+
+void VulkanStreamGuest::loadStringArrayInPlaceWithStreamPtr(char*** forOutput, uint8_t** streamPtr) {
+ uint32_t count;
+    memcpy(&count, *streamPtr, sizeof(uint32_t));
+    *streamPtr += sizeof(uint32_t);
+    android::base::Stream::fromBe32((uint8_t*)&count);
+    if (!count) {
+        *forOutput = nullptr;
+        return;
+    }
+
+    alloc((void**)forOutput, count * sizeof(char*));
+
+    char **stringsForOutput = *forOutput;
+
+    for (size_t i = 0; i < count; i++) {
+        loadStringInPlaceWithStreamPtr(stringsForOutput + i, streamPtr);
+    }
+}
+
 
 ssize_t VulkanStreamGuest::read(void *buffer, size_t size) {
     return mImpl->read(buffer, size);
@@ -204,6 +242,10 @@ void VulkanStreamGuest::incStreamRef() {
 
 bool VulkanStreamGuest::decStreamRef() {
     return mImpl->decStreamRef();
+}
+
+uint8_t* VulkanStreamGuest::reserve(size_t size) {
+    return mImpl->reserve(size);
 }
 
 VulkanCountingStream::VulkanCountingStream() : VulkanStreamGuest(nullptr) { }
