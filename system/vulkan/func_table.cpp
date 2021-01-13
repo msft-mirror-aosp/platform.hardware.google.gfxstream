@@ -56,7 +56,7 @@ static VkResult entry_vkCreateInstance(
     AEMU_SCOPED_TRACE("vkCreateInstance");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateInstance_VkResult_return = (VkResult)0;
-    vkCreateInstance_VkResult_return = vkEnc->vkCreateInstance(pCreateInfo, pAllocator, pInstance);
+    vkCreateInstance_VkResult_return = vkEnc->vkCreateInstance(pCreateInfo, pAllocator, pInstance, true /* do lock */);
     return vkCreateInstance_VkResult_return;
 }
 static void entry_vkDestroyInstance(
@@ -65,7 +65,7 @@ static void entry_vkDestroyInstance(
 {
     AEMU_SCOPED_TRACE("vkDestroyInstance");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyInstance(instance, pAllocator);
+    vkEnc->vkDestroyInstance(instance, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkEnumeratePhysicalDevices(
     VkInstance instance,
@@ -85,7 +85,7 @@ static void entry_vkGetPhysicalDeviceFeatures(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFeatures");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceFeatures(physicalDevice, pFeatures);
+    vkEnc->vkGetPhysicalDeviceFeatures(physicalDevice, pFeatures, true /* do lock */);
 }
 static void entry_vkGetPhysicalDeviceFormatProperties(
     VkPhysicalDevice physicalDevice,
@@ -94,7 +94,7 @@ static void entry_vkGetPhysicalDeviceFormatProperties(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFormatProperties");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceFormatProperties(physicalDevice, format, pFormatProperties);
+    vkEnc->vkGetPhysicalDeviceFormatProperties(physicalDevice, format, pFormatProperties, true /* do lock */);
 }
 static VkResult entry_vkGetPhysicalDeviceImageFormatProperties(
     VkPhysicalDevice physicalDevice,
@@ -108,7 +108,7 @@ static VkResult entry_vkGetPhysicalDeviceImageFormatProperties(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceImageFormatProperties");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPhysicalDeviceImageFormatProperties_VkResult_return = (VkResult)0;
-    vkGetPhysicalDeviceImageFormatProperties_VkResult_return = vkEnc->vkGetPhysicalDeviceImageFormatProperties(physicalDevice, format, type, tiling, usage, flags, pImageFormatProperties);
+    vkGetPhysicalDeviceImageFormatProperties_VkResult_return = vkEnc->vkGetPhysicalDeviceImageFormatProperties(physicalDevice, format, type, tiling, usage, flags, pImageFormatProperties, true /* do lock */);
     return vkGetPhysicalDeviceImageFormatProperties_VkResult_return;
 }
 static void entry_vkGetPhysicalDeviceProperties(
@@ -117,7 +117,7 @@ static void entry_vkGetPhysicalDeviceProperties(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceProperties");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceProperties(physicalDevice, pProperties);
+    vkEnc->vkGetPhysicalDeviceProperties(physicalDevice, pProperties, true /* do lock */);
 }
 static void entry_vkGetPhysicalDeviceQueueFamilyProperties(
     VkPhysicalDevice physicalDevice,
@@ -126,7 +126,7 @@ static void entry_vkGetPhysicalDeviceQueueFamilyProperties(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceQueueFamilyProperties");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
+    vkEnc->vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties, true /* do lock */);
 }
 static void entry_vkGetPhysicalDeviceMemoryProperties(
     VkPhysicalDevice physicalDevice,
@@ -134,7 +134,7 @@ static void entry_vkGetPhysicalDeviceMemoryProperties(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceMemoryProperties");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceMemoryProperties(physicalDevice, pMemoryProperties);
+    vkEnc->vkGetPhysicalDeviceMemoryProperties(physicalDevice, pMemoryProperties, true /* do lock */);
 }
 static PFN_vkVoidFunction entry_vkGetInstanceProcAddr(
     VkInstance instance,
@@ -143,7 +143,7 @@ static PFN_vkVoidFunction entry_vkGetInstanceProcAddr(
     AEMU_SCOPED_TRACE("vkGetInstanceProcAddr");
     auto vkEnc = HostConnection::get()->vkEncoder();
     PFN_vkVoidFunction vkGetInstanceProcAddr_PFN_vkVoidFunction_return = (PFN_vkVoidFunction)0;
-    vkGetInstanceProcAddr_PFN_vkVoidFunction_return = vkEnc->vkGetInstanceProcAddr(instance, pName);
+    vkGetInstanceProcAddr_PFN_vkVoidFunction_return = vkEnc->vkGetInstanceProcAddr(instance, pName, true /* do lock */);
     return vkGetInstanceProcAddr_PFN_vkVoidFunction_return;
 }
 static PFN_vkVoidFunction entry_vkGetDeviceProcAddr(
@@ -153,7 +153,7 @@ static PFN_vkVoidFunction entry_vkGetDeviceProcAddr(
     AEMU_SCOPED_TRACE("vkGetDeviceProcAddr");
     auto vkEnc = HostConnection::get()->vkEncoder();
     PFN_vkVoidFunction vkGetDeviceProcAddr_PFN_vkVoidFunction_return = (PFN_vkVoidFunction)0;
-    vkGetDeviceProcAddr_PFN_vkVoidFunction_return = vkEnc->vkGetDeviceProcAddr(device, pName);
+    vkGetDeviceProcAddr_PFN_vkVoidFunction_return = vkEnc->vkGetDeviceProcAddr(device, pName, true /* do lock */);
     return vkGetDeviceProcAddr_PFN_vkVoidFunction_return;
 }
 static VkResult entry_vkCreateDevice(
@@ -165,7 +165,7 @@ static VkResult entry_vkCreateDevice(
     AEMU_SCOPED_TRACE("vkCreateDevice");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateDevice_VkResult_return = (VkResult)0;
-    vkCreateDevice_VkResult_return = vkEnc->vkCreateDevice(physicalDevice, pCreateInfo, pAllocator, pDevice);
+    vkCreateDevice_VkResult_return = vkEnc->vkCreateDevice(physicalDevice, pCreateInfo, pAllocator, pDevice, true /* do lock */);
     return vkCreateDevice_VkResult_return;
 }
 static void entry_vkDestroyDevice(
@@ -174,7 +174,7 @@ static void entry_vkDestroyDevice(
 {
     AEMU_SCOPED_TRACE("vkDestroyDevice");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyDevice(device, pAllocator);
+    vkEnc->vkDestroyDevice(device, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkEnumerateInstanceExtensionProperties(
     const char* pLayerName,
@@ -208,7 +208,7 @@ static VkResult entry_vkEnumerateInstanceLayerProperties(
     AEMU_SCOPED_TRACE("vkEnumerateInstanceLayerProperties");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkEnumerateInstanceLayerProperties_VkResult_return = (VkResult)0;
-    vkEnumerateInstanceLayerProperties_VkResult_return = vkEnc->vkEnumerateInstanceLayerProperties(pPropertyCount, pProperties);
+    vkEnumerateInstanceLayerProperties_VkResult_return = vkEnc->vkEnumerateInstanceLayerProperties(pPropertyCount, pProperties, true /* do lock */);
     return vkEnumerateInstanceLayerProperties_VkResult_return;
 }
 static VkResult entry_vkEnumerateDeviceLayerProperties(
@@ -219,7 +219,7 @@ static VkResult entry_vkEnumerateDeviceLayerProperties(
     AEMU_SCOPED_TRACE("vkEnumerateDeviceLayerProperties");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkEnumerateDeviceLayerProperties_VkResult_return = (VkResult)0;
-    vkEnumerateDeviceLayerProperties_VkResult_return = vkEnc->vkEnumerateDeviceLayerProperties(physicalDevice, pPropertyCount, pProperties);
+    vkEnumerateDeviceLayerProperties_VkResult_return = vkEnc->vkEnumerateDeviceLayerProperties(physicalDevice, pPropertyCount, pProperties, true /* do lock */);
     return vkEnumerateDeviceLayerProperties_VkResult_return;
 }
 static void entry_vkGetDeviceQueue(
@@ -230,7 +230,7 @@ static void entry_vkGetDeviceQueue(
 {
     AEMU_SCOPED_TRACE("vkGetDeviceQueue");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetDeviceQueue(device, queueFamilyIndex, queueIndex, pQueue);
+    vkEnc->vkGetDeviceQueue(device, queueFamilyIndex, queueIndex, pQueue, true /* do lock */);
 }
 static VkResult entry_vkQueueSubmit(
     VkQueue queue,
@@ -263,7 +263,7 @@ static VkResult entry_vkDeviceWaitIdle(
     AEMU_SCOPED_TRACE("vkDeviceWaitIdle");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkDeviceWaitIdle_VkResult_return = (VkResult)0;
-    vkDeviceWaitIdle_VkResult_return = vkEnc->vkDeviceWaitIdle(device);
+    vkDeviceWaitIdle_VkResult_return = vkEnc->vkDeviceWaitIdle(device, true /* do lock */);
     return vkDeviceWaitIdle_VkResult_return;
 }
 static VkResult entry_vkAllocateMemory(
@@ -300,7 +300,7 @@ static VkResult entry_vkMapMemory(
     AEMU_SCOPED_TRACE("vkMapMemory");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkMapMemory_VkResult_return = (VkResult)0;
-    vkMapMemory_VkResult_return = vkEnc->vkMapMemory(device, memory, offset, size, flags, ppData);
+    vkMapMemory_VkResult_return = vkEnc->vkMapMemory(device, memory, offset, size, flags, ppData, true /* do lock */);
     return vkMapMemory_VkResult_return;
 }
 static void entry_vkUnmapMemory(
@@ -309,7 +309,7 @@ static void entry_vkUnmapMemory(
 {
     AEMU_SCOPED_TRACE("vkUnmapMemory");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkUnmapMemory(device, memory);
+    vkEnc->vkUnmapMemory(device, memory, true /* do lock */);
 }
 static VkResult entry_vkFlushMappedMemoryRanges(
     VkDevice device,
@@ -319,7 +319,7 @@ static VkResult entry_vkFlushMappedMemoryRanges(
     AEMU_SCOPED_TRACE("vkFlushMappedMemoryRanges");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkFlushMappedMemoryRanges_VkResult_return = (VkResult)0;
-    vkFlushMappedMemoryRanges_VkResult_return = vkEnc->vkFlushMappedMemoryRanges(device, memoryRangeCount, pMemoryRanges);
+    vkFlushMappedMemoryRanges_VkResult_return = vkEnc->vkFlushMappedMemoryRanges(device, memoryRangeCount, pMemoryRanges, true /* do lock */);
     return vkFlushMappedMemoryRanges_VkResult_return;
 }
 static VkResult entry_vkInvalidateMappedMemoryRanges(
@@ -330,7 +330,7 @@ static VkResult entry_vkInvalidateMappedMemoryRanges(
     AEMU_SCOPED_TRACE("vkInvalidateMappedMemoryRanges");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkInvalidateMappedMemoryRanges_VkResult_return = (VkResult)0;
-    vkInvalidateMappedMemoryRanges_VkResult_return = vkEnc->vkInvalidateMappedMemoryRanges(device, memoryRangeCount, pMemoryRanges);
+    vkInvalidateMappedMemoryRanges_VkResult_return = vkEnc->vkInvalidateMappedMemoryRanges(device, memoryRangeCount, pMemoryRanges, true /* do lock */);
     return vkInvalidateMappedMemoryRanges_VkResult_return;
 }
 static void entry_vkGetDeviceMemoryCommitment(
@@ -340,7 +340,7 @@ static void entry_vkGetDeviceMemoryCommitment(
 {
     AEMU_SCOPED_TRACE("vkGetDeviceMemoryCommitment");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetDeviceMemoryCommitment(device, memory, pCommittedMemoryInBytes);
+    vkEnc->vkGetDeviceMemoryCommitment(device, memory, pCommittedMemoryInBytes, true /* do lock */);
 }
 static VkResult entry_vkBindBufferMemory(
     VkDevice device,
@@ -396,7 +396,7 @@ static void entry_vkGetImageSparseMemoryRequirements(
 {
     AEMU_SCOPED_TRACE("vkGetImageSparseMemoryRequirements");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetImageSparseMemoryRequirements(device, image, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
+    vkEnc->vkGetImageSparseMemoryRequirements(device, image, pSparseMemoryRequirementCount, pSparseMemoryRequirements, true /* do lock */);
 }
 static void entry_vkGetPhysicalDeviceSparseImageFormatProperties(
     VkPhysicalDevice physicalDevice,
@@ -410,7 +410,7 @@ static void entry_vkGetPhysicalDeviceSparseImageFormatProperties(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSparseImageFormatProperties");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceSparseImageFormatProperties(physicalDevice, format, type, samples, usage, tiling, pPropertyCount, pProperties);
+    vkEnc->vkGetPhysicalDeviceSparseImageFormatProperties(physicalDevice, format, type, samples, usage, tiling, pPropertyCount, pProperties, true /* do lock */);
 }
 static VkResult entry_vkQueueBindSparse(
     VkQueue queue,
@@ -422,7 +422,7 @@ static VkResult entry_vkQueueBindSparse(
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
     VkResult vkQueueBindSparse_VkResult_return = (VkResult)0;
-    vkQueueBindSparse_VkResult_return = vkEnc->vkQueueBindSparse(queue, bindInfoCount, pBindInfo, fence);
+    vkQueueBindSparse_VkResult_return = vkEnc->vkQueueBindSparse(queue, bindInfoCount, pBindInfo, fence, true /* do lock */);
     return vkQueueBindSparse_VkResult_return;
 }
 static VkResult entry_vkCreateFence(
@@ -445,7 +445,7 @@ static void entry_vkDestroyFence(
 {
     AEMU_SCOPED_TRACE("vkDestroyFence");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyFence(device, fence, pAllocator);
+    vkEnc->vkDestroyFence(device, fence, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkResetFences(
     VkDevice device,
@@ -466,7 +466,7 @@ static VkResult entry_vkGetFenceStatus(
     AEMU_SCOPED_TRACE("vkGetFenceStatus");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetFenceStatus_VkResult_return = (VkResult)0;
-    vkGetFenceStatus_VkResult_return = vkEnc->vkGetFenceStatus(device, fence);
+    vkGetFenceStatus_VkResult_return = vkEnc->vkGetFenceStatus(device, fence, true /* do lock */);
     return vkGetFenceStatus_VkResult_return;
 }
 static VkResult entry_vkWaitForFences(
@@ -515,7 +515,7 @@ static VkResult entry_vkCreateEvent(
     AEMU_SCOPED_TRACE("vkCreateEvent");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateEvent_VkResult_return = (VkResult)0;
-    vkCreateEvent_VkResult_return = vkEnc->vkCreateEvent(device, pCreateInfo, pAllocator, pEvent);
+    vkCreateEvent_VkResult_return = vkEnc->vkCreateEvent(device, pCreateInfo, pAllocator, pEvent, true /* do lock */);
     return vkCreateEvent_VkResult_return;
 }
 static void entry_vkDestroyEvent(
@@ -525,7 +525,7 @@ static void entry_vkDestroyEvent(
 {
     AEMU_SCOPED_TRACE("vkDestroyEvent");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyEvent(device, event, pAllocator);
+    vkEnc->vkDestroyEvent(device, event, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkGetEventStatus(
     VkDevice device,
@@ -534,7 +534,7 @@ static VkResult entry_vkGetEventStatus(
     AEMU_SCOPED_TRACE("vkGetEventStatus");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetEventStatus_VkResult_return = (VkResult)0;
-    vkGetEventStatus_VkResult_return = vkEnc->vkGetEventStatus(device, event);
+    vkGetEventStatus_VkResult_return = vkEnc->vkGetEventStatus(device, event, true /* do lock */);
     return vkGetEventStatus_VkResult_return;
 }
 static VkResult entry_vkSetEvent(
@@ -544,7 +544,7 @@ static VkResult entry_vkSetEvent(
     AEMU_SCOPED_TRACE("vkSetEvent");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkSetEvent_VkResult_return = (VkResult)0;
-    vkSetEvent_VkResult_return = vkEnc->vkSetEvent(device, event);
+    vkSetEvent_VkResult_return = vkEnc->vkSetEvent(device, event, true /* do lock */);
     return vkSetEvent_VkResult_return;
 }
 static VkResult entry_vkResetEvent(
@@ -554,7 +554,7 @@ static VkResult entry_vkResetEvent(
     AEMU_SCOPED_TRACE("vkResetEvent");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkResetEvent_VkResult_return = (VkResult)0;
-    vkResetEvent_VkResult_return = vkEnc->vkResetEvent(device, event);
+    vkResetEvent_VkResult_return = vkEnc->vkResetEvent(device, event, true /* do lock */);
     return vkResetEvent_VkResult_return;
 }
 static VkResult entry_vkCreateQueryPool(
@@ -566,7 +566,7 @@ static VkResult entry_vkCreateQueryPool(
     AEMU_SCOPED_TRACE("vkCreateQueryPool");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateQueryPool_VkResult_return = (VkResult)0;
-    vkCreateQueryPool_VkResult_return = vkEnc->vkCreateQueryPool(device, pCreateInfo, pAllocator, pQueryPool);
+    vkCreateQueryPool_VkResult_return = vkEnc->vkCreateQueryPool(device, pCreateInfo, pAllocator, pQueryPool, true /* do lock */);
     return vkCreateQueryPool_VkResult_return;
 }
 static void entry_vkDestroyQueryPool(
@@ -576,7 +576,7 @@ static void entry_vkDestroyQueryPool(
 {
     AEMU_SCOPED_TRACE("vkDestroyQueryPool");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyQueryPool(device, queryPool, pAllocator);
+    vkEnc->vkDestroyQueryPool(device, queryPool, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkGetQueryPoolResults(
     VkDevice device,
@@ -591,7 +591,7 @@ static VkResult entry_vkGetQueryPoolResults(
     AEMU_SCOPED_TRACE("vkGetQueryPoolResults");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetQueryPoolResults_VkResult_return = (VkResult)0;
-    vkGetQueryPoolResults_VkResult_return = vkEnc->vkGetQueryPoolResults(device, queryPool, firstQuery, queryCount, dataSize, pData, stride, flags);
+    vkGetQueryPoolResults_VkResult_return = vkEnc->vkGetQueryPoolResults(device, queryPool, firstQuery, queryCount, dataSize, pData, stride, flags, true /* do lock */);
     return vkGetQueryPoolResults_VkResult_return;
 }
 static VkResult entry_vkCreateBuffer(
@@ -626,7 +626,7 @@ static VkResult entry_vkCreateBufferView(
     AEMU_SCOPED_TRACE("vkCreateBufferView");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateBufferView_VkResult_return = (VkResult)0;
-    vkCreateBufferView_VkResult_return = vkEnc->vkCreateBufferView(device, pCreateInfo, pAllocator, pView);
+    vkCreateBufferView_VkResult_return = vkEnc->vkCreateBufferView(device, pCreateInfo, pAllocator, pView, true /* do lock */);
     return vkCreateBufferView_VkResult_return;
 }
 static void entry_vkDestroyBufferView(
@@ -636,7 +636,7 @@ static void entry_vkDestroyBufferView(
 {
     AEMU_SCOPED_TRACE("vkDestroyBufferView");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyBufferView(device, bufferView, pAllocator);
+    vkEnc->vkDestroyBufferView(device, bufferView, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkCreateImage(
     VkDevice device,
@@ -669,7 +669,7 @@ static void entry_vkGetImageSubresourceLayout(
 {
     AEMU_SCOPED_TRACE("vkGetImageSubresourceLayout");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetImageSubresourceLayout(device, image, pSubresource, pLayout);
+    vkEnc->vkGetImageSubresourceLayout(device, image, pSubresource, pLayout, true /* do lock */);
 }
 static VkResult entry_vkCreateImageView(
     VkDevice device,
@@ -691,7 +691,7 @@ static void entry_vkDestroyImageView(
 {
     AEMU_SCOPED_TRACE("vkDestroyImageView");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyImageView(device, imageView, pAllocator);
+    vkEnc->vkDestroyImageView(device, imageView, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkCreateShaderModule(
     VkDevice device,
@@ -702,7 +702,7 @@ static VkResult entry_vkCreateShaderModule(
     AEMU_SCOPED_TRACE("vkCreateShaderModule");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateShaderModule_VkResult_return = (VkResult)0;
-    vkCreateShaderModule_VkResult_return = vkEnc->vkCreateShaderModule(device, pCreateInfo, pAllocator, pShaderModule);
+    vkCreateShaderModule_VkResult_return = vkEnc->vkCreateShaderModule(device, pCreateInfo, pAllocator, pShaderModule, true /* do lock */);
     return vkCreateShaderModule_VkResult_return;
 }
 static void entry_vkDestroyShaderModule(
@@ -712,7 +712,7 @@ static void entry_vkDestroyShaderModule(
 {
     AEMU_SCOPED_TRACE("vkDestroyShaderModule");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyShaderModule(device, shaderModule, pAllocator);
+    vkEnc->vkDestroyShaderModule(device, shaderModule, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkCreatePipelineCache(
     VkDevice device,
@@ -723,7 +723,7 @@ static VkResult entry_vkCreatePipelineCache(
     AEMU_SCOPED_TRACE("vkCreatePipelineCache");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreatePipelineCache_VkResult_return = (VkResult)0;
-    vkCreatePipelineCache_VkResult_return = vkEnc->vkCreatePipelineCache(device, pCreateInfo, pAllocator, pPipelineCache);
+    vkCreatePipelineCache_VkResult_return = vkEnc->vkCreatePipelineCache(device, pCreateInfo, pAllocator, pPipelineCache, true /* do lock */);
     return vkCreatePipelineCache_VkResult_return;
 }
 static void entry_vkDestroyPipelineCache(
@@ -733,7 +733,7 @@ static void entry_vkDestroyPipelineCache(
 {
     AEMU_SCOPED_TRACE("vkDestroyPipelineCache");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyPipelineCache(device, pipelineCache, pAllocator);
+    vkEnc->vkDestroyPipelineCache(device, pipelineCache, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkGetPipelineCacheData(
     VkDevice device,
@@ -744,7 +744,7 @@ static VkResult entry_vkGetPipelineCacheData(
     AEMU_SCOPED_TRACE("vkGetPipelineCacheData");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPipelineCacheData_VkResult_return = (VkResult)0;
-    vkGetPipelineCacheData_VkResult_return = vkEnc->vkGetPipelineCacheData(device, pipelineCache, pDataSize, pData);
+    vkGetPipelineCacheData_VkResult_return = vkEnc->vkGetPipelineCacheData(device, pipelineCache, pDataSize, pData, true /* do lock */);
     return vkGetPipelineCacheData_VkResult_return;
 }
 static VkResult entry_vkMergePipelineCaches(
@@ -756,7 +756,7 @@ static VkResult entry_vkMergePipelineCaches(
     AEMU_SCOPED_TRACE("vkMergePipelineCaches");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkMergePipelineCaches_VkResult_return = (VkResult)0;
-    vkMergePipelineCaches_VkResult_return = vkEnc->vkMergePipelineCaches(device, dstCache, srcCacheCount, pSrcCaches);
+    vkMergePipelineCaches_VkResult_return = vkEnc->vkMergePipelineCaches(device, dstCache, srcCacheCount, pSrcCaches, true /* do lock */);
     return vkMergePipelineCaches_VkResult_return;
 }
 static VkResult entry_vkCreateGraphicsPipelines(
@@ -770,7 +770,7 @@ static VkResult entry_vkCreateGraphicsPipelines(
     AEMU_SCOPED_TRACE("vkCreateGraphicsPipelines");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateGraphicsPipelines_VkResult_return = (VkResult)0;
-    vkCreateGraphicsPipelines_VkResult_return = vkEnc->vkCreateGraphicsPipelines(device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines);
+    vkCreateGraphicsPipelines_VkResult_return = vkEnc->vkCreateGraphicsPipelines(device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines, true /* do lock */);
     return vkCreateGraphicsPipelines_VkResult_return;
 }
 static VkResult entry_vkCreateComputePipelines(
@@ -784,7 +784,7 @@ static VkResult entry_vkCreateComputePipelines(
     AEMU_SCOPED_TRACE("vkCreateComputePipelines");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateComputePipelines_VkResult_return = (VkResult)0;
-    vkCreateComputePipelines_VkResult_return = vkEnc->vkCreateComputePipelines(device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines);
+    vkCreateComputePipelines_VkResult_return = vkEnc->vkCreateComputePipelines(device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines, true /* do lock */);
     return vkCreateComputePipelines_VkResult_return;
 }
 static void entry_vkDestroyPipeline(
@@ -794,7 +794,7 @@ static void entry_vkDestroyPipeline(
 {
     AEMU_SCOPED_TRACE("vkDestroyPipeline");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyPipeline(device, pipeline, pAllocator);
+    vkEnc->vkDestroyPipeline(device, pipeline, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkCreatePipelineLayout(
     VkDevice device,
@@ -805,7 +805,7 @@ static VkResult entry_vkCreatePipelineLayout(
     AEMU_SCOPED_TRACE("vkCreatePipelineLayout");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreatePipelineLayout_VkResult_return = (VkResult)0;
-    vkCreatePipelineLayout_VkResult_return = vkEnc->vkCreatePipelineLayout(device, pCreateInfo, pAllocator, pPipelineLayout);
+    vkCreatePipelineLayout_VkResult_return = vkEnc->vkCreatePipelineLayout(device, pCreateInfo, pAllocator, pPipelineLayout, true /* do lock */);
     return vkCreatePipelineLayout_VkResult_return;
 }
 static void entry_vkDestroyPipelineLayout(
@@ -815,7 +815,7 @@ static void entry_vkDestroyPipelineLayout(
 {
     AEMU_SCOPED_TRACE("vkDestroyPipelineLayout");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyPipelineLayout(device, pipelineLayout, pAllocator);
+    vkEnc->vkDestroyPipelineLayout(device, pipelineLayout, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkCreateSampler(
     VkDevice device,
@@ -837,7 +837,7 @@ static void entry_vkDestroySampler(
 {
     AEMU_SCOPED_TRACE("vkDestroySampler");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroySampler(device, sampler, pAllocator);
+    vkEnc->vkDestroySampler(device, sampler, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkCreateDescriptorSetLayout(
     VkDevice device,
@@ -859,7 +859,7 @@ static void entry_vkDestroyDescriptorSetLayout(
 {
     AEMU_SCOPED_TRACE("vkDestroyDescriptorSetLayout");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyDescriptorSetLayout(device, descriptorSetLayout, pAllocator);
+    vkEnc->vkDestroyDescriptorSetLayout(device, descriptorSetLayout, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkCreateDescriptorPool(
     VkDevice device,
@@ -942,7 +942,7 @@ static VkResult entry_vkCreateFramebuffer(
     AEMU_SCOPED_TRACE("vkCreateFramebuffer");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateFramebuffer_VkResult_return = (VkResult)0;
-    vkCreateFramebuffer_VkResult_return = vkEnc->vkCreateFramebuffer(device, pCreateInfo, pAllocator, pFramebuffer);
+    vkCreateFramebuffer_VkResult_return = vkEnc->vkCreateFramebuffer(device, pCreateInfo, pAllocator, pFramebuffer, true /* do lock */);
     return vkCreateFramebuffer_VkResult_return;
 }
 static void entry_vkDestroyFramebuffer(
@@ -952,7 +952,7 @@ static void entry_vkDestroyFramebuffer(
 {
     AEMU_SCOPED_TRACE("vkDestroyFramebuffer");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyFramebuffer(device, framebuffer, pAllocator);
+    vkEnc->vkDestroyFramebuffer(device, framebuffer, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkCreateRenderPass(
     VkDevice device,
@@ -963,7 +963,7 @@ static VkResult entry_vkCreateRenderPass(
     AEMU_SCOPED_TRACE("vkCreateRenderPass");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateRenderPass_VkResult_return = (VkResult)0;
-    vkCreateRenderPass_VkResult_return = vkEnc->vkCreateRenderPass(device, pCreateInfo, pAllocator, pRenderPass);
+    vkCreateRenderPass_VkResult_return = vkEnc->vkCreateRenderPass(device, pCreateInfo, pAllocator, pRenderPass, true /* do lock */);
     return vkCreateRenderPass_VkResult_return;
 }
 static void entry_vkDestroyRenderPass(
@@ -973,7 +973,7 @@ static void entry_vkDestroyRenderPass(
 {
     AEMU_SCOPED_TRACE("vkDestroyRenderPass");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyRenderPass(device, renderPass, pAllocator);
+    vkEnc->vkDestroyRenderPass(device, renderPass, pAllocator, true /* do lock */);
 }
 static void entry_vkGetRenderAreaGranularity(
     VkDevice device,
@@ -982,7 +982,7 @@ static void entry_vkGetRenderAreaGranularity(
 {
     AEMU_SCOPED_TRACE("vkGetRenderAreaGranularity");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetRenderAreaGranularity(device, renderPass, pGranularity);
+    vkEnc->vkGetRenderAreaGranularity(device, renderPass, pGranularity, true /* do lock */);
 }
 static VkResult entry_vkCreateCommandPool(
     VkDevice device,
@@ -993,7 +993,7 @@ static VkResult entry_vkCreateCommandPool(
     AEMU_SCOPED_TRACE("vkCreateCommandPool");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateCommandPool_VkResult_return = (VkResult)0;
-    vkCreateCommandPool_VkResult_return = vkEnc->vkCreateCommandPool(device, pCreateInfo, pAllocator, pCommandPool);
+    vkCreateCommandPool_VkResult_return = vkEnc->vkCreateCommandPool(device, pCreateInfo, pAllocator, pCommandPool, true /* do lock */);
     return vkCreateCommandPool_VkResult_return;
 }
 static void entry_vkDestroyCommandPool(
@@ -1003,7 +1003,7 @@ static void entry_vkDestroyCommandPool(
 {
     AEMU_SCOPED_TRACE("vkDestroyCommandPool");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyCommandPool(device, commandPool, pAllocator);
+    vkEnc->vkDestroyCommandPool(device, commandPool, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkResetCommandPool(
     VkDevice device,
@@ -1013,7 +1013,7 @@ static VkResult entry_vkResetCommandPool(
     AEMU_SCOPED_TRACE("vkResetCommandPool");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkResetCommandPool_VkResult_return = (VkResult)0;
-    vkResetCommandPool_VkResult_return = vkEnc->vkResetCommandPool(device, commandPool, flags);
+    vkResetCommandPool_VkResult_return = vkEnc->vkResetCommandPool(device, commandPool, flags, true /* do lock */);
     return vkResetCommandPool_VkResult_return;
 }
 static VkResult entry_vkAllocateCommandBuffers(
@@ -1024,7 +1024,7 @@ static VkResult entry_vkAllocateCommandBuffers(
     AEMU_SCOPED_TRACE("vkAllocateCommandBuffers");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkAllocateCommandBuffers_VkResult_return = (VkResult)0;
-    vkAllocateCommandBuffers_VkResult_return = vkEnc->vkAllocateCommandBuffers(device, pAllocateInfo, pCommandBuffers);
+    vkAllocateCommandBuffers_VkResult_return = vkEnc->vkAllocateCommandBuffers(device, pAllocateInfo, pCommandBuffers, true /* do lock */);
     return vkAllocateCommandBuffers_VkResult_return;
 }
 static void entry_vkFreeCommandBuffers(
@@ -1035,7 +1035,7 @@ static void entry_vkFreeCommandBuffers(
 {
     AEMU_SCOPED_TRACE("vkFreeCommandBuffers");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkFreeCommandBuffers(device, commandPool, commandBufferCount, pCommandBuffers);
+    vkEnc->vkFreeCommandBuffers(device, commandPool, commandBufferCount, pCommandBuffers, true /* do lock */);
 }
 static VkResult entry_vkBeginCommandBuffer(
     VkCommandBuffer commandBuffer,
@@ -1080,7 +1080,7 @@ static void entry_vkCmdBindPipeline(
     AEMU_SCOPED_TRACE("vkCmdBindPipeline");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdBindPipeline(commandBuffer, pipelineBindPoint, pipeline);
+    vkEnc->vkCmdBindPipeline(commandBuffer, pipelineBindPoint, pipeline, true /* do lock */);
 }
 static void entry_vkCmdSetViewport(
     VkCommandBuffer commandBuffer,
@@ -1091,7 +1091,7 @@ static void entry_vkCmdSetViewport(
     AEMU_SCOPED_TRACE("vkCmdSetViewport");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdSetViewport(commandBuffer, firstViewport, viewportCount, pViewports);
+    vkEnc->vkCmdSetViewport(commandBuffer, firstViewport, viewportCount, pViewports, true /* do lock */);
 }
 static void entry_vkCmdSetScissor(
     VkCommandBuffer commandBuffer,
@@ -1102,7 +1102,7 @@ static void entry_vkCmdSetScissor(
     AEMU_SCOPED_TRACE("vkCmdSetScissor");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdSetScissor(commandBuffer, firstScissor, scissorCount, pScissors);
+    vkEnc->vkCmdSetScissor(commandBuffer, firstScissor, scissorCount, pScissors, true /* do lock */);
 }
 static void entry_vkCmdSetLineWidth(
     VkCommandBuffer commandBuffer,
@@ -1111,7 +1111,7 @@ static void entry_vkCmdSetLineWidth(
     AEMU_SCOPED_TRACE("vkCmdSetLineWidth");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdSetLineWidth(commandBuffer, lineWidth);
+    vkEnc->vkCmdSetLineWidth(commandBuffer, lineWidth, true /* do lock */);
 }
 static void entry_vkCmdSetDepthBias(
     VkCommandBuffer commandBuffer,
@@ -1122,7 +1122,7 @@ static void entry_vkCmdSetDepthBias(
     AEMU_SCOPED_TRACE("vkCmdSetDepthBias");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdSetDepthBias(commandBuffer, depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor);
+    vkEnc->vkCmdSetDepthBias(commandBuffer, depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor, true /* do lock */);
 }
 static void entry_vkCmdSetBlendConstants(
     VkCommandBuffer commandBuffer,
@@ -1131,7 +1131,7 @@ static void entry_vkCmdSetBlendConstants(
     AEMU_SCOPED_TRACE("vkCmdSetBlendConstants");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdSetBlendConstants(commandBuffer, blendConstants);
+    vkEnc->vkCmdSetBlendConstants(commandBuffer, blendConstants, true /* do lock */);
 }
 static void entry_vkCmdSetDepthBounds(
     VkCommandBuffer commandBuffer,
@@ -1141,7 +1141,7 @@ static void entry_vkCmdSetDepthBounds(
     AEMU_SCOPED_TRACE("vkCmdSetDepthBounds");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdSetDepthBounds(commandBuffer, minDepthBounds, maxDepthBounds);
+    vkEnc->vkCmdSetDepthBounds(commandBuffer, minDepthBounds, maxDepthBounds, true /* do lock */);
 }
 static void entry_vkCmdSetStencilCompareMask(
     VkCommandBuffer commandBuffer,
@@ -1151,7 +1151,7 @@ static void entry_vkCmdSetStencilCompareMask(
     AEMU_SCOPED_TRACE("vkCmdSetStencilCompareMask");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdSetStencilCompareMask(commandBuffer, faceMask, compareMask);
+    vkEnc->vkCmdSetStencilCompareMask(commandBuffer, faceMask, compareMask, true /* do lock */);
 }
 static void entry_vkCmdSetStencilWriteMask(
     VkCommandBuffer commandBuffer,
@@ -1161,7 +1161,7 @@ static void entry_vkCmdSetStencilWriteMask(
     AEMU_SCOPED_TRACE("vkCmdSetStencilWriteMask");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdSetStencilWriteMask(commandBuffer, faceMask, writeMask);
+    vkEnc->vkCmdSetStencilWriteMask(commandBuffer, faceMask, writeMask, true /* do lock */);
 }
 static void entry_vkCmdSetStencilReference(
     VkCommandBuffer commandBuffer,
@@ -1171,7 +1171,7 @@ static void entry_vkCmdSetStencilReference(
     AEMU_SCOPED_TRACE("vkCmdSetStencilReference");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdSetStencilReference(commandBuffer, faceMask, reference);
+    vkEnc->vkCmdSetStencilReference(commandBuffer, faceMask, reference, true /* do lock */);
 }
 static void entry_vkCmdBindDescriptorSets(
     VkCommandBuffer commandBuffer,
@@ -1186,7 +1186,7 @@ static void entry_vkCmdBindDescriptorSets(
     AEMU_SCOPED_TRACE("vkCmdBindDescriptorSets");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdBindDescriptorSets(commandBuffer, pipelineBindPoint, layout, firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount, pDynamicOffsets);
+    vkEnc->vkCmdBindDescriptorSets(commandBuffer, pipelineBindPoint, layout, firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount, pDynamicOffsets, true /* do lock */);
 }
 static void entry_vkCmdBindIndexBuffer(
     VkCommandBuffer commandBuffer,
@@ -1197,7 +1197,7 @@ static void entry_vkCmdBindIndexBuffer(
     AEMU_SCOPED_TRACE("vkCmdBindIndexBuffer");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdBindIndexBuffer(commandBuffer, buffer, offset, indexType);
+    vkEnc->vkCmdBindIndexBuffer(commandBuffer, buffer, offset, indexType, true /* do lock */);
 }
 static void entry_vkCmdBindVertexBuffers(
     VkCommandBuffer commandBuffer,
@@ -1209,7 +1209,7 @@ static void entry_vkCmdBindVertexBuffers(
     AEMU_SCOPED_TRACE("vkCmdBindVertexBuffers");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdBindVertexBuffers(commandBuffer, firstBinding, bindingCount, pBuffers, pOffsets);
+    vkEnc->vkCmdBindVertexBuffers(commandBuffer, firstBinding, bindingCount, pBuffers, pOffsets, true /* do lock */);
 }
 static void entry_vkCmdDraw(
     VkCommandBuffer commandBuffer,
@@ -1221,7 +1221,7 @@ static void entry_vkCmdDraw(
     AEMU_SCOPED_TRACE("vkCmdDraw");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdDraw(commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
+    vkEnc->vkCmdDraw(commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance, true /* do lock */);
 }
 static void entry_vkCmdDrawIndexed(
     VkCommandBuffer commandBuffer,
@@ -1234,7 +1234,7 @@ static void entry_vkCmdDrawIndexed(
     AEMU_SCOPED_TRACE("vkCmdDrawIndexed");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
+    vkEnc->vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance, true /* do lock */);
 }
 static void entry_vkCmdDrawIndirect(
     VkCommandBuffer commandBuffer,
@@ -1246,7 +1246,7 @@ static void entry_vkCmdDrawIndirect(
     AEMU_SCOPED_TRACE("vkCmdDrawIndirect");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdDrawIndirect(commandBuffer, buffer, offset, drawCount, stride);
+    vkEnc->vkCmdDrawIndirect(commandBuffer, buffer, offset, drawCount, stride, true /* do lock */);
 }
 static void entry_vkCmdDrawIndexedIndirect(
     VkCommandBuffer commandBuffer,
@@ -1258,7 +1258,7 @@ static void entry_vkCmdDrawIndexedIndirect(
     AEMU_SCOPED_TRACE("vkCmdDrawIndexedIndirect");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdDrawIndexedIndirect(commandBuffer, buffer, offset, drawCount, stride);
+    vkEnc->vkCmdDrawIndexedIndirect(commandBuffer, buffer, offset, drawCount, stride, true /* do lock */);
 }
 static void entry_vkCmdDispatch(
     VkCommandBuffer commandBuffer,
@@ -1269,7 +1269,7 @@ static void entry_vkCmdDispatch(
     AEMU_SCOPED_TRACE("vkCmdDispatch");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
+    vkEnc->vkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ, true /* do lock */);
 }
 static void entry_vkCmdDispatchIndirect(
     VkCommandBuffer commandBuffer,
@@ -1279,7 +1279,7 @@ static void entry_vkCmdDispatchIndirect(
     AEMU_SCOPED_TRACE("vkCmdDispatchIndirect");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdDispatchIndirect(commandBuffer, buffer, offset);
+    vkEnc->vkCmdDispatchIndirect(commandBuffer, buffer, offset, true /* do lock */);
 }
 static void entry_vkCmdCopyBuffer(
     VkCommandBuffer commandBuffer,
@@ -1291,7 +1291,7 @@ static void entry_vkCmdCopyBuffer(
     AEMU_SCOPED_TRACE("vkCmdCopyBuffer");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, regionCount, pRegions);
+    vkEnc->vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, regionCount, pRegions, true /* do lock */);
 }
 static void entry_vkCmdCopyImage(
     VkCommandBuffer commandBuffer,
@@ -1305,7 +1305,7 @@ static void entry_vkCmdCopyImage(
     AEMU_SCOPED_TRACE("vkCmdCopyImage");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdCopyImage(commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions);
+    vkEnc->vkCmdCopyImage(commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions, true /* do lock */);
 }
 static void entry_vkCmdBlitImage(
     VkCommandBuffer commandBuffer,
@@ -1320,7 +1320,7 @@ static void entry_vkCmdBlitImage(
     AEMU_SCOPED_TRACE("vkCmdBlitImage");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdBlitImage(commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions, filter);
+    vkEnc->vkCmdBlitImage(commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions, filter, true /* do lock */);
 }
 static void entry_vkCmdCopyBufferToImage(
     VkCommandBuffer commandBuffer,
@@ -1333,7 +1333,7 @@ static void entry_vkCmdCopyBufferToImage(
     AEMU_SCOPED_TRACE("vkCmdCopyBufferToImage");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdCopyBufferToImage(commandBuffer, srcBuffer, dstImage, dstImageLayout, regionCount, pRegions);
+    vkEnc->vkCmdCopyBufferToImage(commandBuffer, srcBuffer, dstImage, dstImageLayout, regionCount, pRegions, true /* do lock */);
 }
 static void entry_vkCmdCopyImageToBuffer(
     VkCommandBuffer commandBuffer,
@@ -1346,7 +1346,7 @@ static void entry_vkCmdCopyImageToBuffer(
     AEMU_SCOPED_TRACE("vkCmdCopyImageToBuffer");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdCopyImageToBuffer(commandBuffer, srcImage, srcImageLayout, dstBuffer, regionCount, pRegions);
+    vkEnc->vkCmdCopyImageToBuffer(commandBuffer, srcImage, srcImageLayout, dstBuffer, regionCount, pRegions, true /* do lock */);
 }
 static void entry_vkCmdUpdateBuffer(
     VkCommandBuffer commandBuffer,
@@ -1358,7 +1358,7 @@ static void entry_vkCmdUpdateBuffer(
     AEMU_SCOPED_TRACE("vkCmdUpdateBuffer");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdUpdateBuffer(commandBuffer, dstBuffer, dstOffset, dataSize, pData);
+    vkEnc->vkCmdUpdateBuffer(commandBuffer, dstBuffer, dstOffset, dataSize, pData, true /* do lock */);
 }
 static void entry_vkCmdFillBuffer(
     VkCommandBuffer commandBuffer,
@@ -1370,7 +1370,7 @@ static void entry_vkCmdFillBuffer(
     AEMU_SCOPED_TRACE("vkCmdFillBuffer");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdFillBuffer(commandBuffer, dstBuffer, dstOffset, size, data);
+    vkEnc->vkCmdFillBuffer(commandBuffer, dstBuffer, dstOffset, size, data, true /* do lock */);
 }
 static void entry_vkCmdClearColorImage(
     VkCommandBuffer commandBuffer,
@@ -1383,7 +1383,7 @@ static void entry_vkCmdClearColorImage(
     AEMU_SCOPED_TRACE("vkCmdClearColorImage");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdClearColorImage(commandBuffer, image, imageLayout, pColor, rangeCount, pRanges);
+    vkEnc->vkCmdClearColorImage(commandBuffer, image, imageLayout, pColor, rangeCount, pRanges, true /* do lock */);
 }
 static void entry_vkCmdClearDepthStencilImage(
     VkCommandBuffer commandBuffer,
@@ -1396,7 +1396,7 @@ static void entry_vkCmdClearDepthStencilImage(
     AEMU_SCOPED_TRACE("vkCmdClearDepthStencilImage");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdClearDepthStencilImage(commandBuffer, image, imageLayout, pDepthStencil, rangeCount, pRanges);
+    vkEnc->vkCmdClearDepthStencilImage(commandBuffer, image, imageLayout, pDepthStencil, rangeCount, pRanges, true /* do lock */);
 }
 static void entry_vkCmdClearAttachments(
     VkCommandBuffer commandBuffer,
@@ -1408,7 +1408,7 @@ static void entry_vkCmdClearAttachments(
     AEMU_SCOPED_TRACE("vkCmdClearAttachments");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdClearAttachments(commandBuffer, attachmentCount, pAttachments, rectCount, pRects);
+    vkEnc->vkCmdClearAttachments(commandBuffer, attachmentCount, pAttachments, rectCount, pRects, true /* do lock */);
 }
 static void entry_vkCmdResolveImage(
     VkCommandBuffer commandBuffer,
@@ -1422,7 +1422,7 @@ static void entry_vkCmdResolveImage(
     AEMU_SCOPED_TRACE("vkCmdResolveImage");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdResolveImage(commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions);
+    vkEnc->vkCmdResolveImage(commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions, true /* do lock */);
 }
 static void entry_vkCmdSetEvent(
     VkCommandBuffer commandBuffer,
@@ -1432,7 +1432,7 @@ static void entry_vkCmdSetEvent(
     AEMU_SCOPED_TRACE("vkCmdSetEvent");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdSetEvent(commandBuffer, event, stageMask);
+    vkEnc->vkCmdSetEvent(commandBuffer, event, stageMask, true /* do lock */);
 }
 static void entry_vkCmdResetEvent(
     VkCommandBuffer commandBuffer,
@@ -1442,7 +1442,7 @@ static void entry_vkCmdResetEvent(
     AEMU_SCOPED_TRACE("vkCmdResetEvent");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdResetEvent(commandBuffer, event, stageMask);
+    vkEnc->vkCmdResetEvent(commandBuffer, event, stageMask, true /* do lock */);
 }
 static void entry_vkCmdWaitEvents(
     VkCommandBuffer commandBuffer,
@@ -1460,7 +1460,7 @@ static void entry_vkCmdWaitEvents(
     AEMU_SCOPED_TRACE("vkCmdWaitEvents");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdWaitEvents(commandBuffer, eventCount, pEvents, srcStageMask, dstStageMask, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
+    vkEnc->vkCmdWaitEvents(commandBuffer, eventCount, pEvents, srcStageMask, dstStageMask, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers, true /* do lock */);
 }
 static void entry_vkCmdPipelineBarrier(
     VkCommandBuffer commandBuffer,
@@ -1477,7 +1477,7 @@ static void entry_vkCmdPipelineBarrier(
     AEMU_SCOPED_TRACE("vkCmdPipelineBarrier");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
+    vkEnc->vkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers, true /* do lock */);
 }
 static void entry_vkCmdBeginQuery(
     VkCommandBuffer commandBuffer,
@@ -1488,7 +1488,7 @@ static void entry_vkCmdBeginQuery(
     AEMU_SCOPED_TRACE("vkCmdBeginQuery");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdBeginQuery(commandBuffer, queryPool, query, flags);
+    vkEnc->vkCmdBeginQuery(commandBuffer, queryPool, query, flags, true /* do lock */);
 }
 static void entry_vkCmdEndQuery(
     VkCommandBuffer commandBuffer,
@@ -1498,7 +1498,7 @@ static void entry_vkCmdEndQuery(
     AEMU_SCOPED_TRACE("vkCmdEndQuery");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdEndQuery(commandBuffer, queryPool, query);
+    vkEnc->vkCmdEndQuery(commandBuffer, queryPool, query, true /* do lock */);
 }
 static void entry_vkCmdResetQueryPool(
     VkCommandBuffer commandBuffer,
@@ -1509,7 +1509,7 @@ static void entry_vkCmdResetQueryPool(
     AEMU_SCOPED_TRACE("vkCmdResetQueryPool");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdResetQueryPool(commandBuffer, queryPool, firstQuery, queryCount);
+    vkEnc->vkCmdResetQueryPool(commandBuffer, queryPool, firstQuery, queryCount, true /* do lock */);
 }
 static void entry_vkCmdWriteTimestamp(
     VkCommandBuffer commandBuffer,
@@ -1520,7 +1520,7 @@ static void entry_vkCmdWriteTimestamp(
     AEMU_SCOPED_TRACE("vkCmdWriteTimestamp");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdWriteTimestamp(commandBuffer, pipelineStage, queryPool, query);
+    vkEnc->vkCmdWriteTimestamp(commandBuffer, pipelineStage, queryPool, query, true /* do lock */);
 }
 static void entry_vkCmdCopyQueryPoolResults(
     VkCommandBuffer commandBuffer,
@@ -1535,7 +1535,7 @@ static void entry_vkCmdCopyQueryPoolResults(
     AEMU_SCOPED_TRACE("vkCmdCopyQueryPoolResults");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdCopyQueryPoolResults(commandBuffer, queryPool, firstQuery, queryCount, dstBuffer, dstOffset, stride, flags);
+    vkEnc->vkCmdCopyQueryPoolResults(commandBuffer, queryPool, firstQuery, queryCount, dstBuffer, dstOffset, stride, flags, true /* do lock */);
 }
 static void entry_vkCmdPushConstants(
     VkCommandBuffer commandBuffer,
@@ -1548,7 +1548,7 @@ static void entry_vkCmdPushConstants(
     AEMU_SCOPED_TRACE("vkCmdPushConstants");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdPushConstants(commandBuffer, layout, stageFlags, offset, size, pValues);
+    vkEnc->vkCmdPushConstants(commandBuffer, layout, stageFlags, offset, size, pValues, true /* do lock */);
 }
 static void entry_vkCmdBeginRenderPass(
     VkCommandBuffer commandBuffer,
@@ -1558,7 +1558,7 @@ static void entry_vkCmdBeginRenderPass(
     AEMU_SCOPED_TRACE("vkCmdBeginRenderPass");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdBeginRenderPass(commandBuffer, pRenderPassBegin, contents);
+    vkEnc->vkCmdBeginRenderPass(commandBuffer, pRenderPassBegin, contents, true /* do lock */);
 }
 static void entry_vkCmdNextSubpass(
     VkCommandBuffer commandBuffer,
@@ -1567,7 +1567,7 @@ static void entry_vkCmdNextSubpass(
     AEMU_SCOPED_TRACE("vkCmdNextSubpass");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdNextSubpass(commandBuffer, contents);
+    vkEnc->vkCmdNextSubpass(commandBuffer, contents, true /* do lock */);
 }
 static void entry_vkCmdEndRenderPass(
     VkCommandBuffer commandBuffer)
@@ -1575,7 +1575,7 @@ static void entry_vkCmdEndRenderPass(
     AEMU_SCOPED_TRACE("vkCmdEndRenderPass");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdEndRenderPass(commandBuffer);
+    vkEnc->vkCmdEndRenderPass(commandBuffer, true /* do lock */);
 }
 static void entry_vkCmdExecuteCommands(
     VkCommandBuffer commandBuffer,
@@ -1585,7 +1585,7 @@ static void entry_vkCmdExecuteCommands(
     AEMU_SCOPED_TRACE("vkCmdExecuteCommands");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdExecuteCommands(commandBuffer, commandBufferCount, pCommandBuffers);
+    vkEnc->vkCmdExecuteCommands(commandBuffer, commandBufferCount, pCommandBuffers, true /* do lock */);
 }
 #endif
 #ifdef VK_VERSION_1_1
@@ -1595,7 +1595,7 @@ static VkResult entry_vkEnumerateInstanceVersion(
     AEMU_SCOPED_TRACE("vkEnumerateInstanceVersion");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkEnumerateInstanceVersion_VkResult_return = (VkResult)0;
-    vkEnumerateInstanceVersion_VkResult_return = vkEnc->vkEnumerateInstanceVersion(pApiVersion);
+    vkEnumerateInstanceVersion_VkResult_return = vkEnc->vkEnumerateInstanceVersion(pApiVersion, true /* do lock */);
     return vkEnumerateInstanceVersion_VkResult_return;
 }
 static VkResult entry_vkBindBufferMemory2(
@@ -1663,7 +1663,7 @@ static void entry_vkGetDeviceGroupPeerMemoryFeatures(
 {
     AEMU_SCOPED_TRACE("vkGetDeviceGroupPeerMemoryFeatures");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetDeviceGroupPeerMemoryFeatures(device, heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures);
+    vkEnc->vkGetDeviceGroupPeerMemoryFeatures(device, heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures, true /* do lock */);
 }
 static void dynCheck_entry_vkGetDeviceGroupPeerMemoryFeatures(
     VkDevice device,
@@ -1679,7 +1679,7 @@ static void dynCheck_entry_vkGetDeviceGroupPeerMemoryFeatures(
     }
     AEMU_SCOPED_TRACE("vkGetDeviceGroupPeerMemoryFeatures");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetDeviceGroupPeerMemoryFeatures(device, heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures);
+    vkEnc->vkGetDeviceGroupPeerMemoryFeatures(device, heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures, true /* do lock */);
 }
 static void entry_vkCmdSetDeviceMask(
     VkCommandBuffer commandBuffer,
@@ -1688,7 +1688,7 @@ static void entry_vkCmdSetDeviceMask(
     AEMU_SCOPED_TRACE("vkCmdSetDeviceMask");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdSetDeviceMask(commandBuffer, deviceMask);
+    vkEnc->vkCmdSetDeviceMask(commandBuffer, deviceMask, true /* do lock */);
 }
 static void entry_vkCmdDispatchBase(
     VkCommandBuffer commandBuffer,
@@ -1702,7 +1702,7 @@ static void entry_vkCmdDispatchBase(
     AEMU_SCOPED_TRACE("vkCmdDispatchBase");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdDispatchBase(commandBuffer, baseGroupX, baseGroupY, baseGroupZ, groupCountX, groupCountY, groupCountZ);
+    vkEnc->vkCmdDispatchBase(commandBuffer, baseGroupX, baseGroupY, baseGroupZ, groupCountX, groupCountY, groupCountZ, true /* do lock */);
 }
 static VkResult entry_vkEnumeratePhysicalDeviceGroups(
     VkInstance instance,
@@ -1712,7 +1712,7 @@ static VkResult entry_vkEnumeratePhysicalDeviceGroups(
     AEMU_SCOPED_TRACE("vkEnumeratePhysicalDeviceGroups");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkEnumeratePhysicalDeviceGroups_VkResult_return = (VkResult)0;
-    vkEnumeratePhysicalDeviceGroups_VkResult_return = vkEnc->vkEnumeratePhysicalDeviceGroups(instance, pPhysicalDeviceGroupCount, pPhysicalDeviceGroupProperties);
+    vkEnumeratePhysicalDeviceGroups_VkResult_return = vkEnc->vkEnumeratePhysicalDeviceGroups(instance, pPhysicalDeviceGroupCount, pPhysicalDeviceGroupProperties, true /* do lock */);
     return vkEnumeratePhysicalDeviceGroups_VkResult_return;
 }
 static void entry_vkGetImageMemoryRequirements2(
@@ -1771,7 +1771,7 @@ static void entry_vkGetImageSparseMemoryRequirements2(
 {
     AEMU_SCOPED_TRACE("vkGetImageSparseMemoryRequirements2");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetImageSparseMemoryRequirements2(device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
+    vkEnc->vkGetImageSparseMemoryRequirements2(device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements, true /* do lock */);
 }
 static void dynCheck_entry_vkGetImageSparseMemoryRequirements2(
     VkDevice device,
@@ -1786,7 +1786,7 @@ static void dynCheck_entry_vkGetImageSparseMemoryRequirements2(
     }
     AEMU_SCOPED_TRACE("vkGetImageSparseMemoryRequirements2");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetImageSparseMemoryRequirements2(device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
+    vkEnc->vkGetImageSparseMemoryRequirements2(device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements, true /* do lock */);
 }
 static void entry_vkGetPhysicalDeviceFeatures2(
     VkPhysicalDevice physicalDevice,
@@ -1794,7 +1794,7 @@ static void entry_vkGetPhysicalDeviceFeatures2(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFeatures2");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceFeatures2(physicalDevice, pFeatures);
+    vkEnc->vkGetPhysicalDeviceFeatures2(physicalDevice, pFeatures, true /* do lock */);
 }
 static void entry_vkGetPhysicalDeviceProperties2(
     VkPhysicalDevice physicalDevice,
@@ -1802,7 +1802,7 @@ static void entry_vkGetPhysicalDeviceProperties2(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceProperties2");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceProperties2(physicalDevice, pProperties);
+    vkEnc->vkGetPhysicalDeviceProperties2(physicalDevice, pProperties, true /* do lock */);
 }
 static void entry_vkGetPhysicalDeviceFormatProperties2(
     VkPhysicalDevice physicalDevice,
@@ -1811,7 +1811,7 @@ static void entry_vkGetPhysicalDeviceFormatProperties2(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFormatProperties2");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceFormatProperties2(physicalDevice, format, pFormatProperties);
+    vkEnc->vkGetPhysicalDeviceFormatProperties2(physicalDevice, format, pFormatProperties, true /* do lock */);
 }
 static VkResult entry_vkGetPhysicalDeviceImageFormatProperties2(
     VkPhysicalDevice physicalDevice,
@@ -1832,7 +1832,7 @@ static void entry_vkGetPhysicalDeviceQueueFamilyProperties2(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceQueueFamilyProperties2");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
+    vkEnc->vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties, true /* do lock */);
 }
 static void entry_vkGetPhysicalDeviceMemoryProperties2(
     VkPhysicalDevice physicalDevice,
@@ -1840,7 +1840,7 @@ static void entry_vkGetPhysicalDeviceMemoryProperties2(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceMemoryProperties2");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceMemoryProperties2(physicalDevice, pMemoryProperties);
+    vkEnc->vkGetPhysicalDeviceMemoryProperties2(physicalDevice, pMemoryProperties, true /* do lock */);
 }
 static void entry_vkGetPhysicalDeviceSparseImageFormatProperties2(
     VkPhysicalDevice physicalDevice,
@@ -1850,7 +1850,7 @@ static void entry_vkGetPhysicalDeviceSparseImageFormatProperties2(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSparseImageFormatProperties2");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceSparseImageFormatProperties2(physicalDevice, pFormatInfo, pPropertyCount, pProperties);
+    vkEnc->vkGetPhysicalDeviceSparseImageFormatProperties2(physicalDevice, pFormatInfo, pPropertyCount, pProperties, true /* do lock */);
 }
 static void entry_vkTrimCommandPool(
     VkDevice device,
@@ -1859,7 +1859,7 @@ static void entry_vkTrimCommandPool(
 {
     AEMU_SCOPED_TRACE("vkTrimCommandPool");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkTrimCommandPool(device, commandPool, flags);
+    vkEnc->vkTrimCommandPool(device, commandPool, flags, true /* do lock */);
 }
 static void dynCheck_entry_vkTrimCommandPool(
     VkDevice device,
@@ -1873,7 +1873,7 @@ static void dynCheck_entry_vkTrimCommandPool(
     }
     AEMU_SCOPED_TRACE("vkTrimCommandPool");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkTrimCommandPool(device, commandPool, flags);
+    vkEnc->vkTrimCommandPool(device, commandPool, flags, true /* do lock */);
 }
 static void entry_vkGetDeviceQueue2(
     VkDevice device,
@@ -1882,7 +1882,7 @@ static void entry_vkGetDeviceQueue2(
 {
     AEMU_SCOPED_TRACE("vkGetDeviceQueue2");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetDeviceQueue2(device, pQueueInfo, pQueue);
+    vkEnc->vkGetDeviceQueue2(device, pQueueInfo, pQueue, true /* do lock */);
 }
 static void dynCheck_entry_vkGetDeviceQueue2(
     VkDevice device,
@@ -1896,7 +1896,7 @@ static void dynCheck_entry_vkGetDeviceQueue2(
     }
     AEMU_SCOPED_TRACE("vkGetDeviceQueue2");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetDeviceQueue2(device, pQueueInfo, pQueue);
+    vkEnc->vkGetDeviceQueue2(device, pQueueInfo, pQueue, true /* do lock */);
 }
 static VkResult entry_vkCreateSamplerYcbcrConversion(
     VkDevice device,
@@ -1961,7 +1961,7 @@ static VkResult entry_vkCreateDescriptorUpdateTemplate(
     AEMU_SCOPED_TRACE("vkCreateDescriptorUpdateTemplate");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateDescriptorUpdateTemplate_VkResult_return = (VkResult)0;
-    vkCreateDescriptorUpdateTemplate_VkResult_return = vkEnc->vkCreateDescriptorUpdateTemplate(device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
+    vkCreateDescriptorUpdateTemplate_VkResult_return = vkEnc->vkCreateDescriptorUpdateTemplate(device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate, true /* do lock */);
     return vkCreateDescriptorUpdateTemplate_VkResult_return;
 }
 static VkResult dynCheck_entry_vkCreateDescriptorUpdateTemplate(
@@ -1978,7 +1978,7 @@ static VkResult dynCheck_entry_vkCreateDescriptorUpdateTemplate(
     AEMU_SCOPED_TRACE("vkCreateDescriptorUpdateTemplate");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateDescriptorUpdateTemplate_VkResult_return = (VkResult)0;
-    vkCreateDescriptorUpdateTemplate_VkResult_return = vkEnc->vkCreateDescriptorUpdateTemplate(device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
+    vkCreateDescriptorUpdateTemplate_VkResult_return = vkEnc->vkCreateDescriptorUpdateTemplate(device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate, true /* do lock */);
     return vkCreateDescriptorUpdateTemplate_VkResult_return;
 }
 static void entry_vkDestroyDescriptorUpdateTemplate(
@@ -1988,7 +1988,7 @@ static void entry_vkDestroyDescriptorUpdateTemplate(
 {
     AEMU_SCOPED_TRACE("vkDestroyDescriptorUpdateTemplate");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyDescriptorUpdateTemplate(device, descriptorUpdateTemplate, pAllocator);
+    vkEnc->vkDestroyDescriptorUpdateTemplate(device, descriptorUpdateTemplate, pAllocator, true /* do lock */);
 }
 static void dynCheck_entry_vkDestroyDescriptorUpdateTemplate(
     VkDevice device,
@@ -2002,7 +2002,7 @@ static void dynCheck_entry_vkDestroyDescriptorUpdateTemplate(
     }
     AEMU_SCOPED_TRACE("vkDestroyDescriptorUpdateTemplate");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyDescriptorUpdateTemplate(device, descriptorUpdateTemplate, pAllocator);
+    vkEnc->vkDestroyDescriptorUpdateTemplate(device, descriptorUpdateTemplate, pAllocator, true /* do lock */);
 }
 static void entry_vkUpdateDescriptorSetWithTemplate(
     VkDevice device,
@@ -2037,7 +2037,7 @@ static void entry_vkGetPhysicalDeviceExternalBufferProperties(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalBufferProperties");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceExternalBufferProperties(physicalDevice, pExternalBufferInfo, pExternalBufferProperties);
+    vkEnc->vkGetPhysicalDeviceExternalBufferProperties(physicalDevice, pExternalBufferInfo, pExternalBufferProperties, true /* do lock */);
 }
 static void entry_vkGetPhysicalDeviceExternalFenceProperties(
     VkPhysicalDevice physicalDevice,
@@ -2056,7 +2056,7 @@ static void entry_vkGetPhysicalDeviceExternalSemaphoreProperties(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalSemaphoreProperties");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceExternalSemaphoreProperties(physicalDevice, pExternalSemaphoreInfo, pExternalSemaphoreProperties);
+    vkEnc->vkGetPhysicalDeviceExternalSemaphoreProperties(physicalDevice, pExternalSemaphoreInfo, pExternalSemaphoreProperties, true /* do lock */);
 }
 static void entry_vkGetDescriptorSetLayoutSupport(
     VkDevice device,
@@ -2065,7 +2065,7 @@ static void entry_vkGetDescriptorSetLayoutSupport(
 {
     AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutSupport");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetDescriptorSetLayoutSupport(device, pCreateInfo, pSupport);
+    vkEnc->vkGetDescriptorSetLayoutSupport(device, pCreateInfo, pSupport, true /* do lock */);
 }
 static void dynCheck_entry_vkGetDescriptorSetLayoutSupport(
     VkDevice device,
@@ -2079,7 +2079,7 @@ static void dynCheck_entry_vkGetDescriptorSetLayoutSupport(
     }
     AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutSupport");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetDescriptorSetLayoutSupport(device, pCreateInfo, pSupport);
+    vkEnc->vkGetDescriptorSetLayoutSupport(device, pCreateInfo, pSupport, true /* do lock */);
 }
 #endif
 #ifdef VK_KHR_surface
@@ -2090,7 +2090,7 @@ static void entry_vkDestroySurfaceKHR(
 {
     AEMU_SCOPED_TRACE("vkDestroySurfaceKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroySurfaceKHR(instance, surface, pAllocator);
+    vkEnc->vkDestroySurfaceKHR(instance, surface, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkGetPhysicalDeviceSurfaceSupportKHR(
     VkPhysicalDevice physicalDevice,
@@ -2101,7 +2101,7 @@ static VkResult entry_vkGetPhysicalDeviceSurfaceSupportKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceSupportKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPhysicalDeviceSurfaceSupportKHR_VkResult_return = (VkResult)0;
-    vkGetPhysicalDeviceSurfaceSupportKHR_VkResult_return = vkEnc->vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, queueFamilyIndex, surface, pSupported);
+    vkGetPhysicalDeviceSurfaceSupportKHR_VkResult_return = vkEnc->vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, queueFamilyIndex, surface, pSupported, true /* do lock */);
     return vkGetPhysicalDeviceSurfaceSupportKHR_VkResult_return;
 }
 static VkResult entry_vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
@@ -2112,7 +2112,7 @@ static VkResult entry_vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPhysicalDeviceSurfaceCapabilitiesKHR_VkResult_return = (VkResult)0;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR_VkResult_return = vkEnc->vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, pSurfaceCapabilities);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR_VkResult_return = vkEnc->vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, pSurfaceCapabilities, true /* do lock */);
     return vkGetPhysicalDeviceSurfaceCapabilitiesKHR_VkResult_return;
 }
 static VkResult entry_vkGetPhysicalDeviceSurfaceFormatsKHR(
@@ -2124,7 +2124,7 @@ static VkResult entry_vkGetPhysicalDeviceSurfaceFormatsKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceFormatsKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPhysicalDeviceSurfaceFormatsKHR_VkResult_return = (VkResult)0;
-    vkGetPhysicalDeviceSurfaceFormatsKHR_VkResult_return = vkEnc->vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, pSurfaceFormatCount, pSurfaceFormats);
+    vkGetPhysicalDeviceSurfaceFormatsKHR_VkResult_return = vkEnc->vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, pSurfaceFormatCount, pSurfaceFormats, true /* do lock */);
     return vkGetPhysicalDeviceSurfaceFormatsKHR_VkResult_return;
 }
 static VkResult entry_vkGetPhysicalDeviceSurfacePresentModesKHR(
@@ -2136,7 +2136,7 @@ static VkResult entry_vkGetPhysicalDeviceSurfacePresentModesKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfacePresentModesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPhysicalDeviceSurfacePresentModesKHR_VkResult_return = (VkResult)0;
-    vkGetPhysicalDeviceSurfacePresentModesKHR_VkResult_return = vkEnc->vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, pPresentModeCount, pPresentModes);
+    vkGetPhysicalDeviceSurfacePresentModesKHR_VkResult_return = vkEnc->vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, pPresentModeCount, pPresentModes, true /* do lock */);
     return vkGetPhysicalDeviceSurfacePresentModesKHR_VkResult_return;
 }
 #endif
@@ -2150,7 +2150,7 @@ static VkResult entry_vkCreateSwapchainKHR(
     AEMU_SCOPED_TRACE("vkCreateSwapchainKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateSwapchainKHR_VkResult_return = (VkResult)0;
-    vkCreateSwapchainKHR_VkResult_return = vkEnc->vkCreateSwapchainKHR(device, pCreateInfo, pAllocator, pSwapchain);
+    vkCreateSwapchainKHR_VkResult_return = vkEnc->vkCreateSwapchainKHR(device, pCreateInfo, pAllocator, pSwapchain, true /* do lock */);
     return vkCreateSwapchainKHR_VkResult_return;
 }
 static VkResult dynCheck_entry_vkCreateSwapchainKHR(
@@ -2167,7 +2167,7 @@ static VkResult dynCheck_entry_vkCreateSwapchainKHR(
     AEMU_SCOPED_TRACE("vkCreateSwapchainKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateSwapchainKHR_VkResult_return = (VkResult)0;
-    vkCreateSwapchainKHR_VkResult_return = vkEnc->vkCreateSwapchainKHR(device, pCreateInfo, pAllocator, pSwapchain);
+    vkCreateSwapchainKHR_VkResult_return = vkEnc->vkCreateSwapchainKHR(device, pCreateInfo, pAllocator, pSwapchain, true /* do lock */);
     return vkCreateSwapchainKHR_VkResult_return;
 }
 static void entry_vkDestroySwapchainKHR(
@@ -2177,7 +2177,7 @@ static void entry_vkDestroySwapchainKHR(
 {
     AEMU_SCOPED_TRACE("vkDestroySwapchainKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroySwapchainKHR(device, swapchain, pAllocator);
+    vkEnc->vkDestroySwapchainKHR(device, swapchain, pAllocator, true /* do lock */);
 }
 static void dynCheck_entry_vkDestroySwapchainKHR(
     VkDevice device,
@@ -2191,7 +2191,7 @@ static void dynCheck_entry_vkDestroySwapchainKHR(
     }
     AEMU_SCOPED_TRACE("vkDestroySwapchainKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroySwapchainKHR(device, swapchain, pAllocator);
+    vkEnc->vkDestroySwapchainKHR(device, swapchain, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkGetSwapchainImagesKHR(
     VkDevice device,
@@ -2202,7 +2202,7 @@ static VkResult entry_vkGetSwapchainImagesKHR(
     AEMU_SCOPED_TRACE("vkGetSwapchainImagesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetSwapchainImagesKHR_VkResult_return = (VkResult)0;
-    vkGetSwapchainImagesKHR_VkResult_return = vkEnc->vkGetSwapchainImagesKHR(device, swapchain, pSwapchainImageCount, pSwapchainImages);
+    vkGetSwapchainImagesKHR_VkResult_return = vkEnc->vkGetSwapchainImagesKHR(device, swapchain, pSwapchainImageCount, pSwapchainImages, true /* do lock */);
     return vkGetSwapchainImagesKHR_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetSwapchainImagesKHR(
@@ -2219,7 +2219,7 @@ static VkResult dynCheck_entry_vkGetSwapchainImagesKHR(
     AEMU_SCOPED_TRACE("vkGetSwapchainImagesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetSwapchainImagesKHR_VkResult_return = (VkResult)0;
-    vkGetSwapchainImagesKHR_VkResult_return = vkEnc->vkGetSwapchainImagesKHR(device, swapchain, pSwapchainImageCount, pSwapchainImages);
+    vkGetSwapchainImagesKHR_VkResult_return = vkEnc->vkGetSwapchainImagesKHR(device, swapchain, pSwapchainImageCount, pSwapchainImages, true /* do lock */);
     return vkGetSwapchainImagesKHR_VkResult_return;
 }
 static VkResult entry_vkAcquireNextImageKHR(
@@ -2233,7 +2233,7 @@ static VkResult entry_vkAcquireNextImageKHR(
     AEMU_SCOPED_TRACE("vkAcquireNextImageKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkAcquireNextImageKHR_VkResult_return = (VkResult)0;
-    vkAcquireNextImageKHR_VkResult_return = vkEnc->vkAcquireNextImageKHR(device, swapchain, timeout, semaphore, fence, pImageIndex);
+    vkAcquireNextImageKHR_VkResult_return = vkEnc->vkAcquireNextImageKHR(device, swapchain, timeout, semaphore, fence, pImageIndex, true /* do lock */);
     return vkAcquireNextImageKHR_VkResult_return;
 }
 static VkResult dynCheck_entry_vkAcquireNextImageKHR(
@@ -2252,7 +2252,7 @@ static VkResult dynCheck_entry_vkAcquireNextImageKHR(
     AEMU_SCOPED_TRACE("vkAcquireNextImageKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkAcquireNextImageKHR_VkResult_return = (VkResult)0;
-    vkAcquireNextImageKHR_VkResult_return = vkEnc->vkAcquireNextImageKHR(device, swapchain, timeout, semaphore, fence, pImageIndex);
+    vkAcquireNextImageKHR_VkResult_return = vkEnc->vkAcquireNextImageKHR(device, swapchain, timeout, semaphore, fence, pImageIndex, true /* do lock */);
     return vkAcquireNextImageKHR_VkResult_return;
 }
 static VkResult entry_vkQueuePresentKHR(
@@ -2263,7 +2263,7 @@ static VkResult entry_vkQueuePresentKHR(
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
     VkResult vkQueuePresentKHR_VkResult_return = (VkResult)0;
-    vkQueuePresentKHR_VkResult_return = vkEnc->vkQueuePresentKHR(queue, pPresentInfo);
+    vkQueuePresentKHR_VkResult_return = vkEnc->vkQueuePresentKHR(queue, pPresentInfo, true /* do lock */);
     return vkQueuePresentKHR_VkResult_return;
 }
 static VkResult entry_vkGetDeviceGroupPresentCapabilitiesKHR(
@@ -2273,7 +2273,7 @@ static VkResult entry_vkGetDeviceGroupPresentCapabilitiesKHR(
     AEMU_SCOPED_TRACE("vkGetDeviceGroupPresentCapabilitiesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return = (VkResult)0;
-    vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return = vkEnc->vkGetDeviceGroupPresentCapabilitiesKHR(device, pDeviceGroupPresentCapabilities);
+    vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return = vkEnc->vkGetDeviceGroupPresentCapabilitiesKHR(device, pDeviceGroupPresentCapabilities, true /* do lock */);
     return vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetDeviceGroupPresentCapabilitiesKHR(
@@ -2288,7 +2288,7 @@ static VkResult dynCheck_entry_vkGetDeviceGroupPresentCapabilitiesKHR(
     AEMU_SCOPED_TRACE("vkGetDeviceGroupPresentCapabilitiesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return = (VkResult)0;
-    vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return = vkEnc->vkGetDeviceGroupPresentCapabilitiesKHR(device, pDeviceGroupPresentCapabilities);
+    vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return = vkEnc->vkGetDeviceGroupPresentCapabilitiesKHR(device, pDeviceGroupPresentCapabilities, true /* do lock */);
     return vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return;
 }
 static VkResult entry_vkGetDeviceGroupSurfacePresentModesKHR(
@@ -2299,7 +2299,7 @@ static VkResult entry_vkGetDeviceGroupSurfacePresentModesKHR(
     AEMU_SCOPED_TRACE("vkGetDeviceGroupSurfacePresentModesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return = (VkResult)0;
-    vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return = vkEnc->vkGetDeviceGroupSurfacePresentModesKHR(device, surface, pModes);
+    vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return = vkEnc->vkGetDeviceGroupSurfacePresentModesKHR(device, surface, pModes, true /* do lock */);
     return vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetDeviceGroupSurfacePresentModesKHR(
@@ -2315,7 +2315,7 @@ static VkResult dynCheck_entry_vkGetDeviceGroupSurfacePresentModesKHR(
     AEMU_SCOPED_TRACE("vkGetDeviceGroupSurfacePresentModesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return = (VkResult)0;
-    vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return = vkEnc->vkGetDeviceGroupSurfacePresentModesKHR(device, surface, pModes);
+    vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return = vkEnc->vkGetDeviceGroupSurfacePresentModesKHR(device, surface, pModes, true /* do lock */);
     return vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return;
 }
 static VkResult entry_vkGetPhysicalDevicePresentRectanglesKHR(
@@ -2327,7 +2327,7 @@ static VkResult entry_vkGetPhysicalDevicePresentRectanglesKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDevicePresentRectanglesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return = (VkResult)0;
-    vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return = vkEnc->vkGetPhysicalDevicePresentRectanglesKHR(physicalDevice, surface, pRectCount, pRects);
+    vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return = vkEnc->vkGetPhysicalDevicePresentRectanglesKHR(physicalDevice, surface, pRectCount, pRects, true /* do lock */);
     return vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return;
 }
 static VkResult entry_vkAcquireNextImage2KHR(
@@ -2338,7 +2338,7 @@ static VkResult entry_vkAcquireNextImage2KHR(
     AEMU_SCOPED_TRACE("vkAcquireNextImage2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkAcquireNextImage2KHR_VkResult_return = (VkResult)0;
-    vkAcquireNextImage2KHR_VkResult_return = vkEnc->vkAcquireNextImage2KHR(device, pAcquireInfo, pImageIndex);
+    vkAcquireNextImage2KHR_VkResult_return = vkEnc->vkAcquireNextImage2KHR(device, pAcquireInfo, pImageIndex, true /* do lock */);
     return vkAcquireNextImage2KHR_VkResult_return;
 }
 static VkResult dynCheck_entry_vkAcquireNextImage2KHR(
@@ -2354,7 +2354,7 @@ static VkResult dynCheck_entry_vkAcquireNextImage2KHR(
     AEMU_SCOPED_TRACE("vkAcquireNextImage2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkAcquireNextImage2KHR_VkResult_return = (VkResult)0;
-    vkAcquireNextImage2KHR_VkResult_return = vkEnc->vkAcquireNextImage2KHR(device, pAcquireInfo, pImageIndex);
+    vkAcquireNextImage2KHR_VkResult_return = vkEnc->vkAcquireNextImage2KHR(device, pAcquireInfo, pImageIndex, true /* do lock */);
     return vkAcquireNextImage2KHR_VkResult_return;
 }
 #endif
@@ -2367,7 +2367,7 @@ static VkResult entry_vkGetPhysicalDeviceDisplayPropertiesKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceDisplayPropertiesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPhysicalDeviceDisplayPropertiesKHR_VkResult_return = (VkResult)0;
-    vkGetPhysicalDeviceDisplayPropertiesKHR_VkResult_return = vkEnc->vkGetPhysicalDeviceDisplayPropertiesKHR(physicalDevice, pPropertyCount, pProperties);
+    vkGetPhysicalDeviceDisplayPropertiesKHR_VkResult_return = vkEnc->vkGetPhysicalDeviceDisplayPropertiesKHR(physicalDevice, pPropertyCount, pProperties, true /* do lock */);
     return vkGetPhysicalDeviceDisplayPropertiesKHR_VkResult_return;
 }
 static VkResult entry_vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
@@ -2378,7 +2378,7 @@ static VkResult entry_vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceDisplayPlanePropertiesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPhysicalDeviceDisplayPlanePropertiesKHR_VkResult_return = (VkResult)0;
-    vkGetPhysicalDeviceDisplayPlanePropertiesKHR_VkResult_return = vkEnc->vkGetPhysicalDeviceDisplayPlanePropertiesKHR(physicalDevice, pPropertyCount, pProperties);
+    vkGetPhysicalDeviceDisplayPlanePropertiesKHR_VkResult_return = vkEnc->vkGetPhysicalDeviceDisplayPlanePropertiesKHR(physicalDevice, pPropertyCount, pProperties, true /* do lock */);
     return vkGetPhysicalDeviceDisplayPlanePropertiesKHR_VkResult_return;
 }
 static VkResult entry_vkGetDisplayPlaneSupportedDisplaysKHR(
@@ -2390,7 +2390,7 @@ static VkResult entry_vkGetDisplayPlaneSupportedDisplaysKHR(
     AEMU_SCOPED_TRACE("vkGetDisplayPlaneSupportedDisplaysKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetDisplayPlaneSupportedDisplaysKHR_VkResult_return = (VkResult)0;
-    vkGetDisplayPlaneSupportedDisplaysKHR_VkResult_return = vkEnc->vkGetDisplayPlaneSupportedDisplaysKHR(physicalDevice, planeIndex, pDisplayCount, pDisplays);
+    vkGetDisplayPlaneSupportedDisplaysKHR_VkResult_return = vkEnc->vkGetDisplayPlaneSupportedDisplaysKHR(physicalDevice, planeIndex, pDisplayCount, pDisplays, true /* do lock */);
     return vkGetDisplayPlaneSupportedDisplaysKHR_VkResult_return;
 }
 static VkResult entry_vkGetDisplayModePropertiesKHR(
@@ -2402,7 +2402,7 @@ static VkResult entry_vkGetDisplayModePropertiesKHR(
     AEMU_SCOPED_TRACE("vkGetDisplayModePropertiesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetDisplayModePropertiesKHR_VkResult_return = (VkResult)0;
-    vkGetDisplayModePropertiesKHR_VkResult_return = vkEnc->vkGetDisplayModePropertiesKHR(physicalDevice, display, pPropertyCount, pProperties);
+    vkGetDisplayModePropertiesKHR_VkResult_return = vkEnc->vkGetDisplayModePropertiesKHR(physicalDevice, display, pPropertyCount, pProperties, true /* do lock */);
     return vkGetDisplayModePropertiesKHR_VkResult_return;
 }
 static VkResult entry_vkCreateDisplayModeKHR(
@@ -2415,7 +2415,7 @@ static VkResult entry_vkCreateDisplayModeKHR(
     AEMU_SCOPED_TRACE("vkCreateDisplayModeKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateDisplayModeKHR_VkResult_return = (VkResult)0;
-    vkCreateDisplayModeKHR_VkResult_return = vkEnc->vkCreateDisplayModeKHR(physicalDevice, display, pCreateInfo, pAllocator, pMode);
+    vkCreateDisplayModeKHR_VkResult_return = vkEnc->vkCreateDisplayModeKHR(physicalDevice, display, pCreateInfo, pAllocator, pMode, true /* do lock */);
     return vkCreateDisplayModeKHR_VkResult_return;
 }
 static VkResult entry_vkGetDisplayPlaneCapabilitiesKHR(
@@ -2427,7 +2427,7 @@ static VkResult entry_vkGetDisplayPlaneCapabilitiesKHR(
     AEMU_SCOPED_TRACE("vkGetDisplayPlaneCapabilitiesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetDisplayPlaneCapabilitiesKHR_VkResult_return = (VkResult)0;
-    vkGetDisplayPlaneCapabilitiesKHR_VkResult_return = vkEnc->vkGetDisplayPlaneCapabilitiesKHR(physicalDevice, mode, planeIndex, pCapabilities);
+    vkGetDisplayPlaneCapabilitiesKHR_VkResult_return = vkEnc->vkGetDisplayPlaneCapabilitiesKHR(physicalDevice, mode, planeIndex, pCapabilities, true /* do lock */);
     return vkGetDisplayPlaneCapabilitiesKHR_VkResult_return;
 }
 static VkResult entry_vkCreateDisplayPlaneSurfaceKHR(
@@ -2439,7 +2439,7 @@ static VkResult entry_vkCreateDisplayPlaneSurfaceKHR(
     AEMU_SCOPED_TRACE("vkCreateDisplayPlaneSurfaceKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateDisplayPlaneSurfaceKHR_VkResult_return = (VkResult)0;
-    vkCreateDisplayPlaneSurfaceKHR_VkResult_return = vkEnc->vkCreateDisplayPlaneSurfaceKHR(instance, pCreateInfo, pAllocator, pSurface);
+    vkCreateDisplayPlaneSurfaceKHR_VkResult_return = vkEnc->vkCreateDisplayPlaneSurfaceKHR(instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
     return vkCreateDisplayPlaneSurfaceKHR_VkResult_return;
 }
 #endif
@@ -2454,7 +2454,7 @@ static VkResult entry_vkCreateSharedSwapchainsKHR(
     AEMU_SCOPED_TRACE("vkCreateSharedSwapchainsKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateSharedSwapchainsKHR_VkResult_return = (VkResult)0;
-    vkCreateSharedSwapchainsKHR_VkResult_return = vkEnc->vkCreateSharedSwapchainsKHR(device, swapchainCount, pCreateInfos, pAllocator, pSwapchains);
+    vkCreateSharedSwapchainsKHR_VkResult_return = vkEnc->vkCreateSharedSwapchainsKHR(device, swapchainCount, pCreateInfos, pAllocator, pSwapchains, true /* do lock */);
     return vkCreateSharedSwapchainsKHR_VkResult_return;
 }
 static VkResult dynCheck_entry_vkCreateSharedSwapchainsKHR(
@@ -2472,7 +2472,7 @@ static VkResult dynCheck_entry_vkCreateSharedSwapchainsKHR(
     AEMU_SCOPED_TRACE("vkCreateSharedSwapchainsKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateSharedSwapchainsKHR_VkResult_return = (VkResult)0;
-    vkCreateSharedSwapchainsKHR_VkResult_return = vkEnc->vkCreateSharedSwapchainsKHR(device, swapchainCount, pCreateInfos, pAllocator, pSwapchains);
+    vkCreateSharedSwapchainsKHR_VkResult_return = vkEnc->vkCreateSharedSwapchainsKHR(device, swapchainCount, pCreateInfos, pAllocator, pSwapchains, true /* do lock */);
     return vkCreateSharedSwapchainsKHR_VkResult_return;
 }
 #endif
@@ -2486,7 +2486,7 @@ static VkResult entry_vkCreateXlibSurfaceKHR(
     AEMU_SCOPED_TRACE("vkCreateXlibSurfaceKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateXlibSurfaceKHR_VkResult_return = (VkResult)0;
-    vkCreateXlibSurfaceKHR_VkResult_return = vkEnc->vkCreateXlibSurfaceKHR(instance, pCreateInfo, pAllocator, pSurface);
+    vkCreateXlibSurfaceKHR_VkResult_return = vkEnc->vkCreateXlibSurfaceKHR(instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
     return vkCreateXlibSurfaceKHR_VkResult_return;
 }
 static VkBool32 entry_vkGetPhysicalDeviceXlibPresentationSupportKHR(
@@ -2498,7 +2498,7 @@ static VkBool32 entry_vkGetPhysicalDeviceXlibPresentationSupportKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceXlibPresentationSupportKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkBool32 vkGetPhysicalDeviceXlibPresentationSupportKHR_VkBool32_return = (VkBool32)0;
-    vkGetPhysicalDeviceXlibPresentationSupportKHR_VkBool32_return = vkEnc->vkGetPhysicalDeviceXlibPresentationSupportKHR(physicalDevice, queueFamilyIndex, dpy, visualID);
+    vkGetPhysicalDeviceXlibPresentationSupportKHR_VkBool32_return = vkEnc->vkGetPhysicalDeviceXlibPresentationSupportKHR(physicalDevice, queueFamilyIndex, dpy, visualID, true /* do lock */);
     return vkGetPhysicalDeviceXlibPresentationSupportKHR_VkBool32_return;
 }
 #endif
@@ -2512,7 +2512,7 @@ static VkResult entry_vkCreateXcbSurfaceKHR(
     AEMU_SCOPED_TRACE("vkCreateXcbSurfaceKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateXcbSurfaceKHR_VkResult_return = (VkResult)0;
-    vkCreateXcbSurfaceKHR_VkResult_return = vkEnc->vkCreateXcbSurfaceKHR(instance, pCreateInfo, pAllocator, pSurface);
+    vkCreateXcbSurfaceKHR_VkResult_return = vkEnc->vkCreateXcbSurfaceKHR(instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
     return vkCreateXcbSurfaceKHR_VkResult_return;
 }
 static VkBool32 entry_vkGetPhysicalDeviceXcbPresentationSupportKHR(
@@ -2524,7 +2524,7 @@ static VkBool32 entry_vkGetPhysicalDeviceXcbPresentationSupportKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceXcbPresentationSupportKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkBool32 vkGetPhysicalDeviceXcbPresentationSupportKHR_VkBool32_return = (VkBool32)0;
-    vkGetPhysicalDeviceXcbPresentationSupportKHR_VkBool32_return = vkEnc->vkGetPhysicalDeviceXcbPresentationSupportKHR(physicalDevice, queueFamilyIndex, connection, visual_id);
+    vkGetPhysicalDeviceXcbPresentationSupportKHR_VkBool32_return = vkEnc->vkGetPhysicalDeviceXcbPresentationSupportKHR(physicalDevice, queueFamilyIndex, connection, visual_id, true /* do lock */);
     return vkGetPhysicalDeviceXcbPresentationSupportKHR_VkBool32_return;
 }
 #endif
@@ -2538,7 +2538,7 @@ static VkResult entry_vkCreateWaylandSurfaceKHR(
     AEMU_SCOPED_TRACE("vkCreateWaylandSurfaceKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateWaylandSurfaceKHR_VkResult_return = (VkResult)0;
-    vkCreateWaylandSurfaceKHR_VkResult_return = vkEnc->vkCreateWaylandSurfaceKHR(instance, pCreateInfo, pAllocator, pSurface);
+    vkCreateWaylandSurfaceKHR_VkResult_return = vkEnc->vkCreateWaylandSurfaceKHR(instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
     return vkCreateWaylandSurfaceKHR_VkResult_return;
 }
 static VkBool32 entry_vkGetPhysicalDeviceWaylandPresentationSupportKHR(
@@ -2549,7 +2549,7 @@ static VkBool32 entry_vkGetPhysicalDeviceWaylandPresentationSupportKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceWaylandPresentationSupportKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkBool32 vkGetPhysicalDeviceWaylandPresentationSupportKHR_VkBool32_return = (VkBool32)0;
-    vkGetPhysicalDeviceWaylandPresentationSupportKHR_VkBool32_return = vkEnc->vkGetPhysicalDeviceWaylandPresentationSupportKHR(physicalDevice, queueFamilyIndex, display);
+    vkGetPhysicalDeviceWaylandPresentationSupportKHR_VkBool32_return = vkEnc->vkGetPhysicalDeviceWaylandPresentationSupportKHR(physicalDevice, queueFamilyIndex, display, true /* do lock */);
     return vkGetPhysicalDeviceWaylandPresentationSupportKHR_VkBool32_return;
 }
 #endif
@@ -2563,7 +2563,7 @@ static VkResult entry_vkCreateMirSurfaceKHR(
     AEMU_SCOPED_TRACE("vkCreateMirSurfaceKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateMirSurfaceKHR_VkResult_return = (VkResult)0;
-    vkCreateMirSurfaceKHR_VkResult_return = vkEnc->vkCreateMirSurfaceKHR(instance, pCreateInfo, pAllocator, pSurface);
+    vkCreateMirSurfaceKHR_VkResult_return = vkEnc->vkCreateMirSurfaceKHR(instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
     return vkCreateMirSurfaceKHR_VkResult_return;
 }
 static VkBool32 entry_vkGetPhysicalDeviceMirPresentationSupportKHR(
@@ -2574,7 +2574,7 @@ static VkBool32 entry_vkGetPhysicalDeviceMirPresentationSupportKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceMirPresentationSupportKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkBool32 vkGetPhysicalDeviceMirPresentationSupportKHR_VkBool32_return = (VkBool32)0;
-    vkGetPhysicalDeviceMirPresentationSupportKHR_VkBool32_return = vkEnc->vkGetPhysicalDeviceMirPresentationSupportKHR(physicalDevice, queueFamilyIndex, connection);
+    vkGetPhysicalDeviceMirPresentationSupportKHR_VkBool32_return = vkEnc->vkGetPhysicalDeviceMirPresentationSupportKHR(physicalDevice, queueFamilyIndex, connection, true /* do lock */);
     return vkGetPhysicalDeviceMirPresentationSupportKHR_VkBool32_return;
 }
 #endif
@@ -2588,7 +2588,7 @@ static VkResult entry_vkCreateAndroidSurfaceKHR(
     AEMU_SCOPED_TRACE("vkCreateAndroidSurfaceKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateAndroidSurfaceKHR_VkResult_return = (VkResult)0;
-    vkCreateAndroidSurfaceKHR_VkResult_return = vkEnc->vkCreateAndroidSurfaceKHR(instance, pCreateInfo, pAllocator, pSurface);
+    vkCreateAndroidSurfaceKHR_VkResult_return = vkEnc->vkCreateAndroidSurfaceKHR(instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
     return vkCreateAndroidSurfaceKHR_VkResult_return;
 }
 #endif
@@ -2602,7 +2602,7 @@ static VkResult entry_vkCreateWin32SurfaceKHR(
     AEMU_SCOPED_TRACE("vkCreateWin32SurfaceKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateWin32SurfaceKHR_VkResult_return = (VkResult)0;
-    vkCreateWin32SurfaceKHR_VkResult_return = vkEnc->vkCreateWin32SurfaceKHR(instance, pCreateInfo, pAllocator, pSurface);
+    vkCreateWin32SurfaceKHR_VkResult_return = vkEnc->vkCreateWin32SurfaceKHR(instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
     return vkCreateWin32SurfaceKHR_VkResult_return;
 }
 static VkBool32 entry_vkGetPhysicalDeviceWin32PresentationSupportKHR(
@@ -2612,7 +2612,7 @@ static VkBool32 entry_vkGetPhysicalDeviceWin32PresentationSupportKHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceWin32PresentationSupportKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkBool32 vkGetPhysicalDeviceWin32PresentationSupportKHR_VkBool32_return = (VkBool32)0;
-    vkGetPhysicalDeviceWin32PresentationSupportKHR_VkBool32_return = vkEnc->vkGetPhysicalDeviceWin32PresentationSupportKHR(physicalDevice, queueFamilyIndex);
+    vkGetPhysicalDeviceWin32PresentationSupportKHR_VkBool32_return = vkEnc->vkGetPhysicalDeviceWin32PresentationSupportKHR(physicalDevice, queueFamilyIndex, true /* do lock */);
     return vkGetPhysicalDeviceWin32PresentationSupportKHR_VkBool32_return;
 }
 #endif
@@ -2627,7 +2627,7 @@ static void entry_vkGetPhysicalDeviceFeatures2KHR(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFeatures2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceFeatures2KHR(physicalDevice, pFeatures);
+    vkEnc->vkGetPhysicalDeviceFeatures2KHR(physicalDevice, pFeatures, true /* do lock */);
 }
 static void entry_vkGetPhysicalDeviceProperties2KHR(
     VkPhysicalDevice physicalDevice,
@@ -2635,7 +2635,7 @@ static void entry_vkGetPhysicalDeviceProperties2KHR(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceProperties2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceProperties2KHR(physicalDevice, pProperties);
+    vkEnc->vkGetPhysicalDeviceProperties2KHR(physicalDevice, pProperties, true /* do lock */);
 }
 static void entry_vkGetPhysicalDeviceFormatProperties2KHR(
     VkPhysicalDevice physicalDevice,
@@ -2644,7 +2644,7 @@ static void entry_vkGetPhysicalDeviceFormatProperties2KHR(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceFormatProperties2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceFormatProperties2KHR(physicalDevice, format, pFormatProperties);
+    vkEnc->vkGetPhysicalDeviceFormatProperties2KHR(physicalDevice, format, pFormatProperties, true /* do lock */);
 }
 static VkResult entry_vkGetPhysicalDeviceImageFormatProperties2KHR(
     VkPhysicalDevice physicalDevice,
@@ -2665,7 +2665,7 @@ static void entry_vkGetPhysicalDeviceQueueFamilyProperties2KHR(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceQueueFamilyProperties2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceQueueFamilyProperties2KHR(physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
+    vkEnc->vkGetPhysicalDeviceQueueFamilyProperties2KHR(physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties, true /* do lock */);
 }
 static void entry_vkGetPhysicalDeviceMemoryProperties2KHR(
     VkPhysicalDevice physicalDevice,
@@ -2673,7 +2673,7 @@ static void entry_vkGetPhysicalDeviceMemoryProperties2KHR(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceMemoryProperties2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceMemoryProperties2KHR(physicalDevice, pMemoryProperties);
+    vkEnc->vkGetPhysicalDeviceMemoryProperties2KHR(physicalDevice, pMemoryProperties, true /* do lock */);
 }
 static void entry_vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
     VkPhysicalDevice physicalDevice,
@@ -2683,7 +2683,7 @@ static void entry_vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSparseImageFormatProperties2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceSparseImageFormatProperties2KHR(physicalDevice, pFormatInfo, pPropertyCount, pProperties);
+    vkEnc->vkGetPhysicalDeviceSparseImageFormatProperties2KHR(physicalDevice, pFormatInfo, pPropertyCount, pProperties, true /* do lock */);
 }
 #endif
 #ifdef VK_KHR_device_group
@@ -2696,7 +2696,7 @@ static void entry_vkGetDeviceGroupPeerMemoryFeaturesKHR(
 {
     AEMU_SCOPED_TRACE("vkGetDeviceGroupPeerMemoryFeaturesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetDeviceGroupPeerMemoryFeaturesKHR(device, heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures);
+    vkEnc->vkGetDeviceGroupPeerMemoryFeaturesKHR(device, heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures, true /* do lock */);
 }
 static void dynCheck_entry_vkGetDeviceGroupPeerMemoryFeaturesKHR(
     VkDevice device,
@@ -2712,7 +2712,7 @@ static void dynCheck_entry_vkGetDeviceGroupPeerMemoryFeaturesKHR(
     }
     AEMU_SCOPED_TRACE("vkGetDeviceGroupPeerMemoryFeaturesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetDeviceGroupPeerMemoryFeaturesKHR(device, heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures);
+    vkEnc->vkGetDeviceGroupPeerMemoryFeaturesKHR(device, heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures, true /* do lock */);
 }
 static void entry_vkCmdSetDeviceMaskKHR(
     VkCommandBuffer commandBuffer,
@@ -2721,7 +2721,7 @@ static void entry_vkCmdSetDeviceMaskKHR(
     AEMU_SCOPED_TRACE("vkCmdSetDeviceMaskKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdSetDeviceMaskKHR(commandBuffer, deviceMask);
+    vkEnc->vkCmdSetDeviceMaskKHR(commandBuffer, deviceMask, true /* do lock */);
 }
 static void entry_vkCmdDispatchBaseKHR(
     VkCommandBuffer commandBuffer,
@@ -2735,7 +2735,7 @@ static void entry_vkCmdDispatchBaseKHR(
     AEMU_SCOPED_TRACE("vkCmdDispatchBaseKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdDispatchBaseKHR(commandBuffer, baseGroupX, baseGroupY, baseGroupZ, groupCountX, groupCountY, groupCountZ);
+    vkEnc->vkCmdDispatchBaseKHR(commandBuffer, baseGroupX, baseGroupY, baseGroupZ, groupCountX, groupCountY, groupCountZ, true /* do lock */);
 }
 #endif
 #ifdef VK_KHR_shader_draw_parameters
@@ -2748,7 +2748,7 @@ static void entry_vkTrimCommandPoolKHR(
 {
     AEMU_SCOPED_TRACE("vkTrimCommandPoolKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkTrimCommandPoolKHR(device, commandPool, flags);
+    vkEnc->vkTrimCommandPoolKHR(device, commandPool, flags, true /* do lock */);
 }
 static void dynCheck_entry_vkTrimCommandPoolKHR(
     VkDevice device,
@@ -2762,7 +2762,7 @@ static void dynCheck_entry_vkTrimCommandPoolKHR(
     }
     AEMU_SCOPED_TRACE("vkTrimCommandPoolKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkTrimCommandPoolKHR(device, commandPool, flags);
+    vkEnc->vkTrimCommandPoolKHR(device, commandPool, flags, true /* do lock */);
 }
 #endif
 #ifdef VK_KHR_device_group_creation
@@ -2774,7 +2774,7 @@ static VkResult entry_vkEnumeratePhysicalDeviceGroupsKHR(
     AEMU_SCOPED_TRACE("vkEnumeratePhysicalDeviceGroupsKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkEnumeratePhysicalDeviceGroupsKHR_VkResult_return = (VkResult)0;
-    vkEnumeratePhysicalDeviceGroupsKHR_VkResult_return = vkEnc->vkEnumeratePhysicalDeviceGroupsKHR(instance, pPhysicalDeviceGroupCount, pPhysicalDeviceGroupProperties);
+    vkEnumeratePhysicalDeviceGroupsKHR_VkResult_return = vkEnc->vkEnumeratePhysicalDeviceGroupsKHR(instance, pPhysicalDeviceGroupCount, pPhysicalDeviceGroupProperties, true /* do lock */);
     return vkEnumeratePhysicalDeviceGroupsKHR_VkResult_return;
 }
 #endif
@@ -2786,7 +2786,7 @@ static void entry_vkGetPhysicalDeviceExternalBufferPropertiesKHR(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalBufferPropertiesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceExternalBufferPropertiesKHR(physicalDevice, pExternalBufferInfo, pExternalBufferProperties);
+    vkEnc->vkGetPhysicalDeviceExternalBufferPropertiesKHR(physicalDevice, pExternalBufferInfo, pExternalBufferProperties, true /* do lock */);
 }
 #endif
 #ifdef VK_KHR_external_memory
@@ -2800,7 +2800,7 @@ static VkResult entry_vkGetMemoryWin32HandleKHR(
     AEMU_SCOPED_TRACE("vkGetMemoryWin32HandleKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetMemoryWin32HandleKHR_VkResult_return = (VkResult)0;
-    vkGetMemoryWin32HandleKHR_VkResult_return = vkEnc->vkGetMemoryWin32HandleKHR(device, pGetWin32HandleInfo, pHandle);
+    vkGetMemoryWin32HandleKHR_VkResult_return = vkEnc->vkGetMemoryWin32HandleKHR(device, pGetWin32HandleInfo, pHandle, true /* do lock */);
     return vkGetMemoryWin32HandleKHR_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetMemoryWin32HandleKHR(
@@ -2816,7 +2816,7 @@ static VkResult dynCheck_entry_vkGetMemoryWin32HandleKHR(
     AEMU_SCOPED_TRACE("vkGetMemoryWin32HandleKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetMemoryWin32HandleKHR_VkResult_return = (VkResult)0;
-    vkGetMemoryWin32HandleKHR_VkResult_return = vkEnc->vkGetMemoryWin32HandleKHR(device, pGetWin32HandleInfo, pHandle);
+    vkGetMemoryWin32HandleKHR_VkResult_return = vkEnc->vkGetMemoryWin32HandleKHR(device, pGetWin32HandleInfo, pHandle, true /* do lock */);
     return vkGetMemoryWin32HandleKHR_VkResult_return;
 }
 static VkResult entry_vkGetMemoryWin32HandlePropertiesKHR(
@@ -2828,7 +2828,7 @@ static VkResult entry_vkGetMemoryWin32HandlePropertiesKHR(
     AEMU_SCOPED_TRACE("vkGetMemoryWin32HandlePropertiesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetMemoryWin32HandlePropertiesKHR_VkResult_return = (VkResult)0;
-    vkGetMemoryWin32HandlePropertiesKHR_VkResult_return = vkEnc->vkGetMemoryWin32HandlePropertiesKHR(device, handleType, handle, pMemoryWin32HandleProperties);
+    vkGetMemoryWin32HandlePropertiesKHR_VkResult_return = vkEnc->vkGetMemoryWin32HandlePropertiesKHR(device, handleType, handle, pMemoryWin32HandleProperties, true /* do lock */);
     return vkGetMemoryWin32HandlePropertiesKHR_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetMemoryWin32HandlePropertiesKHR(
@@ -2845,7 +2845,7 @@ static VkResult dynCheck_entry_vkGetMemoryWin32HandlePropertiesKHR(
     AEMU_SCOPED_TRACE("vkGetMemoryWin32HandlePropertiesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetMemoryWin32HandlePropertiesKHR_VkResult_return = (VkResult)0;
-    vkGetMemoryWin32HandlePropertiesKHR_VkResult_return = vkEnc->vkGetMemoryWin32HandlePropertiesKHR(device, handleType, handle, pMemoryWin32HandleProperties);
+    vkGetMemoryWin32HandlePropertiesKHR_VkResult_return = vkEnc->vkGetMemoryWin32HandlePropertiesKHR(device, handleType, handle, pMemoryWin32HandleProperties, true /* do lock */);
     return vkGetMemoryWin32HandlePropertiesKHR_VkResult_return;
 }
 #endif
@@ -2858,7 +2858,7 @@ static VkResult entry_vkGetMemoryFdKHR(
     AEMU_SCOPED_TRACE("vkGetMemoryFdKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetMemoryFdKHR_VkResult_return = (VkResult)0;
-    vkGetMemoryFdKHR_VkResult_return = vkEnc->vkGetMemoryFdKHR(device, pGetFdInfo, pFd);
+    vkGetMemoryFdKHR_VkResult_return = vkEnc->vkGetMemoryFdKHR(device, pGetFdInfo, pFd, true /* do lock */);
     return vkGetMemoryFdKHR_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetMemoryFdKHR(
@@ -2874,7 +2874,7 @@ static VkResult dynCheck_entry_vkGetMemoryFdKHR(
     AEMU_SCOPED_TRACE("vkGetMemoryFdKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetMemoryFdKHR_VkResult_return = (VkResult)0;
-    vkGetMemoryFdKHR_VkResult_return = vkEnc->vkGetMemoryFdKHR(device, pGetFdInfo, pFd);
+    vkGetMemoryFdKHR_VkResult_return = vkEnc->vkGetMemoryFdKHR(device, pGetFdInfo, pFd, true /* do lock */);
     return vkGetMemoryFdKHR_VkResult_return;
 }
 static VkResult entry_vkGetMemoryFdPropertiesKHR(
@@ -2886,7 +2886,7 @@ static VkResult entry_vkGetMemoryFdPropertiesKHR(
     AEMU_SCOPED_TRACE("vkGetMemoryFdPropertiesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetMemoryFdPropertiesKHR_VkResult_return = (VkResult)0;
-    vkGetMemoryFdPropertiesKHR_VkResult_return = vkEnc->vkGetMemoryFdPropertiesKHR(device, handleType, fd, pMemoryFdProperties);
+    vkGetMemoryFdPropertiesKHR_VkResult_return = vkEnc->vkGetMemoryFdPropertiesKHR(device, handleType, fd, pMemoryFdProperties, true /* do lock */);
     return vkGetMemoryFdPropertiesKHR_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetMemoryFdPropertiesKHR(
@@ -2903,7 +2903,7 @@ static VkResult dynCheck_entry_vkGetMemoryFdPropertiesKHR(
     AEMU_SCOPED_TRACE("vkGetMemoryFdPropertiesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetMemoryFdPropertiesKHR_VkResult_return = (VkResult)0;
-    vkGetMemoryFdPropertiesKHR_VkResult_return = vkEnc->vkGetMemoryFdPropertiesKHR(device, handleType, fd, pMemoryFdProperties);
+    vkGetMemoryFdPropertiesKHR_VkResult_return = vkEnc->vkGetMemoryFdPropertiesKHR(device, handleType, fd, pMemoryFdProperties, true /* do lock */);
     return vkGetMemoryFdPropertiesKHR_VkResult_return;
 }
 #endif
@@ -2917,7 +2917,7 @@ static void entry_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalSemaphorePropertiesKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(physicalDevice, pExternalSemaphoreInfo, pExternalSemaphoreProperties);
+    vkEnc->vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(physicalDevice, pExternalSemaphoreInfo, pExternalSemaphoreProperties, true /* do lock */);
 }
 #endif
 #ifdef VK_KHR_external_semaphore
@@ -2930,7 +2930,7 @@ static VkResult entry_vkImportSemaphoreWin32HandleKHR(
     AEMU_SCOPED_TRACE("vkImportSemaphoreWin32HandleKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkImportSemaphoreWin32HandleKHR_VkResult_return = (VkResult)0;
-    vkImportSemaphoreWin32HandleKHR_VkResult_return = vkEnc->vkImportSemaphoreWin32HandleKHR(device, pImportSemaphoreWin32HandleInfo);
+    vkImportSemaphoreWin32HandleKHR_VkResult_return = vkEnc->vkImportSemaphoreWin32HandleKHR(device, pImportSemaphoreWin32HandleInfo, true /* do lock */);
     return vkImportSemaphoreWin32HandleKHR_VkResult_return;
 }
 static VkResult dynCheck_entry_vkImportSemaphoreWin32HandleKHR(
@@ -2945,7 +2945,7 @@ static VkResult dynCheck_entry_vkImportSemaphoreWin32HandleKHR(
     AEMU_SCOPED_TRACE("vkImportSemaphoreWin32HandleKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkImportSemaphoreWin32HandleKHR_VkResult_return = (VkResult)0;
-    vkImportSemaphoreWin32HandleKHR_VkResult_return = vkEnc->vkImportSemaphoreWin32HandleKHR(device, pImportSemaphoreWin32HandleInfo);
+    vkImportSemaphoreWin32HandleKHR_VkResult_return = vkEnc->vkImportSemaphoreWin32HandleKHR(device, pImportSemaphoreWin32HandleInfo, true /* do lock */);
     return vkImportSemaphoreWin32HandleKHR_VkResult_return;
 }
 static VkResult entry_vkGetSemaphoreWin32HandleKHR(
@@ -2956,7 +2956,7 @@ static VkResult entry_vkGetSemaphoreWin32HandleKHR(
     AEMU_SCOPED_TRACE("vkGetSemaphoreWin32HandleKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetSemaphoreWin32HandleKHR_VkResult_return = (VkResult)0;
-    vkGetSemaphoreWin32HandleKHR_VkResult_return = vkEnc->vkGetSemaphoreWin32HandleKHR(device, pGetWin32HandleInfo, pHandle);
+    vkGetSemaphoreWin32HandleKHR_VkResult_return = vkEnc->vkGetSemaphoreWin32HandleKHR(device, pGetWin32HandleInfo, pHandle, true /* do lock */);
     return vkGetSemaphoreWin32HandleKHR_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetSemaphoreWin32HandleKHR(
@@ -2972,7 +2972,7 @@ static VkResult dynCheck_entry_vkGetSemaphoreWin32HandleKHR(
     AEMU_SCOPED_TRACE("vkGetSemaphoreWin32HandleKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetSemaphoreWin32HandleKHR_VkResult_return = (VkResult)0;
-    vkGetSemaphoreWin32HandleKHR_VkResult_return = vkEnc->vkGetSemaphoreWin32HandleKHR(device, pGetWin32HandleInfo, pHandle);
+    vkGetSemaphoreWin32HandleKHR_VkResult_return = vkEnc->vkGetSemaphoreWin32HandleKHR(device, pGetWin32HandleInfo, pHandle, true /* do lock */);
     return vkGetSemaphoreWin32HandleKHR_VkResult_return;
 }
 #endif
@@ -3044,7 +3044,7 @@ static void entry_vkCmdPushDescriptorSetKHR(
     AEMU_SCOPED_TRACE("vkCmdPushDescriptorSetKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdPushDescriptorSetKHR(commandBuffer, pipelineBindPoint, layout, set, descriptorWriteCount, pDescriptorWrites);
+    vkEnc->vkCmdPushDescriptorSetKHR(commandBuffer, pipelineBindPoint, layout, set, descriptorWriteCount, pDescriptorWrites, true /* do lock */);
 }
 static void entry_vkCmdPushDescriptorSetWithTemplateKHR(
     VkCommandBuffer commandBuffer,
@@ -3056,7 +3056,7 @@ static void entry_vkCmdPushDescriptorSetWithTemplateKHR(
     AEMU_SCOPED_TRACE("vkCmdPushDescriptorSetWithTemplateKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdPushDescriptorSetWithTemplateKHR(commandBuffer, descriptorUpdateTemplate, layout, set, pData);
+    vkEnc->vkCmdPushDescriptorSetWithTemplateKHR(commandBuffer, descriptorUpdateTemplate, layout, set, pData, true /* do lock */);
 }
 #endif
 #ifdef VK_KHR_16bit_storage
@@ -3073,7 +3073,7 @@ static VkResult entry_vkCreateDescriptorUpdateTemplateKHR(
     AEMU_SCOPED_TRACE("vkCreateDescriptorUpdateTemplateKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateDescriptorUpdateTemplateKHR_VkResult_return = (VkResult)0;
-    vkCreateDescriptorUpdateTemplateKHR_VkResult_return = vkEnc->vkCreateDescriptorUpdateTemplateKHR(device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
+    vkCreateDescriptorUpdateTemplateKHR_VkResult_return = vkEnc->vkCreateDescriptorUpdateTemplateKHR(device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate, true /* do lock */);
     return vkCreateDescriptorUpdateTemplateKHR_VkResult_return;
 }
 static VkResult dynCheck_entry_vkCreateDescriptorUpdateTemplateKHR(
@@ -3090,7 +3090,7 @@ static VkResult dynCheck_entry_vkCreateDescriptorUpdateTemplateKHR(
     AEMU_SCOPED_TRACE("vkCreateDescriptorUpdateTemplateKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateDescriptorUpdateTemplateKHR_VkResult_return = (VkResult)0;
-    vkCreateDescriptorUpdateTemplateKHR_VkResult_return = vkEnc->vkCreateDescriptorUpdateTemplateKHR(device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
+    vkCreateDescriptorUpdateTemplateKHR_VkResult_return = vkEnc->vkCreateDescriptorUpdateTemplateKHR(device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate, true /* do lock */);
     return vkCreateDescriptorUpdateTemplateKHR_VkResult_return;
 }
 static void entry_vkDestroyDescriptorUpdateTemplateKHR(
@@ -3100,7 +3100,7 @@ static void entry_vkDestroyDescriptorUpdateTemplateKHR(
 {
     AEMU_SCOPED_TRACE("vkDestroyDescriptorUpdateTemplateKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyDescriptorUpdateTemplateKHR(device, descriptorUpdateTemplate, pAllocator);
+    vkEnc->vkDestroyDescriptorUpdateTemplateKHR(device, descriptorUpdateTemplate, pAllocator, true /* do lock */);
 }
 static void dynCheck_entry_vkDestroyDescriptorUpdateTemplateKHR(
     VkDevice device,
@@ -3114,7 +3114,7 @@ static void dynCheck_entry_vkDestroyDescriptorUpdateTemplateKHR(
     }
     AEMU_SCOPED_TRACE("vkDestroyDescriptorUpdateTemplateKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyDescriptorUpdateTemplateKHR(device, descriptorUpdateTemplate, pAllocator);
+    vkEnc->vkDestroyDescriptorUpdateTemplateKHR(device, descriptorUpdateTemplate, pAllocator, true /* do lock */);
 }
 static void entry_vkUpdateDescriptorSetWithTemplateKHR(
     VkDevice device,
@@ -3124,7 +3124,7 @@ static void entry_vkUpdateDescriptorSetWithTemplateKHR(
 {
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkUpdateDescriptorSetWithTemplateKHR(device, descriptorSet, descriptorUpdateTemplate, pData);
+    vkEnc->vkUpdateDescriptorSetWithTemplateKHR(device, descriptorSet, descriptorUpdateTemplate, pData, true /* do lock */);
 }
 static void dynCheck_entry_vkUpdateDescriptorSetWithTemplateKHR(
     VkDevice device,
@@ -3139,7 +3139,7 @@ static void dynCheck_entry_vkUpdateDescriptorSetWithTemplateKHR(
     }
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkUpdateDescriptorSetWithTemplateKHR(device, descriptorSet, descriptorUpdateTemplate, pData);
+    vkEnc->vkUpdateDescriptorSetWithTemplateKHR(device, descriptorSet, descriptorUpdateTemplate, pData, true /* do lock */);
 }
 #endif
 #ifdef VK_KHR_create_renderpass2
@@ -3152,7 +3152,7 @@ static VkResult entry_vkCreateRenderPass2KHR(
     AEMU_SCOPED_TRACE("vkCreateRenderPass2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateRenderPass2KHR_VkResult_return = (VkResult)0;
-    vkCreateRenderPass2KHR_VkResult_return = vkEnc->vkCreateRenderPass2KHR(device, pCreateInfo, pAllocator, pRenderPass);
+    vkCreateRenderPass2KHR_VkResult_return = vkEnc->vkCreateRenderPass2KHR(device, pCreateInfo, pAllocator, pRenderPass, true /* do lock */);
     return vkCreateRenderPass2KHR_VkResult_return;
 }
 static VkResult dynCheck_entry_vkCreateRenderPass2KHR(
@@ -3169,7 +3169,7 @@ static VkResult dynCheck_entry_vkCreateRenderPass2KHR(
     AEMU_SCOPED_TRACE("vkCreateRenderPass2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateRenderPass2KHR_VkResult_return = (VkResult)0;
-    vkCreateRenderPass2KHR_VkResult_return = vkEnc->vkCreateRenderPass2KHR(device, pCreateInfo, pAllocator, pRenderPass);
+    vkCreateRenderPass2KHR_VkResult_return = vkEnc->vkCreateRenderPass2KHR(device, pCreateInfo, pAllocator, pRenderPass, true /* do lock */);
     return vkCreateRenderPass2KHR_VkResult_return;
 }
 static void entry_vkCmdBeginRenderPass2KHR(
@@ -3180,7 +3180,7 @@ static void entry_vkCmdBeginRenderPass2KHR(
     AEMU_SCOPED_TRACE("vkCmdBeginRenderPass2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdBeginRenderPass2KHR(commandBuffer, pRenderPassBegin, pSubpassBeginInfo);
+    vkEnc->vkCmdBeginRenderPass2KHR(commandBuffer, pRenderPassBegin, pSubpassBeginInfo, true /* do lock */);
 }
 static void entry_vkCmdNextSubpass2KHR(
     VkCommandBuffer commandBuffer,
@@ -3190,7 +3190,7 @@ static void entry_vkCmdNextSubpass2KHR(
     AEMU_SCOPED_TRACE("vkCmdNextSubpass2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdNextSubpass2KHR(commandBuffer, pSubpassBeginInfo, pSubpassEndInfo);
+    vkEnc->vkCmdNextSubpass2KHR(commandBuffer, pSubpassBeginInfo, pSubpassEndInfo, true /* do lock */);
 }
 static void entry_vkCmdEndRenderPass2KHR(
     VkCommandBuffer commandBuffer,
@@ -3199,7 +3199,7 @@ static void entry_vkCmdEndRenderPass2KHR(
     AEMU_SCOPED_TRACE("vkCmdEndRenderPass2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdEndRenderPass2KHR(commandBuffer, pSubpassEndInfo);
+    vkEnc->vkCmdEndRenderPass2KHR(commandBuffer, pSubpassEndInfo, true /* do lock */);
 }
 #endif
 #ifdef VK_KHR_shared_presentable_image
@@ -3210,7 +3210,7 @@ static VkResult entry_vkGetSwapchainStatusKHR(
     AEMU_SCOPED_TRACE("vkGetSwapchainStatusKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetSwapchainStatusKHR_VkResult_return = (VkResult)0;
-    vkGetSwapchainStatusKHR_VkResult_return = vkEnc->vkGetSwapchainStatusKHR(device, swapchain);
+    vkGetSwapchainStatusKHR_VkResult_return = vkEnc->vkGetSwapchainStatusKHR(device, swapchain, true /* do lock */);
     return vkGetSwapchainStatusKHR_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetSwapchainStatusKHR(
@@ -3225,7 +3225,7 @@ static VkResult dynCheck_entry_vkGetSwapchainStatusKHR(
     AEMU_SCOPED_TRACE("vkGetSwapchainStatusKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetSwapchainStatusKHR_VkResult_return = (VkResult)0;
-    vkGetSwapchainStatusKHR_VkResult_return = vkEnc->vkGetSwapchainStatusKHR(device, swapchain);
+    vkGetSwapchainStatusKHR_VkResult_return = vkEnc->vkGetSwapchainStatusKHR(device, swapchain, true /* do lock */);
     return vkGetSwapchainStatusKHR_VkResult_return;
 }
 #endif
@@ -3251,7 +3251,7 @@ static VkResult entry_vkImportFenceWin32HandleKHR(
     AEMU_SCOPED_TRACE("vkImportFenceWin32HandleKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkImportFenceWin32HandleKHR_VkResult_return = (VkResult)0;
-    vkImportFenceWin32HandleKHR_VkResult_return = vkEnc->vkImportFenceWin32HandleKHR(device, pImportFenceWin32HandleInfo);
+    vkImportFenceWin32HandleKHR_VkResult_return = vkEnc->vkImportFenceWin32HandleKHR(device, pImportFenceWin32HandleInfo, true /* do lock */);
     return vkImportFenceWin32HandleKHR_VkResult_return;
 }
 static VkResult dynCheck_entry_vkImportFenceWin32HandleKHR(
@@ -3266,7 +3266,7 @@ static VkResult dynCheck_entry_vkImportFenceWin32HandleKHR(
     AEMU_SCOPED_TRACE("vkImportFenceWin32HandleKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkImportFenceWin32HandleKHR_VkResult_return = (VkResult)0;
-    vkImportFenceWin32HandleKHR_VkResult_return = vkEnc->vkImportFenceWin32HandleKHR(device, pImportFenceWin32HandleInfo);
+    vkImportFenceWin32HandleKHR_VkResult_return = vkEnc->vkImportFenceWin32HandleKHR(device, pImportFenceWin32HandleInfo, true /* do lock */);
     return vkImportFenceWin32HandleKHR_VkResult_return;
 }
 static VkResult entry_vkGetFenceWin32HandleKHR(
@@ -3277,7 +3277,7 @@ static VkResult entry_vkGetFenceWin32HandleKHR(
     AEMU_SCOPED_TRACE("vkGetFenceWin32HandleKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetFenceWin32HandleKHR_VkResult_return = (VkResult)0;
-    vkGetFenceWin32HandleKHR_VkResult_return = vkEnc->vkGetFenceWin32HandleKHR(device, pGetWin32HandleInfo, pHandle);
+    vkGetFenceWin32HandleKHR_VkResult_return = vkEnc->vkGetFenceWin32HandleKHR(device, pGetWin32HandleInfo, pHandle, true /* do lock */);
     return vkGetFenceWin32HandleKHR_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetFenceWin32HandleKHR(
@@ -3293,7 +3293,7 @@ static VkResult dynCheck_entry_vkGetFenceWin32HandleKHR(
     AEMU_SCOPED_TRACE("vkGetFenceWin32HandleKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetFenceWin32HandleKHR_VkResult_return = (VkResult)0;
-    vkGetFenceWin32HandleKHR_VkResult_return = vkEnc->vkGetFenceWin32HandleKHR(device, pGetWin32HandleInfo, pHandle);
+    vkGetFenceWin32HandleKHR_VkResult_return = vkEnc->vkGetFenceWin32HandleKHR(device, pGetWin32HandleInfo, pHandle, true /* do lock */);
     return vkGetFenceWin32HandleKHR_VkResult_return;
 }
 #endif
@@ -3364,7 +3364,7 @@ static VkResult entry_vkGetPhysicalDeviceSurfaceCapabilities2KHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceCapabilities2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPhysicalDeviceSurfaceCapabilities2KHR_VkResult_return = (VkResult)0;
-    vkGetPhysicalDeviceSurfaceCapabilities2KHR_VkResult_return = vkEnc->vkGetPhysicalDeviceSurfaceCapabilities2KHR(physicalDevice, pSurfaceInfo, pSurfaceCapabilities);
+    vkGetPhysicalDeviceSurfaceCapabilities2KHR_VkResult_return = vkEnc->vkGetPhysicalDeviceSurfaceCapabilities2KHR(physicalDevice, pSurfaceInfo, pSurfaceCapabilities, true /* do lock */);
     return vkGetPhysicalDeviceSurfaceCapabilities2KHR_VkResult_return;
 }
 static VkResult entry_vkGetPhysicalDeviceSurfaceFormats2KHR(
@@ -3376,7 +3376,7 @@ static VkResult entry_vkGetPhysicalDeviceSurfaceFormats2KHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceFormats2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPhysicalDeviceSurfaceFormats2KHR_VkResult_return = (VkResult)0;
-    vkGetPhysicalDeviceSurfaceFormats2KHR_VkResult_return = vkEnc->vkGetPhysicalDeviceSurfaceFormats2KHR(physicalDevice, pSurfaceInfo, pSurfaceFormatCount, pSurfaceFormats);
+    vkGetPhysicalDeviceSurfaceFormats2KHR_VkResult_return = vkEnc->vkGetPhysicalDeviceSurfaceFormats2KHR(physicalDevice, pSurfaceInfo, pSurfaceFormatCount, pSurfaceFormats, true /* do lock */);
     return vkGetPhysicalDeviceSurfaceFormats2KHR_VkResult_return;
 }
 #endif
@@ -3391,7 +3391,7 @@ static VkResult entry_vkGetPhysicalDeviceDisplayProperties2KHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceDisplayProperties2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPhysicalDeviceDisplayProperties2KHR_VkResult_return = (VkResult)0;
-    vkGetPhysicalDeviceDisplayProperties2KHR_VkResult_return = vkEnc->vkGetPhysicalDeviceDisplayProperties2KHR(physicalDevice, pPropertyCount, pProperties);
+    vkGetPhysicalDeviceDisplayProperties2KHR_VkResult_return = vkEnc->vkGetPhysicalDeviceDisplayProperties2KHR(physicalDevice, pPropertyCount, pProperties, true /* do lock */);
     return vkGetPhysicalDeviceDisplayProperties2KHR_VkResult_return;
 }
 static VkResult entry_vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
@@ -3402,7 +3402,7 @@ static VkResult entry_vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceDisplayPlaneProperties2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPhysicalDeviceDisplayPlaneProperties2KHR_VkResult_return = (VkResult)0;
-    vkGetPhysicalDeviceDisplayPlaneProperties2KHR_VkResult_return = vkEnc->vkGetPhysicalDeviceDisplayPlaneProperties2KHR(physicalDevice, pPropertyCount, pProperties);
+    vkGetPhysicalDeviceDisplayPlaneProperties2KHR_VkResult_return = vkEnc->vkGetPhysicalDeviceDisplayPlaneProperties2KHR(physicalDevice, pPropertyCount, pProperties, true /* do lock */);
     return vkGetPhysicalDeviceDisplayPlaneProperties2KHR_VkResult_return;
 }
 static VkResult entry_vkGetDisplayModeProperties2KHR(
@@ -3414,7 +3414,7 @@ static VkResult entry_vkGetDisplayModeProperties2KHR(
     AEMU_SCOPED_TRACE("vkGetDisplayModeProperties2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetDisplayModeProperties2KHR_VkResult_return = (VkResult)0;
-    vkGetDisplayModeProperties2KHR_VkResult_return = vkEnc->vkGetDisplayModeProperties2KHR(physicalDevice, display, pPropertyCount, pProperties);
+    vkGetDisplayModeProperties2KHR_VkResult_return = vkEnc->vkGetDisplayModeProperties2KHR(physicalDevice, display, pPropertyCount, pProperties, true /* do lock */);
     return vkGetDisplayModeProperties2KHR_VkResult_return;
 }
 static VkResult entry_vkGetDisplayPlaneCapabilities2KHR(
@@ -3425,7 +3425,7 @@ static VkResult entry_vkGetDisplayPlaneCapabilities2KHR(
     AEMU_SCOPED_TRACE("vkGetDisplayPlaneCapabilities2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetDisplayPlaneCapabilities2KHR_VkResult_return = (VkResult)0;
-    vkGetDisplayPlaneCapabilities2KHR_VkResult_return = vkEnc->vkGetDisplayPlaneCapabilities2KHR(physicalDevice, pDisplayPlaneInfo, pCapabilities);
+    vkGetDisplayPlaneCapabilities2KHR_VkResult_return = vkEnc->vkGetDisplayPlaneCapabilities2KHR(physicalDevice, pDisplayPlaneInfo, pCapabilities, true /* do lock */);
     return vkGetDisplayPlaneCapabilities2KHR_VkResult_return;
 }
 #endif
@@ -3492,7 +3492,7 @@ static void entry_vkGetImageSparseMemoryRequirements2KHR(
 {
     AEMU_SCOPED_TRACE("vkGetImageSparseMemoryRequirements2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetImageSparseMemoryRequirements2KHR(device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
+    vkEnc->vkGetImageSparseMemoryRequirements2KHR(device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements, true /* do lock */);
 }
 static void dynCheck_entry_vkGetImageSparseMemoryRequirements2KHR(
     VkDevice device,
@@ -3507,7 +3507,7 @@ static void dynCheck_entry_vkGetImageSparseMemoryRequirements2KHR(
     }
     AEMU_SCOPED_TRACE("vkGetImageSparseMemoryRequirements2KHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetImageSparseMemoryRequirements2KHR(device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
+    vkEnc->vkGetImageSparseMemoryRequirements2KHR(device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements, true /* do lock */);
 }
 #endif
 #ifdef VK_KHR_image_format_list
@@ -3634,7 +3634,7 @@ static void entry_vkGetDescriptorSetLayoutSupportKHR(
 {
     AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutSupportKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetDescriptorSetLayoutSupportKHR(device, pCreateInfo, pSupport);
+    vkEnc->vkGetDescriptorSetLayoutSupportKHR(device, pCreateInfo, pSupport, true /* do lock */);
 }
 static void dynCheck_entry_vkGetDescriptorSetLayoutSupportKHR(
     VkDevice device,
@@ -3648,7 +3648,7 @@ static void dynCheck_entry_vkGetDescriptorSetLayoutSupportKHR(
     }
     AEMU_SCOPED_TRACE("vkGetDescriptorSetLayoutSupportKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetDescriptorSetLayoutSupportKHR(device, pCreateInfo, pSupport);
+    vkEnc->vkGetDescriptorSetLayoutSupportKHR(device, pCreateInfo, pSupport, true /* do lock */);
 }
 #endif
 #ifdef VK_KHR_draw_indirect_count
@@ -3664,7 +3664,7 @@ static void entry_vkCmdDrawIndirectCountKHR(
     AEMU_SCOPED_TRACE("vkCmdDrawIndirectCountKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdDrawIndirectCountKHR(commandBuffer, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride);
+    vkEnc->vkCmdDrawIndirectCountKHR(commandBuffer, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride, true /* do lock */);
 }
 static void entry_vkCmdDrawIndexedIndirectCountKHR(
     VkCommandBuffer commandBuffer,
@@ -3678,7 +3678,7 @@ static void entry_vkCmdDrawIndexedIndirectCountKHR(
     AEMU_SCOPED_TRACE("vkCmdDrawIndexedIndirectCountKHR");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdDrawIndexedIndirectCountKHR(commandBuffer, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride);
+    vkEnc->vkCmdDrawIndexedIndirectCountKHR(commandBuffer, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride, true /* do lock */);
 }
 #endif
 #ifdef VK_KHR_8bit_storage
@@ -3695,7 +3695,7 @@ static VkResult entry_vkGetSwapchainGrallocUsageANDROID(
     AEMU_SCOPED_TRACE("vkGetSwapchainGrallocUsageANDROID");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetSwapchainGrallocUsageANDROID_VkResult_return = (VkResult)0;
-    vkGetSwapchainGrallocUsageANDROID_VkResult_return = vkEnc->vkGetSwapchainGrallocUsageANDROID(device, format, imageUsage, grallocUsage);
+    vkGetSwapchainGrallocUsageANDROID_VkResult_return = vkEnc->vkGetSwapchainGrallocUsageANDROID(device, format, imageUsage, grallocUsage, true /* do lock */);
     return vkGetSwapchainGrallocUsageANDROID_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetSwapchainGrallocUsageANDROID(
@@ -3712,7 +3712,7 @@ static VkResult dynCheck_entry_vkGetSwapchainGrallocUsageANDROID(
     AEMU_SCOPED_TRACE("vkGetSwapchainGrallocUsageANDROID");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetSwapchainGrallocUsageANDROID_VkResult_return = (VkResult)0;
-    vkGetSwapchainGrallocUsageANDROID_VkResult_return = vkEnc->vkGetSwapchainGrallocUsageANDROID(device, format, imageUsage, grallocUsage);
+    vkGetSwapchainGrallocUsageANDROID_VkResult_return = vkEnc->vkGetSwapchainGrallocUsageANDROID(device, format, imageUsage, grallocUsage, true /* do lock */);
     return vkGetSwapchainGrallocUsageANDROID_VkResult_return;
 }
 static VkResult entry_vkAcquireImageANDROID(
@@ -3725,7 +3725,7 @@ static VkResult entry_vkAcquireImageANDROID(
     AEMU_SCOPED_TRACE("vkAcquireImageANDROID");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkAcquireImageANDROID_VkResult_return = (VkResult)0;
-    vkAcquireImageANDROID_VkResult_return = vkEnc->vkAcquireImageANDROID(device, image, nativeFenceFd, semaphore, fence);
+    vkAcquireImageANDROID_VkResult_return = vkEnc->vkAcquireImageANDROID(device, image, nativeFenceFd, semaphore, fence, true /* do lock */);
     return vkAcquireImageANDROID_VkResult_return;
 }
 static VkResult dynCheck_entry_vkAcquireImageANDROID(
@@ -3743,7 +3743,7 @@ static VkResult dynCheck_entry_vkAcquireImageANDROID(
     AEMU_SCOPED_TRACE("vkAcquireImageANDROID");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkAcquireImageANDROID_VkResult_return = (VkResult)0;
-    vkAcquireImageANDROID_VkResult_return = vkEnc->vkAcquireImageANDROID(device, image, nativeFenceFd, semaphore, fence);
+    vkAcquireImageANDROID_VkResult_return = vkEnc->vkAcquireImageANDROID(device, image, nativeFenceFd, semaphore, fence, true /* do lock */);
     return vkAcquireImageANDROID_VkResult_return;
 }
 static VkResult entry_vkQueueSignalReleaseImageANDROID(
@@ -3757,7 +3757,7 @@ static VkResult entry_vkQueueSignalReleaseImageANDROID(
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
     VkResult vkQueueSignalReleaseImageANDROID_VkResult_return = (VkResult)0;
-    vkQueueSignalReleaseImageANDROID_VkResult_return = vkEnc->vkQueueSignalReleaseImageANDROID(queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd);
+    vkQueueSignalReleaseImageANDROID_VkResult_return = vkEnc->vkQueueSignalReleaseImageANDROID(queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd, true /* do lock */);
     return vkQueueSignalReleaseImageANDROID_VkResult_return;
 }
 #endif
@@ -3771,7 +3771,7 @@ static VkResult entry_vkCreateDebugReportCallbackEXT(
     AEMU_SCOPED_TRACE("vkCreateDebugReportCallbackEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateDebugReportCallbackEXT_VkResult_return = (VkResult)0;
-    vkCreateDebugReportCallbackEXT_VkResult_return = vkEnc->vkCreateDebugReportCallbackEXT(instance, pCreateInfo, pAllocator, pCallback);
+    vkCreateDebugReportCallbackEXT_VkResult_return = vkEnc->vkCreateDebugReportCallbackEXT(instance, pCreateInfo, pAllocator, pCallback, true /* do lock */);
     return vkCreateDebugReportCallbackEXT_VkResult_return;
 }
 static void entry_vkDestroyDebugReportCallbackEXT(
@@ -3781,7 +3781,7 @@ static void entry_vkDestroyDebugReportCallbackEXT(
 {
     AEMU_SCOPED_TRACE("vkDestroyDebugReportCallbackEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyDebugReportCallbackEXT(instance, callback, pAllocator);
+    vkEnc->vkDestroyDebugReportCallbackEXT(instance, callback, pAllocator, true /* do lock */);
 }
 static void entry_vkDebugReportMessageEXT(
     VkInstance instance,
@@ -3795,7 +3795,7 @@ static void entry_vkDebugReportMessageEXT(
 {
     AEMU_SCOPED_TRACE("vkDebugReportMessageEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDebugReportMessageEXT(instance, flags, objectType, object, location, messageCode, pLayerPrefix, pMessage);
+    vkEnc->vkDebugReportMessageEXT(instance, flags, objectType, object, location, messageCode, pLayerPrefix, pMessage, true /* do lock */);
 }
 #endif
 #ifdef VK_NV_glsl_shader
@@ -3818,7 +3818,7 @@ static VkResult entry_vkDebugMarkerSetObjectTagEXT(
     AEMU_SCOPED_TRACE("vkDebugMarkerSetObjectTagEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkDebugMarkerSetObjectTagEXT_VkResult_return = (VkResult)0;
-    vkDebugMarkerSetObjectTagEXT_VkResult_return = vkEnc->vkDebugMarkerSetObjectTagEXT(device, pTagInfo);
+    vkDebugMarkerSetObjectTagEXT_VkResult_return = vkEnc->vkDebugMarkerSetObjectTagEXT(device, pTagInfo, true /* do lock */);
     return vkDebugMarkerSetObjectTagEXT_VkResult_return;
 }
 static VkResult dynCheck_entry_vkDebugMarkerSetObjectTagEXT(
@@ -3833,7 +3833,7 @@ static VkResult dynCheck_entry_vkDebugMarkerSetObjectTagEXT(
     AEMU_SCOPED_TRACE("vkDebugMarkerSetObjectTagEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkDebugMarkerSetObjectTagEXT_VkResult_return = (VkResult)0;
-    vkDebugMarkerSetObjectTagEXT_VkResult_return = vkEnc->vkDebugMarkerSetObjectTagEXT(device, pTagInfo);
+    vkDebugMarkerSetObjectTagEXT_VkResult_return = vkEnc->vkDebugMarkerSetObjectTagEXT(device, pTagInfo, true /* do lock */);
     return vkDebugMarkerSetObjectTagEXT_VkResult_return;
 }
 static VkResult entry_vkDebugMarkerSetObjectNameEXT(
@@ -3843,7 +3843,7 @@ static VkResult entry_vkDebugMarkerSetObjectNameEXT(
     AEMU_SCOPED_TRACE("vkDebugMarkerSetObjectNameEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkDebugMarkerSetObjectNameEXT_VkResult_return = (VkResult)0;
-    vkDebugMarkerSetObjectNameEXT_VkResult_return = vkEnc->vkDebugMarkerSetObjectNameEXT(device, pNameInfo);
+    vkDebugMarkerSetObjectNameEXT_VkResult_return = vkEnc->vkDebugMarkerSetObjectNameEXT(device, pNameInfo, true /* do lock */);
     return vkDebugMarkerSetObjectNameEXT_VkResult_return;
 }
 static VkResult dynCheck_entry_vkDebugMarkerSetObjectNameEXT(
@@ -3858,7 +3858,7 @@ static VkResult dynCheck_entry_vkDebugMarkerSetObjectNameEXT(
     AEMU_SCOPED_TRACE("vkDebugMarkerSetObjectNameEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkDebugMarkerSetObjectNameEXT_VkResult_return = (VkResult)0;
-    vkDebugMarkerSetObjectNameEXT_VkResult_return = vkEnc->vkDebugMarkerSetObjectNameEXT(device, pNameInfo);
+    vkDebugMarkerSetObjectNameEXT_VkResult_return = vkEnc->vkDebugMarkerSetObjectNameEXT(device, pNameInfo, true /* do lock */);
     return vkDebugMarkerSetObjectNameEXT_VkResult_return;
 }
 static void entry_vkCmdDebugMarkerBeginEXT(
@@ -3868,7 +3868,7 @@ static void entry_vkCmdDebugMarkerBeginEXT(
     AEMU_SCOPED_TRACE("vkCmdDebugMarkerBeginEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdDebugMarkerBeginEXT(commandBuffer, pMarkerInfo);
+    vkEnc->vkCmdDebugMarkerBeginEXT(commandBuffer, pMarkerInfo, true /* do lock */);
 }
 static void entry_vkCmdDebugMarkerEndEXT(
     VkCommandBuffer commandBuffer)
@@ -3876,7 +3876,7 @@ static void entry_vkCmdDebugMarkerEndEXT(
     AEMU_SCOPED_TRACE("vkCmdDebugMarkerEndEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdDebugMarkerEndEXT(commandBuffer);
+    vkEnc->vkCmdDebugMarkerEndEXT(commandBuffer, true /* do lock */);
 }
 static void entry_vkCmdDebugMarkerInsertEXT(
     VkCommandBuffer commandBuffer,
@@ -3885,7 +3885,7 @@ static void entry_vkCmdDebugMarkerInsertEXT(
     AEMU_SCOPED_TRACE("vkCmdDebugMarkerInsertEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdDebugMarkerInsertEXT(commandBuffer, pMarkerInfo);
+    vkEnc->vkCmdDebugMarkerInsertEXT(commandBuffer, pMarkerInfo, true /* do lock */);
 }
 #endif
 #ifdef VK_AMD_gcn_shader
@@ -3905,7 +3905,7 @@ static void entry_vkCmdDrawIndirectCountAMD(
     AEMU_SCOPED_TRACE("vkCmdDrawIndirectCountAMD");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdDrawIndirectCountAMD(commandBuffer, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride);
+    vkEnc->vkCmdDrawIndirectCountAMD(commandBuffer, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride, true /* do lock */);
 }
 static void entry_vkCmdDrawIndexedIndirectCountAMD(
     VkCommandBuffer commandBuffer,
@@ -3919,7 +3919,7 @@ static void entry_vkCmdDrawIndexedIndirectCountAMD(
     AEMU_SCOPED_TRACE("vkCmdDrawIndexedIndirectCountAMD");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdDrawIndexedIndirectCountAMD(commandBuffer, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride);
+    vkEnc->vkCmdDrawIndexedIndirectCountAMD(commandBuffer, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride, true /* do lock */);
 }
 #endif
 #ifdef VK_AMD_negative_viewport_height
@@ -3942,7 +3942,7 @@ static VkResult entry_vkGetShaderInfoAMD(
     AEMU_SCOPED_TRACE("vkGetShaderInfoAMD");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetShaderInfoAMD_VkResult_return = (VkResult)0;
-    vkGetShaderInfoAMD_VkResult_return = vkEnc->vkGetShaderInfoAMD(device, pipeline, shaderStage, infoType, pInfoSize, pInfo);
+    vkGetShaderInfoAMD_VkResult_return = vkEnc->vkGetShaderInfoAMD(device, pipeline, shaderStage, infoType, pInfoSize, pInfo, true /* do lock */);
     return vkGetShaderInfoAMD_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetShaderInfoAMD(
@@ -3961,7 +3961,7 @@ static VkResult dynCheck_entry_vkGetShaderInfoAMD(
     AEMU_SCOPED_TRACE("vkGetShaderInfoAMD");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetShaderInfoAMD_VkResult_return = (VkResult)0;
-    vkGetShaderInfoAMD_VkResult_return = vkEnc->vkGetShaderInfoAMD(device, pipeline, shaderStage, infoType, pInfoSize, pInfo);
+    vkGetShaderInfoAMD_VkResult_return = vkEnc->vkGetShaderInfoAMD(device, pipeline, shaderStage, infoType, pInfoSize, pInfo, true /* do lock */);
     return vkGetShaderInfoAMD_VkResult_return;
 }
 #endif
@@ -3983,7 +3983,7 @@ static VkResult entry_vkGetPhysicalDeviceExternalImageFormatPropertiesNV(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceExternalImageFormatPropertiesNV");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPhysicalDeviceExternalImageFormatPropertiesNV_VkResult_return = (VkResult)0;
-    vkGetPhysicalDeviceExternalImageFormatPropertiesNV_VkResult_return = vkEnc->vkGetPhysicalDeviceExternalImageFormatPropertiesNV(physicalDevice, format, type, tiling, usage, flags, externalHandleType, pExternalImageFormatProperties);
+    vkGetPhysicalDeviceExternalImageFormatPropertiesNV_VkResult_return = vkEnc->vkGetPhysicalDeviceExternalImageFormatPropertiesNV(physicalDevice, format, type, tiling, usage, flags, externalHandleType, pExternalImageFormatProperties, true /* do lock */);
     return vkGetPhysicalDeviceExternalImageFormatPropertiesNV_VkResult_return;
 }
 #endif
@@ -3999,7 +3999,7 @@ static VkResult entry_vkGetMemoryWin32HandleNV(
     AEMU_SCOPED_TRACE("vkGetMemoryWin32HandleNV");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetMemoryWin32HandleNV_VkResult_return = (VkResult)0;
-    vkGetMemoryWin32HandleNV_VkResult_return = vkEnc->vkGetMemoryWin32HandleNV(device, memory, handleType, pHandle);
+    vkGetMemoryWin32HandleNV_VkResult_return = vkEnc->vkGetMemoryWin32HandleNV(device, memory, handleType, pHandle, true /* do lock */);
     return vkGetMemoryWin32HandleNV_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetMemoryWin32HandleNV(
@@ -4016,7 +4016,7 @@ static VkResult dynCheck_entry_vkGetMemoryWin32HandleNV(
     AEMU_SCOPED_TRACE("vkGetMemoryWin32HandleNV");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetMemoryWin32HandleNV_VkResult_return = (VkResult)0;
-    vkGetMemoryWin32HandleNV_VkResult_return = vkEnc->vkGetMemoryWin32HandleNV(device, memory, handleType, pHandle);
+    vkGetMemoryWin32HandleNV_VkResult_return = vkEnc->vkGetMemoryWin32HandleNV(device, memory, handleType, pHandle, true /* do lock */);
     return vkGetMemoryWin32HandleNV_VkResult_return;
 }
 #endif
@@ -4034,7 +4034,7 @@ static VkResult entry_vkCreateViSurfaceNN(
     AEMU_SCOPED_TRACE("vkCreateViSurfaceNN");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateViSurfaceNN_VkResult_return = (VkResult)0;
-    vkCreateViSurfaceNN_VkResult_return = vkEnc->vkCreateViSurfaceNN(instance, pCreateInfo, pAllocator, pSurface);
+    vkCreateViSurfaceNN_VkResult_return = vkEnc->vkCreateViSurfaceNN(instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
     return vkCreateViSurfaceNN_VkResult_return;
 }
 #endif
@@ -4050,7 +4050,7 @@ static void entry_vkCmdBeginConditionalRenderingEXT(
     AEMU_SCOPED_TRACE("vkCmdBeginConditionalRenderingEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdBeginConditionalRenderingEXT(commandBuffer, pConditionalRenderingBegin);
+    vkEnc->vkCmdBeginConditionalRenderingEXT(commandBuffer, pConditionalRenderingBegin, true /* do lock */);
 }
 static void entry_vkCmdEndConditionalRenderingEXT(
     VkCommandBuffer commandBuffer)
@@ -4058,7 +4058,7 @@ static void entry_vkCmdEndConditionalRenderingEXT(
     AEMU_SCOPED_TRACE("vkCmdEndConditionalRenderingEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdEndConditionalRenderingEXT(commandBuffer);
+    vkEnc->vkCmdEndConditionalRenderingEXT(commandBuffer, true /* do lock */);
 }
 #endif
 #ifdef VK_NVX_device_generated_commands
@@ -4069,7 +4069,7 @@ static void entry_vkCmdProcessCommandsNVX(
     AEMU_SCOPED_TRACE("vkCmdProcessCommandsNVX");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdProcessCommandsNVX(commandBuffer, pProcessCommandsInfo);
+    vkEnc->vkCmdProcessCommandsNVX(commandBuffer, pProcessCommandsInfo, true /* do lock */);
 }
 static void entry_vkCmdReserveSpaceForCommandsNVX(
     VkCommandBuffer commandBuffer,
@@ -4078,7 +4078,7 @@ static void entry_vkCmdReserveSpaceForCommandsNVX(
     AEMU_SCOPED_TRACE("vkCmdReserveSpaceForCommandsNVX");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdReserveSpaceForCommandsNVX(commandBuffer, pReserveSpaceInfo);
+    vkEnc->vkCmdReserveSpaceForCommandsNVX(commandBuffer, pReserveSpaceInfo, true /* do lock */);
 }
 static VkResult entry_vkCreateIndirectCommandsLayoutNVX(
     VkDevice device,
@@ -4089,7 +4089,7 @@ static VkResult entry_vkCreateIndirectCommandsLayoutNVX(
     AEMU_SCOPED_TRACE("vkCreateIndirectCommandsLayoutNVX");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateIndirectCommandsLayoutNVX_VkResult_return = (VkResult)0;
-    vkCreateIndirectCommandsLayoutNVX_VkResult_return = vkEnc->vkCreateIndirectCommandsLayoutNVX(device, pCreateInfo, pAllocator, pIndirectCommandsLayout);
+    vkCreateIndirectCommandsLayoutNVX_VkResult_return = vkEnc->vkCreateIndirectCommandsLayoutNVX(device, pCreateInfo, pAllocator, pIndirectCommandsLayout, true /* do lock */);
     return vkCreateIndirectCommandsLayoutNVX_VkResult_return;
 }
 static VkResult dynCheck_entry_vkCreateIndirectCommandsLayoutNVX(
@@ -4106,7 +4106,7 @@ static VkResult dynCheck_entry_vkCreateIndirectCommandsLayoutNVX(
     AEMU_SCOPED_TRACE("vkCreateIndirectCommandsLayoutNVX");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateIndirectCommandsLayoutNVX_VkResult_return = (VkResult)0;
-    vkCreateIndirectCommandsLayoutNVX_VkResult_return = vkEnc->vkCreateIndirectCommandsLayoutNVX(device, pCreateInfo, pAllocator, pIndirectCommandsLayout);
+    vkCreateIndirectCommandsLayoutNVX_VkResult_return = vkEnc->vkCreateIndirectCommandsLayoutNVX(device, pCreateInfo, pAllocator, pIndirectCommandsLayout, true /* do lock */);
     return vkCreateIndirectCommandsLayoutNVX_VkResult_return;
 }
 static void entry_vkDestroyIndirectCommandsLayoutNVX(
@@ -4116,7 +4116,7 @@ static void entry_vkDestroyIndirectCommandsLayoutNVX(
 {
     AEMU_SCOPED_TRACE("vkDestroyIndirectCommandsLayoutNVX");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyIndirectCommandsLayoutNVX(device, indirectCommandsLayout, pAllocator);
+    vkEnc->vkDestroyIndirectCommandsLayoutNVX(device, indirectCommandsLayout, pAllocator, true /* do lock */);
 }
 static void dynCheck_entry_vkDestroyIndirectCommandsLayoutNVX(
     VkDevice device,
@@ -4130,7 +4130,7 @@ static void dynCheck_entry_vkDestroyIndirectCommandsLayoutNVX(
     }
     AEMU_SCOPED_TRACE("vkDestroyIndirectCommandsLayoutNVX");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyIndirectCommandsLayoutNVX(device, indirectCommandsLayout, pAllocator);
+    vkEnc->vkDestroyIndirectCommandsLayoutNVX(device, indirectCommandsLayout, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkCreateObjectTableNVX(
     VkDevice device,
@@ -4141,7 +4141,7 @@ static VkResult entry_vkCreateObjectTableNVX(
     AEMU_SCOPED_TRACE("vkCreateObjectTableNVX");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateObjectTableNVX_VkResult_return = (VkResult)0;
-    vkCreateObjectTableNVX_VkResult_return = vkEnc->vkCreateObjectTableNVX(device, pCreateInfo, pAllocator, pObjectTable);
+    vkCreateObjectTableNVX_VkResult_return = vkEnc->vkCreateObjectTableNVX(device, pCreateInfo, pAllocator, pObjectTable, true /* do lock */);
     return vkCreateObjectTableNVX_VkResult_return;
 }
 static VkResult dynCheck_entry_vkCreateObjectTableNVX(
@@ -4158,7 +4158,7 @@ static VkResult dynCheck_entry_vkCreateObjectTableNVX(
     AEMU_SCOPED_TRACE("vkCreateObjectTableNVX");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateObjectTableNVX_VkResult_return = (VkResult)0;
-    vkCreateObjectTableNVX_VkResult_return = vkEnc->vkCreateObjectTableNVX(device, pCreateInfo, pAllocator, pObjectTable);
+    vkCreateObjectTableNVX_VkResult_return = vkEnc->vkCreateObjectTableNVX(device, pCreateInfo, pAllocator, pObjectTable, true /* do lock */);
     return vkCreateObjectTableNVX_VkResult_return;
 }
 static void entry_vkDestroyObjectTableNVX(
@@ -4168,7 +4168,7 @@ static void entry_vkDestroyObjectTableNVX(
 {
     AEMU_SCOPED_TRACE("vkDestroyObjectTableNVX");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyObjectTableNVX(device, objectTable, pAllocator);
+    vkEnc->vkDestroyObjectTableNVX(device, objectTable, pAllocator, true /* do lock */);
 }
 static void dynCheck_entry_vkDestroyObjectTableNVX(
     VkDevice device,
@@ -4182,7 +4182,7 @@ static void dynCheck_entry_vkDestroyObjectTableNVX(
     }
     AEMU_SCOPED_TRACE("vkDestroyObjectTableNVX");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyObjectTableNVX(device, objectTable, pAllocator);
+    vkEnc->vkDestroyObjectTableNVX(device, objectTable, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkRegisterObjectsNVX(
     VkDevice device,
@@ -4194,7 +4194,7 @@ static VkResult entry_vkRegisterObjectsNVX(
     AEMU_SCOPED_TRACE("vkRegisterObjectsNVX");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkRegisterObjectsNVX_VkResult_return = (VkResult)0;
-    vkRegisterObjectsNVX_VkResult_return = vkEnc->vkRegisterObjectsNVX(device, objectTable, objectCount, ppObjectTableEntries, pObjectIndices);
+    vkRegisterObjectsNVX_VkResult_return = vkEnc->vkRegisterObjectsNVX(device, objectTable, objectCount, ppObjectTableEntries, pObjectIndices, true /* do lock */);
     return vkRegisterObjectsNVX_VkResult_return;
 }
 static VkResult dynCheck_entry_vkRegisterObjectsNVX(
@@ -4212,7 +4212,7 @@ static VkResult dynCheck_entry_vkRegisterObjectsNVX(
     AEMU_SCOPED_TRACE("vkRegisterObjectsNVX");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkRegisterObjectsNVX_VkResult_return = (VkResult)0;
-    vkRegisterObjectsNVX_VkResult_return = vkEnc->vkRegisterObjectsNVX(device, objectTable, objectCount, ppObjectTableEntries, pObjectIndices);
+    vkRegisterObjectsNVX_VkResult_return = vkEnc->vkRegisterObjectsNVX(device, objectTable, objectCount, ppObjectTableEntries, pObjectIndices, true /* do lock */);
     return vkRegisterObjectsNVX_VkResult_return;
 }
 static VkResult entry_vkUnregisterObjectsNVX(
@@ -4225,7 +4225,7 @@ static VkResult entry_vkUnregisterObjectsNVX(
     AEMU_SCOPED_TRACE("vkUnregisterObjectsNVX");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkUnregisterObjectsNVX_VkResult_return = (VkResult)0;
-    vkUnregisterObjectsNVX_VkResult_return = vkEnc->vkUnregisterObjectsNVX(device, objectTable, objectCount, pObjectEntryTypes, pObjectIndices);
+    vkUnregisterObjectsNVX_VkResult_return = vkEnc->vkUnregisterObjectsNVX(device, objectTable, objectCount, pObjectEntryTypes, pObjectIndices, true /* do lock */);
     return vkUnregisterObjectsNVX_VkResult_return;
 }
 static VkResult dynCheck_entry_vkUnregisterObjectsNVX(
@@ -4243,7 +4243,7 @@ static VkResult dynCheck_entry_vkUnregisterObjectsNVX(
     AEMU_SCOPED_TRACE("vkUnregisterObjectsNVX");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkUnregisterObjectsNVX_VkResult_return = (VkResult)0;
-    vkUnregisterObjectsNVX_VkResult_return = vkEnc->vkUnregisterObjectsNVX(device, objectTable, objectCount, pObjectEntryTypes, pObjectIndices);
+    vkUnregisterObjectsNVX_VkResult_return = vkEnc->vkUnregisterObjectsNVX(device, objectTable, objectCount, pObjectEntryTypes, pObjectIndices, true /* do lock */);
     return vkUnregisterObjectsNVX_VkResult_return;
 }
 static void entry_vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX(
@@ -4253,7 +4253,7 @@ static void entry_vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX(physicalDevice, pFeatures, pLimits);
+    vkEnc->vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX(physicalDevice, pFeatures, pLimits, true /* do lock */);
 }
 #endif
 #ifdef VK_NV_clip_space_w_scaling
@@ -4266,7 +4266,7 @@ static void entry_vkCmdSetViewportWScalingNV(
     AEMU_SCOPED_TRACE("vkCmdSetViewportWScalingNV");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdSetViewportWScalingNV(commandBuffer, firstViewport, viewportCount, pViewportWScalings);
+    vkEnc->vkCmdSetViewportWScalingNV(commandBuffer, firstViewport, viewportCount, pViewportWScalings, true /* do lock */);
 }
 #endif
 #ifdef VK_EXT_direct_mode_display
@@ -4277,7 +4277,7 @@ static VkResult entry_vkReleaseDisplayEXT(
     AEMU_SCOPED_TRACE("vkReleaseDisplayEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkReleaseDisplayEXT_VkResult_return = (VkResult)0;
-    vkReleaseDisplayEXT_VkResult_return = vkEnc->vkReleaseDisplayEXT(physicalDevice, display);
+    vkReleaseDisplayEXT_VkResult_return = vkEnc->vkReleaseDisplayEXT(physicalDevice, display, true /* do lock */);
     return vkReleaseDisplayEXT_VkResult_return;
 }
 #endif
@@ -4290,7 +4290,7 @@ static VkResult entry_vkAcquireXlibDisplayEXT(
     AEMU_SCOPED_TRACE("vkAcquireXlibDisplayEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkAcquireXlibDisplayEXT_VkResult_return = (VkResult)0;
-    vkAcquireXlibDisplayEXT_VkResult_return = vkEnc->vkAcquireXlibDisplayEXT(physicalDevice, dpy, display);
+    vkAcquireXlibDisplayEXT_VkResult_return = vkEnc->vkAcquireXlibDisplayEXT(physicalDevice, dpy, display, true /* do lock */);
     return vkAcquireXlibDisplayEXT_VkResult_return;
 }
 static VkResult entry_vkGetRandROutputDisplayEXT(
@@ -4302,7 +4302,7 @@ static VkResult entry_vkGetRandROutputDisplayEXT(
     AEMU_SCOPED_TRACE("vkGetRandROutputDisplayEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetRandROutputDisplayEXT_VkResult_return = (VkResult)0;
-    vkGetRandROutputDisplayEXT_VkResult_return = vkEnc->vkGetRandROutputDisplayEXT(physicalDevice, dpy, rrOutput, pDisplay);
+    vkGetRandROutputDisplayEXT_VkResult_return = vkEnc->vkGetRandROutputDisplayEXT(physicalDevice, dpy, rrOutput, pDisplay, true /* do lock */);
     return vkGetRandROutputDisplayEXT_VkResult_return;
 }
 #endif
@@ -4315,7 +4315,7 @@ static VkResult entry_vkGetPhysicalDeviceSurfaceCapabilities2EXT(
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceSurfaceCapabilities2EXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPhysicalDeviceSurfaceCapabilities2EXT_VkResult_return = (VkResult)0;
-    vkGetPhysicalDeviceSurfaceCapabilities2EXT_VkResult_return = vkEnc->vkGetPhysicalDeviceSurfaceCapabilities2EXT(physicalDevice, surface, pSurfaceCapabilities);
+    vkGetPhysicalDeviceSurfaceCapabilities2EXT_VkResult_return = vkEnc->vkGetPhysicalDeviceSurfaceCapabilities2EXT(physicalDevice, surface, pSurfaceCapabilities, true /* do lock */);
     return vkGetPhysicalDeviceSurfaceCapabilities2EXT_VkResult_return;
 }
 #endif
@@ -4328,7 +4328,7 @@ static VkResult entry_vkDisplayPowerControlEXT(
     AEMU_SCOPED_TRACE("vkDisplayPowerControlEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkDisplayPowerControlEXT_VkResult_return = (VkResult)0;
-    vkDisplayPowerControlEXT_VkResult_return = vkEnc->vkDisplayPowerControlEXT(device, display, pDisplayPowerInfo);
+    vkDisplayPowerControlEXT_VkResult_return = vkEnc->vkDisplayPowerControlEXT(device, display, pDisplayPowerInfo, true /* do lock */);
     return vkDisplayPowerControlEXT_VkResult_return;
 }
 static VkResult dynCheck_entry_vkDisplayPowerControlEXT(
@@ -4344,7 +4344,7 @@ static VkResult dynCheck_entry_vkDisplayPowerControlEXT(
     AEMU_SCOPED_TRACE("vkDisplayPowerControlEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkDisplayPowerControlEXT_VkResult_return = (VkResult)0;
-    vkDisplayPowerControlEXT_VkResult_return = vkEnc->vkDisplayPowerControlEXT(device, display, pDisplayPowerInfo);
+    vkDisplayPowerControlEXT_VkResult_return = vkEnc->vkDisplayPowerControlEXT(device, display, pDisplayPowerInfo, true /* do lock */);
     return vkDisplayPowerControlEXT_VkResult_return;
 }
 static VkResult entry_vkRegisterDeviceEventEXT(
@@ -4356,7 +4356,7 @@ static VkResult entry_vkRegisterDeviceEventEXT(
     AEMU_SCOPED_TRACE("vkRegisterDeviceEventEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkRegisterDeviceEventEXT_VkResult_return = (VkResult)0;
-    vkRegisterDeviceEventEXT_VkResult_return = vkEnc->vkRegisterDeviceEventEXT(device, pDeviceEventInfo, pAllocator, pFence);
+    vkRegisterDeviceEventEXT_VkResult_return = vkEnc->vkRegisterDeviceEventEXT(device, pDeviceEventInfo, pAllocator, pFence, true /* do lock */);
     return vkRegisterDeviceEventEXT_VkResult_return;
 }
 static VkResult dynCheck_entry_vkRegisterDeviceEventEXT(
@@ -4373,7 +4373,7 @@ static VkResult dynCheck_entry_vkRegisterDeviceEventEXT(
     AEMU_SCOPED_TRACE("vkRegisterDeviceEventEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkRegisterDeviceEventEXT_VkResult_return = (VkResult)0;
-    vkRegisterDeviceEventEXT_VkResult_return = vkEnc->vkRegisterDeviceEventEXT(device, pDeviceEventInfo, pAllocator, pFence);
+    vkRegisterDeviceEventEXT_VkResult_return = vkEnc->vkRegisterDeviceEventEXT(device, pDeviceEventInfo, pAllocator, pFence, true /* do lock */);
     return vkRegisterDeviceEventEXT_VkResult_return;
 }
 static VkResult entry_vkRegisterDisplayEventEXT(
@@ -4386,7 +4386,7 @@ static VkResult entry_vkRegisterDisplayEventEXT(
     AEMU_SCOPED_TRACE("vkRegisterDisplayEventEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkRegisterDisplayEventEXT_VkResult_return = (VkResult)0;
-    vkRegisterDisplayEventEXT_VkResult_return = vkEnc->vkRegisterDisplayEventEXT(device, display, pDisplayEventInfo, pAllocator, pFence);
+    vkRegisterDisplayEventEXT_VkResult_return = vkEnc->vkRegisterDisplayEventEXT(device, display, pDisplayEventInfo, pAllocator, pFence, true /* do lock */);
     return vkRegisterDisplayEventEXT_VkResult_return;
 }
 static VkResult dynCheck_entry_vkRegisterDisplayEventEXT(
@@ -4404,7 +4404,7 @@ static VkResult dynCheck_entry_vkRegisterDisplayEventEXT(
     AEMU_SCOPED_TRACE("vkRegisterDisplayEventEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkRegisterDisplayEventEXT_VkResult_return = (VkResult)0;
-    vkRegisterDisplayEventEXT_VkResult_return = vkEnc->vkRegisterDisplayEventEXT(device, display, pDisplayEventInfo, pAllocator, pFence);
+    vkRegisterDisplayEventEXT_VkResult_return = vkEnc->vkRegisterDisplayEventEXT(device, display, pDisplayEventInfo, pAllocator, pFence, true /* do lock */);
     return vkRegisterDisplayEventEXT_VkResult_return;
 }
 static VkResult entry_vkGetSwapchainCounterEXT(
@@ -4416,7 +4416,7 @@ static VkResult entry_vkGetSwapchainCounterEXT(
     AEMU_SCOPED_TRACE("vkGetSwapchainCounterEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetSwapchainCounterEXT_VkResult_return = (VkResult)0;
-    vkGetSwapchainCounterEXT_VkResult_return = vkEnc->vkGetSwapchainCounterEXT(device, swapchain, counter, pCounterValue);
+    vkGetSwapchainCounterEXT_VkResult_return = vkEnc->vkGetSwapchainCounterEXT(device, swapchain, counter, pCounterValue, true /* do lock */);
     return vkGetSwapchainCounterEXT_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetSwapchainCounterEXT(
@@ -4433,7 +4433,7 @@ static VkResult dynCheck_entry_vkGetSwapchainCounterEXT(
     AEMU_SCOPED_TRACE("vkGetSwapchainCounterEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetSwapchainCounterEXT_VkResult_return = (VkResult)0;
-    vkGetSwapchainCounterEXT_VkResult_return = vkEnc->vkGetSwapchainCounterEXT(device, swapchain, counter, pCounterValue);
+    vkGetSwapchainCounterEXT_VkResult_return = vkEnc->vkGetSwapchainCounterEXT(device, swapchain, counter, pCounterValue, true /* do lock */);
     return vkGetSwapchainCounterEXT_VkResult_return;
 }
 #endif
@@ -4446,7 +4446,7 @@ static VkResult entry_vkGetRefreshCycleDurationGOOGLE(
     AEMU_SCOPED_TRACE("vkGetRefreshCycleDurationGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetRefreshCycleDurationGOOGLE_VkResult_return = (VkResult)0;
-    vkGetRefreshCycleDurationGOOGLE_VkResult_return = vkEnc->vkGetRefreshCycleDurationGOOGLE(device, swapchain, pDisplayTimingProperties);
+    vkGetRefreshCycleDurationGOOGLE_VkResult_return = vkEnc->vkGetRefreshCycleDurationGOOGLE(device, swapchain, pDisplayTimingProperties, true /* do lock */);
     return vkGetRefreshCycleDurationGOOGLE_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetRefreshCycleDurationGOOGLE(
@@ -4462,7 +4462,7 @@ static VkResult dynCheck_entry_vkGetRefreshCycleDurationGOOGLE(
     AEMU_SCOPED_TRACE("vkGetRefreshCycleDurationGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetRefreshCycleDurationGOOGLE_VkResult_return = (VkResult)0;
-    vkGetRefreshCycleDurationGOOGLE_VkResult_return = vkEnc->vkGetRefreshCycleDurationGOOGLE(device, swapchain, pDisplayTimingProperties);
+    vkGetRefreshCycleDurationGOOGLE_VkResult_return = vkEnc->vkGetRefreshCycleDurationGOOGLE(device, swapchain, pDisplayTimingProperties, true /* do lock */);
     return vkGetRefreshCycleDurationGOOGLE_VkResult_return;
 }
 static VkResult entry_vkGetPastPresentationTimingGOOGLE(
@@ -4474,7 +4474,7 @@ static VkResult entry_vkGetPastPresentationTimingGOOGLE(
     AEMU_SCOPED_TRACE("vkGetPastPresentationTimingGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPastPresentationTimingGOOGLE_VkResult_return = (VkResult)0;
-    vkGetPastPresentationTimingGOOGLE_VkResult_return = vkEnc->vkGetPastPresentationTimingGOOGLE(device, swapchain, pPresentationTimingCount, pPresentationTimings);
+    vkGetPastPresentationTimingGOOGLE_VkResult_return = vkEnc->vkGetPastPresentationTimingGOOGLE(device, swapchain, pPresentationTimingCount, pPresentationTimings, true /* do lock */);
     return vkGetPastPresentationTimingGOOGLE_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetPastPresentationTimingGOOGLE(
@@ -4491,7 +4491,7 @@ static VkResult dynCheck_entry_vkGetPastPresentationTimingGOOGLE(
     AEMU_SCOPED_TRACE("vkGetPastPresentationTimingGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetPastPresentationTimingGOOGLE_VkResult_return = (VkResult)0;
-    vkGetPastPresentationTimingGOOGLE_VkResult_return = vkEnc->vkGetPastPresentationTimingGOOGLE(device, swapchain, pPresentationTimingCount, pPresentationTimings);
+    vkGetPastPresentationTimingGOOGLE_VkResult_return = vkEnc->vkGetPastPresentationTimingGOOGLE(device, swapchain, pPresentationTimingCount, pPresentationTimings, true /* do lock */);
     return vkGetPastPresentationTimingGOOGLE_VkResult_return;
 }
 #endif
@@ -4515,7 +4515,7 @@ static void entry_vkCmdSetDiscardRectangleEXT(
     AEMU_SCOPED_TRACE("vkCmdSetDiscardRectangleEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdSetDiscardRectangleEXT(commandBuffer, firstDiscardRectangle, discardRectangleCount, pDiscardRectangles);
+    vkEnc->vkCmdSetDiscardRectangleEXT(commandBuffer, firstDiscardRectangle, discardRectangleCount, pDiscardRectangles, true /* do lock */);
 }
 #endif
 #ifdef VK_EXT_conservative_rasterization
@@ -4531,7 +4531,7 @@ static void entry_vkSetHdrMetadataEXT(
 {
     AEMU_SCOPED_TRACE("vkSetHdrMetadataEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkSetHdrMetadataEXT(device, swapchainCount, pSwapchains, pMetadata);
+    vkEnc->vkSetHdrMetadataEXT(device, swapchainCount, pSwapchains, pMetadata, true /* do lock */);
 }
 static void dynCheck_entry_vkSetHdrMetadataEXT(
     VkDevice device,
@@ -4546,7 +4546,7 @@ static void dynCheck_entry_vkSetHdrMetadataEXT(
     }
     AEMU_SCOPED_TRACE("vkSetHdrMetadataEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkSetHdrMetadataEXT(device, swapchainCount, pSwapchains, pMetadata);
+    vkEnc->vkSetHdrMetadataEXT(device, swapchainCount, pSwapchains, pMetadata, true /* do lock */);
 }
 #endif
 #ifdef VK_MVK_ios_surface
@@ -4559,7 +4559,7 @@ static VkResult entry_vkCreateIOSSurfaceMVK(
     AEMU_SCOPED_TRACE("vkCreateIOSSurfaceMVK");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateIOSSurfaceMVK_VkResult_return = (VkResult)0;
-    vkCreateIOSSurfaceMVK_VkResult_return = vkEnc->vkCreateIOSSurfaceMVK(instance, pCreateInfo, pAllocator, pSurface);
+    vkCreateIOSSurfaceMVK_VkResult_return = vkEnc->vkCreateIOSSurfaceMVK(instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
     return vkCreateIOSSurfaceMVK_VkResult_return;
 }
 #endif
@@ -4573,7 +4573,7 @@ static VkResult entry_vkCreateMacOSSurfaceMVK(
     AEMU_SCOPED_TRACE("vkCreateMacOSSurfaceMVK");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateMacOSSurfaceMVK_VkResult_return = (VkResult)0;
-    vkCreateMacOSSurfaceMVK_VkResult_return = vkEnc->vkCreateMacOSSurfaceMVK(instance, pCreateInfo, pAllocator, pSurface);
+    vkCreateMacOSSurfaceMVK_VkResult_return = vkEnc->vkCreateMacOSSurfaceMVK(instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
     return vkCreateMacOSSurfaceMVK_VkResult_return;
 }
 #endif
@@ -4589,7 +4589,7 @@ static VkResult entry_vkSetDebugUtilsObjectNameEXT(
     AEMU_SCOPED_TRACE("vkSetDebugUtilsObjectNameEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkSetDebugUtilsObjectNameEXT_VkResult_return = (VkResult)0;
-    vkSetDebugUtilsObjectNameEXT_VkResult_return = vkEnc->vkSetDebugUtilsObjectNameEXT(device, pNameInfo);
+    vkSetDebugUtilsObjectNameEXT_VkResult_return = vkEnc->vkSetDebugUtilsObjectNameEXT(device, pNameInfo, true /* do lock */);
     return vkSetDebugUtilsObjectNameEXT_VkResult_return;
 }
 static VkResult dynCheck_entry_vkSetDebugUtilsObjectNameEXT(
@@ -4604,7 +4604,7 @@ static VkResult dynCheck_entry_vkSetDebugUtilsObjectNameEXT(
     AEMU_SCOPED_TRACE("vkSetDebugUtilsObjectNameEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkSetDebugUtilsObjectNameEXT_VkResult_return = (VkResult)0;
-    vkSetDebugUtilsObjectNameEXT_VkResult_return = vkEnc->vkSetDebugUtilsObjectNameEXT(device, pNameInfo);
+    vkSetDebugUtilsObjectNameEXT_VkResult_return = vkEnc->vkSetDebugUtilsObjectNameEXT(device, pNameInfo, true /* do lock */);
     return vkSetDebugUtilsObjectNameEXT_VkResult_return;
 }
 static VkResult entry_vkSetDebugUtilsObjectTagEXT(
@@ -4614,7 +4614,7 @@ static VkResult entry_vkSetDebugUtilsObjectTagEXT(
     AEMU_SCOPED_TRACE("vkSetDebugUtilsObjectTagEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkSetDebugUtilsObjectTagEXT_VkResult_return = (VkResult)0;
-    vkSetDebugUtilsObjectTagEXT_VkResult_return = vkEnc->vkSetDebugUtilsObjectTagEXT(device, pTagInfo);
+    vkSetDebugUtilsObjectTagEXT_VkResult_return = vkEnc->vkSetDebugUtilsObjectTagEXT(device, pTagInfo, true /* do lock */);
     return vkSetDebugUtilsObjectTagEXT_VkResult_return;
 }
 static VkResult dynCheck_entry_vkSetDebugUtilsObjectTagEXT(
@@ -4629,7 +4629,7 @@ static VkResult dynCheck_entry_vkSetDebugUtilsObjectTagEXT(
     AEMU_SCOPED_TRACE("vkSetDebugUtilsObjectTagEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkSetDebugUtilsObjectTagEXT_VkResult_return = (VkResult)0;
-    vkSetDebugUtilsObjectTagEXT_VkResult_return = vkEnc->vkSetDebugUtilsObjectTagEXT(device, pTagInfo);
+    vkSetDebugUtilsObjectTagEXT_VkResult_return = vkEnc->vkSetDebugUtilsObjectTagEXT(device, pTagInfo, true /* do lock */);
     return vkSetDebugUtilsObjectTagEXT_VkResult_return;
 }
 static void entry_vkQueueBeginDebugUtilsLabelEXT(
@@ -4639,7 +4639,7 @@ static void entry_vkQueueBeginDebugUtilsLabelEXT(
     AEMU_SCOPED_TRACE("vkQueueBeginDebugUtilsLabelEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
-    vkEnc->vkQueueBeginDebugUtilsLabelEXT(queue, pLabelInfo);
+    vkEnc->vkQueueBeginDebugUtilsLabelEXT(queue, pLabelInfo, true /* do lock */);
 }
 static void entry_vkQueueEndDebugUtilsLabelEXT(
     VkQueue queue)
@@ -4647,7 +4647,7 @@ static void entry_vkQueueEndDebugUtilsLabelEXT(
     AEMU_SCOPED_TRACE("vkQueueEndDebugUtilsLabelEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
-    vkEnc->vkQueueEndDebugUtilsLabelEXT(queue);
+    vkEnc->vkQueueEndDebugUtilsLabelEXT(queue, true /* do lock */);
 }
 static void entry_vkQueueInsertDebugUtilsLabelEXT(
     VkQueue queue,
@@ -4656,7 +4656,7 @@ static void entry_vkQueueInsertDebugUtilsLabelEXT(
     AEMU_SCOPED_TRACE("vkQueueInsertDebugUtilsLabelEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
-    vkEnc->vkQueueInsertDebugUtilsLabelEXT(queue, pLabelInfo);
+    vkEnc->vkQueueInsertDebugUtilsLabelEXT(queue, pLabelInfo, true /* do lock */);
 }
 static void entry_vkCmdBeginDebugUtilsLabelEXT(
     VkCommandBuffer commandBuffer,
@@ -4665,7 +4665,7 @@ static void entry_vkCmdBeginDebugUtilsLabelEXT(
     AEMU_SCOPED_TRACE("vkCmdBeginDebugUtilsLabelEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdBeginDebugUtilsLabelEXT(commandBuffer, pLabelInfo);
+    vkEnc->vkCmdBeginDebugUtilsLabelEXT(commandBuffer, pLabelInfo, true /* do lock */);
 }
 static void entry_vkCmdEndDebugUtilsLabelEXT(
     VkCommandBuffer commandBuffer)
@@ -4673,7 +4673,7 @@ static void entry_vkCmdEndDebugUtilsLabelEXT(
     AEMU_SCOPED_TRACE("vkCmdEndDebugUtilsLabelEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdEndDebugUtilsLabelEXT(commandBuffer);
+    vkEnc->vkCmdEndDebugUtilsLabelEXT(commandBuffer, true /* do lock */);
 }
 static void entry_vkCmdInsertDebugUtilsLabelEXT(
     VkCommandBuffer commandBuffer,
@@ -4682,7 +4682,7 @@ static void entry_vkCmdInsertDebugUtilsLabelEXT(
     AEMU_SCOPED_TRACE("vkCmdInsertDebugUtilsLabelEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdInsertDebugUtilsLabelEXT(commandBuffer, pLabelInfo);
+    vkEnc->vkCmdInsertDebugUtilsLabelEXT(commandBuffer, pLabelInfo, true /* do lock */);
 }
 static VkResult entry_vkCreateDebugUtilsMessengerEXT(
     VkInstance instance,
@@ -4693,7 +4693,7 @@ static VkResult entry_vkCreateDebugUtilsMessengerEXT(
     AEMU_SCOPED_TRACE("vkCreateDebugUtilsMessengerEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateDebugUtilsMessengerEXT_VkResult_return = (VkResult)0;
-    vkCreateDebugUtilsMessengerEXT_VkResult_return = vkEnc->vkCreateDebugUtilsMessengerEXT(instance, pCreateInfo, pAllocator, pMessenger);
+    vkCreateDebugUtilsMessengerEXT_VkResult_return = vkEnc->vkCreateDebugUtilsMessengerEXT(instance, pCreateInfo, pAllocator, pMessenger, true /* do lock */);
     return vkCreateDebugUtilsMessengerEXT_VkResult_return;
 }
 static void entry_vkDestroyDebugUtilsMessengerEXT(
@@ -4703,7 +4703,7 @@ static void entry_vkDestroyDebugUtilsMessengerEXT(
 {
     AEMU_SCOPED_TRACE("vkDestroyDebugUtilsMessengerEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyDebugUtilsMessengerEXT(instance, messenger, pAllocator);
+    vkEnc->vkDestroyDebugUtilsMessengerEXT(instance, messenger, pAllocator, true /* do lock */);
 }
 static void entry_vkSubmitDebugUtilsMessageEXT(
     VkInstance instance,
@@ -4713,7 +4713,7 @@ static void entry_vkSubmitDebugUtilsMessageEXT(
 {
     AEMU_SCOPED_TRACE("vkSubmitDebugUtilsMessageEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkSubmitDebugUtilsMessageEXT(instance, messageSeverity, messageTypes, pCallbackData);
+    vkEnc->vkSubmitDebugUtilsMessageEXT(instance, messageSeverity, messageTypes, pCallbackData, true /* do lock */);
 }
 #endif
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
@@ -4792,7 +4792,7 @@ static void entry_vkCmdSetSampleLocationsEXT(
     AEMU_SCOPED_TRACE("vkCmdSetSampleLocationsEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdSetSampleLocationsEXT(commandBuffer, pSampleLocationsInfo);
+    vkEnc->vkCmdSetSampleLocationsEXT(commandBuffer, pSampleLocationsInfo, true /* do lock */);
 }
 static void entry_vkGetPhysicalDeviceMultisamplePropertiesEXT(
     VkPhysicalDevice physicalDevice,
@@ -4801,7 +4801,7 @@ static void entry_vkGetPhysicalDeviceMultisamplePropertiesEXT(
 {
     AEMU_SCOPED_TRACE("vkGetPhysicalDeviceMultisamplePropertiesEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetPhysicalDeviceMultisamplePropertiesEXT(physicalDevice, samples, pMultisampleProperties);
+    vkEnc->vkGetPhysicalDeviceMultisamplePropertiesEXT(physicalDevice, samples, pMultisampleProperties, true /* do lock */);
 }
 #endif
 #ifdef VK_EXT_blend_operation_advanced
@@ -4824,7 +4824,7 @@ static VkResult entry_vkCreateValidationCacheEXT(
     AEMU_SCOPED_TRACE("vkCreateValidationCacheEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateValidationCacheEXT_VkResult_return = (VkResult)0;
-    vkCreateValidationCacheEXT_VkResult_return = vkEnc->vkCreateValidationCacheEXT(device, pCreateInfo, pAllocator, pValidationCache);
+    vkCreateValidationCacheEXT_VkResult_return = vkEnc->vkCreateValidationCacheEXT(device, pCreateInfo, pAllocator, pValidationCache, true /* do lock */);
     return vkCreateValidationCacheEXT_VkResult_return;
 }
 static VkResult dynCheck_entry_vkCreateValidationCacheEXT(
@@ -4841,7 +4841,7 @@ static VkResult dynCheck_entry_vkCreateValidationCacheEXT(
     AEMU_SCOPED_TRACE("vkCreateValidationCacheEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateValidationCacheEXT_VkResult_return = (VkResult)0;
-    vkCreateValidationCacheEXT_VkResult_return = vkEnc->vkCreateValidationCacheEXT(device, pCreateInfo, pAllocator, pValidationCache);
+    vkCreateValidationCacheEXT_VkResult_return = vkEnc->vkCreateValidationCacheEXT(device, pCreateInfo, pAllocator, pValidationCache, true /* do lock */);
     return vkCreateValidationCacheEXT_VkResult_return;
 }
 static void entry_vkDestroyValidationCacheEXT(
@@ -4851,7 +4851,7 @@ static void entry_vkDestroyValidationCacheEXT(
 {
     AEMU_SCOPED_TRACE("vkDestroyValidationCacheEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyValidationCacheEXT(device, validationCache, pAllocator);
+    vkEnc->vkDestroyValidationCacheEXT(device, validationCache, pAllocator, true /* do lock */);
 }
 static void dynCheck_entry_vkDestroyValidationCacheEXT(
     VkDevice device,
@@ -4865,7 +4865,7 @@ static void dynCheck_entry_vkDestroyValidationCacheEXT(
     }
     AEMU_SCOPED_TRACE("vkDestroyValidationCacheEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkDestroyValidationCacheEXT(device, validationCache, pAllocator);
+    vkEnc->vkDestroyValidationCacheEXT(device, validationCache, pAllocator, true /* do lock */);
 }
 static VkResult entry_vkMergeValidationCachesEXT(
     VkDevice device,
@@ -4876,7 +4876,7 @@ static VkResult entry_vkMergeValidationCachesEXT(
     AEMU_SCOPED_TRACE("vkMergeValidationCachesEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkMergeValidationCachesEXT_VkResult_return = (VkResult)0;
-    vkMergeValidationCachesEXT_VkResult_return = vkEnc->vkMergeValidationCachesEXT(device, dstCache, srcCacheCount, pSrcCaches);
+    vkMergeValidationCachesEXT_VkResult_return = vkEnc->vkMergeValidationCachesEXT(device, dstCache, srcCacheCount, pSrcCaches, true /* do lock */);
     return vkMergeValidationCachesEXT_VkResult_return;
 }
 static VkResult dynCheck_entry_vkMergeValidationCachesEXT(
@@ -4893,7 +4893,7 @@ static VkResult dynCheck_entry_vkMergeValidationCachesEXT(
     AEMU_SCOPED_TRACE("vkMergeValidationCachesEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkMergeValidationCachesEXT_VkResult_return = (VkResult)0;
-    vkMergeValidationCachesEXT_VkResult_return = vkEnc->vkMergeValidationCachesEXT(device, dstCache, srcCacheCount, pSrcCaches);
+    vkMergeValidationCachesEXT_VkResult_return = vkEnc->vkMergeValidationCachesEXT(device, dstCache, srcCacheCount, pSrcCaches, true /* do lock */);
     return vkMergeValidationCachesEXT_VkResult_return;
 }
 static VkResult entry_vkGetValidationCacheDataEXT(
@@ -4905,7 +4905,7 @@ static VkResult entry_vkGetValidationCacheDataEXT(
     AEMU_SCOPED_TRACE("vkGetValidationCacheDataEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetValidationCacheDataEXT_VkResult_return = (VkResult)0;
-    vkGetValidationCacheDataEXT_VkResult_return = vkEnc->vkGetValidationCacheDataEXT(device, validationCache, pDataSize, pData);
+    vkGetValidationCacheDataEXT_VkResult_return = vkEnc->vkGetValidationCacheDataEXT(device, validationCache, pDataSize, pData, true /* do lock */);
     return vkGetValidationCacheDataEXT_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetValidationCacheDataEXT(
@@ -4922,7 +4922,7 @@ static VkResult dynCheck_entry_vkGetValidationCacheDataEXT(
     AEMU_SCOPED_TRACE("vkGetValidationCacheDataEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetValidationCacheDataEXT_VkResult_return = (VkResult)0;
-    vkGetValidationCacheDataEXT_VkResult_return = vkEnc->vkGetValidationCacheDataEXT(device, validationCache, pDataSize, pData);
+    vkGetValidationCacheDataEXT_VkResult_return = vkEnc->vkGetValidationCacheDataEXT(device, validationCache, pDataSize, pData, true /* do lock */);
     return vkGetValidationCacheDataEXT_VkResult_return;
 }
 #endif
@@ -4942,7 +4942,7 @@ static VkResult entry_vkGetMemoryHostPointerPropertiesEXT(
     AEMU_SCOPED_TRACE("vkGetMemoryHostPointerPropertiesEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetMemoryHostPointerPropertiesEXT_VkResult_return = (VkResult)0;
-    vkGetMemoryHostPointerPropertiesEXT_VkResult_return = vkEnc->vkGetMemoryHostPointerPropertiesEXT(device, handleType, pHostPointer, pMemoryHostPointerProperties);
+    vkGetMemoryHostPointerPropertiesEXT_VkResult_return = vkEnc->vkGetMemoryHostPointerPropertiesEXT(device, handleType, pHostPointer, pMemoryHostPointerProperties, true /* do lock */);
     return vkGetMemoryHostPointerPropertiesEXT_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetMemoryHostPointerPropertiesEXT(
@@ -4959,7 +4959,7 @@ static VkResult dynCheck_entry_vkGetMemoryHostPointerPropertiesEXT(
     AEMU_SCOPED_TRACE("vkGetMemoryHostPointerPropertiesEXT");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetMemoryHostPointerPropertiesEXT_VkResult_return = (VkResult)0;
-    vkGetMemoryHostPointerPropertiesEXT_VkResult_return = vkEnc->vkGetMemoryHostPointerPropertiesEXT(device, handleType, pHostPointer, pMemoryHostPointerProperties);
+    vkGetMemoryHostPointerPropertiesEXT_VkResult_return = vkEnc->vkGetMemoryHostPointerPropertiesEXT(device, handleType, pHostPointer, pMemoryHostPointerProperties, true /* do lock */);
     return vkGetMemoryHostPointerPropertiesEXT_VkResult_return;
 }
 #endif
@@ -4974,7 +4974,7 @@ static void entry_vkCmdWriteBufferMarkerAMD(
     AEMU_SCOPED_TRACE("vkCmdWriteBufferMarkerAMD");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdWriteBufferMarkerAMD(commandBuffer, pipelineStage, dstBuffer, dstOffset, marker);
+    vkEnc->vkCmdWriteBufferMarkerAMD(commandBuffer, pipelineStage, dstBuffer, dstOffset, marker, true /* do lock */);
 }
 #endif
 #ifdef VK_AMD_shader_core_properties
@@ -4991,7 +4991,7 @@ static void entry_vkCmdSetCheckpointNV(
     AEMU_SCOPED_TRACE("vkCmdSetCheckpointNV");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCmdSetCheckpointNV(commandBuffer, pCheckpointMarker);
+    vkEnc->vkCmdSetCheckpointNV(commandBuffer, pCheckpointMarker, true /* do lock */);
 }
 static void entry_vkGetQueueCheckpointDataNV(
     VkQueue queue,
@@ -5001,7 +5001,7 @@ static void entry_vkGetQueueCheckpointDataNV(
     AEMU_SCOPED_TRACE("vkGetQueueCheckpointDataNV");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
-    vkEnc->vkGetQueueCheckpointDataNV(queue, pCheckpointDataCount, pCheckpointData);
+    vkEnc->vkGetQueueCheckpointDataNV(queue, pCheckpointDataCount, pCheckpointData, true /* do lock */);
 }
 #endif
 #ifdef VK_GOOGLE_address_space
@@ -5013,7 +5013,7 @@ static VkResult entry_vkMapMemoryIntoAddressSpaceGOOGLE(
     AEMU_SCOPED_TRACE("vkMapMemoryIntoAddressSpaceGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return = (VkResult)0;
-    vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return = vkEnc->vkMapMemoryIntoAddressSpaceGOOGLE(device, memory, pAddress);
+    vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return = vkEnc->vkMapMemoryIntoAddressSpaceGOOGLE(device, memory, pAddress, true /* do lock */);
     return vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return;
 }
 static VkResult dynCheck_entry_vkMapMemoryIntoAddressSpaceGOOGLE(
@@ -5029,7 +5029,7 @@ static VkResult dynCheck_entry_vkMapMemoryIntoAddressSpaceGOOGLE(
     AEMU_SCOPED_TRACE("vkMapMemoryIntoAddressSpaceGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return = (VkResult)0;
-    vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return = vkEnc->vkMapMemoryIntoAddressSpaceGOOGLE(device, memory, pAddress);
+    vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return = vkEnc->vkMapMemoryIntoAddressSpaceGOOGLE(device, memory, pAddress, true /* do lock */);
     return vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return;
 }
 #endif
@@ -5042,7 +5042,7 @@ static VkResult entry_vkRegisterImageColorBufferGOOGLE(
     AEMU_SCOPED_TRACE("vkRegisterImageColorBufferGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkRegisterImageColorBufferGOOGLE_VkResult_return = (VkResult)0;
-    vkRegisterImageColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterImageColorBufferGOOGLE(device, image, colorBuffer);
+    vkRegisterImageColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterImageColorBufferGOOGLE(device, image, colorBuffer, true /* do lock */);
     return vkRegisterImageColorBufferGOOGLE_VkResult_return;
 }
 static VkResult dynCheck_entry_vkRegisterImageColorBufferGOOGLE(
@@ -5058,7 +5058,7 @@ static VkResult dynCheck_entry_vkRegisterImageColorBufferGOOGLE(
     AEMU_SCOPED_TRACE("vkRegisterImageColorBufferGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkRegisterImageColorBufferGOOGLE_VkResult_return = (VkResult)0;
-    vkRegisterImageColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterImageColorBufferGOOGLE(device, image, colorBuffer);
+    vkRegisterImageColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterImageColorBufferGOOGLE(device, image, colorBuffer, true /* do lock */);
     return vkRegisterImageColorBufferGOOGLE_VkResult_return;
 }
 static VkResult entry_vkRegisterBufferColorBufferGOOGLE(
@@ -5069,7 +5069,7 @@ static VkResult entry_vkRegisterBufferColorBufferGOOGLE(
     AEMU_SCOPED_TRACE("vkRegisterBufferColorBufferGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkRegisterBufferColorBufferGOOGLE_VkResult_return = (VkResult)0;
-    vkRegisterBufferColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterBufferColorBufferGOOGLE(device, buffer, colorBuffer);
+    vkRegisterBufferColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterBufferColorBufferGOOGLE(device, buffer, colorBuffer, true /* do lock */);
     return vkRegisterBufferColorBufferGOOGLE_VkResult_return;
 }
 static VkResult dynCheck_entry_vkRegisterBufferColorBufferGOOGLE(
@@ -5085,7 +5085,7 @@ static VkResult dynCheck_entry_vkRegisterBufferColorBufferGOOGLE(
     AEMU_SCOPED_TRACE("vkRegisterBufferColorBufferGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkRegisterBufferColorBufferGOOGLE_VkResult_return = (VkResult)0;
-    vkRegisterBufferColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterBufferColorBufferGOOGLE(device, buffer, colorBuffer);
+    vkRegisterBufferColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterBufferColorBufferGOOGLE(device, buffer, colorBuffer, true /* do lock */);
     return vkRegisterBufferColorBufferGOOGLE_VkResult_return;
 }
 #endif
@@ -5106,7 +5106,7 @@ static void entry_vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
 {
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateSizedGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkUpdateDescriptorSetWithTemplateSizedGOOGLE(device, descriptorSet, descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount, pImageInfoEntryIndices, pBufferInfoEntryIndices, pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews);
+    vkEnc->vkUpdateDescriptorSetWithTemplateSizedGOOGLE(device, descriptorSet, descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount, pImageInfoEntryIndices, pBufferInfoEntryIndices, pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews, true /* do lock */);
 }
 static void dynCheck_entry_vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     VkDevice device,
@@ -5129,7 +5129,7 @@ static void dynCheck_entry_vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     }
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateSizedGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkUpdateDescriptorSetWithTemplateSizedGOOGLE(device, descriptorSet, descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount, pImageInfoEntryIndices, pBufferInfoEntryIndices, pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews);
+    vkEnc->vkUpdateDescriptorSetWithTemplateSizedGOOGLE(device, descriptorSet, descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount, pImageInfoEntryIndices, pBufferInfoEntryIndices, pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews, true /* do lock */);
 }
 #endif
 #ifdef VK_GOOGLE_async_command_buffers
@@ -5140,7 +5140,7 @@ static void entry_vkBeginCommandBufferAsyncGOOGLE(
     AEMU_SCOPED_TRACE("vkBeginCommandBufferAsyncGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkBeginCommandBufferAsyncGOOGLE(commandBuffer, pBeginInfo);
+    vkEnc->vkBeginCommandBufferAsyncGOOGLE(commandBuffer, pBeginInfo, true /* do lock */);
 }
 static void entry_vkEndCommandBufferAsyncGOOGLE(
     VkCommandBuffer commandBuffer)
@@ -5148,7 +5148,7 @@ static void entry_vkEndCommandBufferAsyncGOOGLE(
     AEMU_SCOPED_TRACE("vkEndCommandBufferAsyncGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkEndCommandBufferAsyncGOOGLE(commandBuffer);
+    vkEnc->vkEndCommandBufferAsyncGOOGLE(commandBuffer, true /* do lock */);
 }
 static void entry_vkResetCommandBufferAsyncGOOGLE(
     VkCommandBuffer commandBuffer,
@@ -5157,7 +5157,7 @@ static void entry_vkResetCommandBufferAsyncGOOGLE(
     AEMU_SCOPED_TRACE("vkResetCommandBufferAsyncGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkResetCommandBufferAsyncGOOGLE(commandBuffer, flags);
+    vkEnc->vkResetCommandBufferAsyncGOOGLE(commandBuffer, flags, true /* do lock */);
 }
 static void entry_vkCommandBufferHostSyncGOOGLE(
     VkCommandBuffer commandBuffer,
@@ -5167,7 +5167,7 @@ static void entry_vkCommandBufferHostSyncGOOGLE(
     AEMU_SCOPED_TRACE("vkCommandBufferHostSyncGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, vkEnc);
-    vkEnc->vkCommandBufferHostSyncGOOGLE(commandBuffer, needHostSync, sequenceNumber);
+    vkEnc->vkCommandBufferHostSyncGOOGLE(commandBuffer, needHostSync, sequenceNumber, true /* do lock */);
 }
 #endif
 #ifdef VK_GOOGLE_create_resources_with_requirements
@@ -5181,7 +5181,7 @@ static VkResult entry_vkCreateImageWithRequirementsGOOGLE(
     AEMU_SCOPED_TRACE("vkCreateImageWithRequirementsGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateImageWithRequirementsGOOGLE_VkResult_return = (VkResult)0;
-    vkCreateImageWithRequirementsGOOGLE_VkResult_return = vkEnc->vkCreateImageWithRequirementsGOOGLE(device, pCreateInfo, pAllocator, pImage, pMemoryRequirements);
+    vkCreateImageWithRequirementsGOOGLE_VkResult_return = vkEnc->vkCreateImageWithRequirementsGOOGLE(device, pCreateInfo, pAllocator, pImage, pMemoryRequirements, true /* do lock */);
     return vkCreateImageWithRequirementsGOOGLE_VkResult_return;
 }
 static VkResult dynCheck_entry_vkCreateImageWithRequirementsGOOGLE(
@@ -5199,7 +5199,7 @@ static VkResult dynCheck_entry_vkCreateImageWithRequirementsGOOGLE(
     AEMU_SCOPED_TRACE("vkCreateImageWithRequirementsGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateImageWithRequirementsGOOGLE_VkResult_return = (VkResult)0;
-    vkCreateImageWithRequirementsGOOGLE_VkResult_return = vkEnc->vkCreateImageWithRequirementsGOOGLE(device, pCreateInfo, pAllocator, pImage, pMemoryRequirements);
+    vkCreateImageWithRequirementsGOOGLE_VkResult_return = vkEnc->vkCreateImageWithRequirementsGOOGLE(device, pCreateInfo, pAllocator, pImage, pMemoryRequirements, true /* do lock */);
     return vkCreateImageWithRequirementsGOOGLE_VkResult_return;
 }
 static VkResult entry_vkCreateBufferWithRequirementsGOOGLE(
@@ -5212,7 +5212,7 @@ static VkResult entry_vkCreateBufferWithRequirementsGOOGLE(
     AEMU_SCOPED_TRACE("vkCreateBufferWithRequirementsGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateBufferWithRequirementsGOOGLE_VkResult_return = (VkResult)0;
-    vkCreateBufferWithRequirementsGOOGLE_VkResult_return = vkEnc->vkCreateBufferWithRequirementsGOOGLE(device, pCreateInfo, pAllocator, pBuffer, pMemoryRequirements);
+    vkCreateBufferWithRequirementsGOOGLE_VkResult_return = vkEnc->vkCreateBufferWithRequirementsGOOGLE(device, pCreateInfo, pAllocator, pBuffer, pMemoryRequirements, true /* do lock */);
     return vkCreateBufferWithRequirementsGOOGLE_VkResult_return;
 }
 static VkResult dynCheck_entry_vkCreateBufferWithRequirementsGOOGLE(
@@ -5230,7 +5230,7 @@ static VkResult dynCheck_entry_vkCreateBufferWithRequirementsGOOGLE(
     AEMU_SCOPED_TRACE("vkCreateBufferWithRequirementsGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkCreateBufferWithRequirementsGOOGLE_VkResult_return = (VkResult)0;
-    vkCreateBufferWithRequirementsGOOGLE_VkResult_return = vkEnc->vkCreateBufferWithRequirementsGOOGLE(device, pCreateInfo, pAllocator, pBuffer, pMemoryRequirements);
+    vkCreateBufferWithRequirementsGOOGLE_VkResult_return = vkEnc->vkCreateBufferWithRequirementsGOOGLE(device, pCreateInfo, pAllocator, pBuffer, pMemoryRequirements, true /* do lock */);
     return vkCreateBufferWithRequirementsGOOGLE_VkResult_return;
 }
 #endif
@@ -5245,7 +5245,7 @@ static VkResult entry_vkGetMemoryHostAddressInfoGOOGLE(
     AEMU_SCOPED_TRACE("vkGetMemoryHostAddressInfoGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetMemoryHostAddressInfoGOOGLE_VkResult_return = (VkResult)0;
-    vkGetMemoryHostAddressInfoGOOGLE_VkResult_return = vkEnc->vkGetMemoryHostAddressInfoGOOGLE(device, memory, pAddress, pSize, pHostmemId);
+    vkGetMemoryHostAddressInfoGOOGLE_VkResult_return = vkEnc->vkGetMemoryHostAddressInfoGOOGLE(device, memory, pAddress, pSize, pHostmemId, true /* do lock */);
     return vkGetMemoryHostAddressInfoGOOGLE_VkResult_return;
 }
 static VkResult dynCheck_entry_vkGetMemoryHostAddressInfoGOOGLE(
@@ -5263,7 +5263,7 @@ static VkResult dynCheck_entry_vkGetMemoryHostAddressInfoGOOGLE(
     AEMU_SCOPED_TRACE("vkGetMemoryHostAddressInfoGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkGetMemoryHostAddressInfoGOOGLE_VkResult_return = (VkResult)0;
-    vkGetMemoryHostAddressInfoGOOGLE_VkResult_return = vkEnc->vkGetMemoryHostAddressInfoGOOGLE(device, memory, pAddress, pSize, pHostmemId);
+    vkGetMemoryHostAddressInfoGOOGLE_VkResult_return = vkEnc->vkGetMemoryHostAddressInfoGOOGLE(device, memory, pAddress, pSize, pHostmemId, true /* do lock */);
     return vkGetMemoryHostAddressInfoGOOGLE_VkResult_return;
 }
 #endif
@@ -5276,7 +5276,7 @@ static VkResult entry_vkFreeMemorySyncGOOGLE(
     AEMU_SCOPED_TRACE("vkFreeMemorySyncGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkFreeMemorySyncGOOGLE_VkResult_return = (VkResult)0;
-    vkFreeMemorySyncGOOGLE_VkResult_return = vkEnc->vkFreeMemorySyncGOOGLE(device, memory, pAllocator);
+    vkFreeMemorySyncGOOGLE_VkResult_return = vkEnc->vkFreeMemorySyncGOOGLE(device, memory, pAllocator, true /* do lock */);
     return vkFreeMemorySyncGOOGLE_VkResult_return;
 }
 static VkResult dynCheck_entry_vkFreeMemorySyncGOOGLE(
@@ -5292,7 +5292,7 @@ static VkResult dynCheck_entry_vkFreeMemorySyncGOOGLE(
     AEMU_SCOPED_TRACE("vkFreeMemorySyncGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkFreeMemorySyncGOOGLE_VkResult_return = (VkResult)0;
-    vkFreeMemorySyncGOOGLE_VkResult_return = vkEnc->vkFreeMemorySyncGOOGLE(device, memory, pAllocator);
+    vkFreeMemorySyncGOOGLE_VkResult_return = vkEnc->vkFreeMemorySyncGOOGLE(device, memory, pAllocator, true /* do lock */);
     return vkFreeMemorySyncGOOGLE_VkResult_return;
 }
 #endif
@@ -5305,7 +5305,7 @@ static void entry_vkQueueHostSyncGOOGLE(
     AEMU_SCOPED_TRACE("vkQueueHostSyncGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
-    vkEnc->vkQueueHostSyncGOOGLE(queue, needHostSync, sequenceNumber);
+    vkEnc->vkQueueHostSyncGOOGLE(queue, needHostSync, sequenceNumber, true /* do lock */);
 }
 static void entry_vkQueueSubmitAsyncGOOGLE(
     VkQueue queue,
@@ -5316,7 +5316,7 @@ static void entry_vkQueueSubmitAsyncGOOGLE(
     AEMU_SCOPED_TRACE("vkQueueSubmitAsyncGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
-    vkEnc->vkQueueSubmitAsyncGOOGLE(queue, submitCount, pSubmits, fence);
+    vkEnc->vkQueueSubmitAsyncGOOGLE(queue, submitCount, pSubmits, fence, true /* do lock */);
 }
 static void entry_vkQueueWaitIdleAsyncGOOGLE(
     VkQueue queue)
@@ -5324,7 +5324,7 @@ static void entry_vkQueueWaitIdleAsyncGOOGLE(
     AEMU_SCOPED_TRACE("vkQueueWaitIdleAsyncGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
-    vkEnc->vkQueueWaitIdleAsyncGOOGLE(queue);
+    vkEnc->vkQueueWaitIdleAsyncGOOGLE(queue, true /* do lock */);
 }
 static void entry_vkQueueBindSparseAsyncGOOGLE(
     VkQueue queue,
@@ -5335,7 +5335,7 @@ static void entry_vkQueueBindSparseAsyncGOOGLE(
     AEMU_SCOPED_TRACE("vkQueueBindSparseAsyncGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
     ResourceTracker::get()->syncEncodersForQueue(queue, vkEnc);
-    vkEnc->vkQueueBindSparseAsyncGOOGLE(queue, bindInfoCount, pBindInfo, fence);
+    vkEnc->vkQueueBindSparseAsyncGOOGLE(queue, bindInfoCount, pBindInfo, fence, true /* do lock */);
 }
 #endif
 #ifdef VK_GOOGLE_linear_image_layout
@@ -5347,7 +5347,7 @@ static void entry_vkGetLinearImageLayoutGOOGLE(
 {
     AEMU_SCOPED_TRACE("vkGetLinearImageLayoutGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetLinearImageLayoutGOOGLE(device, format, pOffset, pRowPitchAlignment);
+    vkEnc->vkGetLinearImageLayoutGOOGLE(device, format, pOffset, pRowPitchAlignment, true /* do lock */);
 }
 static void dynCheck_entry_vkGetLinearImageLayoutGOOGLE(
     VkDevice device,
@@ -5362,7 +5362,7 @@ static void dynCheck_entry_vkGetLinearImageLayoutGOOGLE(
     }
     AEMU_SCOPED_TRACE("vkGetLinearImageLayoutGOOGLE");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetLinearImageLayoutGOOGLE(device, format, pOffset, pRowPitchAlignment);
+    vkEnc->vkGetLinearImageLayoutGOOGLE(device, format, pOffset, pRowPitchAlignment, true /* do lock */);
 }
 #endif
 #ifdef VK_MVK_moltenvk
@@ -5372,7 +5372,7 @@ static void entry_vkGetMTLDeviceMVK(
 {
     AEMU_SCOPED_TRACE("vkGetMTLDeviceMVK");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetMTLDeviceMVK(physicalDevice, pMTLDevice);
+    vkEnc->vkGetMTLDeviceMVK(physicalDevice, pMTLDevice, true /* do lock */);
 }
 static VkResult entry_vkSetMTLTextureMVK(
     VkImage image,
@@ -5381,7 +5381,7 @@ static VkResult entry_vkSetMTLTextureMVK(
     AEMU_SCOPED_TRACE("vkSetMTLTextureMVK");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkSetMTLTextureMVK_VkResult_return = (VkResult)0;
-    vkSetMTLTextureMVK_VkResult_return = vkEnc->vkSetMTLTextureMVK(image, mtlTexture);
+    vkSetMTLTextureMVK_VkResult_return = vkEnc->vkSetMTLTextureMVK(image, mtlTexture, true /* do lock */);
     return vkSetMTLTextureMVK_VkResult_return;
 }
 static void entry_vkGetMTLTextureMVK(
@@ -5390,7 +5390,7 @@ static void entry_vkGetMTLTextureMVK(
 {
     AEMU_SCOPED_TRACE("vkGetMTLTextureMVK");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetMTLTextureMVK(image, pMTLTexture);
+    vkEnc->vkGetMTLTextureMVK(image, pMTLTexture, true /* do lock */);
 }
 static void entry_vkGetMTLBufferMVK(
     VkBuffer buffer,
@@ -5398,7 +5398,7 @@ static void entry_vkGetMTLBufferMVK(
 {
     AEMU_SCOPED_TRACE("vkGetMTLBufferMVK");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetMTLBufferMVK(buffer, pMTLBuffer);
+    vkEnc->vkGetMTLBufferMVK(buffer, pMTLBuffer, true /* do lock */);
 }
 static VkResult entry_vkUseIOSurfaceMVK(
     VkImage image,
@@ -5407,7 +5407,7 @@ static VkResult entry_vkUseIOSurfaceMVK(
     AEMU_SCOPED_TRACE("vkUseIOSurfaceMVK");
     auto vkEnc = HostConnection::get()->vkEncoder();
     VkResult vkUseIOSurfaceMVK_VkResult_return = (VkResult)0;
-    vkUseIOSurfaceMVK_VkResult_return = vkEnc->vkUseIOSurfaceMVK(image, ioSurface);
+    vkUseIOSurfaceMVK_VkResult_return = vkEnc->vkUseIOSurfaceMVK(image, ioSurface, true /* do lock */);
     return vkUseIOSurfaceMVK_VkResult_return;
 }
 static void entry_vkGetIOSurfaceMVK(
@@ -5416,7 +5416,7 @@ static void entry_vkGetIOSurfaceMVK(
 {
     AEMU_SCOPED_TRACE("vkGetIOSurfaceMVK");
     auto vkEnc = HostConnection::get()->vkEncoder();
-    vkEnc->vkGetIOSurfaceMVK(image, pIOSurface);
+    vkEnc->vkGetIOSurfaceMVK(image, pIOSurface, true /* do lock */);
 }
 #endif
 void* goldfish_vulkan_get_proc_address(const char* name){

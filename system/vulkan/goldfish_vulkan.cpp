@@ -417,7 +417,7 @@ VkResult CreateInstance(const VkInstanceCreateInfo* create_info,
         return vkstubhal::CreateInstance(create_info, allocator, out_instance);
     }
 
-    VkResult res = vkEnc->vkCreateInstance(create_info, nullptr, out_instance);
+    VkResult res = vkEnc->vkCreateInstance(create_info, nullptr, out_instance, true /* do lock */);
 
     return res;
 }

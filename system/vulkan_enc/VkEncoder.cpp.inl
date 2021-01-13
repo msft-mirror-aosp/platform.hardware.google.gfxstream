@@ -33,37 +33,11 @@ public:
 
     // can be recursive
     void lock() {
-        if (this == sAcquiredEncoderThreadLocal) {
-            ++sAcquiredEncoderThreadLockLevels;
-            return; // recursive
-        }
         while (mLock.test_and_set(std::memory_order_acquire));
-        sAcquiredEncoderThreadLocal = this;
-        sAcquiredEncoderThreadLockLevels = 1;
     }
 
     void unlock() {
-        if (this != sAcquiredEncoderThreadLocal) {
-            // error, trying to unlock without having locked first
-            return;
-        }
-
-        --sAcquiredEncoderThreadLockLevels;
-        if (0 == sAcquiredEncoderThreadLockLevels) {
-            mLock.clear(std::memory_order_release);
-            sAcquiredEncoderThreadLocal = nullptr;
-        }
-    }
-
-    void incRef() {
-        __atomic_add_fetch(&m_refCount, 1, __ATOMIC_SEQ_CST);
-    }
-
-    bool decRef() {
-        if (0 == __atomic_sub_fetch(&m_refCount, 1, __ATOMIC_SEQ_CST)) {
-            return true;
-        }
-        return false;
+        mLock.clear(std::memory_order_release);
     }
 
 private:
@@ -76,7 +50,6 @@ private:
     std::atomic_flag mLock = ATOMIC_FLAG_INIT;
     static thread_local Impl* sAcquiredEncoderThreadLocal;
     static thread_local uint32_t sAcquiredEncoderThreadLockLevels;
-    uint32_t m_refCount = 1;
 };
 
 VkEncoder::~VkEncoder() { }
@@ -111,14 +84,13 @@ void VkEncoder::unlock() {
 }
 
 void VkEncoder::incRef() {
-    mImpl->incRef();
+    __atomic_add_fetch(&refCount, 1, __ATOMIC_SEQ_CST);
 }
 
 bool VkEncoder::decRef() {
-    if (mImpl->decRef()) {
+    if (0 == __atomic_sub_fetch(&refCount, 1, __ATOMIC_SEQ_CST)) {
         delete this;
         return true;
     }
     return false;
 }
-
