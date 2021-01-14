@@ -22,6 +22,7 @@
 
 #include <C2.h>
 #include <C2Config.h>
+#include <cutils/properties.h>
 #include <log/log.h>
 
 namespace android {
@@ -236,6 +237,22 @@ GoldfishComponentStore::ComponentModule::getTraits() {
     return mTraits;
 }
 
+static bool useAndroidGoldfishComponentInstance(const char *libname) {
+    // We have a property set indicating whether to use the host side codec
+    // or not (ro.kernel.qemu.hwcodec.<mLibNameSuffix>).
+    char propValue[PROP_VALUE_MAX];
+    std::string prop = "ro.kernel.qemu.hwcodec.";
+    prop.append(libname);
+
+    bool myret = property_get(prop.c_str(), propValue, "") > 0 &&
+                 strcmp("2", propValue) == 0;
+    if (myret) {
+        ALOGD("%s %d found prop %s val %s", __func__, __LINE__, prop.c_str(),
+              propValue);
+    }
+    return myret;
+}
+
 GoldfishComponentStore::GoldfishComponentStore()
     : mVisited(false), mReflector(std::make_shared<C2ReflectorHelper>()) {
 
@@ -245,11 +262,13 @@ GoldfishComponentStore::GoldfishComponentStore()
         mComponents.emplace(libPath, libPath);
     };
 
-    // TODO: add this back when it is available
-    //    emplace("libcodec2_goldfish_avcdec.so");
-    emplace("libcodec2_goldfish_vp8dec.so");
-    emplace("libcodec2_goldfish_vp9dec.so");
-    emplace("libcodec2_goldfish_avcdec.so");
+    if (useAndroidGoldfishComponentInstance("vpxdec")) {
+        emplace("libcodec2_goldfish_vp8dec.so");
+        emplace("libcodec2_goldfish_vp9dec.so");
+    }
+    if (useAndroidGoldfishComponentInstance("avcdec")) {
+        emplace("libcodec2_goldfish_avcdec.so");
+    }
 }
 
 c2_status_t
