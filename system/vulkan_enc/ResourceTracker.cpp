@@ -330,15 +330,18 @@ public:
     };
 
     struct VkDescriptorUpdateTemplate_Info {
-        std::vector<VkDescriptorUpdateTemplateEntry> templateEntries;
+        uint32_t templateEntryCount = 0;
+        VkDescriptorUpdateTemplateEntry* templateEntries;
 
-        // Flattened versions
-        std::vector<uint32_t> imageInfoEntryIndices;
-        std::vector<uint32_t> bufferInfoEntryIndices;
-        std::vector<uint32_t> bufferViewEntryIndices;
-        std::vector<VkDescriptorImageInfo> imageInfos;
-        std::vector<VkDescriptorBufferInfo> bufferInfos;
-        std::vector<VkBufferView> bufferViews;
+        uint32_t imageInfoCount = 0;
+        uint32_t bufferInfoCount = 0;
+        uint32_t bufferViewCount = 0;
+        uint32_t* imageInfoIndices;
+        uint32_t* bufferInfoIndices;
+        uint32_t* bufferViewIndices;
+        VkDescriptorImageInfo* imageInfos;
+        VkDescriptorBufferInfo* bufferInfos;
+        VkBufferView* bufferViews;
     };
 
     struct VkFence_Info {
@@ -485,7 +488,27 @@ public:
     }
 
     void unregister_VkDescriptorUpdateTemplate(VkDescriptorUpdateTemplate templ) {
-        info_VkDescriptorUpdateTemplate.erase(templ);
+
+        AutoLock lock(mLock);
+        auto it = info_VkDescriptorUpdateTemplate.find(templ);
+        if (it == info_VkDescriptorUpdateTemplate.end())
+            return;
+
+        auto& info = it->second;
+        if (info.templateEntryCount) delete [] info.templateEntries;
+        if (info.imageInfoCount) {
+            delete [] info.imageInfoIndices;
+            delete [] info.imageInfos;
+        }
+        if (info.bufferInfoCount) {
+            delete [] info.bufferInfoIndices;
+            delete [] info.bufferInfos;
+        }
+        if (info.bufferViewCount) {
+            delete [] info.bufferViewIndices;
+            delete [] info.bufferViews;
+        }
+        info_VkDescriptorUpdateTemplate.erase(it);
     }
 
     void unregister_VkFence(VkFence fence) {
@@ -3781,6 +3804,8 @@ public:
             }
         }
 
+        lock.unlock();
+
         if (fencesExternal.empty()) {
             // No need for work pool, just wait with host driver.
             return enc->vkWaitForFences(
@@ -4885,27 +4910,18 @@ public:
 
         auto& info = it->second;
 
-        size_t imageInfosNeeded = 0;
-        size_t bufferInfosNeeded = 0;
-        size_t bufferViewsNeeded = 0;
-
         for (uint32_t i = 0; i < pCreateInfo->descriptorUpdateEntryCount; ++i) {
             const auto& entry = pCreateInfo->pDescriptorUpdateEntries[i];
             uint32_t descCount = entry.descriptorCount;
             VkDescriptorType descType = entry.descriptorType;
-
-            info.templateEntries.push_back(entry);
-
+            ++info.templateEntryCount;
             for (uint32_t j = 0; j < descCount; ++j) {
                 if (isDescriptorTypeImageInfo(descType)) {
-                    ++imageInfosNeeded;
-                    info.imageInfoEntryIndices.push_back(i);
+                    ++info.imageInfoCount;
                 } else if (isDescriptorTypeBufferInfo(descType)) {
-                    ++bufferInfosNeeded;
-                    info.bufferInfoEntryIndices.push_back(i);
+                    ++info.bufferInfoCount;
                 } else if (isDescriptorTypeBufferView(descType)) {
-                    ++bufferViewsNeeded;
-                    info.bufferViewEntryIndices.push_back(i);
+                    ++info.bufferViewCount;
                 } else {
                     ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
                     abort();
@@ -4913,10 +4929,51 @@ public:
             }
         }
 
-        // To be filled in later (our flat structure)
-        info.imageInfos.resize(imageInfosNeeded);
-        info.bufferInfos.resize(bufferInfosNeeded);
-        info.bufferViews.resize(bufferViewsNeeded);
+        if (info.templateEntryCount)
+            info.templateEntries = new VkDescriptorUpdateTemplateEntry[info.templateEntryCount];
+
+        if (info.imageInfoCount) {
+            info.imageInfoIndices = new uint32_t[info.imageInfoCount];
+            info.imageInfos = new VkDescriptorImageInfo[info.imageInfoCount];
+        }
+
+        if (info.bufferInfoCount) {
+            info.bufferInfoIndices = new uint32_t[info.bufferInfoCount];
+            info.bufferInfos = new VkDescriptorBufferInfo[info.bufferInfoCount];
+        }
+
+        if (info.bufferViewCount) {
+            info.bufferViewIndices = new uint32_t[info.bufferViewCount];
+            info.bufferViews = new VkBufferView[info.bufferViewCount];
+        }
+
+        uint32_t imageInfoIndex = 0;
+        uint32_t bufferInfoIndex = 0;
+        uint32_t bufferViewIndex = 0;
+
+        for (uint32_t i = 0; i < pCreateInfo->descriptorUpdateEntryCount; ++i) {
+            const auto& entry = pCreateInfo->pDescriptorUpdateEntries[i];
+            uint32_t descCount = entry.descriptorCount;
+            VkDescriptorType descType = entry.descriptorType;
+
+            info.templateEntries[i] = entry;
+
+            for (uint32_t j = 0; j < descCount; ++j) {
+                if (isDescriptorTypeImageInfo(descType)) {
+                    info.imageInfoIndices[imageInfoIndex] = i;
+                    ++imageInfoIndex;
+                } else if (isDescriptorTypeBufferInfo(descType)) {
+                    info.bufferInfoIndices[bufferInfoIndex] = i;
+                    ++bufferInfoIndex;
+                } else if (isDescriptorTypeBufferView(descType)) {
+                    info.bufferViewIndices[bufferViewIndex] = i;
+                    ++bufferViewIndex;
+                } else {
+                    ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
+                    abort();
+                }
+            }
+        }
 
         return VK_SUCCESS;
     }
@@ -4965,6 +5022,7 @@ public:
         uint8_t* userBuffer = (uint8_t*)pData;
         if (!userBuffer) return;
 
+        // TODO: Make this thread safe
         AutoLock lock(mLock);
 
         auto it = info_VkDescriptorUpdateTemplate.find(descriptorUpdateTemplate);
@@ -4974,11 +5032,27 @@ public:
 
         auto& info = it->second;
 
+        uint32_t templateEntryCount = info.templateEntryCount;
+        VkDescriptorUpdateTemplateEntry* templateEntries = info.templateEntries;
+
+        uint32_t imageInfoCount = info.imageInfoCount;
+        uint32_t bufferInfoCount = info.bufferInfoCount;
+        uint32_t bufferViewCount = info.bufferViewCount;
+        uint32_t* imageInfoIndices = info.imageInfoIndices;
+        uint32_t* bufferInfoIndices = info.bufferInfoIndices;
+        uint32_t* bufferViewIndices = info.bufferViewIndices;
+        VkDescriptorImageInfo* imageInfos = info.imageInfos;
+        VkDescriptorBufferInfo* bufferInfos = info.bufferInfos;
+        VkBufferView* bufferViews = info.bufferViews;
+
+        lock.unlock();
+
         size_t currImageInfoOffset = 0;
         size_t currBufferInfoOffset = 0;
         size_t currBufferViewOffset = 0;
 
-        for (const auto& entry : info.templateEntries) {
+        for (uint32_t i = 0; i < templateEntryCount; ++i) {
+            const auto& entry = templateEntries[i];
             VkDescriptorType descType = entry.descriptorType;
 
             auto offset = entry.offset;
@@ -4989,7 +5063,7 @@ public:
             if (isDescriptorTypeImageInfo(descType)) {
                 if (!stride) stride = sizeof(VkDescriptorImageInfo);
                 for (uint32_t j = 0; j < descCount; ++j) {
-                    memcpy(((uint8_t*)info.imageInfos.data()) + currImageInfoOffset,
+                    memcpy(((uint8_t*)imageInfos) + currImageInfoOffset,
                            userBuffer + offset + j * stride,
                            sizeof(VkDescriptorImageInfo));
                     currImageInfoOffset += sizeof(VkDescriptorImageInfo);
@@ -4997,7 +5071,7 @@ public:
             } else if (isDescriptorTypeBufferInfo(descType)) {
                 if (!stride) stride = sizeof(VkDescriptorBufferInfo);
                 for (uint32_t j = 0; j < descCount; ++j) {
-                    memcpy(((uint8_t*)info.bufferInfos.data()) + currBufferInfoOffset,
+                    memcpy(((uint8_t*)bufferInfos) + currBufferInfoOffset,
                            userBuffer + offset + j * stride,
                            sizeof(VkDescriptorBufferInfo));
                     currBufferInfoOffset += sizeof(VkDescriptorBufferInfo);
@@ -5005,7 +5079,7 @@ public:
             } else if (isDescriptorTypeBufferView(descType)) {
                 if (!stride) stride = sizeof(VkBufferView);
                 for (uint32_t j = 0; j < descCount; ++j) {
-                    memcpy(((uint8_t*)info.bufferViews.data()) + currBufferViewOffset,
+                    memcpy(((uint8_t*)bufferViews) + currBufferViewOffset,
                            userBuffer + offset + j * stride,
                            sizeof(VkBufferView));
                     currBufferViewOffset += sizeof(VkBufferView);
@@ -5020,15 +5094,16 @@ public:
             device,
             descriptorSet,
             descriptorUpdateTemplate,
-            (uint32_t)info.imageInfos.size(),
-            (uint32_t)info.bufferInfos.size(),
-            (uint32_t)info.bufferViews.size(),
-            info.imageInfoEntryIndices.data(),
-            info.bufferInfoEntryIndices.data(),
-            info.bufferViewEntryIndices.data(),
-            info.imageInfos.data(),
-            info.bufferInfos.data(),
-            info.bufferViews.data(), true /* do lock */);
+            imageInfoCount,
+            bufferInfoCount,
+            bufferViewCount,
+            imageInfoIndices,
+            bufferInfoIndices,
+            bufferViewIndices,
+            imageInfos,
+            bufferInfos,
+            bufferViews,
+            true /* do lock */);
     }
 
     VkResult on_vkGetPhysicalDeviceImageFormatProperties2_common(
