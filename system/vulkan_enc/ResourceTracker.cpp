@@ -1868,17 +1868,21 @@ public:
             } else {
                 // If image format is predefined, check on host if the format,
                 // tiling and usage is supported.
-                AutoLock lock(mLock);
-                auto deviceIt = info_VkDevice.find(device);
-                if (deviceIt == info_VkDevice.end()) {
-                    return VK_ERROR_INITIALIZATION_FAILED;
+                VkPhysicalDevice physicalDevice;
+                {
+                    AutoLock lock(mLock);
+                    auto deviceIt = info_VkDevice.find(device);
+                    if (deviceIt == info_VkDevice.end()) {
+                        return VK_ERROR_INITIALIZATION_FAILED;
+                    }
+                    physicalDevice = deviceIt->second.physdev;
                 }
-                auto& deviceInfo = deviceIt->second;
 
                 VkImageFormatProperties format_properties;
                 auto result = enc->vkGetPhysicalDeviceImageFormatProperties(
-                    deviceInfo.physdev, pImageInfo->format, pImageInfo->imageType,
-                    pImageInfo->tiling, pImageInfo->usage, pImageInfo->flags, &format_properties, true /* do lock */);
+                    physicalDevice, pImageInfo->format, pImageInfo->imageType,
+                    pImageInfo->tiling, pImageInfo->usage, pImageInfo->flags,
+                    &format_properties, true /* do lock */);
                 if (result != VK_SUCCESS) {
                     ALOGE(
                         "%s: Image format (%u) type (%u) tiling (%u) "
