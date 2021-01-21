@@ -28,7 +28,7 @@
 #include <C2PlatformSupport.h>
 #include <SimpleC2Component.h>
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #define DDD(...) ALOGD(__VA_ARGS__)
 #else
