@@ -658,11 +658,11 @@ int AddressSpaceStream::type1Write(uint32_t bufferOffset, size_t size) {
     uint32_t maxSteps = m_context.ring_config->buffer_size /
             m_context.ring_config->flush_interval;
 
-    if (maxSteps > 1) maxOutstanding = maxSteps >> 1;
+    if (maxSteps > 1) maxOutstanding = maxSteps - 1;
 
     uint32_t ringAvailReadNow = ring_buffer_available_read(m_context.to_host, 0);
 
-    while (ringAvailReadNow >= maxOutstanding) {
+    while (ringAvailReadNow >= maxOutstanding * sizeForRing) {
         ensureConsumerFinishing();
         ringAvailReadNow = ring_buffer_available_read(m_context.to_host, 0);
     }
