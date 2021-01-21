@@ -40,7 +40,7 @@
 
 #include "C2GoldfishAvcDec.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #define DDD(...) ALOGD(__VA_ARGS__)
 #else
