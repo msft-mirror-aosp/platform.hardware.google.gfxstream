@@ -15,6 +15,8 @@
 */
 #include "AddressSpaceStream.h"
 
+#include "android/base/Tracing.h"
+
 #if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
 #else
@@ -321,6 +323,9 @@ size_t AddressSpaceStream::idealAllocSize(size_t len) {
 }
 
 void *AddressSpaceStream::allocBuffer(size_t minSize) {
+    AEMU_SCOPED_TRACE("allocBuffer");
+    ensureType3Finished();
+
     if (!m_readBuf) {
         m_readBuf = (unsigned char*)malloc(kReadSize);
     }
@@ -465,7 +470,7 @@ const unsigned char *AddressSpaceStream::read(void *buf, size_t *inout_len) {
 
 int AddressSpaceStream::writeFully(const void *buf, size_t size)
 {
-    ensureConsumerFinishing();
+    AEMU_SCOPED_TRACE("writeFully");
     ensureType3Finished();
     ensureType1Finished();
 
@@ -473,9 +478,76 @@ int AddressSpaceStream::writeFully(const void *buf, size_t size)
     m_context.ring_config->transfer_mode = 3;
 
     size_t sent = 0;
-    size_t quarterRingSize = m_writeBufferSize / 4;
-    size_t chunkSize = size < quarterRingSize ? size : quarterRingSize;
+    size_t preferredChunkSize = m_writeBufferSize / 4;
+    size_t chunkSize = size < preferredChunkSize ? size : preferredChunkSize;
     const uint8_t* bufferBytes = (const uint8_t*)buf;
+
+    bool hostPinged = false;
+    while (sent < size) {
+        size_t remaining = size - sent;
+        size_t sendThisTime = remaining < chunkSize ? remaining : chunkSize;
+
+        long sentChunks =
+            ring_buffer_view_write(
+                m_context.to_host_large_xfer.ring,
+                &m_context.to_host_large_xfer.view,
+                bufferBytes + sent, sendThisTime, 1);
+
+        if (!hostPinged && *(m_context.host_state) != ASG_HOST_STATE_CAN_CONSUME &&
+            *(m_context.host_state) != ASG_HOST_STATE_RENDERING) {
+            notifyAvailable();
+            hostPinged = true;
+        }
+
+        if (sentChunks == 0) {
+            ring_buffer_yield();
+            backoff();
+        }
+
+        sent += sentChunks * sendThisTime;
+
+        if (isInError()) {
+            return -1;
+        }
+    }
+
+    bool isRenderingAfter = ASG_HOST_STATE_RENDERING == __atomic_load_n(m_context.host_state, __ATOMIC_ACQUIRE);
+
+    if (!isRenderingAfter) {
+        notifyAvailable();
+    }
+
+    ensureType3Finished();
+
+    resetBackoff();
+    m_context.ring_config->transfer_mode = 1;
+    m_written += size;
+
+    float mb = (float)m_written / 1048576.0f;
+    if (mb > 100.0f) {
+        ALOGD("%s: %f mb in %d notifs. %f mb/notif\n", __func__,
+              mb, m_notifs, m_notifs ? mb / (float)m_notifs : 0.0f);
+        m_notifs = 0;
+        m_written = 0;
+    }
+    return 0;
+}
+
+int AddressSpaceStream::writeFullyAsync(const void *buf, size_t size)
+{
+    AEMU_SCOPED_TRACE("writeFullyAsync");
+    ensureType3Finished();
+    ensureType1Finished();
+
+    __atomic_store_n(&m_context.ring_config->transfer_size, size, __ATOMIC_RELEASE);
+    m_context.ring_config->transfer_mode = 3;
+
+    size_t sent = 0;
+    size_t preferredChunkSize = m_writeBufferSize / 2;
+    size_t chunkSize = size < preferredChunkSize ? size : preferredChunkSize;
+    const uint8_t* bufferBytes = (const uint8_t*)buf;
+
+    bool pingedHost = false;
 
     while (sent < size) {
         size_t remaining = size - sent;
@@ -487,7 +559,12 @@ int AddressSpaceStream::writeFully(const void *buf, size_t size)
                 &m_context.to_host_large_xfer.view,
                 bufferBytes + sent, sendThisTime, 1);
 
-        if (*(m_context.host_state) != ASG_HOST_STATE_CAN_CONSUME) {
+        uint32_t hostState = __atomic_load_n(m_context.host_state, __ATOMIC_ACQUIRE);
+
+        if (!pingedHost &&
+            hostState != ASG_HOST_STATE_CAN_CONSUME &&
+            hostState != ASG_HOST_STATE_RENDERING) {
+            pingedHost = true;
             notifyAvailable();
         }
 
@@ -503,10 +580,24 @@ int AddressSpaceStream::writeFully(const void *buf, size_t size)
         }
     }
 
-    ensureType3Finished();
+
+    bool isRenderingAfter = ASG_HOST_STATE_RENDERING == __atomic_load_n(m_context.host_state, __ATOMIC_ACQUIRE);
+
+    if (!isRenderingAfter) {
+        notifyAvailable();
+    }
+
     resetBackoff();
     m_context.ring_config->transfer_mode = 1;
     m_written += size;
+
+    float mb = (float)m_written / 1048576.0f;
+    if (mb > 100.0f) {
+        ALOGD("%s: %f mb in %d notifs. %f mb/notif\n", __func__,
+              mb, m_notifs, m_notifs ? mb / (float)m_notifs : 0.0f);
+        m_notifs = 0;
+        m_written = 0;
+    }
     return 0;
 }
 
@@ -529,7 +620,6 @@ bool AddressSpaceStream::isInError() const {
 }
 
 ssize_t AddressSpaceStream::speculativeRead(unsigned char* readBuffer, size_t trySize) {
-    ensureConsumerFinishing();
     ensureType3Finished();
     ensureType1Finished();
 
@@ -568,6 +658,7 @@ ssize_t AddressSpaceStream::speculativeRead(unsigned char* readBuffer, size_t tr
 }
 
 void AddressSpaceStream::notifyAvailable() {
+    AEMU_SCOPED_TRACE("PING");
     struct address_space_ping request;
     request.metadata = ASG_NOTIFY_AVAILABLE;
     m_ops.ping(m_handle, &request);
@@ -597,7 +688,8 @@ void AddressSpaceStream::ensureConsumerFinishing() {
             break;
         }
 
-        if (*(m_context.host_state) != ASG_HOST_STATE_CAN_CONSUME) {
+        if (*(m_context.host_state) != ASG_HOST_STATE_CAN_CONSUME &&
+            *(m_context.host_state) != ASG_HOST_STATE_RENDERING) {
             notifyAvailable();
             break;
         }
@@ -607,7 +699,7 @@ void AddressSpaceStream::ensureConsumerFinishing() {
 }
 
 void AddressSpaceStream::ensureType1Finished() {
-    ensureConsumerFinishing();
+    AEMU_SCOPED_TRACE("ensureType1Finished");
 
     uint32_t currAvailRead =
         ring_buffer_available_read(m_context.to_host, 0);
@@ -623,6 +715,7 @@ void AddressSpaceStream::ensureType1Finished() {
 }
 
 void AddressSpaceStream::ensureType3Finished() {
+    AEMU_SCOPED_TRACE("ensureType3Finished");
     uint32_t availReadLarge =
         ring_buffer_available_read(
             m_context.to_host_large_xfer.ring,
@@ -634,7 +727,8 @@ void AddressSpaceStream::ensureType3Finished() {
             ring_buffer_available_read(
                 m_context.to_host_large_xfer.ring,
                 &m_context.to_host_large_xfer.view);
-        if (*(m_context.host_state) != ASG_HOST_STATE_CAN_CONSUME) {
+        if (*(m_context.host_state) != ASG_HOST_STATE_CAN_CONSUME &&
+            *(m_context.host_state) != ASG_HOST_STATE_RENDERING) {
             notifyAvailable();
         }
         if (isInError()) {
@@ -644,6 +738,11 @@ void AddressSpaceStream::ensureType3Finished() {
 }
 
 int AddressSpaceStream::type1Write(uint32_t bufferOffset, size_t size) {
+
+    AEMU_SCOPED_TRACE("type1Write");
+
+    ensureType3Finished();
+
     size_t sent = 0;
     size_t sizeForRing = sizeof(struct asg_type1_xfer);
 
@@ -663,10 +762,10 @@ int AddressSpaceStream::type1Write(uint32_t bufferOffset, size_t size) {
     uint32_t ringAvailReadNow = ring_buffer_available_read(m_context.to_host, 0);
 
     while (ringAvailReadNow >= maxOutstanding * sizeForRing) {
-        ensureConsumerFinishing();
         ringAvailReadNow = ring_buffer_available_read(m_context.to_host, 0);
     }
 
+    bool hostPinged = false;
     while (sent < sizeForRing) {
 
         long sentChunks = ring_buffer_write(
@@ -674,8 +773,11 @@ int AddressSpaceStream::type1Write(uint32_t bufferOffset, size_t size) {
             writeBufferBytes + sent,
             sizeForRing - sent, 1);
 
-        if (*(m_context.host_state) != ASG_HOST_STATE_CAN_CONSUME) {
+        if (!hostPinged &&
+            *(m_context.host_state) != ASG_HOST_STATE_CAN_CONSUME &&
+            *(m_context.host_state) != ASG_HOST_STATE_RENDERING) {
             notifyAvailable();
+            hostPinged = true;
         }
 
         if (sentChunks == 0) {
@@ -690,7 +792,12 @@ int AddressSpaceStream::type1Write(uint32_t bufferOffset, size_t size) {
         }
     }
 
-    ensureConsumerFinishing();
+    bool isRenderingAfter = ASG_HOST_STATE_RENDERING == __atomic_load_n(m_context.host_state, __ATOMIC_ACQUIRE);
+
+    if (!isRenderingAfter) {
+        notifyAvailable();
+    }
+
     m_written += size;
 
     float mb = (float)m_written / 1048576.0f;
@@ -706,7 +813,7 @@ int AddressSpaceStream::type1Write(uint32_t bufferOffset, size_t size) {
 }
 
 void AddressSpaceStream::backoff() {
-#if defined(__APPLE__) || defined(__MACOSX) || defined(__Fuchsia__)
+#if defined(HOST_BUILD) || defined(__APPLE__) || defined(__MACOSX) || defined(__Fuchsia__)
     static const uint32_t kBackoffItersThreshold = 50000000;
     static const uint32_t kBackoffFactorDoublingIncrement = 50000000;
 #else
