@@ -35,9 +35,12 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <set>
+#include <xf86drm.h>
+#include <xf86drmMode.h>
 
 #include <cutils/native_handle.h>
 
+#include "include/drmhwcgralloc.h"
 #include "HostConnection.h"
 
 namespace android {
@@ -202,6 +205,35 @@ private:
         uint32_t mLayerCnt;
         ComposeDevice_v2* mComposeDevice;
     };
+
+    class VirtioGpu {
+    public:
+        VirtioGpu();
+        ~VirtioGpu();
+        int setCrtc(hwc_drm_bo_t& fb);
+        int getDrmFB(hwc_drm_bo_t& bo);
+        int clearDrmFB(hwc_drm_bo_t& bo);
+        bool supportComposeWithoutPost();
+
+    private:
+        drmModeModeInfo mMode;
+        int32_t mFd = -1;
+        uint32_t mConnectorId;
+        uint32_t mCrtcId;
+        bool mSupportComposeWithoutPost = false;
+    };
+
+    class DrmBuffer {
+    public:
+        DrmBuffer(const native_handle_t* handle, VirtioGpu& virtioGpu);
+        ~DrmBuffer();
+        int flush();
+    private:
+        int convertBoInfo(const native_handle_t* handle);
+        VirtioGpu& mVirtioGpu;
+        hwc_drm_bo_t mBo;
+    };
+
 
     class Display {
     public:
@@ -378,6 +410,8 @@ private:
         std::unique_ptr<ComposeMsg_v2> mComposeMsg_v2;
         int mSyncDeviceFd;
         const native_handle_t* mTargetCb;
+        std::unique_ptr<DrmBuffer> mTargetDrmBuffer;
+        std::unique_ptr<DrmBuffer> mClientTargetDrmBuffer;
     };
 
     template<typename MF, MF memFunc, typename ...Args>
@@ -490,6 +524,8 @@ private:
     int mDisplayHeight;
     int mDisplayDpiX;
     int mDisplayDpiY;
+
+    VirtioGpu mVirtioGpu;
 };
 
 }

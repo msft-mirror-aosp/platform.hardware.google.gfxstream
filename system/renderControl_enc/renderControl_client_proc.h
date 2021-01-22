@@ -72,6 +72,8 @@ typedef void (renderControl_APIENTRY *rcSetTracingForPuid_client_proc_t) (void *
 typedef void (renderControl_APIENTRY *rcMakeCurrentAsync_client_proc_t) (void * ctx, uint32_t, uint32_t, uint32_t);
 typedef void (renderControl_APIENTRY *rcComposeAsync_client_proc_t) (void * ctx, uint32_t, void*);
 typedef void (renderControl_APIENTRY *rcDestroySyncKHRAsync_client_proc_t) (void * ctx, uint64_t);
+typedef GLint (renderControl_APIENTRY *rcComposeWithoutPost_client_proc_t) (void * ctx, uint32_t, void*);
+typedef void (renderControl_APIENTRY *rcComposeAsyncWithoutPost_client_proc_t) (void * ctx, uint32_t, void*);
 
 
 #endif

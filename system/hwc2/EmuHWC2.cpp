@@ -29,7 +29,9 @@
 #include <EGL/eglext.h>
 #include <ui/GraphicBuffer.h>
 #include <ui/GraphicBufferAllocator.h>
+#include <ui/GraphicBufferMapper.h>
 
+#include "cros_gralloc_handle.h"
 #include "../egl/goldfish_sync.h"
 
 #include "ThreadInfo.h"
@@ -459,6 +461,7 @@ EmuHWC2::Display::Display(EmuHWC2& device, DisplayType type, int width, int heig
     mStateMutex() {
         mVsyncThread.run("", ANDROID_PRIORITY_URGENT_DISPLAY);
         mTargetCb = device.allocateDisplayColorBuffer(width, height);
+        mTargetDrmBuffer.reset(new DrmBuffer(mTargetCb, mDevice.mVirtioGpu));
 }
 
 EmuHWC2::Display::~Display() {
@@ -768,7 +771,11 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
         if (numLayer == 0) {
             ALOGW("No layers, exit, buffer %p", mClientTarget.getBuffer());
             if (mClientTarget.getBuffer()) {
-                post(hostCon, rcEnc, mClientTarget.getBuffer());
+                if (mDevice.mVirtioGpu.supportComposeWithoutPost()) {
+                    mClientTargetDrmBuffer->flush();
+                } else {
+                    post(hostCon, rcEnc, mClientTarget.getBuffer());
+                }
                 *outRetireFence = mClientTarget.getFence();
             }
             return Error::None;
@@ -863,24 +870,48 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
 
         hostCon->lock();
         if (rcEnc->hasAsyncFrameCommands()) {
-            if (hostCompositionV1) {
-                rcEnc->rcComposeAsync(rcEnc,
-                        sizeof(ComposeDevice) + numLayer * sizeof(ComposeLayer),
-                        (void *)p);
+            if (mDevice.mVirtioGpu.supportComposeWithoutPost()) {
+                if (hostCompositionV1) {
+                    rcEnc->rcComposeAsyncWithoutPost(rcEnc,
+                            sizeof(ComposeDevice) + numLayer * sizeof(ComposeLayer),
+                            (void *)p);
+                } else {
+                    rcEnc->rcComposeAsyncWithoutPost(rcEnc,
+                            sizeof(ComposeDevice_v2) + numLayer * sizeof(ComposeLayer),
+                            (void *)p2);
+                }
             } else {
-                rcEnc->rcComposeAsync(rcEnc,
-                        sizeof(ComposeDevice_v2) + numLayer * sizeof(ComposeLayer),
-                        (void *)p2);
+                if (hostCompositionV1) {
+                    rcEnc->rcComposeAsync(rcEnc,
+                            sizeof(ComposeDevice) + numLayer * sizeof(ComposeLayer),
+                            (void *)p);
+                } else {
+                    rcEnc->rcComposeAsync(rcEnc,
+                            sizeof(ComposeDevice_v2) + numLayer * sizeof(ComposeLayer),
+                            (void *)p2);
+                }
             }
         } else {
-            if (hostCompositionV1) {
-                rcEnc->rcCompose(rcEnc,
-                        sizeof(ComposeDevice) + numLayer * sizeof(ComposeLayer),
-                        (void *)p);
+            if (mDevice.mVirtioGpu.supportComposeWithoutPost()) {
+                if (hostCompositionV1) {
+                    rcEnc->rcComposeWithoutPost(rcEnc,
+                            sizeof(ComposeDevice) + numLayer * sizeof(ComposeLayer),
+                            (void *)p);
+                } else {
+                    rcEnc->rcComposeWithoutPost(rcEnc,
+                            sizeof(ComposeDevice_v2) + numLayer * sizeof(ComposeLayer),
+                            (void *)p2);
+                }
             } else {
-                rcEnc->rcCompose(rcEnc,
-                        sizeof(ComposeDevice_v2) + numLayer * sizeof(ComposeLayer),
-                        (void *)p2);
+                if (hostCompositionV1) {
+                    rcEnc->rcCompose(rcEnc,
+                            sizeof(ComposeDevice) + numLayer * sizeof(ComposeLayer),
+                            (void *)p);
+                } else {
+                    rcEnc->rcCompose(rcEnc,
+                            sizeof(ComposeDevice_v2) + numLayer * sizeof(ComposeLayer),
+                            (void *)p2);
+                }
             }
         }
 
@@ -915,9 +946,18 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
             rcEnc->rcDestroySyncKHR(rcEnc, sync_handle);
         }
         hostCon->unlock();
+
+        if (mDevice.mVirtioGpu.supportComposeWithoutPost()) {
+            mTargetDrmBuffer->flush();
+        }
+
     } else {
         // we set all layers Composition::Client, so do nothing.
-        post(hostCon, rcEnc, mClientTarget.getBuffer());
+        if (mDevice.mVirtioGpu.supportComposeWithoutPost()) {
+            mClientTargetDrmBuffer->flush();
+        } else {
+            post(hostCon, rcEnc, mClientTarget.getBuffer());
+        }
         *outRetireFence = mClientTarget.getFence();
         ALOGV("%s fallback to post, returns outRetireFence %d",
               __FUNCTION__, *outRetireFence);
@@ -951,6 +991,12 @@ Error EmuHWC2::Display::setClientTarget(buffer_handle_t target,
     std::unique_lock<std::mutex> lock(mStateMutex);
     mClientTarget.setBuffer(target);
     mClientTarget.setFence(acquireFence);
+
+    //drm buffer
+    if (mDevice.mVirtioGpu.supportComposeWithoutPost()) {
+        mClientTargetDrmBuffer.reset(
+            new DrmBuffer(static_cast<const native_handle_t*>(target), mDevice.mVirtioGpu));
+    }
     return Error::None;
 }
 
@@ -1332,6 +1378,7 @@ int EmuHWC2::Display::populatePrimaryConfigs(int width, int height, int dpiX, in
 void EmuHWC2::Display::post(HostConnection *hostCon,
                             ExtendedRCEncoderContext *rcEnc,
                             buffer_handle_t h) {
+    return;
     assert(cb && "native_handle_t::from(h) failed");
 
     hostCon->lock();
@@ -1629,6 +1676,143 @@ Error EmuHWC2::Layer::setZ(uint32_t z) {
     ALOGVV("%s layer %u %d", __FUNCTION__, (uint32_t)mId, z);
     mZ = z;
     return Error::None;
+}
+
+// VirtioGPU
+EmuHWC2::VirtioGpu::VirtioGpu() {
+    drmModeRes *res;
+    drmModeConnector *conn;
+
+    mFd = open("/dev/dri/card0", O_RDWR | O_CLOEXEC);
+    if (mFd < 0) {
+        ALOGE("%s Error opening virtioGPU device: %d", __func__, errno);
+        return;
+    }
+    res = drmModeGetResources(mFd);
+    if (res == nullptr) {
+        ALOGE("%s Error reading drm resources: %d", __func__, errno);
+        close(mFd);
+        mFd = -1;
+        return;
+    }
+    mCrtcId = res->crtcs[0];
+    mConnectorId = res->connectors[0];
+    conn = drmModeGetConnector(mFd, mConnectorId);
+    if (conn == nullptr) {
+        ALOGE("%s Error reading drm connector %d: %d", __func__, mConnectorId, errno);
+        drmModeFreeResources(res);
+        close(mFd);
+        mFd = -1;
+        return;
+    }
+    memcpy(&mMode, &conn->modes[0], sizeof(drmModeModeInfo));
+
+    HostConnection *hostCon = createOrGetHostConnection();
+    if (hostCon) {
+        mSupportComposeWithoutPost =
+            GraphicBufferMapper::get().getMapperVersion() ==
+                GraphicBufferMapper::Version::GRALLOC_4 &&
+            (hostCon->connectionType() ==
+                HOST_CONNECTION_VIRTIO_GPU_PIPE ||
+             hostCon->connectionType() ==
+                HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE);
+    }
+    drmModeFreeConnector(conn);
+    drmModeFreeResources(res);
+    ALOGV("%s: init VirtioGpu success", __func__);
+}
+
+EmuHWC2::VirtioGpu::~VirtioGpu() {
+    close(mFd);
+}
+
+int EmuHWC2::VirtioGpu::setCrtc(hwc_drm_bo_t& bo) {
+    int ret = drmModeSetCrtc(mFd, mCrtcId, bo.fb_id,
+                             0, 0, &mConnectorId, 1, &mMode);
+    ALOGV("%s: drm FB %d", __func__, bo.fb_id);
+    if (ret) {
+        ALOGE("%s: drmModeSetCrtc failed: %s (errno %d)",
+              __func__, strerror(errno), errno);
+        return -1;
+    }
+    return 0;
+}
+
+int EmuHWC2::VirtioGpu::getDrmFB(hwc_drm_bo_t& bo) {
+    int ret = drmPrimeFDToHandle(mFd, bo.prime_fds[0], &bo.gem_handles[0]);
+    if (ret) {
+        ALOGE("%s: drmPrimeFDToHandle failed: %s (errno %d)",
+              __func__, strerror(errno), errno);
+        return -1;
+    }
+    ret = drmModeAddFB2(mFd, bo.width, bo.height, bo.format,
+                        bo.gem_handles, bo.pitches, bo.offsets,
+                        &bo.fb_id, 0);
+    if (ret) {
+        ALOGE("%s: drmModeAddFB2 failed: %s (errno %d)",
+              __func__, strerror(errno), errno);
+        return -1;
+    }
+    ALOGV("%s: drm FB %d", __func__, bo.fb_id);
+    return 0;
+}
+
+int EmuHWC2::VirtioGpu::clearDrmFB(hwc_drm_bo_t& bo) {
+    int ret = 0;
+    if (bo.fb_id) {
+        if (drmModeRmFB(mFd, bo.fb_id)) {
+            ALOGE("%s: drmModeRmFB failed: %s (errno %d)",
+                  __func__, strerror(errno), errno);
+        }
+        ret = -1;
+    }
+    if (bo.gem_handles[0]) {
+        struct drm_gem_close gem_close = {};
+        gem_close.handle = bo.gem_handles[0];
+        if (drmIoctl(mFd, DRM_IOCTL_GEM_CLOSE, &gem_close)) {
+            ALOGE("%s: DRM_IOCTL_GEM_CLOSE failed: %s (errno %d)",
+                  __func__, strerror(errno), errno);
+        }
+        ret = -1;
+    }
+    ALOGV("%s: drm FB %d", __func__, bo.fb_id);
+    return ret;
+}
+
+bool EmuHWC2::VirtioGpu::supportComposeWithoutPost() {
+    return mSupportComposeWithoutPost;
+}
+
+EmuHWC2::DrmBuffer::DrmBuffer(const native_handle_t* handle,
+                              VirtioGpu& virtioGpu)
+  : mVirtioGpu(virtioGpu), mBo({}) {
+    if (!convertBoInfo(handle)) {
+        mVirtioGpu.getDrmFB(mBo);
+    }
+}
+
+EmuHWC2::DrmBuffer::~DrmBuffer() {
+    mVirtioGpu.clearDrmFB(mBo);
+}
+
+int EmuHWC2::DrmBuffer::convertBoInfo(const native_handle_t* handle) {
+    cros_gralloc_handle *gr_handle = (cros_gralloc_handle *)handle;
+    if (!gr_handle) {
+      ALOGE("%s: Null buffer handle", __func__);
+      return -1;
+    }
+    mBo.width = gr_handle->width;
+    mBo.height = gr_handle->height;
+    mBo.hal_format = gr_handle->droid_format;
+    mBo.format = gr_handle->format;
+    mBo.usage = gr_handle->usage;
+    mBo.prime_fds[0] = gr_handle->fds[0];
+    mBo.pitches[0] = gr_handle->strides[0];
+    return 0;
+}
+
+int EmuHWC2::DrmBuffer::flush() {
+    return mVirtioGpu.setCrtc(mBo);
 }
 
 // Adaptor Helpers
