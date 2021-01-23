@@ -16,6 +16,7 @@
 #include "ResourceTracker.h"
 
 #include "Resources.h"
+#include "CommandBufferStagingStream.h"
 
 #include "android/base/Optional.h"
 #include "android/base/threads/AndroidWorkPool.h"
@@ -233,6 +234,38 @@ static uint32_t* sSeqnoPtr = nullptr;
 uint32_t ResourceTracker::streamFeatureBits = 0;
 ResourceTracker::ThreadingCallbacks ResourceTracker::threadingCallbacks;
 
+struct StagingInfo {
+    Lock mLock;
+    std::vector<CommandBufferStagingStream*> streams;
+    std::vector<VkEncoder*> encoders;
+
+    void pushStaging(CommandBufferStagingStream* stream, VkEncoder* encoder) {
+        AutoLock lock(mLock);
+        stream->reset();
+        streams.push_back(stream);
+        encoders.push_back(encoder);
+    }
+
+    void popStaging(CommandBufferStagingStream** streamOut, VkEncoder** encoderOut) {
+        AutoLock lock(mLock);
+        CommandBufferStagingStream* stream;
+        VkEncoder* encoder;
+        if (streams.empty()) {
+            stream = new CommandBufferStagingStream;
+            encoder = new VkEncoder(stream);
+        } else {
+            stream = streams.back();
+            encoder = encoders.back();
+            streams.pop_back();
+            encoders.pop_back();
+        }
+        *streamOut = stream;
+        *encoderOut = encoder;
+    }
+};
+
+static StagingInfo sStaging;
+
 class ResourceTracker::Impl {
 public:
     Impl() = default;
@@ -373,6 +406,10 @@ public:
         std::vector<VkDescriptorSetLayoutBinding> bindings;
     };
 
+    struct VkCommandPool_Info {
+        uint32_t unused;
+    };
+
 #define HANDLE_REGISTER_IMPL_IMPL(type) \
     std::unordered_map<type, type##_Info> info_##type; \
     void register_##type(type obj) { \
@@ -409,10 +446,27 @@ public:
         lock.unlock();
     }
 
+    void unregister_VkCommandPool(VkCommandPool pool) {
+        if (!pool) return;
+
+        clearCommandPool(pool);
+
+        AutoLock lock(mLock);
+        info_VkCommandPool.erase(pool);
+    }
+
     void unregister_VkCommandBuffer(VkCommandBuffer commandBuffer) {
+        resetCommandBufferStagingInfo(commandBuffer, true /* also reset primaries */);
+
         struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
         if (!cb) return;
         if (cb->lastUsedEncoder) { cb->lastUsedEncoder->decRef(); }
+        eraseObjects(&cb->subObjects);
+        forAllObjects(cb->poolObjects, [cb](void* commandPool) {
+            struct goldfish_VkCommandPool* p = as_goldfish_VkCommandPool((VkCommandPool)commandPool);
+            eraseObject(&p->subObjects, (void*)cb);
+        });
+        eraseObjects(&cb->poolObjects);
 
         AutoLock lock(mLock);
         info_VkCommandBuffer.erase(commandBuffer);
@@ -5313,8 +5367,15 @@ public:
         VkCommandBuffer commandBuffer,
         const VkCommandBufferBeginInfo* pBeginInfo) {
 
-        VkEncoder* enc = (VkEncoder*)context;
+        (void)context;
+
+        resetCommandBufferStagingInfo(commandBuffer, true /* also reset primaries */);
+
+        VkEncoder* enc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
         (void)input_result;
+
+        struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
+        cb->flags = pBeginInfo->flags;
 
         if (!supportsDeferredCommands()) {
             return enc->vkBeginCommandBuffer(commandBuffer, pBeginInfo, true /* do lock */);
@@ -5345,6 +5406,8 @@ public:
         void* context, VkResult input_result,
         VkCommandBuffer commandBuffer,
         VkCommandBufferResetFlags flags) {
+
+        resetCommandBufferStagingInfo(commandBuffer, true /* also reset primaries */);
 
         VkEncoder* enc = (VkEncoder*)context;
         (void)input_result;
@@ -5381,6 +5444,29 @@ public:
 #endif
 
         return enc->vkCreateImageView(device, &localCreateInfo, pAllocator, pView, true /* do lock */);
+    }
+
+    void on_vkCmdExecuteCommands(
+        void* context,
+        VkCommandBuffer commandBuffer,
+        uint32_t commandBufferCount,
+        const VkCommandBuffer* pCommandBuffers) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        if (!mFeatureInfo->hasVulkanQueueSubmitWithCommands) {
+            enc->vkCmdExecuteCommands(commandBuffer, commandBufferCount, pCommandBuffers, true /* do lock */);
+            return;
+        }
+
+        struct goldfish_VkCommandBuffer* primary = as_goldfish_VkCommandBuffer(commandBuffer);
+        for (uint32_t i = 0; i < commandBufferCount; ++i) {
+            struct goldfish_VkCommandBuffer* secondary = as_goldfish_VkCommandBuffer(pCommandBuffers[i]);
+            appendObject(&secondary->superObjects, primary);
+            appendObject(&primary->subObjects, secondary);
+        }
+
+        enc->vkCmdExecuteCommands(commandBuffer, commandBufferCount, pCommandBuffers, true /* do lock */);
     }
 
     uint32_t getApiVersionFromInstance(VkInstance instance) const {
@@ -5426,6 +5512,69 @@ public:
 
         return it->second.enabledExtensions.find(name) !=
                it->second.enabledExtensions.end();
+    }
+
+    // Resets staging stream for this command buffer and primary command buffers
+    // where this command buffer has been recorded.
+    void resetCommandBufferStagingInfo(VkCommandBuffer commandBuffer, bool alsoResetPrimaries) {
+        struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
+        if (!cb) {
+            return;
+        }
+        if (cb->privateEncoder) {
+            sStaging.pushStaging((CommandBufferStagingStream*)cb->privateStream, cb->privateEncoder);
+            cb->privateEncoder = nullptr;
+            cb->privateStream = nullptr;
+        }
+
+        if (alsoResetPrimaries) {
+            forAllObjects(cb->superObjects, [this, cb, alsoResetPrimaries](void* obj) {
+                VkCommandBuffer superCommandBuffer = (VkCommandBuffer)obj;
+                struct goldfish_VkCommandBuffer* superCb = as_goldfish_VkCommandBuffer(superCommandBuffer);
+                this->resetCommandBufferStagingInfo(superCommandBuffer, alsoResetPrimaries);
+            });
+            eraseObjects(&cb->superObjects);
+        }
+
+        forAllObjects(cb->subObjects, [cb](void* obj) {
+            VkCommandBuffer subCommandBuffer = (VkCommandBuffer)obj;
+            struct goldfish_VkCommandBuffer* subCb = as_goldfish_VkCommandBuffer(subCommandBuffer);
+            // We don't do resetCommandBufferStagingInfo(subCommandBuffer)
+            // since the user still might have submittable stuff pending there.
+            eraseObject(&subCb->superObjects, (void*)cb);
+        });
+
+        eraseObjects(&cb->subObjects);
+    }
+
+    void resetCommandPoolStagingInfo(VkCommandPool commandPool) {
+        struct goldfish_VkCommandPool* p = as_goldfish_VkCommandPool(commandPool);
+
+        if (!p) return;
+
+        forAllObjects(p->subObjects, [this](void* commandBuffer) {
+            this->resetCommandBufferStagingInfo((VkCommandBuffer)commandBuffer, true /* also reset primaries */);
+        });
+    }
+
+    void addToCommandPool(VkCommandPool commandPool,
+                          uint32_t commandBufferCount,
+                          VkCommandBuffer* pCommandBuffers) {
+        for (uint32_t i = 0; i < commandBufferCount; ++i) {
+            struct goldfish_VkCommandPool* p = as_goldfish_VkCommandPool(commandPool);
+            struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(pCommandBuffers[i]);
+            appendObject(&p->subObjects, (void*)(pCommandBuffers[i]));
+            appendObject(&cb->poolObjects, (void*)commandPool);
+        }
+    }
+
+    void clearCommandPool(VkCommandPool commandPool) {
+        resetCommandPoolStagingInfo(commandPool);
+        struct goldfish_VkCommandPool* p = as_goldfish_VkCommandPool(commandPool);
+        forAllObjects(p->subObjects, [this](void* commandBuffer) {
+            this->unregister_VkCommandBuffer((VkCommandBuffer)commandBuffer);
+        });
+        eraseObjects(&p->subObjects);
     }
 
 private:
@@ -5545,6 +5694,48 @@ bool ResourceTracker::hasInstanceExtension(VkInstance instance, const std::strin
 }
 bool ResourceTracker::hasDeviceExtension(VkDevice device, const std::string &name) const {
     return mImpl->hasDeviceExtension(device, name);
+}
+void ResourceTracker::addToCommandPool(VkCommandPool commandPool,
+                      uint32_t commandBufferCount,
+                      VkCommandBuffer* pCommandBuffers) {
+    mImpl->addToCommandPool(commandPool, commandBufferCount, pCommandBuffers);
+}
+void ResourceTracker::resetCommandPoolStagingInfo(VkCommandPool commandPool) {
+    mImpl->resetCommandPoolStagingInfo(commandPool);
+}
+
+
+// static
+__attribute__((always_inline)) VkEncoder* ResourceTracker::getCommandBufferEncoder(VkCommandBuffer commandBuffer) {
+    if (!(ResourceTracker::streamFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT)) {
+        auto enc = ResourceTracker::getThreadLocalEncoder();
+        ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, enc);
+        return enc;
+    }
+
+    struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
+    if (!cb->privateEncoder) {
+        sStaging.popStaging((CommandBufferStagingStream**)&cb->privateStream, &cb->privateEncoder);
+    }
+    uint8_t* writtenPtr; size_t written;
+    ((CommandBufferStagingStream*)cb->privateStream)->getWritten(&writtenPtr, &written);
+    return cb->privateEncoder;
+}
+
+// static
+__attribute__((always_inline)) VkEncoder* ResourceTracker::getQueueEncoder(VkQueue queue) {
+    auto enc = ResourceTracker::getThreadLocalEncoder();
+    if (!(ResourceTracker::streamFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT)) {
+        ResourceTracker::get()->syncEncodersForQueue(queue, enc);
+    }
+    return enc;
+}
+
+// static
+__attribute__((always_inline)) VkEncoder* ResourceTracker::getThreadLocalEncoder() {
+    auto hostConn = ResourceTracker::threadingCallbacks.hostConnectionGetFunc();
+    auto vkEncoder = ResourceTracker::threadingCallbacks.vkEncoderGetFunc(hostConn);
+    return vkEncoder;
 }
 
 // static
@@ -6308,6 +6499,15 @@ VkResult ResourceTracker::on_vkCreateImageView(
     VkImageView* pView) {
     return mImpl->on_vkCreateImageView(
         context, input_result, device, pCreateInfo, pAllocator, pView);
+}
+
+void ResourceTracker::on_vkCmdExecuteCommands(
+    void* context,
+    VkCommandBuffer commandBuffer,
+    uint32_t commandBufferCount,
+    const VkCommandBuffer* pCommandBuffers) {
+    mImpl->on_vkCmdExecuteCommands(
+        context, commandBuffer, commandBufferCount, pCommandBuffers);
 }
 
 void ResourceTracker::deviceMemoryTransform_tohost(

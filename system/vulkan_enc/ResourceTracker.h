@@ -512,6 +512,12 @@ public:
         const VkAllocationCallbacks* pAllocator,
         VkImageView* pView);
 
+    void on_vkCmdExecuteCommands(
+        void* context,
+        VkCommandBuffer commandBuffer,
+        uint32_t commandBufferCount,
+        const VkCommandBuffer* pCommandBuffers);
+
     bool isMemoryTypeHostVisible(VkDevice device, uint32_t typeIndex) const;
     uint8_t* getMappedPointer(VkDeviceMemory memory);
     VkDeviceSize getMappedSize(VkDeviceMemory memory);
@@ -526,6 +532,15 @@ public:
     uint32_t getApiVersionFromDevice(VkDevice device) const;
     bool hasInstanceExtension(VkInstance instance, const std::string& name) const;
     bool hasDeviceExtension(VkDevice instance, const std::string& name) const;
+    void addToCommandPool(VkCommandPool commandPool,
+                          uint32_t commandBufferCount,
+                          VkCommandBuffer* pCommandBuffers);
+    void resetCommandPoolStagingInfo(VkCommandPool commandPool);
+
+
+    static VkEncoder* getCommandBufferEncoder(VkCommandBuffer commandBuffer);
+    static VkEncoder* getQueueEncoder(VkQueue queue);
+    static VkEncoder* getThreadLocalEncoder();
 
     static void setSeqnoPtr(uint32_t* seqnoptr);
     static __attribute__((always_inline)) uint32_t nextSeqno();
