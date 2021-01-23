@@ -45,6 +45,7 @@ LOCAL_CFLAGS += \
     -DVK_NO_PROTOTYPES \
 
 LOCAL_SRC_FILES := AndroidHardwareBuffer.cpp \
+	CommandBufferStagingStream.cpp \
     HostVisibleMemoryVirtualization.cpp \
     Resources.cpp \
     Validation.cpp \
