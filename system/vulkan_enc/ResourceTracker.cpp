@@ -227,6 +227,10 @@ DEFINE_RESOURCE_TRACKING_CLASS(CreateMapping, CREATE_MAPPING_IMPL_FOR_TYPE)
 DEFINE_RESOURCE_TRACKING_CLASS(UnwrapMapping, UNWRAP_MAPPING_IMPL_FOR_TYPE)
 DEFINE_RESOURCE_TRACKING_CLASS(DestroyMapping, DESTROY_MAPPING_IMPL_FOR_TYPE)
 
+// static
+uint32_t ResourceTracker::streamFeatureBits = 0;
+ResourceTracker::ThreadingCallbacks ResourceTracker::threadingCallbacks;
+
 class ResourceTracker::Impl {
 public:
     Impl() = default;
@@ -851,13 +855,16 @@ public:
 #endif
 
         if (mFeatureInfo->hasVulkanNullOptionalStrings) {
-            mStreamFeatureBits |= VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT;
+            ResourceTracker::streamFeatureBits |= VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT;
         }
         if (mFeatureInfo->hasVulkanIgnoredHandles) {
-            mStreamFeatureBits |= VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT;
+            ResourceTracker::streamFeatureBits |= VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT;
         }
         if (mFeatureInfo->hasVulkanShaderFloat16Int8) {
-            mStreamFeatureBits |= VULKAN_STREAM_FEATURE_SHADER_FLOAT16_INT8_BIT;
+            ResourceTracker::streamFeatureBits |= VULKAN_STREAM_FEATURE_SHADER_FLOAT16_INT8_BIT;
+        }
+        if (mFeatureInfo->hasVulkanQueueSubmitWithCommands) {
+            ResourceTracker::streamFeatureBits |= VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
         }
 #if !defined(HOST_BUILD) && defined(VK_USE_PLATFORM_ANDROID_KHR)
        if (mFeatureInfo->hasVirtioGpuNext) {
@@ -868,7 +875,7 @@ public:
     }
 
     void setThreadingCallbacks(const ResourceTracker::ThreadingCallbacks& callbacks) {
-        mThreadingCallbacks = callbacks;
+        ResourceTracker::threadingCallbacks = callbacks;
     }
 
     bool hostSupportsVulkan() const {
@@ -882,7 +889,7 @@ public:
     }
 
     uint32_t getStreamFeatures() const {
-        return mStreamFeatureBits;
+        return ResourceTracker::streamFeatureBits;
     }
 
     bool supportsDeferredCommands() const {
@@ -1534,7 +1541,7 @@ public:
         const AHardwareBuffer* buffer,
         VkAndroidHardwareBufferPropertiesANDROID* pProperties) {
         auto grallocHelper =
-            mThreadingCallbacks.hostConnectionGetFunc()->grallocHelper();
+            ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper();
         return getAndroidHardwareBufferPropertiesANDROID(
             grallocHelper,
             &mHostVisibleMemoryVirtInfo,
@@ -2462,14 +2469,14 @@ public:
             ahw = importAhbInfoPtr->buffer;
             // We still need to acquire the AHardwareBuffer.
             importAndroidHardwareBuffer(
-                mThreadingCallbacks.hostConnectionGetFunc()->grallocHelper(),
+                ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper(),
                 importAhbInfoPtr, nullptr);
         }
 
         if (ahw) {
             ALOGD("%s: Import AHardwareBuffer", __func__);
             importCbInfo.colorBuffer =
-                mThreadingCallbacks.hostConnectionGetFunc()->grallocHelper()->
+                ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper()->
                     getHostHandle(AHardwareBuffer_getNativeHandle(ahw));
             vk_append_struct(&structChainIter, &importCbInfo);
         }
@@ -3829,8 +3836,8 @@ public:
                 tasks.push_back([this,
                                  fencesNonExternal /* copy of vector */,
                                  device, waitAll, timeout] {
-                    auto hostConn = mThreadingCallbacks.hostConnectionGetFunc();
-                    auto vkEncoder = mThreadingCallbacks.vkEncoderGetFunc(hostConn);
+                    auto hostConn = ResourceTracker::threadingCallbacks.hostConnectionGetFunc();
+                    auto vkEncoder = ResourceTracker::threadingCallbacks.vkEncoderGetFunc(hostConn);
                     ALOGV("%s: vkWaitForFences to host\n", __func__);
                     vkEncoder->vkWaitForFences(device, fencesNonExternal.size(), fencesNonExternal.data(), waitAll, timeout, true /* do lock */);
                 });
@@ -4685,8 +4692,8 @@ public:
             tasks.push_back([this, queue, externalFenceFdToSignal,
                              post_wait_events /* copy of zx handles */,
                              post_wait_sync_fds /* copy of sync fds */] {
-                auto hostConn = mThreadingCallbacks.hostConnectionGetFunc();
-                auto vkEncoder = mThreadingCallbacks.vkEncoderGetFunc(hostConn);
+                auto hostConn = ResourceTracker::threadingCallbacks.hostConnectionGetFunc();
+                auto vkEncoder = ResourceTracker::threadingCallbacks.vkEncoderGetFunc(hostConn);
                 auto waitIdleRes = vkEncoder->vkQueueWaitIdle(queue, true /* do lock */);
 #ifdef VK_USE_PLATFORM_FUCHSIA
                 AEMU_SCOPED_TRACE("on_vkQueueSubmit::SignalSemaphores");
@@ -4772,7 +4779,7 @@ public:
         }
 
         *(uint32_t*)(nativeInfoOut->handle) =
-            mThreadingCallbacks.hostConnectionGetFunc()->
+            ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->
                 grallocHelper()->getHostHandle(
                     (const native_handle_t*)nativeInfo->handle);
     }
@@ -5423,8 +5430,6 @@ private:
     mutable Lock mLock;
     HostVisibleMemoryVirtualizationInfo mHostVisibleMemoryVirtInfo;
     std::unique_ptr<EmulatorFeatureInfo> mFeatureInfo;
-    ResourceTracker::ThreadingCallbacks mThreadingCallbacks;
-    uint32_t mStreamFeatureBits = 0;
     std::unique_ptr<GoldfishAddressSpaceBlockProvider> mGoldfishAddressSpaceBlockProvider;
 
     std::vector<VkExtensionProperties> mHostInstanceExtensions;

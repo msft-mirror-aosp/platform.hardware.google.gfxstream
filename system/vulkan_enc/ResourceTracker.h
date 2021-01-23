@@ -38,6 +38,7 @@ public:
     ResourceTracker();
     virtual ~ResourceTracker();
     static ResourceTracker* get();
+
     VulkanHandleMapping* createMapping();
     VulkanHandleMapping* unwrapMapping();
     VulkanHandleMapping* destroyMapping();
@@ -51,6 +52,9 @@ public:
         HostConnectionGetFunc hostConnectionGetFunc = 0;
         VkEncoderGetFunc vkEncoderGetFunc = 0;
     };
+
+    static uint32_t streamFeatureBits;
+    static ThreadingCallbacks threadingCallbacks;
 
 #define HANDLE_REGISTER_DECL(type) \
     void register_##type(type); \
