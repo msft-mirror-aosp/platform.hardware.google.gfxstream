@@ -4601,10 +4601,72 @@ public:
 #endif
     }
 
+    void flushCommandBufferPendingCommandsBottomUp(void* context, VkQueue queue, const std::vector<VkCommandBuffer>& workingSet) {
+        if (workingSet.empty()) return;
+
+        std::vector<VkCommandBuffer> nextLevel;
+        for (auto commandBuffer : workingSet) {
+            struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
+            forAllObjects(cb->subObjects, [&nextLevel](void* secondary) {
+                nextLevel.push_back((VkCommandBuffer)secondary);
+            });
+        }
+
+        flushCommandBufferPendingCommandsBottomUp(context, queue, nextLevel);
+
+        // After this point, everyone at the previous level has been flushed
+        for (auto cmdbuf : workingSet) {
+            struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(cmdbuf);
+
+            // There's no pending commands here, skip. (case 1)
+            if (!cb->privateStream) continue;
+
+            unsigned char* writtenPtr = 0;
+            size_t written = 0;
+            ((CommandBufferStagingStream*)cb->privateStream)->getWritten(&writtenPtr, &written);
+
+            // There's no pending commands here, skip. (case 2, stream created but no new recordings)
+            if (!written) continue;
+
+            // There are pending commands to flush.
+            VkEncoder* enc = (VkEncoder*)context;
+            enc->vkQueueFlushCommandsGOOGLE(queue, cmdbuf, written, (const void*)writtenPtr, true /* do lock */);
+
+            // Reset this stream.
+            ((CommandBufferStagingStream*)cb->privateStream)->reset();
+        }
+    }
+
+    // Unlike resetCommandBufferStagingInfo, this does not always erase its
+    // superObjects pointers because the command buffer has merely been
+    // submitted, not reset.
+    // However, if the command buffer was recorded with ONE_TIME_SUBMIT_BIT,
+    // then it will also reset its primaries.
+    void resetCommandBufferPendingTopology(VkCommandBuffer commandBuffer) {
+        struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
+        resetCommandBufferStagingInfo(commandBuffer, cb->flags & VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+    }
+
+    void flushStagingStreams(void* context, VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits) {
+        std::vector<VkCommandBuffer> toFlush;
+        for (uint32_t i = 0; i < submitCount; ++i) {
+            for (uint32_t j = 0; j < pSubmits[i].commandBufferCount; ++j) {
+                toFlush.push_back(pSubmits[i].pCommandBuffers[j]);
+            }
+        }
+        flushCommandBufferPendingCommandsBottomUp(context, queue, toFlush);
+        for (auto cb : toFlush) {
+            resetCommandBufferPendingTopology(cb);
+        }
+    }
+
     VkResult on_vkQueueSubmit(
         void* context, VkResult input_result,
         VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
         AEMU_SCOPED_TRACE("on_vkQueueSubmit");
+
+        // Send command buffers to the host here
+        flushStagingStreams(context, queue, submitCount, pSubmits);
 
         std::vector<VkSemaphore> pre_signal_semaphores;
         std::vector<zx_handle_t> pre_signal_events;

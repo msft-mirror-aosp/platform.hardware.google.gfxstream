@@ -5334,6 +5334,18 @@ static void entry_vkGetIOSurfaceMVK(
     vkEnc->vkGetIOSurfaceMVK(image, pIOSurface, true /* do lock */);
 }
 #endif
+#ifdef VK_GOOGLE_queue_submit_with_commands
+static void entry_vkQueueFlushCommandsGOOGLE(
+    VkQueue queue,
+    VkCommandBuffer commandBuffer,
+    VkDeviceSize dataSize,
+    const void* pData)
+{
+    AEMU_SCOPED_TRACE("vkQueueFlushCommandsGOOGLE");
+    auto vkEnc = ResourceTracker::getQueueEncoder(queue);
+    vkEnc->vkQueueFlushCommandsGOOGLE(queue, commandBuffer, dataSize, pData, true /* do lock */);
+}
+#endif
 void* goldfish_vulkan_get_proc_address(const char* name){
 #ifdef VK_VERSION_1_0
     if (!strcmp(name, "vkCreateInstance"))
@@ -6837,6 +6849,12 @@ void* goldfish_vulkan_get_proc_address(const char* name){
         return nullptr;
     }
     if (!strcmp(name, "vkGetIOSurfaceMVK"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_queue_submit_with_commands
+    if (!strcmp(name, "vkQueueFlushCommandsGOOGLE"))
     {
         return nullptr;
     }
@@ -8453,6 +8471,13 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     {
         bool hasExt = resources->hasInstanceExtension(instance, "VK_MVK_moltenvk");
         return hasExt ? (void*)entry_vkGetIOSurfaceMVK : nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_queue_submit_with_commands
+    if (!strcmp(name, "vkQueueFlushCommandsGOOGLE"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_queue_submit_with_commands");
+        return hasExt ? (void*)entry_vkQueueFlushCommandsGOOGLE : nullptr;
     }
 #endif
     return nullptr;
@@ -10139,6 +10164,13 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     {
         bool hasExt = resources->hasDeviceExtension(device, "VK_MVK_moltenvk");
         return hasExt ? (void*)entry_vkGetIOSurfaceMVK : nullptr;
+    }
+#endif
+#ifdef VK_GOOGLE_queue_submit_with_commands
+    if (!strcmp(name, "vkQueueFlushCommandsGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_queue_submit_with_commands");
+        return hasExt ? (void*)entry_vkQueueFlushCommandsGOOGLE : nullptr;
     }
 #endif
     return nullptr;
