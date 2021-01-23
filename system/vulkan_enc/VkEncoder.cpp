@@ -78,14 +78,13 @@ VkResult VkEncoder::vkCreateInstance(
     VkInstance* pInstance,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateInstance");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstanceCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
     {
@@ -98,30 +97,27 @@ VkResult VkEncoder::vkCreateInstance(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkInstanceCreateInfo(mImpl->resources(), (VkInstanceCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkInstanceCreateInfo(sResourceTracker, (VkInstanceCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
-        count_VkInstanceCreateInfo(featureBits, (VkInstanceCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkInstanceCreateInfo(sFeatureBits, (VkInstanceCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_0;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateInstance = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateInstance);
@@ -145,24 +141,21 @@ VkResult VkEncoder::vkCreateInstance(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_2, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_3;
     stream->read((uint64_t*)&cgen_var_3, 8);
     stream->handleMapping()->mapHandles_u64_VkInstance(&cgen_var_3, (VkInstance*)pInstance, 1);
     stream->unsetHandleMapping();
     VkResult vkCreateInstance_VkResult_return = (VkResult)0;
     stream->read(&vkCreateInstance_VkResult_return, sizeof(VkResult));
-    mImpl->resources()->on_vkCreateInstance(this, vkCreateInstance_VkResult_return, pCreateInfo, pAllocator, pInstance);
+    sResourceTracker->on_vkCreateInstance(this, vkCreateInstance_VkResult_return, pCreateInfo, pAllocator, pInstance);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateInstance");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateInstance_VkResult_return;
 }
 
@@ -171,14 +164,13 @@ void VkEncoder::vkDestroyInstance(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyInstance");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_instance = instance;
     local_pAllocator = nullptr;
     if (pAllocator)
@@ -186,13 +178,11 @@ void VkEncoder::vkDestroyInstance(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -202,9 +192,8 @@ void VkEncoder::vkDestroyInstance(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyInstance = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyInstance);
@@ -225,17 +214,14 @@ void VkEncoder::vkDestroyInstance(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkInstance((VkInstance*)&instance);
+    sResourceTracker->destroyMapping()->mapHandles_VkInstance((VkInstance*)&instance);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyInstance");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkEnumeratePhysicalDevices(
@@ -244,16 +230,13 @@ VkResult VkEncoder::vkEnumeratePhysicalDevices(
     VkPhysicalDevice* pPhysicalDevices,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkEnumeratePhysicalDevices");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
-    uint32_t local_doLock;
     local_instance = instance;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -274,7 +257,6 @@ VkResult VkEncoder::vkEnumeratePhysicalDevices(
                 *countPtr += (*(pPhysicalDeviceCount)) * 8;
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkEnumeratePhysicalDevices = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkEnumeratePhysicalDevices);
@@ -317,8 +299,6 @@ VkResult VkEncoder::vkEnumeratePhysicalDevices(
         }
     }
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pPhysicalDeviceCount;
     check_pPhysicalDeviceCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -330,7 +310,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDevices(
         }
         stream->read((uint32_t*)pPhysicalDeviceCount, sizeof(uint32_t));
     }
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     // WARNING PTR CHECK
     VkPhysicalDevice* check_pPhysicalDevices;
     check_pPhysicalDevices = (VkPhysicalDevice*)(uintptr_t)stream->getBe64();
@@ -357,8 +337,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDevices(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkEnumeratePhysicalDevices");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkEnumeratePhysicalDevices_VkResult_return;
 }
 
@@ -367,23 +346,19 @@ void VkEncoder::vkGetPhysicalDeviceFeatures(
     VkPhysicalDeviceFeatures* pFeatures,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceFeatures");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_16;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceFeatures(featureBits, (VkPhysicalDeviceFeatures*)(pFeatures), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkPhysicalDeviceFeatures(sFeatureBits, (VkPhysicalDeviceFeatures*)(pFeatures), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceFeatures = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceFeatures);
@@ -396,12 +371,10 @@ void VkEncoder::vkGetPhysicalDeviceFeatures(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_17, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkPhysicalDeviceFeatures(stream, (VkPhysicalDeviceFeatures*)(pFeatures), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkPhysicalDeviceFeatures(stream, (VkPhysicalDeviceFeatures*)(pFeatures));
     if (pFeatures)
     {
-        transform_fromhost_VkPhysicalDeviceFeatures(mImpl->resources(), (VkPhysicalDeviceFeatures*)(pFeatures));
+        transform_fromhost_VkPhysicalDeviceFeatures(sResourceTracker, (VkPhysicalDeviceFeatures*)(pFeatures));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -409,8 +382,7 @@ void VkEncoder::vkGetPhysicalDeviceFeatures(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceFeatures");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetPhysicalDeviceFormatProperties(
@@ -419,26 +391,22 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties(
     VkFormatProperties* pFormatProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceFormatProperties");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkFormat local_format;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_format = format;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_18;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkFormat);
-        count_VkFormatProperties(featureBits, (VkFormatProperties*)(pFormatProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkFormatProperties(sFeatureBits, (VkFormatProperties*)(pFormatProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceFormatProperties = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceFormatProperties);
@@ -453,12 +421,10 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties(
     memcpy(*streamPtrPtr, (VkFormat*)&local_format, sizeof(VkFormat));
     *streamPtrPtr += sizeof(VkFormat);
     reservedmarshal_VkFormatProperties(stream, (VkFormatProperties*)(pFormatProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkFormatProperties(stream, (VkFormatProperties*)(pFormatProperties));
     if (pFormatProperties)
     {
-        transform_fromhost_VkFormatProperties(mImpl->resources(), (VkFormatProperties*)(pFormatProperties));
+        transform_fromhost_VkFormatProperties(sResourceTracker, (VkFormatProperties*)(pFormatProperties));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -466,8 +432,7 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceFormatProperties");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties(
@@ -480,10 +445,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties(
     VkImageFormatProperties* pImageFormatProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceImageFormatProperties");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkFormat local_format;
@@ -491,15 +456,12 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties(
     VkImageTiling local_tiling;
     VkImageUsageFlags local_usage;
     VkImageCreateFlags local_flags;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_format = format;
     local_type = type;
     local_tiling = tiling;
     local_usage = usage;
     local_flags = flags;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -510,8 +472,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties(
         *countPtr += sizeof(VkImageTiling);
         *countPtr += sizeof(VkImageUsageFlags);
         *countPtr += sizeof(VkImageCreateFlags);
-        count_VkImageFormatProperties(featureBits, (VkImageFormatProperties*)(pImageFormatProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkImageFormatProperties(sFeatureBits, (VkImageFormatProperties*)(pImageFormatProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceImageFormatProperties = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceImageFormatProperties);
@@ -534,12 +495,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties(
     memcpy(*streamPtrPtr, (VkImageCreateFlags*)&local_flags, sizeof(VkImageCreateFlags));
     *streamPtrPtr += sizeof(VkImageCreateFlags);
     reservedmarshal_VkImageFormatProperties(stream, (VkImageFormatProperties*)(pImageFormatProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkImageFormatProperties(stream, (VkImageFormatProperties*)(pImageFormatProperties));
     if (pImageFormatProperties)
     {
-        transform_fromhost_VkImageFormatProperties(mImpl->resources(), (VkImageFormatProperties*)(pImageFormatProperties));
+        transform_fromhost_VkImageFormatProperties(sResourceTracker, (VkImageFormatProperties*)(pImageFormatProperties));
     }
     VkResult vkGetPhysicalDeviceImageFormatProperties_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceImageFormatProperties_VkResult_return, sizeof(VkResult));
@@ -549,8 +508,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceImageFormatProperties");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceImageFormatProperties_VkResult_return;
 }
 
@@ -559,23 +517,19 @@ void VkEncoder::vkGetPhysicalDeviceProperties(
     VkPhysicalDeviceProperties* pProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceProperties");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_22;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceProperties(featureBits, (VkPhysicalDeviceProperties*)(pProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkPhysicalDeviceProperties(sFeatureBits, (VkPhysicalDeviceProperties*)(pProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceProperties = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceProperties);
@@ -588,22 +542,19 @@ void VkEncoder::vkGetPhysicalDeviceProperties(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_23, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkPhysicalDeviceProperties(stream, (VkPhysicalDeviceProperties*)(pProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkPhysicalDeviceProperties(stream, (VkPhysicalDeviceProperties*)(pProperties));
     if (pProperties)
     {
-        transform_fromhost_VkPhysicalDeviceProperties(mImpl->resources(), (VkPhysicalDeviceProperties*)(pProperties));
+        transform_fromhost_VkPhysicalDeviceProperties(sResourceTracker, (VkPhysicalDeviceProperties*)(pProperties));
     }
-    mImpl->resources()->on_vkGetPhysicalDeviceProperties(this, physicalDevice, pProperties);
+    sResourceTracker->on_vkGetPhysicalDeviceProperties(this, physicalDevice, pProperties);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceProperties");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
@@ -612,16 +563,13 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
     VkQueueFamilyProperties* pQueueFamilyProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceQueueFamilyProperties");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -639,10 +587,9 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
             {
-                count_VkQueueFamilyProperties(featureBits, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i), countPtr);
+                count_VkQueueFamilyProperties(sFeatureBits, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceQueueFamilyProperties = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceQueueFamilyProperties);
@@ -676,8 +623,6 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
             reservedmarshal_VkQueueFamilyProperties(stream, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pQueueFamilyPropertyCount;
     check_pQueueFamilyPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -707,7 +652,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
         {
-            transform_fromhost_VkQueueFamilyProperties(mImpl->resources(), (VkQueueFamilyProperties*)(pQueueFamilyProperties + i));
+            transform_fromhost_VkQueueFamilyProperties(sResourceTracker, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i));
         }
     }
     ++encodeCount;;
@@ -716,8 +661,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceQueueFamilyProperties");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetPhysicalDeviceMemoryProperties(
@@ -725,23 +669,19 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties(
     VkPhysicalDeviceMemoryProperties* pMemoryProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceMemoryProperties");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_30;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceMemoryProperties(featureBits, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkPhysicalDeviceMemoryProperties(sFeatureBits, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceMemoryProperties = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceMemoryProperties);
@@ -754,22 +694,19 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_31, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkPhysicalDeviceMemoryProperties(stream, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkPhysicalDeviceMemoryProperties(stream, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties));
     if (pMemoryProperties)
     {
-        transform_fromhost_VkPhysicalDeviceMemoryProperties(mImpl->resources(), (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties));
+        transform_fromhost_VkPhysicalDeviceMemoryProperties(sResourceTracker, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties));
     }
-    mImpl->resources()->on_vkGetPhysicalDeviceMemoryProperties(this, physicalDevice, pMemoryProperties);
+    sResourceTracker->on_vkGetPhysicalDeviceMemoryProperties(this, physicalDevice, pMemoryProperties);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceMemoryProperties");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 PFN_vkVoidFunction VkEncoder::vkGetInstanceProcAddr(
@@ -777,29 +714,25 @@ PFN_vkVoidFunction VkEncoder::vkGetInstanceProcAddr(
     const char* pName,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetInstanceProcAddr");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
     char* local_pName;
-    uint32_t local_doLock;
     local_instance = instance;
     local_pName = nullptr;
     if (pName)
     {
         local_pName = pool->strDup(pName);
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_32;
         *countPtr += 1 * 8;
         *countPtr += sizeof(uint32_t) + (local_pName ? strlen(local_pName) : 0);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetInstanceProcAddr = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetInstanceProcAddr);
@@ -819,8 +752,6 @@ PFN_vkVoidFunction VkEncoder::vkGetInstanceProcAddr(
         memcpy(*streamPtrPtr, (char*)local_pName, l);
         *streamPtrPtr += l;
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     PFN_vkVoidFunction vkGetInstanceProcAddr_PFN_vkVoidFunction_return = (PFN_vkVoidFunction)0;
     stream->read(&vkGetInstanceProcAddr_PFN_vkVoidFunction_return, sizeof(PFN_vkVoidFunction));
     ++encodeCount;;
@@ -829,8 +760,7 @@ PFN_vkVoidFunction VkEncoder::vkGetInstanceProcAddr(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetInstanceProcAddr");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetInstanceProcAddr_PFN_vkVoidFunction_return;
 }
 
@@ -839,29 +769,25 @@ PFN_vkVoidFunction VkEncoder::vkGetDeviceProcAddr(
     const char* pName,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetDeviceProcAddr");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     char* local_pName;
-    uint32_t local_doLock;
     local_device = device;
     local_pName = nullptr;
     if (pName)
     {
         local_pName = pool->strDup(pName);
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_34;
         *countPtr += 1 * 8;
         *countPtr += sizeof(uint32_t) + (local_pName ? strlen(local_pName) : 0);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetDeviceProcAddr = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDeviceProcAddr);
@@ -881,8 +807,6 @@ PFN_vkVoidFunction VkEncoder::vkGetDeviceProcAddr(
         memcpy(*streamPtrPtr, (char*)local_pName, l);
         *streamPtrPtr += l;
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     PFN_vkVoidFunction vkGetDeviceProcAddr_PFN_vkVoidFunction_return = (PFN_vkVoidFunction)0;
     stream->read(&vkGetDeviceProcAddr_PFN_vkVoidFunction_return, sizeof(PFN_vkVoidFunction));
     ++encodeCount;;
@@ -891,8 +815,7 @@ PFN_vkVoidFunction VkEncoder::vkGetDeviceProcAddr(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetDeviceProcAddr");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetDeviceProcAddr_PFN_vkVoidFunction_return;
 }
 
@@ -903,15 +826,14 @@ VkResult VkEncoder::vkCreateDevice(
     VkDevice* pDevice,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateDevice");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkDeviceCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -925,32 +847,29 @@ VkResult VkEncoder::vkCreateDevice(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkDeviceCreateInfo(mImpl->resources(), (VkDeviceCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkDeviceCreateInfo(sResourceTracker, (VkDeviceCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_36;
         *countPtr += 1 * 8;
-        count_VkDeviceCreateInfo(featureBits, (VkDeviceCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkDeviceCreateInfo(sFeatureBits, (VkDeviceCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_37;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateDevice = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateDevice);
@@ -978,24 +897,21 @@ VkResult VkEncoder::vkCreateDevice(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_40, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_41;
     stream->read((uint64_t*)&cgen_var_41, 8);
     stream->handleMapping()->mapHandles_u64_VkDevice(&cgen_var_41, (VkDevice*)pDevice, 1);
     stream->unsetHandleMapping();
     VkResult vkCreateDevice_VkResult_return = (VkResult)0;
     stream->read(&vkCreateDevice_VkResult_return, sizeof(VkResult));
-    mImpl->resources()->on_vkCreateDevice(this, vkCreateDevice_VkResult_return, physicalDevice, pCreateInfo, pAllocator, pDevice);
+    sResourceTracker->on_vkCreateDevice(this, vkCreateDevice_VkResult_return, physicalDevice, pCreateInfo, pAllocator, pDevice);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateDevice");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateDevice_VkResult_return;
 }
 
@@ -1004,15 +920,14 @@ void VkEncoder::vkDestroyDevice(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyDevice");
-    mImpl->resources()->on_vkDestroyDevice_pre(this, device, pAllocator);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    sResourceTracker->on_vkDestroyDevice_pre(this, device, pAllocator);
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pAllocator = nullptr;
     if (pAllocator)
@@ -1020,13 +935,11 @@ void VkEncoder::vkDestroyDevice(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -1036,9 +949,8 @@ void VkEncoder::vkDestroyDevice(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyDevice = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyDevice);
@@ -1059,9 +971,7 @@ void VkEncoder::vkDestroyDevice(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkDevice((VkDevice*)&device);
+    sResourceTracker->destroyMapping()->mapHandles_VkDevice((VkDevice*)&device);
     stream->flush();
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -1069,8 +979,7 @@ void VkEncoder::vkDestroyDevice(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyDevice");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
@@ -1079,24 +988,21 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
     VkExtensionProperties* pProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkEnumerateInstanceExtensionProperties");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     char* local_pLayerName;
-    uint32_t local_doLock;
     local_pLayerName = nullptr;
     if (pLayerName)
     {
         local_pLayerName = pool->strDup(pLayerName);
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
-        if (featureBits & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
+        if (sFeatureBits & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
         {
             // WARNING PTR CHECK
             *countPtr += 8;
@@ -1121,10 +1027,9 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                count_VkExtensionProperties(featureBits, (VkExtensionProperties*)(pProperties + i), countPtr);
+                count_VkExtensionProperties(sFeatureBits, (VkExtensionProperties*)(pProperties + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkEnumerateInstanceExtensionProperties = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkEnumerateInstanceExtensionProperties);
@@ -1184,8 +1089,6 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
             reservedmarshal_VkExtensionProperties(stream, (VkExtensionProperties*)(pProperties + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
     check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -1215,7 +1118,7 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            transform_fromhost_VkExtensionProperties(mImpl->resources(), (VkExtensionProperties*)(pProperties + i));
+            transform_fromhost_VkExtensionProperties(sResourceTracker, (VkExtensionProperties*)(pProperties + i));
         }
     }
     VkResult vkEnumerateInstanceExtensionProperties_VkResult_return = (VkResult)0;
@@ -1226,8 +1129,7 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkEnumerateInstanceExtensionProperties");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkEnumerateInstanceExtensionProperties_VkResult_return;
 }
 
@@ -1238,28 +1140,25 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
     VkExtensionProperties* pProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkEnumerateDeviceExtensionProperties");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     char* local_pLayerName;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_pLayerName = nullptr;
     if (pLayerName)
     {
         local_pLayerName = pool->strDup(pLayerName);
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_50;
         *countPtr += 1 * 8;
-        if (featureBits & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
+        if (sFeatureBits & VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT)
         {
             // WARNING PTR CHECK
             *countPtr += 8;
@@ -1284,10 +1183,9 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                count_VkExtensionProperties(featureBits, (VkExtensionProperties*)(pProperties + i), countPtr);
+                count_VkExtensionProperties(sFeatureBits, (VkExtensionProperties*)(pProperties + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkEnumerateDeviceExtensionProperties = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkEnumerateDeviceExtensionProperties);
@@ -1351,8 +1249,6 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
             reservedmarshal_VkExtensionProperties(stream, (VkExtensionProperties*)(pProperties + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
     check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -1382,7 +1278,7 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            transform_fromhost_VkExtensionProperties(mImpl->resources(), (VkExtensionProperties*)(pProperties + i));
+            transform_fromhost_VkExtensionProperties(sResourceTracker, (VkExtensionProperties*)(pProperties + i));
         }
     }
     VkResult vkEnumerateDeviceExtensionProperties_VkResult_return = (VkResult)0;
@@ -1393,8 +1289,7 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkEnumerateDeviceExtensionProperties");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkEnumerateDeviceExtensionProperties_VkResult_return;
 }
 
@@ -1403,14 +1298,11 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
     VkLayerProperties* pProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkEnumerateInstanceLayerProperties");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
-    uint32_t local_doLock;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -1426,10 +1318,9 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                count_VkLayerProperties(featureBits, (VkLayerProperties*)(pProperties + i), countPtr);
+                count_VkLayerProperties(sFeatureBits, (VkLayerProperties*)(pProperties + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkEnumerateInstanceLayerProperties = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkEnumerateInstanceLayerProperties);
@@ -1459,8 +1350,6 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
             reservedmarshal_VkLayerProperties(stream, (VkLayerProperties*)(pProperties + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
     check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -1490,7 +1379,7 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            transform_fromhost_VkLayerProperties(mImpl->resources(), (VkLayerProperties*)(pProperties + i));
+            transform_fromhost_VkLayerProperties(sResourceTracker, (VkLayerProperties*)(pProperties + i));
         }
     }
     VkResult vkEnumerateInstanceLayerProperties_VkResult_return = (VkResult)0;
@@ -1501,8 +1390,7 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkEnumerateInstanceLayerProperties");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkEnumerateInstanceLayerProperties_VkResult_return;
 }
 
@@ -1512,16 +1400,13 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
     VkLayerProperties* pProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkEnumerateDeviceLayerProperties");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -1539,10 +1424,9 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                count_VkLayerProperties(featureBits, (VkLayerProperties*)(pProperties + i), countPtr);
+                count_VkLayerProperties(sFeatureBits, (VkLayerProperties*)(pProperties + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkEnumerateDeviceLayerProperties = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkEnumerateDeviceLayerProperties);
@@ -1576,8 +1460,6 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
             reservedmarshal_VkLayerProperties(stream, (VkLayerProperties*)(pProperties + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
     check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -1607,7 +1489,7 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            transform_fromhost_VkLayerProperties(mImpl->resources(), (VkLayerProperties*)(pProperties + i));
+            transform_fromhost_VkLayerProperties(sResourceTracker, (VkLayerProperties*)(pProperties + i));
         }
     }
     VkResult vkEnumerateDeviceLayerProperties_VkResult_return = (VkResult)0;
@@ -1618,8 +1500,7 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkEnumerateDeviceLayerProperties");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkEnumerateDeviceLayerProperties_VkResult_return;
 }
 
@@ -1630,20 +1511,17 @@ void VkEncoder::vkGetDeviceQueue(
     VkQueue* pQueue,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetDeviceQueue");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     uint32_t local_queueFamilyIndex;
     uint32_t local_queueIndex;
-    uint32_t local_doLock;
     local_device = device;
     local_queueFamilyIndex = queueFamilyIndex;
     local_queueIndex = queueIndex;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -1653,7 +1531,6 @@ void VkEncoder::vkGetDeviceQueue(
         *countPtr += sizeof(uint32_t);
         uint64_t cgen_var_68;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetDeviceQueue = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDeviceQueue);
@@ -1675,9 +1552,7 @@ void VkEncoder::vkGetDeviceQueue(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_70, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_71;
     stream->read((uint64_t*)&cgen_var_71, 8);
     stream->handleMapping()->mapHandles_u64_VkQueue(&cgen_var_71, (VkQueue*)pQueue, 1);
@@ -1688,8 +1563,7 @@ void VkEncoder::vkGetDeviceQueue(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetDeviceQueue");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkQueueSubmit(
@@ -1699,16 +1573,15 @@ VkResult VkEncoder::vkQueueSubmit(
     VkFence fence,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkQueueSubmit");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkQueue local_queue;
     uint32_t local_submitCount;
     VkSubmitInfo* local_pSubmits;
     VkFence local_fence;
-    uint32_t local_doLock;
     local_queue = queue;
     local_submitCount = submitCount;
     local_pSubmits = nullptr;
@@ -1721,15 +1594,13 @@ VkResult VkEncoder::vkQueueSubmit(
         }
     }
     local_fence = fence;
-    local_doLock = doLock;
     if (local_pSubmits)
     {
         for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i)
         {
-            transform_tohost_VkSubmitInfo(mImpl->resources(), (VkSubmitInfo*)(local_pSubmits + i));
+            transform_tohost_VkSubmitInfo(sResourceTracker, (VkSubmitInfo*)(local_pSubmits + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -1738,11 +1609,10 @@ VkResult VkEncoder::vkQueueSubmit(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i)
         {
-            count_VkSubmitInfo(featureBits, (VkSubmitInfo*)(local_pSubmits + i), countPtr);
+            count_VkSubmitInfo(sFeatureBits, (VkSubmitInfo*)(local_pSubmits + i), countPtr);
         }
         uint64_t cgen_var_73;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkQueueSubmit = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkQueueSubmit);
@@ -1764,8 +1634,6 @@ VkResult VkEncoder::vkQueueSubmit(
     *&cgen_var_75 = get_host_u64_VkFence((*&local_fence));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_75, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkQueueSubmit_VkResult_return = (VkResult)0;
     stream->read(&vkQueueSubmit_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -1774,8 +1642,7 @@ VkResult VkEncoder::vkQueueSubmit(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkQueueSubmit");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkQueueSubmit_VkResult_return;
 }
 
@@ -1783,22 +1650,18 @@ VkResult VkEncoder::vkQueueWaitIdle(
     VkQueue queue,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkQueueWaitIdle");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkQueue local_queue;
-    uint32_t local_doLock;
     local_queue = queue;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_76;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkQueueWaitIdle = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkQueueWaitIdle);
@@ -1810,8 +1673,6 @@ VkResult VkEncoder::vkQueueWaitIdle(
     *&cgen_var_77 = get_host_u64_VkQueue((*&local_queue));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_77, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkQueueWaitIdle_VkResult_return = (VkResult)0;
     stream->read(&vkQueueWaitIdle_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -1820,8 +1681,7 @@ VkResult VkEncoder::vkQueueWaitIdle(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkQueueWaitIdle");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkQueueWaitIdle_VkResult_return;
 }
 
@@ -1829,22 +1689,18 @@ VkResult VkEncoder::vkDeviceWaitIdle(
     VkDevice device,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDeviceWaitIdle");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
-    uint32_t local_doLock;
     local_device = device;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_78;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDeviceWaitIdle = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDeviceWaitIdle);
@@ -1856,8 +1712,6 @@ VkResult VkEncoder::vkDeviceWaitIdle(
     *&cgen_var_79 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_79, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkDeviceWaitIdle_VkResult_return = (VkResult)0;
     stream->read(&vkDeviceWaitIdle_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -1866,8 +1720,7 @@ VkResult VkEncoder::vkDeviceWaitIdle(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDeviceWaitIdle");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkDeviceWaitIdle_VkResult_return;
 }
 
@@ -1878,15 +1731,14 @@ VkResult VkEncoder::vkAllocateMemory(
     VkDeviceMemory* pMemory,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkAllocateMemory");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkMemoryAllocateInfo* local_pAllocateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pAllocateInfo = nullptr;
     if (pAllocateInfo)
@@ -1900,32 +1752,29 @@ VkResult VkEncoder::vkAllocateMemory(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocateInfo)
     {
-        transform_tohost_VkMemoryAllocateInfo(mImpl->resources(), (VkMemoryAllocateInfo*)(local_pAllocateInfo));
+        transform_tohost_VkMemoryAllocateInfo(sResourceTracker, (VkMemoryAllocateInfo*)(local_pAllocateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_80;
         *countPtr += 1 * 8;
-        count_VkMemoryAllocateInfo(featureBits, (VkMemoryAllocateInfo*)(local_pAllocateInfo), countPtr);
+        count_VkMemoryAllocateInfo(sFeatureBits, (VkMemoryAllocateInfo*)(local_pAllocateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_81;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkAllocateMemory = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkAllocateMemory);
@@ -1953,9 +1802,7 @@ VkResult VkEncoder::vkAllocateMemory(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_84, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_85;
     stream->read((uint64_t*)&cgen_var_85, 8);
     stream->handleMapping()->mapHandles_u64_VkDeviceMemory(&cgen_var_85, (VkDeviceMemory*)pMemory, 1);
@@ -1968,8 +1815,7 @@ VkResult VkEncoder::vkAllocateMemory(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkAllocateMemory");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkAllocateMemory_VkResult_return;
 }
 
@@ -1979,15 +1825,14 @@ void VkEncoder::vkFreeMemory(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkFreeMemory");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDeviceMemory local_memory;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_memory = memory;
     local_pAllocator = nullptr;
@@ -1996,10 +1841,8 @@ void VkEncoder::vkFreeMemory(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
-    mImpl->resources()->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
-    uint32_t featureBits = stream->getFeatureBits();
+    sResourceTracker->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -2011,9 +1854,8 @@ void VkEncoder::vkFreeMemory(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkFreeMemory = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkFreeMemory);
@@ -2038,17 +1880,14 @@ void VkEncoder::vkFreeMemory(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkDeviceMemory((VkDeviceMemory*)&memory);
+    sResourceTracker->destroyMapping()->mapHandles_VkDeviceMemory((VkDeviceMemory*)&memory);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkFreeMemory");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkMapMemory(
@@ -2062,8 +1901,7 @@ VkResult VkEncoder::vkMapMemory(
 {
     (void)doLock;
     VkResult vkMapMemory_VkResult_return = (VkResult)0;
-    vkMapMemory_VkResult_return = mImpl->resources()->on_vkMapMemory(this, VK_SUCCESS, device, memory, offset, size, flags, ppData);
-    mImpl->log("finish vkMapMemory");;
+    vkMapMemory_VkResult_return = sResourceTracker->on_vkMapMemory(this, VK_SUCCESS, device, memory, offset, size, flags, ppData);
     return vkMapMemory_VkResult_return;
 }
 
@@ -2073,7 +1911,7 @@ void VkEncoder::vkUnmapMemory(
     uint32_t doLock)
 {
     (void)doLock;
-    mImpl->resources()->on_vkUnmapMemory(this, device, memory);
+    sResourceTracker->on_vkUnmapMemory(this, device, memory);
 }
 
 VkResult VkEncoder::vkFlushMappedMemoryRanges(
@@ -2082,16 +1920,15 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
     const VkMappedMemoryRange* pMemoryRanges,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkFlushMappedMemoryRanges");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     VALIDATE_RET(VkResult, VK_SUCCESS, mImpl->validation()->on_vkFlushMappedMemoryRanges(this, VK_SUCCESS, device, memoryRangeCount, pMemoryRanges));
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     uint32_t local_memoryRangeCount;
     VkMappedMemoryRange* local_pMemoryRanges;
-    uint32_t local_doLock;
     local_device = device;
     local_memoryRangeCount = memoryRangeCount;
     local_pMemoryRanges = nullptr;
@@ -2103,15 +1940,13 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
             deepcopy_VkMappedMemoryRange(pool, pMemoryRanges + i, (VkMappedMemoryRange*)(local_pMemoryRanges + i));
         }
     }
-    local_doLock = doLock;
     if (local_pMemoryRanges)
     {
         for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i)
         {
-            transform_tohost_VkMappedMemoryRange(mImpl->resources(), (VkMappedMemoryRange*)(local_pMemoryRanges + i));
+            transform_tohost_VkMappedMemoryRange(sResourceTracker, (VkMappedMemoryRange*)(local_pMemoryRanges + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -2120,9 +1955,8 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i)
         {
-            count_VkMappedMemoryRange(featureBits, (VkMappedMemoryRange*)(local_pMemoryRanges + i), countPtr);
+            count_VkMappedMemoryRange(sFeatureBits, (VkMappedMemoryRange*)(local_pMemoryRanges + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkFlushMappedMemoryRanges = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkFlushMappedMemoryRanges);
@@ -2140,9 +1974,7 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
     {
         reservedmarshal_VkMappedMemoryRange(stream, (VkMappedMemoryRange*)(local_pMemoryRanges + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    if (!resources->usingDirectMapping())
+    if (!sResourceTracker->usingDirectMapping())
     {
         for (uint32_t i = 0; i < memoryRangeCount; ++i)
         {
@@ -2152,8 +1984,8 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
             auto offset = pMemoryRanges[i].offset;
             uint64_t streamSize = 0;
             if (!memory) { stream->write(&streamSize, sizeof(uint64_t)); continue; };
-            auto hostPtr = resources->getMappedPointer(memory);
-            auto actualSize = size == VK_WHOLE_SIZE ? resources->getMappedSize(memory) : size;
+            auto hostPtr = sResourceTracker->getMappedPointer(memory);
+            auto actualSize = size == VK_WHOLE_SIZE ? sResourceTracker->getMappedSize(memory) : size;
             if (!hostPtr) { stream->write(&streamSize, sizeof(uint64_t)); continue; };
             streamSize = actualSize;
             stream->write(&streamSize, sizeof(uint64_t));
@@ -2169,8 +2001,7 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkFlushMappedMemoryRanges");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkFlushMappedMemoryRanges_VkResult_return;
 }
 
@@ -2180,16 +2011,15 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
     const VkMappedMemoryRange* pMemoryRanges,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkInvalidateMappedMemoryRanges");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     VALIDATE_RET(VkResult, VK_SUCCESS, mImpl->validation()->on_vkInvalidateMappedMemoryRanges(this, VK_SUCCESS, device, memoryRangeCount, pMemoryRanges));
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     uint32_t local_memoryRangeCount;
     VkMappedMemoryRange* local_pMemoryRanges;
-    uint32_t local_doLock;
     local_device = device;
     local_memoryRangeCount = memoryRangeCount;
     local_pMemoryRanges = nullptr;
@@ -2201,15 +2031,13 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
             deepcopy_VkMappedMemoryRange(pool, pMemoryRanges + i, (VkMappedMemoryRange*)(local_pMemoryRanges + i));
         }
     }
-    local_doLock = doLock;
     if (local_pMemoryRanges)
     {
         for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i)
         {
-            transform_tohost_VkMappedMemoryRange(mImpl->resources(), (VkMappedMemoryRange*)(local_pMemoryRanges + i));
+            transform_tohost_VkMappedMemoryRange(sResourceTracker, (VkMappedMemoryRange*)(local_pMemoryRanges + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -2218,9 +2046,8 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i)
         {
-            count_VkMappedMemoryRange(featureBits, (VkMappedMemoryRange*)(local_pMemoryRanges + i), countPtr);
+            count_VkMappedMemoryRange(sFeatureBits, (VkMappedMemoryRange*)(local_pMemoryRanges + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkInvalidateMappedMemoryRanges = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkInvalidateMappedMemoryRanges);
@@ -2238,11 +2065,9 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
     {
         reservedmarshal_VkMappedMemoryRange(stream, (VkMappedMemoryRange*)(local_pMemoryRanges + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkInvalidateMappedMemoryRanges_VkResult_return = (VkResult)0;
     stream->read(&vkInvalidateMappedMemoryRanges_VkResult_return, sizeof(VkResult));
-    if (!resources->usingDirectMapping())
+    if (!sResourceTracker->usingDirectMapping())
     {
         for (uint32_t i = 0; i < memoryRangeCount; ++i)
         {
@@ -2252,8 +2077,8 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
             auto offset = pMemoryRanges[i].offset;
             uint64_t streamSize = 0;
             if (!memory) { stream->read(&streamSize, sizeof(uint64_t)); continue; };
-            auto hostPtr = resources->getMappedPointer(memory);
-            auto actualSize = size == VK_WHOLE_SIZE ? resources->getMappedSize(memory) : size;
+            auto hostPtr = sResourceTracker->getMappedPointer(memory);
+            auto actualSize = size == VK_WHOLE_SIZE ? sResourceTracker->getMappedSize(memory) : size;
             if (!hostPtr) { stream->read(&streamSize, sizeof(uint64_t)); continue; };
             streamSize = actualSize;
             stream->read(&streamSize, sizeof(uint64_t));
@@ -2267,8 +2092,7 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkInvalidateMappedMemoryRanges");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkInvalidateMappedMemoryRanges_VkResult_return;
 }
 
@@ -2278,19 +2102,16 @@ void VkEncoder::vkGetDeviceMemoryCommitment(
     VkDeviceSize* pCommittedMemoryInBytes,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetDeviceMemoryCommitment");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDeviceMemory local_memory;
-    uint32_t local_doLock;
     local_device = device;
     local_memory = memory;
-    local_doLock = doLock;
-    mImpl->resources()->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
-    uint32_t featureBits = stream->getFeatureBits();
+    sResourceTracker->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -2299,7 +2120,6 @@ void VkEncoder::vkGetDeviceMemoryCommitment(
         uint64_t cgen_var_96;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkDeviceSize);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetDeviceMemoryCommitment = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDeviceMemoryCommitment);
@@ -2317,8 +2137,6 @@ void VkEncoder::vkGetDeviceMemoryCommitment(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkDeviceSize*)pCommittedMemoryInBytes, sizeof(VkDeviceSize));
     *streamPtrPtr += sizeof(VkDeviceSize);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((VkDeviceSize*)pCommittedMemoryInBytes, sizeof(VkDeviceSize));
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -2326,8 +2144,7 @@ void VkEncoder::vkGetDeviceMemoryCommitment(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetDeviceMemoryCommitment");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkBindBufferMemory(
@@ -2337,23 +2154,20 @@ VkResult VkEncoder::vkBindBufferMemory(
     VkDeviceSize memoryOffset,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkBindBufferMemory");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkBuffer local_buffer;
     VkDeviceMemory local_memory;
     VkDeviceSize local_memoryOffset;
-    uint32_t local_doLock;
     local_device = device;
     local_buffer = buffer;
     local_memory = memory;
     local_memoryOffset = memoryOffset;
-    local_doLock = doLock;
-    mImpl->resources()->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)&local_memoryOffset, 1, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
-    uint32_t featureBits = stream->getFeatureBits();
+    sResourceTracker->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)&local_memoryOffset, 1, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -2364,7 +2178,6 @@ VkResult VkEncoder::vkBindBufferMemory(
         uint64_t cgen_var_101;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkDeviceSize);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkBindBufferMemory = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkBindBufferMemory);
@@ -2386,8 +2199,6 @@ VkResult VkEncoder::vkBindBufferMemory(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkDeviceSize*)&local_memoryOffset, sizeof(VkDeviceSize));
     *streamPtrPtr += sizeof(VkDeviceSize);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkBindBufferMemory_VkResult_return = (VkResult)0;
     stream->read(&vkBindBufferMemory_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -2396,8 +2207,7 @@ VkResult VkEncoder::vkBindBufferMemory(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkBindBufferMemory");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkBindBufferMemory_VkResult_return;
 }
 
@@ -2408,23 +2218,20 @@ VkResult VkEncoder::vkBindImageMemory(
     VkDeviceSize memoryOffset,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkBindImageMemory");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkImage local_image;
     VkDeviceMemory local_memory;
     VkDeviceSize local_memoryOffset;
-    uint32_t local_doLock;
     local_device = device;
     local_image = image;
     local_memory = memory;
     local_memoryOffset = memoryOffset;
-    local_doLock = doLock;
-    mImpl->resources()->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)&local_memoryOffset, 1, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
-    uint32_t featureBits = stream->getFeatureBits();
+    sResourceTracker->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)&local_memoryOffset, 1, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -2435,7 +2242,6 @@ VkResult VkEncoder::vkBindImageMemory(
         uint64_t cgen_var_107;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkDeviceSize);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkBindImageMemory = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkBindImageMemory);
@@ -2457,8 +2263,6 @@ VkResult VkEncoder::vkBindImageMemory(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkDeviceSize*)&local_memoryOffset, sizeof(VkDeviceSize));
     *streamPtrPtr += sizeof(VkDeviceSize);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkBindImageMemory_VkResult_return = (VkResult)0;
     stream->read(&vkBindImageMemory_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -2467,8 +2271,7 @@ VkResult VkEncoder::vkBindImageMemory(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkBindImageMemory");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkBindImageMemory_VkResult_return;
 }
 
@@ -2478,18 +2281,15 @@ void VkEncoder::vkGetBufferMemoryRequirements(
     VkMemoryRequirements* pMemoryRequirements,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetBufferMemoryRequirements");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkBuffer local_buffer;
-    uint32_t local_doLock;
     local_device = device;
     local_buffer = buffer;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -2497,8 +2297,7 @@ void VkEncoder::vkGetBufferMemoryRequirements(
         *countPtr += 1 * 8;
         uint64_t cgen_var_112;
         *countPtr += 1 * 8;
-        count_VkMemoryRequirements(featureBits, (VkMemoryRequirements*)(pMemoryRequirements), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkMemoryRequirements(sFeatureBits, (VkMemoryRequirements*)(pMemoryRequirements), countPtr);
     }
     uint32_t packetSize_vkGetBufferMemoryRequirements = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetBufferMemoryRequirements);
@@ -2515,12 +2314,10 @@ void VkEncoder::vkGetBufferMemoryRequirements(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_114, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
     if (pMemoryRequirements)
     {
-        transform_fromhost_VkMemoryRequirements(mImpl->resources(), (VkMemoryRequirements*)(pMemoryRequirements));
+        transform_fromhost_VkMemoryRequirements(sResourceTracker, (VkMemoryRequirements*)(pMemoryRequirements));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -2528,8 +2325,7 @@ void VkEncoder::vkGetBufferMemoryRequirements(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetBufferMemoryRequirements");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetImageMemoryRequirements(
@@ -2538,18 +2334,15 @@ void VkEncoder::vkGetImageMemoryRequirements(
     VkMemoryRequirements* pMemoryRequirements,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetImageMemoryRequirements");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkImage local_image;
-    uint32_t local_doLock;
     local_device = device;
     local_image = image;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -2557,8 +2350,7 @@ void VkEncoder::vkGetImageMemoryRequirements(
         *countPtr += 1 * 8;
         uint64_t cgen_var_116;
         *countPtr += 1 * 8;
-        count_VkMemoryRequirements(featureBits, (VkMemoryRequirements*)(pMemoryRequirements), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkMemoryRequirements(sFeatureBits, (VkMemoryRequirements*)(pMemoryRequirements), countPtr);
     }
     uint32_t packetSize_vkGetImageMemoryRequirements = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetImageMemoryRequirements);
@@ -2575,12 +2367,10 @@ void VkEncoder::vkGetImageMemoryRequirements(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_118, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
     if (pMemoryRequirements)
     {
-        transform_fromhost_VkMemoryRequirements(mImpl->resources(), (VkMemoryRequirements*)(pMemoryRequirements));
+        transform_fromhost_VkMemoryRequirements(sResourceTracker, (VkMemoryRequirements*)(pMemoryRequirements));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -2588,8 +2378,7 @@ void VkEncoder::vkGetImageMemoryRequirements(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetImageMemoryRequirements");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetImageSparseMemoryRequirements(
@@ -2599,18 +2388,15 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
     VkSparseImageMemoryRequirements* pSparseMemoryRequirements,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetImageSparseMemoryRequirements");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkImage local_image;
-    uint32_t local_doLock;
     local_device = device;
     local_image = image;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -2630,10 +2416,9 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
             {
-                count_VkSparseImageMemoryRequirements(featureBits, (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i), countPtr);
+                count_VkSparseImageMemoryRequirements(sFeatureBits, (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetImageSparseMemoryRequirements = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetImageSparseMemoryRequirements);
@@ -2671,8 +2456,6 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
             reservedmarshal_VkSparseImageMemoryRequirements(stream, (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pSparseMemoryRequirementCount;
     check_pSparseMemoryRequirementCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -2702,7 +2485,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
         {
-            transform_fromhost_VkSparseImageMemoryRequirements(mImpl->resources(), (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i));
+            transform_fromhost_VkSparseImageMemoryRequirements(sResourceTracker, (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i));
         }
     }
     ++encodeCount;;
@@ -2711,8 +2494,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetImageSparseMemoryRequirements");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
@@ -2726,10 +2508,10 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
     VkSparseImageFormatProperties* pProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceSparseImageFormatProperties");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkFormat local_format;
@@ -2737,15 +2519,12 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
     VkSampleCountFlagBits local_samples;
     VkImageUsageFlags local_usage;
     VkImageTiling local_tiling;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_format = format;
     local_type = type;
     local_samples = samples;
     local_usage = usage;
     local_tiling = tiling;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -2768,10 +2547,9 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                count_VkSparseImageFormatProperties(featureBits, (VkSparseImageFormatProperties*)(pProperties + i), countPtr);
+                count_VkSparseImageFormatProperties(sFeatureBits, (VkSparseImageFormatProperties*)(pProperties + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceSparseImageFormatProperties = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceSparseImageFormatProperties);
@@ -2815,8 +2593,6 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
             reservedmarshal_VkSparseImageFormatProperties(stream, (VkSparseImageFormatProperties*)(pProperties + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
     check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -2846,7 +2622,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            transform_fromhost_VkSparseImageFormatProperties(mImpl->resources(), (VkSparseImageFormatProperties*)(pProperties + i));
+            transform_fromhost_VkSparseImageFormatProperties(sResourceTracker, (VkSparseImageFormatProperties*)(pProperties + i));
         }
     }
     ++encodeCount;;
@@ -2855,8 +2631,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceSparseImageFormatProperties");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkQueueBindSparse(
@@ -2866,16 +2641,15 @@ VkResult VkEncoder::vkQueueBindSparse(
     VkFence fence,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkQueueBindSparse");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkQueue local_queue;
     uint32_t local_bindInfoCount;
     VkBindSparseInfo* local_pBindInfo;
     VkFence local_fence;
-    uint32_t local_doLock;
     local_queue = queue;
     local_bindInfoCount = bindInfoCount;
     local_pBindInfo = nullptr;
@@ -2888,15 +2662,13 @@ VkResult VkEncoder::vkQueueBindSparse(
         }
     }
     local_fence = fence;
-    local_doLock = doLock;
     if (local_pBindInfo)
     {
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            transform_tohost_VkBindSparseInfo(mImpl->resources(), (VkBindSparseInfo*)(local_pBindInfo + i));
+            transform_tohost_VkBindSparseInfo(sResourceTracker, (VkBindSparseInfo*)(local_pBindInfo + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -2905,11 +2677,10 @@ VkResult VkEncoder::vkQueueBindSparse(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            count_VkBindSparseInfo(featureBits, (VkBindSparseInfo*)(local_pBindInfo + i), countPtr);
+            count_VkBindSparseInfo(sFeatureBits, (VkBindSparseInfo*)(local_pBindInfo + i), countPtr);
         }
         uint64_t cgen_var_134;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkQueueBindSparse = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkQueueBindSparse);
@@ -2931,8 +2702,6 @@ VkResult VkEncoder::vkQueueBindSparse(
     *&cgen_var_136 = get_host_u64_VkFence((*&local_fence));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_136, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkQueueBindSparse_VkResult_return = (VkResult)0;
     stream->read(&vkQueueBindSparse_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -2941,8 +2710,7 @@ VkResult VkEncoder::vkQueueBindSparse(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkQueueBindSparse");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkQueueBindSparse_VkResult_return;
 }
 
@@ -2953,15 +2721,14 @@ VkResult VkEncoder::vkCreateFence(
     VkFence* pFence,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateFence");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkFenceCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -2975,32 +2742,29 @@ VkResult VkEncoder::vkCreateFence(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkFenceCreateInfo(mImpl->resources(), (VkFenceCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkFenceCreateInfo(sResourceTracker, (VkFenceCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_137;
         *countPtr += 1 * 8;
-        count_VkFenceCreateInfo(featureBits, (VkFenceCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkFenceCreateInfo(sFeatureBits, (VkFenceCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_138;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateFence = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateFence);
@@ -3028,9 +2792,7 @@ VkResult VkEncoder::vkCreateFence(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_141, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_142;
     stream->read((uint64_t*)&cgen_var_142, 8);
     stream->handleMapping()->mapHandles_u64_VkFence(&cgen_var_142, (VkFence*)pFence, 1);
@@ -3043,8 +2805,7 @@ VkResult VkEncoder::vkCreateFence(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateFence");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateFence_VkResult_return;
 }
 
@@ -3054,15 +2815,14 @@ void VkEncoder::vkDestroyFence(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyFence");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkFence local_fence;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_fence = fence;
     local_pAllocator = nullptr;
@@ -3071,13 +2831,11 @@ void VkEncoder::vkDestroyFence(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -3089,9 +2847,8 @@ void VkEncoder::vkDestroyFence(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyFence = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyFence);
@@ -3116,17 +2873,14 @@ void VkEncoder::vkDestroyFence(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkFence((VkFence*)&fence);
+    sResourceTracker->destroyMapping()->mapHandles_VkFence((VkFence*)&fence);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyFence");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkResetFences(
@@ -3135,15 +2889,14 @@ VkResult VkEncoder::vkResetFences(
     const VkFence* pFences,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkResetFences");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     uint32_t local_fenceCount;
     VkFence* local_pFences;
-    uint32_t local_doLock;
     local_device = device;
     local_fenceCount = fenceCount;
     local_pFences = nullptr;
@@ -3151,8 +2904,6 @@ VkResult VkEncoder::vkResetFences(
     {
         local_pFences = (VkFence*)pool->dupArray(pFences, ((fenceCount)) * sizeof(const VkFence));
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -3163,7 +2914,6 @@ VkResult VkEncoder::vkResetFences(
         {
             *countPtr += ((fenceCount)) * 8;
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkResetFences = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkResetFences);
@@ -3188,8 +2938,6 @@ VkResult VkEncoder::vkResetFences(
         memcpy(*streamPtrPtr, (uint64_t*)cgen_var_151, ((fenceCount)) * 8);
         *streamPtrPtr += ((fenceCount)) * 8;
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkResetFences_VkResult_return = (VkResult)0;
     stream->read(&vkResetFences_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -3198,8 +2946,7 @@ VkResult VkEncoder::vkResetFences(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkResetFences");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkResetFences_VkResult_return;
 }
 
@@ -3208,18 +2955,15 @@ VkResult VkEncoder::vkGetFenceStatus(
     VkFence fence,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetFenceStatus");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkFence local_fence;
-    uint32_t local_doLock;
     local_device = device;
     local_fence = fence;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -3227,7 +2971,6 @@ VkResult VkEncoder::vkGetFenceStatus(
         *countPtr += 1 * 8;
         uint64_t cgen_var_153;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetFenceStatus = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetFenceStatus);
@@ -3243,8 +2986,6 @@ VkResult VkEncoder::vkGetFenceStatus(
     *&cgen_var_155 = get_host_u64_VkFence((*&local_fence));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_155, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkGetFenceStatus_VkResult_return = (VkResult)0;
     stream->read(&vkGetFenceStatus_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -3253,8 +2994,7 @@ VkResult VkEncoder::vkGetFenceStatus(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetFenceStatus");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetFenceStatus_VkResult_return;
 }
 
@@ -3266,17 +3006,16 @@ VkResult VkEncoder::vkWaitForFences(
     uint64_t timeout,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkWaitForFences");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     uint32_t local_fenceCount;
     VkFence* local_pFences;
     VkBool32 local_waitAll;
     uint64_t local_timeout;
-    uint32_t local_doLock;
     local_device = device;
     local_fenceCount = fenceCount;
     local_pFences = nullptr;
@@ -3286,8 +3025,6 @@ VkResult VkEncoder::vkWaitForFences(
     }
     local_waitAll = waitAll;
     local_timeout = timeout;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -3300,7 +3037,6 @@ VkResult VkEncoder::vkWaitForFences(
         }
         *countPtr += sizeof(VkBool32);
         *countPtr += sizeof(uint64_t);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkWaitForFences = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkWaitForFences);
@@ -3329,8 +3065,6 @@ VkResult VkEncoder::vkWaitForFences(
     *streamPtrPtr += sizeof(VkBool32);
     memcpy(*streamPtrPtr, (uint64_t*)&local_timeout, sizeof(uint64_t));
     *streamPtrPtr += sizeof(uint64_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkWaitForFences_VkResult_return = (VkResult)0;
     stream->read(&vkWaitForFences_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -3339,8 +3073,7 @@ VkResult VkEncoder::vkWaitForFences(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkWaitForFences");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkWaitForFences_VkResult_return;
 }
 
@@ -3351,15 +3084,14 @@ VkResult VkEncoder::vkCreateSemaphore(
     VkSemaphore* pSemaphore,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateSemaphore");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkSemaphoreCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -3373,32 +3105,29 @@ VkResult VkEncoder::vkCreateSemaphore(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkSemaphoreCreateInfo(mImpl->resources(), (VkSemaphoreCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkSemaphoreCreateInfo(sResourceTracker, (VkSemaphoreCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_160;
         *countPtr += 1 * 8;
-        count_VkSemaphoreCreateInfo(featureBits, (VkSemaphoreCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkSemaphoreCreateInfo(sFeatureBits, (VkSemaphoreCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_161;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateSemaphore = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateSemaphore);
@@ -3426,9 +3155,7 @@ VkResult VkEncoder::vkCreateSemaphore(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_164, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_165;
     stream->read((uint64_t*)&cgen_var_165, 8);
     stream->handleMapping()->mapHandles_u64_VkSemaphore(&cgen_var_165, (VkSemaphore*)pSemaphore, 1);
@@ -3441,8 +3168,7 @@ VkResult VkEncoder::vkCreateSemaphore(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateSemaphore");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateSemaphore_VkResult_return;
 }
 
@@ -3452,15 +3178,14 @@ void VkEncoder::vkDestroySemaphore(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroySemaphore");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkSemaphore local_semaphore;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_semaphore = semaphore;
     local_pAllocator = nullptr;
@@ -3469,13 +3194,11 @@ void VkEncoder::vkDestroySemaphore(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -3487,9 +3210,8 @@ void VkEncoder::vkDestroySemaphore(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroySemaphore = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroySemaphore);
@@ -3514,17 +3236,14 @@ void VkEncoder::vkDestroySemaphore(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkSemaphore((VkSemaphore*)&semaphore);
+    sResourceTracker->destroyMapping()->mapHandles_VkSemaphore((VkSemaphore*)&semaphore);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroySemaphore");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkCreateEvent(
@@ -3534,15 +3253,14 @@ VkResult VkEncoder::vkCreateEvent(
     VkEvent* pEvent,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateEvent");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkEventCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -3556,32 +3274,29 @@ VkResult VkEncoder::vkCreateEvent(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkEventCreateInfo(mImpl->resources(), (VkEventCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkEventCreateInfo(sResourceTracker, (VkEventCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_171;
         *countPtr += 1 * 8;
-        count_VkEventCreateInfo(featureBits, (VkEventCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkEventCreateInfo(sFeatureBits, (VkEventCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_172;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateEvent = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateEvent);
@@ -3609,9 +3324,7 @@ VkResult VkEncoder::vkCreateEvent(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_175, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_176;
     stream->read((uint64_t*)&cgen_var_176, 8);
     stream->handleMapping()->mapHandles_u64_VkEvent(&cgen_var_176, (VkEvent*)pEvent, 1);
@@ -3624,8 +3337,7 @@ VkResult VkEncoder::vkCreateEvent(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateEvent");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateEvent_VkResult_return;
 }
 
@@ -3635,15 +3347,14 @@ void VkEncoder::vkDestroyEvent(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyEvent");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkEvent local_event;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_event = event;
     local_pAllocator = nullptr;
@@ -3652,13 +3363,11 @@ void VkEncoder::vkDestroyEvent(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -3670,9 +3379,8 @@ void VkEncoder::vkDestroyEvent(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyEvent = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyEvent);
@@ -3697,17 +3405,14 @@ void VkEncoder::vkDestroyEvent(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkEvent((VkEvent*)&event);
+    sResourceTracker->destroyMapping()->mapHandles_VkEvent((VkEvent*)&event);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyEvent");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkGetEventStatus(
@@ -3715,18 +3420,15 @@ VkResult VkEncoder::vkGetEventStatus(
     VkEvent event,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetEventStatus");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkEvent local_event;
-    uint32_t local_doLock;
     local_device = device;
     local_event = event;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -3734,7 +3436,6 @@ VkResult VkEncoder::vkGetEventStatus(
         *countPtr += 1 * 8;
         uint64_t cgen_var_183;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetEventStatus = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetEventStatus);
@@ -3750,8 +3451,6 @@ VkResult VkEncoder::vkGetEventStatus(
     *&cgen_var_185 = get_host_u64_VkEvent((*&local_event));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_185, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkGetEventStatus_VkResult_return = (VkResult)0;
     stream->read(&vkGetEventStatus_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -3760,8 +3459,7 @@ VkResult VkEncoder::vkGetEventStatus(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetEventStatus");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetEventStatus_VkResult_return;
 }
 
@@ -3770,18 +3468,15 @@ VkResult VkEncoder::vkSetEvent(
     VkEvent event,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkSetEvent");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkEvent local_event;
-    uint32_t local_doLock;
     local_device = device;
     local_event = event;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -3789,7 +3484,6 @@ VkResult VkEncoder::vkSetEvent(
         *countPtr += 1 * 8;
         uint64_t cgen_var_187;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkSetEvent = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkSetEvent);
@@ -3805,8 +3499,6 @@ VkResult VkEncoder::vkSetEvent(
     *&cgen_var_189 = get_host_u64_VkEvent((*&local_event));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_189, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkSetEvent_VkResult_return = (VkResult)0;
     stream->read(&vkSetEvent_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -3815,8 +3507,7 @@ VkResult VkEncoder::vkSetEvent(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkSetEvent");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkSetEvent_VkResult_return;
 }
 
@@ -3825,18 +3516,15 @@ VkResult VkEncoder::vkResetEvent(
     VkEvent event,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkResetEvent");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkEvent local_event;
-    uint32_t local_doLock;
     local_device = device;
     local_event = event;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -3844,7 +3532,6 @@ VkResult VkEncoder::vkResetEvent(
         *countPtr += 1 * 8;
         uint64_t cgen_var_191;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkResetEvent = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkResetEvent);
@@ -3860,8 +3547,6 @@ VkResult VkEncoder::vkResetEvent(
     *&cgen_var_193 = get_host_u64_VkEvent((*&local_event));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_193, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkResetEvent_VkResult_return = (VkResult)0;
     stream->read(&vkResetEvent_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -3870,8 +3555,7 @@ VkResult VkEncoder::vkResetEvent(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkResetEvent");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkResetEvent_VkResult_return;
 }
 
@@ -3882,15 +3566,14 @@ VkResult VkEncoder::vkCreateQueryPool(
     VkQueryPool* pQueryPool,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateQueryPool");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkQueryPoolCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -3904,32 +3587,29 @@ VkResult VkEncoder::vkCreateQueryPool(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkQueryPoolCreateInfo(mImpl->resources(), (VkQueryPoolCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkQueryPoolCreateInfo(sResourceTracker, (VkQueryPoolCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_194;
         *countPtr += 1 * 8;
-        count_VkQueryPoolCreateInfo(featureBits, (VkQueryPoolCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkQueryPoolCreateInfo(sFeatureBits, (VkQueryPoolCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_195;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateQueryPool = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateQueryPool);
@@ -3957,9 +3637,7 @@ VkResult VkEncoder::vkCreateQueryPool(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_198, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_199;
     stream->read((uint64_t*)&cgen_var_199, 8);
     stream->handleMapping()->mapHandles_u64_VkQueryPool(&cgen_var_199, (VkQueryPool*)pQueryPool, 1);
@@ -3972,8 +3650,7 @@ VkResult VkEncoder::vkCreateQueryPool(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateQueryPool");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateQueryPool_VkResult_return;
 }
 
@@ -3983,15 +3660,14 @@ void VkEncoder::vkDestroyQueryPool(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyQueryPool");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkQueryPool local_queryPool;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_queryPool = queryPool;
     local_pAllocator = nullptr;
@@ -4000,13 +3676,11 @@ void VkEncoder::vkDestroyQueryPool(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -4018,9 +3692,8 @@ void VkEncoder::vkDestroyQueryPool(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyQueryPool = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyQueryPool);
@@ -4045,17 +3718,14 @@ void VkEncoder::vkDestroyQueryPool(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkQueryPool((VkQueryPool*)&queryPool);
+    sResourceTracker->destroyMapping()->mapHandles_VkQueryPool((VkQueryPool*)&queryPool);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyQueryPool");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkGetQueryPoolResults(
@@ -4069,10 +3739,10 @@ VkResult VkEncoder::vkGetQueryPoolResults(
     VkQueryResultFlags flags,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetQueryPoolResults");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkQueryPool local_queryPool;
@@ -4081,7 +3751,6 @@ VkResult VkEncoder::vkGetQueryPoolResults(
     size_t local_dataSize;
     VkDeviceSize local_stride;
     VkQueryResultFlags local_flags;
-    uint32_t local_doLock;
     local_device = device;
     local_queryPool = queryPool;
     local_firstQuery = firstQuery;
@@ -4089,8 +3758,6 @@ VkResult VkEncoder::vkGetQueryPoolResults(
     local_dataSize = dataSize;
     local_stride = stride;
     local_flags = flags;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -4104,7 +3771,6 @@ VkResult VkEncoder::vkGetQueryPoolResults(
         *countPtr += ((dataSize)) * sizeof(uint8_t);
         *countPtr += sizeof(VkDeviceSize);
         *countPtr += sizeof(VkQueryResultFlags);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetQueryPoolResults = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetQueryPoolResults);
@@ -4134,8 +3800,6 @@ VkResult VkEncoder::vkGetQueryPoolResults(
     *streamPtrPtr += sizeof(VkDeviceSize);
     memcpy(*streamPtrPtr, (VkQueryResultFlags*)&local_flags, sizeof(VkQueryResultFlags));
     *streamPtrPtr += sizeof(VkQueryResultFlags);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((void*)pData, ((dataSize)) * sizeof(uint8_t));
     VkResult vkGetQueryPoolResults_VkResult_return = (VkResult)0;
     stream->read(&vkGetQueryPoolResults_VkResult_return, sizeof(VkResult));
@@ -4145,8 +3809,7 @@ VkResult VkEncoder::vkGetQueryPoolResults(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetQueryPoolResults");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetQueryPoolResults_VkResult_return;
 }
 
@@ -4157,15 +3820,14 @@ VkResult VkEncoder::vkCreateBuffer(
     VkBuffer* pBuffer,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateBuffer");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkBufferCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -4179,32 +3841,29 @@ VkResult VkEncoder::vkCreateBuffer(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkBufferCreateInfo(mImpl->resources(), (VkBufferCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkBufferCreateInfo(sResourceTracker, (VkBufferCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_210;
         *countPtr += 1 * 8;
-        count_VkBufferCreateInfo(featureBits, (VkBufferCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkBufferCreateInfo(sFeatureBits, (VkBufferCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_211;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateBuffer = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateBuffer);
@@ -4232,9 +3891,7 @@ VkResult VkEncoder::vkCreateBuffer(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_214, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_215;
     stream->read((uint64_t*)&cgen_var_215, 8);
     stream->handleMapping()->mapHandles_u64_VkBuffer(&cgen_var_215, (VkBuffer*)pBuffer, 1);
@@ -4247,8 +3904,7 @@ VkResult VkEncoder::vkCreateBuffer(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateBuffer");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateBuffer_VkResult_return;
 }
 
@@ -4258,15 +3914,14 @@ void VkEncoder::vkDestroyBuffer(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyBuffer");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkBuffer local_buffer;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_buffer = buffer;
     local_pAllocator = nullptr;
@@ -4275,13 +3930,11 @@ void VkEncoder::vkDestroyBuffer(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -4293,9 +3946,8 @@ void VkEncoder::vkDestroyBuffer(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyBuffer = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyBuffer);
@@ -4320,17 +3972,14 @@ void VkEncoder::vkDestroyBuffer(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkBuffer((VkBuffer*)&buffer);
+    sResourceTracker->destroyMapping()->mapHandles_VkBuffer((VkBuffer*)&buffer);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyBuffer");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkCreateBufferView(
@@ -4340,15 +3989,14 @@ VkResult VkEncoder::vkCreateBufferView(
     VkBufferView* pView,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateBufferView");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkBufferViewCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -4362,32 +4010,29 @@ VkResult VkEncoder::vkCreateBufferView(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkBufferViewCreateInfo(mImpl->resources(), (VkBufferViewCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkBufferViewCreateInfo(sResourceTracker, (VkBufferViewCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_221;
         *countPtr += 1 * 8;
-        count_VkBufferViewCreateInfo(featureBits, (VkBufferViewCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkBufferViewCreateInfo(sFeatureBits, (VkBufferViewCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_222;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateBufferView = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateBufferView);
@@ -4415,9 +4060,7 @@ VkResult VkEncoder::vkCreateBufferView(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_225, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_226;
     stream->read((uint64_t*)&cgen_var_226, 8);
     stream->handleMapping()->mapHandles_u64_VkBufferView(&cgen_var_226, (VkBufferView*)pView, 1);
@@ -4430,8 +4073,7 @@ VkResult VkEncoder::vkCreateBufferView(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateBufferView");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateBufferView_VkResult_return;
 }
 
@@ -4441,15 +4083,14 @@ void VkEncoder::vkDestroyBufferView(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyBufferView");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkBufferView local_bufferView;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_bufferView = bufferView;
     local_pAllocator = nullptr;
@@ -4458,13 +4099,11 @@ void VkEncoder::vkDestroyBufferView(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -4476,9 +4115,8 @@ void VkEncoder::vkDestroyBufferView(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyBufferView = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyBufferView);
@@ -4503,17 +4141,14 @@ void VkEncoder::vkDestroyBufferView(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkBufferView((VkBufferView*)&bufferView);
+    sResourceTracker->destroyMapping()->mapHandles_VkBufferView((VkBufferView*)&bufferView);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyBufferView");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkCreateImage(
@@ -4523,15 +4158,14 @@ VkResult VkEncoder::vkCreateImage(
     VkImage* pImage,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateImage");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkImageCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -4545,33 +4179,30 @@ VkResult VkEncoder::vkCreateImage(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
-    mImpl->resources()->unwrap_VkNativeBufferANDROID(pCreateInfo, local_pCreateInfo);
+    sResourceTracker->unwrap_VkNativeBufferANDROID(pCreateInfo, local_pCreateInfo);
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkImageCreateInfo(mImpl->resources(), (VkImageCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkImageCreateInfo(sResourceTracker, (VkImageCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_232;
         *countPtr += 1 * 8;
-        count_VkImageCreateInfo(featureBits, (VkImageCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkImageCreateInfo(sFeatureBits, (VkImageCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_233;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateImage = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateImage);
@@ -4599,9 +4230,7 @@ VkResult VkEncoder::vkCreateImage(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_236, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_237;
     stream->read((uint64_t*)&cgen_var_237, 8);
     stream->handleMapping()->mapHandles_u64_VkImage(&cgen_var_237, (VkImage*)pImage, 1);
@@ -4614,8 +4243,7 @@ VkResult VkEncoder::vkCreateImage(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateImage");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateImage_VkResult_return;
 }
 
@@ -4625,15 +4253,14 @@ void VkEncoder::vkDestroyImage(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyImage");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkImage local_image;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_image = image;
     local_pAllocator = nullptr;
@@ -4642,13 +4269,11 @@ void VkEncoder::vkDestroyImage(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -4660,9 +4285,8 @@ void VkEncoder::vkDestroyImage(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyImage = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyImage);
@@ -4687,17 +4311,14 @@ void VkEncoder::vkDestroyImage(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkImage((VkImage*)&image);
+    sResourceTracker->destroyMapping()->mapHandles_VkImage((VkImage*)&image);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyImage");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetImageSubresourceLayout(
@@ -4707,15 +4328,14 @@ void VkEncoder::vkGetImageSubresourceLayout(
     VkSubresourceLayout* pLayout,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetImageSubresourceLayout");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkImage local_image;
     VkImageSubresource* local_pSubresource;
-    uint32_t local_doLock;
     local_device = device;
     local_image = image;
     local_pSubresource = nullptr;
@@ -4724,12 +4344,10 @@ void VkEncoder::vkGetImageSubresourceLayout(
         local_pSubresource = (VkImageSubresource*)pool->alloc(sizeof(const VkImageSubresource));
         deepcopy_VkImageSubresource(pool, pSubresource, (VkImageSubresource*)(local_pSubresource));
     }
-    local_doLock = doLock;
     if (local_pSubresource)
     {
-        transform_tohost_VkImageSubresource(mImpl->resources(), (VkImageSubresource*)(local_pSubresource));
+        transform_tohost_VkImageSubresource(sResourceTracker, (VkImageSubresource*)(local_pSubresource));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -4737,9 +4355,8 @@ void VkEncoder::vkGetImageSubresourceLayout(
         *countPtr += 1 * 8;
         uint64_t cgen_var_244;
         *countPtr += 1 * 8;
-        count_VkImageSubresource(featureBits, (VkImageSubresource*)(local_pSubresource), countPtr);
-        count_VkSubresourceLayout(featureBits, (VkSubresourceLayout*)(pLayout), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkImageSubresource(sFeatureBits, (VkImageSubresource*)(local_pSubresource), countPtr);
+        count_VkSubresourceLayout(sFeatureBits, (VkSubresourceLayout*)(pLayout), countPtr);
     }
     uint32_t packetSize_vkGetImageSubresourceLayout = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetImageSubresourceLayout);
@@ -4757,12 +4374,10 @@ void VkEncoder::vkGetImageSubresourceLayout(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkImageSubresource(stream, (VkImageSubresource*)(local_pSubresource), streamPtrPtr);
     reservedmarshal_VkSubresourceLayout(stream, (VkSubresourceLayout*)(pLayout), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkSubresourceLayout(stream, (VkSubresourceLayout*)(pLayout));
     if (pLayout)
     {
-        transform_fromhost_VkSubresourceLayout(mImpl->resources(), (VkSubresourceLayout*)(pLayout));
+        transform_fromhost_VkSubresourceLayout(sResourceTracker, (VkSubresourceLayout*)(pLayout));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -4770,8 +4385,7 @@ void VkEncoder::vkGetImageSubresourceLayout(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetImageSubresourceLayout");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkCreateImageView(
@@ -4781,15 +4395,14 @@ VkResult VkEncoder::vkCreateImageView(
     VkImageView* pView,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateImageView");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkImageViewCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -4803,32 +4416,29 @@ VkResult VkEncoder::vkCreateImageView(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkImageViewCreateInfo(mImpl->resources(), (VkImageViewCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkImageViewCreateInfo(sResourceTracker, (VkImageViewCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_247;
         *countPtr += 1 * 8;
-        count_VkImageViewCreateInfo(featureBits, (VkImageViewCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkImageViewCreateInfo(sFeatureBits, (VkImageViewCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_248;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateImageView = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateImageView);
@@ -4856,9 +4466,7 @@ VkResult VkEncoder::vkCreateImageView(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_251, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_252;
     stream->read((uint64_t*)&cgen_var_252, 8);
     stream->handleMapping()->mapHandles_u64_VkImageView(&cgen_var_252, (VkImageView*)pView, 1);
@@ -4871,8 +4479,7 @@ VkResult VkEncoder::vkCreateImageView(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateImageView");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateImageView_VkResult_return;
 }
 
@@ -4882,15 +4489,14 @@ void VkEncoder::vkDestroyImageView(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyImageView");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkImageView local_imageView;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_imageView = imageView;
     local_pAllocator = nullptr;
@@ -4899,13 +4505,11 @@ void VkEncoder::vkDestroyImageView(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -4917,9 +4521,8 @@ void VkEncoder::vkDestroyImageView(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyImageView = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyImageView);
@@ -4944,17 +4547,14 @@ void VkEncoder::vkDestroyImageView(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkImageView((VkImageView*)&imageView);
+    sResourceTracker->destroyMapping()->mapHandles_VkImageView((VkImageView*)&imageView);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyImageView");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkCreateShaderModule(
@@ -4964,15 +4564,14 @@ VkResult VkEncoder::vkCreateShaderModule(
     VkShaderModule* pShaderModule,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateShaderModule");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkShaderModuleCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -4986,32 +4585,29 @@ VkResult VkEncoder::vkCreateShaderModule(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkShaderModuleCreateInfo(mImpl->resources(), (VkShaderModuleCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkShaderModuleCreateInfo(sResourceTracker, (VkShaderModuleCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_258;
         *countPtr += 1 * 8;
-        count_VkShaderModuleCreateInfo(featureBits, (VkShaderModuleCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkShaderModuleCreateInfo(sFeatureBits, (VkShaderModuleCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_259;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateShaderModule = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateShaderModule);
@@ -5039,9 +4635,7 @@ VkResult VkEncoder::vkCreateShaderModule(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_262, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_263;
     stream->read((uint64_t*)&cgen_var_263, 8);
     stream->handleMapping()->mapHandles_u64_VkShaderModule(&cgen_var_263, (VkShaderModule*)pShaderModule, 1);
@@ -5054,8 +4648,7 @@ VkResult VkEncoder::vkCreateShaderModule(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateShaderModule");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateShaderModule_VkResult_return;
 }
 
@@ -5065,15 +4658,14 @@ void VkEncoder::vkDestroyShaderModule(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyShaderModule");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkShaderModule local_shaderModule;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_shaderModule = shaderModule;
     local_pAllocator = nullptr;
@@ -5082,13 +4674,11 @@ void VkEncoder::vkDestroyShaderModule(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -5100,9 +4690,8 @@ void VkEncoder::vkDestroyShaderModule(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyShaderModule = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyShaderModule);
@@ -5127,17 +4716,14 @@ void VkEncoder::vkDestroyShaderModule(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkShaderModule((VkShaderModule*)&shaderModule);
+    sResourceTracker->destroyMapping()->mapHandles_VkShaderModule((VkShaderModule*)&shaderModule);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyShaderModule");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkCreatePipelineCache(
@@ -5147,15 +4733,14 @@ VkResult VkEncoder::vkCreatePipelineCache(
     VkPipelineCache* pPipelineCache,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreatePipelineCache");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkPipelineCacheCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -5169,32 +4754,29 @@ VkResult VkEncoder::vkCreatePipelineCache(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkPipelineCacheCreateInfo(mImpl->resources(), (VkPipelineCacheCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkPipelineCacheCreateInfo(sResourceTracker, (VkPipelineCacheCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_269;
         *countPtr += 1 * 8;
-        count_VkPipelineCacheCreateInfo(featureBits, (VkPipelineCacheCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkPipelineCacheCreateInfo(sFeatureBits, (VkPipelineCacheCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_270;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreatePipelineCache = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreatePipelineCache);
@@ -5222,9 +4804,7 @@ VkResult VkEncoder::vkCreatePipelineCache(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_273, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_274;
     stream->read((uint64_t*)&cgen_var_274, 8);
     stream->handleMapping()->mapHandles_u64_VkPipelineCache(&cgen_var_274, (VkPipelineCache*)pPipelineCache, 1);
@@ -5237,8 +4817,7 @@ VkResult VkEncoder::vkCreatePipelineCache(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreatePipelineCache");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreatePipelineCache_VkResult_return;
 }
 
@@ -5248,15 +4827,14 @@ void VkEncoder::vkDestroyPipelineCache(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyPipelineCache");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkPipelineCache local_pipelineCache;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pipelineCache = pipelineCache;
     local_pAllocator = nullptr;
@@ -5265,13 +4843,11 @@ void VkEncoder::vkDestroyPipelineCache(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -5283,9 +4859,8 @@ void VkEncoder::vkDestroyPipelineCache(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyPipelineCache = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyPipelineCache);
@@ -5310,17 +4885,14 @@ void VkEncoder::vkDestroyPipelineCache(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkPipelineCache((VkPipelineCache*)&pipelineCache);
+    sResourceTracker->destroyMapping()->mapHandles_VkPipelineCache((VkPipelineCache*)&pipelineCache);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyPipelineCache");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkGetPipelineCacheData(
@@ -5330,18 +4902,15 @@ VkResult VkEncoder::vkGetPipelineCacheData(
     void* pData,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPipelineCacheData");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkPipelineCache local_pipelineCache;
-    uint32_t local_doLock;
     local_device = device;
     local_pipelineCache = pipelineCache;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -5361,7 +4930,6 @@ VkResult VkEncoder::vkGetPipelineCacheData(
         {
             *countPtr += (*(pDataSize)) * sizeof(uint8_t);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPipelineCacheData = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPipelineCacheData);
@@ -5399,8 +4967,6 @@ VkResult VkEncoder::vkGetPipelineCacheData(
         memcpy(*streamPtrPtr, (void*)pData, (*(pDataSize)) * sizeof(uint8_t));
         *streamPtrPtr += (*(pDataSize)) * sizeof(uint8_t);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     size_t* check_pDataSize;
     check_pDataSize = (size_t*)(uintptr_t)stream->getBe64();
@@ -5431,8 +4997,7 @@ VkResult VkEncoder::vkGetPipelineCacheData(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPipelineCacheData");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPipelineCacheData_VkResult_return;
 }
 
@@ -5443,16 +5008,15 @@ VkResult VkEncoder::vkMergePipelineCaches(
     const VkPipelineCache* pSrcCaches,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkMergePipelineCaches");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkPipelineCache local_dstCache;
     uint32_t local_srcCacheCount;
     VkPipelineCache* local_pSrcCaches;
-    uint32_t local_doLock;
     local_device = device;
     local_dstCache = dstCache;
     local_srcCacheCount = srcCacheCount;
@@ -5461,8 +5025,6 @@ VkResult VkEncoder::vkMergePipelineCaches(
     {
         local_pSrcCaches = (VkPipelineCache*)pool->dupArray(pSrcCaches, ((srcCacheCount)) * sizeof(const VkPipelineCache));
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -5475,7 +5037,6 @@ VkResult VkEncoder::vkMergePipelineCaches(
         {
             *countPtr += ((srcCacheCount)) * 8;
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkMergePipelineCaches = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkMergePipelineCaches);
@@ -5504,8 +5065,6 @@ VkResult VkEncoder::vkMergePipelineCaches(
         memcpy(*streamPtrPtr, (uint64_t*)cgen_var_295, ((srcCacheCount)) * 8);
         *streamPtrPtr += ((srcCacheCount)) * 8;
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkMergePipelineCaches_VkResult_return = (VkResult)0;
     stream->read(&vkMergePipelineCaches_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -5514,8 +5073,7 @@ VkResult VkEncoder::vkMergePipelineCaches(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkMergePipelineCaches");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkMergePipelineCaches_VkResult_return;
 }
 
@@ -5528,17 +5086,16 @@ VkResult VkEncoder::vkCreateGraphicsPipelines(
     VkPipeline* pPipelines,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateGraphicsPipelines");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkPipelineCache local_pipelineCache;
     uint32_t local_createInfoCount;
     VkGraphicsPipelineCreateInfo* local_pCreateInfos;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pipelineCache = pipelineCache;
     local_createInfoCount = createInfoCount;
@@ -5557,20 +5114,18 @@ VkResult VkEncoder::vkCreateGraphicsPipelines(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfos)
     {
         for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
         {
-            transform_tohost_VkGraphicsPipelineCreateInfo(mImpl->resources(), (VkGraphicsPipelineCreateInfo*)(local_pCreateInfos + i));
+            transform_tohost_VkGraphicsPipelineCreateInfo(sResourceTracker, (VkGraphicsPipelineCreateInfo*)(local_pCreateInfos + i));
         }
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -5581,19 +5136,18 @@ VkResult VkEncoder::vkCreateGraphicsPipelines(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
         {
-            count_VkGraphicsPipelineCreateInfo(featureBits, (VkGraphicsPipelineCreateInfo*)(local_pCreateInfos + i), countPtr);
+            count_VkGraphicsPipelineCreateInfo(sFeatureBits, (VkGraphicsPipelineCreateInfo*)(local_pCreateInfos + i), countPtr);
         }
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         if (((createInfoCount)))
         {
             *countPtr += ((createInfoCount)) * 8;
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateGraphicsPipelines = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateGraphicsPipelines);
@@ -5637,9 +5191,7 @@ VkResult VkEncoder::vkCreateGraphicsPipelines(
         *streamPtrPtr += ((createInfoCount)) * 8;
     }
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     if (((createInfoCount)))
     {
         uint64_t* cgen_var_303;
@@ -5656,8 +5208,7 @@ VkResult VkEncoder::vkCreateGraphicsPipelines(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateGraphicsPipelines");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateGraphicsPipelines_VkResult_return;
 }
 
@@ -5670,17 +5221,16 @@ VkResult VkEncoder::vkCreateComputePipelines(
     VkPipeline* pPipelines,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateComputePipelines");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkPipelineCache local_pipelineCache;
     uint32_t local_createInfoCount;
     VkComputePipelineCreateInfo* local_pCreateInfos;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pipelineCache = pipelineCache;
     local_createInfoCount = createInfoCount;
@@ -5699,20 +5249,18 @@ VkResult VkEncoder::vkCreateComputePipelines(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfos)
     {
         for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
         {
-            transform_tohost_VkComputePipelineCreateInfo(mImpl->resources(), (VkComputePipelineCreateInfo*)(local_pCreateInfos + i));
+            transform_tohost_VkComputePipelineCreateInfo(sResourceTracker, (VkComputePipelineCreateInfo*)(local_pCreateInfos + i));
         }
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -5723,19 +5271,18 @@ VkResult VkEncoder::vkCreateComputePipelines(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
         {
-            count_VkComputePipelineCreateInfo(featureBits, (VkComputePipelineCreateInfo*)(local_pCreateInfos + i), countPtr);
+            count_VkComputePipelineCreateInfo(sFeatureBits, (VkComputePipelineCreateInfo*)(local_pCreateInfos + i), countPtr);
         }
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         if (((createInfoCount)))
         {
             *countPtr += ((createInfoCount)) * 8;
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateComputePipelines = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateComputePipelines);
@@ -5779,9 +5326,7 @@ VkResult VkEncoder::vkCreateComputePipelines(
         *streamPtrPtr += ((createInfoCount)) * 8;
     }
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     if (((createInfoCount)))
     {
         uint64_t* cgen_var_311;
@@ -5798,8 +5343,7 @@ VkResult VkEncoder::vkCreateComputePipelines(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateComputePipelines");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateComputePipelines_VkResult_return;
 }
 
@@ -5809,15 +5353,14 @@ void VkEncoder::vkDestroyPipeline(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyPipeline");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkPipeline local_pipeline;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pipeline = pipeline;
     local_pAllocator = nullptr;
@@ -5826,13 +5369,11 @@ void VkEncoder::vkDestroyPipeline(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -5844,9 +5385,8 @@ void VkEncoder::vkDestroyPipeline(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyPipeline = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyPipeline);
@@ -5871,17 +5411,14 @@ void VkEncoder::vkDestroyPipeline(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkPipeline((VkPipeline*)&pipeline);
+    sResourceTracker->destroyMapping()->mapHandles_VkPipeline((VkPipeline*)&pipeline);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyPipeline");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkCreatePipelineLayout(
@@ -5891,15 +5428,14 @@ VkResult VkEncoder::vkCreatePipelineLayout(
     VkPipelineLayout* pPipelineLayout,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreatePipelineLayout");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkPipelineLayoutCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -5913,32 +5449,29 @@ VkResult VkEncoder::vkCreatePipelineLayout(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkPipelineLayoutCreateInfo(mImpl->resources(), (VkPipelineLayoutCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkPipelineLayoutCreateInfo(sResourceTracker, (VkPipelineLayoutCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_317;
         *countPtr += 1 * 8;
-        count_VkPipelineLayoutCreateInfo(featureBits, (VkPipelineLayoutCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkPipelineLayoutCreateInfo(sFeatureBits, (VkPipelineLayoutCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_318;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreatePipelineLayout = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreatePipelineLayout);
@@ -5966,9 +5499,7 @@ VkResult VkEncoder::vkCreatePipelineLayout(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_321, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_322;
     stream->read((uint64_t*)&cgen_var_322, 8);
     stream->handleMapping()->mapHandles_u64_VkPipelineLayout(&cgen_var_322, (VkPipelineLayout*)pPipelineLayout, 1);
@@ -5981,8 +5512,7 @@ VkResult VkEncoder::vkCreatePipelineLayout(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreatePipelineLayout");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreatePipelineLayout_VkResult_return;
 }
 
@@ -5992,15 +5522,14 @@ void VkEncoder::vkDestroyPipelineLayout(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyPipelineLayout");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkPipelineLayout local_pipelineLayout;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pipelineLayout = pipelineLayout;
     local_pAllocator = nullptr;
@@ -6009,13 +5538,11 @@ void VkEncoder::vkDestroyPipelineLayout(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -6027,9 +5554,8 @@ void VkEncoder::vkDestroyPipelineLayout(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyPipelineLayout = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyPipelineLayout);
@@ -6054,17 +5580,14 @@ void VkEncoder::vkDestroyPipelineLayout(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkPipelineLayout((VkPipelineLayout*)&pipelineLayout);
+    sResourceTracker->destroyMapping()->mapHandles_VkPipelineLayout((VkPipelineLayout*)&pipelineLayout);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyPipelineLayout");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkCreateSampler(
@@ -6074,15 +5597,14 @@ VkResult VkEncoder::vkCreateSampler(
     VkSampler* pSampler,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateSampler");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkSamplerCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -6096,32 +5618,29 @@ VkResult VkEncoder::vkCreateSampler(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkSamplerCreateInfo(mImpl->resources(), (VkSamplerCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkSamplerCreateInfo(sResourceTracker, (VkSamplerCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_328;
         *countPtr += 1 * 8;
-        count_VkSamplerCreateInfo(featureBits, (VkSamplerCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkSamplerCreateInfo(sFeatureBits, (VkSamplerCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_329;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateSampler = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateSampler);
@@ -6149,9 +5668,7 @@ VkResult VkEncoder::vkCreateSampler(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_332, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_333;
     stream->read((uint64_t*)&cgen_var_333, 8);
     stream->handleMapping()->mapHandles_u64_VkSampler(&cgen_var_333, (VkSampler*)pSampler, 1);
@@ -6164,8 +5681,7 @@ VkResult VkEncoder::vkCreateSampler(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateSampler");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateSampler_VkResult_return;
 }
 
@@ -6175,15 +5691,14 @@ void VkEncoder::vkDestroySampler(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroySampler");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkSampler local_sampler;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_sampler = sampler;
     local_pAllocator = nullptr;
@@ -6192,13 +5707,11 @@ void VkEncoder::vkDestroySampler(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -6210,9 +5723,8 @@ void VkEncoder::vkDestroySampler(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroySampler = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroySampler);
@@ -6237,17 +5749,14 @@ void VkEncoder::vkDestroySampler(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkSampler((VkSampler*)&sampler);
+    sResourceTracker->destroyMapping()->mapHandles_VkSampler((VkSampler*)&sampler);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroySampler");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkCreateDescriptorSetLayout(
@@ -6257,15 +5766,14 @@ VkResult VkEncoder::vkCreateDescriptorSetLayout(
     VkDescriptorSetLayout* pSetLayout,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateDescriptorSetLayout");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDescriptorSetLayoutCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -6279,32 +5787,29 @@ VkResult VkEncoder::vkCreateDescriptorSetLayout(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkDescriptorSetLayoutCreateInfo(mImpl->resources(), (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkDescriptorSetLayoutCreateInfo(sResourceTracker, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_339;
         *countPtr += 1 * 8;
-        count_VkDescriptorSetLayoutCreateInfo(featureBits, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkDescriptorSetLayoutCreateInfo(sFeatureBits, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_340;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateDescriptorSetLayout = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateDescriptorSetLayout);
@@ -6332,9 +5837,7 @@ VkResult VkEncoder::vkCreateDescriptorSetLayout(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_343, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_344;
     stream->read((uint64_t*)&cgen_var_344, 8);
     stream->handleMapping()->mapHandles_u64_VkDescriptorSetLayout(&cgen_var_344, (VkDescriptorSetLayout*)pSetLayout, 1);
@@ -6347,8 +5850,7 @@ VkResult VkEncoder::vkCreateDescriptorSetLayout(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateDescriptorSetLayout");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateDescriptorSetLayout_VkResult_return;
 }
 
@@ -6358,15 +5860,14 @@ void VkEncoder::vkDestroyDescriptorSetLayout(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyDescriptorSetLayout");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDescriptorSetLayout local_descriptorSetLayout;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_descriptorSetLayout = descriptorSetLayout;
     local_pAllocator = nullptr;
@@ -6375,13 +5876,11 @@ void VkEncoder::vkDestroyDescriptorSetLayout(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -6393,9 +5892,8 @@ void VkEncoder::vkDestroyDescriptorSetLayout(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyDescriptorSetLayout = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyDescriptorSetLayout);
@@ -6420,17 +5918,14 @@ void VkEncoder::vkDestroyDescriptorSetLayout(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkDescriptorSetLayout((VkDescriptorSetLayout*)&descriptorSetLayout);
+    sResourceTracker->destroyMapping()->mapHandles_VkDescriptorSetLayout((VkDescriptorSetLayout*)&descriptorSetLayout);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyDescriptorSetLayout");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkCreateDescriptorPool(
@@ -6440,15 +5935,14 @@ VkResult VkEncoder::vkCreateDescriptorPool(
     VkDescriptorPool* pDescriptorPool,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateDescriptorPool");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDescriptorPoolCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -6462,32 +5956,29 @@ VkResult VkEncoder::vkCreateDescriptorPool(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkDescriptorPoolCreateInfo(mImpl->resources(), (VkDescriptorPoolCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkDescriptorPoolCreateInfo(sResourceTracker, (VkDescriptorPoolCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_350;
         *countPtr += 1 * 8;
-        count_VkDescriptorPoolCreateInfo(featureBits, (VkDescriptorPoolCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkDescriptorPoolCreateInfo(sFeatureBits, (VkDescriptorPoolCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_351;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateDescriptorPool = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateDescriptorPool);
@@ -6515,9 +6006,7 @@ VkResult VkEncoder::vkCreateDescriptorPool(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_354, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_355;
     stream->read((uint64_t*)&cgen_var_355, 8);
     stream->handleMapping()->mapHandles_u64_VkDescriptorPool(&cgen_var_355, (VkDescriptorPool*)pDescriptorPool, 1);
@@ -6530,8 +6019,7 @@ VkResult VkEncoder::vkCreateDescriptorPool(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateDescriptorPool");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateDescriptorPool_VkResult_return;
 }
 
@@ -6541,15 +6029,14 @@ void VkEncoder::vkDestroyDescriptorPool(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyDescriptorPool");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDescriptorPool local_descriptorPool;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_descriptorPool = descriptorPool;
     local_pAllocator = nullptr;
@@ -6558,13 +6045,11 @@ void VkEncoder::vkDestroyDescriptorPool(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -6576,9 +6061,8 @@ void VkEncoder::vkDestroyDescriptorPool(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyDescriptorPool = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyDescriptorPool);
@@ -6603,17 +6087,14 @@ void VkEncoder::vkDestroyDescriptorPool(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkDescriptorPool((VkDescriptorPool*)&descriptorPool);
+    sResourceTracker->destroyMapping()->mapHandles_VkDescriptorPool((VkDescriptorPool*)&descriptorPool);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyDescriptorPool");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkResetDescriptorPool(
@@ -6622,20 +6103,17 @@ VkResult VkEncoder::vkResetDescriptorPool(
     VkDescriptorPoolResetFlags flags,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkResetDescriptorPool");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDescriptorPool local_descriptorPool;
     VkDescriptorPoolResetFlags local_flags;
-    uint32_t local_doLock;
     local_device = device;
     local_descriptorPool = descriptorPool;
     local_flags = flags;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -6644,7 +6122,6 @@ VkResult VkEncoder::vkResetDescriptorPool(
         uint64_t cgen_var_362;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkDescriptorPoolResetFlags);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkResetDescriptorPool = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkResetDescriptorPool);
@@ -6662,8 +6139,6 @@ VkResult VkEncoder::vkResetDescriptorPool(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkDescriptorPoolResetFlags*)&local_flags, sizeof(VkDescriptorPoolResetFlags));
     *streamPtrPtr += sizeof(VkDescriptorPoolResetFlags);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkResetDescriptorPool_VkResult_return = (VkResult)0;
     stream->read(&vkResetDescriptorPool_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -6672,8 +6147,7 @@ VkResult VkEncoder::vkResetDescriptorPool(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkResetDescriptorPool");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkResetDescriptorPool_VkResult_return;
 }
 
@@ -6683,14 +6157,13 @@ VkResult VkEncoder::vkAllocateDescriptorSets(
     VkDescriptorSet* pDescriptorSets,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkAllocateDescriptorSets");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDescriptorSetAllocateInfo* local_pAllocateInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pAllocateInfo = nullptr;
     if (pAllocateInfo)
@@ -6698,23 +6171,20 @@ VkResult VkEncoder::vkAllocateDescriptorSets(
         local_pAllocateInfo = (VkDescriptorSetAllocateInfo*)pool->alloc(sizeof(const VkDescriptorSetAllocateInfo));
         deepcopy_VkDescriptorSetAllocateInfo(pool, pAllocateInfo, (VkDescriptorSetAllocateInfo*)(local_pAllocateInfo));
     }
-    local_doLock = doLock;
     if (local_pAllocateInfo)
     {
-        transform_tohost_VkDescriptorSetAllocateInfo(mImpl->resources(), (VkDescriptorSetAllocateInfo*)(local_pAllocateInfo));
+        transform_tohost_VkDescriptorSetAllocateInfo(sResourceTracker, (VkDescriptorSetAllocateInfo*)(local_pAllocateInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_365;
         *countPtr += 1 * 8;
-        count_VkDescriptorSetAllocateInfo(featureBits, (VkDescriptorSetAllocateInfo*)(local_pAllocateInfo), countPtr);
+        count_VkDescriptorSetAllocateInfo(sFeatureBits, (VkDescriptorSetAllocateInfo*)(local_pAllocateInfo), countPtr);
         if (pAllocateInfo->descriptorSetCount)
         {
             *countPtr += pAllocateInfo->descriptorSetCount * 8;
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkAllocateDescriptorSets = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkAllocateDescriptorSets);
@@ -6740,9 +6210,7 @@ VkResult VkEncoder::vkAllocateDescriptorSets(
         *streamPtrPtr += pAllocateInfo->descriptorSetCount * 8;
     }
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     if (pAllocateInfo->descriptorSetCount)
     {
         uint64_t* cgen_var_369;
@@ -6759,8 +6227,7 @@ VkResult VkEncoder::vkAllocateDescriptorSets(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkAllocateDescriptorSets");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkAllocateDescriptorSets_VkResult_return;
 }
 
@@ -6771,16 +6238,15 @@ VkResult VkEncoder::vkFreeDescriptorSets(
     const VkDescriptorSet* pDescriptorSets,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkFreeDescriptorSets");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDescriptorPool local_descriptorPool;
     uint32_t local_descriptorSetCount;
     VkDescriptorSet* local_pDescriptorSets;
-    uint32_t local_doLock;
     local_device = device;
     local_descriptorPool = descriptorPool;
     local_descriptorSetCount = descriptorSetCount;
@@ -6789,8 +6255,6 @@ VkResult VkEncoder::vkFreeDescriptorSets(
     {
         local_pDescriptorSets = (VkDescriptorSet*)pool->dupArray(pDescriptorSets, ((descriptorSetCount)) * sizeof(const VkDescriptorSet));
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -6808,7 +6272,6 @@ VkResult VkEncoder::vkFreeDescriptorSets(
                 *countPtr += ((descriptorSetCount)) * 8;
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkFreeDescriptorSets = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkFreeDescriptorSets);
@@ -6845,13 +6308,11 @@ VkResult VkEncoder::vkFreeDescriptorSets(
             *streamPtrPtr += ((descriptorSetCount)) * 8;
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkFreeDescriptorSets_VkResult_return = (VkResult)0;
     stream->read(&vkFreeDescriptorSets_VkResult_return, sizeof(VkResult));
     if (pDescriptorSets)
     {
-        resources->destroyMapping()->mapHandles_VkDescriptorSet((VkDescriptorSet*)pDescriptorSets, ((descriptorSetCount)));
+        sResourceTracker->destroyMapping()->mapHandles_VkDescriptorSet((VkDescriptorSet*)pDescriptorSets, ((descriptorSetCount)));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -6859,8 +6320,7 @@ VkResult VkEncoder::vkFreeDescriptorSets(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkFreeDescriptorSets");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkFreeDescriptorSets_VkResult_return;
 }
 
@@ -6872,17 +6332,16 @@ void VkEncoder::vkUpdateDescriptorSets(
     const VkCopyDescriptorSet* pDescriptorCopies,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkUpdateDescriptorSets");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     uint32_t local_descriptorWriteCount;
     VkWriteDescriptorSet* local_pDescriptorWrites;
     uint32_t local_descriptorCopyCount;
     VkCopyDescriptorSet* local_pDescriptorCopies;
-    uint32_t local_doLock;
     local_device = device;
     local_descriptorWriteCount = descriptorWriteCount;
     local_pDescriptorWrites = nullptr;
@@ -6904,22 +6363,20 @@ void VkEncoder::vkUpdateDescriptorSets(
             deepcopy_VkCopyDescriptorSet(pool, pDescriptorCopies + i, (VkCopyDescriptorSet*)(local_pDescriptorCopies + i));
         }
     }
-    local_doLock = doLock;
     if (local_pDescriptorWrites)
     {
         for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i)
         {
-            transform_tohost_VkWriteDescriptorSet(mImpl->resources(), (VkWriteDescriptorSet*)(local_pDescriptorWrites + i));
+            transform_tohost_VkWriteDescriptorSet(sResourceTracker, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i));
         }
     }
     if (local_pDescriptorCopies)
     {
         for (uint32_t i = 0; i < (uint32_t)((descriptorCopyCount)); ++i)
         {
-            transform_tohost_VkCopyDescriptorSet(mImpl->resources(), (VkCopyDescriptorSet*)(local_pDescriptorCopies + i));
+            transform_tohost_VkCopyDescriptorSet(sResourceTracker, (VkCopyDescriptorSet*)(local_pDescriptorCopies + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -6928,14 +6385,13 @@ void VkEncoder::vkUpdateDescriptorSets(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i)
         {
-            count_VkWriteDescriptorSet(featureBits, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i), countPtr);
+            count_VkWriteDescriptorSet(sFeatureBits, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i), countPtr);
         }
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((descriptorCopyCount)); ++i)
         {
-            count_VkCopyDescriptorSet(featureBits, (VkCopyDescriptorSet*)(local_pDescriptorCopies + i), countPtr);
+            count_VkCopyDescriptorSet(sFeatureBits, (VkCopyDescriptorSet*)(local_pDescriptorCopies + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkUpdateDescriptorSets = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkUpdateDescriptorSets);
@@ -6959,16 +6415,13 @@ void VkEncoder::vkUpdateDescriptorSets(
     {
         reservedmarshal_VkCopyDescriptorSet(stream, (VkCopyDescriptorSet*)(local_pDescriptorCopies + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkUpdateDescriptorSets");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkCreateFramebuffer(
@@ -6978,15 +6431,14 @@ VkResult VkEncoder::vkCreateFramebuffer(
     VkFramebuffer* pFramebuffer,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateFramebuffer");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkFramebufferCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -7000,32 +6452,29 @@ VkResult VkEncoder::vkCreateFramebuffer(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkFramebufferCreateInfo(mImpl->resources(), (VkFramebufferCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkFramebufferCreateInfo(sResourceTracker, (VkFramebufferCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_379;
         *countPtr += 1 * 8;
-        count_VkFramebufferCreateInfo(featureBits, (VkFramebufferCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkFramebufferCreateInfo(sFeatureBits, (VkFramebufferCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_380;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateFramebuffer = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateFramebuffer);
@@ -7053,9 +6502,7 @@ VkResult VkEncoder::vkCreateFramebuffer(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_383, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_384;
     stream->read((uint64_t*)&cgen_var_384, 8);
     stream->handleMapping()->mapHandles_u64_VkFramebuffer(&cgen_var_384, (VkFramebuffer*)pFramebuffer, 1);
@@ -7068,8 +6515,7 @@ VkResult VkEncoder::vkCreateFramebuffer(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateFramebuffer");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateFramebuffer_VkResult_return;
 }
 
@@ -7079,15 +6525,14 @@ void VkEncoder::vkDestroyFramebuffer(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyFramebuffer");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkFramebuffer local_framebuffer;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_framebuffer = framebuffer;
     local_pAllocator = nullptr;
@@ -7096,13 +6541,11 @@ void VkEncoder::vkDestroyFramebuffer(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -7114,9 +6557,8 @@ void VkEncoder::vkDestroyFramebuffer(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyFramebuffer = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyFramebuffer);
@@ -7141,17 +6583,14 @@ void VkEncoder::vkDestroyFramebuffer(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkFramebuffer((VkFramebuffer*)&framebuffer);
+    sResourceTracker->destroyMapping()->mapHandles_VkFramebuffer((VkFramebuffer*)&framebuffer);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyFramebuffer");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkCreateRenderPass(
@@ -7161,15 +6600,14 @@ VkResult VkEncoder::vkCreateRenderPass(
     VkRenderPass* pRenderPass,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateRenderPass");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkRenderPassCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -7183,32 +6621,29 @@ VkResult VkEncoder::vkCreateRenderPass(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkRenderPassCreateInfo(mImpl->resources(), (VkRenderPassCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkRenderPassCreateInfo(sResourceTracker, (VkRenderPassCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_390;
         *countPtr += 1 * 8;
-        count_VkRenderPassCreateInfo(featureBits, (VkRenderPassCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkRenderPassCreateInfo(sFeatureBits, (VkRenderPassCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_391;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateRenderPass = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateRenderPass);
@@ -7236,9 +6671,7 @@ VkResult VkEncoder::vkCreateRenderPass(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_394, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_395;
     stream->read((uint64_t*)&cgen_var_395, 8);
     stream->handleMapping()->mapHandles_u64_VkRenderPass(&cgen_var_395, (VkRenderPass*)pRenderPass, 1);
@@ -7251,8 +6684,7 @@ VkResult VkEncoder::vkCreateRenderPass(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateRenderPass");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateRenderPass_VkResult_return;
 }
 
@@ -7262,15 +6694,14 @@ void VkEncoder::vkDestroyRenderPass(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyRenderPass");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkRenderPass local_renderPass;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_renderPass = renderPass;
     local_pAllocator = nullptr;
@@ -7279,13 +6710,11 @@ void VkEncoder::vkDestroyRenderPass(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -7297,9 +6726,8 @@ void VkEncoder::vkDestroyRenderPass(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyRenderPass = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyRenderPass);
@@ -7324,17 +6752,14 @@ void VkEncoder::vkDestroyRenderPass(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkRenderPass((VkRenderPass*)&renderPass);
+    sResourceTracker->destroyMapping()->mapHandles_VkRenderPass((VkRenderPass*)&renderPass);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyRenderPass");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetRenderAreaGranularity(
@@ -7343,18 +6768,15 @@ void VkEncoder::vkGetRenderAreaGranularity(
     VkExtent2D* pGranularity,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetRenderAreaGranularity");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkRenderPass local_renderPass;
-    uint32_t local_doLock;
     local_device = device;
     local_renderPass = renderPass;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -7362,8 +6784,7 @@ void VkEncoder::vkGetRenderAreaGranularity(
         *countPtr += 1 * 8;
         uint64_t cgen_var_402;
         *countPtr += 1 * 8;
-        count_VkExtent2D(featureBits, (VkExtent2D*)(pGranularity), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkExtent2D(sFeatureBits, (VkExtent2D*)(pGranularity), countPtr);
     }
     uint32_t packetSize_vkGetRenderAreaGranularity = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetRenderAreaGranularity);
@@ -7380,12 +6801,10 @@ void VkEncoder::vkGetRenderAreaGranularity(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_404, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkExtent2D(stream, (VkExtent2D*)(pGranularity), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkExtent2D(stream, (VkExtent2D*)(pGranularity));
     if (pGranularity)
     {
-        transform_fromhost_VkExtent2D(mImpl->resources(), (VkExtent2D*)(pGranularity));
+        transform_fromhost_VkExtent2D(sResourceTracker, (VkExtent2D*)(pGranularity));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -7393,8 +6812,7 @@ void VkEncoder::vkGetRenderAreaGranularity(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetRenderAreaGranularity");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkCreateCommandPool(
@@ -7404,15 +6822,14 @@ VkResult VkEncoder::vkCreateCommandPool(
     VkCommandPool* pCommandPool,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateCommandPool");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkCommandPoolCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -7426,32 +6843,29 @@ VkResult VkEncoder::vkCreateCommandPool(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkCommandPoolCreateInfo(mImpl->resources(), (VkCommandPoolCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkCommandPoolCreateInfo(sResourceTracker, (VkCommandPoolCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_405;
         *countPtr += 1 * 8;
-        count_VkCommandPoolCreateInfo(featureBits, (VkCommandPoolCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkCommandPoolCreateInfo(sFeatureBits, (VkCommandPoolCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_406;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateCommandPool = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateCommandPool);
@@ -7479,9 +6893,7 @@ VkResult VkEncoder::vkCreateCommandPool(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_409, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_410;
     stream->read((uint64_t*)&cgen_var_410, 8);
     stream->handleMapping()->mapHandles_u64_VkCommandPool(&cgen_var_410, (VkCommandPool*)pCommandPool, 1);
@@ -7494,8 +6906,7 @@ VkResult VkEncoder::vkCreateCommandPool(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateCommandPool");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateCommandPool_VkResult_return;
 }
 
@@ -7505,15 +6916,14 @@ void VkEncoder::vkDestroyCommandPool(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyCommandPool");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkCommandPool local_commandPool;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_commandPool = commandPool;
     local_pAllocator = nullptr;
@@ -7522,13 +6932,11 @@ void VkEncoder::vkDestroyCommandPool(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -7540,9 +6948,8 @@ void VkEncoder::vkDestroyCommandPool(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyCommandPool = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyCommandPool);
@@ -7567,17 +6974,14 @@ void VkEncoder::vkDestroyCommandPool(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkCommandPool((VkCommandPool*)&commandPool);
+    sResourceTracker->destroyMapping()->mapHandles_VkCommandPool((VkCommandPool*)&commandPool);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyCommandPool");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkResetCommandPool(
@@ -7586,20 +6990,17 @@ VkResult VkEncoder::vkResetCommandPool(
     VkCommandPoolResetFlags flags,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkResetCommandPool");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkCommandPool local_commandPool;
     VkCommandPoolResetFlags local_flags;
-    uint32_t local_doLock;
     local_device = device;
     local_commandPool = commandPool;
     local_flags = flags;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -7608,7 +7009,6 @@ VkResult VkEncoder::vkResetCommandPool(
         uint64_t cgen_var_417;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkCommandPoolResetFlags);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkResetCommandPool = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkResetCommandPool);
@@ -7626,8 +7026,6 @@ VkResult VkEncoder::vkResetCommandPool(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkCommandPoolResetFlags*)&local_flags, sizeof(VkCommandPoolResetFlags));
     *streamPtrPtr += sizeof(VkCommandPoolResetFlags);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkResetCommandPool_VkResult_return = (VkResult)0;
     stream->read(&vkResetCommandPool_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -7636,8 +7034,7 @@ VkResult VkEncoder::vkResetCommandPool(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkResetCommandPool");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkResetCommandPool_VkResult_return;
 }
 
@@ -7647,14 +7044,13 @@ VkResult VkEncoder::vkAllocateCommandBuffers(
     VkCommandBuffer* pCommandBuffers,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkAllocateCommandBuffers");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkCommandBufferAllocateInfo* local_pAllocateInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pAllocateInfo = nullptr;
     if (pAllocateInfo)
@@ -7662,23 +7058,20 @@ VkResult VkEncoder::vkAllocateCommandBuffers(
         local_pAllocateInfo = (VkCommandBufferAllocateInfo*)pool->alloc(sizeof(const VkCommandBufferAllocateInfo));
         deepcopy_VkCommandBufferAllocateInfo(pool, pAllocateInfo, (VkCommandBufferAllocateInfo*)(local_pAllocateInfo));
     }
-    local_doLock = doLock;
     if (local_pAllocateInfo)
     {
-        transform_tohost_VkCommandBufferAllocateInfo(mImpl->resources(), (VkCommandBufferAllocateInfo*)(local_pAllocateInfo));
+        transform_tohost_VkCommandBufferAllocateInfo(sResourceTracker, (VkCommandBufferAllocateInfo*)(local_pAllocateInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_420;
         *countPtr += 1 * 8;
-        count_VkCommandBufferAllocateInfo(featureBits, (VkCommandBufferAllocateInfo*)(local_pAllocateInfo), countPtr);
+        count_VkCommandBufferAllocateInfo(sFeatureBits, (VkCommandBufferAllocateInfo*)(local_pAllocateInfo), countPtr);
         if (pAllocateInfo->commandBufferCount)
         {
             *countPtr += pAllocateInfo->commandBufferCount * 8;
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkAllocateCommandBuffers = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkAllocateCommandBuffers);
@@ -7704,9 +7097,7 @@ VkResult VkEncoder::vkAllocateCommandBuffers(
         *streamPtrPtr += pAllocateInfo->commandBufferCount * 8;
     }
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     if (pAllocateInfo->commandBufferCount)
     {
         uint64_t* cgen_var_424;
@@ -7723,8 +7114,7 @@ VkResult VkEncoder::vkAllocateCommandBuffers(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkAllocateCommandBuffers");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkAllocateCommandBuffers_VkResult_return;
 }
 
@@ -7735,16 +7125,15 @@ void VkEncoder::vkFreeCommandBuffers(
     const VkCommandBuffer* pCommandBuffers,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkFreeCommandBuffers");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkCommandPool local_commandPool;
     uint32_t local_commandBufferCount;
     VkCommandBuffer* local_pCommandBuffers;
-    uint32_t local_doLock;
     local_device = device;
     local_commandPool = commandPool;
     local_commandBufferCount = commandBufferCount;
@@ -7753,8 +7142,6 @@ void VkEncoder::vkFreeCommandBuffers(
     {
         local_pCommandBuffers = (VkCommandBuffer*)pool->dupArray(pCommandBuffers, ((commandBufferCount)) * sizeof(const VkCommandBuffer));
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -7772,7 +7159,6 @@ void VkEncoder::vkFreeCommandBuffers(
                 *countPtr += ((commandBufferCount)) * 8;
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkFreeCommandBuffers = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkFreeCommandBuffers);
@@ -7809,11 +7195,9 @@ void VkEncoder::vkFreeCommandBuffers(
             *streamPtrPtr += ((commandBufferCount)) * 8;
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     if (pCommandBuffers)
     {
-        resources->destroyMapping()->mapHandles_VkCommandBuffer((VkCommandBuffer*)pCommandBuffers, ((commandBufferCount)));
+        sResourceTracker->destroyMapping()->mapHandles_VkCommandBuffer((VkCommandBuffer*)pCommandBuffers, ((commandBufferCount)));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -7821,8 +7205,7 @@ void VkEncoder::vkFreeCommandBuffers(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkFreeCommandBuffers");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkBeginCommandBuffer(
@@ -7830,14 +7213,13 @@ VkResult VkEncoder::vkBeginCommandBuffer(
     const VkCommandBufferBeginInfo* pBeginInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkBeginCommandBuffer");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkCommandBufferBeginInfo* local_pBeginInfo;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pBeginInfo = nullptr;
     if (pBeginInfo)
@@ -7845,19 +7227,16 @@ VkResult VkEncoder::vkBeginCommandBuffer(
         local_pBeginInfo = (VkCommandBufferBeginInfo*)pool->alloc(sizeof(const VkCommandBufferBeginInfo));
         deepcopy_VkCommandBufferBeginInfo(pool, pBeginInfo, (VkCommandBufferBeginInfo*)(local_pBeginInfo));
     }
-    local_doLock = doLock;
     if (local_pBeginInfo)
     {
-        transform_tohost_VkCommandBufferBeginInfo(mImpl->resources(), (VkCommandBufferBeginInfo*)(local_pBeginInfo));
+        transform_tohost_VkCommandBufferBeginInfo(sResourceTracker, (VkCommandBufferBeginInfo*)(local_pBeginInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_432;
         *countPtr += 1 * 8;
-        count_VkCommandBufferBeginInfo(featureBits, (VkCommandBufferBeginInfo*)(local_pBeginInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkCommandBufferBeginInfo(sFeatureBits, (VkCommandBufferBeginInfo*)(local_pBeginInfo), countPtr);
     }
     uint32_t packetSize_vkBeginCommandBuffer = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkBeginCommandBuffer);
@@ -7870,8 +7249,6 @@ VkResult VkEncoder::vkBeginCommandBuffer(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_433, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkCommandBufferBeginInfo(stream, (VkCommandBufferBeginInfo*)(local_pBeginInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkBeginCommandBuffer_VkResult_return = (VkResult)0;
     stream->read(&vkBeginCommandBuffer_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -7880,8 +7257,7 @@ VkResult VkEncoder::vkBeginCommandBuffer(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkBeginCommandBuffer");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkBeginCommandBuffer_VkResult_return;
 }
 
@@ -7889,22 +7265,18 @@ VkResult VkEncoder::vkEndCommandBuffer(
     VkCommandBuffer commandBuffer,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkEndCommandBuffer");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_434;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkEndCommandBuffer = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkEndCommandBuffer);
@@ -7916,8 +7288,6 @@ VkResult VkEncoder::vkEndCommandBuffer(
     *&cgen_var_435 = get_host_u64_VkCommandBuffer((*&local_commandBuffer));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_435, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkEndCommandBuffer_VkResult_return = (VkResult)0;
     stream->read(&vkEndCommandBuffer_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -7926,8 +7296,7 @@ VkResult VkEncoder::vkEndCommandBuffer(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkEndCommandBuffer");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkEndCommandBuffer_VkResult_return;
 }
 
@@ -7936,25 +7305,21 @@ VkResult VkEncoder::vkResetCommandBuffer(
     VkCommandBufferResetFlags flags,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkResetCommandBuffer");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkCommandBufferResetFlags local_flags;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_flags = flags;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_436;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkCommandBufferResetFlags);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkResetCommandBuffer = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkResetCommandBuffer);
@@ -7968,8 +7333,6 @@ VkResult VkEncoder::vkResetCommandBuffer(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkCommandBufferResetFlags*)&local_flags, sizeof(VkCommandBufferResetFlags));
     *streamPtrPtr += sizeof(VkCommandBufferResetFlags);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkResetCommandBuffer_VkResult_return = (VkResult)0;
     stream->read(&vkResetCommandBuffer_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -7978,8 +7341,7 @@ VkResult VkEncoder::vkResetCommandBuffer(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkResetCommandBuffer");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkResetCommandBuffer_VkResult_return;
 }
 
@@ -7989,20 +7351,17 @@ void VkEncoder::vkCmdBindPipeline(
     VkPipeline pipeline,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdBindPipeline");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkPipelineBindPoint local_pipelineBindPoint;
     VkPipeline local_pipeline;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pipelineBindPoint = pipelineBindPoint;
     local_pipeline = pipeline;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -8011,7 +7370,6 @@ void VkEncoder::vkCmdBindPipeline(
         *countPtr += sizeof(VkPipelineBindPoint);
         uint64_t cgen_var_439;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdBindPipeline = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdBindPipeline);
@@ -8029,16 +7387,13 @@ void VkEncoder::vkCmdBindPipeline(
     *&cgen_var_441 = get_host_u64_VkPipeline((*&local_pipeline));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_441, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdBindPipeline");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdSetViewport(
@@ -8048,16 +7403,15 @@ void VkEncoder::vkCmdSetViewport(
     const VkViewport* pViewports,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdSetViewport");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     uint32_t local_firstViewport;
     uint32_t local_viewportCount;
     VkViewport* local_pViewports;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_firstViewport = firstViewport;
     local_viewportCount = viewportCount;
@@ -8070,15 +7424,13 @@ void VkEncoder::vkCmdSetViewport(
             deepcopy_VkViewport(pool, pViewports + i, (VkViewport*)(local_pViewports + i));
         }
     }
-    local_doLock = doLock;
     if (local_pViewports)
     {
         for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
         {
-            transform_tohost_VkViewport(mImpl->resources(), (VkViewport*)(local_pViewports + i));
+            transform_tohost_VkViewport(sResourceTracker, (VkViewport*)(local_pViewports + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -8088,9 +7440,8 @@ void VkEncoder::vkCmdSetViewport(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
         {
-            count_VkViewport(featureBits, (VkViewport*)(local_pViewports + i), countPtr);
+            count_VkViewport(sFeatureBits, (VkViewport*)(local_pViewports + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdSetViewport = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdSetViewport);
@@ -8110,16 +7461,13 @@ void VkEncoder::vkCmdSetViewport(
     {
         reservedmarshal_VkViewport(stream, (VkViewport*)(local_pViewports + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdSetViewport");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdSetScissor(
@@ -8129,16 +7477,15 @@ void VkEncoder::vkCmdSetScissor(
     const VkRect2D* pScissors,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdSetScissor");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     uint32_t local_firstScissor;
     uint32_t local_scissorCount;
     VkRect2D* local_pScissors;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_firstScissor = firstScissor;
     local_scissorCount = scissorCount;
@@ -8151,15 +7498,13 @@ void VkEncoder::vkCmdSetScissor(
             deepcopy_VkRect2D(pool, pScissors + i, (VkRect2D*)(local_pScissors + i));
         }
     }
-    local_doLock = doLock;
     if (local_pScissors)
     {
         for (uint32_t i = 0; i < (uint32_t)((scissorCount)); ++i)
         {
-            transform_tohost_VkRect2D(mImpl->resources(), (VkRect2D*)(local_pScissors + i));
+            transform_tohost_VkRect2D(sResourceTracker, (VkRect2D*)(local_pScissors + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -8169,9 +7514,8 @@ void VkEncoder::vkCmdSetScissor(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((scissorCount)); ++i)
         {
-            count_VkRect2D(featureBits, (VkRect2D*)(local_pScissors + i), countPtr);
+            count_VkRect2D(sFeatureBits, (VkRect2D*)(local_pScissors + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdSetScissor = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdSetScissor);
@@ -8191,16 +7535,13 @@ void VkEncoder::vkCmdSetScissor(
     {
         reservedmarshal_VkRect2D(stream, (VkRect2D*)(local_pScissors + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdSetScissor");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdSetLineWidth(
@@ -8208,25 +7549,21 @@ void VkEncoder::vkCmdSetLineWidth(
     float lineWidth,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdSetLineWidth");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     float local_lineWidth;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_lineWidth = lineWidth;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_446;
         *countPtr += 1 * 8;
         *countPtr += sizeof(float);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdSetLineWidth = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdSetLineWidth);
@@ -8240,16 +7577,13 @@ void VkEncoder::vkCmdSetLineWidth(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (float*)&local_lineWidth, sizeof(float));
     *streamPtrPtr += sizeof(float);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdSetLineWidth");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdSetDepthBias(
@@ -8259,22 +7593,19 @@ void VkEncoder::vkCmdSetDepthBias(
     float depthBiasSlopeFactor,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdSetDepthBias");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     float local_depthBiasConstantFactor;
     float local_depthBiasClamp;
     float local_depthBiasSlopeFactor;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_depthBiasConstantFactor = depthBiasConstantFactor;
     local_depthBiasClamp = depthBiasClamp;
     local_depthBiasSlopeFactor = depthBiasSlopeFactor;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -8283,7 +7614,6 @@ void VkEncoder::vkCmdSetDepthBias(
         *countPtr += sizeof(float);
         *countPtr += sizeof(float);
         *countPtr += sizeof(float);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdSetDepthBias = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdSetDepthBias);
@@ -8301,16 +7631,13 @@ void VkEncoder::vkCmdSetDepthBias(
     *streamPtrPtr += sizeof(float);
     memcpy(*streamPtrPtr, (float*)&local_depthBiasSlopeFactor, sizeof(float));
     *streamPtrPtr += sizeof(float);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdSetDepthBias");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdSetBlendConstants(
@@ -8318,25 +7645,21 @@ void VkEncoder::vkCmdSetBlendConstants(
     const float blendConstants[4],
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdSetBlendConstants");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     float local_blendConstants[4];
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     memcpy(local_blendConstants, blendConstants, 4 * sizeof(const float));
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_450;
         *countPtr += 1 * 8;
         *countPtr += 4 * sizeof(float);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdSetBlendConstants = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdSetBlendConstants);
@@ -8350,16 +7673,13 @@ void VkEncoder::vkCmdSetBlendConstants(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (float*)local_blendConstants, 4 * sizeof(float));
     *streamPtrPtr += 4 * sizeof(float);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdSetBlendConstants");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdSetDepthBounds(
@@ -8368,20 +7688,17 @@ void VkEncoder::vkCmdSetDepthBounds(
     float maxDepthBounds,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdSetDepthBounds");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     float local_minDepthBounds;
     float local_maxDepthBounds;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_minDepthBounds = minDepthBounds;
     local_maxDepthBounds = maxDepthBounds;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -8389,7 +7706,6 @@ void VkEncoder::vkCmdSetDepthBounds(
         *countPtr += 1 * 8;
         *countPtr += sizeof(float);
         *countPtr += sizeof(float);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdSetDepthBounds = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdSetDepthBounds);
@@ -8405,16 +7721,13 @@ void VkEncoder::vkCmdSetDepthBounds(
     *streamPtrPtr += sizeof(float);
     memcpy(*streamPtrPtr, (float*)&local_maxDepthBounds, sizeof(float));
     *streamPtrPtr += sizeof(float);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdSetDepthBounds");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdSetStencilCompareMask(
@@ -8423,27 +7736,23 @@ void VkEncoder::vkCmdSetStencilCompareMask(
     uint32_t compareMask,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdSetStencilCompareMask");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkStencilFaceFlags local_faceMask;
     uint32_t local_compareMask;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_faceMask = faceMask;
     local_compareMask = compareMask;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_454;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkStencilFaceFlags);
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdSetStencilCompareMask = 4 + 4 + count;
@@ -8460,16 +7769,13 @@ void VkEncoder::vkCmdSetStencilCompareMask(
     *streamPtrPtr += sizeof(VkStencilFaceFlags);
     memcpy(*streamPtrPtr, (uint32_t*)&local_compareMask, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdSetStencilCompareMask");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdSetStencilWriteMask(
@@ -8478,27 +7784,23 @@ void VkEncoder::vkCmdSetStencilWriteMask(
     uint32_t writeMask,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdSetStencilWriteMask");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkStencilFaceFlags local_faceMask;
     uint32_t local_writeMask;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_faceMask = faceMask;
     local_writeMask = writeMask;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_456;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkStencilFaceFlags);
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdSetStencilWriteMask = 4 + 4 + count;
@@ -8515,16 +7817,13 @@ void VkEncoder::vkCmdSetStencilWriteMask(
     *streamPtrPtr += sizeof(VkStencilFaceFlags);
     memcpy(*streamPtrPtr, (uint32_t*)&local_writeMask, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdSetStencilWriteMask");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdSetStencilReference(
@@ -8533,27 +7832,23 @@ void VkEncoder::vkCmdSetStencilReference(
     uint32_t reference,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdSetStencilReference");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkStencilFaceFlags local_faceMask;
     uint32_t local_reference;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_faceMask = faceMask;
     local_reference = reference;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_458;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkStencilFaceFlags);
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdSetStencilReference = 4 + 4 + count;
@@ -8570,16 +7865,13 @@ void VkEncoder::vkCmdSetStencilReference(
     *streamPtrPtr += sizeof(VkStencilFaceFlags);
     memcpy(*streamPtrPtr, (uint32_t*)&local_reference, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdSetStencilReference");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdBindDescriptorSets(
@@ -8593,10 +7885,10 @@ void VkEncoder::vkCmdBindDescriptorSets(
     const uint32_t* pDynamicOffsets,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdBindDescriptorSets");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkPipelineBindPoint local_pipelineBindPoint;
@@ -8606,7 +7898,6 @@ void VkEncoder::vkCmdBindDescriptorSets(
     VkDescriptorSet* local_pDescriptorSets;
     uint32_t local_dynamicOffsetCount;
     uint32_t* local_pDynamicOffsets;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pipelineBindPoint = pipelineBindPoint;
     local_layout = layout;
@@ -8623,8 +7914,6 @@ void VkEncoder::vkCmdBindDescriptorSets(
     {
         local_pDynamicOffsets = (uint32_t*)pool->dupArray(pDynamicOffsets, ((dynamicOffsetCount)) * sizeof(const uint32_t));
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -8641,7 +7930,6 @@ void VkEncoder::vkCmdBindDescriptorSets(
         }
         *countPtr += sizeof(uint32_t);
         *countPtr += ((dynamicOffsetCount)) * sizeof(uint32_t);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdBindDescriptorSets = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdBindDescriptorSets);
@@ -8678,16 +7966,13 @@ void VkEncoder::vkCmdBindDescriptorSets(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (uint32_t*)local_pDynamicOffsets, ((dynamicOffsetCount)) * sizeof(uint32_t));
     *streamPtrPtr += ((dynamicOffsetCount)) * sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdBindDescriptorSets");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdBindIndexBuffer(
@@ -8697,22 +7982,19 @@ void VkEncoder::vkCmdBindIndexBuffer(
     VkIndexType indexType,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdBindIndexBuffer");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkBuffer local_buffer;
     VkDeviceSize local_offset;
     VkIndexType local_indexType;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_buffer = buffer;
     local_offset = offset;
     local_indexType = indexType;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -8722,7 +8004,6 @@ void VkEncoder::vkCmdBindIndexBuffer(
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkDeviceSize);
         *countPtr += sizeof(VkIndexType);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdBindIndexBuffer = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdBindIndexBuffer);
@@ -8742,16 +8023,13 @@ void VkEncoder::vkCmdBindIndexBuffer(
     *streamPtrPtr += sizeof(VkDeviceSize);
     memcpy(*streamPtrPtr, (VkIndexType*)&local_indexType, sizeof(VkIndexType));
     *streamPtrPtr += sizeof(VkIndexType);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdBindIndexBuffer");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdBindVertexBuffers(
@@ -8762,17 +8040,16 @@ void VkEncoder::vkCmdBindVertexBuffers(
     const VkDeviceSize* pOffsets,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdBindVertexBuffers");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     uint32_t local_firstBinding;
     uint32_t local_bindingCount;
     VkBuffer* local_pBuffers;
     VkDeviceSize* local_pOffsets;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_firstBinding = firstBinding;
     local_bindingCount = bindingCount;
@@ -8786,8 +8063,6 @@ void VkEncoder::vkCmdBindVertexBuffers(
     {
         local_pOffsets = (VkDeviceSize*)pool->dupArray(pOffsets, ((bindingCount)) * sizeof(const VkDeviceSize));
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -8800,7 +8075,6 @@ void VkEncoder::vkCmdBindVertexBuffers(
             *countPtr += ((bindingCount)) * 8;
         }
         *countPtr += ((bindingCount)) * sizeof(VkDeviceSize);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdBindVertexBuffers = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdBindVertexBuffers);
@@ -8829,16 +8103,13 @@ void VkEncoder::vkCmdBindVertexBuffers(
     }
     memcpy(*streamPtrPtr, (VkDeviceSize*)local_pOffsets, ((bindingCount)) * sizeof(VkDeviceSize));
     *streamPtrPtr += ((bindingCount)) * sizeof(VkDeviceSize);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdBindVertexBuffers");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdDraw(
@@ -8849,30 +8120,26 @@ void VkEncoder::vkCmdDraw(
     uint32_t firstInstance,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdDraw");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     uint32_t local_vertexCount;
     uint32_t local_instanceCount;
     uint32_t local_firstVertex;
     uint32_t local_firstInstance;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_vertexCount = vertexCount;
     local_instanceCount = instanceCount;
     local_firstVertex = firstVertex;
     local_firstInstance = firstInstance;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_474;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
@@ -8896,16 +8163,13 @@ void VkEncoder::vkCmdDraw(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (uint32_t*)&local_firstInstance, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdDraw");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdDrawIndexed(
@@ -8917,10 +8181,10 @@ void VkEncoder::vkCmdDrawIndexed(
     uint32_t firstInstance,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdDrawIndexed");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     uint32_t local_indexCount;
@@ -8928,15 +8192,12 @@ void VkEncoder::vkCmdDrawIndexed(
     uint32_t local_firstIndex;
     int32_t local_vertexOffset;
     uint32_t local_firstInstance;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_indexCount = indexCount;
     local_instanceCount = instanceCount;
     local_firstIndex = firstIndex;
     local_vertexOffset = vertexOffset;
     local_firstInstance = firstInstance;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -8946,7 +8207,6 @@ void VkEncoder::vkCmdDrawIndexed(
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(int32_t);
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdDrawIndexed = 4 + 4 + count;
@@ -8969,16 +8229,13 @@ void VkEncoder::vkCmdDrawIndexed(
     *streamPtrPtr += sizeof(int32_t);
     memcpy(*streamPtrPtr, (uint32_t*)&local_firstInstance, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdDrawIndexed");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdDrawIndirect(
@@ -8989,24 +8246,21 @@ void VkEncoder::vkCmdDrawIndirect(
     uint32_t stride,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdDrawIndirect");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkBuffer local_buffer;
     VkDeviceSize local_offset;
     uint32_t local_drawCount;
     uint32_t local_stride;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_buffer = buffer;
     local_offset = offset;
     local_drawCount = drawCount;
     local_stride = stride;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -9015,7 +8269,6 @@ void VkEncoder::vkCmdDrawIndirect(
         uint64_t cgen_var_479;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkDeviceSize);
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
@@ -9039,16 +8292,13 @@ void VkEncoder::vkCmdDrawIndirect(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (uint32_t*)&local_stride, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdDrawIndirect");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdDrawIndexedIndirect(
@@ -9059,24 +8309,21 @@ void VkEncoder::vkCmdDrawIndexedIndirect(
     uint32_t stride,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdDrawIndexedIndirect");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkBuffer local_buffer;
     VkDeviceSize local_offset;
     uint32_t local_drawCount;
     uint32_t local_stride;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_buffer = buffer;
     local_offset = offset;
     local_drawCount = drawCount;
     local_stride = stride;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -9085,7 +8332,6 @@ void VkEncoder::vkCmdDrawIndexedIndirect(
         uint64_t cgen_var_483;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkDeviceSize);
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
@@ -9109,16 +8355,13 @@ void VkEncoder::vkCmdDrawIndexedIndirect(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (uint32_t*)&local_stride, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdDrawIndexedIndirect");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdDispatch(
@@ -9128,28 +8371,24 @@ void VkEncoder::vkCmdDispatch(
     uint32_t groupCountZ,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdDispatch");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     uint32_t local_groupCountX;
     uint32_t local_groupCountY;
     uint32_t local_groupCountZ;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_groupCountX = groupCountX;
     local_groupCountY = groupCountY;
     local_groupCountZ = groupCountZ;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_486;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
@@ -9170,16 +8409,13 @@ void VkEncoder::vkCmdDispatch(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (uint32_t*)&local_groupCountZ, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdDispatch");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdDispatchIndirect(
@@ -9188,20 +8424,17 @@ void VkEncoder::vkCmdDispatchIndirect(
     VkDeviceSize offset,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdDispatchIndirect");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkBuffer local_buffer;
     VkDeviceSize local_offset;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_buffer = buffer;
     local_offset = offset;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -9210,7 +8443,6 @@ void VkEncoder::vkCmdDispatchIndirect(
         uint64_t cgen_var_489;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkDeviceSize);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdDispatchIndirect = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdDispatchIndirect);
@@ -9228,16 +8460,13 @@ void VkEncoder::vkCmdDispatchIndirect(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkDeviceSize*)&local_offset, sizeof(VkDeviceSize));
     *streamPtrPtr += sizeof(VkDeviceSize);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdDispatchIndirect");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdCopyBuffer(
@@ -9248,17 +8477,16 @@ void VkEncoder::vkCmdCopyBuffer(
     const VkBufferCopy* pRegions,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdCopyBuffer");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkBuffer local_srcBuffer;
     VkBuffer local_dstBuffer;
     uint32_t local_regionCount;
     VkBufferCopy* local_pRegions;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_srcBuffer = srcBuffer;
     local_dstBuffer = dstBuffer;
@@ -9272,15 +8500,13 @@ void VkEncoder::vkCmdCopyBuffer(
             deepcopy_VkBufferCopy(pool, pRegions + i, (VkBufferCopy*)(local_pRegions + i));
         }
     }
-    local_doLock = doLock;
     if (local_pRegions)
     {
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            transform_tohost_VkBufferCopy(mImpl->resources(), (VkBufferCopy*)(local_pRegions + i));
+            transform_tohost_VkBufferCopy(sResourceTracker, (VkBufferCopy*)(local_pRegions + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -9293,9 +8519,8 @@ void VkEncoder::vkCmdCopyBuffer(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            count_VkBufferCopy(featureBits, (VkBufferCopy*)(local_pRegions + i), countPtr);
+            count_VkBufferCopy(sFeatureBits, (VkBufferCopy*)(local_pRegions + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdCopyBuffer = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdCopyBuffer);
@@ -9321,16 +8546,13 @@ void VkEncoder::vkCmdCopyBuffer(
     {
         reservedmarshal_VkBufferCopy(stream, (VkBufferCopy*)(local_pRegions + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdCopyBuffer");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdCopyImage(
@@ -9343,10 +8565,10 @@ void VkEncoder::vkCmdCopyImage(
     const VkImageCopy* pRegions,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdCopyImage");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkImage local_srcImage;
@@ -9355,7 +8577,6 @@ void VkEncoder::vkCmdCopyImage(
     VkImageLayout local_dstImageLayout;
     uint32_t local_regionCount;
     VkImageCopy* local_pRegions;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_srcImage = srcImage;
     local_srcImageLayout = srcImageLayout;
@@ -9371,15 +8592,13 @@ void VkEncoder::vkCmdCopyImage(
             deepcopy_VkImageCopy(pool, pRegions + i, (VkImageCopy*)(local_pRegions + i));
         }
     }
-    local_doLock = doLock;
     if (local_pRegions)
     {
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            transform_tohost_VkImageCopy(mImpl->resources(), (VkImageCopy*)(local_pRegions + i));
+            transform_tohost_VkImageCopy(sResourceTracker, (VkImageCopy*)(local_pRegions + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -9394,9 +8613,8 @@ void VkEncoder::vkCmdCopyImage(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            count_VkImageCopy(featureBits, (VkImageCopy*)(local_pRegions + i), countPtr);
+            count_VkImageCopy(sFeatureBits, (VkImageCopy*)(local_pRegions + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdCopyImage = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdCopyImage);
@@ -9426,16 +8644,13 @@ void VkEncoder::vkCmdCopyImage(
     {
         reservedmarshal_VkImageCopy(stream, (VkImageCopy*)(local_pRegions + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdCopyImage");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdBlitImage(
@@ -9449,10 +8664,10 @@ void VkEncoder::vkCmdBlitImage(
     VkFilter filter,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdBlitImage");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkImage local_srcImage;
@@ -9462,7 +8677,6 @@ void VkEncoder::vkCmdBlitImage(
     uint32_t local_regionCount;
     VkImageBlit* local_pRegions;
     VkFilter local_filter;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_srcImage = srcImage;
     local_srcImageLayout = srcImageLayout;
@@ -9479,15 +8693,13 @@ void VkEncoder::vkCmdBlitImage(
         }
     }
     local_filter = filter;
-    local_doLock = doLock;
     if (local_pRegions)
     {
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            transform_tohost_VkImageBlit(mImpl->resources(), (VkImageBlit*)(local_pRegions + i));
+            transform_tohost_VkImageBlit(sResourceTracker, (VkImageBlit*)(local_pRegions + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -9502,10 +8714,9 @@ void VkEncoder::vkCmdBlitImage(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            count_VkImageBlit(featureBits, (VkImageBlit*)(local_pRegions + i), countPtr);
+            count_VkImageBlit(sFeatureBits, (VkImageBlit*)(local_pRegions + i), countPtr);
         }
         *countPtr += sizeof(VkFilter);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdBlitImage = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdBlitImage);
@@ -9537,16 +8748,13 @@ void VkEncoder::vkCmdBlitImage(
     }
     memcpy(*streamPtrPtr, (VkFilter*)&local_filter, sizeof(VkFilter));
     *streamPtrPtr += sizeof(VkFilter);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdBlitImage");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdCopyBufferToImage(
@@ -9558,10 +8766,10 @@ void VkEncoder::vkCmdCopyBufferToImage(
     const VkBufferImageCopy* pRegions,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdCopyBufferToImage");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkBuffer local_srcBuffer;
@@ -9569,7 +8777,6 @@ void VkEncoder::vkCmdCopyBufferToImage(
     VkImageLayout local_dstImageLayout;
     uint32_t local_regionCount;
     VkBufferImageCopy* local_pRegions;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_srcBuffer = srcBuffer;
     local_dstImage = dstImage;
@@ -9584,15 +8791,13 @@ void VkEncoder::vkCmdCopyBufferToImage(
             deepcopy_VkBufferImageCopy(pool, pRegions + i, (VkBufferImageCopy*)(local_pRegions + i));
         }
     }
-    local_doLock = doLock;
     if (local_pRegions)
     {
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            transform_tohost_VkBufferImageCopy(mImpl->resources(), (VkBufferImageCopy*)(local_pRegions + i));
+            transform_tohost_VkBufferImageCopy(sResourceTracker, (VkBufferImageCopy*)(local_pRegions + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -9606,9 +8811,8 @@ void VkEncoder::vkCmdCopyBufferToImage(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            count_VkBufferImageCopy(featureBits, (VkBufferImageCopy*)(local_pRegions + i), countPtr);
+            count_VkBufferImageCopy(sFeatureBits, (VkBufferImageCopy*)(local_pRegions + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdCopyBufferToImage = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdCopyBufferToImage);
@@ -9636,16 +8840,13 @@ void VkEncoder::vkCmdCopyBufferToImage(
     {
         reservedmarshal_VkBufferImageCopy(stream, (VkBufferImageCopy*)(local_pRegions + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdCopyBufferToImage");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdCopyImageToBuffer(
@@ -9657,10 +8858,10 @@ void VkEncoder::vkCmdCopyImageToBuffer(
     const VkBufferImageCopy* pRegions,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdCopyImageToBuffer");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkImage local_srcImage;
@@ -9668,7 +8869,6 @@ void VkEncoder::vkCmdCopyImageToBuffer(
     VkBuffer local_dstBuffer;
     uint32_t local_regionCount;
     VkBufferImageCopy* local_pRegions;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_srcImage = srcImage;
     local_srcImageLayout = srcImageLayout;
@@ -9683,15 +8883,13 @@ void VkEncoder::vkCmdCopyImageToBuffer(
             deepcopy_VkBufferImageCopy(pool, pRegions + i, (VkBufferImageCopy*)(local_pRegions + i));
         }
     }
-    local_doLock = doLock;
     if (local_pRegions)
     {
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            transform_tohost_VkBufferImageCopy(mImpl->resources(), (VkBufferImageCopy*)(local_pRegions + i));
+            transform_tohost_VkBufferImageCopy(sResourceTracker, (VkBufferImageCopy*)(local_pRegions + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -9705,9 +8903,8 @@ void VkEncoder::vkCmdCopyImageToBuffer(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            count_VkBufferImageCopy(featureBits, (VkBufferImageCopy*)(local_pRegions + i), countPtr);
+            count_VkBufferImageCopy(sFeatureBits, (VkBufferImageCopy*)(local_pRegions + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdCopyImageToBuffer = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdCopyImageToBuffer);
@@ -9735,16 +8932,13 @@ void VkEncoder::vkCmdCopyImageToBuffer(
     {
         reservedmarshal_VkBufferImageCopy(stream, (VkBufferImageCopy*)(local_pRegions + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdCopyImageToBuffer");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdUpdateBuffer(
@@ -9755,17 +8949,16 @@ void VkEncoder::vkCmdUpdateBuffer(
     const void* pData,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdUpdateBuffer");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkBuffer local_dstBuffer;
     VkDeviceSize local_dstOffset;
     VkDeviceSize local_dataSize;
     void* local_pData;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_dstBuffer = dstBuffer;
     local_dstOffset = dstOffset;
@@ -9775,8 +8968,6 @@ void VkEncoder::vkCmdUpdateBuffer(
     {
         local_pData = (void*)pool->dupArray(pData, ((dataSize)) * sizeof(const uint8_t));
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -9787,7 +8978,6 @@ void VkEncoder::vkCmdUpdateBuffer(
         *countPtr += sizeof(VkDeviceSize);
         *countPtr += sizeof(VkDeviceSize);
         *countPtr += ((dataSize)) * sizeof(uint8_t);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdUpdateBuffer = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdUpdateBuffer);
@@ -9809,16 +8999,13 @@ void VkEncoder::vkCmdUpdateBuffer(
     *streamPtrPtr += sizeof(VkDeviceSize);
     memcpy(*streamPtrPtr, (void*)local_pData, ((dataSize)) * sizeof(uint8_t));
     *streamPtrPtr += ((dataSize)) * sizeof(uint8_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdUpdateBuffer");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdFillBuffer(
@@ -9829,24 +9016,21 @@ void VkEncoder::vkCmdFillBuffer(
     uint32_t data,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdFillBuffer");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkBuffer local_dstBuffer;
     VkDeviceSize local_dstOffset;
     VkDeviceSize local_size;
     uint32_t local_data;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_dstBuffer = dstBuffer;
     local_dstOffset = dstOffset;
     local_size = size;
     local_data = data;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -9856,7 +9040,6 @@ void VkEncoder::vkCmdFillBuffer(
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkDeviceSize);
         *countPtr += sizeof(VkDeviceSize);
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdFillBuffer = 4 + 4 + count;
@@ -9879,16 +9062,13 @@ void VkEncoder::vkCmdFillBuffer(
     *streamPtrPtr += sizeof(VkDeviceSize);
     memcpy(*streamPtrPtr, (uint32_t*)&local_data, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdFillBuffer");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdClearColorImage(
@@ -9900,10 +9080,10 @@ void VkEncoder::vkCmdClearColorImage(
     const VkImageSubresourceRange* pRanges,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdClearColorImage");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkImage local_image;
@@ -9911,7 +9091,6 @@ void VkEncoder::vkCmdClearColorImage(
     VkClearColorValue* local_pColor;
     uint32_t local_rangeCount;
     VkImageSubresourceRange* local_pRanges;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_image = image;
     local_imageLayout = imageLayout;
@@ -9931,19 +9110,17 @@ void VkEncoder::vkCmdClearColorImage(
             deepcopy_VkImageSubresourceRange(pool, pRanges + i, (VkImageSubresourceRange*)(local_pRanges + i));
         }
     }
-    local_doLock = doLock;
     if (local_pColor)
     {
-        transform_tohost_VkClearColorValue(mImpl->resources(), (VkClearColorValue*)(local_pColor));
+        transform_tohost_VkClearColorValue(sResourceTracker, (VkClearColorValue*)(local_pColor));
     }
     if (local_pRanges)
     {
         for (uint32_t i = 0; i < (uint32_t)((rangeCount)); ++i)
         {
-            transform_tohost_VkImageSubresourceRange(mImpl->resources(), (VkImageSubresourceRange*)(local_pRanges + i));
+            transform_tohost_VkImageSubresourceRange(sResourceTracker, (VkImageSubresourceRange*)(local_pRanges + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -9952,13 +9129,12 @@ void VkEncoder::vkCmdClearColorImage(
         uint64_t cgen_var_531;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkImageLayout);
-        count_VkClearColorValue(featureBits, (VkClearColorValue*)(local_pColor), countPtr);
+        count_VkClearColorValue(sFeatureBits, (VkClearColorValue*)(local_pColor), countPtr);
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((rangeCount)); ++i)
         {
-            count_VkImageSubresourceRange(featureBits, (VkImageSubresourceRange*)(local_pRanges + i), countPtr);
+            count_VkImageSubresourceRange(sFeatureBits, (VkImageSubresourceRange*)(local_pRanges + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdClearColorImage = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdClearColorImage);
@@ -9983,16 +9159,13 @@ void VkEncoder::vkCmdClearColorImage(
     {
         reservedmarshal_VkImageSubresourceRange(stream, (VkImageSubresourceRange*)(local_pRanges + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdClearColorImage");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdClearDepthStencilImage(
@@ -10004,10 +9177,10 @@ void VkEncoder::vkCmdClearDepthStencilImage(
     const VkImageSubresourceRange* pRanges,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdClearDepthStencilImage");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkImage local_image;
@@ -10015,7 +9188,6 @@ void VkEncoder::vkCmdClearDepthStencilImage(
     VkClearDepthStencilValue* local_pDepthStencil;
     uint32_t local_rangeCount;
     VkImageSubresourceRange* local_pRanges;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_image = image;
     local_imageLayout = imageLayout;
@@ -10035,19 +9207,17 @@ void VkEncoder::vkCmdClearDepthStencilImage(
             deepcopy_VkImageSubresourceRange(pool, pRanges + i, (VkImageSubresourceRange*)(local_pRanges + i));
         }
     }
-    local_doLock = doLock;
     if (local_pDepthStencil)
     {
-        transform_tohost_VkClearDepthStencilValue(mImpl->resources(), (VkClearDepthStencilValue*)(local_pDepthStencil));
+        transform_tohost_VkClearDepthStencilValue(sResourceTracker, (VkClearDepthStencilValue*)(local_pDepthStencil));
     }
     if (local_pRanges)
     {
         for (uint32_t i = 0; i < (uint32_t)((rangeCount)); ++i)
         {
-            transform_tohost_VkImageSubresourceRange(mImpl->resources(), (VkImageSubresourceRange*)(local_pRanges + i));
+            transform_tohost_VkImageSubresourceRange(sResourceTracker, (VkImageSubresourceRange*)(local_pRanges + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -10056,13 +9226,12 @@ void VkEncoder::vkCmdClearDepthStencilImage(
         uint64_t cgen_var_535;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkImageLayout);
-        count_VkClearDepthStencilValue(featureBits, (VkClearDepthStencilValue*)(local_pDepthStencil), countPtr);
+        count_VkClearDepthStencilValue(sFeatureBits, (VkClearDepthStencilValue*)(local_pDepthStencil), countPtr);
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((rangeCount)); ++i)
         {
-            count_VkImageSubresourceRange(featureBits, (VkImageSubresourceRange*)(local_pRanges + i), countPtr);
+            count_VkImageSubresourceRange(sFeatureBits, (VkImageSubresourceRange*)(local_pRanges + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdClearDepthStencilImage = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdClearDepthStencilImage);
@@ -10087,16 +9256,13 @@ void VkEncoder::vkCmdClearDepthStencilImage(
     {
         reservedmarshal_VkImageSubresourceRange(stream, (VkImageSubresourceRange*)(local_pRanges + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdClearDepthStencilImage");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdClearAttachments(
@@ -10107,17 +9273,16 @@ void VkEncoder::vkCmdClearAttachments(
     const VkClearRect* pRects,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdClearAttachments");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     uint32_t local_attachmentCount;
     VkClearAttachment* local_pAttachments;
     uint32_t local_rectCount;
     VkClearRect* local_pRects;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_attachmentCount = attachmentCount;
     local_pAttachments = nullptr;
@@ -10139,22 +9304,20 @@ void VkEncoder::vkCmdClearAttachments(
             deepcopy_VkClearRect(pool, pRects + i, (VkClearRect*)(local_pRects + i));
         }
     }
-    local_doLock = doLock;
     if (local_pAttachments)
     {
         for (uint32_t i = 0; i < (uint32_t)((attachmentCount)); ++i)
         {
-            transform_tohost_VkClearAttachment(mImpl->resources(), (VkClearAttachment*)(local_pAttachments + i));
+            transform_tohost_VkClearAttachment(sResourceTracker, (VkClearAttachment*)(local_pAttachments + i));
         }
     }
     if (local_pRects)
     {
         for (uint32_t i = 0; i < (uint32_t)((rectCount)); ++i)
         {
-            transform_tohost_VkClearRect(mImpl->resources(), (VkClearRect*)(local_pRects + i));
+            transform_tohost_VkClearRect(sResourceTracker, (VkClearRect*)(local_pRects + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -10163,14 +9326,13 @@ void VkEncoder::vkCmdClearAttachments(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((attachmentCount)); ++i)
         {
-            count_VkClearAttachment(featureBits, (VkClearAttachment*)(local_pAttachments + i), countPtr);
+            count_VkClearAttachment(sFeatureBits, (VkClearAttachment*)(local_pAttachments + i), countPtr);
         }
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((rectCount)); ++i)
         {
-            count_VkClearRect(featureBits, (VkClearRect*)(local_pRects + i), countPtr);
+            count_VkClearRect(sFeatureBits, (VkClearRect*)(local_pRects + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdClearAttachments = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdClearAttachments);
@@ -10194,16 +9356,13 @@ void VkEncoder::vkCmdClearAttachments(
     {
         reservedmarshal_VkClearRect(stream, (VkClearRect*)(local_pRects + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdClearAttachments");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdResolveImage(
@@ -10216,10 +9375,10 @@ void VkEncoder::vkCmdResolveImage(
     const VkImageResolve* pRegions,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdResolveImage");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkImage local_srcImage;
@@ -10228,7 +9387,6 @@ void VkEncoder::vkCmdResolveImage(
     VkImageLayout local_dstImageLayout;
     uint32_t local_regionCount;
     VkImageResolve* local_pRegions;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_srcImage = srcImage;
     local_srcImageLayout = srcImageLayout;
@@ -10244,15 +9402,13 @@ void VkEncoder::vkCmdResolveImage(
             deepcopy_VkImageResolve(pool, pRegions + i, (VkImageResolve*)(local_pRegions + i));
         }
     }
-    local_doLock = doLock;
     if (local_pRegions)
     {
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            transform_tohost_VkImageResolve(mImpl->resources(), (VkImageResolve*)(local_pRegions + i));
+            transform_tohost_VkImageResolve(sResourceTracker, (VkImageResolve*)(local_pRegions + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -10267,9 +9423,8 @@ void VkEncoder::vkCmdResolveImage(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            count_VkImageResolve(featureBits, (VkImageResolve*)(local_pRegions + i), countPtr);
+            count_VkImageResolve(sFeatureBits, (VkImageResolve*)(local_pRegions + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdResolveImage = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdResolveImage);
@@ -10299,16 +9454,13 @@ void VkEncoder::vkCmdResolveImage(
     {
         reservedmarshal_VkImageResolve(stream, (VkImageResolve*)(local_pRegions + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdResolveImage");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdSetEvent(
@@ -10317,20 +9469,17 @@ void VkEncoder::vkCmdSetEvent(
     VkPipelineStageFlags stageMask,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdSetEvent");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkEvent local_event;
     VkPipelineStageFlags local_stageMask;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_event = event;
     local_stageMask = stageMask;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -10339,7 +9488,6 @@ void VkEncoder::vkCmdSetEvent(
         uint64_t cgen_var_547;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkPipelineStageFlags);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdSetEvent = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdSetEvent);
@@ -10357,16 +9505,13 @@ void VkEncoder::vkCmdSetEvent(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkPipelineStageFlags*)&local_stageMask, sizeof(VkPipelineStageFlags));
     *streamPtrPtr += sizeof(VkPipelineStageFlags);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdSetEvent");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdResetEvent(
@@ -10375,20 +9520,17 @@ void VkEncoder::vkCmdResetEvent(
     VkPipelineStageFlags stageMask,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdResetEvent");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkEvent local_event;
     VkPipelineStageFlags local_stageMask;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_event = event;
     local_stageMask = stageMask;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -10397,7 +9539,6 @@ void VkEncoder::vkCmdResetEvent(
         uint64_t cgen_var_551;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkPipelineStageFlags);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdResetEvent = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdResetEvent);
@@ -10415,16 +9556,13 @@ void VkEncoder::vkCmdResetEvent(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkPipelineStageFlags*)&local_stageMask, sizeof(VkPipelineStageFlags));
     *streamPtrPtr += sizeof(VkPipelineStageFlags);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdResetEvent");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdWaitEvents(
@@ -10441,10 +9579,10 @@ void VkEncoder::vkCmdWaitEvents(
     const VkImageMemoryBarrier* pImageMemoryBarriers,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdWaitEvents");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     uint32_t local_eventCount;
@@ -10457,7 +9595,6 @@ void VkEncoder::vkCmdWaitEvents(
     VkBufferMemoryBarrier* local_pBufferMemoryBarriers;
     uint32_t local_imageMemoryBarrierCount;
     VkImageMemoryBarrier* local_pImageMemoryBarriers;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_eventCount = eventCount;
     local_pEvents = nullptr;
@@ -10497,29 +9634,27 @@ void VkEncoder::vkCmdWaitEvents(
             deepcopy_VkImageMemoryBarrier(pool, pImageMemoryBarriers + i, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i));
         }
     }
-    local_doLock = doLock;
     if (local_pMemoryBarriers)
     {
         for (uint32_t i = 0; i < (uint32_t)((memoryBarrierCount)); ++i)
         {
-            transform_tohost_VkMemoryBarrier(mImpl->resources(), (VkMemoryBarrier*)(local_pMemoryBarriers + i));
+            transform_tohost_VkMemoryBarrier(sResourceTracker, (VkMemoryBarrier*)(local_pMemoryBarriers + i));
         }
     }
     if (local_pBufferMemoryBarriers)
     {
         for (uint32_t i = 0; i < (uint32_t)((bufferMemoryBarrierCount)); ++i)
         {
-            transform_tohost_VkBufferMemoryBarrier(mImpl->resources(), (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i));
+            transform_tohost_VkBufferMemoryBarrier(sResourceTracker, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i));
         }
     }
     if (local_pImageMemoryBarriers)
     {
         for (uint32_t i = 0; i < (uint32_t)((imageMemoryBarrierCount)); ++i)
         {
-            transform_tohost_VkImageMemoryBarrier(mImpl->resources(), (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i));
+            transform_tohost_VkImageMemoryBarrier(sResourceTracker, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -10535,19 +9670,18 @@ void VkEncoder::vkCmdWaitEvents(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((memoryBarrierCount)); ++i)
         {
-            count_VkMemoryBarrier(featureBits, (VkMemoryBarrier*)(local_pMemoryBarriers + i), countPtr);
+            count_VkMemoryBarrier(sFeatureBits, (VkMemoryBarrier*)(local_pMemoryBarriers + i), countPtr);
         }
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((bufferMemoryBarrierCount)); ++i)
         {
-            count_VkBufferMemoryBarrier(featureBits, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i), countPtr);
+            count_VkBufferMemoryBarrier(sFeatureBits, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i), countPtr);
         }
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((imageMemoryBarrierCount)); ++i)
         {
-            count_VkImageMemoryBarrier(featureBits, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i), countPtr);
+            count_VkImageMemoryBarrier(sFeatureBits, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdWaitEvents = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdWaitEvents);
@@ -10594,16 +9728,13 @@ void VkEncoder::vkCmdWaitEvents(
     {
         reservedmarshal_VkImageMemoryBarrier(stream, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdWaitEvents");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdPipelineBarrier(
@@ -10619,10 +9750,10 @@ void VkEncoder::vkCmdPipelineBarrier(
     const VkImageMemoryBarrier* pImageMemoryBarriers,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdPipelineBarrier");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkPipelineStageFlags local_srcStageMask;
@@ -10634,7 +9765,6 @@ void VkEncoder::vkCmdPipelineBarrier(
     VkBufferMemoryBarrier* local_pBufferMemoryBarriers;
     uint32_t local_imageMemoryBarrierCount;
     VkImageMemoryBarrier* local_pImageMemoryBarriers;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_srcStageMask = srcStageMask;
     local_dstStageMask = dstStageMask;
@@ -10669,29 +9799,27 @@ void VkEncoder::vkCmdPipelineBarrier(
             deepcopy_VkImageMemoryBarrier(pool, pImageMemoryBarriers + i, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i));
         }
     }
-    local_doLock = doLock;
     if (local_pMemoryBarriers)
     {
         for (uint32_t i = 0; i < (uint32_t)((memoryBarrierCount)); ++i)
         {
-            transform_tohost_VkMemoryBarrier(mImpl->resources(), (VkMemoryBarrier*)(local_pMemoryBarriers + i));
+            transform_tohost_VkMemoryBarrier(sResourceTracker, (VkMemoryBarrier*)(local_pMemoryBarriers + i));
         }
     }
     if (local_pBufferMemoryBarriers)
     {
         for (uint32_t i = 0; i < (uint32_t)((bufferMemoryBarrierCount)); ++i)
         {
-            transform_tohost_VkBufferMemoryBarrier(mImpl->resources(), (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i));
+            transform_tohost_VkBufferMemoryBarrier(sResourceTracker, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i));
         }
     }
     if (local_pImageMemoryBarriers)
     {
         for (uint32_t i = 0; i < (uint32_t)((imageMemoryBarrierCount)); ++i)
         {
-            transform_tohost_VkImageMemoryBarrier(mImpl->resources(), (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i));
+            transform_tohost_VkImageMemoryBarrier(sResourceTracker, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -10703,19 +9831,18 @@ void VkEncoder::vkCmdPipelineBarrier(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((memoryBarrierCount)); ++i)
         {
-            count_VkMemoryBarrier(featureBits, (VkMemoryBarrier*)(local_pMemoryBarriers + i), countPtr);
+            count_VkMemoryBarrier(sFeatureBits, (VkMemoryBarrier*)(local_pMemoryBarriers + i), countPtr);
         }
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((bufferMemoryBarrierCount)); ++i)
         {
-            count_VkBufferMemoryBarrier(featureBits, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i), countPtr);
+            count_VkBufferMemoryBarrier(sFeatureBits, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i), countPtr);
         }
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((imageMemoryBarrierCount)); ++i)
         {
-            count_VkImageMemoryBarrier(featureBits, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i), countPtr);
+            count_VkImageMemoryBarrier(sFeatureBits, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdPipelineBarrier = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdPipelineBarrier);
@@ -10751,16 +9878,13 @@ void VkEncoder::vkCmdPipelineBarrier(
     {
         reservedmarshal_VkImageMemoryBarrier(stream, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdPipelineBarrier");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdBeginQuery(
@@ -10770,22 +9894,19 @@ void VkEncoder::vkCmdBeginQuery(
     VkQueryControlFlags flags,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdBeginQuery");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkQueryPool local_queryPool;
     uint32_t local_query;
     VkQueryControlFlags local_flags;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_queryPool = queryPool;
     local_query = query;
     local_flags = flags;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -10795,7 +9916,6 @@ void VkEncoder::vkCmdBeginQuery(
         *countPtr += 1 * 8;
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(VkQueryControlFlags);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdBeginQuery = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdBeginQuery);
@@ -10815,16 +9935,13 @@ void VkEncoder::vkCmdBeginQuery(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (VkQueryControlFlags*)&local_flags, sizeof(VkQueryControlFlags));
     *streamPtrPtr += sizeof(VkQueryControlFlags);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdBeginQuery");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdEndQuery(
@@ -10833,20 +9950,17 @@ void VkEncoder::vkCmdEndQuery(
     uint32_t query,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdEndQuery");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkQueryPool local_queryPool;
     uint32_t local_query;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_queryPool = queryPool;
     local_query = query;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -10854,7 +9968,6 @@ void VkEncoder::vkCmdEndQuery(
         *countPtr += 1 * 8;
         uint64_t cgen_var_565;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdEndQuery = 4 + 4 + count;
@@ -10873,16 +9986,13 @@ void VkEncoder::vkCmdEndQuery(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (uint32_t*)&local_query, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdEndQuery");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdResetQueryPool(
@@ -10892,22 +10002,19 @@ void VkEncoder::vkCmdResetQueryPool(
     uint32_t queryCount,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdResetQueryPool");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkQueryPool local_queryPool;
     uint32_t local_firstQuery;
     uint32_t local_queryCount;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_queryPool = queryPool;
     local_firstQuery = firstQuery;
     local_queryCount = queryCount;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -10915,7 +10022,6 @@ void VkEncoder::vkCmdResetQueryPool(
         *countPtr += 1 * 8;
         uint64_t cgen_var_569;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
@@ -10937,16 +10043,13 @@ void VkEncoder::vkCmdResetQueryPool(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (uint32_t*)&local_queryCount, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdResetQueryPool");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdWriteTimestamp(
@@ -10956,22 +10059,19 @@ void VkEncoder::vkCmdWriteTimestamp(
     uint32_t query,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdWriteTimestamp");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkPipelineStageFlagBits local_pipelineStage;
     VkQueryPool local_queryPool;
     uint32_t local_query;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pipelineStage = pipelineStage;
     local_queryPool = queryPool;
     local_query = query;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -10980,7 +10080,6 @@ void VkEncoder::vkCmdWriteTimestamp(
         *countPtr += sizeof(VkPipelineStageFlagBits);
         uint64_t cgen_var_573;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdWriteTimestamp = 4 + 4 + count;
@@ -11001,16 +10100,13 @@ void VkEncoder::vkCmdWriteTimestamp(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (uint32_t*)&local_query, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdWriteTimestamp");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdCopyQueryPoolResults(
@@ -11024,10 +10120,10 @@ void VkEncoder::vkCmdCopyQueryPoolResults(
     VkQueryResultFlags flags,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdCopyQueryPoolResults");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkQueryPool local_queryPool;
@@ -11037,7 +10133,6 @@ void VkEncoder::vkCmdCopyQueryPoolResults(
     VkDeviceSize local_dstOffset;
     VkDeviceSize local_stride;
     VkQueryResultFlags local_flags;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_queryPool = queryPool;
     local_firstQuery = firstQuery;
@@ -11046,8 +10141,6 @@ void VkEncoder::vkCmdCopyQueryPoolResults(
     local_dstOffset = dstOffset;
     local_stride = stride;
     local_flags = flags;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -11062,7 +10155,6 @@ void VkEncoder::vkCmdCopyQueryPoolResults(
         *countPtr += sizeof(VkDeviceSize);
         *countPtr += sizeof(VkDeviceSize);
         *countPtr += sizeof(VkQueryResultFlags);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdCopyQueryPoolResults = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdCopyQueryPoolResults);
@@ -11092,16 +10184,13 @@ void VkEncoder::vkCmdCopyQueryPoolResults(
     *streamPtrPtr += sizeof(VkDeviceSize);
     memcpy(*streamPtrPtr, (VkQueryResultFlags*)&local_flags, sizeof(VkQueryResultFlags));
     *streamPtrPtr += sizeof(VkQueryResultFlags);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdCopyQueryPoolResults");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdPushConstants(
@@ -11113,10 +10202,10 @@ void VkEncoder::vkCmdPushConstants(
     const void* pValues,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdPushConstants");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkPipelineLayout local_layout;
@@ -11124,7 +10213,6 @@ void VkEncoder::vkCmdPushConstants(
     uint32_t local_offset;
     uint32_t local_size;
     void* local_pValues;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_layout = layout;
     local_stageFlags = stageFlags;
@@ -11135,8 +10223,6 @@ void VkEncoder::vkCmdPushConstants(
     {
         local_pValues = (void*)pool->dupArray(pValues, ((size)) * sizeof(const uint8_t));
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -11148,7 +10234,6 @@ void VkEncoder::vkCmdPushConstants(
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += ((size)) * sizeof(uint8_t);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdPushConstants = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdPushConstants);
@@ -11172,16 +10257,13 @@ void VkEncoder::vkCmdPushConstants(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (void*)local_pValues, ((size)) * sizeof(uint8_t));
     *streamPtrPtr += ((size)) * sizeof(uint8_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdPushConstants");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdBeginRenderPass(
@@ -11190,15 +10272,14 @@ void VkEncoder::vkCmdBeginRenderPass(
     VkSubpassContents contents,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdBeginRenderPass");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkRenderPassBeginInfo* local_pRenderPassBegin;
     VkSubpassContents local_contents;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pRenderPassBegin = nullptr;
     if (pRenderPassBegin)
@@ -11207,20 +10288,17 @@ void VkEncoder::vkCmdBeginRenderPass(
         deepcopy_VkRenderPassBeginInfo(pool, pRenderPassBegin, (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
     }
     local_contents = contents;
-    local_doLock = doLock;
     if (local_pRenderPassBegin)
     {
-        transform_tohost_VkRenderPassBeginInfo(mImpl->resources(), (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
+        transform_tohost_VkRenderPassBeginInfo(sResourceTracker, (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_586;
         *countPtr += 1 * 8;
-        count_VkRenderPassBeginInfo(featureBits, (VkRenderPassBeginInfo*)(local_pRenderPassBegin), countPtr);
+        count_VkRenderPassBeginInfo(sFeatureBits, (VkRenderPassBeginInfo*)(local_pRenderPassBegin), countPtr);
         *countPtr += sizeof(VkSubpassContents);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdBeginRenderPass = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdBeginRenderPass);
@@ -11235,16 +10313,13 @@ void VkEncoder::vkCmdBeginRenderPass(
     reservedmarshal_VkRenderPassBeginInfo(stream, (VkRenderPassBeginInfo*)(local_pRenderPassBegin), streamPtrPtr);
     memcpy(*streamPtrPtr, (VkSubpassContents*)&local_contents, sizeof(VkSubpassContents));
     *streamPtrPtr += sizeof(VkSubpassContents);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdBeginRenderPass");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdNextSubpass(
@@ -11252,25 +10327,21 @@ void VkEncoder::vkCmdNextSubpass(
     VkSubpassContents contents,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdNextSubpass");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkSubpassContents local_contents;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_contents = contents;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_588;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkSubpassContents);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdNextSubpass = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdNextSubpass);
@@ -11284,38 +10355,31 @@ void VkEncoder::vkCmdNextSubpass(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkSubpassContents*)&local_contents, sizeof(VkSubpassContents));
     *streamPtrPtr += sizeof(VkSubpassContents);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdNextSubpass");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdEndRenderPass(
     VkCommandBuffer commandBuffer,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdEndRenderPass");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_590;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdEndRenderPass = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdEndRenderPass);
@@ -11327,16 +10391,13 @@ void VkEncoder::vkCmdEndRenderPass(
     *&cgen_var_591 = get_host_u64_VkCommandBuffer((*&local_commandBuffer));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_591, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdEndRenderPass");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdExecuteCommands(
@@ -11345,15 +10406,14 @@ void VkEncoder::vkCmdExecuteCommands(
     const VkCommandBuffer* pCommandBuffers,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdExecuteCommands");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     uint32_t local_commandBufferCount;
     VkCommandBuffer* local_pCommandBuffers;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_commandBufferCount = commandBufferCount;
     local_pCommandBuffers = nullptr;
@@ -11361,8 +10421,6 @@ void VkEncoder::vkCmdExecuteCommands(
     {
         local_pCommandBuffers = (VkCommandBuffer*)pool->dupArray(pCommandBuffers, ((commandBufferCount)) * sizeof(const VkCommandBuffer));
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -11373,7 +10431,6 @@ void VkEncoder::vkCmdExecuteCommands(
         {
             *countPtr += ((commandBufferCount)) * 8;
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdExecuteCommands = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdExecuteCommands);
@@ -11398,16 +10455,13 @@ void VkEncoder::vkCmdExecuteCommands(
         memcpy(*streamPtrPtr, (uint64_t*)cgen_var_595, ((commandBufferCount)) * 8);
         *streamPtrPtr += ((commandBufferCount)) * 8;
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdExecuteCommands");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -11416,18 +10470,14 @@ VkResult VkEncoder::vkEnumerateInstanceVersion(
     uint32_t* pApiVersion,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkEnumerateInstanceVersion");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
-    uint32_t local_doLock;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkEnumerateInstanceVersion = 4 + 4 + count;
@@ -11438,8 +10488,6 @@ VkResult VkEncoder::vkEnumerateInstanceVersion(
     memcpy(streamPtr, &packetSize_vkEnumerateInstanceVersion, sizeof(uint32_t)); streamPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (uint32_t*)pApiVersion, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((uint32_t*)pApiVersion, sizeof(uint32_t));
     VkResult vkEnumerateInstanceVersion_VkResult_return = (VkResult)0;
     stream->read(&vkEnumerateInstanceVersion_VkResult_return, sizeof(VkResult));
@@ -11449,8 +10497,7 @@ VkResult VkEncoder::vkEnumerateInstanceVersion(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkEnumerateInstanceVersion");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkEnumerateInstanceVersion_VkResult_return;
 }
 
@@ -11460,15 +10507,14 @@ VkResult VkEncoder::vkBindBufferMemory2(
     const VkBindBufferMemoryInfo* pBindInfos,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkBindBufferMemory2");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     uint32_t local_bindInfoCount;
     VkBindBufferMemoryInfo* local_pBindInfos;
-    uint32_t local_doLock;
     local_device = device;
     local_bindInfoCount = bindInfoCount;
     local_pBindInfos = nullptr;
@@ -11480,15 +10526,13 @@ VkResult VkEncoder::vkBindBufferMemory2(
             deepcopy_VkBindBufferMemoryInfo(pool, pBindInfos + i, (VkBindBufferMemoryInfo*)(local_pBindInfos + i));
         }
     }
-    local_doLock = doLock;
     if (local_pBindInfos)
     {
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            transform_tohost_VkBindBufferMemoryInfo(mImpl->resources(), (VkBindBufferMemoryInfo*)(local_pBindInfos + i));
+            transform_tohost_VkBindBufferMemoryInfo(sResourceTracker, (VkBindBufferMemoryInfo*)(local_pBindInfos + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -11497,9 +10541,8 @@ VkResult VkEncoder::vkBindBufferMemory2(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            count_VkBindBufferMemoryInfo(featureBits, (VkBindBufferMemoryInfo*)(local_pBindInfos + i), countPtr);
+            count_VkBindBufferMemoryInfo(sFeatureBits, (VkBindBufferMemoryInfo*)(local_pBindInfos + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkBindBufferMemory2 = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkBindBufferMemory2);
@@ -11517,8 +10560,6 @@ VkResult VkEncoder::vkBindBufferMemory2(
     {
         reservedmarshal_VkBindBufferMemoryInfo(stream, (VkBindBufferMemoryInfo*)(local_pBindInfos + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkBindBufferMemory2_VkResult_return = (VkResult)0;
     stream->read(&vkBindBufferMemory2_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -11527,8 +10568,7 @@ VkResult VkEncoder::vkBindBufferMemory2(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkBindBufferMemory2");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkBindBufferMemory2_VkResult_return;
 }
 
@@ -11538,15 +10578,14 @@ VkResult VkEncoder::vkBindImageMemory2(
     const VkBindImageMemoryInfo* pBindInfos,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkBindImageMemory2");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     uint32_t local_bindInfoCount;
     VkBindImageMemoryInfo* local_pBindInfos;
-    uint32_t local_doLock;
     local_device = device;
     local_bindInfoCount = bindInfoCount;
     local_pBindInfos = nullptr;
@@ -11558,15 +10597,13 @@ VkResult VkEncoder::vkBindImageMemory2(
             deepcopy_VkBindImageMemoryInfo(pool, pBindInfos + i, (VkBindImageMemoryInfo*)(local_pBindInfos + i));
         }
     }
-    local_doLock = doLock;
     if (local_pBindInfos)
     {
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            transform_tohost_VkBindImageMemoryInfo(mImpl->resources(), (VkBindImageMemoryInfo*)(local_pBindInfos + i));
+            transform_tohost_VkBindImageMemoryInfo(sResourceTracker, (VkBindImageMemoryInfo*)(local_pBindInfos + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -11575,9 +10612,8 @@ VkResult VkEncoder::vkBindImageMemory2(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            count_VkBindImageMemoryInfo(featureBits, (VkBindImageMemoryInfo*)(local_pBindInfos + i), countPtr);
+            count_VkBindImageMemoryInfo(sFeatureBits, (VkBindImageMemoryInfo*)(local_pBindInfos + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkBindImageMemory2 = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkBindImageMemory2);
@@ -11595,8 +10631,6 @@ VkResult VkEncoder::vkBindImageMemory2(
     {
         reservedmarshal_VkBindImageMemoryInfo(stream, (VkBindImageMemoryInfo*)(local_pBindInfos + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkBindImageMemory2_VkResult_return = (VkResult)0;
     stream->read(&vkBindImageMemory2_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -11605,8 +10639,7 @@ VkResult VkEncoder::vkBindImageMemory2(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkBindImageMemory2");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkBindImageMemory2_VkResult_return;
 }
 
@@ -11618,22 +10651,19 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeatures(
     VkPeerMemoryFeatureFlags* pPeerMemoryFeatures,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetDeviceGroupPeerMemoryFeatures");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     uint32_t local_heapIndex;
     uint32_t local_localDeviceIndex;
     uint32_t local_remoteDeviceIndex;
-    uint32_t local_doLock;
     local_device = device;
     local_heapIndex = heapIndex;
     local_localDeviceIndex = localDeviceIndex;
     local_remoteDeviceIndex = remoteDeviceIndex;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -11643,7 +10673,6 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeatures(
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(VkPeerMemoryFeatureFlags);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetDeviceGroupPeerMemoryFeatures = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDeviceGroupPeerMemoryFeatures);
@@ -11663,8 +10692,6 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeatures(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (VkPeerMemoryFeatureFlags*)pPeerMemoryFeatures, sizeof(VkPeerMemoryFeatureFlags));
     *streamPtrPtr += sizeof(VkPeerMemoryFeatureFlags);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((VkPeerMemoryFeatureFlags*)pPeerMemoryFeatures, sizeof(VkPeerMemoryFeatureFlags));
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -11672,8 +10699,7 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeatures(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetDeviceGroupPeerMemoryFeatures");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdSetDeviceMask(
@@ -11681,24 +10707,20 @@ void VkEncoder::vkCmdSetDeviceMask(
     uint32_t deviceMask,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdSetDeviceMask");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     uint32_t local_deviceMask;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_deviceMask = deviceMask;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_602;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdSetDeviceMask = 4 + 4 + count;
@@ -11713,16 +10735,13 @@ void VkEncoder::vkCmdSetDeviceMask(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (uint32_t*)&local_deviceMask, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdSetDeviceMask");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdDispatchBase(
@@ -11735,10 +10754,10 @@ void VkEncoder::vkCmdDispatchBase(
     uint32_t groupCountZ,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdDispatchBase");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     uint32_t local_baseGroupX;
@@ -11747,7 +10766,6 @@ void VkEncoder::vkCmdDispatchBase(
     uint32_t local_groupCountX;
     uint32_t local_groupCountY;
     uint32_t local_groupCountZ;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_baseGroupX = baseGroupX;
     local_baseGroupY = baseGroupY;
@@ -11755,14 +10773,11 @@ void VkEncoder::vkCmdDispatchBase(
     local_groupCountX = groupCountX;
     local_groupCountY = groupCountY;
     local_groupCountZ = groupCountZ;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_604;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
@@ -11792,16 +10807,13 @@ void VkEncoder::vkCmdDispatchBase(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (uint32_t*)&local_groupCountZ, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdDispatchBase");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
@@ -11810,16 +10822,13 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
     VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkEnumeratePhysicalDeviceGroups");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
-    uint32_t local_doLock;
     local_instance = instance;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -11837,10 +10846,9 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
             {
-                count_VkPhysicalDeviceGroupProperties(featureBits, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i), countPtr);
+                count_VkPhysicalDeviceGroupProperties(sFeatureBits, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkEnumeratePhysicalDeviceGroups = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkEnumeratePhysicalDeviceGroups);
@@ -11874,8 +10882,6 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
             reservedmarshal_VkPhysicalDeviceGroupProperties(stream, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pPhysicalDeviceGroupCount;
     check_pPhysicalDeviceGroupCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -11905,7 +10911,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
         {
-            transform_fromhost_VkPhysicalDeviceGroupProperties(mImpl->resources(), (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
+            transform_fromhost_VkPhysicalDeviceGroupProperties(sResourceTracker, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
         }
     }
     VkResult vkEnumeratePhysicalDeviceGroups_VkResult_return = (VkResult)0;
@@ -11916,8 +10922,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkEnumeratePhysicalDeviceGroups");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkEnumeratePhysicalDeviceGroups_VkResult_return;
 }
 
@@ -11927,14 +10932,13 @@ void VkEncoder::vkGetImageMemoryRequirements2(
     VkMemoryRequirements2* pMemoryRequirements,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetImageMemoryRequirements2");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkImageMemoryRequirementsInfo2* local_pInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pInfo = nullptr;
     if (pInfo)
@@ -11942,20 +10946,17 @@ void VkEncoder::vkGetImageMemoryRequirements2(
         local_pInfo = (VkImageMemoryRequirementsInfo2*)pool->alloc(sizeof(const VkImageMemoryRequirementsInfo2));
         deepcopy_VkImageMemoryRequirementsInfo2(pool, pInfo, (VkImageMemoryRequirementsInfo2*)(local_pInfo));
     }
-    local_doLock = doLock;
     if (local_pInfo)
     {
-        transform_tohost_VkImageMemoryRequirementsInfo2(mImpl->resources(), (VkImageMemoryRequirementsInfo2*)(local_pInfo));
+        transform_tohost_VkImageMemoryRequirementsInfo2(sResourceTracker, (VkImageMemoryRequirementsInfo2*)(local_pInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_612;
         *countPtr += 1 * 8;
-        count_VkImageMemoryRequirementsInfo2(featureBits, (VkImageMemoryRequirementsInfo2*)(local_pInfo), countPtr);
-        count_VkMemoryRequirements2(featureBits, (VkMemoryRequirements2*)(pMemoryRequirements), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkImageMemoryRequirementsInfo2(sFeatureBits, (VkImageMemoryRequirementsInfo2*)(local_pInfo), countPtr);
+        count_VkMemoryRequirements2(sFeatureBits, (VkMemoryRequirements2*)(pMemoryRequirements), countPtr);
     }
     uint32_t packetSize_vkGetImageMemoryRequirements2 = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetImageMemoryRequirements2);
@@ -11969,12 +10970,10 @@ void VkEncoder::vkGetImageMemoryRequirements2(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkImageMemoryRequirementsInfo2(stream, (VkImageMemoryRequirementsInfo2*)(local_pInfo), streamPtrPtr);
     reservedmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
     if (pMemoryRequirements)
     {
-        transform_fromhost_VkMemoryRequirements2(mImpl->resources(), (VkMemoryRequirements2*)(pMemoryRequirements));
+        transform_fromhost_VkMemoryRequirements2(sResourceTracker, (VkMemoryRequirements2*)(pMemoryRequirements));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -11982,8 +10981,7 @@ void VkEncoder::vkGetImageMemoryRequirements2(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetImageMemoryRequirements2");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetBufferMemoryRequirements2(
@@ -11992,14 +10990,13 @@ void VkEncoder::vkGetBufferMemoryRequirements2(
     VkMemoryRequirements2* pMemoryRequirements,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetBufferMemoryRequirements2");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkBufferMemoryRequirementsInfo2* local_pInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pInfo = nullptr;
     if (pInfo)
@@ -12007,20 +11004,17 @@ void VkEncoder::vkGetBufferMemoryRequirements2(
         local_pInfo = (VkBufferMemoryRequirementsInfo2*)pool->alloc(sizeof(const VkBufferMemoryRequirementsInfo2));
         deepcopy_VkBufferMemoryRequirementsInfo2(pool, pInfo, (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
     }
-    local_doLock = doLock;
     if (local_pInfo)
     {
-        transform_tohost_VkBufferMemoryRequirementsInfo2(mImpl->resources(), (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
+        transform_tohost_VkBufferMemoryRequirementsInfo2(sResourceTracker, (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_614;
         *countPtr += 1 * 8;
-        count_VkBufferMemoryRequirementsInfo2(featureBits, (VkBufferMemoryRequirementsInfo2*)(local_pInfo), countPtr);
-        count_VkMemoryRequirements2(featureBits, (VkMemoryRequirements2*)(pMemoryRequirements), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkBufferMemoryRequirementsInfo2(sFeatureBits, (VkBufferMemoryRequirementsInfo2*)(local_pInfo), countPtr);
+        count_VkMemoryRequirements2(sFeatureBits, (VkMemoryRequirements2*)(pMemoryRequirements), countPtr);
     }
     uint32_t packetSize_vkGetBufferMemoryRequirements2 = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetBufferMemoryRequirements2);
@@ -12034,12 +11028,10 @@ void VkEncoder::vkGetBufferMemoryRequirements2(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkBufferMemoryRequirementsInfo2(stream, (VkBufferMemoryRequirementsInfo2*)(local_pInfo), streamPtrPtr);
     reservedmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
     if (pMemoryRequirements)
     {
-        transform_fromhost_VkMemoryRequirements2(mImpl->resources(), (VkMemoryRequirements2*)(pMemoryRequirements));
+        transform_fromhost_VkMemoryRequirements2(sResourceTracker, (VkMemoryRequirements2*)(pMemoryRequirements));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -12047,8 +11039,7 @@ void VkEncoder::vkGetBufferMemoryRequirements2(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetBufferMemoryRequirements2");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetImageSparseMemoryRequirements2(
@@ -12058,14 +11049,13 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetImageSparseMemoryRequirements2");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkImageSparseMemoryRequirementsInfo2* local_pInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pInfo = nullptr;
     if (pInfo)
@@ -12073,18 +11063,16 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
         local_pInfo = (VkImageSparseMemoryRequirementsInfo2*)pool->alloc(sizeof(const VkImageSparseMemoryRequirementsInfo2));
         deepcopy_VkImageSparseMemoryRequirementsInfo2(pool, pInfo, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo));
     }
-    local_doLock = doLock;
     if (local_pInfo)
     {
-        transform_tohost_VkImageSparseMemoryRequirementsInfo2(mImpl->resources(), (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo));
+        transform_tohost_VkImageSparseMemoryRequirementsInfo2(sResourceTracker, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_616;
         *countPtr += 1 * 8;
-        count_VkImageSparseMemoryRequirementsInfo2(featureBits, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo), countPtr);
+        count_VkImageSparseMemoryRequirementsInfo2(sFeatureBits, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (pSparseMemoryRequirementCount)
@@ -12097,10 +11085,9 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
             {
-                count_VkSparseImageMemoryRequirements2(featureBits, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i), countPtr);
+                count_VkSparseImageMemoryRequirements2(sFeatureBits, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetImageSparseMemoryRequirements2 = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetImageSparseMemoryRequirements2);
@@ -12135,8 +11122,6 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
             reservedmarshal_VkSparseImageMemoryRequirements2(stream, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pSparseMemoryRequirementCount;
     check_pSparseMemoryRequirementCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -12166,7 +11151,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
         {
-            transform_fromhost_VkSparseImageMemoryRequirements2(mImpl->resources(), (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
+            transform_fromhost_VkSparseImageMemoryRequirements2(sResourceTracker, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
         }
     }
     ++encodeCount;;
@@ -12175,8 +11160,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetImageSparseMemoryRequirements2");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetPhysicalDeviceFeatures2(
@@ -12184,23 +11168,19 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2(
     VkPhysicalDeviceFeatures2* pFeatures,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceFeatures2");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_622;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceFeatures2(featureBits, (VkPhysicalDeviceFeatures2*)(pFeatures), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkPhysicalDeviceFeatures2(sFeatureBits, (VkPhysicalDeviceFeatures2*)(pFeatures), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceFeatures2 = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceFeatures2);
@@ -12213,12 +11193,10 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_623, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkPhysicalDeviceFeatures2(stream, (VkPhysicalDeviceFeatures2*)(pFeatures), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkPhysicalDeviceFeatures2(stream, (VkPhysicalDeviceFeatures2*)(pFeatures));
     if (pFeatures)
     {
-        transform_fromhost_VkPhysicalDeviceFeatures2(mImpl->resources(), (VkPhysicalDeviceFeatures2*)(pFeatures));
+        transform_fromhost_VkPhysicalDeviceFeatures2(sResourceTracker, (VkPhysicalDeviceFeatures2*)(pFeatures));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -12226,8 +11204,7 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceFeatures2");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetPhysicalDeviceProperties2(
@@ -12235,23 +11212,19 @@ void VkEncoder::vkGetPhysicalDeviceProperties2(
     VkPhysicalDeviceProperties2* pProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceProperties2");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_624;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceProperties2(featureBits, (VkPhysicalDeviceProperties2*)(pProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkPhysicalDeviceProperties2(sFeatureBits, (VkPhysicalDeviceProperties2*)(pProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceProperties2 = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceProperties2);
@@ -12264,22 +11237,19 @@ void VkEncoder::vkGetPhysicalDeviceProperties2(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_625, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkPhysicalDeviceProperties2(stream, (VkPhysicalDeviceProperties2*)(pProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkPhysicalDeviceProperties2(stream, (VkPhysicalDeviceProperties2*)(pProperties));
     if (pProperties)
     {
-        transform_fromhost_VkPhysicalDeviceProperties2(mImpl->resources(), (VkPhysicalDeviceProperties2*)(pProperties));
+        transform_fromhost_VkPhysicalDeviceProperties2(sResourceTracker, (VkPhysicalDeviceProperties2*)(pProperties));
     }
-    mImpl->resources()->on_vkGetPhysicalDeviceProperties2(this, physicalDevice, pProperties);
+    sResourceTracker->on_vkGetPhysicalDeviceProperties2(this, physicalDevice, pProperties);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceProperties2");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetPhysicalDeviceFormatProperties2(
@@ -12288,26 +11258,22 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2(
     VkFormatProperties2* pFormatProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceFormatProperties2");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkFormat local_format;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_format = format;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_626;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkFormat);
-        count_VkFormatProperties2(featureBits, (VkFormatProperties2*)(pFormatProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkFormatProperties2(sFeatureBits, (VkFormatProperties2*)(pFormatProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceFormatProperties2 = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceFormatProperties2);
@@ -12322,12 +11288,10 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2(
     memcpy(*streamPtrPtr, (VkFormat*)&local_format, sizeof(VkFormat));
     *streamPtrPtr += sizeof(VkFormat);
     reservedmarshal_VkFormatProperties2(stream, (VkFormatProperties2*)(pFormatProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkFormatProperties2(stream, (VkFormatProperties2*)(pFormatProperties));
     if (pFormatProperties)
     {
-        transform_fromhost_VkFormatProperties2(mImpl->resources(), (VkFormatProperties2*)(pFormatProperties));
+        transform_fromhost_VkFormatProperties2(sResourceTracker, (VkFormatProperties2*)(pFormatProperties));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -12335,8 +11299,7 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceFormatProperties2");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2(
@@ -12345,14 +11308,13 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2(
     VkImageFormatProperties2* pImageFormatProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceImageFormatProperties2");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkPhysicalDeviceImageFormatInfo2* local_pImageFormatInfo;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_pImageFormatInfo = nullptr;
     if (pImageFormatInfo)
@@ -12360,20 +11322,17 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2(
         local_pImageFormatInfo = (VkPhysicalDeviceImageFormatInfo2*)pool->alloc(sizeof(const VkPhysicalDeviceImageFormatInfo2));
         deepcopy_VkPhysicalDeviceImageFormatInfo2(pool, pImageFormatInfo, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
     }
-    local_doLock = doLock;
     if (local_pImageFormatInfo)
     {
-        transform_tohost_VkPhysicalDeviceImageFormatInfo2(mImpl->resources(), (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
+        transform_tohost_VkPhysicalDeviceImageFormatInfo2(sResourceTracker, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_628;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceImageFormatInfo2(featureBits, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo), countPtr);
-        count_VkImageFormatProperties2(featureBits, (VkImageFormatProperties2*)(pImageFormatProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkPhysicalDeviceImageFormatInfo2(sFeatureBits, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo), countPtr);
+        count_VkImageFormatProperties2(sFeatureBits, (VkImageFormatProperties2*)(pImageFormatProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceImageFormatProperties2 = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceImageFormatProperties2);
@@ -12387,12 +11346,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkPhysicalDeviceImageFormatInfo2(stream, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo), streamPtrPtr);
     reservedmarshal_VkImageFormatProperties2(stream, (VkImageFormatProperties2*)(pImageFormatProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkImageFormatProperties2(stream, (VkImageFormatProperties2*)(pImageFormatProperties));
     if (pImageFormatProperties)
     {
-        transform_fromhost_VkImageFormatProperties2(mImpl->resources(), (VkImageFormatProperties2*)(pImageFormatProperties));
+        transform_fromhost_VkImageFormatProperties2(sResourceTracker, (VkImageFormatProperties2*)(pImageFormatProperties));
     }
     VkResult vkGetPhysicalDeviceImageFormatProperties2_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceImageFormatProperties2_VkResult_return, sizeof(VkResult));
@@ -12402,8 +11359,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceImageFormatProperties2");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceImageFormatProperties2_VkResult_return;
 }
 
@@ -12413,16 +11369,13 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
     VkQueueFamilyProperties2* pQueueFamilyProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceQueueFamilyProperties2");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -12440,10 +11393,9 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
             {
-                count_VkQueueFamilyProperties2(featureBits, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i), countPtr);
+                count_VkQueueFamilyProperties2(sFeatureBits, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceQueueFamilyProperties2 = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceQueueFamilyProperties2);
@@ -12477,8 +11429,6 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
             reservedmarshal_VkQueueFamilyProperties2(stream, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pQueueFamilyPropertyCount;
     check_pQueueFamilyPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -12508,7 +11458,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
         {
-            transform_fromhost_VkQueueFamilyProperties2(mImpl->resources(), (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
+            transform_fromhost_VkQueueFamilyProperties2(sResourceTracker, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
         }
     }
     ++encodeCount;;
@@ -12517,8 +11467,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceQueueFamilyProperties2");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetPhysicalDeviceMemoryProperties2(
@@ -12526,23 +11475,19 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2(
     VkPhysicalDeviceMemoryProperties2* pMemoryProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceMemoryProperties2");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_636;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceMemoryProperties2(featureBits, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkPhysicalDeviceMemoryProperties2(sFeatureBits, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceMemoryProperties2 = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceMemoryProperties2);
@@ -12555,22 +11500,19 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_637, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkPhysicalDeviceMemoryProperties2(stream, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkPhysicalDeviceMemoryProperties2(stream, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     if (pMemoryProperties)
     {
-        transform_fromhost_VkPhysicalDeviceMemoryProperties2(mImpl->resources(), (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
+        transform_fromhost_VkPhysicalDeviceMemoryProperties2(sResourceTracker, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     }
-    mImpl->resources()->on_vkGetPhysicalDeviceMemoryProperties2(this, physicalDevice, pMemoryProperties);
+    sResourceTracker->on_vkGetPhysicalDeviceMemoryProperties2(this, physicalDevice, pMemoryProperties);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceMemoryProperties2");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
@@ -12580,14 +11522,13 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
     VkSparseImageFormatProperties2* pProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceSparseImageFormatProperties2");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkPhysicalDeviceSparseImageFormatInfo2* local_pFormatInfo;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_pFormatInfo = nullptr;
     if (pFormatInfo)
@@ -12595,18 +11536,16 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
         local_pFormatInfo = (VkPhysicalDeviceSparseImageFormatInfo2*)pool->alloc(sizeof(const VkPhysicalDeviceSparseImageFormatInfo2));
         deepcopy_VkPhysicalDeviceSparseImageFormatInfo2(pool, pFormatInfo, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo));
     }
-    local_doLock = doLock;
     if (local_pFormatInfo)
     {
-        transform_tohost_VkPhysicalDeviceSparseImageFormatInfo2(mImpl->resources(), (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo));
+        transform_tohost_VkPhysicalDeviceSparseImageFormatInfo2(sResourceTracker, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_638;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceSparseImageFormatInfo2(featureBits, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo), countPtr);
+        count_VkPhysicalDeviceSparseImageFormatInfo2(sFeatureBits, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (pPropertyCount)
@@ -12619,10 +11558,9 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                count_VkSparseImageFormatProperties2(featureBits, (VkSparseImageFormatProperties2*)(pProperties + i), countPtr);
+                count_VkSparseImageFormatProperties2(sFeatureBits, (VkSparseImageFormatProperties2*)(pProperties + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceSparseImageFormatProperties2 = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceSparseImageFormatProperties2);
@@ -12657,8 +11595,6 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
             reservedmarshal_VkSparseImageFormatProperties2(stream, (VkSparseImageFormatProperties2*)(pProperties + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
     check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -12688,7 +11624,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            transform_fromhost_VkSparseImageFormatProperties2(mImpl->resources(), (VkSparseImageFormatProperties2*)(pProperties + i));
+            transform_fromhost_VkSparseImageFormatProperties2(sResourceTracker, (VkSparseImageFormatProperties2*)(pProperties + i));
         }
     }
     ++encodeCount;;
@@ -12697,8 +11633,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceSparseImageFormatProperties2");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkTrimCommandPool(
@@ -12707,20 +11642,17 @@ void VkEncoder::vkTrimCommandPool(
     VkCommandPoolTrimFlags flags,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkTrimCommandPool");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkCommandPool local_commandPool;
     VkCommandPoolTrimFlags local_flags;
-    uint32_t local_doLock;
     local_device = device;
     local_commandPool = commandPool;
     local_flags = flags;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -12729,7 +11661,6 @@ void VkEncoder::vkTrimCommandPool(
         uint64_t cgen_var_645;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkCommandPoolTrimFlags);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkTrimCommandPool = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkTrimCommandPool);
@@ -12747,16 +11678,13 @@ void VkEncoder::vkTrimCommandPool(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkCommandPoolTrimFlags*)&local_flags, sizeof(VkCommandPoolTrimFlags));
     *streamPtrPtr += sizeof(VkCommandPoolTrimFlags);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkTrimCommandPool");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetDeviceQueue2(
@@ -12765,14 +11693,13 @@ void VkEncoder::vkGetDeviceQueue2(
     VkQueue* pQueue,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetDeviceQueue2");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDeviceQueueInfo2* local_pQueueInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pQueueInfo = nullptr;
     if (pQueueInfo)
@@ -12780,21 +11707,18 @@ void VkEncoder::vkGetDeviceQueue2(
         local_pQueueInfo = (VkDeviceQueueInfo2*)pool->alloc(sizeof(const VkDeviceQueueInfo2));
         deepcopy_VkDeviceQueueInfo2(pool, pQueueInfo, (VkDeviceQueueInfo2*)(local_pQueueInfo));
     }
-    local_doLock = doLock;
     if (local_pQueueInfo)
     {
-        transform_tohost_VkDeviceQueueInfo2(mImpl->resources(), (VkDeviceQueueInfo2*)(local_pQueueInfo));
+        transform_tohost_VkDeviceQueueInfo2(sResourceTracker, (VkDeviceQueueInfo2*)(local_pQueueInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_648;
         *countPtr += 1 * 8;
-        count_VkDeviceQueueInfo2(featureBits, (VkDeviceQueueInfo2*)(local_pQueueInfo), countPtr);
+        count_VkDeviceQueueInfo2(sFeatureBits, (VkDeviceQueueInfo2*)(local_pQueueInfo), countPtr);
         uint64_t cgen_var_649;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetDeviceQueue2 = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDeviceQueue2);
@@ -12813,8 +11737,6 @@ void VkEncoder::vkGetDeviceQueue2(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_651, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     uint64_t cgen_var_652;
     stream->read((uint64_t*)&cgen_var_652, 8);
     stream->handleMapping()->mapHandles_u64_VkQueue(&cgen_var_652, (VkQueue*)pQueue, 1);
@@ -12824,8 +11746,7 @@ void VkEncoder::vkGetDeviceQueue2(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetDeviceQueue2");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkCreateSamplerYcbcrConversion(
@@ -12835,15 +11756,14 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversion(
     VkSamplerYcbcrConversion* pYcbcrConversion,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateSamplerYcbcrConversion");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkSamplerYcbcrConversionCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -12857,32 +11777,29 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversion(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkSamplerYcbcrConversionCreateInfo(mImpl->resources(), (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkSamplerYcbcrConversionCreateInfo(sResourceTracker, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_653;
         *countPtr += 1 * 8;
-        count_VkSamplerYcbcrConversionCreateInfo(featureBits, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkSamplerYcbcrConversionCreateInfo(sFeatureBits, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_654;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateSamplerYcbcrConversion = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateSamplerYcbcrConversion);
@@ -12910,9 +11827,7 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversion(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_657, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_658;
     stream->read((uint64_t*)&cgen_var_658, 8);
     stream->handleMapping()->mapHandles_u64_VkSamplerYcbcrConversion(&cgen_var_658, (VkSamplerYcbcrConversion*)pYcbcrConversion, 1);
@@ -12925,8 +11840,7 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversion(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateSamplerYcbcrConversion");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateSamplerYcbcrConversion_VkResult_return;
 }
 
@@ -12936,15 +11850,14 @@ void VkEncoder::vkDestroySamplerYcbcrConversion(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroySamplerYcbcrConversion");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkSamplerYcbcrConversion local_ycbcrConversion;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_ycbcrConversion = ycbcrConversion;
     local_pAllocator = nullptr;
@@ -12953,13 +11866,11 @@ void VkEncoder::vkDestroySamplerYcbcrConversion(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -12971,9 +11882,8 @@ void VkEncoder::vkDestroySamplerYcbcrConversion(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroySamplerYcbcrConversion = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroySamplerYcbcrConversion);
@@ -12998,17 +11908,14 @@ void VkEncoder::vkDestroySamplerYcbcrConversion(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkSamplerYcbcrConversion((VkSamplerYcbcrConversion*)&ycbcrConversion);
+    sResourceTracker->destroyMapping()->mapHandles_VkSamplerYcbcrConversion((VkSamplerYcbcrConversion*)&ycbcrConversion);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroySamplerYcbcrConversion");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkCreateDescriptorUpdateTemplate(
@@ -13018,15 +11925,14 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplate(
     VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateDescriptorUpdateTemplate");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDescriptorUpdateTemplateCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -13040,32 +11946,29 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplate(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkDescriptorUpdateTemplateCreateInfo(mImpl->resources(), (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkDescriptorUpdateTemplateCreateInfo(sResourceTracker, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_664;
         *countPtr += 1 * 8;
-        count_VkDescriptorUpdateTemplateCreateInfo(featureBits, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkDescriptorUpdateTemplateCreateInfo(sFeatureBits, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_665;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateDescriptorUpdateTemplate = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateDescriptorUpdateTemplate);
@@ -13093,24 +11996,21 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplate(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_668, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_669;
     stream->read((uint64_t*)&cgen_var_669, 8);
     stream->handleMapping()->mapHandles_u64_VkDescriptorUpdateTemplate(&cgen_var_669, (VkDescriptorUpdateTemplate*)pDescriptorUpdateTemplate, 1);
     stream->unsetHandleMapping();
     VkResult vkCreateDescriptorUpdateTemplate_VkResult_return = (VkResult)0;
     stream->read(&vkCreateDescriptorUpdateTemplate_VkResult_return, sizeof(VkResult));
-    mImpl->resources()->on_vkCreateDescriptorUpdateTemplate(this, vkCreateDescriptorUpdateTemplate_VkResult_return, device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
+    sResourceTracker->on_vkCreateDescriptorUpdateTemplate(this, vkCreateDescriptorUpdateTemplate_VkResult_return, device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateDescriptorUpdateTemplate");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateDescriptorUpdateTemplate_VkResult_return;
 }
 
@@ -13120,15 +12020,14 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplate(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyDescriptorUpdateTemplate");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDescriptorUpdateTemplate local_descriptorUpdateTemplate;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_descriptorUpdateTemplate = descriptorUpdateTemplate;
     local_pAllocator = nullptr;
@@ -13137,13 +12036,11 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplate(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -13155,9 +12052,8 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplate(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyDescriptorUpdateTemplate = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyDescriptorUpdateTemplate);
@@ -13182,17 +12078,14 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplate(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkDescriptorUpdateTemplate((VkDescriptorUpdateTemplate*)&descriptorUpdateTemplate);
+    sResourceTracker->destroyMapping()->mapHandles_VkDescriptorUpdateTemplate((VkDescriptorUpdateTemplate*)&descriptorUpdateTemplate);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyDescriptorUpdateTemplate");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkUpdateDescriptorSetWithTemplate(
@@ -13202,16 +12095,15 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplate(
     const void* pData,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkUpdateDescriptorSetWithTemplate");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDescriptorSet local_descriptorSet;
     VkDescriptorUpdateTemplate local_descriptorUpdateTemplate;
     void* local_pData;
-    uint32_t local_doLock;
     local_device = device;
     local_descriptorSet = descriptorSet;
     local_descriptorUpdateTemplate = descriptorUpdateTemplate;
@@ -13220,8 +12112,6 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplate(
     {
         local_pData = (void*)pool->dupArray(pData, sizeof(const uint8_t));
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -13237,7 +12127,6 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplate(
         {
             *countPtr += sizeof(uint8_t);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkUpdateDescriptorSetWithTemplate = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkUpdateDescriptorSetWithTemplate);
@@ -13267,16 +12156,13 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplate(
         memcpy(*streamPtrPtr, (void*)local_pData, sizeof(uint8_t));
         *streamPtrPtr += sizeof(uint8_t);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkUpdateDescriptorSetWithTemplate");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
@@ -13285,14 +12171,13 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
     VkExternalBufferProperties* pExternalBufferProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceExternalBufferProperties");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkPhysicalDeviceExternalBufferInfo* local_pExternalBufferInfo;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_pExternalBufferInfo = nullptr;
     if (pExternalBufferInfo)
@@ -13300,21 +12185,18 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
         local_pExternalBufferInfo = (VkPhysicalDeviceExternalBufferInfo*)pool->alloc(sizeof(const VkPhysicalDeviceExternalBufferInfo));
         deepcopy_VkPhysicalDeviceExternalBufferInfo(pool, pExternalBufferInfo, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
     }
-    local_doLock = doLock;
     if (local_pExternalBufferInfo)
     {
-        mImpl->resources()->transformImpl_VkPhysicalDeviceExternalBufferInfo_tohost(local_pExternalBufferInfo, 1);
-        transform_tohost_VkPhysicalDeviceExternalBufferInfo(mImpl->resources(), (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
+        sResourceTracker->transformImpl_VkPhysicalDeviceExternalBufferInfo_tohost(local_pExternalBufferInfo, 1);
+        transform_tohost_VkPhysicalDeviceExternalBufferInfo(sResourceTracker, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_682;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceExternalBufferInfo(featureBits, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo), countPtr);
-        count_VkExternalBufferProperties(featureBits, (VkExternalBufferProperties*)(pExternalBufferProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkPhysicalDeviceExternalBufferInfo(sFeatureBits, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo), countPtr);
+        count_VkExternalBufferProperties(sFeatureBits, (VkExternalBufferProperties*)(pExternalBufferProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceExternalBufferProperties = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceExternalBufferProperties);
@@ -13328,13 +12210,11 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkPhysicalDeviceExternalBufferInfo(stream, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo), streamPtrPtr);
     reservedmarshal_VkExternalBufferProperties(stream, (VkExternalBufferProperties*)(pExternalBufferProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkExternalBufferProperties(stream, (VkExternalBufferProperties*)(pExternalBufferProperties));
     if (pExternalBufferProperties)
     {
-        mImpl->resources()->transformImpl_VkExternalBufferProperties_fromhost(pExternalBufferProperties, 1);
-        transform_fromhost_VkExternalBufferProperties(mImpl->resources(), (VkExternalBufferProperties*)(pExternalBufferProperties));
+        sResourceTracker->transformImpl_VkExternalBufferProperties_fromhost(pExternalBufferProperties, 1);
+        transform_fromhost_VkExternalBufferProperties(sResourceTracker, (VkExternalBufferProperties*)(pExternalBufferProperties));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -13342,8 +12222,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceExternalBufferProperties");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetPhysicalDeviceExternalFenceProperties(
@@ -13352,14 +12231,13 @@ void VkEncoder::vkGetPhysicalDeviceExternalFenceProperties(
     VkExternalFenceProperties* pExternalFenceProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceExternalFenceProperties");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkPhysicalDeviceExternalFenceInfo* local_pExternalFenceInfo;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_pExternalFenceInfo = nullptr;
     if (pExternalFenceInfo)
@@ -13367,20 +12245,17 @@ void VkEncoder::vkGetPhysicalDeviceExternalFenceProperties(
         local_pExternalFenceInfo = (VkPhysicalDeviceExternalFenceInfo*)pool->alloc(sizeof(const VkPhysicalDeviceExternalFenceInfo));
         deepcopy_VkPhysicalDeviceExternalFenceInfo(pool, pExternalFenceInfo, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
     }
-    local_doLock = doLock;
     if (local_pExternalFenceInfo)
     {
-        transform_tohost_VkPhysicalDeviceExternalFenceInfo(mImpl->resources(), (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
+        transform_tohost_VkPhysicalDeviceExternalFenceInfo(sResourceTracker, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_684;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceExternalFenceInfo(featureBits, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo), countPtr);
-        count_VkExternalFenceProperties(featureBits, (VkExternalFenceProperties*)(pExternalFenceProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkPhysicalDeviceExternalFenceInfo(sFeatureBits, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo), countPtr);
+        count_VkExternalFenceProperties(sFeatureBits, (VkExternalFenceProperties*)(pExternalFenceProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceExternalFenceProperties = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceExternalFenceProperties);
@@ -13394,12 +12269,10 @@ void VkEncoder::vkGetPhysicalDeviceExternalFenceProperties(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkPhysicalDeviceExternalFenceInfo(stream, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo), streamPtrPtr);
     reservedmarshal_VkExternalFenceProperties(stream, (VkExternalFenceProperties*)(pExternalFenceProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkExternalFenceProperties(stream, (VkExternalFenceProperties*)(pExternalFenceProperties));
     if (pExternalFenceProperties)
     {
-        transform_fromhost_VkExternalFenceProperties(mImpl->resources(), (VkExternalFenceProperties*)(pExternalFenceProperties));
+        transform_fromhost_VkExternalFenceProperties(sResourceTracker, (VkExternalFenceProperties*)(pExternalFenceProperties));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -13407,8 +12280,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalFenceProperties(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceExternalFenceProperties");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetPhysicalDeviceExternalSemaphoreProperties(
@@ -13417,14 +12289,13 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphoreProperties(
     VkExternalSemaphoreProperties* pExternalSemaphoreProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceExternalSemaphoreProperties");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkPhysicalDeviceExternalSemaphoreInfo* local_pExternalSemaphoreInfo;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_pExternalSemaphoreInfo = nullptr;
     if (pExternalSemaphoreInfo)
@@ -13432,20 +12303,17 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphoreProperties(
         local_pExternalSemaphoreInfo = (VkPhysicalDeviceExternalSemaphoreInfo*)pool->alloc(sizeof(const VkPhysicalDeviceExternalSemaphoreInfo));
         deepcopy_VkPhysicalDeviceExternalSemaphoreInfo(pool, pExternalSemaphoreInfo, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
     }
-    local_doLock = doLock;
     if (local_pExternalSemaphoreInfo)
     {
-        transform_tohost_VkPhysicalDeviceExternalSemaphoreInfo(mImpl->resources(), (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
+        transform_tohost_VkPhysicalDeviceExternalSemaphoreInfo(sResourceTracker, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_686;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceExternalSemaphoreInfo(featureBits, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo), countPtr);
-        count_VkExternalSemaphoreProperties(featureBits, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkPhysicalDeviceExternalSemaphoreInfo(sFeatureBits, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo), countPtr);
+        count_VkExternalSemaphoreProperties(sFeatureBits, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceExternalSemaphoreProperties = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceExternalSemaphoreProperties);
@@ -13459,12 +12327,10 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphoreProperties(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkPhysicalDeviceExternalSemaphoreInfo(stream, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo), streamPtrPtr);
     reservedmarshal_VkExternalSemaphoreProperties(stream, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkExternalSemaphoreProperties(stream, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
     if (pExternalSemaphoreProperties)
     {
-        transform_fromhost_VkExternalSemaphoreProperties(mImpl->resources(), (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
+        transform_fromhost_VkExternalSemaphoreProperties(sResourceTracker, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -13472,8 +12338,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphoreProperties(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceExternalSemaphoreProperties");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetDescriptorSetLayoutSupport(
@@ -13482,14 +12347,13 @@ void VkEncoder::vkGetDescriptorSetLayoutSupport(
     VkDescriptorSetLayoutSupport* pSupport,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetDescriptorSetLayoutSupport");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDescriptorSetLayoutCreateInfo* local_pCreateInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -13497,20 +12361,17 @@ void VkEncoder::vkGetDescriptorSetLayoutSupport(
         local_pCreateInfo = (VkDescriptorSetLayoutCreateInfo*)pool->alloc(sizeof(const VkDescriptorSetLayoutCreateInfo));
         deepcopy_VkDescriptorSetLayoutCreateInfo(pool, pCreateInfo, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
     }
-    local_doLock = doLock;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkDescriptorSetLayoutCreateInfo(mImpl->resources(), (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkDescriptorSetLayoutCreateInfo(sResourceTracker, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_688;
         *countPtr += 1 * 8;
-        count_VkDescriptorSetLayoutCreateInfo(featureBits, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), countPtr);
-        count_VkDescriptorSetLayoutSupport(featureBits, (VkDescriptorSetLayoutSupport*)(pSupport), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkDescriptorSetLayoutCreateInfo(sFeatureBits, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkDescriptorSetLayoutSupport(sFeatureBits, (VkDescriptorSetLayoutSupport*)(pSupport), countPtr);
     }
     uint32_t packetSize_vkGetDescriptorSetLayoutSupport = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDescriptorSetLayoutSupport);
@@ -13524,12 +12385,10 @@ void VkEncoder::vkGetDescriptorSetLayoutSupport(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkDescriptorSetLayoutCreateInfo(stream, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     reservedmarshal_VkDescriptorSetLayoutSupport(stream, (VkDescriptorSetLayoutSupport*)(pSupport), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkDescriptorSetLayoutSupport(stream, (VkDescriptorSetLayoutSupport*)(pSupport));
     if (pSupport)
     {
-        transform_fromhost_VkDescriptorSetLayoutSupport(mImpl->resources(), (VkDescriptorSetLayoutSupport*)(pSupport));
+        transform_fromhost_VkDescriptorSetLayoutSupport(sResourceTracker, (VkDescriptorSetLayoutSupport*)(pSupport));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -13537,8 +12396,7 @@ void VkEncoder::vkGetDescriptorSetLayoutSupport(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetDescriptorSetLayoutSupport");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -13549,15 +12407,14 @@ void VkEncoder::vkDestroySurfaceKHR(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroySurfaceKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
     VkSurfaceKHR local_surface;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_instance = instance;
     local_surface = surface;
     local_pAllocator = nullptr;
@@ -13566,13 +12423,11 @@ void VkEncoder::vkDestroySurfaceKHR(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -13584,9 +12439,8 @@ void VkEncoder::vkDestroySurfaceKHR(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroySurfaceKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroySurfaceKHR);
@@ -13611,17 +12465,14 @@ void VkEncoder::vkDestroySurfaceKHR(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkSurfaceKHR((VkSurfaceKHR*)&surface);
+    sResourceTracker->destroyMapping()->mapHandles_VkSurfaceKHR((VkSurfaceKHR*)&surface);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroySurfaceKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkGetPhysicalDeviceSurfaceSupportKHR(
@@ -13631,20 +12482,17 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceSupportKHR(
     VkBool32* pSupported,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceSurfaceSupportKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     uint32_t local_queueFamilyIndex;
     VkSurfaceKHR local_surface;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_queueFamilyIndex = queueFamilyIndex;
     local_surface = surface;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -13654,7 +12502,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceSupportKHR(
         uint64_t cgen_var_696;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkBool32);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceSurfaceSupportKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceSurfaceSupportKHR);
@@ -13674,8 +12521,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceSupportKHR(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkBool32*)pSupported, sizeof(VkBool32));
     *streamPtrPtr += sizeof(VkBool32);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((VkBool32*)pSupported, sizeof(VkBool32));
     VkResult vkGetPhysicalDeviceSurfaceSupportKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceSurfaceSupportKHR_VkResult_return, sizeof(VkResult));
@@ -13685,8 +12530,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceSupportKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceSurfaceSupportKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceSurfaceSupportKHR_VkResult_return;
 }
 
@@ -13696,18 +12540,15 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
     VkSurfaceCapabilitiesKHR* pSurfaceCapabilities,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkSurfaceKHR local_surface;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_surface = surface;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -13715,8 +12556,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
         *countPtr += 1 * 8;
         uint64_t cgen_var_700;
         *countPtr += 1 * 8;
-        count_VkSurfaceCapabilitiesKHR(featureBits, (VkSurfaceCapabilitiesKHR*)(pSurfaceCapabilities), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkSurfaceCapabilitiesKHR(sFeatureBits, (VkSurfaceCapabilitiesKHR*)(pSurfaceCapabilities), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceSurfaceCapabilitiesKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
@@ -13733,12 +12573,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_702, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkSurfaceCapabilitiesKHR(stream, (VkSurfaceCapabilitiesKHR*)(pSurfaceCapabilities), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkSurfaceCapabilitiesKHR(stream, (VkSurfaceCapabilitiesKHR*)(pSurfaceCapabilities));
     if (pSurfaceCapabilities)
     {
-        transform_fromhost_VkSurfaceCapabilitiesKHR(mImpl->resources(), (VkSurfaceCapabilitiesKHR*)(pSurfaceCapabilities));
+        transform_fromhost_VkSurfaceCapabilitiesKHR(sResourceTracker, (VkSurfaceCapabilitiesKHR*)(pSurfaceCapabilities));
     }
     VkResult vkGetPhysicalDeviceSurfaceCapabilitiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceSurfaceCapabilitiesKHR_VkResult_return, sizeof(VkResult));
@@ -13748,8 +12586,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceSurfaceCapabilitiesKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceSurfaceCapabilitiesKHR_VkResult_return;
 }
 
@@ -13760,18 +12597,15 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
     VkSurfaceFormatKHR* pSurfaceFormats,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceSurfaceFormatsKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkSurfaceKHR local_surface;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_surface = surface;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -13791,10 +12625,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
             {
-                count_VkSurfaceFormatKHR(featureBits, (VkSurfaceFormatKHR*)(pSurfaceFormats + i), countPtr);
+                count_VkSurfaceFormatKHR(sFeatureBits, (VkSurfaceFormatKHR*)(pSurfaceFormats + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceSurfaceFormatsKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceSurfaceFormatsKHR);
@@ -13832,8 +12665,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
             reservedmarshal_VkSurfaceFormatKHR(stream, (VkSurfaceFormatKHR*)(pSurfaceFormats + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pSurfaceFormatCount;
     check_pSurfaceFormatCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -13863,7 +12694,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
         {
-            transform_fromhost_VkSurfaceFormatKHR(mImpl->resources(), (VkSurfaceFormatKHR*)(pSurfaceFormats + i));
+            transform_fromhost_VkSurfaceFormatKHR(sResourceTracker, (VkSurfaceFormatKHR*)(pSurfaceFormats + i));
         }
     }
     VkResult vkGetPhysicalDeviceSurfaceFormatsKHR_VkResult_return = (VkResult)0;
@@ -13874,8 +12705,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceSurfaceFormatsKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceSurfaceFormatsKHR_VkResult_return;
 }
 
@@ -13886,18 +12716,15 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModesKHR(
     VkPresentModeKHR* pPresentModes,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceSurfacePresentModesKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkSurfaceKHR local_surface;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_surface = surface;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -13917,7 +12744,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModesKHR(
         {
             *countPtr += (*(pPresentModeCount)) * sizeof(VkPresentModeKHR);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceSurfacePresentModesKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceSurfacePresentModesKHR);
@@ -13953,8 +12779,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModesKHR(
         memcpy(*streamPtrPtr, (VkPresentModeKHR*)pPresentModes, (*(pPresentModeCount)) * sizeof(VkPresentModeKHR));
         *streamPtrPtr += (*(pPresentModeCount)) * sizeof(VkPresentModeKHR);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pPresentModeCount;
     check_pPresentModeCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -13985,8 +12809,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModesKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceSurfacePresentModesKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceSurfacePresentModesKHR_VkResult_return;
 }
 
@@ -13999,15 +12822,14 @@ VkResult VkEncoder::vkCreateSwapchainKHR(
     VkSwapchainKHR* pSwapchain,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateSwapchainKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkSwapchainCreateInfoKHR* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -14021,32 +12843,29 @@ VkResult VkEncoder::vkCreateSwapchainKHR(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkSwapchainCreateInfoKHR(mImpl->resources(), (VkSwapchainCreateInfoKHR*)(local_pCreateInfo));
+        transform_tohost_VkSwapchainCreateInfoKHR(sResourceTracker, (VkSwapchainCreateInfoKHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_719;
         *countPtr += 1 * 8;
-        count_VkSwapchainCreateInfoKHR(featureBits, (VkSwapchainCreateInfoKHR*)(local_pCreateInfo), countPtr);
+        count_VkSwapchainCreateInfoKHR(sFeatureBits, (VkSwapchainCreateInfoKHR*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_720;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateSwapchainKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateSwapchainKHR);
@@ -14074,9 +12893,7 @@ VkResult VkEncoder::vkCreateSwapchainKHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_723, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_724;
     stream->read((uint64_t*)&cgen_var_724, 8);
     stream->handleMapping()->mapHandles_u64_VkSwapchainKHR(&cgen_var_724, (VkSwapchainKHR*)pSwapchain, 1);
@@ -14089,8 +12906,7 @@ VkResult VkEncoder::vkCreateSwapchainKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateSwapchainKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateSwapchainKHR_VkResult_return;
 }
 
@@ -14100,15 +12916,14 @@ void VkEncoder::vkDestroySwapchainKHR(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroySwapchainKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkSwapchainKHR local_swapchain;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_swapchain = swapchain;
     local_pAllocator = nullptr;
@@ -14117,13 +12932,11 @@ void VkEncoder::vkDestroySwapchainKHR(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -14135,9 +12948,8 @@ void VkEncoder::vkDestroySwapchainKHR(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroySwapchainKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroySwapchainKHR);
@@ -14162,17 +12974,14 @@ void VkEncoder::vkDestroySwapchainKHR(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkSwapchainKHR((VkSwapchainKHR*)&swapchain);
+    sResourceTracker->destroyMapping()->mapHandles_VkSwapchainKHR((VkSwapchainKHR*)&swapchain);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroySwapchainKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkGetSwapchainImagesKHR(
@@ -14182,18 +12991,15 @@ VkResult VkEncoder::vkGetSwapchainImagesKHR(
     VkImage* pSwapchainImages,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetSwapchainImagesKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkSwapchainKHR local_swapchain;
-    uint32_t local_doLock;
     local_device = device;
     local_swapchain = swapchain;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -14216,7 +13022,6 @@ VkResult VkEncoder::vkGetSwapchainImagesKHR(
                 *countPtr += (*(pSwapchainImageCount)) * 8;
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetSwapchainImagesKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetSwapchainImagesKHR);
@@ -14263,8 +13068,6 @@ VkResult VkEncoder::vkGetSwapchainImagesKHR(
         }
     }
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pSwapchainImageCount;
     check_pSwapchainImageCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -14301,8 +13104,7 @@ VkResult VkEncoder::vkGetSwapchainImagesKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetSwapchainImagesKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetSwapchainImagesKHR_VkResult_return;
 }
 
@@ -14315,24 +13117,21 @@ VkResult VkEncoder::vkAcquireNextImageKHR(
     uint32_t* pImageIndex,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkAcquireNextImageKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkSwapchainKHR local_swapchain;
     uint64_t local_timeout;
     VkSemaphore local_semaphore;
     VkFence local_fence;
-    uint32_t local_doLock;
     local_device = device;
     local_swapchain = swapchain;
     local_timeout = timeout;
     local_semaphore = semaphore;
     local_fence = fence;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -14345,7 +13144,6 @@ VkResult VkEncoder::vkAcquireNextImageKHR(
         *countPtr += 1 * 8;
         uint64_t cgen_var_744;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkAcquireNextImageKHR = 4 + 4 + count;
@@ -14374,8 +13172,6 @@ VkResult VkEncoder::vkAcquireNextImageKHR(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (uint32_t*)pImageIndex, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((uint32_t*)pImageIndex, sizeof(uint32_t));
     VkResult vkAcquireNextImageKHR_VkResult_return = (VkResult)0;
     stream->read(&vkAcquireNextImageKHR_VkResult_return, sizeof(VkResult));
@@ -14385,8 +13181,7 @@ VkResult VkEncoder::vkAcquireNextImageKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkAcquireNextImageKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkAcquireNextImageKHR_VkResult_return;
 }
 
@@ -14395,14 +13190,13 @@ VkResult VkEncoder::vkQueuePresentKHR(
     const VkPresentInfoKHR* pPresentInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkQueuePresentKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkQueue local_queue;
     VkPresentInfoKHR* local_pPresentInfo;
-    uint32_t local_doLock;
     local_queue = queue;
     local_pPresentInfo = nullptr;
     if (pPresentInfo)
@@ -14410,19 +13204,16 @@ VkResult VkEncoder::vkQueuePresentKHR(
         local_pPresentInfo = (VkPresentInfoKHR*)pool->alloc(sizeof(const VkPresentInfoKHR));
         deepcopy_VkPresentInfoKHR(pool, pPresentInfo, (VkPresentInfoKHR*)(local_pPresentInfo));
     }
-    local_doLock = doLock;
     if (local_pPresentInfo)
     {
-        transform_tohost_VkPresentInfoKHR(mImpl->resources(), (VkPresentInfoKHR*)(local_pPresentInfo));
+        transform_tohost_VkPresentInfoKHR(sResourceTracker, (VkPresentInfoKHR*)(local_pPresentInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_749;
         *countPtr += 1 * 8;
-        count_VkPresentInfoKHR(featureBits, (VkPresentInfoKHR*)(local_pPresentInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkPresentInfoKHR(sFeatureBits, (VkPresentInfoKHR*)(local_pPresentInfo), countPtr);
     }
     uint32_t packetSize_vkQueuePresentKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkQueuePresentKHR);
@@ -14435,8 +13226,6 @@ VkResult VkEncoder::vkQueuePresentKHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_750, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkPresentInfoKHR(stream, (VkPresentInfoKHR*)(local_pPresentInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkQueuePresentKHR_VkResult_return = (VkResult)0;
     stream->read(&vkQueuePresentKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -14445,8 +13234,7 @@ VkResult VkEncoder::vkQueuePresentKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkQueuePresentKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkQueuePresentKHR_VkResult_return;
 }
 
@@ -14455,23 +13243,19 @@ VkResult VkEncoder::vkGetDeviceGroupPresentCapabilitiesKHR(
     VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetDeviceGroupPresentCapabilitiesKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
-    uint32_t local_doLock;
     local_device = device;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_751;
         *countPtr += 1 * 8;
-        count_VkDeviceGroupPresentCapabilitiesKHR(featureBits, (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkDeviceGroupPresentCapabilitiesKHR(sFeatureBits, (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities), countPtr);
     }
     uint32_t packetSize_vkGetDeviceGroupPresentCapabilitiesKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDeviceGroupPresentCapabilitiesKHR);
@@ -14484,12 +13268,10 @@ VkResult VkEncoder::vkGetDeviceGroupPresentCapabilitiesKHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_752, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkDeviceGroupPresentCapabilitiesKHR(stream, (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkDeviceGroupPresentCapabilitiesKHR(stream, (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities));
     if (pDeviceGroupPresentCapabilities)
     {
-        transform_fromhost_VkDeviceGroupPresentCapabilitiesKHR(mImpl->resources(), (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities));
+        transform_fromhost_VkDeviceGroupPresentCapabilitiesKHR(sResourceTracker, (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities));
     }
     VkResult vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return, sizeof(VkResult));
@@ -14499,8 +13281,7 @@ VkResult VkEncoder::vkGetDeviceGroupPresentCapabilitiesKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetDeviceGroupPresentCapabilitiesKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetDeviceGroupPresentCapabilitiesKHR_VkResult_return;
 }
 
@@ -14510,18 +13291,15 @@ VkResult VkEncoder::vkGetDeviceGroupSurfacePresentModesKHR(
     VkDeviceGroupPresentModeFlagsKHR* pModes,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetDeviceGroupSurfacePresentModesKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkSurfaceKHR local_surface;
-    uint32_t local_doLock;
     local_device = device;
     local_surface = surface;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -14535,7 +13313,6 @@ VkResult VkEncoder::vkGetDeviceGroupSurfacePresentModesKHR(
         {
             *countPtr += sizeof(VkDeviceGroupPresentModeFlagsKHR);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetDeviceGroupSurfacePresentModesKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDeviceGroupSurfacePresentModesKHR);
@@ -14561,8 +13338,6 @@ VkResult VkEncoder::vkGetDeviceGroupSurfacePresentModesKHR(
         memcpy(*streamPtrPtr, (VkDeviceGroupPresentModeFlagsKHR*)pModes, sizeof(VkDeviceGroupPresentModeFlagsKHR));
         *streamPtrPtr += sizeof(VkDeviceGroupPresentModeFlagsKHR);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     VkDeviceGroupPresentModeFlagsKHR* check_pModes;
     check_pModes = (VkDeviceGroupPresentModeFlagsKHR*)(uintptr_t)stream->getBe64();
@@ -14582,8 +13357,7 @@ VkResult VkEncoder::vkGetDeviceGroupSurfacePresentModesKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetDeviceGroupSurfacePresentModesKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetDeviceGroupSurfacePresentModesKHR_VkResult_return;
 }
 
@@ -14594,18 +13368,15 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
     VkRect2D* pRects,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDevicePresentRectanglesKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkSurfaceKHR local_surface;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_surface = surface;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -14625,10 +13396,9 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i)
             {
-                count_VkRect2D(featureBits, (VkRect2D*)(pRects + i), countPtr);
+                count_VkRect2D(sFeatureBits, (VkRect2D*)(pRects + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDevicePresentRectanglesKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDevicePresentRectanglesKHR);
@@ -14666,8 +13436,6 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
             reservedmarshal_VkRect2D(stream, (VkRect2D*)(pRects + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pRectCount;
     check_pRectCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -14697,7 +13465,7 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i)
         {
-            transform_fromhost_VkRect2D(mImpl->resources(), (VkRect2D*)(pRects + i));
+            transform_fromhost_VkRect2D(sResourceTracker, (VkRect2D*)(pRects + i));
         }
     }
     VkResult vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return = (VkResult)0;
@@ -14708,8 +13476,7 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDevicePresentRectanglesKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return;
 }
 
@@ -14719,14 +13486,13 @@ VkResult VkEncoder::vkAcquireNextImage2KHR(
     uint32_t* pImageIndex,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkAcquireNextImage2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkAcquireNextImageInfoKHR* local_pAcquireInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pAcquireInfo = nullptr;
     if (pAcquireInfo)
@@ -14734,19 +13500,16 @@ VkResult VkEncoder::vkAcquireNextImage2KHR(
         local_pAcquireInfo = (VkAcquireNextImageInfoKHR*)pool->alloc(sizeof(const VkAcquireNextImageInfoKHR));
         deepcopy_VkAcquireNextImageInfoKHR(pool, pAcquireInfo, (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo));
     }
-    local_doLock = doLock;
     if (local_pAcquireInfo)
     {
-        transform_tohost_VkAcquireNextImageInfoKHR(mImpl->resources(), (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo));
+        transform_tohost_VkAcquireNextImageInfoKHR(sResourceTracker, (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_767;
         *countPtr += 1 * 8;
-        count_VkAcquireNextImageInfoKHR(featureBits, (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkAcquireNextImageInfoKHR(sFeatureBits, (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo), countPtr);
         *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkAcquireNextImage2KHR = 4 + 4 + count;
@@ -14762,8 +13525,6 @@ VkResult VkEncoder::vkAcquireNextImage2KHR(
     reservedmarshal_VkAcquireNextImageInfoKHR(stream, (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (uint32_t*)pImageIndex, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((uint32_t*)pImageIndex, sizeof(uint32_t));
     VkResult vkAcquireNextImage2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkAcquireNextImage2KHR_VkResult_return, sizeof(VkResult));
@@ -14773,8 +13534,7 @@ VkResult VkEncoder::vkAcquireNextImage2KHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkAcquireNextImage2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkAcquireNextImage2KHR_VkResult_return;
 }
 
@@ -14786,16 +13546,13 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
     VkDisplayPropertiesKHR* pProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceDisplayPropertiesKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -14813,10 +13570,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                count_VkDisplayPropertiesKHR(featureBits, (VkDisplayPropertiesKHR*)(pProperties + i), countPtr);
+                count_VkDisplayPropertiesKHR(sFeatureBits, (VkDisplayPropertiesKHR*)(pProperties + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceDisplayPropertiesKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceDisplayPropertiesKHR);
@@ -14850,8 +13606,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
             reservedmarshal_VkDisplayPropertiesKHR(stream, (VkDisplayPropertiesKHR*)(pProperties + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
     check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -14881,7 +13635,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            transform_fromhost_VkDisplayPropertiesKHR(mImpl->resources(), (VkDisplayPropertiesKHR*)(pProperties + i));
+            transform_fromhost_VkDisplayPropertiesKHR(sResourceTracker, (VkDisplayPropertiesKHR*)(pProperties + i));
         }
     }
     VkResult vkGetPhysicalDeviceDisplayPropertiesKHR_VkResult_return = (VkResult)0;
@@ -14892,8 +13646,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceDisplayPropertiesKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceDisplayPropertiesKHR_VkResult_return;
 }
 
@@ -14903,16 +13656,13 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
     VkDisplayPlanePropertiesKHR* pProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceDisplayPlanePropertiesKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -14930,10 +13680,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                count_VkDisplayPlanePropertiesKHR(featureBits, (VkDisplayPlanePropertiesKHR*)(pProperties + i), countPtr);
+                count_VkDisplayPlanePropertiesKHR(sFeatureBits, (VkDisplayPlanePropertiesKHR*)(pProperties + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceDisplayPlanePropertiesKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceDisplayPlanePropertiesKHR);
@@ -14967,8 +13716,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
             reservedmarshal_VkDisplayPlanePropertiesKHR(stream, (VkDisplayPlanePropertiesKHR*)(pProperties + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
     check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -14998,7 +13745,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            transform_fromhost_VkDisplayPlanePropertiesKHR(mImpl->resources(), (VkDisplayPlanePropertiesKHR*)(pProperties + i));
+            transform_fromhost_VkDisplayPlanePropertiesKHR(sResourceTracker, (VkDisplayPlanePropertiesKHR*)(pProperties + i));
         }
     }
     VkResult vkGetPhysicalDeviceDisplayPlanePropertiesKHR_VkResult_return = (VkResult)0;
@@ -15009,8 +13756,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceDisplayPlanePropertiesKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceDisplayPlanePropertiesKHR_VkResult_return;
 }
 
@@ -15021,18 +13767,15 @@ VkResult VkEncoder::vkGetDisplayPlaneSupportedDisplaysKHR(
     VkDisplayKHR* pDisplays,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetDisplayPlaneSupportedDisplaysKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     uint32_t local_planeIndex;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_planeIndex = planeIndex;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -15054,7 +13797,6 @@ VkResult VkEncoder::vkGetDisplayPlaneSupportedDisplaysKHR(
                 *countPtr += (*(pDisplayCount)) * 8;
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetDisplayPlaneSupportedDisplaysKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDisplayPlaneSupportedDisplaysKHR);
@@ -15099,8 +13841,6 @@ VkResult VkEncoder::vkGetDisplayPlaneSupportedDisplaysKHR(
         }
     }
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pDisplayCount;
     check_pDisplayCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -15137,8 +13877,7 @@ VkResult VkEncoder::vkGetDisplayPlaneSupportedDisplaysKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetDisplayPlaneSupportedDisplaysKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetDisplayPlaneSupportedDisplaysKHR_VkResult_return;
 }
 
@@ -15149,18 +13888,15 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
     VkDisplayModePropertiesKHR* pProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetDisplayModePropertiesKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkDisplayKHR local_display;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_display = display;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -15180,10 +13916,9 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                count_VkDisplayModePropertiesKHR(featureBits, (VkDisplayModePropertiesKHR*)(pProperties + i), countPtr);
+                count_VkDisplayModePropertiesKHR(sFeatureBits, (VkDisplayModePropertiesKHR*)(pProperties + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetDisplayModePropertiesKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDisplayModePropertiesKHR);
@@ -15221,8 +13956,6 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
             reservedmarshal_VkDisplayModePropertiesKHR(stream, (VkDisplayModePropertiesKHR*)(pProperties + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
     check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -15252,7 +13985,7 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            transform_fromhost_VkDisplayModePropertiesKHR(mImpl->resources(), (VkDisplayModePropertiesKHR*)(pProperties + i));
+            transform_fromhost_VkDisplayModePropertiesKHR(sResourceTracker, (VkDisplayModePropertiesKHR*)(pProperties + i));
         }
     }
     VkResult vkGetDisplayModePropertiesKHR_VkResult_return = (VkResult)0;
@@ -15263,8 +13996,7 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetDisplayModePropertiesKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetDisplayModePropertiesKHR_VkResult_return;
 }
 
@@ -15276,16 +14008,15 @@ VkResult VkEncoder::vkCreateDisplayModeKHR(
     VkDisplayModeKHR* pMode,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateDisplayModeKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkDisplayKHR local_display;
     VkDisplayModeCreateInfoKHR* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_display = display;
     local_pCreateInfo = nullptr;
@@ -15300,17 +14031,15 @@ VkResult VkEncoder::vkCreateDisplayModeKHR(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkDisplayModeCreateInfoKHR(mImpl->resources(), (VkDisplayModeCreateInfoKHR*)(local_pCreateInfo));
+        transform_tohost_VkDisplayModeCreateInfoKHR(sResourceTracker, (VkDisplayModeCreateInfoKHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -15318,16 +14047,15 @@ VkResult VkEncoder::vkCreateDisplayModeKHR(
         *countPtr += 1 * 8;
         uint64_t cgen_var_799;
         *countPtr += 1 * 8;
-        count_VkDisplayModeCreateInfoKHR(featureBits, (VkDisplayModeCreateInfoKHR*)(local_pCreateInfo), countPtr);
+        count_VkDisplayModeCreateInfoKHR(sFeatureBits, (VkDisplayModeCreateInfoKHR*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_800;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateDisplayModeKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateDisplayModeKHR);
@@ -15359,9 +14087,7 @@ VkResult VkEncoder::vkCreateDisplayModeKHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_804, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_805;
     stream->read((uint64_t*)&cgen_var_805, 8);
     stream->handleMapping()->mapHandles_u64_VkDisplayModeKHR(&cgen_var_805, (VkDisplayModeKHR*)pMode, 1);
@@ -15374,8 +14100,7 @@ VkResult VkEncoder::vkCreateDisplayModeKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateDisplayModeKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateDisplayModeKHR_VkResult_return;
 }
 
@@ -15386,20 +14111,17 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilitiesKHR(
     VkDisplayPlaneCapabilitiesKHR* pCapabilities,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetDisplayPlaneCapabilitiesKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkDisplayModeKHR local_mode;
     uint32_t local_planeIndex;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_mode = mode;
     local_planeIndex = planeIndex;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -15408,8 +14130,7 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilitiesKHR(
         uint64_t cgen_var_807;
         *countPtr += 1 * 8;
         *countPtr += sizeof(uint32_t);
-        count_VkDisplayPlaneCapabilitiesKHR(featureBits, (VkDisplayPlaneCapabilitiesKHR*)(pCapabilities), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkDisplayPlaneCapabilitiesKHR(sFeatureBits, (VkDisplayPlaneCapabilitiesKHR*)(pCapabilities), countPtr);
     }
     uint32_t packetSize_vkGetDisplayPlaneCapabilitiesKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDisplayPlaneCapabilitiesKHR);
@@ -15428,12 +14149,10 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilitiesKHR(
     memcpy(*streamPtrPtr, (uint32_t*)&local_planeIndex, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
     reservedmarshal_VkDisplayPlaneCapabilitiesKHR(stream, (VkDisplayPlaneCapabilitiesKHR*)(pCapabilities), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkDisplayPlaneCapabilitiesKHR(stream, (VkDisplayPlaneCapabilitiesKHR*)(pCapabilities));
     if (pCapabilities)
     {
-        transform_fromhost_VkDisplayPlaneCapabilitiesKHR(mImpl->resources(), (VkDisplayPlaneCapabilitiesKHR*)(pCapabilities));
+        transform_fromhost_VkDisplayPlaneCapabilitiesKHR(sResourceTracker, (VkDisplayPlaneCapabilitiesKHR*)(pCapabilities));
     }
     VkResult vkGetDisplayPlaneCapabilitiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetDisplayPlaneCapabilitiesKHR_VkResult_return, sizeof(VkResult));
@@ -15443,8 +14162,7 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilitiesKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetDisplayPlaneCapabilitiesKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetDisplayPlaneCapabilitiesKHR_VkResult_return;
 }
 
@@ -15455,15 +14173,14 @@ VkResult VkEncoder::vkCreateDisplayPlaneSurfaceKHR(
     VkSurfaceKHR* pSurface,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateDisplayPlaneSurfaceKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
     VkDisplaySurfaceCreateInfoKHR* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -15477,32 +14194,29 @@ VkResult VkEncoder::vkCreateDisplayPlaneSurfaceKHR(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkDisplaySurfaceCreateInfoKHR(mImpl->resources(), (VkDisplaySurfaceCreateInfoKHR*)(local_pCreateInfo));
+        transform_tohost_VkDisplaySurfaceCreateInfoKHR(sResourceTracker, (VkDisplaySurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_810;
         *countPtr += 1 * 8;
-        count_VkDisplaySurfaceCreateInfoKHR(featureBits, (VkDisplaySurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
+        count_VkDisplaySurfaceCreateInfoKHR(sFeatureBits, (VkDisplaySurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_811;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateDisplayPlaneSurfaceKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateDisplayPlaneSurfaceKHR);
@@ -15530,8 +14244,6 @@ VkResult VkEncoder::vkCreateDisplayPlaneSurfaceKHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_814, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     uint64_t cgen_var_815;
     stream->read((uint64_t*)&cgen_var_815, 8);
     stream->handleMapping()->mapHandles_u64_VkSurfaceKHR(&cgen_var_815, (VkSurfaceKHR*)pSurface, 1);
@@ -15543,8 +14255,7 @@ VkResult VkEncoder::vkCreateDisplayPlaneSurfaceKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateDisplayPlaneSurfaceKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateDisplayPlaneSurfaceKHR_VkResult_return;
 }
 
@@ -15558,16 +14269,15 @@ VkResult VkEncoder::vkCreateSharedSwapchainsKHR(
     VkSwapchainKHR* pSwapchains,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateSharedSwapchainsKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     uint32_t local_swapchainCount;
     VkSwapchainCreateInfoKHR* local_pCreateInfos;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_swapchainCount = swapchainCount;
     local_pCreateInfos = nullptr;
@@ -15585,20 +14295,18 @@ VkResult VkEncoder::vkCreateSharedSwapchainsKHR(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfos)
     {
         for (uint32_t i = 0; i < (uint32_t)((swapchainCount)); ++i)
         {
-            transform_tohost_VkSwapchainCreateInfoKHR(mImpl->resources(), (VkSwapchainCreateInfoKHR*)(local_pCreateInfos + i));
+            transform_tohost_VkSwapchainCreateInfoKHR(sResourceTracker, (VkSwapchainCreateInfoKHR*)(local_pCreateInfos + i));
         }
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -15607,19 +14315,18 @@ VkResult VkEncoder::vkCreateSharedSwapchainsKHR(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((swapchainCount)); ++i)
         {
-            count_VkSwapchainCreateInfoKHR(featureBits, (VkSwapchainCreateInfoKHR*)(local_pCreateInfos + i), countPtr);
+            count_VkSwapchainCreateInfoKHR(sFeatureBits, (VkSwapchainCreateInfoKHR*)(local_pCreateInfos + i), countPtr);
         }
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         if (((swapchainCount)))
         {
             *countPtr += ((swapchainCount)) * 8;
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateSharedSwapchainsKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateSharedSwapchainsKHR);
@@ -15659,8 +14366,6 @@ VkResult VkEncoder::vkCreateSharedSwapchainsKHR(
         *streamPtrPtr += ((swapchainCount)) * 8;
     }
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     if (((swapchainCount)))
     {
         uint64_t* cgen_var_821;
@@ -15676,8 +14381,7 @@ VkResult VkEncoder::vkCreateSharedSwapchainsKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateSharedSwapchainsKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateSharedSwapchainsKHR_VkResult_return;
 }
 
@@ -15690,15 +14394,14 @@ VkResult VkEncoder::vkCreateXlibSurfaceKHR(
     VkSurfaceKHR* pSurface,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateXlibSurfaceKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
     VkXlibSurfaceCreateInfoKHR* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -15712,32 +14415,29 @@ VkResult VkEncoder::vkCreateXlibSurfaceKHR(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkXlibSurfaceCreateInfoKHR(mImpl->resources(), (VkXlibSurfaceCreateInfoKHR*)(local_pCreateInfo));
+        transform_tohost_VkXlibSurfaceCreateInfoKHR(sResourceTracker, (VkXlibSurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_822;
         *countPtr += 1 * 8;
-        count_VkXlibSurfaceCreateInfoKHR(featureBits, (VkXlibSurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
+        count_VkXlibSurfaceCreateInfoKHR(sFeatureBits, (VkXlibSurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_823;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateXlibSurfaceKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateXlibSurfaceKHR);
@@ -15765,8 +14465,6 @@ VkResult VkEncoder::vkCreateXlibSurfaceKHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_826, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     uint64_t cgen_var_827;
     stream->read((uint64_t*)&cgen_var_827, 8);
     stream->handleMapping()->mapHandles_u64_VkSurfaceKHR(&cgen_var_827, (VkSurfaceKHR*)pSurface, 1);
@@ -15778,8 +14476,7 @@ VkResult VkEncoder::vkCreateXlibSurfaceKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateXlibSurfaceKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateXlibSurfaceKHR_VkResult_return;
 }
 
@@ -15790,20 +14487,17 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceXlibPresentationSupportKHR(
     VisualID visualID,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceXlibPresentationSupportKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     uint32_t local_queueFamilyIndex;
     VisualID local_visualID;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_queueFamilyIndex = queueFamilyIndex;
     local_visualID = visualID;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -15812,7 +14506,6 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceXlibPresentationSupportKHR(
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(Display);
         *countPtr += sizeof(VisualID);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceXlibPresentationSupportKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceXlibPresentationSupportKHR);
@@ -15830,8 +14523,6 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceXlibPresentationSupportKHR(
     *streamPtrPtr += sizeof(Display);
     memcpy(*streamPtrPtr, (VisualID*)&local_visualID, sizeof(VisualID));
     *streamPtrPtr += sizeof(VisualID);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((Display*)dpy, sizeof(Display));
     VkBool32 vkGetPhysicalDeviceXlibPresentationSupportKHR_VkBool32_return = (VkBool32)0;
     stream->read(&vkGetPhysicalDeviceXlibPresentationSupportKHR_VkBool32_return, sizeof(VkBool32));
@@ -15841,8 +14532,7 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceXlibPresentationSupportKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceXlibPresentationSupportKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceXlibPresentationSupportKHR_VkBool32_return;
 }
 
@@ -15855,15 +14545,14 @@ VkResult VkEncoder::vkCreateXcbSurfaceKHR(
     VkSurfaceKHR* pSurface,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateXcbSurfaceKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
     VkXcbSurfaceCreateInfoKHR* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -15877,32 +14566,29 @@ VkResult VkEncoder::vkCreateXcbSurfaceKHR(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkXcbSurfaceCreateInfoKHR(mImpl->resources(), (VkXcbSurfaceCreateInfoKHR*)(local_pCreateInfo));
+        transform_tohost_VkXcbSurfaceCreateInfoKHR(sResourceTracker, (VkXcbSurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_830;
         *countPtr += 1 * 8;
-        count_VkXcbSurfaceCreateInfoKHR(featureBits, (VkXcbSurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
+        count_VkXcbSurfaceCreateInfoKHR(sFeatureBits, (VkXcbSurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_831;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateXcbSurfaceKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateXcbSurfaceKHR);
@@ -15930,8 +14616,6 @@ VkResult VkEncoder::vkCreateXcbSurfaceKHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_834, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     uint64_t cgen_var_835;
     stream->read((uint64_t*)&cgen_var_835, 8);
     stream->handleMapping()->mapHandles_u64_VkSurfaceKHR(&cgen_var_835, (VkSurfaceKHR*)pSurface, 1);
@@ -15943,8 +14627,7 @@ VkResult VkEncoder::vkCreateXcbSurfaceKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateXcbSurfaceKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateXcbSurfaceKHR_VkResult_return;
 }
 
@@ -15955,20 +14638,17 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceXcbPresentationSupportKHR(
     xcb_visualid_t visual_id,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceXcbPresentationSupportKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     uint32_t local_queueFamilyIndex;
     xcb_visualid_t local_visual_id;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_queueFamilyIndex = queueFamilyIndex;
     local_visual_id = visual_id;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -15977,7 +14657,6 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceXcbPresentationSupportKHR(
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(xcb_connection_t);
         *countPtr += sizeof(xcb_visualid_t);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceXcbPresentationSupportKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceXcbPresentationSupportKHR);
@@ -15995,8 +14674,6 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceXcbPresentationSupportKHR(
     *streamPtrPtr += sizeof(xcb_connection_t);
     memcpy(*streamPtrPtr, (xcb_visualid_t*)&local_visual_id, sizeof(xcb_visualid_t));
     *streamPtrPtr += sizeof(xcb_visualid_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((xcb_connection_t*)connection, sizeof(xcb_connection_t));
     VkBool32 vkGetPhysicalDeviceXcbPresentationSupportKHR_VkBool32_return = (VkBool32)0;
     stream->read(&vkGetPhysicalDeviceXcbPresentationSupportKHR_VkBool32_return, sizeof(VkBool32));
@@ -16006,8 +14683,7 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceXcbPresentationSupportKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceXcbPresentationSupportKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceXcbPresentationSupportKHR_VkBool32_return;
 }
 
@@ -16020,15 +14696,14 @@ VkResult VkEncoder::vkCreateWaylandSurfaceKHR(
     VkSurfaceKHR* pSurface,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateWaylandSurfaceKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
     VkWaylandSurfaceCreateInfoKHR* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -16042,32 +14717,29 @@ VkResult VkEncoder::vkCreateWaylandSurfaceKHR(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkWaylandSurfaceCreateInfoKHR(mImpl->resources(), (VkWaylandSurfaceCreateInfoKHR*)(local_pCreateInfo));
+        transform_tohost_VkWaylandSurfaceCreateInfoKHR(sResourceTracker, (VkWaylandSurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_838;
         *countPtr += 1 * 8;
-        count_VkWaylandSurfaceCreateInfoKHR(featureBits, (VkWaylandSurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
+        count_VkWaylandSurfaceCreateInfoKHR(sFeatureBits, (VkWaylandSurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_839;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateWaylandSurfaceKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateWaylandSurfaceKHR);
@@ -16095,8 +14767,6 @@ VkResult VkEncoder::vkCreateWaylandSurfaceKHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_842, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     uint64_t cgen_var_843;
     stream->read((uint64_t*)&cgen_var_843, 8);
     stream->handleMapping()->mapHandles_u64_VkSurfaceKHR(&cgen_var_843, (VkSurfaceKHR*)pSurface, 1);
@@ -16108,8 +14778,7 @@ VkResult VkEncoder::vkCreateWaylandSurfaceKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateWaylandSurfaceKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateWaylandSurfaceKHR_VkResult_return;
 }
 
@@ -16119,18 +14788,15 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceWaylandPresentationSupportKHR(
     wl_display* display,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceWaylandPresentationSupportKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     uint32_t local_queueFamilyIndex;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_queueFamilyIndex = queueFamilyIndex;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -16138,7 +14804,6 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceWaylandPresentationSupportKHR(
         *countPtr += 1 * 8;
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(wl_display);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceWaylandPresentationSupportKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceWaylandPresentationSupportKHR);
@@ -16154,8 +14819,6 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceWaylandPresentationSupportKHR(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (wl_display*)display, sizeof(wl_display));
     *streamPtrPtr += sizeof(wl_display);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((wl_display*)display, sizeof(wl_display));
     VkBool32 vkGetPhysicalDeviceWaylandPresentationSupportKHR_VkBool32_return = (VkBool32)0;
     stream->read(&vkGetPhysicalDeviceWaylandPresentationSupportKHR_VkBool32_return, sizeof(VkBool32));
@@ -16165,8 +14828,7 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceWaylandPresentationSupportKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceWaylandPresentationSupportKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceWaylandPresentationSupportKHR_VkBool32_return;
 }
 
@@ -16179,15 +14841,14 @@ VkResult VkEncoder::vkCreateMirSurfaceKHR(
     VkSurfaceKHR* pSurface,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateMirSurfaceKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
     VkMirSurfaceCreateInfoKHR* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -16201,32 +14862,29 @@ VkResult VkEncoder::vkCreateMirSurfaceKHR(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkMirSurfaceCreateInfoKHR(mImpl->resources(), (VkMirSurfaceCreateInfoKHR*)(local_pCreateInfo));
+        transform_tohost_VkMirSurfaceCreateInfoKHR(sResourceTracker, (VkMirSurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_846;
         *countPtr += 1 * 8;
-        count_VkMirSurfaceCreateInfoKHR(featureBits, (VkMirSurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
+        count_VkMirSurfaceCreateInfoKHR(sFeatureBits, (VkMirSurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_847;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateMirSurfaceKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateMirSurfaceKHR);
@@ -16254,8 +14912,6 @@ VkResult VkEncoder::vkCreateMirSurfaceKHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_850, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     uint64_t cgen_var_851;
     stream->read((uint64_t*)&cgen_var_851, 8);
     stream->handleMapping()->mapHandles_u64_VkSurfaceKHR(&cgen_var_851, (VkSurfaceKHR*)pSurface, 1);
@@ -16267,8 +14923,7 @@ VkResult VkEncoder::vkCreateMirSurfaceKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateMirSurfaceKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateMirSurfaceKHR_VkResult_return;
 }
 
@@ -16278,18 +14933,15 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceMirPresentationSupportKHR(
     MirConnection* connection,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceMirPresentationSupportKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     uint32_t local_queueFamilyIndex;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_queueFamilyIndex = queueFamilyIndex;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -16297,7 +14949,6 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceMirPresentationSupportKHR(
         *countPtr += 1 * 8;
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(MirConnection);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceMirPresentationSupportKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceMirPresentationSupportKHR);
@@ -16313,8 +14964,6 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceMirPresentationSupportKHR(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (MirConnection*)connection, sizeof(MirConnection));
     *streamPtrPtr += sizeof(MirConnection);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((MirConnection*)connection, sizeof(MirConnection));
     VkBool32 vkGetPhysicalDeviceMirPresentationSupportKHR_VkBool32_return = (VkBool32)0;
     stream->read(&vkGetPhysicalDeviceMirPresentationSupportKHR_VkBool32_return, sizeof(VkBool32));
@@ -16324,8 +14973,7 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceMirPresentationSupportKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceMirPresentationSupportKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceMirPresentationSupportKHR_VkBool32_return;
 }
 
@@ -16338,15 +14986,14 @@ VkResult VkEncoder::vkCreateAndroidSurfaceKHR(
     VkSurfaceKHR* pSurface,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateAndroidSurfaceKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
     VkAndroidSurfaceCreateInfoKHR* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -16360,32 +15007,29 @@ VkResult VkEncoder::vkCreateAndroidSurfaceKHR(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkAndroidSurfaceCreateInfoKHR(mImpl->resources(), (VkAndroidSurfaceCreateInfoKHR*)(local_pCreateInfo));
+        transform_tohost_VkAndroidSurfaceCreateInfoKHR(sResourceTracker, (VkAndroidSurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_854;
         *countPtr += 1 * 8;
-        count_VkAndroidSurfaceCreateInfoKHR(featureBits, (VkAndroidSurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
+        count_VkAndroidSurfaceCreateInfoKHR(sFeatureBits, (VkAndroidSurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_855;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateAndroidSurfaceKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateAndroidSurfaceKHR);
@@ -16413,8 +15057,6 @@ VkResult VkEncoder::vkCreateAndroidSurfaceKHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_858, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     uint64_t cgen_var_859;
     stream->read((uint64_t*)&cgen_var_859, 8);
     stream->handleMapping()->mapHandles_u64_VkSurfaceKHR(&cgen_var_859, (VkSurfaceKHR*)pSurface, 1);
@@ -16426,8 +15068,7 @@ VkResult VkEncoder::vkCreateAndroidSurfaceKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateAndroidSurfaceKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateAndroidSurfaceKHR_VkResult_return;
 }
 
@@ -16440,15 +15081,14 @@ VkResult VkEncoder::vkCreateWin32SurfaceKHR(
     VkSurfaceKHR* pSurface,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateWin32SurfaceKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
     VkWin32SurfaceCreateInfoKHR* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -16462,32 +15102,29 @@ VkResult VkEncoder::vkCreateWin32SurfaceKHR(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkWin32SurfaceCreateInfoKHR(mImpl->resources(), (VkWin32SurfaceCreateInfoKHR*)(local_pCreateInfo));
+        transform_tohost_VkWin32SurfaceCreateInfoKHR(sResourceTracker, (VkWin32SurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_860;
         *countPtr += 1 * 8;
-        count_VkWin32SurfaceCreateInfoKHR(featureBits, (VkWin32SurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
+        count_VkWin32SurfaceCreateInfoKHR(sFeatureBits, (VkWin32SurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_861;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateWin32SurfaceKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateWin32SurfaceKHR);
@@ -16515,8 +15152,6 @@ VkResult VkEncoder::vkCreateWin32SurfaceKHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_864, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     uint64_t cgen_var_865;
     stream->read((uint64_t*)&cgen_var_865, 8);
     stream->handleMapping()->mapHandles_u64_VkSurfaceKHR(&cgen_var_865, (VkSurfaceKHR*)pSurface, 1);
@@ -16528,8 +15163,7 @@ VkResult VkEncoder::vkCreateWin32SurfaceKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateWin32SurfaceKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateWin32SurfaceKHR_VkResult_return;
 }
 
@@ -16538,24 +15172,20 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceWin32PresentationSupportKHR(
     uint32_t queueFamilyIndex,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceWin32PresentationSupportKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     uint32_t local_queueFamilyIndex;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_queueFamilyIndex = queueFamilyIndex;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_866;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceWin32PresentationSupportKHR = 4 + 4 + count;
@@ -16570,8 +15200,6 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceWin32PresentationSupportKHR(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (uint32_t*)&local_queueFamilyIndex, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkBool32 vkGetPhysicalDeviceWin32PresentationSupportKHR_VkBool32_return = (VkBool32)0;
     stream->read(&vkGetPhysicalDeviceWin32PresentationSupportKHR_VkBool32_return, sizeof(VkBool32));
     ++encodeCount;;
@@ -16580,8 +15208,7 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceWin32PresentationSupportKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceWin32PresentationSupportKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceWin32PresentationSupportKHR_VkBool32_return;
 }
 
@@ -16596,23 +15223,19 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2KHR(
     VkPhysicalDeviceFeatures2* pFeatures,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceFeatures2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_868;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceFeatures2(featureBits, (VkPhysicalDeviceFeatures2*)(pFeatures), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkPhysicalDeviceFeatures2(sFeatureBits, (VkPhysicalDeviceFeatures2*)(pFeatures), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceFeatures2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceFeatures2KHR);
@@ -16625,12 +15248,10 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2KHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_869, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkPhysicalDeviceFeatures2(stream, (VkPhysicalDeviceFeatures2*)(pFeatures), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkPhysicalDeviceFeatures2(stream, (VkPhysicalDeviceFeatures2*)(pFeatures));
     if (pFeatures)
     {
-        transform_fromhost_VkPhysicalDeviceFeatures2(mImpl->resources(), (VkPhysicalDeviceFeatures2*)(pFeatures));
+        transform_fromhost_VkPhysicalDeviceFeatures2(sResourceTracker, (VkPhysicalDeviceFeatures2*)(pFeatures));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -16638,8 +15259,7 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2KHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceFeatures2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetPhysicalDeviceProperties2KHR(
@@ -16647,23 +15267,19 @@ void VkEncoder::vkGetPhysicalDeviceProperties2KHR(
     VkPhysicalDeviceProperties2* pProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceProperties2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_870;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceProperties2(featureBits, (VkPhysicalDeviceProperties2*)(pProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkPhysicalDeviceProperties2(sFeatureBits, (VkPhysicalDeviceProperties2*)(pProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceProperties2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceProperties2KHR);
@@ -16676,22 +15292,19 @@ void VkEncoder::vkGetPhysicalDeviceProperties2KHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_871, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkPhysicalDeviceProperties2(stream, (VkPhysicalDeviceProperties2*)(pProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkPhysicalDeviceProperties2(stream, (VkPhysicalDeviceProperties2*)(pProperties));
     if (pProperties)
     {
-        transform_fromhost_VkPhysicalDeviceProperties2(mImpl->resources(), (VkPhysicalDeviceProperties2*)(pProperties));
+        transform_fromhost_VkPhysicalDeviceProperties2(sResourceTracker, (VkPhysicalDeviceProperties2*)(pProperties));
     }
-    mImpl->resources()->on_vkGetPhysicalDeviceProperties2KHR(this, physicalDevice, pProperties);
+    sResourceTracker->on_vkGetPhysicalDeviceProperties2KHR(this, physicalDevice, pProperties);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceProperties2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetPhysicalDeviceFormatProperties2KHR(
@@ -16700,26 +15313,22 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2KHR(
     VkFormatProperties2* pFormatProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceFormatProperties2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkFormat local_format;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_format = format;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_872;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkFormat);
-        count_VkFormatProperties2(featureBits, (VkFormatProperties2*)(pFormatProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkFormatProperties2(sFeatureBits, (VkFormatProperties2*)(pFormatProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceFormatProperties2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceFormatProperties2KHR);
@@ -16734,12 +15343,10 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2KHR(
     memcpy(*streamPtrPtr, (VkFormat*)&local_format, sizeof(VkFormat));
     *streamPtrPtr += sizeof(VkFormat);
     reservedmarshal_VkFormatProperties2(stream, (VkFormatProperties2*)(pFormatProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkFormatProperties2(stream, (VkFormatProperties2*)(pFormatProperties));
     if (pFormatProperties)
     {
-        transform_fromhost_VkFormatProperties2(mImpl->resources(), (VkFormatProperties2*)(pFormatProperties));
+        transform_fromhost_VkFormatProperties2(sResourceTracker, (VkFormatProperties2*)(pFormatProperties));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -16747,8 +15354,7 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2KHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceFormatProperties2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2KHR(
@@ -16757,14 +15363,13 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2KHR(
     VkImageFormatProperties2* pImageFormatProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceImageFormatProperties2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkPhysicalDeviceImageFormatInfo2* local_pImageFormatInfo;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_pImageFormatInfo = nullptr;
     if (pImageFormatInfo)
@@ -16772,20 +15377,17 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2KHR(
         local_pImageFormatInfo = (VkPhysicalDeviceImageFormatInfo2*)pool->alloc(sizeof(const VkPhysicalDeviceImageFormatInfo2));
         deepcopy_VkPhysicalDeviceImageFormatInfo2(pool, pImageFormatInfo, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
     }
-    local_doLock = doLock;
     if (local_pImageFormatInfo)
     {
-        transform_tohost_VkPhysicalDeviceImageFormatInfo2(mImpl->resources(), (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
+        transform_tohost_VkPhysicalDeviceImageFormatInfo2(sResourceTracker, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_874;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceImageFormatInfo2(featureBits, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo), countPtr);
-        count_VkImageFormatProperties2(featureBits, (VkImageFormatProperties2*)(pImageFormatProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkPhysicalDeviceImageFormatInfo2(sFeatureBits, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo), countPtr);
+        count_VkImageFormatProperties2(sFeatureBits, (VkImageFormatProperties2*)(pImageFormatProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceImageFormatProperties2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceImageFormatProperties2KHR);
@@ -16799,12 +15401,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2KHR(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkPhysicalDeviceImageFormatInfo2(stream, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo), streamPtrPtr);
     reservedmarshal_VkImageFormatProperties2(stream, (VkImageFormatProperties2*)(pImageFormatProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkImageFormatProperties2(stream, (VkImageFormatProperties2*)(pImageFormatProperties));
     if (pImageFormatProperties)
     {
-        transform_fromhost_VkImageFormatProperties2(mImpl->resources(), (VkImageFormatProperties2*)(pImageFormatProperties));
+        transform_fromhost_VkImageFormatProperties2(sResourceTracker, (VkImageFormatProperties2*)(pImageFormatProperties));
     }
     VkResult vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return, sizeof(VkResult));
@@ -16814,8 +15414,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2KHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceImageFormatProperties2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceImageFormatProperties2KHR_VkResult_return;
 }
 
@@ -16825,16 +15424,13 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
     VkQueueFamilyProperties2* pQueueFamilyProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceQueueFamilyProperties2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -16852,10 +15448,9 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
             {
-                count_VkQueueFamilyProperties2(featureBits, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i), countPtr);
+                count_VkQueueFamilyProperties2(sFeatureBits, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceQueueFamilyProperties2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceQueueFamilyProperties2KHR);
@@ -16889,8 +15484,6 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
             reservedmarshal_VkQueueFamilyProperties2(stream, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pQueueFamilyPropertyCount;
     check_pQueueFamilyPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -16920,7 +15513,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
         {
-            transform_fromhost_VkQueueFamilyProperties2(mImpl->resources(), (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
+            transform_fromhost_VkQueueFamilyProperties2(sResourceTracker, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
         }
     }
     ++encodeCount;;
@@ -16929,8 +15522,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceQueueFamilyProperties2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetPhysicalDeviceMemoryProperties2KHR(
@@ -16938,23 +15530,19 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2KHR(
     VkPhysicalDeviceMemoryProperties2* pMemoryProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceMemoryProperties2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_882;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceMemoryProperties2(featureBits, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkPhysicalDeviceMemoryProperties2(sFeatureBits, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceMemoryProperties2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceMemoryProperties2KHR);
@@ -16967,22 +15555,19 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2KHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_883, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkPhysicalDeviceMemoryProperties2(stream, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkPhysicalDeviceMemoryProperties2(stream, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     if (pMemoryProperties)
     {
-        transform_fromhost_VkPhysicalDeviceMemoryProperties2(mImpl->resources(), (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
+        transform_fromhost_VkPhysicalDeviceMemoryProperties2(sResourceTracker, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     }
-    mImpl->resources()->on_vkGetPhysicalDeviceMemoryProperties2KHR(this, physicalDevice, pMemoryProperties);
+    sResourceTracker->on_vkGetPhysicalDeviceMemoryProperties2KHR(this, physicalDevice, pMemoryProperties);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceMemoryProperties2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
@@ -16992,14 +15577,13 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
     VkSparseImageFormatProperties2* pProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceSparseImageFormatProperties2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkPhysicalDeviceSparseImageFormatInfo2* local_pFormatInfo;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_pFormatInfo = nullptr;
     if (pFormatInfo)
@@ -17007,18 +15591,16 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
         local_pFormatInfo = (VkPhysicalDeviceSparseImageFormatInfo2*)pool->alloc(sizeof(const VkPhysicalDeviceSparseImageFormatInfo2));
         deepcopy_VkPhysicalDeviceSparseImageFormatInfo2(pool, pFormatInfo, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo));
     }
-    local_doLock = doLock;
     if (local_pFormatInfo)
     {
-        transform_tohost_VkPhysicalDeviceSparseImageFormatInfo2(mImpl->resources(), (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo));
+        transform_tohost_VkPhysicalDeviceSparseImageFormatInfo2(sResourceTracker, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_884;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceSparseImageFormatInfo2(featureBits, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo), countPtr);
+        count_VkPhysicalDeviceSparseImageFormatInfo2(sFeatureBits, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (pPropertyCount)
@@ -17031,10 +15613,9 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                count_VkSparseImageFormatProperties2(featureBits, (VkSparseImageFormatProperties2*)(pProperties + i), countPtr);
+                count_VkSparseImageFormatProperties2(sFeatureBits, (VkSparseImageFormatProperties2*)(pProperties + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceSparseImageFormatProperties2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceSparseImageFormatProperties2KHR);
@@ -17069,8 +15650,6 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
             reservedmarshal_VkSparseImageFormatProperties2(stream, (VkSparseImageFormatProperties2*)(pProperties + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
     check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -17100,7 +15679,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            transform_fromhost_VkSparseImageFormatProperties2(mImpl->resources(), (VkSparseImageFormatProperties2*)(pProperties + i));
+            transform_fromhost_VkSparseImageFormatProperties2(sResourceTracker, (VkSparseImageFormatProperties2*)(pProperties + i));
         }
     }
     ++encodeCount;;
@@ -17109,8 +15688,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceSparseImageFormatProperties2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -17123,22 +15701,19 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeaturesKHR(
     VkPeerMemoryFeatureFlags* pPeerMemoryFeatures,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetDeviceGroupPeerMemoryFeaturesKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     uint32_t local_heapIndex;
     uint32_t local_localDeviceIndex;
     uint32_t local_remoteDeviceIndex;
-    uint32_t local_doLock;
     local_device = device;
     local_heapIndex = heapIndex;
     local_localDeviceIndex = localDeviceIndex;
     local_remoteDeviceIndex = remoteDeviceIndex;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -17148,7 +15723,6 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeaturesKHR(
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(VkPeerMemoryFeatureFlags);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetDeviceGroupPeerMemoryFeaturesKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDeviceGroupPeerMemoryFeaturesKHR);
@@ -17168,8 +15742,6 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeaturesKHR(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (VkPeerMemoryFeatureFlags*)pPeerMemoryFeatures, sizeof(VkPeerMemoryFeatureFlags));
     *streamPtrPtr += sizeof(VkPeerMemoryFeatureFlags);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((VkPeerMemoryFeatureFlags*)pPeerMemoryFeatures, sizeof(VkPeerMemoryFeatureFlags));
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -17177,8 +15749,7 @@ void VkEncoder::vkGetDeviceGroupPeerMemoryFeaturesKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetDeviceGroupPeerMemoryFeaturesKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdSetDeviceMaskKHR(
@@ -17186,24 +15757,20 @@ void VkEncoder::vkCmdSetDeviceMaskKHR(
     uint32_t deviceMask,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdSetDeviceMaskKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     uint32_t local_deviceMask;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_deviceMask = deviceMask;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_892;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdSetDeviceMaskKHR = 4 + 4 + count;
@@ -17218,16 +15785,13 @@ void VkEncoder::vkCmdSetDeviceMaskKHR(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (uint32_t*)&local_deviceMask, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdSetDeviceMaskKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdDispatchBaseKHR(
@@ -17240,10 +15804,10 @@ void VkEncoder::vkCmdDispatchBaseKHR(
     uint32_t groupCountZ,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdDispatchBaseKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     uint32_t local_baseGroupX;
@@ -17252,7 +15816,6 @@ void VkEncoder::vkCmdDispatchBaseKHR(
     uint32_t local_groupCountX;
     uint32_t local_groupCountY;
     uint32_t local_groupCountZ;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_baseGroupX = baseGroupX;
     local_baseGroupY = baseGroupY;
@@ -17260,14 +15823,11 @@ void VkEncoder::vkCmdDispatchBaseKHR(
     local_groupCountX = groupCountX;
     local_groupCountY = groupCountY;
     local_groupCountZ = groupCountZ;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_894;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
@@ -17297,16 +15857,13 @@ void VkEncoder::vkCmdDispatchBaseKHR(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (uint32_t*)&local_groupCountZ, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdDispatchBaseKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -17319,20 +15876,17 @@ void VkEncoder::vkTrimCommandPoolKHR(
     VkCommandPoolTrimFlags flags,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkTrimCommandPoolKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkCommandPool local_commandPool;
     VkCommandPoolTrimFlags local_flags;
-    uint32_t local_doLock;
     local_device = device;
     local_commandPool = commandPool;
     local_flags = flags;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -17341,7 +15895,6 @@ void VkEncoder::vkTrimCommandPoolKHR(
         uint64_t cgen_var_897;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkCommandPoolTrimFlags);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkTrimCommandPoolKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkTrimCommandPoolKHR);
@@ -17359,16 +15912,13 @@ void VkEncoder::vkTrimCommandPoolKHR(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkCommandPoolTrimFlags*)&local_flags, sizeof(VkCommandPoolTrimFlags));
     *streamPtrPtr += sizeof(VkCommandPoolTrimFlags);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkTrimCommandPoolKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -17379,16 +15929,13 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
     VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkEnumeratePhysicalDeviceGroupsKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
-    uint32_t local_doLock;
     local_instance = instance;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -17406,10 +15953,9 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
             {
-                count_VkPhysicalDeviceGroupProperties(featureBits, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i), countPtr);
+                count_VkPhysicalDeviceGroupProperties(sFeatureBits, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkEnumeratePhysicalDeviceGroupsKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkEnumeratePhysicalDeviceGroupsKHR);
@@ -17443,8 +15989,6 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
             reservedmarshal_VkPhysicalDeviceGroupProperties(stream, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pPhysicalDeviceGroupCount;
     check_pPhysicalDeviceGroupCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -17474,7 +16018,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
         {
-            transform_fromhost_VkPhysicalDeviceGroupProperties(mImpl->resources(), (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
+            transform_fromhost_VkPhysicalDeviceGroupProperties(sResourceTracker, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
         }
     }
     VkResult vkEnumeratePhysicalDeviceGroupsKHR_VkResult_return = (VkResult)0;
@@ -17485,8 +16029,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkEnumeratePhysicalDeviceGroupsKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkEnumeratePhysicalDeviceGroupsKHR_VkResult_return;
 }
 
@@ -17498,14 +16041,13 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
     VkExternalBufferProperties* pExternalBufferProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceExternalBufferPropertiesKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkPhysicalDeviceExternalBufferInfo* local_pExternalBufferInfo;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_pExternalBufferInfo = nullptr;
     if (pExternalBufferInfo)
@@ -17513,21 +16055,18 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
         local_pExternalBufferInfo = (VkPhysicalDeviceExternalBufferInfo*)pool->alloc(sizeof(const VkPhysicalDeviceExternalBufferInfo));
         deepcopy_VkPhysicalDeviceExternalBufferInfo(pool, pExternalBufferInfo, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
     }
-    local_doLock = doLock;
     if (local_pExternalBufferInfo)
     {
-        mImpl->resources()->transformImpl_VkPhysicalDeviceExternalBufferInfo_tohost(local_pExternalBufferInfo, 1);
-        transform_tohost_VkPhysicalDeviceExternalBufferInfo(mImpl->resources(), (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
+        sResourceTracker->transformImpl_VkPhysicalDeviceExternalBufferInfo_tohost(local_pExternalBufferInfo, 1);
+        transform_tohost_VkPhysicalDeviceExternalBufferInfo(sResourceTracker, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_906;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceExternalBufferInfo(featureBits, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo), countPtr);
-        count_VkExternalBufferProperties(featureBits, (VkExternalBufferProperties*)(pExternalBufferProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkPhysicalDeviceExternalBufferInfo(sFeatureBits, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo), countPtr);
+        count_VkExternalBufferProperties(sFeatureBits, (VkExternalBufferProperties*)(pExternalBufferProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceExternalBufferPropertiesKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceExternalBufferPropertiesKHR);
@@ -17541,13 +16080,11 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkPhysicalDeviceExternalBufferInfo(stream, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo), streamPtrPtr);
     reservedmarshal_VkExternalBufferProperties(stream, (VkExternalBufferProperties*)(pExternalBufferProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkExternalBufferProperties(stream, (VkExternalBufferProperties*)(pExternalBufferProperties));
     if (pExternalBufferProperties)
     {
-        mImpl->resources()->transformImpl_VkExternalBufferProperties_fromhost(pExternalBufferProperties, 1);
-        transform_fromhost_VkExternalBufferProperties(mImpl->resources(), (VkExternalBufferProperties*)(pExternalBufferProperties));
+        sResourceTracker->transformImpl_VkExternalBufferProperties_fromhost(pExternalBufferProperties, 1);
+        transform_fromhost_VkExternalBufferProperties(sResourceTracker, (VkExternalBufferProperties*)(pExternalBufferProperties));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -17555,8 +16092,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceExternalBufferPropertiesKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -17569,14 +16105,13 @@ VkResult VkEncoder::vkGetMemoryWin32HandleKHR(
     HANDLE* pHandle,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetMemoryWin32HandleKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkMemoryGetWin32HandleInfoKHR* local_pGetWin32HandleInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pGetWin32HandleInfo = nullptr;
     if (pGetWin32HandleInfo)
@@ -17584,20 +16119,17 @@ VkResult VkEncoder::vkGetMemoryWin32HandleKHR(
         local_pGetWin32HandleInfo = (VkMemoryGetWin32HandleInfoKHR*)pool->alloc(sizeof(const VkMemoryGetWin32HandleInfoKHR));
         deepcopy_VkMemoryGetWin32HandleInfoKHR(pool, pGetWin32HandleInfo, (VkMemoryGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
     }
-    local_doLock = doLock;
     if (local_pGetWin32HandleInfo)
     {
-        transform_tohost_VkMemoryGetWin32HandleInfoKHR(mImpl->resources(), (VkMemoryGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
+        transform_tohost_VkMemoryGetWin32HandleInfoKHR(sResourceTracker, (VkMemoryGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_908;
         *countPtr += 1 * 8;
-        count_VkMemoryGetWin32HandleInfoKHR(featureBits, (VkMemoryGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), countPtr);
+        count_VkMemoryGetWin32HandleInfoKHR(sFeatureBits, (VkMemoryGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), countPtr);
         *countPtr += sizeof(HANDLE);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetMemoryWin32HandleKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetMemoryWin32HandleKHR);
@@ -17612,8 +16144,6 @@ VkResult VkEncoder::vkGetMemoryWin32HandleKHR(
     reservedmarshal_VkMemoryGetWin32HandleInfoKHR(stream, (VkMemoryGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (HANDLE*)pHandle, sizeof(HANDLE));
     *streamPtrPtr += sizeof(HANDLE);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((HANDLE*)pHandle, sizeof(HANDLE));
     VkResult vkGetMemoryWin32HandleKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetMemoryWin32HandleKHR_VkResult_return, sizeof(VkResult));
@@ -17623,8 +16153,7 @@ VkResult VkEncoder::vkGetMemoryWin32HandleKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetMemoryWin32HandleKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetMemoryWin32HandleKHR_VkResult_return;
 }
 
@@ -17635,20 +16164,17 @@ VkResult VkEncoder::vkGetMemoryWin32HandlePropertiesKHR(
     VkMemoryWin32HandlePropertiesKHR* pMemoryWin32HandleProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetMemoryWin32HandlePropertiesKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkExternalMemoryHandleTypeFlagBits local_handleType;
     HANDLE local_handle;
-    uint32_t local_doLock;
     local_device = device;
     local_handleType = handleType;
     local_handle = handle;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -17656,8 +16182,7 @@ VkResult VkEncoder::vkGetMemoryWin32HandlePropertiesKHR(
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkExternalMemoryHandleTypeFlagBits);
         *countPtr += sizeof(HANDLE);
-        count_VkMemoryWin32HandlePropertiesKHR(featureBits, (VkMemoryWin32HandlePropertiesKHR*)(pMemoryWin32HandleProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkMemoryWin32HandlePropertiesKHR(sFeatureBits, (VkMemoryWin32HandlePropertiesKHR*)(pMemoryWin32HandleProperties), countPtr);
     }
     uint32_t packetSize_vkGetMemoryWin32HandlePropertiesKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetMemoryWin32HandlePropertiesKHR);
@@ -17674,12 +16199,10 @@ VkResult VkEncoder::vkGetMemoryWin32HandlePropertiesKHR(
     memcpy(*streamPtrPtr, (HANDLE*)&local_handle, sizeof(HANDLE));
     *streamPtrPtr += sizeof(HANDLE);
     reservedmarshal_VkMemoryWin32HandlePropertiesKHR(stream, (VkMemoryWin32HandlePropertiesKHR*)(pMemoryWin32HandleProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkMemoryWin32HandlePropertiesKHR(stream, (VkMemoryWin32HandlePropertiesKHR*)(pMemoryWin32HandleProperties));
     if (pMemoryWin32HandleProperties)
     {
-        transform_fromhost_VkMemoryWin32HandlePropertiesKHR(mImpl->resources(), (VkMemoryWin32HandlePropertiesKHR*)(pMemoryWin32HandleProperties));
+        transform_fromhost_VkMemoryWin32HandlePropertiesKHR(sResourceTracker, (VkMemoryWin32HandlePropertiesKHR*)(pMemoryWin32HandleProperties));
     }
     VkResult vkGetMemoryWin32HandlePropertiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetMemoryWin32HandlePropertiesKHR_VkResult_return, sizeof(VkResult));
@@ -17689,8 +16212,7 @@ VkResult VkEncoder::vkGetMemoryWin32HandlePropertiesKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetMemoryWin32HandlePropertiesKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetMemoryWin32HandlePropertiesKHR_VkResult_return;
 }
 
@@ -17702,14 +16224,13 @@ VkResult VkEncoder::vkGetMemoryFdKHR(
     int* pFd,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetMemoryFdKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkMemoryGetFdInfoKHR* local_pGetFdInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pGetFdInfo = nullptr;
     if (pGetFdInfo)
@@ -17717,20 +16238,17 @@ VkResult VkEncoder::vkGetMemoryFdKHR(
         local_pGetFdInfo = (VkMemoryGetFdInfoKHR*)pool->alloc(sizeof(const VkMemoryGetFdInfoKHR));
         deepcopy_VkMemoryGetFdInfoKHR(pool, pGetFdInfo, (VkMemoryGetFdInfoKHR*)(local_pGetFdInfo));
     }
-    local_doLock = doLock;
     if (local_pGetFdInfo)
     {
-        transform_tohost_VkMemoryGetFdInfoKHR(mImpl->resources(), (VkMemoryGetFdInfoKHR*)(local_pGetFdInfo));
+        transform_tohost_VkMemoryGetFdInfoKHR(sResourceTracker, (VkMemoryGetFdInfoKHR*)(local_pGetFdInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_912;
         *countPtr += 1 * 8;
-        count_VkMemoryGetFdInfoKHR(featureBits, (VkMemoryGetFdInfoKHR*)(local_pGetFdInfo), countPtr);
+        count_VkMemoryGetFdInfoKHR(sFeatureBits, (VkMemoryGetFdInfoKHR*)(local_pGetFdInfo), countPtr);
         *countPtr += sizeof(int);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetMemoryFdKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetMemoryFdKHR);
@@ -17745,8 +16263,6 @@ VkResult VkEncoder::vkGetMemoryFdKHR(
     reservedmarshal_VkMemoryGetFdInfoKHR(stream, (VkMemoryGetFdInfoKHR*)(local_pGetFdInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (int*)pFd, sizeof(int));
     *streamPtrPtr += sizeof(int);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((int*)pFd, sizeof(int));
     VkResult vkGetMemoryFdKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetMemoryFdKHR_VkResult_return, sizeof(VkResult));
@@ -17756,8 +16272,7 @@ VkResult VkEncoder::vkGetMemoryFdKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetMemoryFdKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetMemoryFdKHR_VkResult_return;
 }
 
@@ -17768,20 +16283,17 @@ VkResult VkEncoder::vkGetMemoryFdPropertiesKHR(
     VkMemoryFdPropertiesKHR* pMemoryFdProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetMemoryFdPropertiesKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkExternalMemoryHandleTypeFlagBits local_handleType;
     int local_fd;
-    uint32_t local_doLock;
     local_device = device;
     local_handleType = handleType;
     local_fd = fd;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -17789,8 +16301,7 @@ VkResult VkEncoder::vkGetMemoryFdPropertiesKHR(
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkExternalMemoryHandleTypeFlagBits);
         *countPtr += sizeof(int);
-        count_VkMemoryFdPropertiesKHR(featureBits, (VkMemoryFdPropertiesKHR*)(pMemoryFdProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkMemoryFdPropertiesKHR(sFeatureBits, (VkMemoryFdPropertiesKHR*)(pMemoryFdProperties), countPtr);
     }
     uint32_t packetSize_vkGetMemoryFdPropertiesKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetMemoryFdPropertiesKHR);
@@ -17807,12 +16318,10 @@ VkResult VkEncoder::vkGetMemoryFdPropertiesKHR(
     memcpy(*streamPtrPtr, (int*)&local_fd, sizeof(int));
     *streamPtrPtr += sizeof(int);
     reservedmarshal_VkMemoryFdPropertiesKHR(stream, (VkMemoryFdPropertiesKHR*)(pMemoryFdProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkMemoryFdPropertiesKHR(stream, (VkMemoryFdPropertiesKHR*)(pMemoryFdProperties));
     if (pMemoryFdProperties)
     {
-        transform_fromhost_VkMemoryFdPropertiesKHR(mImpl->resources(), (VkMemoryFdPropertiesKHR*)(pMemoryFdProperties));
+        transform_fromhost_VkMemoryFdPropertiesKHR(sResourceTracker, (VkMemoryFdPropertiesKHR*)(pMemoryFdProperties));
     }
     VkResult vkGetMemoryFdPropertiesKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetMemoryFdPropertiesKHR_VkResult_return, sizeof(VkResult));
@@ -17822,8 +16331,7 @@ VkResult VkEncoder::vkGetMemoryFdPropertiesKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetMemoryFdPropertiesKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetMemoryFdPropertiesKHR_VkResult_return;
 }
 
@@ -17837,14 +16345,13 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
     VkExternalSemaphoreProperties* pExternalSemaphoreProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceExternalSemaphorePropertiesKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkPhysicalDeviceExternalSemaphoreInfo* local_pExternalSemaphoreInfo;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_pExternalSemaphoreInfo = nullptr;
     if (pExternalSemaphoreInfo)
@@ -17852,20 +16359,17 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
         local_pExternalSemaphoreInfo = (VkPhysicalDeviceExternalSemaphoreInfo*)pool->alloc(sizeof(const VkPhysicalDeviceExternalSemaphoreInfo));
         deepcopy_VkPhysicalDeviceExternalSemaphoreInfo(pool, pExternalSemaphoreInfo, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
     }
-    local_doLock = doLock;
     if (local_pExternalSemaphoreInfo)
     {
-        transform_tohost_VkPhysicalDeviceExternalSemaphoreInfo(mImpl->resources(), (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
+        transform_tohost_VkPhysicalDeviceExternalSemaphoreInfo(sResourceTracker, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_916;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceExternalSemaphoreInfo(featureBits, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo), countPtr);
-        count_VkExternalSemaphoreProperties(featureBits, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkPhysicalDeviceExternalSemaphoreInfo(sFeatureBits, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo), countPtr);
+        count_VkExternalSemaphoreProperties(sFeatureBits, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR);
@@ -17879,12 +16383,10 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkPhysicalDeviceExternalSemaphoreInfo(stream, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo), streamPtrPtr);
     reservedmarshal_VkExternalSemaphoreProperties(stream, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkExternalSemaphoreProperties(stream, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
     if (pExternalSemaphoreProperties)
     {
-        transform_fromhost_VkExternalSemaphoreProperties(mImpl->resources(), (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
+        transform_fromhost_VkExternalSemaphoreProperties(sResourceTracker, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -17892,8 +16394,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceExternalSemaphorePropertiesKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -17905,14 +16406,13 @@ VkResult VkEncoder::vkImportSemaphoreWin32HandleKHR(
     const VkImportSemaphoreWin32HandleInfoKHR* pImportSemaphoreWin32HandleInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkImportSemaphoreWin32HandleKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkImportSemaphoreWin32HandleInfoKHR* local_pImportSemaphoreWin32HandleInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pImportSemaphoreWin32HandleInfo = nullptr;
     if (pImportSemaphoreWin32HandleInfo)
@@ -17920,19 +16420,16 @@ VkResult VkEncoder::vkImportSemaphoreWin32HandleKHR(
         local_pImportSemaphoreWin32HandleInfo = (VkImportSemaphoreWin32HandleInfoKHR*)pool->alloc(sizeof(const VkImportSemaphoreWin32HandleInfoKHR));
         deepcopy_VkImportSemaphoreWin32HandleInfoKHR(pool, pImportSemaphoreWin32HandleInfo, (VkImportSemaphoreWin32HandleInfoKHR*)(local_pImportSemaphoreWin32HandleInfo));
     }
-    local_doLock = doLock;
     if (local_pImportSemaphoreWin32HandleInfo)
     {
-        transform_tohost_VkImportSemaphoreWin32HandleInfoKHR(mImpl->resources(), (VkImportSemaphoreWin32HandleInfoKHR*)(local_pImportSemaphoreWin32HandleInfo));
+        transform_tohost_VkImportSemaphoreWin32HandleInfoKHR(sResourceTracker, (VkImportSemaphoreWin32HandleInfoKHR*)(local_pImportSemaphoreWin32HandleInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_918;
         *countPtr += 1 * 8;
-        count_VkImportSemaphoreWin32HandleInfoKHR(featureBits, (VkImportSemaphoreWin32HandleInfoKHR*)(local_pImportSemaphoreWin32HandleInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkImportSemaphoreWin32HandleInfoKHR(sFeatureBits, (VkImportSemaphoreWin32HandleInfoKHR*)(local_pImportSemaphoreWin32HandleInfo), countPtr);
     }
     uint32_t packetSize_vkImportSemaphoreWin32HandleKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkImportSemaphoreWin32HandleKHR);
@@ -17945,8 +16442,6 @@ VkResult VkEncoder::vkImportSemaphoreWin32HandleKHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_919, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkImportSemaphoreWin32HandleInfoKHR(stream, (VkImportSemaphoreWin32HandleInfoKHR*)(local_pImportSemaphoreWin32HandleInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkImportSemaphoreWin32HandleKHR_VkResult_return = (VkResult)0;
     stream->read(&vkImportSemaphoreWin32HandleKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -17955,8 +16450,7 @@ VkResult VkEncoder::vkImportSemaphoreWin32HandleKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkImportSemaphoreWin32HandleKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkImportSemaphoreWin32HandleKHR_VkResult_return;
 }
 
@@ -17966,14 +16460,13 @@ VkResult VkEncoder::vkGetSemaphoreWin32HandleKHR(
     HANDLE* pHandle,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetSemaphoreWin32HandleKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkSemaphoreGetWin32HandleInfoKHR* local_pGetWin32HandleInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pGetWin32HandleInfo = nullptr;
     if (pGetWin32HandleInfo)
@@ -17981,20 +16474,17 @@ VkResult VkEncoder::vkGetSemaphoreWin32HandleKHR(
         local_pGetWin32HandleInfo = (VkSemaphoreGetWin32HandleInfoKHR*)pool->alloc(sizeof(const VkSemaphoreGetWin32HandleInfoKHR));
         deepcopy_VkSemaphoreGetWin32HandleInfoKHR(pool, pGetWin32HandleInfo, (VkSemaphoreGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
     }
-    local_doLock = doLock;
     if (local_pGetWin32HandleInfo)
     {
-        transform_tohost_VkSemaphoreGetWin32HandleInfoKHR(mImpl->resources(), (VkSemaphoreGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
+        transform_tohost_VkSemaphoreGetWin32HandleInfoKHR(sResourceTracker, (VkSemaphoreGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_920;
         *countPtr += 1 * 8;
-        count_VkSemaphoreGetWin32HandleInfoKHR(featureBits, (VkSemaphoreGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), countPtr);
+        count_VkSemaphoreGetWin32HandleInfoKHR(sFeatureBits, (VkSemaphoreGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), countPtr);
         *countPtr += sizeof(HANDLE);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetSemaphoreWin32HandleKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetSemaphoreWin32HandleKHR);
@@ -18009,8 +16499,6 @@ VkResult VkEncoder::vkGetSemaphoreWin32HandleKHR(
     reservedmarshal_VkSemaphoreGetWin32HandleInfoKHR(stream, (VkSemaphoreGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (HANDLE*)pHandle, sizeof(HANDLE));
     *streamPtrPtr += sizeof(HANDLE);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((HANDLE*)pHandle, sizeof(HANDLE));
     VkResult vkGetSemaphoreWin32HandleKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetSemaphoreWin32HandleKHR_VkResult_return, sizeof(VkResult));
@@ -18020,8 +16508,7 @@ VkResult VkEncoder::vkGetSemaphoreWin32HandleKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetSemaphoreWin32HandleKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetSemaphoreWin32HandleKHR_VkResult_return;
 }
 
@@ -18032,14 +16519,13 @@ VkResult VkEncoder::vkImportSemaphoreFdKHR(
     const VkImportSemaphoreFdInfoKHR* pImportSemaphoreFdInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkImportSemaphoreFdKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkImportSemaphoreFdInfoKHR* local_pImportSemaphoreFdInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pImportSemaphoreFdInfo = nullptr;
     if (pImportSemaphoreFdInfo)
@@ -18047,19 +16533,16 @@ VkResult VkEncoder::vkImportSemaphoreFdKHR(
         local_pImportSemaphoreFdInfo = (VkImportSemaphoreFdInfoKHR*)pool->alloc(sizeof(const VkImportSemaphoreFdInfoKHR));
         deepcopy_VkImportSemaphoreFdInfoKHR(pool, pImportSemaphoreFdInfo, (VkImportSemaphoreFdInfoKHR*)(local_pImportSemaphoreFdInfo));
     }
-    local_doLock = doLock;
     if (local_pImportSemaphoreFdInfo)
     {
-        transform_tohost_VkImportSemaphoreFdInfoKHR(mImpl->resources(), (VkImportSemaphoreFdInfoKHR*)(local_pImportSemaphoreFdInfo));
+        transform_tohost_VkImportSemaphoreFdInfoKHR(sResourceTracker, (VkImportSemaphoreFdInfoKHR*)(local_pImportSemaphoreFdInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_922;
         *countPtr += 1 * 8;
-        count_VkImportSemaphoreFdInfoKHR(featureBits, (VkImportSemaphoreFdInfoKHR*)(local_pImportSemaphoreFdInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkImportSemaphoreFdInfoKHR(sFeatureBits, (VkImportSemaphoreFdInfoKHR*)(local_pImportSemaphoreFdInfo), countPtr);
     }
     uint32_t packetSize_vkImportSemaphoreFdKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkImportSemaphoreFdKHR);
@@ -18072,8 +16555,6 @@ VkResult VkEncoder::vkImportSemaphoreFdKHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_923, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkImportSemaphoreFdInfoKHR(stream, (VkImportSemaphoreFdInfoKHR*)(local_pImportSemaphoreFdInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkImportSemaphoreFdKHR_VkResult_return = (VkResult)0;
     stream->read(&vkImportSemaphoreFdKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -18082,8 +16563,7 @@ VkResult VkEncoder::vkImportSemaphoreFdKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkImportSemaphoreFdKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkImportSemaphoreFdKHR_VkResult_return;
 }
 
@@ -18093,14 +16573,13 @@ VkResult VkEncoder::vkGetSemaphoreFdKHR(
     int* pFd,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetSemaphoreFdKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkSemaphoreGetFdInfoKHR* local_pGetFdInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pGetFdInfo = nullptr;
     if (pGetFdInfo)
@@ -18108,20 +16587,17 @@ VkResult VkEncoder::vkGetSemaphoreFdKHR(
         local_pGetFdInfo = (VkSemaphoreGetFdInfoKHR*)pool->alloc(sizeof(const VkSemaphoreGetFdInfoKHR));
         deepcopy_VkSemaphoreGetFdInfoKHR(pool, pGetFdInfo, (VkSemaphoreGetFdInfoKHR*)(local_pGetFdInfo));
     }
-    local_doLock = doLock;
     if (local_pGetFdInfo)
     {
-        transform_tohost_VkSemaphoreGetFdInfoKHR(mImpl->resources(), (VkSemaphoreGetFdInfoKHR*)(local_pGetFdInfo));
+        transform_tohost_VkSemaphoreGetFdInfoKHR(sResourceTracker, (VkSemaphoreGetFdInfoKHR*)(local_pGetFdInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_924;
         *countPtr += 1 * 8;
-        count_VkSemaphoreGetFdInfoKHR(featureBits, (VkSemaphoreGetFdInfoKHR*)(local_pGetFdInfo), countPtr);
+        count_VkSemaphoreGetFdInfoKHR(sFeatureBits, (VkSemaphoreGetFdInfoKHR*)(local_pGetFdInfo), countPtr);
         *countPtr += sizeof(int);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetSemaphoreFdKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetSemaphoreFdKHR);
@@ -18136,8 +16612,6 @@ VkResult VkEncoder::vkGetSemaphoreFdKHR(
     reservedmarshal_VkSemaphoreGetFdInfoKHR(stream, (VkSemaphoreGetFdInfoKHR*)(local_pGetFdInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (int*)pFd, sizeof(int));
     *streamPtrPtr += sizeof(int);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((int*)pFd, sizeof(int));
     VkResult vkGetSemaphoreFdKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetSemaphoreFdKHR_VkResult_return, sizeof(VkResult));
@@ -18147,8 +16621,7 @@ VkResult VkEncoder::vkGetSemaphoreFdKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetSemaphoreFdKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetSemaphoreFdKHR_VkResult_return;
 }
 
@@ -18163,10 +16636,10 @@ void VkEncoder::vkCmdPushDescriptorSetKHR(
     const VkWriteDescriptorSet* pDescriptorWrites,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdPushDescriptorSetKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkPipelineBindPoint local_pipelineBindPoint;
@@ -18174,7 +16647,6 @@ void VkEncoder::vkCmdPushDescriptorSetKHR(
     uint32_t local_set;
     uint32_t local_descriptorWriteCount;
     VkWriteDescriptorSet* local_pDescriptorWrites;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pipelineBindPoint = pipelineBindPoint;
     local_layout = layout;
@@ -18189,15 +16661,13 @@ void VkEncoder::vkCmdPushDescriptorSetKHR(
             deepcopy_VkWriteDescriptorSet(pool, pDescriptorWrites + i, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i));
         }
     }
-    local_doLock = doLock;
     if (local_pDescriptorWrites)
     {
         for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i)
         {
-            transform_tohost_VkWriteDescriptorSet(mImpl->resources(), (VkWriteDescriptorSet*)(local_pDescriptorWrites + i));
+            transform_tohost_VkWriteDescriptorSet(sResourceTracker, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -18210,9 +16680,8 @@ void VkEncoder::vkCmdPushDescriptorSetKHR(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i)
         {
-            count_VkWriteDescriptorSet(featureBits, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i), countPtr);
+            count_VkWriteDescriptorSet(sFeatureBits, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdPushDescriptorSetKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdPushDescriptorSetKHR);
@@ -18238,16 +16707,13 @@ void VkEncoder::vkCmdPushDescriptorSetKHR(
     {
         reservedmarshal_VkWriteDescriptorSet(stream, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdPushDescriptorSetKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdPushDescriptorSetWithTemplateKHR(
@@ -18258,17 +16724,16 @@ void VkEncoder::vkCmdPushDescriptorSetWithTemplateKHR(
     const void* pData,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdPushDescriptorSetWithTemplateKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkDescriptorUpdateTemplate local_descriptorUpdateTemplate;
     VkPipelineLayout local_layout;
     uint32_t local_set;
     void* local_pData;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_descriptorUpdateTemplate = descriptorUpdateTemplate;
     local_layout = layout;
@@ -18278,8 +16743,6 @@ void VkEncoder::vkCmdPushDescriptorSetWithTemplateKHR(
     {
         local_pData = (void*)pool->dupArray(pData, sizeof(const uint8_t));
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -18296,7 +16759,6 @@ void VkEncoder::vkCmdPushDescriptorSetWithTemplateKHR(
         {
             *countPtr += sizeof(uint8_t);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdPushDescriptorSetWithTemplateKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdPushDescriptorSetWithTemplateKHR);
@@ -18328,16 +16790,13 @@ void VkEncoder::vkCmdPushDescriptorSetWithTemplateKHR(
         memcpy(*streamPtrPtr, (void*)local_pData, sizeof(uint8_t));
         *streamPtrPtr += sizeof(uint8_t);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdPushDescriptorSetWithTemplateKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -18353,15 +16812,14 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
     VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateDescriptorUpdateTemplateKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDescriptorUpdateTemplateCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -18375,32 +16833,29 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkDescriptorUpdateTemplateCreateInfo(mImpl->resources(), (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkDescriptorUpdateTemplateCreateInfo(sResourceTracker, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_937;
         *countPtr += 1 * 8;
-        count_VkDescriptorUpdateTemplateCreateInfo(featureBits, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkDescriptorUpdateTemplateCreateInfo(sFeatureBits, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_938;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateDescriptorUpdateTemplateKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateDescriptorUpdateTemplateKHR);
@@ -18428,24 +16883,21 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_941, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_942;
     stream->read((uint64_t*)&cgen_var_942, 8);
     stream->handleMapping()->mapHandles_u64_VkDescriptorUpdateTemplate(&cgen_var_942, (VkDescriptorUpdateTemplate*)pDescriptorUpdateTemplate, 1);
     stream->unsetHandleMapping();
     VkResult vkCreateDescriptorUpdateTemplateKHR_VkResult_return = (VkResult)0;
     stream->read(&vkCreateDescriptorUpdateTemplateKHR_VkResult_return, sizeof(VkResult));
-    mImpl->resources()->on_vkCreateDescriptorUpdateTemplateKHR(this, vkCreateDescriptorUpdateTemplateKHR_VkResult_return, device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
+    sResourceTracker->on_vkCreateDescriptorUpdateTemplateKHR(this, vkCreateDescriptorUpdateTemplateKHR_VkResult_return, device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateDescriptorUpdateTemplateKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateDescriptorUpdateTemplateKHR_VkResult_return;
 }
 
@@ -18455,15 +16907,14 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplateKHR(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyDescriptorUpdateTemplateKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDescriptorUpdateTemplate local_descriptorUpdateTemplate;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_descriptorUpdateTemplate = descriptorUpdateTemplate;
     local_pAllocator = nullptr;
@@ -18472,13 +16923,11 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplateKHR(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -18490,9 +16939,8 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplateKHR(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyDescriptorUpdateTemplateKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyDescriptorUpdateTemplateKHR);
@@ -18517,17 +16965,14 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplateKHR(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkDescriptorUpdateTemplate((VkDescriptorUpdateTemplate*)&descriptorUpdateTemplate);
+    sResourceTracker->destroyMapping()->mapHandles_VkDescriptorUpdateTemplate((VkDescriptorUpdateTemplate*)&descriptorUpdateTemplate);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyDescriptorUpdateTemplateKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkUpdateDescriptorSetWithTemplateKHR(
@@ -18537,16 +16982,15 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateKHR(
     const void* pData,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkUpdateDescriptorSetWithTemplateKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDescriptorSet local_descriptorSet;
     VkDescriptorUpdateTemplate local_descriptorUpdateTemplate;
     void* local_pData;
-    uint32_t local_doLock;
     local_device = device;
     local_descriptorSet = descriptorSet;
     local_descriptorUpdateTemplate = descriptorUpdateTemplate;
@@ -18555,8 +16999,6 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateKHR(
     {
         local_pData = (void*)pool->dupArray(pData, sizeof(const uint8_t));
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -18572,7 +17014,6 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateKHR(
         {
             *countPtr += sizeof(uint8_t);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkUpdateDescriptorSetWithTemplateKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkUpdateDescriptorSetWithTemplateKHR);
@@ -18602,16 +17043,13 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateKHR(
         memcpy(*streamPtrPtr, (void*)local_pData, sizeof(uint8_t));
         *streamPtrPtr += sizeof(uint8_t);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkUpdateDescriptorSetWithTemplateKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -18623,15 +17061,14 @@ VkResult VkEncoder::vkCreateRenderPass2KHR(
     VkRenderPass* pRenderPass,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateRenderPass2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkRenderPassCreateInfo2KHR* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -18645,32 +17082,29 @@ VkResult VkEncoder::vkCreateRenderPass2KHR(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkRenderPassCreateInfo2KHR(mImpl->resources(), (VkRenderPassCreateInfo2KHR*)(local_pCreateInfo));
+        transform_tohost_VkRenderPassCreateInfo2KHR(sResourceTracker, (VkRenderPassCreateInfo2KHR*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_955;
         *countPtr += 1 * 8;
-        count_VkRenderPassCreateInfo2KHR(featureBits, (VkRenderPassCreateInfo2KHR*)(local_pCreateInfo), countPtr);
+        count_VkRenderPassCreateInfo2KHR(sFeatureBits, (VkRenderPassCreateInfo2KHR*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_956;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateRenderPass2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateRenderPass2KHR);
@@ -18698,8 +17132,6 @@ VkResult VkEncoder::vkCreateRenderPass2KHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_959, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     uint64_t cgen_var_960;
     stream->read((uint64_t*)&cgen_var_960, 8);
     stream->handleMapping()->mapHandles_u64_VkRenderPass(&cgen_var_960, (VkRenderPass*)pRenderPass, 1);
@@ -18711,8 +17143,7 @@ VkResult VkEncoder::vkCreateRenderPass2KHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateRenderPass2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateRenderPass2KHR_VkResult_return;
 }
 
@@ -18722,15 +17153,14 @@ void VkEncoder::vkCmdBeginRenderPass2KHR(
     const VkSubpassBeginInfoKHR* pSubpassBeginInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdBeginRenderPass2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkRenderPassBeginInfo* local_pRenderPassBegin;
     VkSubpassBeginInfoKHR* local_pSubpassBeginInfo;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pRenderPassBegin = nullptr;
     if (pRenderPassBegin)
@@ -18744,24 +17174,21 @@ void VkEncoder::vkCmdBeginRenderPass2KHR(
         local_pSubpassBeginInfo = (VkSubpassBeginInfoKHR*)pool->alloc(sizeof(const VkSubpassBeginInfoKHR));
         deepcopy_VkSubpassBeginInfoKHR(pool, pSubpassBeginInfo, (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo));
     }
-    local_doLock = doLock;
     if (local_pRenderPassBegin)
     {
-        transform_tohost_VkRenderPassBeginInfo(mImpl->resources(), (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
+        transform_tohost_VkRenderPassBeginInfo(sResourceTracker, (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
     }
     if (local_pSubpassBeginInfo)
     {
-        transform_tohost_VkSubpassBeginInfoKHR(mImpl->resources(), (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo));
+        transform_tohost_VkSubpassBeginInfoKHR(sResourceTracker, (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_961;
         *countPtr += 1 * 8;
-        count_VkRenderPassBeginInfo(featureBits, (VkRenderPassBeginInfo*)(local_pRenderPassBegin), countPtr);
-        count_VkSubpassBeginInfoKHR(featureBits, (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkRenderPassBeginInfo(sFeatureBits, (VkRenderPassBeginInfo*)(local_pRenderPassBegin), countPtr);
+        count_VkSubpassBeginInfoKHR(sFeatureBits, (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo), countPtr);
     }
     uint32_t packetSize_vkCmdBeginRenderPass2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdBeginRenderPass2KHR);
@@ -18775,16 +17202,13 @@ void VkEncoder::vkCmdBeginRenderPass2KHR(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkRenderPassBeginInfo(stream, (VkRenderPassBeginInfo*)(local_pRenderPassBegin), streamPtrPtr);
     reservedmarshal_VkSubpassBeginInfoKHR(stream, (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdBeginRenderPass2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdNextSubpass2KHR(
@@ -18793,15 +17217,14 @@ void VkEncoder::vkCmdNextSubpass2KHR(
     const VkSubpassEndInfoKHR* pSubpassEndInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdNextSubpass2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkSubpassBeginInfoKHR* local_pSubpassBeginInfo;
     VkSubpassEndInfoKHR* local_pSubpassEndInfo;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pSubpassBeginInfo = nullptr;
     if (pSubpassBeginInfo)
@@ -18815,24 +17238,21 @@ void VkEncoder::vkCmdNextSubpass2KHR(
         local_pSubpassEndInfo = (VkSubpassEndInfoKHR*)pool->alloc(sizeof(const VkSubpassEndInfoKHR));
         deepcopy_VkSubpassEndInfoKHR(pool, pSubpassEndInfo, (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo));
     }
-    local_doLock = doLock;
     if (local_pSubpassBeginInfo)
     {
-        transform_tohost_VkSubpassBeginInfoKHR(mImpl->resources(), (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo));
+        transform_tohost_VkSubpassBeginInfoKHR(sResourceTracker, (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo));
     }
     if (local_pSubpassEndInfo)
     {
-        transform_tohost_VkSubpassEndInfoKHR(mImpl->resources(), (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo));
+        transform_tohost_VkSubpassEndInfoKHR(sResourceTracker, (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_963;
         *countPtr += 1 * 8;
-        count_VkSubpassBeginInfoKHR(featureBits, (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo), countPtr);
-        count_VkSubpassEndInfoKHR(featureBits, (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkSubpassBeginInfoKHR(sFeatureBits, (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo), countPtr);
+        count_VkSubpassEndInfoKHR(sFeatureBits, (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo), countPtr);
     }
     uint32_t packetSize_vkCmdNextSubpass2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdNextSubpass2KHR);
@@ -18846,16 +17266,13 @@ void VkEncoder::vkCmdNextSubpass2KHR(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkSubpassBeginInfoKHR(stream, (VkSubpassBeginInfoKHR*)(local_pSubpassBeginInfo), streamPtrPtr);
     reservedmarshal_VkSubpassEndInfoKHR(stream, (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdNextSubpass2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdEndRenderPass2KHR(
@@ -18863,14 +17280,13 @@ void VkEncoder::vkCmdEndRenderPass2KHR(
     const VkSubpassEndInfoKHR* pSubpassEndInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdEndRenderPass2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkSubpassEndInfoKHR* local_pSubpassEndInfo;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pSubpassEndInfo = nullptr;
     if (pSubpassEndInfo)
@@ -18878,19 +17294,16 @@ void VkEncoder::vkCmdEndRenderPass2KHR(
         local_pSubpassEndInfo = (VkSubpassEndInfoKHR*)pool->alloc(sizeof(const VkSubpassEndInfoKHR));
         deepcopy_VkSubpassEndInfoKHR(pool, pSubpassEndInfo, (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo));
     }
-    local_doLock = doLock;
     if (local_pSubpassEndInfo)
     {
-        transform_tohost_VkSubpassEndInfoKHR(mImpl->resources(), (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo));
+        transform_tohost_VkSubpassEndInfoKHR(sResourceTracker, (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_965;
         *countPtr += 1 * 8;
-        count_VkSubpassEndInfoKHR(featureBits, (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkSubpassEndInfoKHR(sFeatureBits, (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo), countPtr);
     }
     uint32_t packetSize_vkCmdEndRenderPass2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdEndRenderPass2KHR);
@@ -18903,16 +17316,13 @@ void VkEncoder::vkCmdEndRenderPass2KHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_966, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkSubpassEndInfoKHR(stream, (VkSubpassEndInfoKHR*)(local_pSubpassEndInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdEndRenderPass2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -18922,18 +17332,15 @@ VkResult VkEncoder::vkGetSwapchainStatusKHR(
     VkSwapchainKHR swapchain,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetSwapchainStatusKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkSwapchainKHR local_swapchain;
-    uint32_t local_doLock;
     local_device = device;
     local_swapchain = swapchain;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -18941,7 +17348,6 @@ VkResult VkEncoder::vkGetSwapchainStatusKHR(
         *countPtr += 1 * 8;
         uint64_t cgen_var_968;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetSwapchainStatusKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetSwapchainStatusKHR);
@@ -18957,8 +17363,6 @@ VkResult VkEncoder::vkGetSwapchainStatusKHR(
     *&cgen_var_970 = get_host_u64_VkSwapchainKHR((*&local_swapchain));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_970, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkGetSwapchainStatusKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetSwapchainStatusKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -18967,8 +17371,7 @@ VkResult VkEncoder::vkGetSwapchainStatusKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetSwapchainStatusKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetSwapchainStatusKHR_VkResult_return;
 }
 
@@ -18980,14 +17383,13 @@ void VkEncoder::vkGetPhysicalDeviceExternalFencePropertiesKHR(
     VkExternalFenceProperties* pExternalFenceProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceExternalFencePropertiesKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkPhysicalDeviceExternalFenceInfo* local_pExternalFenceInfo;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_pExternalFenceInfo = nullptr;
     if (pExternalFenceInfo)
@@ -18995,20 +17397,17 @@ void VkEncoder::vkGetPhysicalDeviceExternalFencePropertiesKHR(
         local_pExternalFenceInfo = (VkPhysicalDeviceExternalFenceInfo*)pool->alloc(sizeof(const VkPhysicalDeviceExternalFenceInfo));
         deepcopy_VkPhysicalDeviceExternalFenceInfo(pool, pExternalFenceInfo, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
     }
-    local_doLock = doLock;
     if (local_pExternalFenceInfo)
     {
-        transform_tohost_VkPhysicalDeviceExternalFenceInfo(mImpl->resources(), (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
+        transform_tohost_VkPhysicalDeviceExternalFenceInfo(sResourceTracker, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_971;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceExternalFenceInfo(featureBits, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo), countPtr);
-        count_VkExternalFenceProperties(featureBits, (VkExternalFenceProperties*)(pExternalFenceProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkPhysicalDeviceExternalFenceInfo(sFeatureBits, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo), countPtr);
+        count_VkExternalFenceProperties(sFeatureBits, (VkExternalFenceProperties*)(pExternalFenceProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceExternalFencePropertiesKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceExternalFencePropertiesKHR);
@@ -19022,12 +17421,10 @@ void VkEncoder::vkGetPhysicalDeviceExternalFencePropertiesKHR(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkPhysicalDeviceExternalFenceInfo(stream, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo), streamPtrPtr);
     reservedmarshal_VkExternalFenceProperties(stream, (VkExternalFenceProperties*)(pExternalFenceProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkExternalFenceProperties(stream, (VkExternalFenceProperties*)(pExternalFenceProperties));
     if (pExternalFenceProperties)
     {
-        transform_fromhost_VkExternalFenceProperties(mImpl->resources(), (VkExternalFenceProperties*)(pExternalFenceProperties));
+        transform_fromhost_VkExternalFenceProperties(sResourceTracker, (VkExternalFenceProperties*)(pExternalFenceProperties));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -19035,8 +17432,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalFencePropertiesKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceExternalFencePropertiesKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -19048,14 +17444,13 @@ VkResult VkEncoder::vkImportFenceWin32HandleKHR(
     const VkImportFenceWin32HandleInfoKHR* pImportFenceWin32HandleInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkImportFenceWin32HandleKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkImportFenceWin32HandleInfoKHR* local_pImportFenceWin32HandleInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pImportFenceWin32HandleInfo = nullptr;
     if (pImportFenceWin32HandleInfo)
@@ -19063,19 +17458,16 @@ VkResult VkEncoder::vkImportFenceWin32HandleKHR(
         local_pImportFenceWin32HandleInfo = (VkImportFenceWin32HandleInfoKHR*)pool->alloc(sizeof(const VkImportFenceWin32HandleInfoKHR));
         deepcopy_VkImportFenceWin32HandleInfoKHR(pool, pImportFenceWin32HandleInfo, (VkImportFenceWin32HandleInfoKHR*)(local_pImportFenceWin32HandleInfo));
     }
-    local_doLock = doLock;
     if (local_pImportFenceWin32HandleInfo)
     {
-        transform_tohost_VkImportFenceWin32HandleInfoKHR(mImpl->resources(), (VkImportFenceWin32HandleInfoKHR*)(local_pImportFenceWin32HandleInfo));
+        transform_tohost_VkImportFenceWin32HandleInfoKHR(sResourceTracker, (VkImportFenceWin32HandleInfoKHR*)(local_pImportFenceWin32HandleInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_973;
         *countPtr += 1 * 8;
-        count_VkImportFenceWin32HandleInfoKHR(featureBits, (VkImportFenceWin32HandleInfoKHR*)(local_pImportFenceWin32HandleInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkImportFenceWin32HandleInfoKHR(sFeatureBits, (VkImportFenceWin32HandleInfoKHR*)(local_pImportFenceWin32HandleInfo), countPtr);
     }
     uint32_t packetSize_vkImportFenceWin32HandleKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkImportFenceWin32HandleKHR);
@@ -19088,8 +17480,6 @@ VkResult VkEncoder::vkImportFenceWin32HandleKHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_974, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkImportFenceWin32HandleInfoKHR(stream, (VkImportFenceWin32HandleInfoKHR*)(local_pImportFenceWin32HandleInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkImportFenceWin32HandleKHR_VkResult_return = (VkResult)0;
     stream->read(&vkImportFenceWin32HandleKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -19098,8 +17488,7 @@ VkResult VkEncoder::vkImportFenceWin32HandleKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkImportFenceWin32HandleKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkImportFenceWin32HandleKHR_VkResult_return;
 }
 
@@ -19109,14 +17498,13 @@ VkResult VkEncoder::vkGetFenceWin32HandleKHR(
     HANDLE* pHandle,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetFenceWin32HandleKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkFenceGetWin32HandleInfoKHR* local_pGetWin32HandleInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pGetWin32HandleInfo = nullptr;
     if (pGetWin32HandleInfo)
@@ -19124,20 +17512,17 @@ VkResult VkEncoder::vkGetFenceWin32HandleKHR(
         local_pGetWin32HandleInfo = (VkFenceGetWin32HandleInfoKHR*)pool->alloc(sizeof(const VkFenceGetWin32HandleInfoKHR));
         deepcopy_VkFenceGetWin32HandleInfoKHR(pool, pGetWin32HandleInfo, (VkFenceGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
     }
-    local_doLock = doLock;
     if (local_pGetWin32HandleInfo)
     {
-        transform_tohost_VkFenceGetWin32HandleInfoKHR(mImpl->resources(), (VkFenceGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
+        transform_tohost_VkFenceGetWin32HandleInfoKHR(sResourceTracker, (VkFenceGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_975;
         *countPtr += 1 * 8;
-        count_VkFenceGetWin32HandleInfoKHR(featureBits, (VkFenceGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), countPtr);
+        count_VkFenceGetWin32HandleInfoKHR(sFeatureBits, (VkFenceGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), countPtr);
         *countPtr += sizeof(HANDLE);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetFenceWin32HandleKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetFenceWin32HandleKHR);
@@ -19152,8 +17537,6 @@ VkResult VkEncoder::vkGetFenceWin32HandleKHR(
     reservedmarshal_VkFenceGetWin32HandleInfoKHR(stream, (VkFenceGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (HANDLE*)pHandle, sizeof(HANDLE));
     *streamPtrPtr += sizeof(HANDLE);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((HANDLE*)pHandle, sizeof(HANDLE));
     VkResult vkGetFenceWin32HandleKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetFenceWin32HandleKHR_VkResult_return, sizeof(VkResult));
@@ -19163,8 +17546,7 @@ VkResult VkEncoder::vkGetFenceWin32HandleKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetFenceWin32HandleKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetFenceWin32HandleKHR_VkResult_return;
 }
 
@@ -19175,14 +17557,13 @@ VkResult VkEncoder::vkImportFenceFdKHR(
     const VkImportFenceFdInfoKHR* pImportFenceFdInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkImportFenceFdKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkImportFenceFdInfoKHR* local_pImportFenceFdInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pImportFenceFdInfo = nullptr;
     if (pImportFenceFdInfo)
@@ -19190,19 +17571,16 @@ VkResult VkEncoder::vkImportFenceFdKHR(
         local_pImportFenceFdInfo = (VkImportFenceFdInfoKHR*)pool->alloc(sizeof(const VkImportFenceFdInfoKHR));
         deepcopy_VkImportFenceFdInfoKHR(pool, pImportFenceFdInfo, (VkImportFenceFdInfoKHR*)(local_pImportFenceFdInfo));
     }
-    local_doLock = doLock;
     if (local_pImportFenceFdInfo)
     {
-        transform_tohost_VkImportFenceFdInfoKHR(mImpl->resources(), (VkImportFenceFdInfoKHR*)(local_pImportFenceFdInfo));
+        transform_tohost_VkImportFenceFdInfoKHR(sResourceTracker, (VkImportFenceFdInfoKHR*)(local_pImportFenceFdInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_977;
         *countPtr += 1 * 8;
-        count_VkImportFenceFdInfoKHR(featureBits, (VkImportFenceFdInfoKHR*)(local_pImportFenceFdInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkImportFenceFdInfoKHR(sFeatureBits, (VkImportFenceFdInfoKHR*)(local_pImportFenceFdInfo), countPtr);
     }
     uint32_t packetSize_vkImportFenceFdKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkImportFenceFdKHR);
@@ -19215,8 +17593,6 @@ VkResult VkEncoder::vkImportFenceFdKHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_978, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkImportFenceFdInfoKHR(stream, (VkImportFenceFdInfoKHR*)(local_pImportFenceFdInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkImportFenceFdKHR_VkResult_return = (VkResult)0;
     stream->read(&vkImportFenceFdKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -19225,8 +17601,7 @@ VkResult VkEncoder::vkImportFenceFdKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkImportFenceFdKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkImportFenceFdKHR_VkResult_return;
 }
 
@@ -19236,14 +17611,13 @@ VkResult VkEncoder::vkGetFenceFdKHR(
     int* pFd,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetFenceFdKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkFenceGetFdInfoKHR* local_pGetFdInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pGetFdInfo = nullptr;
     if (pGetFdInfo)
@@ -19251,20 +17625,17 @@ VkResult VkEncoder::vkGetFenceFdKHR(
         local_pGetFdInfo = (VkFenceGetFdInfoKHR*)pool->alloc(sizeof(const VkFenceGetFdInfoKHR));
         deepcopy_VkFenceGetFdInfoKHR(pool, pGetFdInfo, (VkFenceGetFdInfoKHR*)(local_pGetFdInfo));
     }
-    local_doLock = doLock;
     if (local_pGetFdInfo)
     {
-        transform_tohost_VkFenceGetFdInfoKHR(mImpl->resources(), (VkFenceGetFdInfoKHR*)(local_pGetFdInfo));
+        transform_tohost_VkFenceGetFdInfoKHR(sResourceTracker, (VkFenceGetFdInfoKHR*)(local_pGetFdInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_979;
         *countPtr += 1 * 8;
-        count_VkFenceGetFdInfoKHR(featureBits, (VkFenceGetFdInfoKHR*)(local_pGetFdInfo), countPtr);
+        count_VkFenceGetFdInfoKHR(sFeatureBits, (VkFenceGetFdInfoKHR*)(local_pGetFdInfo), countPtr);
         *countPtr += sizeof(int);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetFenceFdKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetFenceFdKHR);
@@ -19279,8 +17650,6 @@ VkResult VkEncoder::vkGetFenceFdKHR(
     reservedmarshal_VkFenceGetFdInfoKHR(stream, (VkFenceGetFdInfoKHR*)(local_pGetFdInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (int*)pFd, sizeof(int));
     *streamPtrPtr += sizeof(int);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((int*)pFd, sizeof(int));
     VkResult vkGetFenceFdKHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetFenceFdKHR_VkResult_return, sizeof(VkResult));
@@ -19290,8 +17659,7 @@ VkResult VkEncoder::vkGetFenceFdKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetFenceFdKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetFenceFdKHR_VkResult_return;
 }
 
@@ -19305,14 +17673,13 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2KHR(
     VkSurfaceCapabilities2KHR* pSurfaceCapabilities,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceSurfaceCapabilities2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkPhysicalDeviceSurfaceInfo2KHR* local_pSurfaceInfo;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_pSurfaceInfo = nullptr;
     if (pSurfaceInfo)
@@ -19320,20 +17687,17 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2KHR(
         local_pSurfaceInfo = (VkPhysicalDeviceSurfaceInfo2KHR*)pool->alloc(sizeof(const VkPhysicalDeviceSurfaceInfo2KHR));
         deepcopy_VkPhysicalDeviceSurfaceInfo2KHR(pool, pSurfaceInfo, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
     }
-    local_doLock = doLock;
     if (local_pSurfaceInfo)
     {
-        transform_tohost_VkPhysicalDeviceSurfaceInfo2KHR(mImpl->resources(), (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
+        transform_tohost_VkPhysicalDeviceSurfaceInfo2KHR(sResourceTracker, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_981;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceSurfaceInfo2KHR(featureBits, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), countPtr);
-        count_VkSurfaceCapabilities2KHR(featureBits, (VkSurfaceCapabilities2KHR*)(pSurfaceCapabilities), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkPhysicalDeviceSurfaceInfo2KHR(sFeatureBits, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), countPtr);
+        count_VkSurfaceCapabilities2KHR(sFeatureBits, (VkSurfaceCapabilities2KHR*)(pSurfaceCapabilities), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceSurfaceCapabilities2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceSurfaceCapabilities2KHR);
@@ -19347,12 +17711,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2KHR(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkPhysicalDeviceSurfaceInfo2KHR(stream, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), streamPtrPtr);
     reservedmarshal_VkSurfaceCapabilities2KHR(stream, (VkSurfaceCapabilities2KHR*)(pSurfaceCapabilities), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkSurfaceCapabilities2KHR(stream, (VkSurfaceCapabilities2KHR*)(pSurfaceCapabilities));
     if (pSurfaceCapabilities)
     {
-        transform_fromhost_VkSurfaceCapabilities2KHR(mImpl->resources(), (VkSurfaceCapabilities2KHR*)(pSurfaceCapabilities));
+        transform_fromhost_VkSurfaceCapabilities2KHR(sResourceTracker, (VkSurfaceCapabilities2KHR*)(pSurfaceCapabilities));
     }
     VkResult vkGetPhysicalDeviceSurfaceCapabilities2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceSurfaceCapabilities2KHR_VkResult_return, sizeof(VkResult));
@@ -19362,8 +17724,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2KHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceSurfaceCapabilities2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceSurfaceCapabilities2KHR_VkResult_return;
 }
 
@@ -19374,14 +17735,13 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
     VkSurfaceFormat2KHR* pSurfaceFormats,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceSurfaceFormats2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkPhysicalDeviceSurfaceInfo2KHR* local_pSurfaceInfo;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_pSurfaceInfo = nullptr;
     if (pSurfaceInfo)
@@ -19389,18 +17749,16 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
         local_pSurfaceInfo = (VkPhysicalDeviceSurfaceInfo2KHR*)pool->alloc(sizeof(const VkPhysicalDeviceSurfaceInfo2KHR));
         deepcopy_VkPhysicalDeviceSurfaceInfo2KHR(pool, pSurfaceInfo, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
     }
-    local_doLock = doLock;
     if (local_pSurfaceInfo)
     {
-        transform_tohost_VkPhysicalDeviceSurfaceInfo2KHR(mImpl->resources(), (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
+        transform_tohost_VkPhysicalDeviceSurfaceInfo2KHR(sResourceTracker, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_983;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceSurfaceInfo2KHR(featureBits, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), countPtr);
+        count_VkPhysicalDeviceSurfaceInfo2KHR(sFeatureBits, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (pSurfaceFormatCount)
@@ -19413,10 +17771,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
             {
-                count_VkSurfaceFormat2KHR(featureBits, (VkSurfaceFormat2KHR*)(pSurfaceFormats + i), countPtr);
+                count_VkSurfaceFormat2KHR(sFeatureBits, (VkSurfaceFormat2KHR*)(pSurfaceFormats + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceSurfaceFormats2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceSurfaceFormats2KHR);
@@ -19451,8 +17808,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
             reservedmarshal_VkSurfaceFormat2KHR(stream, (VkSurfaceFormat2KHR*)(pSurfaceFormats + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pSurfaceFormatCount;
     check_pSurfaceFormatCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -19482,7 +17837,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
         {
-            transform_fromhost_VkSurfaceFormat2KHR(mImpl->resources(), (VkSurfaceFormat2KHR*)(pSurfaceFormats + i));
+            transform_fromhost_VkSurfaceFormat2KHR(sResourceTracker, (VkSurfaceFormat2KHR*)(pSurfaceFormats + i));
         }
     }
     VkResult vkGetPhysicalDeviceSurfaceFormats2KHR_VkResult_return = (VkResult)0;
@@ -19493,8 +17848,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceSurfaceFormats2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceSurfaceFormats2KHR_VkResult_return;
 }
 
@@ -19508,16 +17862,13 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
     VkDisplayProperties2KHR* pProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceDisplayProperties2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -19535,10 +17886,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                count_VkDisplayProperties2KHR(featureBits, (VkDisplayProperties2KHR*)(pProperties + i), countPtr);
+                count_VkDisplayProperties2KHR(sFeatureBits, (VkDisplayProperties2KHR*)(pProperties + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceDisplayProperties2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceDisplayProperties2KHR);
@@ -19572,8 +17922,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
             reservedmarshal_VkDisplayProperties2KHR(stream, (VkDisplayProperties2KHR*)(pProperties + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
     check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -19603,7 +17951,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            transform_fromhost_VkDisplayProperties2KHR(mImpl->resources(), (VkDisplayProperties2KHR*)(pProperties + i));
+            transform_fromhost_VkDisplayProperties2KHR(sResourceTracker, (VkDisplayProperties2KHR*)(pProperties + i));
         }
     }
     VkResult vkGetPhysicalDeviceDisplayProperties2KHR_VkResult_return = (VkResult)0;
@@ -19614,8 +17962,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceDisplayProperties2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceDisplayProperties2KHR_VkResult_return;
 }
 
@@ -19625,16 +17972,13 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
     VkDisplayPlaneProperties2KHR* pProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceDisplayPlaneProperties2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -19652,10 +17996,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                count_VkDisplayPlaneProperties2KHR(featureBits, (VkDisplayPlaneProperties2KHR*)(pProperties + i), countPtr);
+                count_VkDisplayPlaneProperties2KHR(sFeatureBits, (VkDisplayPlaneProperties2KHR*)(pProperties + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceDisplayPlaneProperties2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceDisplayPlaneProperties2KHR);
@@ -19689,8 +18032,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
             reservedmarshal_VkDisplayPlaneProperties2KHR(stream, (VkDisplayPlaneProperties2KHR*)(pProperties + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
     check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -19720,7 +18061,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            transform_fromhost_VkDisplayPlaneProperties2KHR(mImpl->resources(), (VkDisplayPlaneProperties2KHR*)(pProperties + i));
+            transform_fromhost_VkDisplayPlaneProperties2KHR(sResourceTracker, (VkDisplayPlaneProperties2KHR*)(pProperties + i));
         }
     }
     VkResult vkGetPhysicalDeviceDisplayPlaneProperties2KHR_VkResult_return = (VkResult)0;
@@ -19731,8 +18072,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceDisplayPlaneProperties2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceDisplayPlaneProperties2KHR_VkResult_return;
 }
 
@@ -19743,18 +18083,15 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
     VkDisplayModeProperties2KHR* pProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetDisplayModeProperties2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkDisplayKHR local_display;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_display = display;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -19774,10 +18111,9 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                count_VkDisplayModeProperties2KHR(featureBits, (VkDisplayModeProperties2KHR*)(pProperties + i), countPtr);
+                count_VkDisplayModeProperties2KHR(sFeatureBits, (VkDisplayModeProperties2KHR*)(pProperties + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetDisplayModeProperties2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDisplayModeProperties2KHR);
@@ -19815,8 +18151,6 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
             reservedmarshal_VkDisplayModeProperties2KHR(stream, (VkDisplayModeProperties2KHR*)(pProperties + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pPropertyCount;
     check_pPropertyCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -19846,7 +18180,7 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            transform_fromhost_VkDisplayModeProperties2KHR(mImpl->resources(), (VkDisplayModeProperties2KHR*)(pProperties + i));
+            transform_fromhost_VkDisplayModeProperties2KHR(sResourceTracker, (VkDisplayModeProperties2KHR*)(pProperties + i));
         }
     }
     VkResult vkGetDisplayModeProperties2KHR_VkResult_return = (VkResult)0;
@@ -19857,8 +18191,7 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetDisplayModeProperties2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetDisplayModeProperties2KHR_VkResult_return;
 }
 
@@ -19868,14 +18201,13 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilities2KHR(
     VkDisplayPlaneCapabilities2KHR* pCapabilities,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetDisplayPlaneCapabilities2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkDisplayPlaneInfo2KHR* local_pDisplayPlaneInfo;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_pDisplayPlaneInfo = nullptr;
     if (pDisplayPlaneInfo)
@@ -19883,20 +18215,17 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilities2KHR(
         local_pDisplayPlaneInfo = (VkDisplayPlaneInfo2KHR*)pool->alloc(sizeof(const VkDisplayPlaneInfo2KHR));
         deepcopy_VkDisplayPlaneInfo2KHR(pool, pDisplayPlaneInfo, (VkDisplayPlaneInfo2KHR*)(local_pDisplayPlaneInfo));
     }
-    local_doLock = doLock;
     if (local_pDisplayPlaneInfo)
     {
-        transform_tohost_VkDisplayPlaneInfo2KHR(mImpl->resources(), (VkDisplayPlaneInfo2KHR*)(local_pDisplayPlaneInfo));
+        transform_tohost_VkDisplayPlaneInfo2KHR(sResourceTracker, (VkDisplayPlaneInfo2KHR*)(local_pDisplayPlaneInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1009;
         *countPtr += 1 * 8;
-        count_VkDisplayPlaneInfo2KHR(featureBits, (VkDisplayPlaneInfo2KHR*)(local_pDisplayPlaneInfo), countPtr);
-        count_VkDisplayPlaneCapabilities2KHR(featureBits, (VkDisplayPlaneCapabilities2KHR*)(pCapabilities), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkDisplayPlaneInfo2KHR(sFeatureBits, (VkDisplayPlaneInfo2KHR*)(local_pDisplayPlaneInfo), countPtr);
+        count_VkDisplayPlaneCapabilities2KHR(sFeatureBits, (VkDisplayPlaneCapabilities2KHR*)(pCapabilities), countPtr);
     }
     uint32_t packetSize_vkGetDisplayPlaneCapabilities2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDisplayPlaneCapabilities2KHR);
@@ -19910,12 +18239,10 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilities2KHR(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkDisplayPlaneInfo2KHR(stream, (VkDisplayPlaneInfo2KHR*)(local_pDisplayPlaneInfo), streamPtrPtr);
     reservedmarshal_VkDisplayPlaneCapabilities2KHR(stream, (VkDisplayPlaneCapabilities2KHR*)(pCapabilities), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkDisplayPlaneCapabilities2KHR(stream, (VkDisplayPlaneCapabilities2KHR*)(pCapabilities));
     if (pCapabilities)
     {
-        transform_fromhost_VkDisplayPlaneCapabilities2KHR(mImpl->resources(), (VkDisplayPlaneCapabilities2KHR*)(pCapabilities));
+        transform_fromhost_VkDisplayPlaneCapabilities2KHR(sResourceTracker, (VkDisplayPlaneCapabilities2KHR*)(pCapabilities));
     }
     VkResult vkGetDisplayPlaneCapabilities2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkGetDisplayPlaneCapabilities2KHR_VkResult_return, sizeof(VkResult));
@@ -19925,8 +18252,7 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilities2KHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetDisplayPlaneCapabilities2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetDisplayPlaneCapabilities2KHR_VkResult_return;
 }
 
@@ -19944,14 +18270,13 @@ void VkEncoder::vkGetImageMemoryRequirements2KHR(
     VkMemoryRequirements2* pMemoryRequirements,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetImageMemoryRequirements2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkImageMemoryRequirementsInfo2* local_pInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pInfo = nullptr;
     if (pInfo)
@@ -19959,20 +18284,17 @@ void VkEncoder::vkGetImageMemoryRequirements2KHR(
         local_pInfo = (VkImageMemoryRequirementsInfo2*)pool->alloc(sizeof(const VkImageMemoryRequirementsInfo2));
         deepcopy_VkImageMemoryRequirementsInfo2(pool, pInfo, (VkImageMemoryRequirementsInfo2*)(local_pInfo));
     }
-    local_doLock = doLock;
     if (local_pInfo)
     {
-        transform_tohost_VkImageMemoryRequirementsInfo2(mImpl->resources(), (VkImageMemoryRequirementsInfo2*)(local_pInfo));
+        transform_tohost_VkImageMemoryRequirementsInfo2(sResourceTracker, (VkImageMemoryRequirementsInfo2*)(local_pInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1011;
         *countPtr += 1 * 8;
-        count_VkImageMemoryRequirementsInfo2(featureBits, (VkImageMemoryRequirementsInfo2*)(local_pInfo), countPtr);
-        count_VkMemoryRequirements2(featureBits, (VkMemoryRequirements2*)(pMemoryRequirements), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkImageMemoryRequirementsInfo2(sFeatureBits, (VkImageMemoryRequirementsInfo2*)(local_pInfo), countPtr);
+        count_VkMemoryRequirements2(sFeatureBits, (VkMemoryRequirements2*)(pMemoryRequirements), countPtr);
     }
     uint32_t packetSize_vkGetImageMemoryRequirements2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetImageMemoryRequirements2KHR);
@@ -19986,12 +18308,10 @@ void VkEncoder::vkGetImageMemoryRequirements2KHR(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkImageMemoryRequirementsInfo2(stream, (VkImageMemoryRequirementsInfo2*)(local_pInfo), streamPtrPtr);
     reservedmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
     if (pMemoryRequirements)
     {
-        transform_fromhost_VkMemoryRequirements2(mImpl->resources(), (VkMemoryRequirements2*)(pMemoryRequirements));
+        transform_fromhost_VkMemoryRequirements2(sResourceTracker, (VkMemoryRequirements2*)(pMemoryRequirements));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -19999,8 +18319,7 @@ void VkEncoder::vkGetImageMemoryRequirements2KHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetImageMemoryRequirements2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetBufferMemoryRequirements2KHR(
@@ -20009,14 +18328,13 @@ void VkEncoder::vkGetBufferMemoryRequirements2KHR(
     VkMemoryRequirements2* pMemoryRequirements,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetBufferMemoryRequirements2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkBufferMemoryRequirementsInfo2* local_pInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pInfo = nullptr;
     if (pInfo)
@@ -20024,20 +18342,17 @@ void VkEncoder::vkGetBufferMemoryRequirements2KHR(
         local_pInfo = (VkBufferMemoryRequirementsInfo2*)pool->alloc(sizeof(const VkBufferMemoryRequirementsInfo2));
         deepcopy_VkBufferMemoryRequirementsInfo2(pool, pInfo, (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
     }
-    local_doLock = doLock;
     if (local_pInfo)
     {
-        transform_tohost_VkBufferMemoryRequirementsInfo2(mImpl->resources(), (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
+        transform_tohost_VkBufferMemoryRequirementsInfo2(sResourceTracker, (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1013;
         *countPtr += 1 * 8;
-        count_VkBufferMemoryRequirementsInfo2(featureBits, (VkBufferMemoryRequirementsInfo2*)(local_pInfo), countPtr);
-        count_VkMemoryRequirements2(featureBits, (VkMemoryRequirements2*)(pMemoryRequirements), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkBufferMemoryRequirementsInfo2(sFeatureBits, (VkBufferMemoryRequirementsInfo2*)(local_pInfo), countPtr);
+        count_VkMemoryRequirements2(sFeatureBits, (VkMemoryRequirements2*)(pMemoryRequirements), countPtr);
     }
     uint32_t packetSize_vkGetBufferMemoryRequirements2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetBufferMemoryRequirements2KHR);
@@ -20051,12 +18366,10 @@ void VkEncoder::vkGetBufferMemoryRequirements2KHR(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkBufferMemoryRequirementsInfo2(stream, (VkBufferMemoryRequirementsInfo2*)(local_pInfo), streamPtrPtr);
     reservedmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
     if (pMemoryRequirements)
     {
-        transform_fromhost_VkMemoryRequirements2(mImpl->resources(), (VkMemoryRequirements2*)(pMemoryRequirements));
+        transform_fromhost_VkMemoryRequirements2(sResourceTracker, (VkMemoryRequirements2*)(pMemoryRequirements));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -20064,8 +18377,7 @@ void VkEncoder::vkGetBufferMemoryRequirements2KHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetBufferMemoryRequirements2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
@@ -20075,14 +18387,13 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetImageSparseMemoryRequirements2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkImageSparseMemoryRequirementsInfo2* local_pInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pInfo = nullptr;
     if (pInfo)
@@ -20090,18 +18401,16 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
         local_pInfo = (VkImageSparseMemoryRequirementsInfo2*)pool->alloc(sizeof(const VkImageSparseMemoryRequirementsInfo2));
         deepcopy_VkImageSparseMemoryRequirementsInfo2(pool, pInfo, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo));
     }
-    local_doLock = doLock;
     if (local_pInfo)
     {
-        transform_tohost_VkImageSparseMemoryRequirementsInfo2(mImpl->resources(), (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo));
+        transform_tohost_VkImageSparseMemoryRequirementsInfo2(sResourceTracker, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1015;
         *countPtr += 1 * 8;
-        count_VkImageSparseMemoryRequirementsInfo2(featureBits, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo), countPtr);
+        count_VkImageSparseMemoryRequirementsInfo2(sFeatureBits, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (pSparseMemoryRequirementCount)
@@ -20114,10 +18423,9 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
             {
-                count_VkSparseImageMemoryRequirements2(featureBits, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i), countPtr);
+                count_VkSparseImageMemoryRequirements2(sFeatureBits, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetImageSparseMemoryRequirements2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetImageSparseMemoryRequirements2KHR);
@@ -20152,8 +18460,6 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
             reservedmarshal_VkSparseImageMemoryRequirements2(stream, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pSparseMemoryRequirementCount;
     check_pSparseMemoryRequirementCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -20183,7 +18489,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
         {
-            transform_fromhost_VkSparseImageMemoryRequirements2(mImpl->resources(), (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
+            transform_fromhost_VkSparseImageMemoryRequirements2(sResourceTracker, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
         }
     }
     ++encodeCount;;
@@ -20192,8 +18498,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetImageSparseMemoryRequirements2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -20207,15 +18512,14 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
     VkSamplerYcbcrConversion* pYcbcrConversion,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateSamplerYcbcrConversionKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkSamplerYcbcrConversionCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -20229,32 +18533,29 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkSamplerYcbcrConversionCreateInfo(mImpl->resources(), (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkSamplerYcbcrConversionCreateInfo(sResourceTracker, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1021;
         *countPtr += 1 * 8;
-        count_VkSamplerYcbcrConversionCreateInfo(featureBits, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkSamplerYcbcrConversionCreateInfo(sFeatureBits, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1022;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateSamplerYcbcrConversionKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateSamplerYcbcrConversionKHR);
@@ -20282,9 +18583,7 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1025, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_1026;
     stream->read((uint64_t*)&cgen_var_1026, 8);
     stream->handleMapping()->mapHandles_u64_VkSamplerYcbcrConversion(&cgen_var_1026, (VkSamplerYcbcrConversion*)pYcbcrConversion, 1);
@@ -20297,8 +18596,7 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateSamplerYcbcrConversionKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateSamplerYcbcrConversionKHR_VkResult_return;
 }
 
@@ -20308,15 +18606,14 @@ void VkEncoder::vkDestroySamplerYcbcrConversionKHR(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroySamplerYcbcrConversionKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkSamplerYcbcrConversion local_ycbcrConversion;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_ycbcrConversion = ycbcrConversion;
     local_pAllocator = nullptr;
@@ -20325,13 +18622,11 @@ void VkEncoder::vkDestroySamplerYcbcrConversionKHR(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -20343,9 +18638,8 @@ void VkEncoder::vkDestroySamplerYcbcrConversionKHR(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroySamplerYcbcrConversionKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroySamplerYcbcrConversionKHR);
@@ -20370,17 +18664,14 @@ void VkEncoder::vkDestroySamplerYcbcrConversionKHR(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkSamplerYcbcrConversion((VkSamplerYcbcrConversion*)&ycbcrConversion);
+    sResourceTracker->destroyMapping()->mapHandles_VkSamplerYcbcrConversion((VkSamplerYcbcrConversion*)&ycbcrConversion);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroySamplerYcbcrConversionKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -20391,15 +18682,14 @@ VkResult VkEncoder::vkBindBufferMemory2KHR(
     const VkBindBufferMemoryInfo* pBindInfos,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkBindBufferMemory2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     uint32_t local_bindInfoCount;
     VkBindBufferMemoryInfo* local_pBindInfos;
-    uint32_t local_doLock;
     local_device = device;
     local_bindInfoCount = bindInfoCount;
     local_pBindInfos = nullptr;
@@ -20411,15 +18701,13 @@ VkResult VkEncoder::vkBindBufferMemory2KHR(
             deepcopy_VkBindBufferMemoryInfo(pool, pBindInfos + i, (VkBindBufferMemoryInfo*)(local_pBindInfos + i));
         }
     }
-    local_doLock = doLock;
     if (local_pBindInfos)
     {
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            transform_tohost_VkBindBufferMemoryInfo(mImpl->resources(), (VkBindBufferMemoryInfo*)(local_pBindInfos + i));
+            transform_tohost_VkBindBufferMemoryInfo(sResourceTracker, (VkBindBufferMemoryInfo*)(local_pBindInfos + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -20428,9 +18716,8 @@ VkResult VkEncoder::vkBindBufferMemory2KHR(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            count_VkBindBufferMemoryInfo(featureBits, (VkBindBufferMemoryInfo*)(local_pBindInfos + i), countPtr);
+            count_VkBindBufferMemoryInfo(sFeatureBits, (VkBindBufferMemoryInfo*)(local_pBindInfos + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkBindBufferMemory2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkBindBufferMemory2KHR);
@@ -20448,8 +18735,6 @@ VkResult VkEncoder::vkBindBufferMemory2KHR(
     {
         reservedmarshal_VkBindBufferMemoryInfo(stream, (VkBindBufferMemoryInfo*)(local_pBindInfos + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkBindBufferMemory2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkBindBufferMemory2KHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -20458,8 +18743,7 @@ VkResult VkEncoder::vkBindBufferMemory2KHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkBindBufferMemory2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkBindBufferMemory2KHR_VkResult_return;
 }
 
@@ -20469,15 +18753,14 @@ VkResult VkEncoder::vkBindImageMemory2KHR(
     const VkBindImageMemoryInfo* pBindInfos,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkBindImageMemory2KHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     uint32_t local_bindInfoCount;
     VkBindImageMemoryInfo* local_pBindInfos;
-    uint32_t local_doLock;
     local_device = device;
     local_bindInfoCount = bindInfoCount;
     local_pBindInfos = nullptr;
@@ -20489,15 +18772,13 @@ VkResult VkEncoder::vkBindImageMemory2KHR(
             deepcopy_VkBindImageMemoryInfo(pool, pBindInfos + i, (VkBindImageMemoryInfo*)(local_pBindInfos + i));
         }
     }
-    local_doLock = doLock;
     if (local_pBindInfos)
     {
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            transform_tohost_VkBindImageMemoryInfo(mImpl->resources(), (VkBindImageMemoryInfo*)(local_pBindInfos + i));
+            transform_tohost_VkBindImageMemoryInfo(sResourceTracker, (VkBindImageMemoryInfo*)(local_pBindInfos + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -20506,9 +18787,8 @@ VkResult VkEncoder::vkBindImageMemory2KHR(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            count_VkBindImageMemoryInfo(featureBits, (VkBindImageMemoryInfo*)(local_pBindInfos + i), countPtr);
+            count_VkBindImageMemoryInfo(sFeatureBits, (VkBindImageMemoryInfo*)(local_pBindInfos + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkBindImageMemory2KHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkBindImageMemory2KHR);
@@ -20526,8 +18806,6 @@ VkResult VkEncoder::vkBindImageMemory2KHR(
     {
         reservedmarshal_VkBindImageMemoryInfo(stream, (VkBindImageMemoryInfo*)(local_pBindInfos + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkBindImageMemory2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkBindImageMemory2KHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -20536,8 +18814,7 @@ VkResult VkEncoder::vkBindImageMemory2KHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkBindImageMemory2KHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkBindImageMemory2KHR_VkResult_return;
 }
 
@@ -20549,14 +18826,13 @@ void VkEncoder::vkGetDescriptorSetLayoutSupportKHR(
     VkDescriptorSetLayoutSupport* pSupport,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetDescriptorSetLayoutSupportKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDescriptorSetLayoutCreateInfo* local_pCreateInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -20564,20 +18840,17 @@ void VkEncoder::vkGetDescriptorSetLayoutSupportKHR(
         local_pCreateInfo = (VkDescriptorSetLayoutCreateInfo*)pool->alloc(sizeof(const VkDescriptorSetLayoutCreateInfo));
         deepcopy_VkDescriptorSetLayoutCreateInfo(pool, pCreateInfo, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
     }
-    local_doLock = doLock;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkDescriptorSetLayoutCreateInfo(mImpl->resources(), (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkDescriptorSetLayoutCreateInfo(sResourceTracker, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1036;
         *countPtr += 1 * 8;
-        count_VkDescriptorSetLayoutCreateInfo(featureBits, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), countPtr);
-        count_VkDescriptorSetLayoutSupport(featureBits, (VkDescriptorSetLayoutSupport*)(pSupport), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkDescriptorSetLayoutCreateInfo(sFeatureBits, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkDescriptorSetLayoutSupport(sFeatureBits, (VkDescriptorSetLayoutSupport*)(pSupport), countPtr);
     }
     uint32_t packetSize_vkGetDescriptorSetLayoutSupportKHR = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDescriptorSetLayoutSupportKHR);
@@ -20591,12 +18864,10 @@ void VkEncoder::vkGetDescriptorSetLayoutSupportKHR(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkDescriptorSetLayoutCreateInfo(stream, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     reservedmarshal_VkDescriptorSetLayoutSupport(stream, (VkDescriptorSetLayoutSupport*)(pSupport), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkDescriptorSetLayoutSupport(stream, (VkDescriptorSetLayoutSupport*)(pSupport));
     if (pSupport)
     {
-        transform_fromhost_VkDescriptorSetLayoutSupport(mImpl->resources(), (VkDescriptorSetLayoutSupport*)(pSupport));
+        transform_fromhost_VkDescriptorSetLayoutSupport(sResourceTracker, (VkDescriptorSetLayoutSupport*)(pSupport));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -20604,8 +18875,7 @@ void VkEncoder::vkGetDescriptorSetLayoutSupportKHR(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetDescriptorSetLayoutSupportKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -20620,10 +18890,10 @@ void VkEncoder::vkCmdDrawIndirectCountKHR(
     uint32_t stride,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdDrawIndirectCountKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkBuffer local_buffer;
@@ -20632,7 +18902,6 @@ void VkEncoder::vkCmdDrawIndirectCountKHR(
     VkDeviceSize local_countBufferOffset;
     uint32_t local_maxDrawCount;
     uint32_t local_stride;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_buffer = buffer;
     local_offset = offset;
@@ -20640,8 +18909,6 @@ void VkEncoder::vkCmdDrawIndirectCountKHR(
     local_countBufferOffset = countBufferOffset;
     local_maxDrawCount = maxDrawCount;
     local_stride = stride;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -20653,7 +18920,6 @@ void VkEncoder::vkCmdDrawIndirectCountKHR(
         uint64_t cgen_var_1040;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkDeviceSize);
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
@@ -20683,16 +18949,13 @@ void VkEncoder::vkCmdDrawIndirectCountKHR(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (uint32_t*)&local_stride, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdDrawIndirectCountKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdDrawIndexedIndirectCountKHR(
@@ -20705,10 +18968,10 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountKHR(
     uint32_t stride,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdDrawIndexedIndirectCountKHR");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkBuffer local_buffer;
@@ -20717,7 +18980,6 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountKHR(
     VkDeviceSize local_countBufferOffset;
     uint32_t local_maxDrawCount;
     uint32_t local_stride;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_buffer = buffer;
     local_offset = offset;
@@ -20725,8 +18987,6 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountKHR(
     local_countBufferOffset = countBufferOffset;
     local_maxDrawCount = maxDrawCount;
     local_stride = stride;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -20738,7 +18998,6 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountKHR(
         uint64_t cgen_var_1046;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkDeviceSize);
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
@@ -20768,16 +19027,13 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountKHR(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (uint32_t*)&local_stride, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdDrawIndexedIndirectCountKHR");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -20793,20 +19049,17 @@ VkResult VkEncoder::vkGetSwapchainGrallocUsageANDROID(
     int* grallocUsage,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetSwapchainGrallocUsageANDROID");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkFormat local_format;
     VkImageUsageFlags local_imageUsage;
-    uint32_t local_doLock;
     local_device = device;
     local_format = format;
     local_imageUsage = imageUsage;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -20815,7 +19068,6 @@ VkResult VkEncoder::vkGetSwapchainGrallocUsageANDROID(
         *countPtr += sizeof(VkFormat);
         *countPtr += sizeof(VkImageUsageFlags);
         *countPtr += sizeof(int);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetSwapchainGrallocUsageANDROID = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetSwapchainGrallocUsageANDROID);
@@ -20833,8 +19085,6 @@ VkResult VkEncoder::vkGetSwapchainGrallocUsageANDROID(
     *streamPtrPtr += sizeof(VkImageUsageFlags);
     memcpy(*streamPtrPtr, (int*)grallocUsage, sizeof(int));
     *streamPtrPtr += sizeof(int);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((int*)grallocUsage, sizeof(int));
     VkResult vkGetSwapchainGrallocUsageANDROID_VkResult_return = (VkResult)0;
     stream->read(&vkGetSwapchainGrallocUsageANDROID_VkResult_return, sizeof(VkResult));
@@ -20844,8 +19094,7 @@ VkResult VkEncoder::vkGetSwapchainGrallocUsageANDROID(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetSwapchainGrallocUsageANDROID");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetSwapchainGrallocUsageANDROID_VkResult_return;
 }
 
@@ -20857,25 +19106,22 @@ VkResult VkEncoder::vkAcquireImageANDROID(
     VkFence fence,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkAcquireImageANDROID");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkImage local_image;
     int local_nativeFenceFd;
     VkSemaphore local_semaphore;
     VkFence local_fence;
-    uint32_t local_doLock;
     local_device = device;
     local_image = image;
     local_nativeFenceFd = nativeFenceFd;
     local_semaphore = semaphore;
     local_fence = fence;
-    local_doLock = doLock;
-    mImpl->resources()->unwrap_vkAcquireImageANDROID_nativeFenceFd(nativeFenceFd, &local_nativeFenceFd);
-    uint32_t featureBits = stream->getFeatureBits();
+    sResourceTracker->unwrap_vkAcquireImageANDROID_nativeFenceFd(nativeFenceFd, &local_nativeFenceFd);
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -20888,7 +19134,6 @@ VkResult VkEncoder::vkAcquireImageANDROID(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1055;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkAcquireImageANDROID = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkAcquireImageANDROID);
@@ -20914,8 +19159,6 @@ VkResult VkEncoder::vkAcquireImageANDROID(
     *&cgen_var_1059 = get_host_u64_VkFence((*&local_fence));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1059, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkAcquireImageANDROID_VkResult_return = (VkResult)0;
     stream->read(&vkAcquireImageANDROID_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -20924,8 +19167,7 @@ VkResult VkEncoder::vkAcquireImageANDROID(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkAcquireImageANDROID");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkAcquireImageANDROID_VkResult_return;
 }
 
@@ -20937,16 +19179,15 @@ VkResult VkEncoder::vkQueueSignalReleaseImageANDROID(
     int* pNativeFenceFd,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkQueueSignalReleaseImageANDROID");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkQueue local_queue;
     uint32_t local_waitSemaphoreCount;
     VkSemaphore* local_pWaitSemaphores;
     VkImage local_image;
-    uint32_t local_doLock;
     local_queue = queue;
     local_waitSemaphoreCount = waitSemaphoreCount;
     local_pWaitSemaphores = nullptr;
@@ -20955,8 +19196,6 @@ VkResult VkEncoder::vkQueueSignalReleaseImageANDROID(
         local_pWaitSemaphores = (VkSemaphore*)pool->dupArray(pWaitSemaphores, ((waitSemaphoreCount)) * sizeof(const VkSemaphore));
     }
     local_image = image;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -20975,7 +19214,6 @@ VkResult VkEncoder::vkQueueSignalReleaseImageANDROID(
         uint64_t cgen_var_1062;
         *countPtr += 1 * 8;
         *countPtr += sizeof(int);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkQueueSignalReleaseImageANDROID = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkQueueSignalReleaseImageANDROID);
@@ -21014,8 +19252,6 @@ VkResult VkEncoder::vkQueueSignalReleaseImageANDROID(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (int*)pNativeFenceFd, sizeof(int));
     *streamPtrPtr += sizeof(int);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((int*)pNativeFenceFd, sizeof(int));
     VkResult vkQueueSignalReleaseImageANDROID_VkResult_return = (VkResult)0;
     stream->read(&vkQueueSignalReleaseImageANDROID_VkResult_return, sizeof(VkResult));
@@ -21026,8 +19262,7 @@ VkResult VkEncoder::vkQueueSignalReleaseImageANDROID(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkQueueSignalReleaseImageANDROID");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkQueueSignalReleaseImageANDROID_VkResult_return;
 }
 
@@ -21040,15 +19275,14 @@ VkResult VkEncoder::vkCreateDebugReportCallbackEXT(
     VkDebugReportCallbackEXT* pCallback,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateDebugReportCallbackEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
     VkDebugReportCallbackCreateInfoEXT* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -21062,32 +19296,29 @@ VkResult VkEncoder::vkCreateDebugReportCallbackEXT(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkDebugReportCallbackCreateInfoEXT(mImpl->resources(), (VkDebugReportCallbackCreateInfoEXT*)(local_pCreateInfo));
+        transform_tohost_VkDebugReportCallbackCreateInfoEXT(sResourceTracker, (VkDebugReportCallbackCreateInfoEXT*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1067;
         *countPtr += 1 * 8;
-        count_VkDebugReportCallbackCreateInfoEXT(featureBits, (VkDebugReportCallbackCreateInfoEXT*)(local_pCreateInfo), countPtr);
+        count_VkDebugReportCallbackCreateInfoEXT(sFeatureBits, (VkDebugReportCallbackCreateInfoEXT*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1068;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateDebugReportCallbackEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateDebugReportCallbackEXT);
@@ -21115,9 +19346,7 @@ VkResult VkEncoder::vkCreateDebugReportCallbackEXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1071, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_1072;
     stream->read((uint64_t*)&cgen_var_1072, 8);
     stream->handleMapping()->mapHandles_u64_VkDebugReportCallbackEXT(&cgen_var_1072, (VkDebugReportCallbackEXT*)pCallback, 1);
@@ -21130,8 +19359,7 @@ VkResult VkEncoder::vkCreateDebugReportCallbackEXT(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateDebugReportCallbackEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateDebugReportCallbackEXT_VkResult_return;
 }
 
@@ -21141,15 +19369,14 @@ void VkEncoder::vkDestroyDebugReportCallbackEXT(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyDebugReportCallbackEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
     VkDebugReportCallbackEXT local_callback;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_instance = instance;
     local_callback = callback;
     local_pAllocator = nullptr;
@@ -21158,13 +19385,11 @@ void VkEncoder::vkDestroyDebugReportCallbackEXT(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -21176,9 +19401,8 @@ void VkEncoder::vkDestroyDebugReportCallbackEXT(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyDebugReportCallbackEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyDebugReportCallbackEXT);
@@ -21203,17 +19427,14 @@ void VkEncoder::vkDestroyDebugReportCallbackEXT(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkDebugReportCallbackEXT((VkDebugReportCallbackEXT*)&callback);
+    sResourceTracker->destroyMapping()->mapHandles_VkDebugReportCallbackEXT((VkDebugReportCallbackEXT*)&callback);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyDebugReportCallbackEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkDebugReportMessageEXT(
@@ -21227,10 +19448,10 @@ void VkEncoder::vkDebugReportMessageEXT(
     const char* pMessage,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDebugReportMessageEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
     VkDebugReportFlagsEXT local_flags;
@@ -21240,7 +19461,6 @@ void VkEncoder::vkDebugReportMessageEXT(
     int32_t local_messageCode;
     char* local_pLayerPrefix;
     char* local_pMessage;
-    uint32_t local_doLock;
     local_instance = instance;
     local_flags = flags;
     local_objectType = objectType;
@@ -21257,8 +19477,6 @@ void VkEncoder::vkDebugReportMessageEXT(
     {
         local_pMessage = pool->strDup(pMessage);
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -21271,7 +19489,6 @@ void VkEncoder::vkDebugReportMessageEXT(
         *countPtr += sizeof(int32_t);
         *countPtr += sizeof(uint32_t) + (local_pLayerPrefix ? strlen(local_pLayerPrefix) : 0);
         *countPtr += sizeof(uint32_t) + (local_pMessage ? strlen(local_pMessage) : 0);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDebugReportMessageEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDebugReportMessageEXT);
@@ -21311,16 +19528,13 @@ void VkEncoder::vkDebugReportMessageEXT(
         memcpy(*streamPtrPtr, (char*)local_pMessage, l);
         *streamPtrPtr += l;
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDebugReportMessageEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -21342,14 +19556,13 @@ VkResult VkEncoder::vkDebugMarkerSetObjectTagEXT(
     const VkDebugMarkerObjectTagInfoEXT* pTagInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDebugMarkerSetObjectTagEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDebugMarkerObjectTagInfoEXT* local_pTagInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pTagInfo = nullptr;
     if (pTagInfo)
@@ -21357,19 +19570,16 @@ VkResult VkEncoder::vkDebugMarkerSetObjectTagEXT(
         local_pTagInfo = (VkDebugMarkerObjectTagInfoEXT*)pool->alloc(sizeof(const VkDebugMarkerObjectTagInfoEXT));
         deepcopy_VkDebugMarkerObjectTagInfoEXT(pool, pTagInfo, (VkDebugMarkerObjectTagInfoEXT*)(local_pTagInfo));
     }
-    local_doLock = doLock;
     if (local_pTagInfo)
     {
-        transform_tohost_VkDebugMarkerObjectTagInfoEXT(mImpl->resources(), (VkDebugMarkerObjectTagInfoEXT*)(local_pTagInfo));
+        transform_tohost_VkDebugMarkerObjectTagInfoEXT(sResourceTracker, (VkDebugMarkerObjectTagInfoEXT*)(local_pTagInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1081;
         *countPtr += 1 * 8;
-        count_VkDebugMarkerObjectTagInfoEXT(featureBits, (VkDebugMarkerObjectTagInfoEXT*)(local_pTagInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkDebugMarkerObjectTagInfoEXT(sFeatureBits, (VkDebugMarkerObjectTagInfoEXT*)(local_pTagInfo), countPtr);
     }
     uint32_t packetSize_vkDebugMarkerSetObjectTagEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDebugMarkerSetObjectTagEXT);
@@ -21382,8 +19592,6 @@ VkResult VkEncoder::vkDebugMarkerSetObjectTagEXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1082, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkDebugMarkerObjectTagInfoEXT(stream, (VkDebugMarkerObjectTagInfoEXT*)(local_pTagInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkDebugMarkerSetObjectTagEXT_VkResult_return = (VkResult)0;
     stream->read(&vkDebugMarkerSetObjectTagEXT_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -21392,8 +19600,7 @@ VkResult VkEncoder::vkDebugMarkerSetObjectTagEXT(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDebugMarkerSetObjectTagEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkDebugMarkerSetObjectTagEXT_VkResult_return;
 }
 
@@ -21402,14 +19609,13 @@ VkResult VkEncoder::vkDebugMarkerSetObjectNameEXT(
     const VkDebugMarkerObjectNameInfoEXT* pNameInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDebugMarkerSetObjectNameEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDebugMarkerObjectNameInfoEXT* local_pNameInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pNameInfo = nullptr;
     if (pNameInfo)
@@ -21417,19 +19623,16 @@ VkResult VkEncoder::vkDebugMarkerSetObjectNameEXT(
         local_pNameInfo = (VkDebugMarkerObjectNameInfoEXT*)pool->alloc(sizeof(const VkDebugMarkerObjectNameInfoEXT));
         deepcopy_VkDebugMarkerObjectNameInfoEXT(pool, pNameInfo, (VkDebugMarkerObjectNameInfoEXT*)(local_pNameInfo));
     }
-    local_doLock = doLock;
     if (local_pNameInfo)
     {
-        transform_tohost_VkDebugMarkerObjectNameInfoEXT(mImpl->resources(), (VkDebugMarkerObjectNameInfoEXT*)(local_pNameInfo));
+        transform_tohost_VkDebugMarkerObjectNameInfoEXT(sResourceTracker, (VkDebugMarkerObjectNameInfoEXT*)(local_pNameInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1083;
         *countPtr += 1 * 8;
-        count_VkDebugMarkerObjectNameInfoEXT(featureBits, (VkDebugMarkerObjectNameInfoEXT*)(local_pNameInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkDebugMarkerObjectNameInfoEXT(sFeatureBits, (VkDebugMarkerObjectNameInfoEXT*)(local_pNameInfo), countPtr);
     }
     uint32_t packetSize_vkDebugMarkerSetObjectNameEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDebugMarkerSetObjectNameEXT);
@@ -21442,8 +19645,6 @@ VkResult VkEncoder::vkDebugMarkerSetObjectNameEXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1084, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkDebugMarkerObjectNameInfoEXT(stream, (VkDebugMarkerObjectNameInfoEXT*)(local_pNameInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkDebugMarkerSetObjectNameEXT_VkResult_return = (VkResult)0;
     stream->read(&vkDebugMarkerSetObjectNameEXT_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -21452,8 +19653,7 @@ VkResult VkEncoder::vkDebugMarkerSetObjectNameEXT(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDebugMarkerSetObjectNameEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkDebugMarkerSetObjectNameEXT_VkResult_return;
 }
 
@@ -21462,14 +19662,13 @@ void VkEncoder::vkCmdDebugMarkerBeginEXT(
     const VkDebugMarkerMarkerInfoEXT* pMarkerInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdDebugMarkerBeginEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkDebugMarkerMarkerInfoEXT* local_pMarkerInfo;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pMarkerInfo = nullptr;
     if (pMarkerInfo)
@@ -21477,19 +19676,16 @@ void VkEncoder::vkCmdDebugMarkerBeginEXT(
         local_pMarkerInfo = (VkDebugMarkerMarkerInfoEXT*)pool->alloc(sizeof(const VkDebugMarkerMarkerInfoEXT));
         deepcopy_VkDebugMarkerMarkerInfoEXT(pool, pMarkerInfo, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
     }
-    local_doLock = doLock;
     if (local_pMarkerInfo)
     {
-        transform_tohost_VkDebugMarkerMarkerInfoEXT(mImpl->resources(), (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
+        transform_tohost_VkDebugMarkerMarkerInfoEXT(sResourceTracker, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1085;
         *countPtr += 1 * 8;
-        count_VkDebugMarkerMarkerInfoEXT(featureBits, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkDebugMarkerMarkerInfoEXT(sFeatureBits, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo), countPtr);
     }
     uint32_t packetSize_vkCmdDebugMarkerBeginEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdDebugMarkerBeginEXT);
@@ -21502,38 +19698,31 @@ void VkEncoder::vkCmdDebugMarkerBeginEXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1086, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkDebugMarkerMarkerInfoEXT(stream, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdDebugMarkerBeginEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdDebugMarkerEndEXT(
     VkCommandBuffer commandBuffer,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdDebugMarkerEndEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1087;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdDebugMarkerEndEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdDebugMarkerEndEXT);
@@ -21545,16 +19734,13 @@ void VkEncoder::vkCmdDebugMarkerEndEXT(
     *&cgen_var_1088 = get_host_u64_VkCommandBuffer((*&local_commandBuffer));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1088, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdDebugMarkerEndEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdDebugMarkerInsertEXT(
@@ -21562,14 +19748,13 @@ void VkEncoder::vkCmdDebugMarkerInsertEXT(
     const VkDebugMarkerMarkerInfoEXT* pMarkerInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdDebugMarkerInsertEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkDebugMarkerMarkerInfoEXT* local_pMarkerInfo;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pMarkerInfo = nullptr;
     if (pMarkerInfo)
@@ -21577,19 +19762,16 @@ void VkEncoder::vkCmdDebugMarkerInsertEXT(
         local_pMarkerInfo = (VkDebugMarkerMarkerInfoEXT*)pool->alloc(sizeof(const VkDebugMarkerMarkerInfoEXT));
         deepcopy_VkDebugMarkerMarkerInfoEXT(pool, pMarkerInfo, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
     }
-    local_doLock = doLock;
     if (local_pMarkerInfo)
     {
-        transform_tohost_VkDebugMarkerMarkerInfoEXT(mImpl->resources(), (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
+        transform_tohost_VkDebugMarkerMarkerInfoEXT(sResourceTracker, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1089;
         *countPtr += 1 * 8;
-        count_VkDebugMarkerMarkerInfoEXT(featureBits, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkDebugMarkerMarkerInfoEXT(sFeatureBits, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo), countPtr);
     }
     uint32_t packetSize_vkCmdDebugMarkerInsertEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdDebugMarkerInsertEXT);
@@ -21602,16 +19784,13 @@ void VkEncoder::vkCmdDebugMarkerInsertEXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1090, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkDebugMarkerMarkerInfoEXT(stream, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdDebugMarkerInsertEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -21630,10 +19809,10 @@ void VkEncoder::vkCmdDrawIndirectCountAMD(
     uint32_t stride,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdDrawIndirectCountAMD");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkBuffer local_buffer;
@@ -21642,7 +19821,6 @@ void VkEncoder::vkCmdDrawIndirectCountAMD(
     VkDeviceSize local_countBufferOffset;
     uint32_t local_maxDrawCount;
     uint32_t local_stride;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_buffer = buffer;
     local_offset = offset;
@@ -21650,8 +19828,6 @@ void VkEncoder::vkCmdDrawIndirectCountAMD(
     local_countBufferOffset = countBufferOffset;
     local_maxDrawCount = maxDrawCount;
     local_stride = stride;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -21663,7 +19839,6 @@ void VkEncoder::vkCmdDrawIndirectCountAMD(
         uint64_t cgen_var_1093;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkDeviceSize);
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
@@ -21693,16 +19868,13 @@ void VkEncoder::vkCmdDrawIndirectCountAMD(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (uint32_t*)&local_stride, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdDrawIndirectCountAMD");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdDrawIndexedIndirectCountAMD(
@@ -21715,10 +19887,10 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountAMD(
     uint32_t stride,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdDrawIndexedIndirectCountAMD");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkBuffer local_buffer;
@@ -21727,7 +19899,6 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountAMD(
     VkDeviceSize local_countBufferOffset;
     uint32_t local_maxDrawCount;
     uint32_t local_stride;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_buffer = buffer;
     local_offset = offset;
@@ -21735,8 +19906,6 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountAMD(
     local_countBufferOffset = countBufferOffset;
     local_maxDrawCount = maxDrawCount;
     local_stride = stride;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -21748,7 +19917,6 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountAMD(
         uint64_t cgen_var_1099;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkDeviceSize);
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
@@ -21778,16 +19946,13 @@ void VkEncoder::vkCmdDrawIndexedIndirectCountAMD(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (uint32_t*)&local_stride, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdDrawIndexedIndirectCountAMD");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -21809,22 +19974,19 @@ VkResult VkEncoder::vkGetShaderInfoAMD(
     void* pInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetShaderInfoAMD");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkPipeline local_pipeline;
     VkShaderStageFlagBits local_shaderStage;
     VkShaderInfoTypeAMD local_infoType;
-    uint32_t local_doLock;
     local_device = device;
     local_pipeline = pipeline;
     local_shaderStage = shaderStage;
     local_infoType = infoType;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -21846,7 +20008,6 @@ VkResult VkEncoder::vkGetShaderInfoAMD(
         {
             *countPtr += (*(pInfoSize)) * sizeof(uint8_t);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetShaderInfoAMD = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetShaderInfoAMD);
@@ -21888,8 +20049,6 @@ VkResult VkEncoder::vkGetShaderInfoAMD(
         memcpy(*streamPtrPtr, (void*)pInfo, (*(pInfoSize)) * sizeof(uint8_t));
         *streamPtrPtr += (*(pInfoSize)) * sizeof(uint8_t);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     size_t* check_pInfoSize;
     check_pInfoSize = (size_t*)(uintptr_t)stream->getBe64();
@@ -21920,8 +20079,7 @@ VkResult VkEncoder::vkGetShaderInfoAMD(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetShaderInfoAMD");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetShaderInfoAMD_VkResult_return;
 }
 
@@ -21942,10 +20100,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceExternalImageFormatPropertiesNV(
     VkExternalImageFormatPropertiesNV* pExternalImageFormatProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceExternalImageFormatPropertiesNV");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkFormat local_format;
@@ -21954,7 +20112,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceExternalImageFormatPropertiesNV(
     VkImageUsageFlags local_usage;
     VkImageCreateFlags local_flags;
     VkExternalMemoryHandleTypeFlagsNV local_externalHandleType;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_format = format;
     local_type = type;
@@ -21962,8 +20119,6 @@ VkResult VkEncoder::vkGetPhysicalDeviceExternalImageFormatPropertiesNV(
     local_usage = usage;
     local_flags = flags;
     local_externalHandleType = externalHandleType;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -21975,8 +20130,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceExternalImageFormatPropertiesNV(
         *countPtr += sizeof(VkImageUsageFlags);
         *countPtr += sizeof(VkImageCreateFlags);
         *countPtr += sizeof(VkExternalMemoryHandleTypeFlagsNV);
-        count_VkExternalImageFormatPropertiesNV(featureBits, (VkExternalImageFormatPropertiesNV*)(pExternalImageFormatProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkExternalImageFormatPropertiesNV(sFeatureBits, (VkExternalImageFormatPropertiesNV*)(pExternalImageFormatProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceExternalImageFormatPropertiesNV = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceExternalImageFormatPropertiesNV);
@@ -22001,12 +20155,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceExternalImageFormatPropertiesNV(
     memcpy(*streamPtrPtr, (VkExternalMemoryHandleTypeFlagsNV*)&local_externalHandleType, sizeof(VkExternalMemoryHandleTypeFlagsNV));
     *streamPtrPtr += sizeof(VkExternalMemoryHandleTypeFlagsNV);
     reservedmarshal_VkExternalImageFormatPropertiesNV(stream, (VkExternalImageFormatPropertiesNV*)(pExternalImageFormatProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkExternalImageFormatPropertiesNV(stream, (VkExternalImageFormatPropertiesNV*)(pExternalImageFormatProperties));
     if (pExternalImageFormatProperties)
     {
-        transform_fromhost_VkExternalImageFormatPropertiesNV(mImpl->resources(), (VkExternalImageFormatPropertiesNV*)(pExternalImageFormatProperties));
+        transform_fromhost_VkExternalImageFormatPropertiesNV(sResourceTracker, (VkExternalImageFormatPropertiesNV*)(pExternalImageFormatProperties));
     }
     VkResult vkGetPhysicalDeviceExternalImageFormatPropertiesNV_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceExternalImageFormatPropertiesNV_VkResult_return, sizeof(VkResult));
@@ -22016,8 +20168,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceExternalImageFormatPropertiesNV(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceExternalImageFormatPropertiesNV");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceExternalImageFormatPropertiesNV_VkResult_return;
 }
 
@@ -22032,21 +20183,18 @@ VkResult VkEncoder::vkGetMemoryWin32HandleNV(
     HANDLE* pHandle,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetMemoryWin32HandleNV");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDeviceMemory local_memory;
     VkExternalMemoryHandleTypeFlagsNV local_handleType;
-    uint32_t local_doLock;
     local_device = device;
     local_memory = memory;
     local_handleType = handleType;
-    local_doLock = doLock;
-    mImpl->resources()->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
-    uint32_t featureBits = stream->getFeatureBits();
+    sResourceTracker->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -22056,7 +20204,6 @@ VkResult VkEncoder::vkGetMemoryWin32HandleNV(
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkExternalMemoryHandleTypeFlagsNV);
         *countPtr += sizeof(HANDLE);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetMemoryWin32HandleNV = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetMemoryWin32HandleNV);
@@ -22076,8 +20223,6 @@ VkResult VkEncoder::vkGetMemoryWin32HandleNV(
     *streamPtrPtr += sizeof(VkExternalMemoryHandleTypeFlagsNV);
     memcpy(*streamPtrPtr, (HANDLE*)pHandle, sizeof(HANDLE));
     *streamPtrPtr += sizeof(HANDLE);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((HANDLE*)pHandle, sizeof(HANDLE));
     VkResult vkGetMemoryWin32HandleNV_VkResult_return = (VkResult)0;
     stream->read(&vkGetMemoryWin32HandleNV_VkResult_return, sizeof(VkResult));
@@ -22087,8 +20232,7 @@ VkResult VkEncoder::vkGetMemoryWin32HandleNV(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetMemoryWin32HandleNV");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetMemoryWin32HandleNV_VkResult_return;
 }
 
@@ -22105,15 +20249,14 @@ VkResult VkEncoder::vkCreateViSurfaceNN(
     VkSurfaceKHR* pSurface,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateViSurfaceNN");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
     VkViSurfaceCreateInfoNN* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -22127,32 +20270,29 @@ VkResult VkEncoder::vkCreateViSurfaceNN(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkViSurfaceCreateInfoNN(mImpl->resources(), (VkViSurfaceCreateInfoNN*)(local_pCreateInfo));
+        transform_tohost_VkViSurfaceCreateInfoNN(sResourceTracker, (VkViSurfaceCreateInfoNN*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1119;
         *countPtr += 1 * 8;
-        count_VkViSurfaceCreateInfoNN(featureBits, (VkViSurfaceCreateInfoNN*)(local_pCreateInfo), countPtr);
+        count_VkViSurfaceCreateInfoNN(sFeatureBits, (VkViSurfaceCreateInfoNN*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1120;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateViSurfaceNN = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateViSurfaceNN);
@@ -22180,8 +20320,6 @@ VkResult VkEncoder::vkCreateViSurfaceNN(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1123, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     uint64_t cgen_var_1124;
     stream->read((uint64_t*)&cgen_var_1124, 8);
     stream->handleMapping()->mapHandles_u64_VkSurfaceKHR(&cgen_var_1124, (VkSurfaceKHR*)pSurface, 1);
@@ -22193,8 +20331,7 @@ VkResult VkEncoder::vkCreateViSurfaceNN(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateViSurfaceNN");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateViSurfaceNN_VkResult_return;
 }
 
@@ -22209,14 +20346,13 @@ void VkEncoder::vkCmdBeginConditionalRenderingEXT(
     const VkConditionalRenderingBeginInfoEXT* pConditionalRenderingBegin,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdBeginConditionalRenderingEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkConditionalRenderingBeginInfoEXT* local_pConditionalRenderingBegin;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pConditionalRenderingBegin = nullptr;
     if (pConditionalRenderingBegin)
@@ -22224,19 +20360,16 @@ void VkEncoder::vkCmdBeginConditionalRenderingEXT(
         local_pConditionalRenderingBegin = (VkConditionalRenderingBeginInfoEXT*)pool->alloc(sizeof(const VkConditionalRenderingBeginInfoEXT));
         deepcopy_VkConditionalRenderingBeginInfoEXT(pool, pConditionalRenderingBegin, (VkConditionalRenderingBeginInfoEXT*)(local_pConditionalRenderingBegin));
     }
-    local_doLock = doLock;
     if (local_pConditionalRenderingBegin)
     {
-        transform_tohost_VkConditionalRenderingBeginInfoEXT(mImpl->resources(), (VkConditionalRenderingBeginInfoEXT*)(local_pConditionalRenderingBegin));
+        transform_tohost_VkConditionalRenderingBeginInfoEXT(sResourceTracker, (VkConditionalRenderingBeginInfoEXT*)(local_pConditionalRenderingBegin));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1125;
         *countPtr += 1 * 8;
-        count_VkConditionalRenderingBeginInfoEXT(featureBits, (VkConditionalRenderingBeginInfoEXT*)(local_pConditionalRenderingBegin), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkConditionalRenderingBeginInfoEXT(sFeatureBits, (VkConditionalRenderingBeginInfoEXT*)(local_pConditionalRenderingBegin), countPtr);
     }
     uint32_t packetSize_vkCmdBeginConditionalRenderingEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdBeginConditionalRenderingEXT);
@@ -22249,38 +20382,31 @@ void VkEncoder::vkCmdBeginConditionalRenderingEXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1126, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkConditionalRenderingBeginInfoEXT(stream, (VkConditionalRenderingBeginInfoEXT*)(local_pConditionalRenderingBegin), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdBeginConditionalRenderingEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdEndConditionalRenderingEXT(
     VkCommandBuffer commandBuffer,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdEndConditionalRenderingEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1127;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdEndConditionalRenderingEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdEndConditionalRenderingEXT);
@@ -22292,16 +20418,13 @@ void VkEncoder::vkCmdEndConditionalRenderingEXT(
     *&cgen_var_1128 = get_host_u64_VkCommandBuffer((*&local_commandBuffer));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1128, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdEndConditionalRenderingEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -22311,14 +20434,13 @@ void VkEncoder::vkCmdProcessCommandsNVX(
     const VkCmdProcessCommandsInfoNVX* pProcessCommandsInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdProcessCommandsNVX");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkCmdProcessCommandsInfoNVX* local_pProcessCommandsInfo;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pProcessCommandsInfo = nullptr;
     if (pProcessCommandsInfo)
@@ -22326,19 +20448,16 @@ void VkEncoder::vkCmdProcessCommandsNVX(
         local_pProcessCommandsInfo = (VkCmdProcessCommandsInfoNVX*)pool->alloc(sizeof(const VkCmdProcessCommandsInfoNVX));
         deepcopy_VkCmdProcessCommandsInfoNVX(pool, pProcessCommandsInfo, (VkCmdProcessCommandsInfoNVX*)(local_pProcessCommandsInfo));
     }
-    local_doLock = doLock;
     if (local_pProcessCommandsInfo)
     {
-        transform_tohost_VkCmdProcessCommandsInfoNVX(mImpl->resources(), (VkCmdProcessCommandsInfoNVX*)(local_pProcessCommandsInfo));
+        transform_tohost_VkCmdProcessCommandsInfoNVX(sResourceTracker, (VkCmdProcessCommandsInfoNVX*)(local_pProcessCommandsInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1129;
         *countPtr += 1 * 8;
-        count_VkCmdProcessCommandsInfoNVX(featureBits, (VkCmdProcessCommandsInfoNVX*)(local_pProcessCommandsInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkCmdProcessCommandsInfoNVX(sFeatureBits, (VkCmdProcessCommandsInfoNVX*)(local_pProcessCommandsInfo), countPtr);
     }
     uint32_t packetSize_vkCmdProcessCommandsNVX = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdProcessCommandsNVX);
@@ -22351,16 +20470,13 @@ void VkEncoder::vkCmdProcessCommandsNVX(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1130, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkCmdProcessCommandsInfoNVX(stream, (VkCmdProcessCommandsInfoNVX*)(local_pProcessCommandsInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdProcessCommandsNVX");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdReserveSpaceForCommandsNVX(
@@ -22368,14 +20484,13 @@ void VkEncoder::vkCmdReserveSpaceForCommandsNVX(
     const VkCmdReserveSpaceForCommandsInfoNVX* pReserveSpaceInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdReserveSpaceForCommandsNVX");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkCmdReserveSpaceForCommandsInfoNVX* local_pReserveSpaceInfo;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pReserveSpaceInfo = nullptr;
     if (pReserveSpaceInfo)
@@ -22383,19 +20498,16 @@ void VkEncoder::vkCmdReserveSpaceForCommandsNVX(
         local_pReserveSpaceInfo = (VkCmdReserveSpaceForCommandsInfoNVX*)pool->alloc(sizeof(const VkCmdReserveSpaceForCommandsInfoNVX));
         deepcopy_VkCmdReserveSpaceForCommandsInfoNVX(pool, pReserveSpaceInfo, (VkCmdReserveSpaceForCommandsInfoNVX*)(local_pReserveSpaceInfo));
     }
-    local_doLock = doLock;
     if (local_pReserveSpaceInfo)
     {
-        transform_tohost_VkCmdReserveSpaceForCommandsInfoNVX(mImpl->resources(), (VkCmdReserveSpaceForCommandsInfoNVX*)(local_pReserveSpaceInfo));
+        transform_tohost_VkCmdReserveSpaceForCommandsInfoNVX(sResourceTracker, (VkCmdReserveSpaceForCommandsInfoNVX*)(local_pReserveSpaceInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1131;
         *countPtr += 1 * 8;
-        count_VkCmdReserveSpaceForCommandsInfoNVX(featureBits, (VkCmdReserveSpaceForCommandsInfoNVX*)(local_pReserveSpaceInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkCmdReserveSpaceForCommandsInfoNVX(sFeatureBits, (VkCmdReserveSpaceForCommandsInfoNVX*)(local_pReserveSpaceInfo), countPtr);
     }
     uint32_t packetSize_vkCmdReserveSpaceForCommandsNVX = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdReserveSpaceForCommandsNVX);
@@ -22408,16 +20520,13 @@ void VkEncoder::vkCmdReserveSpaceForCommandsNVX(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1132, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkCmdReserveSpaceForCommandsInfoNVX(stream, (VkCmdReserveSpaceForCommandsInfoNVX*)(local_pReserveSpaceInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdReserveSpaceForCommandsNVX");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkCreateIndirectCommandsLayoutNVX(
@@ -22427,15 +20536,14 @@ VkResult VkEncoder::vkCreateIndirectCommandsLayoutNVX(
     VkIndirectCommandsLayoutNVX* pIndirectCommandsLayout,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateIndirectCommandsLayoutNVX");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkIndirectCommandsLayoutCreateInfoNVX* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -22449,32 +20557,29 @@ VkResult VkEncoder::vkCreateIndirectCommandsLayoutNVX(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkIndirectCommandsLayoutCreateInfoNVX(mImpl->resources(), (VkIndirectCommandsLayoutCreateInfoNVX*)(local_pCreateInfo));
+        transform_tohost_VkIndirectCommandsLayoutCreateInfoNVX(sResourceTracker, (VkIndirectCommandsLayoutCreateInfoNVX*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1133;
         *countPtr += 1 * 8;
-        count_VkIndirectCommandsLayoutCreateInfoNVX(featureBits, (VkIndirectCommandsLayoutCreateInfoNVX*)(local_pCreateInfo), countPtr);
+        count_VkIndirectCommandsLayoutCreateInfoNVX(sFeatureBits, (VkIndirectCommandsLayoutCreateInfoNVX*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1134;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateIndirectCommandsLayoutNVX = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateIndirectCommandsLayoutNVX);
@@ -22502,9 +20607,7 @@ VkResult VkEncoder::vkCreateIndirectCommandsLayoutNVX(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1137, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_1138;
     stream->read((uint64_t*)&cgen_var_1138, 8);
     stream->handleMapping()->mapHandles_u64_VkIndirectCommandsLayoutNVX(&cgen_var_1138, (VkIndirectCommandsLayoutNVX*)pIndirectCommandsLayout, 1);
@@ -22517,8 +20620,7 @@ VkResult VkEncoder::vkCreateIndirectCommandsLayoutNVX(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateIndirectCommandsLayoutNVX");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateIndirectCommandsLayoutNVX_VkResult_return;
 }
 
@@ -22528,15 +20630,14 @@ void VkEncoder::vkDestroyIndirectCommandsLayoutNVX(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyIndirectCommandsLayoutNVX");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkIndirectCommandsLayoutNVX local_indirectCommandsLayout;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_indirectCommandsLayout = indirectCommandsLayout;
     local_pAllocator = nullptr;
@@ -22545,13 +20646,11 @@ void VkEncoder::vkDestroyIndirectCommandsLayoutNVX(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -22563,9 +20662,8 @@ void VkEncoder::vkDestroyIndirectCommandsLayoutNVX(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyIndirectCommandsLayoutNVX = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyIndirectCommandsLayoutNVX);
@@ -22590,17 +20688,14 @@ void VkEncoder::vkDestroyIndirectCommandsLayoutNVX(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkIndirectCommandsLayoutNVX((VkIndirectCommandsLayoutNVX*)&indirectCommandsLayout);
+    sResourceTracker->destroyMapping()->mapHandles_VkIndirectCommandsLayoutNVX((VkIndirectCommandsLayoutNVX*)&indirectCommandsLayout);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyIndirectCommandsLayoutNVX");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkCreateObjectTableNVX(
@@ -22610,15 +20705,14 @@ VkResult VkEncoder::vkCreateObjectTableNVX(
     VkObjectTableNVX* pObjectTable,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateObjectTableNVX");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkObjectTableCreateInfoNVX* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -22632,32 +20726,29 @@ VkResult VkEncoder::vkCreateObjectTableNVX(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkObjectTableCreateInfoNVX(mImpl->resources(), (VkObjectTableCreateInfoNVX*)(local_pCreateInfo));
+        transform_tohost_VkObjectTableCreateInfoNVX(sResourceTracker, (VkObjectTableCreateInfoNVX*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1144;
         *countPtr += 1 * 8;
-        count_VkObjectTableCreateInfoNVX(featureBits, (VkObjectTableCreateInfoNVX*)(local_pCreateInfo), countPtr);
+        count_VkObjectTableCreateInfoNVX(sFeatureBits, (VkObjectTableCreateInfoNVX*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1145;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateObjectTableNVX = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateObjectTableNVX);
@@ -22685,9 +20776,7 @@ VkResult VkEncoder::vkCreateObjectTableNVX(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1148, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_1149;
     stream->read((uint64_t*)&cgen_var_1149, 8);
     stream->handleMapping()->mapHandles_u64_VkObjectTableNVX(&cgen_var_1149, (VkObjectTableNVX*)pObjectTable, 1);
@@ -22700,8 +20789,7 @@ VkResult VkEncoder::vkCreateObjectTableNVX(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateObjectTableNVX");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateObjectTableNVX_VkResult_return;
 }
 
@@ -22711,15 +20799,14 @@ void VkEncoder::vkDestroyObjectTableNVX(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyObjectTableNVX");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkObjectTableNVX local_objectTable;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_objectTable = objectTable;
     local_pAllocator = nullptr;
@@ -22728,13 +20815,11 @@ void VkEncoder::vkDestroyObjectTableNVX(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -22746,9 +20831,8 @@ void VkEncoder::vkDestroyObjectTableNVX(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyObjectTableNVX = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyObjectTableNVX);
@@ -22773,17 +20857,14 @@ void VkEncoder::vkDestroyObjectTableNVX(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkObjectTableNVX((VkObjectTableNVX*)&objectTable);
+    sResourceTracker->destroyMapping()->mapHandles_VkObjectTableNVX((VkObjectTableNVX*)&objectTable);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyObjectTableNVX");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkRegisterObjectsNVX(
@@ -22794,17 +20875,16 @@ VkResult VkEncoder::vkRegisterObjectsNVX(
     const uint32_t* pObjectIndices,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkRegisterObjectsNVX");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkObjectTableNVX local_objectTable;
     uint32_t local_objectCount;
     VkObjectTableEntryNVX** local_ppObjectTableEntries;
     uint32_t* local_pObjectIndices;
-    uint32_t local_doLock;
     local_device = device;
     local_objectTable = objectTable;
     local_objectCount = objectCount;
@@ -22814,9 +20894,7 @@ VkResult VkEncoder::vkRegisterObjectsNVX(
     {
         local_pObjectIndices = (uint32_t*)pool->dupArray(pObjectIndices, ((objectCount)) * sizeof(const uint32_t));
     }
-    local_doLock = doLock;
     (void)local_ppObjectTableEntries;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -22827,7 +20905,6 @@ VkResult VkEncoder::vkRegisterObjectsNVX(
         *countPtr += sizeof(uint32_t);
         (void)local_ppObjectTableEntries;
         *countPtr += ((objectCount)) * sizeof(uint32_t);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkRegisterObjectsNVX = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkRegisterObjectsNVX);
@@ -22848,8 +20925,6 @@ VkResult VkEncoder::vkRegisterObjectsNVX(
     (void)local_ppObjectTableEntries;
     memcpy(*streamPtrPtr, (uint32_t*)local_pObjectIndices, ((objectCount)) * sizeof(uint32_t));
     *streamPtrPtr += ((objectCount)) * sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkRegisterObjectsNVX_VkResult_return = (VkResult)0;
     stream->read(&vkRegisterObjectsNVX_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -22858,8 +20933,7 @@ VkResult VkEncoder::vkRegisterObjectsNVX(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkRegisterObjectsNVX");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkRegisterObjectsNVX_VkResult_return;
 }
 
@@ -22871,17 +20945,16 @@ VkResult VkEncoder::vkUnregisterObjectsNVX(
     const uint32_t* pObjectIndices,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkUnregisterObjectsNVX");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkObjectTableNVX local_objectTable;
     uint32_t local_objectCount;
     VkObjectEntryTypeNVX* local_pObjectEntryTypes;
     uint32_t* local_pObjectIndices;
-    uint32_t local_doLock;
     local_device = device;
     local_objectTable = objectTable;
     local_objectCount = objectCount;
@@ -22895,8 +20968,6 @@ VkResult VkEncoder::vkUnregisterObjectsNVX(
     {
         local_pObjectIndices = (uint32_t*)pool->dupArray(pObjectIndices, ((objectCount)) * sizeof(const uint32_t));
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -22907,7 +20978,6 @@ VkResult VkEncoder::vkUnregisterObjectsNVX(
         *countPtr += sizeof(uint32_t);
         *countPtr += ((objectCount)) * sizeof(VkObjectEntryTypeNVX);
         *countPtr += ((objectCount)) * sizeof(uint32_t);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkUnregisterObjectsNVX = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkUnregisterObjectsNVX);
@@ -22929,8 +20999,6 @@ VkResult VkEncoder::vkUnregisterObjectsNVX(
     *streamPtrPtr += ((objectCount)) * sizeof(VkObjectEntryTypeNVX);
     memcpy(*streamPtrPtr, (uint32_t*)local_pObjectIndices, ((objectCount)) * sizeof(uint32_t));
     *streamPtrPtr += ((objectCount)) * sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkUnregisterObjectsNVX_VkResult_return = (VkResult)0;
     stream->read(&vkUnregisterObjectsNVX_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -22939,8 +21007,7 @@ VkResult VkEncoder::vkUnregisterObjectsNVX(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkUnregisterObjectsNVX");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkUnregisterObjectsNVX_VkResult_return;
 }
 
@@ -22950,24 +21017,20 @@ void VkEncoder::vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX(
     VkDeviceGeneratedCommandsLimitsNVX* pLimits,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1163;
         *countPtr += 1 * 8;
-        count_VkDeviceGeneratedCommandsFeaturesNVX(featureBits, (VkDeviceGeneratedCommandsFeaturesNVX*)(pFeatures), countPtr);
-        count_VkDeviceGeneratedCommandsLimitsNVX(featureBits, (VkDeviceGeneratedCommandsLimitsNVX*)(pLimits), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkDeviceGeneratedCommandsFeaturesNVX(sFeatureBits, (VkDeviceGeneratedCommandsFeaturesNVX*)(pFeatures), countPtr);
+        count_VkDeviceGeneratedCommandsLimitsNVX(sFeatureBits, (VkDeviceGeneratedCommandsLimitsNVX*)(pLimits), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX);
@@ -22981,17 +21044,15 @@ void VkEncoder::vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX(
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkDeviceGeneratedCommandsFeaturesNVX(stream, (VkDeviceGeneratedCommandsFeaturesNVX*)(pFeatures), streamPtrPtr);
     reservedmarshal_VkDeviceGeneratedCommandsLimitsNVX(stream, (VkDeviceGeneratedCommandsLimitsNVX*)(pLimits), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkDeviceGeneratedCommandsFeaturesNVX(stream, (VkDeviceGeneratedCommandsFeaturesNVX*)(pFeatures));
     if (pFeatures)
     {
-        transform_fromhost_VkDeviceGeneratedCommandsFeaturesNVX(mImpl->resources(), (VkDeviceGeneratedCommandsFeaturesNVX*)(pFeatures));
+        transform_fromhost_VkDeviceGeneratedCommandsFeaturesNVX(sResourceTracker, (VkDeviceGeneratedCommandsFeaturesNVX*)(pFeatures));
     }
     unmarshal_VkDeviceGeneratedCommandsLimitsNVX(stream, (VkDeviceGeneratedCommandsLimitsNVX*)(pLimits));
     if (pLimits)
     {
-        transform_fromhost_VkDeviceGeneratedCommandsLimitsNVX(mImpl->resources(), (VkDeviceGeneratedCommandsLimitsNVX*)(pLimits));
+        transform_fromhost_VkDeviceGeneratedCommandsLimitsNVX(sResourceTracker, (VkDeviceGeneratedCommandsLimitsNVX*)(pLimits));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -22999,8 +21060,7 @@ void VkEncoder::vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceGeneratedCommandsPropertiesNVX");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -23012,16 +21072,15 @@ void VkEncoder::vkCmdSetViewportWScalingNV(
     const VkViewportWScalingNV* pViewportWScalings,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdSetViewportWScalingNV");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     uint32_t local_firstViewport;
     uint32_t local_viewportCount;
     VkViewportWScalingNV* local_pViewportWScalings;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_firstViewport = firstViewport;
     local_viewportCount = viewportCount;
@@ -23034,15 +21093,13 @@ void VkEncoder::vkCmdSetViewportWScalingNV(
             deepcopy_VkViewportWScalingNV(pool, pViewportWScalings + i, (VkViewportWScalingNV*)(local_pViewportWScalings + i));
         }
     }
-    local_doLock = doLock;
     if (local_pViewportWScalings)
     {
         for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
         {
-            transform_tohost_VkViewportWScalingNV(mImpl->resources(), (VkViewportWScalingNV*)(local_pViewportWScalings + i));
+            transform_tohost_VkViewportWScalingNV(sResourceTracker, (VkViewportWScalingNV*)(local_pViewportWScalings + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -23052,9 +21109,8 @@ void VkEncoder::vkCmdSetViewportWScalingNV(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
         {
-            count_VkViewportWScalingNV(featureBits, (VkViewportWScalingNV*)(local_pViewportWScalings + i), countPtr);
+            count_VkViewportWScalingNV(sFeatureBits, (VkViewportWScalingNV*)(local_pViewportWScalings + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdSetViewportWScalingNV = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdSetViewportWScalingNV);
@@ -23074,16 +21130,13 @@ void VkEncoder::vkCmdSetViewportWScalingNV(
     {
         reservedmarshal_VkViewportWScalingNV(stream, (VkViewportWScalingNV*)(local_pViewportWScalings + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdSetViewportWScalingNV");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -23093,18 +21146,15 @@ VkResult VkEncoder::vkReleaseDisplayEXT(
     VkDisplayKHR display,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkReleaseDisplayEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkDisplayKHR local_display;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_display = display;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -23112,7 +21162,6 @@ VkResult VkEncoder::vkReleaseDisplayEXT(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1168;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkReleaseDisplayEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkReleaseDisplayEXT);
@@ -23128,8 +21177,6 @@ VkResult VkEncoder::vkReleaseDisplayEXT(
     *&cgen_var_1170 = get_host_u64_VkDisplayKHR((*&local_display));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1170, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkReleaseDisplayEXT_VkResult_return = (VkResult)0;
     stream->read(&vkReleaseDisplayEXT_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -23138,8 +21185,7 @@ VkResult VkEncoder::vkReleaseDisplayEXT(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkReleaseDisplayEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkReleaseDisplayEXT_VkResult_return;
 }
 
@@ -23151,18 +21197,15 @@ VkResult VkEncoder::vkAcquireXlibDisplayEXT(
     VkDisplayKHR display,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkAcquireXlibDisplayEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkDisplayKHR local_display;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_display = display;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -23171,7 +21214,6 @@ VkResult VkEncoder::vkAcquireXlibDisplayEXT(
         *countPtr += sizeof(Display);
         uint64_t cgen_var_1172;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkAcquireXlibDisplayEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkAcquireXlibDisplayEXT);
@@ -23189,8 +21231,6 @@ VkResult VkEncoder::vkAcquireXlibDisplayEXT(
     *&cgen_var_1174 = get_host_u64_VkDisplayKHR((*&local_display));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1174, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((Display*)dpy, sizeof(Display));
     VkResult vkAcquireXlibDisplayEXT_VkResult_return = (VkResult)0;
     stream->read(&vkAcquireXlibDisplayEXT_VkResult_return, sizeof(VkResult));
@@ -23200,8 +21240,7 @@ VkResult VkEncoder::vkAcquireXlibDisplayEXT(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkAcquireXlibDisplayEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkAcquireXlibDisplayEXT_VkResult_return;
 }
 
@@ -23212,18 +21251,15 @@ VkResult VkEncoder::vkGetRandROutputDisplayEXT(
     VkDisplayKHR* pDisplay,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetRandROutputDisplayEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     RROutput local_rrOutput;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_rrOutput = rrOutput;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -23233,7 +21269,6 @@ VkResult VkEncoder::vkGetRandROutputDisplayEXT(
         *countPtr += sizeof(RROutput);
         uint64_t cgen_var_1176;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetRandROutputDisplayEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetRandROutputDisplayEXT);
@@ -23255,8 +21290,6 @@ VkResult VkEncoder::vkGetRandROutputDisplayEXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1178, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((Display*)dpy, sizeof(Display));
     uint64_t cgen_var_1179;
     stream->read((uint64_t*)&cgen_var_1179, 8);
@@ -23269,8 +21302,7 @@ VkResult VkEncoder::vkGetRandROutputDisplayEXT(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetRandROutputDisplayEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetRandROutputDisplayEXT_VkResult_return;
 }
 
@@ -23282,18 +21314,15 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2EXT(
     VkSurfaceCapabilities2EXT* pSurfaceCapabilities,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceSurfaceCapabilities2EXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkSurfaceKHR local_surface;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_surface = surface;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -23301,8 +21330,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2EXT(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1181;
         *countPtr += 1 * 8;
-        count_VkSurfaceCapabilities2EXT(featureBits, (VkSurfaceCapabilities2EXT*)(pSurfaceCapabilities), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkSurfaceCapabilities2EXT(sFeatureBits, (VkSurfaceCapabilities2EXT*)(pSurfaceCapabilities), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceSurfaceCapabilities2EXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceSurfaceCapabilities2EXT);
@@ -23319,12 +21347,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2EXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1183, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkSurfaceCapabilities2EXT(stream, (VkSurfaceCapabilities2EXT*)(pSurfaceCapabilities), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkSurfaceCapabilities2EXT(stream, (VkSurfaceCapabilities2EXT*)(pSurfaceCapabilities));
     if (pSurfaceCapabilities)
     {
-        transform_fromhost_VkSurfaceCapabilities2EXT(mImpl->resources(), (VkSurfaceCapabilities2EXT*)(pSurfaceCapabilities));
+        transform_fromhost_VkSurfaceCapabilities2EXT(sResourceTracker, (VkSurfaceCapabilities2EXT*)(pSurfaceCapabilities));
     }
     VkResult vkGetPhysicalDeviceSurfaceCapabilities2EXT_VkResult_return = (VkResult)0;
     stream->read(&vkGetPhysicalDeviceSurfaceCapabilities2EXT_VkResult_return, sizeof(VkResult));
@@ -23334,8 +21360,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2EXT(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceSurfaceCapabilities2EXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPhysicalDeviceSurfaceCapabilities2EXT_VkResult_return;
 }
 
@@ -23347,15 +21372,14 @@ VkResult VkEncoder::vkDisplayPowerControlEXT(
     const VkDisplayPowerInfoEXT* pDisplayPowerInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDisplayPowerControlEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDisplayKHR local_display;
     VkDisplayPowerInfoEXT* local_pDisplayPowerInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_display = display;
     local_pDisplayPowerInfo = nullptr;
@@ -23364,12 +21388,10 @@ VkResult VkEncoder::vkDisplayPowerControlEXT(
         local_pDisplayPowerInfo = (VkDisplayPowerInfoEXT*)pool->alloc(sizeof(const VkDisplayPowerInfoEXT));
         deepcopy_VkDisplayPowerInfoEXT(pool, pDisplayPowerInfo, (VkDisplayPowerInfoEXT*)(local_pDisplayPowerInfo));
     }
-    local_doLock = doLock;
     if (local_pDisplayPowerInfo)
     {
-        transform_tohost_VkDisplayPowerInfoEXT(mImpl->resources(), (VkDisplayPowerInfoEXT*)(local_pDisplayPowerInfo));
+        transform_tohost_VkDisplayPowerInfoEXT(sResourceTracker, (VkDisplayPowerInfoEXT*)(local_pDisplayPowerInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -23377,8 +21399,7 @@ VkResult VkEncoder::vkDisplayPowerControlEXT(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1185;
         *countPtr += 1 * 8;
-        count_VkDisplayPowerInfoEXT(featureBits, (VkDisplayPowerInfoEXT*)(local_pDisplayPowerInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkDisplayPowerInfoEXT(sFeatureBits, (VkDisplayPowerInfoEXT*)(local_pDisplayPowerInfo), countPtr);
     }
     uint32_t packetSize_vkDisplayPowerControlEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDisplayPowerControlEXT);
@@ -23395,8 +21416,6 @@ VkResult VkEncoder::vkDisplayPowerControlEXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1187, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkDisplayPowerInfoEXT(stream, (VkDisplayPowerInfoEXT*)(local_pDisplayPowerInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkDisplayPowerControlEXT_VkResult_return = (VkResult)0;
     stream->read(&vkDisplayPowerControlEXT_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -23405,8 +21424,7 @@ VkResult VkEncoder::vkDisplayPowerControlEXT(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDisplayPowerControlEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkDisplayPowerControlEXT_VkResult_return;
 }
 
@@ -23417,15 +21435,14 @@ VkResult VkEncoder::vkRegisterDeviceEventEXT(
     VkFence* pFence,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkRegisterDeviceEventEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDeviceEventInfoEXT* local_pDeviceEventInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pDeviceEventInfo = nullptr;
     if (pDeviceEventInfo)
@@ -23439,32 +21456,29 @@ VkResult VkEncoder::vkRegisterDeviceEventEXT(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pDeviceEventInfo)
     {
-        transform_tohost_VkDeviceEventInfoEXT(mImpl->resources(), (VkDeviceEventInfoEXT*)(local_pDeviceEventInfo));
+        transform_tohost_VkDeviceEventInfoEXT(sResourceTracker, (VkDeviceEventInfoEXT*)(local_pDeviceEventInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1188;
         *countPtr += 1 * 8;
-        count_VkDeviceEventInfoEXT(featureBits, (VkDeviceEventInfoEXT*)(local_pDeviceEventInfo), countPtr);
+        count_VkDeviceEventInfoEXT(sFeatureBits, (VkDeviceEventInfoEXT*)(local_pDeviceEventInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1189;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkRegisterDeviceEventEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkRegisterDeviceEventEXT);
@@ -23492,8 +21506,6 @@ VkResult VkEncoder::vkRegisterDeviceEventEXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1192, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     uint64_t cgen_var_1193;
     stream->read((uint64_t*)&cgen_var_1193, 8);
     stream->handleMapping()->mapHandles_u64_VkFence(&cgen_var_1193, (VkFence*)pFence, 1);
@@ -23505,8 +21517,7 @@ VkResult VkEncoder::vkRegisterDeviceEventEXT(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkRegisterDeviceEventEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkRegisterDeviceEventEXT_VkResult_return;
 }
 
@@ -23518,16 +21529,15 @@ VkResult VkEncoder::vkRegisterDisplayEventEXT(
     VkFence* pFence,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkRegisterDisplayEventEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDisplayKHR local_display;
     VkDisplayEventInfoEXT* local_pDisplayEventInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_display = display;
     local_pDisplayEventInfo = nullptr;
@@ -23542,17 +21552,15 @@ VkResult VkEncoder::vkRegisterDisplayEventEXT(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pDisplayEventInfo)
     {
-        transform_tohost_VkDisplayEventInfoEXT(mImpl->resources(), (VkDisplayEventInfoEXT*)(local_pDisplayEventInfo));
+        transform_tohost_VkDisplayEventInfoEXT(sResourceTracker, (VkDisplayEventInfoEXT*)(local_pDisplayEventInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -23560,16 +21568,15 @@ VkResult VkEncoder::vkRegisterDisplayEventEXT(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1195;
         *countPtr += 1 * 8;
-        count_VkDisplayEventInfoEXT(featureBits, (VkDisplayEventInfoEXT*)(local_pDisplayEventInfo), countPtr);
+        count_VkDisplayEventInfoEXT(sFeatureBits, (VkDisplayEventInfoEXT*)(local_pDisplayEventInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1196;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkRegisterDisplayEventEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkRegisterDisplayEventEXT);
@@ -23601,8 +21608,6 @@ VkResult VkEncoder::vkRegisterDisplayEventEXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1200, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     uint64_t cgen_var_1201;
     stream->read((uint64_t*)&cgen_var_1201, 8);
     stream->handleMapping()->mapHandles_u64_VkFence(&cgen_var_1201, (VkFence*)pFence, 1);
@@ -23614,8 +21619,7 @@ VkResult VkEncoder::vkRegisterDisplayEventEXT(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkRegisterDisplayEventEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkRegisterDisplayEventEXT_VkResult_return;
 }
 
@@ -23626,20 +21630,17 @@ VkResult VkEncoder::vkGetSwapchainCounterEXT(
     uint64_t* pCounterValue,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetSwapchainCounterEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkSwapchainKHR local_swapchain;
     VkSurfaceCounterFlagBitsEXT local_counter;
-    uint32_t local_doLock;
     local_device = device;
     local_swapchain = swapchain;
     local_counter = counter;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -23649,7 +21650,6 @@ VkResult VkEncoder::vkGetSwapchainCounterEXT(
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkSurfaceCounterFlagBitsEXT);
         *countPtr += sizeof(uint64_t);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetSwapchainCounterEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetSwapchainCounterEXT);
@@ -23669,8 +21669,6 @@ VkResult VkEncoder::vkGetSwapchainCounterEXT(
     *streamPtrPtr += sizeof(VkSurfaceCounterFlagBitsEXT);
     memcpy(*streamPtrPtr, (uint64_t*)pCounterValue, sizeof(uint64_t));
     *streamPtrPtr += sizeof(uint64_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((uint64_t*)pCounterValue, sizeof(uint64_t));
     VkResult vkGetSwapchainCounterEXT_VkResult_return = (VkResult)0;
     stream->read(&vkGetSwapchainCounterEXT_VkResult_return, sizeof(VkResult));
@@ -23680,8 +21678,7 @@ VkResult VkEncoder::vkGetSwapchainCounterEXT(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetSwapchainCounterEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetSwapchainCounterEXT_VkResult_return;
 }
 
@@ -23693,18 +21690,15 @@ VkResult VkEncoder::vkGetRefreshCycleDurationGOOGLE(
     VkRefreshCycleDurationGOOGLE* pDisplayTimingProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetRefreshCycleDurationGOOGLE");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkSwapchainKHR local_swapchain;
-    uint32_t local_doLock;
     local_device = device;
     local_swapchain = swapchain;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -23712,8 +21706,7 @@ VkResult VkEncoder::vkGetRefreshCycleDurationGOOGLE(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1207;
         *countPtr += 1 * 8;
-        count_VkRefreshCycleDurationGOOGLE(featureBits, (VkRefreshCycleDurationGOOGLE*)(pDisplayTimingProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkRefreshCycleDurationGOOGLE(sFeatureBits, (VkRefreshCycleDurationGOOGLE*)(pDisplayTimingProperties), countPtr);
     }
     uint32_t packetSize_vkGetRefreshCycleDurationGOOGLE = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetRefreshCycleDurationGOOGLE);
@@ -23730,12 +21723,10 @@ VkResult VkEncoder::vkGetRefreshCycleDurationGOOGLE(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1209, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkRefreshCycleDurationGOOGLE(stream, (VkRefreshCycleDurationGOOGLE*)(pDisplayTimingProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkRefreshCycleDurationGOOGLE(stream, (VkRefreshCycleDurationGOOGLE*)(pDisplayTimingProperties));
     if (pDisplayTimingProperties)
     {
-        transform_fromhost_VkRefreshCycleDurationGOOGLE(mImpl->resources(), (VkRefreshCycleDurationGOOGLE*)(pDisplayTimingProperties));
+        transform_fromhost_VkRefreshCycleDurationGOOGLE(sResourceTracker, (VkRefreshCycleDurationGOOGLE*)(pDisplayTimingProperties));
     }
     VkResult vkGetRefreshCycleDurationGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkGetRefreshCycleDurationGOOGLE_VkResult_return, sizeof(VkResult));
@@ -23745,8 +21736,7 @@ VkResult VkEncoder::vkGetRefreshCycleDurationGOOGLE(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetRefreshCycleDurationGOOGLE");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetRefreshCycleDurationGOOGLE_VkResult_return;
 }
 
@@ -23757,18 +21747,15 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
     VkPastPresentationTimingGOOGLE* pPresentationTimings,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPastPresentationTimingGOOGLE");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkSwapchainKHR local_swapchain;
-    uint32_t local_doLock;
     local_device = device;
     local_swapchain = swapchain;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -23788,10 +21775,9 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPresentationTimingCount)); ++i)
             {
-                count_VkPastPresentationTimingGOOGLE(featureBits, (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i), countPtr);
+                count_VkPastPresentationTimingGOOGLE(sFeatureBits, (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPastPresentationTimingGOOGLE = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPastPresentationTimingGOOGLE);
@@ -23829,8 +21815,6 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
             reservedmarshal_VkPastPresentationTimingGOOGLE(stream, (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pPresentationTimingCount;
     check_pPresentationTimingCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -23860,7 +21844,7 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPresentationTimingCount)); ++i)
         {
-            transform_fromhost_VkPastPresentationTimingGOOGLE(mImpl->resources(), (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i));
+            transform_fromhost_VkPastPresentationTimingGOOGLE(sResourceTracker, (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i));
         }
     }
     VkResult vkGetPastPresentationTimingGOOGLE_VkResult_return = (VkResult)0;
@@ -23871,8 +21855,7 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPastPresentationTimingGOOGLE");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetPastPresentationTimingGOOGLE_VkResult_return;
 }
 
@@ -23895,16 +21878,15 @@ void VkEncoder::vkCmdSetDiscardRectangleEXT(
     const VkRect2D* pDiscardRectangles,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdSetDiscardRectangleEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     uint32_t local_firstDiscardRectangle;
     uint32_t local_discardRectangleCount;
     VkRect2D* local_pDiscardRectangles;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_firstDiscardRectangle = firstDiscardRectangle;
     local_discardRectangleCount = discardRectangleCount;
@@ -23917,15 +21899,13 @@ void VkEncoder::vkCmdSetDiscardRectangleEXT(
             deepcopy_VkRect2D(pool, pDiscardRectangles + i, (VkRect2D*)(local_pDiscardRectangles + i));
         }
     }
-    local_doLock = doLock;
     if (local_pDiscardRectangles)
     {
         for (uint32_t i = 0; i < (uint32_t)((discardRectangleCount)); ++i)
         {
-            transform_tohost_VkRect2D(mImpl->resources(), (VkRect2D*)(local_pDiscardRectangles + i));
+            transform_tohost_VkRect2D(sResourceTracker, (VkRect2D*)(local_pDiscardRectangles + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -23935,9 +21915,8 @@ void VkEncoder::vkCmdSetDiscardRectangleEXT(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((discardRectangleCount)); ++i)
         {
-            count_VkRect2D(featureBits, (VkRect2D*)(local_pDiscardRectangles + i), countPtr);
+            count_VkRect2D(sFeatureBits, (VkRect2D*)(local_pDiscardRectangles + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdSetDiscardRectangleEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdSetDiscardRectangleEXT);
@@ -23957,16 +21936,13 @@ void VkEncoder::vkCmdSetDiscardRectangleEXT(
     {
         reservedmarshal_VkRect2D(stream, (VkRect2D*)(local_pDiscardRectangles + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdSetDiscardRectangleEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -23982,16 +21958,15 @@ void VkEncoder::vkSetHdrMetadataEXT(
     const VkHdrMetadataEXT* pMetadata,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkSetHdrMetadataEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     uint32_t local_swapchainCount;
     VkSwapchainKHR* local_pSwapchains;
     VkHdrMetadataEXT* local_pMetadata;
-    uint32_t local_doLock;
     local_device = device;
     local_swapchainCount = swapchainCount;
     local_pSwapchains = nullptr;
@@ -24008,15 +21983,13 @@ void VkEncoder::vkSetHdrMetadataEXT(
             deepcopy_VkHdrMetadataEXT(pool, pMetadata + i, (VkHdrMetadataEXT*)(local_pMetadata + i));
         }
     }
-    local_doLock = doLock;
     if (local_pMetadata)
     {
         for (uint32_t i = 0; i < (uint32_t)((swapchainCount)); ++i)
         {
-            transform_tohost_VkHdrMetadataEXT(mImpl->resources(), (VkHdrMetadataEXT*)(local_pMetadata + i));
+            transform_tohost_VkHdrMetadataEXT(sResourceTracker, (VkHdrMetadataEXT*)(local_pMetadata + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -24029,9 +22002,8 @@ void VkEncoder::vkSetHdrMetadataEXT(
         }
         for (uint32_t i = 0; i < (uint32_t)((swapchainCount)); ++i)
         {
-            count_VkHdrMetadataEXT(featureBits, (VkHdrMetadataEXT*)(local_pMetadata + i), countPtr);
+            count_VkHdrMetadataEXT(sFeatureBits, (VkHdrMetadataEXT*)(local_pMetadata + i), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkSetHdrMetadataEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkSetHdrMetadataEXT);
@@ -24060,16 +22032,13 @@ void VkEncoder::vkSetHdrMetadataEXT(
     {
         reservedmarshal_VkHdrMetadataEXT(stream, (VkHdrMetadataEXT*)(local_pMetadata + i), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkSetHdrMetadataEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -24081,15 +22050,14 @@ VkResult VkEncoder::vkCreateIOSSurfaceMVK(
     VkSurfaceKHR* pSurface,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateIOSSurfaceMVK");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
     VkIOSSurfaceCreateInfoMVK* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -24103,32 +22071,29 @@ VkResult VkEncoder::vkCreateIOSSurfaceMVK(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkIOSSurfaceCreateInfoMVK(mImpl->resources(), (VkIOSSurfaceCreateInfoMVK*)(local_pCreateInfo));
+        transform_tohost_VkIOSSurfaceCreateInfoMVK(sResourceTracker, (VkIOSSurfaceCreateInfoMVK*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1224;
         *countPtr += 1 * 8;
-        count_VkIOSSurfaceCreateInfoMVK(featureBits, (VkIOSSurfaceCreateInfoMVK*)(local_pCreateInfo), countPtr);
+        count_VkIOSSurfaceCreateInfoMVK(sFeatureBits, (VkIOSSurfaceCreateInfoMVK*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1225;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateIOSSurfaceMVK = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateIOSSurfaceMVK);
@@ -24156,8 +22121,6 @@ VkResult VkEncoder::vkCreateIOSSurfaceMVK(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1228, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     uint64_t cgen_var_1229;
     stream->read((uint64_t*)&cgen_var_1229, 8);
     stream->handleMapping()->mapHandles_u64_VkSurfaceKHR(&cgen_var_1229, (VkSurfaceKHR*)pSurface, 1);
@@ -24169,8 +22132,7 @@ VkResult VkEncoder::vkCreateIOSSurfaceMVK(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateIOSSurfaceMVK");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateIOSSurfaceMVK_VkResult_return;
 }
 
@@ -24183,15 +22145,14 @@ VkResult VkEncoder::vkCreateMacOSSurfaceMVK(
     VkSurfaceKHR* pSurface,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateMacOSSurfaceMVK");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
     VkMacOSSurfaceCreateInfoMVK* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -24205,32 +22166,29 @@ VkResult VkEncoder::vkCreateMacOSSurfaceMVK(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkMacOSSurfaceCreateInfoMVK(mImpl->resources(), (VkMacOSSurfaceCreateInfoMVK*)(local_pCreateInfo));
+        transform_tohost_VkMacOSSurfaceCreateInfoMVK(sResourceTracker, (VkMacOSSurfaceCreateInfoMVK*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1230;
         *countPtr += 1 * 8;
-        count_VkMacOSSurfaceCreateInfoMVK(featureBits, (VkMacOSSurfaceCreateInfoMVK*)(local_pCreateInfo), countPtr);
+        count_VkMacOSSurfaceCreateInfoMVK(sFeatureBits, (VkMacOSSurfaceCreateInfoMVK*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1231;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateMacOSSurfaceMVK = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateMacOSSurfaceMVK);
@@ -24258,8 +22216,6 @@ VkResult VkEncoder::vkCreateMacOSSurfaceMVK(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1234, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     uint64_t cgen_var_1235;
     stream->read((uint64_t*)&cgen_var_1235, 8);
     stream->handleMapping()->mapHandles_u64_VkSurfaceKHR(&cgen_var_1235, (VkSurfaceKHR*)pSurface, 1);
@@ -24271,8 +22227,7 @@ VkResult VkEncoder::vkCreateMacOSSurfaceMVK(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateMacOSSurfaceMVK");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateMacOSSurfaceMVK_VkResult_return;
 }
 
@@ -24287,14 +22242,13 @@ VkResult VkEncoder::vkSetDebugUtilsObjectNameEXT(
     const VkDebugUtilsObjectNameInfoEXT* pNameInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkSetDebugUtilsObjectNameEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDebugUtilsObjectNameInfoEXT* local_pNameInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pNameInfo = nullptr;
     if (pNameInfo)
@@ -24302,19 +22256,16 @@ VkResult VkEncoder::vkSetDebugUtilsObjectNameEXT(
         local_pNameInfo = (VkDebugUtilsObjectNameInfoEXT*)pool->alloc(sizeof(const VkDebugUtilsObjectNameInfoEXT));
         deepcopy_VkDebugUtilsObjectNameInfoEXT(pool, pNameInfo, (VkDebugUtilsObjectNameInfoEXT*)(local_pNameInfo));
     }
-    local_doLock = doLock;
     if (local_pNameInfo)
     {
-        transform_tohost_VkDebugUtilsObjectNameInfoEXT(mImpl->resources(), (VkDebugUtilsObjectNameInfoEXT*)(local_pNameInfo));
+        transform_tohost_VkDebugUtilsObjectNameInfoEXT(sResourceTracker, (VkDebugUtilsObjectNameInfoEXT*)(local_pNameInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1236;
         *countPtr += 1 * 8;
-        count_VkDebugUtilsObjectNameInfoEXT(featureBits, (VkDebugUtilsObjectNameInfoEXT*)(local_pNameInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkDebugUtilsObjectNameInfoEXT(sFeatureBits, (VkDebugUtilsObjectNameInfoEXT*)(local_pNameInfo), countPtr);
     }
     uint32_t packetSize_vkSetDebugUtilsObjectNameEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkSetDebugUtilsObjectNameEXT);
@@ -24327,8 +22278,6 @@ VkResult VkEncoder::vkSetDebugUtilsObjectNameEXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1237, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkDebugUtilsObjectNameInfoEXT(stream, (VkDebugUtilsObjectNameInfoEXT*)(local_pNameInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkSetDebugUtilsObjectNameEXT_VkResult_return = (VkResult)0;
     stream->read(&vkSetDebugUtilsObjectNameEXT_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -24337,8 +22286,7 @@ VkResult VkEncoder::vkSetDebugUtilsObjectNameEXT(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkSetDebugUtilsObjectNameEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkSetDebugUtilsObjectNameEXT_VkResult_return;
 }
 
@@ -24347,14 +22295,13 @@ VkResult VkEncoder::vkSetDebugUtilsObjectTagEXT(
     const VkDebugUtilsObjectTagInfoEXT* pTagInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkSetDebugUtilsObjectTagEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDebugUtilsObjectTagInfoEXT* local_pTagInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pTagInfo = nullptr;
     if (pTagInfo)
@@ -24362,19 +22309,16 @@ VkResult VkEncoder::vkSetDebugUtilsObjectTagEXT(
         local_pTagInfo = (VkDebugUtilsObjectTagInfoEXT*)pool->alloc(sizeof(const VkDebugUtilsObjectTagInfoEXT));
         deepcopy_VkDebugUtilsObjectTagInfoEXT(pool, pTagInfo, (VkDebugUtilsObjectTagInfoEXT*)(local_pTagInfo));
     }
-    local_doLock = doLock;
     if (local_pTagInfo)
     {
-        transform_tohost_VkDebugUtilsObjectTagInfoEXT(mImpl->resources(), (VkDebugUtilsObjectTagInfoEXT*)(local_pTagInfo));
+        transform_tohost_VkDebugUtilsObjectTagInfoEXT(sResourceTracker, (VkDebugUtilsObjectTagInfoEXT*)(local_pTagInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1238;
         *countPtr += 1 * 8;
-        count_VkDebugUtilsObjectTagInfoEXT(featureBits, (VkDebugUtilsObjectTagInfoEXT*)(local_pTagInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkDebugUtilsObjectTagInfoEXT(sFeatureBits, (VkDebugUtilsObjectTagInfoEXT*)(local_pTagInfo), countPtr);
     }
     uint32_t packetSize_vkSetDebugUtilsObjectTagEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkSetDebugUtilsObjectTagEXT);
@@ -24387,8 +22331,6 @@ VkResult VkEncoder::vkSetDebugUtilsObjectTagEXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1239, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkDebugUtilsObjectTagInfoEXT(stream, (VkDebugUtilsObjectTagInfoEXT*)(local_pTagInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkSetDebugUtilsObjectTagEXT_VkResult_return = (VkResult)0;
     stream->read(&vkSetDebugUtilsObjectTagEXT_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -24397,8 +22339,7 @@ VkResult VkEncoder::vkSetDebugUtilsObjectTagEXT(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkSetDebugUtilsObjectTagEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkSetDebugUtilsObjectTagEXT_VkResult_return;
 }
 
@@ -24407,14 +22348,13 @@ void VkEncoder::vkQueueBeginDebugUtilsLabelEXT(
     const VkDebugUtilsLabelEXT* pLabelInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkQueueBeginDebugUtilsLabelEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkQueue local_queue;
     VkDebugUtilsLabelEXT* local_pLabelInfo;
-    uint32_t local_doLock;
     local_queue = queue;
     local_pLabelInfo = nullptr;
     if (pLabelInfo)
@@ -24422,19 +22362,16 @@ void VkEncoder::vkQueueBeginDebugUtilsLabelEXT(
         local_pLabelInfo = (VkDebugUtilsLabelEXT*)pool->alloc(sizeof(const VkDebugUtilsLabelEXT));
         deepcopy_VkDebugUtilsLabelEXT(pool, pLabelInfo, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
-    local_doLock = doLock;
     if (local_pLabelInfo)
     {
-        transform_tohost_VkDebugUtilsLabelEXT(mImpl->resources(), (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
+        transform_tohost_VkDebugUtilsLabelEXT(sResourceTracker, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1240;
         *countPtr += 1 * 8;
-        count_VkDebugUtilsLabelEXT(featureBits, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkDebugUtilsLabelEXT(sFeatureBits, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), countPtr);
     }
     uint32_t packetSize_vkQueueBeginDebugUtilsLabelEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkQueueBeginDebugUtilsLabelEXT);
@@ -24447,38 +22384,31 @@ void VkEncoder::vkQueueBeginDebugUtilsLabelEXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1241, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkDebugUtilsLabelEXT(stream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkQueueBeginDebugUtilsLabelEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkQueueEndDebugUtilsLabelEXT(
     VkQueue queue,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkQueueEndDebugUtilsLabelEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkQueue local_queue;
-    uint32_t local_doLock;
     local_queue = queue;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1242;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkQueueEndDebugUtilsLabelEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkQueueEndDebugUtilsLabelEXT);
@@ -24490,16 +22420,13 @@ void VkEncoder::vkQueueEndDebugUtilsLabelEXT(
     *&cgen_var_1243 = get_host_u64_VkQueue((*&local_queue));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1243, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkQueueEndDebugUtilsLabelEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkQueueInsertDebugUtilsLabelEXT(
@@ -24507,14 +22434,13 @@ void VkEncoder::vkQueueInsertDebugUtilsLabelEXT(
     const VkDebugUtilsLabelEXT* pLabelInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkQueueInsertDebugUtilsLabelEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkQueue local_queue;
     VkDebugUtilsLabelEXT* local_pLabelInfo;
-    uint32_t local_doLock;
     local_queue = queue;
     local_pLabelInfo = nullptr;
     if (pLabelInfo)
@@ -24522,19 +22448,16 @@ void VkEncoder::vkQueueInsertDebugUtilsLabelEXT(
         local_pLabelInfo = (VkDebugUtilsLabelEXT*)pool->alloc(sizeof(const VkDebugUtilsLabelEXT));
         deepcopy_VkDebugUtilsLabelEXT(pool, pLabelInfo, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
-    local_doLock = doLock;
     if (local_pLabelInfo)
     {
-        transform_tohost_VkDebugUtilsLabelEXT(mImpl->resources(), (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
+        transform_tohost_VkDebugUtilsLabelEXT(sResourceTracker, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1244;
         *countPtr += 1 * 8;
-        count_VkDebugUtilsLabelEXT(featureBits, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkDebugUtilsLabelEXT(sFeatureBits, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), countPtr);
     }
     uint32_t packetSize_vkQueueInsertDebugUtilsLabelEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkQueueInsertDebugUtilsLabelEXT);
@@ -24547,16 +22470,13 @@ void VkEncoder::vkQueueInsertDebugUtilsLabelEXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1245, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkDebugUtilsLabelEXT(stream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkQueueInsertDebugUtilsLabelEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdBeginDebugUtilsLabelEXT(
@@ -24564,14 +22484,13 @@ void VkEncoder::vkCmdBeginDebugUtilsLabelEXT(
     const VkDebugUtilsLabelEXT* pLabelInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdBeginDebugUtilsLabelEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkDebugUtilsLabelEXT* local_pLabelInfo;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pLabelInfo = nullptr;
     if (pLabelInfo)
@@ -24579,19 +22498,16 @@ void VkEncoder::vkCmdBeginDebugUtilsLabelEXT(
         local_pLabelInfo = (VkDebugUtilsLabelEXT*)pool->alloc(sizeof(const VkDebugUtilsLabelEXT));
         deepcopy_VkDebugUtilsLabelEXT(pool, pLabelInfo, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
-    local_doLock = doLock;
     if (local_pLabelInfo)
     {
-        transform_tohost_VkDebugUtilsLabelEXT(mImpl->resources(), (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
+        transform_tohost_VkDebugUtilsLabelEXT(sResourceTracker, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1246;
         *countPtr += 1 * 8;
-        count_VkDebugUtilsLabelEXT(featureBits, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkDebugUtilsLabelEXT(sFeatureBits, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), countPtr);
     }
     uint32_t packetSize_vkCmdBeginDebugUtilsLabelEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdBeginDebugUtilsLabelEXT);
@@ -24604,38 +22520,31 @@ void VkEncoder::vkCmdBeginDebugUtilsLabelEXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1247, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkDebugUtilsLabelEXT(stream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdBeginDebugUtilsLabelEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdEndDebugUtilsLabelEXT(
     VkCommandBuffer commandBuffer,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdEndDebugUtilsLabelEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1248;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdEndDebugUtilsLabelEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdEndDebugUtilsLabelEXT);
@@ -24647,16 +22556,13 @@ void VkEncoder::vkCmdEndDebugUtilsLabelEXT(
     *&cgen_var_1249 = get_host_u64_VkCommandBuffer((*&local_commandBuffer));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1249, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdEndDebugUtilsLabelEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCmdInsertDebugUtilsLabelEXT(
@@ -24664,14 +22570,13 @@ void VkEncoder::vkCmdInsertDebugUtilsLabelEXT(
     const VkDebugUtilsLabelEXT* pLabelInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdInsertDebugUtilsLabelEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkDebugUtilsLabelEXT* local_pLabelInfo;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pLabelInfo = nullptr;
     if (pLabelInfo)
@@ -24679,19 +22584,16 @@ void VkEncoder::vkCmdInsertDebugUtilsLabelEXT(
         local_pLabelInfo = (VkDebugUtilsLabelEXT*)pool->alloc(sizeof(const VkDebugUtilsLabelEXT));
         deepcopy_VkDebugUtilsLabelEXT(pool, pLabelInfo, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
-    local_doLock = doLock;
     if (local_pLabelInfo)
     {
-        transform_tohost_VkDebugUtilsLabelEXT(mImpl->resources(), (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
+        transform_tohost_VkDebugUtilsLabelEXT(sResourceTracker, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1250;
         *countPtr += 1 * 8;
-        count_VkDebugUtilsLabelEXT(featureBits, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkDebugUtilsLabelEXT(sFeatureBits, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), countPtr);
     }
     uint32_t packetSize_vkCmdInsertDebugUtilsLabelEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdInsertDebugUtilsLabelEXT);
@@ -24704,16 +22606,13 @@ void VkEncoder::vkCmdInsertDebugUtilsLabelEXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1251, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkDebugUtilsLabelEXT(stream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdInsertDebugUtilsLabelEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkCreateDebugUtilsMessengerEXT(
@@ -24723,15 +22622,14 @@ VkResult VkEncoder::vkCreateDebugUtilsMessengerEXT(
     VkDebugUtilsMessengerEXT* pMessenger,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateDebugUtilsMessengerEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
     VkDebugUtilsMessengerCreateInfoEXT* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_instance = instance;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -24745,32 +22643,29 @@ VkResult VkEncoder::vkCreateDebugUtilsMessengerEXT(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkDebugUtilsMessengerCreateInfoEXT(mImpl->resources(), (VkDebugUtilsMessengerCreateInfoEXT*)(local_pCreateInfo));
+        transform_tohost_VkDebugUtilsMessengerCreateInfoEXT(sResourceTracker, (VkDebugUtilsMessengerCreateInfoEXT*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1252;
         *countPtr += 1 * 8;
-        count_VkDebugUtilsMessengerCreateInfoEXT(featureBits, (VkDebugUtilsMessengerCreateInfoEXT*)(local_pCreateInfo), countPtr);
+        count_VkDebugUtilsMessengerCreateInfoEXT(sFeatureBits, (VkDebugUtilsMessengerCreateInfoEXT*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1253;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateDebugUtilsMessengerEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateDebugUtilsMessengerEXT);
@@ -24798,9 +22693,7 @@ VkResult VkEncoder::vkCreateDebugUtilsMessengerEXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1256, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_1257;
     stream->read((uint64_t*)&cgen_var_1257, 8);
     stream->handleMapping()->mapHandles_u64_VkDebugUtilsMessengerEXT(&cgen_var_1257, (VkDebugUtilsMessengerEXT*)pMessenger, 1);
@@ -24813,8 +22706,7 @@ VkResult VkEncoder::vkCreateDebugUtilsMessengerEXT(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateDebugUtilsMessengerEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateDebugUtilsMessengerEXT_VkResult_return;
 }
 
@@ -24824,15 +22716,14 @@ void VkEncoder::vkDestroyDebugUtilsMessengerEXT(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyDebugUtilsMessengerEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
     VkDebugUtilsMessengerEXT local_messenger;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_instance = instance;
     local_messenger = messenger;
     local_pAllocator = nullptr;
@@ -24841,13 +22732,11 @@ void VkEncoder::vkDestroyDebugUtilsMessengerEXT(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -24859,9 +22748,8 @@ void VkEncoder::vkDestroyDebugUtilsMessengerEXT(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyDebugUtilsMessengerEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyDebugUtilsMessengerEXT);
@@ -24886,17 +22774,14 @@ void VkEncoder::vkDestroyDebugUtilsMessengerEXT(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkDebugUtilsMessengerEXT((VkDebugUtilsMessengerEXT*)&messenger);
+    sResourceTracker->destroyMapping()->mapHandles_VkDebugUtilsMessengerEXT((VkDebugUtilsMessengerEXT*)&messenger);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyDebugUtilsMessengerEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkSubmitDebugUtilsMessageEXT(
@@ -24906,16 +22791,15 @@ void VkEncoder::vkSubmitDebugUtilsMessageEXT(
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkSubmitDebugUtilsMessageEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkInstance local_instance;
     VkDebugUtilsMessageSeverityFlagBitsEXT local_messageSeverity;
     VkDebugUtilsMessageTypeFlagsEXT local_messageTypes;
     VkDebugUtilsMessengerCallbackDataEXT* local_pCallbackData;
-    uint32_t local_doLock;
     local_instance = instance;
     local_messageSeverity = messageSeverity;
     local_messageTypes = messageTypes;
@@ -24925,12 +22809,10 @@ void VkEncoder::vkSubmitDebugUtilsMessageEXT(
         local_pCallbackData = (VkDebugUtilsMessengerCallbackDataEXT*)pool->alloc(sizeof(const VkDebugUtilsMessengerCallbackDataEXT));
         deepcopy_VkDebugUtilsMessengerCallbackDataEXT(pool, pCallbackData, (VkDebugUtilsMessengerCallbackDataEXT*)(local_pCallbackData));
     }
-    local_doLock = doLock;
     if (local_pCallbackData)
     {
-        transform_tohost_VkDebugUtilsMessengerCallbackDataEXT(mImpl->resources(), (VkDebugUtilsMessengerCallbackDataEXT*)(local_pCallbackData));
+        transform_tohost_VkDebugUtilsMessengerCallbackDataEXT(sResourceTracker, (VkDebugUtilsMessengerCallbackDataEXT*)(local_pCallbackData));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -24938,8 +22820,7 @@ void VkEncoder::vkSubmitDebugUtilsMessageEXT(
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkDebugUtilsMessageSeverityFlagBitsEXT);
         *countPtr += sizeof(VkDebugUtilsMessageTypeFlagsEXT);
-        count_VkDebugUtilsMessengerCallbackDataEXT(featureBits, (VkDebugUtilsMessengerCallbackDataEXT*)(local_pCallbackData), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkDebugUtilsMessengerCallbackDataEXT(sFeatureBits, (VkDebugUtilsMessengerCallbackDataEXT*)(local_pCallbackData), countPtr);
     }
     uint32_t packetSize_vkSubmitDebugUtilsMessageEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkSubmitDebugUtilsMessageEXT);
@@ -24956,16 +22837,13 @@ void VkEncoder::vkSubmitDebugUtilsMessageEXT(
     memcpy(*streamPtrPtr, (VkDebugUtilsMessageTypeFlagsEXT*)&local_messageTypes, sizeof(VkDebugUtilsMessageTypeFlagsEXT));
     *streamPtrPtr += sizeof(VkDebugUtilsMessageTypeFlagsEXT);
     reservedmarshal_VkDebugUtilsMessengerCallbackDataEXT(stream, (VkDebugUtilsMessengerCallbackDataEXT*)(local_pCallbackData), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkSubmitDebugUtilsMessageEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -24976,30 +22854,26 @@ VkResult VkEncoder::vkGetAndroidHardwareBufferPropertiesANDROID(
     VkAndroidHardwareBufferPropertiesANDROID* pProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetAndroidHardwareBufferPropertiesANDROID");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     AHardwareBuffer* local_buffer;
-    uint32_t local_doLock;
     local_device = device;
     local_buffer = nullptr;
     if (buffer)
     {
         local_buffer = (AHardwareBuffer*)pool->dupArray(buffer, sizeof(const AHardwareBuffer));
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1265;
         *countPtr += 1 * 8;
         *countPtr += sizeof(AHardwareBuffer);
-        count_VkAndroidHardwareBufferPropertiesANDROID(featureBits, (VkAndroidHardwareBufferPropertiesANDROID*)(pProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkAndroidHardwareBufferPropertiesANDROID(sFeatureBits, (VkAndroidHardwareBufferPropertiesANDROID*)(pProperties), countPtr);
     }
     uint32_t packetSize_vkGetAndroidHardwareBufferPropertiesANDROID = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetAndroidHardwareBufferPropertiesANDROID);
@@ -25014,12 +22888,10 @@ VkResult VkEncoder::vkGetAndroidHardwareBufferPropertiesANDROID(
     memcpy(*streamPtrPtr, (AHardwareBuffer*)local_buffer, sizeof(AHardwareBuffer));
     *streamPtrPtr += sizeof(AHardwareBuffer);
     reservedmarshal_VkAndroidHardwareBufferPropertiesANDROID(stream, (VkAndroidHardwareBufferPropertiesANDROID*)(pProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkAndroidHardwareBufferPropertiesANDROID(stream, (VkAndroidHardwareBufferPropertiesANDROID*)(pProperties));
     if (pProperties)
     {
-        transform_fromhost_VkAndroidHardwareBufferPropertiesANDROID(mImpl->resources(), (VkAndroidHardwareBufferPropertiesANDROID*)(pProperties));
+        transform_fromhost_VkAndroidHardwareBufferPropertiesANDROID(sResourceTracker, (VkAndroidHardwareBufferPropertiesANDROID*)(pProperties));
     }
     VkResult vkGetAndroidHardwareBufferPropertiesANDROID_VkResult_return = (VkResult)0;
     stream->read(&vkGetAndroidHardwareBufferPropertiesANDROID_VkResult_return, sizeof(VkResult));
@@ -25029,8 +22901,7 @@ VkResult VkEncoder::vkGetAndroidHardwareBufferPropertiesANDROID(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetAndroidHardwareBufferPropertiesANDROID");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetAndroidHardwareBufferPropertiesANDROID_VkResult_return;
 }
 
@@ -25040,14 +22911,13 @@ VkResult VkEncoder::vkGetMemoryAndroidHardwareBufferANDROID(
     AHardwareBuffer** pBuffer,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetMemoryAndroidHardwareBufferANDROID");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkMemoryGetAndroidHardwareBufferInfoANDROID* local_pInfo;
-    uint32_t local_doLock;
     local_device = device;
     local_pInfo = nullptr;
     if (pInfo)
@@ -25055,20 +22925,17 @@ VkResult VkEncoder::vkGetMemoryAndroidHardwareBufferANDROID(
         local_pInfo = (VkMemoryGetAndroidHardwareBufferInfoANDROID*)pool->alloc(sizeof(const VkMemoryGetAndroidHardwareBufferInfoANDROID));
         deepcopy_VkMemoryGetAndroidHardwareBufferInfoANDROID(pool, pInfo, (VkMemoryGetAndroidHardwareBufferInfoANDROID*)(local_pInfo));
     }
-    local_doLock = doLock;
     if (local_pInfo)
     {
-        transform_tohost_VkMemoryGetAndroidHardwareBufferInfoANDROID(mImpl->resources(), (VkMemoryGetAndroidHardwareBufferInfoANDROID*)(local_pInfo));
+        transform_tohost_VkMemoryGetAndroidHardwareBufferInfoANDROID(sResourceTracker, (VkMemoryGetAndroidHardwareBufferInfoANDROID*)(local_pInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1267;
         *countPtr += 1 * 8;
-        count_VkMemoryGetAndroidHardwareBufferInfoANDROID(featureBits, (VkMemoryGetAndroidHardwareBufferInfoANDROID*)(local_pInfo), countPtr);
+        count_VkMemoryGetAndroidHardwareBufferInfoANDROID(sFeatureBits, (VkMemoryGetAndroidHardwareBufferInfoANDROID*)(local_pInfo), countPtr);
         *countPtr += sizeof(AHardwareBuffer*);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetMemoryAndroidHardwareBufferANDROID = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetMemoryAndroidHardwareBufferANDROID);
@@ -25083,8 +22950,6 @@ VkResult VkEncoder::vkGetMemoryAndroidHardwareBufferANDROID(
     reservedmarshal_VkMemoryGetAndroidHardwareBufferInfoANDROID(stream, (VkMemoryGetAndroidHardwareBufferInfoANDROID*)(local_pInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (AHardwareBuffer**)pBuffer, sizeof(AHardwareBuffer*));
     *streamPtrPtr += sizeof(AHardwareBuffer*);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((AHardwareBuffer**)pBuffer, sizeof(AHardwareBuffer*));
     VkResult vkGetMemoryAndroidHardwareBufferANDROID_VkResult_return = (VkResult)0;
     stream->read(&vkGetMemoryAndroidHardwareBufferANDROID_VkResult_return, sizeof(VkResult));
@@ -25094,8 +22959,7 @@ VkResult VkEncoder::vkGetMemoryAndroidHardwareBufferANDROID(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetMemoryAndroidHardwareBufferANDROID");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetMemoryAndroidHardwareBufferANDROID_VkResult_return;
 }
 
@@ -25116,14 +22980,13 @@ void VkEncoder::vkCmdSetSampleLocationsEXT(
     const VkSampleLocationsInfoEXT* pSampleLocationsInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdSetSampleLocationsEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkSampleLocationsInfoEXT* local_pSampleLocationsInfo;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pSampleLocationsInfo = nullptr;
     if (pSampleLocationsInfo)
@@ -25131,19 +22994,16 @@ void VkEncoder::vkCmdSetSampleLocationsEXT(
         local_pSampleLocationsInfo = (VkSampleLocationsInfoEXT*)pool->alloc(sizeof(const VkSampleLocationsInfoEXT));
         deepcopy_VkSampleLocationsInfoEXT(pool, pSampleLocationsInfo, (VkSampleLocationsInfoEXT*)(local_pSampleLocationsInfo));
     }
-    local_doLock = doLock;
     if (local_pSampleLocationsInfo)
     {
-        transform_tohost_VkSampleLocationsInfoEXT(mImpl->resources(), (VkSampleLocationsInfoEXT*)(local_pSampleLocationsInfo));
+        transform_tohost_VkSampleLocationsInfoEXT(sResourceTracker, (VkSampleLocationsInfoEXT*)(local_pSampleLocationsInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1269;
         *countPtr += 1 * 8;
-        count_VkSampleLocationsInfoEXT(featureBits, (VkSampleLocationsInfoEXT*)(local_pSampleLocationsInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkSampleLocationsInfoEXT(sFeatureBits, (VkSampleLocationsInfoEXT*)(local_pSampleLocationsInfo), countPtr);
     }
     uint32_t packetSize_vkCmdSetSampleLocationsEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdSetSampleLocationsEXT);
@@ -25156,16 +23016,13 @@ void VkEncoder::vkCmdSetSampleLocationsEXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1270, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkSampleLocationsInfoEXT(stream, (VkSampleLocationsInfoEXT*)(local_pSampleLocationsInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdSetSampleLocationsEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetPhysicalDeviceMultisamplePropertiesEXT(
@@ -25174,26 +23031,22 @@ void VkEncoder::vkGetPhysicalDeviceMultisamplePropertiesEXT(
     VkMultisamplePropertiesEXT* pMultisampleProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetPhysicalDeviceMultisamplePropertiesEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
     VkSampleCountFlagBits local_samples;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
     local_samples = samples;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1271;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkSampleCountFlagBits);
-        count_VkMultisamplePropertiesEXT(featureBits, (VkMultisamplePropertiesEXT*)(pMultisampleProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkMultisamplePropertiesEXT(sFeatureBits, (VkMultisamplePropertiesEXT*)(pMultisampleProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceMultisamplePropertiesEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceMultisamplePropertiesEXT);
@@ -25208,12 +23061,10 @@ void VkEncoder::vkGetPhysicalDeviceMultisamplePropertiesEXT(
     memcpy(*streamPtrPtr, (VkSampleCountFlagBits*)&local_samples, sizeof(VkSampleCountFlagBits));
     *streamPtrPtr += sizeof(VkSampleCountFlagBits);
     reservedmarshal_VkMultisamplePropertiesEXT(stream, (VkMultisamplePropertiesEXT*)(pMultisampleProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkMultisamplePropertiesEXT(stream, (VkMultisamplePropertiesEXT*)(pMultisampleProperties));
     if (pMultisampleProperties)
     {
-        transform_fromhost_VkMultisamplePropertiesEXT(mImpl->resources(), (VkMultisamplePropertiesEXT*)(pMultisampleProperties));
+        transform_fromhost_VkMultisamplePropertiesEXT(sResourceTracker, (VkMultisamplePropertiesEXT*)(pMultisampleProperties));
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -25221,8 +23072,7 @@ void VkEncoder::vkGetPhysicalDeviceMultisamplePropertiesEXT(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetPhysicalDeviceMultisamplePropertiesEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -25244,15 +23094,14 @@ VkResult VkEncoder::vkCreateValidationCacheEXT(
     VkValidationCacheEXT* pValidationCache,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateValidationCacheEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkValidationCacheCreateInfoEXT* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -25266,32 +23115,29 @@ VkResult VkEncoder::vkCreateValidationCacheEXT(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkValidationCacheCreateInfoEXT(mImpl->resources(), (VkValidationCacheCreateInfoEXT*)(local_pCreateInfo));
+        transform_tohost_VkValidationCacheCreateInfoEXT(sResourceTracker, (VkValidationCacheCreateInfoEXT*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1273;
         *countPtr += 1 * 8;
-        count_VkValidationCacheCreateInfoEXT(featureBits, (VkValidationCacheCreateInfoEXT*)(local_pCreateInfo), countPtr);
+        count_VkValidationCacheCreateInfoEXT(sFeatureBits, (VkValidationCacheCreateInfoEXT*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1274;
         *countPtr += 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCreateValidationCacheEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateValidationCacheEXT);
@@ -25319,9 +23165,7 @@ VkResult VkEncoder::vkCreateValidationCacheEXT(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1277, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_1278;
     stream->read((uint64_t*)&cgen_var_1278, 8);
     stream->handleMapping()->mapHandles_u64_VkValidationCacheEXT(&cgen_var_1278, (VkValidationCacheEXT*)pValidationCache, 1);
@@ -25334,8 +23178,7 @@ VkResult VkEncoder::vkCreateValidationCacheEXT(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateValidationCacheEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateValidationCacheEXT_VkResult_return;
 }
 
@@ -25345,15 +23188,14 @@ void VkEncoder::vkDestroyValidationCacheEXT(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkDestroyValidationCacheEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkValidationCacheEXT local_validationCache;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_validationCache = validationCache;
     local_pAllocator = nullptr;
@@ -25362,13 +23204,11 @@ void VkEncoder::vkDestroyValidationCacheEXT(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -25380,9 +23220,8 @@ void VkEncoder::vkDestroyValidationCacheEXT(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkDestroyValidationCacheEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDestroyValidationCacheEXT);
@@ -25407,17 +23246,14 @@ void VkEncoder::vkDestroyValidationCacheEXT(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    resources->destroyMapping()->mapHandles_VkValidationCacheEXT((VkValidationCacheEXT*)&validationCache);
+    sResourceTracker->destroyMapping()->mapHandles_VkValidationCacheEXT((VkValidationCacheEXT*)&validationCache);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkDestroyValidationCacheEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkMergeValidationCachesEXT(
@@ -25427,16 +23263,15 @@ VkResult VkEncoder::vkMergeValidationCachesEXT(
     const VkValidationCacheEXT* pSrcCaches,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkMergeValidationCachesEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkValidationCacheEXT local_dstCache;
     uint32_t local_srcCacheCount;
     VkValidationCacheEXT* local_pSrcCaches;
-    uint32_t local_doLock;
     local_device = device;
     local_dstCache = dstCache;
     local_srcCacheCount = srcCacheCount;
@@ -25445,8 +23280,6 @@ VkResult VkEncoder::vkMergeValidationCachesEXT(
     {
         local_pSrcCaches = (VkValidationCacheEXT*)pool->dupArray(pSrcCaches, ((srcCacheCount)) * sizeof(const VkValidationCacheEXT));
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -25459,7 +23292,6 @@ VkResult VkEncoder::vkMergeValidationCachesEXT(
         {
             *countPtr += ((srcCacheCount)) * 8;
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkMergeValidationCachesEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkMergeValidationCachesEXT);
@@ -25488,8 +23320,6 @@ VkResult VkEncoder::vkMergeValidationCachesEXT(
         memcpy(*streamPtrPtr, (uint64_t*)cgen_var_1289, ((srcCacheCount)) * 8);
         *streamPtrPtr += ((srcCacheCount)) * 8;
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkMergeValidationCachesEXT_VkResult_return = (VkResult)0;
     stream->read(&vkMergeValidationCachesEXT_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -25498,8 +23328,7 @@ VkResult VkEncoder::vkMergeValidationCachesEXT(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkMergeValidationCachesEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkMergeValidationCachesEXT_VkResult_return;
 }
 
@@ -25510,18 +23339,15 @@ VkResult VkEncoder::vkGetValidationCacheDataEXT(
     void* pData,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetValidationCacheDataEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkValidationCacheEXT local_validationCache;
-    uint32_t local_doLock;
     local_device = device;
     local_validationCache = validationCache;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -25541,7 +23367,6 @@ VkResult VkEncoder::vkGetValidationCacheDataEXT(
         {
             *countPtr += (*(pDataSize)) * sizeof(uint8_t);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetValidationCacheDataEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetValidationCacheDataEXT);
@@ -25579,8 +23404,6 @@ VkResult VkEncoder::vkGetValidationCacheDataEXT(
         memcpy(*streamPtrPtr, (void*)pData, (*(pDataSize)) * sizeof(uint8_t));
         *streamPtrPtr += (*(pDataSize)) * sizeof(uint8_t);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     size_t* check_pDataSize;
     check_pDataSize = (size_t*)(uintptr_t)stream->getBe64();
@@ -25611,8 +23434,7 @@ VkResult VkEncoder::vkGetValidationCacheDataEXT(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetValidationCacheDataEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetValidationCacheDataEXT_VkResult_return;
 }
 
@@ -25631,15 +23453,14 @@ VkResult VkEncoder::vkGetMemoryHostPointerPropertiesEXT(
     VkMemoryHostPointerPropertiesEXT* pMemoryHostPointerProperties,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetMemoryHostPointerPropertiesEXT");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkExternalMemoryHandleTypeFlagBits local_handleType;
     void* local_pHostPointer;
-    uint32_t local_doLock;
     local_device = device;
     local_handleType = handleType;
     local_pHostPointer = nullptr;
@@ -25647,8 +23468,6 @@ VkResult VkEncoder::vkGetMemoryHostPointerPropertiesEXT(
     {
         local_pHostPointer = (void*)pool->dupArray(pHostPointer, sizeof(const uint8_t));
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -25661,8 +23480,7 @@ VkResult VkEncoder::vkGetMemoryHostPointerPropertiesEXT(
         {
             *countPtr += sizeof(uint8_t);
         }
-        count_VkMemoryHostPointerPropertiesEXT(featureBits, (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkMemoryHostPointerPropertiesEXT(sFeatureBits, (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties), countPtr);
     }
     uint32_t packetSize_vkGetMemoryHostPointerPropertiesEXT = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetMemoryHostPointerPropertiesEXT);
@@ -25687,12 +23505,10 @@ VkResult VkEncoder::vkGetMemoryHostPointerPropertiesEXT(
         *streamPtrPtr += sizeof(uint8_t);
     }
     reservedmarshal_VkMemoryHostPointerPropertiesEXT(stream, (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     unmarshal_VkMemoryHostPointerPropertiesEXT(stream, (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties));
     if (pMemoryHostPointerProperties)
     {
-        transform_fromhost_VkMemoryHostPointerPropertiesEXT(mImpl->resources(), (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties));
+        transform_fromhost_VkMemoryHostPointerPropertiesEXT(sResourceTracker, (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties));
     }
     VkResult vkGetMemoryHostPointerPropertiesEXT_VkResult_return = (VkResult)0;
     stream->read(&vkGetMemoryHostPointerPropertiesEXT_VkResult_return, sizeof(VkResult));
@@ -25702,8 +23518,7 @@ VkResult VkEncoder::vkGetMemoryHostPointerPropertiesEXT(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetMemoryHostPointerPropertiesEXT");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetMemoryHostPointerPropertiesEXT_VkResult_return;
 }
 
@@ -25717,24 +23532,21 @@ void VkEncoder::vkCmdWriteBufferMarkerAMD(
     uint32_t marker,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdWriteBufferMarkerAMD");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkPipelineStageFlagBits local_pipelineStage;
     VkBuffer local_dstBuffer;
     VkDeviceSize local_dstOffset;
     uint32_t local_marker;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pipelineStage = pipelineStage;
     local_dstBuffer = dstBuffer;
     local_dstOffset = dstOffset;
     local_marker = marker;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -25744,7 +23556,6 @@ void VkEncoder::vkCmdWriteBufferMarkerAMD(
         uint64_t cgen_var_1304;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkDeviceSize);
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdWriteBufferMarkerAMD = 4 + 4 + count;
@@ -25767,16 +23578,13 @@ void VkEncoder::vkCmdWriteBufferMarkerAMD(
     *streamPtrPtr += sizeof(VkDeviceSize);
     memcpy(*streamPtrPtr, (uint32_t*)&local_marker, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdWriteBufferMarkerAMD");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -25792,22 +23600,19 @@ void VkEncoder::vkCmdSetCheckpointNV(
     const void* pCheckpointMarker,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCmdSetCheckpointNV");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     void* local_pCheckpointMarker;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pCheckpointMarker = nullptr;
     if (pCheckpointMarker)
     {
         local_pCheckpointMarker = (void*)pool->dupArray(pCheckpointMarker, sizeof(const uint8_t));
     }
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -25819,7 +23624,6 @@ void VkEncoder::vkCmdSetCheckpointNV(
         {
             *countPtr += sizeof(uint8_t);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkCmdSetCheckpointNV = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCmdSetCheckpointNV);
@@ -25841,16 +23645,13 @@ void VkEncoder::vkCmdSetCheckpointNV(
         memcpy(*streamPtrPtr, (void*)local_pCheckpointMarker, sizeof(uint8_t));
         *streamPtrPtr += sizeof(uint8_t);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCmdSetCheckpointNV");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetQueueCheckpointDataNV(
@@ -25859,16 +23660,13 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
     VkCheckpointDataNV* pCheckpointData,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetQueueCheckpointDataNV");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkQueue local_queue;
-    uint32_t local_doLock;
     local_queue = queue;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -25886,10 +23684,9 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i)
             {
-                count_VkCheckpointDataNV(featureBits, (VkCheckpointDataNV*)(pCheckpointData + i), countPtr);
+                count_VkCheckpointDataNV(sFeatureBits, (VkCheckpointDataNV*)(pCheckpointData + i), countPtr);
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetQueueCheckpointDataNV = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetQueueCheckpointDataNV);
@@ -25923,8 +23720,6 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
             reservedmarshal_VkCheckpointDataNV(stream, (VkCheckpointDataNV*)(pCheckpointData + i), streamPtrPtr);
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint32_t* check_pCheckpointDataCount;
     check_pCheckpointDataCount = (uint32_t*)(uintptr_t)stream->getBe64();
@@ -25954,7 +23749,7 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i)
         {
-            transform_fromhost_VkCheckpointDataNV(mImpl->resources(), (VkCheckpointDataNV*)(pCheckpointData + i));
+            transform_fromhost_VkCheckpointDataNV(sResourceTracker, (VkCheckpointDataNV*)(pCheckpointData + i));
         }
     }
     ++encodeCount;;
@@ -25963,8 +23758,7 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetQueueCheckpointDataNV");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -25975,20 +23769,17 @@ VkResult VkEncoder::vkMapMemoryIntoAddressSpaceGOOGLE(
     uint64_t* pAddress,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkMapMemoryIntoAddressSpaceGOOGLE");
-    mImpl->resources()->on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(this, VK_SUCCESS, device, memory, pAddress);
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    sResourceTracker->on_vkMapMemoryIntoAddressSpaceGOOGLE_pre(this, VK_SUCCESS, device, memory, pAddress);
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDeviceMemory local_memory;
-    uint32_t local_doLock;
     local_device = device;
     local_memory = memory;
-    local_doLock = doLock;
-    mImpl->resources()->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
-    uint32_t featureBits = stream->getFeatureBits();
+    sResourceTracker->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -26002,7 +23793,6 @@ VkResult VkEncoder::vkMapMemoryIntoAddressSpaceGOOGLE(
         {
             *countPtr += sizeof(uint64_t);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkMapMemoryIntoAddressSpaceGOOGLE = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkMapMemoryIntoAddressSpaceGOOGLE);
@@ -26028,8 +23818,6 @@ VkResult VkEncoder::vkMapMemoryIntoAddressSpaceGOOGLE(
         memcpy(*streamPtrPtr, (uint64_t*)pAddress, sizeof(uint64_t));
         *streamPtrPtr += sizeof(uint64_t);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint64_t* check_pAddress;
     check_pAddress = (uint64_t*)(uintptr_t)stream->getBe64();
@@ -26043,15 +23831,14 @@ VkResult VkEncoder::vkMapMemoryIntoAddressSpaceGOOGLE(
     }
     VkResult vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return, sizeof(VkResult));
-    mImpl->resources()->on_vkMapMemoryIntoAddressSpaceGOOGLE(this, vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return, device, memory, pAddress);
+    sResourceTracker->on_vkMapMemoryIntoAddressSpaceGOOGLE(this, vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return, device, memory, pAddress);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkMapMemoryIntoAddressSpaceGOOGLE");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return;
 }
 
@@ -26063,20 +23850,17 @@ VkResult VkEncoder::vkRegisterImageColorBufferGOOGLE(
     uint32_t colorBuffer,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkRegisterImageColorBufferGOOGLE");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkImage local_image;
     uint32_t local_colorBuffer;
-    uint32_t local_doLock;
     local_device = device;
     local_image = image;
     local_colorBuffer = colorBuffer;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -26084,7 +23868,6 @@ VkResult VkEncoder::vkRegisterImageColorBufferGOOGLE(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1323;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkRegisterImageColorBufferGOOGLE = 4 + 4 + count;
@@ -26103,8 +23886,6 @@ VkResult VkEncoder::vkRegisterImageColorBufferGOOGLE(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (uint32_t*)&local_colorBuffer, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkRegisterImageColorBufferGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkRegisterImageColorBufferGOOGLE_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -26113,8 +23894,7 @@ VkResult VkEncoder::vkRegisterImageColorBufferGOOGLE(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkRegisterImageColorBufferGOOGLE");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkRegisterImageColorBufferGOOGLE_VkResult_return;
 }
 
@@ -26124,20 +23904,17 @@ VkResult VkEncoder::vkRegisterBufferColorBufferGOOGLE(
     uint32_t colorBuffer,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkRegisterBufferColorBufferGOOGLE");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkBuffer local_buffer;
     uint32_t local_colorBuffer;
-    uint32_t local_doLock;
     local_device = device;
     local_buffer = buffer;
     local_colorBuffer = colorBuffer;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -26145,7 +23922,6 @@ VkResult VkEncoder::vkRegisterBufferColorBufferGOOGLE(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1327;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkRegisterBufferColorBufferGOOGLE = 4 + 4 + count;
@@ -26164,8 +23940,6 @@ VkResult VkEncoder::vkRegisterBufferColorBufferGOOGLE(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (uint32_t*)&local_colorBuffer, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkRegisterBufferColorBufferGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkRegisterBufferColorBufferGOOGLE_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -26174,8 +23948,7 @@ VkResult VkEncoder::vkRegisterBufferColorBufferGOOGLE(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkRegisterBufferColorBufferGOOGLE");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkRegisterBufferColorBufferGOOGLE_VkResult_return;
 }
 
@@ -26196,10 +23969,10 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     const VkBufferView* pBufferViews,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkUpdateDescriptorSetWithTemplateSizedGOOGLE");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDescriptorSet local_descriptorSet;
@@ -26213,7 +23986,6 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     VkDescriptorImageInfo* local_pImageInfos;
     VkDescriptorBufferInfo* local_pBufferInfos;
     VkBufferView* local_pBufferViews;
-    uint32_t local_doLock;
     local_device = device;
     local_descriptorSet = descriptorSet;
     local_descriptorUpdateTemplate = descriptorUpdateTemplate;
@@ -26258,22 +24030,20 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     {
         local_pBufferViews = (VkBufferView*)pool->dupArray(pBufferViews, ((bufferViewCount)) * sizeof(const VkBufferView));
     }
-    local_doLock = doLock;
     if (local_pImageInfos)
     {
         for (uint32_t i = 0; i < (uint32_t)((imageInfoCount)); ++i)
         {
-            transform_tohost_VkDescriptorImageInfo(mImpl->resources(), (VkDescriptorImageInfo*)(local_pImageInfos + i));
+            transform_tohost_VkDescriptorImageInfo(sResourceTracker, (VkDescriptorImageInfo*)(local_pImageInfos + i));
         }
     }
     if (local_pBufferInfos)
     {
         for (uint32_t i = 0; i < (uint32_t)((bufferInfoCount)); ++i)
         {
-            transform_tohost_VkDescriptorBufferInfo(mImpl->resources(), (VkDescriptorBufferInfo*)(local_pBufferInfos + i));
+            transform_tohost_VkDescriptorBufferInfo(sResourceTracker, (VkDescriptorBufferInfo*)(local_pBufferInfos + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -26310,7 +24080,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
         {
             for (uint32_t i = 0; i < (uint32_t)((imageInfoCount)); ++i)
             {
-                count_VkDescriptorImageInfo(featureBits, (VkDescriptorImageInfo*)(local_pImageInfos + i), countPtr);
+                count_VkDescriptorImageInfo(sFeatureBits, (VkDescriptorImageInfo*)(local_pImageInfos + i), countPtr);
             }
         }
         // WARNING PTR CHECK
@@ -26319,7 +24089,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
         {
             for (uint32_t i = 0; i < (uint32_t)((bufferInfoCount)); ++i)
             {
-                count_VkDescriptorBufferInfo(featureBits, (VkDescriptorBufferInfo*)(local_pBufferInfos + i), countPtr);
+                count_VkDescriptorBufferInfo(sFeatureBits, (VkDescriptorBufferInfo*)(local_pBufferInfos + i), countPtr);
             }
         }
         // WARNING PTR CHECK
@@ -26331,7 +24101,6 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
                 *countPtr += ((bufferViewCount)) * 8;
             }
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkUpdateDescriptorSetWithTemplateSizedGOOGLE = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkUpdateDescriptorSetWithTemplateSizedGOOGLE);
@@ -26430,16 +24199,13 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
             *streamPtrPtr += ((bufferViewCount)) * 8;
         }
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkUpdateDescriptorSetWithTemplateSizedGOOGLE");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -26449,14 +24215,13 @@ void VkEncoder::vkBeginCommandBufferAsyncGOOGLE(
     const VkCommandBufferBeginInfo* pBeginInfo,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkBeginCommandBufferAsyncGOOGLE");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkCommandBufferBeginInfo* local_pBeginInfo;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_pBeginInfo = nullptr;
     if (pBeginInfo)
@@ -26464,19 +24229,16 @@ void VkEncoder::vkBeginCommandBufferAsyncGOOGLE(
         local_pBeginInfo = (VkCommandBufferBeginInfo*)pool->alloc(sizeof(const VkCommandBufferBeginInfo));
         deepcopy_VkCommandBufferBeginInfo(pool, pBeginInfo, (VkCommandBufferBeginInfo*)(local_pBeginInfo));
     }
-    local_doLock = doLock;
     if (local_pBeginInfo)
     {
-        transform_tohost_VkCommandBufferBeginInfo(mImpl->resources(), (VkCommandBufferBeginInfo*)(local_pBeginInfo));
+        transform_tohost_VkCommandBufferBeginInfo(sResourceTracker, (VkCommandBufferBeginInfo*)(local_pBeginInfo));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1344;
         *countPtr += 1 * 8;
-        count_VkCommandBufferBeginInfo(featureBits, (VkCommandBufferBeginInfo*)(local_pBeginInfo), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkCommandBufferBeginInfo(sFeatureBits, (VkCommandBufferBeginInfo*)(local_pBeginInfo), countPtr);
     }
     uint32_t packetSize_vkBeginCommandBufferAsyncGOOGLE = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkBeginCommandBufferAsyncGOOGLE);
@@ -26489,38 +24251,31 @@ void VkEncoder::vkBeginCommandBufferAsyncGOOGLE(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1345, 1 * 8);
     *streamPtrPtr += 1 * 8;
     reservedmarshal_VkCommandBufferBeginInfo(stream, (VkCommandBufferBeginInfo*)(local_pBeginInfo), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkBeginCommandBufferAsyncGOOGLE");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkEndCommandBufferAsyncGOOGLE(
     VkCommandBuffer commandBuffer,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkEndCommandBufferAsyncGOOGLE");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1346;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkEndCommandBufferAsyncGOOGLE = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkEndCommandBufferAsyncGOOGLE);
@@ -26532,8 +24287,6 @@ void VkEncoder::vkEndCommandBufferAsyncGOOGLE(
     *&cgen_var_1347 = get_host_u64_VkCommandBuffer((*&local_commandBuffer));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1347, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->flush();
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -26541,8 +24294,7 @@ void VkEncoder::vkEndCommandBufferAsyncGOOGLE(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkEndCommandBufferAsyncGOOGLE");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkResetCommandBufferAsyncGOOGLE(
@@ -26550,25 +24302,21 @@ void VkEncoder::vkResetCommandBufferAsyncGOOGLE(
     VkCommandBufferResetFlags flags,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkResetCommandBufferAsyncGOOGLE");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     VkCommandBufferResetFlags local_flags;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_flags = flags;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1348;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkCommandBufferResetFlags);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkResetCommandBufferAsyncGOOGLE = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkResetCommandBufferAsyncGOOGLE);
@@ -26582,16 +24330,13 @@ void VkEncoder::vkResetCommandBufferAsyncGOOGLE(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkCommandBufferResetFlags*)&local_flags, sizeof(VkCommandBufferResetFlags));
     *streamPtrPtr += sizeof(VkCommandBufferResetFlags);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkResetCommandBufferAsyncGOOGLE");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkCommandBufferHostSyncGOOGLE(
@@ -26600,26 +24345,22 @@ void VkEncoder::vkCommandBufferHostSyncGOOGLE(
     uint32_t sequenceNumber,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCommandBufferHostSyncGOOGLE");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkCommandBuffer local_commandBuffer;
     uint32_t local_needHostSync;
     uint32_t local_sequenceNumber;
-    uint32_t local_doLock;
     local_commandBuffer = commandBuffer;
     local_needHostSync = needHostSync;
     local_sequenceNumber = sequenceNumber;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1350;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
@@ -26637,16 +24378,13 @@ void VkEncoder::vkCommandBufferHostSyncGOOGLE(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (uint32_t*)&local_sequenceNumber, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCommandBufferHostSyncGOOGLE");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -26659,15 +24397,14 @@ VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
     VkMemoryRequirements* pMemoryRequirements,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateImageWithRequirementsGOOGLE");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkImageCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -26681,34 +24418,31 @@ VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
-    mImpl->resources()->unwrap_VkNativeBufferANDROID(pCreateInfo, local_pCreateInfo);
+    sResourceTracker->unwrap_VkNativeBufferANDROID(pCreateInfo, local_pCreateInfo);
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkImageCreateInfo(mImpl->resources(), (VkImageCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkImageCreateInfo(sResourceTracker, (VkImageCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1352;
         *countPtr += 1 * 8;
-        count_VkImageCreateInfo(featureBits, (VkImageCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkImageCreateInfo(sFeatureBits, (VkImageCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1353;
         *countPtr += 8;
-        count_VkMemoryRequirements(featureBits, (VkMemoryRequirements*)(pMemoryRequirements), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkMemoryRequirements(sFeatureBits, (VkMemoryRequirements*)(pMemoryRequirements), countPtr);
     }
     uint32_t packetSize_vkCreateImageWithRequirementsGOOGLE = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateImageWithRequirementsGOOGLE);
@@ -26737,9 +24471,7 @@ VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
     reservedmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_1357;
     stream->read((uint64_t*)&cgen_var_1357, 8);
     stream->handleMapping()->mapHandles_u64_VkImage(&cgen_var_1357, (VkImage*)pImage, 1);
@@ -26747,7 +24479,7 @@ VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
     unmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
     if (pMemoryRequirements)
     {
-        transform_fromhost_VkMemoryRequirements(mImpl->resources(), (VkMemoryRequirements*)(pMemoryRequirements));
+        transform_fromhost_VkMemoryRequirements(sResourceTracker, (VkMemoryRequirements*)(pMemoryRequirements));
     }
     VkResult vkCreateImageWithRequirementsGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkCreateImageWithRequirementsGOOGLE_VkResult_return, sizeof(VkResult));
@@ -26757,8 +24489,7 @@ VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateImageWithRequirementsGOOGLE");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateImageWithRequirementsGOOGLE_VkResult_return;
 }
 
@@ -26770,15 +24501,14 @@ VkResult VkEncoder::vkCreateBufferWithRequirementsGOOGLE(
     VkMemoryRequirements* pMemoryRequirements,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkCreateBufferWithRequirementsGOOGLE");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkBufferCreateInfo* local_pCreateInfo;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_pCreateInfo = nullptr;
     if (pCreateInfo)
@@ -26792,33 +24522,30 @@ VkResult VkEncoder::vkCreateBufferWithRequirementsGOOGLE(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        transform_tohost_VkBufferCreateInfo(mImpl->resources(), (VkBufferCreateInfo*)(local_pCreateInfo));
+        transform_tohost_VkBufferCreateInfo(sResourceTracker, (VkBufferCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
     {
-        transform_tohost_VkAllocationCallbacks(mImpl->resources(), (VkAllocationCallbacks*)(local_pAllocator));
+        transform_tohost_VkAllocationCallbacks(sResourceTracker, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1358;
         *countPtr += 1 * 8;
-        count_VkBufferCreateInfo(featureBits, (VkBufferCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkBufferCreateInfo(sFeatureBits, (VkBufferCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1359;
         *countPtr += 8;
-        count_VkMemoryRequirements(featureBits, (VkMemoryRequirements*)(pMemoryRequirements), countPtr);
-        *countPtr += sizeof(uint32_t);
+        count_VkMemoryRequirements(sFeatureBits, (VkMemoryRequirements*)(pMemoryRequirements), countPtr);
     }
     uint32_t packetSize_vkCreateBufferWithRequirementsGOOGLE = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateBufferWithRequirementsGOOGLE);
@@ -26847,9 +24574,7 @@ VkResult VkEncoder::vkCreateBufferWithRequirementsGOOGLE(
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
     reservedmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements), streamPtrPtr);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    stream->setHandleMapping(resources->createMapping());
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_1363;
     stream->read((uint64_t*)&cgen_var_1363, 8);
     stream->handleMapping()->mapHandles_u64_VkBuffer(&cgen_var_1363, (VkBuffer*)pBuffer, 1);
@@ -26857,7 +24582,7 @@ VkResult VkEncoder::vkCreateBufferWithRequirementsGOOGLE(
     unmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
     if (pMemoryRequirements)
     {
-        transform_fromhost_VkMemoryRequirements(mImpl->resources(), (VkMemoryRequirements*)(pMemoryRequirements));
+        transform_fromhost_VkMemoryRequirements(sResourceTracker, (VkMemoryRequirements*)(pMemoryRequirements));
     }
     VkResult vkCreateBufferWithRequirementsGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkCreateBufferWithRequirementsGOOGLE_VkResult_return, sizeof(VkResult));
@@ -26867,8 +24592,7 @@ VkResult VkEncoder::vkCreateBufferWithRequirementsGOOGLE(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkCreateBufferWithRequirementsGOOGLE");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkCreateBufferWithRequirementsGOOGLE_VkResult_return;
 }
 
@@ -26882,19 +24606,16 @@ VkResult VkEncoder::vkGetMemoryHostAddressInfoGOOGLE(
     uint64_t* pHostmemId,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetMemoryHostAddressInfoGOOGLE");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDeviceMemory local_memory;
-    uint32_t local_doLock;
     local_device = device;
     local_memory = memory;
-    local_doLock = doLock;
-    mImpl->resources()->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
-    uint32_t featureBits = stream->getFeatureBits();
+    sResourceTracker->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -26920,7 +24641,6 @@ VkResult VkEncoder::vkGetMemoryHostAddressInfoGOOGLE(
         {
             *countPtr += sizeof(uint64_t);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetMemoryHostAddressInfoGOOGLE = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetMemoryHostAddressInfoGOOGLE);
@@ -26966,8 +24686,6 @@ VkResult VkEncoder::vkGetMemoryHostAddressInfoGOOGLE(
         memcpy(*streamPtrPtr, (uint64_t*)pHostmemId, sizeof(uint64_t));
         *streamPtrPtr += sizeof(uint64_t);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     // WARNING PTR CHECK
     uint64_t* check_pAddress;
     check_pAddress = (uint64_t*)(uintptr_t)stream->getBe64();
@@ -27009,8 +24727,7 @@ VkResult VkEncoder::vkGetMemoryHostAddressInfoGOOGLE(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetMemoryHostAddressInfoGOOGLE");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkGetMemoryHostAddressInfoGOOGLE_VkResult_return;
 }
 
@@ -27022,15 +24739,14 @@ VkResult VkEncoder::vkFreeMemorySyncGOOGLE(
     const VkAllocationCallbacks* pAllocator,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkFreeMemorySyncGOOGLE");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkDeviceMemory local_memory;
     VkAllocationCallbacks* local_pAllocator;
-    uint32_t local_doLock;
     local_device = device;
     local_memory = memory;
     local_pAllocator = nullptr;
@@ -27039,10 +24755,8 @@ VkResult VkEncoder::vkFreeMemorySyncGOOGLE(
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
         deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
-    local_doLock = doLock;
     local_pAllocator = nullptr;
-    mImpl->resources()->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
-    uint32_t featureBits = stream->getFeatureBits();
+    sResourceTracker->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -27054,9 +24768,8 @@ VkResult VkEncoder::vkFreeMemorySyncGOOGLE(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(featureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkFreeMemorySyncGOOGLE = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkFreeMemorySyncGOOGLE);
@@ -27081,19 +24794,16 @@ VkResult VkEncoder::vkFreeMemorySyncGOOGLE(
     {
         reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     VkResult vkFreeMemorySyncGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkFreeMemorySyncGOOGLE_VkResult_return, sizeof(VkResult));
-    resources->destroyMapping()->mapHandles_VkDeviceMemory((VkDeviceMemory*)&memory);
+    sResourceTracker->destroyMapping()->mapHandles_VkDeviceMemory((VkDeviceMemory*)&memory);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkFreeMemorySyncGOOGLE");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkFreeMemorySyncGOOGLE_VkResult_return;
 }
 
@@ -27105,26 +24815,22 @@ void VkEncoder::vkQueueHostSyncGOOGLE(
     uint32_t sequenceNumber,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkQueueHostSyncGOOGLE");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkQueue local_queue;
     uint32_t local_needHostSync;
     uint32_t local_sequenceNumber;
-    uint32_t local_doLock;
     local_queue = queue;
     local_needHostSync = needHostSync;
     local_sequenceNumber = sequenceNumber;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1379;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
     }
@@ -27142,16 +24848,13 @@ void VkEncoder::vkQueueHostSyncGOOGLE(
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (uint32_t*)&local_sequenceNumber, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkQueueHostSyncGOOGLE");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkQueueSubmitAsyncGOOGLE(
@@ -27161,16 +24864,15 @@ void VkEncoder::vkQueueSubmitAsyncGOOGLE(
     VkFence fence,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkQueueSubmitAsyncGOOGLE");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkQueue local_queue;
     uint32_t local_submitCount;
     VkSubmitInfo* local_pSubmits;
     VkFence local_fence;
-    uint32_t local_doLock;
     local_queue = queue;
     local_submitCount = submitCount;
     local_pSubmits = nullptr;
@@ -27183,15 +24885,13 @@ void VkEncoder::vkQueueSubmitAsyncGOOGLE(
         }
     }
     local_fence = fence;
-    local_doLock = doLock;
     if (local_pSubmits)
     {
         for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i)
         {
-            transform_tohost_VkSubmitInfo(mImpl->resources(), (VkSubmitInfo*)(local_pSubmits + i));
+            transform_tohost_VkSubmitInfo(sResourceTracker, (VkSubmitInfo*)(local_pSubmits + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -27200,11 +24900,10 @@ void VkEncoder::vkQueueSubmitAsyncGOOGLE(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i)
         {
-            count_VkSubmitInfo(featureBits, (VkSubmitInfo*)(local_pSubmits + i), countPtr);
+            count_VkSubmitInfo(sFeatureBits, (VkSubmitInfo*)(local_pSubmits + i), countPtr);
         }
         uint64_t cgen_var_1382;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkQueueSubmitAsyncGOOGLE = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkQueueSubmitAsyncGOOGLE);
@@ -27226,8 +24925,6 @@ void VkEncoder::vkQueueSubmitAsyncGOOGLE(
     *&cgen_var_1384 = get_host_u64_VkFence((*&local_fence));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1384, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->flush();
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -27235,30 +24932,25 @@ void VkEncoder::vkQueueSubmitAsyncGOOGLE(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkQueueSubmitAsyncGOOGLE");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkQueueWaitIdleAsyncGOOGLE(
     VkQueue queue,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkQueueWaitIdleAsyncGOOGLE");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkQueue local_queue;
-    uint32_t local_doLock;
     local_queue = queue;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1385;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkQueueWaitIdleAsyncGOOGLE = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkQueueWaitIdleAsyncGOOGLE);
@@ -27270,8 +24962,6 @@ void VkEncoder::vkQueueWaitIdleAsyncGOOGLE(
     *&cgen_var_1386 = get_host_u64_VkQueue((*&local_queue));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1386, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->flush();
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -27279,8 +24969,7 @@ void VkEncoder::vkQueueWaitIdleAsyncGOOGLE(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkQueueWaitIdleAsyncGOOGLE");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkQueueBindSparseAsyncGOOGLE(
@@ -27290,16 +24979,15 @@ void VkEncoder::vkQueueBindSparseAsyncGOOGLE(
     VkFence fence,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkQueueBindSparseAsyncGOOGLE");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkQueue local_queue;
     uint32_t local_bindInfoCount;
     VkBindSparseInfo* local_pBindInfo;
     VkFence local_fence;
-    uint32_t local_doLock;
     local_queue = queue;
     local_bindInfoCount = bindInfoCount;
     local_pBindInfo = nullptr;
@@ -27312,15 +25000,13 @@ void VkEncoder::vkQueueBindSparseAsyncGOOGLE(
         }
     }
     local_fence = fence;
-    local_doLock = doLock;
     if (local_pBindInfo)
     {
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            transform_tohost_VkBindSparseInfo(mImpl->resources(), (VkBindSparseInfo*)(local_pBindInfo + i));
+            transform_tohost_VkBindSparseInfo(sResourceTracker, (VkBindSparseInfo*)(local_pBindInfo + i));
         }
     }
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -27329,11 +25015,10 @@ void VkEncoder::vkQueueBindSparseAsyncGOOGLE(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            count_VkBindSparseInfo(featureBits, (VkBindSparseInfo*)(local_pBindInfo + i), countPtr);
+            count_VkBindSparseInfo(sFeatureBits, (VkBindSparseInfo*)(local_pBindInfo + i), countPtr);
         }
         uint64_t cgen_var_1388;
         *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkQueueBindSparseAsyncGOOGLE = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkQueueBindSparseAsyncGOOGLE);
@@ -27355,8 +25040,6 @@ void VkEncoder::vkQueueBindSparseAsyncGOOGLE(
     *&cgen_var_1390 = get_host_u64_VkFence((*&local_fence));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1390, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->flush();
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -27364,8 +25047,7 @@ void VkEncoder::vkQueueBindSparseAsyncGOOGLE(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkQueueBindSparseAsyncGOOGLE");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -27377,18 +25059,15 @@ void VkEncoder::vkGetLinearImageLayoutGOOGLE(
     VkDeviceSize* pRowPitchAlignment,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetLinearImageLayoutGOOGLE");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkDevice local_device;
     VkFormat local_format;
-    uint32_t local_doLock;
     local_device = device;
     local_format = format;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -27397,7 +25076,6 @@ void VkEncoder::vkGetLinearImageLayoutGOOGLE(
         *countPtr += sizeof(VkFormat);
         *countPtr += sizeof(VkDeviceSize);
         *countPtr += sizeof(VkDeviceSize);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetLinearImageLayoutGOOGLE = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetLinearImageLayoutGOOGLE);
@@ -27415,8 +25093,6 @@ void VkEncoder::vkGetLinearImageLayoutGOOGLE(
     *streamPtrPtr += sizeof(VkDeviceSize);
     memcpy(*streamPtrPtr, (VkDeviceSize*)pRowPitchAlignment, sizeof(VkDeviceSize));
     *streamPtrPtr += sizeof(VkDeviceSize);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((VkDeviceSize*)pOffset, sizeof(VkDeviceSize));
     stream->read((VkDeviceSize*)pRowPitchAlignment, sizeof(VkDeviceSize));
     ++encodeCount;;
@@ -27425,8 +25101,7 @@ void VkEncoder::vkGetLinearImageLayoutGOOGLE(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetLinearImageLayoutGOOGLE");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
@@ -27436,23 +25111,19 @@ void VkEncoder::vkGetMTLDeviceMVK(
     void** pMTLDevice,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetMTLDeviceMVK");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkPhysicalDevice local_physicalDevice;
-    uint32_t local_doLock;
     local_physicalDevice = physicalDevice;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1393;
         *countPtr += 1 * 8;
         *countPtr += sizeof(void*);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetMTLDeviceMVK = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetMTLDeviceMVK);
@@ -27466,8 +25137,6 @@ void VkEncoder::vkGetMTLDeviceMVK(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (void**)pMTLDevice, sizeof(void*));
     *streamPtrPtr += sizeof(void*);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((void**)pMTLDevice, sizeof(void*));
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -27475,8 +25144,7 @@ void VkEncoder::vkGetMTLDeviceMVK(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetMTLDeviceMVK");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkSetMTLTextureMVK(
@@ -27484,23 +25152,19 @@ VkResult VkEncoder::vkSetMTLTextureMVK(
     void* mtlTexture,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkSetMTLTextureMVK");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkImage local_image;
-    uint32_t local_doLock;
     local_image = image;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1395;
         *countPtr += 1 * 8;
         *countPtr += sizeof(uint8_t);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkSetMTLTextureMVK = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkSetMTLTextureMVK);
@@ -27514,8 +25178,6 @@ VkResult VkEncoder::vkSetMTLTextureMVK(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (void*)mtlTexture, sizeof(uint8_t));
     *streamPtrPtr += sizeof(uint8_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((void*)mtlTexture, sizeof(uint8_t));
     VkResult vkSetMTLTextureMVK_VkResult_return = (VkResult)0;
     stream->read(&vkSetMTLTextureMVK_VkResult_return, sizeof(VkResult));
@@ -27525,8 +25187,7 @@ VkResult VkEncoder::vkSetMTLTextureMVK(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkSetMTLTextureMVK");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkSetMTLTextureMVK_VkResult_return;
 }
 
@@ -27535,23 +25196,19 @@ void VkEncoder::vkGetMTLTextureMVK(
     void** pMTLTexture,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetMTLTextureMVK");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkImage local_image;
-    uint32_t local_doLock;
     local_image = image;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1397;
         *countPtr += 1 * 8;
         *countPtr += sizeof(void*);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetMTLTextureMVK = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetMTLTextureMVK);
@@ -27565,8 +25222,6 @@ void VkEncoder::vkGetMTLTextureMVK(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (void**)pMTLTexture, sizeof(void*));
     *streamPtrPtr += sizeof(void*);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((void**)pMTLTexture, sizeof(void*));
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -27574,8 +25229,7 @@ void VkEncoder::vkGetMTLTextureMVK(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetMTLTextureMVK");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 void VkEncoder::vkGetMTLBufferMVK(
@@ -27583,23 +25237,19 @@ void VkEncoder::vkGetMTLBufferMVK(
     void** pMTLBuffer,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetMTLBufferMVK");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkBuffer local_buffer;
-    uint32_t local_doLock;
     local_buffer = buffer;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1399;
         *countPtr += 1 * 8;
         *countPtr += sizeof(void*);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetMTLBufferMVK = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetMTLBufferMVK);
@@ -27613,8 +25263,6 @@ void VkEncoder::vkGetMTLBufferMVK(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (void**)pMTLBuffer, sizeof(void*));
     *streamPtrPtr += sizeof(void*);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((void**)pMTLBuffer, sizeof(void*));
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -27622,8 +25270,7 @@ void VkEncoder::vkGetMTLBufferMVK(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetMTLBufferMVK");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 VkResult VkEncoder::vkUseIOSurfaceMVK(
@@ -27631,23 +25278,19 @@ VkResult VkEncoder::vkUseIOSurfaceMVK(
     void* ioSurface,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkUseIOSurfaceMVK");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkImage local_image;
-    uint32_t local_doLock;
     local_image = image;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1401;
         *countPtr += 1 * 8;
         *countPtr += sizeof(uint8_t);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkUseIOSurfaceMVK = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkUseIOSurfaceMVK);
@@ -27661,8 +25304,6 @@ VkResult VkEncoder::vkUseIOSurfaceMVK(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (void*)ioSurface, sizeof(uint8_t));
     *streamPtrPtr += sizeof(uint8_t);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((void*)ioSurface, sizeof(uint8_t));
     VkResult vkUseIOSurfaceMVK_VkResult_return = (VkResult)0;
     stream->read(&vkUseIOSurfaceMVK_VkResult_return, sizeof(VkResult));
@@ -27672,8 +25313,7 @@ VkResult VkEncoder::vkUseIOSurfaceMVK(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkUseIOSurfaceMVK");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
     return vkUseIOSurfaceMVK_VkResult_return;
 }
 
@@ -27682,23 +25322,19 @@ void VkEncoder::vkGetIOSurfaceMVK(
     void** pIOSurface,
     uint32_t doLock)
 {
-    if (doLock) this->lock();
-    mImpl->log("start vkGetIOSurfaceMVK");
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
     auto stream = mImpl->stream();
-    auto resources = mImpl->resources();
     auto pool = mImpl->pool();
     VkImage local_image;
-    uint32_t local_doLock;
     local_image = image;
-    local_doLock = doLock;
-    uint32_t featureBits = stream->getFeatureBits();
     size_t count = 0;
     size_t* countPtr = &count;
     {
         uint64_t cgen_var_1403;
         *countPtr += 1 * 8;
         *countPtr += sizeof(void*);
-        *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetIOSurfaceMVK = 4 + 4 + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetIOSurfaceMVK);
@@ -27712,8 +25348,6 @@ void VkEncoder::vkGetIOSurfaceMVK(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (void**)pIOSurface, sizeof(void*));
     *streamPtrPtr += sizeof(void*);
-    memcpy(*streamPtrPtr, (uint32_t*)&local_doLock, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
     stream->read((void**)pIOSurface, sizeof(void*));
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -27721,8 +25355,7 @@ void VkEncoder::vkGetIOSurfaceMVK(
         pool->freeAll();
         stream->clearPool();
     }
-    if (doLock) this->unlock();
-    mImpl->log("finish vkGetIOSurfaceMVK");;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
