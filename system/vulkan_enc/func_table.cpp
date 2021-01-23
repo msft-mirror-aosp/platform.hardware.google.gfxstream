@@ -26,7 +26,7 @@
 
 
 #include "VkEncoder.h"
-#include "HostConnection.h"
+#include "../OpenglSystemCommon/HostConnection.h"
 #include "ResourceTracker.h"
 
 #include "goldfish_vk_private_defs.h"
