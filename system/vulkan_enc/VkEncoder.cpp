@@ -721,11 +721,8 @@ PFN_vkVoidFunction VkEncoder::vkGetInstanceProcAddr(
     VkInstance local_instance;
     char* local_pName;
     local_instance = instance;
-    local_pName = nullptr;
-    if (pName)
-    {
-        local_pName = pool->strDup(pName);
-    }
+    // Avoiding deepcopy for pName
+    local_pName = (char*)pName;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -776,11 +773,8 @@ PFN_vkVoidFunction VkEncoder::vkGetDeviceProcAddr(
     VkDevice local_device;
     char* local_pName;
     local_device = device;
-    local_pName = nullptr;
-    if (pName)
-    {
-        local_pName = pool->strDup(pName);
-    }
+    // Avoiding deepcopy for pName
+    local_pName = (char*)pName;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -993,11 +987,8 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
     auto stream = mImpl->stream();
     auto pool = mImpl->pool();
     char* local_pLayerName;
-    local_pLayerName = nullptr;
-    if (pLayerName)
-    {
-        local_pLayerName = pool->strDup(pLayerName);
-    }
+    // Avoiding deepcopy for pLayerName
+    local_pLayerName = (char*)pLayerName;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -1147,11 +1138,8 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
     VkPhysicalDevice local_physicalDevice;
     char* local_pLayerName;
     local_physicalDevice = physicalDevice;
-    local_pLayerName = nullptr;
-    if (pLayerName)
-    {
-        local_pLayerName = pool->strDup(pLayerName);
-    }
+    // Avoiding deepcopy for pLayerName
+    local_pLayerName = (char*)pLayerName;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -2898,11 +2886,8 @@ VkResult VkEncoder::vkResetFences(
     VkFence* local_pFences;
     local_device = device;
     local_fenceCount = fenceCount;
-    local_pFences = nullptr;
-    if (pFences)
-    {
-        local_pFences = (VkFence*)pool->dupArray(pFences, ((fenceCount)) * sizeof(const VkFence));
-    }
+    // Avoiding deepcopy for pFences
+    local_pFences = (VkFence*)pFences;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -3016,11 +3001,8 @@ VkResult VkEncoder::vkWaitForFences(
     uint64_t local_timeout;
     local_device = device;
     local_fenceCount = fenceCount;
-    local_pFences = nullptr;
-    if (pFences)
-    {
-        local_pFences = (VkFence*)pool->dupArray(pFences, ((fenceCount)) * sizeof(const VkFence));
-    }
+    // Avoiding deepcopy for pFences
+    local_pFences = (VkFence*)pFences;
     local_waitAll = waitAll;
     local_timeout = timeout;
     size_t count = 0;
@@ -5017,11 +4999,8 @@ VkResult VkEncoder::vkMergePipelineCaches(
     local_device = device;
     local_dstCache = dstCache;
     local_srcCacheCount = srcCacheCount;
-    local_pSrcCaches = nullptr;
-    if (pSrcCaches)
-    {
-        local_pSrcCaches = (VkPipelineCache*)pool->dupArray(pSrcCaches, ((srcCacheCount)) * sizeof(const VkPipelineCache));
-    }
+    // Avoiding deepcopy for pSrcCaches
+    local_pSrcCaches = (VkPipelineCache*)pSrcCaches;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -6243,11 +6222,8 @@ VkResult VkEncoder::vkFreeDescriptorSets(
     local_device = device;
     local_descriptorPool = descriptorPool;
     local_descriptorSetCount = descriptorSetCount;
-    local_pDescriptorSets = nullptr;
-    if (pDescriptorSets)
-    {
-        local_pDescriptorSets = (VkDescriptorSet*)pool->dupArray(pDescriptorSets, ((descriptorSetCount)) * sizeof(const VkDescriptorSet));
-    }
+    // Avoiding deepcopy for pDescriptorSets
+    local_pDescriptorSets = (VkDescriptorSet*)pDescriptorSets;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -7128,11 +7104,8 @@ void VkEncoder::vkFreeCommandBuffers(
     local_device = device;
     local_commandPool = commandPool;
     local_commandBufferCount = commandBufferCount;
-    local_pCommandBuffers = nullptr;
-    if (pCommandBuffers)
-    {
-        local_pCommandBuffers = (VkCommandBuffer*)pool->dupArray(pCommandBuffers, ((commandBufferCount)) * sizeof(const VkCommandBuffer));
-    }
+    // Avoiding deepcopy for pCommandBuffers
+    local_pCommandBuffers = (VkCommandBuffer*)pCommandBuffers;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -7893,17 +7866,11 @@ void VkEncoder::vkCmdBindDescriptorSets(
     local_layout = layout;
     local_firstSet = firstSet;
     local_descriptorSetCount = descriptorSetCount;
-    local_pDescriptorSets = nullptr;
-    if (pDescriptorSets)
-    {
-        local_pDescriptorSets = (VkDescriptorSet*)pool->dupArray(pDescriptorSets, ((descriptorSetCount)) * sizeof(const VkDescriptorSet));
-    }
+    // Avoiding deepcopy for pDescriptorSets
+    local_pDescriptorSets = (VkDescriptorSet*)pDescriptorSets;
     local_dynamicOffsetCount = dynamicOffsetCount;
-    local_pDynamicOffsets = nullptr;
-    if (pDynamicOffsets)
-    {
-        local_pDynamicOffsets = (uint32_t*)pool->dupArray(pDynamicOffsets, ((dynamicOffsetCount)) * sizeof(const uint32_t));
-    }
+    // Avoiding deepcopy for pDynamicOffsets
+    local_pDynamicOffsets = (uint32_t*)pDynamicOffsets;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -8042,16 +8009,10 @@ void VkEncoder::vkCmdBindVertexBuffers(
     local_commandBuffer = commandBuffer;
     local_firstBinding = firstBinding;
     local_bindingCount = bindingCount;
-    local_pBuffers = nullptr;
-    if (pBuffers)
-    {
-        local_pBuffers = (VkBuffer*)pool->dupArray(pBuffers, ((bindingCount)) * sizeof(const VkBuffer));
-    }
-    local_pOffsets = nullptr;
-    if (pOffsets)
-    {
-        local_pOffsets = (VkDeviceSize*)pool->dupArray(pOffsets, ((bindingCount)) * sizeof(const VkDeviceSize));
-    }
+    // Avoiding deepcopy for pBuffers
+    local_pBuffers = (VkBuffer*)pBuffers;
+    // Avoiding deepcopy for pOffsets
+    local_pOffsets = (VkDeviceSize*)pOffsets;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -8951,11 +8912,8 @@ void VkEncoder::vkCmdUpdateBuffer(
     local_dstBuffer = dstBuffer;
     local_dstOffset = dstOffset;
     local_dataSize = dataSize;
-    local_pData = nullptr;
-    if (pData)
-    {
-        local_pData = (void*)pool->dupArray(pData, ((dataSize)) * sizeof(const uint8_t));
-    }
+    // Avoiding deepcopy for pData
+    local_pData = (void*)pData;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -9585,11 +9543,8 @@ void VkEncoder::vkCmdWaitEvents(
     VkImageMemoryBarrier* local_pImageMemoryBarriers;
     local_commandBuffer = commandBuffer;
     local_eventCount = eventCount;
-    local_pEvents = nullptr;
-    if (pEvents)
-    {
-        local_pEvents = (VkEvent*)pool->dupArray(pEvents, ((eventCount)) * sizeof(const VkEvent));
-    }
+    // Avoiding deepcopy for pEvents
+    local_pEvents = (VkEvent*)pEvents;
     local_srcStageMask = srcStageMask;
     local_dstStageMask = dstStageMask;
     local_memoryBarrierCount = memoryBarrierCount;
@@ -10205,11 +10160,8 @@ void VkEncoder::vkCmdPushConstants(
     local_stageFlags = stageFlags;
     local_offset = offset;
     local_size = size;
-    local_pValues = nullptr;
-    if (pValues)
-    {
-        local_pValues = (void*)pool->dupArray(pValues, ((size)) * sizeof(const uint8_t));
-    }
+    // Avoiding deepcopy for pValues
+    local_pValues = (void*)pValues;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -10403,11 +10355,8 @@ void VkEncoder::vkCmdExecuteCommands(
     VkCommandBuffer* local_pCommandBuffers;
     local_commandBuffer = commandBuffer;
     local_commandBufferCount = commandBufferCount;
-    local_pCommandBuffers = nullptr;
-    if (pCommandBuffers)
-    {
-        local_pCommandBuffers = (VkCommandBuffer*)pool->dupArray(pCommandBuffers, ((commandBufferCount)) * sizeof(const VkCommandBuffer));
-    }
+    // Avoiding deepcopy for pCommandBuffers
+    local_pCommandBuffers = (VkCommandBuffer*)pCommandBuffers;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -12093,11 +12042,8 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplate(
     local_device = device;
     local_descriptorSet = descriptorSet;
     local_descriptorUpdateTemplate = descriptorUpdateTemplate;
-    local_pData = nullptr;
-    if (pData)
-    {
-        local_pData = (void*)pool->dupArray(pData, sizeof(const uint8_t));
-    }
+    // Avoiding deepcopy for pData
+    local_pData = (void*)pData;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -16721,11 +16667,8 @@ void VkEncoder::vkCmdPushDescriptorSetWithTemplateKHR(
     local_descriptorUpdateTemplate = descriptorUpdateTemplate;
     local_layout = layout;
     local_set = set;
-    local_pData = nullptr;
-    if (pData)
-    {
-        local_pData = (void*)pool->dupArray(pData, sizeof(const uint8_t));
-    }
+    // Avoiding deepcopy for pData
+    local_pData = (void*)pData;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -16977,11 +16920,8 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateKHR(
     local_device = device;
     local_descriptorSet = descriptorSet;
     local_descriptorUpdateTemplate = descriptorUpdateTemplate;
-    local_pData = nullptr;
-    if (pData)
-    {
-        local_pData = (void*)pool->dupArray(pData, sizeof(const uint8_t));
-    }
+    // Avoiding deepcopy for pData
+    local_pData = (void*)pData;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -19173,11 +19113,8 @@ VkResult VkEncoder::vkQueueSignalReleaseImageANDROID(
     VkImage local_image;
     local_queue = queue;
     local_waitSemaphoreCount = waitSemaphoreCount;
-    local_pWaitSemaphores = nullptr;
-    if (pWaitSemaphores)
-    {
-        local_pWaitSemaphores = (VkSemaphore*)pool->dupArray(pWaitSemaphores, ((waitSemaphoreCount)) * sizeof(const VkSemaphore));
-    }
+    // Avoiding deepcopy for pWaitSemaphores
+    local_pWaitSemaphores = (VkSemaphore*)pWaitSemaphores;
     local_image = image;
     size_t count = 0;
     size_t* countPtr = &count;
@@ -19449,16 +19386,10 @@ void VkEncoder::vkDebugReportMessageEXT(
     local_object = object;
     local_location = location;
     local_messageCode = messageCode;
-    local_pLayerPrefix = nullptr;
-    if (pLayerPrefix)
-    {
-        local_pLayerPrefix = pool->strDup(pLayerPrefix);
-    }
-    local_pMessage = nullptr;
-    if (pMessage)
-    {
-        local_pMessage = pool->strDup(pMessage);
-    }
+    // Avoiding deepcopy for pLayerPrefix
+    local_pLayerPrefix = (char*)pLayerPrefix;
+    // Avoiding deepcopy for pMessage
+    local_pMessage = (char*)pMessage;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -20871,11 +20802,8 @@ VkResult VkEncoder::vkRegisterObjectsNVX(
     local_objectTable = objectTable;
     local_objectCount = objectCount;
     (void)ppObjectTableEntries;
-    local_pObjectIndices = nullptr;
-    if (pObjectIndices)
-    {
-        local_pObjectIndices = (uint32_t*)pool->dupArray(pObjectIndices, ((objectCount)) * sizeof(const uint32_t));
-    }
+    // Avoiding deepcopy for pObjectIndices
+    local_pObjectIndices = (uint32_t*)pObjectIndices;
     (void)local_ppObjectTableEntries;
     size_t count = 0;
     size_t* countPtr = &count;
@@ -20940,16 +20868,10 @@ VkResult VkEncoder::vkUnregisterObjectsNVX(
     local_device = device;
     local_objectTable = objectTable;
     local_objectCount = objectCount;
-    local_pObjectEntryTypes = nullptr;
-    if (pObjectEntryTypes)
-    {
-        local_pObjectEntryTypes = (VkObjectEntryTypeNVX*)pool->dupArray(pObjectEntryTypes, ((objectCount)) * sizeof(const VkObjectEntryTypeNVX));
-    }
-    local_pObjectIndices = nullptr;
-    if (pObjectIndices)
-    {
-        local_pObjectIndices = (uint32_t*)pool->dupArray(pObjectIndices, ((objectCount)) * sizeof(const uint32_t));
-    }
+    // Avoiding deepcopy for pObjectEntryTypes
+    local_pObjectEntryTypes = (VkObjectEntryTypeNVX*)pObjectEntryTypes;
+    // Avoiding deepcopy for pObjectIndices
+    local_pObjectIndices = (uint32_t*)pObjectIndices;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -21951,11 +21873,8 @@ void VkEncoder::vkSetHdrMetadataEXT(
     VkHdrMetadataEXT* local_pMetadata;
     local_device = device;
     local_swapchainCount = swapchainCount;
-    local_pSwapchains = nullptr;
-    if (pSwapchains)
-    {
-        local_pSwapchains = (VkSwapchainKHR*)pool->dupArray(pSwapchains, ((swapchainCount)) * sizeof(const VkSwapchainKHR));
-    }
+    // Avoiding deepcopy for pSwapchains
+    local_pSwapchains = (VkSwapchainKHR*)pSwapchains;
     local_pMetadata = nullptr;
     if (pMetadata)
     {
@@ -22843,11 +22762,8 @@ VkResult VkEncoder::vkGetAndroidHardwareBufferPropertiesANDROID(
     VkDevice local_device;
     AHardwareBuffer* local_buffer;
     local_device = device;
-    local_buffer = nullptr;
-    if (buffer)
-    {
-        local_buffer = (AHardwareBuffer*)pool->dupArray(buffer, sizeof(const AHardwareBuffer));
-    }
+    // Avoiding deepcopy for buffer
+    local_buffer = (AHardwareBuffer*)buffer;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -23256,11 +23172,8 @@ VkResult VkEncoder::vkMergeValidationCachesEXT(
     local_device = device;
     local_dstCache = dstCache;
     local_srcCacheCount = srcCacheCount;
-    local_pSrcCaches = nullptr;
-    if (pSrcCaches)
-    {
-        local_pSrcCaches = (VkValidationCacheEXT*)pool->dupArray(pSrcCaches, ((srcCacheCount)) * sizeof(const VkValidationCacheEXT));
-    }
+    // Avoiding deepcopy for pSrcCaches
+    local_pSrcCaches = (VkValidationCacheEXT*)pSrcCaches;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -23443,11 +23356,8 @@ VkResult VkEncoder::vkGetMemoryHostPointerPropertiesEXT(
     void* local_pHostPointer;
     local_device = device;
     local_handleType = handleType;
-    local_pHostPointer = nullptr;
-    if (pHostPointer)
-    {
-        local_pHostPointer = (void*)pool->dupArray(pHostPointer, sizeof(const uint8_t));
-    }
+    // Avoiding deepcopy for pHostPointer
+    local_pHostPointer = (void*)pHostPointer;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -23588,11 +23498,8 @@ void VkEncoder::vkCmdSetCheckpointNV(
     VkCommandBuffer local_commandBuffer;
     void* local_pCheckpointMarker;
     local_commandBuffer = commandBuffer;
-    local_pCheckpointMarker = nullptr;
-    if (pCheckpointMarker)
-    {
-        local_pCheckpointMarker = (void*)pool->dupArray(pCheckpointMarker, sizeof(const uint8_t));
-    }
+    // Avoiding deepcopy for pCheckpointMarker
+    local_pCheckpointMarker = (void*)pCheckpointMarker;
     size_t count = 0;
     size_t* countPtr = &count;
     {
@@ -23972,21 +23879,12 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     local_imageInfoCount = imageInfoCount;
     local_bufferInfoCount = bufferInfoCount;
     local_bufferViewCount = bufferViewCount;
-    local_pImageInfoEntryIndices = nullptr;
-    if (pImageInfoEntryIndices)
-    {
-        local_pImageInfoEntryIndices = (uint32_t*)pool->dupArray(pImageInfoEntryIndices, ((imageInfoCount)) * sizeof(const uint32_t));
-    }
-    local_pBufferInfoEntryIndices = nullptr;
-    if (pBufferInfoEntryIndices)
-    {
-        local_pBufferInfoEntryIndices = (uint32_t*)pool->dupArray(pBufferInfoEntryIndices, ((bufferInfoCount)) * sizeof(const uint32_t));
-    }
-    local_pBufferViewEntryIndices = nullptr;
-    if (pBufferViewEntryIndices)
-    {
-        local_pBufferViewEntryIndices = (uint32_t*)pool->dupArray(pBufferViewEntryIndices, ((bufferViewCount)) * sizeof(const uint32_t));
-    }
+    // Avoiding deepcopy for pImageInfoEntryIndices
+    local_pImageInfoEntryIndices = (uint32_t*)pImageInfoEntryIndices;
+    // Avoiding deepcopy for pBufferInfoEntryIndices
+    local_pBufferInfoEntryIndices = (uint32_t*)pBufferInfoEntryIndices;
+    // Avoiding deepcopy for pBufferViewEntryIndices
+    local_pBufferViewEntryIndices = (uint32_t*)pBufferViewEntryIndices;
     local_pImageInfos = nullptr;
     if (pImageInfos)
     {
@@ -24005,11 +23903,8 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
             deepcopy_VkDescriptorBufferInfo(pool, pBufferInfos + i, (VkDescriptorBufferInfo*)(local_pBufferInfos + i));
         }
     }
-    local_pBufferViews = nullptr;
-    if (pBufferViews)
-    {
-        local_pBufferViews = (VkBufferView*)pool->dupArray(pBufferViews, ((bufferViewCount)) * sizeof(const VkBufferView));
-    }
+    // Avoiding deepcopy for pBufferViews
+    local_pBufferViews = (VkBufferView*)pBufferViews;
     if (local_pImageInfos)
     {
         for (uint32_t i = 0; i < (uint32_t)((imageInfoCount)); ++i)
