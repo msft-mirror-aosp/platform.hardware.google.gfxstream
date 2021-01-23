@@ -364,6 +364,7 @@ int CloseDevice(struct hw_device_t* /*device*/) {
         return ret; \
     } \
     goldfish_vk::ResourceTracker::get()->setupFeatures(rcEnc->featureInfo_const()); \
+    goldfish_vk::ResourceTracker::get()->setSeqnoPtr(getSeqnoPtrForProcess()); \
     goldfish_vk::ResourceTracker::ThreadingCallbacks threadingCallbacks = { \
         [] { \
           auto hostCon = HostConnection::get(); \

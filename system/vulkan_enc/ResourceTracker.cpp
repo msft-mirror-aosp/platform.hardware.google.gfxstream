@@ -227,6 +227,8 @@ DEFINE_RESOURCE_TRACKING_CLASS(CreateMapping, CREATE_MAPPING_IMPL_FOR_TYPE)
 DEFINE_RESOURCE_TRACKING_CLASS(UnwrapMapping, UNWRAP_MAPPING_IMPL_FOR_TYPE)
 DEFINE_RESOURCE_TRACKING_CLASS(DestroyMapping, DESTROY_MAPPING_IMPL_FOR_TYPE)
 
+static uint32_t* sSeqnoPtr = nullptr;
+
 // static
 uint32_t ResourceTracker::streamFeatureBits = 0;
 ResourceTracker::ThreadingCallbacks ResourceTracker::threadingCallbacks;
@@ -5543,6 +5545,23 @@ bool ResourceTracker::hasInstanceExtension(VkInstance instance, const std::strin
 }
 bool ResourceTracker::hasDeviceExtension(VkDevice device, const std::string &name) const {
     return mImpl->hasDeviceExtension(device, name);
+}
+
+// static
+void ResourceTracker::setSeqnoPtr(uint32_t* seqnoptr) {
+    sSeqnoPtr = seqnoptr;
+}
+
+// static
+__attribute__((always_inline)) uint32_t ResourceTracker::nextSeqno() {
+    uint32_t res = __atomic_add_fetch(sSeqnoPtr, 1, __ATOMIC_SEQ_CST);
+    return res;
+}
+
+// static
+__attribute__((always_inline)) uint32_t ResourceTracker::getSeqno() {
+    uint32_t res = __atomic_load_n(sSeqnoPtr, __ATOMIC_SEQ_CST);
+    return res;
 }
 
 VkResult ResourceTracker::on_vkEnumerateInstanceExtensionProperties(

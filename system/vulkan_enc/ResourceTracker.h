@@ -527,6 +527,10 @@ public:
     bool hasInstanceExtension(VkInstance instance, const std::string& name) const;
     bool hasDeviceExtension(VkDevice instance, const std::string& name) const;
 
+    static void setSeqnoPtr(uint32_t* seqnoptr);
+    static __attribute__((always_inline)) uint32_t nextSeqno();
+    static __attribute__((always_inline)) uint32_t getSeqno();
+
     // Transforms
     void deviceMemoryTransform_tohost(
         VkDeviceMemory* memory, uint32_t memoryCount,
