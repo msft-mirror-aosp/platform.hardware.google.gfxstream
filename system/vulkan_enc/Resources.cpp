@@ -40,6 +40,12 @@ extern "C" {
         res->underlying = (uint64_t)underlying; \
         res->lastUsedEncoder = nullptr; \
         res->sequenceNumber = 0; \
+        res->privateEncoder = 0; \
+        res->privateStream = 0; \
+        res->flags = 0; \
+        res->poolObjects = 0; \
+        res->subObjects = 0; \
+        res->superObjects = 0; \
         return reinterpret_cast<type>(res); \
     } \
 
@@ -48,6 +54,9 @@ extern "C" {
         struct goldfish_##type* res = \
             static_cast<goldfish_##type*>(malloc(sizeof(goldfish_##type))); \
         res->underlying = (uint64_t)underlying; \
+        res->poolObjects = 0; \
+        res->subObjects = 0; \
+        res->superObjects = 0; \
         return reinterpret_cast<type>(res); \
     } \
 
@@ -86,6 +95,12 @@ extern "C" {
         res->underlying = underlying; \
         res->lastUsedEncoder = nullptr; \
         res->sequenceNumber = 0; \
+        res->privateEncoder = 0; \
+        res->privateStream = 0; \
+        res->flags = 0; \
+        res->poolObjects = 0; \
+        res->subObjects = 0; \
+        res->superObjects = 0; \
         return reinterpret_cast<type>(res); \
     } \
 
@@ -95,6 +110,9 @@ extern "C" {
             static_cast<goldfish_##type*>(malloc(sizeof(goldfish_##type))); \
         res->underlying = underlying; \
         D("guest %p: host u64: 0x%llx", res, (unsigned long long)res->underlying); \
+        res->poolObjects = 0; \
+        res->subObjects = 0; \
+        res->superObjects = 0; \
         return reinterpret_cast<type>(res); \
     } \
 
@@ -123,3 +141,85 @@ GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_NEW_TRIVIAL_NON_DISPA
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_DELETE_GOLDFISH_IMPL)
 
 } // extern "C"
+
+
+namespace goldfish_vk {
+
+void appendObject(struct goldfish_vk_object_list** begin, void* val) {
+    D("for %p", val);
+    struct goldfish_vk_object_list* o = new goldfish_vk_object_list;
+    o->next = nullptr;
+    o->obj = val;
+    D("new ptr: %p", o);
+    if (!*begin) { D("first"); *begin = o; return; }
+
+    struct goldfish_vk_object_list* q = *begin;
+    struct goldfish_vk_object_list* p = q;
+
+    while (q) {
+        p = q;
+        q = q->next;
+    }
+
+    D("set next of %p to %p", p, o);
+    p->next = o;
+}
+
+void eraseObject(struct goldfish_vk_object_list** begin, void* val) {
+        D("for val %p", val);
+    if (!*begin) {
+        D("val %p notfound", val);
+        return;
+    }
+
+    struct goldfish_vk_object_list* q = *begin;
+    struct goldfish_vk_object_list* p = q;
+
+    while (q) {
+        struct goldfish_vk_object_list* n = q->next;
+        if (val == q->obj) {
+            D("val %p found, delete", val);
+            delete q;
+            if (*begin == q) {
+                D("val %p set begin to %p:", val, n);
+                *begin = n;
+            } else {
+                D("val %p set pnext to %p:", val, n);
+                p->next = n;
+            }
+            return;
+        }
+        p = q;
+        q = n;
+    }
+
+        D("val %p notfound after looping", val);
+}
+
+void eraseObjects(struct goldfish_vk_object_list** begin) {
+    struct goldfish_vk_object_list* q = *begin;
+    struct goldfish_vk_object_list* p = q;
+
+    while (q) {
+        p = q;
+        q = q->next;
+        delete p;
+    }
+
+    *begin = nullptr;
+}
+
+void forAllObjects(struct goldfish_vk_object_list* begin, std::function<void(void*)> func) {
+    struct goldfish_vk_object_list* q = begin;
+    struct goldfish_vk_object_list* p = q;
+
+    D("call");
+    while (q) {
+        D("iter");
+        p = q;
+        q = q->next;
+        func(p->obj);
+    }
+}
+
+} // namespace goldfish_vk

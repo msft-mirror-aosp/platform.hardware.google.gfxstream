@@ -1,13 +1,17 @@
+static ResourceTracker* sResourceTracker = nullptr;
+static uint32_t sFeatureBits = 0;
 
 class VkEncoder::Impl {
 public:
     Impl(IOStream* stream) : m_stream(stream), m_logEncodes(false) {
+        if (!sResourceTracker) sResourceTracker = ResourceTracker::get();
         m_stream.incStreamRef();
         const char* emuVkLogEncodesPropName = "qemu.vk.log";
         char encodeProp[PROPERTY_VALUE_MAX];
         if (property_get(emuVkLogEncodesPropName, encodeProp, nullptr) > 0) {
             m_logEncodes = atoi(encodeProp) > 0;
         }
+        sFeatureBits = m_stream.getFeatureBits();
     }
 
     ~Impl() {
@@ -48,15 +52,9 @@ private:
     Validation m_validation;
     bool m_logEncodes;
     std::atomic_flag mLock = ATOMIC_FLAG_INIT;
-    static thread_local Impl* sAcquiredEncoderThreadLocal;
-    static thread_local uint32_t sAcquiredEncoderThreadLockLevels;
 };
 
 VkEncoder::~VkEncoder() { }
-
-// static
-thread_local VkEncoder::Impl* VkEncoder::Impl::sAcquiredEncoderThreadLocal = nullptr;
-thread_local uint32_t VkEncoder::Impl::sAcquiredEncoderThreadLockLevels = 0;
 
 struct EncoderAutoLock {
     EncoderAutoLock(VkEncoder* enc) : mEnc(enc) {

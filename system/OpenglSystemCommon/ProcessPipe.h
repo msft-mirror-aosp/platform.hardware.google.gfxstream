@@ -40,3 +40,6 @@ extern uint64_t getPuid();
 // and open it again with the same parameters.
 extern void processPipeRestart();
 extern void refreshHostConnection();
+
+// Each process gets a sequence number field.
+uint32_t* getSeqnoPtrForProcess();

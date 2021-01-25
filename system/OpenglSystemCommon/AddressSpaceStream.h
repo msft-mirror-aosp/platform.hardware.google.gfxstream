@@ -44,6 +44,7 @@ public:
     virtual const unsigned char *readFully( void *buf, size_t len);
     virtual const unsigned char *read( void *buf, size_t *inout_len);
     virtual int writeFully(const void *buf, size_t len);
+    virtual int writeFullyAsync(const void *buf, size_t len);
     virtual const unsigned char *commitBufferAndReadFully(size_t size, void *buf, size_t len);
 
     int getRendernodeFd() const {
@@ -97,8 +98,8 @@ private:
     uint32_t m_notifs;
     uint32_t m_written;
 
-    uint32_t m_backoffIters;
-    uint32_t m_backoffFactor;
+    uint64_t m_backoffIters;
+    uint64_t m_backoffFactor;
 };
 
 #endif

@@ -16,6 +16,7 @@
 #include "ResourceTracker.h"
 
 #include "Resources.h"
+#include "CommandBufferStagingStream.h"
 
 #include "android/base/Optional.h"
 #include "android/base/threads/AndroidWorkPool.h"
@@ -227,6 +228,44 @@ DEFINE_RESOURCE_TRACKING_CLASS(CreateMapping, CREATE_MAPPING_IMPL_FOR_TYPE)
 DEFINE_RESOURCE_TRACKING_CLASS(UnwrapMapping, UNWRAP_MAPPING_IMPL_FOR_TYPE)
 DEFINE_RESOURCE_TRACKING_CLASS(DestroyMapping, DESTROY_MAPPING_IMPL_FOR_TYPE)
 
+static uint32_t* sSeqnoPtr = nullptr;
+
+// static
+uint32_t ResourceTracker::streamFeatureBits = 0;
+ResourceTracker::ThreadingCallbacks ResourceTracker::threadingCallbacks;
+
+struct StagingInfo {
+    Lock mLock;
+    std::vector<CommandBufferStagingStream*> streams;
+    std::vector<VkEncoder*> encoders;
+
+    void pushStaging(CommandBufferStagingStream* stream, VkEncoder* encoder) {
+        AutoLock lock(mLock);
+        stream->reset();
+        streams.push_back(stream);
+        encoders.push_back(encoder);
+    }
+
+    void popStaging(CommandBufferStagingStream** streamOut, VkEncoder** encoderOut) {
+        AutoLock lock(mLock);
+        CommandBufferStagingStream* stream;
+        VkEncoder* encoder;
+        if (streams.empty()) {
+            stream = new CommandBufferStagingStream;
+            encoder = new VkEncoder(stream);
+        } else {
+            stream = streams.back();
+            encoder = encoders.back();
+            streams.pop_back();
+            encoders.pop_back();
+        }
+        *streamOut = stream;
+        *encoderOut = encoder;
+    }
+};
+
+static StagingInfo sStaging;
+
 class ResourceTracker::Impl {
 public:
     Impl() = default;
@@ -330,15 +369,18 @@ public:
     };
 
     struct VkDescriptorUpdateTemplate_Info {
-        std::vector<VkDescriptorUpdateTemplateEntry> templateEntries;
+        uint32_t templateEntryCount = 0;
+        VkDescriptorUpdateTemplateEntry* templateEntries;
 
-        // Flattened versions
-        std::vector<uint32_t> imageInfoEntryIndices;
-        std::vector<uint32_t> bufferInfoEntryIndices;
-        std::vector<uint32_t> bufferViewEntryIndices;
-        std::vector<VkDescriptorImageInfo> imageInfos;
-        std::vector<VkDescriptorBufferInfo> bufferInfos;
-        std::vector<VkBufferView> bufferViews;
+        uint32_t imageInfoCount = 0;
+        uint32_t bufferInfoCount = 0;
+        uint32_t bufferViewCount = 0;
+        uint32_t* imageInfoIndices;
+        uint32_t* bufferInfoIndices;
+        uint32_t* bufferViewIndices;
+        VkDescriptorImageInfo* imageInfos;
+        VkDescriptorBufferInfo* bufferInfos;
+        VkBufferView* bufferViews;
     };
 
     struct VkFence_Info {
@@ -362,6 +404,10 @@ public:
 
     struct VkDescriptorSetLayout_Info {
         std::vector<VkDescriptorSetLayoutBinding> bindings;
+    };
+
+    struct VkCommandPool_Info {
+        uint32_t unused;
     };
 
 #define HANDLE_REGISTER_IMPL_IMPL(type) \
@@ -400,10 +446,27 @@ public:
         lock.unlock();
     }
 
+    void unregister_VkCommandPool(VkCommandPool pool) {
+        if (!pool) return;
+
+        clearCommandPool(pool);
+
+        AutoLock lock(mLock);
+        info_VkCommandPool.erase(pool);
+    }
+
     void unregister_VkCommandBuffer(VkCommandBuffer commandBuffer) {
+        resetCommandBufferStagingInfo(commandBuffer, true /* also reset primaries */);
+
         struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
         if (!cb) return;
         if (cb->lastUsedEncoder) { cb->lastUsedEncoder->decRef(); }
+        eraseObjects(&cb->subObjects);
+        forAllObjects(cb->poolObjects, [cb](void* commandPool) {
+            struct goldfish_VkCommandPool* p = as_goldfish_VkCommandPool((VkCommandPool)commandPool);
+            eraseObject(&p->subObjects, (void*)cb);
+        });
+        eraseObjects(&cb->poolObjects);
 
         AutoLock lock(mLock);
         info_VkCommandBuffer.erase(commandBuffer);
@@ -485,7 +548,27 @@ public:
     }
 
     void unregister_VkDescriptorUpdateTemplate(VkDescriptorUpdateTemplate templ) {
-        info_VkDescriptorUpdateTemplate.erase(templ);
+
+        AutoLock lock(mLock);
+        auto it = info_VkDescriptorUpdateTemplate.find(templ);
+        if (it == info_VkDescriptorUpdateTemplate.end())
+            return;
+
+        auto& info = it->second;
+        if (info.templateEntryCount) delete [] info.templateEntries;
+        if (info.imageInfoCount) {
+            delete [] info.imageInfoIndices;
+            delete [] info.imageInfos;
+        }
+        if (info.bufferInfoCount) {
+            delete [] info.bufferInfoIndices;
+            delete [] info.bufferInfos;
+        }
+        if (info.bufferViewCount) {
+            delete [] info.bufferViewIndices;
+            delete [] info.bufferViews;
+        }
+        info_VkDescriptorUpdateTemplate.erase(it);
     }
 
     void unregister_VkFence(VkFence fence) {
@@ -828,13 +911,16 @@ public:
 #endif
 
         if (mFeatureInfo->hasVulkanNullOptionalStrings) {
-            mStreamFeatureBits |= VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT;
+            ResourceTracker::streamFeatureBits |= VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT;
         }
         if (mFeatureInfo->hasVulkanIgnoredHandles) {
-            mStreamFeatureBits |= VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT;
+            ResourceTracker::streamFeatureBits |= VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT;
         }
         if (mFeatureInfo->hasVulkanShaderFloat16Int8) {
-            mStreamFeatureBits |= VULKAN_STREAM_FEATURE_SHADER_FLOAT16_INT8_BIT;
+            ResourceTracker::streamFeatureBits |= VULKAN_STREAM_FEATURE_SHADER_FLOAT16_INT8_BIT;
+        }
+        if (mFeatureInfo->hasVulkanQueueSubmitWithCommands) {
+            ResourceTracker::streamFeatureBits |= VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
         }
 #if !defined(HOST_BUILD) && defined(VK_USE_PLATFORM_ANDROID_KHR)
        if (mFeatureInfo->hasVirtioGpuNext) {
@@ -845,7 +931,7 @@ public:
     }
 
     void setThreadingCallbacks(const ResourceTracker::ThreadingCallbacks& callbacks) {
-        mThreadingCallbacks = callbacks;
+        ResourceTracker::threadingCallbacks = callbacks;
     }
 
     bool hostSupportsVulkan() const {
@@ -859,7 +945,7 @@ public:
     }
 
     uint32_t getStreamFeatures() const {
-        return mStreamFeatureBits;
+        return ResourceTracker::streamFeatureBits;
     }
 
     bool supportsDeferredCommands() const {
@@ -1511,7 +1597,7 @@ public:
         const AHardwareBuffer* buffer,
         VkAndroidHardwareBufferPropertiesANDROID* pProperties) {
         auto grallocHelper =
-            mThreadingCallbacks.hostConnectionGetFunc()->grallocHelper();
+            ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper();
         return getAndroidHardwareBufferPropertiesANDROID(
             grallocHelper,
             &mHostVisibleMemoryVirtInfo,
@@ -2439,14 +2525,14 @@ public:
             ahw = importAhbInfoPtr->buffer;
             // We still need to acquire the AHardwareBuffer.
             importAndroidHardwareBuffer(
-                mThreadingCallbacks.hostConnectionGetFunc()->grallocHelper(),
+                ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper(),
                 importAhbInfoPtr, nullptr);
         }
 
         if (ahw) {
             ALOGD("%s: Import AHardwareBuffer", __func__);
             importCbInfo.colorBuffer =
-                mThreadingCallbacks.hostConnectionGetFunc()->grallocHelper()->
+                ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper()->
                     getHostHandle(AHardwareBuffer_getNativeHandle(ahw));
             vk_append_struct(&structChainIter, &importCbInfo);
         }
@@ -3781,6 +3867,8 @@ public:
             }
         }
 
+        lock.unlock();
+
         if (fencesExternal.empty()) {
             // No need for work pool, just wait with host driver.
             return enc->vkWaitForFences(
@@ -3804,8 +3892,8 @@ public:
                 tasks.push_back([this,
                                  fencesNonExternal /* copy of vector */,
                                  device, waitAll, timeout] {
-                    auto hostConn = mThreadingCallbacks.hostConnectionGetFunc();
-                    auto vkEncoder = mThreadingCallbacks.vkEncoderGetFunc(hostConn);
+                    auto hostConn = ResourceTracker::threadingCallbacks.hostConnectionGetFunc();
+                    auto vkEncoder = ResourceTracker::threadingCallbacks.vkEncoderGetFunc(hostConn);
                     ALOGV("%s: vkWaitForFences to host\n", __func__);
                     vkEncoder->vkWaitForFences(device, fencesNonExternal.size(), fencesNonExternal.data(), waitAll, timeout, true /* do lock */);
                 });
@@ -4513,10 +4601,72 @@ public:
 #endif
     }
 
+    void flushCommandBufferPendingCommandsBottomUp(void* context, VkQueue queue, const std::vector<VkCommandBuffer>& workingSet) {
+        if (workingSet.empty()) return;
+
+        std::vector<VkCommandBuffer> nextLevel;
+        for (auto commandBuffer : workingSet) {
+            struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
+            forAllObjects(cb->subObjects, [&nextLevel](void* secondary) {
+                nextLevel.push_back((VkCommandBuffer)secondary);
+            });
+        }
+
+        flushCommandBufferPendingCommandsBottomUp(context, queue, nextLevel);
+
+        // After this point, everyone at the previous level has been flushed
+        for (auto cmdbuf : workingSet) {
+            struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(cmdbuf);
+
+            // There's no pending commands here, skip. (case 1)
+            if (!cb->privateStream) continue;
+
+            unsigned char* writtenPtr = 0;
+            size_t written = 0;
+            ((CommandBufferStagingStream*)cb->privateStream)->getWritten(&writtenPtr, &written);
+
+            // There's no pending commands here, skip. (case 2, stream created but no new recordings)
+            if (!written) continue;
+
+            // There are pending commands to flush.
+            VkEncoder* enc = (VkEncoder*)context;
+            enc->vkQueueFlushCommandsGOOGLE(queue, cmdbuf, written, (const void*)writtenPtr, true /* do lock */);
+
+            // Reset this stream.
+            ((CommandBufferStagingStream*)cb->privateStream)->reset();
+        }
+    }
+
+    // Unlike resetCommandBufferStagingInfo, this does not always erase its
+    // superObjects pointers because the command buffer has merely been
+    // submitted, not reset.
+    // However, if the command buffer was recorded with ONE_TIME_SUBMIT_BIT,
+    // then it will also reset its primaries.
+    void resetCommandBufferPendingTopology(VkCommandBuffer commandBuffer) {
+        struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
+        resetCommandBufferStagingInfo(commandBuffer, cb->flags & VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+    }
+
+    void flushStagingStreams(void* context, VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits) {
+        std::vector<VkCommandBuffer> toFlush;
+        for (uint32_t i = 0; i < submitCount; ++i) {
+            for (uint32_t j = 0; j < pSubmits[i].commandBufferCount; ++j) {
+                toFlush.push_back(pSubmits[i].pCommandBuffers[j]);
+            }
+        }
+        flushCommandBufferPendingCommandsBottomUp(context, queue, toFlush);
+        for (auto cb : toFlush) {
+            resetCommandBufferPendingTopology(cb);
+        }
+    }
+
     VkResult on_vkQueueSubmit(
         void* context, VkResult input_result,
         VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
         AEMU_SCOPED_TRACE("on_vkQueueSubmit");
+
+        // Send command buffers to the host here
+        flushStagingStreams(context, queue, submitCount, pSubmits);
 
         std::vector<VkSemaphore> pre_signal_semaphores;
         std::vector<zx_handle_t> pre_signal_events;
@@ -4660,8 +4810,8 @@ public:
             tasks.push_back([this, queue, externalFenceFdToSignal,
                              post_wait_events /* copy of zx handles */,
                              post_wait_sync_fds /* copy of sync fds */] {
-                auto hostConn = mThreadingCallbacks.hostConnectionGetFunc();
-                auto vkEncoder = mThreadingCallbacks.vkEncoderGetFunc(hostConn);
+                auto hostConn = ResourceTracker::threadingCallbacks.hostConnectionGetFunc();
+                auto vkEncoder = ResourceTracker::threadingCallbacks.vkEncoderGetFunc(hostConn);
                 auto waitIdleRes = vkEncoder->vkQueueWaitIdle(queue, true /* do lock */);
 #ifdef VK_USE_PLATFORM_FUCHSIA
                 AEMU_SCOPED_TRACE("on_vkQueueSubmit::SignalSemaphores");
@@ -4747,7 +4897,7 @@ public:
         }
 
         *(uint32_t*)(nativeInfoOut->handle) =
-            mThreadingCallbacks.hostConnectionGetFunc()->
+            ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->
                 grallocHelper()->getHostHandle(
                     (const native_handle_t*)nativeInfo->handle);
     }
@@ -4885,27 +5035,18 @@ public:
 
         auto& info = it->second;
 
-        size_t imageInfosNeeded = 0;
-        size_t bufferInfosNeeded = 0;
-        size_t bufferViewsNeeded = 0;
-
         for (uint32_t i = 0; i < pCreateInfo->descriptorUpdateEntryCount; ++i) {
             const auto& entry = pCreateInfo->pDescriptorUpdateEntries[i];
             uint32_t descCount = entry.descriptorCount;
             VkDescriptorType descType = entry.descriptorType;
-
-            info.templateEntries.push_back(entry);
-
+            ++info.templateEntryCount;
             for (uint32_t j = 0; j < descCount; ++j) {
                 if (isDescriptorTypeImageInfo(descType)) {
-                    ++imageInfosNeeded;
-                    info.imageInfoEntryIndices.push_back(i);
+                    ++info.imageInfoCount;
                 } else if (isDescriptorTypeBufferInfo(descType)) {
-                    ++bufferInfosNeeded;
-                    info.bufferInfoEntryIndices.push_back(i);
+                    ++info.bufferInfoCount;
                 } else if (isDescriptorTypeBufferView(descType)) {
-                    ++bufferViewsNeeded;
-                    info.bufferViewEntryIndices.push_back(i);
+                    ++info.bufferViewCount;
                 } else {
                     ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
                     abort();
@@ -4913,10 +5054,51 @@ public:
             }
         }
 
-        // To be filled in later (our flat structure)
-        info.imageInfos.resize(imageInfosNeeded);
-        info.bufferInfos.resize(bufferInfosNeeded);
-        info.bufferViews.resize(bufferViewsNeeded);
+        if (info.templateEntryCount)
+            info.templateEntries = new VkDescriptorUpdateTemplateEntry[info.templateEntryCount];
+
+        if (info.imageInfoCount) {
+            info.imageInfoIndices = new uint32_t[info.imageInfoCount];
+            info.imageInfos = new VkDescriptorImageInfo[info.imageInfoCount];
+        }
+
+        if (info.bufferInfoCount) {
+            info.bufferInfoIndices = new uint32_t[info.bufferInfoCount];
+            info.bufferInfos = new VkDescriptorBufferInfo[info.bufferInfoCount];
+        }
+
+        if (info.bufferViewCount) {
+            info.bufferViewIndices = new uint32_t[info.bufferViewCount];
+            info.bufferViews = new VkBufferView[info.bufferViewCount];
+        }
+
+        uint32_t imageInfoIndex = 0;
+        uint32_t bufferInfoIndex = 0;
+        uint32_t bufferViewIndex = 0;
+
+        for (uint32_t i = 0; i < pCreateInfo->descriptorUpdateEntryCount; ++i) {
+            const auto& entry = pCreateInfo->pDescriptorUpdateEntries[i];
+            uint32_t descCount = entry.descriptorCount;
+            VkDescriptorType descType = entry.descriptorType;
+
+            info.templateEntries[i] = entry;
+
+            for (uint32_t j = 0; j < descCount; ++j) {
+                if (isDescriptorTypeImageInfo(descType)) {
+                    info.imageInfoIndices[imageInfoIndex] = i;
+                    ++imageInfoIndex;
+                } else if (isDescriptorTypeBufferInfo(descType)) {
+                    info.bufferInfoIndices[bufferInfoIndex] = i;
+                    ++bufferInfoIndex;
+                } else if (isDescriptorTypeBufferView(descType)) {
+                    info.bufferViewIndices[bufferViewIndex] = i;
+                    ++bufferViewIndex;
+                } else {
+                    ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
+                    abort();
+                }
+            }
+        }
 
         return VK_SUCCESS;
     }
@@ -4965,6 +5147,7 @@ public:
         uint8_t* userBuffer = (uint8_t*)pData;
         if (!userBuffer) return;
 
+        // TODO: Make this thread safe
         AutoLock lock(mLock);
 
         auto it = info_VkDescriptorUpdateTemplate.find(descriptorUpdateTemplate);
@@ -4974,11 +5157,27 @@ public:
 
         auto& info = it->second;
 
+        uint32_t templateEntryCount = info.templateEntryCount;
+        VkDescriptorUpdateTemplateEntry* templateEntries = info.templateEntries;
+
+        uint32_t imageInfoCount = info.imageInfoCount;
+        uint32_t bufferInfoCount = info.bufferInfoCount;
+        uint32_t bufferViewCount = info.bufferViewCount;
+        uint32_t* imageInfoIndices = info.imageInfoIndices;
+        uint32_t* bufferInfoIndices = info.bufferInfoIndices;
+        uint32_t* bufferViewIndices = info.bufferViewIndices;
+        VkDescriptorImageInfo* imageInfos = info.imageInfos;
+        VkDescriptorBufferInfo* bufferInfos = info.bufferInfos;
+        VkBufferView* bufferViews = info.bufferViews;
+
+        lock.unlock();
+
         size_t currImageInfoOffset = 0;
         size_t currBufferInfoOffset = 0;
         size_t currBufferViewOffset = 0;
 
-        for (const auto& entry : info.templateEntries) {
+        for (uint32_t i = 0; i < templateEntryCount; ++i) {
+            const auto& entry = templateEntries[i];
             VkDescriptorType descType = entry.descriptorType;
 
             auto offset = entry.offset;
@@ -4989,7 +5188,7 @@ public:
             if (isDescriptorTypeImageInfo(descType)) {
                 if (!stride) stride = sizeof(VkDescriptorImageInfo);
                 for (uint32_t j = 0; j < descCount; ++j) {
-                    memcpy(((uint8_t*)info.imageInfos.data()) + currImageInfoOffset,
+                    memcpy(((uint8_t*)imageInfos) + currImageInfoOffset,
                            userBuffer + offset + j * stride,
                            sizeof(VkDescriptorImageInfo));
                     currImageInfoOffset += sizeof(VkDescriptorImageInfo);
@@ -4997,7 +5196,7 @@ public:
             } else if (isDescriptorTypeBufferInfo(descType)) {
                 if (!stride) stride = sizeof(VkDescriptorBufferInfo);
                 for (uint32_t j = 0; j < descCount; ++j) {
-                    memcpy(((uint8_t*)info.bufferInfos.data()) + currBufferInfoOffset,
+                    memcpy(((uint8_t*)bufferInfos) + currBufferInfoOffset,
                            userBuffer + offset + j * stride,
                            sizeof(VkDescriptorBufferInfo));
                     currBufferInfoOffset += sizeof(VkDescriptorBufferInfo);
@@ -5005,7 +5204,7 @@ public:
             } else if (isDescriptorTypeBufferView(descType)) {
                 if (!stride) stride = sizeof(VkBufferView);
                 for (uint32_t j = 0; j < descCount; ++j) {
-                    memcpy(((uint8_t*)info.bufferViews.data()) + currBufferViewOffset,
+                    memcpy(((uint8_t*)bufferViews) + currBufferViewOffset,
                            userBuffer + offset + j * stride,
                            sizeof(VkBufferView));
                     currBufferViewOffset += sizeof(VkBufferView);
@@ -5020,15 +5219,16 @@ public:
             device,
             descriptorSet,
             descriptorUpdateTemplate,
-            (uint32_t)info.imageInfos.size(),
-            (uint32_t)info.bufferInfos.size(),
-            (uint32_t)info.bufferViews.size(),
-            info.imageInfoEntryIndices.data(),
-            info.bufferInfoEntryIndices.data(),
-            info.bufferViewEntryIndices.data(),
-            info.imageInfos.data(),
-            info.bufferInfos.data(),
-            info.bufferViews.data(), true /* do lock */);
+            imageInfoCount,
+            bufferInfoCount,
+            bufferViewCount,
+            imageInfoIndices,
+            bufferInfoIndices,
+            bufferViewIndices,
+            imageInfos,
+            bufferInfos,
+            bufferViews,
+            true /* do lock */);
     }
 
     VkResult on_vkGetPhysicalDeviceImageFormatProperties2_common(
@@ -5229,8 +5429,15 @@ public:
         VkCommandBuffer commandBuffer,
         const VkCommandBufferBeginInfo* pBeginInfo) {
 
-        VkEncoder* enc = (VkEncoder*)context;
+        (void)context;
+
+        resetCommandBufferStagingInfo(commandBuffer, true /* also reset primaries */);
+
+        VkEncoder* enc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
         (void)input_result;
+
+        struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
+        cb->flags = pBeginInfo->flags;
 
         if (!supportsDeferredCommands()) {
             return enc->vkBeginCommandBuffer(commandBuffer, pBeginInfo, true /* do lock */);
@@ -5261,6 +5468,8 @@ public:
         void* context, VkResult input_result,
         VkCommandBuffer commandBuffer,
         VkCommandBufferResetFlags flags) {
+
+        resetCommandBufferStagingInfo(commandBuffer, true /* also reset primaries */);
 
         VkEncoder* enc = (VkEncoder*)context;
         (void)input_result;
@@ -5297,6 +5506,29 @@ public:
 #endif
 
         return enc->vkCreateImageView(device, &localCreateInfo, pAllocator, pView, true /* do lock */);
+    }
+
+    void on_vkCmdExecuteCommands(
+        void* context,
+        VkCommandBuffer commandBuffer,
+        uint32_t commandBufferCount,
+        const VkCommandBuffer* pCommandBuffers) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        if (!mFeatureInfo->hasVulkanQueueSubmitWithCommands) {
+            enc->vkCmdExecuteCommands(commandBuffer, commandBufferCount, pCommandBuffers, true /* do lock */);
+            return;
+        }
+
+        struct goldfish_VkCommandBuffer* primary = as_goldfish_VkCommandBuffer(commandBuffer);
+        for (uint32_t i = 0; i < commandBufferCount; ++i) {
+            struct goldfish_VkCommandBuffer* secondary = as_goldfish_VkCommandBuffer(pCommandBuffers[i]);
+            appendObject(&secondary->superObjects, primary);
+            appendObject(&primary->subObjects, secondary);
+        }
+
+        enc->vkCmdExecuteCommands(commandBuffer, commandBufferCount, pCommandBuffers, true /* do lock */);
     }
 
     uint32_t getApiVersionFromInstance(VkInstance instance) const {
@@ -5344,12 +5576,73 @@ public:
                it->second.enabledExtensions.end();
     }
 
+    // Resets staging stream for this command buffer and primary command buffers
+    // where this command buffer has been recorded.
+    void resetCommandBufferStagingInfo(VkCommandBuffer commandBuffer, bool alsoResetPrimaries) {
+        struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
+        if (!cb) {
+            return;
+        }
+        if (cb->privateEncoder) {
+            sStaging.pushStaging((CommandBufferStagingStream*)cb->privateStream, cb->privateEncoder);
+            cb->privateEncoder = nullptr;
+            cb->privateStream = nullptr;
+        }
+
+        if (alsoResetPrimaries) {
+            forAllObjects(cb->superObjects, [this, cb, alsoResetPrimaries](void* obj) {
+                VkCommandBuffer superCommandBuffer = (VkCommandBuffer)obj;
+                struct goldfish_VkCommandBuffer* superCb = as_goldfish_VkCommandBuffer(superCommandBuffer);
+                this->resetCommandBufferStagingInfo(superCommandBuffer, alsoResetPrimaries);
+            });
+            eraseObjects(&cb->superObjects);
+        }
+
+        forAllObjects(cb->subObjects, [cb](void* obj) {
+            VkCommandBuffer subCommandBuffer = (VkCommandBuffer)obj;
+            struct goldfish_VkCommandBuffer* subCb = as_goldfish_VkCommandBuffer(subCommandBuffer);
+            // We don't do resetCommandBufferStagingInfo(subCommandBuffer)
+            // since the user still might have submittable stuff pending there.
+            eraseObject(&subCb->superObjects, (void*)cb);
+        });
+
+        eraseObjects(&cb->subObjects);
+    }
+
+    void resetCommandPoolStagingInfo(VkCommandPool commandPool) {
+        struct goldfish_VkCommandPool* p = as_goldfish_VkCommandPool(commandPool);
+
+        if (!p) return;
+
+        forAllObjects(p->subObjects, [this](void* commandBuffer) {
+            this->resetCommandBufferStagingInfo((VkCommandBuffer)commandBuffer, true /* also reset primaries */);
+        });
+    }
+
+    void addToCommandPool(VkCommandPool commandPool,
+                          uint32_t commandBufferCount,
+                          VkCommandBuffer* pCommandBuffers) {
+        for (uint32_t i = 0; i < commandBufferCount; ++i) {
+            struct goldfish_VkCommandPool* p = as_goldfish_VkCommandPool(commandPool);
+            struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(pCommandBuffers[i]);
+            appendObject(&p->subObjects, (void*)(pCommandBuffers[i]));
+            appendObject(&cb->poolObjects, (void*)commandPool);
+        }
+    }
+
+    void clearCommandPool(VkCommandPool commandPool) {
+        resetCommandPoolStagingInfo(commandPool);
+        struct goldfish_VkCommandPool* p = as_goldfish_VkCommandPool(commandPool);
+        forAllObjects(p->subObjects, [this](void* commandBuffer) {
+            this->unregister_VkCommandBuffer((VkCommandBuffer)commandBuffer);
+        });
+        eraseObjects(&p->subObjects);
+    }
+
 private:
     mutable Lock mLock;
     HostVisibleMemoryVirtualizationInfo mHostVisibleMemoryVirtInfo;
     std::unique_ptr<EmulatorFeatureInfo> mFeatureInfo;
-    ResourceTracker::ThreadingCallbacks mThreadingCallbacks;
-    uint32_t mStreamFeatureBits = 0;
     std::unique_ptr<GoldfishAddressSpaceBlockProvider> mGoldfishAddressSpaceBlockProvider;
 
     std::vector<VkExtensionProperties> mHostInstanceExtensions;
@@ -5463,6 +5756,65 @@ bool ResourceTracker::hasInstanceExtension(VkInstance instance, const std::strin
 }
 bool ResourceTracker::hasDeviceExtension(VkDevice device, const std::string &name) const {
     return mImpl->hasDeviceExtension(device, name);
+}
+void ResourceTracker::addToCommandPool(VkCommandPool commandPool,
+                      uint32_t commandBufferCount,
+                      VkCommandBuffer* pCommandBuffers) {
+    mImpl->addToCommandPool(commandPool, commandBufferCount, pCommandBuffers);
+}
+void ResourceTracker::resetCommandPoolStagingInfo(VkCommandPool commandPool) {
+    mImpl->resetCommandPoolStagingInfo(commandPool);
+}
+
+
+// static
+__attribute__((always_inline)) VkEncoder* ResourceTracker::getCommandBufferEncoder(VkCommandBuffer commandBuffer) {
+    if (!(ResourceTracker::streamFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT)) {
+        auto enc = ResourceTracker::getThreadLocalEncoder();
+        ResourceTracker::get()->syncEncodersForCommandBuffer(commandBuffer, enc);
+        return enc;
+    }
+
+    struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
+    if (!cb->privateEncoder) {
+        sStaging.popStaging((CommandBufferStagingStream**)&cb->privateStream, &cb->privateEncoder);
+    }
+    uint8_t* writtenPtr; size_t written;
+    ((CommandBufferStagingStream*)cb->privateStream)->getWritten(&writtenPtr, &written);
+    return cb->privateEncoder;
+}
+
+// static
+__attribute__((always_inline)) VkEncoder* ResourceTracker::getQueueEncoder(VkQueue queue) {
+    auto enc = ResourceTracker::getThreadLocalEncoder();
+    if (!(ResourceTracker::streamFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT)) {
+        ResourceTracker::get()->syncEncodersForQueue(queue, enc);
+    }
+    return enc;
+}
+
+// static
+__attribute__((always_inline)) VkEncoder* ResourceTracker::getThreadLocalEncoder() {
+    auto hostConn = ResourceTracker::threadingCallbacks.hostConnectionGetFunc();
+    auto vkEncoder = ResourceTracker::threadingCallbacks.vkEncoderGetFunc(hostConn);
+    return vkEncoder;
+}
+
+// static
+void ResourceTracker::setSeqnoPtr(uint32_t* seqnoptr) {
+    sSeqnoPtr = seqnoptr;
+}
+
+// static
+__attribute__((always_inline)) uint32_t ResourceTracker::nextSeqno() {
+    uint32_t res = __atomic_add_fetch(sSeqnoPtr, 1, __ATOMIC_SEQ_CST);
+    return res;
+}
+
+// static
+__attribute__((always_inline)) uint32_t ResourceTracker::getSeqno() {
+    uint32_t res = __atomic_load_n(sSeqnoPtr, __ATOMIC_SEQ_CST);
+    return res;
 }
 
 VkResult ResourceTracker::on_vkEnumerateInstanceExtensionProperties(
@@ -6209,6 +6561,15 @@ VkResult ResourceTracker::on_vkCreateImageView(
     VkImageView* pView) {
     return mImpl->on_vkCreateImageView(
         context, input_result, device, pCreateInfo, pAllocator, pView);
+}
+
+void ResourceTracker::on_vkCmdExecuteCommands(
+    void* context,
+    VkCommandBuffer commandBuffer,
+    uint32_t commandBufferCount,
+    const VkCommandBuffer* pCommandBuffers) {
+    mImpl->on_vkCmdExecuteCommands(
+        context, commandBuffer, commandBufferCount, pCommandBuffers);
 }
 
 void ResourceTracker::deviceMemoryTransform_tohost(
