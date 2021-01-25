@@ -2203,6 +2203,14 @@ public:
         void** pIOSurface,
         uint32_t doLock);
 #endif
+#ifdef VK_GOOGLE_queue_submit_with_commands
+    void vkQueueFlushCommandsGOOGLE(
+    VkQueue queue,
+        VkCommandBuffer commandBuffer,
+        VkDeviceSize dataSize,
+        const void* pData,
+        uint32_t doLock);
+#endif
 
 private:
     class Impl;

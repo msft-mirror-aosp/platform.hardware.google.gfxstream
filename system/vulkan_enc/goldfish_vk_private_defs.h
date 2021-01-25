@@ -578,6 +578,7 @@ typedef struct VkSemaphoreGetZirconHandleInfoFUCHSIA {
 #define VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT (1 << 0)
 #define VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT (1 << 1)
 #define VULKAN_STREAM_FEATURE_SHADER_FLOAT16_INT8_BIT (1 << 2)
+#define VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT (1 << 3)
 
 #define VK_YCBCR_CONVERSION_DO_NOTHING ((VkSamplerYcbcrConversion)0x1111111111111111)
 
@@ -628,6 +629,9 @@ typedef void (VKAPI_PTR *PFN_vkQueueBindSparseAsyncGOOGLE)(
 #define VK_GOOGLE_linear_image_layout 1
 
 typedef VkResult (VKAPI_PTR *PFN_vkGetLinearImageLayoutGOOGLE)(VkDevice device, VkFormat format, VkDeviceSize* pOffset, VkDeviceSize* pRowPitchAlignment);
+
+#define VK_GOOGLE_queue_submit_with_commands 1
+typedef void (VKAPI_PTR *PFN_vkQueueFlushCommandsGOOGLE)(VkQueue queue, VkDeviceSize dataSize, const void* pData);
 
 #ifdef __cplusplus
 } // extern "C"
