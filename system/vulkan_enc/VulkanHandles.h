@@ -48,7 +48,6 @@
     f(VkPipelineLayout) \
     f(VkRenderPass) \
     f(VkFramebuffer) \
-    f(VkCommandPool) \
     f(VkEvent) \
     f(VkQueryPool) \
     f(VkSamplerYcbcrConversion) \
@@ -71,6 +70,7 @@
     f(VkDescriptorPool) \
     f(VkDescriptorSet) \
     f(VkDescriptorSetLayout) \
+    f(VkCommandPool) \
     GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(f) \
 
 #define GOLDFISH_VK_LIST_HANDLE_TYPES(f) \

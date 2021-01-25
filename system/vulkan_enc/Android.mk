@@ -45,6 +45,7 @@ LOCAL_CFLAGS += \
     -DVK_NO_PROTOTYPES \
 
 LOCAL_SRC_FILES := AndroidHardwareBuffer.cpp \
+    CommandBufferStagingStream.cpp \
     HostVisibleMemoryVirtualization.cpp \
     Resources.cpp \
     Validation.cpp \
@@ -59,6 +60,7 @@ LOCAL_SRC_FILES := AndroidHardwareBuffer.cpp \
     goldfish_vk_counting_guest.cpp \
     goldfish_vk_handlemap_guest.cpp \
     goldfish_vk_transform_guest.cpp \
+	func_table.cpp \
 
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 LOCAL_CFLAGS += -D__ANDROID_API__=28

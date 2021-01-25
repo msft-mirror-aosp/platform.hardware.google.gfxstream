@@ -52,6 +52,18 @@ static pthread_once_t     sProcPipeOnce = PTHREAD_ONCE_INIT;
 static uint64_t           sProcUID = 0;
 static volatile HostConnectionType sConnType = HOST_CONNECTION_VIRTIO_GPU_PIPE;
 
+static uint32_t* sSeqnoPtr = 0;
+
+// Meant to be called only once per process.
+static void initSeqno() {
+    // So why do we reinitialize here? It's for testing purposes only;
+    // we have a unit test that exercise the case where this sequence
+    // number is reset as a result of guest process kill.
+    if (sSeqnoPtr) delete sSeqnoPtr;
+    sSeqnoPtr = new uint32_t;
+    *sSeqnoPtr = 0;
+}
+
 // processPipeInitOnce is used to generate a process unique ID (puid).
 // processPipeInitOnce will only be called at most once per process.
 // Use it with pthread_once for thread safety.
@@ -61,6 +73,8 @@ static volatile HostConnectionType sConnType = HOST_CONNECTION_VIRTIO_GPU_PIPE;
 // host.
 #ifdef __Fuchsia__
 static void processPipeInitOnce() {
+    initSeqno();
+
     zx::channel channel(GetConnectToServiceFunction()(QEMU_PIPE_PATH));
     if (!channel) {
         ALOGE("%s: failed to open " QEMU_PIPE_PATH,
@@ -163,6 +177,8 @@ static void sQemuPipeInit() {
 }
 
 static void processPipeInitOnce() {
+    initSeqno();
+
 #if defined(HOST_BUILD) || !defined(GFXSTREAM)
     sQemuPipeInit();
 #else // HOST_BUILD
@@ -244,4 +260,9 @@ void refreshHostConnection() {
     HostConnection* hostConn = HostConnection::get();
     ExtendedRCEncoderContext* rcEnc = hostConn->rcEncoder();
     rcEnc->rcSetPuid(rcEnc, sProcUID);
+}
+
+uint32_t* getSeqnoPtrForProcess() {
+    // It's assumed process pipe state has already been initialized.
+    return sSeqnoPtr;
 }
