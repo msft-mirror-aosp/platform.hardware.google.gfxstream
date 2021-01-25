@@ -634,6 +634,7 @@ GL2Encoder *HostConnection::gl2Encoder()
 
 VkEncoder *HostConnection::vkEncoder()
 {
+    rcEncoder();
     if (!m_vkEnc) {
         m_vkEnc = new VkEncoder(m_stream);
     }
@@ -669,6 +670,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetVulkanAsyncQueueSubmitSupport(rcEnc);
         queryAndSetHostSideTracingSupport(rcEnc);
         queryAndSetAsyncFrameCommands(rcEnc);
+        queryAndSetVulkanQueueSubmitWithCommandsSupport(rcEnc);
         if (m_processPipe) {
             m_processPipe->processPipeInit(m_connectionType, rcEnc);
         }
@@ -945,3 +947,11 @@ void HostConnection::queryAndSetAsyncFrameCommands(ExtendedRCEncoderContext* rcE
         rcEnc->featureInfo()->hasAsyncFrameCommands = true;
     }
 }
+
+void HostConnection::queryAndSetVulkanQueueSubmitWithCommandsSupport(ExtendedRCEncoderContext* rcEnc) {
+    std::string glExtensions = queryGLExtensions(rcEnc);
+    if (glExtensions.find(kVulkanQueueSubmitWithCommands) != std::string::npos) {
+        rcEnc->featureInfo()->hasVulkanQueueSubmitWithCommands = true;
+    }
+}
+

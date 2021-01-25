@@ -123,6 +123,9 @@ static const char kHostSideTracing[] = "ANDROID_EMU_host_side_tracing";
 // Make current async
 static const char kAsyncFrameCommands[] = "ANDROID_EMU_async_frame_commands";
 
+// Queue submit with commands
+static const char kVulkanQueueSubmitWithCommands[] = "ANDROID_EMU_vulkan_queue_submit_with_commands";
+
 // Struct describing available emulator features
 struct EmulatorFeatureInfo {
 
@@ -146,7 +149,8 @@ struct EmulatorFeatureInfo {
         hasVulkanShaderFloat16Int8(false),
         hasVulkanAsyncQueueSubmit(false),
         hasHostSideTracing(false),
-        hasAsyncFrameCommands(false)
+        hasAsyncFrameCommands(false),
+        hasVulkanQueueSubmitWithCommands(false)
     { }
 
     SyncImpl syncImpl;
@@ -169,6 +173,7 @@ struct EmulatorFeatureInfo {
     bool hasVulkanAsyncQueueSubmit;
     bool hasHostSideTracing;
     bool hasAsyncFrameCommands;
+    bool hasVulkanQueueSubmitWithCommands;
 };
 
 enum HostConnectionType {
