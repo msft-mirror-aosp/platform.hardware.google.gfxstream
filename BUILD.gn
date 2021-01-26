@@ -53,6 +53,8 @@ shared_library("libvulkan_goldfish") {
     "system/renderControl_enc/renderControl_enc.cpp",
     "system/renderControl_enc/renderControl_enc.h",
     "system/vulkan/goldfish_vulkan.cpp",
+    "system/vulkan_enc/CommandBufferStagingStream.cpp",
+    "system/vulkan_enc/CommandBufferStagingStream.h",
     "system/vulkan_enc/HostVisibleMemoryVirtualization.cpp",
     "system/vulkan_enc/HostVisibleMemoryVirtualization.h",
     "system/vulkan_enc/ResourceTracker.cpp",
@@ -69,12 +71,16 @@ shared_library("libvulkan_goldfish") {
     "system/vulkan_enc/VulkanStreamGuest.h",
     "system/vulkan_enc/func_table.cpp",
     "system/vulkan_enc/func_table.h",
+    "system/vulkan_enc/goldfish_vk_counting_guest.cpp",
+    "system/vulkan_enc/goldfish_vk_counting_guest.h",
     "system/vulkan_enc/goldfish_vk_deepcopy_guest.cpp",
     "system/vulkan_enc/goldfish_vk_deepcopy_guest.h",
     "system/vulkan_enc/goldfish_vk_extension_structs_guest.cpp",
     "system/vulkan_enc/goldfish_vk_extension_structs_guest.h",
     "system/vulkan_enc/goldfish_vk_marshaling_guest.cpp",
     "system/vulkan_enc/goldfish_vk_marshaling_guest.h",
+    "system/vulkan_enc/goldfish_vk_reserved_marshaling_guest.cpp",
+    "system/vulkan_enc/goldfish_vk_reserved_marshaling_guest.h",
     "system/vulkan_enc/goldfish_vk_transform_guest.cpp",
     "system/vulkan_enc/goldfish_vk_transform_guest.h",
   ]
@@ -127,7 +133,7 @@ shared_library("libvulkan_goldfish") {
       "shared/OpenglCodecCommon/goldfish_dma.h",
       "shared/qemupipe/qemu_pipe_common.cpp",
       "shared/qemupipe/qemu_pipe_guest.cpp",
-      "system/OpenglSystemCommon/QemuPipeStream.cpp"
+      "system/OpenglSystemCommon/QemuPipeStream.cpp",
     ]
     sources += [
       "fuchsia/fuchsia_stdio.cc",

@@ -78,7 +78,6 @@ public:
     uint8_t* reserve(size_t size);
 private:
     android::base::BumpPool mPool;
-    size_t mWritePos = 0;
     std::vector<uint8_t> mWriteBuffer;
     IOStream* mStream = nullptr;
     DefaultHandleMapping mDefaultHandleMapping;
