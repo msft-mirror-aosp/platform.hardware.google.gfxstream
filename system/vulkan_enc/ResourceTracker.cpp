@@ -4807,7 +4807,7 @@ public:
 
             std::vector<WorkPool::Task> tasks;
 
-            tasks.push_back([this, queue, externalFenceFdToSignal,
+            tasks.push_back([queue, externalFenceFdToSignal,
                              post_wait_events /* copy of zx handles */,
                              post_wait_sync_fds /* copy of sync fds */] {
                 auto hostConn = ResourceTracker::threadingCallbacks.hostConnectionGetFunc();
@@ -5590,7 +5590,7 @@ public:
         }
 
         if (alsoResetPrimaries) {
-            forAllObjects(cb->superObjects, [this, cb, alsoResetPrimaries](void* obj) {
+            forAllObjects(cb->superObjects, [this, alsoResetPrimaries](void* obj) {
                 VkCommandBuffer superCommandBuffer = (VkCommandBuffer)obj;
                 struct goldfish_VkCommandBuffer* superCb = as_goldfish_VkCommandBuffer(superCommandBuffer);
                 this->resetCommandBufferStagingInfo(superCommandBuffer, alsoResetPrimaries);
