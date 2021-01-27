@@ -239,6 +239,16 @@ struct StagingInfo {
     std::vector<CommandBufferStagingStream*> streams;
     std::vector<VkEncoder*> encoders;
 
+    ~StagingInfo() {
+        for (auto stream : streams) {
+            delete stream;
+        }
+
+        for (auto encoder : encoders) {
+            delete encoder;
+        }
+    }
+
     void pushStaging(CommandBufferStagingStream* stream, VkEncoder* encoder) {
         AutoLock lock(mLock);
         stream->reset();
