@@ -222,6 +222,14 @@ SetBufferCollectionConstraintsFUCHSIA(VkDevice /*device*/,
     return VK_SUCCESS;
 }
 
+VkResult SetBufferCollectionImageConstraintsFUCHSIA(
+    VkDevice /*device*/,
+    VkBufferCollectionFUCHSIA /*collection*/,
+    const VkImageConstraintsInfoFUCHSIA* /*pImageConstraintsInfo*/) {
+    AEMU_SCOPED_TRACE("vkstubhal::SetBufferCollectionImageConstraintsFUCHSIA");
+    return VK_SUCCESS;
+}
+
 VkResult SetBufferCollectionBufferConstraintsFUCHSIA(
     VkDevice /*device*/,
     VkBufferCollectionFUCHSIA /*collection*/,
@@ -288,6 +296,9 @@ PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance,
         return reinterpret_cast<PFN_vkVoidFunction>(DestroyBufferCollectionFUCHSIA);
     if (strcmp(name, "vkSetBufferCollectionConstraintsFUCHSIA") == 0)
         return reinterpret_cast<PFN_vkVoidFunction>(SetBufferCollectionConstraintsFUCHSIA);
+    if (strcmp(name, "vkSetBufferCollectionImageConstraintsFUCHSIA") == 0)
+        return reinterpret_cast<PFN_vkVoidFunction>(
+            SetBufferCollectionImageConstraintsFUCHSIA);
     if (strcmp(name, "vkSetBufferCollectionBufferConstraintsFUCHSIA") == 0)
         return reinterpret_cast<PFN_vkVoidFunction>(SetBufferCollectionBufferConstraintsFUCHSIA);
     if (strcmp(name, "vkGetBufferCollectionPropertiesFUCHSIA") == 0)
@@ -589,6 +600,29 @@ VkResult SetBufferCollectionBufferConstraintsFUCHSIA(
 }
 
 VKAPI_ATTR
+VkResult SetBufferCollectionImageConstraintsFUCHSIA(
+    VkDevice device,
+    VkBufferCollectionFUCHSIA collection,
+    const VkImageConstraintsInfoFUCHSIA* pImageConstraintsInfo) {
+    AEMU_SCOPED_TRACE(
+        "goldfish_vulkan::SetBufferCollectionBufferConstraintsFUCHSIA");
+
+    VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
+
+    if (!hostSupportsVulkan) {
+        return vkstubhal::SetBufferCollectionImageConstraintsFUCHSIA(
+            device, collection, pImageConstraintsInfo);
+    }
+
+    VkResult res =
+        goldfish_vk::ResourceTracker::get()
+            ->on_vkSetBufferCollectionImageConstraintsFUCHSIA(
+                vkEnc, VK_SUCCESS, device, collection, pImageConstraintsInfo);
+
+    return res;
+}
+
+VKAPI_ATTR
 VkResult GetBufferCollectionPropertiesFUCHSIA(
     VkDevice device,
     VkBufferCollectionFUCHSIA collection,
@@ -690,6 +724,9 @@ static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* name) {
     }
     if (!strcmp(name, "vkSetBufferCollectionConstraintsFUCHSIA")) {
         return (PFN_vkVoidFunction)SetBufferCollectionConstraintsFUCHSIA;
+    }
+    if (!strcmp(name, "vkSetBufferCollectionImageConstraintsFUCHSIA")) {
+        return (PFN_vkVoidFunction)SetBufferCollectionImageConstraintsFUCHSIA;
     }
     if (!strcmp(name, "vkSetBufferCollectionBufferConstraintsFUCHSIA")) {
         return (PFN_vkVoidFunction)SetBufferCollectionBufferConstraintsFUCHSIA;

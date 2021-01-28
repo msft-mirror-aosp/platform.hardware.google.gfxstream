@@ -286,6 +286,12 @@ public:
         VkDevice device,
         VkBufferCollectionFUCHSIA collection,
         const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo);
+    VkResult on_vkSetBufferCollectionImageConstraintsFUCHSIA(
+        void* context,
+        VkResult input_result,
+        VkDevice device,
+        VkBufferCollectionFUCHSIA collection,
+        const VkImageConstraintsInfoFUCHSIA* pImageConstraintsInfo);
     VkResult on_vkGetBufferCollectionPropertiesFUCHSIA(
         void* context, VkResult input_result,
         VkDevice device,
