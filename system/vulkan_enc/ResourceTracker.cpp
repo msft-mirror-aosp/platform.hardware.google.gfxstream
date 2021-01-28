@@ -2481,10 +2481,103 @@ public:
     }
 
     VkResult on_vkGetBufferCollectionPropertiesFUCHSIA(
-        void*, VkResult,
+        void* context,
+        VkResult,
         VkDevice device,
         VkBufferCollectionFUCHSIA collection,
         VkBufferCollectionPropertiesFUCHSIA* pProperties) {
+        VkBufferCollectionProperties2FUCHSIA properties2 = {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_COLLECTION_PROPERTIES2_FUCHSIA,
+            .pNext = nullptr};
+        auto result = on_vkGetBufferCollectionProperties2FUCHSIA(
+            context, VK_SUCCESS, device, collection, &properties2);
+        if (result != VK_SUCCESS) {
+            return result;
+        }
+
+        pProperties->count = properties2.bufferCount;
+        pProperties->memoryTypeBits = properties2.memoryTypeBits;
+        return VK_SUCCESS;
+    }
+
+    VkResult getBufferCollectionImageCreateInfoIndexLocked(
+        VkBufferCollectionFUCHSIA collection,
+        llcpp::fuchsia::sysmem::BufferCollectionInfo_2& info,
+        uint32_t* outCreateInfoIndex) {
+        if (!info_VkBufferCollectionFUCHSIA[collection]
+                 .constraints.hasValue()) {
+            ALOGE("%s: constraints not set", __func__);
+            return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+        }
+
+        if (!info.settings.has_image_format_constraints) {
+            // no image format constraints, skip getting createInfoIndex.
+            return VK_SUCCESS;
+        }
+
+        const auto& constraints =
+            *info_VkBufferCollectionFUCHSIA[collection].constraints;
+        const auto& createInfoIndices =
+            info_VkBufferCollectionFUCHSIA[collection].createInfoIndex;
+        const auto& out = info.settings.image_format_constraints;
+        bool foundCreateInfo = false;
+
+        for (size_t imageFormatIndex = 0;
+             imageFormatIndex < constraints.image_format_constraints_count;
+             imageFormatIndex++) {
+            const auto& in =
+                constraints.image_format_constraints[imageFormatIndex];
+            // These checks are sorted in order of how often they're expected to
+            // mismatch, from most likely to least likely. They aren't always
+            // equality comparisons, since sysmem may change some values in
+            // compatible ways on behalf of the other participants.
+            if ((out.pixel_format.type != in.pixel_format.type) ||
+                (out.pixel_format.has_format_modifier !=
+                 in.pixel_format.has_format_modifier) ||
+                (out.pixel_format.format_modifier.value !=
+                 in.pixel_format.format_modifier.value) ||
+                (out.min_bytes_per_row < in.min_bytes_per_row) ||
+                (out.required_max_coded_width < in.required_max_coded_width) ||
+                (out.required_max_coded_height <
+                 in.required_max_coded_height) ||
+                (out.bytes_per_row_divisor % in.bytes_per_row_divisor != 0)) {
+                continue;
+            }
+            // Check if the out colorspaces are a subset of the in color spaces.
+            bool all_color_spaces_found = true;
+            for (uint32_t j = 0; j < out.color_spaces_count; j++) {
+                bool found_matching_color_space = false;
+                for (uint32_t k = 0; k < in.color_spaces_count; k++) {
+                    if (out.color_space[j].type == in.color_space[k].type) {
+                        found_matching_color_space = true;
+                        break;
+                    }
+                }
+                if (!found_matching_color_space) {
+                    all_color_spaces_found = false;
+                    break;
+                }
+            }
+            if (!all_color_spaces_found) {
+                continue;
+            }
+
+            // Choose the first valid format for now.
+            *outCreateInfoIndex = createInfoIndices[imageFormatIndex];
+            return VK_SUCCESS;
+        }
+
+        ALOGE("%s: cannot find a valid image format in constraints", __func__);
+        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+    }
+
+    VkResult on_vkGetBufferCollectionProperties2FUCHSIA(
+        void* context,
+        VkResult,
+        VkDevice device,
+        VkBufferCollectionFUCHSIA collection,
+        VkBufferCollectionProperties2FUCHSIA* pProperties) {
+        VkEncoder* enc = (VkEncoder*)context;
         auto sysmem_collection = reinterpret_cast<
             llcpp::fuchsia::sysmem::BufferCollection::SyncClient*>(collection);
 
@@ -2507,29 +2600,134 @@ public:
             return VK_ERROR_INITIALIZATION_FAILED;
         }
 
-        pProperties->count = info.buffer_count;
+        // memoryTypeBits
+        // ====================================================================
+        {
+            AutoLock lock(mLock);
+            auto deviceIt = info_VkDevice.find(device);
+            if (deviceIt == info_VkDevice.end()) {
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
+            auto& deviceInfo = deviceIt->second;
 
-        AutoLock lock(mLock);
-
-        auto deviceIt = info_VkDevice.find(device);
-
-        if (deviceIt == info_VkDevice.end()) {
-            return VK_ERROR_INITIALIZATION_FAILED;
-        }
-
-        auto& deviceInfo = deviceIt->second;
-
-        // Device local memory type supported.
-        pProperties->memoryTypeBits = 0;
-        for (uint32_t i = 0; i < deviceInfo.memProps.memoryTypeCount; ++i) {
-            if ((is_device_local && (deviceInfo.memProps.memoryTypes[i].propertyFlags &
-                                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) ||
-                (is_host_visible && (deviceInfo.memProps.memoryTypes[i].propertyFlags &
-                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT))) {
-                pProperties->memoryTypeBits |= 1ull << i;
+            // Device local memory type supported.
+            pProperties->memoryTypeBits = 0;
+            for (uint32_t i = 0; i < deviceInfo.memProps.memoryTypeCount; ++i) {
+                if ((is_device_local &&
+                     (deviceInfo.memProps.memoryTypes[i].propertyFlags &
+                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) ||
+                    (is_host_visible &&
+                     (deviceInfo.memProps.memoryTypes[i].propertyFlags &
+                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT))) {
+                    pProperties->memoryTypeBits |= 1ull << i;
+                }
             }
         }
-        return VK_SUCCESS;
+
+        // bufferCount
+        // ====================================================================
+        pProperties->bufferCount = info.buffer_count;
+
+        auto storeProperties = [this, collection, pProperties]() -> VkResult {
+            // store properties to storage
+            AutoLock lock(mLock);
+            if (info_VkBufferCollectionFUCHSIA.find(collection) ==
+                info_VkBufferCollectionFUCHSIA.end()) {
+                return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+            }
+
+            info_VkBufferCollectionFUCHSIA[collection].properties =
+                android::base::makeOptional(*pProperties);
+
+            // We only do a shallow copy so we should remove all pNext pointers.
+            info_VkBufferCollectionFUCHSIA[collection].properties->pNext =
+                nullptr;
+            info_VkBufferCollectionFUCHSIA[collection]
+                .properties->colorSpace.pNext = nullptr;
+            return VK_SUCCESS;
+        };
+
+        // The fields below only apply to buffer collections with image formats.
+        if (!info.settings.has_image_format_constraints) {
+            ALOGD("%s: buffer collection doesn't have image format constraints",
+                  __func__);
+            return storeProperties();
+        }
+
+        // sysmemFormat
+        // ====================================================================
+
+        pProperties->sysmemFormat = static_cast<uint64_t>(
+            info.settings.image_format_constraints.pixel_format.type);
+
+        // colorSpace
+        // ====================================================================
+        if (info.settings.image_format_constraints.color_spaces_count == 0) {
+            ALOGE(
+                "%s: color space missing from allocated buffer collection "
+                "constraints",
+                __func__);
+            return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+        }
+        // Only report first colorspace for now.
+        pProperties->colorSpace.colorSpace = static_cast<uint32_t>(
+            info.settings.image_format_constraints.color_space[0].type);
+
+        // createInfoIndex
+        // ====================================================================
+        {
+            AutoLock lock(mLock);
+            auto getIndexResult = getBufferCollectionImageCreateInfoIndexLocked(
+                collection, info, &pProperties->createInfoIndex);
+            if (getIndexResult != VK_SUCCESS) {
+                return getIndexResult;
+            }
+        }
+
+        // formatFeatures
+        // ====================================================================
+        VkPhysicalDevice physicalDevice;
+        {
+            AutoLock lock(mLock);
+            auto deviceIt = info_VkDevice.find(device);
+            if (deviceIt == info_VkDevice.end()) {
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
+            physicalDevice = deviceIt->second.physdev;
+        }
+
+        VkFormat vkFormat = sysmemPixelFormatTypeToVk(
+            info.settings.image_format_constraints.pixel_format.type);
+        VkFormatProperties formatProperties;
+        enc->vkGetPhysicalDeviceFormatProperties(
+            physicalDevice, vkFormat, &formatProperties, true /* do lock */);
+        if (is_device_local) {
+            pProperties->formatFeatures =
+                formatProperties.optimalTilingFeatures;
+        }
+        if (is_host_visible) {
+            pProperties->formatFeatures = formatProperties.linearTilingFeatures;
+        }
+
+        // YCbCr properties
+        // ====================================================================
+        // TODO(59804): Implement this correctly when we support YUV pixel
+        // formats in goldfish ICD.
+        pProperties->samplerYcbcrConversionComponents.r =
+            VK_COMPONENT_SWIZZLE_IDENTITY;
+        pProperties->samplerYcbcrConversionComponents.g =
+            VK_COMPONENT_SWIZZLE_IDENTITY;
+        pProperties->samplerYcbcrConversionComponents.b =
+            VK_COMPONENT_SWIZZLE_IDENTITY;
+        pProperties->samplerYcbcrConversionComponents.a =
+            VK_COMPONENT_SWIZZLE_IDENTITY;
+        pProperties->suggestedYcbcrModel =
+            VK_SAMPLER_YCBCR_MODEL_CONVERSION_RGB_IDENTITY;
+        pProperties->suggestedYcbcrRange = VK_SAMPLER_YCBCR_RANGE_ITU_FULL;
+        pProperties->suggestedXChromaOffset = VK_CHROMA_LOCATION_MIDPOINT;
+        pProperties->suggestedYChromaOffset = VK_CHROMA_LOCATION_MIDPOINT;
+
+        return storeProperties();
     }
 #endif
 
@@ -6588,6 +6786,16 @@ VkResult ResourceTracker::on_vkGetBufferCollectionPropertiesFUCHSIA(
         VkBufferCollectionFUCHSIA collection,
         VkBufferCollectionPropertiesFUCHSIA* pProperties) {
     return mImpl->on_vkGetBufferCollectionPropertiesFUCHSIA(
+        context, input_result, device, collection, pProperties);
+}
+
+VkResult ResourceTracker::on_vkGetBufferCollectionProperties2FUCHSIA(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    VkBufferCollectionFUCHSIA collection,
+    VkBufferCollectionProperties2FUCHSIA* pProperties) {
+    return mImpl->on_vkGetBufferCollectionProperties2FUCHSIA(
         context, input_result, device, collection, pProperties);
 }
 #endif

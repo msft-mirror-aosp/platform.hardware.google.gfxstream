@@ -297,6 +297,12 @@ public:
         VkDevice device,
         VkBufferCollectionFUCHSIA collection,
         VkBufferCollectionPropertiesFUCHSIA* pProperties);
+    VkResult on_vkGetBufferCollectionProperties2FUCHSIA(
+        void* context,
+        VkResult input_result,
+        VkDevice device,
+        VkBufferCollectionFUCHSIA collection,
+        VkBufferCollectionProperties2FUCHSIA* pProperties);
 #endif
 
     VkResult on_vkGetAndroidHardwareBufferPropertiesANDROID(

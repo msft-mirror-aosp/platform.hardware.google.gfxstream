@@ -245,6 +245,14 @@ GetBufferCollectionPropertiesFUCHSIA(VkDevice /*device*/,
     AEMU_SCOPED_TRACE("vkstubhal::GetBufferCollectionPropertiesFUCHSIA");
     return VK_SUCCESS;
 }
+
+VkResult GetBufferCollectionProperties2FUCHSIA(
+    VkDevice /*device*/,
+    VkBufferCollectionFUCHSIA /*collection*/,
+    VkBufferCollectionProperties2FUCHSIA* /*pProperties*/) {
+    AEMU_SCOPED_TRACE("vkstubhal::GetBufferCollectionProperties2FUCHSIA");
+    return VK_SUCCESS;
+}
 #endif
 
 PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance,
@@ -303,6 +311,9 @@ PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance,
         return reinterpret_cast<PFN_vkVoidFunction>(SetBufferCollectionBufferConstraintsFUCHSIA);
     if (strcmp(name, "vkGetBufferCollectionPropertiesFUCHSIA") == 0)
         return reinterpret_cast<PFN_vkVoidFunction>(GetBufferCollectionPropertiesFUCHSIA);
+    if (strcmp(name, "vkGetBufferCollectionProperties2FUCHSIA") == 0)
+        return reinterpret_cast<PFN_vkVoidFunction>(
+            GetBufferCollectionProperties2FUCHSIA);
 #endif
     // Return NoOp for entrypoints that should never be called.
     if (strcmp(name, "vkGetPhysicalDeviceFeatures") == 0 ||
@@ -641,6 +652,27 @@ VkResult GetBufferCollectionPropertiesFUCHSIA(
 
     return res;
 }
+
+VKAPI_ATTR
+VkResult GetBufferCollectionProperties2FUCHSIA(
+    VkDevice device,
+    VkBufferCollectionFUCHSIA collection,
+    VkBufferCollectionProperties2FUCHSIA* pProperties) {
+    AEMU_SCOPED_TRACE("goldfish_vulkan::GetBufferCollectionProperties2FUCHSIA");
+
+    VK_HOST_CONNECTION(VK_ERROR_DEVICE_LOST)
+
+    if (!hostSupportsVulkan) {
+        return vkstubhal::GetBufferCollectionProperties2FUCHSIA(
+            device, collection, pProperties);
+    }
+
+    VkResult res = goldfish_vk::ResourceTracker::get()
+                       ->on_vkGetBufferCollectionProperties2FUCHSIA(
+                           vkEnc, VK_SUCCESS, device, collection, pProperties);
+
+    return res;
+}
 #endif
 
 uint64_t currGuestTimeNs() {
@@ -733,6 +765,9 @@ static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* name) {
     }
     if (!strcmp(name, "vkGetBufferCollectionPropertiesFUCHSIA")) {
         return (PFN_vkVoidFunction)GetBufferCollectionPropertiesFUCHSIA;
+    }
+    if (!strcmp(name, "vkGetBufferCollectionProperties2FUCHSIA")) {
+        return (PFN_vkVoidFunction)GetBufferCollectionProperties2FUCHSIA;
     }
 #endif
     if (!strcmp(name, "vkQueueSignalReleaseImageANDROID")) {
