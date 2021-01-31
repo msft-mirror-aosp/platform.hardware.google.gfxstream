@@ -38,6 +38,17 @@
 
 #endif // VK_NVX_device_generated_commands
 
+#ifdef VK_USE_PLATFORM_FUCHSIA
+
+#define __GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES_FUCHSIA(f) \
+    f(VkBufferCollectionFUCHSIA)
+
+#else
+
+#define __GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES_FUCHSIA(f)
+
+#endif  // VK_USE_PLATFORM_FUCHSIA
+
 #define GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(f) \
     f(VkBufferView) \
     f(VkImageView) \
@@ -71,6 +82,7 @@
     f(VkDescriptorSet) \
     f(VkDescriptorSetLayout) \
     f(VkCommandPool) \
+    __GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES_FUCHSIA(f) \
     GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(f) \
 
 #define GOLDFISH_VK_LIST_HANDLE_TYPES(f) \
