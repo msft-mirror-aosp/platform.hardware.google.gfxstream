@@ -420,6 +420,16 @@ public:
         uint32_t unused;
     };
 
+    struct VkBufferCollectionFUCHSIA_Info {
+#ifdef VK_USE_PLATFORM_FUCHSIA
+        android::base::Optional<
+            llcpp::fuchsia::sysmem::BufferCollectionConstraints>
+            constraints;
+        android::base::Optional<VkBufferCollectionProperties2FUCHSIA>
+            properties;
+#endif  // VK_USE_PLATFORM_FUCHSIA
+    };
+
 #define HANDLE_REGISTER_IMPL_IMPL(type) \
     std::unordered_map<type, type##_Info> info_##type; \
     void register_##type(type obj) { \
@@ -597,6 +607,14 @@ public:
 
         info_VkFence.erase(fence);
     }
+
+#ifdef VK_USE_PLATFORM_FUCHSIA
+    void unregister_VkBufferCollectionFUCHSIA(
+        VkBufferCollectionFUCHSIA collection) {
+        AutoLock lock(mLock);
+        info_VkBufferCollectionFUCHSIA.erase(collection);
+    }
+#endif
 
     void unregister_VkDescriptorSet_locked(VkDescriptorSet set) {
         auto it = info_VkDescriptorSet.find(set);
@@ -1848,6 +1866,7 @@ public:
                 std::move(collection_client));
         *pCollection = reinterpret_cast<VkBufferCollectionFUCHSIA>(sysmem_collection);
 
+        register_VkBufferCollectionFUCHSIA(*pCollection);
         return VK_SUCCESS;
     }
 
@@ -1861,6 +1880,8 @@ public:
             sysmem_collection->Close();
         }
         delete sysmem_collection;
+
+        unregister_VkBufferCollectionFUCHSIA(collection);
     }
 
     inline llcpp::fuchsia::sysmem::BufferCollectionConstraints defaultBufferCollectionConstraints(
@@ -2075,12 +2096,24 @@ public:
         const char* kName = "GoldfishSysmemShared";
         collection->SetName(kVulkanPriority, fidl::unowned_str(kName, strlen(kName)));
 
-        auto result = collection->SetConstraints(true, std::move(constraints));
+        auto result = collection->SetConstraints(true, constraints);
         if (!result.ok()) {
             ALOGE("setBufferCollectionConstraints: SetConstraints failed: %d",
                   result.status());
             return VK_ERROR_OUT_OF_DEVICE_MEMORY;
         }
+
+        // copy constraints to info_VkBufferCollectionFUCHSIA if
+        // |collection| is a valid VkBufferCollectionFUCHSIA handle.
+        AutoLock lock(mLock);
+        VkBufferCollectionFUCHSIA buffer_collection =
+            reinterpret_cast<VkBufferCollectionFUCHSIA>(collection);
+        if (info_VkBufferCollectionFUCHSIA.find(buffer_collection) !=
+            info_VkBufferCollectionFUCHSIA.end()) {
+            info_VkBufferCollectionFUCHSIA[buffer_collection].constraints =
+                android::base::makeOptional(std::move(constraints));
+        }
+
         return VK_SUCCESS;
     }
 
@@ -2106,12 +2139,24 @@ public:
         const char* kName = "GoldfishBufferSysmemShared";
         collection->SetName(kVulkanPriority, fidl::unowned_str(kName, strlen(kName)));
 
-        auto result = collection->SetConstraints(true, std::move(constraints));
+        auto result = collection->SetConstraints(true, constraints);
         if (!result.ok()) {
             ALOGE("setBufferCollectionConstraints: SetConstraints failed: %d",
                   result.status());
             return VK_ERROR_OUT_OF_DEVICE_MEMORY;
         }
+
+        // copy constraints to info_VkBufferCollectionFUCHSIA if
+        // |collection| is a valid VkBufferCollectionFUCHSIA handle.
+        AutoLock lock(mLock);
+        VkBufferCollectionFUCHSIA buffer_collection =
+            reinterpret_cast<VkBufferCollectionFUCHSIA>(collection);
+        if (info_VkBufferCollectionFUCHSIA.find(buffer_collection) !=
+            info_VkBufferCollectionFUCHSIA.end()) {
+            info_VkBufferCollectionFUCHSIA[buffer_collection].constraints =
+                android::base::makeOptional(std::move(constraints));
+        }
+
         return VK_SUCCESS;
     }
 
