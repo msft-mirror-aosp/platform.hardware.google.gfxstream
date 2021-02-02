@@ -3400,6 +3400,15 @@ public:
                               GET_STATUS_SAFE(result, res));
                     }
                 }
+
+                if (info.settings.buffer_settings.heap ==
+                    llcpp::fuchsia::sysmem::HeapType::GOLDFISH_HOST_VISIBLE) {
+                    ALOGD(
+                        "%s: Image uses host visible memory heap; set tiling "
+                        "to linear to match host ImageCreateInfo",
+                        __func__);
+                    localCreateInfo.tiling = VK_IMAGE_TILING_LINEAR;
+                }
             }
             isSysmemBackedMemory = true;
         }
