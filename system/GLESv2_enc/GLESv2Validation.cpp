@@ -1006,7 +1006,7 @@ bool colorRenderableFormat(GL2Encoder* ctx, GLenum internalformat) {
     return false;
 }
 
-bool depthRenderableFormat(GL2Encoder*, GLenum internalformat) {
+bool depthRenderableFormat(GL2Encoder* ctx, GLenum internalformat) {
     switch (internalformat) {
     case GL_DEPTH_COMPONENT:
     case GL_DEPTH_STENCIL:
@@ -1016,6 +1016,8 @@ bool depthRenderableFormat(GL2Encoder*, GLenum internalformat) {
     case GL_DEPTH24_STENCIL8:
     case GL_DEPTH32F_STENCIL8:
         return true;
+    case GL_DEPTH_COMPONENT32_OES:
+        return ctx->hasExtension("GL_OES_depth32");
     }
     return false;
 }
