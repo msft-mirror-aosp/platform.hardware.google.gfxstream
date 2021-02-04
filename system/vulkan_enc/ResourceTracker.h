@@ -572,13 +572,20 @@ public:
         uint32_t* typeIndex, uint32_t typeIndexCount,
         uint32_t* typeBits, uint32_t typeBitsCount);
 
-#define DEFINE_TRANSFORMED_TYPE_PROTOTYPE(type) \
-    void transformImpl_##type##_tohost(const type*, uint32_t); \
-    void transformImpl_##type##_fromhost(const type*, uint32_t); \
+    void transformImpl_VkExternalMemoryProperties_fromhost(
+        VkExternalMemoryProperties* pProperties,
+        uint32_t);
+    void transformImpl_VkExternalMemoryProperties_tohost(
+        VkExternalMemoryProperties* pProperties,
+        uint32_t);
 
-LIST_TRANSFORMED_TYPES(DEFINE_TRANSFORMED_TYPE_PROTOTYPE)
+#define DEFINE_TRANSFORMED_TYPE_PROTOTYPE(type)          \
+    void transformImpl_##type##_tohost(type*, uint32_t); \
+    void transformImpl_##type##_fromhost(type*, uint32_t);
 
-  private:
+    LIST_TRANSFORMED_TYPES(DEFINE_TRANSFORMED_TYPE_PROTOTYPE)
+
+private:
     class Impl;
     std::unique_ptr<Impl> mImpl;
 };

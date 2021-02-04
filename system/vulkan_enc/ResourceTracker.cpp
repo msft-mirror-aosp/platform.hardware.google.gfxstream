@@ -1128,6 +1128,25 @@ public:
         }
     }
 
+    void transformImpl_VkExternalMemoryProperties_fromhost(
+        VkExternalMemoryProperties* pProperties,
+        uint32_t) {
+        VkExternalMemoryHandleTypeFlags supportedHandleType = 0u;
+#ifdef VK_USE_PLATFORM_FUCHSIA
+        supportedHandleType |=
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA;
+#endif  // VK_USE_PLATFORM_FUCHSIA
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        supportedHandleType |=
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT |
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
+#endif  // VK_USE_PLATFORM_ANDROID_KHR
+        if (supportedHandleType) {
+            pProperties->compatibleHandleTypes &= supportedHandleType;
+            pProperties->exportFromImportedHandleTypes &= supportedHandleType;
+        }
+    }
+
     VkResult on_vkEnumerateInstanceExtensionProperties(
         void* context,
         VkResult,
@@ -7180,9 +7199,19 @@ void ResourceTracker::deviceMemoryTransform_fromhost(
         typeBits, typeBitsCount);
 }
 
-#define DEFINE_TRANSFORMED_TYPE_IMPL(type) \
-    void ResourceTracker::transformImpl_##type##_tohost(const type*, uint32_t) { } \
-    void ResourceTracker::transformImpl_##type##_fromhost(const type*, uint32_t) { } \
+void ResourceTracker::transformImpl_VkExternalMemoryProperties_fromhost(
+    VkExternalMemoryProperties* pProperties,
+    uint32_t lenAccess) {
+    mImpl->transformImpl_VkExternalMemoryProperties_fromhost(pProperties,
+                                                             lenAccess);
+}
+
+void ResourceTracker::transformImpl_VkExternalMemoryProperties_tohost(
+    VkExternalMemoryProperties*, uint32_t) {}
+
+#define DEFINE_TRANSFORMED_TYPE_IMPL(type)                                  \
+    void ResourceTracker::transformImpl_##type##_tohost(type*, uint32_t) {} \
+    void ResourceTracker::transformImpl_##type##_fromhost(type*, uint32_t) {}
 
 LIST_TRANSFORMED_TYPES(DEFINE_TRANSFORMED_TYPE_IMPL)
 
