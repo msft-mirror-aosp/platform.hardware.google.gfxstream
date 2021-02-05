@@ -36,7 +36,6 @@ namespace goldfish_vk {
 
 class ResourceTracker;
 #define LIST_TRANSFORMED_TYPES(f) \
-f(VkExternalMemoryProperties) \
 f(VkPhysicalDeviceExternalImageFormatInfo) \
 f(VkPhysicalDeviceExternalBufferInfo) \
 f(VkExternalMemoryImageCreateInfo) \

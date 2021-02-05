@@ -427,6 +427,10 @@ public:
             constraints;
         android::base::Optional<VkBufferCollectionProperties2FUCHSIA>
             properties;
+
+        // the index of corresponding createInfo for each image format
+        // constraints in |constraints|.
+        std::vector<uint32_t> createInfoIndex;
 #endif  // VK_USE_PLATFORM_FUCHSIA
     };
 
@@ -1121,6 +1125,25 @@ public:
                 }
             }
             typeBits[i] = bits;
+        }
+    }
+
+    void transformImpl_VkExternalMemoryProperties_fromhost(
+        VkExternalMemoryProperties* pProperties,
+        uint32_t) {
+        VkExternalMemoryHandleTypeFlags supportedHandleType = 0u;
+#ifdef VK_USE_PLATFORM_FUCHSIA
+        supportedHandleType |=
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA;
+#endif  // VK_USE_PLATFORM_FUCHSIA
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        supportedHandleType |=
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT |
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
+#endif  // VK_USE_PLATFORM_ANDROID_KHR
+        if (supportedHandleType) {
+            pProperties->compatibleHandleTypes &= supportedHandleType;
+            pProperties->exportFromImportedHandleTypes &= supportedHandleType;
         }
     }
 
@@ -1884,16 +1907,31 @@ public:
         unregister_VkBufferCollectionFUCHSIA(collection);
     }
 
-    inline llcpp::fuchsia::sysmem::BufferCollectionConstraints defaultBufferCollectionConstraints(
-        size_t min_size_bytes,
-        size_t buffer_count) {
+    inline llcpp::fuchsia::sysmem::BufferCollectionConstraints
+    defaultBufferCollectionConstraints(
+        size_t minSizeBytes,
+        size_t minBufferCount,
+        size_t maxBufferCount = 0u,
+        size_t minBufferCountForCamping = 0u,
+        size_t minBufferCountForDedicatedSlack = 0u,
+        size_t minBufferCountForSharedSlack = 0u) {
         llcpp::fuchsia::sysmem::BufferCollectionConstraints constraints = {};
-        constraints.min_buffer_count = buffer_count;
+        constraints.min_buffer_count = minBufferCount;
+        if (maxBufferCount > 0) {
+            constraints.max_buffer_count = maxBufferCount;
+        }
+        if (minBufferCountForCamping) {
+            constraints.min_buffer_count_for_camping = minBufferCountForCamping;
+        }
+        if (minBufferCountForSharedSlack) {
+            constraints.min_buffer_count_for_shared_slack =
+                minBufferCountForSharedSlack;
+        }
         constraints.has_buffer_memory_constraints = true;
         llcpp::fuchsia::sysmem::BufferMemoryConstraints& buffer_constraints =
             constraints.buffer_memory_constraints;
 
-        buffer_constraints.min_size_bytes = min_size_bytes;
+        buffer_constraints.min_size_bytes = minSizeBytes;
         buffer_constraints.max_size_bytes = 0xffffffff;
         buffer_constraints.physically_contiguous_required = false;
         buffer_constraints.secure_required = false;
@@ -1955,6 +1993,106 @@ public:
         return usage;
     }
 
+    static llcpp::fuchsia::sysmem::PixelFormatType vkFormatTypeToSysmem(
+        VkFormat format) {
+        switch (format) {
+            case VK_FORMAT_B8G8R8A8_SINT:
+            case VK_FORMAT_B8G8R8A8_UNORM:
+            case VK_FORMAT_B8G8R8A8_SRGB:
+            case VK_FORMAT_B8G8R8A8_SNORM:
+            case VK_FORMAT_B8G8R8A8_SSCALED:
+            case VK_FORMAT_B8G8R8A8_USCALED:
+                return llcpp::fuchsia::sysmem::PixelFormatType::BGRA32;
+            case VK_FORMAT_R8G8B8A8_SINT:
+            case VK_FORMAT_R8G8B8A8_UNORM:
+            case VK_FORMAT_R8G8B8A8_SRGB:
+            case VK_FORMAT_R8G8B8A8_SNORM:
+            case VK_FORMAT_R8G8B8A8_SSCALED:
+            case VK_FORMAT_R8G8B8A8_USCALED:
+                return llcpp::fuchsia::sysmem::PixelFormatType::R8G8B8A8;
+            case VK_FORMAT_R8_UNORM:
+            case VK_FORMAT_R8_UINT:
+            case VK_FORMAT_R8_USCALED:
+            case VK_FORMAT_R8_SNORM:
+            case VK_FORMAT_R8_SINT:
+            case VK_FORMAT_R8_SSCALED:
+            case VK_FORMAT_R8_SRGB:
+                return llcpp::fuchsia::sysmem::PixelFormatType::R8;
+            case VK_FORMAT_R8G8_UNORM:
+            case VK_FORMAT_R8G8_UINT:
+            case VK_FORMAT_R8G8_USCALED:
+            case VK_FORMAT_R8G8_SNORM:
+            case VK_FORMAT_R8G8_SINT:
+            case VK_FORMAT_R8G8_SSCALED:
+            case VK_FORMAT_R8G8_SRGB:
+                return llcpp::fuchsia::sysmem::PixelFormatType::R8G8;
+            default:
+                return llcpp::fuchsia::sysmem::PixelFormatType::INVALID;
+        }
+    }
+
+    static bool vkFormatMatchesSysmemFormat(
+        VkFormat vkFormat,
+        llcpp::fuchsia::sysmem::PixelFormatType sysmemFormat) {
+        switch (vkFormat) {
+            case VK_FORMAT_B8G8R8A8_SINT:
+            case VK_FORMAT_B8G8R8A8_UNORM:
+            case VK_FORMAT_B8G8R8A8_SRGB:
+            case VK_FORMAT_B8G8R8A8_SNORM:
+            case VK_FORMAT_B8G8R8A8_SSCALED:
+            case VK_FORMAT_B8G8R8A8_USCALED:
+                return sysmemFormat ==
+                       llcpp::fuchsia::sysmem::PixelFormatType::BGRA32;
+            case VK_FORMAT_R8G8B8A8_SINT:
+            case VK_FORMAT_R8G8B8A8_UNORM:
+            case VK_FORMAT_R8G8B8A8_SRGB:
+            case VK_FORMAT_R8G8B8A8_SNORM:
+            case VK_FORMAT_R8G8B8A8_SSCALED:
+            case VK_FORMAT_R8G8B8A8_USCALED:
+                return sysmemFormat ==
+                       llcpp::fuchsia::sysmem::PixelFormatType::R8G8B8A8;
+            case VK_FORMAT_R8_UNORM:
+            case VK_FORMAT_R8_UINT:
+            case VK_FORMAT_R8_USCALED:
+            case VK_FORMAT_R8_SNORM:
+            case VK_FORMAT_R8_SINT:
+            case VK_FORMAT_R8_SSCALED:
+            case VK_FORMAT_R8_SRGB:
+                return sysmemFormat ==
+                           llcpp::fuchsia::sysmem::PixelFormatType::R8 ||
+                       sysmemFormat ==
+                           llcpp::fuchsia::sysmem::PixelFormatType::L8;
+            case VK_FORMAT_R8G8_UNORM:
+            case VK_FORMAT_R8G8_UINT:
+            case VK_FORMAT_R8G8_USCALED:
+            case VK_FORMAT_R8G8_SNORM:
+            case VK_FORMAT_R8G8_SINT:
+            case VK_FORMAT_R8G8_SSCALED:
+            case VK_FORMAT_R8G8_SRGB:
+                return sysmemFormat ==
+                       llcpp::fuchsia::sysmem::PixelFormatType::R8G8;
+            default:
+                return false;
+        }
+    }
+
+    static VkFormat sysmemPixelFormatTypeToVk(
+        llcpp::fuchsia::sysmem::PixelFormatType format) {
+        switch (format) {
+            case llcpp::fuchsia::sysmem::PixelFormatType::BGRA32:
+                return VK_FORMAT_B8G8R8A8_SRGB;
+            case llcpp::fuchsia::sysmem::PixelFormatType::R8G8B8A8:
+                return VK_FORMAT_R8G8B8A8_SRGB;
+            case llcpp::fuchsia::sysmem::PixelFormatType::L8:
+            case llcpp::fuchsia::sysmem::PixelFormatType::R8:
+                return VK_FORMAT_R8_UNORM;
+            case llcpp::fuchsia::sysmem::PixelFormatType::R8G8:
+                return VK_FORMAT_R8G8_UNORM;
+            default:
+                return VK_FORMAT_UNDEFINED;
+        }
+    }
+
     VkResult setBufferCollectionConstraints(
         VkEncoder* enc, VkDevice device,
         llcpp::fuchsia::sysmem::BufferCollection::SyncClient* collection,
@@ -1964,137 +2102,301 @@ public:
             return VK_ERROR_OUT_OF_DEVICE_MEMORY;
         }
 
+        std::vector<VkImageCreateInfo> createInfos;
+        if (pImageInfo->format == VK_FORMAT_UNDEFINED) {
+            const auto kFormats = {
+                VK_FORMAT_B8G8R8A8_SRGB,
+                VK_FORMAT_R8G8B8A8_SRGB,
+            };
+            for (auto format : kFormats) {
+                // shallow copy, using pNext from pImageInfo directly.
+                auto createInfo = *pImageInfo;
+                createInfo.format = format;
+                createInfos.push_back(createInfo);
+            }
+        } else {
+            createInfos.push_back(*pImageInfo);
+        }
+
+        VkImageConstraintsInfoFUCHSIA imageConstraints;
+        imageConstraints.sType =
+            VK_STRUCTURE_TYPE_IMAGE_CONSTRAINTS_INFO_FUCHSIA;
+        imageConstraints.pNext = nullptr;
+        imageConstraints.createInfoCount = createInfos.size();
+        imageConstraints.pCreateInfos = createInfos.data();
+        imageConstraints.pFormatConstraints = nullptr;
+        imageConstraints.maxBufferCount = 0;
+        imageConstraints.minBufferCount = 1;
+        imageConstraints.minBufferCountForCamping = 0;
+        imageConstraints.minBufferCountForDedicatedSlack = 0;
+        imageConstraints.minBufferCountForSharedSlack = 0;
+        imageConstraints.flags = 0u;
+
+        return setBufferCollectionImageConstraints(enc, device, collection,
+                                                   &imageConstraints);
+    }
+
+    VkResult addImageBufferCollectionConstraints(
+        VkEncoder* enc,
+        VkDevice device,
+        VkPhysicalDevice physicalDevice,
+        const VkImageCreateInfo* createInfo,
+        const VkImageFormatConstraintsInfoFUCHSIA* formatConstraints,
+        VkImageTiling tiling,
+        llcpp::fuchsia::sysmem::BufferCollectionConstraints* constraints) {
+        // First check if the format, tiling and usage is supported on host.
+        VkImageFormatProperties imageFormatProperties;
+        auto result = enc->vkGetPhysicalDeviceImageFormatProperties(
+            physicalDevice, createInfo->format, createInfo->imageType, tiling,
+            createInfo->usage, createInfo->flags, &imageFormatProperties,
+            true /* do lock */);
+        if (result != VK_SUCCESS) {
+            ALOGW(
+                "%s: Image format (%u) type (%u) tiling (%u) "
+                "usage (%u) flags (%u) not supported by physical "
+                "device",
+                __func__, static_cast<uint32_t>(createInfo->format),
+                static_cast<uint32_t>(createInfo->imageType),
+                static_cast<uint32_t>(tiling),
+                static_cast<uint32_t>(createInfo->usage),
+                static_cast<uint32_t>(createInfo->flags));
+            return VK_ERROR_FORMAT_NOT_SUPPORTED;
+        }
+
+        // Check if format constraints contains unsupported format features.
+        if (formatConstraints) {
+            VkFormatProperties formatProperties;
+            enc->vkGetPhysicalDeviceFormatProperties(
+                physicalDevice, createInfo->format, &formatProperties,
+                true /* do lock */);
+
+            auto supportedFeatures =
+                (tiling == VK_IMAGE_TILING_LINEAR)
+                    ? formatProperties.linearTilingFeatures
+                    : formatProperties.optimalTilingFeatures;
+            auto requiredFeatures = formatConstraints->requiredFormatFeatures;
+            if ((~supportedFeatures) & requiredFeatures) {
+                ALOGW(
+                    "%s: Host device support features for %s tiling: %08x, "
+                    "required features: %08x, feature bits %08x missing",
+                    __func__,
+                    tiling == VK_IMAGE_TILING_LINEAR ? "LINEAR" : "OPTIMAL",
+                    static_cast<uint32_t>(requiredFeatures),
+                    static_cast<uint32_t>(supportedFeatures),
+                    static_cast<uint32_t>((~supportedFeatures) &
+                                          requiredFeatures));
+                return VK_ERROR_FORMAT_NOT_SUPPORTED;
+            }
+        }
+
+        llcpp::fuchsia::sysmem::ImageFormatConstraints imageConstraints;
+        if (formatConstraints && formatConstraints->sysmemFormat != 0) {
+            auto pixelFormat =
+                static_cast<llcpp::fuchsia::sysmem::PixelFormatType>(
+                    formatConstraints->sysmemFormat);
+            if (createInfo->format != VK_FORMAT_UNDEFINED &&
+                !vkFormatMatchesSysmemFormat(createInfo->format, pixelFormat)) {
+                ALOGW("%s: VkFormat %u doesn't match sysmem pixelFormat %lu",
+                      __func__, static_cast<uint32_t>(createInfo->format),
+                      formatConstraints->sysmemFormat);
+                return VK_ERROR_FORMAT_NOT_SUPPORTED;
+            }
+            imageConstraints.pixel_format.type = pixelFormat;
+        } else {
+            auto pixel_format = vkFormatTypeToSysmem(createInfo->format);
+            if (pixel_format ==
+                llcpp::fuchsia::sysmem::PixelFormatType::INVALID) {
+                ALOGW("%s: Unsupported VkFormat %u", __func__,
+                      static_cast<uint32_t>(createInfo->format));
+                return VK_ERROR_FORMAT_NOT_SUPPORTED;
+            }
+            imageConstraints.pixel_format.type = pixel_format;
+        }
+
+        if (!formatConstraints || formatConstraints->colorSpaceCount == 0u) {
+            imageConstraints.color_spaces_count = 1;
+            imageConstraints.color_space[0].type =
+                llcpp::fuchsia::sysmem::ColorSpaceType::SRGB;
+        } else {
+            imageConstraints.color_spaces_count =
+                formatConstraints->colorSpaceCount;
+            for (size_t i = 0; i < formatConstraints->colorSpaceCount; i++) {
+                imageConstraints.color_space[0].type =
+                    static_cast<llcpp::fuchsia::sysmem::ColorSpaceType>(
+                        formatConstraints->pColorSpaces[i].colorSpace);
+            }
+        }
+
+        // Get row alignment from host GPU.
+        VkDeviceSize offset;
+        VkDeviceSize rowPitchAlignment;
+        enc->vkGetLinearImageLayoutGOOGLE(device, createInfo->format, &offset,
+                                          &rowPitchAlignment,
+                                          true /* do lock */);
+        ALOGD(
+            "vkGetLinearImageLayoutGOOGLE: format %d offset %lu "
+            "rowPitchAlignment = %lu",
+            (int)createInfo->format, offset, rowPitchAlignment);
+
+        imageConstraints.min_coded_width = createInfo->extent.width;
+        imageConstraints.max_coded_width = 0xfffffff;
+        imageConstraints.min_coded_height = createInfo->extent.height;
+        imageConstraints.max_coded_height = 0xffffffff;
+        // The min_bytes_per_row can be calculated by sysmem using
+        // |min_coded_width|, |bytes_per_row_divisor| and color format.
+        imageConstraints.min_bytes_per_row = 0;
+        imageConstraints.max_bytes_per_row = 0xffffffff;
+        imageConstraints.max_coded_width_times_coded_height = 0xffffffff;
+
+        imageConstraints.layers = 1;
+        imageConstraints.coded_width_divisor = 1;
+        imageConstraints.coded_height_divisor = 1;
+        imageConstraints.bytes_per_row_divisor = rowPitchAlignment;
+        imageConstraints.start_offset_divisor = 1;
+        imageConstraints.display_width_divisor = 1;
+        imageConstraints.display_height_divisor = 1;
+        imageConstraints.pixel_format.has_format_modifier = true;
+        imageConstraints.pixel_format.format_modifier.value =
+            (tiling == VK_IMAGE_TILING_LINEAR)
+                ? llcpp::fuchsia::sysmem::FORMAT_MODIFIER_LINEAR
+                : llcpp::fuchsia::sysmem::
+                      FORMAT_MODIFIER_GOOGLE_GOLDFISH_OPTIMAL;
+
+        constraints->image_format_constraints
+            [constraints->image_format_constraints_count++] =
+            std::move(imageConstraints);
+        return VK_SUCCESS;
+    }
+
+    VkResult setBufferCollectionImageConstraints(
+        VkEncoder* enc,
+        VkDevice device,
+        llcpp::fuchsia::sysmem::BufferCollection::SyncClient* collection,
+        const VkImageConstraintsInfoFUCHSIA* pImageConstraintsInfo) {
+        if (!pImageConstraintsInfo ||
+            pImageConstraintsInfo->sType !=
+                VK_STRUCTURE_TYPE_IMAGE_CONSTRAINTS_INFO_FUCHSIA) {
+            ALOGE("%s: invalid pImageConstraintsInfo", __func__);
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
+
+        if (pImageConstraintsInfo->createInfoCount == 0) {
+            ALOGE("%s: createInfoCount must be greater than 0", __func__);
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
+
         llcpp::fuchsia::sysmem::BufferCollectionConstraints constraints =
             defaultBufferCollectionConstraints(
-                /* min_size_bytes */ 0, /* buffer_count */ 1u);
+                /* min_size_bytes */ 0, pImageConstraintsInfo->minBufferCount,
+                pImageConstraintsInfo->maxBufferCount,
+                pImageConstraintsInfo->minBufferCountForCamping,
+                pImageConstraintsInfo->minBufferCountForDedicatedSlack,
+                pImageConstraintsInfo->minBufferCountForSharedSlack);
 
-        constraints.usage.vulkan =
-            getBufferCollectionConstraintsVulkanImageUsage(pImageInfo);
+        std::vector<llcpp::fuchsia::sysmem::ImageFormatConstraints>
+            format_constraints;
 
-        // Set image format constraints for VkImage allocation.
-        if (pImageInfo) {
-            std::vector<VkFormat> formats{pImageInfo->format};
-            if (pImageInfo->format == VK_FORMAT_UNDEFINED) {
-                // This is a hack to allow the client to say it supports every
-                // vulkan format the driver does. TODO(fxb/13247): Modify this
-                // function to take a list of vulkan formats to use.
-                formats = std::vector<VkFormat>{
-                        VK_FORMAT_B8G8R8A8_UNORM,
-                        VK_FORMAT_R8G8B8A8_UNORM,
-                };
-            } else {
-                // If image format is predefined, check on host if the format,
-                // tiling and usage is supported.
-                VkPhysicalDevice physicalDevice;
-                {
-                    AutoLock lock(mLock);
-                    auto deviceIt = info_VkDevice.find(device);
-                    if (deviceIt == info_VkDevice.end()) {
-                        return VK_ERROR_INITIALIZATION_FAILED;
-                    }
-                    physicalDevice = deviceIt->second.physdev;
-                }
+        VkPhysicalDevice physicalDevice;
+        {
+            AutoLock lock(mLock);
+            auto deviceIt = info_VkDevice.find(device);
+            if (deviceIt == info_VkDevice.end()) {
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
+            physicalDevice = deviceIt->second.physdev;
+        }
 
-                VkImageFormatProperties format_properties;
-                auto result = enc->vkGetPhysicalDeviceImageFormatProperties(
-                    physicalDevice, pImageInfo->format, pImageInfo->imageType,
-                    pImageInfo->tiling, pImageInfo->usage, pImageInfo->flags,
-                    &format_properties, true /* do lock */);
-                if (result != VK_SUCCESS) {
-                    ALOGE(
-                        "%s: Image format (%u) type (%u) tiling (%u) "
-                        "usage (%u) flags (%u) not supported by physical "
-                        "device",
-                        __func__, static_cast<uint32_t>(pImageInfo->format),
-                        static_cast<uint32_t>(pImageInfo->imageType),
-                        static_cast<uint32_t>(pImageInfo->tiling),
-                        static_cast<uint32_t>(pImageInfo->usage),
-                        static_cast<uint32_t>(pImageInfo->flags));
-                    return VK_ERROR_FORMAT_NOT_SUPPORTED;
+        std::vector<uint32_t> createInfoIndex;
+
+        bool hasOptimalTiling = false;
+        for (uint32_t i = 0; i < pImageConstraintsInfo->createInfoCount; i++) {
+            const VkImageCreateInfo* createInfo =
+                &pImageConstraintsInfo->pCreateInfos[i];
+            const VkImageFormatConstraintsInfoFUCHSIA* formatConstraints =
+                pImageConstraintsInfo->pFormatConstraints
+                    ? &pImageConstraintsInfo->pFormatConstraints[i]
+                    : nullptr;
+
+            // add ImageFormatConstraints for *optimal* tiling
+            VkResult optimalResult = VK_ERROR_FORMAT_NOT_SUPPORTED;
+            if (createInfo->tiling == VK_IMAGE_TILING_OPTIMAL) {
+                optimalResult = addImageBufferCollectionConstraints(
+                    enc, device, physicalDevice, createInfo, formatConstraints,
+                    VK_IMAGE_TILING_OPTIMAL, &constraints);
+                if (optimalResult == VK_SUCCESS) {
+                    createInfoIndex.push_back(i);
+                    hasOptimalTiling = true;
                 }
             }
-            constraints.image_format_constraints_count = formats.size();
-            uint32_t format_index = 0;
-            for (VkFormat format : formats) {
-                // Get row alignment from host GPU.
-                VkDeviceSize offset;
-                VkDeviceSize rowPitchAlignment;
-                enc->vkGetLinearImageLayoutGOOGLE(device, format, &offset, &rowPitchAlignment, true /* do lock */);
 
-                ALOGD("vkGetLinearImageLayoutGOOGLE: format %d offset %lu rowPitchAlignment = %lu",
-                    (int)format, offset, rowPitchAlignment);
-
-                llcpp::fuchsia::sysmem::ImageFormatConstraints&
-                    image_constraints =
-                        constraints.image_format_constraints[format_index++];
-                switch (format) {
-                    case VK_FORMAT_B8G8R8A8_SINT:
-                    case VK_FORMAT_B8G8R8A8_UNORM:
-                    case VK_FORMAT_B8G8R8A8_SRGB:
-                    case VK_FORMAT_B8G8R8A8_SNORM:
-                    case VK_FORMAT_B8G8R8A8_SSCALED:
-                    case VK_FORMAT_B8G8R8A8_USCALED:
-                        image_constraints.pixel_format.type =
-                            llcpp::fuchsia::sysmem::PixelFormatType::BGRA32;
-                        break;
-                    case VK_FORMAT_R8G8B8A8_SINT:
-                    case VK_FORMAT_R8G8B8A8_UNORM:
-                    case VK_FORMAT_R8G8B8A8_SRGB:
-                    case VK_FORMAT_R8G8B8A8_SNORM:
-                    case VK_FORMAT_R8G8B8A8_SSCALED:
-                    case VK_FORMAT_R8G8B8A8_USCALED:
-                        image_constraints.pixel_format.type =
-                            llcpp::fuchsia::sysmem::PixelFormatType::R8G8B8A8;
-                        break;
-                    case VK_FORMAT_R8_UNORM:
-                    case VK_FORMAT_R8_UINT:
-                    case VK_FORMAT_R8_USCALED:
-                    case VK_FORMAT_R8_SNORM:
-                    case VK_FORMAT_R8_SINT:
-                    case VK_FORMAT_R8_SSCALED:
-                    case VK_FORMAT_R8_SRGB:
-                        image_constraints.pixel_format.type =
-                            llcpp::fuchsia::sysmem::PixelFormatType::R8;
-                        break;
-                    case VK_FORMAT_R8G8_UNORM:
-                    case VK_FORMAT_R8G8_UINT:
-                    case VK_FORMAT_R8G8_USCALED:
-                    case VK_FORMAT_R8G8_SNORM:
-                    case VK_FORMAT_R8G8_SINT:
-                    case VK_FORMAT_R8G8_SSCALED:
-                    case VK_FORMAT_R8G8_SRGB:
-                        image_constraints.pixel_format.type =
-                            llcpp::fuchsia::sysmem::PixelFormatType::R8G8;
-                        break;
-                    default:
-                        return VK_ERROR_FORMAT_NOT_SUPPORTED;
-                }
-                image_constraints.color_spaces_count = 1;
-                image_constraints.color_space[0].type =
-                    llcpp::fuchsia::sysmem::ColorSpaceType::SRGB;
-                image_constraints.min_coded_width = pImageInfo->extent.width;
-                image_constraints.max_coded_width = 0xfffffff;
-                image_constraints.min_coded_height = pImageInfo->extent.height;
-                image_constraints.max_coded_height = 0xffffffff;
-                // The min_bytes_per_row can be calculated by sysmem using
-                // |min_coded_width|, |bytes_per_row_divisor| and color format.
-                image_constraints.min_bytes_per_row = 0;
-                image_constraints.max_bytes_per_row = 0xffffffff;
-                image_constraints.max_coded_width_times_coded_height =
-                        0xffffffff;
-                image_constraints.layers = 1;
-                image_constraints.coded_width_divisor = 1;
-                image_constraints.coded_height_divisor = 1;
-                image_constraints.bytes_per_row_divisor = rowPitchAlignment;
-                image_constraints.start_offset_divisor = 1;
-                image_constraints.display_width_divisor = 1;
-                image_constraints.display_height_divisor = 1;
+            // Add ImageFormatConstraints for *linear* tiling
+            VkResult linearResult = addImageBufferCollectionConstraints(
+                enc, device, physicalDevice, createInfo, formatConstraints,
+                VK_IMAGE_TILING_LINEAR, &constraints);
+            if (linearResult == VK_SUCCESS) {
+                createInfoIndex.push_back(i);
             }
+
+            // Update usage and BufferMemoryConstraints
+            if (linearResult == VK_SUCCESS || optimalResult == VK_SUCCESS) {
+                constraints.usage.vulkan |=
+                    getBufferCollectionConstraintsVulkanImageUsage(createInfo);
+
+                if (formatConstraints && formatConstraints->flags) {
+                    ALOGW(
+                        "%s: Non-zero flags (%08x) in image format "
+                        "constraints; this is currently not supported, see "
+                        "fxbug.dev/68833.",
+                        __func__, formatConstraints->flags);
+                }
+            }
+        }
+
+        // Set buffer memory constraints based on optimal/linear tiling support
+        // and flags.
+        VkImageConstraintsInfoFlagsFUCHSIA flags = pImageConstraintsInfo->flags;
+        if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_RARELY_FUCHSIA)
+            constraints.usage.cpu |= llcpp::fuchsia::sysmem::cpuUsageRead;
+        if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_OFTEN_FUCHSIA)
+            constraints.usage.cpu |= llcpp::fuchsia::sysmem::cpuUsageReadOften;
+        if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_RARELY_FUCHSIA)
+            constraints.usage.cpu |= llcpp::fuchsia::sysmem::cpuUsageWrite;
+        if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_OFTEN_FUCHSIA)
+            constraints.usage.cpu |= llcpp::fuchsia::sysmem::cpuUsageWriteOften;
+
+        constraints.has_buffer_memory_constraints = true;
+        auto& memory_constraints = constraints.buffer_memory_constraints;
+        memory_constraints.cpu_domain_supported = true;
+        memory_constraints.ram_domain_supported = true;
+        memory_constraints.inaccessible_domain_supported =
+            hasOptimalTiling &&
+            !(flags & (VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_RARELY_FUCHSIA |
+                       VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_OFTEN_FUCHSIA |
+                       VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_RARELY_FUCHSIA |
+                       VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_OFTEN_FUCHSIA));
+
+        if (memory_constraints.inaccessible_domain_supported) {
+            memory_constraints.heap_permitted_count = 2;
+            memory_constraints.heap_permitted[0] =
+                llcpp::fuchsia::sysmem::HeapType::GOLDFISH_DEVICE_LOCAL;
+            memory_constraints.heap_permitted[1] =
+                llcpp::fuchsia::sysmem::HeapType::GOLDFISH_HOST_VISIBLE;
+        } else {
+            memory_constraints.heap_permitted_count = 1;
+            memory_constraints.heap_permitted[0] =
+                llcpp::fuchsia::sysmem::HeapType::GOLDFISH_HOST_VISIBLE;
+        }
+
+        if (constraints.image_format_constraints_count == 0) {
+            ALOGE("%s: none of the specified formats is supported by device",
+                  __func__);
+            return VK_ERROR_FORMAT_NOT_SUPPORTED;
         }
 
         constexpr uint32_t kVulkanPriority = 5;
         const char* kName = "GoldfishSysmemShared";
-        collection->SetName(kVulkanPriority, fidl::unowned_str(kName, strlen(kName)));
+        collection->SetName(kVulkanPriority,
+                            fidl::unowned_str(kName, strlen(kName)));
 
         auto result = collection->SetConstraints(true, constraints);
         if (!result.ok()) {
@@ -2112,6 +2414,8 @@ public:
             info_VkBufferCollectionFUCHSIA.end()) {
             info_VkBufferCollectionFUCHSIA[buffer_collection].constraints =
                 android::base::makeOptional(std::move(constraints));
+            info_VkBufferCollectionFUCHSIA[buffer_collection].createInfoIndex =
+                std::move(createInfoIndex);
         }
 
         return VK_SUCCESS;
@@ -2170,6 +2474,19 @@ public:
         return setBufferCollectionConstraints(enc, device, sysmem_collection, pImageInfo);
     }
 
+    VkResult on_vkSetBufferCollectionImageConstraintsFUCHSIA(
+        void* context,
+        VkResult,
+        VkDevice device,
+        VkBufferCollectionFUCHSIA collection,
+        const VkImageConstraintsInfoFUCHSIA* pImageConstraintsInfo) {
+        VkEncoder* enc = (VkEncoder*)context;
+        auto sysmem_collection = reinterpret_cast<
+            llcpp::fuchsia::sysmem::BufferCollection::SyncClient*>(collection);
+        return setBufferCollectionImageConstraints(
+            enc, device, sysmem_collection, pImageConstraintsInfo);
+    }
+
     VkResult on_vkSetBufferCollectionBufferConstraintsFUCHSIA(
         void*,
         VkResult,
@@ -2183,10 +2500,103 @@ public:
     }
 
     VkResult on_vkGetBufferCollectionPropertiesFUCHSIA(
-        void*, VkResult,
+        void* context,
+        VkResult,
         VkDevice device,
         VkBufferCollectionFUCHSIA collection,
         VkBufferCollectionPropertiesFUCHSIA* pProperties) {
+        VkBufferCollectionProperties2FUCHSIA properties2 = {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_COLLECTION_PROPERTIES2_FUCHSIA,
+            .pNext = nullptr};
+        auto result = on_vkGetBufferCollectionProperties2FUCHSIA(
+            context, VK_SUCCESS, device, collection, &properties2);
+        if (result != VK_SUCCESS) {
+            return result;
+        }
+
+        pProperties->count = properties2.bufferCount;
+        pProperties->memoryTypeBits = properties2.memoryTypeBits;
+        return VK_SUCCESS;
+    }
+
+    VkResult getBufferCollectionImageCreateInfoIndexLocked(
+        VkBufferCollectionFUCHSIA collection,
+        llcpp::fuchsia::sysmem::BufferCollectionInfo_2& info,
+        uint32_t* outCreateInfoIndex) {
+        if (!info_VkBufferCollectionFUCHSIA[collection]
+                 .constraints.hasValue()) {
+            ALOGE("%s: constraints not set", __func__);
+            return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+        }
+
+        if (!info.settings.has_image_format_constraints) {
+            // no image format constraints, skip getting createInfoIndex.
+            return VK_SUCCESS;
+        }
+
+        const auto& constraints =
+            *info_VkBufferCollectionFUCHSIA[collection].constraints;
+        const auto& createInfoIndices =
+            info_VkBufferCollectionFUCHSIA[collection].createInfoIndex;
+        const auto& out = info.settings.image_format_constraints;
+        bool foundCreateInfo = false;
+
+        for (size_t imageFormatIndex = 0;
+             imageFormatIndex < constraints.image_format_constraints_count;
+             imageFormatIndex++) {
+            const auto& in =
+                constraints.image_format_constraints[imageFormatIndex];
+            // These checks are sorted in order of how often they're expected to
+            // mismatch, from most likely to least likely. They aren't always
+            // equality comparisons, since sysmem may change some values in
+            // compatible ways on behalf of the other participants.
+            if ((out.pixel_format.type != in.pixel_format.type) ||
+                (out.pixel_format.has_format_modifier !=
+                 in.pixel_format.has_format_modifier) ||
+                (out.pixel_format.format_modifier.value !=
+                 in.pixel_format.format_modifier.value) ||
+                (out.min_bytes_per_row < in.min_bytes_per_row) ||
+                (out.required_max_coded_width < in.required_max_coded_width) ||
+                (out.required_max_coded_height <
+                 in.required_max_coded_height) ||
+                (out.bytes_per_row_divisor % in.bytes_per_row_divisor != 0)) {
+                continue;
+            }
+            // Check if the out colorspaces are a subset of the in color spaces.
+            bool all_color_spaces_found = true;
+            for (uint32_t j = 0; j < out.color_spaces_count; j++) {
+                bool found_matching_color_space = false;
+                for (uint32_t k = 0; k < in.color_spaces_count; k++) {
+                    if (out.color_space[j].type == in.color_space[k].type) {
+                        found_matching_color_space = true;
+                        break;
+                    }
+                }
+                if (!found_matching_color_space) {
+                    all_color_spaces_found = false;
+                    break;
+                }
+            }
+            if (!all_color_spaces_found) {
+                continue;
+            }
+
+            // Choose the first valid format for now.
+            *outCreateInfoIndex = createInfoIndices[imageFormatIndex];
+            return VK_SUCCESS;
+        }
+
+        ALOGE("%s: cannot find a valid image format in constraints", __func__);
+        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+    }
+
+    VkResult on_vkGetBufferCollectionProperties2FUCHSIA(
+        void* context,
+        VkResult,
+        VkDevice device,
+        VkBufferCollectionFUCHSIA collection,
+        VkBufferCollectionProperties2FUCHSIA* pProperties) {
+        VkEncoder* enc = (VkEncoder*)context;
         auto sysmem_collection = reinterpret_cast<
             llcpp::fuchsia::sysmem::BufferCollection::SyncClient*>(collection);
 
@@ -2209,29 +2619,134 @@ public:
             return VK_ERROR_INITIALIZATION_FAILED;
         }
 
-        pProperties->count = info.buffer_count;
+        // memoryTypeBits
+        // ====================================================================
+        {
+            AutoLock lock(mLock);
+            auto deviceIt = info_VkDevice.find(device);
+            if (deviceIt == info_VkDevice.end()) {
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
+            auto& deviceInfo = deviceIt->second;
 
-        AutoLock lock(mLock);
-
-        auto deviceIt = info_VkDevice.find(device);
-
-        if (deviceIt == info_VkDevice.end()) {
-            return VK_ERROR_INITIALIZATION_FAILED;
-        }
-
-        auto& deviceInfo = deviceIt->second;
-
-        // Device local memory type supported.
-        pProperties->memoryTypeBits = 0;
-        for (uint32_t i = 0; i < deviceInfo.memProps.memoryTypeCount; ++i) {
-            if ((is_device_local && (deviceInfo.memProps.memoryTypes[i].propertyFlags &
-                                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) ||
-                (is_host_visible && (deviceInfo.memProps.memoryTypes[i].propertyFlags &
-                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT))) {
-                pProperties->memoryTypeBits |= 1ull << i;
+            // Device local memory type supported.
+            pProperties->memoryTypeBits = 0;
+            for (uint32_t i = 0; i < deviceInfo.memProps.memoryTypeCount; ++i) {
+                if ((is_device_local &&
+                     (deviceInfo.memProps.memoryTypes[i].propertyFlags &
+                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) ||
+                    (is_host_visible &&
+                     (deviceInfo.memProps.memoryTypes[i].propertyFlags &
+                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT))) {
+                    pProperties->memoryTypeBits |= 1ull << i;
+                }
             }
         }
-        return VK_SUCCESS;
+
+        // bufferCount
+        // ====================================================================
+        pProperties->bufferCount = info.buffer_count;
+
+        auto storeProperties = [this, collection, pProperties]() -> VkResult {
+            // store properties to storage
+            AutoLock lock(mLock);
+            if (info_VkBufferCollectionFUCHSIA.find(collection) ==
+                info_VkBufferCollectionFUCHSIA.end()) {
+                return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+            }
+
+            info_VkBufferCollectionFUCHSIA[collection].properties =
+                android::base::makeOptional(*pProperties);
+
+            // We only do a shallow copy so we should remove all pNext pointers.
+            info_VkBufferCollectionFUCHSIA[collection].properties->pNext =
+                nullptr;
+            info_VkBufferCollectionFUCHSIA[collection]
+                .properties->colorSpace.pNext = nullptr;
+            return VK_SUCCESS;
+        };
+
+        // The fields below only apply to buffer collections with image formats.
+        if (!info.settings.has_image_format_constraints) {
+            ALOGD("%s: buffer collection doesn't have image format constraints",
+                  __func__);
+            return storeProperties();
+        }
+
+        // sysmemFormat
+        // ====================================================================
+
+        pProperties->sysmemFormat = static_cast<uint64_t>(
+            info.settings.image_format_constraints.pixel_format.type);
+
+        // colorSpace
+        // ====================================================================
+        if (info.settings.image_format_constraints.color_spaces_count == 0) {
+            ALOGE(
+                "%s: color space missing from allocated buffer collection "
+                "constraints",
+                __func__);
+            return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+        }
+        // Only report first colorspace for now.
+        pProperties->colorSpace.colorSpace = static_cast<uint32_t>(
+            info.settings.image_format_constraints.color_space[0].type);
+
+        // createInfoIndex
+        // ====================================================================
+        {
+            AutoLock lock(mLock);
+            auto getIndexResult = getBufferCollectionImageCreateInfoIndexLocked(
+                collection, info, &pProperties->createInfoIndex);
+            if (getIndexResult != VK_SUCCESS) {
+                return getIndexResult;
+            }
+        }
+
+        // formatFeatures
+        // ====================================================================
+        VkPhysicalDevice physicalDevice;
+        {
+            AutoLock lock(mLock);
+            auto deviceIt = info_VkDevice.find(device);
+            if (deviceIt == info_VkDevice.end()) {
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
+            physicalDevice = deviceIt->second.physdev;
+        }
+
+        VkFormat vkFormat = sysmemPixelFormatTypeToVk(
+            info.settings.image_format_constraints.pixel_format.type);
+        VkFormatProperties formatProperties;
+        enc->vkGetPhysicalDeviceFormatProperties(
+            physicalDevice, vkFormat, &formatProperties, true /* do lock */);
+        if (is_device_local) {
+            pProperties->formatFeatures =
+                formatProperties.optimalTilingFeatures;
+        }
+        if (is_host_visible) {
+            pProperties->formatFeatures = formatProperties.linearTilingFeatures;
+        }
+
+        // YCbCr properties
+        // ====================================================================
+        // TODO(59804): Implement this correctly when we support YUV pixel
+        // formats in goldfish ICD.
+        pProperties->samplerYcbcrConversionComponents.r =
+            VK_COMPONENT_SWIZZLE_IDENTITY;
+        pProperties->samplerYcbcrConversionComponents.g =
+            VK_COMPONENT_SWIZZLE_IDENTITY;
+        pProperties->samplerYcbcrConversionComponents.b =
+            VK_COMPONENT_SWIZZLE_IDENTITY;
+        pProperties->samplerYcbcrConversionComponents.a =
+            VK_COMPONENT_SWIZZLE_IDENTITY;
+        pProperties->suggestedYcbcrModel =
+            VK_SAMPLER_YCBCR_MODEL_CONVERSION_RGB_IDENTITY;
+        pProperties->suggestedYcbcrRange = VK_SAMPLER_YCBCR_RANGE_ITU_FULL;
+        pProperties->suggestedXChromaOffset = VK_CHROMA_LOCATION_MIDPOINT;
+        pProperties->suggestedYChromaOffset = VK_CHROMA_LOCATION_MIDPOINT;
+
+        return storeProperties();
     }
 #endif
 
@@ -6274,12 +6789,32 @@ VkResult ResourceTracker::on_vkSetBufferCollectionBufferConstraintsFUCHSIA(
         context, input_result, device, collection, pBufferDConstraintsInfo);
 }
 
+VkResult ResourceTracker::on_vkSetBufferCollectionImageConstraintsFUCHSIA(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    VkBufferCollectionFUCHSIA collection,
+    const VkImageConstraintsInfoFUCHSIA* pImageConstraintsInfo) {
+    return mImpl->on_vkSetBufferCollectionImageConstraintsFUCHSIA(
+        context, input_result, device, collection, pImageConstraintsInfo);
+}
+
 VkResult ResourceTracker::on_vkGetBufferCollectionPropertiesFUCHSIA(
         void* context, VkResult input_result,
         VkDevice device,
         VkBufferCollectionFUCHSIA collection,
         VkBufferCollectionPropertiesFUCHSIA* pProperties) {
     return mImpl->on_vkGetBufferCollectionPropertiesFUCHSIA(
+        context, input_result, device, collection, pProperties);
+}
+
+VkResult ResourceTracker::on_vkGetBufferCollectionProperties2FUCHSIA(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    VkBufferCollectionFUCHSIA collection,
+    VkBufferCollectionProperties2FUCHSIA* pProperties) {
+    return mImpl->on_vkGetBufferCollectionProperties2FUCHSIA(
         context, input_result, device, collection, pProperties);
 }
 #endif
@@ -6664,9 +7199,19 @@ void ResourceTracker::deviceMemoryTransform_fromhost(
         typeBits, typeBitsCount);
 }
 
-#define DEFINE_TRANSFORMED_TYPE_IMPL(type) \
-    void ResourceTracker::transformImpl_##type##_tohost(const type*, uint32_t) { } \
-    void ResourceTracker::transformImpl_##type##_fromhost(const type*, uint32_t) { } \
+void ResourceTracker::transformImpl_VkExternalMemoryProperties_fromhost(
+    VkExternalMemoryProperties* pProperties,
+    uint32_t lenAccess) {
+    mImpl->transformImpl_VkExternalMemoryProperties_fromhost(pProperties,
+                                                             lenAccess);
+}
+
+void ResourceTracker::transformImpl_VkExternalMemoryProperties_tohost(
+    VkExternalMemoryProperties*, uint32_t) {}
+
+#define DEFINE_TRANSFORMED_TYPE_IMPL(type)                                  \
+    void ResourceTracker::transformImpl_##type##_tohost(type*, uint32_t) {} \
+    void ResourceTracker::transformImpl_##type##_fromhost(type*, uint32_t) {}
 
 LIST_TRANSFORMED_TYPES(DEFINE_TRANSFORMED_TYPE_IMPL)
 
