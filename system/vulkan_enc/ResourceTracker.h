@@ -498,6 +498,18 @@ public:
         const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
         VkImageFormatProperties2* pImageFormatProperties);
 
+    void on_vkGetPhysicalDeviceExternalSemaphoreProperties(
+        void* context,
+        VkPhysicalDevice physicalDevice,
+        const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
+        VkExternalSemaphoreProperties* pExternalSemaphoreProperties);
+
+    void on_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
+        void* context,
+        VkPhysicalDevice physicalDevice,
+        const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
+        VkExternalSemaphoreProperties* pExternalSemaphoreProperties);
+
     void registerEncoderCleanupCallback(const VkEncoder* encoder, void* handle, CleanupCallback callback);
     void unregisterEncoderCleanupCallback(const VkEncoder* encoder, void* handle);
     void onEncoderDeleted(const VkEncoder* encoder);
@@ -583,7 +595,7 @@ public:
     void transformImpl_##type##_tohost(type*, uint32_t); \
     void transformImpl_##type##_fromhost(type*, uint32_t);
 
-    LIST_TRANSFORMED_TYPES(DEFINE_TRANSFORMED_TYPE_PROTOTYPE)
+    LIST_TRIVIAL_TRANSFORMED_TYPES(DEFINE_TRANSFORMED_TYPE_PROTOTYPE)
 
 private:
     class Impl;
