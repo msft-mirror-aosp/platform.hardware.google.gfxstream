@@ -12712,6 +12712,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphoreProperties(
     {
         transform_fromhost_VkExternalSemaphoreProperties(sResourceTracker, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
     }
+    sResourceTracker->on_vkGetPhysicalDeviceExternalSemaphoreProperties(this, physicalDevice, pExternalSemaphoreInfo, pExternalSemaphoreProperties);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -16876,6 +16877,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
     {
         transform_fromhost_VkExternalSemaphoreProperties(sResourceTracker, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
     }
+    sResourceTracker->on_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(this, physicalDevice, pExternalSemaphoreInfo, pExternalSemaphoreProperties);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
