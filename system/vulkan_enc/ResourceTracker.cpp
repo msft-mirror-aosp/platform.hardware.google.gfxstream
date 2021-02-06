@@ -1738,8 +1738,19 @@ public:
         VkExternalMemoryHandleTypeFlagBits handleType,
         uint32_t handle,
         VkMemoryZirconHandlePropertiesFUCHSIA* pProperties) {
+        using llcpp::fuchsia::hardware::goldfish::MEMORY_PROPERTY_DEVICE_LOCAL;
+        using llcpp::fuchsia::hardware::goldfish::MEMORY_PROPERTY_HOST_VISIBLE;
+
         if (handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA) {
             return VK_ERROR_INITIALIZATION_FAILED;
+        }
+
+        zx_info_handle_basic_t handleInfo;
+        zx_status_t status = zx::unowned_vmo(handle)->get_info(
+            ZX_INFO_HANDLE_BASIC, &handleInfo, sizeof(handleInfo), nullptr,
+            nullptr);
+        if (status != ZX_OK || handleInfo.type != ZX_OBJ_TYPE_VMO) {
+            return VK_ERROR_INVALID_EXTERNAL_HANDLE;
         }
 
         AutoLock lock(mLock);
@@ -1752,11 +1763,44 @@ public:
 
         auto& info = deviceIt->second;
 
-        // Device local memory type supported.
+        zx::vmo vmo_dup;
+        status =
+            zx::unowned_vmo(handle)->duplicate(ZX_RIGHT_SAME_RIGHTS, &vmo_dup);
+        if (status != ZX_OK) {
+            ALOGE("zx_handle_duplicate() error: %d", status);
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
+
+        uint32_t memoryProperty = 0u;
+
+        auto result = mControlDevice->GetBufferHandleInfo(std::move(vmo_dup));
+        if (!result.ok()) {
+            ALOGE(
+                "mControlDevice->GetBufferHandleInfo fatal error: epitaph: %d",
+                result.status());
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
+        if (result->result.is_response()) {
+            memoryProperty = result->result.response().info.memory_property();
+        } else if (result->result.err() == ZX_ERR_NOT_FOUND) {
+            // If an VMO is allocated while ColorBuffer/Buffer is not created,
+            // it must be a device-local buffer, since for host-visible buffers,
+            // ColorBuffer/Buffer is created at sysmem allocation time.
+            memoryProperty = MEMORY_PROPERTY_DEVICE_LOCAL;
+        } else {
+            ALOGE("mControlDevice->GetBufferHandleInfo error: %d",
+                  result->result.err());
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
+
         pProperties->memoryTypeBits = 0;
         for (uint32_t i = 0; i < info.memProps.memoryTypeCount; ++i) {
-            if (info.memProps.memoryTypes[i].propertyFlags &
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
+            if (((memoryProperty & MEMORY_PROPERTY_DEVICE_LOCAL) &&
+                 (info.memProps.memoryTypes[i].propertyFlags &
+                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) ||
+                ((memoryProperty & MEMORY_PROPERTY_HOST_VISIBLE) &&
+                 (info.memProps.memoryTypes[i].propertyFlags &
+                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT))) {
                 pProperties->memoryTypeBits |= 1ull << i;
             }
         }
@@ -2978,24 +3022,26 @@ public:
             vk_find_struct<VkMemoryDedicatedAllocateInfo>(pAllocateInfo);
 
         bool shouldPassThroughDedicatedAllocInfo =
-            !exportAllocateInfoPtr &&
-            !importAhbInfoPtr &&
-            !importBufferCollectionInfoPtr &&
-            !importVmoInfoPtr &&
+            !exportAllocateInfoPtr && !importAhbInfoPtr &&
+            !importBufferCollectionInfoPtr && !importVmoInfoPtr;
+
+#ifndef VK_USE_PLATFORM_FUCHSIA
+        shouldPassThroughDedicatedAllocInfo &=
             !isHostVisibleMemoryTypeIndexForGuest(
-                &mHostVisibleMemoryVirtInfo,
-                pAllocateInfo->memoryTypeIndex);
+                &mHostVisibleMemoryVirtInfo, pAllocateInfo->memoryTypeIndex);
 
         if (!exportAllocateInfoPtr &&
-            (importAhbInfoPtr || importBufferCollectionInfoPtr || importVmoInfoPtr) &&
+            (importAhbInfoPtr || importBufferCollectionInfoPtr ||
+             importVmoInfoPtr) &&
             dedicatedAllocInfoPtr &&
             isHostVisibleMemoryTypeIndexForGuest(
-                &mHostVisibleMemoryVirtInfo,
-                pAllocateInfo->memoryTypeIndex)) {
-            ALOGE("FATAL: It is not yet supported to import-allocate "
-                  "external memory that is both host visible and dedicated.");
+                &mHostVisibleMemoryVirtInfo, pAllocateInfo->memoryTypeIndex)) {
+            ALOGE(
+                "FATAL: It is not yet supported to import-allocate "
+                "external memory that is both host visible and dedicated.");
             abort();
         }
+#endif  // VK_USE_PLATFORM_FUCHSIA
 
         if (shouldPassThroughDedicatedAllocInfo &&
             dedicatedAllocInfoPtr) {
@@ -3293,78 +3339,96 @@ public:
                     abort();
                 }
 
-                if (pImageCreateInfo) {
-                    llcpp::fuchsia::hardware::goldfish::ColorBufferFormatType
-                        format;
-                    switch (pImageCreateInfo->format) {
-                        case VK_FORMAT_B8G8R8A8_SINT:
-                        case VK_FORMAT_B8G8R8A8_UNORM:
-                        case VK_FORMAT_B8G8R8A8_SRGB:
-                        case VK_FORMAT_B8G8R8A8_SNORM:
-                        case VK_FORMAT_B8G8R8A8_SSCALED:
-                        case VK_FORMAT_B8G8R8A8_USCALED:
-                            format = llcpp::fuchsia::hardware::goldfish::
-                                ColorBufferFormatType::BGRA;
-                            break;
-                        case VK_FORMAT_R8G8B8A8_SINT:
-                        case VK_FORMAT_R8G8B8A8_UNORM:
-                        case VK_FORMAT_R8G8B8A8_SRGB:
-                        case VK_FORMAT_R8G8B8A8_SNORM:
-                        case VK_FORMAT_R8G8B8A8_SSCALED:
-                        case VK_FORMAT_R8G8B8A8_USCALED:
-                            format = llcpp::fuchsia::hardware::goldfish::
-                                ColorBufferFormatType::RGBA;
-                            break;
-                        case VK_FORMAT_R8_UNORM:
-                        case VK_FORMAT_R8_UINT:
-                        case VK_FORMAT_R8_USCALED:
-                        case VK_FORMAT_R8_SNORM:
-                        case VK_FORMAT_R8_SINT:
-                        case VK_FORMAT_R8_SSCALED:
-                        case VK_FORMAT_R8_SRGB:
-                            format = llcpp::fuchsia::hardware::goldfish::ColorBufferFormatType::
-                                LUMINANCE;
-                            break;
-                        case VK_FORMAT_R8G8_UNORM:
-                        case VK_FORMAT_R8G8_UINT:
-                        case VK_FORMAT_R8G8_USCALED:
-                        case VK_FORMAT_R8G8_SNORM:
-                        case VK_FORMAT_R8G8_SINT:
-                        case VK_FORMAT_R8G8_SSCALED:
-                        case VK_FORMAT_R8G8_SRGB:
-                            format = llcpp::fuchsia::hardware::goldfish::ColorBufferFormatType::RG;
-                            break;
-                        default:
-                            ALOGE("Unsupported format: %d",
-                                  pImageCreateInfo->format);
-                            abort();
-                    }
+                bool isHostVisible = isHostVisibleMemoryTypeIndexForGuest(
+                    &mHostVisibleMemoryVirtInfo,
+                    pAllocateInfo->memoryTypeIndex);
 
-                    auto createParams =
-                        llcpp::fuchsia::hardware::goldfish::CreateColorBuffer2Params::Builder(
-                            std::make_unique<llcpp::fuchsia::hardware::goldfish::
-                                                 CreateColorBuffer2Params::Frame>())
-                            .set_width(std::make_unique<uint32_t>(pImageCreateInfo->extent.width))
-                            .set_height(std::make_unique<uint32_t>(pImageCreateInfo->extent.height))
-                            .set_format(std::make_unique<
-                                        llcpp::fuchsia::hardware::goldfish::ColorBufferFormatType>(
-                                format))
-                            .set_memory_property(std::make_unique<uint32_t>(
-                                llcpp::fuchsia::hardware::goldfish::MEMORY_PROPERTY_DEVICE_LOCAL))
-                            .build();
+                // Only device-local images need to create color buffer; for
+                // host-visible images, the color buffer is already created when
+                // sysmem allocates memory.
+                if (!isHostVisible) {
+                    if (pImageCreateInfo) {
+                        llcpp::fuchsia::hardware::goldfish::
+                            ColorBufferFormatType format;
+                        switch (pImageCreateInfo->format) {
+                            case VK_FORMAT_B8G8R8A8_SINT:
+                            case VK_FORMAT_B8G8R8A8_UNORM:
+                            case VK_FORMAT_B8G8R8A8_SRGB:
+                            case VK_FORMAT_B8G8R8A8_SNORM:
+                            case VK_FORMAT_B8G8R8A8_SSCALED:
+                            case VK_FORMAT_B8G8R8A8_USCALED:
+                                format = llcpp::fuchsia::hardware::goldfish::
+                                    ColorBufferFormatType::BGRA;
+                                break;
+                            case VK_FORMAT_R8G8B8A8_SINT:
+                            case VK_FORMAT_R8G8B8A8_UNORM:
+                            case VK_FORMAT_R8G8B8A8_SRGB:
+                            case VK_FORMAT_R8G8B8A8_SNORM:
+                            case VK_FORMAT_R8G8B8A8_SSCALED:
+                            case VK_FORMAT_R8G8B8A8_USCALED:
+                                format = llcpp::fuchsia::hardware::goldfish::
+                                    ColorBufferFormatType::RGBA;
+                                break;
+                            case VK_FORMAT_R8_UNORM:
+                            case VK_FORMAT_R8_UINT:
+                            case VK_FORMAT_R8_USCALED:
+                            case VK_FORMAT_R8_SNORM:
+                            case VK_FORMAT_R8_SINT:
+                            case VK_FORMAT_R8_SSCALED:
+                            case VK_FORMAT_R8_SRGB:
+                                format = llcpp::fuchsia::hardware::goldfish::
+                                    ColorBufferFormatType::LUMINANCE;
+                                break;
+                            case VK_FORMAT_R8G8_UNORM:
+                            case VK_FORMAT_R8G8_UINT:
+                            case VK_FORMAT_R8G8_USCALED:
+                            case VK_FORMAT_R8G8_SNORM:
+                            case VK_FORMAT_R8G8_SINT:
+                            case VK_FORMAT_R8G8_SSCALED:
+                            case VK_FORMAT_R8G8_SRGB:
+                                format = llcpp::fuchsia::hardware::goldfish::
+                                    ColorBufferFormatType::RG;
+                                break;
+                            default:
+                                ALOGE("Unsupported format: %d",
+                                      pImageCreateInfo->format);
+                                abort();
+                        }
 
-                    auto result = mControlDevice->CreateColorBuffer2(std::move(vmo_copy),
-                                                                     std::move(createParams));
-                    if (!result.ok() || result.Unwrap()->res != ZX_OK) {
-                        if (result.ok() &&
-                            result.Unwrap()->res == ZX_ERR_ALREADY_EXISTS) {
-                            ALOGD("CreateColorBuffer: color buffer already "
-                                  "exists\n");
-                        } else {
-                            ALOGE("CreateColorBuffer failed: %d:%d",
-                                  result.status(),
-                                  GET_STATUS_SAFE(result, res));
-                            abort();
+                        auto createParams =
+                            llcpp::fuchsia::hardware::goldfish::
+                                CreateColorBuffer2Params::Builder(
+                                    std::make_unique<
+                                        llcpp::fuchsia::hardware::goldfish::
+                                            CreateColorBuffer2Params::Frame>())
+                                    .set_width(std::make_unique<uint32_t>(
+                                        pImageCreateInfo->extent.width))
+                                    .set_height(std::make_unique<uint32_t>(
+                                        pImageCreateInfo->extent.height))
+                                    .set_format(
+                                        std::make_unique<
+                                            llcpp::fuchsia::hardware::goldfish::
+                                                ColorBufferFormatType>(format))
+                                    .set_memory_property(
+                                        std::make_unique<uint32_t>(
+                                            llcpp::fuchsia::hardware::goldfish::
+                                                MEMORY_PROPERTY_DEVICE_LOCAL))
+                                    .build();
+
+                        auto result = mControlDevice->CreateColorBuffer2(
+                            std::move(vmo_copy), std::move(createParams));
+                        if (!result.ok() || result.Unwrap()->res != ZX_OK) {
+                            if (result.ok() &&
+                                result.Unwrap()->res == ZX_ERR_ALREADY_EXISTS) {
+                                ALOGD(
+                                    "CreateColorBuffer: color buffer already "
+                                    "exists\n");
+                            } else {
+                                ALOGE("CreateColorBuffer failed: %d:%d",
+                                      result.status(),
+                                      GET_STATUS_SAFE(result, res));
+                                abort();
+                            }
                         }
                     }
                 }
@@ -3661,9 +3725,13 @@ public:
         uint32_t normalBits) {
         uint32_t res = 0;
         for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
-            if (normalBits & (1 << i) &&
-                !isHostVisibleMemoryTypeIndexForGuest(
-                    &mHostVisibleMemoryVirtInfo, i)) {
+            bool shouldAcceptMemoryIndex = normalBits & (1 << i);
+#ifndef VK_USE_PLATFORM_FUCHSIA
+            shouldAcceptMemoryIndex &= !isHostVisibleMemoryTypeIndexForGuest(
+                &mHostVisibleMemoryVirtInfo, i);
+#endif  // VK_USE_PLATFORM_FUCHSIA
+
+            if (shouldAcceptMemoryIndex) {
                 res |= (1 << i);
             }
         }
