@@ -5921,6 +5921,39 @@ public:
             physicalDevice, pImageFormatInfo, pImageFormatProperties);
     }
 
+    void on_vkGetPhysicalDeviceExternalSemaphoreProperties(
+        void*,
+        VkPhysicalDevice,
+        const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
+        VkExternalSemaphoreProperties* pExternalSemaphoreProperties) {
+        (void)pExternalSemaphoreInfo;
+        (void)pExternalSemaphoreProperties;
+#ifdef VK_USE_PLATFORM_FUCHSIA
+        if (pExternalSemaphoreInfo->handleType ==
+            VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA) {
+            pExternalSemaphoreProperties->compatibleHandleTypes |=
+                VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA;
+            pExternalSemaphoreProperties->exportFromImportedHandleTypes |=
+                VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA;
+            pExternalSemaphoreProperties->externalSemaphoreFeatures |=
+                VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT |
+                VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT;
+        }
+#endif  // VK_USE_PLATFORM_FUCHSIA
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        if (pExternalSemaphoreInfo->handleType ==
+            VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT) {
+            pExternalSemaphoreProperties->compatibleHandleTypes |=
+                VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
+            pExternalSemaphoreProperties->exportFromImportedHandleTypes |=
+                VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
+            pExternalSemaphoreProperties->externalSemaphoreFeatures |=
+                VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT |
+                VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT;
+        }
+#endif  // VK_USE_PLATFORM_ANDROID_KHR
+    }
+
     void registerEncoderCleanupCallback(const VkEncoder* encoder, void* object, CleanupCallback callback) {
         AutoLock lock(mLock);
         auto& callbacks = mEncoderCleanupCallbacks[encoder];
@@ -7106,6 +7139,26 @@ VkResult ResourceTracker::on_vkGetPhysicalDeviceImageFormatProperties2KHR(
     return mImpl->on_vkGetPhysicalDeviceImageFormatProperties2KHR(
         context, input_result, physicalDevice, pImageFormatInfo,
         pImageFormatProperties);
+}
+
+void ResourceTracker::on_vkGetPhysicalDeviceExternalSemaphoreProperties(
+    void* context,
+    VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
+    VkExternalSemaphoreProperties* pExternalSemaphoreProperties) {
+    mImpl->on_vkGetPhysicalDeviceExternalSemaphoreProperties(
+        context, physicalDevice, pExternalSemaphoreInfo,
+        pExternalSemaphoreProperties);
+}
+
+void ResourceTracker::on_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
+    void* context,
+    VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
+    VkExternalSemaphoreProperties* pExternalSemaphoreProperties) {
+    mImpl->on_vkGetPhysicalDeviceExternalSemaphoreProperties(
+        context, physicalDevice, pExternalSemaphoreInfo,
+        pExternalSemaphoreProperties);
 }
 
 void ResourceTracker::registerEncoderCleanupCallback(const VkEncoder* encoder, void* handle, ResourceTracker::CleanupCallback callback) {
