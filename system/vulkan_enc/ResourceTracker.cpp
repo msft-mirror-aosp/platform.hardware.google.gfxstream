@@ -568,6 +568,12 @@ public:
             zx_handle_close(semInfo.eventHandle);
         }
 
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        if (semInfo.syncFd >= 0) {
+            close(semInfo.syncFd);
+        }
+#endif
+
         info_VkSemaphore.erase(sem);
     }
 
