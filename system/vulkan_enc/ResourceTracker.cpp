@@ -7213,6 +7213,6 @@ void ResourceTracker::transformImpl_VkExternalMemoryProperties_tohost(
     void ResourceTracker::transformImpl_##type##_tohost(type*, uint32_t) {} \
     void ResourceTracker::transformImpl_##type##_fromhost(type*, uint32_t) {}
 
-LIST_TRANSFORMED_TYPES(DEFINE_TRANSFORMED_TYPE_IMPL)
+LIST_TRIVIAL_TRANSFORMED_TYPES(DEFINE_TRANSFORMED_TYPE_IMPL)
 
 } // namespace goldfish_vk
