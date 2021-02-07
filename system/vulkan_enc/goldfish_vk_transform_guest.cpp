@@ -42,6 +42,292 @@ void transform_fromhost_extension_struct(
     void* structExtension_out);
 
 #ifdef VK_VERSION_1_0
+void transform_tohost_VkExtent2D(
+    ResourceTracker* resourceTracker,
+    VkExtent2D* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkExtent2D(
+    ResourceTracker* resourceTracker,
+    VkExtent2D* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkExtent3D(
+    ResourceTracker* resourceTracker,
+    VkExtent3D* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkExtent3D(
+    ResourceTracker* resourceTracker,
+    VkExtent3D* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkOffset2D(
+    ResourceTracker* resourceTracker,
+    VkOffset2D* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkOffset2D(
+    ResourceTracker* resourceTracker,
+    VkOffset2D* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkOffset3D(
+    ResourceTracker* resourceTracker,
+    VkOffset3D* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkOffset3D(
+    ResourceTracker* resourceTracker,
+    VkOffset3D* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkRect2D(
+    ResourceTracker* resourceTracker,
+    VkRect2D* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_tohost_VkOffset2D(resourceTracker, (VkOffset2D*)(&toTransform->offset));
+    transform_tohost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->extent));
+}
+
+void transform_fromhost_VkRect2D(
+    ResourceTracker* resourceTracker,
+    VkRect2D* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_fromhost_VkOffset2D(resourceTracker, (VkOffset2D*)(&toTransform->offset));
+    transform_fromhost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->extent));
+}
+
+void transform_tohost_VkBaseInStructure(
+    ResourceTracker* resourceTracker,
+    VkBaseInStructure* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkBaseInStructure(
+    ResourceTracker* resourceTracker,
+    VkBaseInStructure* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkBaseOutStructure(
+    ResourceTracker* resourceTracker,
+    VkBaseOutStructure* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkBaseOutStructure(
+    ResourceTracker* resourceTracker,
+    VkBaseOutStructure* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkBufferMemoryBarrier(
+    ResourceTracker* resourceTracker,
+    VkBufferMemoryBarrier* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkBufferMemoryBarrier(
+    ResourceTracker* resourceTracker,
+    VkBufferMemoryBarrier* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkDispatchIndirectCommand(
+    ResourceTracker* resourceTracker,
+    VkDispatchIndirectCommand* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkDispatchIndirectCommand(
+    ResourceTracker* resourceTracker,
+    VkDispatchIndirectCommand* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkDrawIndexedIndirectCommand(
+    ResourceTracker* resourceTracker,
+    VkDrawIndexedIndirectCommand* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkDrawIndexedIndirectCommand(
+    ResourceTracker* resourceTracker,
+    VkDrawIndexedIndirectCommand* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkDrawIndirectCommand(
+    ResourceTracker* resourceTracker,
+    VkDrawIndirectCommand* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkDrawIndirectCommand(
+    ResourceTracker* resourceTracker,
+    VkDrawIndirectCommand* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkImageSubresourceRange(
+    ResourceTracker* resourceTracker,
+    VkImageSubresourceRange* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkImageSubresourceRange(
+    ResourceTracker* resourceTracker,
+    VkImageSubresourceRange* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkImageMemoryBarrier(
+    ResourceTracker* resourceTracker,
+    VkImageMemoryBarrier* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkImageSubresourceRange(resourceTracker, (VkImageSubresourceRange*)(&toTransform->subresourceRange));
+}
+
+void transform_fromhost_VkImageMemoryBarrier(
+    ResourceTracker* resourceTracker,
+    VkImageMemoryBarrier* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkImageSubresourceRange(resourceTracker, (VkImageSubresourceRange*)(&toTransform->subresourceRange));
+}
+
+void transform_tohost_VkMemoryBarrier(
+    ResourceTracker* resourceTracker,
+    VkMemoryBarrier* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkMemoryBarrier(
+    ResourceTracker* resourceTracker,
+    VkMemoryBarrier* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkAllocationCallbacks(
+    ResourceTracker* resourceTracker,
+    VkAllocationCallbacks* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkAllocationCallbacks(
+    ResourceTracker* resourceTracker,
+    VkAllocationCallbacks* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
 void transform_tohost_VkApplicationInfo(
     ResourceTracker* resourceTracker,
     VkApplicationInfo* toTransform)
@@ -64,6 +350,40 @@ void transform_fromhost_VkApplicationInfo(
     {
         transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
     }
+}
+
+void transform_tohost_VkFormatProperties(
+    ResourceTracker* resourceTracker,
+    VkFormatProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkFormatProperties(
+    ResourceTracker* resourceTracker,
+    VkFormatProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkImageFormatProperties(
+    ResourceTracker* resourceTracker,
+    VkImageFormatProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_tohost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->maxExtent));
+}
+
+void transform_fromhost_VkImageFormatProperties(
+    ResourceTracker* resourceTracker,
+    VkImageFormatProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_fromhost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->maxExtent));
 }
 
 void transform_tohost_VkInstanceCreateInfo(
@@ -98,17 +418,33 @@ void transform_fromhost_VkInstanceCreateInfo(
     }
 }
 
-void transform_tohost_VkAllocationCallbacks(
+void transform_tohost_VkMemoryHeap(
     ResourceTracker* resourceTracker,
-    VkAllocationCallbacks* toTransform)
+    VkMemoryHeap* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
 }
 
-void transform_fromhost_VkAllocationCallbacks(
+void transform_fromhost_VkMemoryHeap(
     ResourceTracker* resourceTracker,
-    VkAllocationCallbacks* toTransform)
+    VkMemoryHeap* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkMemoryType(
+    ResourceTracker* resourceTracker,
+    VkMemoryType* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkMemoryType(
+    ResourceTracker* resourceTracker,
+    VkMemoryType* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -130,56 +466,6 @@ void transform_fromhost_VkPhysicalDeviceFeatures(
     (void)toTransform;
 }
 
-void transform_tohost_VkFormatProperties(
-    ResourceTracker* resourceTracker,
-    VkFormatProperties* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkFormatProperties(
-    ResourceTracker* resourceTracker,
-    VkFormatProperties* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_tohost_VkExtent3D(
-    ResourceTracker* resourceTracker,
-    VkExtent3D* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkExtent3D(
-    ResourceTracker* resourceTracker,
-    VkExtent3D* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_tohost_VkImageFormatProperties(
-    ResourceTracker* resourceTracker,
-    VkImageFormatProperties* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    transform_tohost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->maxExtent));
-}
-
-void transform_fromhost_VkImageFormatProperties(
-    ResourceTracker* resourceTracker,
-    VkImageFormatProperties* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    transform_fromhost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->maxExtent));
-}
-
 void transform_tohost_VkPhysicalDeviceLimits(
     ResourceTracker* resourceTracker,
     VkPhysicalDeviceLimits* toTransform)
@@ -194,6 +480,38 @@ void transform_fromhost_VkPhysicalDeviceLimits(
 {
     (void)resourceTracker;
     (void)toTransform;
+}
+
+void transform_tohost_VkPhysicalDeviceMemoryProperties(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceMemoryProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    for (uint32_t i = 0; i < (uint32_t)VK_MAX_MEMORY_TYPES; ++i)
+    {
+        transform_tohost_VkMemoryType(resourceTracker, (VkMemoryType*)(toTransform->memoryTypes + i));
+    }
+    for (uint32_t i = 0; i < (uint32_t)VK_MAX_MEMORY_HEAPS; ++i)
+    {
+        transform_tohost_VkMemoryHeap(resourceTracker, (VkMemoryHeap*)(toTransform->memoryHeaps + i));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceMemoryProperties(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceMemoryProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    for (uint32_t i = 0; i < (uint32_t)VK_MAX_MEMORY_TYPES; ++i)
+    {
+        transform_fromhost_VkMemoryType(resourceTracker, (VkMemoryType*)(toTransform->memoryTypes + i));
+    }
+    for (uint32_t i = 0; i < (uint32_t)VK_MAX_MEMORY_HEAPS; ++i)
+    {
+        transform_fromhost_VkMemoryHeap(resourceTracker, (VkMemoryHeap*)(toTransform->memoryHeaps + i));
+    }
 }
 
 void transform_tohost_VkPhysicalDeviceSparseProperties(
@@ -248,70 +566,6 @@ void transform_fromhost_VkQueueFamilyProperties(
     (void)resourceTracker;
     (void)toTransform;
     transform_fromhost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->minImageTransferGranularity));
-}
-
-void transform_tohost_VkMemoryType(
-    ResourceTracker* resourceTracker,
-    VkMemoryType* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkMemoryType(
-    ResourceTracker* resourceTracker,
-    VkMemoryType* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_tohost_VkMemoryHeap(
-    ResourceTracker* resourceTracker,
-    VkMemoryHeap* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkMemoryHeap(
-    ResourceTracker* resourceTracker,
-    VkMemoryHeap* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_tohost_VkPhysicalDeviceMemoryProperties(
-    ResourceTracker* resourceTracker,
-    VkPhysicalDeviceMemoryProperties* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    for (uint32_t i = 0; i < (uint32_t)VK_MAX_MEMORY_TYPES; ++i)
-    {
-        transform_tohost_VkMemoryType(resourceTracker, (VkMemoryType*)(toTransform->memoryTypes + i));
-    }
-    for (uint32_t i = 0; i < (uint32_t)VK_MAX_MEMORY_HEAPS; ++i)
-    {
-        transform_tohost_VkMemoryHeap(resourceTracker, (VkMemoryHeap*)(toTransform->memoryHeaps + i));
-    }
-}
-
-void transform_fromhost_VkPhysicalDeviceMemoryProperties(
-    ResourceTracker* resourceTracker,
-    VkPhysicalDeviceMemoryProperties* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    for (uint32_t i = 0; i < (uint32_t)VK_MAX_MEMORY_TYPES; ++i)
-    {
-        transform_fromhost_VkMemoryType(resourceTracker, (VkMemoryType*)(toTransform->memoryTypes + i));
-    }
-    for (uint32_t i = 0; i < (uint32_t)VK_MAX_MEMORY_HEAPS; ++i)
-    {
-        transform_fromhost_VkMemoryHeap(resourceTracker, (VkMemoryHeap*)(toTransform->memoryHeaps + i));
-    }
 }
 
 void transform_tohost_VkDeviceQueueCreateInfo(
@@ -440,32 +694,6 @@ void transform_fromhost_VkSubmitInfo(
     }
 }
 
-void transform_tohost_VkMemoryAllocateInfo(
-    ResourceTracker* resourceTracker,
-    VkMemoryAllocateInfo* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    resourceTracker->deviceMemoryTransform_tohost((VkDeviceMemory*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)&toTransform->memoryTypeIndex, 1, (uint32_t*)nullptr, 0);
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkMemoryAllocateInfo(
-    ResourceTracker* resourceTracker,
-    VkMemoryAllocateInfo* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    resourceTracker->deviceMemoryTransform_fromhost((VkDeviceMemory*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)&toTransform->memoryTypeIndex, 1, (uint32_t*)nullptr, 0);
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
 void transform_tohost_VkMappedMemoryRange(
     ResourceTracker* resourceTracker,
     VkMappedMemoryRange* toTransform)
@@ -492,6 +720,32 @@ void transform_fromhost_VkMappedMemoryRange(
     }
 }
 
+void transform_tohost_VkMemoryAllocateInfo(
+    ResourceTracker* resourceTracker,
+    VkMemoryAllocateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    resourceTracker->deviceMemoryTransform_tohost((VkDeviceMemory*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)&toTransform->memoryTypeIndex, 1, (uint32_t*)nullptr, 0);
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkMemoryAllocateInfo(
+    ResourceTracker* resourceTracker,
+    VkMemoryAllocateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    resourceTracker->deviceMemoryTransform_fromhost((VkDeviceMemory*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)&toTransform->memoryTypeIndex, 1, (uint32_t*)nullptr, 0);
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
 void transform_tohost_VkMemoryRequirements(
     ResourceTracker* resourceTracker,
     VkMemoryRequirements* toTransform)
@@ -508,42 +762,6 @@ void transform_fromhost_VkMemoryRequirements(
     (void)resourceTracker;
     (void)toTransform;
     resourceTracker->deviceMemoryTransform_fromhost((VkDeviceMemory*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)&toTransform->memoryTypeBits, 1);
-}
-
-void transform_tohost_VkSparseImageFormatProperties(
-    ResourceTracker* resourceTracker,
-    VkSparseImageFormatProperties* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    transform_tohost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->imageGranularity));
-}
-
-void transform_fromhost_VkSparseImageFormatProperties(
-    ResourceTracker* resourceTracker,
-    VkSparseImageFormatProperties* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    transform_fromhost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->imageGranularity));
-}
-
-void transform_tohost_VkSparseImageMemoryRequirements(
-    ResourceTracker* resourceTracker,
-    VkSparseImageMemoryRequirements* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    transform_tohost_VkSparseImageFormatProperties(resourceTracker, (VkSparseImageFormatProperties*)(&toTransform->formatProperties));
-}
-
-void transform_fromhost_VkSparseImageMemoryRequirements(
-    ResourceTracker* resourceTracker,
-    VkSparseImageMemoryRequirements* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    transform_fromhost_VkSparseImageFormatProperties(resourceTracker, (VkSparseImageFormatProperties*)(&toTransform->formatProperties));
 }
 
 void transform_tohost_VkSparseMemoryBind(
@@ -635,22 +853,6 @@ void transform_tohost_VkImageSubresource(
 void transform_fromhost_VkImageSubresource(
     ResourceTracker* resourceTracker,
     VkImageSubresource* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_tohost_VkOffset3D(
-    ResourceTracker* resourceTracker,
-    VkOffset3D* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkOffset3D(
-    ResourceTracker* resourceTracker,
-    VkOffset3D* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -774,6 +976,42 @@ void transform_fromhost_VkBindSparseInfo(
             transform_fromhost_VkSparseImageMemoryBindInfo(resourceTracker, (VkSparseImageMemoryBindInfo*)(toTransform->pImageBinds + i));
         }
     }
+}
+
+void transform_tohost_VkSparseImageFormatProperties(
+    ResourceTracker* resourceTracker,
+    VkSparseImageFormatProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_tohost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->imageGranularity));
+}
+
+void transform_fromhost_VkSparseImageFormatProperties(
+    ResourceTracker* resourceTracker,
+    VkSparseImageFormatProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_fromhost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->imageGranularity));
+}
+
+void transform_tohost_VkSparseImageMemoryRequirements(
+    ResourceTracker* resourceTracker,
+    VkSparseImageMemoryRequirements* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_tohost_VkSparseImageFormatProperties(resourceTracker, (VkSparseImageFormatProperties*)(&toTransform->formatProperties));
+}
+
+void transform_fromhost_VkSparseImageMemoryRequirements(
+    ResourceTracker* resourceTracker,
+    VkSparseImageMemoryRequirements* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_fromhost_VkSparseImageFormatProperties(resourceTracker, (VkSparseImageFormatProperties*)(&toTransform->formatProperties));
 }
 
 void transform_tohost_VkFenceCreateInfo(
@@ -978,22 +1216,6 @@ void transform_fromhost_VkComponentMapping(
     (void)toTransform;
 }
 
-void transform_tohost_VkImageSubresourceRange(
-    ResourceTracker* resourceTracker,
-    VkImageSubresourceRange* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkImageSubresourceRange(
-    ResourceTracker* resourceTracker,
-    VkImageSubresourceRange* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
 void transform_tohost_VkImageViewCreateInfo(
     ResourceTracker* resourceTracker,
     VkImageViewCreateInfo* toTransform)
@@ -1148,6 +1370,32 @@ void transform_fromhost_VkPipelineShaderStageCreateInfo(
     }
 }
 
+void transform_tohost_VkComputePipelineCreateInfo(
+    ResourceTracker* resourceTracker,
+    VkComputePipelineCreateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkPipelineShaderStageCreateInfo(resourceTracker, (VkPipelineShaderStageCreateInfo*)(&toTransform->stage));
+}
+
+void transform_fromhost_VkComputePipelineCreateInfo(
+    ResourceTracker* resourceTracker,
+    VkComputePipelineCreateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkPipelineShaderStageCreateInfo(resourceTracker, (VkPipelineShaderStageCreateInfo*)(&toTransform->stage));
+}
+
 void transform_tohost_VkVertexInputBindingDescription(
     ResourceTracker* resourceTracker,
     VkVertexInputBindingDescription* toTransform)
@@ -1294,58 +1542,6 @@ void transform_fromhost_VkViewport(
 {
     (void)resourceTracker;
     (void)toTransform;
-}
-
-void transform_tohost_VkOffset2D(
-    ResourceTracker* resourceTracker,
-    VkOffset2D* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkOffset2D(
-    ResourceTracker* resourceTracker,
-    VkOffset2D* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_tohost_VkExtent2D(
-    ResourceTracker* resourceTracker,
-    VkExtent2D* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkExtent2D(
-    ResourceTracker* resourceTracker,
-    VkExtent2D* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_tohost_VkRect2D(
-    ResourceTracker* resourceTracker,
-    VkRect2D* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    transform_tohost_VkOffset2D(resourceTracker, (VkOffset2D*)(&toTransform->offset));
-    transform_tohost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->extent));
-}
-
-void transform_fromhost_VkRect2D(
-    ResourceTracker* resourceTracker,
-    VkRect2D* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    transform_fromhost_VkOffset2D(resourceTracker, (VkOffset2D*)(&toTransform->offset));
-    transform_fromhost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->extent));
 }
 
 void transform_tohost_VkPipelineViewportStateCreateInfo(
@@ -1680,32 +1876,6 @@ void transform_fromhost_VkGraphicsPipelineCreateInfo(
     }
 }
 
-void transform_tohost_VkComputePipelineCreateInfo(
-    ResourceTracker* resourceTracker,
-    VkComputePipelineCreateInfo* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-    transform_tohost_VkPipelineShaderStageCreateInfo(resourceTracker, (VkPipelineShaderStageCreateInfo*)(&toTransform->stage));
-}
-
-void transform_fromhost_VkComputePipelineCreateInfo(
-    ResourceTracker* resourceTracker,
-    VkComputePipelineCreateInfo* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-    transform_fromhost_VkPipelineShaderStageCreateInfo(resourceTracker, (VkPipelineShaderStageCreateInfo*)(&toTransform->stage));
-}
-
 void transform_tohost_VkPushConstantRange(
     ResourceTracker* resourceTracker,
     VkPushConstantRange* toTransform)
@@ -1784,25 +1954,9 @@ void transform_fromhost_VkSamplerCreateInfo(
     }
 }
 
-void transform_tohost_VkDescriptorSetLayoutBinding(
+void transform_tohost_VkCopyDescriptorSet(
     ResourceTracker* resourceTracker,
-    VkDescriptorSetLayoutBinding* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkDescriptorSetLayoutBinding(
-    ResourceTracker* resourceTracker,
-    VkDescriptorSetLayoutBinding* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_tohost_VkDescriptorSetLayoutCreateInfo(
-    ResourceTracker* resourceTracker,
-    VkDescriptorSetLayoutCreateInfo* toTransform)
+    VkCopyDescriptorSet* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -1810,18 +1964,11 @@ void transform_tohost_VkDescriptorSetLayoutCreateInfo(
     {
         transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
     }
-    if (toTransform->pBindings)
-    {
-        for (uint32_t i = 0; i < (uint32_t)toTransform->bindingCount; ++i)
-        {
-            transform_tohost_VkDescriptorSetLayoutBinding(resourceTracker, (VkDescriptorSetLayoutBinding*)(toTransform->pBindings + i));
-        }
-    }
 }
 
-void transform_fromhost_VkDescriptorSetLayoutCreateInfo(
+void transform_fromhost_VkCopyDescriptorSet(
     ResourceTracker* resourceTracker,
-    VkDescriptorSetLayoutCreateInfo* toTransform)
+    VkCopyDescriptorSet* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -1829,13 +1976,38 @@ void transform_fromhost_VkDescriptorSetLayoutCreateInfo(
     {
         transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
     }
-    if (toTransform->pBindings)
-    {
-        for (uint32_t i = 0; i < (uint32_t)toTransform->bindingCount; ++i)
-        {
-            transform_fromhost_VkDescriptorSetLayoutBinding(resourceTracker, (VkDescriptorSetLayoutBinding*)(toTransform->pBindings + i));
-        }
-    }
+}
+
+void transform_tohost_VkDescriptorBufferInfo(
+    ResourceTracker* resourceTracker,
+    VkDescriptorBufferInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkDescriptorBufferInfo(
+    ResourceTracker* resourceTracker,
+    VkDescriptorBufferInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkDescriptorImageInfo(
+    ResourceTracker* resourceTracker,
+    VkDescriptorImageInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkDescriptorImageInfo(
+    ResourceTracker* resourceTracker,
+    VkDescriptorImageInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
 }
 
 void transform_tohost_VkDescriptorPoolSize(
@@ -1916,36 +2088,58 @@ void transform_fromhost_VkDescriptorSetAllocateInfo(
     }
 }
 
-void transform_tohost_VkDescriptorImageInfo(
+void transform_tohost_VkDescriptorSetLayoutBinding(
     ResourceTracker* resourceTracker,
-    VkDescriptorImageInfo* toTransform)
+    VkDescriptorSetLayoutBinding* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
 }
 
-void transform_fromhost_VkDescriptorImageInfo(
+void transform_fromhost_VkDescriptorSetLayoutBinding(
     ResourceTracker* resourceTracker,
-    VkDescriptorImageInfo* toTransform)
+    VkDescriptorSetLayoutBinding* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
 }
 
-void transform_tohost_VkDescriptorBufferInfo(
+void transform_tohost_VkDescriptorSetLayoutCreateInfo(
     ResourceTracker* resourceTracker,
-    VkDescriptorBufferInfo* toTransform)
+    VkDescriptorSetLayoutCreateInfo* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pBindings)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->bindingCount; ++i)
+        {
+            transform_tohost_VkDescriptorSetLayoutBinding(resourceTracker, (VkDescriptorSetLayoutBinding*)(toTransform->pBindings + i));
+        }
+    }
 }
 
-void transform_fromhost_VkDescriptorBufferInfo(
+void transform_fromhost_VkDescriptorSetLayoutCreateInfo(
     ResourceTracker* resourceTracker,
-    VkDescriptorBufferInfo* toTransform)
+    VkDescriptorSetLayoutCreateInfo* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pBindings)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->bindingCount; ++i)
+        {
+            transform_fromhost_VkDescriptorSetLayoutBinding(resourceTracker, (VkDescriptorSetLayoutBinding*)(toTransform->pBindings + i));
+        }
+    }
 }
 
 void transform_tohost_VkWriteDescriptorSet(
@@ -2000,54 +2194,6 @@ void transform_fromhost_VkWriteDescriptorSet(
     }
 }
 
-void transform_tohost_VkCopyDescriptorSet(
-    ResourceTracker* resourceTracker,
-    VkCopyDescriptorSet* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkCopyDescriptorSet(
-    ResourceTracker* resourceTracker,
-    VkCopyDescriptorSet* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_tohost_VkFramebufferCreateInfo(
-    ResourceTracker* resourceTracker,
-    VkFramebufferCreateInfo* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkFramebufferCreateInfo(
-    ResourceTracker* resourceTracker,
-    VkFramebufferCreateInfo* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
 void transform_tohost_VkAttachmentDescription(
     ResourceTracker* resourceTracker,
     VkAttachmentDescription* toTransform)
@@ -2078,6 +2224,30 @@ void transform_fromhost_VkAttachmentReference(
 {
     (void)resourceTracker;
     (void)toTransform;
+}
+
+void transform_tohost_VkFramebufferCreateInfo(
+    ResourceTracker* resourceTracker,
+    VkFramebufferCreateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkFramebufferCreateInfo(
+    ResourceTracker* resourceTracker,
+    VkFramebufferCreateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
 }
 
 void transform_tohost_VkSubpassDescription(
@@ -2364,68 +2534,6 @@ void transform_fromhost_VkImageSubresourceLayers(
     (void)toTransform;
 }
 
-void transform_tohost_VkImageCopy(
-    ResourceTracker* resourceTracker,
-    VkImageCopy* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    transform_tohost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->srcSubresource));
-    transform_tohost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->srcOffset));
-    transform_tohost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->dstSubresource));
-    transform_tohost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->dstOffset));
-    transform_tohost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->extent));
-}
-
-void transform_fromhost_VkImageCopy(
-    ResourceTracker* resourceTracker,
-    VkImageCopy* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    transform_fromhost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->srcSubresource));
-    transform_fromhost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->srcOffset));
-    transform_fromhost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->dstSubresource));
-    transform_fromhost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->dstOffset));
-    transform_fromhost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->extent));
-}
-
-void transform_tohost_VkImageBlit(
-    ResourceTracker* resourceTracker,
-    VkImageBlit* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    transform_tohost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->srcSubresource));
-    for (uint32_t i = 0; i < (uint32_t)2; ++i)
-    {
-        transform_tohost_VkOffset3D(resourceTracker, (VkOffset3D*)(toTransform->srcOffsets + i));
-    }
-    transform_tohost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->dstSubresource));
-    for (uint32_t i = 0; i < (uint32_t)2; ++i)
-    {
-        transform_tohost_VkOffset3D(resourceTracker, (VkOffset3D*)(toTransform->dstOffsets + i));
-    }
-}
-
-void transform_fromhost_VkImageBlit(
-    ResourceTracker* resourceTracker,
-    VkImageBlit* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    transform_fromhost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->srcSubresource));
-    for (uint32_t i = 0; i < (uint32_t)2; ++i)
-    {
-        transform_fromhost_VkOffset3D(resourceTracker, (VkOffset3D*)(toTransform->srcOffsets + i));
-    }
-    transform_fromhost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->dstSubresource));
-    for (uint32_t i = 0; i < (uint32_t)2; ++i)
-    {
-        transform_fromhost_VkOffset3D(resourceTracker, (VkOffset3D*)(toTransform->dstOffsets + i));
-    }
-}
-
 void transform_tohost_VkBufferImageCopy(
     ResourceTracker* resourceTracker,
     VkBufferImageCopy* toTransform)
@@ -2536,6 +2644,68 @@ void transform_fromhost_VkClearRect(
     transform_fromhost_VkRect2D(resourceTracker, (VkRect2D*)(&toTransform->rect));
 }
 
+void transform_tohost_VkImageBlit(
+    ResourceTracker* resourceTracker,
+    VkImageBlit* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_tohost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->srcSubresource));
+    for (uint32_t i = 0; i < (uint32_t)2; ++i)
+    {
+        transform_tohost_VkOffset3D(resourceTracker, (VkOffset3D*)(toTransform->srcOffsets + i));
+    }
+    transform_tohost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->dstSubresource));
+    for (uint32_t i = 0; i < (uint32_t)2; ++i)
+    {
+        transform_tohost_VkOffset3D(resourceTracker, (VkOffset3D*)(toTransform->dstOffsets + i));
+    }
+}
+
+void transform_fromhost_VkImageBlit(
+    ResourceTracker* resourceTracker,
+    VkImageBlit* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_fromhost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->srcSubresource));
+    for (uint32_t i = 0; i < (uint32_t)2; ++i)
+    {
+        transform_fromhost_VkOffset3D(resourceTracker, (VkOffset3D*)(toTransform->srcOffsets + i));
+    }
+    transform_fromhost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->dstSubresource));
+    for (uint32_t i = 0; i < (uint32_t)2; ++i)
+    {
+        transform_fromhost_VkOffset3D(resourceTracker, (VkOffset3D*)(toTransform->dstOffsets + i));
+    }
+}
+
+void transform_tohost_VkImageCopy(
+    ResourceTracker* resourceTracker,
+    VkImageCopy* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_tohost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->srcSubresource));
+    transform_tohost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->srcOffset));
+    transform_tohost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->dstSubresource));
+    transform_tohost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->dstOffset));
+    transform_tohost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->extent));
+}
+
+void transform_fromhost_VkImageCopy(
+    ResourceTracker* resourceTracker,
+    VkImageCopy* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_fromhost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->srcSubresource));
+    transform_fromhost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->srcOffset));
+    transform_fromhost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->dstSubresource));
+    transform_fromhost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->dstOffset));
+    transform_fromhost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->extent));
+}
+
 void transform_tohost_VkImageResolve(
     ResourceTracker* resourceTracker,
     VkImageResolve* toTransform)
@@ -2560,80 +2730,6 @@ void transform_fromhost_VkImageResolve(
     transform_fromhost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->dstSubresource));
     transform_fromhost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->dstOffset));
     transform_fromhost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->extent));
-}
-
-void transform_tohost_VkMemoryBarrier(
-    ResourceTracker* resourceTracker,
-    VkMemoryBarrier* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkMemoryBarrier(
-    ResourceTracker* resourceTracker,
-    VkMemoryBarrier* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_tohost_VkBufferMemoryBarrier(
-    ResourceTracker* resourceTracker,
-    VkBufferMemoryBarrier* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkBufferMemoryBarrier(
-    ResourceTracker* resourceTracker,
-    VkBufferMemoryBarrier* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_tohost_VkImageMemoryBarrier(
-    ResourceTracker* resourceTracker,
-    VkImageMemoryBarrier* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-    transform_tohost_VkImageSubresourceRange(resourceTracker, (VkImageSubresourceRange*)(&toTransform->subresourceRange));
-}
-
-void transform_fromhost_VkImageMemoryBarrier(
-    ResourceTracker* resourceTracker,
-    VkImageMemoryBarrier* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-    transform_fromhost_VkImageSubresourceRange(resourceTracker, (VkImageSubresourceRange*)(&toTransform->subresourceRange));
 }
 
 void transform_tohost_VkRenderPassBeginInfo(
@@ -2673,102 +2769,6 @@ void transform_fromhost_VkRenderPassBeginInfo(
         {
             transform_fromhost_VkClearValue(resourceTracker, (VkClearValue*)(toTransform->pClearValues + i));
         }
-    }
-}
-
-void transform_tohost_VkDispatchIndirectCommand(
-    ResourceTracker* resourceTracker,
-    VkDispatchIndirectCommand* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkDispatchIndirectCommand(
-    ResourceTracker* resourceTracker,
-    VkDispatchIndirectCommand* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_tohost_VkDrawIndexedIndirectCommand(
-    ResourceTracker* resourceTracker,
-    VkDrawIndexedIndirectCommand* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkDrawIndexedIndirectCommand(
-    ResourceTracker* resourceTracker,
-    VkDrawIndexedIndirectCommand* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_tohost_VkDrawIndirectCommand(
-    ResourceTracker* resourceTracker,
-    VkDrawIndirectCommand* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkDrawIndirectCommand(
-    ResourceTracker* resourceTracker,
-    VkDrawIndirectCommand* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_tohost_VkBaseOutStructure(
-    ResourceTracker* resourceTracker,
-    VkBaseOutStructure* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkBaseOutStructure(
-    ResourceTracker* resourceTracker,
-    VkBaseOutStructure* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_tohost_VkBaseInStructure(
-    ResourceTracker* resourceTracker,
-    VkBaseInStructure* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkBaseInStructure(
-    ResourceTracker* resourceTracker,
-    VkBaseInStructure* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
     }
 }
 
@@ -3718,9 +3718,9 @@ void transform_fromhost_VkPhysicalDeviceMultiviewProperties(
     }
 }
 
-void transform_tohost_VkPhysicalDeviceVariablePointerFeatures(
+void transform_tohost_VkPhysicalDeviceVariablePointersFeatures(
     ResourceTracker* resourceTracker,
-    VkPhysicalDeviceVariablePointerFeatures* toTransform)
+    VkPhysicalDeviceVariablePointersFeatures* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -3730,9 +3730,9 @@ void transform_tohost_VkPhysicalDeviceVariablePointerFeatures(
     }
 }
 
-void transform_fromhost_VkPhysicalDeviceVariablePointerFeatures(
+void transform_fromhost_VkPhysicalDeviceVariablePointersFeatures(
     ResourceTracker* resourceTracker,
-    VkPhysicalDeviceVariablePointerFeatures* toTransform)
+    VkPhysicalDeviceVariablePointersFeatures* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -4446,9 +4446,9 @@ void transform_fromhost_VkDescriptorSetLayoutSupport(
     }
 }
 
-void transform_tohost_VkPhysicalDeviceShaderDrawParameterFeatures(
+void transform_tohost_VkPhysicalDeviceShaderDrawParametersFeatures(
     ResourceTracker* resourceTracker,
-    VkPhysicalDeviceShaderDrawParameterFeatures* toTransform)
+    VkPhysicalDeviceShaderDrawParametersFeatures* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -4458,9 +4458,1345 @@ void transform_tohost_VkPhysicalDeviceShaderDrawParameterFeatures(
     }
 }
 
-void transform_fromhost_VkPhysicalDeviceShaderDrawParameterFeatures(
+void transform_fromhost_VkPhysicalDeviceShaderDrawParametersFeatures(
     ResourceTracker* resourceTracker,
-    VkPhysicalDeviceShaderDrawParameterFeatures* toTransform)
+    VkPhysicalDeviceShaderDrawParametersFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_VERSION_1_2
+void transform_tohost_VkPhysicalDeviceVulkan11Features(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceVulkan11Features* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceVulkan11Features(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceVulkan11Features* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceVulkan11Properties(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceVulkan11Properties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceVulkan11Properties(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceVulkan11Properties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceVulkan12Features(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceVulkan12Features* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceVulkan12Features(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceVulkan12Features* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkConformanceVersion(
+    ResourceTracker* resourceTracker,
+    VkConformanceVersion* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkConformanceVersion(
+    ResourceTracker* resourceTracker,
+    VkConformanceVersion* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkPhysicalDeviceVulkan12Properties(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceVulkan12Properties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkConformanceVersion(resourceTracker, (VkConformanceVersion*)(&toTransform->conformanceVersion));
+}
+
+void transform_fromhost_VkPhysicalDeviceVulkan12Properties(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceVulkan12Properties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkConformanceVersion(resourceTracker, (VkConformanceVersion*)(&toTransform->conformanceVersion));
+}
+
+void transform_tohost_VkImageFormatListCreateInfo(
+    ResourceTracker* resourceTracker,
+    VkImageFormatListCreateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkImageFormatListCreateInfo(
+    ResourceTracker* resourceTracker,
+    VkImageFormatListCreateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkAttachmentDescription2(
+    ResourceTracker* resourceTracker,
+    VkAttachmentDescription2* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkAttachmentDescription2(
+    ResourceTracker* resourceTracker,
+    VkAttachmentDescription2* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkAttachmentReference2(
+    ResourceTracker* resourceTracker,
+    VkAttachmentReference2* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkAttachmentReference2(
+    ResourceTracker* resourceTracker,
+    VkAttachmentReference2* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkSubpassDescription2(
+    ResourceTracker* resourceTracker,
+    VkSubpassDescription2* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pInputAttachments)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->inputAttachmentCount; ++i)
+        {
+            transform_tohost_VkAttachmentReference2(resourceTracker, (VkAttachmentReference2*)(toTransform->pInputAttachments + i));
+        }
+    }
+    if (toTransform->pColorAttachments)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->colorAttachmentCount; ++i)
+        {
+            transform_tohost_VkAttachmentReference2(resourceTracker, (VkAttachmentReference2*)(toTransform->pColorAttachments + i));
+        }
+    }
+    if (toTransform->pResolveAttachments)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->colorAttachmentCount; ++i)
+        {
+            transform_tohost_VkAttachmentReference2(resourceTracker, (VkAttachmentReference2*)(toTransform->pResolveAttachments + i));
+        }
+    }
+    if (toTransform->pDepthStencilAttachment)
+    {
+        transform_tohost_VkAttachmentReference2(resourceTracker, (VkAttachmentReference2*)(toTransform->pDepthStencilAttachment));
+    }
+}
+
+void transform_fromhost_VkSubpassDescription2(
+    ResourceTracker* resourceTracker,
+    VkSubpassDescription2* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pInputAttachments)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->inputAttachmentCount; ++i)
+        {
+            transform_fromhost_VkAttachmentReference2(resourceTracker, (VkAttachmentReference2*)(toTransform->pInputAttachments + i));
+        }
+    }
+    if (toTransform->pColorAttachments)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->colorAttachmentCount; ++i)
+        {
+            transform_fromhost_VkAttachmentReference2(resourceTracker, (VkAttachmentReference2*)(toTransform->pColorAttachments + i));
+        }
+    }
+    if (toTransform->pResolveAttachments)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->colorAttachmentCount; ++i)
+        {
+            transform_fromhost_VkAttachmentReference2(resourceTracker, (VkAttachmentReference2*)(toTransform->pResolveAttachments + i));
+        }
+    }
+    if (toTransform->pDepthStencilAttachment)
+    {
+        transform_fromhost_VkAttachmentReference2(resourceTracker, (VkAttachmentReference2*)(toTransform->pDepthStencilAttachment));
+    }
+}
+
+void transform_tohost_VkSubpassDependency2(
+    ResourceTracker* resourceTracker,
+    VkSubpassDependency2* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkSubpassDependency2(
+    ResourceTracker* resourceTracker,
+    VkSubpassDependency2* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkRenderPassCreateInfo2(
+    ResourceTracker* resourceTracker,
+    VkRenderPassCreateInfo2* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pAttachments)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->attachmentCount; ++i)
+        {
+            transform_tohost_VkAttachmentDescription2(resourceTracker, (VkAttachmentDescription2*)(toTransform->pAttachments + i));
+        }
+    }
+    if (toTransform->pSubpasses)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->subpassCount; ++i)
+        {
+            transform_tohost_VkSubpassDescription2(resourceTracker, (VkSubpassDescription2*)(toTransform->pSubpasses + i));
+        }
+    }
+    if (toTransform->pDependencies)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->dependencyCount; ++i)
+        {
+            transform_tohost_VkSubpassDependency2(resourceTracker, (VkSubpassDependency2*)(toTransform->pDependencies + i));
+        }
+    }
+}
+
+void transform_fromhost_VkRenderPassCreateInfo2(
+    ResourceTracker* resourceTracker,
+    VkRenderPassCreateInfo2* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pAttachments)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->attachmentCount; ++i)
+        {
+            transform_fromhost_VkAttachmentDescription2(resourceTracker, (VkAttachmentDescription2*)(toTransform->pAttachments + i));
+        }
+    }
+    if (toTransform->pSubpasses)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->subpassCount; ++i)
+        {
+            transform_fromhost_VkSubpassDescription2(resourceTracker, (VkSubpassDescription2*)(toTransform->pSubpasses + i));
+        }
+    }
+    if (toTransform->pDependencies)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->dependencyCount; ++i)
+        {
+            transform_fromhost_VkSubpassDependency2(resourceTracker, (VkSubpassDependency2*)(toTransform->pDependencies + i));
+        }
+    }
+}
+
+void transform_tohost_VkSubpassBeginInfo(
+    ResourceTracker* resourceTracker,
+    VkSubpassBeginInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkSubpassBeginInfo(
+    ResourceTracker* resourceTracker,
+    VkSubpassBeginInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkSubpassEndInfo(
+    ResourceTracker* resourceTracker,
+    VkSubpassEndInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkSubpassEndInfo(
+    ResourceTracker* resourceTracker,
+    VkSubpassEndInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDevice8BitStorageFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevice8BitStorageFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDevice8BitStorageFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevice8BitStorageFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceDriverProperties(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDriverProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkConformanceVersion(resourceTracker, (VkConformanceVersion*)(&toTransform->conformanceVersion));
+}
+
+void transform_fromhost_VkPhysicalDeviceDriverProperties(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDriverProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkConformanceVersion(resourceTracker, (VkConformanceVersion*)(&toTransform->conformanceVersion));
+}
+
+void transform_tohost_VkPhysicalDeviceShaderAtomicInt64Features(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderAtomicInt64Features* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceShaderAtomicInt64Features(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderAtomicInt64Features* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceShaderFloat16Int8Features(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderFloat16Int8Features* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceShaderFloat16Int8Features(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderFloat16Int8Features* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceFloatControlsProperties(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFloatControlsProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceFloatControlsProperties(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFloatControlsProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkDescriptorSetLayoutBindingFlagsCreateInfo(
+    ResourceTracker* resourceTracker,
+    VkDescriptorSetLayoutBindingFlagsCreateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkDescriptorSetLayoutBindingFlagsCreateInfo(
+    ResourceTracker* resourceTracker,
+    VkDescriptorSetLayoutBindingFlagsCreateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceDescriptorIndexingFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDescriptorIndexingFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceDescriptorIndexingFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDescriptorIndexingFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceDescriptorIndexingProperties(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDescriptorIndexingProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceDescriptorIndexingProperties(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDescriptorIndexingProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkDescriptorSetVariableDescriptorCountAllocateInfo(
+    ResourceTracker* resourceTracker,
+    VkDescriptorSetVariableDescriptorCountAllocateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkDescriptorSetVariableDescriptorCountAllocateInfo(
+    ResourceTracker* resourceTracker,
+    VkDescriptorSetVariableDescriptorCountAllocateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkDescriptorSetVariableDescriptorCountLayoutSupport(
+    ResourceTracker* resourceTracker,
+    VkDescriptorSetVariableDescriptorCountLayoutSupport* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkDescriptorSetVariableDescriptorCountLayoutSupport(
+    ResourceTracker* resourceTracker,
+    VkDescriptorSetVariableDescriptorCountLayoutSupport* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkSubpassDescriptionDepthStencilResolve(
+    ResourceTracker* resourceTracker,
+    VkSubpassDescriptionDepthStencilResolve* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pDepthStencilResolveAttachment)
+    {
+        transform_tohost_VkAttachmentReference2(resourceTracker, (VkAttachmentReference2*)(toTransform->pDepthStencilResolveAttachment));
+    }
+}
+
+void transform_fromhost_VkSubpassDescriptionDepthStencilResolve(
+    ResourceTracker* resourceTracker,
+    VkSubpassDescriptionDepthStencilResolve* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pDepthStencilResolveAttachment)
+    {
+        transform_fromhost_VkAttachmentReference2(resourceTracker, (VkAttachmentReference2*)(toTransform->pDepthStencilResolveAttachment));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceDepthStencilResolveProperties(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDepthStencilResolveProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceDepthStencilResolveProperties(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDepthStencilResolveProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceScalarBlockLayoutFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceScalarBlockLayoutFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceScalarBlockLayoutFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceScalarBlockLayoutFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkImageStencilUsageCreateInfo(
+    ResourceTracker* resourceTracker,
+    VkImageStencilUsageCreateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkImageStencilUsageCreateInfo(
+    ResourceTracker* resourceTracker,
+    VkImageStencilUsageCreateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkSamplerReductionModeCreateInfo(
+    ResourceTracker* resourceTracker,
+    VkSamplerReductionModeCreateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkSamplerReductionModeCreateInfo(
+    ResourceTracker* resourceTracker,
+    VkSamplerReductionModeCreateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceSamplerFilterMinmaxProperties(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceSamplerFilterMinmaxProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceSamplerFilterMinmaxProperties(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceSamplerFilterMinmaxProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceVulkanMemoryModelFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceVulkanMemoryModelFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceVulkanMemoryModelFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceVulkanMemoryModelFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceImagelessFramebufferFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceImagelessFramebufferFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceImagelessFramebufferFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceImagelessFramebufferFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkFramebufferAttachmentImageInfo(
+    ResourceTracker* resourceTracker,
+    VkFramebufferAttachmentImageInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkFramebufferAttachmentImageInfo(
+    ResourceTracker* resourceTracker,
+    VkFramebufferAttachmentImageInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkFramebufferAttachmentsCreateInfo(
+    ResourceTracker* resourceTracker,
+    VkFramebufferAttachmentsCreateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pAttachmentImageInfos)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->attachmentImageInfoCount; ++i)
+        {
+            transform_tohost_VkFramebufferAttachmentImageInfo(resourceTracker, (VkFramebufferAttachmentImageInfo*)(toTransform->pAttachmentImageInfos + i));
+        }
+    }
+}
+
+void transform_fromhost_VkFramebufferAttachmentsCreateInfo(
+    ResourceTracker* resourceTracker,
+    VkFramebufferAttachmentsCreateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pAttachmentImageInfos)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->attachmentImageInfoCount; ++i)
+        {
+            transform_fromhost_VkFramebufferAttachmentImageInfo(resourceTracker, (VkFramebufferAttachmentImageInfo*)(toTransform->pAttachmentImageInfos + i));
+        }
+    }
+}
+
+void transform_tohost_VkRenderPassAttachmentBeginInfo(
+    ResourceTracker* resourceTracker,
+    VkRenderPassAttachmentBeginInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkRenderPassAttachmentBeginInfo(
+    ResourceTracker* resourceTracker,
+    VkRenderPassAttachmentBeginInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceUniformBufferStandardLayoutFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceUniformBufferStandardLayoutFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceUniformBufferStandardLayoutFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceUniformBufferStandardLayoutFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkAttachmentReferenceStencilLayout(
+    ResourceTracker* resourceTracker,
+    VkAttachmentReferenceStencilLayout* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkAttachmentReferenceStencilLayout(
+    ResourceTracker* resourceTracker,
+    VkAttachmentReferenceStencilLayout* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkAttachmentDescriptionStencilLayout(
+    ResourceTracker* resourceTracker,
+    VkAttachmentDescriptionStencilLayout* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkAttachmentDescriptionStencilLayout(
+    ResourceTracker* resourceTracker,
+    VkAttachmentDescriptionStencilLayout* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceHostQueryResetFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceHostQueryResetFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceHostQueryResetFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceHostQueryResetFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceTimelineSemaphoreFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceTimelineSemaphoreFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceTimelineSemaphoreFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceTimelineSemaphoreFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceTimelineSemaphoreProperties(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceTimelineSemaphoreProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceTimelineSemaphoreProperties(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceTimelineSemaphoreProperties* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkSemaphoreTypeCreateInfo(
+    ResourceTracker* resourceTracker,
+    VkSemaphoreTypeCreateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkSemaphoreTypeCreateInfo(
+    ResourceTracker* resourceTracker,
+    VkSemaphoreTypeCreateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkTimelineSemaphoreSubmitInfo(
+    ResourceTracker* resourceTracker,
+    VkTimelineSemaphoreSubmitInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkTimelineSemaphoreSubmitInfo(
+    ResourceTracker* resourceTracker,
+    VkTimelineSemaphoreSubmitInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkSemaphoreWaitInfo(
+    ResourceTracker* resourceTracker,
+    VkSemaphoreWaitInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkSemaphoreWaitInfo(
+    ResourceTracker* resourceTracker,
+    VkSemaphoreWaitInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkSemaphoreSignalInfo(
+    ResourceTracker* resourceTracker,
+    VkSemaphoreSignalInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkSemaphoreSignalInfo(
+    ResourceTracker* resourceTracker,
+    VkSemaphoreSignalInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceBufferDeviceAddressFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceBufferDeviceAddressFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceBufferDeviceAddressFeatures(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceBufferDeviceAddressFeatures* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkBufferDeviceAddressInfo(
+    ResourceTracker* resourceTracker,
+    VkBufferDeviceAddressInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkBufferDeviceAddressInfo(
+    ResourceTracker* resourceTracker,
+    VkBufferDeviceAddressInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkBufferOpaqueCaptureAddressCreateInfo(
+    ResourceTracker* resourceTracker,
+    VkBufferOpaqueCaptureAddressCreateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkBufferOpaqueCaptureAddressCreateInfo(
+    ResourceTracker* resourceTracker,
+    VkBufferOpaqueCaptureAddressCreateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkMemoryOpaqueCaptureAddressAllocateInfo(
+    ResourceTracker* resourceTracker,
+    VkMemoryOpaqueCaptureAddressAllocateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkMemoryOpaqueCaptureAddressAllocateInfo(
+    ResourceTracker* resourceTracker,
+    VkMemoryOpaqueCaptureAddressAllocateInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkDeviceMemoryOpaqueCaptureAddressInfo(
+    ResourceTracker* resourceTracker,
+    VkDeviceMemoryOpaqueCaptureAddressInfo* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkDeviceMemoryOpaqueCaptureAddressInfo(
+    ResourceTracker* resourceTracker,
+    VkDeviceMemoryOpaqueCaptureAddressInfo* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -4708,26 +6044,6 @@ void transform_fromhost_VkDeviceGroupSwapchainCreateInfoKHR(
 
 #endif
 #ifdef VK_KHR_display
-void transform_tohost_VkDisplayPropertiesKHR(
-    ResourceTracker* resourceTracker,
-    VkDisplayPropertiesKHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    transform_tohost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->physicalDimensions));
-    transform_tohost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->physicalResolution));
-}
-
-void transform_fromhost_VkDisplayPropertiesKHR(
-    ResourceTracker* resourceTracker,
-    VkDisplayPropertiesKHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    transform_fromhost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->physicalDimensions));
-    transform_fromhost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->physicalResolution));
-}
-
 void transform_tohost_VkDisplayModeParametersKHR(
     ResourceTracker* resourceTracker,
     VkDisplayModeParametersKHR* toTransform)
@@ -4744,24 +6060,6 @@ void transform_fromhost_VkDisplayModeParametersKHR(
     (void)resourceTracker;
     (void)toTransform;
     transform_fromhost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->visibleRegion));
-}
-
-void transform_tohost_VkDisplayModePropertiesKHR(
-    ResourceTracker* resourceTracker,
-    VkDisplayModePropertiesKHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    transform_tohost_VkDisplayModeParametersKHR(resourceTracker, (VkDisplayModeParametersKHR*)(&toTransform->parameters));
-}
-
-void transform_fromhost_VkDisplayModePropertiesKHR(
-    ResourceTracker* resourceTracker,
-    VkDisplayModePropertiesKHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    transform_fromhost_VkDisplayModeParametersKHR(resourceTracker, (VkDisplayModeParametersKHR*)(&toTransform->parameters));
 }
 
 void transform_tohost_VkDisplayModeCreateInfoKHR(
@@ -4787,6 +6085,24 @@ void transform_fromhost_VkDisplayModeCreateInfoKHR(
     {
         transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
     }
+    transform_fromhost_VkDisplayModeParametersKHR(resourceTracker, (VkDisplayModeParametersKHR*)(&toTransform->parameters));
+}
+
+void transform_tohost_VkDisplayModePropertiesKHR(
+    ResourceTracker* resourceTracker,
+    VkDisplayModePropertiesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_tohost_VkDisplayModeParametersKHR(resourceTracker, (VkDisplayModeParametersKHR*)(&toTransform->parameters));
+}
+
+void transform_fromhost_VkDisplayModePropertiesKHR(
+    ResourceTracker* resourceTracker,
+    VkDisplayModePropertiesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
     transform_fromhost_VkDisplayModeParametersKHR(resourceTracker, (VkDisplayModeParametersKHR*)(&toTransform->parameters));
 }
 
@@ -4836,6 +6152,26 @@ void transform_fromhost_VkDisplayPlanePropertiesKHR(
 {
     (void)resourceTracker;
     (void)toTransform;
+}
+
+void transform_tohost_VkDisplayPropertiesKHR(
+    ResourceTracker* resourceTracker,
+    VkDisplayPropertiesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_tohost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->physicalDimensions));
+    transform_tohost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->physicalResolution));
+}
+
+void transform_fromhost_VkDisplayPropertiesKHR(
+    ResourceTracker* resourceTracker,
+    VkDisplayPropertiesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_fromhost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->physicalDimensions));
+    transform_fromhost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->physicalResolution));
 }
 
 void transform_tohost_VkDisplaySurfaceCreateInfoKHR(
@@ -4963,32 +6299,6 @@ void transform_tohost_VkWaylandSurfaceCreateInfoKHR(
 void transform_fromhost_VkWaylandSurfaceCreateInfoKHR(
     ResourceTracker* resourceTracker,
     VkWaylandSurfaceCreateInfoKHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-#endif
-#ifdef VK_KHR_mir_surface
-void transform_tohost_VkMirSurfaceCreateInfoKHR(
-    ResourceTracker* resourceTracker,
-    VkMirSurfaceCreateInfoKHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkMirSurfaceCreateInfoKHR(
-    ResourceTracker* resourceTracker,
-    VkMirSurfaceCreateInfoKHR* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -5455,6 +6765,8 @@ void transform_fromhost_VkPhysicalDevicePushDescriptorPropertiesKHR(
 }
 
 #endif
+#ifdef VK_KHR_shader_float16_int8
+#endif
 #ifdef VK_KHR_16bit_storage
 #endif
 #ifdef VK_KHR_incremental_present
@@ -5549,267 +6861,9 @@ void transform_fromhost_VkPresentRegionsKHR(
 #endif
 #ifdef VK_KHR_descriptor_update_template
 #endif
+#ifdef VK_KHR_imageless_framebuffer
+#endif
 #ifdef VK_KHR_create_renderpass2
-void transform_tohost_VkAttachmentDescription2KHR(
-    ResourceTracker* resourceTracker,
-    VkAttachmentDescription2KHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkAttachmentDescription2KHR(
-    ResourceTracker* resourceTracker,
-    VkAttachmentDescription2KHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_tohost_VkAttachmentReference2KHR(
-    ResourceTracker* resourceTracker,
-    VkAttachmentReference2KHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkAttachmentReference2KHR(
-    ResourceTracker* resourceTracker,
-    VkAttachmentReference2KHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_tohost_VkSubpassDescription2KHR(
-    ResourceTracker* resourceTracker,
-    VkSubpassDescription2KHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-    if (toTransform->pInputAttachments)
-    {
-        for (uint32_t i = 0; i < (uint32_t)toTransform->inputAttachmentCount; ++i)
-        {
-            transform_tohost_VkAttachmentReference2KHR(resourceTracker, (VkAttachmentReference2KHR*)(toTransform->pInputAttachments + i));
-        }
-    }
-    if (toTransform->pColorAttachments)
-    {
-        for (uint32_t i = 0; i < (uint32_t)toTransform->colorAttachmentCount; ++i)
-        {
-            transform_tohost_VkAttachmentReference2KHR(resourceTracker, (VkAttachmentReference2KHR*)(toTransform->pColorAttachments + i));
-        }
-    }
-    if (toTransform->pResolveAttachments)
-    {
-        for (uint32_t i = 0; i < (uint32_t)toTransform->colorAttachmentCount; ++i)
-        {
-            transform_tohost_VkAttachmentReference2KHR(resourceTracker, (VkAttachmentReference2KHR*)(toTransform->pResolveAttachments + i));
-        }
-    }
-    if (toTransform->pDepthStencilAttachment)
-    {
-        transform_tohost_VkAttachmentReference2KHR(resourceTracker, (VkAttachmentReference2KHR*)(toTransform->pDepthStencilAttachment));
-    }
-}
-
-void transform_fromhost_VkSubpassDescription2KHR(
-    ResourceTracker* resourceTracker,
-    VkSubpassDescription2KHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-    if (toTransform->pInputAttachments)
-    {
-        for (uint32_t i = 0; i < (uint32_t)toTransform->inputAttachmentCount; ++i)
-        {
-            transform_fromhost_VkAttachmentReference2KHR(resourceTracker, (VkAttachmentReference2KHR*)(toTransform->pInputAttachments + i));
-        }
-    }
-    if (toTransform->pColorAttachments)
-    {
-        for (uint32_t i = 0; i < (uint32_t)toTransform->colorAttachmentCount; ++i)
-        {
-            transform_fromhost_VkAttachmentReference2KHR(resourceTracker, (VkAttachmentReference2KHR*)(toTransform->pColorAttachments + i));
-        }
-    }
-    if (toTransform->pResolveAttachments)
-    {
-        for (uint32_t i = 0; i < (uint32_t)toTransform->colorAttachmentCount; ++i)
-        {
-            transform_fromhost_VkAttachmentReference2KHR(resourceTracker, (VkAttachmentReference2KHR*)(toTransform->pResolveAttachments + i));
-        }
-    }
-    if (toTransform->pDepthStencilAttachment)
-    {
-        transform_fromhost_VkAttachmentReference2KHR(resourceTracker, (VkAttachmentReference2KHR*)(toTransform->pDepthStencilAttachment));
-    }
-}
-
-void transform_tohost_VkSubpassDependency2KHR(
-    ResourceTracker* resourceTracker,
-    VkSubpassDependency2KHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkSubpassDependency2KHR(
-    ResourceTracker* resourceTracker,
-    VkSubpassDependency2KHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_tohost_VkRenderPassCreateInfo2KHR(
-    ResourceTracker* resourceTracker,
-    VkRenderPassCreateInfo2KHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-    if (toTransform->pAttachments)
-    {
-        for (uint32_t i = 0; i < (uint32_t)toTransform->attachmentCount; ++i)
-        {
-            transform_tohost_VkAttachmentDescription2KHR(resourceTracker, (VkAttachmentDescription2KHR*)(toTransform->pAttachments + i));
-        }
-    }
-    if (toTransform->pSubpasses)
-    {
-        for (uint32_t i = 0; i < (uint32_t)toTransform->subpassCount; ++i)
-        {
-            transform_tohost_VkSubpassDescription2KHR(resourceTracker, (VkSubpassDescription2KHR*)(toTransform->pSubpasses + i));
-        }
-    }
-    if (toTransform->pDependencies)
-    {
-        for (uint32_t i = 0; i < (uint32_t)toTransform->dependencyCount; ++i)
-        {
-            transform_tohost_VkSubpassDependency2KHR(resourceTracker, (VkSubpassDependency2KHR*)(toTransform->pDependencies + i));
-        }
-    }
-}
-
-void transform_fromhost_VkRenderPassCreateInfo2KHR(
-    ResourceTracker* resourceTracker,
-    VkRenderPassCreateInfo2KHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-    if (toTransform->pAttachments)
-    {
-        for (uint32_t i = 0; i < (uint32_t)toTransform->attachmentCount; ++i)
-        {
-            transform_fromhost_VkAttachmentDescription2KHR(resourceTracker, (VkAttachmentDescription2KHR*)(toTransform->pAttachments + i));
-        }
-    }
-    if (toTransform->pSubpasses)
-    {
-        for (uint32_t i = 0; i < (uint32_t)toTransform->subpassCount; ++i)
-        {
-            transform_fromhost_VkSubpassDescription2KHR(resourceTracker, (VkSubpassDescription2KHR*)(toTransform->pSubpasses + i));
-        }
-    }
-    if (toTransform->pDependencies)
-    {
-        for (uint32_t i = 0; i < (uint32_t)toTransform->dependencyCount; ++i)
-        {
-            transform_fromhost_VkSubpassDependency2KHR(resourceTracker, (VkSubpassDependency2KHR*)(toTransform->pDependencies + i));
-        }
-    }
-}
-
-void transform_tohost_VkSubpassBeginInfoKHR(
-    ResourceTracker* resourceTracker,
-    VkSubpassBeginInfoKHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkSubpassBeginInfoKHR(
-    ResourceTracker* resourceTracker,
-    VkSubpassBeginInfoKHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_tohost_VkSubpassEndInfoKHR(
-    ResourceTracker* resourceTracker,
-    VkSubpassEndInfoKHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkSubpassEndInfoKHR(
-    ResourceTracker* resourceTracker,
-    VkSubpassEndInfoKHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
 #endif
 #ifdef VK_KHR_shared_presentable_image
 void transform_tohost_VkSharedPresentSurfaceCapabilitiesKHR(
@@ -5955,6 +7009,192 @@ void transform_tohost_VkFenceGetFdInfoKHR(
 void transform_fromhost_VkFenceGetFdInfoKHR(
     ResourceTracker* resourceTracker,
     VkFenceGetFdInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_KHR_performance_query
+void transform_tohost_VkPhysicalDevicePerformanceQueryFeaturesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevicePerformanceQueryFeaturesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDevicePerformanceQueryFeaturesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevicePerformanceQueryFeaturesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDevicePerformanceQueryPropertiesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevicePerformanceQueryPropertiesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDevicePerformanceQueryPropertiesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevicePerformanceQueryPropertiesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPerformanceCounterKHR(
+    ResourceTracker* resourceTracker,
+    VkPerformanceCounterKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPerformanceCounterKHR(
+    ResourceTracker* resourceTracker,
+    VkPerformanceCounterKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPerformanceCounterDescriptionKHR(
+    ResourceTracker* resourceTracker,
+    VkPerformanceCounterDescriptionKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPerformanceCounterDescriptionKHR(
+    ResourceTracker* resourceTracker,
+    VkPerformanceCounterDescriptionKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkQueryPoolPerformanceCreateInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkQueryPoolPerformanceCreateInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkQueryPoolPerformanceCreateInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkQueryPoolPerformanceCreateInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPerformanceCounterResultKHR(
+    ResourceTracker* resourceTracker,
+    VkPerformanceCounterResultKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkPerformanceCounterResultKHR(
+    ResourceTracker* resourceTracker,
+    VkPerformanceCounterResultKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkAcquireProfilingLockInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkAcquireProfilingLockInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkAcquireProfilingLockInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkAcquireProfilingLockInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPerformanceQuerySubmitInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkPerformanceQuerySubmitInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPerformanceQuerySubmitInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkPerformanceQuerySubmitInfoKHR* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -6186,43 +7426,75 @@ void transform_fromhost_VkDisplayPlaneCapabilities2KHR(
 #ifdef VK_KHR_get_memory_requirements2
 #endif
 #ifdef VK_KHR_image_format_list
-void transform_tohost_VkImageFormatListCreateInfoKHR(
-    ResourceTracker* resourceTracker,
-    VkImageFormatListCreateInfoKHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkImageFormatListCreateInfoKHR(
-    ResourceTracker* resourceTracker,
-    VkImageFormatListCreateInfoKHR* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
 #endif
 #ifdef VK_KHR_sampler_ycbcr_conversion
 #endif
 #ifdef VK_KHR_bind_memory2
 #endif
+#ifdef VK_KHR_portability_subset
+void transform_tohost_VkPhysicalDevicePortabilitySubsetFeaturesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevicePortabilitySubsetFeaturesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDevicePortabilitySubsetFeaturesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevicePortabilitySubsetFeaturesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDevicePortabilitySubsetPropertiesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevicePortabilitySubsetPropertiesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDevicePortabilitySubsetPropertiesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevicePortabilitySubsetPropertiesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
 #ifdef VK_KHR_maintenance3
 #endif
 #ifdef VK_KHR_draw_indirect_count
 #endif
+#ifdef VK_KHR_shader_subgroup_extended_types
+#endif
 #ifdef VK_KHR_8bit_storage
-void transform_tohost_VkPhysicalDevice8BitStorageFeaturesKHR(
+#endif
+#ifdef VK_KHR_shader_atomic_int64
+#endif
+#ifdef VK_KHR_shader_clock
+void transform_tohost_VkPhysicalDeviceShaderClockFeaturesKHR(
     ResourceTracker* resourceTracker,
-    VkPhysicalDevice8BitStorageFeaturesKHR* toTransform)
+    VkPhysicalDeviceShaderClockFeaturesKHR* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -6232,9 +7504,9 @@ void transform_tohost_VkPhysicalDevice8BitStorageFeaturesKHR(
     }
 }
 
-void transform_fromhost_VkPhysicalDevice8BitStorageFeaturesKHR(
+void transform_fromhost_VkPhysicalDeviceShaderClockFeaturesKHR(
     ResourceTracker* resourceTracker,
-    VkPhysicalDevice8BitStorageFeaturesKHR* toTransform)
+    VkPhysicalDeviceShaderClockFeaturesKHR* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -6245,10 +7517,22 @@ void transform_fromhost_VkPhysicalDevice8BitStorageFeaturesKHR(
 }
 
 #endif
-#ifdef VK_KHR_shader_float16_int8
-void transform_tohost_VkPhysicalDeviceShaderFloat16Int8Features(
+#ifdef VK_KHR_driver_properties
+#endif
+#ifdef VK_KHR_shader_float_controls
+#endif
+#ifdef VK_KHR_depth_stencil_resolve
+#endif
+#ifdef VK_KHR_swapchain_mutable_format
+#endif
+#ifdef VK_KHR_timeline_semaphore
+#endif
+#ifdef VK_KHR_vulkan_memory_model
+#endif
+#ifdef VK_KHR_shader_terminate_invocation
+void transform_tohost_VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR(
     ResourceTracker* resourceTracker,
-    VkPhysicalDeviceShaderFloat16Int8Features* toTransform)
+    VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -6258,15 +7542,781 @@ void transform_tohost_VkPhysicalDeviceShaderFloat16Int8Features(
     }
 }
 
-void transform_fromhost_VkPhysicalDeviceShaderFloat16Int8Features(
+void transform_fromhost_VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR(
     ResourceTracker* resourceTracker,
-    VkPhysicalDeviceShaderFloat16Int8Features* toTransform)
+    VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
     if (toTransform->pNext)
     {
         transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_KHR_fragment_shading_rate
+void transform_tohost_VkFragmentShadingRateAttachmentInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkFragmentShadingRateAttachmentInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pFragmentShadingRateAttachment)
+    {
+        transform_tohost_VkAttachmentReference2(resourceTracker, (VkAttachmentReference2*)(toTransform->pFragmentShadingRateAttachment));
+    }
+    transform_tohost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->shadingRateAttachmentTexelSize));
+}
+
+void transform_fromhost_VkFragmentShadingRateAttachmentInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkFragmentShadingRateAttachmentInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pFragmentShadingRateAttachment)
+    {
+        transform_fromhost_VkAttachmentReference2(resourceTracker, (VkAttachmentReference2*)(toTransform->pFragmentShadingRateAttachment));
+    }
+    transform_fromhost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->shadingRateAttachmentTexelSize));
+}
+
+void transform_tohost_VkPipelineFragmentShadingRateStateCreateInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkPipelineFragmentShadingRateStateCreateInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->fragmentSize));
+}
+
+void transform_fromhost_VkPipelineFragmentShadingRateStateCreateInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkPipelineFragmentShadingRateStateCreateInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->fragmentSize));
+}
+
+void transform_tohost_VkPhysicalDeviceFragmentShadingRateFeaturesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentShadingRateFeaturesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceFragmentShadingRateFeaturesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentShadingRateFeaturesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceFragmentShadingRatePropertiesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentShadingRatePropertiesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->minFragmentShadingRateAttachmentTexelSize));
+    transform_tohost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->maxFragmentShadingRateAttachmentTexelSize));
+    transform_tohost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->maxFragmentSize));
+}
+
+void transform_fromhost_VkPhysicalDeviceFragmentShadingRatePropertiesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentShadingRatePropertiesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->minFragmentShadingRateAttachmentTexelSize));
+    transform_fromhost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->maxFragmentShadingRateAttachmentTexelSize));
+    transform_fromhost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->maxFragmentSize));
+}
+
+void transform_tohost_VkPhysicalDeviceFragmentShadingRateKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentShadingRateKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->fragmentSize));
+}
+
+void transform_fromhost_VkPhysicalDeviceFragmentShadingRateKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentShadingRateKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->fragmentSize));
+}
+
+#endif
+#ifdef VK_KHR_spirv_1_4
+#endif
+#ifdef VK_KHR_surface_protected_capabilities
+void transform_tohost_VkSurfaceProtectedCapabilitiesKHR(
+    ResourceTracker* resourceTracker,
+    VkSurfaceProtectedCapabilitiesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkSurfaceProtectedCapabilitiesKHR(
+    ResourceTracker* resourceTracker,
+    VkSurfaceProtectedCapabilitiesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_KHR_separate_depth_stencil_layouts
+#endif
+#ifdef VK_KHR_uniform_buffer_standard_layout
+#endif
+#ifdef VK_KHR_buffer_device_address
+#endif
+#ifdef VK_KHR_deferred_host_operations
+#endif
+#ifdef VK_KHR_pipeline_executable_properties
+void transform_tohost_VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPipelineInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkPipelineInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPipelineInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkPipelineInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPipelineExecutablePropertiesKHR(
+    ResourceTracker* resourceTracker,
+    VkPipelineExecutablePropertiesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPipelineExecutablePropertiesKHR(
+    ResourceTracker* resourceTracker,
+    VkPipelineExecutablePropertiesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPipelineExecutableInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkPipelineExecutableInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPipelineExecutableInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkPipelineExecutableInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPipelineExecutableStatisticValueKHR(
+    ResourceTracker* resourceTracker,
+    VkPipelineExecutableStatisticValueKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkPipelineExecutableStatisticValueKHR(
+    ResourceTracker* resourceTracker,
+    VkPipelineExecutableStatisticValueKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkPipelineExecutableStatisticKHR(
+    ResourceTracker* resourceTracker,
+    VkPipelineExecutableStatisticKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkPipelineExecutableStatisticValueKHR(resourceTracker, (VkPipelineExecutableStatisticValueKHR*)(&toTransform->value));
+}
+
+void transform_fromhost_VkPipelineExecutableStatisticKHR(
+    ResourceTracker* resourceTracker,
+    VkPipelineExecutableStatisticKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkPipelineExecutableStatisticValueKHR(resourceTracker, (VkPipelineExecutableStatisticValueKHR*)(&toTransform->value));
+}
+
+void transform_tohost_VkPipelineExecutableInternalRepresentationKHR(
+    ResourceTracker* resourceTracker,
+    VkPipelineExecutableInternalRepresentationKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPipelineExecutableInternalRepresentationKHR(
+    ResourceTracker* resourceTracker,
+    VkPipelineExecutableInternalRepresentationKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_KHR_pipeline_library
+void transform_tohost_VkPipelineLibraryCreateInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkPipelineLibraryCreateInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPipelineLibraryCreateInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkPipelineLibraryCreateInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_KHR_shader_non_semantic_info
+#endif
+#ifdef VK_KHR_copy_commands2
+void transform_tohost_VkBufferCopy2KHR(
+    ResourceTracker* resourceTracker,
+    VkBufferCopy2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkBufferCopy2KHR(
+    ResourceTracker* resourceTracker,
+    VkBufferCopy2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkCopyBufferInfo2KHR(
+    ResourceTracker* resourceTracker,
+    VkCopyBufferInfo2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pRegions)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->regionCount; ++i)
+        {
+            transform_tohost_VkBufferCopy2KHR(resourceTracker, (VkBufferCopy2KHR*)(toTransform->pRegions + i));
+        }
+    }
+}
+
+void transform_fromhost_VkCopyBufferInfo2KHR(
+    ResourceTracker* resourceTracker,
+    VkCopyBufferInfo2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pRegions)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->regionCount; ++i)
+        {
+            transform_fromhost_VkBufferCopy2KHR(resourceTracker, (VkBufferCopy2KHR*)(toTransform->pRegions + i));
+        }
+    }
+}
+
+void transform_tohost_VkImageCopy2KHR(
+    ResourceTracker* resourceTracker,
+    VkImageCopy2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->srcSubresource));
+    transform_tohost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->srcOffset));
+    transform_tohost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->dstSubresource));
+    transform_tohost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->dstOffset));
+    transform_tohost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->extent));
+}
+
+void transform_fromhost_VkImageCopy2KHR(
+    ResourceTracker* resourceTracker,
+    VkImageCopy2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->srcSubresource));
+    transform_fromhost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->srcOffset));
+    transform_fromhost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->dstSubresource));
+    transform_fromhost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->dstOffset));
+    transform_fromhost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->extent));
+}
+
+void transform_tohost_VkCopyImageInfo2KHR(
+    ResourceTracker* resourceTracker,
+    VkCopyImageInfo2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pRegions)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->regionCount; ++i)
+        {
+            transform_tohost_VkImageCopy2KHR(resourceTracker, (VkImageCopy2KHR*)(toTransform->pRegions + i));
+        }
+    }
+}
+
+void transform_fromhost_VkCopyImageInfo2KHR(
+    ResourceTracker* resourceTracker,
+    VkCopyImageInfo2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pRegions)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->regionCount; ++i)
+        {
+            transform_fromhost_VkImageCopy2KHR(resourceTracker, (VkImageCopy2KHR*)(toTransform->pRegions + i));
+        }
+    }
+}
+
+void transform_tohost_VkBufferImageCopy2KHR(
+    ResourceTracker* resourceTracker,
+    VkBufferImageCopy2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->imageSubresource));
+    transform_tohost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->imageOffset));
+    transform_tohost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->imageExtent));
+}
+
+void transform_fromhost_VkBufferImageCopy2KHR(
+    ResourceTracker* resourceTracker,
+    VkBufferImageCopy2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->imageSubresource));
+    transform_fromhost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->imageOffset));
+    transform_fromhost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->imageExtent));
+}
+
+void transform_tohost_VkCopyBufferToImageInfo2KHR(
+    ResourceTracker* resourceTracker,
+    VkCopyBufferToImageInfo2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pRegions)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->regionCount; ++i)
+        {
+            transform_tohost_VkBufferImageCopy2KHR(resourceTracker, (VkBufferImageCopy2KHR*)(toTransform->pRegions + i));
+        }
+    }
+}
+
+void transform_fromhost_VkCopyBufferToImageInfo2KHR(
+    ResourceTracker* resourceTracker,
+    VkCopyBufferToImageInfo2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pRegions)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->regionCount; ++i)
+        {
+            transform_fromhost_VkBufferImageCopy2KHR(resourceTracker, (VkBufferImageCopy2KHR*)(toTransform->pRegions + i));
+        }
+    }
+}
+
+void transform_tohost_VkCopyImageToBufferInfo2KHR(
+    ResourceTracker* resourceTracker,
+    VkCopyImageToBufferInfo2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pRegions)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->regionCount; ++i)
+        {
+            transform_tohost_VkBufferImageCopy2KHR(resourceTracker, (VkBufferImageCopy2KHR*)(toTransform->pRegions + i));
+        }
+    }
+}
+
+void transform_fromhost_VkCopyImageToBufferInfo2KHR(
+    ResourceTracker* resourceTracker,
+    VkCopyImageToBufferInfo2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pRegions)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->regionCount; ++i)
+        {
+            transform_fromhost_VkBufferImageCopy2KHR(resourceTracker, (VkBufferImageCopy2KHR*)(toTransform->pRegions + i));
+        }
+    }
+}
+
+void transform_tohost_VkImageBlit2KHR(
+    ResourceTracker* resourceTracker,
+    VkImageBlit2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->srcSubresource));
+    for (uint32_t i = 0; i < (uint32_t)2; ++i)
+    {
+        transform_tohost_VkOffset3D(resourceTracker, (VkOffset3D*)(toTransform->srcOffsets + i));
+    }
+    transform_tohost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->dstSubresource));
+    for (uint32_t i = 0; i < (uint32_t)2; ++i)
+    {
+        transform_tohost_VkOffset3D(resourceTracker, (VkOffset3D*)(toTransform->dstOffsets + i));
+    }
+}
+
+void transform_fromhost_VkImageBlit2KHR(
+    ResourceTracker* resourceTracker,
+    VkImageBlit2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->srcSubresource));
+    for (uint32_t i = 0; i < (uint32_t)2; ++i)
+    {
+        transform_fromhost_VkOffset3D(resourceTracker, (VkOffset3D*)(toTransform->srcOffsets + i));
+    }
+    transform_fromhost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->dstSubresource));
+    for (uint32_t i = 0; i < (uint32_t)2; ++i)
+    {
+        transform_fromhost_VkOffset3D(resourceTracker, (VkOffset3D*)(toTransform->dstOffsets + i));
+    }
+}
+
+void transform_tohost_VkBlitImageInfo2KHR(
+    ResourceTracker* resourceTracker,
+    VkBlitImageInfo2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pRegions)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->regionCount; ++i)
+        {
+            transform_tohost_VkImageBlit2KHR(resourceTracker, (VkImageBlit2KHR*)(toTransform->pRegions + i));
+        }
+    }
+}
+
+void transform_fromhost_VkBlitImageInfo2KHR(
+    ResourceTracker* resourceTracker,
+    VkBlitImageInfo2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pRegions)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->regionCount; ++i)
+        {
+            transform_fromhost_VkImageBlit2KHR(resourceTracker, (VkImageBlit2KHR*)(toTransform->pRegions + i));
+        }
+    }
+}
+
+void transform_tohost_VkImageResolve2KHR(
+    ResourceTracker* resourceTracker,
+    VkImageResolve2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->srcSubresource));
+    transform_tohost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->srcOffset));
+    transform_tohost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->dstSubresource));
+    transform_tohost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->dstOffset));
+    transform_tohost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->extent));
+}
+
+void transform_fromhost_VkImageResolve2KHR(
+    ResourceTracker* resourceTracker,
+    VkImageResolve2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->srcSubresource));
+    transform_fromhost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->srcOffset));
+    transform_fromhost_VkImageSubresourceLayers(resourceTracker, (VkImageSubresourceLayers*)(&toTransform->dstSubresource));
+    transform_fromhost_VkOffset3D(resourceTracker, (VkOffset3D*)(&toTransform->dstOffset));
+    transform_fromhost_VkExtent3D(resourceTracker, (VkExtent3D*)(&toTransform->extent));
+}
+
+void transform_tohost_VkResolveImageInfo2KHR(
+    ResourceTracker* resourceTracker,
+    VkResolveImageInfo2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pRegions)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->regionCount; ++i)
+        {
+            transform_tohost_VkImageResolve2KHR(resourceTracker, (VkImageResolve2KHR*)(toTransform->pRegions + i));
+        }
+    }
+}
+
+void transform_fromhost_VkResolveImageInfo2KHR(
+    ResourceTracker* resourceTracker,
+    VkResolveImageInfo2KHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pRegions)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->regionCount; ++i)
+        {
+            transform_fromhost_VkImageResolve2KHR(resourceTracker, (VkImageResolve2KHR*)(toTransform->pRegions + i));
+        }
     }
 }
 
@@ -6509,6 +8559,130 @@ void transform_fromhost_VkDedicatedAllocationMemoryAllocateInfoNV(
 }
 
 #endif
+#ifdef VK_EXT_transform_feedback
+void transform_tohost_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceTransformFeedbackFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceTransformFeedbackFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceTransformFeedbackFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceTransformFeedbackPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceTransformFeedbackPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceTransformFeedbackPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceTransformFeedbackPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPipelineRasterizationStateStreamCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkPipelineRasterizationStateStreamCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPipelineRasterizationStateStreamCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkPipelineRasterizationStateStreamCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_NVX_image_view_handle
+void transform_tohost_VkImageViewHandleInfoNVX(
+    ResourceTracker* resourceTracker,
+    VkImageViewHandleInfoNVX* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkImageViewHandleInfoNVX(
+    ResourceTracker* resourceTracker,
+    VkImageViewHandleInfoNVX* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkImageViewAddressPropertiesNVX(
+    ResourceTracker* resourceTracker,
+    VkImageViewAddressPropertiesNVX* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkImageViewAddressPropertiesNVX(
+    ResourceTracker* resourceTracker,
+    VkImageViewAddressPropertiesNVX* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
 #ifdef VK_AMD_draw_indirect_count
 #endif
 #ifdef VK_AMD_negative_viewport_height
@@ -6580,6 +8754,58 @@ void transform_fromhost_VkShaderStatisticsInfoAMD(
 
 #endif
 #ifdef VK_AMD_shader_image_load_store_lod
+#endif
+#ifdef VK_GGP_stream_descriptor_surface
+void transform_tohost_VkStreamDescriptorSurfaceCreateInfoGGP(
+    ResourceTracker* resourceTracker,
+    VkStreamDescriptorSurfaceCreateInfoGGP* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkStreamDescriptorSurfaceCreateInfoGGP(
+    ResourceTracker* resourceTracker,
+    VkStreamDescriptorSurfaceCreateInfoGGP* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_NV_corner_sampled_image
+void transform_tohost_VkPhysicalDeviceCornerSampledImageFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceCornerSampledImageFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceCornerSampledImageFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceCornerSampledImageFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
 #endif
 #ifdef VK_IMG_format_pvrtc
 #endif
@@ -6787,6 +9013,82 @@ void transform_fromhost_VkViSurfaceCreateInfoNN(
 #endif
 #ifdef VK_EXT_shader_subgroup_vote
 #endif
+#ifdef VK_EXT_texture_compression_astc_hdr
+void transform_tohost_VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_astc_decode_mode
+void transform_tohost_VkImageViewASTCDecodeModeEXT(
+    ResourceTracker* resourceTracker,
+    VkImageViewASTCDecodeModeEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkImageViewASTCDecodeModeEXT(
+    ResourceTracker* resourceTracker,
+    VkImageViewASTCDecodeModeEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceASTCDecodeFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceASTCDecodeFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceASTCDecodeFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceASTCDecodeFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
 #ifdef VK_EXT_conditional_rendering
 void transform_tohost_VkConditionalRenderingBeginInfoEXT(
     ResourceTracker* resourceTracker,
@@ -6858,308 +9160,6 @@ void transform_fromhost_VkCommandBufferInheritanceConditionalRenderingInfoEXT(
     {
         transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
     }
-}
-
-#endif
-#ifdef VK_NVX_device_generated_commands
-void transform_tohost_VkDeviceGeneratedCommandsFeaturesNVX(
-    ResourceTracker* resourceTracker,
-    VkDeviceGeneratedCommandsFeaturesNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkDeviceGeneratedCommandsFeaturesNVX(
-    ResourceTracker* resourceTracker,
-    VkDeviceGeneratedCommandsFeaturesNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_tohost_VkDeviceGeneratedCommandsLimitsNVX(
-    ResourceTracker* resourceTracker,
-    VkDeviceGeneratedCommandsLimitsNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkDeviceGeneratedCommandsLimitsNVX(
-    ResourceTracker* resourceTracker,
-    VkDeviceGeneratedCommandsLimitsNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_tohost_VkIndirectCommandsTokenNVX(
-    ResourceTracker* resourceTracker,
-    VkIndirectCommandsTokenNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkIndirectCommandsTokenNVX(
-    ResourceTracker* resourceTracker,
-    VkIndirectCommandsTokenNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_tohost_VkIndirectCommandsLayoutTokenNVX(
-    ResourceTracker* resourceTracker,
-    VkIndirectCommandsLayoutTokenNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkIndirectCommandsLayoutTokenNVX(
-    ResourceTracker* resourceTracker,
-    VkIndirectCommandsLayoutTokenNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_tohost_VkIndirectCommandsLayoutCreateInfoNVX(
-    ResourceTracker* resourceTracker,
-    VkIndirectCommandsLayoutCreateInfoNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-    if (toTransform->pTokens)
-    {
-        for (uint32_t i = 0; i < (uint32_t)toTransform->tokenCount; ++i)
-        {
-            transform_tohost_VkIndirectCommandsLayoutTokenNVX(resourceTracker, (VkIndirectCommandsLayoutTokenNVX*)(toTransform->pTokens + i));
-        }
-    }
-}
-
-void transform_fromhost_VkIndirectCommandsLayoutCreateInfoNVX(
-    ResourceTracker* resourceTracker,
-    VkIndirectCommandsLayoutCreateInfoNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-    if (toTransform->pTokens)
-    {
-        for (uint32_t i = 0; i < (uint32_t)toTransform->tokenCount; ++i)
-        {
-            transform_fromhost_VkIndirectCommandsLayoutTokenNVX(resourceTracker, (VkIndirectCommandsLayoutTokenNVX*)(toTransform->pTokens + i));
-        }
-    }
-}
-
-void transform_tohost_VkCmdProcessCommandsInfoNVX(
-    ResourceTracker* resourceTracker,
-    VkCmdProcessCommandsInfoNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-    if (toTransform->pIndirectCommandsTokens)
-    {
-        for (uint32_t i = 0; i < (uint32_t)toTransform->indirectCommandsTokenCount; ++i)
-        {
-            transform_tohost_VkIndirectCommandsTokenNVX(resourceTracker, (VkIndirectCommandsTokenNVX*)(toTransform->pIndirectCommandsTokens + i));
-        }
-    }
-}
-
-void transform_fromhost_VkCmdProcessCommandsInfoNVX(
-    ResourceTracker* resourceTracker,
-    VkCmdProcessCommandsInfoNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-    if (toTransform->pIndirectCommandsTokens)
-    {
-        for (uint32_t i = 0; i < (uint32_t)toTransform->indirectCommandsTokenCount; ++i)
-        {
-            transform_fromhost_VkIndirectCommandsTokenNVX(resourceTracker, (VkIndirectCommandsTokenNVX*)(toTransform->pIndirectCommandsTokens + i));
-        }
-    }
-}
-
-void transform_tohost_VkCmdReserveSpaceForCommandsInfoNVX(
-    ResourceTracker* resourceTracker,
-    VkCmdReserveSpaceForCommandsInfoNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkCmdReserveSpaceForCommandsInfoNVX(
-    ResourceTracker* resourceTracker,
-    VkCmdReserveSpaceForCommandsInfoNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_tohost_VkObjectTableCreateInfoNVX(
-    ResourceTracker* resourceTracker,
-    VkObjectTableCreateInfoNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkObjectTableCreateInfoNVX(
-    ResourceTracker* resourceTracker,
-    VkObjectTableCreateInfoNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_tohost_VkObjectTableEntryNVX(
-    ResourceTracker* resourceTracker,
-    VkObjectTableEntryNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkObjectTableEntryNVX(
-    ResourceTracker* resourceTracker,
-    VkObjectTableEntryNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_tohost_VkObjectTablePipelineEntryNVX(
-    ResourceTracker* resourceTracker,
-    VkObjectTablePipelineEntryNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkObjectTablePipelineEntryNVX(
-    ResourceTracker* resourceTracker,
-    VkObjectTablePipelineEntryNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_tohost_VkObjectTableDescriptorSetEntryNVX(
-    ResourceTracker* resourceTracker,
-    VkObjectTableDescriptorSetEntryNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkObjectTableDescriptorSetEntryNVX(
-    ResourceTracker* resourceTracker,
-    VkObjectTableDescriptorSetEntryNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_tohost_VkObjectTableVertexBufferEntryNVX(
-    ResourceTracker* resourceTracker,
-    VkObjectTableVertexBufferEntryNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkObjectTableVertexBufferEntryNVX(
-    ResourceTracker* resourceTracker,
-    VkObjectTableVertexBufferEntryNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_tohost_VkObjectTableIndexBufferEntryNVX(
-    ResourceTracker* resourceTracker,
-    VkObjectTableIndexBufferEntryNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkObjectTableIndexBufferEntryNVX(
-    ResourceTracker* resourceTracker,
-    VkObjectTableIndexBufferEntryNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_tohost_VkObjectTablePushConstantEntryNVX(
-    ResourceTracker* resourceTracker,
-    VkObjectTablePushConstantEntryNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-}
-
-void transform_fromhost_VkObjectTablePushConstantEntryNVX(
-    ResourceTracker* resourceTracker,
-    VkObjectTablePushConstantEntryNVX* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
 }
 
 #endif
@@ -7643,6 +9643,56 @@ void transform_fromhost_VkPipelineRasterizationConservativeStateCreateInfoEXT(
 }
 
 #endif
+#ifdef VK_EXT_depth_clip_enable
+void transform_tohost_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDepthClipEnableFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceDepthClipEnableFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDepthClipEnableFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkPipelineRasterizationDepthClipStateCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPipelineRasterizationDepthClipStateCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkPipelineRasterizationDepthClipStateCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
 #ifdef VK_EXT_swapchain_colorspace
 #endif
 #ifdef VK_EXT_hdr_metadata
@@ -7747,59 +9797,13 @@ void transform_fromhost_VkMacOSSurfaceCreateInfoMVK(
 }
 
 #endif
+#ifdef VK_MVK_moltenvk
+#endif
 #ifdef VK_EXT_external_memory_dma_buf
 #endif
 #ifdef VK_EXT_queue_family_foreign
 #endif
 #ifdef VK_EXT_debug_utils
-void transform_tohost_VkDebugUtilsObjectNameInfoEXT(
-    ResourceTracker* resourceTracker,
-    VkDebugUtilsObjectNameInfoEXT* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkDebugUtilsObjectNameInfoEXT(
-    ResourceTracker* resourceTracker,
-    VkDebugUtilsObjectNameInfoEXT* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_tohost_VkDebugUtilsObjectTagInfoEXT(
-    ResourceTracker* resourceTracker,
-    VkDebugUtilsObjectTagInfoEXT* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkDebugUtilsObjectTagInfoEXT(
-    ResourceTracker* resourceTracker,
-    VkDebugUtilsObjectTagInfoEXT* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
 void transform_tohost_VkDebugUtilsLabelEXT(
     ResourceTracker* resourceTracker,
     VkDebugUtilsLabelEXT* toTransform)
@@ -7815,6 +9819,30 @@ void transform_tohost_VkDebugUtilsLabelEXT(
 void transform_fromhost_VkDebugUtilsLabelEXT(
     ResourceTracker* resourceTracker,
     VkDebugUtilsLabelEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkDebugUtilsObjectNameInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkDebugUtilsObjectNameInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkDebugUtilsObjectNameInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkDebugUtilsObjectNameInfoEXT* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -7905,6 +9933,30 @@ void transform_tohost_VkDebugUtilsMessengerCreateInfoEXT(
 void transform_fromhost_VkDebugUtilsMessengerCreateInfoEXT(
     ResourceTracker* resourceTracker,
     VkDebugUtilsMessengerCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkDebugUtilsObjectTagInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkDebugUtilsObjectTagInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkDebugUtilsObjectTagInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkDebugUtilsObjectTagInfoEXT* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -8068,60 +10120,110 @@ void transform_fromhost_VkExternalFormatANDROID(
 
 #endif
 #ifdef VK_EXT_sampler_filter_minmax
-void transform_tohost_VkSamplerReductionModeCreateInfoEXT(
-    ResourceTracker* resourceTracker,
-    VkSamplerReductionModeCreateInfoEXT* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkSamplerReductionModeCreateInfoEXT(
-    ResourceTracker* resourceTracker,
-    VkSamplerReductionModeCreateInfoEXT* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_tohost_VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT(
-    ResourceTracker* resourceTracker,
-    VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
-void transform_fromhost_VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT(
-    ResourceTracker* resourceTracker,
-    VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT* toTransform)
-{
-    (void)resourceTracker;
-    (void)toTransform;
-    if (toTransform->pNext)
-    {
-        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
-    }
-}
-
 #endif
 #ifdef VK_AMD_gpu_shader_int16
 #endif
 #ifdef VK_AMD_mixed_attachment_samples
 #endif
 #ifdef VK_AMD_shader_fragment_mask
+#endif
+#ifdef VK_EXT_inline_uniform_block
+void transform_tohost_VkPhysicalDeviceInlineUniformBlockFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceInlineUniformBlockFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceInlineUniformBlockFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceInlineUniformBlockFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceInlineUniformBlockPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceInlineUniformBlockPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceInlineUniformBlockPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceInlineUniformBlockPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkWriteDescriptorSetInlineUniformBlockEXT(
+    ResourceTracker* resourceTracker,
+    VkWriteDescriptorSetInlineUniformBlockEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkWriteDescriptorSetInlineUniformBlockEXT(
+    ResourceTracker* resourceTracker,
+    VkWriteDescriptorSetInlineUniformBlockEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkDescriptorPoolInlineUniformBlockCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkDescriptorPoolInlineUniformBlockCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkDescriptorPoolInlineUniformBlockCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkDescriptorPoolInlineUniformBlockCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
 #endif
 #ifdef VK_EXT_shader_stencil_export
 #endif
@@ -8477,7 +10579,223 @@ void transform_fromhost_VkPipelineCoverageModulationStateCreateInfoNV(
 #endif
 #ifdef VK_NV_fill_rectangle
 #endif
+#ifdef VK_NV_shader_sm_builtins
+void transform_tohost_VkPhysicalDeviceShaderSMBuiltinsPropertiesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderSMBuiltinsPropertiesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceShaderSMBuiltinsPropertiesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderSMBuiltinsPropertiesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceShaderSMBuiltinsFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderSMBuiltinsFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceShaderSMBuiltinsFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderSMBuiltinsFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
 #ifdef VK_EXT_post_depth_coverage
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+void transform_tohost_VkDrmFormatModifierPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkDrmFormatModifierPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkDrmFormatModifierPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkDrmFormatModifierPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkDrmFormatModifierPropertiesListEXT(
+    ResourceTracker* resourceTracker,
+    VkDrmFormatModifierPropertiesListEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pDrmFormatModifierProperties)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->drmFormatModifierCount; ++i)
+        {
+            transform_tohost_VkDrmFormatModifierPropertiesEXT(resourceTracker, (VkDrmFormatModifierPropertiesEXT*)(toTransform->pDrmFormatModifierProperties + i));
+        }
+    }
+}
+
+void transform_fromhost_VkDrmFormatModifierPropertiesListEXT(
+    ResourceTracker* resourceTracker,
+    VkDrmFormatModifierPropertiesListEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pDrmFormatModifierProperties)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->drmFormatModifierCount; ++i)
+        {
+            transform_fromhost_VkDrmFormatModifierPropertiesEXT(resourceTracker, (VkDrmFormatModifierPropertiesEXT*)(toTransform->pDrmFormatModifierProperties + i));
+        }
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceImageDrmFormatModifierInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceImageDrmFormatModifierInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkImageDrmFormatModifierListCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkImageDrmFormatModifierListCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkImageDrmFormatModifierListCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkImageDrmFormatModifierListCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkImageDrmFormatModifierExplicitCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pPlaneLayouts)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->drmFormatModifierPlaneCount; ++i)
+        {
+            transform_tohost_VkSubresourceLayout(resourceTracker, (VkSubresourceLayout*)(toTransform->pPlaneLayouts + i));
+        }
+    }
+}
+
+void transform_fromhost_VkImageDrmFormatModifierExplicitCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkImageDrmFormatModifierExplicitCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pPlaneLayouts)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->drmFormatModifierPlaneCount; ++i)
+        {
+            transform_fromhost_VkSubresourceLayout(resourceTracker, (VkSubresourceLayout*)(toTransform->pPlaneLayouts + i));
+        }
+    }
+}
+
+void transform_tohost_VkImageDrmFormatModifierPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkImageDrmFormatModifierPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkImageDrmFormatModifierPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkImageDrmFormatModifierPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
 #endif
 #ifdef VK_EXT_validation_cache
 void transform_tohost_VkValidationCacheCreateInfoEXT(
@@ -8530,9 +10848,67 @@ void transform_fromhost_VkShaderModuleValidationCacheCreateInfoEXT(
 
 #endif
 #ifdef VK_EXT_descriptor_indexing
-void transform_tohost_VkDescriptorSetLayoutBindingFlagsCreateInfoEXT(
+#endif
+#ifdef VK_EXT_shader_viewport_index_layer
+#endif
+#ifdef VK_NV_shading_rate_image
+void transform_tohost_VkShadingRatePaletteNV(
     ResourceTracker* resourceTracker,
-    VkDescriptorSetLayoutBindingFlagsCreateInfoEXT* toTransform)
+    VkShadingRatePaletteNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkShadingRatePaletteNV(
+    ResourceTracker* resourceTracker,
+    VkShadingRatePaletteNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkPipelineViewportShadingRateImageStateCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkPipelineViewportShadingRateImageStateCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pShadingRatePalettes)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->viewportCount; ++i)
+        {
+            transform_tohost_VkShadingRatePaletteNV(resourceTracker, (VkShadingRatePaletteNV*)(toTransform->pShadingRatePalettes + i));
+        }
+    }
+}
+
+void transform_fromhost_VkPipelineViewportShadingRateImageStateCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkPipelineViewportShadingRateImageStateCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pShadingRatePalettes)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->viewportCount; ++i)
+        {
+            transform_fromhost_VkShadingRatePaletteNV(resourceTracker, (VkShadingRatePaletteNV*)(toTransform->pShadingRatePalettes + i));
+        }
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceShadingRateImageFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShadingRateImageFeaturesNV* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -8542,9 +10918,9 @@ void transform_tohost_VkDescriptorSetLayoutBindingFlagsCreateInfoEXT(
     }
 }
 
-void transform_fromhost_VkDescriptorSetLayoutBindingFlagsCreateInfoEXT(
+void transform_fromhost_VkPhysicalDeviceShadingRateImageFeaturesNV(
     ResourceTracker* resourceTracker,
-    VkDescriptorSetLayoutBindingFlagsCreateInfoEXT* toTransform)
+    VkPhysicalDeviceShadingRateImageFeaturesNV* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -8554,9 +10930,121 @@ void transform_fromhost_VkDescriptorSetLayoutBindingFlagsCreateInfoEXT(
     }
 }
 
-void transform_tohost_VkPhysicalDeviceDescriptorIndexingFeaturesEXT(
+void transform_tohost_VkPhysicalDeviceShadingRateImagePropertiesNV(
     ResourceTracker* resourceTracker,
-    VkPhysicalDeviceDescriptorIndexingFeaturesEXT* toTransform)
+    VkPhysicalDeviceShadingRateImagePropertiesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->shadingRateTexelSize));
+}
+
+void transform_fromhost_VkPhysicalDeviceShadingRateImagePropertiesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShadingRateImagePropertiesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkExtent2D(resourceTracker, (VkExtent2D*)(&toTransform->shadingRateTexelSize));
+}
+
+void transform_tohost_VkCoarseSampleLocationNV(
+    ResourceTracker* resourceTracker,
+    VkCoarseSampleLocationNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkCoarseSampleLocationNV(
+    ResourceTracker* resourceTracker,
+    VkCoarseSampleLocationNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkCoarseSampleOrderCustomNV(
+    ResourceTracker* resourceTracker,
+    VkCoarseSampleOrderCustomNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pSampleLocations)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->sampleLocationCount; ++i)
+        {
+            transform_tohost_VkCoarseSampleLocationNV(resourceTracker, (VkCoarseSampleLocationNV*)(toTransform->pSampleLocations + i));
+        }
+    }
+}
+
+void transform_fromhost_VkCoarseSampleOrderCustomNV(
+    ResourceTracker* resourceTracker,
+    VkCoarseSampleOrderCustomNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pSampleLocations)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->sampleLocationCount; ++i)
+        {
+            transform_fromhost_VkCoarseSampleLocationNV(resourceTracker, (VkCoarseSampleLocationNV*)(toTransform->pSampleLocations + i));
+        }
+    }
+}
+
+void transform_tohost_VkPipelineViewportCoarseSampleOrderStateCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkPipelineViewportCoarseSampleOrderStateCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pCustomSampleOrders)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->customSampleOrderCount; ++i)
+        {
+            transform_tohost_VkCoarseSampleOrderCustomNV(resourceTracker, (VkCoarseSampleOrderCustomNV*)(toTransform->pCustomSampleOrders + i));
+        }
+    }
+}
+
+void transform_fromhost_VkPipelineViewportCoarseSampleOrderStateCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkPipelineViewportCoarseSampleOrderStateCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pCustomSampleOrders)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->customSampleOrderCount; ++i)
+        {
+            transform_fromhost_VkCoarseSampleOrderCustomNV(resourceTracker, (VkCoarseSampleOrderCustomNV*)(toTransform->pCustomSampleOrders + i));
+        }
+    }
+}
+
+#endif
+#ifdef VK_NV_ray_tracing
+void transform_tohost_VkRayTracingShaderGroupCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkRayTracingShaderGroupCreateInfoNV* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -8566,9 +11054,9 @@ void transform_tohost_VkPhysicalDeviceDescriptorIndexingFeaturesEXT(
     }
 }
 
-void transform_fromhost_VkPhysicalDeviceDescriptorIndexingFeaturesEXT(
+void transform_fromhost_VkRayTracingShaderGroupCreateInfoNV(
     ResourceTracker* resourceTracker,
-    VkPhysicalDeviceDescriptorIndexingFeaturesEXT* toTransform)
+    VkRayTracingShaderGroupCreateInfoNV* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -8578,9 +11066,61 @@ void transform_fromhost_VkPhysicalDeviceDescriptorIndexingFeaturesEXT(
     }
 }
 
-void transform_tohost_VkPhysicalDeviceDescriptorIndexingPropertiesEXT(
+void transform_tohost_VkRayTracingPipelineCreateInfoNV(
     ResourceTracker* resourceTracker,
-    VkPhysicalDeviceDescriptorIndexingPropertiesEXT* toTransform)
+    VkRayTracingPipelineCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pStages)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->stageCount; ++i)
+        {
+            transform_tohost_VkPipelineShaderStageCreateInfo(resourceTracker, (VkPipelineShaderStageCreateInfo*)(toTransform->pStages + i));
+        }
+    }
+    if (toTransform->pGroups)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->groupCount; ++i)
+        {
+            transform_tohost_VkRayTracingShaderGroupCreateInfoNV(resourceTracker, (VkRayTracingShaderGroupCreateInfoNV*)(toTransform->pGroups + i));
+        }
+    }
+}
+
+void transform_fromhost_VkRayTracingPipelineCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkRayTracingPipelineCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pStages)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->stageCount; ++i)
+        {
+            transform_fromhost_VkPipelineShaderStageCreateInfo(resourceTracker, (VkPipelineShaderStageCreateInfo*)(toTransform->pStages + i));
+        }
+    }
+    if (toTransform->pGroups)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->groupCount; ++i)
+        {
+            transform_fromhost_VkRayTracingShaderGroupCreateInfoNV(resourceTracker, (VkRayTracingShaderGroupCreateInfoNV*)(toTransform->pGroups + i));
+        }
+    }
+}
+
+void transform_tohost_VkGeometryTrianglesNV(
+    ResourceTracker* resourceTracker,
+    VkGeometryTrianglesNV* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -8590,9 +11130,9 @@ void transform_tohost_VkPhysicalDeviceDescriptorIndexingPropertiesEXT(
     }
 }
 
-void transform_fromhost_VkPhysicalDeviceDescriptorIndexingPropertiesEXT(
+void transform_fromhost_VkGeometryTrianglesNV(
     ResourceTracker* resourceTracker,
-    VkPhysicalDeviceDescriptorIndexingPropertiesEXT* toTransform)
+    VkGeometryTrianglesNV* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -8602,9 +11142,9 @@ void transform_fromhost_VkPhysicalDeviceDescriptorIndexingPropertiesEXT(
     }
 }
 
-void transform_tohost_VkDescriptorSetVariableDescriptorCountAllocateInfoEXT(
+void transform_tohost_VkGeometryAABBNV(
     ResourceTracker* resourceTracker,
-    VkDescriptorSetVariableDescriptorCountAllocateInfoEXT* toTransform)
+    VkGeometryAABBNV* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -8614,9 +11154,9 @@ void transform_tohost_VkDescriptorSetVariableDescriptorCountAllocateInfoEXT(
     }
 }
 
-void transform_fromhost_VkDescriptorSetVariableDescriptorCountAllocateInfoEXT(
+void transform_fromhost_VkGeometryAABBNV(
     ResourceTracker* resourceTracker,
-    VkDescriptorSetVariableDescriptorCountAllocateInfoEXT* toTransform)
+    VkGeometryAABBNV* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -8626,9 +11166,119 @@ void transform_fromhost_VkDescriptorSetVariableDescriptorCountAllocateInfoEXT(
     }
 }
 
-void transform_tohost_VkDescriptorSetVariableDescriptorCountLayoutSupportEXT(
+void transform_tohost_VkGeometryDataNV(
     ResourceTracker* resourceTracker,
-    VkDescriptorSetVariableDescriptorCountLayoutSupportEXT* toTransform)
+    VkGeometryDataNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_tohost_VkGeometryTrianglesNV(resourceTracker, (VkGeometryTrianglesNV*)(&toTransform->triangles));
+    transform_tohost_VkGeometryAABBNV(resourceTracker, (VkGeometryAABBNV*)(&toTransform->aabbs));
+}
+
+void transform_fromhost_VkGeometryDataNV(
+    ResourceTracker* resourceTracker,
+    VkGeometryDataNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_fromhost_VkGeometryTrianglesNV(resourceTracker, (VkGeometryTrianglesNV*)(&toTransform->triangles));
+    transform_fromhost_VkGeometryAABBNV(resourceTracker, (VkGeometryAABBNV*)(&toTransform->aabbs));
+}
+
+void transform_tohost_VkGeometryNV(
+    ResourceTracker* resourceTracker,
+    VkGeometryNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkGeometryDataNV(resourceTracker, (VkGeometryDataNV*)(&toTransform->geometry));
+}
+
+void transform_fromhost_VkGeometryNV(
+    ResourceTracker* resourceTracker,
+    VkGeometryNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkGeometryDataNV(resourceTracker, (VkGeometryDataNV*)(&toTransform->geometry));
+}
+
+void transform_tohost_VkAccelerationStructureInfoNV(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pGeometries)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->geometryCount; ++i)
+        {
+            transform_tohost_VkGeometryNV(resourceTracker, (VkGeometryNV*)(toTransform->pGeometries + i));
+        }
+    }
+}
+
+void transform_fromhost_VkAccelerationStructureInfoNV(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pGeometries)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->geometryCount; ++i)
+        {
+            transform_fromhost_VkGeometryNV(resourceTracker, (VkGeometryNV*)(toTransform->pGeometries + i));
+        }
+    }
+}
+
+void transform_tohost_VkAccelerationStructureCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkAccelerationStructureInfoNV(resourceTracker, (VkAccelerationStructureInfoNV*)(&toTransform->info));
+}
+
+void transform_fromhost_VkAccelerationStructureCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkAccelerationStructureInfoNV(resourceTracker, (VkAccelerationStructureInfoNV*)(&toTransform->info));
+}
+
+void transform_tohost_VkBindAccelerationStructureMemoryInfoNV(
+    ResourceTracker* resourceTracker,
+    VkBindAccelerationStructureMemoryInfoNV* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -8638,9 +11288,181 @@ void transform_tohost_VkDescriptorSetVariableDescriptorCountLayoutSupportEXT(
     }
 }
 
-void transform_fromhost_VkDescriptorSetVariableDescriptorCountLayoutSupportEXT(
+void transform_fromhost_VkBindAccelerationStructureMemoryInfoNV(
     ResourceTracker* resourceTracker,
-    VkDescriptorSetVariableDescriptorCountLayoutSupportEXT* toTransform)
+    VkBindAccelerationStructureMemoryInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkWriteDescriptorSetAccelerationStructureNV(
+    ResourceTracker* resourceTracker,
+    VkWriteDescriptorSetAccelerationStructureNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkWriteDescriptorSetAccelerationStructureNV(
+    ResourceTracker* resourceTracker,
+    VkWriteDescriptorSetAccelerationStructureNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkAccelerationStructureMemoryRequirementsInfoNV(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureMemoryRequirementsInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkAccelerationStructureMemoryRequirementsInfoNV(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureMemoryRequirementsInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceRayTracingPropertiesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceRayTracingPropertiesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceRayTracingPropertiesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceRayTracingPropertiesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkTransformMatrixKHR(
+    ResourceTracker* resourceTracker,
+    VkTransformMatrixKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkTransformMatrixKHR(
+    ResourceTracker* resourceTracker,
+    VkTransformMatrixKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkAabbPositionsKHR(
+    ResourceTracker* resourceTracker,
+    VkAabbPositionsKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkAabbPositionsKHR(
+    ResourceTracker* resourceTracker,
+    VkAabbPositionsKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkAccelerationStructureInstanceKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureInstanceKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_tohost_VkTransformMatrixKHR(resourceTracker, (VkTransformMatrixKHR*)(&toTransform->transform));
+}
+
+void transform_fromhost_VkAccelerationStructureInstanceKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureInstanceKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_fromhost_VkTransformMatrixKHR(resourceTracker, (VkTransformMatrixKHR*)(&toTransform->transform));
+}
+
+#endif
+#ifdef VK_NV_representative_fragment_test
+void transform_tohost_VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPipelineRepresentativeFragmentTestStateCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkPipelineRepresentativeFragmentTestStateCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPipelineRepresentativeFragmentTestStateCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkPipelineRepresentativeFragmentTestStateCreateInfoNV* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -8651,7 +11473,57 @@ void transform_fromhost_VkDescriptorSetVariableDescriptorCountLayoutSupportEXT(
 }
 
 #endif
-#ifdef VK_EXT_shader_viewport_index_layer
+#ifdef VK_EXT_filter_cubic
+void transform_tohost_VkPhysicalDeviceImageViewImageFormatInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceImageViewImageFormatInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceImageViewImageFormatInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceImageViewImageFormatInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkFilterCubicImageViewImageFormatPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkFilterCubicImageViewImageFormatPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkFilterCubicImageViewImageFormatPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkFilterCubicImageViewImageFormatPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_QCOM_render_pass_shader_resolve
 #endif
 #ifdef VK_EXT_global_priority
 void transform_tohost_VkDeviceQueueGlobalPriorityCreateInfoEXT(
@@ -8757,6 +11629,58 @@ void transform_fromhost_VkPhysicalDeviceExternalMemoryHostPropertiesEXT(
 #endif
 #ifdef VK_AMD_buffer_marker
 #endif
+#ifdef VK_AMD_pipeline_compiler_control
+void transform_tohost_VkPipelineCompilerControlCreateInfoAMD(
+    ResourceTracker* resourceTracker,
+    VkPipelineCompilerControlCreateInfoAMD* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPipelineCompilerControlCreateInfoAMD(
+    ResourceTracker* resourceTracker,
+    VkPipelineCompilerControlCreateInfoAMD* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_calibrated_timestamps
+void transform_tohost_VkCalibratedTimestampInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkCalibratedTimestampInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkCalibratedTimestampInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkCalibratedTimestampInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
 #ifdef VK_AMD_shader_core_properties
 void transform_tohost_VkPhysicalDeviceShaderCorePropertiesAMD(
     ResourceTracker* resourceTracker,
@@ -8773,6 +11697,32 @@ void transform_tohost_VkPhysicalDeviceShaderCorePropertiesAMD(
 void transform_fromhost_VkPhysicalDeviceShaderCorePropertiesAMD(
     ResourceTracker* resourceTracker,
     VkPhysicalDeviceShaderCorePropertiesAMD* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_AMD_memory_overallocation_behavior
+void transform_tohost_VkDeviceMemoryOverallocationCreateInfoAMD(
+    ResourceTracker* resourceTracker,
+    VkDeviceMemoryOverallocationCreateInfoAMD* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkDeviceMemoryOverallocationCreateInfoAMD(
+    ResourceTracker* resourceTracker,
+    VkDeviceMemoryOverallocationCreateInfoAMD* toTransform)
 {
     (void)resourceTracker;
     (void)toTransform;
@@ -8862,8 +11812,330 @@ void transform_fromhost_VkPipelineVertexInputDivisorStateCreateInfoEXT(
     }
 }
 
+void transform_tohost_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_GGP_frame_token
+void transform_tohost_VkPresentFrameTokenGGP(
+    ResourceTracker* resourceTracker,
+    VkPresentFrameTokenGGP* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPresentFrameTokenGGP(
+    ResourceTracker* resourceTracker,
+    VkPresentFrameTokenGGP* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_pipeline_creation_feedback
+void transform_tohost_VkPipelineCreationFeedbackEXT(
+    ResourceTracker* resourceTracker,
+    VkPipelineCreationFeedbackEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkPipelineCreationFeedbackEXT(
+    ResourceTracker* resourceTracker,
+    VkPipelineCreationFeedbackEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkPipelineCreationFeedbackCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkPipelineCreationFeedbackCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pPipelineCreationFeedback)
+    {
+        transform_tohost_VkPipelineCreationFeedbackEXT(resourceTracker, (VkPipelineCreationFeedbackEXT*)(toTransform->pPipelineCreationFeedback));
+    }
+    if (toTransform->pPipelineStageCreationFeedbacks)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->pipelineStageCreationFeedbackCount; ++i)
+        {
+            transform_tohost_VkPipelineCreationFeedbackEXT(resourceTracker, (VkPipelineCreationFeedbackEXT*)(toTransform->pPipelineStageCreationFeedbacks + i));
+        }
+    }
+}
+
+void transform_fromhost_VkPipelineCreationFeedbackCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkPipelineCreationFeedbackCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pPipelineCreationFeedback)
+    {
+        transform_fromhost_VkPipelineCreationFeedbackEXT(resourceTracker, (VkPipelineCreationFeedbackEXT*)(toTransform->pPipelineCreationFeedback));
+    }
+    if (toTransform->pPipelineStageCreationFeedbacks)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->pipelineStageCreationFeedbackCount; ++i)
+        {
+            transform_fromhost_VkPipelineCreationFeedbackEXT(resourceTracker, (VkPipelineCreationFeedbackEXT*)(toTransform->pPipelineStageCreationFeedbacks + i));
+        }
+    }
+}
+
 #endif
 #ifdef VK_NV_shader_subgroup_partitioned
+#endif
+#ifdef VK_NV_compute_shader_derivatives
+void transform_tohost_VkPhysicalDeviceComputeShaderDerivativesFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceComputeShaderDerivativesFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceComputeShaderDerivativesFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceComputeShaderDerivativesFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_NV_mesh_shader
+void transform_tohost_VkPhysicalDeviceMeshShaderFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceMeshShaderFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceMeshShaderFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceMeshShaderFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceMeshShaderPropertiesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceMeshShaderPropertiesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceMeshShaderPropertiesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceMeshShaderPropertiesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkDrawMeshTasksIndirectCommandNV(
+    ResourceTracker* resourceTracker,
+    VkDrawMeshTasksIndirectCommandNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkDrawMeshTasksIndirectCommandNV(
+    ResourceTracker* resourceTracker,
+    VkDrawMeshTasksIndirectCommandNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+#endif
+#ifdef VK_NV_fragment_shader_barycentric
+void transform_tohost_VkPhysicalDeviceFragmentShaderBarycentricFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentShaderBarycentricFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceFragmentShaderBarycentricFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentShaderBarycentricFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_NV_shader_image_footprint
+void transform_tohost_VkPhysicalDeviceShaderImageFootprintFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderImageFootprintFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceShaderImageFootprintFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderImageFootprintFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_NV_scissor_exclusive
+void transform_tohost_VkPipelineViewportExclusiveScissorStateCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkPipelineViewportExclusiveScissorStateCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pExclusiveScissors)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->exclusiveScissorCount; ++i)
+        {
+            transform_tohost_VkRect2D(resourceTracker, (VkRect2D*)(toTransform->pExclusiveScissors + i));
+        }
+    }
+}
+
+void transform_fromhost_VkPipelineViewportExclusiveScissorStateCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkPipelineViewportExclusiveScissorStateCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pExclusiveScissors)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->exclusiveScissorCount; ++i)
+        {
+            transform_fromhost_VkRect2D(resourceTracker, (VkRect2D*)(toTransform->pExclusiveScissors + i));
+        }
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceExclusiveScissorFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceExclusiveScissorFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceExclusiveScissorFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceExclusiveScissorFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
 #endif
 #ifdef VK_NV_device_diagnostic_checkpoints
 void transform_tohost_VkQueueFamilyCheckpointPropertiesNV(
@@ -8915,7 +12187,339 @@ void transform_fromhost_VkCheckpointDataNV(
 }
 
 #endif
-#ifdef VK_GOOGLE_address_space
+#ifdef VK_INTEL_shader_integer_functions2
+void transform_tohost_VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_INTEL_performance_query
+void transform_tohost_VkPerformanceValueDataINTEL(
+    ResourceTracker* resourceTracker,
+    VkPerformanceValueDataINTEL* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkPerformanceValueDataINTEL(
+    ResourceTracker* resourceTracker,
+    VkPerformanceValueDataINTEL* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkPerformanceValueINTEL(
+    ResourceTracker* resourceTracker,
+    VkPerformanceValueINTEL* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_tohost_VkPerformanceValueDataINTEL(resourceTracker, (VkPerformanceValueDataINTEL*)(&toTransform->data));
+}
+
+void transform_fromhost_VkPerformanceValueINTEL(
+    ResourceTracker* resourceTracker,
+    VkPerformanceValueINTEL* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_fromhost_VkPerformanceValueDataINTEL(resourceTracker, (VkPerformanceValueDataINTEL*)(&toTransform->data));
+}
+
+void transform_tohost_VkInitializePerformanceApiInfoINTEL(
+    ResourceTracker* resourceTracker,
+    VkInitializePerformanceApiInfoINTEL* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkInitializePerformanceApiInfoINTEL(
+    ResourceTracker* resourceTracker,
+    VkInitializePerformanceApiInfoINTEL* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkQueryPoolPerformanceQueryCreateInfoINTEL(
+    ResourceTracker* resourceTracker,
+    VkQueryPoolPerformanceQueryCreateInfoINTEL* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkQueryPoolPerformanceQueryCreateInfoINTEL(
+    ResourceTracker* resourceTracker,
+    VkQueryPoolPerformanceQueryCreateInfoINTEL* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPerformanceMarkerInfoINTEL(
+    ResourceTracker* resourceTracker,
+    VkPerformanceMarkerInfoINTEL* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPerformanceMarkerInfoINTEL(
+    ResourceTracker* resourceTracker,
+    VkPerformanceMarkerInfoINTEL* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPerformanceStreamMarkerInfoINTEL(
+    ResourceTracker* resourceTracker,
+    VkPerformanceStreamMarkerInfoINTEL* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPerformanceStreamMarkerInfoINTEL(
+    ResourceTracker* resourceTracker,
+    VkPerformanceStreamMarkerInfoINTEL* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPerformanceOverrideInfoINTEL(
+    ResourceTracker* resourceTracker,
+    VkPerformanceOverrideInfoINTEL* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPerformanceOverrideInfoINTEL(
+    ResourceTracker* resourceTracker,
+    VkPerformanceOverrideInfoINTEL* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPerformanceConfigurationAcquireInfoINTEL(
+    ResourceTracker* resourceTracker,
+    VkPerformanceConfigurationAcquireInfoINTEL* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPerformanceConfigurationAcquireInfoINTEL(
+    ResourceTracker* resourceTracker,
+    VkPerformanceConfigurationAcquireInfoINTEL* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_pci_bus_info
+void transform_tohost_VkPhysicalDevicePCIBusInfoPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevicePCIBusInfoPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDevicePCIBusInfoPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevicePCIBusInfoPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_AMD_display_native_hdr
+void transform_tohost_VkDisplayNativeHdrSurfaceCapabilitiesAMD(
+    ResourceTracker* resourceTracker,
+    VkDisplayNativeHdrSurfaceCapabilitiesAMD* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkDisplayNativeHdrSurfaceCapabilitiesAMD(
+    ResourceTracker* resourceTracker,
+    VkDisplayNativeHdrSurfaceCapabilitiesAMD* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkSwapchainDisplayNativeHdrCreateInfoAMD(
+    ResourceTracker* resourceTracker,
+    VkSwapchainDisplayNativeHdrCreateInfoAMD* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkSwapchainDisplayNativeHdrCreateInfoAMD(
+    ResourceTracker* resourceTracker,
+    VkSwapchainDisplayNativeHdrCreateInfoAMD* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_FUCHSIA_imagepipe_surface
+void transform_tohost_VkImagePipeSurfaceCreateInfoFUCHSIA(
+    ResourceTracker* resourceTracker,
+    VkImagePipeSurfaceCreateInfoFUCHSIA* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkImagePipeSurfaceCreateInfoFUCHSIA(
+    ResourceTracker* resourceTracker,
+    VkImagePipeSurfaceCreateInfoFUCHSIA* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_metal_surface
+void transform_tohost_VkMetalSurfaceCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkMetalSurfaceCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkMetalSurfaceCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkMetalSurfaceCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
 #endif
 #ifdef VK_GOOGLE_color_buffer
 void transform_tohost_VkImportColorBufferGOOGLE(
@@ -8991,6 +12595,1882 @@ void transform_fromhost_VkImportPhysicalAddressGOOGLE(
 }
 
 #endif
+#ifdef VK_EXT_scalar_block_layout
+#endif
+#ifdef VK_GOOGLE_hlsl_functionality1
+#endif
+#ifdef VK_GOOGLE_decorate_string
+#endif
+#ifdef VK_EXT_subgroup_size_control
+void transform_tohost_VkPhysicalDeviceSubgroupSizeControlFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceSubgroupSizeControlFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceSubgroupSizeControlFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceSubgroupSizeControlFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceSubgroupSizeControlPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceSubgroupSizeControlPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceSubgroupSizeControlPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceSubgroupSizeControlPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_AMD_shader_core_properties2
+void transform_tohost_VkPhysicalDeviceShaderCoreProperties2AMD(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderCoreProperties2AMD* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceShaderCoreProperties2AMD(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderCoreProperties2AMD* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_AMD_device_coherent_memory
+void transform_tohost_VkPhysicalDeviceCoherentMemoryFeaturesAMD(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceCoherentMemoryFeaturesAMD* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceCoherentMemoryFeaturesAMD(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceCoherentMemoryFeaturesAMD* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_shader_image_atomic_int64
+void transform_tohost_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_memory_budget
+void transform_tohost_VkPhysicalDeviceMemoryBudgetPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceMemoryBudgetPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceMemoryBudgetPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceMemoryBudgetPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_memory_priority
+void transform_tohost_VkPhysicalDeviceMemoryPriorityFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceMemoryPriorityFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceMemoryPriorityFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceMemoryPriorityFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkMemoryPriorityAllocateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkMemoryPriorityAllocateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkMemoryPriorityAllocateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkMemoryPriorityAllocateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_NV_dedicated_allocation_image_aliasing
+void transform_tohost_VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_buffer_device_address
+void transform_tohost_VkPhysicalDeviceBufferDeviceAddressFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceBufferDeviceAddressFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceBufferDeviceAddressFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceBufferDeviceAddressFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkBufferDeviceAddressCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkBufferDeviceAddressCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkBufferDeviceAddressCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkBufferDeviceAddressCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_tooling_info
+void transform_tohost_VkPhysicalDeviceToolPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceToolPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceToolPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceToolPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_separate_stencil_usage
+#endif
+#ifdef VK_EXT_validation_features
+void transform_tohost_VkValidationFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkValidationFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkValidationFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkValidationFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_NV_cooperative_matrix
+void transform_tohost_VkCooperativeMatrixPropertiesNV(
+    ResourceTracker* resourceTracker,
+    VkCooperativeMatrixPropertiesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkCooperativeMatrixPropertiesNV(
+    ResourceTracker* resourceTracker,
+    VkCooperativeMatrixPropertiesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceCooperativeMatrixFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceCooperativeMatrixFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceCooperativeMatrixFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceCooperativeMatrixFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceCooperativeMatrixPropertiesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceCooperativeMatrixPropertiesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceCooperativeMatrixPropertiesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceCooperativeMatrixPropertiesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_NV_coverage_reduction_mode
+void transform_tohost_VkPhysicalDeviceCoverageReductionModeFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceCoverageReductionModeFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceCoverageReductionModeFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceCoverageReductionModeFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPipelineCoverageReductionStateCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkPipelineCoverageReductionStateCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPipelineCoverageReductionStateCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkPipelineCoverageReductionStateCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkFramebufferMixedSamplesCombinationNV(
+    ResourceTracker* resourceTracker,
+    VkFramebufferMixedSamplesCombinationNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkFramebufferMixedSamplesCombinationNV(
+    ResourceTracker* resourceTracker,
+    VkFramebufferMixedSamplesCombinationNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_fragment_shader_interlock
+void transform_tohost_VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_ycbcr_image_arrays
+void transform_tohost_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceYcbcrImageArraysFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceYcbcrImageArraysFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_full_screen_exclusive
+void transform_tohost_VkSurfaceFullScreenExclusiveInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkSurfaceFullScreenExclusiveInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkSurfaceFullScreenExclusiveInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkSurfaceFullScreenExclusiveInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkSurfaceCapabilitiesFullScreenExclusiveEXT(
+    ResourceTracker* resourceTracker,
+    VkSurfaceCapabilitiesFullScreenExclusiveEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkSurfaceCapabilitiesFullScreenExclusiveEXT(
+    ResourceTracker* resourceTracker,
+    VkSurfaceCapabilitiesFullScreenExclusiveEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkSurfaceFullScreenExclusiveWin32InfoEXT(
+    ResourceTracker* resourceTracker,
+    VkSurfaceFullScreenExclusiveWin32InfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkSurfaceFullScreenExclusiveWin32InfoEXT(
+    ResourceTracker* resourceTracker,
+    VkSurfaceFullScreenExclusiveWin32InfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_headless_surface
+void transform_tohost_VkHeadlessSurfaceCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkHeadlessSurfaceCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkHeadlessSurfaceCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkHeadlessSurfaceCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_line_rasterization
+void transform_tohost_VkPhysicalDeviceLineRasterizationFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceLineRasterizationFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceLineRasterizationFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceLineRasterizationFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceLineRasterizationPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceLineRasterizationPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceLineRasterizationPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceLineRasterizationPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPipelineRasterizationLineStateCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkPipelineRasterizationLineStateCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPipelineRasterizationLineStateCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkPipelineRasterizationLineStateCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_shader_atomic_float
+void transform_tohost_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderAtomicFloatFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderAtomicFloatFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_host_query_reset
+#endif
+#ifdef VK_EXT_index_type_uint8
+void transform_tohost_VkPhysicalDeviceIndexTypeUint8FeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceIndexTypeUint8FeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceIndexTypeUint8FeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceIndexTypeUint8FeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_extended_dynamic_state
+void transform_tohost_VkPhysicalDeviceExtendedDynamicStateFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceExtendedDynamicStateFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceExtendedDynamicStateFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceExtendedDynamicStateFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_shader_demote_to_helper_invocation
+void transform_tohost_VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_NV_device_generated_commands
+void transform_tohost_VkPhysicalDeviceDeviceGeneratedCommandsPropertiesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDeviceGeneratedCommandsPropertiesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceDeviceGeneratedCommandsPropertiesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDeviceGeneratedCommandsPropertiesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkGraphicsShaderGroupCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkGraphicsShaderGroupCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pStages)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->stageCount; ++i)
+        {
+            transform_tohost_VkPipelineShaderStageCreateInfo(resourceTracker, (VkPipelineShaderStageCreateInfo*)(toTransform->pStages + i));
+        }
+    }
+    if (toTransform->pVertexInputState)
+    {
+        transform_tohost_VkPipelineVertexInputStateCreateInfo(resourceTracker, (VkPipelineVertexInputStateCreateInfo*)(toTransform->pVertexInputState));
+    }
+    if (toTransform->pTessellationState)
+    {
+        transform_tohost_VkPipelineTessellationStateCreateInfo(resourceTracker, (VkPipelineTessellationStateCreateInfo*)(toTransform->pTessellationState));
+    }
+}
+
+void transform_fromhost_VkGraphicsShaderGroupCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkGraphicsShaderGroupCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pStages)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->stageCount; ++i)
+        {
+            transform_fromhost_VkPipelineShaderStageCreateInfo(resourceTracker, (VkPipelineShaderStageCreateInfo*)(toTransform->pStages + i));
+        }
+    }
+    if (toTransform->pVertexInputState)
+    {
+        transform_fromhost_VkPipelineVertexInputStateCreateInfo(resourceTracker, (VkPipelineVertexInputStateCreateInfo*)(toTransform->pVertexInputState));
+    }
+    if (toTransform->pTessellationState)
+    {
+        transform_fromhost_VkPipelineTessellationStateCreateInfo(resourceTracker, (VkPipelineTessellationStateCreateInfo*)(toTransform->pTessellationState));
+    }
+}
+
+void transform_tohost_VkGraphicsPipelineShaderGroupsCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkGraphicsPipelineShaderGroupsCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pGroups)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->groupCount; ++i)
+        {
+            transform_tohost_VkGraphicsShaderGroupCreateInfoNV(resourceTracker, (VkGraphicsShaderGroupCreateInfoNV*)(toTransform->pGroups + i));
+        }
+    }
+}
+
+void transform_fromhost_VkGraphicsPipelineShaderGroupsCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkGraphicsPipelineShaderGroupsCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pGroups)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->groupCount; ++i)
+        {
+            transform_fromhost_VkGraphicsShaderGroupCreateInfoNV(resourceTracker, (VkGraphicsShaderGroupCreateInfoNV*)(toTransform->pGroups + i));
+        }
+    }
+}
+
+void transform_tohost_VkBindShaderGroupIndirectCommandNV(
+    ResourceTracker* resourceTracker,
+    VkBindShaderGroupIndirectCommandNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkBindShaderGroupIndirectCommandNV(
+    ResourceTracker* resourceTracker,
+    VkBindShaderGroupIndirectCommandNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkBindIndexBufferIndirectCommandNV(
+    ResourceTracker* resourceTracker,
+    VkBindIndexBufferIndirectCommandNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkBindIndexBufferIndirectCommandNV(
+    ResourceTracker* resourceTracker,
+    VkBindIndexBufferIndirectCommandNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkBindVertexBufferIndirectCommandNV(
+    ResourceTracker* resourceTracker,
+    VkBindVertexBufferIndirectCommandNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkBindVertexBufferIndirectCommandNV(
+    ResourceTracker* resourceTracker,
+    VkBindVertexBufferIndirectCommandNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkSetStateFlagsIndirectCommandNV(
+    ResourceTracker* resourceTracker,
+    VkSetStateFlagsIndirectCommandNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkSetStateFlagsIndirectCommandNV(
+    ResourceTracker* resourceTracker,
+    VkSetStateFlagsIndirectCommandNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkIndirectCommandsStreamNV(
+    ResourceTracker* resourceTracker,
+    VkIndirectCommandsStreamNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkIndirectCommandsStreamNV(
+    ResourceTracker* resourceTracker,
+    VkIndirectCommandsStreamNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkIndirectCommandsLayoutTokenNV(
+    ResourceTracker* resourceTracker,
+    VkIndirectCommandsLayoutTokenNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkIndirectCommandsLayoutTokenNV(
+    ResourceTracker* resourceTracker,
+    VkIndirectCommandsLayoutTokenNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkIndirectCommandsLayoutCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkIndirectCommandsLayoutCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pTokens)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->tokenCount; ++i)
+        {
+            transform_tohost_VkIndirectCommandsLayoutTokenNV(resourceTracker, (VkIndirectCommandsLayoutTokenNV*)(toTransform->pTokens + i));
+        }
+    }
+}
+
+void transform_fromhost_VkIndirectCommandsLayoutCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkIndirectCommandsLayoutCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pTokens)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->tokenCount; ++i)
+        {
+            transform_fromhost_VkIndirectCommandsLayoutTokenNV(resourceTracker, (VkIndirectCommandsLayoutTokenNV*)(toTransform->pTokens + i));
+        }
+    }
+}
+
+void transform_tohost_VkGeneratedCommandsInfoNV(
+    ResourceTracker* resourceTracker,
+    VkGeneratedCommandsInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pStreams)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->streamCount; ++i)
+        {
+            transform_tohost_VkIndirectCommandsStreamNV(resourceTracker, (VkIndirectCommandsStreamNV*)(toTransform->pStreams + i));
+        }
+    }
+}
+
+void transform_fromhost_VkGeneratedCommandsInfoNV(
+    ResourceTracker* resourceTracker,
+    VkGeneratedCommandsInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pStreams)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->streamCount; ++i)
+        {
+            transform_fromhost_VkIndirectCommandsStreamNV(resourceTracker, (VkIndirectCommandsStreamNV*)(toTransform->pStreams + i));
+        }
+    }
+}
+
+void transform_tohost_VkGeneratedCommandsMemoryRequirementsInfoNV(
+    ResourceTracker* resourceTracker,
+    VkGeneratedCommandsMemoryRequirementsInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkGeneratedCommandsMemoryRequirementsInfoNV(
+    ResourceTracker* resourceTracker,
+    VkGeneratedCommandsMemoryRequirementsInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_texel_buffer_alignment
+void transform_tohost_VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_QCOM_render_pass_transform
+void transform_tohost_VkRenderPassTransformBeginInfoQCOM(
+    ResourceTracker* resourceTracker,
+    VkRenderPassTransformBeginInfoQCOM* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkRenderPassTransformBeginInfoQCOM(
+    ResourceTracker* resourceTracker,
+    VkRenderPassTransformBeginInfoQCOM* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkCommandBufferInheritanceRenderPassTransformInfoQCOM(
+    ResourceTracker* resourceTracker,
+    VkCommandBufferInheritanceRenderPassTransformInfoQCOM* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkRect2D(resourceTracker, (VkRect2D*)(&toTransform->renderArea));
+}
+
+void transform_fromhost_VkCommandBufferInheritanceRenderPassTransformInfoQCOM(
+    ResourceTracker* resourceTracker,
+    VkCommandBufferInheritanceRenderPassTransformInfoQCOM* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkRect2D(resourceTracker, (VkRect2D*)(&toTransform->renderArea));
+}
+
+#endif
+#ifdef VK_EXT_device_memory_report
+void transform_tohost_VkPhysicalDeviceDeviceMemoryReportFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDeviceMemoryReportFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceDeviceMemoryReportFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDeviceMemoryReportFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkDeviceMemoryReportCallbackDataEXT(
+    ResourceTracker* resourceTracker,
+    VkDeviceMemoryReportCallbackDataEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkDeviceMemoryReportCallbackDataEXT(
+    ResourceTracker* resourceTracker,
+    VkDeviceMemoryReportCallbackDataEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkDeviceDeviceMemoryReportCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkDeviceDeviceMemoryReportCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkDeviceDeviceMemoryReportCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkDeviceDeviceMemoryReportCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_robustness2
+void transform_tohost_VkPhysicalDeviceRobustness2FeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceRobustness2FeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceRobustness2FeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceRobustness2FeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceRobustness2PropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceRobustness2PropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceRobustness2PropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceRobustness2PropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_custom_border_color
+void transform_tohost_VkSamplerCustomBorderColorCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkSamplerCustomBorderColorCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkClearColorValue(resourceTracker, (VkClearColorValue*)(&toTransform->customBorderColor));
+}
+
+void transform_fromhost_VkSamplerCustomBorderColorCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkSamplerCustomBorderColorCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkClearColorValue(resourceTracker, (VkClearColorValue*)(&toTransform->customBorderColor));
+}
+
+void transform_tohost_VkPhysicalDeviceCustomBorderColorPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceCustomBorderColorPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceCustomBorderColorPropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceCustomBorderColorPropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceCustomBorderColorFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceCustomBorderColorFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceCustomBorderColorFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceCustomBorderColorFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_GOOGLE_user_type
+#endif
+#ifdef VK_EXT_private_data
+void transform_tohost_VkPhysicalDevicePrivateDataFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevicePrivateDataFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDevicePrivateDataFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevicePrivateDataFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkDevicePrivateDataCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkDevicePrivateDataCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkDevicePrivateDataCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkDevicePrivateDataCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPrivateDataSlotCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkPrivateDataSlotCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPrivateDataSlotCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkPrivateDataSlotCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_pipeline_creation_cache_control
+void transform_tohost_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_NV_device_diagnostics_config
+void transform_tohost_VkPhysicalDeviceDiagnosticsConfigFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDiagnosticsConfigFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceDiagnosticsConfigFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceDiagnosticsConfigFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkDeviceDiagnosticsConfigCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkDeviceDiagnosticsConfigCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkDeviceDiagnosticsConfigCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkDeviceDiagnosticsConfigCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_QCOM_render_pass_store_ops
+#endif
+#ifdef VK_NV_fragment_shading_rate_enums
+void transform_tohost_VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPipelineFragmentShadingRateEnumStateCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkPipelineFragmentShadingRateEnumStateCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPipelineFragmentShadingRateEnumStateCreateInfoNV(
+    ResourceTracker* resourceTracker,
+    VkPipelineFragmentShadingRateEnumStateCreateInfoNV* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_fragment_density_map2
+void transform_tohost_VkPhysicalDeviceFragmentDensityMap2FeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentDensityMap2FeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceFragmentDensityMap2FeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentDensityMap2FeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceFragmentDensityMap2PropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentDensityMap2PropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceFragmentDensityMap2PropertiesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceFragmentDensityMap2PropertiesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_QCOM_rotated_copy_commands
+void transform_tohost_VkCopyCommandTransformInfoQCOM(
+    ResourceTracker* resourceTracker,
+    VkCopyCommandTransformInfoQCOM* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkCopyCommandTransformInfoQCOM(
+    ResourceTracker* resourceTracker,
+    VkCopyCommandTransformInfoQCOM* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_image_robustness
+void transform_tohost_VkPhysicalDeviceImageRobustnessFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceImageRobustnessFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceImageRobustnessFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceImageRobustnessFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_4444_formats
+void transform_tohost_VkPhysicalDevice4444FormatsFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevice4444FormatsFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDevice4444FormatsFeaturesEXT(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDevice4444FormatsFeaturesEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_EXT_directfb_surface
+void transform_tohost_VkDirectFBSurfaceCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkDirectFBSurfaceCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkDirectFBSurfaceCreateInfoEXT(
+    ResourceTracker* resourceTracker,
+    VkDirectFBSurfaceCreateInfoEXT* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_GOOGLE_address_space
+#endif
 #ifdef VK_GOOGLE_sized_descriptor_update_template
 #endif
 #ifdef VK_GOOGLE_async_command_buffers
@@ -9005,9 +14485,703 @@ void transform_fromhost_VkImportPhysicalAddressGOOGLE(
 #endif
 #ifdef VK_GOOGLE_linear_image_layout
 #endif
-#ifdef VK_MVK_moltenvk
-#endif
 #ifdef VK_GOOGLE_queue_submit_with_commands
+#endif
+#ifdef VK_KHR_acceleration_structure
+void transform_tohost_VkDeviceOrHostAddressKHR(
+    ResourceTracker* resourceTracker,
+    VkDeviceOrHostAddressKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkDeviceOrHostAddressKHR(
+    ResourceTracker* resourceTracker,
+    VkDeviceOrHostAddressKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkDeviceOrHostAddressConstKHR(
+    ResourceTracker* resourceTracker,
+    VkDeviceOrHostAddressConstKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkDeviceOrHostAddressConstKHR(
+    ResourceTracker* resourceTracker,
+    VkDeviceOrHostAddressConstKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkAccelerationStructureBuildRangeInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureBuildRangeInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkAccelerationStructureBuildRangeInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureBuildRangeInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkAccelerationStructureGeometryTrianglesDataKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureGeometryTrianglesDataKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkDeviceOrHostAddressConstKHR(resourceTracker, (VkDeviceOrHostAddressConstKHR*)(&toTransform->vertexData));
+    transform_tohost_VkDeviceOrHostAddressConstKHR(resourceTracker, (VkDeviceOrHostAddressConstKHR*)(&toTransform->indexData));
+    transform_tohost_VkDeviceOrHostAddressConstKHR(resourceTracker, (VkDeviceOrHostAddressConstKHR*)(&toTransform->transformData));
+}
+
+void transform_fromhost_VkAccelerationStructureGeometryTrianglesDataKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureGeometryTrianglesDataKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkDeviceOrHostAddressConstKHR(resourceTracker, (VkDeviceOrHostAddressConstKHR*)(&toTransform->vertexData));
+    transform_fromhost_VkDeviceOrHostAddressConstKHR(resourceTracker, (VkDeviceOrHostAddressConstKHR*)(&toTransform->indexData));
+    transform_fromhost_VkDeviceOrHostAddressConstKHR(resourceTracker, (VkDeviceOrHostAddressConstKHR*)(&toTransform->transformData));
+}
+
+void transform_tohost_VkAccelerationStructureGeometryAabbsDataKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureGeometryAabbsDataKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkDeviceOrHostAddressConstKHR(resourceTracker, (VkDeviceOrHostAddressConstKHR*)(&toTransform->data));
+}
+
+void transform_fromhost_VkAccelerationStructureGeometryAabbsDataKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureGeometryAabbsDataKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkDeviceOrHostAddressConstKHR(resourceTracker, (VkDeviceOrHostAddressConstKHR*)(&toTransform->data));
+}
+
+void transform_tohost_VkAccelerationStructureGeometryInstancesDataKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureGeometryInstancesDataKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkDeviceOrHostAddressConstKHR(resourceTracker, (VkDeviceOrHostAddressConstKHR*)(&toTransform->data));
+}
+
+void transform_fromhost_VkAccelerationStructureGeometryInstancesDataKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureGeometryInstancesDataKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkDeviceOrHostAddressConstKHR(resourceTracker, (VkDeviceOrHostAddressConstKHR*)(&toTransform->data));
+}
+
+void transform_tohost_VkAccelerationStructureGeometryDataKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureGeometryDataKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_tohost_VkAccelerationStructureGeometryTrianglesDataKHR(resourceTracker, (VkAccelerationStructureGeometryTrianglesDataKHR*)(&toTransform->triangles));
+    transform_tohost_VkAccelerationStructureGeometryAabbsDataKHR(resourceTracker, (VkAccelerationStructureGeometryAabbsDataKHR*)(&toTransform->aabbs));
+    transform_tohost_VkAccelerationStructureGeometryInstancesDataKHR(resourceTracker, (VkAccelerationStructureGeometryInstancesDataKHR*)(&toTransform->instances));
+}
+
+void transform_fromhost_VkAccelerationStructureGeometryDataKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureGeometryDataKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    transform_fromhost_VkAccelerationStructureGeometryTrianglesDataKHR(resourceTracker, (VkAccelerationStructureGeometryTrianglesDataKHR*)(&toTransform->triangles));
+    transform_fromhost_VkAccelerationStructureGeometryAabbsDataKHR(resourceTracker, (VkAccelerationStructureGeometryAabbsDataKHR*)(&toTransform->aabbs));
+    transform_fromhost_VkAccelerationStructureGeometryInstancesDataKHR(resourceTracker, (VkAccelerationStructureGeometryInstancesDataKHR*)(&toTransform->instances));
+}
+
+void transform_tohost_VkAccelerationStructureGeometryKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureGeometryKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkAccelerationStructureGeometryDataKHR(resourceTracker, (VkAccelerationStructureGeometryDataKHR*)(&toTransform->geometry));
+}
+
+void transform_fromhost_VkAccelerationStructureGeometryKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureGeometryKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkAccelerationStructureGeometryDataKHR(resourceTracker, (VkAccelerationStructureGeometryDataKHR*)(&toTransform->geometry));
+}
+
+void transform_tohost_VkAccelerationStructureBuildGeometryInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureBuildGeometryInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pGeometries)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->geometryCount; ++i)
+        {
+            transform_tohost_VkAccelerationStructureGeometryKHR(resourceTracker, (VkAccelerationStructureGeometryKHR*)(toTransform->pGeometries + i));
+        }
+    }
+    transform_tohost_VkDeviceOrHostAddressKHR(resourceTracker, (VkDeviceOrHostAddressKHR*)(&toTransform->scratchData));
+}
+
+void transform_fromhost_VkAccelerationStructureBuildGeometryInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureBuildGeometryInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pGeometries)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->geometryCount; ++i)
+        {
+            transform_fromhost_VkAccelerationStructureGeometryKHR(resourceTracker, (VkAccelerationStructureGeometryKHR*)(toTransform->pGeometries + i));
+        }
+    }
+    transform_fromhost_VkDeviceOrHostAddressKHR(resourceTracker, (VkDeviceOrHostAddressKHR*)(&toTransform->scratchData));
+}
+
+void transform_tohost_VkAccelerationStructureCreateInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureCreateInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkAccelerationStructureCreateInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureCreateInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkWriteDescriptorSetAccelerationStructureKHR(
+    ResourceTracker* resourceTracker,
+    VkWriteDescriptorSetAccelerationStructureKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkWriteDescriptorSetAccelerationStructureKHR(
+    ResourceTracker* resourceTracker,
+    VkWriteDescriptorSetAccelerationStructureKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceAccelerationStructureFeaturesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceAccelerationStructureFeaturesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceAccelerationStructureFeaturesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceAccelerationStructureFeaturesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceAccelerationStructurePropertiesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceAccelerationStructurePropertiesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceAccelerationStructurePropertiesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceAccelerationStructurePropertiesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkAccelerationStructureDeviceAddressInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureDeviceAddressInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkAccelerationStructureDeviceAddressInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureDeviceAddressInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkAccelerationStructureVersionInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureVersionInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkAccelerationStructureVersionInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureVersionInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkCopyAccelerationStructureToMemoryInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkCopyAccelerationStructureToMemoryInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkDeviceOrHostAddressKHR(resourceTracker, (VkDeviceOrHostAddressKHR*)(&toTransform->dst));
+}
+
+void transform_fromhost_VkCopyAccelerationStructureToMemoryInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkCopyAccelerationStructureToMemoryInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkDeviceOrHostAddressKHR(resourceTracker, (VkDeviceOrHostAddressKHR*)(&toTransform->dst));
+}
+
+void transform_tohost_VkCopyMemoryToAccelerationStructureInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkCopyMemoryToAccelerationStructureInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_tohost_VkDeviceOrHostAddressConstKHR(resourceTracker, (VkDeviceOrHostAddressConstKHR*)(&toTransform->src));
+}
+
+void transform_fromhost_VkCopyMemoryToAccelerationStructureInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkCopyMemoryToAccelerationStructureInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    transform_fromhost_VkDeviceOrHostAddressConstKHR(resourceTracker, (VkDeviceOrHostAddressConstKHR*)(&toTransform->src));
+}
+
+void transform_tohost_VkCopyAccelerationStructureInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkCopyAccelerationStructureInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkCopyAccelerationStructureInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkCopyAccelerationStructureInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkAccelerationStructureBuildSizesInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureBuildSizesInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkAccelerationStructureBuildSizesInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkAccelerationStructureBuildSizesInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+void transform_tohost_VkRayTracingShaderGroupCreateInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkRayTracingShaderGroupCreateInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkRayTracingShaderGroupCreateInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkRayTracingShaderGroupCreateInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkRayTracingPipelineInterfaceCreateInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkRayTracingPipelineInterfaceCreateInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkRayTracingPipelineInterfaceCreateInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkRayTracingPipelineInterfaceCreateInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkRayTracingPipelineCreateInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkRayTracingPipelineCreateInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pStages)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->stageCount; ++i)
+        {
+            transform_tohost_VkPipelineShaderStageCreateInfo(resourceTracker, (VkPipelineShaderStageCreateInfo*)(toTransform->pStages + i));
+        }
+    }
+    if (toTransform->pGroups)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->groupCount; ++i)
+        {
+            transform_tohost_VkRayTracingShaderGroupCreateInfoKHR(resourceTracker, (VkRayTracingShaderGroupCreateInfoKHR*)(toTransform->pGroups + i));
+        }
+    }
+    if (toTransform->pLibraryInfo)
+    {
+        transform_tohost_VkPipelineLibraryCreateInfoKHR(resourceTracker, (VkPipelineLibraryCreateInfoKHR*)(toTransform->pLibraryInfo));
+    }
+    if (toTransform->pLibraryInterface)
+    {
+        transform_tohost_VkRayTracingPipelineInterfaceCreateInfoKHR(resourceTracker, (VkRayTracingPipelineInterfaceCreateInfoKHR*)(toTransform->pLibraryInterface));
+    }
+    if (toTransform->pDynamicState)
+    {
+        transform_tohost_VkPipelineDynamicStateCreateInfo(resourceTracker, (VkPipelineDynamicStateCreateInfo*)(toTransform->pDynamicState));
+    }
+}
+
+void transform_fromhost_VkRayTracingPipelineCreateInfoKHR(
+    ResourceTracker* resourceTracker,
+    VkRayTracingPipelineCreateInfoKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+    if (toTransform->pStages)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->stageCount; ++i)
+        {
+            transform_fromhost_VkPipelineShaderStageCreateInfo(resourceTracker, (VkPipelineShaderStageCreateInfo*)(toTransform->pStages + i));
+        }
+    }
+    if (toTransform->pGroups)
+    {
+        for (uint32_t i = 0; i < (uint32_t)toTransform->groupCount; ++i)
+        {
+            transform_fromhost_VkRayTracingShaderGroupCreateInfoKHR(resourceTracker, (VkRayTracingShaderGroupCreateInfoKHR*)(toTransform->pGroups + i));
+        }
+    }
+    if (toTransform->pLibraryInfo)
+    {
+        transform_fromhost_VkPipelineLibraryCreateInfoKHR(resourceTracker, (VkPipelineLibraryCreateInfoKHR*)(toTransform->pLibraryInfo));
+    }
+    if (toTransform->pLibraryInterface)
+    {
+        transform_fromhost_VkRayTracingPipelineInterfaceCreateInfoKHR(resourceTracker, (VkRayTracingPipelineInterfaceCreateInfoKHR*)(toTransform->pLibraryInterface));
+    }
+    if (toTransform->pDynamicState)
+    {
+        transform_fromhost_VkPipelineDynamicStateCreateInfo(resourceTracker, (VkPipelineDynamicStateCreateInfo*)(toTransform->pDynamicState));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_tohost_VkStridedDeviceAddressRegionKHR(
+    ResourceTracker* resourceTracker,
+    VkStridedDeviceAddressRegionKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkStridedDeviceAddressRegionKHR(
+    ResourceTracker* resourceTracker,
+    VkStridedDeviceAddressRegionKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_tohost_VkTraceRaysIndirectCommandKHR(
+    ResourceTracker* resourceTracker,
+    VkTraceRaysIndirectCommandKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+void transform_fromhost_VkTraceRaysIndirectCommandKHR(
+    ResourceTracker* resourceTracker,
+    VkTraceRaysIndirectCommandKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+}
+
+#endif
+#ifdef VK_KHR_ray_query
+void transform_tohost_VkPhysicalDeviceRayQueryFeaturesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceRayQueryFeaturesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
+void transform_fromhost_VkPhysicalDeviceRayQueryFeaturesKHR(
+    ResourceTracker* resourceTracker,
+    VkPhysicalDeviceRayQueryFeaturesKHR* toTransform)
+{
+    (void)resourceTracker;
+    (void)toTransform;
+    if (toTransform->pNext)
+    {
+        transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
+    }
+}
+
 #endif
 void transform_tohost_extension_struct(
     ResourceTracker* resourceTracker,
@@ -9121,9 +15295,9 @@ void transform_tohost_extension_struct(
             transform_tohost_VkPhysicalDeviceMultiviewProperties(resourceTracker, reinterpret_cast<VkPhysicalDeviceMultiviewProperties*>(structExtension_out));
             break;
         }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES:
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES:
         {
-            transform_tohost_VkPhysicalDeviceVariablePointerFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceVariablePointerFeatures*>(structExtension_out));
+            transform_tohost_VkPhysicalDeviceVariablePointersFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceVariablePointersFeatures*>(structExtension_out));
             break;
         }
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_FEATURES:
@@ -9216,9 +15390,201 @@ void transform_tohost_extension_struct(
             transform_tohost_VkPhysicalDeviceMaintenance3Properties(resourceTracker, reinterpret_cast<VkPhysicalDeviceMaintenance3Properties*>(structExtension_out));
             break;
         }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES:
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES:
         {
-            transform_tohost_VkPhysicalDeviceShaderDrawParameterFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderDrawParameterFeatures*>(structExtension_out));
+            transform_tohost_VkPhysicalDeviceShaderDrawParametersFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderDrawParametersFeatures*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_VERSION_1_2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES:
+        {
+            transform_tohost_VkPhysicalDeviceVulkan11Features(resourceTracker, reinterpret_cast<VkPhysicalDeviceVulkan11Features*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_PROPERTIES:
+        {
+            transform_tohost_VkPhysicalDeviceVulkan11Properties(resourceTracker, reinterpret_cast<VkPhysicalDeviceVulkan11Properties*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES:
+        {
+            transform_tohost_VkPhysicalDeviceVulkan12Features(resourceTracker, reinterpret_cast<VkPhysicalDeviceVulkan12Features*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES:
+        {
+            transform_tohost_VkPhysicalDeviceVulkan12Properties(resourceTracker, reinterpret_cast<VkPhysicalDeviceVulkan12Properties*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO:
+        {
+            transform_tohost_VkImageFormatListCreateInfo(resourceTracker, reinterpret_cast<VkImageFormatListCreateInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES:
+        {
+            transform_tohost_VkPhysicalDevice8BitStorageFeatures(resourceTracker, reinterpret_cast<VkPhysicalDevice8BitStorageFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES:
+        {
+            transform_tohost_VkPhysicalDeviceDriverProperties(resourceTracker, reinterpret_cast<VkPhysicalDeviceDriverProperties*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_INT64_FEATURES:
+        {
+            transform_tohost_VkPhysicalDeviceShaderAtomicInt64Features(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderAtomicInt64Features*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT16_INT8_FEATURES:
+        {
+            transform_tohost_VkPhysicalDeviceShaderFloat16Int8Features(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderFloat16Int8Features*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT_CONTROLS_PROPERTIES:
+        {
+            transform_tohost_VkPhysicalDeviceFloatControlsProperties(resourceTracker, reinterpret_cast<VkPhysicalDeviceFloatControlsProperties*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO:
+        {
+            transform_tohost_VkDescriptorSetLayoutBindingFlagsCreateInfo(resourceTracker, reinterpret_cast<VkDescriptorSetLayoutBindingFlagsCreateInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES:
+        {
+            transform_tohost_VkPhysicalDeviceDescriptorIndexingFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceDescriptorIndexingFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_PROPERTIES:
+        {
+            transform_tohost_VkPhysicalDeviceDescriptorIndexingProperties(resourceTracker, reinterpret_cast<VkPhysicalDeviceDescriptorIndexingProperties*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO:
+        {
+            transform_tohost_VkDescriptorSetVariableDescriptorCountAllocateInfo(resourceTracker, reinterpret_cast<VkDescriptorSetVariableDescriptorCountAllocateInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_LAYOUT_SUPPORT:
+        {
+            transform_tohost_VkDescriptorSetVariableDescriptorCountLayoutSupport(resourceTracker, reinterpret_cast<VkDescriptorSetVariableDescriptorCountLayoutSupport*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_DEPTH_STENCIL_RESOLVE:
+        {
+            transform_tohost_VkSubpassDescriptionDepthStencilResolve(resourceTracker, reinterpret_cast<VkSubpassDescriptionDepthStencilResolve*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_STENCIL_RESOLVE_PROPERTIES:
+        {
+            transform_tohost_VkPhysicalDeviceDepthStencilResolveProperties(resourceTracker, reinterpret_cast<VkPhysicalDeviceDepthStencilResolveProperties*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES:
+        {
+            transform_tohost_VkPhysicalDeviceScalarBlockLayoutFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceScalarBlockLayoutFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_STENCIL_USAGE_CREATE_INFO:
+        {
+            transform_tohost_VkImageStencilUsageCreateInfo(resourceTracker, reinterpret_cast<VkImageStencilUsageCreateInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SAMPLER_REDUCTION_MODE_CREATE_INFO:
+        {
+            transform_tohost_VkSamplerReductionModeCreateInfo(resourceTracker, reinterpret_cast<VkSamplerReductionModeCreateInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_FILTER_MINMAX_PROPERTIES:
+        {
+            transform_tohost_VkPhysicalDeviceSamplerFilterMinmaxProperties(resourceTracker, reinterpret_cast<VkPhysicalDeviceSamplerFilterMinmaxProperties*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_MEMORY_MODEL_FEATURES:
+        {
+            transform_tohost_VkPhysicalDeviceVulkanMemoryModelFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceVulkanMemoryModelFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGELESS_FRAMEBUFFER_FEATURES:
+        {
+            transform_tohost_VkPhysicalDeviceImagelessFramebufferFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceImagelessFramebufferFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENTS_CREATE_INFO:
+        {
+            transform_tohost_VkFramebufferAttachmentsCreateInfo(resourceTracker, reinterpret_cast<VkFramebufferAttachmentsCreateInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_RENDER_PASS_ATTACHMENT_BEGIN_INFO:
+        {
+            transform_tohost_VkRenderPassAttachmentBeginInfo(resourceTracker, reinterpret_cast<VkRenderPassAttachmentBeginInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFORM_BUFFER_STANDARD_LAYOUT_FEATURES:
+        {
+            transform_tohost_VkPhysicalDeviceUniformBufferStandardLayoutFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceUniformBufferStandardLayoutFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_EXTENDED_TYPES_FEATURES:
+        {
+            transform_tohost_VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES:
+        {
+            transform_tohost_VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_STENCIL_LAYOUT:
+        {
+            transform_tohost_VkAttachmentReferenceStencilLayout(resourceTracker, reinterpret_cast<VkAttachmentReferenceStencilLayout*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_STENCIL_LAYOUT:
+        {
+            transform_tohost_VkAttachmentDescriptionStencilLayout(resourceTracker, reinterpret_cast<VkAttachmentDescriptionStencilLayout*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES:
+        {
+            transform_tohost_VkPhysicalDeviceHostQueryResetFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceHostQueryResetFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES:
+        {
+            transform_tohost_VkPhysicalDeviceTimelineSemaphoreFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceTimelineSemaphoreFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_PROPERTIES:
+        {
+            transform_tohost_VkPhysicalDeviceTimelineSemaphoreProperties(resourceTracker, reinterpret_cast<VkPhysicalDeviceTimelineSemaphoreProperties*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO:
+        {
+            transform_tohost_VkSemaphoreTypeCreateInfo(resourceTracker, reinterpret_cast<VkSemaphoreTypeCreateInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO:
+        {
+            transform_tohost_VkTimelineSemaphoreSubmitInfo(resourceTracker, reinterpret_cast<VkTimelineSemaphoreSubmitInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES:
+        {
+            transform_tohost_VkPhysicalDeviceBufferDeviceAddressFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceBufferDeviceAddressFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_BUFFER_OPAQUE_CAPTURE_ADDRESS_CREATE_INFO:
+        {
+            transform_tohost_VkBufferOpaqueCaptureAddressCreateInfo(resourceTracker, reinterpret_cast<VkBufferOpaqueCaptureAddressCreateInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_MEMORY_OPAQUE_CAPTURE_ADDRESS_ALLOCATE_INFO:
+        {
+            transform_tohost_VkMemoryOpaqueCaptureAddressAllocateInfo(resourceTracker, reinterpret_cast<VkMemoryOpaqueCaptureAddressAllocateInfo*>(structExtension_out));
             break;
         }
 #endif
@@ -9317,24 +15683,87 @@ void transform_tohost_extension_struct(
             break;
         }
 #endif
-#ifdef VK_KHR_image_format_list
-        case VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO_KHR:
+#ifdef VK_KHR_performance_query
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_QUERY_FEATURES_KHR:
         {
-            transform_tohost_VkImageFormatListCreateInfoKHR(resourceTracker, reinterpret_cast<VkImageFormatListCreateInfoKHR*>(structExtension_out));
+            transform_tohost_VkPhysicalDevicePerformanceQueryFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDevicePerformanceQueryFeaturesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_QUERY_PROPERTIES_KHR:
+        {
+            transform_tohost_VkPhysicalDevicePerformanceQueryPropertiesKHR(resourceTracker, reinterpret_cast<VkPhysicalDevicePerformanceQueryPropertiesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_QUERY_POOL_PERFORMANCE_CREATE_INFO_KHR:
+        {
+            transform_tohost_VkQueryPoolPerformanceCreateInfoKHR(resourceTracker, reinterpret_cast<VkQueryPoolPerformanceCreateInfoKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PERFORMANCE_QUERY_SUBMIT_INFO_KHR:
+        {
+            transform_tohost_VkPerformanceQuerySubmitInfoKHR(resourceTracker, reinterpret_cast<VkPerformanceQuerySubmitInfoKHR*>(structExtension_out));
             break;
         }
 #endif
-#ifdef VK_KHR_8bit_storage
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES_KHR:
+#ifdef VK_KHR_portability_subset
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_FEATURES_KHR:
         {
-            transform_tohost_VkPhysicalDevice8BitStorageFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDevice8BitStorageFeaturesKHR*>(structExtension_out));
+            transform_tohost_VkPhysicalDevicePortabilitySubsetFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDevicePortabilitySubsetFeaturesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_PROPERTIES_KHR:
+        {
+            transform_tohost_VkPhysicalDevicePortabilitySubsetPropertiesKHR(resourceTracker, reinterpret_cast<VkPhysicalDevicePortabilitySubsetPropertiesKHR*>(structExtension_out));
             break;
         }
 #endif
-#ifdef VK_KHR_shader_float16_int8
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT16_INT8_FEATURES:
+#ifdef VK_KHR_shader_clock
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CLOCK_FEATURES_KHR:
         {
-            transform_tohost_VkPhysicalDeviceShaderFloat16Int8Features(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderFloat16Int8Features*>(structExtension_out));
+            transform_tohost_VkPhysicalDeviceShaderClockFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderClockFeaturesKHR*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_shader_terminate_invocation
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_TERMINATE_INVOCATION_FEATURES_KHR:
+        {
+            transform_tohost_VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_fragment_shading_rate
+        case VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR:
+        {
+            transform_tohost_VkFragmentShadingRateAttachmentInfoKHR(resourceTracker, reinterpret_cast<VkFragmentShadingRateAttachmentInfoKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_FRAGMENT_SHADING_RATE_STATE_CREATE_INFO_KHR:
+        {
+            transform_tohost_VkPipelineFragmentShadingRateStateCreateInfoKHR(resourceTracker, reinterpret_cast<VkPipelineFragmentShadingRateStateCreateInfoKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_FEATURES_KHR:
+        {
+            transform_tohost_VkPhysicalDeviceFragmentShadingRateFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentShadingRateFeaturesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_PROPERTIES_KHR:
+        {
+            transform_tohost_VkPhysicalDeviceFragmentShadingRatePropertiesKHR(resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentShadingRatePropertiesKHR*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_surface_protected_capabilities
+        case VK_STRUCTURE_TYPE_SURFACE_PROTECTED_CAPABILITIES_KHR:
+        {
+            transform_tohost_VkSurfaceProtectedCapabilitiesKHR(resourceTracker, reinterpret_cast<VkSurfaceProtectedCapabilitiesKHR*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_pipeline_executable_properties
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_EXECUTABLE_PROPERTIES_FEATURES_KHR:
+        {
+            transform_tohost_VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR*>(structExtension_out));
             break;
         }
 #endif
@@ -9376,10 +15805,34 @@ void transform_tohost_extension_struct(
             break;
         }
 #endif
+#ifdef VK_EXT_transform_feedback
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceTransformFeedbackFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceTransformFeedbackFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_PROPERTIES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceTransformFeedbackPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceTransformFeedbackPropertiesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_STREAM_CREATE_INFO_EXT:
+        {
+            transform_tohost_VkPipelineRasterizationStateStreamCreateInfoEXT(resourceTracker, reinterpret_cast<VkPipelineRasterizationStateStreamCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_AMD_texture_gather_bias_lod
         case VK_STRUCTURE_TYPE_TEXTURE_LOD_GATHER_FORMAT_PROPERTIES_AMD:
         {
             transform_tohost_VkTextureLODGatherFormatPropertiesAMD(resourceTracker, reinterpret_cast<VkTextureLODGatherFormatPropertiesAMD*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_corner_sampled_image
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CORNER_SAMPLED_IMAGE_FEATURES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceCornerSampledImageFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceCornerSampledImageFeaturesNV*>(structExtension_out));
             break;
         }
 #endif
@@ -9418,6 +15871,25 @@ void transform_tohost_extension_struct(
         case VK_STRUCTURE_TYPE_VALIDATION_FLAGS_EXT:
         {
             transform_tohost_VkValidationFlagsEXT(resourceTracker, reinterpret_cast<VkValidationFlagsEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_texture_compression_astc_hdr
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_HDR_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_astc_decode_mode
+        case VK_STRUCTURE_TYPE_IMAGE_VIEW_ASTC_DECODE_MODE_EXT:
+        {
+            transform_tohost_VkImageViewASTCDecodeModeEXT(resourceTracker, reinterpret_cast<VkImageViewASTCDecodeModeEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ASTC_DECODE_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceASTCDecodeFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceASTCDecodeFeaturesEXT*>(structExtension_out));
             break;
         }
 #endif
@@ -9492,6 +15964,18 @@ void transform_tohost_extension_struct(
             break;
         }
 #endif
+#ifdef VK_EXT_depth_clip_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceDepthClipEnableFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceDepthClipEnableFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT:
+        {
+            transform_tohost_VkPipelineRasterizationDepthClipStateCreateInfoEXT(resourceTracker, reinterpret_cast<VkPipelineRasterizationDepthClipStateCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_EXT_debug_utils
         case VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT:
         {
@@ -9521,15 +16005,25 @@ void transform_tohost_extension_struct(
             break;
         }
 #endif
-#ifdef VK_EXT_sampler_filter_minmax
-        case VK_STRUCTURE_TYPE_SAMPLER_REDUCTION_MODE_CREATE_INFO_EXT:
+#ifdef VK_EXT_inline_uniform_block
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES_EXT:
         {
-            transform_tohost_VkSamplerReductionModeCreateInfoEXT(resourceTracker, reinterpret_cast<VkSamplerReductionModeCreateInfoEXT*>(structExtension_out));
+            transform_tohost_VkPhysicalDeviceInlineUniformBlockFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceInlineUniformBlockFeaturesEXT*>(structExtension_out));
             break;
         }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_FILTER_MINMAX_PROPERTIES_EXT:
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_PROPERTIES_EXT:
         {
-            transform_tohost_VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT*>(structExtension_out));
+            transform_tohost_VkPhysicalDeviceInlineUniformBlockPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceInlineUniformBlockPropertiesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_INLINE_UNIFORM_BLOCK_EXT:
+        {
+            transform_tohost_VkWriteDescriptorSetInlineUniformBlockEXT(resourceTracker, reinterpret_cast<VkWriteDescriptorSetInlineUniformBlockEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_INLINE_UNIFORM_BLOCK_CREATE_INFO_EXT:
+        {
+            transform_tohost_VkDescriptorPoolInlineUniformBlockCreateInfoEXT(resourceTracker, reinterpret_cast<VkDescriptorPoolInlineUniformBlockCreateInfoEXT*>(structExtension_out));
             break;
         }
 #endif
@@ -9586,6 +16080,40 @@ void transform_tohost_extension_struct(
             break;
         }
 #endif
+#ifdef VK_NV_shader_sm_builtins
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SM_BUILTINS_PROPERTIES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceShaderSMBuiltinsPropertiesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderSMBuiltinsPropertiesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SM_BUILTINS_FEATURES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceShaderSMBuiltinsFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderSMBuiltinsFeaturesNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+        case VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_EXT:
+        {
+            transform_tohost_VkDrmFormatModifierPropertiesListEXT(resourceTracker, reinterpret_cast<VkDrmFormatModifierPropertiesListEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_DRM_FORMAT_MODIFIER_INFO_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceImageDrmFormatModifierInfoEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_LIST_CREATE_INFO_EXT:
+        {
+            transform_tohost_VkImageDrmFormatModifierListCreateInfoEXT(resourceTracker, reinterpret_cast<VkImageDrmFormatModifierListCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_EXPLICIT_CREATE_INFO_EXT:
+        {
+            transform_tohost_VkImageDrmFormatModifierExplicitCreateInfoEXT(resourceTracker, reinterpret_cast<VkImageDrmFormatModifierExplicitCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_EXT_validation_cache
         case VK_STRUCTURE_TYPE_SHADER_MODULE_VALIDATION_CACHE_CREATE_INFO_EXT:
         {
@@ -9593,30 +16121,61 @@ void transform_tohost_extension_struct(
             break;
         }
 #endif
-#ifdef VK_EXT_descriptor_indexing
-        case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT:
+#ifdef VK_NV_shading_rate_image
+        case VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_SHADING_RATE_IMAGE_STATE_CREATE_INFO_NV:
         {
-            transform_tohost_VkDescriptorSetLayoutBindingFlagsCreateInfoEXT(resourceTracker, reinterpret_cast<VkDescriptorSetLayoutBindingFlagsCreateInfoEXT*>(structExtension_out));
+            transform_tohost_VkPipelineViewportShadingRateImageStateCreateInfoNV(resourceTracker, reinterpret_cast<VkPipelineViewportShadingRateImageStateCreateInfoNV*>(structExtension_out));
             break;
         }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT:
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADING_RATE_IMAGE_FEATURES_NV:
         {
-            transform_tohost_VkPhysicalDeviceDescriptorIndexingFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceDescriptorIndexingFeaturesEXT*>(structExtension_out));
+            transform_tohost_VkPhysicalDeviceShadingRateImageFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceShadingRateImageFeaturesNV*>(structExtension_out));
             break;
         }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_PROPERTIES_EXT:
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADING_RATE_IMAGE_PROPERTIES_NV:
         {
-            transform_tohost_VkPhysicalDeviceDescriptorIndexingPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceDescriptorIndexingPropertiesEXT*>(structExtension_out));
+            transform_tohost_VkPhysicalDeviceShadingRateImagePropertiesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceShadingRateImagePropertiesNV*>(structExtension_out));
             break;
         }
-        case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT:
+        case VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_COARSE_SAMPLE_ORDER_STATE_CREATE_INFO_NV:
         {
-            transform_tohost_VkDescriptorSetVariableDescriptorCountAllocateInfoEXT(resourceTracker, reinterpret_cast<VkDescriptorSetVariableDescriptorCountAllocateInfoEXT*>(structExtension_out));
+            transform_tohost_VkPipelineViewportCoarseSampleOrderStateCreateInfoNV(resourceTracker, reinterpret_cast<VkPipelineViewportCoarseSampleOrderStateCreateInfoNV*>(structExtension_out));
             break;
         }
-        case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_LAYOUT_SUPPORT_EXT:
+#endif
+#ifdef VK_NV_ray_tracing
+        case VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_NV:
         {
-            transform_tohost_VkDescriptorSetVariableDescriptorCountLayoutSupportEXT(resourceTracker, reinterpret_cast<VkDescriptorSetVariableDescriptorCountLayoutSupportEXT*>(structExtension_out));
+            transform_tohost_VkWriteDescriptorSetAccelerationStructureNV(resourceTracker, reinterpret_cast<VkWriteDescriptorSetAccelerationStructureNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PROPERTIES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceRayTracingPropertiesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceRayTracingPropertiesNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_representative_fragment_test
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_REPRESENTATIVE_FRAGMENT_TEST_FEATURES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_REPRESENTATIVE_FRAGMENT_TEST_STATE_CREATE_INFO_NV:
+        {
+            transform_tohost_VkPipelineRepresentativeFragmentTestStateCreateInfoNV(resourceTracker, reinterpret_cast<VkPipelineRepresentativeFragmentTestStateCreateInfoNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_filter_cubic
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_VIEW_IMAGE_FORMAT_INFO_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceImageViewImageFormatInfoEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceImageViewImageFormatInfoEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_FILTER_CUBIC_IMAGE_VIEW_IMAGE_FORMAT_PROPERTIES_EXT:
+        {
+            transform_tohost_VkFilterCubicImageViewImageFormatPropertiesEXT(resourceTracker, reinterpret_cast<VkFilterCubicImageViewImageFormatPropertiesEXT*>(structExtension_out));
             break;
         }
 #endif
@@ -9639,10 +16198,24 @@ void transform_tohost_extension_struct(
             break;
         }
 #endif
+#ifdef VK_AMD_pipeline_compiler_control
+        case VK_STRUCTURE_TYPE_PIPELINE_COMPILER_CONTROL_CREATE_INFO_AMD:
+        {
+            transform_tohost_VkPipelineCompilerControlCreateInfoAMD(resourceTracker, reinterpret_cast<VkPipelineCompilerControlCreateInfoAMD*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_AMD_shader_core_properties
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_PROPERTIES_AMD:
         {
             transform_tohost_VkPhysicalDeviceShaderCorePropertiesAMD(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderCorePropertiesAMD*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_AMD_memory_overallocation_behavior
+        case VK_STRUCTURE_TYPE_DEVICE_MEMORY_OVERALLOCATION_CREATE_INFO_AMD:
+        {
+            transform_tohost_VkDeviceMemoryOverallocationCreateInfoAMD(resourceTracker, reinterpret_cast<VkDeviceMemoryOverallocationCreateInfoAMD*>(structExtension_out));
             break;
         }
 #endif
@@ -9657,11 +16230,108 @@ void transform_tohost_extension_struct(
             transform_tohost_VkPipelineVertexInputDivisorStateCreateInfoEXT(resourceTracker, reinterpret_cast<VkPipelineVertexInputDivisorStateCreateInfoEXT*>(structExtension_out));
             break;
         }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_GGP_frame_token
+        case VK_STRUCTURE_TYPE_PRESENT_FRAME_TOKEN_GGP:
+        {
+            transform_tohost_VkPresentFrameTokenGGP(resourceTracker, reinterpret_cast<VkPresentFrameTokenGGP*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_pipeline_creation_feedback
+        case VK_STRUCTURE_TYPE_PIPELINE_CREATION_FEEDBACK_CREATE_INFO_EXT:
+        {
+            transform_tohost_VkPipelineCreationFeedbackCreateInfoEXT(resourceTracker, reinterpret_cast<VkPipelineCreationFeedbackCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_compute_shader_derivatives
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_FEATURES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceComputeShaderDerivativesFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceComputeShaderDerivativesFeaturesNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_mesh_shader
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceMeshShaderFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceMeshShaderFeaturesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_PROPERTIES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceMeshShaderPropertiesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceMeshShaderPropertiesNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_fragment_shader_barycentric
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceFragmentShaderBarycentricFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentShaderBarycentricFeaturesNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_shader_image_footprint
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_FOOTPRINT_FEATURES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceShaderImageFootprintFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderImageFootprintFeaturesNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_scissor_exclusive
+        case VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_EXCLUSIVE_SCISSOR_STATE_CREATE_INFO_NV:
+        {
+            transform_tohost_VkPipelineViewportExclusiveScissorStateCreateInfoNV(resourceTracker, reinterpret_cast<VkPipelineViewportExclusiveScissorStateCreateInfoNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXCLUSIVE_SCISSOR_FEATURES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceExclusiveScissorFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceExclusiveScissorFeaturesNV*>(structExtension_out));
+            break;
+        }
 #endif
 #ifdef VK_NV_device_diagnostic_checkpoints
         case VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_NV:
         {
             transform_tohost_VkQueueFamilyCheckpointPropertiesNV(resourceTracker, reinterpret_cast<VkQueueFamilyCheckpointPropertiesNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_INTEL_shader_integer_functions2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_FUNCTIONS_2_FEATURES_INTEL:
+        {
+            transform_tohost_VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_INTEL_performance_query
+        case VK_STRUCTURE_TYPE_QUERY_POOL_PERFORMANCE_QUERY_CREATE_INFO_INTEL:
+        {
+            transform_tohost_VkQueryPoolPerformanceQueryCreateInfoINTEL(resourceTracker, reinterpret_cast<VkQueryPoolPerformanceQueryCreateInfoINTEL*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_pci_bus_info
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PCI_BUS_INFO_PROPERTIES_EXT:
+        {
+            transform_tohost_VkPhysicalDevicePCIBusInfoPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDevicePCIBusInfoPropertiesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_AMD_display_native_hdr
+        case VK_STRUCTURE_TYPE_DISPLAY_NATIVE_HDR_SURFACE_CAPABILITIES_AMD:
+        {
+            transform_tohost_VkDisplayNativeHdrSurfaceCapabilitiesAMD(resourceTracker, reinterpret_cast<VkDisplayNativeHdrSurfaceCapabilitiesAMD*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SWAPCHAIN_DISPLAY_NATIVE_HDR_CREATE_INFO_AMD:
+        {
+            transform_tohost_VkSwapchainDisplayNativeHdrCreateInfoAMD(resourceTracker, reinterpret_cast<VkSwapchainDisplayNativeHdrCreateInfoAMD*>(structExtension_out));
             break;
         }
 #endif
@@ -9679,6 +16349,388 @@ void transform_tohost_extension_struct(
         case VK_STRUCTURE_TYPE_IMPORT_PHYSICAL_ADDRESS_GOOGLE:
         {
             transform_tohost_VkImportPhysicalAddressGOOGLE(resourceTracker, reinterpret_cast<VkImportPhysicalAddressGOOGLE*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_subgroup_size_control
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceSubgroupSizeControlFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceSubgroupSizeControlFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_PROPERTIES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceSubgroupSizeControlPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceSubgroupSizeControlPropertiesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO_EXT:
+        {
+            transform_tohost_VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT(resourceTracker, reinterpret_cast<VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_AMD_shader_core_properties2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_PROPERTIES_2_AMD:
+        {
+            transform_tohost_VkPhysicalDeviceShaderCoreProperties2AMD(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderCoreProperties2AMD*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_AMD_device_coherent_memory
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COHERENT_MEMORY_FEATURES_AMD:
+        {
+            transform_tohost_VkPhysicalDeviceCoherentMemoryFeaturesAMD(resourceTracker, reinterpret_cast<VkPhysicalDeviceCoherentMemoryFeaturesAMD*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_shader_image_atomic_int64
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_ATOMIC_INT64_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_memory_budget
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_BUDGET_PROPERTIES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceMemoryBudgetPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceMemoryBudgetPropertiesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_memory_priority
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PRIORITY_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceMemoryPriorityFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceMemoryPriorityFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_MEMORY_PRIORITY_ALLOCATE_INFO_EXT:
+        {
+            transform_tohost_VkMemoryPriorityAllocateInfoEXT(resourceTracker, reinterpret_cast<VkMemoryPriorityAllocateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_dedicated_allocation_image_aliasing
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEDICATED_ALLOCATION_IMAGE_ALIASING_FEATURES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_buffer_device_address
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceBufferDeviceAddressFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceBufferDeviceAddressFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_CREATE_INFO_EXT:
+        {
+            transform_tohost_VkBufferDeviceAddressCreateInfoEXT(resourceTracker, reinterpret_cast<VkBufferDeviceAddressCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_validation_features
+        case VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT:
+        {
+            transform_tohost_VkValidationFeaturesEXT(resourceTracker, reinterpret_cast<VkValidationFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_cooperative_matrix
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_FEATURES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceCooperativeMatrixFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceCooperativeMatrixFeaturesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_PROPERTIES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceCooperativeMatrixPropertiesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceCooperativeMatrixPropertiesNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_coverage_reduction_mode
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COVERAGE_REDUCTION_MODE_FEATURES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceCoverageReductionModeFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceCoverageReductionModeFeaturesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_COVERAGE_REDUCTION_STATE_CREATE_INFO_NV:
+        {
+            transform_tohost_VkPipelineCoverageReductionStateCreateInfoNV(resourceTracker, reinterpret_cast<VkPipelineCoverageReductionStateCreateInfoNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_fragment_shader_interlock
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_INTERLOCK_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_ycbcr_image_arrays
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_IMAGE_ARRAYS_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceYcbcrImageArraysFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_full_screen_exclusive
+        case VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT:
+        {
+            transform_tohost_VkSurfaceFullScreenExclusiveInfoEXT(resourceTracker, reinterpret_cast<VkSurfaceFullScreenExclusiveInfoEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_FULL_SCREEN_EXCLUSIVE_EXT:
+        {
+            transform_tohost_VkSurfaceCapabilitiesFullScreenExclusiveEXT(resourceTracker, reinterpret_cast<VkSurfaceCapabilitiesFullScreenExclusiveEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_WIN32_INFO_EXT:
+        {
+            transform_tohost_VkSurfaceFullScreenExclusiveWin32InfoEXT(resourceTracker, reinterpret_cast<VkSurfaceFullScreenExclusiveWin32InfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_line_rasterization
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceLineRasterizationFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceLineRasterizationFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceLineRasterizationPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceLineRasterizationPropertiesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT:
+        {
+            transform_tohost_VkPipelineRasterizationLineStateCreateInfoEXT(resourceTracker, reinterpret_cast<VkPipelineRasterizationLineStateCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_shader_atomic_float
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderAtomicFloatFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_index_type_uint8
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceIndexTypeUint8FeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceIndexTypeUint8FeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_extended_dynamic_state
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceExtendedDynamicStateFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceExtendedDynamicStateFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_shader_demote_to_helper_invocation
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DEMOTE_TO_HELPER_INVOCATION_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_device_generated_commands
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_PROPERTIES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceDeviceGeneratedCommandsPropertiesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceDeviceGeneratedCommandsPropertiesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_FEATURES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_SHADER_GROUPS_CREATE_INFO_NV:
+        {
+            transform_tohost_VkGraphicsPipelineShaderGroupsCreateInfoNV(resourceTracker, reinterpret_cast<VkGraphicsPipelineShaderGroupsCreateInfoNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_texel_buffer_alignment
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_PROPERTIES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_QCOM_render_pass_transform
+        case VK_STRUCTURE_TYPE_RENDER_PASS_TRANSFORM_BEGIN_INFO_QCOM:
+        {
+            transform_tohost_VkRenderPassTransformBeginInfoQCOM(resourceTracker, reinterpret_cast<VkRenderPassTransformBeginInfoQCOM*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDER_PASS_TRANSFORM_INFO_QCOM:
+        {
+            transform_tohost_VkCommandBufferInheritanceRenderPassTransformInfoQCOM(resourceTracker, reinterpret_cast<VkCommandBufferInheritanceRenderPassTransformInfoQCOM*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_device_memory_report
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_MEMORY_REPORT_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceDeviceMemoryReportFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceDeviceMemoryReportFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEVICE_DEVICE_MEMORY_REPORT_CREATE_INFO_EXT:
+        {
+            transform_tohost_VkDeviceDeviceMemoryReportCreateInfoEXT(resourceTracker, reinterpret_cast<VkDeviceDeviceMemoryReportCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_robustness2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceRobustness2FeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceRobustness2FeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceRobustness2PropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceRobustness2PropertiesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_custom_border_color
+        case VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT:
+        {
+            transform_tohost_VkSamplerCustomBorderColorCreateInfoEXT(resourceTracker, reinterpret_cast<VkSamplerCustomBorderColorCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_PROPERTIES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceCustomBorderColorPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceCustomBorderColorPropertiesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceCustomBorderColorFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceCustomBorderColorFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_private_data
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIVATE_DATA_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDevicePrivateDataFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDevicePrivateDataFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEVICE_PRIVATE_DATA_CREATE_INFO_EXT:
+        {
+            transform_tohost_VkDevicePrivateDataCreateInfoEXT(resourceTracker, reinterpret_cast<VkDevicePrivateDataCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_pipeline_creation_cache_control
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CREATION_CACHE_CONTROL_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_device_diagnostics_config
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceDiagnosticsConfigFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceDiagnosticsConfigFeaturesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV:
+        {
+            transform_tohost_VkDeviceDiagnosticsConfigCreateInfoNV(resourceTracker, reinterpret_cast<VkDeviceDiagnosticsConfigCreateInfoNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_fragment_shading_rate_enums
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_ENUMS_FEATURES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_ENUMS_PROPERTIES_NV:
+        {
+            transform_tohost_VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_FRAGMENT_SHADING_RATE_ENUM_STATE_CREATE_INFO_NV:
+        {
+            transform_tohost_VkPipelineFragmentShadingRateEnumStateCreateInfoNV(resourceTracker, reinterpret_cast<VkPipelineFragmentShadingRateEnumStateCreateInfoNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_fragment_density_map2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceFragmentDensityMap2FeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentDensityMap2FeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_PROPERTIES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceFragmentDensityMap2PropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentDensityMap2PropertiesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_QCOM_rotated_copy_commands
+        case VK_STRUCTURE_TYPE_COPY_COMMAND_TRANSFORM_INFO_QCOM:
+        {
+            transform_tohost_VkCopyCommandTransformInfoQCOM(resourceTracker, reinterpret_cast<VkCopyCommandTransformInfoQCOM*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_image_robustness
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDeviceImageRobustnessFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceImageRobustnessFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_4444_formats
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT:
+        {
+            transform_tohost_VkPhysicalDevice4444FormatsFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDevice4444FormatsFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_acceleration_structure
+        case VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR:
+        {
+            transform_tohost_VkWriteDescriptorSetAccelerationStructureKHR(resourceTracker, reinterpret_cast<VkWriteDescriptorSetAccelerationStructureKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR:
+        {
+            transform_tohost_VkPhysicalDeviceAccelerationStructureFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDeviceAccelerationStructureFeaturesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_PROPERTIES_KHR:
+        {
+            transform_tohost_VkPhysicalDeviceAccelerationStructurePropertiesKHR(resourceTracker, reinterpret_cast<VkPhysicalDeviceAccelerationStructurePropertiesKHR*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR:
+        {
+            transform_tohost_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDeviceRayTracingPipelineFeaturesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR:
+        {
+            transform_tohost_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(resourceTracker, reinterpret_cast<VkPhysicalDeviceRayTracingPipelinePropertiesKHR*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_ray_query
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR:
+        {
+            transform_tohost_VkPhysicalDeviceRayQueryFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDeviceRayQueryFeaturesKHR*>(structExtension_out));
             break;
         }
 #endif
@@ -9801,9 +16853,9 @@ void transform_fromhost_extension_struct(
             transform_fromhost_VkPhysicalDeviceMultiviewProperties(resourceTracker, reinterpret_cast<VkPhysicalDeviceMultiviewProperties*>(structExtension_out));
             break;
         }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES:
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES:
         {
-            transform_fromhost_VkPhysicalDeviceVariablePointerFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceVariablePointerFeatures*>(structExtension_out));
+            transform_fromhost_VkPhysicalDeviceVariablePointersFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceVariablePointersFeatures*>(structExtension_out));
             break;
         }
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_FEATURES:
@@ -9896,9 +16948,201 @@ void transform_fromhost_extension_struct(
             transform_fromhost_VkPhysicalDeviceMaintenance3Properties(resourceTracker, reinterpret_cast<VkPhysicalDeviceMaintenance3Properties*>(structExtension_out));
             break;
         }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES:
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES:
         {
-            transform_fromhost_VkPhysicalDeviceShaderDrawParameterFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderDrawParameterFeatures*>(structExtension_out));
+            transform_fromhost_VkPhysicalDeviceShaderDrawParametersFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderDrawParametersFeatures*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_VERSION_1_2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES:
+        {
+            transform_fromhost_VkPhysicalDeviceVulkan11Features(resourceTracker, reinterpret_cast<VkPhysicalDeviceVulkan11Features*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_PROPERTIES:
+        {
+            transform_fromhost_VkPhysicalDeviceVulkan11Properties(resourceTracker, reinterpret_cast<VkPhysicalDeviceVulkan11Properties*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES:
+        {
+            transform_fromhost_VkPhysicalDeviceVulkan12Features(resourceTracker, reinterpret_cast<VkPhysicalDeviceVulkan12Features*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES:
+        {
+            transform_fromhost_VkPhysicalDeviceVulkan12Properties(resourceTracker, reinterpret_cast<VkPhysicalDeviceVulkan12Properties*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO:
+        {
+            transform_fromhost_VkImageFormatListCreateInfo(resourceTracker, reinterpret_cast<VkImageFormatListCreateInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES:
+        {
+            transform_fromhost_VkPhysicalDevice8BitStorageFeatures(resourceTracker, reinterpret_cast<VkPhysicalDevice8BitStorageFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES:
+        {
+            transform_fromhost_VkPhysicalDeviceDriverProperties(resourceTracker, reinterpret_cast<VkPhysicalDeviceDriverProperties*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_INT64_FEATURES:
+        {
+            transform_fromhost_VkPhysicalDeviceShaderAtomicInt64Features(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderAtomicInt64Features*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT16_INT8_FEATURES:
+        {
+            transform_fromhost_VkPhysicalDeviceShaderFloat16Int8Features(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderFloat16Int8Features*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT_CONTROLS_PROPERTIES:
+        {
+            transform_fromhost_VkPhysicalDeviceFloatControlsProperties(resourceTracker, reinterpret_cast<VkPhysicalDeviceFloatControlsProperties*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO:
+        {
+            transform_fromhost_VkDescriptorSetLayoutBindingFlagsCreateInfo(resourceTracker, reinterpret_cast<VkDescriptorSetLayoutBindingFlagsCreateInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES:
+        {
+            transform_fromhost_VkPhysicalDeviceDescriptorIndexingFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceDescriptorIndexingFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_PROPERTIES:
+        {
+            transform_fromhost_VkPhysicalDeviceDescriptorIndexingProperties(resourceTracker, reinterpret_cast<VkPhysicalDeviceDescriptorIndexingProperties*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO:
+        {
+            transform_fromhost_VkDescriptorSetVariableDescriptorCountAllocateInfo(resourceTracker, reinterpret_cast<VkDescriptorSetVariableDescriptorCountAllocateInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_LAYOUT_SUPPORT:
+        {
+            transform_fromhost_VkDescriptorSetVariableDescriptorCountLayoutSupport(resourceTracker, reinterpret_cast<VkDescriptorSetVariableDescriptorCountLayoutSupport*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_DEPTH_STENCIL_RESOLVE:
+        {
+            transform_fromhost_VkSubpassDescriptionDepthStencilResolve(resourceTracker, reinterpret_cast<VkSubpassDescriptionDepthStencilResolve*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_STENCIL_RESOLVE_PROPERTIES:
+        {
+            transform_fromhost_VkPhysicalDeviceDepthStencilResolveProperties(resourceTracker, reinterpret_cast<VkPhysicalDeviceDepthStencilResolveProperties*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES:
+        {
+            transform_fromhost_VkPhysicalDeviceScalarBlockLayoutFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceScalarBlockLayoutFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_STENCIL_USAGE_CREATE_INFO:
+        {
+            transform_fromhost_VkImageStencilUsageCreateInfo(resourceTracker, reinterpret_cast<VkImageStencilUsageCreateInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SAMPLER_REDUCTION_MODE_CREATE_INFO:
+        {
+            transform_fromhost_VkSamplerReductionModeCreateInfo(resourceTracker, reinterpret_cast<VkSamplerReductionModeCreateInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_FILTER_MINMAX_PROPERTIES:
+        {
+            transform_fromhost_VkPhysicalDeviceSamplerFilterMinmaxProperties(resourceTracker, reinterpret_cast<VkPhysicalDeviceSamplerFilterMinmaxProperties*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_MEMORY_MODEL_FEATURES:
+        {
+            transform_fromhost_VkPhysicalDeviceVulkanMemoryModelFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceVulkanMemoryModelFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGELESS_FRAMEBUFFER_FEATURES:
+        {
+            transform_fromhost_VkPhysicalDeviceImagelessFramebufferFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceImagelessFramebufferFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENTS_CREATE_INFO:
+        {
+            transform_fromhost_VkFramebufferAttachmentsCreateInfo(resourceTracker, reinterpret_cast<VkFramebufferAttachmentsCreateInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_RENDER_PASS_ATTACHMENT_BEGIN_INFO:
+        {
+            transform_fromhost_VkRenderPassAttachmentBeginInfo(resourceTracker, reinterpret_cast<VkRenderPassAttachmentBeginInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFORM_BUFFER_STANDARD_LAYOUT_FEATURES:
+        {
+            transform_fromhost_VkPhysicalDeviceUniformBufferStandardLayoutFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceUniformBufferStandardLayoutFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_EXTENDED_TYPES_FEATURES:
+        {
+            transform_fromhost_VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES:
+        {
+            transform_fromhost_VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_STENCIL_LAYOUT:
+        {
+            transform_fromhost_VkAttachmentReferenceStencilLayout(resourceTracker, reinterpret_cast<VkAttachmentReferenceStencilLayout*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_STENCIL_LAYOUT:
+        {
+            transform_fromhost_VkAttachmentDescriptionStencilLayout(resourceTracker, reinterpret_cast<VkAttachmentDescriptionStencilLayout*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES:
+        {
+            transform_fromhost_VkPhysicalDeviceHostQueryResetFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceHostQueryResetFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES:
+        {
+            transform_fromhost_VkPhysicalDeviceTimelineSemaphoreFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceTimelineSemaphoreFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_PROPERTIES:
+        {
+            transform_fromhost_VkPhysicalDeviceTimelineSemaphoreProperties(resourceTracker, reinterpret_cast<VkPhysicalDeviceTimelineSemaphoreProperties*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO:
+        {
+            transform_fromhost_VkSemaphoreTypeCreateInfo(resourceTracker, reinterpret_cast<VkSemaphoreTypeCreateInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO:
+        {
+            transform_fromhost_VkTimelineSemaphoreSubmitInfo(resourceTracker, reinterpret_cast<VkTimelineSemaphoreSubmitInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES:
+        {
+            transform_fromhost_VkPhysicalDeviceBufferDeviceAddressFeatures(resourceTracker, reinterpret_cast<VkPhysicalDeviceBufferDeviceAddressFeatures*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_BUFFER_OPAQUE_CAPTURE_ADDRESS_CREATE_INFO:
+        {
+            transform_fromhost_VkBufferOpaqueCaptureAddressCreateInfo(resourceTracker, reinterpret_cast<VkBufferOpaqueCaptureAddressCreateInfo*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_MEMORY_OPAQUE_CAPTURE_ADDRESS_ALLOCATE_INFO:
+        {
+            transform_fromhost_VkMemoryOpaqueCaptureAddressAllocateInfo(resourceTracker, reinterpret_cast<VkMemoryOpaqueCaptureAddressAllocateInfo*>(structExtension_out));
             break;
         }
 #endif
@@ -9997,24 +17241,87 @@ void transform_fromhost_extension_struct(
             break;
         }
 #endif
-#ifdef VK_KHR_image_format_list
-        case VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO_KHR:
+#ifdef VK_KHR_performance_query
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_QUERY_FEATURES_KHR:
         {
-            transform_fromhost_VkImageFormatListCreateInfoKHR(resourceTracker, reinterpret_cast<VkImageFormatListCreateInfoKHR*>(structExtension_out));
+            transform_fromhost_VkPhysicalDevicePerformanceQueryFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDevicePerformanceQueryFeaturesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_QUERY_PROPERTIES_KHR:
+        {
+            transform_fromhost_VkPhysicalDevicePerformanceQueryPropertiesKHR(resourceTracker, reinterpret_cast<VkPhysicalDevicePerformanceQueryPropertiesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_QUERY_POOL_PERFORMANCE_CREATE_INFO_KHR:
+        {
+            transform_fromhost_VkQueryPoolPerformanceCreateInfoKHR(resourceTracker, reinterpret_cast<VkQueryPoolPerformanceCreateInfoKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PERFORMANCE_QUERY_SUBMIT_INFO_KHR:
+        {
+            transform_fromhost_VkPerformanceQuerySubmitInfoKHR(resourceTracker, reinterpret_cast<VkPerformanceQuerySubmitInfoKHR*>(structExtension_out));
             break;
         }
 #endif
-#ifdef VK_KHR_8bit_storage
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES_KHR:
+#ifdef VK_KHR_portability_subset
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_FEATURES_KHR:
         {
-            transform_fromhost_VkPhysicalDevice8BitStorageFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDevice8BitStorageFeaturesKHR*>(structExtension_out));
+            transform_fromhost_VkPhysicalDevicePortabilitySubsetFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDevicePortabilitySubsetFeaturesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_PROPERTIES_KHR:
+        {
+            transform_fromhost_VkPhysicalDevicePortabilitySubsetPropertiesKHR(resourceTracker, reinterpret_cast<VkPhysicalDevicePortabilitySubsetPropertiesKHR*>(structExtension_out));
             break;
         }
 #endif
-#ifdef VK_KHR_shader_float16_int8
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT16_INT8_FEATURES:
+#ifdef VK_KHR_shader_clock
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CLOCK_FEATURES_KHR:
         {
-            transform_fromhost_VkPhysicalDeviceShaderFloat16Int8Features(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderFloat16Int8Features*>(structExtension_out));
+            transform_fromhost_VkPhysicalDeviceShaderClockFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderClockFeaturesKHR*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_shader_terminate_invocation
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_TERMINATE_INVOCATION_FEATURES_KHR:
+        {
+            transform_fromhost_VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_fragment_shading_rate
+        case VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR:
+        {
+            transform_fromhost_VkFragmentShadingRateAttachmentInfoKHR(resourceTracker, reinterpret_cast<VkFragmentShadingRateAttachmentInfoKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_FRAGMENT_SHADING_RATE_STATE_CREATE_INFO_KHR:
+        {
+            transform_fromhost_VkPipelineFragmentShadingRateStateCreateInfoKHR(resourceTracker, reinterpret_cast<VkPipelineFragmentShadingRateStateCreateInfoKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_FEATURES_KHR:
+        {
+            transform_fromhost_VkPhysicalDeviceFragmentShadingRateFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentShadingRateFeaturesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_PROPERTIES_KHR:
+        {
+            transform_fromhost_VkPhysicalDeviceFragmentShadingRatePropertiesKHR(resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentShadingRatePropertiesKHR*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_surface_protected_capabilities
+        case VK_STRUCTURE_TYPE_SURFACE_PROTECTED_CAPABILITIES_KHR:
+        {
+            transform_fromhost_VkSurfaceProtectedCapabilitiesKHR(resourceTracker, reinterpret_cast<VkSurfaceProtectedCapabilitiesKHR*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_pipeline_executable_properties
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_EXECUTABLE_PROPERTIES_FEATURES_KHR:
+        {
+            transform_fromhost_VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR*>(structExtension_out));
             break;
         }
 #endif
@@ -10056,10 +17363,34 @@ void transform_fromhost_extension_struct(
             break;
         }
 #endif
+#ifdef VK_EXT_transform_feedback
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceTransformFeedbackFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceTransformFeedbackFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_PROPERTIES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceTransformFeedbackPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceTransformFeedbackPropertiesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_STREAM_CREATE_INFO_EXT:
+        {
+            transform_fromhost_VkPipelineRasterizationStateStreamCreateInfoEXT(resourceTracker, reinterpret_cast<VkPipelineRasterizationStateStreamCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_AMD_texture_gather_bias_lod
         case VK_STRUCTURE_TYPE_TEXTURE_LOD_GATHER_FORMAT_PROPERTIES_AMD:
         {
             transform_fromhost_VkTextureLODGatherFormatPropertiesAMD(resourceTracker, reinterpret_cast<VkTextureLODGatherFormatPropertiesAMD*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_corner_sampled_image
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CORNER_SAMPLED_IMAGE_FEATURES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceCornerSampledImageFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceCornerSampledImageFeaturesNV*>(structExtension_out));
             break;
         }
 #endif
@@ -10098,6 +17429,25 @@ void transform_fromhost_extension_struct(
         case VK_STRUCTURE_TYPE_VALIDATION_FLAGS_EXT:
         {
             transform_fromhost_VkValidationFlagsEXT(resourceTracker, reinterpret_cast<VkValidationFlagsEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_texture_compression_astc_hdr
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_HDR_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_astc_decode_mode
+        case VK_STRUCTURE_TYPE_IMAGE_VIEW_ASTC_DECODE_MODE_EXT:
+        {
+            transform_fromhost_VkImageViewASTCDecodeModeEXT(resourceTracker, reinterpret_cast<VkImageViewASTCDecodeModeEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ASTC_DECODE_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceASTCDecodeFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceASTCDecodeFeaturesEXT*>(structExtension_out));
             break;
         }
 #endif
@@ -10172,6 +17522,18 @@ void transform_fromhost_extension_struct(
             break;
         }
 #endif
+#ifdef VK_EXT_depth_clip_enable
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceDepthClipEnableFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceDepthClipEnableFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT:
+        {
+            transform_fromhost_VkPipelineRasterizationDepthClipStateCreateInfoEXT(resourceTracker, reinterpret_cast<VkPipelineRasterizationDepthClipStateCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_EXT_debug_utils
         case VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT:
         {
@@ -10201,15 +17563,25 @@ void transform_fromhost_extension_struct(
             break;
         }
 #endif
-#ifdef VK_EXT_sampler_filter_minmax
-        case VK_STRUCTURE_TYPE_SAMPLER_REDUCTION_MODE_CREATE_INFO_EXT:
+#ifdef VK_EXT_inline_uniform_block
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES_EXT:
         {
-            transform_fromhost_VkSamplerReductionModeCreateInfoEXT(resourceTracker, reinterpret_cast<VkSamplerReductionModeCreateInfoEXT*>(structExtension_out));
+            transform_fromhost_VkPhysicalDeviceInlineUniformBlockFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceInlineUniformBlockFeaturesEXT*>(structExtension_out));
             break;
         }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_FILTER_MINMAX_PROPERTIES_EXT:
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_PROPERTIES_EXT:
         {
-            transform_fromhost_VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT*>(structExtension_out));
+            transform_fromhost_VkPhysicalDeviceInlineUniformBlockPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceInlineUniformBlockPropertiesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_INLINE_UNIFORM_BLOCK_EXT:
+        {
+            transform_fromhost_VkWriteDescriptorSetInlineUniformBlockEXT(resourceTracker, reinterpret_cast<VkWriteDescriptorSetInlineUniformBlockEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_INLINE_UNIFORM_BLOCK_CREATE_INFO_EXT:
+        {
+            transform_fromhost_VkDescriptorPoolInlineUniformBlockCreateInfoEXT(resourceTracker, reinterpret_cast<VkDescriptorPoolInlineUniformBlockCreateInfoEXT*>(structExtension_out));
             break;
         }
 #endif
@@ -10266,6 +17638,40 @@ void transform_fromhost_extension_struct(
             break;
         }
 #endif
+#ifdef VK_NV_shader_sm_builtins
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SM_BUILTINS_PROPERTIES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceShaderSMBuiltinsPropertiesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderSMBuiltinsPropertiesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SM_BUILTINS_FEATURES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceShaderSMBuiltinsFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderSMBuiltinsFeaturesNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_image_drm_format_modifier
+        case VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_EXT:
+        {
+            transform_fromhost_VkDrmFormatModifierPropertiesListEXT(resourceTracker, reinterpret_cast<VkDrmFormatModifierPropertiesListEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_DRM_FORMAT_MODIFIER_INFO_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceImageDrmFormatModifierInfoEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceImageDrmFormatModifierInfoEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_LIST_CREATE_INFO_EXT:
+        {
+            transform_fromhost_VkImageDrmFormatModifierListCreateInfoEXT(resourceTracker, reinterpret_cast<VkImageDrmFormatModifierListCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_EXPLICIT_CREATE_INFO_EXT:
+        {
+            transform_fromhost_VkImageDrmFormatModifierExplicitCreateInfoEXT(resourceTracker, reinterpret_cast<VkImageDrmFormatModifierExplicitCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_EXT_validation_cache
         case VK_STRUCTURE_TYPE_SHADER_MODULE_VALIDATION_CACHE_CREATE_INFO_EXT:
         {
@@ -10273,30 +17679,61 @@ void transform_fromhost_extension_struct(
             break;
         }
 #endif
-#ifdef VK_EXT_descriptor_indexing
-        case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT:
+#ifdef VK_NV_shading_rate_image
+        case VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_SHADING_RATE_IMAGE_STATE_CREATE_INFO_NV:
         {
-            transform_fromhost_VkDescriptorSetLayoutBindingFlagsCreateInfoEXT(resourceTracker, reinterpret_cast<VkDescriptorSetLayoutBindingFlagsCreateInfoEXT*>(structExtension_out));
+            transform_fromhost_VkPipelineViewportShadingRateImageStateCreateInfoNV(resourceTracker, reinterpret_cast<VkPipelineViewportShadingRateImageStateCreateInfoNV*>(structExtension_out));
             break;
         }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT:
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADING_RATE_IMAGE_FEATURES_NV:
         {
-            transform_fromhost_VkPhysicalDeviceDescriptorIndexingFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceDescriptorIndexingFeaturesEXT*>(structExtension_out));
+            transform_fromhost_VkPhysicalDeviceShadingRateImageFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceShadingRateImageFeaturesNV*>(structExtension_out));
             break;
         }
-        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_PROPERTIES_EXT:
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADING_RATE_IMAGE_PROPERTIES_NV:
         {
-            transform_fromhost_VkPhysicalDeviceDescriptorIndexingPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceDescriptorIndexingPropertiesEXT*>(structExtension_out));
+            transform_fromhost_VkPhysicalDeviceShadingRateImagePropertiesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceShadingRateImagePropertiesNV*>(structExtension_out));
             break;
         }
-        case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT:
+        case VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_COARSE_SAMPLE_ORDER_STATE_CREATE_INFO_NV:
         {
-            transform_fromhost_VkDescriptorSetVariableDescriptorCountAllocateInfoEXT(resourceTracker, reinterpret_cast<VkDescriptorSetVariableDescriptorCountAllocateInfoEXT*>(structExtension_out));
+            transform_fromhost_VkPipelineViewportCoarseSampleOrderStateCreateInfoNV(resourceTracker, reinterpret_cast<VkPipelineViewportCoarseSampleOrderStateCreateInfoNV*>(structExtension_out));
             break;
         }
-        case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_LAYOUT_SUPPORT_EXT:
+#endif
+#ifdef VK_NV_ray_tracing
+        case VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_NV:
         {
-            transform_fromhost_VkDescriptorSetVariableDescriptorCountLayoutSupportEXT(resourceTracker, reinterpret_cast<VkDescriptorSetVariableDescriptorCountLayoutSupportEXT*>(structExtension_out));
+            transform_fromhost_VkWriteDescriptorSetAccelerationStructureNV(resourceTracker, reinterpret_cast<VkWriteDescriptorSetAccelerationStructureNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PROPERTIES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceRayTracingPropertiesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceRayTracingPropertiesNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_representative_fragment_test
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_REPRESENTATIVE_FRAGMENT_TEST_FEATURES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_REPRESENTATIVE_FRAGMENT_TEST_STATE_CREATE_INFO_NV:
+        {
+            transform_fromhost_VkPipelineRepresentativeFragmentTestStateCreateInfoNV(resourceTracker, reinterpret_cast<VkPipelineRepresentativeFragmentTestStateCreateInfoNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_filter_cubic
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_VIEW_IMAGE_FORMAT_INFO_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceImageViewImageFormatInfoEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceImageViewImageFormatInfoEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_FILTER_CUBIC_IMAGE_VIEW_IMAGE_FORMAT_PROPERTIES_EXT:
+        {
+            transform_fromhost_VkFilterCubicImageViewImageFormatPropertiesEXT(resourceTracker, reinterpret_cast<VkFilterCubicImageViewImageFormatPropertiesEXT*>(structExtension_out));
             break;
         }
 #endif
@@ -10319,10 +17756,24 @@ void transform_fromhost_extension_struct(
             break;
         }
 #endif
+#ifdef VK_AMD_pipeline_compiler_control
+        case VK_STRUCTURE_TYPE_PIPELINE_COMPILER_CONTROL_CREATE_INFO_AMD:
+        {
+            transform_fromhost_VkPipelineCompilerControlCreateInfoAMD(resourceTracker, reinterpret_cast<VkPipelineCompilerControlCreateInfoAMD*>(structExtension_out));
+            break;
+        }
+#endif
 #ifdef VK_AMD_shader_core_properties
         case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_PROPERTIES_AMD:
         {
             transform_fromhost_VkPhysicalDeviceShaderCorePropertiesAMD(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderCorePropertiesAMD*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_AMD_memory_overallocation_behavior
+        case VK_STRUCTURE_TYPE_DEVICE_MEMORY_OVERALLOCATION_CREATE_INFO_AMD:
+        {
+            transform_fromhost_VkDeviceMemoryOverallocationCreateInfoAMD(resourceTracker, reinterpret_cast<VkDeviceMemoryOverallocationCreateInfoAMD*>(structExtension_out));
             break;
         }
 #endif
@@ -10337,11 +17788,108 @@ void transform_fromhost_extension_struct(
             transform_fromhost_VkPipelineVertexInputDivisorStateCreateInfoEXT(resourceTracker, reinterpret_cast<VkPipelineVertexInputDivisorStateCreateInfoEXT*>(structExtension_out));
             break;
         }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_GGP_frame_token
+        case VK_STRUCTURE_TYPE_PRESENT_FRAME_TOKEN_GGP:
+        {
+            transform_fromhost_VkPresentFrameTokenGGP(resourceTracker, reinterpret_cast<VkPresentFrameTokenGGP*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_pipeline_creation_feedback
+        case VK_STRUCTURE_TYPE_PIPELINE_CREATION_FEEDBACK_CREATE_INFO_EXT:
+        {
+            transform_fromhost_VkPipelineCreationFeedbackCreateInfoEXT(resourceTracker, reinterpret_cast<VkPipelineCreationFeedbackCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_compute_shader_derivatives
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_FEATURES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceComputeShaderDerivativesFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceComputeShaderDerivativesFeaturesNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_mesh_shader
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceMeshShaderFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceMeshShaderFeaturesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_PROPERTIES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceMeshShaderPropertiesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceMeshShaderPropertiesNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_fragment_shader_barycentric
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceFragmentShaderBarycentricFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentShaderBarycentricFeaturesNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_shader_image_footprint
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_FOOTPRINT_FEATURES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceShaderImageFootprintFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderImageFootprintFeaturesNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_scissor_exclusive
+        case VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_EXCLUSIVE_SCISSOR_STATE_CREATE_INFO_NV:
+        {
+            transform_fromhost_VkPipelineViewportExclusiveScissorStateCreateInfoNV(resourceTracker, reinterpret_cast<VkPipelineViewportExclusiveScissorStateCreateInfoNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXCLUSIVE_SCISSOR_FEATURES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceExclusiveScissorFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceExclusiveScissorFeaturesNV*>(structExtension_out));
+            break;
+        }
 #endif
 #ifdef VK_NV_device_diagnostic_checkpoints
         case VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_NV:
         {
             transform_fromhost_VkQueueFamilyCheckpointPropertiesNV(resourceTracker, reinterpret_cast<VkQueueFamilyCheckpointPropertiesNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_INTEL_shader_integer_functions2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_FUNCTIONS_2_FEATURES_INTEL:
+        {
+            transform_fromhost_VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_INTEL_performance_query
+        case VK_STRUCTURE_TYPE_QUERY_POOL_PERFORMANCE_QUERY_CREATE_INFO_INTEL:
+        {
+            transform_fromhost_VkQueryPoolPerformanceQueryCreateInfoINTEL(resourceTracker, reinterpret_cast<VkQueryPoolPerformanceQueryCreateInfoINTEL*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_pci_bus_info
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PCI_BUS_INFO_PROPERTIES_EXT:
+        {
+            transform_fromhost_VkPhysicalDevicePCIBusInfoPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDevicePCIBusInfoPropertiesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_AMD_display_native_hdr
+        case VK_STRUCTURE_TYPE_DISPLAY_NATIVE_HDR_SURFACE_CAPABILITIES_AMD:
+        {
+            transform_fromhost_VkDisplayNativeHdrSurfaceCapabilitiesAMD(resourceTracker, reinterpret_cast<VkDisplayNativeHdrSurfaceCapabilitiesAMD*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SWAPCHAIN_DISPLAY_NATIVE_HDR_CREATE_INFO_AMD:
+        {
+            transform_fromhost_VkSwapchainDisplayNativeHdrCreateInfoAMD(resourceTracker, reinterpret_cast<VkSwapchainDisplayNativeHdrCreateInfoAMD*>(structExtension_out));
             break;
         }
 #endif
@@ -10359,6 +17907,388 @@ void transform_fromhost_extension_struct(
         case VK_STRUCTURE_TYPE_IMPORT_PHYSICAL_ADDRESS_GOOGLE:
         {
             transform_fromhost_VkImportPhysicalAddressGOOGLE(resourceTracker, reinterpret_cast<VkImportPhysicalAddressGOOGLE*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_subgroup_size_control
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceSubgroupSizeControlFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceSubgroupSizeControlFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_PROPERTIES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceSubgroupSizeControlPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceSubgroupSizeControlPropertiesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO_EXT:
+        {
+            transform_fromhost_VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT(resourceTracker, reinterpret_cast<VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_AMD_shader_core_properties2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_PROPERTIES_2_AMD:
+        {
+            transform_fromhost_VkPhysicalDeviceShaderCoreProperties2AMD(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderCoreProperties2AMD*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_AMD_device_coherent_memory
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COHERENT_MEMORY_FEATURES_AMD:
+        {
+            transform_fromhost_VkPhysicalDeviceCoherentMemoryFeaturesAMD(resourceTracker, reinterpret_cast<VkPhysicalDeviceCoherentMemoryFeaturesAMD*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_shader_image_atomic_int64
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_ATOMIC_INT64_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_memory_budget
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_BUDGET_PROPERTIES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceMemoryBudgetPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceMemoryBudgetPropertiesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_memory_priority
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PRIORITY_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceMemoryPriorityFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceMemoryPriorityFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_MEMORY_PRIORITY_ALLOCATE_INFO_EXT:
+        {
+            transform_fromhost_VkMemoryPriorityAllocateInfoEXT(resourceTracker, reinterpret_cast<VkMemoryPriorityAllocateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_dedicated_allocation_image_aliasing
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEDICATED_ALLOCATION_IMAGE_ALIASING_FEATURES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_buffer_device_address
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceBufferDeviceAddressFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceBufferDeviceAddressFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_CREATE_INFO_EXT:
+        {
+            transform_fromhost_VkBufferDeviceAddressCreateInfoEXT(resourceTracker, reinterpret_cast<VkBufferDeviceAddressCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_validation_features
+        case VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT:
+        {
+            transform_fromhost_VkValidationFeaturesEXT(resourceTracker, reinterpret_cast<VkValidationFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_cooperative_matrix
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_FEATURES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceCooperativeMatrixFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceCooperativeMatrixFeaturesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_PROPERTIES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceCooperativeMatrixPropertiesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceCooperativeMatrixPropertiesNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_coverage_reduction_mode
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COVERAGE_REDUCTION_MODE_FEATURES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceCoverageReductionModeFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceCoverageReductionModeFeaturesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_COVERAGE_REDUCTION_STATE_CREATE_INFO_NV:
+        {
+            transform_fromhost_VkPipelineCoverageReductionStateCreateInfoNV(resourceTracker, reinterpret_cast<VkPipelineCoverageReductionStateCreateInfoNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_fragment_shader_interlock
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_INTERLOCK_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_ycbcr_image_arrays
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_IMAGE_ARRAYS_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceYcbcrImageArraysFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_full_screen_exclusive
+        case VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT:
+        {
+            transform_fromhost_VkSurfaceFullScreenExclusiveInfoEXT(resourceTracker, reinterpret_cast<VkSurfaceFullScreenExclusiveInfoEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_FULL_SCREEN_EXCLUSIVE_EXT:
+        {
+            transform_fromhost_VkSurfaceCapabilitiesFullScreenExclusiveEXT(resourceTracker, reinterpret_cast<VkSurfaceCapabilitiesFullScreenExclusiveEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_WIN32_INFO_EXT:
+        {
+            transform_fromhost_VkSurfaceFullScreenExclusiveWin32InfoEXT(resourceTracker, reinterpret_cast<VkSurfaceFullScreenExclusiveWin32InfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_line_rasterization
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceLineRasterizationFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceLineRasterizationFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceLineRasterizationPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceLineRasterizationPropertiesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT:
+        {
+            transform_fromhost_VkPipelineRasterizationLineStateCreateInfoEXT(resourceTracker, reinterpret_cast<VkPipelineRasterizationLineStateCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_shader_atomic_float
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceShaderAtomicFloatFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderAtomicFloatFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_index_type_uint8
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceIndexTypeUint8FeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceIndexTypeUint8FeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_extended_dynamic_state
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceExtendedDynamicStateFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceExtendedDynamicStateFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_shader_demote_to_helper_invocation
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DEMOTE_TO_HELPER_INVOCATION_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceShaderDemoteToHelperInvocationFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_device_generated_commands
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_PROPERTIES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceDeviceGeneratedCommandsPropertiesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceDeviceGeneratedCommandsPropertiesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_FEATURES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_SHADER_GROUPS_CREATE_INFO_NV:
+        {
+            transform_fromhost_VkGraphicsPipelineShaderGroupsCreateInfoNV(resourceTracker, reinterpret_cast<VkGraphicsPipelineShaderGroupsCreateInfoNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_texel_buffer_alignment
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_PROPERTIES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_QCOM_render_pass_transform
+        case VK_STRUCTURE_TYPE_RENDER_PASS_TRANSFORM_BEGIN_INFO_QCOM:
+        {
+            transform_fromhost_VkRenderPassTransformBeginInfoQCOM(resourceTracker, reinterpret_cast<VkRenderPassTransformBeginInfoQCOM*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDER_PASS_TRANSFORM_INFO_QCOM:
+        {
+            transform_fromhost_VkCommandBufferInheritanceRenderPassTransformInfoQCOM(resourceTracker, reinterpret_cast<VkCommandBufferInheritanceRenderPassTransformInfoQCOM*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_device_memory_report
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_MEMORY_REPORT_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceDeviceMemoryReportFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceDeviceMemoryReportFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEVICE_DEVICE_MEMORY_REPORT_CREATE_INFO_EXT:
+        {
+            transform_fromhost_VkDeviceDeviceMemoryReportCreateInfoEXT(resourceTracker, reinterpret_cast<VkDeviceDeviceMemoryReportCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_robustness2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceRobustness2FeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceRobustness2FeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceRobustness2PropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceRobustness2PropertiesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_custom_border_color
+        case VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT:
+        {
+            transform_fromhost_VkSamplerCustomBorderColorCreateInfoEXT(resourceTracker, reinterpret_cast<VkSamplerCustomBorderColorCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_PROPERTIES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceCustomBorderColorPropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceCustomBorderColorPropertiesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceCustomBorderColorFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceCustomBorderColorFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_private_data
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIVATE_DATA_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDevicePrivateDataFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDevicePrivateDataFeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEVICE_PRIVATE_DATA_CREATE_INFO_EXT:
+        {
+            transform_fromhost_VkDevicePrivateDataCreateInfoEXT(resourceTracker, reinterpret_cast<VkDevicePrivateDataCreateInfoEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_pipeline_creation_cache_control
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CREATION_CACHE_CONTROL_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDevicePipelineCreationCacheControlFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_device_diagnostics_config
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceDiagnosticsConfigFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceDiagnosticsConfigFeaturesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV:
+        {
+            transform_fromhost_VkDeviceDiagnosticsConfigCreateInfoNV(resourceTracker, reinterpret_cast<VkDeviceDiagnosticsConfigCreateInfoNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_NV_fragment_shading_rate_enums
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_ENUMS_FEATURES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_ENUMS_PROPERTIES_NV:
+        {
+            transform_fromhost_VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV(resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PIPELINE_FRAGMENT_SHADING_RATE_ENUM_STATE_CREATE_INFO_NV:
+        {
+            transform_fromhost_VkPipelineFragmentShadingRateEnumStateCreateInfoNV(resourceTracker, reinterpret_cast<VkPipelineFragmentShadingRateEnumStateCreateInfoNV*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_fragment_density_map2
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceFragmentDensityMap2FeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentDensityMap2FeaturesEXT*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_PROPERTIES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceFragmentDensityMap2PropertiesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceFragmentDensityMap2PropertiesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_QCOM_rotated_copy_commands
+        case VK_STRUCTURE_TYPE_COPY_COMMAND_TRANSFORM_INFO_QCOM:
+        {
+            transform_fromhost_VkCopyCommandTransformInfoQCOM(resourceTracker, reinterpret_cast<VkCopyCommandTransformInfoQCOM*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_image_robustness
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDeviceImageRobustnessFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDeviceImageRobustnessFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_EXT_4444_formats
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT:
+        {
+            transform_fromhost_VkPhysicalDevice4444FormatsFeaturesEXT(resourceTracker, reinterpret_cast<VkPhysicalDevice4444FormatsFeaturesEXT*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_acceleration_structure
+        case VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR:
+        {
+            transform_fromhost_VkWriteDescriptorSetAccelerationStructureKHR(resourceTracker, reinterpret_cast<VkWriteDescriptorSetAccelerationStructureKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR:
+        {
+            transform_fromhost_VkPhysicalDeviceAccelerationStructureFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDeviceAccelerationStructureFeaturesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_PROPERTIES_KHR:
+        {
+            transform_fromhost_VkPhysicalDeviceAccelerationStructurePropertiesKHR(resourceTracker, reinterpret_cast<VkPhysicalDeviceAccelerationStructurePropertiesKHR*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_ray_tracing_pipeline
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR:
+        {
+            transform_fromhost_VkPhysicalDeviceRayTracingPipelineFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDeviceRayTracingPipelineFeaturesKHR*>(structExtension_out));
+            break;
+        }
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR:
+        {
+            transform_fromhost_VkPhysicalDeviceRayTracingPipelinePropertiesKHR(resourceTracker, reinterpret_cast<VkPhysicalDeviceRayTracingPipelinePropertiesKHR*>(structExtension_out));
+            break;
+        }
+#endif
+#ifdef VK_KHR_ray_query
+        case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR:
+        {
+            transform_fromhost_VkPhysicalDeviceRayQueryFeaturesKHR(resourceTracker, reinterpret_cast<VkPhysicalDeviceRayQueryFeaturesKHR*>(structExtension_out));
             break;
         }
 #endif
