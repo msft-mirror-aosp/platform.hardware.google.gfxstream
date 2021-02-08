@@ -479,7 +479,7 @@ public:
     }
 
     void unregister_VkCommandBuffer(VkCommandBuffer commandBuffer) {
-        resetCommandBufferStagingInfo(commandBuffer, true /* also reset primaries */);
+        resetCommandBufferStagingInfo(commandBuffer, true /* also reset primaries */, true /* also clear pending descriptor sets */);
 
         struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
         if (!cb) return;
@@ -490,6 +490,11 @@ public:
             eraseObject(&p->subObjects, (void*)cb);
         });
         eraseObjects(&cb->poolObjects);
+
+        if (cb->userPtr) {
+            CommandBufferPendingDescriptorSets* pendingSets = (CommandBufferPendingDescriptorSets*)cb->userPtr;
+            delete pendingSets;
+        }
 
         AutoLock lock(mLock);
         info_VkCommandBuffer.erase(commandBuffer);
@@ -5316,6 +5321,164 @@ public:
 #endif
     }
 
+    struct CommandBufferPendingDescriptorSets {
+        std::unordered_set<VkDescriptorSet> sets;
+    };
+
+    void collectAllPendingDescriptorSetsBottomUp(const std::vector<VkCommandBuffer>& workingSet, std::unordered_set<VkDescriptorSet>& allDs) {
+        if (workingSet.empty()) return;
+
+        std::vector<VkCommandBuffer> nextLevel;
+        for (auto commandBuffer : workingSet) {
+            struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
+            forAllObjects(cb->subObjects, [&nextLevel](void* secondary) {
+                    nextLevel.push_back((VkCommandBuffer)secondary);
+                    });
+        }
+
+        collectAllPendingDescriptorSetsBottomUp(nextLevel, allDs);
+
+        for (auto cmdbuf : workingSet) {
+            struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(cmdbuf);
+
+            if (!cb->userPtr) {
+                continue; // No descriptors to update.
+            }
+
+            CommandBufferPendingDescriptorSets* pendingDescriptorSets =
+                (CommandBufferPendingDescriptorSets*)(cb->userPtr);
+
+            if (pendingDescriptorSets->sets.empty()) {
+                continue; // No descriptors to update.
+            }
+
+            allDs.insert(pendingDescriptorSets->sets.begin(), pendingDescriptorSets->sets.end());
+        }
+    }
+
+    void commitDescriptorSetUpdates(void* context, VkQueue queue, const std::unordered_set<VkDescriptorSet>& sets) {
+        VkEncoder* enc = (VkEncoder*)context;
+
+        std::unordered_map<VkDescriptorPool, uint32_t> poolSet;
+        std::vector<VkDescriptorPool> pools;
+        std::vector<VkDescriptorSetLayout> setLayouts;
+        std::vector<uint64_t> poolIds;
+        std::vector<uint32_t> descriptorSetWhichPool;
+        std::vector<uint32_t> pendingAllocations;
+        std::vector<uint32_t> writeStartingIndices;
+        std::vector<VkWriteDescriptorSet> writesForHost;
+
+        uint32_t poolIndex = 0;
+        uint32_t currentWriteIndex = 0;
+        for (auto set : sets) {
+            ReifiedDescriptorSet* reified = as_goldfish_VkDescriptorSet(set)->reified;
+            VkDescriptorPool pool = reified->pool;
+            VkDescriptorSetLayout setLayout = reified->setLayout;
+
+            auto it = poolSet.find(pool);
+            if (it == poolSet.end()) {
+                poolSet[pool] = poolIndex;
+                descriptorSetWhichPool.push_back(poolIndex);
+                pools.push_back(pool);
+                ++poolIndex;
+            } else {
+                uint32_t savedPoolIndex = it->second;
+                descriptorSetWhichPool.push_back(savedPoolIndex);
+            }
+
+            poolIds.push_back(reified->poolId);
+            setLayouts.push_back(setLayout);
+            pendingAllocations.push_back(reified->allocationPending ? 1 : 0);
+            writeStartingIndices.push_back(currentWriteIndex);
+
+            auto& writes = reified->allWrites;
+
+            for (int i = 0; i < writes.size(); ++i) {
+                uint32_t binding = i;
+
+                for (int j = 0; j < writes[i].size(); ++j) {
+                    auto& write = writes[i][j];
+
+                    if (write.type == DescriptorWriteType::Empty) continue;
+
+                    uint32_t dstArrayElement = 0;
+
+                    VkDescriptorImageInfo* imageInfo = nullptr;
+                    VkDescriptorBufferInfo* bufferInfo = nullptr;
+                    VkBufferView* bufferView = nullptr;
+
+                    switch (write.type) {
+                        case DescriptorWriteType::Empty:
+                            break;
+                        case DescriptorWriteType::ImageInfo:
+                            dstArrayElement = j;
+                            imageInfo = &write.imageInfo;
+                            break;
+                        case DescriptorWriteType::BufferInfo:
+                            dstArrayElement = j;
+                            bufferInfo = &write.bufferInfo;
+                            break;
+                        case DescriptorWriteType::BufferView:
+                            dstArrayElement = j;
+                            bufferView = &write.bufferView;
+                            break;
+                        case DescriptorWriteType::InlineUniformBlock:
+                        case DescriptorWriteType::AccelerationStructure:
+                            // TODO
+                            ALOGE("Encountered pending inline uniform block or acceleration structure desc write, abort (NYI)\n");
+                            abort();
+                        default:
+                            break;
+
+                    }
+
+                    // TODO: Combine multiple writes into one VkWriteDescriptorSet.
+                    VkWriteDescriptorSet forHost = {
+                        VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, 0 /* TODO: inline uniform block */,
+                        set,
+                        binding,
+                        dstArrayElement,
+                        1,
+                        write.descriptorType,
+                        imageInfo,
+                        bufferInfo,
+                        bufferView,
+                    };
+
+                    writesForHost.push_back(forHost);
+                    ++currentWriteIndex;
+
+                    // Set it back to empty.
+                    write.type = DescriptorWriteType::Empty;
+                }
+            }
+        }
+
+        // Skip out if there's nothing to VkWriteDescriptorSet home about.
+        if (writesForHost.empty()) {
+            return;
+        }
+
+        enc->vkQueueCommitDescriptorSetUpdatesGOOGLE(
+            queue, 
+            (uint32_t)pools.size(), pools.data(),
+            (uint32_t)sets.size(),
+            setLayouts.data(),
+            poolIds.data(),
+            descriptorSetWhichPool.data(),
+            pendingAllocations.data(),
+            writeStartingIndices.data(),
+            (uint32_t)writesForHost.size(),
+            writesForHost.data(),
+            false /* no lock */);
+
+        // If we got here, then we definitely serviced the allocations.
+        for (auto set : sets) {
+            ReifiedDescriptorSet* reified = as_goldfish_VkDescriptorSet(set)->reified;
+            reified->allocationPending = false;
+        }
+    }
+
     void flushCommandBufferPendingCommandsBottomUp(void* context, VkQueue queue, const std::vector<VkCommandBuffer>& workingSet) {
         if (workingSet.empty()) return;
 
@@ -5354,12 +5517,24 @@ public:
 
     // Unlike resetCommandBufferStagingInfo, this does not always erase its
     // superObjects pointers because the command buffer has merely been
-    // submitted, not reset.
-    // However, if the command buffer was recorded with ONE_TIME_SUBMIT_BIT,
-    // then it will also reset its primaries.
+    // submitted, not reset.  However, if the command buffer was recorded with
+    // ONE_TIME_SUBMIT_BIT, then it will also reset its primaries.
+    //
+    // Also, we save the set of descriptor sets referenced by this command
+    // buffer because we only submitted the command buffer and it's possible to
+    // update the descriptor set again and re-submit the same command without
+    // recording it (Update-after-bind descriptor sets)
     void resetCommandBufferPendingTopology(VkCommandBuffer commandBuffer) {
         struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
-        resetCommandBufferStagingInfo(commandBuffer, cb->flags & VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+        if (cb->flags & VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT) {
+            resetCommandBufferStagingInfo(commandBuffer,
+                true /* reset primaries */,
+                true /* clear pending descriptor sets */);
+        } else {
+            resetCommandBufferStagingInfo(commandBuffer,
+                false /* Don't reset primaries */,
+                false /* Don't clear pending descriptor sets */);
+        }
     }
 
     void flushStagingStreams(void* context, VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits) {
@@ -5369,7 +5544,13 @@ public:
                 toFlush.push_back(pSubmits[i].pCommandBuffers[j]);
             }
         }
+
+        std::unordered_set<VkDescriptorSet> pendingSets;
+        collectAllPendingDescriptorSetsBottomUp(toFlush, pendingSets);
+        commitDescriptorSetUpdates(context, queue, pendingSets);
+
         flushCommandBufferPendingCommandsBottomUp(context, queue, toFlush);
+
         for (auto cb : toFlush) {
             resetCommandBufferPendingTopology(cb);
         }
@@ -5380,7 +5561,6 @@ public:
         VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
         AEMU_SCOPED_TRACE("on_vkQueueSubmit");
 
-        // Send command buffers to the host here
         flushStagingStreams(context, queue, submitCount, pSubmits);
 
         std::vector<VkSemaphore> pre_signal_semaphores;
@@ -6215,7 +6395,7 @@ public:
 
         (void)context;
 
-        resetCommandBufferStagingInfo(commandBuffer, true /* also reset primaries */);
+        resetCommandBufferStagingInfo(commandBuffer, true /* also reset primaries */, true /* also clear pending descriptor sets */);
 
         VkEncoder* enc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
         (void)input_result;
@@ -6253,7 +6433,7 @@ public:
         VkCommandBuffer commandBuffer,
         VkCommandBufferResetFlags flags) {
 
-        resetCommandBufferStagingInfo(commandBuffer, true /* also reset primaries */);
+        resetCommandBufferStagingInfo(commandBuffer, true /* also reset primaries */, true /* also clear pending descriptor sets */);
 
         VkEncoder* enc = (VkEncoder*)context;
         (void)input_result;
@@ -6315,6 +6495,23 @@ public:
         enc->vkCmdExecuteCommands(commandBuffer, commandBufferCount, pCommandBuffers, true /* do lock */);
     }
 
+    void addPendingDescriptorSets(VkCommandBuffer commandBuffer, uint32_t descriptorSetCount, const VkDescriptorSet* pDescriptorSets) {
+        struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
+
+        if (!cb->userPtr) {
+            CommandBufferPendingDescriptorSets* newPendingSets =
+                new CommandBufferPendingDescriptorSets;
+            cb->userPtr = newPendingSets;
+        }
+
+        CommandBufferPendingDescriptorSets* pendingSets =
+            (CommandBufferPendingDescriptorSets*)cb->userPtr;
+
+        for (uint32_t i = 0; i < descriptorSetCount; ++i) {
+            pendingSets->sets.insert(pDescriptorSets[i]);
+        }
+    }
+
     void on_vkCmdBindDescriptorSets(
         void* context,
         VkCommandBuffer commandBuffer,
@@ -6327,6 +6524,10 @@ public:
         const uint32_t* pDynamicOffsets) {
 
         VkEncoder* enc = (VkEncoder*)context;
+
+        if (mFeatureInfo->hasVulkanBatchedDescriptorSetUpdate)
+            addPendingDescriptorSets(commandBuffer, descriptorSetCount, pDescriptorSets);
+
         enc->vkCmdBindDescriptorSets(
             commandBuffer,
             pipelineBindPoint,
@@ -6410,7 +6611,7 @@ public:
 
     // Resets staging stream for this command buffer and primary command buffers
     // where this command buffer has been recorded.
-    void resetCommandBufferStagingInfo(VkCommandBuffer commandBuffer, bool alsoResetPrimaries) {
+    void resetCommandBufferStagingInfo(VkCommandBuffer commandBuffer, bool alsoResetPrimaries, bool alsoClearPendingDescriptorSets) {
         struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
         if (!cb) {
             return;
@@ -6421,11 +6622,16 @@ public:
             cb->privateStream = nullptr;
         }
 
+        if (alsoClearPendingDescriptorSets && cb->userPtr) {
+            CommandBufferPendingDescriptorSets* pendingSets = (CommandBufferPendingDescriptorSets*)cb->userPtr;
+            pendingSets->sets.clear();
+        }
+
         if (alsoResetPrimaries) {
-            forAllObjects(cb->superObjects, [this, alsoResetPrimaries](void* obj) {
+            forAllObjects(cb->superObjects, [this, alsoResetPrimaries, alsoClearPendingDescriptorSets](void* obj) {
                 VkCommandBuffer superCommandBuffer = (VkCommandBuffer)obj;
                 struct goldfish_VkCommandBuffer* superCb = as_goldfish_VkCommandBuffer(superCommandBuffer);
-                this->resetCommandBufferStagingInfo(superCommandBuffer, alsoResetPrimaries);
+                this->resetCommandBufferStagingInfo(superCommandBuffer, alsoResetPrimaries, alsoClearPendingDescriptorSets);
             });
             eraseObjects(&cb->superObjects);
         }
@@ -6447,7 +6653,7 @@ public:
         if (!p) return;
 
         forAllObjects(p->subObjects, [this](void* commandBuffer) {
-            this->resetCommandBufferStagingInfo((VkCommandBuffer)commandBuffer, true /* also reset primaries */);
+            this->resetCommandBufferStagingInfo((VkCommandBuffer)commandBuffer, true /* also reset primaries */, true /* also clear pending descriptor sets */);
         });
     }
 
