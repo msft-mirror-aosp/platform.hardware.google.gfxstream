@@ -6217,6 +6217,39 @@ public:
         enc->vkCmdExecuteCommands(commandBuffer, commandBufferCount, pCommandBuffers, true /* do lock */);
     }
 
+    void on_vkCmdBindDescriptorSets(
+        void* context,
+        VkCommandBuffer commandBuffer,
+        VkPipelineBindPoint pipelineBindPoint,
+        VkPipelineLayout layout,
+        uint32_t firstSet,
+        uint32_t descriptorSetCount,
+        const VkDescriptorSet* pDescriptorSets,
+        uint32_t dynamicOffsetCount,
+        const uint32_t* pDynamicOffsets) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+        enc->vkCmdBindDescriptorSets(
+            commandBuffer,
+            pipelineBindPoint,
+            layout,
+            firstSet,
+            descriptorSetCount,
+            pDescriptorSets,
+            dynamicOffsetCount,
+            pDynamicOffsets,
+            true /* do lock */);
+    }
+
+    void on_vkDestroyDescriptorSetLayout(
+        void* context,
+        VkDevice device,
+        VkDescriptorSetLayout descriptorSetLayout,
+        const VkAllocationCallbacks* pAllocator) {
+        VkEncoder* enc = (VkEncoder*)context;
+        enc->vkDestroyDescriptorSetLayout(device, descriptorSetLayout, pAllocator, true /* do lock */);
+    }
+
     uint32_t getApiVersionFromInstance(VkInstance instance) const {
         AutoLock lock(mLock);
         uint32_t api = kDefaultApiVersion;
@@ -7296,6 +7329,36 @@ void ResourceTracker::on_vkCmdExecuteCommands(
     const VkCommandBuffer* pCommandBuffers) {
     mImpl->on_vkCmdExecuteCommands(
         context, commandBuffer, commandBufferCount, pCommandBuffers);
+}
+
+void ResourceTracker::on_vkCmdBindDescriptorSets(
+    void* context,
+    VkCommandBuffer commandBuffer,
+    VkPipelineBindPoint pipelineBindPoint,
+    VkPipelineLayout layout,
+    uint32_t firstSet,
+    uint32_t descriptorSetCount,
+    const VkDescriptorSet* pDescriptorSets,
+    uint32_t dynamicOffsetCount,
+    const uint32_t* pDynamicOffsets) {
+    mImpl->on_vkCmdBindDescriptorSets(
+        context,
+        commandBuffer,
+        pipelineBindPoint, 
+        layout,
+        firstSet,
+        descriptorSetCount,
+        pDescriptorSets,
+        dynamicOffsetCount,
+        pDynamicOffsets);
+}
+
+void ResourceTracker::on_vkDestroyDescriptorSetLayout(
+    void* context,
+    VkDevice device,
+    VkDescriptorSetLayout descriptorSetLayout,
+    const VkAllocationCallbacks* pAllocator) {
+    mImpl->on_vkDestroyDescriptorSetLayout(context, device, descriptorSetLayout, pAllocator);
 }
 
 void ResourceTracker::deviceMemoryTransform_tohost(
