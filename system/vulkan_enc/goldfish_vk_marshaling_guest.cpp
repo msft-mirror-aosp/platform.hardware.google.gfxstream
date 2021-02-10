@@ -15736,23 +15736,7 @@ void unmarshal_VkDirectFBSurfaceCreateInfoEXT(
 }
 
 #endif
-#ifdef VK_GOOGLE_address_space
-#endif
-#ifdef VK_GOOGLE_sized_descriptor_update_template
-#endif
-#ifdef VK_GOOGLE_async_command_buffers
-#endif
-#ifdef VK_GOOGLE_create_resources_with_requirements
-#endif
-#ifdef VK_GOOGLE_address_space_info
-#endif
-#ifdef VK_GOOGLE_free_memory_sync
-#endif
-#ifdef VK_GOOGLE_async_queue_submit
-#endif
-#ifdef VK_GOOGLE_linear_image_layout
-#endif
-#ifdef VK_GOOGLE_queue_submit_with_commands
+#ifdef VK_GOOGLE_gfxstream
 #endif
 #ifdef VK_KHR_acceleration_structure
 void marshal_VkDeviceOrHostAddressKHR(
@@ -21041,7 +21025,7 @@ const char* api_opcode_to_string(
             return "OP_vkGetQueueCheckpointDataNV";
         }
 #endif
-#ifdef VK_GOOGLE_address_space
+#ifdef VK_GOOGLE_gfxstream
         case OP_vkMapMemoryIntoAddressSpaceGOOGLE:
         {
             return "OP_vkMapMemoryIntoAddressSpaceGOOGLE";
@@ -21057,13 +21041,11 @@ const char* api_opcode_to_string(
             return "OP_vkRegisterBufferColorBufferGOOGLE";
         }
 #endif
-#ifdef VK_GOOGLE_sized_descriptor_update_template
+#ifdef VK_GOOGLE_gfxstream
         case OP_vkUpdateDescriptorSetWithTemplateSizedGOOGLE:
         {
             return "OP_vkUpdateDescriptorSetWithTemplateSizedGOOGLE";
         }
-#endif
-#ifdef VK_GOOGLE_async_command_buffers
         case OP_vkBeginCommandBufferAsyncGOOGLE:
         {
             return "OP_vkBeginCommandBufferAsyncGOOGLE";
@@ -21080,8 +21062,6 @@ const char* api_opcode_to_string(
         {
             return "OP_vkCommandBufferHostSyncGOOGLE";
         }
-#endif
-#ifdef VK_GOOGLE_create_resources_with_requirements
         case OP_vkCreateImageWithRequirementsGOOGLE:
         {
             return "OP_vkCreateImageWithRequirementsGOOGLE";
@@ -21090,20 +21070,14 @@ const char* api_opcode_to_string(
         {
             return "OP_vkCreateBufferWithRequirementsGOOGLE";
         }
-#endif
-#ifdef VK_GOOGLE_address_space_info
         case OP_vkGetMemoryHostAddressInfoGOOGLE:
         {
             return "OP_vkGetMemoryHostAddressInfoGOOGLE";
         }
-#endif
-#ifdef VK_GOOGLE_free_memory_sync
         case OP_vkFreeMemorySyncGOOGLE:
         {
             return "OP_vkFreeMemorySyncGOOGLE";
         }
-#endif
-#ifdef VK_GOOGLE_async_queue_submit
         case OP_vkQueueHostSyncGOOGLE:
         {
             return "OP_vkQueueHostSyncGOOGLE";
@@ -21120,8 +21094,6 @@ const char* api_opcode_to_string(
         {
             return "OP_vkQueueBindSparseAsyncGOOGLE";
         }
-#endif
-#ifdef VK_GOOGLE_linear_image_layout
         case OP_vkGetLinearImageLayoutGOOGLE:
         {
             return "OP_vkGetLinearImageLayoutGOOGLE";
@@ -21153,7 +21125,7 @@ const char* api_opcode_to_string(
             return "OP_vkGetIOSurfaceMVK";
         }
 #endif
-#ifdef VK_GOOGLE_queue_submit_with_commands
+#ifdef VK_GOOGLE_gfxstream
         case OP_vkQueueFlushCommandsGOOGLE:
         {
             return "OP_vkQueueFlushCommandsGOOGLE";
