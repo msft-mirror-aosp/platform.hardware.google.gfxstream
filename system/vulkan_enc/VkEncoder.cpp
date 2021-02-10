@@ -32684,7 +32684,7 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceDirectFBPresentationSupportEXT(
 }
 
 #endif
-#ifdef VK_GOOGLE_address_space
+#ifdef VK_GOOGLE_gfxstream
 VkResult VkEncoder::vkMapMemoryIntoAddressSpaceGOOGLE(
     VkDevice device,
     VkDeviceMemory memory,
@@ -32766,8 +32766,6 @@ VkResult VkEncoder::vkMapMemoryIntoAddressSpaceGOOGLE(
     return vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return;
 }
 
-#endif
-#ifdef VK_GOOGLE_sized_descriptor_update_template
 void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     VkDevice device,
     VkDescriptorSet descriptorSet,
@@ -33012,8 +33010,6 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_GOOGLE_async_command_buffers
 void VkEncoder::vkBeginCommandBufferAsyncGOOGLE(
     VkCommandBuffer commandBuffer,
     const VkCommandBufferBeginInfo* pBeginInfo,
@@ -33207,8 +33203,6 @@ void VkEncoder::vkCommandBufferHostSyncGOOGLE(
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_GOOGLE_create_resources_with_requirements
 VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
     VkDevice device,
     const VkImageCreateInfo* pCreateInfo,
@@ -33420,8 +33414,6 @@ VkResult VkEncoder::vkCreateBufferWithRequirementsGOOGLE(
     return vkCreateBufferWithRequirementsGOOGLE_VkResult_return;
 }
 
-#endif
-#ifdef VK_GOOGLE_address_space_info
 VkResult VkEncoder::vkGetMemoryHostAddressInfoGOOGLE(
     VkDevice device,
     VkDeviceMemory memory,
@@ -33557,8 +33549,6 @@ VkResult VkEncoder::vkGetMemoryHostAddressInfoGOOGLE(
     return vkGetMemoryHostAddressInfoGOOGLE_VkResult_return;
 }
 
-#endif
-#ifdef VK_GOOGLE_free_memory_sync
 VkResult VkEncoder::vkFreeMemorySyncGOOGLE(
     VkDevice device,
     VkDeviceMemory memory,
@@ -33635,8 +33625,6 @@ VkResult VkEncoder::vkFreeMemorySyncGOOGLE(
     return vkFreeMemorySyncGOOGLE_VkResult_return;
 }
 
-#endif
-#ifdef VK_GOOGLE_async_queue_submit
 void VkEncoder::vkQueueHostSyncGOOGLE(
     VkQueue queue,
     uint32_t needHostSync,
@@ -33887,8 +33875,6 @@ void VkEncoder::vkQueueBindSparseAsyncGOOGLE(
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_GOOGLE_linear_image_layout
 void VkEncoder::vkGetLinearImageLayoutGOOGLE(
     VkDevice device,
     VkFormat format,
@@ -33943,8 +33929,6 @@ void VkEncoder::vkGetLinearImageLayoutGOOGLE(
     if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
-#endif
-#ifdef VK_GOOGLE_queue_submit_with_commands
 void VkEncoder::vkQueueFlushCommandsGOOGLE(
     VkQueue queue,
     VkCommandBuffer commandBuffer,
