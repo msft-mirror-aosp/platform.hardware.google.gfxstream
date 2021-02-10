@@ -2881,14 +2881,12 @@ public:
         IDirectFB* dfb,
         uint32_t doLock);
 #endif
-#ifdef VK_GOOGLE_address_space
+#ifdef VK_GOOGLE_gfxstream
     VkResult vkMapMemoryIntoAddressSpaceGOOGLE(
     VkDevice device,
         VkDeviceMemory memory,
         uint64_t* pAddress,
         uint32_t doLock);
-#endif
-#ifdef VK_GOOGLE_sized_descriptor_update_template
     void vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     VkDevice device,
         VkDescriptorSet descriptorSet,
@@ -2903,8 +2901,6 @@ public:
         const VkDescriptorBufferInfo* pBufferInfos,
         const VkBufferView* pBufferViews,
         uint32_t doLock);
-#endif
-#ifdef VK_GOOGLE_async_command_buffers
     void vkBeginCommandBufferAsyncGOOGLE(
     VkCommandBuffer commandBuffer,
         const VkCommandBufferBeginInfo* pBeginInfo,
@@ -2921,8 +2917,6 @@ public:
         uint32_t needHostSync,
         uint32_t sequenceNumber,
         uint32_t doLock);
-#endif
-#ifdef VK_GOOGLE_create_resources_with_requirements
     VkResult vkCreateImageWithRequirementsGOOGLE(
     VkDevice device,
         const VkImageCreateInfo* pCreateInfo,
@@ -2937,8 +2931,6 @@ public:
         VkBuffer* pBuffer,
         VkMemoryRequirements* pMemoryRequirements,
         uint32_t doLock);
-#endif
-#ifdef VK_GOOGLE_address_space_info
     VkResult vkGetMemoryHostAddressInfoGOOGLE(
     VkDevice device,
         VkDeviceMemory memory,
@@ -2946,15 +2938,11 @@ public:
         uint64_t* pSize,
         uint64_t* pHostmemId,
         uint32_t doLock);
-#endif
-#ifdef VK_GOOGLE_free_memory_sync
     VkResult vkFreeMemorySyncGOOGLE(
     VkDevice device,
         VkDeviceMemory memory,
         const VkAllocationCallbacks* pAllocator,
         uint32_t doLock);
-#endif
-#ifdef VK_GOOGLE_async_queue_submit
     void vkQueueHostSyncGOOGLE(
     VkQueue queue,
         uint32_t needHostSync,
@@ -2975,16 +2963,12 @@ public:
         const VkBindSparseInfo* pBindInfo,
         VkFence fence,
         uint32_t doLock);
-#endif
-#ifdef VK_GOOGLE_linear_image_layout
     void vkGetLinearImageLayoutGOOGLE(
     VkDevice device,
         VkFormat format,
         VkDeviceSize* pOffset,
         VkDeviceSize* pRowPitchAlignment,
         uint32_t doLock);
-#endif
-#ifdef VK_GOOGLE_queue_submit_with_commands
     void vkQueueFlushCommandsGOOGLE(
     VkQueue queue,
         VkCommandBuffer commandBuffer,

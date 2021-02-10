@@ -7119,7 +7119,7 @@ static VkBool32 entry_vkGetPhysicalDeviceDirectFBPresentationSupportEXT(
     return vkGetPhysicalDeviceDirectFBPresentationSupportEXT_VkBool32_return;
 }
 #endif
-#ifdef VK_GOOGLE_address_space
+#ifdef VK_GOOGLE_gfxstream
 static VkResult entry_vkMapMemoryIntoAddressSpaceGOOGLE(
     VkDevice device,
     VkDeviceMemory memory,
@@ -7137,9 +7137,9 @@ static VkResult dynCheck_entry_vkMapMemoryIntoAddressSpaceGOOGLE(
     uint64_t* pAddress)
 {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_address_space"))
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream"))
     {
-        sOnInvalidDynamicallyCheckedCall("vkMapMemoryIntoAddressSpaceGOOGLE", "VK_GOOGLE_address_space");
+        sOnInvalidDynamicallyCheckedCall("vkMapMemoryIntoAddressSpaceGOOGLE", "VK_GOOGLE_gfxstream");
     }
     AEMU_SCOPED_TRACE("vkMapMemoryIntoAddressSpaceGOOGLE");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
@@ -7147,8 +7147,6 @@ static VkResult dynCheck_entry_vkMapMemoryIntoAddressSpaceGOOGLE(
     vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return = vkEnc->vkMapMemoryIntoAddressSpaceGOOGLE(device, memory, pAddress, true /* do lock */);
     return vkMapMemoryIntoAddressSpaceGOOGLE_VkResult_return;
 }
-#endif
-#ifdef VK_GOOGLE_sized_descriptor_update_template
 static void entry_vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     VkDevice device,
     VkDescriptorSet descriptorSet,
@@ -7182,16 +7180,14 @@ static void dynCheck_entry_vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     const VkBufferView* pBufferViews)
 {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_sized_descriptor_update_template"))
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream"))
     {
-        sOnInvalidDynamicallyCheckedCall("vkUpdateDescriptorSetWithTemplateSizedGOOGLE", "VK_GOOGLE_sized_descriptor_update_template");
+        sOnInvalidDynamicallyCheckedCall("vkUpdateDescriptorSetWithTemplateSizedGOOGLE", "VK_GOOGLE_gfxstream");
     }
     AEMU_SCOPED_TRACE("vkUpdateDescriptorSetWithTemplateSizedGOOGLE");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     vkEnc->vkUpdateDescriptorSetWithTemplateSizedGOOGLE(device, descriptorSet, descriptorUpdateTemplate, imageInfoCount, bufferInfoCount, bufferViewCount, pImageInfoEntryIndices, pBufferInfoEntryIndices, pBufferViewEntryIndices, pImageInfos, pBufferInfos, pBufferViews, true /* do lock */);
 }
-#endif
-#ifdef VK_GOOGLE_async_command_buffers
 static void entry_vkBeginCommandBufferAsyncGOOGLE(
     VkCommandBuffer commandBuffer,
     const VkCommandBufferBeginInfo* pBeginInfo)
@@ -7224,8 +7220,6 @@ static void entry_vkCommandBufferHostSyncGOOGLE(
     auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
     vkEnc->vkCommandBufferHostSyncGOOGLE(commandBuffer, needHostSync, sequenceNumber, true /* do lock */);
 }
-#endif
-#ifdef VK_GOOGLE_create_resources_with_requirements
 static VkResult entry_vkCreateImageWithRequirementsGOOGLE(
     VkDevice device,
     const VkImageCreateInfo* pCreateInfo,
@@ -7247,9 +7241,9 @@ static VkResult dynCheck_entry_vkCreateImageWithRequirementsGOOGLE(
     VkMemoryRequirements* pMemoryRequirements)
 {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_create_resources_with_requirements"))
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream"))
     {
-        sOnInvalidDynamicallyCheckedCall("vkCreateImageWithRequirementsGOOGLE", "VK_GOOGLE_create_resources_with_requirements");
+        sOnInvalidDynamicallyCheckedCall("vkCreateImageWithRequirementsGOOGLE", "VK_GOOGLE_gfxstream");
     }
     AEMU_SCOPED_TRACE("vkCreateImageWithRequirementsGOOGLE");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
@@ -7278,9 +7272,9 @@ static VkResult dynCheck_entry_vkCreateBufferWithRequirementsGOOGLE(
     VkMemoryRequirements* pMemoryRequirements)
 {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_create_resources_with_requirements"))
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream"))
     {
-        sOnInvalidDynamicallyCheckedCall("vkCreateBufferWithRequirementsGOOGLE", "VK_GOOGLE_create_resources_with_requirements");
+        sOnInvalidDynamicallyCheckedCall("vkCreateBufferWithRequirementsGOOGLE", "VK_GOOGLE_gfxstream");
     }
     AEMU_SCOPED_TRACE("vkCreateBufferWithRequirementsGOOGLE");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
@@ -7288,8 +7282,6 @@ static VkResult dynCheck_entry_vkCreateBufferWithRequirementsGOOGLE(
     vkCreateBufferWithRequirementsGOOGLE_VkResult_return = vkEnc->vkCreateBufferWithRequirementsGOOGLE(device, pCreateInfo, pAllocator, pBuffer, pMemoryRequirements, true /* do lock */);
     return vkCreateBufferWithRequirementsGOOGLE_VkResult_return;
 }
-#endif
-#ifdef VK_GOOGLE_address_space_info
 static VkResult entry_vkGetMemoryHostAddressInfoGOOGLE(
     VkDevice device,
     VkDeviceMemory memory,
@@ -7311,9 +7303,9 @@ static VkResult dynCheck_entry_vkGetMemoryHostAddressInfoGOOGLE(
     uint64_t* pHostmemId)
 {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_address_space_info"))
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream"))
     {
-        sOnInvalidDynamicallyCheckedCall("vkGetMemoryHostAddressInfoGOOGLE", "VK_GOOGLE_address_space_info");
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryHostAddressInfoGOOGLE", "VK_GOOGLE_gfxstream");
     }
     AEMU_SCOPED_TRACE("vkGetMemoryHostAddressInfoGOOGLE");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
@@ -7321,8 +7313,6 @@ static VkResult dynCheck_entry_vkGetMemoryHostAddressInfoGOOGLE(
     vkGetMemoryHostAddressInfoGOOGLE_VkResult_return = vkEnc->vkGetMemoryHostAddressInfoGOOGLE(device, memory, pAddress, pSize, pHostmemId, true /* do lock */);
     return vkGetMemoryHostAddressInfoGOOGLE_VkResult_return;
 }
-#endif
-#ifdef VK_GOOGLE_free_memory_sync
 static VkResult entry_vkFreeMemorySyncGOOGLE(
     VkDevice device,
     VkDeviceMemory memory,
@@ -7340,9 +7330,9 @@ static VkResult dynCheck_entry_vkFreeMemorySyncGOOGLE(
     const VkAllocationCallbacks* pAllocator)
 {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_free_memory_sync"))
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream"))
     {
-        sOnInvalidDynamicallyCheckedCall("vkFreeMemorySyncGOOGLE", "VK_GOOGLE_free_memory_sync");
+        sOnInvalidDynamicallyCheckedCall("vkFreeMemorySyncGOOGLE", "VK_GOOGLE_gfxstream");
     }
     AEMU_SCOPED_TRACE("vkFreeMemorySyncGOOGLE");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
@@ -7350,8 +7340,6 @@ static VkResult dynCheck_entry_vkFreeMemorySyncGOOGLE(
     vkFreeMemorySyncGOOGLE_VkResult_return = vkEnc->vkFreeMemorySyncGOOGLE(device, memory, pAllocator, true /* do lock */);
     return vkFreeMemorySyncGOOGLE_VkResult_return;
 }
-#endif
-#ifdef VK_GOOGLE_async_queue_submit
 static void entry_vkQueueHostSyncGOOGLE(
     VkQueue queue,
     uint32_t needHostSync,
@@ -7388,8 +7376,6 @@ static void entry_vkQueueBindSparseAsyncGOOGLE(
     auto vkEnc = ResourceTracker::getQueueEncoder(queue);
     vkEnc->vkQueueBindSparseAsyncGOOGLE(queue, bindInfoCount, pBindInfo, fence, true /* do lock */);
 }
-#endif
-#ifdef VK_GOOGLE_linear_image_layout
 static void entry_vkGetLinearImageLayoutGOOGLE(
     VkDevice device,
     VkFormat format,
@@ -7407,16 +7393,14 @@ static void dynCheck_entry_vkGetLinearImageLayoutGOOGLE(
     VkDeviceSize* pRowPitchAlignment)
 {
     auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_linear_image_layout"))
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream"))
     {
-        sOnInvalidDynamicallyCheckedCall("vkGetLinearImageLayoutGOOGLE", "VK_GOOGLE_linear_image_layout");
+        sOnInvalidDynamicallyCheckedCall("vkGetLinearImageLayoutGOOGLE", "VK_GOOGLE_gfxstream");
     }
     AEMU_SCOPED_TRACE("vkGetLinearImageLayoutGOOGLE");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     vkEnc->vkGetLinearImageLayoutGOOGLE(device, format, pOffset, pRowPitchAlignment, true /* do lock */);
 }
-#endif
-#ifdef VK_GOOGLE_queue_submit_with_commands
 static void entry_vkQueueFlushCommandsGOOGLE(
     VkQueue queue,
     VkCommandBuffer commandBuffer,
@@ -9824,19 +9808,15 @@ void* goldfish_vulkan_get_proc_address(const char* name){
         return nullptr;
     }
 #endif
-#ifdef VK_GOOGLE_address_space
+#ifdef VK_GOOGLE_gfxstream
     if (!strcmp(name, "vkMapMemoryIntoAddressSpaceGOOGLE"))
     {
         return nullptr;
     }
-#endif
-#ifdef VK_GOOGLE_sized_descriptor_update_template
     if (!strcmp(name, "vkUpdateDescriptorSetWithTemplateSizedGOOGLE"))
     {
         return nullptr;
     }
-#endif
-#ifdef VK_GOOGLE_async_command_buffers
     if (!strcmp(name, "vkBeginCommandBufferAsyncGOOGLE"))
     {
         return nullptr;
@@ -9853,8 +9833,6 @@ void* goldfish_vulkan_get_proc_address(const char* name){
     {
         return nullptr;
     }
-#endif
-#ifdef VK_GOOGLE_create_resources_with_requirements
     if (!strcmp(name, "vkCreateImageWithRequirementsGOOGLE"))
     {
         return nullptr;
@@ -9863,20 +9841,14 @@ void* goldfish_vulkan_get_proc_address(const char* name){
     {
         return nullptr;
     }
-#endif
-#ifdef VK_GOOGLE_address_space_info
     if (!strcmp(name, "vkGetMemoryHostAddressInfoGOOGLE"))
     {
         return nullptr;
     }
-#endif
-#ifdef VK_GOOGLE_free_memory_sync
     if (!strcmp(name, "vkFreeMemorySyncGOOGLE"))
     {
         return nullptr;
     }
-#endif
-#ifdef VK_GOOGLE_async_queue_submit
     if (!strcmp(name, "vkQueueHostSyncGOOGLE"))
     {
         return nullptr;
@@ -9893,14 +9865,10 @@ void* goldfish_vulkan_get_proc_address(const char* name){
     {
         return nullptr;
     }
-#endif
-#ifdef VK_GOOGLE_linear_image_layout
     if (!strcmp(name, "vkGetLinearImageLayoutGOOGLE"))
     {
         return nullptr;
     }
-#endif
-#ifdef VK_GOOGLE_queue_submit_with_commands
     if (!strcmp(name, "vkQueueFlushCommandsGOOGLE"))
     {
         return nullptr;
@@ -12083,41 +12051,35 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return hasExt ? (void*)entry_vkGetPhysicalDeviceDirectFBPresentationSupportEXT : nullptr;
     }
 #endif
-#ifdef VK_GOOGLE_address_space
+#ifdef VK_GOOGLE_gfxstream
     if (!strcmp(name, "vkMapMemoryIntoAddressSpaceGOOGLE"))
     {
         return (void*)dynCheck_entry_vkMapMemoryIntoAddressSpaceGOOGLE;
     }
-#endif
-#ifdef VK_GOOGLE_sized_descriptor_update_template
     if (!strcmp(name, "vkUpdateDescriptorSetWithTemplateSizedGOOGLE"))
     {
         return (void*)dynCheck_entry_vkUpdateDescriptorSetWithTemplateSizedGOOGLE;
     }
-#endif
-#ifdef VK_GOOGLE_async_command_buffers
     if (!strcmp(name, "vkBeginCommandBufferAsyncGOOGLE"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_async_command_buffers");
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkBeginCommandBufferAsyncGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkEndCommandBufferAsyncGOOGLE"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_async_command_buffers");
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkEndCommandBufferAsyncGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkResetCommandBufferAsyncGOOGLE"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_async_command_buffers");
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkResetCommandBufferAsyncGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkCommandBufferHostSyncGOOGLE"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_async_command_buffers");
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkCommandBufferHostSyncGOOGLE : nullptr;
     }
-#endif
-#ifdef VK_GOOGLE_create_resources_with_requirements
     if (!strcmp(name, "vkCreateImageWithRequirementsGOOGLE"))
     {
         return (void*)dynCheck_entry_vkCreateImageWithRequirementsGOOGLE;
@@ -12126,51 +12088,41 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     {
         return (void*)dynCheck_entry_vkCreateBufferWithRequirementsGOOGLE;
     }
-#endif
-#ifdef VK_GOOGLE_address_space_info
     if (!strcmp(name, "vkGetMemoryHostAddressInfoGOOGLE"))
     {
         return (void*)dynCheck_entry_vkGetMemoryHostAddressInfoGOOGLE;
     }
-#endif
-#ifdef VK_GOOGLE_free_memory_sync
     if (!strcmp(name, "vkFreeMemorySyncGOOGLE"))
     {
         return (void*)dynCheck_entry_vkFreeMemorySyncGOOGLE;
     }
-#endif
-#ifdef VK_GOOGLE_async_queue_submit
     if (!strcmp(name, "vkQueueHostSyncGOOGLE"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_async_queue_submit");
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkQueueHostSyncGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkQueueSubmitAsyncGOOGLE"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_async_queue_submit");
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkQueueSubmitAsyncGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkQueueWaitIdleAsyncGOOGLE"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_async_queue_submit");
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkQueueWaitIdleAsyncGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkQueueBindSparseAsyncGOOGLE"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_async_queue_submit");
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkQueueBindSparseAsyncGOOGLE : nullptr;
     }
-#endif
-#ifdef VK_GOOGLE_linear_image_layout
     if (!strcmp(name, "vkGetLinearImageLayoutGOOGLE"))
     {
         return (void*)dynCheck_entry_vkGetLinearImageLayoutGOOGLE;
     }
-#endif
-#ifdef VK_GOOGLE_queue_submit_with_commands
     if (!strcmp(name, "vkQueueFlushCommandsGOOGLE"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_queue_submit_with_commands");
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkQueueFlushCommandsGOOGLE : nullptr;
     }
 #endif
@@ -14474,101 +14426,85 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
         return hasExt ? (void*)entry_vkGetPhysicalDeviceDirectFBPresentationSupportEXT : nullptr;
     }
 #endif
-#ifdef VK_GOOGLE_address_space
+#ifdef VK_GOOGLE_gfxstream
     if (!strcmp(name, "vkMapMemoryIntoAddressSpaceGOOGLE"))
     {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_address_space");
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkMapMemoryIntoAddressSpaceGOOGLE : nullptr;
     }
-#endif
-#ifdef VK_GOOGLE_sized_descriptor_update_template
     if (!strcmp(name, "vkUpdateDescriptorSetWithTemplateSizedGOOGLE"))
     {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_sized_descriptor_update_template");
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkUpdateDescriptorSetWithTemplateSizedGOOGLE : nullptr;
     }
-#endif
-#ifdef VK_GOOGLE_async_command_buffers
     if (!strcmp(name, "vkBeginCommandBufferAsyncGOOGLE"))
     {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_async_command_buffers");
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkBeginCommandBufferAsyncGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkEndCommandBufferAsyncGOOGLE"))
     {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_async_command_buffers");
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkEndCommandBufferAsyncGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkResetCommandBufferAsyncGOOGLE"))
     {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_async_command_buffers");
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkResetCommandBufferAsyncGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkCommandBufferHostSyncGOOGLE"))
     {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_async_command_buffers");
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkCommandBufferHostSyncGOOGLE : nullptr;
     }
-#endif
-#ifdef VK_GOOGLE_create_resources_with_requirements
     if (!strcmp(name, "vkCreateImageWithRequirementsGOOGLE"))
     {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_create_resources_with_requirements");
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkCreateImageWithRequirementsGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkCreateBufferWithRequirementsGOOGLE"))
     {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_create_resources_with_requirements");
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkCreateBufferWithRequirementsGOOGLE : nullptr;
     }
-#endif
-#ifdef VK_GOOGLE_address_space_info
     if (!strcmp(name, "vkGetMemoryHostAddressInfoGOOGLE"))
     {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_address_space_info");
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkGetMemoryHostAddressInfoGOOGLE : nullptr;
     }
-#endif
-#ifdef VK_GOOGLE_free_memory_sync
     if (!strcmp(name, "vkFreeMemorySyncGOOGLE"))
     {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_free_memory_sync");
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkFreeMemorySyncGOOGLE : nullptr;
     }
-#endif
-#ifdef VK_GOOGLE_async_queue_submit
     if (!strcmp(name, "vkQueueHostSyncGOOGLE"))
     {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_async_queue_submit");
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkQueueHostSyncGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkQueueSubmitAsyncGOOGLE"))
     {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_async_queue_submit");
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkQueueSubmitAsyncGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkQueueWaitIdleAsyncGOOGLE"))
     {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_async_queue_submit");
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkQueueWaitIdleAsyncGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkQueueBindSparseAsyncGOOGLE"))
     {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_async_queue_submit");
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkQueueBindSparseAsyncGOOGLE : nullptr;
     }
-#endif
-#ifdef VK_GOOGLE_linear_image_layout
     if (!strcmp(name, "vkGetLinearImageLayoutGOOGLE"))
     {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_linear_image_layout");
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkGetLinearImageLayoutGOOGLE : nullptr;
     }
-#endif
-#ifdef VK_GOOGLE_queue_submit_with_commands
     if (!strcmp(name, "vkQueueFlushCommandsGOOGLE"))
     {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_queue_submit_with_commands");
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkQueueFlushCommandsGOOGLE : nullptr;
     }
 #endif
