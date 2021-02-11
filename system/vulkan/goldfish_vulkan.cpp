@@ -894,25 +894,31 @@ private:
 };
 
 void VulkanDevice::InitLogger() {
-   zx_handle_t channel = GetConnectToServiceFunction()("/svc/fuchsia.logger.LogSink");
-   if (channel == ZX_HANDLE_INVALID)
-      return;
+  auto log_service = ([] () -> std::optional<zx::socket> {
+    fidl::ClientEnd<llcpp::fuchsia::logger::LogSink> channel{zx::channel{
+      GetConnectToServiceFunction()("/svc/fuchsia.logger.LogSink")}};
+    if (!channel.is_valid())
+      return std::nullopt;
 
-  zx::socket local_socket, remote_socket;
-  zx_status_t status = zx::socket::create(ZX_SOCKET_DATAGRAM, &local_socket, &remote_socket);
-  if (status != ZX_OK)
-    return;
+    zx::socket local_socket, remote_socket;
+    zx_status_t status = zx::socket::create(ZX_SOCKET_DATAGRAM, &local_socket, &remote_socket);
+    if (status != ZX_OK)
+      return std::nullopt;
 
-  auto result = llcpp::fuchsia::logger::LogSink::Call::Connect(
-      zx::unowned_channel(channel), std::move(remote_socket));
-  zx_handle_close(channel);
+    auto result = llcpp::fuchsia::logger::LogSink::Call::Connect(
+        channel, std::move(remote_socket));
 
-  if (result.status() != ZX_OK)
+    if (!result.ok())
+      return std::nullopt;
+
+    return local_socket;
+  })();
+  if (!log_service)
     return;
 
   fx_logger_config_t config = {.min_severity = FX_LOG_INFO,
                                .console_fd = -1,
-                               .log_service_channel = local_socket.release(),
+                               .log_service_channel = log_service->release(),
                                .tags = nullptr,
                                .num_tags = 0};
 

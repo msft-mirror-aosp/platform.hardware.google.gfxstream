@@ -75,7 +75,8 @@ static void initSeqno() {
 static void processPipeInitOnce() {
     initSeqno();
 
-    zx::channel channel(GetConnectToServiceFunction()(QEMU_PIPE_PATH));
+    fidl::ClientEnd<llcpp::fuchsia::hardware::goldfish::PipeDevice> channel{
+        zx::channel(GetConnectToServiceFunction()(QEMU_PIPE_PATH))};
     if (!channel) {
         ALOGE("%s: failed to open " QEMU_PIPE_PATH,
               __FUNCTION__);

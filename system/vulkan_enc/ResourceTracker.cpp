@@ -915,7 +915,8 @@ public:
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
         if (mFeatureInfo->hasVulkan) {
-            zx::channel channel(GetConnectToServiceFunction()("/dev/class/goldfish-control/000"));
+            fidl::ClientEnd<llcpp::fuchsia::hardware::goldfish::ControlDevice> channel{
+                zx::channel(GetConnectToServiceFunction()("/dev/class/goldfish-control/000"))};
             if (!channel) {
                 ALOGE("failed to open control device");
                 abort();
@@ -924,7 +925,8 @@ public:
                 llcpp::fuchsia::hardware::goldfish::ControlDevice::SyncClient>(
                 std::move(channel));
 
-            zx::channel sysmem_channel(GetConnectToServiceFunction()("/svc/fuchsia.sysmem.Allocator"));
+            fidl::ClientEnd<llcpp::fuchsia::sysmem::Allocator> sysmem_channel{
+                zx::channel(GetConnectToServiceFunction()("/svc/fuchsia.sysmem.Allocator"))};
             if (!sysmem_channel) {
                 ALOGE("failed to open sysmem connection");
             }
