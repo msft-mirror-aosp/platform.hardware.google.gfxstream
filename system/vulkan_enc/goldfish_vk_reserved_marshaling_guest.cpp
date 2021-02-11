@@ -433,7 +433,11 @@ void reservedmarshal_VkInstanceCreateInfo(
     memcpy(*ptr, (uint32_t*)&forMarshaling->enabledLayerCount, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     {
-        uint32_t c = forMarshaling->enabledLayerCount;
+        uint32_t c = 0;
+        if ((forMarshaling) != nullptr)
+        {
+            c = forMarshaling->enabledLayerCount;
+        }
         memcpy(*ptr, (uint32_t*)&c, sizeof(uint32_t));
         android::base::Stream::toBe32((uint8_t*)*ptr);
         *ptr += sizeof(uint32_t);
@@ -453,7 +457,11 @@ void reservedmarshal_VkInstanceCreateInfo(
     memcpy(*ptr, (uint32_t*)&forMarshaling->enabledExtensionCount, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     {
-        uint32_t c = forMarshaling->enabledExtensionCount;
+        uint32_t c = 0;
+        if ((forMarshaling) != nullptr)
+        {
+            c = forMarshaling->enabledExtensionCount;
+        }
         memcpy(*ptr, (uint32_t*)&c, sizeof(uint32_t));
         android::base::Stream::toBe32((uint8_t*)*ptr);
         *ptr += sizeof(uint32_t);
@@ -952,7 +960,11 @@ void reservedmarshal_VkDeviceCreateInfo(
     memcpy(*ptr, (uint32_t*)&forMarshaling->enabledLayerCount, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     {
-        uint32_t c = forMarshaling->enabledLayerCount;
+        uint32_t c = 0;
+        if ((forMarshaling) != nullptr)
+        {
+            c = forMarshaling->enabledLayerCount;
+        }
         memcpy(*ptr, (uint32_t*)&c, sizeof(uint32_t));
         android::base::Stream::toBe32((uint8_t*)*ptr);
         *ptr += sizeof(uint32_t);
@@ -972,7 +984,11 @@ void reservedmarshal_VkDeviceCreateInfo(
     memcpy(*ptr, (uint32_t*)&forMarshaling->enabledExtensionCount, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
     {
-        uint32_t c = forMarshaling->enabledExtensionCount;
+        uint32_t c = 0;
+        if ((forMarshaling) != nullptr)
+        {
+            c = forMarshaling->enabledExtensionCount;
+        }
         memcpy(*ptr, (uint32_t*)&c, sizeof(uint32_t));
         android::base::Stream::toBe32((uint8_t*)*ptr);
         *ptr += sizeof(uint32_t);
@@ -1042,10 +1058,13 @@ void reservedmarshal_VkSubmitInfo(
     if (forMarshaling->waitSemaphoreCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        for (uint32_t k = 0; k < forMarshaling->waitSemaphoreCount; ++k)
+        if ((forMarshaling) != nullptr)
         {
-            uint64_t tmpval = get_host_u64_VkSemaphore(forMarshaling->pWaitSemaphores[k]);
-            memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            for (uint32_t k = 0; k < forMarshaling->waitSemaphoreCount; ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkSemaphore(forMarshaling->pWaitSemaphores[k]);
+                memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
         }
         *ptr += 8 * forMarshaling->waitSemaphoreCount;
     }
@@ -1056,10 +1075,13 @@ void reservedmarshal_VkSubmitInfo(
     if (forMarshaling->commandBufferCount)
     {
         uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
-        for (uint32_t k = 0; k < forMarshaling->commandBufferCount; ++k)
+        if ((forMarshaling) != nullptr)
         {
-            uint64_t tmpval = get_host_u64_VkCommandBuffer(forMarshaling->pCommandBuffers[k]);
-            memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            for (uint32_t k = 0; k < forMarshaling->commandBufferCount; ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkCommandBuffer(forMarshaling->pCommandBuffers[k]);
+                memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
         }
         *ptr += 8 * forMarshaling->commandBufferCount;
     }
@@ -1068,10 +1090,13 @@ void reservedmarshal_VkSubmitInfo(
     if (forMarshaling->signalSemaphoreCount)
     {
         uint8_t* cgen_var_2_ptr = (uint8_t*)(*ptr);
-        for (uint32_t k = 0; k < forMarshaling->signalSemaphoreCount; ++k)
+        if ((forMarshaling) != nullptr)
         {
-            uint64_t tmpval = get_host_u64_VkSemaphore(forMarshaling->pSignalSemaphores[k]);
-            memcpy(cgen_var_2_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            for (uint32_t k = 0; k < forMarshaling->signalSemaphoreCount; ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkSemaphore(forMarshaling->pSignalSemaphores[k]);
+                memcpy(cgen_var_2_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
         }
         *ptr += 8 * forMarshaling->signalSemaphoreCount;
     }
@@ -1246,10 +1271,13 @@ void reservedmarshal_VkBindSparseInfo(
     if (forMarshaling->waitSemaphoreCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        for (uint32_t k = 0; k < forMarshaling->waitSemaphoreCount; ++k)
+        if ((forMarshaling) != nullptr)
         {
-            uint64_t tmpval = get_host_u64_VkSemaphore(forMarshaling->pWaitSemaphores[k]);
-            memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            for (uint32_t k = 0; k < forMarshaling->waitSemaphoreCount; ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkSemaphore(forMarshaling->pWaitSemaphores[k]);
+                memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
         }
         *ptr += 8 * forMarshaling->waitSemaphoreCount;
     }
@@ -1276,10 +1304,13 @@ void reservedmarshal_VkBindSparseInfo(
     if (forMarshaling->signalSemaphoreCount)
     {
         uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
-        for (uint32_t k = 0; k < forMarshaling->signalSemaphoreCount; ++k)
+        if ((forMarshaling) != nullptr)
         {
-            uint64_t tmpval = get_host_u64_VkSemaphore(forMarshaling->pSignalSemaphores[k]);
-            memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            for (uint32_t k = 0; k < forMarshaling->signalSemaphoreCount; ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkSemaphore(forMarshaling->pSignalSemaphores[k]);
+                memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
         }
         *ptr += 8 * forMarshaling->signalSemaphoreCount;
     }
@@ -2181,10 +2212,13 @@ void reservedmarshal_VkPipelineLayoutCreateInfo(
     if (forMarshaling->setLayoutCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        for (uint32_t k = 0; k < forMarshaling->setLayoutCount; ++k)
+        if ((forMarshaling) != nullptr)
         {
-            uint64_t tmpval = get_host_u64_VkDescriptorSetLayout(forMarshaling->pSetLayouts[k]);
-            memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            for (uint32_t k = 0; k < forMarshaling->setLayoutCount; ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkDescriptorSetLayout(forMarshaling->pSetLayouts[k]);
+                memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
         }
         *ptr += 8 * forMarshaling->setLayoutCount;
     }
@@ -2353,10 +2387,13 @@ void reservedmarshal_VkDescriptorSetAllocateInfo(
     if (forMarshaling->descriptorSetCount)
     {
         uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
-        for (uint32_t k = 0; k < forMarshaling->descriptorSetCount; ++k)
+        if ((forMarshaling) != nullptr)
         {
-            uint64_t tmpval = get_host_u64_VkDescriptorSetLayout(forMarshaling->pSetLayouts[k]);
-            memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            for (uint32_t k = 0; k < forMarshaling->descriptorSetCount; ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkDescriptorSetLayout(forMarshaling->pSetLayouts[k]);
+                memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
         }
         *ptr += 8 * forMarshaling->descriptorSetCount;
     }
@@ -2386,10 +2423,13 @@ void reservedmarshal_VkDescriptorSetLayoutBinding(
         if (forMarshaling->descriptorCount)
         {
             uint8_t* cgen_var_0_0_ptr = (uint8_t*)(*ptr);
-            for (uint32_t k = 0; k < forMarshaling->descriptorCount; ++k)
+            if ((forMarshaling) != nullptr)
             {
-                uint64_t tmpval = get_host_u64_VkSampler(forMarshaling->pImmutableSamplers[k]);
-                memcpy(cgen_var_0_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                for (uint32_t k = 0; k < forMarshaling->descriptorCount; ++k)
+                {
+                    uint64_t tmpval = get_host_u64_VkSampler(forMarshaling->pImmutableSamplers[k]);
+                    memcpy(cgen_var_0_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                }
             }
             *ptr += 8 * forMarshaling->descriptorCount;
         }
@@ -2478,10 +2518,13 @@ void reservedmarshal_VkWriteDescriptorSet(
             if (forMarshaling->descriptorCount)
             {
                 uint8_t* cgen_var_3_0_ptr = (uint8_t*)(*ptr);
-                for (uint32_t k = 0; k < forMarshaling->descriptorCount; ++k)
+                if ((forMarshaling) != nullptr)
                 {
-                    uint64_t tmpval = get_host_u64_VkBufferView(forMarshaling->pTexelBufferView[k]);
-                    memcpy(cgen_var_3_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                    for (uint32_t k = 0; k < forMarshaling->descriptorCount; ++k)
+                    {
+                        uint64_t tmpval = get_host_u64_VkBufferView(forMarshaling->pTexelBufferView[k]);
+                        memcpy(cgen_var_3_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                    }
                 }
                 *ptr += 8 * forMarshaling->descriptorCount;
             }
@@ -2547,10 +2590,13 @@ void reservedmarshal_VkFramebufferCreateInfo(
     if (forMarshaling->attachmentCount)
     {
         uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
-        for (uint32_t k = 0; k < forMarshaling->attachmentCount; ++k)
+        if ((forMarshaling) != nullptr)
         {
-            uint64_t tmpval = get_host_u64_VkImageView(forMarshaling->pAttachments[k]);
-            memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            for (uint32_t k = 0; k < forMarshaling->attachmentCount; ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkImageView(forMarshaling->pAttachments[k]);
+                memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
         }
         *ptr += 8 * forMarshaling->attachmentCount;
     }
@@ -3197,10 +3243,13 @@ void reservedmarshal_VkDeviceGroupDeviceCreateInfo(
     if (forMarshaling->physicalDeviceCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        for (uint32_t k = 0; k < forMarshaling->physicalDeviceCount; ++k)
+        if ((forMarshaling) != nullptr)
         {
-            uint64_t tmpval = get_host_u64_VkPhysicalDevice(forMarshaling->pPhysicalDevices[k]);
-            memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            for (uint32_t k = 0; k < forMarshaling->physicalDeviceCount; ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkPhysicalDevice(forMarshaling->pPhysicalDevices[k]);
+                memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
         }
         *ptr += 8 * forMarshaling->physicalDeviceCount;
     }
@@ -4968,10 +5017,13 @@ void reservedmarshal_VkRenderPassAttachmentBeginInfo(
     if (forMarshaling->attachmentCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        for (uint32_t k = 0; k < forMarshaling->attachmentCount; ++k)
+        if ((forMarshaling) != nullptr)
         {
-            uint64_t tmpval = get_host_u64_VkImageView(forMarshaling->pAttachments[k]);
-            memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            for (uint32_t k = 0; k < forMarshaling->attachmentCount; ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkImageView(forMarshaling->pAttachments[k]);
+                memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
         }
         *ptr += 8 * forMarshaling->attachmentCount;
     }
@@ -5149,10 +5201,13 @@ void reservedmarshal_VkSemaphoreWaitInfo(
     if (forMarshaling->semaphoreCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        for (uint32_t k = 0; k < forMarshaling->semaphoreCount; ++k)
+        if ((forMarshaling) != nullptr)
         {
-            uint64_t tmpval = get_host_u64_VkSemaphore(forMarshaling->pSemaphores[k]);
-            memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            for (uint32_t k = 0; k < forMarshaling->semaphoreCount; ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkSemaphore(forMarshaling->pSemaphores[k]);
+                memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
         }
         *ptr += 8 * forMarshaling->semaphoreCount;
     }
@@ -5359,10 +5414,13 @@ void reservedmarshal_VkPresentInfoKHR(
     if (forMarshaling->waitSemaphoreCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        for (uint32_t k = 0; k < forMarshaling->waitSemaphoreCount; ++k)
+        if ((forMarshaling) != nullptr)
         {
-            uint64_t tmpval = get_host_u64_VkSemaphore(forMarshaling->pWaitSemaphores[k]);
-            memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            for (uint32_t k = 0; k < forMarshaling->waitSemaphoreCount; ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkSemaphore(forMarshaling->pWaitSemaphores[k]);
+                memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
         }
         *ptr += 8 * forMarshaling->waitSemaphoreCount;
     }
@@ -5371,10 +5429,13 @@ void reservedmarshal_VkPresentInfoKHR(
     if (forMarshaling->swapchainCount)
     {
         uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
-        for (uint32_t k = 0; k < forMarshaling->swapchainCount; ++k)
+        if ((forMarshaling) != nullptr)
         {
-            uint64_t tmpval = get_host_u64_VkSwapchainKHR(forMarshaling->pSwapchains[k]);
-            memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            for (uint32_t k = 0; k < forMarshaling->swapchainCount; ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkSwapchainKHR(forMarshaling->pSwapchains[k]);
+                memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
         }
         *ptr += 8 * forMarshaling->swapchainCount;
     }
@@ -5929,10 +5990,13 @@ void reservedmarshal_VkWin32KeyedMutexAcquireReleaseInfoKHR(
     if (forMarshaling->acquireCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        for (uint32_t k = 0; k < forMarshaling->acquireCount; ++k)
+        if ((forMarshaling) != nullptr)
         {
-            uint64_t tmpval = get_host_u64_VkDeviceMemory(forMarshaling->pAcquireSyncs[k]);
-            memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            for (uint32_t k = 0; k < forMarshaling->acquireCount; ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkDeviceMemory(forMarshaling->pAcquireSyncs[k]);
+                memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
         }
         *ptr += 8 * forMarshaling->acquireCount;
     }
@@ -5945,10 +6009,13 @@ void reservedmarshal_VkWin32KeyedMutexAcquireReleaseInfoKHR(
     if (forMarshaling->releaseCount)
     {
         uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
-        for (uint32_t k = 0; k < forMarshaling->releaseCount; ++k)
+        if ((forMarshaling) != nullptr)
         {
-            uint64_t tmpval = get_host_u64_VkDeviceMemory(forMarshaling->pReleaseSyncs[k]);
-            memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            for (uint32_t k = 0; k < forMarshaling->releaseCount; ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkDeviceMemory(forMarshaling->pReleaseSyncs[k]);
+                memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
         }
         *ptr += 8 * forMarshaling->releaseCount;
     }
@@ -6941,10 +7008,13 @@ void reservedmarshal_VkPipelineLibraryCreateInfoKHR(
     if (forMarshaling->libraryCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        for (uint32_t k = 0; k < forMarshaling->libraryCount; ++k)
+        if ((forMarshaling) != nullptr)
         {
-            uint64_t tmpval = get_host_u64_VkPipeline(forMarshaling->pLibraries[k]);
-            memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            for (uint32_t k = 0; k < forMarshaling->libraryCount; ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkPipeline(forMarshaling->pLibraries[k]);
+                memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
         }
         *ptr += 8 * forMarshaling->libraryCount;
     }
@@ -7723,10 +7793,13 @@ void reservedmarshal_VkWin32KeyedMutexAcquireReleaseInfoNV(
     if (forMarshaling->acquireCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        for (uint32_t k = 0; k < forMarshaling->acquireCount; ++k)
+        if ((forMarshaling) != nullptr)
         {
-            uint64_t tmpval = get_host_u64_VkDeviceMemory(forMarshaling->pAcquireSyncs[k]);
-            memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            for (uint32_t k = 0; k < forMarshaling->acquireCount; ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkDeviceMemory(forMarshaling->pAcquireSyncs[k]);
+                memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
         }
         *ptr += 8 * forMarshaling->acquireCount;
     }
@@ -7739,10 +7812,13 @@ void reservedmarshal_VkWin32KeyedMutexAcquireReleaseInfoNV(
     if (forMarshaling->releaseCount)
     {
         uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
-        for (uint32_t k = 0; k < forMarshaling->releaseCount; ++k)
+        if ((forMarshaling) != nullptr)
         {
-            uint64_t tmpval = get_host_u64_VkDeviceMemory(forMarshaling->pReleaseSyncs[k]);
-            memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            for (uint32_t k = 0; k < forMarshaling->releaseCount; ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkDeviceMemory(forMarshaling->pReleaseSyncs[k]);
+                memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
         }
         *ptr += 8 * forMarshaling->releaseCount;
     }
@@ -9530,10 +9606,13 @@ void reservedmarshal_VkWriteDescriptorSetAccelerationStructureNV(
         if (forMarshaling->accelerationStructureCount)
         {
             uint8_t* cgen_var_0_0_ptr = (uint8_t*)(*ptr);
-            for (uint32_t k = 0; k < forMarshaling->accelerationStructureCount; ++k)
+            if ((forMarshaling) != nullptr)
             {
-                uint64_t tmpval = get_host_u64_VkAccelerationStructureNV(forMarshaling->pAccelerationStructures[k]);
-                memcpy(cgen_var_0_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                for (uint32_t k = 0; k < forMarshaling->accelerationStructureCount; ++k)
+                {
+                    uint64_t tmpval = get_host_u64_VkAccelerationStructureNV(forMarshaling->pAccelerationStructures[k]);
+                    memcpy(cgen_var_0_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                }
             }
             *ptr += 8 * forMarshaling->accelerationStructureCount;
         }
@@ -11097,10 +11176,13 @@ void reservedmarshal_VkGraphicsPipelineShaderGroupsCreateInfoNV(
     if (forMarshaling->pipelineCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        for (uint32_t k = 0; k < forMarshaling->pipelineCount; ++k)
+        if ((forMarshaling) != nullptr)
         {
-            uint64_t tmpval = get_host_u64_VkPipeline(forMarshaling->pPipelines[k]);
-            memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            for (uint32_t k = 0; k < forMarshaling->pipelineCount; ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkPipeline(forMarshaling->pPipelines[k]);
+                memcpy(cgen_var_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
         }
         *ptr += 8 * forMarshaling->pipelineCount;
     }
@@ -11958,10 +12040,13 @@ void reservedmarshal_VkWriteDescriptorSetAccelerationStructureKHR(
         if (forMarshaling->accelerationStructureCount)
         {
             uint8_t* cgen_var_0_0_ptr = (uint8_t*)(*ptr);
-            for (uint32_t k = 0; k < forMarshaling->accelerationStructureCount; ++k)
+            if ((forMarshaling) != nullptr)
             {
-                uint64_t tmpval = get_host_u64_VkAccelerationStructureKHR(forMarshaling->pAccelerationStructures[k]);
-                memcpy(cgen_var_0_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                for (uint32_t k = 0; k < forMarshaling->accelerationStructureCount; ++k)
+                {
+                    uint64_t tmpval = get_host_u64_VkAccelerationStructureKHR(forMarshaling->pAccelerationStructures[k]);
+                    memcpy(cgen_var_0_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                }
             }
             *ptr += 8 * forMarshaling->accelerationStructureCount;
         }
