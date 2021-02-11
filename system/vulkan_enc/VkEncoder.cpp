@@ -296,10 +296,13 @@ VkResult VkEncoder::vkEnumeratePhysicalDevices(
         if ((*(pPhysicalDeviceCount)))
         {
             uint8_t* cgen_var_2_0_ptr = (uint8_t*)(*streamPtrPtr);
-            for (uint32_t k = 0; k < (*(pPhysicalDeviceCount)); ++k)
+            if ((pPhysicalDeviceCount) != nullptr)
             {
-                uint64_t tmpval = (uint64_t)(pPhysicalDevices[k]);
-                memcpy(cgen_var_2_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                for (uint32_t k = 0; k < (*(pPhysicalDeviceCount)); ++k)
+                {
+                    uint64_t tmpval = (uint64_t)(pPhysicalDevices[k]);
+                    memcpy(cgen_var_2_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                }
             }
             *streamPtrPtr += 8 * (*(pPhysicalDeviceCount));
         }
@@ -599,9 +602,12 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
         *countPtr += 8;
         if (pQueueFamilyProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+            if ((pQueueFamilyPropertyCount) != nullptr)
             {
-                count_VkQueueFamilyProperties(sFeatureBits, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+                {
+                    count_VkQueueFamilyProperties(sFeatureBits, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i), countPtr);
+                }
             }
         }
     }
@@ -659,16 +665,22 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
         {
             fprintf(stderr, "fatal: pQueueFamilyProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+        if ((pQueueFamilyPropertyCount) != nullptr)
         {
-            unmarshal_VkQueueFamilyProperties(stream, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+            {
+                unmarshal_VkQueueFamilyProperties(stream, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i));
+            }
         }
     }
-    if (pQueueFamilyProperties)
+    if ((pQueueFamilyPropertyCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+        if (pQueueFamilyProperties)
         {
-            transform_fromhost_VkQueueFamilyProperties(sResourceTracker, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+            {
+                transform_fromhost_VkQueueFamilyProperties(sResourceTracker, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i));
+            }
         }
     }
     ++encodeCount;;
@@ -1042,9 +1054,12 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
         *countPtr += 8;
         if (pProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            if ((pPropertyCount) != nullptr)
             {
-                count_VkExtensionProperties(sFeatureBits, (VkExtensionProperties*)(pProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+                {
+                    count_VkExtensionProperties(sFeatureBits, (VkExtensionProperties*)(pProperties + i), countPtr);
+                }
             }
         }
     }
@@ -1128,16 +1143,22 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if ((pPropertyCount) != nullptr)
         {
-            unmarshal_VkExtensionProperties(stream, (VkExtensionProperties*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                unmarshal_VkExtensionProperties(stream, (VkExtensionProperties*)(pProperties + i));
+            }
         }
     }
-    if (pProperties)
+    if ((pPropertyCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if (pProperties)
         {
-            transform_fromhost_VkExtensionProperties(sResourceTracker, (VkExtensionProperties*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                transform_fromhost_VkExtensionProperties(sResourceTracker, (VkExtensionProperties*)(pProperties + i));
+            }
         }
     }
     VkResult vkEnumerateInstanceExtensionProperties_VkResult_return = (VkResult)0;
@@ -1197,9 +1218,12 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
         *countPtr += 8;
         if (pProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            if ((pPropertyCount) != nullptr)
             {
-                count_VkExtensionProperties(sFeatureBits, (VkExtensionProperties*)(pProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+                {
+                    count_VkExtensionProperties(sFeatureBits, (VkExtensionProperties*)(pProperties + i), countPtr);
+                }
             }
         }
     }
@@ -1287,16 +1311,22 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if ((pPropertyCount) != nullptr)
         {
-            unmarshal_VkExtensionProperties(stream, (VkExtensionProperties*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                unmarshal_VkExtensionProperties(stream, (VkExtensionProperties*)(pProperties + i));
+            }
         }
     }
-    if (pProperties)
+    if ((pPropertyCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if (pProperties)
         {
-            transform_fromhost_VkExtensionProperties(sResourceTracker, (VkExtensionProperties*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                transform_fromhost_VkExtensionProperties(sResourceTracker, (VkExtensionProperties*)(pProperties + i));
+            }
         }
     }
     VkResult vkEnumerateDeviceExtensionProperties_VkResult_return = (VkResult)0;
@@ -1334,9 +1364,12 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
         *countPtr += 8;
         if (pProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            if ((pPropertyCount) != nullptr)
             {
-                count_VkLayerProperties(sFeatureBits, (VkLayerProperties*)(pProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+                {
+                    count_VkLayerProperties(sFeatureBits, (VkLayerProperties*)(pProperties + i), countPtr);
+                }
             }
         }
     }
@@ -1390,16 +1423,22 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if ((pPropertyCount) != nullptr)
         {
-            unmarshal_VkLayerProperties(stream, (VkLayerProperties*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                unmarshal_VkLayerProperties(stream, (VkLayerProperties*)(pProperties + i));
+            }
         }
     }
-    if (pProperties)
+    if ((pPropertyCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if (pProperties)
         {
-            transform_fromhost_VkLayerProperties(sResourceTracker, (VkLayerProperties*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                transform_fromhost_VkLayerProperties(sResourceTracker, (VkLayerProperties*)(pProperties + i));
+            }
         }
     }
     VkResult vkEnumerateInstanceLayerProperties_VkResult_return = (VkResult)0;
@@ -1442,9 +1481,12 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
         *countPtr += 8;
         if (pProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            if ((pPropertyCount) != nullptr)
             {
-                count_VkLayerProperties(sFeatureBits, (VkLayerProperties*)(pProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+                {
+                    count_VkLayerProperties(sFeatureBits, (VkLayerProperties*)(pProperties + i), countPtr);
+                }
             }
         }
     }
@@ -1502,16 +1544,22 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if ((pPropertyCount) != nullptr)
         {
-            unmarshal_VkLayerProperties(stream, (VkLayerProperties*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                unmarshal_VkLayerProperties(stream, (VkLayerProperties*)(pProperties + i));
+            }
         }
     }
-    if (pProperties)
+    if ((pPropertyCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if (pProperties)
         {
-            transform_fromhost_VkLayerProperties(sResourceTracker, (VkLayerProperties*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                transform_fromhost_VkLayerProperties(sResourceTracker, (VkLayerProperties*)(pProperties + i));
+            }
         }
     }
     VkResult vkEnumerateDeviceLayerProperties_VkResult_return = (VkResult)0;
@@ -2463,9 +2511,12 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
         *countPtr += 8;
         if (pSparseMemoryRequirements)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+            if ((pSparseMemoryRequirementCount) != nullptr)
             {
-                count_VkSparseImageMemoryRequirements(sFeatureBits, (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+                {
+                    count_VkSparseImageMemoryRequirements(sFeatureBits, (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i), countPtr);
+                }
             }
         }
     }
@@ -2527,16 +2578,22 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
         {
             fprintf(stderr, "fatal: pSparseMemoryRequirements inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+        if ((pSparseMemoryRequirementCount) != nullptr)
         {
-            unmarshal_VkSparseImageMemoryRequirements(stream, (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+            {
+                unmarshal_VkSparseImageMemoryRequirements(stream, (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i));
+            }
         }
     }
-    if (pSparseMemoryRequirements)
+    if ((pSparseMemoryRequirementCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+        if (pSparseMemoryRequirements)
         {
-            transform_fromhost_VkSparseImageMemoryRequirements(sResourceTracker, (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+            {
+                transform_fromhost_VkSparseImageMemoryRequirements(sResourceTracker, (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i));
+            }
         }
     }
     ++encodeCount;;
@@ -2596,9 +2653,12 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
         *countPtr += 8;
         if (pProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            if ((pPropertyCount) != nullptr)
             {
-                count_VkSparseImageFormatProperties(sFeatureBits, (VkSparseImageFormatProperties*)(pProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+                {
+                    count_VkSparseImageFormatProperties(sFeatureBits, (VkSparseImageFormatProperties*)(pProperties + i), countPtr);
+                }
             }
         }
     }
@@ -2666,16 +2726,22 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if ((pPropertyCount) != nullptr)
         {
-            unmarshal_VkSparseImageFormatProperties(stream, (VkSparseImageFormatProperties*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                unmarshal_VkSparseImageFormatProperties(stream, (VkSparseImageFormatProperties*)(pProperties + i));
+            }
         }
     }
-    if (pProperties)
+    if ((pPropertyCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if (pProperties)
         {
-            transform_fromhost_VkSparseImageFormatProperties(sResourceTracker, (VkSparseImageFormatProperties*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                transform_fromhost_VkSparseImageFormatProperties(sResourceTracker, (VkSparseImageFormatProperties*)(pProperties + i));
+            }
         }
     }
     ++encodeCount;;
@@ -5041,7 +5107,10 @@ VkResult VkEncoder::vkGetPipelineCacheData(
         *countPtr += 8;
         if (pData)
         {
-            *countPtr += (*(pDataSize)) * sizeof(uint8_t);
+            if ((pDataSize) != nullptr)
+            {
+                *countPtr += (*(pDataSize)) * sizeof(uint8_t);
+            }
         }
     }
     uint32_t packetSize_vkGetPipelineCacheData = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -11181,9 +11250,12 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
         *countPtr += 8;
         if (pPhysicalDeviceGroupProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
+            if ((pPhysicalDeviceGroupCount) != nullptr)
             {
-                count_VkPhysicalDeviceGroupProperties(sFeatureBits, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
+                {
+                    count_VkPhysicalDeviceGroupProperties(sFeatureBits, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i), countPtr);
+                }
             }
         }
     }
@@ -11241,16 +11313,22 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
         {
             fprintf(stderr, "fatal: pPhysicalDeviceGroupProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
+        if ((pPhysicalDeviceGroupCount) != nullptr)
         {
-            unmarshal_VkPhysicalDeviceGroupProperties(stream, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
+            {
+                unmarshal_VkPhysicalDeviceGroupProperties(stream, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
+            }
         }
     }
-    if (pPhysicalDeviceGroupProperties)
+    if ((pPhysicalDeviceGroupCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
+        if (pPhysicalDeviceGroupProperties)
         {
-            transform_fromhost_VkPhysicalDeviceGroupProperties(sResourceTracker, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
+            {
+                transform_fromhost_VkPhysicalDeviceGroupProperties(sResourceTracker, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
+            }
         }
     }
     VkResult vkEnumeratePhysicalDeviceGroups_VkResult_return = (VkResult)0;
@@ -11426,9 +11504,12 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
         *countPtr += 8;
         if (pSparseMemoryRequirements)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+            if ((pSparseMemoryRequirementCount) != nullptr)
             {
-                count_VkSparseImageMemoryRequirements2(sFeatureBits, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+                {
+                    count_VkSparseImageMemoryRequirements2(sFeatureBits, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i), countPtr);
+                }
             }
         }
     }
@@ -11487,16 +11568,22 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
         {
             fprintf(stderr, "fatal: pSparseMemoryRequirements inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+        if ((pSparseMemoryRequirementCount) != nullptr)
         {
-            unmarshal_VkSparseImageMemoryRequirements2(stream, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+            {
+                unmarshal_VkSparseImageMemoryRequirements2(stream, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
+            }
         }
     }
-    if (pSparseMemoryRequirements)
+    if ((pSparseMemoryRequirementCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+        if (pSparseMemoryRequirements)
         {
-            transform_fromhost_VkSparseImageMemoryRequirements2(sResourceTracker, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+            {
+                transform_fromhost_VkSparseImageMemoryRequirements2(sResourceTracker, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
+            }
         }
     }
     ++encodeCount;;
@@ -11744,9 +11831,12 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
         *countPtr += 8;
         if (pQueueFamilyProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+            if ((pQueueFamilyPropertyCount) != nullptr)
             {
-                count_VkQueueFamilyProperties2(sFeatureBits, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+                {
+                    count_VkQueueFamilyProperties2(sFeatureBits, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i), countPtr);
+                }
             }
         }
     }
@@ -11804,16 +11894,22 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
         {
             fprintf(stderr, "fatal: pQueueFamilyProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+        if ((pQueueFamilyPropertyCount) != nullptr)
         {
-            unmarshal_VkQueueFamilyProperties2(stream, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+            {
+                unmarshal_VkQueueFamilyProperties2(stream, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
+            }
         }
     }
-    if (pQueueFamilyProperties)
+    if ((pQueueFamilyPropertyCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+        if (pQueueFamilyProperties)
         {
-            transform_fromhost_VkQueueFamilyProperties2(sResourceTracker, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+            {
+                transform_fromhost_VkQueueFamilyProperties2(sResourceTracker, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
+            }
         }
     }
     ++encodeCount;;
@@ -11913,9 +12009,12 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
         *countPtr += 8;
         if (pProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            if ((pPropertyCount) != nullptr)
             {
-                count_VkSparseImageFormatProperties2(sFeatureBits, (VkSparseImageFormatProperties2*)(pProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+                {
+                    count_VkSparseImageFormatProperties2(sFeatureBits, (VkSparseImageFormatProperties2*)(pProperties + i), countPtr);
+                }
             }
         }
     }
@@ -11974,16 +12073,22 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if ((pPropertyCount) != nullptr)
         {
-            unmarshal_VkSparseImageFormatProperties2(stream, (VkSparseImageFormatProperties2*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                unmarshal_VkSparseImageFormatProperties2(stream, (VkSparseImageFormatProperties2*)(pProperties + i));
+            }
         }
     }
-    if (pProperties)
+    if ((pPropertyCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if (pProperties)
         {
-            transform_fromhost_VkSparseImageFormatProperties2(sResourceTracker, (VkSparseImageFormatProperties2*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                transform_fromhost_VkSparseImageFormatProperties2(sResourceTracker, (VkSparseImageFormatProperties2*)(pProperties + i));
+            }
         }
     }
     ++encodeCount;;
@@ -13860,9 +13965,12 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
         *countPtr += 8;
         if (pSurfaceFormats)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
+            if ((pSurfaceFormatCount) != nullptr)
             {
-                count_VkSurfaceFormatKHR(sFeatureBits, (VkSurfaceFormatKHR*)(pSurfaceFormats + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
+                {
+                    count_VkSurfaceFormatKHR(sFeatureBits, (VkSurfaceFormatKHR*)(pSurfaceFormats + i), countPtr);
+                }
             }
         }
     }
@@ -13924,16 +14032,22 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
         {
             fprintf(stderr, "fatal: pSurfaceFormats inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
+        if ((pSurfaceFormatCount) != nullptr)
         {
-            unmarshal_VkSurfaceFormatKHR(stream, (VkSurfaceFormatKHR*)(pSurfaceFormats + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
+            {
+                unmarshal_VkSurfaceFormatKHR(stream, (VkSurfaceFormatKHR*)(pSurfaceFormats + i));
+            }
         }
     }
-    if (pSurfaceFormats)
+    if ((pSurfaceFormatCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
+        if (pSurfaceFormats)
         {
-            transform_fromhost_VkSurfaceFormatKHR(sResourceTracker, (VkSurfaceFormatKHR*)(pSurfaceFormats + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
+            {
+                transform_fromhost_VkSurfaceFormatKHR(sResourceTracker, (VkSurfaceFormatKHR*)(pSurfaceFormats + i));
+            }
         }
     }
     VkResult vkGetPhysicalDeviceSurfaceFormatsKHR_VkResult_return = (VkResult)0;
@@ -13981,7 +14095,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModesKHR(
         *countPtr += 8;
         if (pPresentModes)
         {
-            *countPtr += (*(pPresentModeCount)) * sizeof(VkPresentModeKHR);
+            if ((pPresentModeCount) != nullptr)
+            {
+                *countPtr += (*(pPresentModeCount)) * sizeof(VkPresentModeKHR);
+            }
         }
     }
     uint32_t packetSize_vkGetPhysicalDeviceSurfacePresentModesKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -14306,10 +14423,13 @@ VkResult VkEncoder::vkGetSwapchainImagesKHR(
         if ((*(pSwapchainImageCount)))
         {
             uint8_t* cgen_var_3_0_ptr = (uint8_t*)(*streamPtrPtr);
-            for (uint32_t k = 0; k < (*(pSwapchainImageCount)); ++k)
+            if ((pSwapchainImageCount) != nullptr)
             {
-                uint64_t tmpval = (uint64_t)(pSwapchainImages[k]);
-                memcpy(cgen_var_3_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                for (uint32_t k = 0; k < (*(pSwapchainImageCount)); ++k)
+                {
+                    uint64_t tmpval = (uint64_t)(pSwapchainImages[k]);
+                    memcpy(cgen_var_3_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                }
             }
             *streamPtrPtr += 8 * (*(pSwapchainImageCount));
         }
@@ -14649,9 +14769,12 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
         *countPtr += 8;
         if (pRects)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i)
+            if ((pRectCount) != nullptr)
             {
-                count_VkRect2D(sFeatureBits, (VkRect2D*)(pRects + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i)
+                {
+                    count_VkRect2D(sFeatureBits, (VkRect2D*)(pRects + i), countPtr);
+                }
             }
         }
     }
@@ -14713,16 +14836,22 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
         {
             fprintf(stderr, "fatal: pRects inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i)
+        if ((pRectCount) != nullptr)
         {
-            unmarshal_VkRect2D(stream, (VkRect2D*)(pRects + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i)
+            {
+                unmarshal_VkRect2D(stream, (VkRect2D*)(pRects + i));
+            }
         }
     }
-    if (pRects)
+    if ((pRectCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i)
+        if (pRects)
         {
-            transform_fromhost_VkRect2D(sResourceTracker, (VkRect2D*)(pRects + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i)
+            {
+                transform_fromhost_VkRect2D(sResourceTracker, (VkRect2D*)(pRects + i));
+            }
         }
     }
     VkResult vkGetPhysicalDevicePresentRectanglesKHR_VkResult_return = (VkResult)0;
@@ -14827,9 +14956,12 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
         *countPtr += 8;
         if (pProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            if ((pPropertyCount) != nullptr)
             {
-                count_VkDisplayPropertiesKHR(sFeatureBits, (VkDisplayPropertiesKHR*)(pProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+                {
+                    count_VkDisplayPropertiesKHR(sFeatureBits, (VkDisplayPropertiesKHR*)(pProperties + i), countPtr);
+                }
             }
         }
     }
@@ -14887,16 +15019,22 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if ((pPropertyCount) != nullptr)
         {
-            unmarshal_VkDisplayPropertiesKHR(stream, (VkDisplayPropertiesKHR*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                unmarshal_VkDisplayPropertiesKHR(stream, (VkDisplayPropertiesKHR*)(pProperties + i));
+            }
         }
     }
-    if (pProperties)
+    if ((pPropertyCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if (pProperties)
         {
-            transform_fromhost_VkDisplayPropertiesKHR(sResourceTracker, (VkDisplayPropertiesKHR*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                transform_fromhost_VkDisplayPropertiesKHR(sResourceTracker, (VkDisplayPropertiesKHR*)(pProperties + i));
+            }
         }
     }
     VkResult vkGetPhysicalDeviceDisplayPropertiesKHR_VkResult_return = (VkResult)0;
@@ -14939,9 +15077,12 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
         *countPtr += 8;
         if (pProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            if ((pPropertyCount) != nullptr)
             {
-                count_VkDisplayPlanePropertiesKHR(sFeatureBits, (VkDisplayPlanePropertiesKHR*)(pProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+                {
+                    count_VkDisplayPlanePropertiesKHR(sFeatureBits, (VkDisplayPlanePropertiesKHR*)(pProperties + i), countPtr);
+                }
             }
         }
     }
@@ -14999,16 +15140,22 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if ((pPropertyCount) != nullptr)
         {
-            unmarshal_VkDisplayPlanePropertiesKHR(stream, (VkDisplayPlanePropertiesKHR*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                unmarshal_VkDisplayPlanePropertiesKHR(stream, (VkDisplayPlanePropertiesKHR*)(pProperties + i));
+            }
         }
     }
-    if (pProperties)
+    if ((pPropertyCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if (pProperties)
         {
-            transform_fromhost_VkDisplayPlanePropertiesKHR(sResourceTracker, (VkDisplayPlanePropertiesKHR*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                transform_fromhost_VkDisplayPlanePropertiesKHR(sResourceTracker, (VkDisplayPlanePropertiesKHR*)(pProperties + i));
+            }
         }
     }
     VkResult vkGetPhysicalDeviceDisplayPlanePropertiesKHR_VkResult_return = (VkResult)0;
@@ -15096,10 +15243,13 @@ VkResult VkEncoder::vkGetDisplayPlaneSupportedDisplaysKHR(
         if ((*(pDisplayCount)))
         {
             uint8_t* cgen_var_2_0_ptr = (uint8_t*)(*streamPtrPtr);
-            for (uint32_t k = 0; k < (*(pDisplayCount)); ++k)
+            if ((pDisplayCount) != nullptr)
             {
-                uint64_t tmpval = (uint64_t)(pDisplays[k]);
-                memcpy(cgen_var_2_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                for (uint32_t k = 0; k < (*(pDisplayCount)); ++k)
+                {
+                    uint64_t tmpval = (uint64_t)(pDisplays[k]);
+                    memcpy(cgen_var_2_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                }
             }
             *streamPtrPtr += 8 * (*(pDisplayCount));
         }
@@ -15178,9 +15328,12 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
         *countPtr += 8;
         if (pProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            if ((pPropertyCount) != nullptr)
             {
-                count_VkDisplayModePropertiesKHR(sFeatureBits, (VkDisplayModePropertiesKHR*)(pProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+                {
+                    count_VkDisplayModePropertiesKHR(sFeatureBits, (VkDisplayModePropertiesKHR*)(pProperties + i), countPtr);
+                }
             }
         }
     }
@@ -15242,16 +15395,22 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if ((pPropertyCount) != nullptr)
         {
-            unmarshal_VkDisplayModePropertiesKHR(stream, (VkDisplayModePropertiesKHR*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                unmarshal_VkDisplayModePropertiesKHR(stream, (VkDisplayModePropertiesKHR*)(pProperties + i));
+            }
         }
     }
-    if (pProperties)
+    if ((pPropertyCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if (pProperties)
         {
-            transform_fromhost_VkDisplayModePropertiesKHR(sResourceTracker, (VkDisplayModePropertiesKHR*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                transform_fromhost_VkDisplayModePropertiesKHR(sResourceTracker, (VkDisplayModePropertiesKHR*)(pProperties + i));
+            }
         }
     }
     VkResult vkGetDisplayModePropertiesKHR_VkResult_return = (VkResult)0;
@@ -16600,9 +16759,12 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
         *countPtr += 8;
         if (pQueueFamilyProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+            if ((pQueueFamilyPropertyCount) != nullptr)
             {
-                count_VkQueueFamilyProperties2(sFeatureBits, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+                {
+                    count_VkQueueFamilyProperties2(sFeatureBits, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i), countPtr);
+                }
             }
         }
     }
@@ -16660,16 +16822,22 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
         {
             fprintf(stderr, "fatal: pQueueFamilyProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+        if ((pQueueFamilyPropertyCount) != nullptr)
         {
-            unmarshal_VkQueueFamilyProperties2(stream, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+            {
+                unmarshal_VkQueueFamilyProperties2(stream, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
+            }
         }
     }
-    if (pQueueFamilyProperties)
+    if ((pQueueFamilyPropertyCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+        if (pQueueFamilyProperties)
         {
-            transform_fromhost_VkQueueFamilyProperties2(sResourceTracker, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
+            {
+                transform_fromhost_VkQueueFamilyProperties2(sResourceTracker, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
+            }
         }
     }
     ++encodeCount;;
@@ -16769,9 +16937,12 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
         *countPtr += 8;
         if (pProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            if ((pPropertyCount) != nullptr)
             {
-                count_VkSparseImageFormatProperties2(sFeatureBits, (VkSparseImageFormatProperties2*)(pProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+                {
+                    count_VkSparseImageFormatProperties2(sFeatureBits, (VkSparseImageFormatProperties2*)(pProperties + i), countPtr);
+                }
             }
         }
     }
@@ -16830,16 +17001,22 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if ((pPropertyCount) != nullptr)
         {
-            unmarshal_VkSparseImageFormatProperties2(stream, (VkSparseImageFormatProperties2*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                unmarshal_VkSparseImageFormatProperties2(stream, (VkSparseImageFormatProperties2*)(pProperties + i));
+            }
         }
     }
-    if (pProperties)
+    if ((pPropertyCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if (pProperties)
         {
-            transform_fromhost_VkSparseImageFormatProperties2(sResourceTracker, (VkSparseImageFormatProperties2*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                transform_fromhost_VkSparseImageFormatProperties2(sResourceTracker, (VkSparseImageFormatProperties2*)(pProperties + i));
+            }
         }
     }
     ++encodeCount;;
@@ -17124,9 +17301,12 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
         *countPtr += 8;
         if (pPhysicalDeviceGroupProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
+            if ((pPhysicalDeviceGroupCount) != nullptr)
             {
-                count_VkPhysicalDeviceGroupProperties(sFeatureBits, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
+                {
+                    count_VkPhysicalDeviceGroupProperties(sFeatureBits, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i), countPtr);
+                }
             }
         }
     }
@@ -17184,16 +17364,22 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
         {
             fprintf(stderr, "fatal: pPhysicalDeviceGroupProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
+        if ((pPhysicalDeviceGroupCount) != nullptr)
         {
-            unmarshal_VkPhysicalDeviceGroupProperties(stream, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
+            {
+                unmarshal_VkPhysicalDeviceGroupProperties(stream, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
+            }
         }
     }
-    if (pPhysicalDeviceGroupProperties)
+    if ((pPhysicalDeviceGroupCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
+        if (pPhysicalDeviceGroupProperties)
         {
-            transform_fromhost_VkPhysicalDeviceGroupProperties(sResourceTracker, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
+            {
+                transform_fromhost_VkPhysicalDeviceGroupProperties(sResourceTracker, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
+            }
         }
     }
     VkResult vkEnumeratePhysicalDeviceGroupsKHR_VkResult_return = (VkResult)0;
@@ -18934,18 +19120,24 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCounters
         *countPtr += 8;
         if (pCounters)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
+            if ((pCounterCount) != nullptr)
             {
-                count_VkPerformanceCounterKHR(sFeatureBits, (VkPerformanceCounterKHR*)(pCounters + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
+                {
+                    count_VkPerformanceCounterKHR(sFeatureBits, (VkPerformanceCounterKHR*)(pCounters + i), countPtr);
+                }
             }
         }
         // WARNING PTR CHECK
         *countPtr += 8;
         if (pCounterDescriptions)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
+            if ((pCounterCount) != nullptr)
             {
-                count_VkPerformanceCounterDescriptionKHR(sFeatureBits, (VkPerformanceCounterDescriptionKHR*)(pCounterDescriptions + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
+                {
+                    count_VkPerformanceCounterDescriptionKHR(sFeatureBits, (VkPerformanceCounterDescriptionKHR*)(pCounterDescriptions + i), countPtr);
+                }
             }
         }
     }
@@ -19017,16 +19209,22 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCounters
         {
             fprintf(stderr, "fatal: pCounters inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
+        if ((pCounterCount) != nullptr)
         {
-            unmarshal_VkPerformanceCounterKHR(stream, (VkPerformanceCounterKHR*)(pCounters + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
+            {
+                unmarshal_VkPerformanceCounterKHR(stream, (VkPerformanceCounterKHR*)(pCounters + i));
+            }
         }
     }
-    if (pCounters)
+    if ((pCounterCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
+        if (pCounters)
         {
-            transform_fromhost_VkPerformanceCounterKHR(sResourceTracker, (VkPerformanceCounterKHR*)(pCounters + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
+            {
+                transform_fromhost_VkPerformanceCounterKHR(sResourceTracker, (VkPerformanceCounterKHR*)(pCounters + i));
+            }
         }
     }
     // WARNING PTR CHECK
@@ -19038,16 +19236,22 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCounters
         {
             fprintf(stderr, "fatal: pCounterDescriptions inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
+        if ((pCounterCount) != nullptr)
         {
-            unmarshal_VkPerformanceCounterDescriptionKHR(stream, (VkPerformanceCounterDescriptionKHR*)(pCounterDescriptions + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
+            {
+                unmarshal_VkPerformanceCounterDescriptionKHR(stream, (VkPerformanceCounterDescriptionKHR*)(pCounterDescriptions + i));
+            }
         }
     }
-    if (pCounterDescriptions)
+    if ((pCounterCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
+        if (pCounterDescriptions)
         {
-            transform_fromhost_VkPerformanceCounterDescriptionKHR(sResourceTracker, (VkPerformanceCounterDescriptionKHR*)(pCounterDescriptions + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
+            {
+                transform_fromhost_VkPerformanceCounterDescriptionKHR(sResourceTracker, (VkPerformanceCounterDescriptionKHR*)(pCounterDescriptions + i));
+            }
         }
     }
     VkResult vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR_VkResult_return = (VkResult)0;
@@ -19321,9 +19525,12 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
         *countPtr += 8;
         if (pSurfaceFormats)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
+            if ((pSurfaceFormatCount) != nullptr)
             {
-                count_VkSurfaceFormat2KHR(sFeatureBits, (VkSurfaceFormat2KHR*)(pSurfaceFormats + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
+                {
+                    count_VkSurfaceFormat2KHR(sFeatureBits, (VkSurfaceFormat2KHR*)(pSurfaceFormats + i), countPtr);
+                }
             }
         }
     }
@@ -19382,16 +19589,22 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
         {
             fprintf(stderr, "fatal: pSurfaceFormats inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
+        if ((pSurfaceFormatCount) != nullptr)
         {
-            unmarshal_VkSurfaceFormat2KHR(stream, (VkSurfaceFormat2KHR*)(pSurfaceFormats + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
+            {
+                unmarshal_VkSurfaceFormat2KHR(stream, (VkSurfaceFormat2KHR*)(pSurfaceFormats + i));
+            }
         }
     }
-    if (pSurfaceFormats)
+    if ((pSurfaceFormatCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
+        if (pSurfaceFormats)
         {
-            transform_fromhost_VkSurfaceFormat2KHR(sResourceTracker, (VkSurfaceFormat2KHR*)(pSurfaceFormats + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
+            {
+                transform_fromhost_VkSurfaceFormat2KHR(sResourceTracker, (VkSurfaceFormat2KHR*)(pSurfaceFormats + i));
+            }
         }
     }
     VkResult vkGetPhysicalDeviceSurfaceFormats2KHR_VkResult_return = (VkResult)0;
@@ -19438,9 +19651,12 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
         *countPtr += 8;
         if (pProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            if ((pPropertyCount) != nullptr)
             {
-                count_VkDisplayProperties2KHR(sFeatureBits, (VkDisplayProperties2KHR*)(pProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+                {
+                    count_VkDisplayProperties2KHR(sFeatureBits, (VkDisplayProperties2KHR*)(pProperties + i), countPtr);
+                }
             }
         }
     }
@@ -19498,16 +19714,22 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if ((pPropertyCount) != nullptr)
         {
-            unmarshal_VkDisplayProperties2KHR(stream, (VkDisplayProperties2KHR*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                unmarshal_VkDisplayProperties2KHR(stream, (VkDisplayProperties2KHR*)(pProperties + i));
+            }
         }
     }
-    if (pProperties)
+    if ((pPropertyCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if (pProperties)
         {
-            transform_fromhost_VkDisplayProperties2KHR(sResourceTracker, (VkDisplayProperties2KHR*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                transform_fromhost_VkDisplayProperties2KHR(sResourceTracker, (VkDisplayProperties2KHR*)(pProperties + i));
+            }
         }
     }
     VkResult vkGetPhysicalDeviceDisplayProperties2KHR_VkResult_return = (VkResult)0;
@@ -19550,9 +19772,12 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
         *countPtr += 8;
         if (pProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            if ((pPropertyCount) != nullptr)
             {
-                count_VkDisplayPlaneProperties2KHR(sFeatureBits, (VkDisplayPlaneProperties2KHR*)(pProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+                {
+                    count_VkDisplayPlaneProperties2KHR(sFeatureBits, (VkDisplayPlaneProperties2KHR*)(pProperties + i), countPtr);
+                }
             }
         }
     }
@@ -19610,16 +19835,22 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if ((pPropertyCount) != nullptr)
         {
-            unmarshal_VkDisplayPlaneProperties2KHR(stream, (VkDisplayPlaneProperties2KHR*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                unmarshal_VkDisplayPlaneProperties2KHR(stream, (VkDisplayPlaneProperties2KHR*)(pProperties + i));
+            }
         }
     }
-    if (pProperties)
+    if ((pPropertyCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if (pProperties)
         {
-            transform_fromhost_VkDisplayPlaneProperties2KHR(sResourceTracker, (VkDisplayPlaneProperties2KHR*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                transform_fromhost_VkDisplayPlaneProperties2KHR(sResourceTracker, (VkDisplayPlaneProperties2KHR*)(pProperties + i));
+            }
         }
     }
     VkResult vkGetPhysicalDeviceDisplayPlaneProperties2KHR_VkResult_return = (VkResult)0;
@@ -19667,9 +19898,12 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
         *countPtr += 8;
         if (pProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            if ((pPropertyCount) != nullptr)
             {
-                count_VkDisplayModeProperties2KHR(sFeatureBits, (VkDisplayModeProperties2KHR*)(pProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+                {
+                    count_VkDisplayModeProperties2KHR(sFeatureBits, (VkDisplayModeProperties2KHR*)(pProperties + i), countPtr);
+                }
             }
         }
     }
@@ -19731,16 +19965,22 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if ((pPropertyCount) != nullptr)
         {
-            unmarshal_VkDisplayModeProperties2KHR(stream, (VkDisplayModeProperties2KHR*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                unmarshal_VkDisplayModeProperties2KHR(stream, (VkDisplayModeProperties2KHR*)(pProperties + i));
+            }
         }
     }
-    if (pProperties)
+    if ((pPropertyCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if (pProperties)
         {
-            transform_fromhost_VkDisplayModeProperties2KHR(sResourceTracker, (VkDisplayModeProperties2KHR*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                transform_fromhost_VkDisplayModeProperties2KHR(sResourceTracker, (VkDisplayModeProperties2KHR*)(pProperties + i));
+            }
         }
     }
     VkResult vkGetDisplayModeProperties2KHR_VkResult_return = (VkResult)0;
@@ -19987,9 +20227,12 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
         *countPtr += 8;
         if (pSparseMemoryRequirements)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+            if ((pSparseMemoryRequirementCount) != nullptr)
             {
-                count_VkSparseImageMemoryRequirements2(sFeatureBits, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+                {
+                    count_VkSparseImageMemoryRequirements2(sFeatureBits, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i), countPtr);
+                }
             }
         }
     }
@@ -20048,16 +20291,22 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
         {
             fprintf(stderr, "fatal: pSparseMemoryRequirements inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+        if ((pSparseMemoryRequirementCount) != nullptr)
         {
-            unmarshal_VkSparseImageMemoryRequirements2(stream, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+            {
+                unmarshal_VkSparseImageMemoryRequirements2(stream, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
+            }
         }
     }
-    if (pSparseMemoryRequirements)
+    if ((pSparseMemoryRequirementCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+        if (pSparseMemoryRequirements)
         {
-            transform_fromhost_VkSparseImageMemoryRequirements2(sResourceTracker, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
+            {
+                transform_fromhost_VkSparseImageMemoryRequirements2(sResourceTracker, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
+            }
         }
     }
     ++encodeCount;;
@@ -20848,9 +21097,12 @@ VkResult VkEncoder::vkGetPhysicalDeviceFragmentShadingRatesKHR(
         *countPtr += 8;
         if (pFragmentShadingRates)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pFragmentShadingRateCount)); ++i)
+            if ((pFragmentShadingRateCount) != nullptr)
             {
-                count_VkPhysicalDeviceFragmentShadingRateKHR(sFeatureBits, (VkPhysicalDeviceFragmentShadingRateKHR*)(pFragmentShadingRates + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pFragmentShadingRateCount)); ++i)
+                {
+                    count_VkPhysicalDeviceFragmentShadingRateKHR(sFeatureBits, (VkPhysicalDeviceFragmentShadingRateKHR*)(pFragmentShadingRates + i), countPtr);
+                }
             }
         }
     }
@@ -20908,16 +21160,22 @@ VkResult VkEncoder::vkGetPhysicalDeviceFragmentShadingRatesKHR(
         {
             fprintf(stderr, "fatal: pFragmentShadingRates inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pFragmentShadingRateCount)); ++i)
+        if ((pFragmentShadingRateCount) != nullptr)
         {
-            unmarshal_VkPhysicalDeviceFragmentShadingRateKHR(stream, (VkPhysicalDeviceFragmentShadingRateKHR*)(pFragmentShadingRates + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pFragmentShadingRateCount)); ++i)
+            {
+                unmarshal_VkPhysicalDeviceFragmentShadingRateKHR(stream, (VkPhysicalDeviceFragmentShadingRateKHR*)(pFragmentShadingRates + i));
+            }
         }
     }
-    if (pFragmentShadingRates)
+    if ((pFragmentShadingRateCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pFragmentShadingRateCount)); ++i)
+        if (pFragmentShadingRates)
         {
-            transform_fromhost_VkPhysicalDeviceFragmentShadingRateKHR(sResourceTracker, (VkPhysicalDeviceFragmentShadingRateKHR*)(pFragmentShadingRates + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pFragmentShadingRateCount)); ++i)
+            {
+                transform_fromhost_VkPhysicalDeviceFragmentShadingRateKHR(sResourceTracker, (VkPhysicalDeviceFragmentShadingRateKHR*)(pFragmentShadingRates + i));
+            }
         }
     }
     VkResult vkGetPhysicalDeviceFragmentShadingRatesKHR_VkResult_return = (VkResult)0;
@@ -21510,9 +21768,12 @@ VkResult VkEncoder::vkGetPipelineExecutablePropertiesKHR(
         *countPtr += 8;
         if (pProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pExecutableCount)); ++i)
+            if ((pExecutableCount) != nullptr)
             {
-                count_VkPipelineExecutablePropertiesKHR(sFeatureBits, (VkPipelineExecutablePropertiesKHR*)(pProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pExecutableCount)); ++i)
+                {
+                    count_VkPipelineExecutablePropertiesKHR(sFeatureBits, (VkPipelineExecutablePropertiesKHR*)(pProperties + i), countPtr);
+                }
             }
         }
     }
@@ -21571,16 +21832,22 @@ VkResult VkEncoder::vkGetPipelineExecutablePropertiesKHR(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pExecutableCount)); ++i)
+        if ((pExecutableCount) != nullptr)
         {
-            unmarshal_VkPipelineExecutablePropertiesKHR(stream, (VkPipelineExecutablePropertiesKHR*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pExecutableCount)); ++i)
+            {
+                unmarshal_VkPipelineExecutablePropertiesKHR(stream, (VkPipelineExecutablePropertiesKHR*)(pProperties + i));
+            }
         }
     }
-    if (pProperties)
+    if ((pExecutableCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pExecutableCount)); ++i)
+        if (pProperties)
         {
-            transform_fromhost_VkPipelineExecutablePropertiesKHR(sResourceTracker, (VkPipelineExecutablePropertiesKHR*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pExecutableCount)); ++i)
+            {
+                transform_fromhost_VkPipelineExecutablePropertiesKHR(sResourceTracker, (VkPipelineExecutablePropertiesKHR*)(pProperties + i));
+            }
         }
     }
     VkResult vkGetPipelineExecutablePropertiesKHR_VkResult_return = (VkResult)0;
@@ -21636,9 +21903,12 @@ VkResult VkEncoder::vkGetPipelineExecutableStatisticsKHR(
         *countPtr += 8;
         if (pStatistics)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pStatisticCount)); ++i)
+            if ((pStatisticCount) != nullptr)
             {
-                count_VkPipelineExecutableStatisticKHR(sFeatureBits, (VkPipelineExecutableStatisticKHR*)(pStatistics + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pStatisticCount)); ++i)
+                {
+                    count_VkPipelineExecutableStatisticKHR(sFeatureBits, (VkPipelineExecutableStatisticKHR*)(pStatistics + i), countPtr);
+                }
             }
         }
     }
@@ -21697,16 +21967,22 @@ VkResult VkEncoder::vkGetPipelineExecutableStatisticsKHR(
         {
             fprintf(stderr, "fatal: pStatistics inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pStatisticCount)); ++i)
+        if ((pStatisticCount) != nullptr)
         {
-            unmarshal_VkPipelineExecutableStatisticKHR(stream, (VkPipelineExecutableStatisticKHR*)(pStatistics + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pStatisticCount)); ++i)
+            {
+                unmarshal_VkPipelineExecutableStatisticKHR(stream, (VkPipelineExecutableStatisticKHR*)(pStatistics + i));
+            }
         }
     }
-    if (pStatistics)
+    if ((pStatisticCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pStatisticCount)); ++i)
+        if (pStatistics)
         {
-            transform_fromhost_VkPipelineExecutableStatisticKHR(sResourceTracker, (VkPipelineExecutableStatisticKHR*)(pStatistics + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pStatisticCount)); ++i)
+            {
+                transform_fromhost_VkPipelineExecutableStatisticKHR(sResourceTracker, (VkPipelineExecutableStatisticKHR*)(pStatistics + i));
+            }
         }
     }
     VkResult vkGetPipelineExecutableStatisticsKHR_VkResult_return = (VkResult)0;
@@ -21762,9 +22038,12 @@ VkResult VkEncoder::vkGetPipelineExecutableInternalRepresentationsKHR(
         *countPtr += 8;
         if (pInternalRepresentations)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pInternalRepresentationCount)); ++i)
+            if ((pInternalRepresentationCount) != nullptr)
             {
-                count_VkPipelineExecutableInternalRepresentationKHR(sFeatureBits, (VkPipelineExecutableInternalRepresentationKHR*)(pInternalRepresentations + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pInternalRepresentationCount)); ++i)
+                {
+                    count_VkPipelineExecutableInternalRepresentationKHR(sFeatureBits, (VkPipelineExecutableInternalRepresentationKHR*)(pInternalRepresentations + i), countPtr);
+                }
             }
         }
     }
@@ -21823,16 +22102,22 @@ VkResult VkEncoder::vkGetPipelineExecutableInternalRepresentationsKHR(
         {
             fprintf(stderr, "fatal: pInternalRepresentations inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pInternalRepresentationCount)); ++i)
+        if ((pInternalRepresentationCount) != nullptr)
         {
-            unmarshal_VkPipelineExecutableInternalRepresentationKHR(stream, (VkPipelineExecutableInternalRepresentationKHR*)(pInternalRepresentations + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pInternalRepresentationCount)); ++i)
+            {
+                unmarshal_VkPipelineExecutableInternalRepresentationKHR(stream, (VkPipelineExecutableInternalRepresentationKHR*)(pInternalRepresentations + i));
+            }
         }
     }
-    if (pInternalRepresentations)
+    if ((pInternalRepresentationCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pInternalRepresentationCount)); ++i)
+        if (pInternalRepresentations)
         {
-            transform_fromhost_VkPipelineExecutableInternalRepresentationKHR(sResourceTracker, (VkPipelineExecutableInternalRepresentationKHR*)(pInternalRepresentations + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pInternalRepresentationCount)); ++i)
+            {
+                transform_fromhost_VkPipelineExecutableInternalRepresentationKHR(sResourceTracker, (VkPipelineExecutableInternalRepresentationKHR*)(pInternalRepresentations + i));
+            }
         }
     }
     VkResult vkGetPipelineExecutableInternalRepresentationsKHR_VkResult_return = (VkResult)0;
@@ -23798,7 +24083,10 @@ VkResult VkEncoder::vkGetShaderInfoAMD(
         *countPtr += 8;
         if (pInfo)
         {
-            *countPtr += (*(pInfoSize)) * sizeof(uint8_t);
+            if ((pInfoSize) != nullptr)
+            {
+                *countPtr += (*(pInfoSize)) * sizeof(uint8_t);
+            }
         }
     }
     uint32_t packetSize_vkGetShaderInfoAMD = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -25070,9 +25358,12 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
         *countPtr += 8;
         if (pPresentationTimings)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pPresentationTimingCount)); ++i)
+            if ((pPresentationTimingCount) != nullptr)
             {
-                count_VkPastPresentationTimingGOOGLE(sFeatureBits, (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pPresentationTimingCount)); ++i)
+                {
+                    count_VkPastPresentationTimingGOOGLE(sFeatureBits, (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i), countPtr);
+                }
             }
         }
     }
@@ -25134,16 +25425,22 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
         {
             fprintf(stderr, "fatal: pPresentationTimings inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pPresentationTimingCount)); ++i)
+        if ((pPresentationTimingCount) != nullptr)
         {
-            unmarshal_VkPastPresentationTimingGOOGLE(stream, (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPresentationTimingCount)); ++i)
+            {
+                unmarshal_VkPastPresentationTimingGOOGLE(stream, (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i));
+            }
         }
     }
-    if (pPresentationTimings)
+    if ((pPresentationTimingCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pPresentationTimingCount)); ++i)
+        if (pPresentationTimings)
         {
-            transform_fromhost_VkPastPresentationTimingGOOGLE(sResourceTracker, (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPresentationTimingCount)); ++i)
+            {
+                transform_fromhost_VkPastPresentationTimingGOOGLE(sResourceTracker, (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i));
+            }
         }
     }
     VkResult vkGetPastPresentationTimingGOOGLE_VkResult_return = (VkResult)0;
@@ -27046,7 +27343,10 @@ VkResult VkEncoder::vkGetValidationCacheDataEXT(
         *countPtr += 8;
         if (pData)
         {
-            *countPtr += (*(pDataSize)) * sizeof(uint8_t);
+            if ((pDataSize) != nullptr)
+            {
+                *countPtr += (*(pDataSize)) * sizeof(uint8_t);
+            }
         }
     }
     uint32_t packetSize_vkGetValidationCacheDataEXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -28629,7 +28929,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceCalibrateableTimeDomainsEXT(
         *countPtr += 8;
         if (pTimeDomains)
         {
-            *countPtr += (*(pTimeDomainCount)) * sizeof(VkTimeDomainEXT);
+            if ((pTimeDomainCount) != nullptr)
+            {
+                *countPtr += (*(pTimeDomainCount)) * sizeof(VkTimeDomainEXT);
+            }
         }
     }
     uint32_t packetSize_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -29172,9 +29475,12 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
         *countPtr += 8;
         if (pCheckpointData)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i)
+            if ((pCheckpointDataCount) != nullptr)
             {
-                count_VkCheckpointDataNV(sFeatureBits, (VkCheckpointDataNV*)(pCheckpointData + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i)
+                {
+                    count_VkCheckpointDataNV(sFeatureBits, (VkCheckpointDataNV*)(pCheckpointData + i), countPtr);
+                }
             }
         }
     }
@@ -29232,16 +29538,22 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
         {
             fprintf(stderr, "fatal: pCheckpointData inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i)
+        if ((pCheckpointDataCount) != nullptr)
         {
-            unmarshal_VkCheckpointDataNV(stream, (VkCheckpointDataNV*)(pCheckpointData + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i)
+            {
+                unmarshal_VkCheckpointDataNV(stream, (VkCheckpointDataNV*)(pCheckpointData + i));
+            }
         }
     }
-    if (pCheckpointData)
+    if ((pCheckpointDataCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i)
+        if (pCheckpointData)
         {
-            transform_fromhost_VkCheckpointDataNV(sResourceTracker, (VkCheckpointDataNV*)(pCheckpointData + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i)
+            {
+                transform_fromhost_VkCheckpointDataNV(sResourceTracker, (VkCheckpointDataNV*)(pCheckpointData + i));
+            }
         }
     }
     ++encodeCount;;
@@ -30210,9 +30522,12 @@ VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
         *countPtr += 8;
         if (pToolProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i)
+            if ((pToolCount) != nullptr)
             {
-                count_VkPhysicalDeviceToolPropertiesEXT(sFeatureBits, (VkPhysicalDeviceToolPropertiesEXT*)(pToolProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i)
+                {
+                    count_VkPhysicalDeviceToolPropertiesEXT(sFeatureBits, (VkPhysicalDeviceToolPropertiesEXT*)(pToolProperties + i), countPtr);
+                }
             }
         }
     }
@@ -30270,16 +30585,22 @@ VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
         {
             fprintf(stderr, "fatal: pToolProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i)
+        if ((pToolCount) != nullptr)
         {
-            unmarshal_VkPhysicalDeviceToolPropertiesEXT(stream, (VkPhysicalDeviceToolPropertiesEXT*)(pToolProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i)
+            {
+                unmarshal_VkPhysicalDeviceToolPropertiesEXT(stream, (VkPhysicalDeviceToolPropertiesEXT*)(pToolProperties + i));
+            }
         }
     }
-    if (pToolProperties)
+    if ((pToolCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i)
+        if (pToolProperties)
         {
-            transform_fromhost_VkPhysicalDeviceToolPropertiesEXT(sResourceTracker, (VkPhysicalDeviceToolPropertiesEXT*)(pToolProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i)
+            {
+                transform_fromhost_VkPhysicalDeviceToolPropertiesEXT(sResourceTracker, (VkPhysicalDeviceToolPropertiesEXT*)(pToolProperties + i));
+            }
         }
     }
     VkResult vkGetPhysicalDeviceToolPropertiesEXT_VkResult_return = (VkResult)0;
@@ -30328,9 +30649,12 @@ VkResult VkEncoder::vkGetPhysicalDeviceCooperativeMatrixPropertiesNV(
         *countPtr += 8;
         if (pProperties)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            if ((pPropertyCount) != nullptr)
             {
-                count_VkCooperativeMatrixPropertiesNV(sFeatureBits, (VkCooperativeMatrixPropertiesNV*)(pProperties + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+                {
+                    count_VkCooperativeMatrixPropertiesNV(sFeatureBits, (VkCooperativeMatrixPropertiesNV*)(pProperties + i), countPtr);
+                }
             }
         }
     }
@@ -30388,16 +30712,22 @@ VkResult VkEncoder::vkGetPhysicalDeviceCooperativeMatrixPropertiesNV(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if ((pPropertyCount) != nullptr)
         {
-            unmarshal_VkCooperativeMatrixPropertiesNV(stream, (VkCooperativeMatrixPropertiesNV*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                unmarshal_VkCooperativeMatrixPropertiesNV(stream, (VkCooperativeMatrixPropertiesNV*)(pProperties + i));
+            }
         }
     }
-    if (pProperties)
+    if ((pPropertyCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+        if (pProperties)
         {
-            transform_fromhost_VkCooperativeMatrixPropertiesNV(sResourceTracker, (VkCooperativeMatrixPropertiesNV*)(pProperties + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
+            {
+                transform_fromhost_VkCooperativeMatrixPropertiesNV(sResourceTracker, (VkCooperativeMatrixPropertiesNV*)(pProperties + i));
+            }
         }
     }
     VkResult vkGetPhysicalDeviceCooperativeMatrixPropertiesNV_VkResult_return = (VkResult)0;
@@ -30442,9 +30772,12 @@ VkResult VkEncoder::vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinati
         *countPtr += 8;
         if (pCombinations)
         {
-            for (uint32_t i = 0; i < (uint32_t)(*(pCombinationCount)); ++i)
+            if ((pCombinationCount) != nullptr)
             {
-                count_VkFramebufferMixedSamplesCombinationNV(sFeatureBits, (VkFramebufferMixedSamplesCombinationNV*)(pCombinations + i), countPtr);
+                for (uint32_t i = 0; i < (uint32_t)(*(pCombinationCount)); ++i)
+                {
+                    count_VkFramebufferMixedSamplesCombinationNV(sFeatureBits, (VkFramebufferMixedSamplesCombinationNV*)(pCombinations + i), countPtr);
+                }
             }
         }
     }
@@ -30502,16 +30835,22 @@ VkResult VkEncoder::vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinati
         {
             fprintf(stderr, "fatal: pCombinations inconsistent between guest and host\n");
         }
-        for (uint32_t i = 0; i < (uint32_t)(*(pCombinationCount)); ++i)
+        if ((pCombinationCount) != nullptr)
         {
-            unmarshal_VkFramebufferMixedSamplesCombinationNV(stream, (VkFramebufferMixedSamplesCombinationNV*)(pCombinations + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pCombinationCount)); ++i)
+            {
+                unmarshal_VkFramebufferMixedSamplesCombinationNV(stream, (VkFramebufferMixedSamplesCombinationNV*)(pCombinations + i));
+            }
         }
     }
-    if (pCombinations)
+    if ((pCombinationCount) != nullptr)
     {
-        for (uint32_t i = 0; i < (uint32_t)(*(pCombinationCount)); ++i)
+        if (pCombinations)
         {
-            transform_fromhost_VkFramebufferMixedSamplesCombinationNV(sResourceTracker, (VkFramebufferMixedSamplesCombinationNV*)(pCombinations + i));
+            for (uint32_t i = 0; i < (uint32_t)(*(pCombinationCount)); ++i)
+            {
+                transform_fromhost_VkFramebufferMixedSamplesCombinationNV(sResourceTracker, (VkFramebufferMixedSamplesCombinationNV*)(pCombinations + i));
+            }
         }
     }
     VkResult vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV_VkResult_return = (VkResult)0;
@@ -30573,7 +30912,10 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModes2EXT(
         *countPtr += 8;
         if (pPresentModes)
         {
-            *countPtr += (*(pPresentModeCount)) * sizeof(VkPresentModeKHR);
+            if ((pPresentModeCount) != nullptr)
+            {
+                *countPtr += (*(pPresentModeCount)) * sizeof(VkPresentModeKHR);
+            }
         }
     }
     uint32_t packetSize_vkGetPhysicalDeviceSurfacePresentModes2EXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
