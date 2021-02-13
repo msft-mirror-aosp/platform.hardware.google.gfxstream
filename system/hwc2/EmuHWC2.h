@@ -214,13 +214,43 @@ private:
         int getDrmFB(hwc_drm_bo_t& bo);
         int clearDrmFB(hwc_drm_bo_t& bo);
         bool supportComposeWithoutPost();
+        uint32_t refreshRate() const {
+            return mRefreshRateAsInteger;
+        }
+
+        int exportSyncFdAndSetCrtc(hwc_drm_bo_t& fb);
 
     private:
         drmModeModeInfo mMode;
         int32_t mFd = -1;
         uint32_t mConnectorId;
         uint32_t mCrtcId;
-        bool mSupportComposeWithoutPost = false;
+
+        uint32_t mConnectorCrtcPropertyId;
+
+        uint32_t mOutFencePtrId;
+        uint32_t mCrtcActivePropretyId;
+        uint32_t mCrtcModeIdPropertyId;
+        uint32_t mModeBlobId;
+
+        uint32_t mPlaneId;
+        uint32_t mPlaneCrtcPropertyId;
+        uint32_t mPlaneFbPropertyId;
+        uint32_t mPlaneCrtcXPropertyId;
+        uint32_t mPlaneCrtcYPropertyId;
+        uint32_t mPlaneCrtcWPropertyId;
+        uint32_t mPlaneCrtcHPropertyId;
+        uint32_t mPlaneSrcXPropertyId;
+        uint32_t mPlaneSrcYPropertyId;
+        uint32_t mPlaneSrcWPropertyId;
+        uint32_t mPlaneSrcHPropertyId;
+        uint32_t mPlaneTypePropertyId;
+        float mRefreshRateAsFloat;
+        uint32_t mRefreshRateAsInteger;
+
+        int mOutFence;
+
+        bool mDidSetCrtc = false;
     };
 
     class DrmBuffer {
@@ -379,6 +409,7 @@ private:
         // Display ID generator.
         static std::atomic<hwc2_display_t> sNextId;
         static const uint32_t hostDisplayIdStart = 6;
+        bool mIsMinigbm;
         const hwc2_display_t mId;
         // emulator side displayId
         uint32_t mHostDisplayId;

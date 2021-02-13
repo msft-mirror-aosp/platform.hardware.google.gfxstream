@@ -36,6 +36,10 @@
 
 #include "ThreadInfo.h"
 
+#include <drm/virtgpu_drm.h>
+#include <xf86drm.h>
+#include <poll.h>
+
 #if defined(LOG_NNDEBUG) && LOG_NNDEBUG == 0
 #define ALOGVV ALOGV
 #else
@@ -420,8 +424,9 @@ void EmuHWC2::freeDisplayColorBuffer(const native_handle_t* h) {
 // Display functions
 
 #define VSYNC_PERIOD_PROP "ro.kernel.qemu.vsync"
+#define GRALLOC_PROP "ro.hardware.gralloc"
 
-static int getVsyncPeriodFromProperty() {
+static int getVsyncHzFromProperty() {
     char displaysValue[PROPERTY_VALUE_MAX] = "";
     property_get(VSYNC_PERIOD_PROP, displaysValue, "");
     bool isValid = displaysValue[0] != '\0';
@@ -437,17 +442,36 @@ static int getVsyncPeriodFromProperty() {
     return static_cast<int>(vsyncPeriodParsed);
 }
 
+static bool getIsMinigbmFromProperty() {
+    char grallocValue[PROPERTY_VALUE_MAX] = "";
+    property_get(GRALLOC_PROP, grallocValue, "");
+    bool isValid = grallocValue[0] != '\0';
+
+    if (!isValid) return false;
+
+    bool res = 0 == strcmp("minigbm", grallocValue);
+
+    if (res) {
+        ALOGD("%s: Is using minigbm, in minigbm mode.\n", __func__);
+    } else {
+        ALOGD("%s: Is not using minigbm, in goldfish mode.\n", __func__);
+    }
+
+    return res;
+}
+
 std::atomic<hwc2_display_t> EmuHWC2::Display::sNextId(0);
 
 EmuHWC2::Display::Display(EmuHWC2& device, DisplayType type, int width, int height)
   : mDevice(device),
+    mIsMinigbm(getIsMinigbmFromProperty()),
     mId(sNextId++),
     mHostDisplayId(0),
     mName(),
     mType(type),
     mPowerMode(PowerMode::Off),
     mVsyncEnabled(Vsync::Invalid),
-    mVsyncPeriod(1000*1000*1000/getVsyncPeriodFromProperty()), // vsync is 60 hz
+    mVsyncPeriod(1000*1000*1000/getVsyncHzFromProperty()), // vsync is 60 hz
     mVsyncThread(*this),
     mClientTarget(),
     mChanges(),
@@ -459,9 +483,16 @@ EmuHWC2::Display::Display(EmuHWC2& device, DisplayType type, int width, int heig
     mColorModes(),
     mSetColorTransform(false),
     mStateMutex() {
-        mVsyncThread.run("", ANDROID_PRIORITY_URGENT_DISPLAY);
-        mTargetCb = device.allocateDisplayColorBuffer(width, height);
+
+    mTargetCb = device.allocateDisplayColorBuffer(width, height);
+
+    if (mIsMinigbm) {
+
         mTargetDrmBuffer.reset(new DrmBuffer(mTargetCb, mDevice.mVirtioGpu));
+        mVsyncPeriod = 1000*1000*1000 / mDevice.mVirtioGpu.refreshRate();
+    }
+
+    mVsyncThread.run("", ANDROID_PRIORITY_URGENT_DISPLAY);
 }
 
 EmuHWC2::Display::~Display() {
@@ -771,12 +802,14 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
         if (numLayer == 0) {
             ALOGW("No layers, exit, buffer %p", mClientTarget.getBuffer());
             if (mClientTarget.getBuffer()) {
-                if (mDevice.mVirtioGpu.supportComposeWithoutPost()) {
-                    mClientTargetDrmBuffer->flush();
+                if (mIsMinigbm) {
+                    int retireFence = mClientTargetDrmBuffer->flush();
+                    *outRetireFence = dup(retireFence);
+                    close(retireFence);
                 } else {
                     post(hostCon, rcEnc, mClientTarget.getBuffer());
+                    *outRetireFence = mClientTarget.getFence();
                 }
-                *outRetireFence = mClientTarget.getFence();
             }
             return Error::None;
         }
@@ -870,7 +903,7 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
 
         hostCon->lock();
         if (rcEnc->hasAsyncFrameCommands()) {
-            if (mDevice.mVirtioGpu.supportComposeWithoutPost()) {
+            if (mIsMinigbm) {
                 if (hostCompositionV1) {
                     rcEnc->rcComposeAsyncWithoutPost(rcEnc,
                             sizeof(ComposeDevice) + numLayer * sizeof(ComposeLayer),
@@ -892,7 +925,7 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
                 }
             }
         } else {
-            if (mDevice.mVirtioGpu.supportComposeWithoutPost()) {
+            if (mIsMinigbm) {
                 if (hostCompositionV1) {
                     rcEnc->rcComposeWithoutPost(rcEnc,
                             sizeof(ComposeDevice) + numLayer * sizeof(ComposeLayer),
@@ -930,8 +963,12 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
                 &sync_handle, &thread_handle);
         hostCon->unlock();
 
-        goldfish_sync_queue_work(mSyncDeviceFd,
-                sync_handle, thread_handle, &retire_fd);
+        if (mIsMinigbm) {
+            retire_fd = -1;
+            retire_fd = mTargetDrmBuffer->flush();
+        } else {
+            goldfish_sync_queue_work(mSyncDeviceFd, sync_handle, thread_handle, &retire_fd);
+        }
 
         for (size_t i = 0; i < mReleaseLayerIds.size(); ++i) {
             mReleaseFences.push_back(dup(retire_fd));
@@ -947,18 +984,16 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
         }
         hostCon->unlock();
 
-        if (mDevice.mVirtioGpu.supportComposeWithoutPost()) {
-            mTargetDrmBuffer->flush();
-        }
-
     } else {
         // we set all layers Composition::Client, so do nothing.
-        if (mDevice.mVirtioGpu.supportComposeWithoutPost()) {
-            mClientTargetDrmBuffer->flush();
+        if (mIsMinigbm) {
+            int retireFence = mClientTargetDrmBuffer->flush();
+            *outRetireFence = dup(retireFence);
+            close(retireFence);
         } else {
             post(hostCon, rcEnc, mClientTarget.getBuffer());
+            *outRetireFence = mClientTarget.getFence();
         }
-        *outRetireFence = mClientTarget.getFence();
         ALOGV("%s fallback to post, returns outRetireFence %d",
               __FUNCTION__, *outRetireFence);
     }
@@ -992,8 +1027,8 @@ Error EmuHWC2::Display::setClientTarget(buffer_handle_t target,
     mClientTarget.setBuffer(target);
     mClientTarget.setFence(acquireFence);
 
-    //drm buffer
-    if (mDevice.mVirtioGpu.supportComposeWithoutPost()) {
+    // drm buffer
+    if (mIsMinigbm) {
         mClientTargetDrmBuffer.reset(
             new DrmBuffer(static_cast<const native_handle_t*>(target), mDevice.mVirtioGpu));
     }
@@ -1370,7 +1405,9 @@ int EmuHWC2::Display::populatePrimaryConfigs(int width, int height, int dpiX, in
     mActiveColorMode = HAL_COLOR_MODE_NATIVE;
     mColorModes.emplace((android_color_mode_t)HAL_COLOR_MODE_NATIVE);
 
-    mSyncDeviceFd = goldfish_sync_open();
+    if (!mIsMinigbm) {
+        mSyncDeviceFd = goldfish_sync_open();
+    }
 
     return 0;
 }
@@ -1688,6 +1725,20 @@ EmuHWC2::VirtioGpu::VirtioGpu() {
         ALOGE("%s Error opening virtioGPU device: %d", __func__, errno);
         return;
     }
+
+    int univRet = drmSetClientCap(mFd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
+    if (univRet) {
+        ALOGE("%s: fail to set universal plane %d\n", __func__, univRet);
+    }
+
+    int atomicRet = drmSetClientCap(mFd, DRM_CLIENT_CAP_ATOMIC, 1);
+
+    if (atomicRet) {
+        ALOGE("%s: fail to set atomic operation %d, %d\n", __func__, atomicRet, errno);
+    }
+
+    ALOGD("%s: Did set universal planes and atomic cap\n", __func__);
+
     res = drmModeGetResources(mFd);
     if (res == nullptr) {
         ALOGE("%s Error reading drm resources: %d", __func__, errno);
@@ -1695,8 +1746,99 @@ EmuHWC2::VirtioGpu::VirtioGpu() {
         mFd = -1;
         return;
     }
+
     mCrtcId = res->crtcs[0];
     mConnectorId = res->connectors[0];
+
+    drmModePlaneResPtr plane_res = drmModeGetPlaneResources(mFd);
+    for (uint32_t i = 0; i < plane_res->count_planes; ++i) {
+        drmModePlanePtr plane = drmModeGetPlane(mFd, plane_res->planes[i]);
+        ALOGD("%s: plane id: %u crtcid %u fbid %u crtc xy %d %d xy %d %d\n", __func__,
+                plane->plane_id,
+                plane->crtc_id,
+                plane->fb_id,
+                plane->crtc_x,
+                plane->crtc_y,
+                plane->x,
+                plane->y);
+
+        drmModeObjectPropertiesPtr planeProps = drmModeObjectGetProperties(mFd, plane->plane_id, DRM_MODE_OBJECT_PLANE);
+        bool found = false;
+        bool isPrimaryOrOverlay = false;
+        for (int i = 0; !found && (size_t)i < planeProps->count_props; ++i) {
+            drmModePropertyPtr p = drmModeGetProperty(mFd, planeProps->props[i]);
+            if (!strcmp(p->name, "CRTC_ID")) {
+                mPlaneCrtcPropertyId = p->prop_id;
+                ALOGD("%s: Found plane crtc property id. id: %u\n", __func__,
+                        mPlaneCrtcPropertyId);
+            } else if (!strcmp(p->name, "FB_ID")) {
+                mPlaneFbPropertyId = p->prop_id;
+                ALOGD("%s: Found plane fb property id. id: %u\n", __func__,
+                        mPlaneFbPropertyId);
+            } else if (!strcmp(p->name, "CRTC_X")) {
+                mPlaneCrtcXPropertyId = p->prop_id;
+                ALOGD("%s: Found plane crtc X property id. id: %u\n", __func__,
+                        mPlaneCrtcXPropertyId);
+            } else if (!strcmp(p->name, "CRTC_Y")) {
+                mPlaneCrtcYPropertyId = p->prop_id;
+                ALOGD("%s: Found plane crtc Y property id. id: %u\n", __func__,
+                        mPlaneCrtcYPropertyId);
+            } else if (!strcmp(p->name, "CRTC_W")) {
+                mPlaneCrtcWPropertyId = p->prop_id;
+                ALOGD("%s: Found plane crtc W property id. id: %u value: %u\n", __func__,
+                        mPlaneCrtcWPropertyId, (uint32_t)p->values[0]);
+            } else if (!strcmp(p->name, "CRTC_H")) {
+                mPlaneCrtcHPropertyId = p->prop_id;
+                ALOGD("%s: Found plane crtc H property id. id: %u value: %u\n", __func__,
+                        mPlaneCrtcHPropertyId,
+                        (uint32_t)p->values[0]);
+            } else if (!strcmp(p->name, "SRC_X")) {
+                mPlaneSrcXPropertyId = p->prop_id;
+                ALOGD("%s: Found plane src X property id. id: %u\n", __func__,
+                        mPlaneSrcXPropertyId);
+            } else if (!strcmp(p->name, "SRC_Y")) {
+                mPlaneSrcYPropertyId = p->prop_id;
+                ALOGD("%s: Found plane src Y property id. id: %u\n", __func__,
+                        mPlaneSrcYPropertyId);
+            } else if (!strcmp(p->name, "SRC_W")) {
+                mPlaneSrcWPropertyId = p->prop_id;
+                ALOGD("%s: Found plane src W property id. id: %u\n", __func__,
+                        mPlaneSrcWPropertyId);
+            } else if (!strcmp(p->name, "SRC_H")) {
+                mPlaneSrcHPropertyId = p->prop_id;
+                ALOGD("%s: Found plane src H property id. id: %u\n", __func__,
+                        mPlaneSrcHPropertyId);
+            } else if (!strcmp(p->name, "type")) {
+                mPlaneTypePropertyId = p->prop_id;
+                ALOGD("%s: Found plane type property id. id: %u\n", __func__,
+                        mPlaneTypePropertyId);
+                ALOGD("%s: Plane property type value 0x%llx\n", __func__, (unsigned long long)p->values[0]);
+                uint64_t type = p->values[0];
+                switch (type) {
+                    case DRM_PLANE_TYPE_OVERLAY:
+                    case DRM_PLANE_TYPE_PRIMARY:
+                        isPrimaryOrOverlay = true;
+                        ALOGD("%s: Found a primary or overlay plane. plane id: %u type 0x%llx\n", __func__, plane->plane_id, (unsigned long long)type);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            drmModeFreeProperty(p);
+        }
+        drmModeFreeObjectProperties(planeProps);
+
+        if (isPrimaryOrOverlay && ((1 << 0) & plane->possible_crtcs)) {
+            mPlaneId = plane->plane_id;
+            ALOGD("%s: found plane compatible with crtc id %d: %d\n", __func__, mCrtcId, mPlaneId);
+            drmModeFreePlane(plane);
+            break;
+        }
+
+        drmModeFreePlane(plane);
+    }
+    drmModeFreePlaneResources(plane_res);
+
     conn = drmModeGetConnector(mFd, mConnectorId);
     if (conn == nullptr) {
         ALOGE("%s Error reading drm connector %d: %d", __func__, mConnectorId, errno);
@@ -1707,19 +1849,56 @@ EmuHWC2::VirtioGpu::VirtioGpu() {
     }
     memcpy(&mMode, &conn->modes[0], sizeof(drmModeModeInfo));
 
-    HostConnection *hostCon = createOrGetHostConnection();
-    if (hostCon) {
-        mSupportComposeWithoutPost =
-            GraphicBufferMapper::get().getMapperVersion() ==
-                GraphicBufferMapper::Version::GRALLOC_4 &&
-            (hostCon->connectionType() ==
-                HOST_CONNECTION_VIRTIO_GPU_PIPE ||
-             hostCon->connectionType() ==
-                HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE);
+    drmModeCreatePropertyBlob(mFd, &mMode, sizeof(mMode), &mModeBlobId);
+
+    mRefreshRateAsFloat = 1000.0f * mMode.clock / ((float)mMode.vtotal * (float)mMode.htotal);
+    mRefreshRateAsInteger = (uint32_t)(mRefreshRateAsFloat + 0.5f);
+
+    ALOGD("%s: using drm init. refresh rate of system is %f, rounding to %d. blob id %d\n", __func__,
+          mRefreshRateAsFloat, mRefreshRateAsInteger, mModeBlobId);
+
+    {
+        drmModeObjectPropertiesPtr connectorProps = drmModeObjectGetProperties(mFd, mConnectorId, DRM_MODE_OBJECT_CONNECTOR);
+        bool found = false;
+        for (int i = 0; !found && (size_t)i < connectorProps->count_props; ++i) {
+            drmModePropertyPtr p = drmModeGetProperty(mFd, connectorProps->props[i]);
+            if (!strcmp(p->name, "CRTC_ID")) {
+                mConnectorCrtcPropertyId = p->prop_id;
+                ALOGD("%s: Found connector crtc id prop id: %u\n", __func__,
+                      mConnectorCrtcPropertyId);
+                found = true;
+            }
+            drmModeFreeProperty(p);
+        }
+        drmModeFreeObjectProperties(connectorProps);
     }
+
+    {
+        drmModeObjectPropertiesPtr crtcProps = drmModeObjectGetProperties(mFd, mCrtcId, DRM_MODE_OBJECT_CRTC);
+        bool found = false;
+        for (int i = 0; !found && (size_t)i < crtcProps->count_props; ++i) {
+            drmModePropertyPtr p = drmModeGetProperty(mFd, crtcProps->props[i]);
+            if (!strcmp(p->name, "OUT_FENCE_PTR")) {
+                mOutFencePtrId = p->prop_id;
+                ALOGD("%s: Found out fence ptr id. id: %u\n", __func__,
+                      mOutFencePtrId);
+            } else if (!strcmp(p->name, "ACTIVE")) {
+                mCrtcActivePropretyId = p->prop_id;
+                ALOGD("%s: Found out crtc active prop id %u\n", __func__,
+                      mCrtcActivePropretyId);
+            } else if (!strcmp(p->name, "MODE_ID")) {
+                mCrtcModeIdPropertyId = p->prop_id;
+                ALOGD("%s: Found out crtc mode id prop id %u\n", __func__,
+                      mCrtcModeIdPropertyId);
+            }
+            drmModeFreeProperty(p);
+        }
+        drmModeFreeObjectProperties(crtcProps);
+    }
+
     drmModeFreeConnector(conn);
     drmModeFreeResources(res);
-    ALOGV("%s: init VirtioGpu success", __func__);
+    ALOGD("%s: Successfully initialized DRM backend", __func__);
 }
 
 EmuHWC2::VirtioGpu::~VirtioGpu() {
@@ -1780,7 +1959,70 @@ int EmuHWC2::VirtioGpu::clearDrmFB(hwc_drm_bo_t& bo) {
 }
 
 bool EmuHWC2::VirtioGpu::supportComposeWithoutPost() {
-    return mSupportComposeWithoutPost;
+    return true;
+}
+
+int EmuHWC2::VirtioGpu::exportSyncFdAndSetCrtc(hwc_drm_bo_t& bo) {
+    mOutFence = -1;
+
+    drmModeAtomicReqPtr pset = drmModeAtomicAlloc();
+
+    int ret;
+
+    if (!mDidSetCrtc) {
+        ALOGVV("%s: Setting crtc.\n", __func__);
+        ret = drmModeAtomicAddProperty(pset, mCrtcId, mCrtcActivePropretyId, 1);
+        if (ret < 0) { ALOGE("%s:%d: failed %d errno %d\n", __func__, __LINE__, ret, errno); }
+        ret = drmModeAtomicAddProperty(pset, mCrtcId, mCrtcModeIdPropertyId, mModeBlobId);
+        if (ret < 0) { ALOGE("%s:%d: failed %d errno %d\n", __func__, __LINE__, ret, errno); }
+        ret = drmModeAtomicAddProperty(pset, mConnectorId, mConnectorCrtcPropertyId, mCrtcId);
+        if (ret < 0) { ALOGE("%s:%d: failed %d errno %d\n", __func__, __LINE__, ret, errno); }
+
+        mDidSetCrtc = true;
+    } else {
+        ALOGVV("%s: Already set crtc\n", __func__);
+    }
+
+    ret = drmModeAtomicAddProperty(pset, mCrtcId, mOutFencePtrId, (uint64_t)(&mOutFence));
+    if (ret < 0) { ALOGE("%s:%d: failed %d errno %d\n", __func__, __LINE__, ret, errno); }
+
+    ALOGVV("%s: set plane: plane id %d crtcid %d fbid %d bo w h %d %d\n", __func__,
+            mPlaneId, mCrtcId, bo.fb_id, bo.width, bo.height);
+
+    ret = drmModeAtomicAddProperty(pset, mPlaneId, mPlaneCrtcPropertyId, mCrtcId);
+    if (ret < 0) { ALOGE("%s:%d: failed %d errno %d\n", __func__, __LINE__, ret, errno); }
+    ret = drmModeAtomicAddProperty(pset, mPlaneId, mPlaneFbPropertyId, bo.fb_id);
+    if (ret < 0) { ALOGE("%s:%d: failed %d errno %d\n", __func__, __LINE__, ret, errno); }
+    ret = drmModeAtomicAddProperty(pset, mPlaneId, mPlaneCrtcXPropertyId, 0);
+    if (ret < 0) { ALOGE("%s:%d: failed %d errno %d\n", __func__, __LINE__, ret, errno); }
+    ret = drmModeAtomicAddProperty(pset, mPlaneId, mPlaneCrtcYPropertyId, 0);
+    if (ret < 0) { ALOGE("%s:%d: failed %d errno %d\n", __func__, __LINE__, ret, errno); }
+    ret = drmModeAtomicAddProperty(pset, mPlaneId, mPlaneCrtcWPropertyId, bo.width);
+    if (ret < 0) { ALOGE("%s:%d: failed %d errno %d\n", __func__, __LINE__, ret, errno); }
+    ret = drmModeAtomicAddProperty(pset, mPlaneId, mPlaneCrtcHPropertyId, bo.height);
+    if (ret < 0) { ALOGE("%s:%d: failed %d errno %d\n", __func__, __LINE__, ret, errno); }
+    ret = drmModeAtomicAddProperty(pset, mPlaneId, mPlaneSrcXPropertyId, 0);
+    if (ret < 0) { ALOGE("%s:%d: failed %d errno %d\n", __func__, __LINE__, ret, errno); }
+    ret = drmModeAtomicAddProperty(pset, mPlaneId, mPlaneSrcYPropertyId, 0);
+    if (ret < 0) { ALOGE("%s:%d: failed %d errno %d\n", __func__, __LINE__, ret, errno); }
+    ret = drmModeAtomicAddProperty(pset, mPlaneId, mPlaneSrcWPropertyId, bo.width << 16);
+    if (ret < 0) { ALOGE("%s:%d: failed %d errno %d\n", __func__, __LINE__, ret, errno); }
+    ret = drmModeAtomicAddProperty(pset, mPlaneId, mPlaneSrcHPropertyId, bo.height << 16);
+    if (ret < 0) { ALOGE("%s:%d: failed %d errno %d\n", __func__, __LINE__, ret, errno); }
+
+    uint32_t flags = DRM_MODE_ATOMIC_ALLOW_MODESET;
+    ret = drmModeAtomicCommit(mFd, pset, flags, 0);
+
+    if (ret) {
+        ALOGE("%s: Atomic commit failed with %d %d\n", __func__,
+              ret, errno);
+    }
+
+    if (pset)
+        drmModeAtomicFree(pset);
+
+    ALOGVV("%s: out fence: %d\n", __func__, mOutFence);
+    return mOutFence;
 }
 
 EmuHWC2::DrmBuffer::DrmBuffer(const native_handle_t* handle,
@@ -1812,7 +2054,7 @@ int EmuHWC2::DrmBuffer::convertBoInfo(const native_handle_t* handle) {
 }
 
 int EmuHWC2::DrmBuffer::flush() {
-    return mVirtioGpu.setCrtc(mBo);
+    return mVirtioGpu.exportSyncFdAndSetCrtc(mBo);
 }
 
 // Adaptor Helpers
