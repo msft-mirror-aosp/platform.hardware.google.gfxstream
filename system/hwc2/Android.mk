@@ -59,6 +59,9 @@ LOCAL_C_INCLUDES := $(emulator_hwcomposer_c_includes)
 LOCAL_MODULE_RELATIVE_PATH := $(emulator_hwcomposer_relative_path)
 
 LOCAL_MODULE := hwcomposer.ranchu
+LOCAL_LICENSE_KINDS := SPDX-license-identifier-Apache-2.0
+LOCAL_LICENSE_CONDITIONS := notice
+LOCAL_NOTICE_FILE := $(LOCAL_PATH)/../../LICENSE
 LOCAL_MODULE_TAGS := optional
 
 include $(BUILD_SHARED_LIBRARY)
