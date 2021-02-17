@@ -17,6 +17,7 @@
 
 #include "Resources.h"
 #include "CommandBufferStagingStream.h"
+#include "DescriptorSetVirtualization.h"
 
 #include "android/base/Optional.h"
 #include "android/base/threads/AndroidWorkPool.h"
@@ -403,17 +404,15 @@ public:
     };
 
     struct VkDescriptorPool_Info {
-        std::unordered_set<VkDescriptorSet> allocedSets;
-        VkDescriptorPoolCreateFlags createFlags;
+        uint32_t unused;
     };
 
     struct VkDescriptorSet_Info {
-        VkDescriptorPool pool;
-        std::vector<bool> bindingIsImmutableSampler;
+        uint32_t unused;
     };
 
     struct VkDescriptorSetLayout_Info {
-        std::vector<VkDescriptorSetLayoutBinding> bindings;
+        uint32_t unused;
     };
 
     struct VkCommandPool_Info {
@@ -627,65 +626,82 @@ public:
 #endif
 
     void unregister_VkDescriptorSet_locked(VkDescriptorSet set) {
-        auto it = info_VkDescriptorSet.find(set);
-        if (it == info_VkDescriptorSet.end()) return;
-
-        const auto& setInfo = it->second;
-
-        auto poolIt = info_VkDescriptorPool.find(setInfo.pool);
-
+        struct goldfish_VkDescriptorSet* ds = as_goldfish_VkDescriptorSet(set);
+        delete ds->reified;
         info_VkDescriptorSet.erase(set);
-
-        if (poolIt == info_VkDescriptorPool.end()) return;
-
-        auto& poolInfo = poolIt->second;
-        poolInfo.allocedSets.erase(set);
     }
 
     void unregister_VkDescriptorSet(VkDescriptorSet set) {
+        if (!set) return;
+
         AutoLock lock(mLock);
         unregister_VkDescriptorSet_locked(set);
     }
 
     void unregister_VkDescriptorSetLayout(VkDescriptorSetLayout setLayout) {
+        if (!setLayout) return;
+
         AutoLock lock(mLock);
+        delete as_goldfish_VkDescriptorSetLayout(setLayout)->layoutInfo;
         info_VkDescriptorSetLayout.erase(setLayout);
     }
 
-    void initDescriptorSetStateLocked(const VkDescriptorSetAllocateInfo* ci, const VkDescriptorSet* sets) {
-        auto it = info_VkDescriptorPool.find(ci->descriptorPool);
-        if (it == info_VkDescriptorPool.end()) return;
+    VkResult allocAndInitializeDescriptorSets(
+        void* context,
+        VkDevice device,
+        const VkDescriptorSetAllocateInfo* ci,
+        VkDescriptorSet* sets) {
 
-        auto& info = it->second;
-        for (uint32_t i = 0; i < ci->descriptorSetCount; ++i) {
-            info.allocedSets.insert(sets[i]);
+        if (mFeatureInfo->hasVulkanBatchedDescriptorSetUpdate) {
+            // Using the pool ID's we collected earlier from the host
+            VkResult poolAllocResult = validateAndApplyVirtualDescriptorSetAllocation(ci, sets);
 
-            auto setIt = info_VkDescriptorSet.find(sets[i]);
-            if (setIt == info_VkDescriptorSet.end()) continue;
+            if (poolAllocResult != VK_SUCCESS) return poolAllocResult;
 
-            auto& setInfo = setIt->second;
-            setInfo.pool = ci->descriptorPool;
+            for (uint32_t i = 0; i < ci->descriptorSetCount; ++i) {
+                register_VkDescriptorSet(sets[i]);
+                VkDescriptorSetLayout setLayout = as_goldfish_VkDescriptorSet(sets[i])->reified->setLayout;
 
-            VkDescriptorSetLayout setLayout = ci->pSetLayouts[i];
-            auto layoutIt = info_VkDescriptorSetLayout.find(setLayout);
-            if (layoutIt == info_VkDescriptorSetLayout.end()) continue;
+                // Need to add ref to the set layout in the virtual case
+                // because the set itself might not be realized on host at the
+                // same time
+                struct goldfish_VkDescriptorSetLayout* dsl = as_goldfish_VkDescriptorSetLayout(setLayout);
+                ++dsl->layoutInfo->refcount;
+            }
+        } else {
+            // Pass through and use host allocation
+            VkEncoder* enc = (VkEncoder*)context;
+            VkResult allocRes = enc->vkAllocateDescriptorSets(device, ci, sets, true /* do lock */);
 
-            const auto& layoutInfo = layoutIt->second;
-            for (size_t i = 0; i < layoutInfo.bindings.size(); ++i) {
-                // Bindings can be sparsely defined
-                const auto& binding = layoutInfo.bindings[i];
-                uint32_t bindingIndex = binding.binding;
-                if (setInfo.bindingIsImmutableSampler.size() <= bindingIndex) {
-                    setInfo.bindingIsImmutableSampler.resize(bindingIndex + 1, false);
-                }
-                setInfo.bindingIsImmutableSampler[bindingIndex] =
-                    binding.descriptorCount > 0 &&
-                     (binding.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLER ||
-                      binding.descriptorType ==
-                          VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) &&
-                    binding.pImmutableSamplers;
+            if (allocRes != VK_SUCCESS) return allocRes;
+
+            for (uint32_t i = 0; i < ci->descriptorSetCount; ++i) {
+                applyDescriptorSetAllocation(ci->descriptorPool, ci->pSetLayouts[i]);
+                fillDescriptorSetInfoForPool(ci->descriptorPool, ci->pSetLayouts[i], sets[i]);
             }
         }
+
+        return VK_SUCCESS;
+    }
+
+    VkDescriptorImageInfo createImmutableSamplersFilteredImageInfo(
+        VkDescriptorType descType,
+        VkDescriptorSet descSet,
+        uint32_t binding,
+        const VkDescriptorImageInfo* pImageInfo) {
+
+        VkDescriptorImageInfo res = *pImageInfo;
+
+        if (descType != VK_DESCRIPTOR_TYPE_SAMPLER &&
+            descType != VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) return res;
+
+        bool immutableSampler = as_goldfish_VkDescriptorSet(descSet)->reified->bindingIsImmutableSampler[binding];
+
+        if (!immutableSampler) return res;
+
+        res.sampler = 0;
+
+        return res;
     }
 
     VkWriteDescriptorSet
@@ -700,18 +716,8 @@ public:
         if  (descriptorWrite->descriptorType != VK_DESCRIPTOR_TYPE_SAMPLER &&
              descriptorWrite->descriptorType != VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) return res;
 
-        VkDescriptorSet set = descriptorWrite->dstSet;
-        auto descSetIt = info_VkDescriptorSet.find(set);
-        if (descSetIt == info_VkDescriptorSet.end()) {
-            ALOGE("%s: error: descriptor set 0x%llx not found\n", __func__,
-                  (unsigned long long)set);
-            return res;
-        }
-
-        const auto& descInfo = descSetIt->second;
-        uint32_t binding = descriptorWrite->dstBinding;
-
-        bool immutableSampler = descInfo.bindingIsImmutableSampler[binding];
+        bool immutableSampler =
+            as_goldfish_VkDescriptorSet(descriptorWrite->dstSet)->reified->bindingIsImmutableSampler[descriptorWrite->dstBinding];
 
         if (!immutableSampler) return res;
 
@@ -726,55 +732,47 @@ public:
         return res;
     }
 
-    // Also unregisters underlying descriptor sets
-    // and deletes their guest-side wrapped handles.
-    void clearDescriptorPoolLocked(VkDescriptorPool pool) {
-        auto it = info_VkDescriptorPool.find(pool);
-        if (it == info_VkDescriptorPool.end()) return;
-
-        std::vector<VkDescriptorSet> toClear;
-        for (auto set : it->second.allocedSets) {
-            toClear.push_back(set);
+    void freeDescriptorSetsIfHostAllocated(VkEncoder* enc, VkDevice device, uint32_t descriptorSetCount, const VkDescriptorSet* sets) {
+        for (uint32_t i = 0; i < descriptorSetCount; ++i) {
+            struct goldfish_VkDescriptorSet* ds = as_goldfish_VkDescriptorSet(sets[i]);
+            if (ds->reified->allocationPending) {
+                unregister_VkDescriptorSet(sets[i]);
+                delete_goldfish_VkDescriptorSet(sets[i]);
+            } else {
+                enc->vkFreeDescriptorSets(device, ds->reified->pool, 1, &sets[i], false /* no lock */);
+            }
         }
+    }
+
+    void clearDescriptorPoolAndUnregisterDescriptorSets(void* context, VkDevice device, VkDescriptorPool pool) {
+
+        std::vector<VkDescriptorSet> toClear =
+            clearDescriptorPool(pool, mFeatureInfo->hasVulkanBatchedDescriptorSetUpdate);
 
         for (auto set : toClear) {
-            unregister_VkDescriptorSet_locked(set);
+            if (mFeatureInfo->hasVulkanBatchedDescriptorSetUpdate) {
+                VkDescriptorSetLayout setLayout = as_goldfish_VkDescriptorSet(set)->reified->setLayout;
+                decDescriptorSetLayoutRef(context, device, setLayout, nullptr);
+            }
+            unregister_VkDescriptorSet(set);
             delete_goldfish_VkDescriptorSet(set);
         }
     }
 
     void unregister_VkDescriptorPool(VkDescriptorPool pool) {
+        if (!pool) return;
+
         AutoLock lock(mLock);
-        clearDescriptorPoolLocked(pool);
+
+        struct goldfish_VkDescriptorPool* dp = as_goldfish_VkDescriptorPool(pool);
+        delete dp->allocInfo;
+
         info_VkDescriptorPool.erase(pool);
     }
 
     bool descriptorPoolSupportsIndividualFreeLocked(VkDescriptorPool pool) {
-        auto it = info_VkDescriptorPool.find(pool);
-        if (it == info_VkDescriptorPool.end()) return false;
-
-        const auto& info = it->second;
-
-        return VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT &
-            info.createFlags;
-    }
-
-    bool descriptorSetReallyAllocedFromPoolLocked(VkDescriptorSet set, VkDescriptorPool pool) {
-        auto it = info_VkDescriptorSet.find(set);
-        if (it == info_VkDescriptorSet.end()) return false;
-
-        const auto& info = it->second;
-
-        if (pool != info.pool) return false;
-
-        auto poolIt = info_VkDescriptorPool.find(info.pool);
-        if (poolIt == info_VkDescriptorPool.end()) return false;
-
-        const auto& poolInfo = poolIt->second;
-
-        if (poolInfo.allocedSets.find(set) == poolInfo.allocedSets.end()) return false;
-
-        return true;
+        return as_goldfish_VkDescriptorPool(pool)->allocInfo->createFlags &
+            VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
     }
 
     static constexpr uint32_t kDefaultApiVersion = VK_MAKE_VERSION(1, 1, 0);
@@ -4591,12 +4589,32 @@ public:
 
         if (res != VK_SUCCESS) return res;
 
-        AutoLock lock(mLock);
-        auto it = info_VkDescriptorPool.find(*pDescriptorPool);
-        if (it == info_VkDescriptorPool.end()) return res;
+        VkDescriptorPool pool = *pDescriptorPool;
 
-        auto &info = it->second;
-        info.createFlags = pCreateInfo->flags;
+        struct goldfish_VkDescriptorPool* dp = as_goldfish_VkDescriptorPool(pool);
+        dp->allocInfo = new DescriptorPoolAllocationInfo;
+        dp->allocInfo->device = device;
+        dp->allocInfo->createFlags = pCreateInfo->flags;
+        dp->allocInfo->maxSets = pCreateInfo->maxSets;
+        dp->allocInfo->usedSets = 0;
+
+        for (uint32_t i = 0; i < pCreateInfo->poolSizeCount; ++i) {
+            dp->allocInfo->descriptorCountInfo.push_back({
+                pCreateInfo->pPoolSizes[i].type,
+                pCreateInfo->pPoolSizes[i].descriptorCount,
+                0, /* used */
+            });
+        }
+
+        if (mFeatureInfo->hasVulkanBatchedDescriptorSetUpdate) {
+            std::vector<uint64_t> poolIds(pCreateInfo->maxSets);
+
+            uint32_t count = pCreateInfo->maxSets;
+            enc->vkCollectDescriptorPoolIdsGOOGLE(
+                device, pool, &count, poolIds.data(), true /* do lock */);
+
+            dp->allocInfo->freePoolIds = poolIds;
+        }
 
         return res;
     }
@@ -4607,7 +4625,11 @@ public:
         VkDescriptorPool descriptorPool,
         const VkAllocationCallbacks* pAllocator) {
 
+        if (!descriptorPool) return;
+
         VkEncoder* enc = (VkEncoder*)context;
+
+        clearDescriptorPoolAndUnregisterDescriptorSets(context, device, descriptorPool);
 
         enc->vkDestroyDescriptorPool(device, descriptorPool, pAllocator, true /* do lock */);
     }
@@ -4619,33 +4641,28 @@ public:
         VkDescriptorPool descriptorPool,
         VkDescriptorPoolResetFlags flags) {
 
+        if (!descriptorPool) return VK_ERROR_INITIALIZATION_FAILED;
+
         VkEncoder* enc = (VkEncoder*)context;
 
         VkResult res = enc->vkResetDescriptorPool(device, descriptorPool, flags, true /* do lock */);
 
         if (res != VK_SUCCESS) return res;
 
-        AutoLock lock(mLock);
-        clearDescriptorPoolLocked(descriptorPool);
+        clearDescriptorPoolAndUnregisterDescriptorSets(context, device, descriptorPool);
         return res;
     }
 
     VkResult on_vkAllocateDescriptorSets(
         void* context,
         VkResult,
-        VkDevice                                    device,
+        VkDevice device,
         const VkDescriptorSetAllocateInfo*          pAllocateInfo,
         VkDescriptorSet*                            pDescriptorSets) {
 
         VkEncoder* enc = (VkEncoder*)context;
 
-        VkResult res = enc->vkAllocateDescriptorSets(device, pAllocateInfo, pDescriptorSets, true /* do lock */);
-
-        if (res != VK_SUCCESS) return res;
-
-        AutoLock lock(mLock);
-        initDescriptorSetStateLocked(pAllocateInfo, pDescriptorSets);
-        return res;
+        return allocAndInitializeDescriptorSets(context, device, pAllocateInfo, pDescriptorSets);
     }
 
     VkResult on_vkFreeDescriptorSets(
@@ -4669,20 +4686,53 @@ public:
             if (!descriptorPoolSupportsIndividualFreeLocked(descriptorPool))
                 return VK_SUCCESS;
 
-            for (uint32_t i = 0; i < descriptorSetCount; ++i) {
-                if (descriptorSetReallyAllocedFromPoolLocked(
-                        pDescriptorSets[i], descriptorPool)) {
-                    toActuallyFree.push_back(pDescriptorSets[i]);
+            std::vector<VkDescriptorSet> existingDescriptorSets;;
+
+            // Check if this descriptor set was in the pool's set of allocated descriptor sets,
+            // to guard against double free (Double free is allowed by the client)
+            {
+                auto allocedSets = as_goldfish_VkDescriptorPool(descriptorPool)->allocInfo->allocedSets;
+
+                for (uint32_t i = 0; i < descriptorSetCount; ++i) {
+
+                    if (allocedSets.end() == allocedSets.find(pDescriptorSets[i])) {
+                        ALOGE("%s: Warning: descriptor set %p not found in pool. Was this double-freed?\n", __func__,
+                              (void*)pDescriptorSets[i]);
+                        continue;
+                    }
+
+                    auto it = info_VkDescriptorSet.find(pDescriptorSets[i]);
+                    if (it == info_VkDescriptorSet.end())
+                        continue;
+
+                    existingDescriptorSets.push_back(pDescriptorSets[i]);
+                }
+            }
+
+            for (auto set : existingDescriptorSets) {
+                if (removeDescriptorSetFromPool(set, mFeatureInfo->hasVulkanBatchedDescriptorSetUpdate)) {
+                    toActuallyFree.push_back(set);
                 }
             }
 
             if (toActuallyFree.empty()) return VK_SUCCESS;
         }
 
-        return enc->vkFreeDescriptorSets(
-            device, descriptorPool,
-            (uint32_t)toActuallyFree.size(),
-            toActuallyFree.data(), true /* do lock */);
+        if (mFeatureInfo->hasVulkanBatchedDescriptorSetUpdate) {
+            // In the batched set update case, decrement refcount on the set layout
+            // and only free on host if we satisfied a pending allocation on the
+            // host.
+            for (uint32_t i = 0; i < toActuallyFree.size(); ++i) {
+                VkDescriptorSetLayout setLayout = as_goldfish_VkDescriptorSet(toActuallyFree[i])->reified->setLayout;
+                decDescriptorSetLayoutRef(context, device, setLayout, nullptr);
+            }
+            freeDescriptorSetsIfHostAllocated(
+                enc, device, (uint32_t)toActuallyFree.size(), toActuallyFree.data());
+        } else {
+            // In the non-batched set update case, just free them directly.
+            enc->vkFreeDescriptorSets(device, descriptorPool, (uint32_t)toActuallyFree.size(), toActuallyFree.data(), true /* do lock */);
+        }
+        return VK_SUCCESS;
     }
 
     VkResult on_vkCreateDescriptorSetLayout(
@@ -4700,15 +4750,13 @@ public:
 
         if (res != VK_SUCCESS) return res;
 
-        AutoLock lock(mLock);
-
-        auto it = info_VkDescriptorSetLayout.find(*pSetLayout);
-        if (it == info_VkDescriptorSetLayout.end()) return res;
-
-        auto& info = it->second;
+        struct goldfish_VkDescriptorSetLayout* dsl =
+            as_goldfish_VkDescriptorSetLayout(*pSetLayout);
+        dsl->layoutInfo = new DescriptorSetLayoutInfo;
         for (uint32_t i = 0; i < pCreateInfo->bindingCount; ++i) {
-            info.bindings.push_back(pCreateInfo->pBindings[i]);
+            dsl->layoutInfo->bindings.push_back(pCreateInfo->pBindings[i]);
         }
+        dsl->layoutInfo->refcount = 1;
 
         return res;
     }
@@ -5655,26 +5703,6 @@ public:
         return input_result;
     }
 
-    bool isDescriptorTypeImageInfo(VkDescriptorType descType) {
-        return (descType == VK_DESCRIPTOR_TYPE_SAMPLER) ||
-               (descType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) ||
-               (descType == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE) ||
-               (descType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE) ||
-               (descType == VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT);
-    }
-
-    bool isDescriptorTypeBufferInfo(VkDescriptorType descType) {
-        return (descType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) ||
-               (descType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC) ||
-               (descType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER) ||
-               (descType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC);
-    }
-
-    bool isDescriptorTypeBufferView(VkDescriptorType descType) {
-        return (descType == VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER) ||
-               (descType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER);
-    }
-
     VkResult initDescriptorUpdateTemplateBuffers(
         const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
         VkDescriptorUpdateTemplate descriptorUpdateTemplate) {
@@ -6241,13 +6269,28 @@ public:
             true /* do lock */);
     }
 
+    void decDescriptorSetLayoutRef(
+        void* context,
+        VkDevice device,
+        VkDescriptorSetLayout descriptorSetLayout,
+        const VkAllocationCallbacks* pAllocator) {
+
+        if (!descriptorSetLayout) return;
+
+        struct goldfish_VkDescriptorSetLayout* setLayout = as_goldfish_VkDescriptorSetLayout(descriptorSetLayout);
+
+        if (0 == --setLayout->layoutInfo->refcount) {
+            VkEncoder* enc = (VkEncoder*)context;
+            enc->vkDestroyDescriptorSetLayout(device, descriptorSetLayout, pAllocator, true /* do lock */);
+        }
+    }
+
     void on_vkDestroyDescriptorSetLayout(
         void* context,
         VkDevice device,
         VkDescriptorSetLayout descriptorSetLayout,
         const VkAllocationCallbacks* pAllocator) {
-        VkEncoder* enc = (VkEncoder*)context;
-        enc->vkDestroyDescriptorSetLayout(device, descriptorSetLayout, pAllocator, true /* do lock */);
+        decDescriptorSetLayoutRef(context, device, descriptorSetLayout, pAllocator);
     }
 
     uint32_t getApiVersionFromInstance(VkInstance instance) const {

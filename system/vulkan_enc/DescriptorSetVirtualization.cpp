@@ -345,7 +345,7 @@ static VkResult validateDescriptorSetAllocation(const VkDescriptorSetAllocateInf
     return VK_SUCCESS;
 }
 
-static void applyDescriptorSetAllocation(VkDescriptorPool pool, VkDescriptorSetLayout setLayout) {
+void applyDescriptorSetAllocation(VkDescriptorPool pool, VkDescriptorSetLayout setLayout) {
     auto allocInfo = as_goldfish_VkDescriptorPool(pool)->allocInfo;
     auto setLayoutInfo = as_goldfish_VkDescriptorSetLayout(setLayout)->layoutInfo;
 
@@ -379,7 +379,22 @@ void removeDescriptorSetAllocation(VkDescriptorPool pool, const std::vector<VkDe
     }
 }
 
-VkResult validateDescriptorSetAllocationAndApplyOnSuccess(const VkDescriptorSetAllocateInfo* pAllocateInfo, VkDescriptorSet* pSets) {
+void fillDescriptorSetInfoForPool(VkDescriptorPool pool, VkDescriptorSetLayout setLayout, VkDescriptorSet set) {
+    DescriptorPoolAllocationInfo* allocInfo = as_goldfish_VkDescriptorPool(pool)->allocInfo;
+
+    ReifiedDescriptorSet* newReified = new ReifiedDescriptorSet;
+    newReified->poolId = as_goldfish_VkDescriptorSet(set)->underlying;
+    newReified->allocationPending = true;
+
+    as_goldfish_VkDescriptorSet(set)->reified = newReified;
+
+    allocInfo->allocedPoolIds.insert(newReified->poolId);
+    allocInfo->allocedSets.insert(set);
+
+    initializeReifiedDescriptorSet(pool, setLayout, newReified);
+}
+
+VkResult validateAndApplyVirtualDescriptorSetAllocation(const VkDescriptorSetAllocateInfo* pAllocateInfo, VkDescriptorSet* pSets) {
     VkResult validateRes = validateDescriptorSetAllocation(pAllocateInfo);
 
     if (validateRes != VK_SUCCESS) return validateRes;
@@ -405,53 +420,47 @@ VkResult validateDescriptorSetAllocationAndApplyOnSuccess(const VkDescriptorSetA
         allocInfo->freePoolIds.pop_back();
 
         VkDescriptorSet newSet = new_from_host_VkDescriptorSet((VkDescriptorSet)id);
-
-        ReifiedDescriptorSet* newReified = new ReifiedDescriptorSet;
-        newReified->poolId = id;
-        newReified->allocationPending = true;
-
-        as_goldfish_VkDescriptorSet(newSet)->reified = newReified;
-
         pSets[i] = newSet;
 
-        allocInfo->allocedPoolIds.insert(id);
-        allocInfo->allocedSets.insert(pSets[i]);
-
-        initializeReifiedDescriptorSet(pool, pAllocateInfo->pSetLayouts[i], newReified);
+        fillDescriptorSetInfoForPool(pool, pAllocateInfo->pSetLayouts[i], newSet);
     }
 
     return VK_SUCCESS;
 }
 
-bool removeDescriptorSetFromPool(VkDescriptorSet set) {
+bool removeDescriptorSetFromPool(VkDescriptorSet set, bool usePoolIds) {
     ReifiedDescriptorSet* reified = as_goldfish_VkDescriptorSet(set)->reified;
 
     VkDescriptorPool pool = reified->pool;
     DescriptorPoolAllocationInfo* allocInfo = as_goldfish_VkDescriptorPool(pool)->allocInfo;
 
-    // Look for the set's pool Id in the pool. If not found, then this wasn't really allocated, and bail.
-    if (allocInfo->allocedPoolIds.find(reified->poolId) == allocInfo->allocedPoolIds.end()) {
-        return false;
+    if (usePoolIds) {
+        // Look for the set's pool Id in the pool. If not found, then this wasn't really allocated, and bail.
+        if (allocInfo->allocedPoolIds.find(reified->poolId) == allocInfo->allocedPoolIds.end()) {
+            return false;
+        }
     }
 
     const std::vector<VkDescriptorSetLayoutBinding>& bindings = reified->bindings;
     removeDescriptorSetAllocation(pool, bindings);
 
-    allocInfo->freePoolIds.push_back(reified->poolId);
-    allocInfo->allocedPoolIds.erase(reified->poolId);
+    if (usePoolIds) {
+        allocInfo->freePoolIds.push_back(reified->poolId);
+        allocInfo->allocedPoolIds.erase(reified->poolId);
+    }
     allocInfo->allocedSets.erase(set);
 
     return true;
 }
 
-std::vector<VkDescriptorSet> clearDescriptorPool(VkDescriptorPool pool) {
+std::vector<VkDescriptorSet> clearDescriptorPool(VkDescriptorPool pool, bool usePoolIds) {
     std::vector<VkDescriptorSet> toClear;
     for (auto set : as_goldfish_VkDescriptorPool(pool)->allocInfo->allocedSets) {
         toClear.push_back(set);
     }
 
     for (auto set: toClear) {
-        removeDescriptorSetFromPool(set);
+        removeDescriptorSetFromPool(set, usePoolIds);
     }
 
     return toClear;

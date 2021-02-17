@@ -139,11 +139,13 @@ void doEmulatedDescriptorBufferViewWriteFromTemplate(
     const VkBufferView* bufferViews,
     ReifiedDescriptorSet* set);
 
-VkResult validateDescriptorSetAllocationAndApplyOnSuccess(const VkDescriptorSetAllocateInfo* pAllocateInfo, VkDescriptorSet* pSets);
+void applyDescriptorSetAllocation(VkDescriptorPool pool, VkDescriptorSetLayout setLayout);
+void fillDescriptorSetInfoForPool(VkDescriptorPool pool, VkDescriptorSetLayout setLayout, VkDescriptorSet set);
+VkResult validateAndApplyVirtualDescriptorSetAllocation(const VkDescriptorSetAllocateInfo* pAllocateInfo, VkDescriptorSet* pSets);
 
 // Returns false if set wasn't found in its pool.
-bool removeDescriptorSetFromPool(VkDescriptorSet set);
+bool removeDescriptorSetFromPool(VkDescriptorSet set, bool usePoolIds);
 
-std::vector<VkDescriptorSet> clearDescriptorPool(VkDescriptorPool pool);
+std::vector<VkDescriptorSet> clearDescriptorPool(VkDescriptorPool pool, bool usePoolIds);
 
 } // namespace goldfish_vk
