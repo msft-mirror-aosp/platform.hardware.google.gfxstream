@@ -72,7 +72,8 @@ QemuPipeStream::~QemuPipeStream()
 
 int QemuPipeStream::connect(void)
 {
-    zx::channel channel(GetConnectToServiceFunction()(QEMU_PIPE_PATH));
+    fidl::ClientEnd<llcpp::fuchsia::hardware::goldfish::PipeDevice> channel{
+        zx::channel(GetConnectToServiceFunction()(QEMU_PIPE_PATH))};
     if (!channel) {
         ALOGE("%s: failed to get service handle for " QEMU_PIPE_PATH,
               __FUNCTION__);
