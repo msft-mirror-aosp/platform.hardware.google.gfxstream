@@ -24,6 +24,9 @@
 
 namespace goldfish_vk {
 class VkEncoder;
+struct DescriptorPoolAllocationInfo;
+struct ReifiedDescriptorSet;
+struct DescriptorSetLayoutInfo;
 } // namespace goldfish_vk
 
 class IOStream;
@@ -47,6 +50,7 @@ struct goldfish_vk_object_list {
         struct goldfish_vk_object_list* poolObjects; \
         struct goldfish_vk_object_list* subObjects; \
         struct goldfish_vk_object_list* superObjects; \
+        void* userPtr; \
     }; \
 
 #define GOLDFISH_VK_DEFINE_TRIVIAL_NON_DISPATCHABLE_HANDLE_STRUCT(type) \
@@ -55,6 +59,7 @@ struct goldfish_vk_object_list {
         struct goldfish_vk_object_list* poolObjects; \
         struct goldfish_vk_object_list* subObjects; \
         struct goldfish_vk_object_list* superObjects; \
+        void* userPtr; \
     }; \
 
 #define GOLDFISH_VK_NEW_FROM_HOST_DECL(type) \
@@ -94,7 +99,22 @@ GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_DELETE_GOLDFISH_DECL)
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_IDENTITY_DECL)
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_NEW_FROM_HOST_U64_DECL)
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_GET_HOST_U64_DECL)
-GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_DEFINE_TRIVIAL_NON_DISPATCHABLE_HANDLE_STRUCT)
+GOLDFISH_VK_LIST_AUTODEFINED_STRUCT_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_DEFINE_TRIVIAL_NON_DISPATCHABLE_HANDLE_STRUCT)
+
+struct goldfish_VkDescriptorPool {
+    uint64_t underlying;
+    goldfish_vk::DescriptorPoolAllocationInfo* allocInfo;
+};
+
+struct goldfish_VkDescriptorSet {
+    uint64_t underlying;
+    goldfish_vk::ReifiedDescriptorSet* reified;
+};
+
+struct goldfish_VkDescriptorSetLayout {
+    uint64_t underlying;
+    goldfish_vk::DescriptorSetLayoutInfo* layoutInfo;
+};
 
 } // extern "C"
 
