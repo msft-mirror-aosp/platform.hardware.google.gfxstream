@@ -65,6 +65,8 @@ extern "C" {
 	void rcMakeCurrentAsync(uint32_t context, uint32_t drawSurf, uint32_t readSurf);
 	void rcComposeAsync(uint32_t bufferSize, void* buffer);
 	void rcDestroySyncKHRAsync(uint64_t sync);
+	GLint rcComposeWithoutPost(uint32_t bufferSize, void* buffer);
+	void rcComposeAsyncWithoutPost(uint32_t bufferSize, void* buffer);
 };
 
 #ifndef GET_CONTEXT
@@ -431,5 +433,17 @@ void rcDestroySyncKHRAsync(uint64_t sync)
 {
 	GET_CONTEXT;
 	ctx->rcDestroySyncKHRAsync(ctx, sync);
+}
+
+GLint rcComposeWithoutPost(uint32_t bufferSize, void* buffer)
+{
+	GET_CONTEXT;
+	return ctx->rcComposeWithoutPost(ctx, bufferSize, buffer);
+}
+
+void rcComposeAsyncWithoutPost(uint32_t bufferSize, void* buffer)
+{
+	GET_CONTEXT;
+	ctx->rcComposeAsyncWithoutPost(ctx, bufferSize, buffer);
 }
 

@@ -35,9 +35,12 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <set>
+#include <xf86drm.h>
+#include <xf86drmMode.h>
 
 #include <cutils/native_handle.h>
 
+#include "include/drmhwcgralloc.h"
 #include "HostConnection.h"
 
 namespace android {
@@ -203,6 +206,65 @@ private:
         ComposeDevice_v2* mComposeDevice;
     };
 
+    class VirtioGpu {
+    public:
+        VirtioGpu();
+        ~VirtioGpu();
+        int setCrtc(hwc_drm_bo_t& fb);
+        int getDrmFB(hwc_drm_bo_t& bo);
+        int clearDrmFB(hwc_drm_bo_t& bo);
+        bool supportComposeWithoutPost();
+        uint32_t refreshRate() const {
+            return mRefreshRateAsInteger;
+        }
+
+        int exportSyncFdAndSetCrtc(hwc_drm_bo_t& fb);
+
+    private:
+        drmModeModeInfo mMode;
+        int32_t mFd = -1;
+        uint32_t mConnectorId;
+        uint32_t mCrtcId;
+
+        uint32_t mConnectorCrtcPropertyId;
+
+        uint32_t mOutFencePtrId;
+        uint32_t mCrtcActivePropretyId;
+        uint32_t mCrtcModeIdPropertyId;
+        uint32_t mModeBlobId;
+
+        uint32_t mPlaneId;
+        uint32_t mPlaneCrtcPropertyId;
+        uint32_t mPlaneFbPropertyId;
+        uint32_t mPlaneCrtcXPropertyId;
+        uint32_t mPlaneCrtcYPropertyId;
+        uint32_t mPlaneCrtcWPropertyId;
+        uint32_t mPlaneCrtcHPropertyId;
+        uint32_t mPlaneSrcXPropertyId;
+        uint32_t mPlaneSrcYPropertyId;
+        uint32_t mPlaneSrcWPropertyId;
+        uint32_t mPlaneSrcHPropertyId;
+        uint32_t mPlaneTypePropertyId;
+        float mRefreshRateAsFloat;
+        uint32_t mRefreshRateAsInteger;
+
+        int mOutFence;
+
+        bool mDidSetCrtc = false;
+    };
+
+    class DrmBuffer {
+    public:
+        DrmBuffer(const native_handle_t* handle, VirtioGpu& virtioGpu);
+        ~DrmBuffer();
+        int flush();
+    private:
+        int convertBoInfo(const native_handle_t* handle);
+        VirtioGpu& mVirtioGpu;
+        hwc_drm_bo_t mBo;
+    };
+
+
     class Display {
     public:
         Display(EmuHWC2& device, HWC2::DisplayType type, int width, int height);
@@ -347,6 +409,7 @@ private:
         // Display ID generator.
         static std::atomic<hwc2_display_t> sNextId;
         static const uint32_t hostDisplayIdStart = 6;
+        bool mIsMinigbm;
         const hwc2_display_t mId;
         // emulator side displayId
         uint32_t mHostDisplayId;
@@ -378,6 +441,8 @@ private:
         std::unique_ptr<ComposeMsg_v2> mComposeMsg_v2;
         int mSyncDeviceFd;
         const native_handle_t* mTargetCb;
+        std::unique_ptr<DrmBuffer> mTargetDrmBuffer;
+        std::unique_ptr<DrmBuffer> mClientTargetDrmBuffer;
     };
 
     template<typename MF, MF memFunc, typename ...Args>
@@ -490,6 +555,8 @@ private:
     int mDisplayHeight;
     int mDisplayDpiX;
     int mDisplayDpiY;
+
+    VirtioGpu mVirtioGpu;
 };
 
 }

@@ -2329,6 +2329,80 @@ void rcDestroySyncKHRAsync_enc(void *self , uint64_t sync)
 	stream->flush();
 }
 
+GLint rcComposeWithoutPost_enc(void *self , uint32_t bufferSize, void* buffer)
+{
+	AEMU_SCOPED_TRACE("rcComposeWithoutPost encode");
+
+	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	const unsigned int __size_buffer =  bufferSize;
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + __size_buffer + 1*4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_rcComposeWithoutPost;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &bufferSize, 4); ptr += 4;
+	memcpy(ptr, &__size_buffer, 4); ptr += 4;
+	memcpy(ptr, buffer, __size_buffer);ptr += __size_buffer;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+
+	GLint retval;
+	stream->readback(&retval, 4);
+	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			ALOGE("rcComposeWithoutPost: GL communication error, please report this issue to b.android.com.\n");
+			abort();
+		}
+	}
+	return retval;
+}
+
+void rcComposeAsyncWithoutPost_enc(void *self , uint32_t bufferSize, void* buffer)
+{
+	AEMU_SCOPED_TRACE("rcComposeAsyncWithoutPost encode");
+
+	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	const unsigned int __size_buffer =  bufferSize;
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + __size_buffer + 1*4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_rcComposeAsyncWithoutPost;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &bufferSize, 4); ptr += 4;
+	memcpy(ptr, &__size_buffer, 4); ptr += 4;
+	memcpy(ptr, buffer, __size_buffer);ptr += __size_buffer;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+	stream->flush();
+}
+
 }  // namespace
 
 renderControl_encoder_context_t::renderControl_encoder_context_t(IOStream *stream, ChecksumCalculator *checksumCalculator)
@@ -2396,5 +2470,7 @@ renderControl_encoder_context_t::renderControl_encoder_context_t(IOStream *strea
 	this->rcMakeCurrentAsync = &rcMakeCurrentAsync_enc;
 	this->rcComposeAsync = &rcComposeAsync_enc;
 	this->rcDestroySyncKHRAsync = &rcDestroySyncKHRAsync_enc;
+	this->rcComposeWithoutPost = &rcComposeWithoutPost_enc;
+	this->rcComposeAsyncWithoutPost = &rcComposeAsyncWithoutPost_enc;
 }
 
