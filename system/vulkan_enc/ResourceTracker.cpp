@@ -4772,7 +4772,7 @@ public:
         VkEncoder* enc = (VkEncoder*)context;
 
         std::vector<std::vector<VkDescriptorImageInfo>> imageInfosPerWrite(
-            descriptorWriteCount);
+                descriptorWriteCount);
 
         std::vector<VkWriteDescriptorSet> writesWithSuppressedSamplers;
 
@@ -4780,15 +4780,29 @@ public:
             AutoLock lock(mLock);
             for (uint32_t i = 0; i < descriptorWriteCount; ++i) {
                 writesWithSuppressedSamplers.push_back(
-                    createImmutableSamplersFilteredWriteDescriptorSetLocked(
-                        pDescriptorWrites + i,
-                        imageInfosPerWrite.data() + i));
+                        createImmutableSamplersFilteredWriteDescriptorSetLocked(
+                            pDescriptorWrites + i,
+                            imageInfosPerWrite.data() + i));
             }
         }
 
-        enc->vkUpdateDescriptorSets(
-            device, descriptorWriteCount, writesWithSuppressedSamplers.data(),
-            descriptorCopyCount, pDescriptorCopies, true /* do lock */);
+        if (mFeatureInfo->hasVulkanBatchedDescriptorSetUpdate) {
+            for (uint32_t i = 0; i < descriptorWriteCount; ++i) {
+                VkDescriptorSet set = writesWithSuppressedSamplers[i].dstSet;
+                doEmulatedDescriptorWrite(&writesWithSuppressedSamplers[i],
+                        as_goldfish_VkDescriptorSet(set)->reified);
+            }
+
+            for (uint32_t i = 0; i < descriptorCopyCount; ++i) {
+                doEmulatedDescriptorCopy(&pDescriptorCopies[i],
+                        as_goldfish_VkDescriptorSet(pDescriptorCopies[i].srcSet)->reified,
+                        as_goldfish_VkDescriptorSet(pDescriptorCopies[i].dstSet)->reified);
+            }
+        } else {
+            enc->vkUpdateDescriptorSets(
+                    device, descriptorWriteCount, writesWithSuppressedSamplers.data(),
+                    descriptorCopyCount, pDescriptorCopies, true /* do lock */);
+        }
     }
 
     void on_vkDestroyImage(
@@ -5857,44 +5871,100 @@ public:
         size_t currBufferInfoOffset = 0;
         size_t currBufferViewOffset = 0;
 
+        struct goldfish_VkDescriptorSet* ds = as_goldfish_VkDescriptorSet(descriptorSet);
+        ReifiedDescriptorSet* reified = ds->reified;
+
+        bool batched = mFeatureInfo->hasVulkanBatchedDescriptorSetUpdate;
+
         for (uint32_t i = 0; i < templateEntryCount; ++i) {
             const auto& entry = templateEntries[i];
             VkDescriptorType descType = entry.descriptorType;
+            uint32_t dstBinding = entry.dstBinding;
 
             auto offset = entry.offset;
             auto stride = entry.stride;
+            auto dstArrayElement = entry.dstArrayElement;
 
             uint32_t descCount = entry.descriptorCount;
 
             if (isDescriptorTypeImageInfo(descType)) {
+
                 if (!stride) stride = sizeof(VkDescriptorImageInfo);
+
+                const VkDescriptorImageInfo* currImageInfoBegin =
+                    (const VkDescriptorImageInfo*)((uint8_t*)imageInfos + currImageInfoOffset);
+
                 for (uint32_t j = 0; j < descCount; ++j) {
+                    const VkDescriptorImageInfo* user =
+                        (const VkDescriptorImageInfo*)(userBuffer + offset + j * stride);
+
                     memcpy(((uint8_t*)imageInfos) + currImageInfoOffset,
                            userBuffer + offset + j * stride,
                            sizeof(VkDescriptorImageInfo));
                     currImageInfoOffset += sizeof(VkDescriptorImageInfo);
                 }
+
+                if (batched) doEmulatedDescriptorImageInfoWriteFromTemplate(
+                        descType,
+                        dstBinding,
+                        dstArrayElement,
+                        descCount,
+                        currImageInfoBegin,
+                        reified);
+
             } else if (isDescriptorTypeBufferInfo(descType)) {
+
+
                 if (!stride) stride = sizeof(VkDescriptorBufferInfo);
+
+                const VkDescriptorBufferInfo* currBufferInfoBegin =
+                    (const VkDescriptorBufferInfo*)((uint8_t*)bufferInfos + currBufferInfoOffset);
+
                 for (uint32_t j = 0; j < descCount; ++j) {
+                    const VkDescriptorBufferInfo* user =
+                        (const VkDescriptorBufferInfo*)(userBuffer + offset + j * stride);
+
                     memcpy(((uint8_t*)bufferInfos) + currBufferInfoOffset,
                            userBuffer + offset + j * stride,
                            sizeof(VkDescriptorBufferInfo));
                     currBufferInfoOffset += sizeof(VkDescriptorBufferInfo);
                 }
+
+                if (batched) doEmulatedDescriptorBufferInfoWriteFromTemplate(
+                        descType,
+                        dstBinding,
+                        dstArrayElement,
+                        descCount,
+                        currBufferInfoBegin,
+                        reified);
+
             } else if (isDescriptorTypeBufferView(descType)) {
                 if (!stride) stride = sizeof(VkBufferView);
+
+                const VkBufferView* currBufferViewBegin =
+                    (const VkBufferView*)((uint8_t*)bufferViews + currBufferViewOffset);
+
                 for (uint32_t j = 0; j < descCount; ++j) {
                     memcpy(((uint8_t*)bufferViews) + currBufferViewOffset,
                            userBuffer + offset + j * stride,
                            sizeof(VkBufferView));
                     currBufferViewOffset += sizeof(VkBufferView);
                 }
+
+                if (batched) doEmulatedDescriptorBufferViewWriteFromTemplate(
+                        descType,
+                        dstBinding,
+                        dstArrayElement,
+                        descCount,
+                        currBufferViewBegin,
+                        reified);
             } else {
                 ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
                 abort();
             }
         }
+
+        if (batched) return;
 
         enc->vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
             device,
