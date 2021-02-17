@@ -70,6 +70,8 @@ struct renderControl_client_context_t {
 	rcMakeCurrentAsync_client_proc_t rcMakeCurrentAsync;
 	rcComposeAsync_client_proc_t rcComposeAsync;
 	rcDestroySyncKHRAsync_client_proc_t rcDestroySyncKHRAsync;
+	rcComposeWithoutPost_client_proc_t rcComposeWithoutPost;
+	rcComposeAsyncWithoutPost_client_proc_t rcComposeAsyncWithoutPost;
 	virtual ~renderControl_client_context_t() {}
 
 	typedef renderControl_client_context_t *CONTEXT_ACCESSOR_TYPE(void);

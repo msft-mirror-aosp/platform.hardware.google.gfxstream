@@ -22,6 +22,7 @@ emulator_hwcomposer_shared_libraries := \
     liblog \
     libutils \
     libcutils \
+    libdrm \
     libEGL \
     libutils \
     libhardware \
@@ -41,7 +42,8 @@ emulator_hwcomposer_c_includes += \
     device/generic/goldfish-opengl/system/OpenglSystemCommon \
     device/generic/goldfish-opengl/host/include/libOpenglRender \
     device/generic/goldfish-opengl/shared/OpenglCodecCommon \
-    device/generic/goldfish-opengl/system/renderControl_enc
+    device/generic/goldfish-opengl/system/renderControl_enc \
+    external/libdrm
 
 emulator_hwcomposer_relative_path := hw
 
@@ -56,6 +58,8 @@ LOCAL_SHARED_LIBRARIES += libOpenglSystemCommon lib_renderControl_enc
 LOCAL_SHARED_LIBRARIES += libui
 LOCAL_SRC_FILES := $(emulator_hwcomposer2_src_files)
 LOCAL_C_INCLUDES := $(emulator_hwcomposer_c_includes)
+LOCAL_C_INCLUDES += external/drm_hwcomposer
+LOCAL_C_INCLUDES += external/minigbm/cros_gralloc
 LOCAL_MODULE_RELATIVE_PATH := $(emulator_hwcomposer_relative_path)
 
 LOCAL_MODULE := hwcomposer.ranchu
@@ -65,3 +69,17 @@ LOCAL_NOTICE_FILE := $(LOCAL_PATH)/../../LICENSE
 LOCAL_MODULE_TAGS := optional
 
 include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_VENDOR_MODULE := true
+LOCAL_SRC_FILES := drmTest.cpp
+LOCAL_SHARED_LIBRARIES := $(emulator_hwcomposer_shared_libraries)
+LOCAL_SHARED_LIBRARIES += libOpenglSystemCommon lib_renderControl_enc
+LOCAL_SHARED_LIBRARIES += libui
+LOCAL_SHARED_LIBRARIES += libdrm
+LOCAL_C_INCLUDES := $(emulator_hwcomposer_c_includes)
+LOCAL_C_INCLUDES += external/libdrm
+LOCAL_C_INCLUDES += external/drm_hwcomposer
+LOCAL_C_INCLUDES += external/minigbm/cros_gralloc
+LOCAL_MODULE := emulatorDrmTest
+include $(BUILD_EXECUTABLE)
