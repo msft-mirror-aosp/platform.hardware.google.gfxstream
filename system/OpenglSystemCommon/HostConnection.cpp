@@ -671,6 +671,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetHostSideTracingSupport(rcEnc);
         queryAndSetAsyncFrameCommands(rcEnc);
         queryAndSetVulkanQueueSubmitWithCommandsSupport(rcEnc);
+        queryAndSetVulkanBatchedDescriptorSetUpdateSupport(rcEnc);
         if (m_processPipe) {
             m_processPipe->processPipeInit(m_connectionType, rcEnc);
         }
@@ -955,3 +956,9 @@ void HostConnection::queryAndSetVulkanQueueSubmitWithCommandsSupport(ExtendedRCE
     }
 }
 
+void HostConnection::queryAndSetVulkanBatchedDescriptorSetUpdateSupport(ExtendedRCEncoderContext* rcEnc) {
+    std::string glExtensions = queryGLExtensions(rcEnc);
+    if (glExtensions.find(kVulkanBatchedDescriptorSetUpdate) != std::string::npos) {
+        rcEnc->featureInfo()->hasVulkanBatchedDescriptorSetUpdate = true;
+    }
+}

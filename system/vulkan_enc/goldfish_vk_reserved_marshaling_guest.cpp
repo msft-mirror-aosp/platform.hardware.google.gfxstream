@@ -434,7 +434,7 @@ void reservedmarshal_VkInstanceCreateInfo(
     *ptr += sizeof(uint32_t);
     {
         uint32_t c = 0;
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             c = forMarshaling->enabledLayerCount;
         }
@@ -458,7 +458,7 @@ void reservedmarshal_VkInstanceCreateInfo(
     *ptr += sizeof(uint32_t);
     {
         uint32_t c = 0;
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             c = forMarshaling->enabledExtensionCount;
         }
@@ -961,7 +961,7 @@ void reservedmarshal_VkDeviceCreateInfo(
     *ptr += sizeof(uint32_t);
     {
         uint32_t c = 0;
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             c = forMarshaling->enabledLayerCount;
         }
@@ -985,7 +985,7 @@ void reservedmarshal_VkDeviceCreateInfo(
     *ptr += sizeof(uint32_t);
     {
         uint32_t c = 0;
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             c = forMarshaling->enabledExtensionCount;
         }
@@ -1058,7 +1058,7 @@ void reservedmarshal_VkSubmitInfo(
     if (forMarshaling->waitSemaphoreCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t k = 0; k < forMarshaling->waitSemaphoreCount; ++k)
             {
@@ -1075,7 +1075,7 @@ void reservedmarshal_VkSubmitInfo(
     if (forMarshaling->commandBufferCount)
     {
         uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t k = 0; k < forMarshaling->commandBufferCount; ++k)
             {
@@ -1090,7 +1090,7 @@ void reservedmarshal_VkSubmitInfo(
     if (forMarshaling->signalSemaphoreCount)
     {
         uint8_t* cgen_var_2_ptr = (uint8_t*)(*ptr);
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t k = 0; k < forMarshaling->signalSemaphoreCount; ++k)
             {
@@ -1271,7 +1271,7 @@ void reservedmarshal_VkBindSparseInfo(
     if (forMarshaling->waitSemaphoreCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t k = 0; k < forMarshaling->waitSemaphoreCount; ++k)
             {
@@ -1304,7 +1304,7 @@ void reservedmarshal_VkBindSparseInfo(
     if (forMarshaling->signalSemaphoreCount)
     {
         uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t k = 0; k < forMarshaling->signalSemaphoreCount; ++k)
             {
@@ -2212,7 +2212,7 @@ void reservedmarshal_VkPipelineLayoutCreateInfo(
     if (forMarshaling->setLayoutCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t k = 0; k < forMarshaling->setLayoutCount; ++k)
             {
@@ -2387,7 +2387,7 @@ void reservedmarshal_VkDescriptorSetAllocateInfo(
     if (forMarshaling->descriptorSetCount)
     {
         uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t k = 0; k < forMarshaling->descriptorSetCount; ++k)
             {
@@ -2423,7 +2423,7 @@ void reservedmarshal_VkDescriptorSetLayoutBinding(
         if (forMarshaling->descriptorCount)
         {
             uint8_t* cgen_var_0_0_ptr = (uint8_t*)(*ptr);
-            if ((forMarshaling) != nullptr)
+            if (forMarshaling)
             {
                 for (uint32_t k = 0; k < forMarshaling->descriptorCount; ++k)
                 {
@@ -2518,7 +2518,7 @@ void reservedmarshal_VkWriteDescriptorSet(
             if (forMarshaling->descriptorCount)
             {
                 uint8_t* cgen_var_3_0_ptr = (uint8_t*)(*ptr);
-                if ((forMarshaling) != nullptr)
+                if (forMarshaling)
                 {
                     for (uint32_t k = 0; k < forMarshaling->descriptorCount; ++k)
                     {
@@ -2590,7 +2590,7 @@ void reservedmarshal_VkFramebufferCreateInfo(
     if (forMarshaling->attachmentCount)
     {
         uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t k = 0; k < forMarshaling->attachmentCount; ++k)
             {
@@ -3243,7 +3243,7 @@ void reservedmarshal_VkDeviceGroupDeviceCreateInfo(
     if (forMarshaling->physicalDeviceCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t k = 0; k < forMarshaling->physicalDeviceCount; ++k)
             {
@@ -5017,7 +5017,7 @@ void reservedmarshal_VkRenderPassAttachmentBeginInfo(
     if (forMarshaling->attachmentCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t k = 0; k < forMarshaling->attachmentCount; ++k)
             {
@@ -5201,7 +5201,7 @@ void reservedmarshal_VkSemaphoreWaitInfo(
     if (forMarshaling->semaphoreCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t k = 0; k < forMarshaling->semaphoreCount; ++k)
             {
@@ -5414,7 +5414,7 @@ void reservedmarshal_VkPresentInfoKHR(
     if (forMarshaling->waitSemaphoreCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t k = 0; k < forMarshaling->waitSemaphoreCount; ++k)
             {
@@ -5429,7 +5429,7 @@ void reservedmarshal_VkPresentInfoKHR(
     if (forMarshaling->swapchainCount)
     {
         uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t k = 0; k < forMarshaling->swapchainCount; ++k)
             {
@@ -5990,7 +5990,7 @@ void reservedmarshal_VkWin32KeyedMutexAcquireReleaseInfoKHR(
     if (forMarshaling->acquireCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t k = 0; k < forMarshaling->acquireCount; ++k)
             {
@@ -6009,7 +6009,7 @@ void reservedmarshal_VkWin32KeyedMutexAcquireReleaseInfoKHR(
     if (forMarshaling->releaseCount)
     {
         uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t k = 0; k < forMarshaling->releaseCount; ++k)
             {
@@ -7008,7 +7008,7 @@ void reservedmarshal_VkPipelineLibraryCreateInfoKHR(
     if (forMarshaling->libraryCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t k = 0; k < forMarshaling->libraryCount; ++k)
             {
@@ -7793,7 +7793,7 @@ void reservedmarshal_VkWin32KeyedMutexAcquireReleaseInfoNV(
     if (forMarshaling->acquireCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t k = 0; k < forMarshaling->acquireCount; ++k)
             {
@@ -7812,7 +7812,7 @@ void reservedmarshal_VkWin32KeyedMutexAcquireReleaseInfoNV(
     if (forMarshaling->releaseCount)
     {
         uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t k = 0; k < forMarshaling->releaseCount; ++k)
             {
@@ -9606,7 +9606,7 @@ void reservedmarshal_VkWriteDescriptorSetAccelerationStructureNV(
         if (forMarshaling->accelerationStructureCount)
         {
             uint8_t* cgen_var_0_0_ptr = (uint8_t*)(*ptr);
-            if ((forMarshaling) != nullptr)
+            if (forMarshaling)
             {
                 for (uint32_t k = 0; k < forMarshaling->accelerationStructureCount; ++k)
                 {
@@ -11176,7 +11176,7 @@ void reservedmarshal_VkGraphicsPipelineShaderGroupsCreateInfoNV(
     if (forMarshaling->pipelineCount)
     {
         uint8_t* cgen_var_0_ptr = (uint8_t*)(*ptr);
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t k = 0; k < forMarshaling->pipelineCount; ++k)
             {
@@ -12040,7 +12040,7 @@ void reservedmarshal_VkWriteDescriptorSetAccelerationStructureKHR(
         if (forMarshaling->accelerationStructureCount)
         {
             uint8_t* cgen_var_0_0_ptr = (uint8_t*)(*ptr);
-            if ((forMarshaling) != nullptr)
+            if (forMarshaling)
             {
                 for (uint32_t k = 0; k < forMarshaling->accelerationStructureCount; ++k)
                 {

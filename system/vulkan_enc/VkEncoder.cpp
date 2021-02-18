@@ -296,7 +296,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDevices(
         if ((*(pPhysicalDeviceCount)))
         {
             uint8_t* cgen_var_2_0_ptr = (uint8_t*)(*streamPtrPtr);
-            if ((pPhysicalDeviceCount) != nullptr)
+            if (pPhysicalDeviceCount)
             {
                 for (uint32_t k = 0; k < (*(pPhysicalDeviceCount)); ++k)
                 {
@@ -602,7 +602,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
         *countPtr += 8;
         if (pQueueFamilyProperties)
         {
-            if ((pQueueFamilyPropertyCount) != nullptr)
+            if (pQueueFamilyPropertyCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
                 {
@@ -665,7 +665,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
         {
             fprintf(stderr, "fatal: pQueueFamilyProperties inconsistent between guest and host\n");
         }
-        if ((pQueueFamilyPropertyCount) != nullptr)
+        if (pQueueFamilyPropertyCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
             {
@@ -673,7 +673,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
             }
         }
     }
-    if ((pQueueFamilyPropertyCount) != nullptr)
+    if (pQueueFamilyPropertyCount)
     {
         if (pQueueFamilyProperties)
         {
@@ -1054,7 +1054,7 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
         *countPtr += 8;
         if (pProperties)
         {
-            if ((pPropertyCount) != nullptr)
+            if (pPropertyCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
@@ -1143,7 +1143,7 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        if ((pPropertyCount) != nullptr)
+        if (pPropertyCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
@@ -1151,7 +1151,7 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
             }
         }
     }
-    if ((pPropertyCount) != nullptr)
+    if (pPropertyCount)
     {
         if (pProperties)
         {
@@ -1218,7 +1218,7 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
         *countPtr += 8;
         if (pProperties)
         {
-            if ((pPropertyCount) != nullptr)
+            if (pPropertyCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
@@ -1311,7 +1311,7 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        if ((pPropertyCount) != nullptr)
+        if (pPropertyCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
@@ -1319,7 +1319,7 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
             }
         }
     }
-    if ((pPropertyCount) != nullptr)
+    if (pPropertyCount)
     {
         if (pProperties)
         {
@@ -1364,7 +1364,7 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
         *countPtr += 8;
         if (pProperties)
         {
-            if ((pPropertyCount) != nullptr)
+            if (pPropertyCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
@@ -1423,7 +1423,7 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        if ((pPropertyCount) != nullptr)
+        if (pPropertyCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
@@ -1431,7 +1431,7 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
             }
         }
     }
-    if ((pPropertyCount) != nullptr)
+    if (pPropertyCount)
     {
         if (pProperties)
         {
@@ -1481,7 +1481,7 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
         *countPtr += 8;
         if (pProperties)
         {
-            if ((pPropertyCount) != nullptr)
+            if (pPropertyCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
@@ -1544,7 +1544,7 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        if ((pPropertyCount) != nullptr)
+        if (pPropertyCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
@@ -1552,7 +1552,7 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
             }
         }
     }
-    if ((pPropertyCount) != nullptr)
+    if (pPropertyCount)
     {
         if (pProperties)
         {
@@ -2511,7 +2511,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
         *countPtr += 8;
         if (pSparseMemoryRequirements)
         {
-            if ((pSparseMemoryRequirementCount) != nullptr)
+            if (pSparseMemoryRequirementCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
                 {
@@ -2578,7 +2578,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
         {
             fprintf(stderr, "fatal: pSparseMemoryRequirements inconsistent between guest and host\n");
         }
-        if ((pSparseMemoryRequirementCount) != nullptr)
+        if (pSparseMemoryRequirementCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
             {
@@ -2586,7 +2586,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
             }
         }
     }
-    if ((pSparseMemoryRequirementCount) != nullptr)
+    if (pSparseMemoryRequirementCount)
     {
         if (pSparseMemoryRequirements)
         {
@@ -2653,7 +2653,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
         *countPtr += 8;
         if (pProperties)
         {
-            if ((pPropertyCount) != nullptr)
+            if (pPropertyCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
@@ -2726,7 +2726,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        if ((pPropertyCount) != nullptr)
+        if (pPropertyCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
@@ -2734,7 +2734,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
             }
         }
     }
-    if ((pPropertyCount) != nullptr)
+    if (pPropertyCount)
     {
         if (pProperties)
         {
@@ -5107,7 +5107,7 @@ VkResult VkEncoder::vkGetPipelineCacheData(
         *countPtr += 8;
         if (pData)
         {
-            if ((pDataSize) != nullptr)
+            if (pDataSize)
             {
                 *countPtr += (*(pDataSize)) * sizeof(uint8_t);
             }
@@ -11250,7 +11250,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
         *countPtr += 8;
         if (pPhysicalDeviceGroupProperties)
         {
-            if ((pPhysicalDeviceGroupCount) != nullptr)
+            if (pPhysicalDeviceGroupCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
                 {
@@ -11313,7 +11313,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
         {
             fprintf(stderr, "fatal: pPhysicalDeviceGroupProperties inconsistent between guest and host\n");
         }
-        if ((pPhysicalDeviceGroupCount) != nullptr)
+        if (pPhysicalDeviceGroupCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
             {
@@ -11321,7 +11321,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
             }
         }
     }
-    if ((pPhysicalDeviceGroupCount) != nullptr)
+    if (pPhysicalDeviceGroupCount)
     {
         if (pPhysicalDeviceGroupProperties)
         {
@@ -11504,7 +11504,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
         *countPtr += 8;
         if (pSparseMemoryRequirements)
         {
-            if ((pSparseMemoryRequirementCount) != nullptr)
+            if (pSparseMemoryRequirementCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
                 {
@@ -11568,7 +11568,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
         {
             fprintf(stderr, "fatal: pSparseMemoryRequirements inconsistent between guest and host\n");
         }
-        if ((pSparseMemoryRequirementCount) != nullptr)
+        if (pSparseMemoryRequirementCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
             {
@@ -11576,7 +11576,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
             }
         }
     }
-    if ((pSparseMemoryRequirementCount) != nullptr)
+    if (pSparseMemoryRequirementCount)
     {
         if (pSparseMemoryRequirements)
         {
@@ -11831,7 +11831,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
         *countPtr += 8;
         if (pQueueFamilyProperties)
         {
-            if ((pQueueFamilyPropertyCount) != nullptr)
+            if (pQueueFamilyPropertyCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
                 {
@@ -11894,7 +11894,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
         {
             fprintf(stderr, "fatal: pQueueFamilyProperties inconsistent between guest and host\n");
         }
-        if ((pQueueFamilyPropertyCount) != nullptr)
+        if (pQueueFamilyPropertyCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
             {
@@ -11902,7 +11902,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
             }
         }
     }
-    if ((pQueueFamilyPropertyCount) != nullptr)
+    if (pQueueFamilyPropertyCount)
     {
         if (pQueueFamilyProperties)
         {
@@ -12009,7 +12009,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
         *countPtr += 8;
         if (pProperties)
         {
-            if ((pPropertyCount) != nullptr)
+            if (pPropertyCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
@@ -12073,7 +12073,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        if ((pPropertyCount) != nullptr)
+        if (pPropertyCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
@@ -12081,7 +12081,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
             }
         }
     }
-    if ((pPropertyCount) != nullptr)
+    if (pPropertyCount)
     {
         if (pProperties)
         {
@@ -13965,7 +13965,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
         *countPtr += 8;
         if (pSurfaceFormats)
         {
-            if ((pSurfaceFormatCount) != nullptr)
+            if (pSurfaceFormatCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
                 {
@@ -14032,7 +14032,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
         {
             fprintf(stderr, "fatal: pSurfaceFormats inconsistent between guest and host\n");
         }
-        if ((pSurfaceFormatCount) != nullptr)
+        if (pSurfaceFormatCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
             {
@@ -14040,7 +14040,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
             }
         }
     }
-    if ((pSurfaceFormatCount) != nullptr)
+    if (pSurfaceFormatCount)
     {
         if (pSurfaceFormats)
         {
@@ -14095,7 +14095,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModesKHR(
         *countPtr += 8;
         if (pPresentModes)
         {
-            if ((pPresentModeCount) != nullptr)
+            if (pPresentModeCount)
             {
                 *countPtr += (*(pPresentModeCount)) * sizeof(VkPresentModeKHR);
             }
@@ -14423,7 +14423,7 @@ VkResult VkEncoder::vkGetSwapchainImagesKHR(
         if ((*(pSwapchainImageCount)))
         {
             uint8_t* cgen_var_3_0_ptr = (uint8_t*)(*streamPtrPtr);
-            if ((pSwapchainImageCount) != nullptr)
+            if (pSwapchainImageCount)
             {
                 for (uint32_t k = 0; k < (*(pSwapchainImageCount)); ++k)
                 {
@@ -14769,7 +14769,7 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
         *countPtr += 8;
         if (pRects)
         {
-            if ((pRectCount) != nullptr)
+            if (pRectCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i)
                 {
@@ -14836,7 +14836,7 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
         {
             fprintf(stderr, "fatal: pRects inconsistent between guest and host\n");
         }
-        if ((pRectCount) != nullptr)
+        if (pRectCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i)
             {
@@ -14844,7 +14844,7 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
             }
         }
     }
-    if ((pRectCount) != nullptr)
+    if (pRectCount)
     {
         if (pRects)
         {
@@ -14956,7 +14956,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
         *countPtr += 8;
         if (pProperties)
         {
-            if ((pPropertyCount) != nullptr)
+            if (pPropertyCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
@@ -15019,7 +15019,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        if ((pPropertyCount) != nullptr)
+        if (pPropertyCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
@@ -15027,7 +15027,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
             }
         }
     }
-    if ((pPropertyCount) != nullptr)
+    if (pPropertyCount)
     {
         if (pProperties)
         {
@@ -15077,7 +15077,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
         *countPtr += 8;
         if (pProperties)
         {
-            if ((pPropertyCount) != nullptr)
+            if (pPropertyCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
@@ -15140,7 +15140,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        if ((pPropertyCount) != nullptr)
+        if (pPropertyCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
@@ -15148,7 +15148,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
             }
         }
     }
-    if ((pPropertyCount) != nullptr)
+    if (pPropertyCount)
     {
         if (pProperties)
         {
@@ -15243,7 +15243,7 @@ VkResult VkEncoder::vkGetDisplayPlaneSupportedDisplaysKHR(
         if ((*(pDisplayCount)))
         {
             uint8_t* cgen_var_2_0_ptr = (uint8_t*)(*streamPtrPtr);
-            if ((pDisplayCount) != nullptr)
+            if (pDisplayCount)
             {
                 for (uint32_t k = 0; k < (*(pDisplayCount)); ++k)
                 {
@@ -15328,7 +15328,7 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
         *countPtr += 8;
         if (pProperties)
         {
-            if ((pPropertyCount) != nullptr)
+            if (pPropertyCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
@@ -15395,7 +15395,7 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        if ((pPropertyCount) != nullptr)
+        if (pPropertyCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
@@ -15403,7 +15403,7 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
             }
         }
     }
-    if ((pPropertyCount) != nullptr)
+    if (pPropertyCount)
     {
         if (pProperties)
         {
@@ -16759,7 +16759,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
         *countPtr += 8;
         if (pQueueFamilyProperties)
         {
-            if ((pQueueFamilyPropertyCount) != nullptr)
+            if (pQueueFamilyPropertyCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
                 {
@@ -16822,7 +16822,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
         {
             fprintf(stderr, "fatal: pQueueFamilyProperties inconsistent between guest and host\n");
         }
-        if ((pQueueFamilyPropertyCount) != nullptr)
+        if (pQueueFamilyPropertyCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
             {
@@ -16830,7 +16830,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
             }
         }
     }
-    if ((pQueueFamilyPropertyCount) != nullptr)
+    if (pQueueFamilyPropertyCount)
     {
         if (pQueueFamilyProperties)
         {
@@ -16937,7 +16937,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
         *countPtr += 8;
         if (pProperties)
         {
-            if ((pPropertyCount) != nullptr)
+            if (pPropertyCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
@@ -17001,7 +17001,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        if ((pPropertyCount) != nullptr)
+        if (pPropertyCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
@@ -17009,7 +17009,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
             }
         }
     }
-    if ((pPropertyCount) != nullptr)
+    if (pPropertyCount)
     {
         if (pProperties)
         {
@@ -17301,7 +17301,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
         *countPtr += 8;
         if (pPhysicalDeviceGroupProperties)
         {
-            if ((pPhysicalDeviceGroupCount) != nullptr)
+            if (pPhysicalDeviceGroupCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
                 {
@@ -17364,7 +17364,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
         {
             fprintf(stderr, "fatal: pPhysicalDeviceGroupProperties inconsistent between guest and host\n");
         }
-        if ((pPhysicalDeviceGroupCount) != nullptr)
+        if (pPhysicalDeviceGroupCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
             {
@@ -17372,7 +17372,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
             }
         }
     }
-    if ((pPhysicalDeviceGroupCount) != nullptr)
+    if (pPhysicalDeviceGroupCount)
     {
         if (pPhysicalDeviceGroupProperties)
         {
@@ -19120,7 +19120,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCounters
         *countPtr += 8;
         if (pCounters)
         {
-            if ((pCounterCount) != nullptr)
+            if (pCounterCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
                 {
@@ -19132,7 +19132,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCounters
         *countPtr += 8;
         if (pCounterDescriptions)
         {
-            if ((pCounterCount) != nullptr)
+            if (pCounterCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
                 {
@@ -19209,7 +19209,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCounters
         {
             fprintf(stderr, "fatal: pCounters inconsistent between guest and host\n");
         }
-        if ((pCounterCount) != nullptr)
+        if (pCounterCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
             {
@@ -19217,7 +19217,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCounters
             }
         }
     }
-    if ((pCounterCount) != nullptr)
+    if (pCounterCount)
     {
         if (pCounters)
         {
@@ -19236,7 +19236,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCounters
         {
             fprintf(stderr, "fatal: pCounterDescriptions inconsistent between guest and host\n");
         }
-        if ((pCounterCount) != nullptr)
+        if (pCounterCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
             {
@@ -19244,7 +19244,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCounters
             }
         }
     }
-    if ((pCounterCount) != nullptr)
+    if (pCounterCount)
     {
         if (pCounterDescriptions)
         {
@@ -19525,7 +19525,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
         *countPtr += 8;
         if (pSurfaceFormats)
         {
-            if ((pSurfaceFormatCount) != nullptr)
+            if (pSurfaceFormatCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
                 {
@@ -19589,7 +19589,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
         {
             fprintf(stderr, "fatal: pSurfaceFormats inconsistent between guest and host\n");
         }
-        if ((pSurfaceFormatCount) != nullptr)
+        if (pSurfaceFormatCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
             {
@@ -19597,7 +19597,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
             }
         }
     }
-    if ((pSurfaceFormatCount) != nullptr)
+    if (pSurfaceFormatCount)
     {
         if (pSurfaceFormats)
         {
@@ -19651,7 +19651,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
         *countPtr += 8;
         if (pProperties)
         {
-            if ((pPropertyCount) != nullptr)
+            if (pPropertyCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
@@ -19714,7 +19714,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        if ((pPropertyCount) != nullptr)
+        if (pPropertyCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
@@ -19722,7 +19722,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
             }
         }
     }
-    if ((pPropertyCount) != nullptr)
+    if (pPropertyCount)
     {
         if (pProperties)
         {
@@ -19772,7 +19772,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
         *countPtr += 8;
         if (pProperties)
         {
-            if ((pPropertyCount) != nullptr)
+            if (pPropertyCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
@@ -19835,7 +19835,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        if ((pPropertyCount) != nullptr)
+        if (pPropertyCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
@@ -19843,7 +19843,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
             }
         }
     }
-    if ((pPropertyCount) != nullptr)
+    if (pPropertyCount)
     {
         if (pProperties)
         {
@@ -19898,7 +19898,7 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
         *countPtr += 8;
         if (pProperties)
         {
-            if ((pPropertyCount) != nullptr)
+            if (pPropertyCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
@@ -19965,7 +19965,7 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        if ((pPropertyCount) != nullptr)
+        if (pPropertyCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
@@ -19973,7 +19973,7 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
             }
         }
     }
-    if ((pPropertyCount) != nullptr)
+    if (pPropertyCount)
     {
         if (pProperties)
         {
@@ -20227,7 +20227,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
         *countPtr += 8;
         if (pSparseMemoryRequirements)
         {
-            if ((pSparseMemoryRequirementCount) != nullptr)
+            if (pSparseMemoryRequirementCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
                 {
@@ -20291,7 +20291,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
         {
             fprintf(stderr, "fatal: pSparseMemoryRequirements inconsistent between guest and host\n");
         }
-        if ((pSparseMemoryRequirementCount) != nullptr)
+        if (pSparseMemoryRequirementCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
             {
@@ -20299,7 +20299,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
             }
         }
     }
-    if ((pSparseMemoryRequirementCount) != nullptr)
+    if (pSparseMemoryRequirementCount)
     {
         if (pSparseMemoryRequirements)
         {
@@ -21097,7 +21097,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceFragmentShadingRatesKHR(
         *countPtr += 8;
         if (pFragmentShadingRates)
         {
-            if ((pFragmentShadingRateCount) != nullptr)
+            if (pFragmentShadingRateCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pFragmentShadingRateCount)); ++i)
                 {
@@ -21160,7 +21160,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceFragmentShadingRatesKHR(
         {
             fprintf(stderr, "fatal: pFragmentShadingRates inconsistent between guest and host\n");
         }
-        if ((pFragmentShadingRateCount) != nullptr)
+        if (pFragmentShadingRateCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pFragmentShadingRateCount)); ++i)
             {
@@ -21168,7 +21168,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceFragmentShadingRatesKHR(
             }
         }
     }
-    if ((pFragmentShadingRateCount) != nullptr)
+    if (pFragmentShadingRateCount)
     {
         if (pFragmentShadingRates)
         {
@@ -21768,7 +21768,7 @@ VkResult VkEncoder::vkGetPipelineExecutablePropertiesKHR(
         *countPtr += 8;
         if (pProperties)
         {
-            if ((pExecutableCount) != nullptr)
+            if (pExecutableCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pExecutableCount)); ++i)
                 {
@@ -21832,7 +21832,7 @@ VkResult VkEncoder::vkGetPipelineExecutablePropertiesKHR(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        if ((pExecutableCount) != nullptr)
+        if (pExecutableCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pExecutableCount)); ++i)
             {
@@ -21840,7 +21840,7 @@ VkResult VkEncoder::vkGetPipelineExecutablePropertiesKHR(
             }
         }
     }
-    if ((pExecutableCount) != nullptr)
+    if (pExecutableCount)
     {
         if (pProperties)
         {
@@ -21903,7 +21903,7 @@ VkResult VkEncoder::vkGetPipelineExecutableStatisticsKHR(
         *countPtr += 8;
         if (pStatistics)
         {
-            if ((pStatisticCount) != nullptr)
+            if (pStatisticCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pStatisticCount)); ++i)
                 {
@@ -21967,7 +21967,7 @@ VkResult VkEncoder::vkGetPipelineExecutableStatisticsKHR(
         {
             fprintf(stderr, "fatal: pStatistics inconsistent between guest and host\n");
         }
-        if ((pStatisticCount) != nullptr)
+        if (pStatisticCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pStatisticCount)); ++i)
             {
@@ -21975,7 +21975,7 @@ VkResult VkEncoder::vkGetPipelineExecutableStatisticsKHR(
             }
         }
     }
-    if ((pStatisticCount) != nullptr)
+    if (pStatisticCount)
     {
         if (pStatistics)
         {
@@ -22038,7 +22038,7 @@ VkResult VkEncoder::vkGetPipelineExecutableInternalRepresentationsKHR(
         *countPtr += 8;
         if (pInternalRepresentations)
         {
-            if ((pInternalRepresentationCount) != nullptr)
+            if (pInternalRepresentationCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pInternalRepresentationCount)); ++i)
                 {
@@ -22102,7 +22102,7 @@ VkResult VkEncoder::vkGetPipelineExecutableInternalRepresentationsKHR(
         {
             fprintf(stderr, "fatal: pInternalRepresentations inconsistent between guest and host\n");
         }
-        if ((pInternalRepresentationCount) != nullptr)
+        if (pInternalRepresentationCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pInternalRepresentationCount)); ++i)
             {
@@ -22110,7 +22110,7 @@ VkResult VkEncoder::vkGetPipelineExecutableInternalRepresentationsKHR(
             }
         }
     }
-    if ((pInternalRepresentationCount) != nullptr)
+    if (pInternalRepresentationCount)
     {
         if (pInternalRepresentations)
         {
@@ -24083,7 +24083,7 @@ VkResult VkEncoder::vkGetShaderInfoAMD(
         *countPtr += 8;
         if (pInfo)
         {
-            if ((pInfoSize) != nullptr)
+            if (pInfoSize)
             {
                 *countPtr += (*(pInfoSize)) * sizeof(uint8_t);
             }
@@ -25358,7 +25358,7 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
         *countPtr += 8;
         if (pPresentationTimings)
         {
-            if ((pPresentationTimingCount) != nullptr)
+            if (pPresentationTimingCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPresentationTimingCount)); ++i)
                 {
@@ -25425,7 +25425,7 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
         {
             fprintf(stderr, "fatal: pPresentationTimings inconsistent between guest and host\n");
         }
-        if ((pPresentationTimingCount) != nullptr)
+        if (pPresentationTimingCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPresentationTimingCount)); ++i)
             {
@@ -25433,7 +25433,7 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
             }
         }
     }
-    if ((pPresentationTimingCount) != nullptr)
+    if (pPresentationTimingCount)
     {
         if (pPresentationTimings)
         {
@@ -27343,7 +27343,7 @@ VkResult VkEncoder::vkGetValidationCacheDataEXT(
         *countPtr += 8;
         if (pData)
         {
-            if ((pDataSize) != nullptr)
+            if (pDataSize)
             {
                 *countPtr += (*(pDataSize)) * sizeof(uint8_t);
             }
@@ -28929,7 +28929,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceCalibrateableTimeDomainsEXT(
         *countPtr += 8;
         if (pTimeDomains)
         {
-            if ((pTimeDomainCount) != nullptr)
+            if (pTimeDomainCount)
             {
                 *countPtr += (*(pTimeDomainCount)) * sizeof(VkTimeDomainEXT);
             }
@@ -29475,7 +29475,7 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
         *countPtr += 8;
         if (pCheckpointData)
         {
-            if ((pCheckpointDataCount) != nullptr)
+            if (pCheckpointDataCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i)
                 {
@@ -29538,7 +29538,7 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
         {
             fprintf(stderr, "fatal: pCheckpointData inconsistent between guest and host\n");
         }
-        if ((pCheckpointDataCount) != nullptr)
+        if (pCheckpointDataCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i)
             {
@@ -29546,7 +29546,7 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
             }
         }
     }
-    if ((pCheckpointDataCount) != nullptr)
+    if (pCheckpointDataCount)
     {
         if (pCheckpointData)
         {
@@ -30522,7 +30522,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
         *countPtr += 8;
         if (pToolProperties)
         {
-            if ((pToolCount) != nullptr)
+            if (pToolCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i)
                 {
@@ -30585,7 +30585,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
         {
             fprintf(stderr, "fatal: pToolProperties inconsistent between guest and host\n");
         }
-        if ((pToolCount) != nullptr)
+        if (pToolCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i)
             {
@@ -30593,7 +30593,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
             }
         }
     }
-    if ((pToolCount) != nullptr)
+    if (pToolCount)
     {
         if (pToolProperties)
         {
@@ -30649,7 +30649,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceCooperativeMatrixPropertiesNV(
         *countPtr += 8;
         if (pProperties)
         {
-            if ((pPropertyCount) != nullptr)
+            if (pPropertyCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
@@ -30712,7 +30712,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceCooperativeMatrixPropertiesNV(
         {
             fprintf(stderr, "fatal: pProperties inconsistent between guest and host\n");
         }
-        if ((pPropertyCount) != nullptr)
+        if (pPropertyCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
@@ -30720,7 +30720,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceCooperativeMatrixPropertiesNV(
             }
         }
     }
-    if ((pPropertyCount) != nullptr)
+    if (pPropertyCount)
     {
         if (pProperties)
         {
@@ -30772,7 +30772,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinati
         *countPtr += 8;
         if (pCombinations)
         {
-            if ((pCombinationCount) != nullptr)
+            if (pCombinationCount)
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pCombinationCount)); ++i)
                 {
@@ -30835,7 +30835,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinati
         {
             fprintf(stderr, "fatal: pCombinations inconsistent between guest and host\n");
         }
-        if ((pCombinationCount) != nullptr)
+        if (pCombinationCount)
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pCombinationCount)); ++i)
             {
@@ -30843,7 +30843,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinati
             }
         }
     }
-    if ((pCombinationCount) != nullptr)
+    if (pCombinationCount)
     {
         if (pCombinations)
         {
@@ -30912,7 +30912,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModes2EXT(
         *countPtr += 8;
         if (pPresentModes)
         {
-            if ((pPresentModeCount) != nullptr)
+            if (pPresentModeCount)
             {
                 *countPtr += (*(pPresentModeCount)) * sizeof(VkPresentModeKHR);
             }
@@ -34279,6 +34279,236 @@ void VkEncoder::vkQueueFlushCommandsGOOGLE(
     uint32_t doLock)
 {
     #include "vkQueueFlushCommandsGOOGLE_encode_impl.cpp.inl"
+}
+
+void VkEncoder::vkQueueCommitDescriptorSetUpdatesGOOGLE(
+    VkQueue queue,
+    uint32_t descriptorPoolCount,
+    const VkDescriptorPool* pDescriptorPools,
+    uint32_t descriptorSetCount,
+    const VkDescriptorSetLayout* pSetLayouts,
+    const uint64_t* pDescriptorSetPoolIds,
+    const uint32_t* pDescriptorSetWhichPool,
+    const uint32_t* pDescriptorSetPendingAllocation,
+    const uint32_t* pDescriptorWriteStartingIndices,
+    uint32_t pendingDescriptorWriteCount,
+    const VkWriteDescriptorSet* pPendingDescriptorWrites,
+    uint32_t doLock)
+{
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkQueue local_queue;
+    uint32_t local_descriptorPoolCount;
+    VkDescriptorPool* local_pDescriptorPools;
+    uint32_t local_descriptorSetCount;
+    VkDescriptorSetLayout* local_pSetLayouts;
+    uint64_t* local_pDescriptorSetPoolIds;
+    uint32_t* local_pDescriptorSetWhichPool;
+    uint32_t* local_pDescriptorSetPendingAllocation;
+    uint32_t* local_pDescriptorWriteStartingIndices;
+    uint32_t local_pendingDescriptorWriteCount;
+    VkWriteDescriptorSet* local_pPendingDescriptorWrites;
+    local_queue = queue;
+    local_descriptorPoolCount = descriptorPoolCount;
+    // Avoiding deepcopy for pDescriptorPools
+    local_pDescriptorPools = (VkDescriptorPool*)pDescriptorPools;
+    local_descriptorSetCount = descriptorSetCount;
+    // Avoiding deepcopy for pSetLayouts
+    local_pSetLayouts = (VkDescriptorSetLayout*)pSetLayouts;
+    // Avoiding deepcopy for pDescriptorSetPoolIds
+    local_pDescriptorSetPoolIds = (uint64_t*)pDescriptorSetPoolIds;
+    // Avoiding deepcopy for pDescriptorSetWhichPool
+    local_pDescriptorSetWhichPool = (uint32_t*)pDescriptorSetWhichPool;
+    // Avoiding deepcopy for pDescriptorSetPendingAllocation
+    local_pDescriptorSetPendingAllocation = (uint32_t*)pDescriptorSetPendingAllocation;
+    // Avoiding deepcopy for pDescriptorWriteStartingIndices
+    local_pDescriptorWriteStartingIndices = (uint32_t*)pDescriptorWriteStartingIndices;
+    local_pendingDescriptorWriteCount = pendingDescriptorWriteCount;
+    local_pPendingDescriptorWrites = nullptr;
+    if (pPendingDescriptorWrites)
+    {
+        local_pPendingDescriptorWrites = (VkWriteDescriptorSet*)pool->alloc(((pendingDescriptorWriteCount)) * sizeof(const VkWriteDescriptorSet));
+        for (uint32_t i = 0; i < (uint32_t)((pendingDescriptorWriteCount)); ++i)
+        {
+            deepcopy_VkWriteDescriptorSet(pool, pPendingDescriptorWrites + i, (VkWriteDescriptorSet*)(local_pPendingDescriptorWrites + i));
+        }
+    }
+    if (local_pPendingDescriptorWrites)
+    {
+        for (uint32_t i = 0; i < (uint32_t)((pendingDescriptorWriteCount)); ++i)
+        {
+            transform_tohost_VkWriteDescriptorSet(sResourceTracker, (VkWriteDescriptorSet*)(local_pPendingDescriptorWrites + i));
+        }
+    }
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        *countPtr += sizeof(uint32_t);
+        if (((descriptorPoolCount)))
+        {
+            *countPtr += ((descriptorPoolCount)) * 8;
+        }
+        *countPtr += sizeof(uint32_t);
+        if (((descriptorSetCount)))
+        {
+            *countPtr += ((descriptorSetCount)) * 8;
+        }
+        *countPtr += ((descriptorSetCount)) * sizeof(uint64_t);
+        *countPtr += ((descriptorSetCount)) * sizeof(uint32_t);
+        *countPtr += ((descriptorSetCount)) * sizeof(uint32_t);
+        *countPtr += ((descriptorSetCount)) * sizeof(uint32_t);
+        *countPtr += sizeof(uint32_t);
+        for (uint32_t i = 0; i < (uint32_t)((pendingDescriptorWriteCount)); ++i)
+        {
+            count_VkWriteDescriptorSet(sFeatureBits, (VkWriteDescriptorSet*)(local_pPendingDescriptorWrites + i), countPtr);
+        }
+    }
+    uint32_t packetSize_vkQueueCommitDescriptorSetUpdatesGOOGLE = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    uint8_t* streamPtr = stream->reserve(packetSize_vkQueueCommitDescriptorSetUpdatesGOOGLE);
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkQueueCommitDescriptorSetUpdatesGOOGLE = OP_vkQueueCommitDescriptorSetUpdatesGOOGLE;
+    uint32_t seqno; if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    memcpy(streamPtr, &opcode_vkQueueCommitDescriptorSetUpdatesGOOGLE, sizeof(uint32_t)); streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkQueueCommitDescriptorSetUpdatesGOOGLE, sizeof(uint32_t)); streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) { memcpy(streamPtr, &seqno, sizeof(uint32_t)); streamPtr += sizeof(uint32_t); }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkQueue((*&local_queue));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    memcpy(*streamPtrPtr, (uint32_t*)&local_descriptorPoolCount, sizeof(uint32_t));
+    *streamPtrPtr += sizeof(uint32_t);
+    if (((descriptorPoolCount)))
+    {
+        uint8_t* cgen_var_1_ptr = (uint8_t*)(*streamPtrPtr);
+        for (uint32_t k = 0; k < ((descriptorPoolCount)); ++k)
+        {
+            uint64_t tmpval = get_host_u64_VkDescriptorPool(local_pDescriptorPools[k]);
+            memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+        }
+        *streamPtrPtr += 8 * ((descriptorPoolCount));
+    }
+    memcpy(*streamPtrPtr, (uint32_t*)&local_descriptorSetCount, sizeof(uint32_t));
+    *streamPtrPtr += sizeof(uint32_t);
+    if (((descriptorSetCount)))
+    {
+        uint8_t* cgen_var_2_ptr = (uint8_t*)(*streamPtrPtr);
+        for (uint32_t k = 0; k < ((descriptorSetCount)); ++k)
+        {
+            uint64_t tmpval = get_host_u64_VkDescriptorSetLayout(local_pSetLayouts[k]);
+            memcpy(cgen_var_2_ptr + k * 8, &tmpval, sizeof(uint64_t));
+        }
+        *streamPtrPtr += 8 * ((descriptorSetCount));
+    }
+    memcpy(*streamPtrPtr, (uint64_t*)local_pDescriptorSetPoolIds, ((descriptorSetCount)) * sizeof(uint64_t));
+    *streamPtrPtr += ((descriptorSetCount)) * sizeof(uint64_t);
+    memcpy(*streamPtrPtr, (uint32_t*)local_pDescriptorSetWhichPool, ((descriptorSetCount)) * sizeof(uint32_t));
+    *streamPtrPtr += ((descriptorSetCount)) * sizeof(uint32_t);
+    memcpy(*streamPtrPtr, (uint32_t*)local_pDescriptorSetPendingAllocation, ((descriptorSetCount)) * sizeof(uint32_t));
+    *streamPtrPtr += ((descriptorSetCount)) * sizeof(uint32_t);
+    memcpy(*streamPtrPtr, (uint32_t*)local_pDescriptorWriteStartingIndices, ((descriptorSetCount)) * sizeof(uint32_t));
+    *streamPtrPtr += ((descriptorSetCount)) * sizeof(uint32_t);
+    memcpy(*streamPtrPtr, (uint32_t*)&local_pendingDescriptorWriteCount, sizeof(uint32_t));
+    *streamPtrPtr += sizeof(uint32_t);
+    for (uint32_t i = 0; i < (uint32_t)((pendingDescriptorWriteCount)); ++i)
+    {
+        reservedmarshal_VkWriteDescriptorSet(stream, (VkWriteDescriptorSet*)(local_pPendingDescriptorWrites + i), streamPtrPtr);
+    }
+    stream->flush();
+    ++encodeCount;;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL)
+    {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+}
+
+void VkEncoder::vkCollectDescriptorPoolIdsGOOGLE(
+    VkDevice device,
+    VkDescriptorPool descriptorPool,
+    uint32_t* pPoolIdCount,
+    uint64_t* pPoolIds,
+    uint32_t doLock)
+{
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkDevice local_device;
+    VkDescriptorPool local_descriptorPool;
+    local_device = device;
+    local_descriptorPool = descriptorPool;
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        uint64_t cgen_var_1;
+        *countPtr += 1 * 8;
+        *countPtr += sizeof(uint32_t);
+        // WARNING PTR CHECK
+        *countPtr += 8;
+        if (pPoolIds)
+        {
+            if (pPoolIdCount)
+            {
+                *countPtr += (*(pPoolIdCount)) * sizeof(uint64_t);
+            }
+        }
+    }
+    uint32_t packetSize_vkCollectDescriptorPoolIdsGOOGLE = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    uint8_t* streamPtr = stream->reserve(packetSize_vkCollectDescriptorPoolIdsGOOGLE);
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkCollectDescriptorPoolIdsGOOGLE = OP_vkCollectDescriptorPoolIdsGOOGLE;
+    uint32_t seqno; if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    memcpy(streamPtr, &opcode_vkCollectDescriptorPoolIdsGOOGLE, sizeof(uint32_t)); streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkCollectDescriptorPoolIdsGOOGLE, sizeof(uint32_t)); streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) { memcpy(streamPtr, &seqno, sizeof(uint32_t)); streamPtr += sizeof(uint32_t); }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkDescriptorPool((*&local_descriptorPool));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    memcpy(*streamPtrPtr, (uint32_t*)pPoolIdCount, sizeof(uint32_t));
+    *streamPtrPtr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_2 = (uint64_t)(uintptr_t)pPoolIds;
+    memcpy((*streamPtrPtr), &cgen_var_2, 8);
+    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    *streamPtrPtr += 8;
+    if (pPoolIds)
+    {
+        memcpy(*streamPtrPtr, (uint64_t*)pPoolIds, (*(pPoolIdCount)) * sizeof(uint64_t));
+        *streamPtrPtr += (*(pPoolIdCount)) * sizeof(uint64_t);
+    }
+    stream->read((uint32_t*)pPoolIdCount, sizeof(uint32_t));
+    // WARNING PTR CHECK
+    uint64_t* check_pPoolIds;
+    check_pPoolIds = (uint64_t*)(uintptr_t)stream->getBe64();
+    if (pPoolIds)
+    {
+        if (!(check_pPoolIds))
+        {
+            fprintf(stderr, "fatal: pPoolIds inconsistent between guest and host\n");
+        }
+        stream->read((uint64_t*)pPoolIds, (*(pPoolIdCount)) * sizeof(uint64_t));
+    }
+    ++encodeCount;;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL)
+    {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
 }
 
 #endif
