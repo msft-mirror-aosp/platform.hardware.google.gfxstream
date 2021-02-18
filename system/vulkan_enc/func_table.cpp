@@ -856,7 +856,8 @@ static void entry_vkDestroyDescriptorSetLayout(
 {
     AEMU_SCOPED_TRACE("vkDestroyDescriptorSetLayout");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    vkEnc->vkDestroyDescriptorSetLayout(device, descriptorSetLayout, pAllocator, true /* do lock */);
+    auto resources = ResourceTracker::get();
+    resources->on_vkDestroyDescriptorSetLayout(vkEnc, device, descriptorSetLayout, pAllocator);
 }
 static VkResult entry_vkCreateDescriptorPool(
     VkDevice device,
@@ -1175,7 +1176,8 @@ static void entry_vkCmdBindDescriptorSets(
 {
     AEMU_SCOPED_TRACE("vkCmdBindDescriptorSets");
     auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
-    vkEnc->vkCmdBindDescriptorSets(commandBuffer, pipelineBindPoint, layout, firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount, pDynamicOffsets, true /* do lock */);
+    auto resources = ResourceTracker::get();
+    resources->on_vkCmdBindDescriptorSets(vkEnc, commandBuffer, pipelineBindPoint, layout, firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount, pDynamicOffsets);
 }
 static void entry_vkCmdBindIndexBuffer(
     VkCommandBuffer commandBuffer,
@@ -7411,6 +7413,48 @@ static void entry_vkQueueFlushCommandsGOOGLE(
     auto vkEnc = ResourceTracker::getQueueEncoder(queue);
     vkEnc->vkQueueFlushCommandsGOOGLE(queue, commandBuffer, dataSize, pData, true /* do lock */);
 }
+static void entry_vkQueueCommitDescriptorSetUpdatesGOOGLE(
+    VkQueue queue,
+    uint32_t descriptorPoolCount,
+    const VkDescriptorPool* pDescriptorPools,
+    uint32_t descriptorSetCount,
+    const VkDescriptorSetLayout* pSetLayouts,
+    const uint64_t* pDescriptorSetPoolIds,
+    const uint32_t* pDescriptorSetWhichPool,
+    const uint32_t* pDescriptorSetPendingAllocation,
+    const uint32_t* pDescriptorWriteStartingIndices,
+    uint32_t pendingDescriptorWriteCount,
+    const VkWriteDescriptorSet* pPendingDescriptorWrites)
+{
+    AEMU_SCOPED_TRACE("vkQueueCommitDescriptorSetUpdatesGOOGLE");
+    auto vkEnc = ResourceTracker::getQueueEncoder(queue);
+    vkEnc->vkQueueCommitDescriptorSetUpdatesGOOGLE(queue, descriptorPoolCount, pDescriptorPools, descriptorSetCount, pSetLayouts, pDescriptorSetPoolIds, pDescriptorSetWhichPool, pDescriptorSetPendingAllocation, pDescriptorWriteStartingIndices, pendingDescriptorWriteCount, pPendingDescriptorWrites, true /* do lock */);
+}
+static void entry_vkCollectDescriptorPoolIdsGOOGLE(
+    VkDevice device,
+    VkDescriptorPool descriptorPool,
+    uint32_t* pPoolIdCount,
+    uint64_t* pPoolIds)
+{
+    AEMU_SCOPED_TRACE("vkCollectDescriptorPoolIdsGOOGLE");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkCollectDescriptorPoolIdsGOOGLE(device, descriptorPool, pPoolIdCount, pPoolIds, true /* do lock */);
+}
+static void dynCheck_entry_vkCollectDescriptorPoolIdsGOOGLE(
+    VkDevice device,
+    VkDescriptorPool descriptorPool,
+    uint32_t* pPoolIdCount,
+    uint64_t* pPoolIds)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkCollectDescriptorPoolIdsGOOGLE", "VK_GOOGLE_gfxstream");
+    }
+    AEMU_SCOPED_TRACE("vkCollectDescriptorPoolIdsGOOGLE");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkCollectDescriptorPoolIdsGOOGLE(device, descriptorPool, pPoolIdCount, pPoolIds, true /* do lock */);
+}
 #endif
 #ifdef VK_KHR_acceleration_structure
 static VkResult entry_vkCreateAccelerationStructureKHR(
@@ -9873,6 +9917,14 @@ void* goldfish_vulkan_get_proc_address(const char* name){
     {
         return nullptr;
     }
+    if (!strcmp(name, "vkQueueCommitDescriptorSetUpdatesGOOGLE"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCollectDescriptorPoolIdsGOOGLE"))
+    {
+        return nullptr;
+    }
 #endif
 #ifdef VK_KHR_acceleration_structure
     if (!strcmp(name, "vkCreateAccelerationStructureKHR"))
@@ -12124,6 +12176,15 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     {
         bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkQueueFlushCommandsGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkQueueCommitDescriptorSetUpdatesGOOGLE"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)entry_vkQueueCommitDescriptorSetUpdatesGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkCollectDescriptorPoolIdsGOOGLE"))
+    {
+        return (void*)dynCheck_entry_vkCollectDescriptorPoolIdsGOOGLE;
     }
 #endif
 #ifdef VK_KHR_acceleration_structure
@@ -14506,6 +14567,16 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     {
         bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkQueueFlushCommandsGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkQueueCommitDescriptorSetUpdatesGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)entry_vkQueueCommitDescriptorSetUpdatesGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkCollectDescriptorPoolIdsGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)entry_vkCollectDescriptorPoolIdsGOOGLE : nullptr;
     }
 #endif
 #ifdef VK_KHR_acceleration_structure

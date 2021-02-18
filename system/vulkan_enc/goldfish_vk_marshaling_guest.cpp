@@ -1058,7 +1058,7 @@ void marshal_VkDeviceCreateInfo(
     marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDeviceCreateFlags*)&forMarshaling->flags, sizeof(VkDeviceCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->queueCreateInfoCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->queueCreateInfoCount; ++i)
         {
@@ -1086,7 +1086,7 @@ void unmarshal_VkDeviceCreateInfo(
     unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDeviceCreateFlags*)&forUnmarshaling->flags, sizeof(VkDeviceCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->queueCreateInfoCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->queueCreateInfoCount; ++i)
         {
@@ -1310,7 +1310,7 @@ void marshal_VkSparseBufferMemoryBindInfo(
     vkStream->handleMapping()->mapHandles_VkBuffer_u64(&forMarshaling->buffer, &cgen_var_0, 1);
     vkStream->write((uint64_t*)&cgen_var_0, 1 * 8);
     vkStream->write((uint32_t*)&forMarshaling->bindCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->bindCount; ++i)
         {
@@ -1327,7 +1327,7 @@ void unmarshal_VkSparseBufferMemoryBindInfo(
     vkStream->read((uint64_t*)&cgen_var_0, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkBuffer(&cgen_var_0, (VkBuffer*)&forUnmarshaling->buffer, 1);
     vkStream->read((uint32_t*)&forUnmarshaling->bindCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->bindCount; ++i)
         {
@@ -1344,7 +1344,7 @@ void marshal_VkSparseImageOpaqueMemoryBindInfo(
     vkStream->handleMapping()->mapHandles_VkImage_u64(&forMarshaling->image, &cgen_var_0, 1);
     vkStream->write((uint64_t*)&cgen_var_0, 1 * 8);
     vkStream->write((uint32_t*)&forMarshaling->bindCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->bindCount; ++i)
         {
@@ -1361,7 +1361,7 @@ void unmarshal_VkSparseImageOpaqueMemoryBindInfo(
     vkStream->read((uint64_t*)&cgen_var_0, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkImage(&cgen_var_0, (VkImage*)&forUnmarshaling->image, 1);
     vkStream->read((uint32_t*)&forUnmarshaling->bindCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->bindCount; ++i)
         {
@@ -1424,7 +1424,7 @@ void marshal_VkSparseImageMemoryBindInfo(
     vkStream->handleMapping()->mapHandles_VkImage_u64(&forMarshaling->image, &cgen_var_0, 1);
     vkStream->write((uint64_t*)&cgen_var_0, 1 * 8);
     vkStream->write((uint32_t*)&forMarshaling->bindCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->bindCount; ++i)
         {
@@ -1441,7 +1441,7 @@ void unmarshal_VkSparseImageMemoryBindInfo(
     vkStream->read((uint64_t*)&cgen_var_0, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkImage(&cgen_var_0, (VkImage*)&forUnmarshaling->image, 1);
     vkStream->read((uint32_t*)&forUnmarshaling->bindCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->bindCount; ++i)
         {
@@ -1465,7 +1465,7 @@ void marshal_VkBindSparseInfo(
         vkStream->write((uint64_t*)cgen_var_0, forMarshaling->waitSemaphoreCount * 8);
     }
     vkStream->write((uint32_t*)&forMarshaling->bufferBindCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->bufferBindCount; ++i)
         {
@@ -1473,7 +1473,7 @@ void marshal_VkBindSparseInfo(
         }
     }
     vkStream->write((uint32_t*)&forMarshaling->imageOpaqueBindCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->imageOpaqueBindCount; ++i)
         {
@@ -1481,7 +1481,7 @@ void marshal_VkBindSparseInfo(
         }
     }
     vkStream->write((uint32_t*)&forMarshaling->imageBindCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->imageBindCount; ++i)
         {
@@ -1513,7 +1513,7 @@ void unmarshal_VkBindSparseInfo(
         vkStream->handleMapping()->mapHandles_u64_VkSemaphore(cgen_var_0, (VkSemaphore*)forUnmarshaling->pWaitSemaphores, forUnmarshaling->waitSemaphoreCount);
     }
     vkStream->read((uint32_t*)&forUnmarshaling->bufferBindCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->bufferBindCount; ++i)
         {
@@ -1521,7 +1521,7 @@ void unmarshal_VkBindSparseInfo(
         }
     }
     vkStream->read((uint32_t*)&forUnmarshaling->imageOpaqueBindCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->imageOpaqueBindCount; ++i)
         {
@@ -1529,7 +1529,7 @@ void unmarshal_VkBindSparseInfo(
         }
     }
     vkStream->read((uint32_t*)&forUnmarshaling->imageBindCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->imageBindCount; ++i)
         {
@@ -1940,7 +1940,7 @@ void marshal_VkSpecializationInfo(
     const VkSpecializationInfo* forMarshaling)
 {
     vkStream->write((uint32_t*)&forMarshaling->mapEntryCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->mapEntryCount; ++i)
         {
@@ -1957,7 +1957,7 @@ void unmarshal_VkSpecializationInfo(
     VkSpecializationInfo* forUnmarshaling)
 {
     vkStream->read((uint32_t*)&forUnmarshaling->mapEntryCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->mapEntryCount; ++i)
         {
@@ -2094,7 +2094,7 @@ void marshal_VkPipelineVertexInputStateCreateInfo(
     marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineVertexInputStateCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineVertexInputStateCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->vertexBindingDescriptionCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->vertexBindingDescriptionCount; ++i)
         {
@@ -2102,7 +2102,7 @@ void marshal_VkPipelineVertexInputStateCreateInfo(
         }
     }
     vkStream->write((uint32_t*)&forMarshaling->vertexAttributeDescriptionCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->vertexAttributeDescriptionCount; ++i)
         {
@@ -2119,7 +2119,7 @@ void unmarshal_VkPipelineVertexInputStateCreateInfo(
     unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineVertexInputStateCreateFlags*)&forUnmarshaling->flags, sizeof(VkPipelineVertexInputStateCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->vertexBindingDescriptionCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->vertexBindingDescriptionCount; ++i)
         {
@@ -2127,7 +2127,7 @@ void unmarshal_VkPipelineVertexInputStateCreateInfo(
         }
     }
     vkStream->read((uint32_t*)&forUnmarshaling->vertexAttributeDescriptionCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->vertexAttributeDescriptionCount; ++i)
         {
@@ -2215,7 +2215,7 @@ void marshal_VkPipelineViewportStateCreateInfo(
     vkStream->putBe64(cgen_var_0);
     if (forMarshaling->pViewports)
     {
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->viewportCount; ++i)
             {
@@ -2229,7 +2229,7 @@ void marshal_VkPipelineViewportStateCreateInfo(
     vkStream->putBe64(cgen_var_1);
     if (forMarshaling->pScissors)
     {
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->scissorCount; ++i)
             {
@@ -2256,7 +2256,7 @@ void unmarshal_VkPipelineViewportStateCreateInfo(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pViewports inconsistent between guest and host\n");
         }
-        if ((forUnmarshaling) != nullptr)
+        if (forUnmarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->viewportCount; ++i)
             {
@@ -2274,7 +2274,7 @@ void unmarshal_VkPipelineViewportStateCreateInfo(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pScissors inconsistent between guest and host\n");
         }
-        if ((forUnmarshaling) != nullptr)
+        if (forUnmarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->scissorCount; ++i)
             {
@@ -2468,7 +2468,7 @@ void marshal_VkPipelineColorBlendStateCreateInfo(
     vkStream->write((VkBool32*)&forMarshaling->logicOpEnable, sizeof(VkBool32));
     vkStream->write((VkLogicOp*)&forMarshaling->logicOp, sizeof(VkLogicOp));
     vkStream->write((uint32_t*)&forMarshaling->attachmentCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->attachmentCount; ++i)
         {
@@ -2488,7 +2488,7 @@ void unmarshal_VkPipelineColorBlendStateCreateInfo(
     vkStream->read((VkBool32*)&forUnmarshaling->logicOpEnable, sizeof(VkBool32));
     vkStream->read((VkLogicOp*)&forUnmarshaling->logicOp, sizeof(VkLogicOp));
     vkStream->read((uint32_t*)&forUnmarshaling->attachmentCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->attachmentCount; ++i)
         {
@@ -2542,7 +2542,7 @@ void marshal_VkGraphicsPipelineCreateInfo(
     marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->stageCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->stageCount; ++i)
         {
@@ -2667,7 +2667,7 @@ void unmarshal_VkGraphicsPipelineCreateInfo(
     unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineCreateFlags*)&forUnmarshaling->flags, sizeof(VkPipelineCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->stageCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->stageCount; ++i)
         {
@@ -2852,7 +2852,7 @@ void marshal_VkPipelineLayoutCreateInfo(
         vkStream->write((uint64_t*)cgen_var_0, forMarshaling->setLayoutCount * 8);
     }
     vkStream->write((uint32_t*)&forMarshaling->pushConstantRangeCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->pushConstantRangeCount; ++i)
         {
@@ -2877,7 +2877,7 @@ void unmarshal_VkPipelineLayoutCreateInfo(
         vkStream->handleMapping()->mapHandles_u64_VkDescriptorSetLayout(cgen_var_0, (VkDescriptorSetLayout*)forUnmarshaling->pSetLayouts, forUnmarshaling->setLayoutCount);
     }
     vkStream->read((uint32_t*)&forUnmarshaling->pushConstantRangeCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->pushConstantRangeCount; ++i)
         {
@@ -3045,7 +3045,7 @@ void marshal_VkDescriptorPoolCreateInfo(
     vkStream->write((VkDescriptorPoolCreateFlags*)&forMarshaling->flags, sizeof(VkDescriptorPoolCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->maxSets, sizeof(uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->poolSizeCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->poolSizeCount; ++i)
         {
@@ -3063,7 +3063,7 @@ void unmarshal_VkDescriptorPoolCreateInfo(
     vkStream->read((VkDescriptorPoolCreateFlags*)&forUnmarshaling->flags, sizeof(VkDescriptorPoolCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->maxSets, sizeof(uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->poolSizeCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->poolSizeCount; ++i)
         {
@@ -3168,7 +3168,7 @@ void marshal_VkDescriptorSetLayoutCreateInfo(
     marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDescriptorSetLayoutCreateFlags*)&forMarshaling->flags, sizeof(VkDescriptorSetLayoutCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->bindingCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->bindingCount; ++i)
         {
@@ -3185,7 +3185,7 @@ void unmarshal_VkDescriptorSetLayoutCreateInfo(
     unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDescriptorSetLayoutCreateFlags*)&forUnmarshaling->flags, sizeof(VkDescriptorSetLayoutCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->bindingCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->bindingCount; ++i)
         {
@@ -3214,7 +3214,7 @@ void marshal_VkWriteDescriptorSet(
     {
         if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) || ((VK_DESCRIPTOR_TYPE_SAMPLER == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_IMAGE == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT == forMarshaling->descriptorType))))
         {
-            if ((forMarshaling) != nullptr)
+            if (forMarshaling)
             {
                 for (uint32_t i = 0; i < (uint32_t)forMarshaling->descriptorCount; ++i)
                 {
@@ -3230,7 +3230,7 @@ void marshal_VkWriteDescriptorSet(
     {
         if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) || ((VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_BUFFER == forMarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC == forMarshaling->descriptorType))))
         {
-            if ((forMarshaling) != nullptr)
+            if (forMarshaling)
             {
                 for (uint32_t i = 0; i < (uint32_t)forMarshaling->descriptorCount; ++i)
                 {
@@ -3281,7 +3281,7 @@ void unmarshal_VkWriteDescriptorSet(
         }
         if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) || ((VK_DESCRIPTOR_TYPE_SAMPLER == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_IMAGE == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT == forUnmarshaling->descriptorType))))
         {
-            if ((forUnmarshaling) != nullptr)
+            if (forUnmarshaling)
             {
                 for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->descriptorCount; ++i)
                 {
@@ -3305,7 +3305,7 @@ void unmarshal_VkWriteDescriptorSet(
         }
         if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) || ((VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_BUFFER == forUnmarshaling->descriptorType) || (VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC == forUnmarshaling->descriptorType))))
         {
-            if ((forUnmarshaling) != nullptr)
+            if (forUnmarshaling)
             {
                 for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->descriptorCount; ++i)
                 {
@@ -3443,7 +3443,7 @@ void marshal_VkSubpassDescription(
     vkStream->write((VkSubpassDescriptionFlags*)&forMarshaling->flags, sizeof(VkSubpassDescriptionFlags));
     vkStream->write((VkPipelineBindPoint*)&forMarshaling->pipelineBindPoint, sizeof(VkPipelineBindPoint));
     vkStream->write((uint32_t*)&forMarshaling->inputAttachmentCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->inputAttachmentCount; ++i)
         {
@@ -3451,7 +3451,7 @@ void marshal_VkSubpassDescription(
         }
     }
     vkStream->write((uint32_t*)&forMarshaling->colorAttachmentCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->colorAttachmentCount; ++i)
         {
@@ -3463,7 +3463,7 @@ void marshal_VkSubpassDescription(
     vkStream->putBe64(cgen_var_0);
     if (forMarshaling->pResolveAttachments)
     {
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->colorAttachmentCount; ++i)
             {
@@ -3489,7 +3489,7 @@ void unmarshal_VkSubpassDescription(
     vkStream->read((VkSubpassDescriptionFlags*)&forUnmarshaling->flags, sizeof(VkSubpassDescriptionFlags));
     vkStream->read((VkPipelineBindPoint*)&forUnmarshaling->pipelineBindPoint, sizeof(VkPipelineBindPoint));
     vkStream->read((uint32_t*)&forUnmarshaling->inputAttachmentCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->inputAttachmentCount; ++i)
         {
@@ -3497,7 +3497,7 @@ void unmarshal_VkSubpassDescription(
         }
     }
     vkStream->read((uint32_t*)&forUnmarshaling->colorAttachmentCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->colorAttachmentCount; ++i)
         {
@@ -3513,7 +3513,7 @@ void unmarshal_VkSubpassDescription(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pResolveAttachments inconsistent between guest and host\n");
         }
-        if ((forUnmarshaling) != nullptr)
+        if (forUnmarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->colorAttachmentCount; ++i)
             {
@@ -3570,7 +3570,7 @@ void marshal_VkRenderPassCreateInfo(
     marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkRenderPassCreateFlags*)&forMarshaling->flags, sizeof(VkRenderPassCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->attachmentCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->attachmentCount; ++i)
         {
@@ -3578,7 +3578,7 @@ void marshal_VkRenderPassCreateInfo(
         }
     }
     vkStream->write((uint32_t*)&forMarshaling->subpassCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->subpassCount; ++i)
         {
@@ -3586,7 +3586,7 @@ void marshal_VkRenderPassCreateInfo(
         }
     }
     vkStream->write((uint32_t*)&forMarshaling->dependencyCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->dependencyCount; ++i)
         {
@@ -3603,7 +3603,7 @@ void unmarshal_VkRenderPassCreateInfo(
     unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkRenderPassCreateFlags*)&forUnmarshaling->flags, sizeof(VkRenderPassCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->attachmentCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->attachmentCount; ++i)
         {
@@ -3611,7 +3611,7 @@ void unmarshal_VkRenderPassCreateInfo(
         }
     }
     vkStream->read((uint32_t*)&forUnmarshaling->subpassCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->subpassCount; ++i)
         {
@@ -3619,7 +3619,7 @@ void unmarshal_VkRenderPassCreateInfo(
         }
     }
     vkStream->read((uint32_t*)&forUnmarshaling->dependencyCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->dependencyCount; ++i)
         {
@@ -3983,7 +3983,7 @@ void marshal_VkRenderPassBeginInfo(
     vkStream->putBe64(cgen_var_2);
     if (forMarshaling->pClearValues)
     {
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->clearValueCount; ++i)
             {
@@ -4016,7 +4016,7 @@ void unmarshal_VkRenderPassBeginInfo(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pClearValues inconsistent between guest and host\n");
         }
-        if ((forUnmarshaling) != nullptr)
+        if (forUnmarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->clearValueCount; ++i)
             {
@@ -4212,7 +4212,7 @@ void marshal_VkDeviceGroupRenderPassBeginInfo(
     marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->deviceMask, sizeof(uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->deviceRenderAreaCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->deviceRenderAreaCount; ++i)
         {
@@ -4229,7 +4229,7 @@ void unmarshal_VkDeviceGroupRenderPassBeginInfo(
     unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->deviceMask, sizeof(uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->deviceRenderAreaCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->deviceRenderAreaCount; ++i)
         {
@@ -4333,7 +4333,7 @@ void marshal_VkBindImageMemoryDeviceGroupInfo(
     vkStream->write((uint32_t*)&forMarshaling->deviceIndexCount, sizeof(uint32_t));
     vkStream->write((const uint32_t*)forMarshaling->pDeviceIndices, forMarshaling->deviceIndexCount * sizeof(const uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->splitInstanceBindRegionCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->splitInstanceBindRegionCount; ++i)
         {
@@ -4351,7 +4351,7 @@ void unmarshal_VkBindImageMemoryDeviceGroupInfo(
     vkStream->read((uint32_t*)&forUnmarshaling->deviceIndexCount, sizeof(uint32_t));
     vkStream->read((uint32_t*)forUnmarshaling->pDeviceIndices, forUnmarshaling->deviceIndexCount * sizeof(const uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->splitInstanceBindRegionCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->splitInstanceBindRegionCount; ++i)
         {
@@ -4737,7 +4737,7 @@ void marshal_VkRenderPassInputAttachmentAspectCreateInfo(
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
     marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->aspectReferenceCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->aspectReferenceCount; ++i)
         {
@@ -4753,7 +4753,7 @@ void unmarshal_VkRenderPassInputAttachmentAspectCreateInfo(
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
     unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->aspectReferenceCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->aspectReferenceCount; ++i)
         {
@@ -5124,7 +5124,7 @@ void marshal_VkDescriptorUpdateTemplateCreateInfo(
     marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkDescriptorUpdateTemplateCreateFlags*)&forMarshaling->flags, sizeof(VkDescriptorUpdateTemplateCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->descriptorUpdateEntryCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->descriptorUpdateEntryCount; ++i)
         {
@@ -5150,7 +5150,7 @@ void unmarshal_VkDescriptorUpdateTemplateCreateInfo(
     unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkDescriptorUpdateTemplateCreateFlags*)&forUnmarshaling->flags, sizeof(VkDescriptorUpdateTemplateCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->descriptorUpdateEntryCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->descriptorUpdateEntryCount; ++i)
         {
@@ -5938,7 +5938,7 @@ void marshal_VkSubpassDescription2(
     vkStream->write((VkPipelineBindPoint*)&forMarshaling->pipelineBindPoint, sizeof(VkPipelineBindPoint));
     vkStream->write((uint32_t*)&forMarshaling->viewMask, sizeof(uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->inputAttachmentCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->inputAttachmentCount; ++i)
         {
@@ -5946,7 +5946,7 @@ void marshal_VkSubpassDescription2(
         }
     }
     vkStream->write((uint32_t*)&forMarshaling->colorAttachmentCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->colorAttachmentCount; ++i)
         {
@@ -5958,7 +5958,7 @@ void marshal_VkSubpassDescription2(
     vkStream->putBe64(cgen_var_0);
     if (forMarshaling->pResolveAttachments)
     {
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->colorAttachmentCount; ++i)
             {
@@ -5987,7 +5987,7 @@ void unmarshal_VkSubpassDescription2(
     vkStream->read((VkPipelineBindPoint*)&forUnmarshaling->pipelineBindPoint, sizeof(VkPipelineBindPoint));
     vkStream->read((uint32_t*)&forUnmarshaling->viewMask, sizeof(uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->inputAttachmentCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->inputAttachmentCount; ++i)
         {
@@ -5995,7 +5995,7 @@ void unmarshal_VkSubpassDescription2(
         }
     }
     vkStream->read((uint32_t*)&forUnmarshaling->colorAttachmentCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->colorAttachmentCount; ++i)
         {
@@ -6011,7 +6011,7 @@ void unmarshal_VkSubpassDescription2(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pResolveAttachments inconsistent between guest and host\n");
         }
-        if ((forUnmarshaling) != nullptr)
+        if (forUnmarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->colorAttachmentCount; ++i)
             {
@@ -6074,7 +6074,7 @@ void marshal_VkRenderPassCreateInfo2(
     marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkRenderPassCreateFlags*)&forMarshaling->flags, sizeof(VkRenderPassCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->attachmentCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->attachmentCount; ++i)
         {
@@ -6082,7 +6082,7 @@ void marshal_VkRenderPassCreateInfo2(
         }
     }
     vkStream->write((uint32_t*)&forMarshaling->subpassCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->subpassCount; ++i)
         {
@@ -6090,7 +6090,7 @@ void marshal_VkRenderPassCreateInfo2(
         }
     }
     vkStream->write((uint32_t*)&forMarshaling->dependencyCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->dependencyCount; ++i)
         {
@@ -6109,7 +6109,7 @@ void unmarshal_VkRenderPassCreateInfo2(
     unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkRenderPassCreateFlags*)&forUnmarshaling->flags, sizeof(VkRenderPassCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->attachmentCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->attachmentCount; ++i)
         {
@@ -6117,7 +6117,7 @@ void unmarshal_VkRenderPassCreateInfo2(
         }
     }
     vkStream->read((uint32_t*)&forUnmarshaling->subpassCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->subpassCount; ++i)
         {
@@ -6125,7 +6125,7 @@ void unmarshal_VkRenderPassCreateInfo2(
         }
     }
     vkStream->read((uint32_t*)&forUnmarshaling->dependencyCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->dependencyCount; ++i)
         {
@@ -6711,7 +6711,7 @@ void marshal_VkFramebufferAttachmentsCreateInfo(
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
     marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->attachmentImageInfoCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->attachmentImageInfoCount; ++i)
         {
@@ -6727,7 +6727,7 @@ void unmarshal_VkFramebufferAttachmentsCreateInfo(
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
     unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->attachmentImageInfoCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->attachmentImageInfoCount; ++i)
         {
@@ -8388,7 +8388,7 @@ void marshal_VkPresentRegionKHR(
     vkStream->putBe64(cgen_var_0);
     if (forMarshaling->pRectangles)
     {
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->rectangleCount; ++i)
             {
@@ -8412,7 +8412,7 @@ void unmarshal_VkPresentRegionKHR(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pRectangles inconsistent between guest and host\n");
         }
-        if ((forUnmarshaling) != nullptr)
+        if (forUnmarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->rectangleCount; ++i)
             {
@@ -8434,7 +8434,7 @@ void marshal_VkPresentRegionsKHR(
     vkStream->putBe64(cgen_var_0);
     if (forMarshaling->pRegions)
     {
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->swapchainCount; ++i)
             {
@@ -8460,7 +8460,7 @@ void unmarshal_VkPresentRegionsKHR(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pRegions inconsistent between guest and host\n");
         }
-        if ((forUnmarshaling) != nullptr)
+        if (forUnmarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->swapchainCount; ++i)
             {
@@ -9524,7 +9524,7 @@ void marshal_VkCopyBufferInfo2KHR(
     vkStream->handleMapping()->mapHandles_VkBuffer_u64(&forMarshaling->dstBuffer, &cgen_var_1, 1);
     vkStream->write((uint64_t*)&cgen_var_1, 1 * 8);
     vkStream->write((uint32_t*)&forMarshaling->regionCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->regionCount; ++i)
         {
@@ -9546,7 +9546,7 @@ void unmarshal_VkCopyBufferInfo2KHR(
     vkStream->read((uint64_t*)&cgen_var_1, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkBuffer(&cgen_var_1, (VkBuffer*)&forUnmarshaling->dstBuffer, 1);
     vkStream->read((uint32_t*)&forUnmarshaling->regionCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->regionCount; ++i)
         {
@@ -9596,7 +9596,7 @@ void marshal_VkCopyImageInfo2KHR(
     vkStream->write((uint64_t*)&cgen_var_1, 1 * 8);
     vkStream->write((VkImageLayout*)&forMarshaling->dstImageLayout, sizeof(VkImageLayout));
     vkStream->write((uint32_t*)&forMarshaling->regionCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->regionCount; ++i)
         {
@@ -9620,7 +9620,7 @@ void unmarshal_VkCopyImageInfo2KHR(
     vkStream->handleMapping()->mapHandles_u64_VkImage(&cgen_var_1, (VkImage*)&forUnmarshaling->dstImage, 1);
     vkStream->read((VkImageLayout*)&forUnmarshaling->dstImageLayout, sizeof(VkImageLayout));
     vkStream->read((uint32_t*)&forUnmarshaling->regionCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->regionCount; ++i)
         {
@@ -9671,7 +9671,7 @@ void marshal_VkCopyBufferToImageInfo2KHR(
     vkStream->write((uint64_t*)&cgen_var_1, 1 * 8);
     vkStream->write((VkImageLayout*)&forMarshaling->dstImageLayout, sizeof(VkImageLayout));
     vkStream->write((uint32_t*)&forMarshaling->regionCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->regionCount; ++i)
         {
@@ -9694,7 +9694,7 @@ void unmarshal_VkCopyBufferToImageInfo2KHR(
     vkStream->handleMapping()->mapHandles_u64_VkImage(&cgen_var_1, (VkImage*)&forUnmarshaling->dstImage, 1);
     vkStream->read((VkImageLayout*)&forUnmarshaling->dstImageLayout, sizeof(VkImageLayout));
     vkStream->read((uint32_t*)&forUnmarshaling->regionCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->regionCount; ++i)
         {
@@ -9717,7 +9717,7 @@ void marshal_VkCopyImageToBufferInfo2KHR(
     vkStream->handleMapping()->mapHandles_VkBuffer_u64(&forMarshaling->dstBuffer, &cgen_var_1, 1);
     vkStream->write((uint64_t*)&cgen_var_1, 1 * 8);
     vkStream->write((uint32_t*)&forMarshaling->regionCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->regionCount; ++i)
         {
@@ -9740,7 +9740,7 @@ void unmarshal_VkCopyImageToBufferInfo2KHR(
     vkStream->read((uint64_t*)&cgen_var_1, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkBuffer(&cgen_var_1, (VkBuffer*)&forUnmarshaling->dstBuffer, 1);
     vkStream->read((uint32_t*)&forUnmarshaling->regionCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->regionCount; ++i)
         {
@@ -9800,7 +9800,7 @@ void marshal_VkBlitImageInfo2KHR(
     vkStream->write((uint64_t*)&cgen_var_1, 1 * 8);
     vkStream->write((VkImageLayout*)&forMarshaling->dstImageLayout, sizeof(VkImageLayout));
     vkStream->write((uint32_t*)&forMarshaling->regionCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->regionCount; ++i)
         {
@@ -9825,7 +9825,7 @@ void unmarshal_VkBlitImageInfo2KHR(
     vkStream->handleMapping()->mapHandles_u64_VkImage(&cgen_var_1, (VkImage*)&forUnmarshaling->dstImage, 1);
     vkStream->read((VkImageLayout*)&forUnmarshaling->dstImageLayout, sizeof(VkImageLayout));
     vkStream->read((uint32_t*)&forUnmarshaling->regionCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->regionCount; ++i)
         {
@@ -9876,7 +9876,7 @@ void marshal_VkResolveImageInfo2KHR(
     vkStream->write((uint64_t*)&cgen_var_1, 1 * 8);
     vkStream->write((VkImageLayout*)&forMarshaling->dstImageLayout, sizeof(VkImageLayout));
     vkStream->write((uint32_t*)&forMarshaling->regionCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->regionCount; ++i)
         {
@@ -9900,7 +9900,7 @@ void unmarshal_VkResolveImageInfo2KHR(
     vkStream->handleMapping()->mapHandles_u64_VkImage(&cgen_var_1, (VkImage*)&forUnmarshaling->dstImage, 1);
     vkStream->read((VkImageLayout*)&forUnmarshaling->dstImageLayout, sizeof(VkImageLayout));
     vkStream->read((uint32_t*)&forUnmarshaling->regionCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->regionCount; ++i)
         {
@@ -10814,7 +10814,7 @@ void marshal_VkPipelineViewportWScalingStateCreateInfoNV(
     vkStream->putBe64(cgen_var_0);
     if (forMarshaling->pViewportWScalings)
     {
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->viewportCount; ++i)
             {
@@ -10841,7 +10841,7 @@ void unmarshal_VkPipelineViewportWScalingStateCreateInfoNV(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pViewportWScalings inconsistent between guest and host\n");
         }
-        if ((forUnmarshaling) != nullptr)
+        if (forUnmarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->viewportCount; ++i)
             {
@@ -11035,7 +11035,7 @@ void marshal_VkPresentTimesInfoGOOGLE(
     vkStream->putBe64(cgen_var_0);
     if (forMarshaling->pTimes)
     {
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->swapchainCount; ++i)
             {
@@ -11061,7 +11061,7 @@ void unmarshal_VkPresentTimesInfoGOOGLE(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pTimes inconsistent between guest and host\n");
         }
-        if ((forUnmarshaling) != nullptr)
+        if (forUnmarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->swapchainCount; ++i)
             {
@@ -11132,7 +11132,7 @@ void marshal_VkPipelineViewportSwizzleStateCreateInfoNV(
     vkStream->putBe64(cgen_var_0);
     if (forMarshaling->pViewportSwizzles)
     {
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->viewportCount; ++i)
             {
@@ -11159,7 +11159,7 @@ void unmarshal_VkPipelineViewportSwizzleStateCreateInfoNV(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pViewportSwizzles inconsistent between guest and host\n");
         }
-        if ((forUnmarshaling) != nullptr)
+        if (forUnmarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->viewportCount; ++i)
             {
@@ -11203,7 +11203,7 @@ void marshal_VkPipelineDiscardRectangleStateCreateInfoEXT(
     vkStream->putBe64(cgen_var_0);
     if (forMarshaling->pDiscardRectangles)
     {
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->discardRectangleCount; ++i)
             {
@@ -11231,7 +11231,7 @@ void unmarshal_VkPipelineDiscardRectangleStateCreateInfoEXT(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pDiscardRectangles inconsistent between guest and host\n");
         }
-        if ((forUnmarshaling) != nullptr)
+        if (forUnmarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->discardRectangleCount; ++i)
             {
@@ -11576,7 +11576,7 @@ void marshal_VkDebugUtilsMessengerCallbackDataEXT(
     vkStream->putBe64(cgen_var_0);
     if (forMarshaling->pQueueLabels)
     {
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->queueLabelCount; ++i)
             {
@@ -11590,7 +11590,7 @@ void marshal_VkDebugUtilsMessengerCallbackDataEXT(
     vkStream->putBe64(cgen_var_1);
     if (forMarshaling->pCmdBufLabels)
     {
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->cmdBufLabelCount; ++i)
             {
@@ -11604,7 +11604,7 @@ void marshal_VkDebugUtilsMessengerCallbackDataEXT(
     vkStream->putBe64(cgen_var_2);
     if (forMarshaling->pObjects)
     {
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->objectCount; ++i)
             {
@@ -11651,7 +11651,7 @@ void unmarshal_VkDebugUtilsMessengerCallbackDataEXT(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pQueueLabels inconsistent between guest and host\n");
         }
-        if ((forUnmarshaling) != nullptr)
+        if (forUnmarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->queueLabelCount; ++i)
             {
@@ -11669,7 +11669,7 @@ void unmarshal_VkDebugUtilsMessengerCallbackDataEXT(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pCmdBufLabels inconsistent between guest and host\n");
         }
-        if ((forUnmarshaling) != nullptr)
+        if (forUnmarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->cmdBufLabelCount; ++i)
             {
@@ -11687,7 +11687,7 @@ void unmarshal_VkDebugUtilsMessengerCallbackDataEXT(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pObjects inconsistent between guest and host\n");
         }
-        if ((forUnmarshaling) != nullptr)
+        if (forUnmarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->objectCount; ++i)
             {
@@ -12020,7 +12020,7 @@ void marshal_VkSampleLocationsInfoEXT(
     vkStream->write((VkSampleCountFlagBits*)&forMarshaling->sampleLocationsPerPixel, sizeof(VkSampleCountFlagBits));
     marshal_VkExtent2D(vkStream, (VkExtent2D*)(&forMarshaling->sampleLocationGridSize));
     vkStream->write((uint32_t*)&forMarshaling->sampleLocationsCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->sampleLocationsCount; ++i)
         {
@@ -12038,7 +12038,7 @@ void unmarshal_VkSampleLocationsInfoEXT(
     vkStream->read((VkSampleCountFlagBits*)&forUnmarshaling->sampleLocationsPerPixel, sizeof(VkSampleCountFlagBits));
     unmarshal_VkExtent2D(vkStream, (VkExtent2D*)(&forUnmarshaling->sampleLocationGridSize));
     vkStream->read((uint32_t*)&forUnmarshaling->sampleLocationsCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->sampleLocationsCount; ++i)
         {
@@ -12086,7 +12086,7 @@ void marshal_VkRenderPassSampleLocationsBeginInfoEXT(
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
     marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->attachmentInitialSampleLocationsCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->attachmentInitialSampleLocationsCount; ++i)
         {
@@ -12094,7 +12094,7 @@ void marshal_VkRenderPassSampleLocationsBeginInfoEXT(
         }
     }
     vkStream->write((uint32_t*)&forMarshaling->postSubpassSampleLocationsCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->postSubpassSampleLocationsCount; ++i)
         {
@@ -12110,7 +12110,7 @@ void unmarshal_VkRenderPassSampleLocationsBeginInfoEXT(
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
     unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->attachmentInitialSampleLocationsCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->attachmentInitialSampleLocationsCount; ++i)
         {
@@ -12118,7 +12118,7 @@ void unmarshal_VkRenderPassSampleLocationsBeginInfoEXT(
         }
     }
     vkStream->read((uint32_t*)&forUnmarshaling->postSubpassSampleLocationsCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->postSubpassSampleLocationsCount; ++i)
         {
@@ -12405,7 +12405,7 @@ void marshal_VkDrmFormatModifierPropertiesListEXT(
     vkStream->putBe64(cgen_var_0);
     if (forMarshaling->pDrmFormatModifierProperties)
     {
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->drmFormatModifierCount; ++i)
             {
@@ -12431,7 +12431,7 @@ void unmarshal_VkDrmFormatModifierPropertiesListEXT(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pDrmFormatModifierProperties inconsistent between guest and host\n");
         }
-        if ((forUnmarshaling) != nullptr)
+        if (forUnmarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->drmFormatModifierCount; ++i)
             {
@@ -12509,7 +12509,7 @@ void marshal_VkImageDrmFormatModifierExplicitCreateInfoEXT(
     marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint64_t*)&forMarshaling->drmFormatModifier, sizeof(uint64_t));
     vkStream->write((uint32_t*)&forMarshaling->drmFormatModifierPlaneCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->drmFormatModifierPlaneCount; ++i)
         {
@@ -12526,7 +12526,7 @@ void unmarshal_VkImageDrmFormatModifierExplicitCreateInfoEXT(
     unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint64_t*)&forUnmarshaling->drmFormatModifier, sizeof(uint64_t));
     vkStream->read((uint32_t*)&forUnmarshaling->drmFormatModifierPlaneCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->drmFormatModifierPlaneCount; ++i)
         {
@@ -12635,7 +12635,7 @@ void marshal_VkPipelineViewportShadingRateImageStateCreateInfoNV(
     vkStream->putBe64(cgen_var_0);
     if (forMarshaling->pShadingRatePalettes)
     {
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->viewportCount; ++i)
             {
@@ -12662,7 +12662,7 @@ void unmarshal_VkPipelineViewportShadingRateImageStateCreateInfoNV(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pShadingRatePalettes inconsistent between guest and host\n");
         }
-        if ((forUnmarshaling) != nullptr)
+        if (forUnmarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->viewportCount; ++i)
             {
@@ -12739,7 +12739,7 @@ void marshal_VkCoarseSampleOrderCustomNV(
     vkStream->write((VkShadingRatePaletteEntryNV*)&forMarshaling->shadingRate, sizeof(VkShadingRatePaletteEntryNV));
     vkStream->write((uint32_t*)&forMarshaling->sampleCount, sizeof(uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->sampleLocationCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->sampleLocationCount; ++i)
         {
@@ -12755,7 +12755,7 @@ void unmarshal_VkCoarseSampleOrderCustomNV(
     vkStream->read((VkShadingRatePaletteEntryNV*)&forUnmarshaling->shadingRate, sizeof(VkShadingRatePaletteEntryNV));
     vkStream->read((uint32_t*)&forUnmarshaling->sampleCount, sizeof(uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->sampleLocationCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->sampleLocationCount; ++i)
         {
@@ -12772,7 +12772,7 @@ void marshal_VkPipelineViewportCoarseSampleOrderStateCreateInfoNV(
     marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkCoarseSampleOrderTypeNV*)&forMarshaling->sampleOrderType, sizeof(VkCoarseSampleOrderTypeNV));
     vkStream->write((uint32_t*)&forMarshaling->customSampleOrderCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->customSampleOrderCount; ++i)
         {
@@ -12789,7 +12789,7 @@ void unmarshal_VkPipelineViewportCoarseSampleOrderStateCreateInfoNV(
     unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkCoarseSampleOrderTypeNV*)&forUnmarshaling->sampleOrderType, sizeof(VkCoarseSampleOrderTypeNV));
     vkStream->read((uint32_t*)&forUnmarshaling->customSampleOrderCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->customSampleOrderCount; ++i)
         {
@@ -12834,7 +12834,7 @@ void marshal_VkRayTracingPipelineCreateInfoNV(
     marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->stageCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->stageCount; ++i)
         {
@@ -12842,7 +12842,7 @@ void marshal_VkRayTracingPipelineCreateInfoNV(
         }
     }
     vkStream->write((uint32_t*)&forMarshaling->groupCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->groupCount; ++i)
         {
@@ -12867,7 +12867,7 @@ void unmarshal_VkRayTracingPipelineCreateInfoNV(
     unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineCreateFlags*)&forUnmarshaling->flags, sizeof(VkPipelineCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->stageCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->stageCount; ++i)
         {
@@ -12875,7 +12875,7 @@ void unmarshal_VkRayTracingPipelineCreateInfoNV(
         }
     }
     vkStream->read((uint32_t*)&forUnmarshaling->groupCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->groupCount; ++i)
         {
@@ -13018,7 +13018,7 @@ void marshal_VkAccelerationStructureInfoNV(
     vkStream->write((VkBuildAccelerationStructureFlagsNV*)&forMarshaling->flags, sizeof(VkBuildAccelerationStructureFlagsNV));
     vkStream->write((uint32_t*)&forMarshaling->instanceCount, sizeof(uint32_t));
     vkStream->write((uint32_t*)&forMarshaling->geometryCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->geometryCount; ++i)
         {
@@ -13037,7 +13037,7 @@ void unmarshal_VkAccelerationStructureInfoNV(
     vkStream->read((VkBuildAccelerationStructureFlagsNV*)&forUnmarshaling->flags, sizeof(VkBuildAccelerationStructureFlagsNV));
     vkStream->read((uint32_t*)&forUnmarshaling->instanceCount, sizeof(uint32_t));
     vkStream->read((uint32_t*)&forUnmarshaling->geometryCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->geometryCount; ++i)
         {
@@ -13607,7 +13607,7 @@ void marshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
     marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->vertexBindingDivisorCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->vertexBindingDivisorCount; ++i)
         {
@@ -13623,7 +13623,7 @@ void unmarshal_VkPipelineVertexInputDivisorStateCreateInfoEXT(
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
     unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->vertexBindingDivisorCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->vertexBindingDivisorCount; ++i)
         {
@@ -13698,7 +13698,7 @@ void marshal_VkPipelineCreationFeedbackCreateInfoEXT(
     marshal_extension_struct(vkStream, forMarshaling->pNext);
     marshal_VkPipelineCreationFeedbackEXT(vkStream, (VkPipelineCreationFeedbackEXT*)(forMarshaling->pPipelineCreationFeedback));
     vkStream->write((uint32_t*)&forMarshaling->pipelineStageCreationFeedbackCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->pipelineStageCreationFeedbackCount; ++i)
         {
@@ -13715,7 +13715,7 @@ void unmarshal_VkPipelineCreationFeedbackCreateInfoEXT(
     unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     unmarshal_VkPipelineCreationFeedbackEXT(vkStream, (VkPipelineCreationFeedbackEXT*)(forUnmarshaling->pPipelineCreationFeedback));
     vkStream->read((uint32_t*)&forUnmarshaling->pipelineStageCreationFeedbackCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->pipelineStageCreationFeedbackCount; ++i)
         {
@@ -13882,7 +13882,7 @@ void marshal_VkPipelineViewportExclusiveScissorStateCreateInfoNV(
     vkStream->putBe64(cgen_var_0);
     if (forMarshaling->pExclusiveScissors)
     {
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->exclusiveScissorCount; ++i)
             {
@@ -13908,7 +13908,7 @@ void unmarshal_VkPipelineViewportExclusiveScissorStateCreateInfoNV(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pExclusiveScissors inconsistent between guest and host\n");
         }
-        if ((forUnmarshaling) != nullptr)
+        if (forUnmarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->exclusiveScissorCount; ++i)
             {
@@ -15165,7 +15165,7 @@ void marshal_VkGraphicsShaderGroupCreateInfoNV(
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
     marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->stageCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->stageCount; ++i)
         {
@@ -15195,7 +15195,7 @@ void unmarshal_VkGraphicsShaderGroupCreateInfoNV(
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
     unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->stageCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->stageCount; ++i)
         {
@@ -15233,7 +15233,7 @@ void marshal_VkGraphicsPipelineShaderGroupsCreateInfoNV(
     vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
     marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((uint32_t*)&forMarshaling->groupCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->groupCount; ++i)
         {
@@ -15257,7 +15257,7 @@ void unmarshal_VkGraphicsPipelineShaderGroupsCreateInfoNV(
     vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
     unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((uint32_t*)&forUnmarshaling->groupCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->groupCount; ++i)
         {
@@ -15413,7 +15413,7 @@ void marshal_VkIndirectCommandsLayoutCreateInfoNV(
     vkStream->write((VkIndirectCommandsLayoutUsageFlagsNV*)&forMarshaling->flags, sizeof(VkIndirectCommandsLayoutUsageFlagsNV));
     vkStream->write((VkPipelineBindPoint*)&forMarshaling->pipelineBindPoint, sizeof(VkPipelineBindPoint));
     vkStream->write((uint32_t*)&forMarshaling->tokenCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->tokenCount; ++i)
         {
@@ -15433,7 +15433,7 @@ void unmarshal_VkIndirectCommandsLayoutCreateInfoNV(
     vkStream->read((VkIndirectCommandsLayoutUsageFlagsNV*)&forUnmarshaling->flags, sizeof(VkIndirectCommandsLayoutUsageFlagsNV));
     vkStream->read((VkPipelineBindPoint*)&forUnmarshaling->pipelineBindPoint, sizeof(VkPipelineBindPoint));
     vkStream->read((uint32_t*)&forUnmarshaling->tokenCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->tokenCount; ++i)
         {
@@ -15458,7 +15458,7 @@ void marshal_VkGeneratedCommandsInfoNV(
     vkStream->handleMapping()->mapHandles_VkIndirectCommandsLayoutNV_u64(&forMarshaling->indirectCommandsLayout, &cgen_var_1, 1);
     vkStream->write((uint64_t*)&cgen_var_1, 1 * 8);
     vkStream->write((uint32_t*)&forMarshaling->streamCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->streamCount; ++i)
         {
@@ -15495,7 +15495,7 @@ void unmarshal_VkGeneratedCommandsInfoNV(
     vkStream->read((uint64_t*)&cgen_var_1, 1 * 8);
     vkStream->handleMapping()->mapHandles_u64_VkIndirectCommandsLayoutNV(&cgen_var_1, (VkIndirectCommandsLayoutNV*)&forUnmarshaling->indirectCommandsLayout, 1);
     vkStream->read((uint32_t*)&forUnmarshaling->streamCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->streamCount; ++i)
         {
@@ -16334,7 +16334,7 @@ void marshal_VkAccelerationStructureBuildGeometryInfoKHR(
     vkStream->putBe64(cgen_var_2);
     if (forMarshaling->pGeometries)
     {
-        if ((forMarshaling) != nullptr)
+        if (forMarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forMarshaling->geometryCount; ++i)
             {
@@ -16370,7 +16370,7 @@ void unmarshal_VkAccelerationStructureBuildGeometryInfoKHR(
         {
             fprintf(stderr, "fatal: forUnmarshaling->pGeometries inconsistent between guest and host\n");
         }
-        if ((forUnmarshaling) != nullptr)
+        if (forUnmarshaling)
         {
             for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->geometryCount; ++i)
             {
@@ -16737,7 +16737,7 @@ void marshal_VkRayTracingPipelineCreateInfoKHR(
     marshal_extension_struct(vkStream, forMarshaling->pNext);
     vkStream->write((VkPipelineCreateFlags*)&forMarshaling->flags, sizeof(VkPipelineCreateFlags));
     vkStream->write((uint32_t*)&forMarshaling->stageCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->stageCount; ++i)
         {
@@ -16745,7 +16745,7 @@ void marshal_VkRayTracingPipelineCreateInfoKHR(
         }
     }
     vkStream->write((uint32_t*)&forMarshaling->groupCount, sizeof(uint32_t));
-    if ((forMarshaling) != nullptr)
+    if (forMarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forMarshaling->groupCount; ++i)
         {
@@ -16791,7 +16791,7 @@ void unmarshal_VkRayTracingPipelineCreateInfoKHR(
     unmarshal_extension_struct(vkStream, (void*)(forUnmarshaling->pNext));
     vkStream->read((VkPipelineCreateFlags*)&forUnmarshaling->flags, sizeof(VkPipelineCreateFlags));
     vkStream->read((uint32_t*)&forUnmarshaling->stageCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->stageCount; ++i)
         {
@@ -16799,7 +16799,7 @@ void unmarshal_VkRayTracingPipelineCreateInfoKHR(
         }
     }
     vkStream->read((uint32_t*)&forUnmarshaling->groupCount, sizeof(uint32_t));
-    if ((forUnmarshaling) != nullptr)
+    if (forUnmarshaling)
     {
         for (uint32_t i = 0; i < (uint32_t)forUnmarshaling->groupCount; ++i)
         {
@@ -21695,6 +21695,12 @@ const char* api_opcode_to_string(
             return "OP_vkGetPerformanceParameterINTEL";
         }
 #endif
+#ifdef VK_GOOGLE_gfxstream
+        case OP_vkCollectDescriptorPoolIdsGOOGLE:
+        {
+            return "OP_vkCollectDescriptorPoolIdsGOOGLE";
+        }
+#endif
 #ifdef VK_KHR_ray_tracing_pipeline
         case OP_vkCmdTraceRaysKHR:
         {
@@ -22137,6 +22143,12 @@ const char* api_opcode_to_string(
         case OP_vkCmdBindTransformFeedbackBuffersEXT:
         {
             return "OP_vkCmdBindTransformFeedbackBuffersEXT";
+        }
+#endif
+#ifdef VK_GOOGLE_gfxstream
+        case OP_vkQueueCommitDescriptorSetUpdatesGOOGLE:
+        {
+            return "OP_vkQueueCommitDescriptorSetUpdatesGOOGLE";
         }
 #endif
 #ifdef VK_EXT_full_screen_exclusive
