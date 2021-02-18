@@ -238,6 +238,7 @@ private:
     void queryAndSetHostSideTracingSupport(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetAsyncFrameCommands(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanQueueSubmitWithCommandsSupport(ExtendedRCEncoderContext *rcEnc);
+    void queryAndSetVulkanBatchedDescriptorSetUpdateSupport(ExtendedRCEncoderContext *rcEnc);
 
 private:
     HostConnectionType m_connectionType;
