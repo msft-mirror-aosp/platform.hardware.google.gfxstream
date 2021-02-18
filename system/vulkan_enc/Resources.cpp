@@ -46,6 +46,7 @@ extern "C" {
         res->poolObjects = 0; \
         res->subObjects = 0; \
         res->superObjects = 0; \
+        res->userPtr = 0; \
         return reinterpret_cast<type>(res); \
     } \
 
@@ -57,6 +58,7 @@ extern "C" {
         res->poolObjects = 0; \
         res->subObjects = 0; \
         res->superObjects = 0; \
+        res->userPtr = 0; \
         return reinterpret_cast<type>(res); \
     } \
 
@@ -101,6 +103,7 @@ extern "C" {
         res->poolObjects = 0; \
         res->subObjects = 0; \
         res->superObjects = 0; \
+        res->userPtr = 0; \
         return reinterpret_cast<type>(res); \
     } \
 
@@ -113,6 +116,7 @@ extern "C" {
         res->poolObjects = 0; \
         res->subObjects = 0; \
         res->superObjects = 0; \
+        res->userPtr = 0; \
         return reinterpret_cast<type>(res); \
     } \
 
@@ -136,12 +140,47 @@ GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_AS_GOLDFISH_IMPL)
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_GET_HOST_IMPL)
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_IDENTITY_IMPL)
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_GET_HOST_U64_IMPL)
-GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_NEW_TRIVIAL_NON_DISPATCHABLE_FROM_HOST_IMPL)
-GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_NEW_TRIVIAL_NON_DISPATCHABLE_FROM_HOST_U64_IMPL)
+GOLDFISH_VK_LIST_AUTODEFINED_STRUCT_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_NEW_TRIVIAL_NON_DISPATCHABLE_FROM_HOST_IMPL)
+GOLDFISH_VK_LIST_AUTODEFINED_STRUCT_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_NEW_TRIVIAL_NON_DISPATCHABLE_FROM_HOST_U64_IMPL)
 GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_DELETE_GOLDFISH_IMPL)
 
-} // extern "C"
+VkDescriptorPool new_from_host_VkDescriptorPool(VkDescriptorPool underlying) {
+    struct goldfish_VkDescriptorPool* res =
+        static_cast<goldfish_VkDescriptorPool*>(malloc(sizeof(goldfish_VkDescriptorPool)));
+    res->underlying = (uint64_t)underlying;
+    res->allocInfo = nullptr;
+    return reinterpret_cast<VkDescriptorPool>(res);
+}
 
+VkDescriptorPool new_from_host_u64_VkDescriptorPool(uint64_t underlying) {
+    return new_from_host_VkDescriptorPool((VkDescriptorPool)underlying);
+}
+
+VkDescriptorSet new_from_host_VkDescriptorSet(VkDescriptorSet underlying) {
+    struct goldfish_VkDescriptorSet* res =
+        static_cast<goldfish_VkDescriptorSet*>(malloc(sizeof(goldfish_VkDescriptorSet)));
+    res->underlying = (uint64_t)underlying;
+    res->reified = nullptr;
+    return reinterpret_cast<VkDescriptorSet>(res);
+}
+
+VkDescriptorSet new_from_host_u64_VkDescriptorSet(uint64_t underlying) {
+    return new_from_host_VkDescriptorSet((VkDescriptorSet)underlying);
+}
+
+VkDescriptorSetLayout new_from_host_VkDescriptorSetLayout(VkDescriptorSetLayout underlying) {
+    struct goldfish_VkDescriptorSetLayout* res =
+        static_cast<goldfish_VkDescriptorSetLayout*>(malloc(sizeof(goldfish_VkDescriptorSetLayout)));
+    res->underlying = (uint64_t)underlying;
+    res->layoutInfo = nullptr;
+    return reinterpret_cast<VkDescriptorSetLayout>(res);
+}
+
+VkDescriptorSetLayout new_from_host_u64_VkDescriptorSetLayout(uint64_t underlying) {
+    return new_from_host_VkDescriptorSetLayout((VkDescriptorSetLayout)underlying);
+}
+
+} // extern "C"
 
 namespace goldfish_vk {
 
