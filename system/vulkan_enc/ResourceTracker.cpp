@@ -1790,9 +1790,14 @@ public:
             // ColorBuffer/Buffer is created at sysmem allocation time.
             memoryProperty = MEMORY_PROPERTY_DEVICE_LOCAL;
         } else {
-            ALOGE("mControlDevice->GetBufferHandleInfo error: %d",
-                  result->result.err());
-            return VK_ERROR_INITIALIZATION_FAILED;
+            // Importing read-only host memory into the Vulkan driver should not
+            // work, but it is not an error to try to do so. Returning a
+            // VkMemoryZirconHandlePropertiesFUCHSIA with no available
+            // memoryType bits should be enough for clients. See fxbug.dev/24225
+            // for other issues this this flow.
+            ALOGW("GetBufferHandleInfo failed: %d", result->result.err());
+            pProperties->memoryTypeBits = 0;
+            return VK_SUCCESS;
         }
 
         pProperties->memoryTypeBits = 0;
