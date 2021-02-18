@@ -50,7 +50,8 @@ GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider(GoldfishAdd
         abort();
     }
 
-    zx::channel channel(GetConnectToServiceFunction()(GOLDFISH_ADDRESS_SPACE_DEVICE_NAME));
+    fidl::ClientEnd<AddressSpaceDevice> channel{
+        zx::channel(GetConnectToServiceFunction()(GOLDFISH_ADDRESS_SPACE_DEVICE_NAME))};
     if (!channel) {
         ALOGE("%s: failed to get service handle for " GOLDFISH_ADDRESS_SPACE_DEVICE_NAME,
               __FUNCTION__);
@@ -300,7 +301,8 @@ static VmoStore* getVmoStore() {
 }
 
 address_space_handle_t goldfish_address_space_open() {
-    zx::channel channel(GetConnectToServiceFunction()(GOLDFISH_ADDRESS_SPACE_DEVICE_NAME));
+    fidl::ClientEnd<AddressSpaceDevice> channel{
+        zx::channel(GetConnectToServiceFunction()(GOLDFISH_ADDRESS_SPACE_DEVICE_NAME))};
     if (!channel) {
         ALOGE("%s: failed to get service handle for " GOLDFISH_ADDRESS_SPACE_DEVICE_NAME,
               __FUNCTION__);
