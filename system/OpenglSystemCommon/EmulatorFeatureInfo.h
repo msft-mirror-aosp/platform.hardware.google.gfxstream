@@ -126,6 +126,9 @@ static const char kAsyncFrameCommands[] = "ANDROID_EMU_async_frame_commands";
 // Queue submit with commands
 static const char kVulkanQueueSubmitWithCommands[] = "ANDROID_EMU_vulkan_queue_submit_with_commands";
 
+// Batched descriptor set update
+static const char kVulkanBatchedDescriptorSetUpdate[] = "ANDROID_EMU_vulkan_batched_descriptor_set_update";
+
 // Struct describing available emulator features
 struct EmulatorFeatureInfo {
 
@@ -150,7 +153,8 @@ struct EmulatorFeatureInfo {
         hasVulkanAsyncQueueSubmit(false),
         hasHostSideTracing(false),
         hasAsyncFrameCommands(false),
-        hasVulkanQueueSubmitWithCommands(false)
+        hasVulkanQueueSubmitWithCommands(false),
+        hasVulkanBatchedDescriptorSetUpdate(false)
     { }
 
     SyncImpl syncImpl;
@@ -174,6 +178,7 @@ struct EmulatorFeatureInfo {
     bool hasHostSideTracing;
     bool hasAsyncFrameCommands;
     bool hasVulkanQueueSubmitWithCommands;
+    bool hasVulkanBatchedDescriptorSetUpdate;
 };
 
 enum HostConnectionType {

@@ -114,6 +114,13 @@ public:
 
     EntityManager() : EntityManager(0) { }
 
+    EntityManager(size_t initialItems) :
+        mEntries(initialItems),
+        mFirstFreeIndex(0),
+        mLiveEntries(0) {
+        reserve(initialItems);
+    }
+
     ~EntityManager() { clear(); }
 
     struct EntityEntry {
@@ -126,9 +133,13 @@ public:
     };
 
     void clear() {
-        mEntries.clear();
+        reserve(mEntries.size());
         mFirstFreeIndex = 0;
         mLiveEntries = 0;
+    }
+
+    size_t nextFreeIndex() const {
+        return mFirstFreeIndex;
     }
 
     EntityHandle add(const Item& item, size_t type) {
@@ -156,7 +167,7 @@ public:
 
         if (neededCapacity > mEntries.size()) {
             mEntries.resize((size_t)nextCapacity);
-            for (size_t i = currentCapacity; i < nextCapacity; ++i) {
+            for (uint64_t i = currentCapacity; i < nextCapacity; ++i) {
                 mEntries[i].handle = makeHandle(i, 0, type);
                 mEntries[i].nextFreeIndex = i + 1;
                 EM_DBG("new un-init entry: index %zu nextFree %zu",
@@ -211,7 +222,7 @@ public:
 
         if (neededCapacity > mEntries.size()) {
             mEntries.resize((size_t)nextCapacity);
-            for (size_t i = currentCapacity; i < nextCapacity; ++i) {
+            for (uint64_t i = currentCapacity; i < nextCapacity; ++i) {
                 mEntries[i].handle = makeHandle(i, 0, type);
                 mEntries[i].nextFreeIndex = i + 1;
                 EM_DBG("new un-init entry: index %zu nextFree %zu",
@@ -310,9 +321,21 @@ public:
         if (index >= mEntries.size()) return nullptr;
 
         auto& entry = mEntries[index];
-        if (entry.liveGeneration != getHandleGeneration(h)) return nullptr;
+        if (entry.liveGeneration != getHandleGeneration(h)) {
+            return nullptr;
+        }
 
         return &entry.item;
+    }
+
+    const Item* get_const(EntityHandle h) const {
+        uint64_t index = getHandleIndex(h);
+        if (index >= mEntries.size()) return nullptr;
+
+        const auto& entry = mEntries.data() + index;
+        if (entry->liveGeneration != getHandleGeneration(h)) return nullptr;
+
+        return &entry->item;
     }
 
     bool isLive(EntityHandle h) const {
@@ -358,10 +381,22 @@ public:
     }
 
 private:
-    EntityManager(size_t initialItems) :
-        mEntries(initialItems),
-        mFirstFreeIndex(0),
-        mLiveEntries(0) { }
+    void reserve(size_t count) {
+        if (mEntries.size() < count) {
+            mEntries.resize(count);
+        }
+        for (size_t i = 0; i < count; ++i) {
+            mEntries[i].handle = makeHandle(i, 0, 1);
+            mEntries[i].nextFreeIndex = i + 1;
+            ++mEntries[i].liveGeneration;
+            if ((mEntries[i].liveGeneration == 0) ||
+                    (mEntries[i].liveGeneration == (1ULL << generationBits))) {
+                mEntries[i].liveGeneration = 1;
+            }
+            EM_DBG("new un-init entry: index %zu nextFree %zu",
+                    i, i + 1);
+        }
+    }
 
     std::vector<EntityEntry> mEntries;
     uint64_t mFirstFreeIndex;

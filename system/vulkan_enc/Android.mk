@@ -46,6 +46,7 @@ LOCAL_CFLAGS += \
 
 LOCAL_SRC_FILES := AndroidHardwareBuffer.cpp \
     CommandBufferStagingStream.cpp \
+    DescriptorSetVirtualization.cpp \
     HostVisibleMemoryVirtualization.cpp \
     Resources.cpp \
     Validation.cpp \
