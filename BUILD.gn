@@ -55,6 +55,8 @@ shared_library("libvulkan_goldfish") {
     "system/vulkan/goldfish_vulkan.cpp",
     "system/vulkan_enc/CommandBufferStagingStream.cpp",
     "system/vulkan_enc/CommandBufferStagingStream.h",
+    "system/vulkan_enc/DescriptorSetVirtualization.cpp",
+    "system/vulkan_enc/DescriptorSetVirtualization.h",
     "system/vulkan_enc/HostVisibleMemoryVirtualization.cpp",
     "system/vulkan_enc/HostVisibleMemoryVirtualization.h",
     "system/vulkan_enc/ResourceTracker.cpp",
