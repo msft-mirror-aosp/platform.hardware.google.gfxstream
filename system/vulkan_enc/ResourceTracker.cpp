@@ -1172,8 +1172,6 @@ public:
             "VK_KHR_external_memory_capabilities",
             "VK_KHR_external_fence_capabilities",
 #endif
-            // TODO:
-            // VK_KHR_external_memory_capabilities
         };
 
         VkEncoder* enc = (VkEncoder*)context;
@@ -1270,6 +1268,7 @@ public:
             "VK_KHR_image_format_list",
             "VK_KHR_sampler_ycbcr_conversion",
             "VK_KHR_shader_float16_int8",
+            "VK_KHR_timeline_semaphore",
             "VK_AMD_gpu_shader_half_float",
             "VK_NV_shader_subgroup_partitioned",
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
@@ -1280,8 +1279,6 @@ public:
             "VK_KHR_external_fence",
             "VK_KHR_external_fence_fd",
 #endif
-            // TODO:
-            // VK_KHR_external_memory_capabilities
         };
 
         VkEncoder* enc = (VkEncoder*)context;
@@ -5400,10 +5397,10 @@ public:
 
             auto& writes = reified->allWrites;
 
-            for (int i = 0; i < writes.size(); ++i) {
+            for (size_t i = 0; i < writes.size(); ++i) {
                 uint32_t binding = i;
 
-                for (int j = 0; j < writes[i].size(); ++j) {
+                for (size_t j = 0; j < writes[i].size(); ++j) {
                     auto& write = writes[i][j];
 
                     if (write.type == DescriptorWriteType::Empty) continue;
