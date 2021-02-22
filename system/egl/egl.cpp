@@ -283,6 +283,64 @@ EGLContext_t::~EGLContext_t()
     delete [] extensionString;
 }
 
+uint64_t currGuestTimeNs() {
+    struct timespec ts;
+#ifdef __APPLE__
+    clock_gettime(CLOCK_REALTIME, &ts);
+#else
+    clock_gettime(CLOCK_BOOTTIME, &ts);
+#endif
+    uint64_t res = (uint64_t)(ts.tv_sec * 1000000000ULL + ts.tv_nsec);
+    return res;
+}
+
+struct app_time_metric_t {
+    uint64_t lastLogTime;
+    uint64_t lastSwapBuffersReturnTime;
+    uint64_t numSamples;
+    uint64_t totalAppTime;
+
+    app_time_metric_t() :
+        lastLogTime(0),
+        lastSwapBuffersReturnTime(0),
+        numSamples(0),
+        totalAppTime(0)
+    {
+    }
+
+    void onSwapBuffersReturn() {
+        lastSwapBuffersReturnTime = currGuestTimeNs();
+    }
+
+    void onQueueBufferReturn() {
+        if(lastSwapBuffersReturnTime == 0) {
+            // First swapBuffers call, or last call failed.
+            return;
+        }
+
+        uint64_t now = currGuestTimeNs();
+        uint64_t appTime = now - lastSwapBuffersReturnTime;
+        totalAppTime += appTime;
+        numSamples++;
+        // Reset so we don't record a bad sample if swapBuffers fails
+        lastSwapBuffersReturnTime = 0;
+
+        if(lastLogTime == 0) {
+            lastLogTime = now;
+            return;
+        }
+
+        // Log/reset once every second
+        if(now - lastLogTime > 1000000000) {
+            float averageAppTimeMs = (float)totalAppTime / 1000000.0 / numSamples;
+            ALOGD("average app time: %0.2f ms (n=%llu)", averageAppTimeMs, numSamples);
+            totalAppTime = 0;
+            numSamples = 0;
+            lastLogTime = now;
+        }
+    }
+};
+
 // ----------------------------------------------------------------------------
 //egl_surface_t
 
@@ -340,6 +398,8 @@ protected:
 
     EGLint      surfaceType;
     uint32_t    rcSurface; //handle to surface created via remote control
+
+    app_time_metric_t appTimeMetric;
 };
 
 egl_surface_t::egl_surface_t(EGLDisplay dpy, EGLConfig config, EGLint surfaceType)
@@ -621,17 +681,6 @@ static void createGoldfishOpenGLNativeSync(int* fd_out) {
                      fd_out);
 }
 
-uint64_t currGuestTimeNs() {
-    struct timespec ts;
-#ifdef __APPLE__
-    clock_gettime(CLOCK_REALTIME, &ts);
-#else
-    clock_gettime(CLOCK_BOOTTIME, &ts);
-#endif
-    uint64_t res = (uint64_t)(ts.tv_sec * 1000000000ULL + ts.tv_nsec);
-    return res;
-}
-
 struct FrameTracingState {
     uint32_t frameNumber = 0;
     bool tracingEnabled = false;
@@ -725,6 +774,8 @@ EGLBoolean egl_window_surface_t::swapBuffers()
     nativeWindow->queueBuffer(nativeWindow, buffer, presentFenceFd);
 #endif
 
+    appTimeMetric.onQueueBufferReturn();
+
     DPRINT("calling dequeueBuffer...");
 
 #if PLATFORM_SDK_VERSION <= 16
@@ -753,6 +804,8 @@ EGLBoolean egl_window_surface_t::swapBuffers()
     setHeight(buffer->height);
 
     sFrameTracingState.onSwapBuffersSuccesful(rcEnc);
+    appTimeMetric.onSwapBuffersReturn();
+
     return EGL_TRUE;
 }
 
