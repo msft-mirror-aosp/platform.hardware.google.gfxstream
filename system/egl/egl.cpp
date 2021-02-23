@@ -333,7 +333,7 @@ struct app_time_metric_t {
         // Log/reset once every second
         if(now - lastLogTime > 1000000000) {
             float averageAppTimeMs = (float)totalAppTime / 1000000.0 / numSamples;
-            ALOGD("average app time: %0.2f ms (n=%llu)", averageAppTimeMs, numSamples);
+            ALOGD("average app time: %0.2f ms (n=%llu)", averageAppTimeMs, (unsigned long long)numSamples);
             totalAppTime = 0;
             numSamples = 0;
             lastLogTime = now;
