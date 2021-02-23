@@ -3510,11 +3510,15 @@ void GL2Encoder::s_glBindBufferRange(void* self, GLenum target, GLuint index, GL
                  GL_INVALID_VALUE);
 
     GLint ssbo_offset_align, ubo_offset_align;
-    ctx->s_glGetIntegerv(ctx, GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT, &ssbo_offset_align);
+
+    if (ctx->majorVersion() >= 3 && ctx->minorVersion() >= 1) {
+        ctx->s_glGetIntegerv(ctx, GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT, &ssbo_offset_align);
+        SET_ERROR_IF(target == GL_SHADER_STORAGE_BUFFER &&
+                     offset % ssbo_offset_align,
+                     GL_INVALID_VALUE);
+    }
+
     ctx->s_glGetIntegerv(ctx, GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &ubo_offset_align);
-    SET_ERROR_IF(target == GL_SHADER_STORAGE_BUFFER &&
-                 offset % ssbo_offset_align,
-                 GL_INVALID_VALUE);
     SET_ERROR_IF(target == GL_UNIFORM_BUFFER &&
                  offset % ubo_offset_align,
                  GL_INVALID_VALUE);
