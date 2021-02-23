@@ -4692,6 +4692,11 @@ public:
         {
             AutoLock lock(mLock);
 
+            // Pool was destroyed
+            if (info_VkDescriptorPool.find(descriptorPool) == info_VkDescriptorPool.end()) {
+                return VK_SUCCESS;
+            }
+
             if (!descriptorPoolSupportsIndividualFreeLocked(descriptorPool))
                 return VK_SUCCESS;
 
