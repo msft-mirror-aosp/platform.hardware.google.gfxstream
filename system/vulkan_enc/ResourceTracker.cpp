@@ -4710,7 +4710,7 @@ public:
                 for (uint32_t i = 0; i < descriptorSetCount; ++i) {
 
                     if (allocedSets.end() == allocedSets.find(pDescriptorSets[i])) {
-                        ALOGE("%s: Warning: descriptor set %p not found in pool. Was this double-freed?\n", __func__,
+                        ALOGV("%s: Warning: descriptor set %p not found in pool. Was this double-freed?\n", __func__,
                               (void*)pDescriptorSets[i]);
                         continue;
                     }
