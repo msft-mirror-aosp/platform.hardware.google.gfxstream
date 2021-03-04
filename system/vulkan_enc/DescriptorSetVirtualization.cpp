@@ -118,42 +118,38 @@ void doEmulatedDescriptorWrite(const VkWriteDescriptorSet* write, ReifiedDescrip
     uint32_t descriptorCount = write->descriptorCount;
 
     DescriptorWriteTable& table = toWrite->allWrites;
-    auto& arrayEntries = table[dstBinding];
 
     uint32_t arrOffset = dstArrayElement;
 
     if (isDescriptorTypeImageInfo(descType)) {
         for (uint32_t i = 0; i < descriptorCount; ++i, ++arrOffset) {
-            if (arrOffset >= arrayEntries.size()) {
+            if (arrOffset >= table[dstBinding].size()) {
                 ++dstBinding;
-                arrayEntries = table[dstBinding];
                 arrOffset = 0;
             }
-            auto& entry = arrayEntries[arrOffset];
+            auto& entry = table[dstBinding][arrOffset];
             entry.imageInfo = write->pImageInfo[i];
             entry.type = DescriptorWriteType::ImageInfo;
             entry.descriptorType = descType;
         }
     } else if (isDescriptorTypeBufferInfo(descType)) {
         for (uint32_t i = 0; i < descriptorCount; ++i, ++arrOffset) {
-            if (arrOffset >= arrayEntries.size()) {
+            if (arrOffset >= table[dstBinding].size()) {
                 ++dstBinding;
-                arrayEntries = table[dstBinding];
                 arrOffset = 0;
             }
-            auto& entry = arrayEntries[arrOffset];
+            auto& entry = table[dstBinding][arrOffset];
             entry.bufferInfo = write->pBufferInfo[i];
             entry.type = DescriptorWriteType::BufferInfo;
             entry.descriptorType = descType;
         }
     } else if (isDescriptorTypeBufferView(descType)) {
         for (uint32_t i = 0; i < descriptorCount; ++i, ++arrOffset) {
-            if (arrOffset >= arrayEntries.size()) {
+            if (arrOffset >= table[dstBinding].size()) {
                 ++dstBinding;
-                arrayEntries = table[dstBinding];
                 arrOffset = 0;
             }
-            auto& entry = arrayEntries[arrOffset];
+            auto& entry = table[dstBinding][arrOffset];
             entry.bufferView = write->pTexelBufferView[i];
             entry.type = DescriptorWriteType::BufferView;
             entry.descriptorType = descType;
