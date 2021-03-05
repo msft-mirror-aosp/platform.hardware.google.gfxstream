@@ -895,7 +895,7 @@ private:
 
 void VulkanDevice::InitLogger() {
   auto log_service = ([] () -> std::optional<zx::socket> {
-    fidl::ClientEnd<llcpp::fuchsia::logger::LogSink> channel{zx::channel{
+    fidl::ClientEnd<fuchsia_logger::LogSink> channel{zx::channel{
       GetConnectToServiceFunction()("/svc/fuchsia.logger.LogSink")}};
     if (!channel.is_valid())
       return std::nullopt;
@@ -905,7 +905,7 @@ void VulkanDevice::InitLogger() {
     if (status != ZX_OK)
       return std::nullopt;
 
-    auto result = llcpp::fuchsia::logger::LogSink::Call::Connect(
+    auto result = fuchsia_logger::LogSink::Call::Connect(
         channel, std::move(remote_socket));
 
     if (!result.ok())

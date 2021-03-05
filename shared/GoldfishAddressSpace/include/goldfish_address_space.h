@@ -68,10 +68,10 @@ private:
 
 #ifdef __Fuchsia__
     std::unique_ptr<
-        llcpp::fuchsia::hardware::goldfish::AddressSpaceDevice::SyncClient>
+        fuchsia_hardware_goldfish::AddressSpaceDevice::SyncClient>
         m_device;
     std::unique_ptr<
-        llcpp::fuchsia::hardware::goldfish::AddressSpaceChildDriver::SyncClient>
+        fuchsia_hardware_goldfish::AddressSpaceChildDriver::SyncClient>
         m_child_driver;
 #else // __Fuchsia__
     address_space_handle_t m_handle;
@@ -104,7 +104,7 @@ private:
     GoldfishAddressSpaceBlock &operator=(const GoldfishAddressSpaceBlock &);
 
 #ifdef __Fuchsia__
-    llcpp::fuchsia::hardware::goldfish::AddressSpaceChildDriver::SyncClient*
+    fuchsia_hardware_goldfish::AddressSpaceChildDriver::SyncClient*
         m_driver;
     uint32_t  m_vmo;
 #else // __Fuchsia__
