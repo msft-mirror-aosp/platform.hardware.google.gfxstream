@@ -72,7 +72,7 @@ QemuPipeStream::~QemuPipeStream()
 
 int QemuPipeStream::connect(void)
 {
-    fidl::ClientEnd<llcpp::fuchsia::hardware::goldfish::PipeDevice> channel{
+    fidl::ClientEnd<fuchsia_hardware_goldfish::PipeDevice> channel{
         zx::channel(GetConnectToServiceFunction()(QEMU_PIPE_PATH))};
     if (!channel) {
         ALOGE("%s: failed to get service handle for " QEMU_PIPE_PATH,
@@ -81,18 +81,18 @@ int QemuPipeStream::connect(void)
     }
 
     m_device = std::make_unique<
-        llcpp::fuchsia::hardware::goldfish::PipeDevice::SyncClient>(
+        fuchsia_hardware_goldfish::PipeDevice::SyncClient>(
         std::move(channel));
 
     auto pipe_ends =
-        fidl::CreateEndpoints<::llcpp::fuchsia::hardware::goldfish::Pipe>();
+        fidl::CreateEndpoints<::fuchsia_hardware_goldfish::Pipe>();
     if (!pipe_ends.is_ok()) {
         ALOGE("zx::channel::create failed: %d", pipe_ends.status_value());
         return ZX_HANDLE_INVALID;
     }
     m_device->OpenPipe(std::move(pipe_ends->server));
     m_pipe =
-        std::make_unique<llcpp::fuchsia::hardware::goldfish::Pipe::SyncClient>(
+        std::make_unique<fuchsia_hardware_goldfish::Pipe::SyncClient>(
             std::move(pipe_ends->client));
 
     zx::event event;
@@ -304,14 +304,14 @@ const unsigned char *QemuPipeStream::commitBufferAndReadFully(size_t size, void 
 
         zx_signals_t observed = ZX_SIGNAL_NONE;
         zx_status_t status = m_event.wait_one(
-            llcpp::fuchsia::hardware::goldfish::SIGNAL_READABLE |
-                llcpp::fuchsia::hardware::goldfish::SIGNAL_HANGUP,
+            fuchsia_hardware_goldfish::wire::SIGNAL_READABLE |
+                fuchsia_hardware_goldfish::wire::SIGNAL_HANGUP,
             zx::time::infinite(), &observed);
         if (status != ZX_OK) {
             ALOGD("%s: wait_one failed: %d", __FUNCTION__, status);
             return nullptr;
         }
-        if (observed & llcpp::fuchsia::hardware::goldfish::SIGNAL_HANGUP) {
+        if (observed & fuchsia_hardware_goldfish::wire::SIGNAL_HANGUP) {
             ALOGD("%s: Remote end hungup", __FUNCTION__);
             return nullptr;
         }
