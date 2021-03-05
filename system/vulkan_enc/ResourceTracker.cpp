@@ -422,7 +422,7 @@ public:
     struct VkBufferCollectionFUCHSIA_Info {
 #ifdef VK_USE_PLATFORM_FUCHSIA
         android::base::Optional<
-            llcpp::fuchsia::sysmem::BufferCollectionConstraints>
+            fuchsia_sysmem::wire::BufferCollectionConstraints>
             constraints;
         android::base::Optional<VkBufferCollectionProperties2FUCHSIA>
             properties;
@@ -924,23 +924,23 @@ public:
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
         if (mFeatureInfo->hasVulkan) {
-            fidl::ClientEnd<llcpp::fuchsia::hardware::goldfish::ControlDevice> channel{
+            fidl::ClientEnd<fuchsia_hardware_goldfish::ControlDevice> channel{
                 zx::channel(GetConnectToServiceFunction()("/dev/class/goldfish-control/000"))};
             if (!channel) {
                 ALOGE("failed to open control device");
                 abort();
             }
             mControlDevice = std::make_unique<
-                llcpp::fuchsia::hardware::goldfish::ControlDevice::SyncClient>(
+                fuchsia_hardware_goldfish::ControlDevice::SyncClient>(
                 std::move(channel));
 
-            fidl::ClientEnd<llcpp::fuchsia::sysmem::Allocator> sysmem_channel{
+            fidl::ClientEnd<fuchsia_sysmem::Allocator> sysmem_channel{
                 zx::channel(GetConnectToServiceFunction()("/svc/fuchsia.sysmem.Allocator"))};
             if (!sysmem_channel) {
                 ALOGE("failed to open sysmem connection");
             }
             mSysmemAllocator =
-                std::make_unique<llcpp::fuchsia::sysmem::Allocator::SyncClient>(
+                std::make_unique<fuchsia_sysmem::Allocator::SyncClient>(
                     std::move(sysmem_channel));
             char name[ZX_MAX_NAME_LEN] = {};
             zx_object_get_property(zx_process_self(), ZX_PROP_NAME, name, sizeof(name));
@@ -1740,8 +1740,8 @@ public:
         VkExternalMemoryHandleTypeFlagBits handleType,
         uint32_t handle,
         VkMemoryZirconHandlePropertiesFUCHSIA* pProperties) {
-        using llcpp::fuchsia::hardware::goldfish::MEMORY_PROPERTY_DEVICE_LOCAL;
-        using llcpp::fuchsia::hardware::goldfish::MEMORY_PROPERTY_HOST_VISIBLE;
+        using fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_DEVICE_LOCAL;
+        using fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_HOST_VISIBLE;
 
         if (handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA) {
             return VK_ERROR_INITIALIZATION_FAILED;
@@ -1905,14 +1905,14 @@ public:
         const VkBufferCollectionCreateInfoFUCHSIA* pInfo,
         const VkAllocationCallbacks*,
         VkBufferCollectionFUCHSIA* pCollection) {
-        fidl::ClientEnd<::llcpp::fuchsia::sysmem::BufferCollectionToken> token_client;
+        fidl::ClientEnd<::fuchsia_sysmem::BufferCollectionToken> token_client;
 
         if (pInfo->collectionToken) {
-            token_client = fidl::ClientEnd<::llcpp::fuchsia::sysmem::BufferCollectionToken>(
+            token_client = fidl::ClientEnd<::fuchsia_sysmem::BufferCollectionToken>(
                 zx::channel(pInfo->collectionToken));
         } else {
             auto endpoints =
-                fidl::CreateEndpoints<::llcpp::fuchsia::sysmem::BufferCollectionToken>();
+                fidl::CreateEndpoints<::fuchsia_sysmem::BufferCollectionToken>();
             if (!endpoints.is_ok()) {
                 ALOGE("zx_channel_create failed: %d", endpoints.status_value());
                 return VK_ERROR_INITIALIZATION_FAILED;
@@ -1927,7 +1927,7 @@ public:
             token_client = std::move(endpoints->client);
         }
 
-        auto endpoints = fidl::CreateEndpoints<::llcpp::fuchsia::sysmem::BufferCollection>();
+        auto endpoints = fidl::CreateEndpoints<::fuchsia_sysmem::BufferCollection>();
         if (!endpoints.is_ok()) {
             ALOGE("zx_channel_create failed: %d", endpoints.status_value());
             return VK_ERROR_INITIALIZATION_FAILED;
@@ -1942,7 +1942,7 @@ public:
         }
 
         auto* sysmem_collection =
-            new llcpp::fuchsia::sysmem::BufferCollection::SyncClient(
+            new fuchsia_sysmem::BufferCollection::SyncClient(
                 std::move(collection_client));
         *pCollection = reinterpret_cast<VkBufferCollectionFUCHSIA>(sysmem_collection);
 
@@ -1955,7 +1955,7 @@ public:
         VkBufferCollectionFUCHSIA collection,
         const VkAllocationCallbacks*) {
         auto sysmem_collection = reinterpret_cast<
-            llcpp::fuchsia::sysmem::BufferCollection::SyncClient*>(collection);
+            fuchsia_sysmem::BufferCollection::SyncClient*>(collection);
         if (sysmem_collection) {
             sysmem_collection->Close();
         }
@@ -1964,7 +1964,7 @@ public:
         unregister_VkBufferCollectionFUCHSIA(collection);
     }
 
-    inline llcpp::fuchsia::sysmem::BufferCollectionConstraints
+    inline fuchsia_sysmem::wire::BufferCollectionConstraints
     defaultBufferCollectionConstraints(
         size_t minSizeBytes,
         size_t minBufferCount,
@@ -1972,7 +1972,7 @@ public:
         size_t minBufferCountForCamping = 0u,
         size_t minBufferCountForDedicatedSlack = 0u,
         size_t minBufferCountForSharedSlack = 0u) {
-        llcpp::fuchsia::sysmem::BufferCollectionConstraints constraints = {};
+        fuchsia_sysmem::wire::BufferCollectionConstraints constraints = {};
         constraints.min_buffer_count = minBufferCount;
         if (maxBufferCount > 0) {
             constraints.max_buffer_count = maxBufferCount;
@@ -1985,7 +1985,7 @@ public:
                 minBufferCountForSharedSlack;
         }
         constraints.has_buffer_memory_constraints = true;
-        llcpp::fuchsia::sysmem::BufferMemoryConstraints& buffer_constraints =
+        fuchsia_sysmem::wire::BufferMemoryConstraints& buffer_constraints =
             constraints.buffer_memory_constraints;
 
         buffer_constraints.min_size_bytes = minSizeBytes;
@@ -1999,9 +1999,9 @@ public:
         buffer_constraints.inaccessible_domain_supported = true;
         buffer_constraints.heap_permitted_count = 2;
         buffer_constraints.heap_permitted[0] =
-            llcpp::fuchsia::sysmem::HeapType::GOLDFISH_DEVICE_LOCAL;
+            fuchsia_sysmem::wire::HeapType::GOLDFISH_DEVICE_LOCAL;
         buffer_constraints.heap_permitted[1] =
-            llcpp::fuchsia::sysmem::HeapType::GOLDFISH_HOST_VISIBLE;
+            fuchsia_sysmem::wire::HeapType::GOLDFISH_HOST_VISIBLE;
 
         return constraints;
     }
@@ -2013,7 +2013,7 @@ public:
 
 #define SetUsageBit(USAGE)                                           \
     if (imageUsage & VK_IMAGE_USAGE_##USAGE##_BIT) {                 \
-        usage |= llcpp::fuchsia::sysmem::VULKAN_IMAGE_USAGE_##USAGE; \
+        usage |= fuchsia_sysmem::wire::VULKAN_IMAGE_USAGE_##USAGE; \
     }
 
         SetUsageBit(COLOR_ATTACHMENT);
@@ -2033,7 +2033,7 @@ public:
 
 #define SetUsageBit(USAGE)                                            \
     if (bufferUsage & VK_BUFFER_USAGE_##USAGE##_BIT) {                \
-        usage |= llcpp::fuchsia::sysmem::VULKAN_BUFFER_USAGE_##USAGE; \
+        usage |= fuchsia_sysmem::wire::VULKAN_BUFFER_USAGE_##USAGE; \
     }
 
         SetUsageBit(TRANSFER_SRC);
@@ -2050,7 +2050,7 @@ public:
         return usage;
     }
 
-    static llcpp::fuchsia::sysmem::PixelFormatType vkFormatTypeToSysmem(
+    static fuchsia_sysmem::wire::PixelFormatType vkFormatTypeToSysmem(
         VkFormat format) {
         switch (format) {
             case VK_FORMAT_B8G8R8A8_SINT:
@@ -2059,14 +2059,14 @@ public:
             case VK_FORMAT_B8G8R8A8_SNORM:
             case VK_FORMAT_B8G8R8A8_SSCALED:
             case VK_FORMAT_B8G8R8A8_USCALED:
-                return llcpp::fuchsia::sysmem::PixelFormatType::BGRA32;
+                return fuchsia_sysmem::wire::PixelFormatType::BGRA32;
             case VK_FORMAT_R8G8B8A8_SINT:
             case VK_FORMAT_R8G8B8A8_UNORM:
             case VK_FORMAT_R8G8B8A8_SRGB:
             case VK_FORMAT_R8G8B8A8_SNORM:
             case VK_FORMAT_R8G8B8A8_SSCALED:
             case VK_FORMAT_R8G8B8A8_USCALED:
-                return llcpp::fuchsia::sysmem::PixelFormatType::R8G8B8A8;
+                return fuchsia_sysmem::wire::PixelFormatType::R8G8B8A8;
             case VK_FORMAT_R8_UNORM:
             case VK_FORMAT_R8_UINT:
             case VK_FORMAT_R8_USCALED:
@@ -2074,7 +2074,7 @@ public:
             case VK_FORMAT_R8_SINT:
             case VK_FORMAT_R8_SSCALED:
             case VK_FORMAT_R8_SRGB:
-                return llcpp::fuchsia::sysmem::PixelFormatType::R8;
+                return fuchsia_sysmem::wire::PixelFormatType::R8;
             case VK_FORMAT_R8G8_UNORM:
             case VK_FORMAT_R8G8_UINT:
             case VK_FORMAT_R8G8_USCALED:
@@ -2082,15 +2082,15 @@ public:
             case VK_FORMAT_R8G8_SINT:
             case VK_FORMAT_R8G8_SSCALED:
             case VK_FORMAT_R8G8_SRGB:
-                return llcpp::fuchsia::sysmem::PixelFormatType::R8G8;
+                return fuchsia_sysmem::wire::PixelFormatType::R8G8;
             default:
-                return llcpp::fuchsia::sysmem::PixelFormatType::INVALID;
+                return fuchsia_sysmem::wire::PixelFormatType::INVALID;
         }
     }
 
     static bool vkFormatMatchesSysmemFormat(
         VkFormat vkFormat,
-        llcpp::fuchsia::sysmem::PixelFormatType sysmemFormat) {
+        fuchsia_sysmem::wire::PixelFormatType sysmemFormat) {
         switch (vkFormat) {
             case VK_FORMAT_B8G8R8A8_SINT:
             case VK_FORMAT_B8G8R8A8_UNORM:
@@ -2099,7 +2099,7 @@ public:
             case VK_FORMAT_B8G8R8A8_SSCALED:
             case VK_FORMAT_B8G8R8A8_USCALED:
                 return sysmemFormat ==
-                       llcpp::fuchsia::sysmem::PixelFormatType::BGRA32;
+                       fuchsia_sysmem::wire::PixelFormatType::BGRA32;
             case VK_FORMAT_R8G8B8A8_SINT:
             case VK_FORMAT_R8G8B8A8_UNORM:
             case VK_FORMAT_R8G8B8A8_SRGB:
@@ -2107,7 +2107,7 @@ public:
             case VK_FORMAT_R8G8B8A8_SSCALED:
             case VK_FORMAT_R8G8B8A8_USCALED:
                 return sysmemFormat ==
-                       llcpp::fuchsia::sysmem::PixelFormatType::R8G8B8A8;
+                       fuchsia_sysmem::wire::PixelFormatType::R8G8B8A8;
             case VK_FORMAT_R8_UNORM:
             case VK_FORMAT_R8_UINT:
             case VK_FORMAT_R8_USCALED:
@@ -2116,9 +2116,9 @@ public:
             case VK_FORMAT_R8_SSCALED:
             case VK_FORMAT_R8_SRGB:
                 return sysmemFormat ==
-                           llcpp::fuchsia::sysmem::PixelFormatType::R8 ||
+                           fuchsia_sysmem::wire::PixelFormatType::R8 ||
                        sysmemFormat ==
-                           llcpp::fuchsia::sysmem::PixelFormatType::L8;
+                           fuchsia_sysmem::wire::PixelFormatType::L8;
             case VK_FORMAT_R8G8_UNORM:
             case VK_FORMAT_R8G8_UINT:
             case VK_FORMAT_R8G8_USCALED:
@@ -2127,23 +2127,23 @@ public:
             case VK_FORMAT_R8G8_SSCALED:
             case VK_FORMAT_R8G8_SRGB:
                 return sysmemFormat ==
-                       llcpp::fuchsia::sysmem::PixelFormatType::R8G8;
+                       fuchsia_sysmem::wire::PixelFormatType::R8G8;
             default:
                 return false;
         }
     }
 
     static VkFormat sysmemPixelFormatTypeToVk(
-        llcpp::fuchsia::sysmem::PixelFormatType format) {
+        fuchsia_sysmem::wire::PixelFormatType format) {
         switch (format) {
-            case llcpp::fuchsia::sysmem::PixelFormatType::BGRA32:
+            case fuchsia_sysmem::wire::PixelFormatType::BGRA32:
                 return VK_FORMAT_B8G8R8A8_SRGB;
-            case llcpp::fuchsia::sysmem::PixelFormatType::R8G8B8A8:
+            case fuchsia_sysmem::wire::PixelFormatType::R8G8B8A8:
                 return VK_FORMAT_R8G8B8A8_SRGB;
-            case llcpp::fuchsia::sysmem::PixelFormatType::L8:
-            case llcpp::fuchsia::sysmem::PixelFormatType::R8:
+            case fuchsia_sysmem::wire::PixelFormatType::L8:
+            case fuchsia_sysmem::wire::PixelFormatType::R8:
                 return VK_FORMAT_R8_UNORM;
-            case llcpp::fuchsia::sysmem::PixelFormatType::R8G8:
+            case fuchsia_sysmem::wire::PixelFormatType::R8G8:
                 return VK_FORMAT_R8G8_UNORM;
             default:
                 return VK_FORMAT_UNDEFINED;
@@ -2152,7 +2152,7 @@ public:
 
     VkResult setBufferCollectionConstraints(
         VkEncoder* enc, VkDevice device,
-        llcpp::fuchsia::sysmem::BufferCollection::SyncClient* collection,
+        fuchsia_sysmem::BufferCollection::SyncClient* collection,
         const VkImageCreateInfo* pImageInfo) {
         if (pImageInfo == nullptr) {
             ALOGE("setBufferCollectionConstraints: pImageInfo cannot be null.");
@@ -2200,7 +2200,7 @@ public:
         const VkImageCreateInfo* createInfo,
         const VkImageFormatConstraintsInfoFUCHSIA* formatConstraints,
         VkImageTiling tiling,
-        llcpp::fuchsia::sysmem::BufferCollectionConstraints* constraints) {
+        fuchsia_sysmem::wire::BufferCollectionConstraints* constraints) {
         // First check if the format, tiling and usage is supported on host.
         VkImageFormatProperties imageFormatProperties;
         auto result = enc->vkGetPhysicalDeviceImageFormatProperties(
@@ -2246,10 +2246,10 @@ public:
             }
         }
 
-        llcpp::fuchsia::sysmem::ImageFormatConstraints imageConstraints;
+        fuchsia_sysmem::wire::ImageFormatConstraints imageConstraints;
         if (formatConstraints && formatConstraints->sysmemFormat != 0) {
             auto pixelFormat =
-                static_cast<llcpp::fuchsia::sysmem::PixelFormatType>(
+                static_cast<fuchsia_sysmem::wire::PixelFormatType>(
                     formatConstraints->sysmemFormat);
             if (createInfo->format != VK_FORMAT_UNDEFINED &&
                 !vkFormatMatchesSysmemFormat(createInfo->format, pixelFormat)) {
@@ -2262,7 +2262,7 @@ public:
         } else {
             auto pixel_format = vkFormatTypeToSysmem(createInfo->format);
             if (pixel_format ==
-                llcpp::fuchsia::sysmem::PixelFormatType::INVALID) {
+                fuchsia_sysmem::wire::PixelFormatType::INVALID) {
                 ALOGW("%s: Unsupported VkFormat %u", __func__,
                       static_cast<uint32_t>(createInfo->format));
                 return VK_ERROR_FORMAT_NOT_SUPPORTED;
@@ -2273,13 +2273,13 @@ public:
         if (!formatConstraints || formatConstraints->colorSpaceCount == 0u) {
             imageConstraints.color_spaces_count = 1;
             imageConstraints.color_space[0].type =
-                llcpp::fuchsia::sysmem::ColorSpaceType::SRGB;
+                fuchsia_sysmem::wire::ColorSpaceType::SRGB;
         } else {
             imageConstraints.color_spaces_count =
                 formatConstraints->colorSpaceCount;
             for (size_t i = 0; i < formatConstraints->colorSpaceCount; i++) {
                 imageConstraints.color_space[0].type =
-                    static_cast<llcpp::fuchsia::sysmem::ColorSpaceType>(
+                    static_cast<fuchsia_sysmem::wire::ColorSpaceType>(
                         formatConstraints->pColorSpaces[i].colorSpace);
             }
         }
@@ -2315,8 +2315,8 @@ public:
         imageConstraints.pixel_format.has_format_modifier = true;
         imageConstraints.pixel_format.format_modifier.value =
             (tiling == VK_IMAGE_TILING_LINEAR)
-                ? llcpp::fuchsia::sysmem::FORMAT_MODIFIER_LINEAR
-                : llcpp::fuchsia::sysmem::
+                ? fuchsia_sysmem::wire::FORMAT_MODIFIER_LINEAR
+                : fuchsia_sysmem::wire::
                       FORMAT_MODIFIER_GOOGLE_GOLDFISH_OPTIMAL;
 
         constraints->image_format_constraints
@@ -2328,7 +2328,7 @@ public:
     VkResult setBufferCollectionImageConstraints(
         VkEncoder* enc,
         VkDevice device,
-        llcpp::fuchsia::sysmem::BufferCollection::SyncClient* collection,
+        fuchsia_sysmem::BufferCollection::SyncClient* collection,
         const VkImageConstraintsInfoFUCHSIA* pImageConstraintsInfo) {
         if (!pImageConstraintsInfo ||
             pImageConstraintsInfo->sType !=
@@ -2342,7 +2342,7 @@ public:
             return VK_ERROR_INITIALIZATION_FAILED;
         }
 
-        llcpp::fuchsia::sysmem::BufferCollectionConstraints constraints =
+        fuchsia_sysmem::wire::BufferCollectionConstraints constraints =
             defaultBufferCollectionConstraints(
                 /* min_size_bytes */ 0, pImageConstraintsInfo->minBufferCount,
                 pImageConstraintsInfo->maxBufferCount,
@@ -2350,7 +2350,7 @@ public:
                 pImageConstraintsInfo->minBufferCountForDedicatedSlack,
                 pImageConstraintsInfo->minBufferCountForSharedSlack);
 
-        std::vector<llcpp::fuchsia::sysmem::ImageFormatConstraints>
+        std::vector<fuchsia_sysmem::wire::ImageFormatConstraints>
             format_constraints;
 
         VkPhysicalDevice physicalDevice;
@@ -2413,13 +2413,13 @@ public:
         // and flags.
         VkImageConstraintsInfoFlagsFUCHSIA flags = pImageConstraintsInfo->flags;
         if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_RARELY_FUCHSIA)
-            constraints.usage.cpu |= llcpp::fuchsia::sysmem::cpuUsageRead;
+            constraints.usage.cpu |= fuchsia_sysmem::wire::cpuUsageRead;
         if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_OFTEN_FUCHSIA)
-            constraints.usage.cpu |= llcpp::fuchsia::sysmem::cpuUsageReadOften;
+            constraints.usage.cpu |= fuchsia_sysmem::wire::cpuUsageReadOften;
         if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_RARELY_FUCHSIA)
-            constraints.usage.cpu |= llcpp::fuchsia::sysmem::cpuUsageWrite;
+            constraints.usage.cpu |= fuchsia_sysmem::wire::cpuUsageWrite;
         if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_OFTEN_FUCHSIA)
-            constraints.usage.cpu |= llcpp::fuchsia::sysmem::cpuUsageWriteOften;
+            constraints.usage.cpu |= fuchsia_sysmem::wire::cpuUsageWriteOften;
 
         constraints.has_buffer_memory_constraints = true;
         auto& memory_constraints = constraints.buffer_memory_constraints;
@@ -2435,13 +2435,13 @@ public:
         if (memory_constraints.inaccessible_domain_supported) {
             memory_constraints.heap_permitted_count = 2;
             memory_constraints.heap_permitted[0] =
-                llcpp::fuchsia::sysmem::HeapType::GOLDFISH_DEVICE_LOCAL;
+                fuchsia_sysmem::wire::HeapType::GOLDFISH_DEVICE_LOCAL;
             memory_constraints.heap_permitted[1] =
-                llcpp::fuchsia::sysmem::HeapType::GOLDFISH_HOST_VISIBLE;
+                fuchsia_sysmem::wire::HeapType::GOLDFISH_HOST_VISIBLE;
         } else {
             memory_constraints.heap_permitted_count = 1;
             memory_constraints.heap_permitted[0] =
-                llcpp::fuchsia::sysmem::HeapType::GOLDFISH_HOST_VISIBLE;
+                fuchsia_sysmem::wire::HeapType::GOLDFISH_HOST_VISIBLE;
         }
 
         if (constraints.image_format_constraints_count == 0) {
@@ -2479,7 +2479,7 @@ public:
     }
 
     VkResult setBufferCollectionBufferConstraints(
-        llcpp::fuchsia::sysmem::BufferCollection::SyncClient* collection,
+        fuchsia_sysmem::BufferCollection::SyncClient* collection,
         const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo) {
         if (pBufferConstraintsInfo == nullptr) {
             ALOGE(
@@ -2488,7 +2488,7 @@ public:
             return VK_ERROR_OUT_OF_DEVICE_MEMORY;
         }
 
-        llcpp::fuchsia::sysmem::BufferCollectionConstraints constraints =
+        fuchsia_sysmem::wire::BufferCollectionConstraints constraints =
             defaultBufferCollectionConstraints(
                 /* min_size_bytes */ pBufferConstraintsInfo->pBufferCreateInfo->size,
                 /* buffer_count */ pBufferConstraintsInfo->minCount);
@@ -2527,7 +2527,7 @@ public:
         const VkImageCreateInfo* pImageInfo) {
         VkEncoder* enc = (VkEncoder*)context;
         auto sysmem_collection = reinterpret_cast<
-            llcpp::fuchsia::sysmem::BufferCollection::SyncClient*>(collection);
+            fuchsia_sysmem::BufferCollection::SyncClient*>(collection);
         return setBufferCollectionConstraints(enc, device, sysmem_collection, pImageInfo);
     }
 
@@ -2539,7 +2539,7 @@ public:
         const VkImageConstraintsInfoFUCHSIA* pImageConstraintsInfo) {
         VkEncoder* enc = (VkEncoder*)context;
         auto sysmem_collection = reinterpret_cast<
-            llcpp::fuchsia::sysmem::BufferCollection::SyncClient*>(collection);
+            fuchsia_sysmem::BufferCollection::SyncClient*>(collection);
         return setBufferCollectionImageConstraints(
             enc, device, sysmem_collection, pImageConstraintsInfo);
     }
@@ -2551,7 +2551,7 @@ public:
         VkBufferCollectionFUCHSIA collection,
         const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo) {
         auto sysmem_collection = reinterpret_cast<
-            llcpp::fuchsia::sysmem::BufferCollection::SyncClient*>(collection);
+            fuchsia_sysmem::BufferCollection::SyncClient*>(collection);
         return setBufferCollectionBufferConstraints(sysmem_collection,
                                                     pBufferConstraintsInfo);
     }
@@ -2578,7 +2578,7 @@ public:
 
     VkResult getBufferCollectionImageCreateInfoIndexLocked(
         VkBufferCollectionFUCHSIA collection,
-        llcpp::fuchsia::sysmem::BufferCollectionInfo_2& info,
+        fuchsia_sysmem::wire::BufferCollectionInfo_2& info,
         uint32_t* outCreateInfoIndex) {
         if (!info_VkBufferCollectionFUCHSIA[collection]
                  .constraints.hasValue()) {
@@ -2655,7 +2655,7 @@ public:
         VkBufferCollectionProperties2FUCHSIA* pProperties) {
         VkEncoder* enc = (VkEncoder*)context;
         auto sysmem_collection = reinterpret_cast<
-            llcpp::fuchsia::sysmem::BufferCollection::SyncClient*>(collection);
+            fuchsia_sysmem::BufferCollection::SyncClient*>(collection);
 
         auto result = sysmem_collection->WaitForBuffersAllocated();
         if (!result.ok() || result.Unwrap()->status != ZX_OK) {
@@ -2663,13 +2663,13 @@ public:
                   GET_STATUS_SAFE(result, status));
             return VK_ERROR_INITIALIZATION_FAILED;
         }
-        llcpp::fuchsia::sysmem::BufferCollectionInfo_2 info =
+        fuchsia_sysmem::wire::BufferCollectionInfo_2 info =
             std::move(result.Unwrap()->buffer_collection_info);
 
         bool is_host_visible = info.settings.buffer_settings.heap ==
-                               llcpp::fuchsia::sysmem::HeapType::GOLDFISH_HOST_VISIBLE;
+                               fuchsia_sysmem::wire::HeapType::GOLDFISH_HOST_VISIBLE;
         bool is_device_local = info.settings.buffer_settings.heap ==
-                               llcpp::fuchsia::sysmem::HeapType::GOLDFISH_DEVICE_LOCAL;
+                               fuchsia_sysmem::wire::HeapType::GOLDFISH_DEVICE_LOCAL;
         if (!is_host_visible && !is_device_local) {
             ALOGE("buffer collection uses a non-goldfish heap (type 0x%lu)",
                 static_cast<uint64_t>(info.settings.buffer_settings.heap));
@@ -3172,7 +3172,7 @@ public:
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
             auto collection = reinterpret_cast<
-                llcpp::fuchsia::sysmem::BufferCollection::SyncClient*>(
+                fuchsia_sysmem::BufferCollection::SyncClient*>(
                 importBufferCollectionInfoPtr->collection);
             auto result = collection->WaitForBuffersAllocated();
             if (!result.ok() || result.Unwrap()->status != ZX_OK) {
@@ -3180,7 +3180,7 @@ public:
                       GET_STATUS_SAFE(result, status));
                 return VK_ERROR_INITIALIZATION_FAILED;
             }
-            llcpp::fuchsia::sysmem::BufferCollectionInfo_2& info =
+            fuchsia_sysmem::wire::BufferCollectionInfo_2& info =
                 result.Unwrap()->buffer_collection_info;
             uint32_t index = importBufferCollectionInfoPtr->index;
             if (info.buffer_count < index) {
@@ -3257,7 +3257,7 @@ public:
 
             if (hasDedicatedImage || hasDedicatedBuffer) {
                 auto token_ends =
-                    fidl::CreateEndpoints<::llcpp::fuchsia::sysmem::BufferCollectionToken>();
+                    fidl::CreateEndpoints<::fuchsia_sysmem::BufferCollectionToken>();
                 if (!token_ends.is_ok()) {
                     ALOGE("zx_channel_create failed: %d", token_ends.status_value());
                     abort();
@@ -3274,7 +3274,7 @@ public:
                 }
 
                 auto collection_ends =
-                    fidl::CreateEndpoints<::llcpp::fuchsia::sysmem::BufferCollection>();
+                    fidl::CreateEndpoints<::fuchsia_sysmem::BufferCollection>();
                 if (!collection_ends.is_ok()) {
                     ALOGE("zx_channel_create failed: %d", collection_ends.status_value());
                     abort();
@@ -3290,7 +3290,7 @@ public:
                     }
                 }
 
-                llcpp::fuchsia::sysmem::BufferCollection::SyncClient collection(
+                fuchsia_sysmem::BufferCollection::SyncClient collection(
                     std::move(collection_ends->client));
                 if (hasDedicatedImage) {
                     VkResult res = setBufferCollectionConstraints(
@@ -3319,7 +3319,7 @@ public:
                 {
                     auto result = collection.WaitForBuffersAllocated();
                     if (result.ok() && result.Unwrap()->status == ZX_OK) {
-                        llcpp::fuchsia::sysmem::BufferCollectionInfo_2& info =
+                        fuchsia_sysmem::wire::BufferCollectionInfo_2& info =
                             result.Unwrap()->buffer_collection_info;
                         if (!info.buffer_count) {
                             ALOGE(
@@ -3355,7 +3355,7 @@ public:
                 // sysmem allocates memory.
                 if (!isHostVisible) {
                     if (pImageCreateInfo) {
-                        llcpp::fuchsia::hardware::goldfish::
+                        fuchsia_hardware_goldfish::wire::
                             ColorBufferFormatType format;
                         switch (pImageCreateInfo->format) {
                             case VK_FORMAT_B8G8R8A8_SINT:
@@ -3364,7 +3364,7 @@ public:
                             case VK_FORMAT_B8G8R8A8_SNORM:
                             case VK_FORMAT_B8G8R8A8_SSCALED:
                             case VK_FORMAT_B8G8R8A8_USCALED:
-                                format = llcpp::fuchsia::hardware::goldfish::
+                                format = fuchsia_hardware_goldfish::wire::
                                     ColorBufferFormatType::BGRA;
                                 break;
                             case VK_FORMAT_R8G8B8A8_SINT:
@@ -3373,7 +3373,7 @@ public:
                             case VK_FORMAT_R8G8B8A8_SNORM:
                             case VK_FORMAT_R8G8B8A8_SSCALED:
                             case VK_FORMAT_R8G8B8A8_USCALED:
-                                format = llcpp::fuchsia::hardware::goldfish::
+                                format = fuchsia_hardware_goldfish::wire::
                                     ColorBufferFormatType::RGBA;
                                 break;
                             case VK_FORMAT_R8_UNORM:
@@ -3383,7 +3383,7 @@ public:
                             case VK_FORMAT_R8_SINT:
                             case VK_FORMAT_R8_SSCALED:
                             case VK_FORMAT_R8_SRGB:
-                                format = llcpp::fuchsia::hardware::goldfish::
+                                format = fuchsia_hardware_goldfish::wire::
                                     ColorBufferFormatType::LUMINANCE;
                                 break;
                             case VK_FORMAT_R8G8_UNORM:
@@ -3393,7 +3393,7 @@ public:
                             case VK_FORMAT_R8G8_SINT:
                             case VK_FORMAT_R8G8_SSCALED:
                             case VK_FORMAT_R8G8_SRGB:
-                                format = llcpp::fuchsia::hardware::goldfish::
+                                format = fuchsia_hardware_goldfish::wire::
                                     ColorBufferFormatType::RG;
                                 break;
                             default:
@@ -3403,10 +3403,10 @@ public:
                         }
 
                         auto createParams =
-                            llcpp::fuchsia::hardware::goldfish::
+                            fuchsia_hardware_goldfish::wire::
                                 CreateColorBuffer2Params::Builder(
                                     std::make_unique<
-                                        llcpp::fuchsia::hardware::goldfish::
+                                        fuchsia_hardware_goldfish::wire::
                                             CreateColorBuffer2Params::Frame>())
                                     .set_width(std::make_unique<uint32_t>(
                                         pImageCreateInfo->extent.width))
@@ -3414,11 +3414,11 @@ public:
                                         pImageCreateInfo->extent.height))
                                     .set_format(
                                         std::make_unique<
-                                            llcpp::fuchsia::hardware::goldfish::
+                                            fuchsia_hardware_goldfish::wire::
                                                 ColorBufferFormatType>(format))
                                     .set_memory_property(
                                         std::make_unique<uint32_t>(
-                                            llcpp::fuchsia::hardware::goldfish::
+                                            fuchsia_hardware_goldfish::wire::
                                                 MEMORY_PROPERTY_DEVICE_LOCAL))
                                     .build();
 
@@ -3442,13 +3442,13 @@ public:
 
                 if (pBufferConstraintsInfo) {
                     auto createParams =
-                        llcpp::fuchsia::hardware::goldfish::CreateBuffer2Params::Builder(
+                        fuchsia_hardware_goldfish::wire::CreateBuffer2Params::Builder(
                             std::make_unique<
-                                llcpp::fuchsia::hardware::goldfish::CreateBuffer2Params::Frame>())
+                                fuchsia_hardware_goldfish::wire::CreateBuffer2Params::Frame>())
                             .set_size(std::make_unique<uint64_t>(
                                 pBufferConstraintsInfo->pBufferCreateInfo->size))
                             .set_memory_property(std::make_unique<uint32_t>(
-                                llcpp::fuchsia::hardware::goldfish::MEMORY_PROPERTY_DEVICE_LOCAL))
+                                fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_DEVICE_LOCAL))
                             .build();
 
                     auto result =
@@ -3478,11 +3478,11 @@ public:
                 ALOGE("GetBufferHandle failed: %d:%d", result.status(),
                       GET_STATUS_SAFE(result, res));
             } else {
-                llcpp::fuchsia::hardware::goldfish::BufferHandleType
+                fuchsia_hardware_goldfish::wire::BufferHandleType
                     handle_type = result.Unwrap()->type;
                 uint32_t buffer_handle = result.Unwrap()->id;
 
-                if (handle_type == llcpp::fuchsia::hardware::goldfish::
+                if (handle_type == fuchsia_hardware_goldfish::wire::
                                        BufferHandleType::BUFFER) {
                     importBufferInfo.buffer = buffer_handle;
                     vk_append_struct(&structChainIter, &importBufferInfo);
@@ -3920,12 +3920,12 @@ public:
 
         if (extBufferCollectionPtr) {
             auto collection = reinterpret_cast<
-                llcpp::fuchsia::sysmem::BufferCollection::SyncClient*>(
+                fuchsia_sysmem::BufferCollection::SyncClient*>(
                 extBufferCollectionPtr->collection);
             uint32_t index = extBufferCollectionPtr->index;
             zx::vmo vmo;
 
-            llcpp::fuchsia::sysmem::BufferCollectionInfo_2 info;
+            fuchsia_sysmem::wire::BufferCollectionInfo_2 info;
 
             auto result = collection->WaitForBuffersAllocated();
             if (result.ok() && result.Unwrap()->status == ZX_OK) {
@@ -3956,7 +3956,7 @@ public:
                     // Buffer handle already exists.
                     // If it is a ColorBuffer, no-op; Otherwise return error.
                     if (buffer_handle_result.value().type !=
-                        llcpp::fuchsia::hardware::goldfish::BufferHandleType::COLOR_BUFFER) {
+                        fuchsia_hardware_goldfish::wire::BufferHandleType::COLOR_BUFFER) {
                         ALOGE("%s: BufferHandle %u is not a ColorBuffer", __func__,
                               buffer_handle_result.value().id);
                         return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -3965,26 +3965,26 @@ public:
                     // Buffer handle not found. Create ColorBuffer based on buffer settings.
                     auto format =
                         info.settings.image_format_constraints.pixel_format.type ==
-                                llcpp::fuchsia::sysmem::PixelFormatType::R8G8B8A8
-                            ? llcpp::fuchsia::hardware::goldfish::ColorBufferFormatType::RGBA
-                            : llcpp::fuchsia::hardware::goldfish::ColorBufferFormatType::BGRA;
+                                fuchsia_sysmem::wire::PixelFormatType::R8G8B8A8
+                            ? fuchsia_hardware_goldfish::wire::ColorBufferFormatType::RGBA
+                            : fuchsia_hardware_goldfish::wire::ColorBufferFormatType::BGRA;
 
                     uint32_t memory_property =
                         info.settings.buffer_settings.heap ==
-                                llcpp::fuchsia::sysmem::HeapType::GOLDFISH_DEVICE_LOCAL
-                            ? llcpp::fuchsia::hardware::goldfish::MEMORY_PROPERTY_DEVICE_LOCAL
-                            : llcpp::fuchsia::hardware::goldfish::MEMORY_PROPERTY_HOST_VISIBLE;
+                                fuchsia_sysmem::wire::HeapType::GOLDFISH_DEVICE_LOCAL
+                            ? fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_DEVICE_LOCAL
+                            : fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_HOST_VISIBLE;
 
                     auto createParams =
-                        llcpp::fuchsia::hardware::goldfish::CreateColorBuffer2Params::Builder(
-                            std::make_unique<llcpp::fuchsia::hardware::goldfish::
+                        fuchsia_hardware_goldfish::wire::CreateColorBuffer2Params::Builder(
+                            std::make_unique<fuchsia_hardware_goldfish::wire::
                                                  CreateColorBuffer2Params::Frame>())
                             .set_width(std::make_unique<uint32_t>(
                                 info.settings.image_format_constraints.min_coded_width))
                             .set_height(std::make_unique<uint32_t>(
                                 info.settings.image_format_constraints.min_coded_height))
                             .set_format(std::make_unique<
-                                        llcpp::fuchsia::hardware::goldfish::ColorBufferFormatType>(
+                                        fuchsia_hardware_goldfish::wire::ColorBufferFormatType>(
                                 format))
                             .set_memory_property(std::make_unique<uint32_t>(memory_property))
                             .build();
@@ -3998,7 +3998,7 @@ public:
                 }
 
                 if (info.settings.buffer_settings.heap ==
-                    llcpp::fuchsia::sysmem::HeapType::GOLDFISH_HOST_VISIBLE) {
+                    fuchsia_sysmem::wire::HeapType::GOLDFISH_HOST_VISIBLE) {
                     ALOGD(
                         "%s: Image uses host visible memory heap; set tiling "
                         "to linear to match host ImageCreateInfo",
@@ -4943,7 +4943,7 @@ public:
 
         if (extBufferCollectionPtr) {
             auto collection = reinterpret_cast<
-                llcpp::fuchsia::sysmem::BufferCollection::SyncClient*>(
+                fuchsia_sysmem::BufferCollection::SyncClient*>(
                 extBufferCollectionPtr->collection);
             uint32_t index = extBufferCollectionPtr->index;
 
@@ -4961,12 +4961,12 @@ public:
 
             if (vmo && vmo->is_valid()) {
                 auto createParams =
-                    llcpp::fuchsia::hardware::goldfish::CreateBuffer2Params::Builder(
+                    fuchsia_hardware_goldfish::wire::CreateBuffer2Params::Builder(
                         std::make_unique<
-                            llcpp::fuchsia::hardware::goldfish::CreateBuffer2Params::Frame>())
+                            fuchsia_hardware_goldfish::wire::CreateBuffer2Params::Frame>())
                         .set_size(std::make_unique<uint64_t>(pCreateInfo->size))
                         .set_memory_property(std::make_unique<uint32_t>(
-                            llcpp::fuchsia::hardware::goldfish::MEMORY_PROPERTY_DEVICE_LOCAL))
+                            fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_DEVICE_LOCAL))
                         .build();
 
                 auto result =
@@ -6702,9 +6702,9 @@ private:
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
     std::unique_ptr<
-        llcpp::fuchsia::hardware::goldfish::ControlDevice::SyncClient>
+        fuchsia_hardware_goldfish::ControlDevice::SyncClient>
         mControlDevice;
-    std::unique_ptr<llcpp::fuchsia::sysmem::Allocator::SyncClient>
+    std::unique_ptr<fuchsia_sysmem::Allocator::SyncClient>
         mSysmemAllocator;
 #endif
 

@@ -38,10 +38,10 @@
 using android::base::guest::AutoLock;
 using android::base::guest::Lock;
 
-using llcpp::fuchsia::hardware::goldfish::AddressSpaceChildDriver;
-using llcpp::fuchsia::hardware::goldfish::AddressSpaceDevice;
-using llcpp::fuchsia::hardware::goldfish::AddressSpaceChildDriverType;
-using llcpp::fuchsia::hardware::goldfish::AddressSpaceChildDriverPingMessage;
+using fuchsia_hardware_goldfish::AddressSpaceChildDriver;
+using fuchsia_hardware_goldfish::AddressSpaceDevice;
+using fuchsia_hardware_goldfish::wire::AddressSpaceChildDriverType;
+using fuchsia_hardware_goldfish::wire::AddressSpaceChildDriverPingMessage;
 
 GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider(GoldfishAddressSpaceSubdeviceType subdevice) {
 
@@ -60,7 +60,7 @@ GoldfishAddressSpaceBlockProvider::GoldfishAddressSpaceBlockProvider(GoldfishAdd
     m_device = std::make_unique<AddressSpaceDevice::SyncClient>(std::move(channel));
 
     auto child_driver_ends =
-        fidl::CreateEndpoints<::llcpp::fuchsia::hardware::goldfish::AddressSpaceChildDriver>();
+        fidl::CreateEndpoints<::fuchsia_hardware_goldfish::AddressSpaceChildDriver>();
     if (!child_driver_ends.is_ok()) {
         ALOGE("%s: zx_channel_create failed: %d", __FUNCTION__, child_driver_ends.status_value());
         return;
@@ -329,7 +329,7 @@ bool goldfish_address_space_set_subdevice_type(
             AddressSpaceDevice::SyncClient*>(handle);
 
     auto child_driver_ends =
-        fidl::CreateEndpoints<::llcpp::fuchsia::hardware::goldfish::AddressSpaceChildDriver>();
+        fidl::CreateEndpoints<::fuchsia_hardware_goldfish::AddressSpaceChildDriver>();
     if (!child_driver_ends.is_ok()) {
         ALOGE("%s: zx_channel_create failed: %d", __FUNCTION__, child_driver_ends.status_value());
         return false;
