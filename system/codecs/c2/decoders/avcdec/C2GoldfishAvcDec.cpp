@@ -430,7 +430,7 @@ c2_status_t C2GoldfishAvcDec::onFlush_sm() {
 
     mContext->flush();
     while (true) {
-
+        mPts = 0;
         setDecodeArgs(nullptr, nullptr, 0, 0, 0);
         mImg = mContext->getImage();
         if (mImg.data == nullptr) {
@@ -493,6 +493,8 @@ bool C2GoldfishAvcDec::setDecodeArgs(C2ReadView *inBuffer,
         mInPBuffer = const_cast<uint8_t *>(inBuffer->data() + inOffset);
         mInPBufferSize = inSize;
         mInTsMarker = tsMarker;
+        mIndex2Pts[mInTsMarker] = mPts;
+        mPts2Index[mPts] = mInTsMarker;
     }
 
     // uint32_t displayHeight = mHeight;
@@ -723,6 +725,19 @@ void C2GoldfishAvcDec::copyImageData(uint8_t *pBuffer, h264_image_t &img) {
     }
 }
 
+void C2GoldfishAvcDec::removePts(uint64_t pts) {
+    auto iter = mPts2Index.find(pts);
+    if (iter == mPts2Index.end()) return;
+
+    auto index = iter->second;
+
+    mPts2Index.erase(iter);
+
+    auto iter2 = mIndex2Pts.find(index);
+    if (iter2 == mIndex2Pts.end()) return;
+    mIndex2Pts.erase(iter2);
+}
+
 // TODO: can overall error checking be improved?
 // TODO: allow configuration of color format and usage for graphic buffers
 // instead
@@ -751,6 +766,7 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
     size_t inOffset = 0u;
     size_t inSize = 0u;
     uint32_t workIndex = work->input.ordinal.frameIndex.peeku() & 0xFFFFFFFF;
+    mPts = work->input.ordinal.timestamp.peeku();
     C2ReadView rView = mDummyReadView;
     if (!work->input.buffers.empty()) {
         rView =
@@ -803,7 +819,7 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
             //(void) ivdec_api_function(mDecHandle, &s_decode_ip, &s_decode_op);
             DDD("decoding");
             h264_result_t h264Res =
-                mContext->decodeFrame(mInPBuffer, mInPBufferSize, mInTsMarker);
+                mContext->decodeFrame(mInPBuffer, mInPBufferSize, mIndex2Pts[mInTsMarker]);
             mConsumedBytes = h264Res.bytesProcessed;
 
             if (mHostColorBufferId > 0) {
@@ -831,10 +847,11 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
         }
         (void)getVuiParams();
         if (mImg.data != nullptr) {
-            DDD("got data %" PRIu64, mImg.pts);
+            DDD("got data %" PRIu64,  mPts2Index[mImg.pts]);
             hasPicture = true;
             copyImageData(mByteBuffer, mImg);
-            finishWork(mImg.pts, work);
+            finishWork(mPts2Index[mImg.pts], work);
+            removePts(mImg.pts);
         } else {
             work->workletsProcessed = 0u;
         }
@@ -898,9 +915,10 @@ C2GoldfishAvcDec::drainInternal(uint32_t drainMode,
         // TODO: maybe keep rendering to screen
         //        mImg = mContext->getImage();
         if (mImg.data != nullptr) {
-            DDD("got data in drain mode %" PRIu64, mImg.pts);
+            DDD("got data in drain mode %" PRIu64, mPts2Index[mImg.pts]);
             copyImageData(mByteBuffer, mImg);
-            finishWork(mImg.pts, work);
+            finishWork(mPts2Index[mImg.pts], work);
+            removePts(mImg.pts);
         } else {
             fillEmptyWork(work);
             break;
