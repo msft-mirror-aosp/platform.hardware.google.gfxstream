@@ -24,6 +24,7 @@
 #include "MediaH264Decoder.h"
 #include <SimpleC2Component.h>
 #include <atomic>
+#include <map>
 
 namespace android {
 
@@ -76,6 +77,12 @@ class C2GoldfishAvcDec : public SimpleC2Component {
     status_t deleteDecoder();
 
     std::shared_ptr<IntfImpl> mIntf;
+
+    void removePts(uint64_t pts);
+
+    std::map<uint64_t, uint64_t> mPts2Index;
+    std::map<uint64_t, uint64_t> mIndex2Pts;
+    uint64_t  mPts {0};
 
     // TODO:This is not the right place for this enum. These should
     // be part of c2-vndk so that they can be accessed by all video plugins
