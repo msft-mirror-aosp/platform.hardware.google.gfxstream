@@ -800,7 +800,7 @@ Error EmuHWC2::Display::present(int32_t* outRetireFence) {
         mReleaseFences.clear();
 
         if (numLayer == 0) {
-            ALOGW("No layers, exit, buffer %p", mClientTarget.getBuffer());
+            ALOGD("No layers, exit, buffer %p", mClientTarget.getBuffer());
             if (mClientTarget.getBuffer()) {
                 if (mIsMinigbm) {
                     int retireFence = mClientTargetDrmBuffer->flush();
@@ -1154,7 +1154,7 @@ Error EmuHWC2::Display::validate(uint32_t* outNumTypes,
                 if (layer->getCompositionType() == Composition::Client ||
                     layer->getCompositionType() == Composition::Cursor ||
                     layer->getCompositionType() == Composition::Sideband) {
-                    ALOGW("%s: layer %u CompositionType %d, fallback", __FUNCTION__,
+                    ALOGD("%s: layer %u CompositionType %d, fallback", __FUNCTION__,
                          (uint32_t)layer->getId(), layer->getCompositionType());
                     fallBack = true;
                     break;
