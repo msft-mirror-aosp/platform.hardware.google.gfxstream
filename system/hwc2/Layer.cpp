@@ -16,6 +16,8 @@
 
 #include "Layer.h"
 
+#include <sync/sync.h>
+
 #include <atomic>
 
 namespace android {
@@ -33,6 +35,21 @@ HWC2::Error Layer::setBuffer(buffer_handle_t buffer, int32_t fence) {
   mBuffer.setBuffer(buffer);
   mBuffer.setFence(fence);
   return HWC2::Error::None;
+}
+
+buffer_handle_t Layer::waitAndGetBuffer() {
+  DEBUG_LOG("%s layer:%" PRIu64, __FUNCTION__, mId);
+
+  int fence = mBuffer.getFence();
+  if (fence != -1) {
+    int err = sync_wait(fence, 3000);
+    if (err < 0 && errno == ETIME) {
+      ALOGE("%s waited on fence %" PRId32 " for 3000 ms", __FUNCTION__, fence);
+    }
+    close(fence);
+  }
+
+  return mBuffer.getBuffer();
 }
 
 HWC2::Error Layer::setCursorPosition(int32_t /*x*/, int32_t /*y*/) {
