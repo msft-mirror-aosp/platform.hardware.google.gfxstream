@@ -19,16 +19,17 @@ LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 LOCAL_VENDOR_MODULE := true
 emulator_hwcomposer_shared_libraries := \
-    liblog \
-    libutils \
+    android.hardware.graphics.mapper@2.0 \
+    libbase \
+    libEGL \
     libcutils \
     libdrm \
-    libEGL \
-    libutils \
     libhardware \
+    liblog \
     libsync \
     libui \
-    android.hardware.graphics.mapper@2.0 \
+    libutils \
+    libutils \
 
 emulator_hwcomposer_cflags += \
     -DLOG_TAG=\"hwc2\" \
@@ -36,19 +37,22 @@ emulator_hwcomposer_cflags += \
     -DANDROID_BASE_UNIQUE_FD_DISABLE_IMPLICIT_CONVERSION
 
 emulator_hwcomposer_c_includes += \
-    system/core/libsync \
-    system/core/libsync/include \
-    device/generic/goldfish-opengl/system/include \
-    device/generic/goldfish-opengl/system/OpenglSystemCommon \
     device/generic/goldfish-opengl/host/include/libOpenglRender \
     device/generic/goldfish-opengl/shared/OpenglCodecCommon \
+    device/generic/goldfish-opengl/system/OpenglSystemCommon \
+    device/generic/goldfish-opengl/system/include \
     device/generic/goldfish-opengl/system/renderControl_enc \
-    external/libdrm
+    external/libdrm \
+    system/core/libsync \
+    system/core/libsync/include \
 
 emulator_hwcomposer_relative_path := hw
 
 emulator_hwcomposer2_src_files := \
-    EmuHWC2.cpp
+    Device.cpp \
+    Display.cpp \
+    HostComposer.cpp \
+    Layer.cpp \
 
 include $(CLEAR_VARS)
 

@@ -1,0 +1,151 @@
+/*
+ * Copyright 2021 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef ANDROID_HWC_HOSTCOMPOSER_H
+#define ANDROID_HWC_HOSTCOMPOSER_H
+
+#include <include/drmhwcgralloc.h>
+#include <xf86drm.h>
+#include <xf86drmMode.h>
+
+#include "Common.h"
+#include "Composer.h"
+#include "HostConnection.h"
+
+namespace android {
+
+class HostComposer : public Composer {
+ public:
+  HostComposer();
+
+  HWC2::Error createDisplays(
+      Device* device,
+      const AddDisplayToDeviceFunction& addDisplayToDeviceFn) override;
+
+  HWC2::Error onDisplayDestroy(Display* display) override;
+
+  HWC2::Error onDisplayClientTargetSet(Display* display) override;
+
+  // Determines if this composer can compose the given layers on the given
+  // display and requests changes for layers that can't not be composed.
+  HWC2::Error validateDisplay(
+      Display* display, std::unordered_map<hwc2_layer_t, HWC2::Composition>*
+                            outLayerCompositionChanges) override;
+
+  // Performs the actual composition of layers and presents the composed result
+  // to the display.
+  HWC2::Error presentDisplay(Display* display,
+                             int32_t* outPresentFence) override;
+
+ private:
+  HWC2::Error createPrimaryDisplay(
+      Device* device, const AddDisplayToDeviceFunction& addDisplayToDeviceFn);
+
+  HWC2::Error createSecondaryDisplays(
+      Device* device, const AddDisplayToDeviceFunction& addDisplayToDeviceFn);
+
+  HWC2::Error createHostComposerDisplayInfo(Display* display,
+                                            uint32_t hostDisplayId);
+
+  void post(HostConnection* hostCon, ExtendedRCEncoderContext* rcEnc,
+            buffer_handle_t h);
+
+  class VirtioGpu {
+   public:
+    VirtioGpu();
+    ~VirtioGpu();
+
+    int setCrtc(hwc_drm_bo_t& fb);
+    int getDrmFB(hwc_drm_bo_t& bo);
+    int clearDrmFB(hwc_drm_bo_t& bo);
+    bool supportComposeWithoutPost();
+    uint32_t refreshRate() const { return mRefreshRateAsInteger; }
+
+    int exportSyncFdAndSetCrtc(hwc_drm_bo_t& fb);
+
+   private:
+    drmModeModeInfo mMode;
+    int32_t mFd = -1;
+    uint32_t mConnectorId;
+    uint32_t mCrtcId;
+
+    uint32_t mConnectorCrtcPropertyId;
+
+    uint32_t mOutFencePtrId;
+    uint32_t mCrtcActivePropretyId;
+    uint32_t mCrtcModeIdPropertyId;
+    uint32_t mModeBlobId;
+
+    uint32_t mPlaneId;
+    uint32_t mPlaneCrtcPropertyId;
+    uint32_t mPlaneFbPropertyId;
+    uint32_t mPlaneCrtcXPropertyId;
+    uint32_t mPlaneCrtcYPropertyId;
+    uint32_t mPlaneCrtcWPropertyId;
+    uint32_t mPlaneCrtcHPropertyId;
+    uint32_t mPlaneSrcXPropertyId;
+    uint32_t mPlaneSrcYPropertyId;
+    uint32_t mPlaneSrcWPropertyId;
+    uint32_t mPlaneSrcHPropertyId;
+    uint32_t mPlaneTypePropertyId;
+
+    float mRefreshRateAsFloat;
+    uint32_t mRefreshRateAsInteger;
+
+    int mOutFence = -1;
+
+    bool mDidSetCrtc = false;
+  };
+
+  class DrmBuffer {
+   public:
+    DrmBuffer(const native_handle_t* handle, VirtioGpu& virtioGpu);
+    ~DrmBuffer();
+
+    int flush();
+
+   private:
+    int convertBoInfo(const native_handle_t* handle);
+
+    VirtioGpu& mVirtioGpu;
+    hwc_drm_bo_t mBo;
+  };
+
+  bool mIsMinigbm = false;
+
+  int mSyncDeviceFd = -1;
+
+  VirtioGpu mVirtioGpu;
+
+  struct HostComposerDisplayInfo {
+    uint32_t hostDisplayId = 0;
+
+    // Additional per display buffer for the composition result.
+    const native_handle_t* compositionResultBuffer = nullptr;
+
+    // Drm info for the additional composition result buffer.
+    std::unique_ptr<DrmBuffer> compositionResultDrmBuffer;
+
+    // Drm info for the displays client target buffer.
+    std::unique_ptr<DrmBuffer> clientTargetDrmBuffer;
+  };
+
+  std::unordered_map<hwc2_display_t, HostComposerDisplayInfo> mDisplayInfos;
+};
+
+}  // namespace android
+
+#endif
