@@ -4008,6 +4008,10 @@ public:
             }
             isSysmemBackedMemory = true;
         }
+
+        if (isSysmemBackedMemory) {
+            localCreateInfo.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+        }
 #endif
 
         VkResult res;
