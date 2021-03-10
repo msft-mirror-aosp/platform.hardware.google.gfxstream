@@ -1415,7 +1415,6 @@ int EmuHWC2::Display::populatePrimaryConfigs(int width, int height, int dpiX, in
 void EmuHWC2::Display::post(HostConnection *hostCon,
                             ExtendedRCEncoderContext *rcEnc,
                             buffer_handle_t h) {
-    return;
     assert(cb && "native_handle_t::from(h) failed");
 
     hostCon->lock();
