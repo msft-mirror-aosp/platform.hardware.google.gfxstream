@@ -16,9 +16,13 @@
 
 #include "Device.h"
 
+#include <android-base/properties.h>
+
+#include "GuestComposer.h"
 #include "HostComposer.h"
 
 namespace android {
+namespace {
 
 template <typename PFN, typename T>
 static hwc2_function_pointer_t asFP(T function) {
@@ -32,6 +36,12 @@ static int CloseHook(hw_device_t* dev) {
   return 0;
 }
 
+bool IsCuttlefish() {
+  return android::base::GetProperty("ro.hardware.vulkan", "") == "pastel";
+}
+
+}  // namespace
+
 Device::Device() {
   DEBUG_LOG("%s", __FUNCTION__);
 
@@ -40,11 +50,29 @@ Device::Device() {
   common.close = CloseHook;
   hwc2_device_t::getCapabilities = getCapabilitiesHook;
   hwc2_device_t::getFunction = getFunctionHook;
+}
 
-  mComposer = std::make_unique<HostComposer>();
-  if (!mComposer) {
-    ALOGE("%s failed initialize Composer", __FUNCTION__);
+HWC2::Error Device::init() {
+  DEBUG_LOG("%s", __FUNCTION__);
+
+  if (IsCuttlefish()) {
+    mComposer = std::make_unique<GuestComposer>();
+  } else {
+    mComposer = std::make_unique<HostComposer>();
   }
+
+  if (!mComposer) {
+    ALOGE("%s failed to allocate Composer", __FUNCTION__);
+    return HWC2::Error::NoResources;
+  }
+
+  HWC2::Error error = mComposer->init();
+  if (error != HWC2::Error::None) {
+    ALOGE("%s failed to initialize Composer", __FUNCTION__);
+    return HWC2::Error::NoResources;
+  }
+
+  return HWC2::Error::None;
 }
 
 Device::~Device() {
@@ -473,9 +501,15 @@ static int OpenDevice(const struct hw_module_t* module, const char* name,
     return -ENOMEM;
   }
 
-  HWC2::Error error = device->createDisplays();
+  HWC2::Error error = device->init();
   if (error != HWC2::Error::None) {
-    ALOGE("%s: failed to initialize device with displays.", __FUNCTION__);
+    ALOGE("%s: failed to initialize device", __FUNCTION__);
+    return -EINVAL;
+  }
+
+  error = device->createDisplays();
+  if (error != HWC2::Error::None) {
+    ALOGE("%s: failed to initialize device displays.", __FUNCTION__);
     return -EINVAL;
   }
 

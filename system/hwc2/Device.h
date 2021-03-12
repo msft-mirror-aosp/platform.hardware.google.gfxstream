@@ -49,6 +49,8 @@ class Device : public hwc2_device_t {
   Device();
   ~Device();
 
+  HWC2::Error init();
+
   HWC2::Error createDisplays();
 
  private:
