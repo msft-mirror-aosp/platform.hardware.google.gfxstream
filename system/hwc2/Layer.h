@@ -37,6 +37,8 @@ class Layer {
   HWC2::Error setBuffer(buffer_handle_t buffer, int32_t acquireFence);
   FencedBuffer& getBuffer() { return mBuffer; }
 
+  buffer_handle_t waitAndGetBuffer();
+
   hwc2_layer_t getId() const { return mId; }
 
   HWC2::Error setCursorPosition(int32_t x, int32_t y);
