@@ -17,19 +17,24 @@
 #ifndef ANDROID_HWC_HOSTCOMPOSER_H
 #define ANDROID_HWC_HOSTCOMPOSER_H
 
-#include <include/drmhwcgralloc.h>
-#include <xf86drm.h>
-#include <xf86drmMode.h>
-
 #include "Common.h"
 #include "Composer.h"
+#include "DrmPresenter.h"
 #include "HostConnection.h"
 
 namespace android {
 
 class HostComposer : public Composer {
  public:
-  HostComposer();
+  HostComposer() = default;
+
+  HostComposer(const HostComposer&) = delete;
+  HostComposer& operator=(const HostComposer&) = delete;
+
+  HostComposer(HostComposer&&) = delete;
+  HostComposer& operator=(HostComposer&&) = delete;
+
+  HWC2::Error init() override;
 
   HWC2::Error createDisplays(
       Device* device,
@@ -63,72 +68,9 @@ class HostComposer : public Composer {
   void post(HostConnection* hostCon, ExtendedRCEncoderContext* rcEnc,
             buffer_handle_t h);
 
-  class VirtioGpu {
-   public:
-    VirtioGpu();
-    ~VirtioGpu();
-
-    int setCrtc(hwc_drm_bo_t& fb);
-    int getDrmFB(hwc_drm_bo_t& bo);
-    int clearDrmFB(hwc_drm_bo_t& bo);
-    bool supportComposeWithoutPost();
-    uint32_t refreshRate() const { return mRefreshRateAsInteger; }
-
-    int exportSyncFdAndSetCrtc(hwc_drm_bo_t& fb);
-
-   private:
-    drmModeModeInfo mMode;
-    int32_t mFd = -1;
-    uint32_t mConnectorId;
-    uint32_t mCrtcId;
-
-    uint32_t mConnectorCrtcPropertyId;
-
-    uint32_t mOutFencePtrId;
-    uint32_t mCrtcActivePropretyId;
-    uint32_t mCrtcModeIdPropertyId;
-    uint32_t mModeBlobId;
-
-    uint32_t mPlaneId;
-    uint32_t mPlaneCrtcPropertyId;
-    uint32_t mPlaneFbPropertyId;
-    uint32_t mPlaneCrtcXPropertyId;
-    uint32_t mPlaneCrtcYPropertyId;
-    uint32_t mPlaneCrtcWPropertyId;
-    uint32_t mPlaneCrtcHPropertyId;
-    uint32_t mPlaneSrcXPropertyId;
-    uint32_t mPlaneSrcYPropertyId;
-    uint32_t mPlaneSrcWPropertyId;
-    uint32_t mPlaneSrcHPropertyId;
-    uint32_t mPlaneTypePropertyId;
-
-    float mRefreshRateAsFloat;
-    uint32_t mRefreshRateAsInteger;
-
-    int mOutFence = -1;
-
-    bool mDidSetCrtc = false;
-  };
-
-  class DrmBuffer {
-   public:
-    DrmBuffer(const native_handle_t* handle, VirtioGpu& virtioGpu);
-    ~DrmBuffer();
-
-    int flush();
-
-   private:
-    int convertBoInfo(const native_handle_t* handle);
-
-    VirtioGpu& mVirtioGpu;
-    hwc_drm_bo_t mBo;
-  };
-
   bool mIsMinigbm = false;
 
   int mSyncDeviceFd = -1;
-
-  VirtioGpu mVirtioGpu;
 
   struct HostComposerDisplayInfo {
     uint32_t hostDisplayId = 0;
@@ -144,6 +86,8 @@ class HostComposer : public Composer {
   };
 
   std::unordered_map<hwc2_display_t, HostComposerDisplayInfo> mDisplayInfos;
+
+  DrmPresenter mDrmPresenter;
 };
 
 }  // namespace android

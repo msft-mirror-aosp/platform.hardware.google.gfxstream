@@ -32,6 +32,8 @@ class Composer {
  public:
   virtual ~Composer() {}
 
+  virtual HWC2::Error init() = 0;
+
   using AddDisplayToDeviceFunction =
       std::function<HWC2::Error(std::unique_ptr<Display>)>;
 
