@@ -55,7 +55,7 @@ class Display {
 
   FencedBuffer& getClientTarget() { return mClientTarget; }
 
-  const std::vector<Layer*> getOrderedLayers() { return mOrderedLayers; }
+  const std::vector<Layer*>& getOrderedLayers() { return mOrderedLayers; }
 
   HWC2::Error acceptChanges();
   HWC2::Error createLayer(hwc2_layer_t* outLayerId);
