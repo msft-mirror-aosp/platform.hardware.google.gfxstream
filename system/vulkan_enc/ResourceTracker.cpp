@@ -3402,25 +3402,14 @@ public:
                                 abort();
                         }
 
-                        auto createParams =
-                            fuchsia_hardware_goldfish::wire::
-                                CreateColorBuffer2Params::Builder(
-                                    std::make_unique<
-                                        fuchsia_hardware_goldfish::wire::
-                                            CreateColorBuffer2Params::Frame>())
-                                    .set_width(std::make_unique<uint32_t>(
-                                        pImageCreateInfo->extent.width))
-                                    .set_height(std::make_unique<uint32_t>(
-                                        pImageCreateInfo->extent.height))
-                                    .set_format(
-                                        std::make_unique<
-                                            fuchsia_hardware_goldfish::wire::
-                                                ColorBufferFormatType>(format))
-                                    .set_memory_property(
-                                        std::make_unique<uint32_t>(
-                                            fuchsia_hardware_goldfish::wire::
-                                                MEMORY_PROPERTY_DEVICE_LOCAL))
-                                    .build();
+                        fidl::FidlAllocator allocator;
+                        fuchsia_hardware_goldfish::wire::CreateColorBuffer2Params createParams(
+                            allocator);
+                        createParams.set_width(allocator, pImageCreateInfo->extent.width)
+                            .set_height(allocator, pImageCreateInfo->extent.height)
+                            .set_format(allocator, format)
+                            .set_memory_property(allocator,
+                                fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_DEVICE_LOCAL);
 
                         auto result = mControlDevice->CreateColorBuffer2(
                             std::move(vmo_copy), std::move(createParams));
@@ -3441,15 +3430,12 @@ public:
                 }
 
                 if (pBufferConstraintsInfo) {
-                    auto createParams =
-                        fuchsia_hardware_goldfish::wire::CreateBuffer2Params::Builder(
-                            std::make_unique<
-                                fuchsia_hardware_goldfish::wire::CreateBuffer2Params::Frame>())
-                            .set_size(std::make_unique<uint64_t>(
-                                pBufferConstraintsInfo->pBufferCreateInfo->size))
-                            .set_memory_property(std::make_unique<uint32_t>(
-                                fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_DEVICE_LOCAL))
-                            .build();
+                    fidl::FidlAllocator allocator;
+                    fuchsia_hardware_goldfish::wire::CreateBuffer2Params createParams(allocator);
+                    createParams.set_size(allocator,
+                            pBufferConstraintsInfo->pBufferCreateInfo->size)
+                        .set_memory_property(allocator,
+                            fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_DEVICE_LOCAL);
 
                     auto result =
                         mControlDevice->CreateBuffer2(std::move(vmo_copy), std::move(createParams));
@@ -3975,19 +3961,15 @@ public:
                             ? fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_DEVICE_LOCAL
                             : fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_HOST_VISIBLE;
 
-                    auto createParams =
-                        fuchsia_hardware_goldfish::wire::CreateColorBuffer2Params::Builder(
-                            std::make_unique<fuchsia_hardware_goldfish::wire::
-                                                 CreateColorBuffer2Params::Frame>())
-                            .set_width(std::make_unique<uint32_t>(
-                                info.settings.image_format_constraints.min_coded_width))
-                            .set_height(std::make_unique<uint32_t>(
-                                info.settings.image_format_constraints.min_coded_height))
-                            .set_format(std::make_unique<
-                                        fuchsia_hardware_goldfish::wire::ColorBufferFormatType>(
-                                format))
-                            .set_memory_property(std::make_unique<uint32_t>(memory_property))
-                            .build();
+                    fidl::FidlAllocator allocator;
+                    fuchsia_hardware_goldfish::wire::CreateColorBuffer2Params createParams(
+                        allocator);
+                    createParams.set_width(allocator,
+                            info.settings.image_format_constraints.min_coded_width)
+                        .set_height(allocator,
+                            info.settings.image_format_constraints.min_coded_height)
+                        .set_format(allocator, format)
+                        .set_memory_property(allocator, memory_property);
 
                     auto result =
                         mControlDevice->CreateColorBuffer2(std::move(vmo), std::move(createParams));
@@ -4964,14 +4946,11 @@ public:
             }
 
             if (vmo && vmo->is_valid()) {
-                auto createParams =
-                    fuchsia_hardware_goldfish::wire::CreateBuffer2Params::Builder(
-                        std::make_unique<
-                            fuchsia_hardware_goldfish::wire::CreateBuffer2Params::Frame>())
-                        .set_size(std::make_unique<uint64_t>(pCreateInfo->size))
-                        .set_memory_property(std::make_unique<uint32_t>(
-                            fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_DEVICE_LOCAL))
-                        .build();
+                fidl::FidlAllocator allocator;
+                fuchsia_hardware_goldfish::wire::CreateBuffer2Params createParams(allocator);
+                createParams.set_size(allocator, pCreateInfo->size)
+                    .set_memory_property(allocator,
+                        llcpp::fuchsia::hardware::goldfish::MEMORY_PROPERTY_DEVICE_LOCAL);
 
                 auto result =
                     mControlDevice->CreateBuffer2(std::move(*vmo), std::move(createParams));
