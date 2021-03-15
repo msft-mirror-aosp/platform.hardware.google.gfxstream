@@ -4950,7 +4950,7 @@ public:
                 fuchsia_hardware_goldfish::wire::CreateBuffer2Params createParams(allocator);
                 createParams.set_size(allocator, pCreateInfo->size)
                     .set_memory_property(allocator,
-                        llcpp::fuchsia::hardware::goldfish::MEMORY_PROPERTY_DEVICE_LOCAL);
+                        fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_DEVICE_LOCAL);
 
                 auto result =
                     mControlDevice->CreateBuffer2(std::move(*vmo), std::move(createParams));
