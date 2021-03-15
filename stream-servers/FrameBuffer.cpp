@@ -2848,24 +2848,6 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width,
     return 0;
 }
 
-
-void FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width,
-        unsigned int* height, std::vector<unsigned char>& pixels, int displayId,
-        int desiredWidth, int desiredHeight, int desiredRotation) {
-
-    size_t size = pixels.size();
-    if (getScreenshot(nChannels, width, height, pixels.data(), &size, displayId, desiredWidth, desiredHeight, desiredRotation) != 0)  {
-        if (size == 0) {
-            // Fatal error..
-            return;
-        }
-
-        // Buffer to small, increase the vector size.
-        pixels.resize(size);
-        getScreenshot(nChannels, width, height, pixels.data(), &size, displayId, desiredWidth, desiredHeight, desiredRotation);
-    }
-}
-
 void FrameBuffer::onLastColorBufferRef(uint32_t handle) {
     if (!mOutstandingColorBufferDestroys.trySend((HandleType)handle)) {
         ERR("warning: too many outstanding "
