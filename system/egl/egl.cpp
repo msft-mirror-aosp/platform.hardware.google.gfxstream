@@ -299,25 +299,17 @@ struct app_time_metric_t {
     uint64_t lastSwapBuffersReturnTime;
     uint64_t numSamples;
     uint64_t totalAppTime;
-    uint64_t minAppTime;
-    uint64_t maxAppTime;
 
     app_time_metric_t() :
         lastLogTime(0),
         lastSwapBuffersReturnTime(0),
         numSamples(0),
-        totalAppTime(0),
-        minAppTime(0),
-        maxAppTime(0)
+        totalAppTime(0)
     {
     }
 
     void onSwapBuffersReturn() {
         lastSwapBuffersReturnTime = currGuestTimeNs();
-    }
-
-    static float ns2ms(uint64_t ns) {
-        return (float)ns / 1000000.0;
     }
 
     void onQueueBufferReturn() {
@@ -328,14 +320,6 @@ struct app_time_metric_t {
 
         uint64_t now = currGuestTimeNs();
         uint64_t appTime = now - lastSwapBuffersReturnTime;
-        if(numSamples == 0) {
-          minAppTime = appTime;
-          maxAppTime = appTime;
-        }
-        else {
-          minAppTime = fmin(minAppTime, appTime);
-          maxAppTime = fmax(maxAppTime, appTime);
-        }
         totalAppTime += appTime;
         numSamples++;
         // Reset so we don't record a bad sample if swapBuffers fails
@@ -348,13 +332,9 @@ struct app_time_metric_t {
 
         // Log/reset once every second
         if(now - lastLogTime > 1000000000) {
-            float avgMs = ns2ms(totalAppTime) / numSamples;
-            float minMs = ns2ms(minAppTime);
-            float maxMs = ns2ms(maxAppTime);
-            ALOGD("app_time_stats: avg=%0.2fms min=%0.2fms max=%0.2fms count=%llu", avgMs, minMs, maxMs, numSamples);
+            float averageAppTimeMs = (float)totalAppTime / 1000000.0 / numSamples;
+            ALOGD("average app time: %0.2f ms (n=%llu)", averageAppTimeMs, (unsigned long long)numSamples);
             totalAppTime = 0;
-            minAppTime = 0;
-            maxAppTime = 0;
             numSamples = 0;
             lastLogTime = now;
         }
