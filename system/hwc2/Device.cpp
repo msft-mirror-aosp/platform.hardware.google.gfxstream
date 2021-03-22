@@ -61,11 +61,6 @@ HWC2::Error Device::init() {
     mComposer = std::make_unique<HostComposer>();
   }
 
-  if (!mComposer) {
-    ALOGE("%s failed to allocate Composer", __FUNCTION__);
-    return HWC2::Error::NoResources;
-  }
-
   HWC2::Error error = mComposer->init();
   if (error != HWC2::Error::None) {
     ALOGE("%s failed to initialize Composer", __FUNCTION__);
@@ -495,12 +490,7 @@ static int OpenDevice(const struct hw_module_t* module, const char* name,
     return -EINVAL;
   }
 
-  Device* device = new Device();
-  if (!device) {
-    ALOGE("%s: failed to allocate device.", __FUNCTION__);
-    return -ENOMEM;
-  }
-
+  std::unique_ptr<Device> device = std::make_unique<Device>();
   HWC2::Error error = device->init();
   if (error != HWC2::Error::None) {
     ALOGE("%s: failed to initialize device", __FUNCTION__);
@@ -514,7 +504,7 @@ static int OpenDevice(const struct hw_module_t* module, const char* name,
   }
 
   device->common.module = const_cast<hw_module_t*>(module);
-  *dev = &device->common;
+  *dev = &device.release()->common;
   return 0;
 }
 
