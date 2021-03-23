@@ -711,12 +711,12 @@ HWC2::Error GuestComposer::presentDisplay(Display* display,
       continue;
     }
 
-    HWC2::Error error = composerLayerInto(layer,                          //
-                                          compositionResultBufferData,    //
-                                          compositionResultBufferWidth,   //
-                                          compositionResultBufferHeight,  //
-                                          compositionResultBufferStride,  //
-                                          4);
+    HWC2::Error error = composeLayerInto(layer,                          //
+                                         compositionResultBufferData,    //
+                                         compositionResultBufferWidth,   //
+                                         compositionResultBufferHeight,  //
+                                         compositionResultBufferStride,  //
+                                         4);
     if (error != HWC2::Error::None) {
       ALOGE("%s: display:%" PRIu64 " failed to compose layer:%" PRIu64,
             __FUNCTION__, displayId, layerId);
@@ -759,7 +759,7 @@ bool GuestComposer::canComposeLayer(Layer* layer) {
   return true;
 }
 
-HWC2::Error GuestComposer::composerLayerInto(
+HWC2::Error GuestComposer::composeLayerInto(
     Layer* srcLayer, std::uint8_t* dstBuffer, std::uint32_t dstBufferWidth,
     std::uint32_t dstBufferHeight, std::uint32_t dstBufferStrideBytes,
     std::uint32_t dstBufferBytesPerPixel) {
