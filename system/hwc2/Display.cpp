@@ -466,7 +466,7 @@ HWC2::Error Display::setClientTarget(buffer_handle_t target,
   std::unique_lock<std::recursive_mutex> lock(mStateMutex);
   mClientTarget.setBuffer(target);
   mClientTarget.setFence(acquireFence);
-
+  mComposer->onDisplayClientTargetSet(this);
   return HWC2::Error::None;
 }
 
