@@ -67,14 +67,17 @@ bool LayerNeedsAttenuation(const Layer& layer) {
 struct BufferSpec;
 typedef int (*ConverterFunction)(const BufferSpec& src, const BufferSpec& dst,
                                  bool v_flip);
-int DoCopy(const BufferSpec& src, const BufferSpec& dst, bool v_flip);
-int ConvertFromYV12(const BufferSpec& src, const BufferSpec& dst, bool v_flip);
+int DoCopy(const BufferSpec& src, const BufferSpec& dst, bool vFlip);
+int ConvertFromRGB565(const BufferSpec& src, const BufferSpec& dst, bool vFlip);
+int ConvertFromYV12(const BufferSpec& src, const BufferSpec& dst, bool vFlip);
 
 ConverterFunction GetConverterForDrmFormat(uint32_t drmFormat) {
   switch (drmFormat) {
     case DRM_FORMAT_ABGR8888:
     case DRM_FORMAT_XBGR8888:
       return &DoCopy;
+    case DRM_FORMAT_RGB565:
+      return &ConvertFromRGB565;
     case DRM_FORMAT_YVU420:
       return &ConvertFromYV12;
   }
@@ -147,7 +150,26 @@ struct BufferSpec {
                    /*sampleBytes=*/4) {}
 };
 
-int ConvertFromYV12(const BufferSpec& src, const BufferSpec& dst, bool v_flip) {
+int ConvertFromRGB565(const BufferSpec& src, const BufferSpec& dst,
+                      bool vFlip) {
+  // Point to the upper left corner of the crop rectangle
+  uint8_t* srcBuffer =
+      src.buffer + src.cropY * src.strideBytes + src.cropX * src.sampleBytes;
+  uint8_t* dstBuffer =
+      dst.buffer + dst.cropY * dst.strideBytes + dst.cropX * dst.sampleBytes;
+
+  int width = src.cropWidth;
+  int height = src.cropHeight;
+  if (vFlip) {
+    height = -height;
+  }
+
+  return libyuv::RGB565ToARGB(srcBuffer, src.strideBytes,  //
+                              dstBuffer, dst.strideBytes,  //
+                              width, height);
+}
+
+int ConvertFromYV12(const BufferSpec& src, const BufferSpec& dst, bool vFlip) {
   // The following calculation of plane offsets and alignments are based on
   // swiftshader's Sampler::setTextureLevel() implementation
   // (Renderer/Sampler.cpp:225)
@@ -182,7 +204,7 @@ int ConvertFromYV12(const BufferSpec& src, const BufferSpec& dst, bool v_flip) {
   int width = dst.cropWidth;
   int height = dst.cropHeight;
 
-  if (v_flip) {
+  if (vFlip) {
     height = -height;
   }
 
