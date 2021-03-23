@@ -192,7 +192,12 @@ int ConvertFromYV12(const BufferSpec& src, const BufferSpec& dst, bool v_flip) {
 }
 
 int DoConversion(const BufferSpec& src, const BufferSpec& dst, bool v_flip) {
-  return (*GetConverterForDrmFormat(src.drmFormat))(src, dst, v_flip);
+  ConverterFunction func = GetConverterForDrmFormat(src.drmFormat);
+  if (!func) {
+    // GetConverterForDrmFormat should've logged the issue for us.
+    return -1;
+  }
+  return func(src, dst, v_flip);
 }
 
 int DoCopy(const BufferSpec& src, const BufferSpec& dst, bool v_flip) {
