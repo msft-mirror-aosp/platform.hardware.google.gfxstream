@@ -380,10 +380,10 @@ std::optional<BufferSpec> GetBufferSpec(GrallocBuffer& buffer,
 
 }  // namespace
 
-HWC2::Error GuestComposer::init() {
+HWC2::Error GuestComposer::init(const HotplugCallback& cb) {
   DEBUG_LOG("%s", __FUNCTION__);
 
-  if (!mDrmPresenter.init()) {
+  if (!mDrmPresenter.init(cb)) {
     ALOGE("%s: failed to initialize DrmPresenter", __FUNCTION__);
     return HWC2::Error::NoResources;
   }
@@ -410,81 +410,101 @@ HWC2::Error GuestComposer::createDisplays(
     ALOGE("%s failed to get display configs from system prop", __FUNCTION__);
     return error;
   }
-
+  uint32_t id = 0;
   for (const auto& displayConfig : displayConfigs) {
-    auto display = std::make_unique<Display>(*device, this);
-    if (display == nullptr) {
-      ALOGE("%s failed to allocate display", __FUNCTION__);
-      return HWC2::Error::NoResources;
-    }
-
-    auto displayId = display->getId();
-
-    error = display->init(displayConfig.width,   //
-                          displayConfig.height,  //
-                          displayConfig.dpiX,    //
-                          displayConfig.dpiY,    //
-                          displayConfig.refreshRateHz);
+    error = createDisplay(device,
+                          id,
+                          displayConfig.width,
+                          displayConfig.height,
+                          displayConfig.dpiX,
+                          displayConfig.dpiY,
+                          displayConfig.refreshRateHz,
+                          addDisplayToDeviceFn);
     if (error != HWC2::Error::None) {
-      ALOGE("%s failed to initialize display:%" PRIu64, __FUNCTION__,
-            displayId);
+      ALOGE("%s: failed to create display %d", __FUNCTION__, id);
       return error;
     }
 
-    auto it = mDisplayInfos.find(displayId);
-    if (it != mDisplayInfos.end()) {
-      ALOGE("%s: display:%" PRIu64 " already created?", __FUNCTION__,
-            displayId);
+    ++id;
+  }
+
+  return HWC2::Error::None;
+}
+
+HWC2::Error GuestComposer::createDisplay(
+    Device* device, uint32_t id, uint32_t width, uint32_t height,
+    uint32_t dpiX, uint32_t dpiY, uint32_t refreshRateHz,
+    const AddDisplayToDeviceFunction& addDisplayToDeviceFn) {
+
+
+  auto display = std::make_unique<Display>(*device, this, id);
+  if (display == nullptr) {
+    ALOGE("%s failed to allocate display", __FUNCTION__);
+    return HWC2::Error::NoResources;
+  }
+
+  auto displayId = display->getId();
+
+  HWC2::Error error = display->init(width, height, dpiX, dpiY, refreshRateHz);
+  if (error != HWC2::Error::None) {
+    ALOGE("%s failed to initialize display:%" PRIu64, __FUNCTION__,
+          displayId);
+    return error;
+  }
+
+  auto it = mDisplayInfos.find(displayId);
+  if (it != mDisplayInfos.end()) {
+    ALOGE("%s: display:%" PRIu64 " already created?", __FUNCTION__,
+          displayId);
+  }
+
+  GuestComposerDisplayInfo& displayInfo = mDisplayInfos[displayId];
+
+  uint32_t bufferStride;
+  buffer_handle_t bufferHandle;
+
+  auto status = GraphicBufferAllocator::get().allocate(
+      width,     //
+      height,    //
+      PIXEL_FORMAT_RGBA_8888,  //
+      /*layerCount=*/1,        //
+      GraphicBuffer::USAGE_HW_COMPOSER | GraphicBuffer::USAGE_SW_READ_OFTEN |
+          GraphicBuffer::USAGE_SW_WRITE_OFTEN,  //
+      &bufferHandle,                            //
+      &bufferStride,                            //
+      "RanchuHwc");
+  if (status != OK) {
+    ALOGE("%s failed to allocate composition buffer for display:%" PRIu64,
+          __FUNCTION__, displayId);
+    return HWC2::Error::NoResources;
+  }
+
+  displayInfo.compositionResultBuffer = bufferHandle;
+
+  displayInfo.compositionResultDrmBuffer = std::make_unique<DrmBuffer>(
+      displayInfo.compositionResultBuffer, mDrmPresenter);
+
+  if (displayId == 0) {
+    int flushSyncFd = -1;
+
+    HWC2::Error flushError =
+        displayInfo.compositionResultDrmBuffer->flushToDisplay(displayId,
+                                                               &flushSyncFd);
+    if (flushError != HWC2::Error::None) {
+      ALOGW(
+          "%s: Initial display flush failed. HWComposer assuming that we are "
+          "running in QEMU without a display and disabling presenting.",
+          __FUNCTION__);
+      mPresentDisabled = true;
+    } else {
+      close(flushSyncFd);
     }
+  }
 
-    GuestComposerDisplayInfo& displayInfo = mDisplayInfos[displayId];
-
-    uint32_t bufferStride;
-    buffer_handle_t bufferHandle;
-
-    auto status = GraphicBufferAllocator::get().allocate(
-        displayConfig.width,     //
-        displayConfig.height,    //
-        PIXEL_FORMAT_RGBA_8888,  //
-        /*layerCount=*/1,        //
-        GraphicBuffer::USAGE_HW_COMPOSER | GraphicBuffer::USAGE_SW_READ_OFTEN |
-            GraphicBuffer::USAGE_SW_WRITE_OFTEN,  //
-        &bufferHandle,                            //
-        &bufferStride,                            //
-        "RanchuHwc");
-    if (status != OK) {
-      ALOGE("%s failed to allocate composition buffer for display:%" PRIu64,
-            __FUNCTION__, displayId);
-      return HWC2::Error::NoResources;
-    }
-
-    displayInfo.compositionResultBuffer = bufferHandle;
-
-    displayInfo.compositionResultDrmBuffer = std::make_unique<DrmBuffer>(
-        displayInfo.compositionResultBuffer, mDrmPresenter);
-
-    if (displayId == 0) {
-      int flushSyncFd = -1;
-
-      HWC2::Error flushError =
-          displayInfo.compositionResultDrmBuffer->flushToDisplay(displayId,
-                                                                 &flushSyncFd);
-      if (flushError != HWC2::Error::None) {
-        ALOGW(
-            "%s: Initial display flush failed. HWComposer assuming that we are "
-            "running in QEMU without a display and disabling presenting.",
-            __FUNCTION__);
-        mPresentDisabled = true;
-      } else {
-        close(flushSyncFd);
-      }
-    }
-
-    error = addDisplayToDeviceFn(std::move(display));
-    if (error != HWC2::Error::None) {
-      ALOGE("%s failed to add display:%" PRIu64, __FUNCTION__, displayId);
-      return error;
-    }
+  error = addDisplayToDeviceFn(std::move(display));
+  if (error != HWC2::Error::None) {
+    ALOGE("%s failed to add display:%" PRIu64, __FUNCTION__, displayId);
+    return error;
   }
 
   return HWC2::Error::None;
