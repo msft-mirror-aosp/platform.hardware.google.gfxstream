@@ -758,9 +758,14 @@ HWC2::Error GuestComposer::presentDisplay(Display* display,
 
   DEBUG_LOG("%s display:%" PRIu64 " flushing drm buffer", __FUNCTION__,
             displayId);
-  *outRetireFence = displayInfo.compositionResultDrmBuffer->flush();
 
-  return HWC2::Error::None;
+  HWC2::Error error =
+      displayInfo.compositionResultDrmBuffer->flush(outRetireFence);
+  if (error != HWC2::Error::None) {
+    ALOGE("%s: display:%" PRIu64 " failed to flush drm buffer" PRIu64,
+          __FUNCTION__, displayId);
+  }
+  return error;
 }
 
 bool GuestComposer::canComposeLayer(Layer* layer) {
