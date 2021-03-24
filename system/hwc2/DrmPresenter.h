@@ -40,7 +40,7 @@ class DrmBuffer {
   DrmBuffer(DrmBuffer&&) = delete;
   DrmBuffer& operator=(DrmBuffer&&) = delete;
 
-  int flush();
+  HWC2::Error flush(int* outFlushDoneSyncFd);
 
  private:
   int convertBoInfo(const native_handle_t* handle);
@@ -68,7 +68,7 @@ class DrmPresenter {
   bool supportComposeWithoutPost();
   uint32_t refreshRate() const { return mRefreshRateAsInteger; }
 
-  int exportSyncFdAndSetCrtc(hwc_drm_bo_t& fb);
+  HWC2::Error exportSyncFdAndSetCrtc(hwc_drm_bo_t& fb, int* outSyncFd);
 
  private:
   drmModeModeInfo mMode;
@@ -99,8 +99,6 @@ class DrmPresenter {
 
   float mRefreshRateAsFloat;
   uint32_t mRefreshRateAsInteger;
-
-  int mOutFence = -1;
 
   bool mDidSetCrtc = false;
 };

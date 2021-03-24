@@ -273,8 +273,11 @@ int DrmPresenter::clearDrmFB(hwc_drm_bo_t& bo) {
 
 bool DrmPresenter::supportComposeWithoutPost() { return true; }
 
-int DrmPresenter::exportSyncFdAndSetCrtc(hwc_drm_bo_t& bo) {
-  mOutFence = -1;
+HWC2::Error DrmPresenter::exportSyncFdAndSetCrtc(hwc_drm_bo_t& bo,
+                                                 int* outSyncFd) {
+  HWC2::Error error = HWC2::Error::None;
+
+  *outSyncFd = -1;
 
   drmModeAtomicReqPtr pset = drmModeAtomicAlloc();
 
@@ -302,8 +305,9 @@ int DrmPresenter::exportSyncFdAndSetCrtc(hwc_drm_bo_t& bo) {
     DEBUG_LOG("%s: Already set crtc\n", __FUNCTION__);
   }
 
-  ret = drmModeAtomicAddProperty(pset, mCrtcId, mOutFencePtrId,
-                                 (uint64_t)(&mOutFence));
+  uint64_t outSyncFdUint = (uint64_t)outSyncFd;
+
+  ret = drmModeAtomicAddProperty(pset, mCrtcId, mOutFencePtrId, outSyncFdUint);
   if (ret < 0) {
     ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
   }
@@ -361,12 +365,15 @@ int DrmPresenter::exportSyncFdAndSetCrtc(hwc_drm_bo_t& bo) {
 
   if (ret) {
     ALOGE("%s: Atomic commit failed with %d %d\n", __FUNCTION__, ret, errno);
+    error = HWC2::Error::NoResources;
   }
 
-  if (pset) drmModeAtomicFree(pset);
+  if (pset) {
+    drmModeAtomicFree(pset);
+  }
 
-  DEBUG_LOG("%s: out fence: %d\n", __FUNCTION__, mOutFence);
-  return mOutFence;
+  DEBUG_LOG("%s: out fence: %d\n", __FUNCTION__, *outSyncFd);
+  return error;
 }
 
 DrmBuffer::DrmBuffer(const native_handle_t* handle, DrmPresenter& DrmPresenter)
@@ -394,6 +401,8 @@ int DrmBuffer::convertBoInfo(const native_handle_t* handle) {
   return 0;
 }
 
-int DrmBuffer::flush() { return mDrmPresenter.exportSyncFdAndSetCrtc(mBo); }
+HWC2::Error DrmBuffer::flush(int* outFlushDoneSyncFd) {
+  return mDrmPresenter.exportSyncFdAndSetCrtc(mBo, outFlushDoneSyncFd);
+}
 
 }  // namespace android
