@@ -463,6 +463,22 @@ HWC2::Error GuestComposer::createDisplays(
     displayInfo.compositionResultDrmBuffer = std::make_unique<DrmBuffer>(
         displayInfo.compositionResultBuffer, mDrmPresenter);
 
+    if (displayId == 0) {
+      int flushSyncFd = -1;
+
+      HWC2::Error flushError =
+          displayInfo.compositionResultDrmBuffer->flush(&flushSyncFd);
+      if (flushError != HWC2::Error::None) {
+        ALOGW(
+            "%s: Initial display flush failed. HWComposer assuming that we are "
+            "running in QEMU without a display and disabling presenting.",
+            __FUNCTION__);
+        mPresentDisabled = true;
+      } else {
+        close(flushSyncFd);
+      }
+    }
+
     error = addDisplayToDeviceFn(std::move(display));
     if (error != HWC2::Error::None) {
       ALOGE("%s failed to add display:%" PRIu64, __FUNCTION__, displayId);
@@ -662,8 +678,13 @@ HWC2::Error GuestComposer::presentDisplay(Display* display,
   const auto displayId = display->getId();
   DEBUG_LOG("%s display:%" PRIu64, __FUNCTION__, displayId);
 
+
   if (displayId != 0) {
     // TODO(b/171305898): remove after multi-display fully supported.
+    return HWC2::Error::None;
+  }
+
+  if (mPresentDisabled) {
     return HWC2::Error::None;
   }
 
