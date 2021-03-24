@@ -303,13 +303,14 @@ void PostWorker::screenshot(
     GLenum format,
     GLenum type,
     int rotation,
-    void* pixels) {
+    void* pixels,
+    SkinRect rect) {
     if (m_displayVk) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) <<
                             "Screenshot not supported with native Vulkan swapchain enabled.";
     }
     cb->readPixelsScaled(
-        width, height, format, type, rotation, pixels);
+        width, height, format, type, rotation, pixels, rect);
 }
 
 void PostWorker::block(std::promise<void> scheduledSignal, std::future<void> continueSignal) {

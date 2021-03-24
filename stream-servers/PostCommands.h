@@ -48,6 +48,7 @@ struct Post {
             GLenum type;
             int rotation;
             void* pixels;
+            SkinRect rect;
         } screenshot;
     };
 };

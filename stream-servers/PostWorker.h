@@ -64,7 +64,7 @@ class PostWorker {
     void clear();
 
     void screenshot(ColorBuffer* cb, int screenwidth, int screenheight,
-                    GLenum format, GLenum type, int skinRotation, void* pixels);
+                    GLenum format, GLenum type, int skinRotation, void* pixels, SkinRect rect);
 
     // The block task will set the scheduledSignal promise when the task is scheduled, and wait
     // until continueSignal is ready before completes.
