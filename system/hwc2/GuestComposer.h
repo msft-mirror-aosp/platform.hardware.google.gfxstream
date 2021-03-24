@@ -96,6 +96,10 @@ class GuestComposer : public Composer {
 
   DrmPresenter mDrmPresenter;
 
+  // Cuttlefish on QEMU does not have a display. Disable presenting to avoid
+  // spamming logcat with DRM commit failures.
+  bool mPresentDisabled = false;
+
   uint8_t* getRotatingScratchBuffer(std::size_t neededSize,
                                     std::uint32_t order);
   uint8_t* getSpecialScratchBuffer(std::size_t neededSize);
