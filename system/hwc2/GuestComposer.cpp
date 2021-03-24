@@ -635,6 +635,11 @@ HWC2::Error GuestComposer::presentDisplay(Display* display,
   const auto displayId = display->getId();
   DEBUG_LOG("%s display:%" PRIu64, __FUNCTION__, displayId);
 
+  if (displayId != 0) {
+    // TODO(b/171305898): remove after multi-display fully supported.
+    return HWC2::Error::None;
+  }
+
   auto it = mDisplayInfos.find(displayId);
   if (it == mDisplayInfos.end()) {
     ALOGE("%s: display:%" PRIu64 " not found", __FUNCTION__, displayId);
