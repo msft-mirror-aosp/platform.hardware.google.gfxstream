@@ -77,11 +77,11 @@ class GuestComposer : public Composer {
   bool canComposeLayer(Layer* layer);
 
   // Composes the given layer into the given destination buffer.
-  HWC2::Error composerLayerInto(Layer* layer, std::uint8_t* dstBuffer,
-                                std::uint32_t dstBufferWidth,
-                                std::uint32_t dstBufferHeight,
-                                std::uint32_t dstBufferStrideBytes,
-                                std::uint32_t dstBufferBytesPerPixel);
+  HWC2::Error composeLayerInto(Layer* layer, std::uint8_t* dstBuffer,
+                               std::uint32_t dstBufferWidth,
+                               std::uint32_t dstBufferHeight,
+                               std::uint32_t dstBufferStrideBytes,
+                               std::uint32_t dstBufferBytesPerPixel);
 
   struct GuestComposerDisplayInfo {
     // Additional per display buffer for the composition result.
