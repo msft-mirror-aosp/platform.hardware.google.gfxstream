@@ -573,6 +573,10 @@ typedef struct VkSemaphoreGetZirconHandleInfoFUCHSIA {
     ((VkExternalSemaphoreHandleTypeFlagBits)0x00100000)
 #endif  // VK_FUCHSIA_external_semaphore
 
+// To be moved inside the ifdef above once spec is updated
+#define VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ZIRCON_EVENT_BIT_FUCHSIA \
+    ((VkExternalMemoryHandleTypeFlagBits)0x00000080)
+
 // VulkanStream features
 #define VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT (1 << 0)
 #define VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT (1 << 1)
