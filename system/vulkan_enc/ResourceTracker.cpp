@@ -5130,8 +5130,10 @@ public:
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
         bool exportEvent = exportSemaphoreInfoPtr &&
+            ((exportSemaphoreInfoPtr->handleTypes &
+             VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA) ||
             (exportSemaphoreInfoPtr->handleTypes &
-             VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA);
+             VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ZIRCON_EVENT_BIT_FUCHSIA));
 
         if (exportEvent) {
             finalCreateInfo.pNext = nullptr;
@@ -6312,6 +6314,16 @@ public:
                 VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA;
             pExternalSemaphoreProperties->exportFromImportedHandleTypes |=
                 VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA;
+            pExternalSemaphoreProperties->externalSemaphoreFeatures |=
+                VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT |
+                VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT;
+        }
+        if (pExternalSemaphoreInfo->handleType ==
+            static_cast<uint32_t>(VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ZIRCON_EVENT_BIT_FUCHSIA)) {
+            pExternalSemaphoreProperties->compatibleHandleTypes |=
+                VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ZIRCON_EVENT_BIT_FUCHSIA;
+            pExternalSemaphoreProperties->exportFromImportedHandleTypes |=
+                VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ZIRCON_EVENT_BIT_FUCHSIA;
             pExternalSemaphoreProperties->externalSemaphoreFeatures |=
                 VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT |
                 VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT;
