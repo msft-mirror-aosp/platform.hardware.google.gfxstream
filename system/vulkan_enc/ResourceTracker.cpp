@@ -949,7 +949,8 @@ public:
             zx_info_handle_basic_t info;
             zx_object_get_info(zx_process_self(), ZX_INFO_HANDLE_BASIC, &info, sizeof(info),
                                nullptr, nullptr);
-            mSysmemAllocator->SetDebugClientInfo(fidl::unowned_str(client_name), info.koid);
+            mSysmemAllocator->SetDebugClientInfo(fidl::StringView::FromExternal(client_name),
+                                                 info.koid);
         }
 #endif
 
@@ -2453,9 +2454,8 @@ public:
         }
 
         constexpr uint32_t kVulkanPriority = 5;
-        const char* kName = "GoldfishSysmemShared";
-        collection->SetName(kVulkanPriority,
-                            fidl::unowned_str(kName, strlen(kName)));
+        const char kName[] = "GoldfishSysmemShared";
+        collection->SetName(kVulkanPriority, fidl::StringView(kName));
 
         auto result = collection->SetConstraints(true, constraints);
         if (!result.ok()) {
@@ -2499,8 +2499,8 @@ public:
                 pBufferConstraintsInfo);
 
         constexpr uint32_t kVulkanPriority = 5;
-        const char* kName = "GoldfishBufferSysmemShared";
-        collection->SetName(kVulkanPriority, fidl::unowned_str(kName, strlen(kName)));
+        const char kName[] = "GoldfishBufferSysmemShared";
+        collection->SetName(kVulkanPriority, fidl::StringView(kName));
 
         auto result = collection->SetConstraints(true, constraints);
         if (!result.ok()) {
