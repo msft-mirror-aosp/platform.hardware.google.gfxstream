@@ -203,7 +203,7 @@ class Display {
   HWC2::PowerMode mPowerMode = HWC2::PowerMode::Off;
   HWC2::Vsync mVsyncEnabled = HWC2::Vsync::Invalid;
   uint32_t mVsyncPeriod;
-  VsyncThread mVsyncThread;
+  sp<VsyncThread> mVsyncThread;
   FencedBuffer mClientTarget;
   // Will only be non-null after the Display has been validated and
   // before it has been presented
