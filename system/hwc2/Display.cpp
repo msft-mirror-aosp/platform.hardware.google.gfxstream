@@ -63,7 +63,7 @@ Display::Display(Device& device, Composer* composer)
     : mDevice(device),
       mComposer(composer),
       mId(sNextDisplayId++),
-      mVsyncThread(*this) {}
+      mVsyncThread(new VsyncThread(*this)) {}
 
 Display::~Display() {}
 
@@ -76,7 +76,7 @@ HWC2::Error Display::init(uint32_t width, uint32_t height, uint32_t dpiX,
   std::unique_lock<std::recursive_mutex> lock(mStateMutex);
 
   mVsyncPeriod = 1000 * 1000 * 1000 / refreshRateHz;
-  mVsyncThread.run("", ANDROID_PRIORITY_URGENT_DISPLAY);
+  mVsyncThread->run("", ANDROID_PRIORITY_URGENT_DISPLAY);
 
   hwc2_config_t configId = sNextConfigId++;
 
