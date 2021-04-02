@@ -59,9 +59,9 @@ private:
     size_t m_read;
     size_t m_readLeft;
 #ifdef __Fuchsia__
-    std::unique_ptr<fuchsia_hardware_goldfish::PipeDevice::SyncClient>
+    std::unique_ptr<::fidl::WireSyncClient<fuchsia_hardware_goldfish::PipeDevice>>
         m_device;
-    std::unique_ptr<fuchsia_hardware_goldfish::Pipe::SyncClient>
+    std::unique_ptr<::fidl::WireSyncClient<fuchsia_hardware_goldfish::Pipe>>
         m_pipe;
     zx::event m_event;
     zx::vmo m_vmo;
