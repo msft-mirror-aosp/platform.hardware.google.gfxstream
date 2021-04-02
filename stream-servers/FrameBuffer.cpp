@@ -42,6 +42,7 @@
 #include "aemu/base/system/System.h"
 #include "aemu/base/Tracing.h"
 #include "gl/YUVConverter.h"
+#include "gl/glestranslator/EGL/EglGlobalInfo.h"
 #include "gl/gles2_dec/gles2_dec.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/crash_reporter.h"
@@ -50,6 +51,7 @@
 #include "host-common/misc.h"
 #include "host-common/opengl/misc.h"
 #include "host-common/vm_operations.h"
+#include "render-utils/MediaNative.h"
 #include "vulkan/DisplayVk.h"
 #include "vulkan/VkCommonOperations.h"
 #include "vulkan/VkDecoderGlobalState.h"
@@ -2051,6 +2053,19 @@ void FrameBuffer::updateYUVTextures(uint32_t type,
         gtextures[1] = s_gles2.glGetGlobalTexName(textures[1]);
         gtextures[2] = s_gles2.glGetGlobalTexName(textures[2]);
     }
+
+#ifdef __APPLE__
+    EGLContext prevContext = s_egl.eglGetCurrentContext();
+    long long hndl = reinterpret_cast<long long>(prevContext);
+    auto mydisp = EglGlobalInfo::getInstance()->getDisplay(EGL_DEFAULT_DISPLAY);
+    void* nativecontext = mydisp->getLowLevelContext(prevContext);
+    struct MediaNativeCallerData callerdata;
+    callerdata.ctx = nativecontext;
+    callerdata.converter = nsConvertVideoFrameToNV12Textures;
+    void* pcallerdata = &callerdata;
+#else
+    void* pcallerdata = nullptr;
+#endif
 
     updater(privData, type, gtextures);
 }
