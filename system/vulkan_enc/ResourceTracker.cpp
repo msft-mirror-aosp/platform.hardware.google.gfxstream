@@ -931,7 +931,7 @@ public:
                 abort();
             }
             mControlDevice = std::make_unique<
-                fuchsia_hardware_goldfish::ControlDevice::SyncClient>(
+                fidl::WireSyncClient<fuchsia_hardware_goldfish::ControlDevice>>(
                 std::move(channel));
 
             fidl::ClientEnd<fuchsia_sysmem::Allocator> sysmem_channel{
@@ -940,7 +940,7 @@ public:
                 ALOGE("failed to open sysmem connection");
             }
             mSysmemAllocator =
-                std::make_unique<fuchsia_sysmem::Allocator::SyncClient>(
+                std::make_unique<fidl::WireSyncClient<fuchsia_sysmem::Allocator>>(
                     std::move(sysmem_channel));
             char name[ZX_MAX_NAME_LEN] = {};
             zx_object_get_property(zx_process_self(), ZX_PROP_NAME, name, sizeof(name));
@@ -1945,7 +1945,7 @@ public:
         }
 
         auto* sysmem_collection =
-            new fuchsia_sysmem::BufferCollection::SyncClient(
+            new fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>(
                 std::move(collection_client));
         *pCollection = reinterpret_cast<VkBufferCollectionFUCHSIA>(sysmem_collection);
 
@@ -1958,7 +1958,7 @@ public:
         VkBufferCollectionFUCHSIA collection,
         const VkAllocationCallbacks*) {
         auto sysmem_collection = reinterpret_cast<
-            fuchsia_sysmem::BufferCollection::SyncClient*>(collection);
+            fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>*>(collection);
         if (sysmem_collection) {
             sysmem_collection->Close();
         }
@@ -2155,7 +2155,7 @@ public:
 
     VkResult setBufferCollectionConstraints(
         VkEncoder* enc, VkDevice device,
-        fuchsia_sysmem::BufferCollection::SyncClient* collection,
+        fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>* collection,
         const VkImageCreateInfo* pImageInfo) {
         if (pImageInfo == nullptr) {
             ALOGE("setBufferCollectionConstraints: pImageInfo cannot be null.");
@@ -2331,7 +2331,7 @@ public:
     VkResult setBufferCollectionImageConstraints(
         VkEncoder* enc,
         VkDevice device,
-        fuchsia_sysmem::BufferCollection::SyncClient* collection,
+        fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>* collection,
         const VkImageConstraintsInfoFUCHSIA* pImageConstraintsInfo) {
         if (!pImageConstraintsInfo ||
             pImageConstraintsInfo->sType !=
@@ -2481,7 +2481,7 @@ public:
     }
 
     VkResult setBufferCollectionBufferConstraints(
-        fuchsia_sysmem::BufferCollection::SyncClient* collection,
+        fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>* collection,
         const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo) {
         if (pBufferConstraintsInfo == nullptr) {
             ALOGE(
@@ -2529,7 +2529,7 @@ public:
         const VkImageCreateInfo* pImageInfo) {
         VkEncoder* enc = (VkEncoder*)context;
         auto sysmem_collection = reinterpret_cast<
-            fuchsia_sysmem::BufferCollection::SyncClient*>(collection);
+            fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>*>(collection);
         return setBufferCollectionConstraints(enc, device, sysmem_collection, pImageInfo);
     }
 
@@ -2541,7 +2541,7 @@ public:
         const VkImageConstraintsInfoFUCHSIA* pImageConstraintsInfo) {
         VkEncoder* enc = (VkEncoder*)context;
         auto sysmem_collection = reinterpret_cast<
-            fuchsia_sysmem::BufferCollection::SyncClient*>(collection);
+            fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>*>(collection);
         return setBufferCollectionImageConstraints(
             enc, device, sysmem_collection, pImageConstraintsInfo);
     }
@@ -2553,7 +2553,7 @@ public:
         VkBufferCollectionFUCHSIA collection,
         const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo) {
         auto sysmem_collection = reinterpret_cast<
-            fuchsia_sysmem::BufferCollection::SyncClient*>(collection);
+            fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>*>(collection);
         return setBufferCollectionBufferConstraints(sysmem_collection,
                                                     pBufferConstraintsInfo);
     }
@@ -2657,7 +2657,7 @@ public:
         VkBufferCollectionProperties2FUCHSIA* pProperties) {
         VkEncoder* enc = (VkEncoder*)context;
         auto sysmem_collection = reinterpret_cast<
-            fuchsia_sysmem::BufferCollection::SyncClient*>(collection);
+            fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>*>(collection);
 
         auto result = sysmem_collection->WaitForBuffersAllocated();
         if (!result.ok() || result.Unwrap()->status != ZX_OK) {
@@ -3181,7 +3181,7 @@ public:
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
             auto collection = reinterpret_cast<
-                fuchsia_sysmem::BufferCollection::SyncClient*>(
+                fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>*>(
                 importBufferCollectionInfoPtr->collection);
             auto result = collection->WaitForBuffersAllocated();
             if (!result.ok() || result.Unwrap()->status != ZX_OK) {
@@ -3299,7 +3299,7 @@ public:
                     }
                 }
 
-                fuchsia_sysmem::BufferCollection::SyncClient collection(
+                fidl::WireSyncClient<fuchsia_sysmem::BufferCollection> collection(
                     std::move(collection_ends->client));
                 if (hasDedicatedImage) {
                     VkResult res = setBufferCollectionConstraints(
@@ -3917,7 +3917,7 @@ public:
 
         if (extBufferCollectionPtr) {
             auto collection = reinterpret_cast<
-                fuchsia_sysmem::BufferCollection::SyncClient*>(
+                fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>*>(
                 extBufferCollectionPtr->collection);
             uint32_t index = extBufferCollectionPtr->index;
             zx::vmo vmo;
@@ -4942,7 +4942,7 @@ public:
 
         if (extBufferCollectionPtr) {
             auto collection = reinterpret_cast<
-                fuchsia_sysmem::BufferCollection::SyncClient*>(
+                fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>*>(
                 extBufferCollectionPtr->collection);
             uint32_t index = extBufferCollectionPtr->index;
 
@@ -6730,9 +6730,9 @@ private:
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
     std::unique_ptr<
-        fuchsia_hardware_goldfish::ControlDevice::SyncClient>
+        fidl::WireSyncClient<fuchsia_hardware_goldfish::ControlDevice>>
         mControlDevice;
-    std::unique_ptr<fuchsia_sysmem::Allocator::SyncClient>
+    std::unique_ptr<fidl::WireSyncClient<fuchsia_sysmem::Allocator>>
         mSysmemAllocator;
 #endif
 

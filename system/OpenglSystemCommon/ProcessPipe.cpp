@@ -83,7 +83,7 @@ static void processPipeInitOnce() {
         return;
     }
 
-    fuchsia_hardware_goldfish::PipeDevice::SyncClient device(
+    fidl::WireSyncClient<fuchsia_hardware_goldfish::PipeDevice> device(
         std::move(channel));
 
     auto pipe_ends =
@@ -93,7 +93,7 @@ static void processPipeInitOnce() {
         return;
     }
 
-    fuchsia_hardware_goldfish::Pipe::SyncClient pipe(
+    fidl::WireSyncClient<fuchsia_hardware_goldfish::Pipe> pipe(
         std::move(pipe_ends->client));
     device.OpenPipe(std::move(pipe_ends->server));
 
