@@ -81,7 +81,7 @@ int QemuPipeStream::connect(void)
     }
 
     m_device = std::make_unique<
-        fuchsia_hardware_goldfish::PipeDevice::SyncClient>(
+        fidl::WireSyncClient<fuchsia_hardware_goldfish::PipeDevice>>(
         std::move(channel));
 
     auto pipe_ends =
@@ -92,7 +92,7 @@ int QemuPipeStream::connect(void)
     }
     m_device->OpenPipe(std::move(pipe_ends->server));
     m_pipe =
-        std::make_unique<fuchsia_hardware_goldfish::Pipe::SyncClient>(
+        std::make_unique<fidl::WireSyncClient<fuchsia_hardware_goldfish::Pipe>>(
             std::move(pipe_ends->client));
 
     zx::event event;
