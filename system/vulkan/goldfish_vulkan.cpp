@@ -905,8 +905,7 @@ void VulkanDevice::InitLogger() {
     if (status != ZX_OK)
       return std::nullopt;
 
-    auto result = fuchsia_logger::LogSink::Call::Connect(
-        channel, std::move(remote_socket));
+    auto result = WireCall(channel).Connect(std::move(remote_socket));
 
     if (!result.ok())
       return std::nullopt;
