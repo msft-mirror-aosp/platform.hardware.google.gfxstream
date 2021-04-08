@@ -84,16 +84,16 @@ class GrallocBuffer {
   // and returns nullopt if the buffer is for a multi plane buffer.
   std::optional<uint32_t> GetMonoPlanarStrideBytes();
 
+  std::optional<
+      std::vector<aidl::android::hardware::graphics::common::PlaneLayout>>
+  GetPlaneLayouts();
+
  private:
   // Internal visibility for Unlock().
   friend class GrallocBufferView;
 
   // Unlocks the buffer from reading.
   void Unlock();
-
-  std::optional<
-      std::vector<aidl::android::hardware::graphics::common::PlaneLayout>>
-  GetPlaneLayouts();
 
   void Release();
 

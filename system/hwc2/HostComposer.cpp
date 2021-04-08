@@ -182,7 +182,7 @@ HWC2::Error HostComposer::init() {
     ALOGE("%s: failed to initialize DrmPresenter", __FUNCTION__);
 
     // Non-fatal for HostComposer.
-    //return HWC2::Error::NoResources;
+    // return HWC2::Error::NoResources;
   }
 
   return HWC2::Error::None;
