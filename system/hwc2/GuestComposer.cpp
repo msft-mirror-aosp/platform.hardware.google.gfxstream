@@ -678,7 +678,6 @@ HWC2::Error GuestComposer::presentDisplay(Display* display,
   const auto displayId = display->getId();
   DEBUG_LOG("%s display:%" PRIu64, __FUNCTION__, displayId);
 
-
   if (displayId != 0) {
     // TODO(b/171305898): remove after multi-display fully supported.
     return HWC2::Error::None;
@@ -757,23 +756,72 @@ HWC2::Error GuestComposer::presentDisplay(Display* display,
       reinterpret_cast<uint8_t*>(*compositionResultBufferDataOpt);
 
   const std::vector<Layer*>& layers = display->getOrderedLayers();
-  for (Layer* layer : layers) {
-    const auto layerId = layer->getId();
-    const auto layerCompositionType = layer->getCompositionType();
-    if (layerCompositionType != HWC2::Composition::Device) {
-      continue;
+
+  const bool allLayersClientComposed = std::all_of(
+      layers.begin(),  //
+      layers.end(),    //
+      [](const Layer* layer) {
+        return layer->getCompositionType() == HWC2::Composition::Client;
+      });
+  if (allLayersClientComposed) {
+    auto clientTargetBufferOpt =
+        mGralloc.Import(display->waitAndGetClientTargetBuffer());
+    if (!clientTargetBufferOpt) {
+      ALOGE("%s: failed to import client target buffer.", __FUNCTION__);
+      return HWC2::Error::NoResources;
+    }
+    GrallocBuffer& clientTargetBuffer = *clientTargetBufferOpt;
+
+    auto clientTargetBufferViewOpt = clientTargetBuffer.Lock();
+    if (!clientTargetBufferViewOpt) {
+      ALOGE("%s: failed to lock client target buffer.", __FUNCTION__);
+      return HWC2::Error::NoResources;
+    }
+    GrallocBufferView& clientTargetBufferView = *clientTargetBufferViewOpt;
+
+    auto clientTargetPlaneLayoutsOpt = clientTargetBuffer.GetPlaneLayouts();
+    if (!clientTargetPlaneLayoutsOpt) {
+      ALOGE("Failed to get client target buffer plane layouts.");
+      return HWC2::Error::NoResources;
+    }
+    auto& clientTargetPlaneLayouts = *clientTargetPlaneLayoutsOpt;
+
+    if (clientTargetPlaneLayouts.size() != 1) {
+      ALOGE("Unexpected number of plane layouts for client target buffer.");
+      return HWC2::Error::NoResources;
     }
 
-    HWC2::Error error = composeLayerInto(layer,                          //
-                                         compositionResultBufferData,    //
-                                         compositionResultBufferWidth,   //
-                                         compositionResultBufferHeight,  //
-                                         compositionResultBufferStride,  //
-                                         4);
-    if (error != HWC2::Error::None) {
-      ALOGE("%s: display:%" PRIu64 " failed to compose layer:%" PRIu64,
-            __FUNCTION__, displayId, layerId);
-      return error;
+    std::size_t clientTargetPlaneSize =
+        clientTargetPlaneLayouts[0].totalSizeInBytes;
+
+    auto clientTargetDataOpt = clientTargetBufferView.Get();
+    if (!clientTargetDataOpt) {
+      ALOGE("%s failed to lock gralloc buffer.", __FUNCTION__);
+      return HWC2::Error::NoResources;
+    }
+    auto* clientTargetData = reinterpret_cast<uint8_t*>(*clientTargetDataOpt);
+
+    std::memcpy(compositionResultBufferData, clientTargetData,
+                clientTargetPlaneSize);
+  } else {
+    for (Layer* layer : layers) {
+      const auto layerId = layer->getId();
+      const auto layerCompositionType = layer->getCompositionType();
+      if (layerCompositionType != HWC2::Composition::Device) {
+        continue;
+      }
+
+      HWC2::Error error = composeLayerInto(layer,                          //
+                                           compositionResultBufferData,    //
+                                           compositionResultBufferWidth,   //
+                                           compositionResultBufferHeight,  //
+                                           compositionResultBufferStride,  //
+                                           4);
+      if (error != HWC2::Error::None) {
+        ALOGE("%s: display:%" PRIu64 " failed to compose layer:%" PRIu64,
+              __FUNCTION__, displayId, layerId);
+        return error;
+      }
     }
   }
 
