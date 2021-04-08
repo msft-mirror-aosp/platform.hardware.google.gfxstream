@@ -54,6 +54,7 @@ class Display {
   Layer* getLayer(hwc2_layer_t layerHandle);
 
   FencedBuffer& getClientTarget() { return mClientTarget; }
+  buffer_handle_t waitAndGetClientTargetBuffer();
 
   const std::vector<Layer*>& getOrderedLayers() { return mOrderedLayers; }
 
