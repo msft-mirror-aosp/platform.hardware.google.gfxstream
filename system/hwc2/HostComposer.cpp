@@ -36,7 +36,7 @@ namespace android {
 namespace {
 
 static int getVsyncHzFromProperty() {
-  static constexpr const auto kVsyncProp = "ro.kernel.qemu.vsync";
+  static constexpr const auto kVsyncProp = "ro.boot.qemu.vsync";
 
   const auto vsyncProp = android::base::GetProperty(kVsyncProp, "");
   DEBUG_LOG("%s: prop value is: %s", __FUNCTION__, vsyncProp.c_str());
