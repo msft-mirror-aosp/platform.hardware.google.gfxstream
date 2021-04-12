@@ -24,7 +24,6 @@
 #include "Common.h"
 
 namespace android {
-
 class Device;
 class Display;
 
@@ -32,7 +31,13 @@ class Composer {
  public:
   virtual ~Composer() {}
 
-  virtual HWC2::Error init() = 0;
+  using HotplugCallback =
+    std::function<void(bool /*connected*/, uint32_t /*id*/,
+                       uint32_t /*width*/, uint32_t /*height*/,
+                       uint32_t /*dpiX*/, uint32_t /*dpiY*/,
+                       uint32_t /*refreshRate*/)>;
+
+  virtual HWC2::Error init(const HotplugCallback& cb) = 0;
 
   using AddDisplayToDeviceFunction =
       std::function<HWC2::Error(std::unique_ptr<Display>)>;
@@ -41,6 +46,11 @@ class Composer {
   // for the given Device.
   virtual HWC2::Error createDisplays(
       Device* device,
+      const AddDisplayToDeviceFunction& addDisplayToDeviceFn) = 0;
+
+  virtual HWC2::Error createDisplay(
+      Device* device, uint32_t displayId, uint32_t width, uint32_t height,
+      uint32_t dpiX, uint32_t dpiY, uint32_t refreshRateHz,
       const AddDisplayToDeviceFunction& addDisplayToDeviceFn) = 0;
 
   virtual HWC2::Error onDisplayDestroy(Display* display) = 0;

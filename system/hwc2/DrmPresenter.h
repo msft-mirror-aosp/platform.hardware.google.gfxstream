@@ -17,13 +17,16 @@
 #ifndef ANDROID_HWC_DRMPRESENTER_H
 #define ANDROID_HWC_DRMPRESENTER_H
 
+#include <map>
+#include <memory>
+#include <vector>
+
 #include <include/drmhwcgralloc.h>
+#include <utils/Thread.h>
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 
-#include <map>
-#include <vector>
-
+#include "android/base/synchronization/AndroidLock.h"
 #include "Common.h"
 
 namespace android {
@@ -63,21 +66,29 @@ class DrmPresenter {
   DrmPresenter(DrmPresenter&&) = delete;
   DrmPresenter& operator=(DrmPresenter&&) = delete;
 
-  bool init();
-  void clearDrmElements();
-  bool configDrmElements();
+  using HotplugCallback =
+    std::function<void(bool /*connected*/, uint32_t /*id*/,
+                       uint32_t /*width*/, uint32_t /*height*/,
+                       uint32_t /*dpiX*/, uint32_t /*dpiY*/,
+                       uint32_t /*refreshRate*/)>;
+
+  bool init(const HotplugCallback& cb);
+
+  void clearDrmElementsLocked();
+  bool configDrmElementsLocked();
 
   int getDrmFB(hwc_drm_bo_t& bo);
   int clearDrmFB(hwc_drm_bo_t& bo);
-  bool supportComposeWithoutPost();
+
   uint32_t refreshRate() const { return mConnectors[0].mRefreshRateAsInteger; }
+  bool handleHotPlug();
 
   HWC2::Error flushToDisplay(int display, hwc_drm_bo_t& fb, int* outSyncFd);
 
  private:
   // Drm device.
   int32_t mFd = -1;
-
+  HotplugCallback mHotplugCallback;
   struct DrmPlane {
     uint32_t mId = -1;
     uint32_t mCrtcPropertyId = -1;
@@ -110,11 +121,30 @@ class DrmPresenter {
     uint32_t mId = -1;
     uint32_t mCrtcPropertyId = -1;
     drmModeModeInfo mMode;
-    uint32_t mModeBlobId;
+    int32_t dpiX;
+    int32_t dpiY;
+    drmModeConnection connection;
+    uint32_t mModeBlobId = 0;
     float mRefreshRateAsFloat;
     uint32_t mRefreshRateAsInteger;
   };
   std::vector<DrmConnector> mConnectors;
+
+  class DrmEventListener : public Thread {
+    public:
+      DrmEventListener(DrmPresenter& presenter);
+      virtual ~DrmEventListener();
+    private:
+      bool threadLoop() final;
+      void UEventHandler();
+      void processHotplug(uint64_t timestamp);
+      DrmPresenter& mPresenter;
+      int mEventFd;
+      int mMaxFd;
+      fd_set mFds;
+  };
+  std::unique_ptr<DrmEventListener> mDrmEventListener;
+  android::base::guest::ReadWriteLock mStateMutex;
 };
 
 }  // namespace android

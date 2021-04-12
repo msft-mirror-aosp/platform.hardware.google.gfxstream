@@ -46,6 +46,7 @@ emulator_hwcomposer_cflags += \
 
 emulator_hwcomposer_c_includes += \
     device/generic/goldfish-opengl/host/include/libOpenglRender \
+    device/generic/goldfish-opengl/android-emu \
     device/generic/goldfish-opengl/shared/OpenglCodecCommon \
     device/generic/goldfish-opengl/system/OpenglSystemCommon \
     device/generic/goldfish-opengl/system/include \
