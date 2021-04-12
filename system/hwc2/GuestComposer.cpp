@@ -467,7 +467,8 @@ HWC2::Error GuestComposer::createDisplays(
       int flushSyncFd = -1;
 
       HWC2::Error flushError =
-          displayInfo.compositionResultDrmBuffer->flush(&flushSyncFd);
+          displayInfo.compositionResultDrmBuffer->flushToDisplay(displayId,
+                                                                 &flushSyncFd);
       if (flushError != HWC2::Error::None) {
         ALOGW(
             "%s: Initial display flush failed. HWComposer assuming that we are "
@@ -828,8 +829,8 @@ HWC2::Error GuestComposer::presentDisplay(Display* display,
   DEBUG_LOG("%s display:%" PRIu64 " flushing drm buffer", __FUNCTION__,
             displayId);
 
-  HWC2::Error error =
-      displayInfo.compositionResultDrmBuffer->flush(outRetireFence);
+  HWC2::Error error = displayInfo.compositionResultDrmBuffer->flushToDisplay(
+      static_cast<int>(displayId), outRetireFence);
   if (error != HWC2::Error::None) {
     ALOGE("%s: display:%" PRIu64 " failed to flush drm buffer" PRIu64,
           __FUNCTION__, displayId);

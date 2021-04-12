@@ -25,9 +25,6 @@ DrmPresenter::DrmPresenter() {}
 bool DrmPresenter::init() {
   DEBUG_LOG("%s", __FUNCTION__);
 
-  drmModeRes* res;
-  drmModeConnector* conn;
-
   mFd = open("/dev/dri/card0", O_RDWR | O_CLOEXEC);
   if (mFd < 0) {
     ALOGE("%s HWC2::Error opening DrmPresenter device: %d", __FUNCTION__,
@@ -45,8 +42,26 @@ bool DrmPresenter::init() {
     ALOGE("%s: fail to set atomic operation %d, %d\n", __FUNCTION__, atomicRet,
           errno);
   }
-
   ALOGD("%s: Did set universal planes and atomic cap\n", __FUNCTION__);
+
+  bool configRet = configDrmElements();
+  if (configRet) {
+    ALOGD("%s: Successfully initialized DRM backend", __FUNCTION__);
+  } else {
+    ALOGD("%s: Failed to initialize DRM backend", __FUNCTION__);
+  }
+
+  return configRet;
+}
+
+void DrmPresenter::clearDrmElements() {
+  mConnectors.clear();
+  mCrtcs.clear();
+  mPlanes.clear();
+}
+
+bool DrmPresenter::configDrmElements() {
+  drmModeRes* res;
 
   res = drmModeGetResources(mFd);
   if (res == nullptr) {
@@ -56,180 +71,216 @@ bool DrmPresenter::init() {
     return false;
   }
 
-  mCrtcId = res->crtcs[0];
-  mConnectorId = res->connectors[0];
+  ALOGI(
+      "drmModeRes count fbs %d crtc %d connector %d encoder %d min w %d max w "
+      "%d min h %d max h %d",
+      res->count_fbs, res->count_crtcs, res->count_connectors,
+      res->count_encoders, res->min_width, res->max_width, res->min_height,
+      res->max_height);
 
-  drmModePlaneResPtr plane_res = drmModeGetPlaneResources(mFd);
-  for (uint32_t i = 0; i < plane_res->count_planes; ++i) {
-    drmModePlanePtr plane = drmModeGetPlane(mFd, plane_res->planes[i]);
-    ALOGD("%s: plane id: %u crtcid %u fbid %u crtc xy %d %d xy %d %d\n",
-          __FUNCTION__, plane->plane_id, plane->crtc_id, plane->fb_id,
-          plane->crtc_x, plane->crtc_y, plane->x, plane->y);
+  for (uint32_t i = 0; i < res->count_crtcs; i++) {
+    DrmCrtc crtc = {};
+
+    drmModeCrtcPtr c = drmModeGetCrtc(mFd, res->crtcs[i]);
+    crtc.mId = c->crtc_id;
+
+    drmModeObjectPropertiesPtr crtcProps =
+        drmModeObjectGetProperties(mFd, c->crtc_id, DRM_MODE_OBJECT_CRTC);
+
+    for (uint32_t crtcPropsIndex = 0; crtcPropsIndex < crtcProps->count_props;
+         crtcPropsIndex++) {
+      drmModePropertyPtr crtcProp =
+          drmModeGetProperty(mFd, crtcProps->props[crtcPropsIndex]);
+
+      if (!strcmp(crtcProp->name, "OUT_FENCE_PTR")) {
+        crtc.mFencePropertyId = crtcProp->prop_id;
+        ALOGI("%s: Crtc %" PRIu32 " fence property id: %" PRIu32, __FUNCTION__,
+              crtc.mId, crtcProp->prop_id);
+      } else if (!strcmp(crtcProp->name, "ACTIVE")) {
+        crtc.mActivePropertyId = crtcProp->prop_id;
+        ALOGI("%s: Crtc %" PRIu32 " active property id: %" PRIu32, __FUNCTION__,
+              crtc.mId, crtcProp->prop_id);
+      } else if (!strcmp(crtcProp->name, "MODE_ID")) {
+        crtc.mModePropertyId = crtcProp->prop_id;
+        ALOGI("%s: Crtc %" PRIu32 " mode property id: %" PRIu32, __FUNCTION__,
+              crtc.mId, crtcProp->prop_id);
+      }
+
+      drmModeFreeProperty(crtcProp);
+    }
+
+    drmModeFreeObjectProperties(crtcProps);
+
+    mCrtcs.push_back(crtc);
+  }
+
+  drmModePlaneResPtr planeRes = drmModeGetPlaneResources(mFd);
+  for (uint32_t i = 0; i < planeRes->count_planes; ++i) {
+    DrmPlane plane = {};
+
+    drmModePlanePtr p = drmModeGetPlane(mFd, planeRes->planes[i]);
+    plane.mId = p->plane_id;
+
+    ALOGI(
+        "%s: plane id: %u crtcid %u fbid %u crtc xy %d %d xy %d %d "
+        "possible ctrcs 0x%x",
+        __FUNCTION__, p->plane_id, p->crtc_id, p->fb_id, p->crtc_x, p->crtc_y,
+        p->x, p->y, p->possible_crtcs);
 
     drmModeObjectPropertiesPtr planeProps =
-        drmModeObjectGetProperties(mFd, plane->plane_id, DRM_MODE_OBJECT_PLANE);
-    bool found = false;
-    bool isPrimaryOrOverlay = false;
-    for (int i = 0; !found && (size_t)i < planeProps->count_props; ++i) {
-      drmModePropertyPtr p = drmModeGetProperty(mFd, planeProps->props[i]);
-      if (!strcmp(p->name, "CRTC_ID")) {
-        mPlaneCrtcPropertyId = p->prop_id;
-        ALOGD("%s: Found plane crtc property id. id: %u\n", __FUNCTION__,
-              mPlaneCrtcPropertyId);
-      } else if (!strcmp(p->name, "FB_ID")) {
-        mPlaneFbPropertyId = p->prop_id;
-        ALOGD("%s: Found plane fb property id. id: %u\n", __FUNCTION__,
-              mPlaneFbPropertyId);
-      } else if (!strcmp(p->name, "CRTC_X")) {
-        mPlaneCrtcXPropertyId = p->prop_id;
-        ALOGD("%s: Found plane crtc X property id. id: %u\n", __FUNCTION__,
-              mPlaneCrtcXPropertyId);
-      } else if (!strcmp(p->name, "CRTC_Y")) {
-        mPlaneCrtcYPropertyId = p->prop_id;
-        ALOGD("%s: Found plane crtc Y property id. id: %u\n", __FUNCTION__,
-              mPlaneCrtcYPropertyId);
-      } else if (!strcmp(p->name, "CRTC_W")) {
-        mPlaneCrtcWPropertyId = p->prop_id;
-        ALOGD("%s: Found plane crtc W property id. id: %u value: %u\n",
-              __FUNCTION__, mPlaneCrtcWPropertyId, (uint32_t)p->values[0]);
-      } else if (!strcmp(p->name, "CRTC_H")) {
-        mPlaneCrtcHPropertyId = p->prop_id;
-        ALOGD("%s: Found plane crtc H property id. id: %u value: %u\n",
-              __FUNCTION__, mPlaneCrtcHPropertyId, (uint32_t)p->values[0]);
-      } else if (!strcmp(p->name, "SRC_X")) {
-        mPlaneSrcXPropertyId = p->prop_id;
-        ALOGD("%s: Found plane src X property id. id: %u\n", __FUNCTION__,
-              mPlaneSrcXPropertyId);
-      } else if (!strcmp(p->name, "SRC_Y")) {
-        mPlaneSrcYPropertyId = p->prop_id;
-        ALOGD("%s: Found plane src Y property id. id: %u\n", __FUNCTION__,
-              mPlaneSrcYPropertyId);
-      } else if (!strcmp(p->name, "SRC_W")) {
-        mPlaneSrcWPropertyId = p->prop_id;
-        ALOGD("%s: Found plane src W property id. id: %u\n", __FUNCTION__,
-              mPlaneSrcWPropertyId);
-      } else if (!strcmp(p->name, "SRC_H")) {
-        mPlaneSrcHPropertyId = p->prop_id;
-        ALOGD("%s: Found plane src H property id. id: %u\n", __FUNCTION__,
-              mPlaneSrcHPropertyId);
-      } else if (!strcmp(p->name, "type")) {
-        mPlaneTypePropertyId = p->prop_id;
-        ALOGD("%s: Found plane type property id. id: %u\n", __FUNCTION__,
-              mPlaneTypePropertyId);
-        ALOGD("%s: Plane property type value 0x%llx\n", __FUNCTION__,
-              (unsigned long long)p->values[0]);
-        uint64_t type = p->values[0];
+        drmModeObjectGetProperties(mFd, plane.mId, DRM_MODE_OBJECT_PLANE);
+
+    for (uint32_t planePropIndex = 0; planePropIndex < planeProps->count_props;
+         ++planePropIndex) {
+      drmModePropertyPtr planeProp =
+          drmModeGetProperty(mFd, planeProps->props[planePropIndex]);
+
+      if (!strcmp(planeProp->name, "CRTC_ID")) {
+        plane.mCrtcPropertyId = planeProp->prop_id;
+        ALOGD("%s: plane %" PRIu32 " crtc property %u", __FUNCTION__, plane.mId,
+              planeProp->prop_id);
+      } else if (!strcmp(planeProp->name, "FB_ID")) {
+        plane.mFbPropertyId = planeProp->prop_id;
+        ALOGD("%s: plane %" PRIu32 " fb property id %" PRIu32, __FUNCTION__,
+              plane.mId, planeProp->prop_id);
+      } else if (!strcmp(planeProp->name, "CRTC_X")) {
+        plane.mCrtcXPropertyId = planeProp->prop_id;
+        ALOGD("%s: plane %" PRIu32 " crtc X property id %" PRIu32, __FUNCTION__,
+              plane.mId, planeProp->prop_id);
+      } else if (!strcmp(planeProp->name, "CRTC_Y")) {
+        plane.mCrtcYPropertyId = planeProp->prop_id;
+        ALOGD("%s: plane %" PRIu32 " crtc Y property id %" PRIu32, __FUNCTION__,
+              plane.mId, planeProp->prop_id);
+      } else if (!strcmp(planeProp->name, "CRTC_W")) {
+        plane.mCrtcWPropertyId = planeProp->prop_id;
+        ALOGD("%s: plane %" PRIu32 " crtc W property id %" PRIu32, __FUNCTION__,
+              plane.mId, planeProp->prop_id);
+      } else if (!strcmp(planeProp->name, "CRTC_H")) {
+        plane.mCrtcHPropertyId = planeProp->prop_id;
+        ALOGD("%s: plane %" PRIu32 " crtc H property id %" PRIu32, __FUNCTION__,
+              plane.mId, planeProp->prop_id);
+      } else if (!strcmp(planeProp->name, "SRC_X")) {
+        plane.mSrcXPropertyId = planeProp->prop_id;
+        ALOGD("%s: plane %" PRIu32 " src X property id %" PRIu32, __FUNCTION__,
+              plane.mId, planeProp->prop_id);
+      } else if (!strcmp(planeProp->name, "SRC_Y")) {
+        plane.mSrcYPropertyId = planeProp->prop_id;
+        ALOGD("%s: plane %" PRIu32 " src Y property id %" PRIu32, __FUNCTION__,
+              plane.mId, planeProp->prop_id);
+      } else if (!strcmp(planeProp->name, "SRC_W")) {
+        plane.mSrcWPropertyId = planeProp->prop_id;
+        ALOGD("%s: plane %" PRIu32 " src W property id %" PRIu32, __FUNCTION__,
+              plane.mId, planeProp->prop_id);
+      } else if (!strcmp(planeProp->name, "SRC_H")) {
+        plane.mSrcHPropertyId = planeProp->prop_id;
+        ALOGD("%s: plane %" PRIu32 " src H property id %" PRIu32, __FUNCTION__,
+              plane.mId, planeProp->prop_id);
+      } else if (!strcmp(planeProp->name, "type")) {
+        plane.mTypePropertyId = planeProp->prop_id;
+        ALOGD("%s: plane %" PRIu32 " type property id %" PRIu32, __FUNCTION__,
+              plane.mId, planeProp->prop_id);
+        uint64_t type = planeProp->values[0];
         switch (type) {
           case DRM_PLANE_TYPE_OVERLAY:
+            plane.mType = type;
+            ALOGD("%s: plane %" PRIu32 " is DRM_PLANE_TYPE_OVERLAY",
+                  __FUNCTION__, plane.mId);
+            break;
           case DRM_PLANE_TYPE_PRIMARY:
-            isPrimaryOrOverlay = true;
-            ALOGD(
-                "%s: Found a primary or overlay plane. plane id: %u type "
-                "0x%llx\n",
-                __FUNCTION__, plane->plane_id, (unsigned long long)type);
+            plane.mType = type;
+            ALOGD("%s: plane %" PRIu32 " is DRM_PLANE_TYPE_PRIMARY",
+                  __FUNCTION__, plane.mId);
             break;
           default:
             break;
         }
       }
-      drmModeFreeProperty(p);
+
+      drmModeFreeProperty(planeProp);
     }
+
     drmModeFreeObjectProperties(planeProps);
 
-    if (isPrimaryOrOverlay && ((1 << 0) & plane->possible_crtcs)) {
-      mPlaneId = plane->plane_id;
-      ALOGD("%s: found plane compatible with crtc id %d: %d\n", __FUNCTION__,
-            mCrtcId, mPlaneId);
-      drmModeFreePlane(plane);
-      break;
+    bool isPrimaryOrOverlay = plane.mType == DRM_PLANE_TYPE_OVERLAY ||
+                              plane.mType == DRM_PLANE_TYPE_PRIMARY;
+    if (isPrimaryOrOverlay && ((1 << 0) & p->possible_crtcs)) {
+      ALOGD("%s: plane %" PRIu32 " compatible with crtc mask %" PRIu32,
+            __FUNCTION__, plane.mId, p->possible_crtcs);
     }
 
-    drmModeFreePlane(plane);
-  }
-  drmModeFreePlaneResources(plane_res);
+    if (plane.mType == DRM_PLANE_TYPE_OVERLAY ||
+        plane.mType == DRM_PLANE_TYPE_PRIMARY) {
+      // TODO: correctly convert mask.
+      uint32_t crtcIndex = p->possible_crtcs - 1;
 
-  conn = drmModeGetConnector(mFd, mConnectorId);
-  if (conn == nullptr) {
-    ALOGE("%s HWC2::Error reading drm connector %d: %d", __FUNCTION__,
-          mConnectorId, errno);
-    drmModeFreeResources(res);
-    close(mFd);
-    mFd = -1;
-    return false;
-  }
-  memcpy(&mMode, &conn->modes[0], sizeof(drmModeModeInfo));
+      DrmCrtc& crtc = mCrtcs[crtcIndex];
 
-  drmModeCreatePropertyBlob(mFd, &mMode, sizeof(mMode), &mModeBlobId);
-
-  mRefreshRateAsFloat =
-      1000.0f * mMode.clock / ((float)mMode.vtotal * (float)mMode.htotal);
-  mRefreshRateAsInteger = (uint32_t)(mRefreshRateAsFloat + 0.5f);
-
-  ALOGD(
-      "%s: using drm init. refresh rate of system is %f, rounding to %d. blob "
-      "id %d\n",
-      __FUNCTION__, mRefreshRateAsFloat, mRefreshRateAsInteger, mModeBlobId);
-
-  {
-    drmModeObjectPropertiesPtr connectorProps = drmModeObjectGetProperties(
-        mFd, mConnectorId, DRM_MODE_OBJECT_CONNECTOR);
-    bool found = false;
-    for (int i = 0; !found && (size_t)i < connectorProps->count_props; ++i) {
-      drmModePropertyPtr p = drmModeGetProperty(mFd, connectorProps->props[i]);
-      if (!strcmp(p->name, "CRTC_ID")) {
-        mConnectorCrtcPropertyId = p->prop_id;
-        ALOGD("%s: Found connector crtc id prop id: %u\n", __FUNCTION__,
-              mConnectorCrtcPropertyId);
-        found = true;
+      if (crtc.mPlaneId == -1) {
+        crtc.mPlaneId = plane.mId;
+        ALOGE("%s: plane %" PRIu32 " associated with crtc %" PRIu32,
+              __FUNCTION__, plane.mId, crtc.mId);
       }
-      drmModeFreeProperty(p);
     }
-    drmModeFreeObjectProperties(connectorProps);
-  }
 
-  {
-    drmModeObjectPropertiesPtr crtcProps =
-        drmModeObjectGetProperties(mFd, mCrtcId, DRM_MODE_OBJECT_CRTC);
-    bool found = false;
-    for (int i = 0; !found && (size_t)i < crtcProps->count_props; ++i) {
-      drmModePropertyPtr p = drmModeGetProperty(mFd, crtcProps->props[i]);
-      if (!strcmp(p->name, "OUT_FENCE_PTR")) {
-        mOutFencePtrId = p->prop_id;
-        ALOGD("%s: Found out fence ptr id. id: %u\n", __FUNCTION__,
-              mOutFencePtrId);
-      } else if (!strcmp(p->name, "ACTIVE")) {
-        mCrtcActivePropretyId = p->prop_id;
-        ALOGD("%s: Found out crtc active prop id %u\n", __FUNCTION__,
-              mCrtcActivePropretyId);
-      } else if (!strcmp(p->name, "MODE_ID")) {
-        mCrtcModeIdPropertyId = p->prop_id;
-        ALOGD("%s: Found out crtc mode id prop id %u\n", __FUNCTION__,
-              mCrtcModeIdPropertyId);
+    drmModeFreePlane(p);
+
+    mPlanes[plane.mId] = plane;
+  }
+  drmModeFreePlaneResources(planeRes);
+
+  for (uint32_t i = 0; i < res->count_connectors; ++i) {
+    DrmConnector connector = {};
+    connector.mId = res->connectors[i];
+
+    {
+      drmModeObjectPropertiesPtr connectorProps = drmModeObjectGetProperties(
+          mFd, connector.mId, DRM_MODE_OBJECT_CONNECTOR);
+
+      for (uint32_t connectorPropIndex = 0;
+           connectorPropIndex < connectorProps->count_props;
+           ++connectorPropIndex) {
+        drmModePropertyPtr connectorProp =
+            drmModeGetProperty(mFd, connectorProps->props[connectorPropIndex]);
+        if (!strcmp(connectorProp->name, "CRTC_ID")) {
+          connector.mCrtcPropertyId = connectorProp->prop_id;
+          ALOGD("%s: connector %" PRIu32 " crtc prop id %" PRIu32, __FUNCTION__,
+                connector.mId, connectorProp->prop_id);
+        }
+        drmModeFreeProperty(connectorProp);
       }
-      drmModeFreeProperty(p);
+
+      drmModeFreeObjectProperties(connectorProps);
     }
-    drmModeFreeObjectProperties(crtcProps);
+    {
+      drmModeConnector* c = drmModeGetConnector(mFd, connector.mId);
+      if (c == nullptr) {
+        ALOGE("%s: Failed to get connector %" PRIu32 ": %d", __FUNCTION__,
+              connector.mId, errno);
+        return false;
+      }
+
+      memcpy(&connector.mMode, &c->modes[0], sizeof(drmModeModeInfo));
+
+      drmModeFreeConnector(c);
+
+      drmModeCreatePropertyBlob(mFd, &connector.mMode, sizeof(connector.mMode),
+                                &connector.mModeBlobId);
+
+      connector.mRefreshRateAsFloat =
+          1000.0f * connector.mMode.clock /
+          ((float)connector.mMode.vtotal * (float)connector.mMode.htotal);
+      connector.mRefreshRateAsInteger =
+          (uint32_t)(connector.mRefreshRateAsFloat + 0.5f);
+    }
+
+    mConnectors.push_back(connector);
   }
 
-  drmModeFreeConnector(conn);
   drmModeFreeResources(res);
-  ALOGD("%s: Successfully initialized DRM backend", __FUNCTION__);
   return true;
 }
 
 DrmPresenter::~DrmPresenter() { close(mFd); }
-
-int DrmPresenter::setCrtc(hwc_drm_bo_t& bo) {
-  int ret =
-      drmModeSetCrtc(mFd, mCrtcId, bo.fb_id, 0, 0, &mConnectorId, 1, &mMode);
-  ALOGV("%s: drm FB %d", __FUNCTION__, bo.fb_id);
-  if (ret) {
-    ALOGE("%s: drmModeSetCrtc failed: %s (errno %d)", __FUNCTION__,
-          strerror(errno), errno);
-    return -1;
-  }
-  return 0;
-}
 
 int DrmPresenter::getDrmFB(hwc_drm_bo_t& bo) {
   int ret = drmPrimeFDToHandle(mFd, bo.prime_fds[0], &bo.gem_handles[0]);
@@ -273,8 +324,11 @@ int DrmPresenter::clearDrmFB(hwc_drm_bo_t& bo) {
 
 bool DrmPresenter::supportComposeWithoutPost() { return true; }
 
-HWC2::Error DrmPresenter::exportSyncFdAndSetCrtc(hwc_drm_bo_t& bo,
-                                                 int* outSyncFd) {
+HWC2::Error DrmPresenter::flushToDisplay(int display, hwc_drm_bo_t& bo,
+                                         int* outSyncFd) {
+  DrmConnector& connector = mConnectors[display];
+  DrmCrtc& crtc = mCrtcs[display];
+
   HWC2::Error error = HWC2::Error::None;
 
   *outSyncFd = -1;
@@ -283,78 +337,89 @@ HWC2::Error DrmPresenter::exportSyncFdAndSetCrtc(hwc_drm_bo_t& bo,
 
   int ret;
 
-  if (!mDidSetCrtc) {
+  if (!crtc.mDidSetCrtc) {
     DEBUG_LOG("%s: Setting crtc.\n", __FUNCTION__);
-    ret = drmModeAtomicAddProperty(pset, mCrtcId, mCrtcActivePropretyId, 1);
+    ret = drmModeAtomicAddProperty(pset, crtc.mId, crtc.mActivePropertyId, 1);
     if (ret < 0) {
       ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
     }
-    ret = drmModeAtomicAddProperty(pset, mCrtcId, mCrtcModeIdPropertyId,
-                                   mModeBlobId);
+    ret = drmModeAtomicAddProperty(pset, crtc.mId, crtc.mModePropertyId,
+                                   connector.mModeBlobId);
     if (ret < 0) {
       ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
     }
-    ret = drmModeAtomicAddProperty(pset, mConnectorId, mConnectorCrtcPropertyId,
-                                   mCrtcId);
+    ret = drmModeAtomicAddProperty(pset, connector.mId,
+                                   connector.mCrtcPropertyId, crtc.mId);
     if (ret < 0) {
       ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
     }
 
-    mDidSetCrtc = true;
+    crtc.mDidSetCrtc = true;
   } else {
     DEBUG_LOG("%s: Already set crtc\n", __FUNCTION__);
   }
 
   uint64_t outSyncFdUint = (uint64_t)outSyncFd;
 
-  ret = drmModeAtomicAddProperty(pset, mCrtcId, mOutFencePtrId, outSyncFdUint);
+  ret = drmModeAtomicAddProperty(pset, crtc.mId, crtc.mFencePropertyId,
+                                 outSyncFdUint);
   if (ret < 0) {
     ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
   }
 
-  DEBUG_LOG("%s: set plane: plane id %d crtcid %d fbid %d bo w h %d %d\n",
-            __FUNCTION__, mPlaneId, mCrtcId, bo.fb_id, bo.width, bo.height);
+  if (crtc.mPlaneId == -1) {
+    ALOGE("%s:%d: no plane available for crtc id %" PRIu32, __FUNCTION__,
+          __LINE__, crtc.mId);
+    return HWC2::Error::NoResources;
+  }
 
-  ret = drmModeAtomicAddProperty(pset, mPlaneId, mPlaneCrtcPropertyId, mCrtcId);
-  if (ret < 0) {
-    ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
-  }
-  ret = drmModeAtomicAddProperty(pset, mPlaneId, mPlaneFbPropertyId, bo.fb_id);
-  if (ret < 0) {
-    ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
-  }
-  ret = drmModeAtomicAddProperty(pset, mPlaneId, mPlaneCrtcXPropertyId, 0);
-  if (ret < 0) {
-    ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
-  }
-  ret = drmModeAtomicAddProperty(pset, mPlaneId, mPlaneCrtcYPropertyId, 0);
+  DrmPlane& plane = mPlanes[crtc.mPlaneId];
+
+  DEBUG_LOG("%s: set plane: plane id %d crtc id %d fbid %d bo w h %d %d\n",
+            __FUNCTION__, plane.mId, crtc.mId, bo.fb_id, bo.width, bo.height);
+
+  ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mCrtcPropertyId,
+                                 crtc.mId);
   if (ret < 0) {
     ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
   }
   ret =
-      drmModeAtomicAddProperty(pset, mPlaneId, mPlaneCrtcWPropertyId, bo.width);
+      drmModeAtomicAddProperty(pset, plane.mId, plane.mFbPropertyId, bo.fb_id);
   if (ret < 0) {
     ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
   }
-  ret = drmModeAtomicAddProperty(pset, mPlaneId, mPlaneCrtcHPropertyId,
+  ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mCrtcXPropertyId, 0);
+  if (ret < 0) {
+    ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
+  }
+  ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mCrtcYPropertyId, 0);
+  if (ret < 0) {
+    ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
+  }
+  ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mCrtcWPropertyId,
+                                 bo.width);
+  if (ret < 0) {
+    ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
+  }
+  ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mCrtcHPropertyId,
                                  bo.height);
   if (ret < 0) {
     ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
   }
-  ret = drmModeAtomicAddProperty(pset, mPlaneId, mPlaneSrcXPropertyId, 0);
+  ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mSrcXPropertyId, 0);
   if (ret < 0) {
     ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
   }
-  ret = drmModeAtomicAddProperty(pset, mPlaneId, mPlaneSrcYPropertyId, 0);
+  ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mSrcYPropertyId, 0);
   if (ret < 0) {
     ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
   }
-  ret = drmModeAtomicAddProperty(pset, mPlaneId, mPlaneSrcWPropertyId,
+  ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mSrcWPropertyId,
                                  bo.width << 16);
   if (ret < 0) {
     ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
   }
-  ret = drmModeAtomicAddProperty(pset, mPlaneId, mPlaneSrcHPropertyId,
+  ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mSrcHPropertyId,
                                  bo.height << 16);
   if (ret < 0) {
     ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
@@ -401,8 +466,8 @@ int DrmBuffer::convertBoInfo(const native_handle_t* handle) {
   return 0;
 }
 
-HWC2::Error DrmBuffer::flush(int* outFlushDoneSyncFd) {
-  return mDrmPresenter.exportSyncFdAndSetCrtc(mBo, outFlushDoneSyncFd);
+HWC2::Error DrmBuffer::flushToDisplay(int display, int* outFlushDoneSyncFd) {
+  return mDrmPresenter.flushToDisplay(display, mBo, outFlushDoneSyncFd);
 }
 
 }  // namespace android

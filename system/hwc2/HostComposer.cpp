@@ -554,7 +554,7 @@ HWC2::Error HostComposer::presentDisplay(Display* display,
       if (displayClientTarget.getBuffer() != nullptr) {
         if (mIsMinigbm) {
           int retireFence;
-          displayInfo.clientTargetDrmBuffer->flush(&retireFence);
+          displayInfo.clientTargetDrmBuffer->flushToDisplay(0, &retireFence);
           *outRetireFence = dup(retireFence);
           close(retireFence);
         } else {
@@ -714,7 +714,7 @@ HWC2::Error HostComposer::presentDisplay(Display* display,
     hostCon->unlock();
 
     if (mIsMinigbm) {
-      displayInfo.compositionResultDrmBuffer->flush(&retire_fd);
+      displayInfo.compositionResultDrmBuffer->flushToDisplay(0, &retire_fd);
     } else {
       goldfish_sync_queue_work(mSyncDeviceFd, sync_handle, thread_handle,
                                &retire_fd);
@@ -738,7 +738,7 @@ HWC2::Error HostComposer::presentDisplay(Display* display,
     // we set all layers Composition::Client, so do nothing.
     if (mIsMinigbm) {
       int retireFence;
-      displayInfo.clientTargetDrmBuffer->flush(&retireFence);
+      displayInfo.clientTargetDrmBuffer->flushToDisplay(0, &retireFence);
       *outRetireFence = dup(retireFence);
       close(retireFence);
     } else {
