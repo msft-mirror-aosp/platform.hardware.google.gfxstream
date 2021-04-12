@@ -34,10 +34,15 @@ class HostComposer : public Composer {
   HostComposer(HostComposer&&) = delete;
   HostComposer& operator=(HostComposer&&) = delete;
 
-  HWC2::Error init() override;
+  HWC2::Error init(const HotplugCallback& cb) override;
 
   HWC2::Error createDisplays(
       Device* device,
+      const AddDisplayToDeviceFunction& addDisplayToDeviceFn) override;
+
+  HWC2::Error createDisplay(
+      Device* device, uint32_t displayId, uint32_t width, uint32_t height,
+      uint32_t dpiX, uint32_t dpiY, uint32_t refreshRateHz,
       const AddDisplayToDeviceFunction& addDisplayToDeviceFn) override;
 
   HWC2::Error onDisplayDestroy(Display* display) override;
