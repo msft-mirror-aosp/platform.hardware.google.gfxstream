@@ -61,7 +61,14 @@ HWC2::Error Device::init() {
     mComposer = std::make_unique<HostComposer>();
   }
 
-  HWC2::Error error = mComposer->init();
+  HWC2::Error error = mComposer->init(
+    [this](bool connected, uint32_t id,
+           uint32_t width, uint32_t height,
+           uint32_t dpiX, uint32_t dpiY,
+           uint32_t refreshRate) {
+    handleHotplug(connected, id, width, height, dpiX, dpiY, refreshRate);
+  });
+
   if (error != HWC2::Error::None) {
     ALOGE("%s failed to initialize Composer", __FUNCTION__);
     return HWC2::Error::NoResources;
@@ -99,6 +106,32 @@ HWC2::Error Device::createDisplays() {
   };
 
   HWC2::Error error = mComposer->createDisplays(this, addDisplayLockedFn);
+  if (error != HWC2::Error::None) {
+    ALOGE("%s composer failed to create displays", __FUNCTION__);
+    return error;
+  }
+
+  return HWC2::Error::None;
+}
+
+HWC2::Error Device::createDisplay(uint32_t displayId, uint32_t width,
+                                           uint32_t height, uint32_t dpiX, uint32_t dpiY,
+                                           uint32_t refreshRate) {
+  if (!mComposer) {
+    ALOGE("%s composer not initialized!", __FUNCTION__);
+    return HWC2::Error::NoResources;
+  }
+
+  auto addDisplayLockedFn = [this](std::unique_ptr<Display> display) {
+    auto displayId = display->getId();
+    DEBUG_LOG("%s: adding display:%" PRIu64, __FUNCTION__, displayId);
+    mDisplays.emplace(displayId, std::move(display));
+    return HWC2::Error::None;
+  };
+
+  HWC2::Error error = mComposer->createDisplay(this, displayId, width, height,
+                                                        dpiX, dpiY, refreshRate,
+                                                        addDisplayLockedFn);
   if (error != HWC2::Error::None) {
     ALOGE("%s composer failed to create displays", __FUNCTION__);
     return error;
@@ -472,10 +505,38 @@ HWC2::Error Device::registerCallback(int32_t desc,
   return HWC2::Error::None;
 }
 
+bool Device::handleHotplug(bool connected, uint32_t id, uint32_t width,
+                           uint32_t height, uint32_t dpiX, uint32_t dpiY,
+                           uint32_t refreshRate) {
+  std::unique_lock<std::mutex> lock(mStateMutex);
+  if (mCallbacks[HWC2::Callback::Hotplug].pointer == nullptr) {
+    return false;
+  }
+  auto hotplug = reinterpret_cast<HWC2_PFN_HOTPLUG>(mCallbacks[HWC2::Callback::Hotplug].pointer);
+  auto hotplugConnect = static_cast<int32_t>(HWC2::Connection::Connected);
+  auto hotplugDisconnect = static_cast<int32_t>(HWC2::Connection::Disconnected);
+  Display* display = getDisplay(id);
+  if (display) {
+    // if existed, disconnect first
+    ALOGD("callback hotplugDisconnect display %" PRIu32, id);
+    hotplug(mCallbacks[HWC2::Callback::Hotplug].data, id, hotplugDisconnect);
+    display->lock();
+    mComposer->onDisplayDestroy(display);
+    display->unlock();
+  }
+  if (connected) {
+    createDisplay(id, width, height, dpiX, dpiY, refreshRate);
+    ALOGD("callback hotplugConnect display %" PRIu32, id);
+    hotplug(mCallbacks[HWC2::Callback::Hotplug].data, id, hotplugConnect);
+  };
+
+  return true;
+}
+
 Display* Device::getDisplay(hwc2_display_t id) {
   auto display = mDisplays.find(id);
   if (display == mDisplays.end()) {
-    ALOGE("Failed to get display for id=%d", (uint32_t)id);
+    ALOGW("Failed to get display for id=%d", (uint32_t)id);
     return nullptr;
   }
   return display->second.get();

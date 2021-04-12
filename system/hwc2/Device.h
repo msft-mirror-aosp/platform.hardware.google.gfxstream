@@ -53,8 +53,18 @@ class Device : public hwc2_device_t {
 
   HWC2::Error createDisplays();
 
+  HWC2::Error createDisplay(uint32_t displayId, uint32_t width,
+                                     uint32_t height, uint32_t dpiX, uint32_t dpiY,
+                                     uint32_t refreshRate);
+
+  Display* getDisplay(hwc2_display_t displayId);
+
  private:
   HWC2::Error destroyDisplays();
+
+  bool handleHotplug(bool connected, uint32_t id, uint32_t width,
+                     uint32_t height, uint32_t dpiX, uint32_t dpiY,
+                     uint32_t refreshRate);
 
   void getCapabilities(uint32_t* outCount, int32_t* outCapabilities);
   static void getCapabilitiesHook(hwc2_device_t* device, uint32_t* outCount,
@@ -70,8 +80,6 @@ class Device : public hwc2_device_t {
     Device* device = Device::fromDevice(dev);
     return static_cast<T>(((*device).*func)(std::forward<Args>(args)...));
   }
-
-  Display* getDisplay(hwc2_display_t displayId);
 
   // Wrapper to call a specific function on a specific display.
   template <typename HookType, HookType func, typename... Args>
