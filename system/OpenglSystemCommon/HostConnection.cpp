@@ -136,15 +136,13 @@ static uint32_t getDrawCallFlushIntervalFromProperty() {
 }
 
 static GrallocType getGrallocTypeFromProperty() {
-    char prop[PROPERTY_VALUE_MAX] = "";
-    property_get("ro.hardware.gralloc", prop, "");
+    char value[PROPERTY_VALUE_MAX] = "";
+    property_get("ro.hardware.gralloc", value, "");
 
-    bool isValid = prop[0] != '\0';
+    if (!value[0]) return GRALLOC_TYPE_RANCHU;
 
-    if (!isValid) return GRALLOC_TYPE_RANCHU;
-
-    if (!strcmp("ranchu", prop)) return GRALLOC_TYPE_RANCHU;
-    if (!strcmp("minigbm", prop)) return GRALLOC_TYPE_MINIGBM;
+    if (!strcmp("ranchu", value)) return GRALLOC_TYPE_RANCHU;
+    if (!strcmp("minigbm", value)) return GRALLOC_TYPE_MINIGBM;
     return GRALLOC_TYPE_RANCHU;
 }
 
