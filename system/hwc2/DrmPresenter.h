@@ -21,6 +21,9 @@
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 
+#include <map>
+#include <vector>
+
 #include "Common.h"
 
 namespace android {
@@ -40,7 +43,7 @@ class DrmBuffer {
   DrmBuffer(DrmBuffer&&) = delete;
   DrmBuffer& operator=(DrmBuffer&&) = delete;
 
-  HWC2::Error flush(int* outFlushDoneSyncFd);
+  HWC2::Error flushToDisplay(int display, int* outFlushDoneSyncFd);
 
  private:
   int convertBoInfo(const native_handle_t* handle);
@@ -61,46 +64,57 @@ class DrmPresenter {
   DrmPresenter& operator=(DrmPresenter&&) = delete;
 
   bool init();
+  void clearDrmElements();
+  bool configDrmElements();
 
-  int setCrtc(hwc_drm_bo_t& fb);
   int getDrmFB(hwc_drm_bo_t& bo);
   int clearDrmFB(hwc_drm_bo_t& bo);
   bool supportComposeWithoutPost();
-  uint32_t refreshRate() const { return mRefreshRateAsInteger; }
+  uint32_t refreshRate() const { return mConnectors[0].mRefreshRateAsInteger; }
 
-  HWC2::Error exportSyncFdAndSetCrtc(hwc_drm_bo_t& fb, int* outSyncFd);
+  HWC2::Error flushToDisplay(int display, hwc_drm_bo_t& fb, int* outSyncFd);
 
  private:
-  drmModeModeInfo mMode;
-
+  // Drm device.
   int32_t mFd = -1;
-  uint32_t mConnectorId;
-  uint32_t mCrtcId;
 
-  uint32_t mConnectorCrtcPropertyId;
+  struct DrmPlane {
+    uint32_t mId = -1;
+    uint32_t mCrtcPropertyId = -1;
+    uint32_t mFbPropertyId = -1;
+    uint32_t mCrtcXPropertyId = -1;
+    uint32_t mCrtcYPropertyId = -1;
+    uint32_t mCrtcWPropertyId = -1;
+    uint32_t mCrtcHPropertyId = -1;
+    uint32_t mSrcXPropertyId = -1;
+    uint32_t mSrcYPropertyId = -1;
+    uint32_t mSrcWPropertyId = -1;
+    uint32_t mSrcHPropertyId = -1;
+    uint32_t mTypePropertyId = -1;
+    uint64_t mType = -1;
+  };
+  std::map<uint32_t, DrmPlane> mPlanes;
 
-  uint32_t mOutFencePtrId;
-  uint32_t mCrtcActivePropretyId;
-  uint32_t mCrtcModeIdPropertyId;
-  uint32_t mModeBlobId;
+  struct DrmCrtc {
+    uint32_t mId = -1;
+    uint32_t mActivePropertyId = -1;
+    uint32_t mModePropertyId = -1;
+    uint32_t mFencePropertyId = -1;
+    uint32_t mPlaneId = -1;
 
-  uint32_t mPlaneId;
-  uint32_t mPlaneCrtcPropertyId;
-  uint32_t mPlaneFbPropertyId;
-  uint32_t mPlaneCrtcXPropertyId;
-  uint32_t mPlaneCrtcYPropertyId;
-  uint32_t mPlaneCrtcWPropertyId;
-  uint32_t mPlaneCrtcHPropertyId;
-  uint32_t mPlaneSrcXPropertyId;
-  uint32_t mPlaneSrcYPropertyId;
-  uint32_t mPlaneSrcWPropertyId;
-  uint32_t mPlaneSrcHPropertyId;
-  uint32_t mPlaneTypePropertyId;
+    bool mDidSetCrtc = false;
+  };
+  std::vector<DrmCrtc> mCrtcs;
 
-  float mRefreshRateAsFloat;
-  uint32_t mRefreshRateAsInteger;
-
-  bool mDidSetCrtc = false;
+  struct DrmConnector {
+    uint32_t mId = -1;
+    uint32_t mCrtcPropertyId = -1;
+    drmModeModeInfo mMode;
+    uint32_t mModeBlobId;
+    float mRefreshRateAsFloat;
+    uint32_t mRefreshRateAsInteger;
+  };
+  std::vector<DrmConnector> mConnectors;
 };
 
 }  // namespace android
