@@ -37,7 +37,7 @@ class Device;
 
 class Display {
  public:
-  Display(Device& device, Composer* composer);
+  Display(Device& device, Composer* composer, hwc2_display_t id);
   ~Display();
 
   Display(const Display& display) = delete;
@@ -48,6 +48,9 @@ class Display {
 
   HWC2::Error init(uint32_t width, uint32_t height, uint32_t dpiX,
                    uint32_t dpiY, uint32_t refreshRateHz);
+
+  HWC2::Error updateParameters(uint32_t width, uint32_t height, uint32_t dpiX,
+                               uint32_t dpiY, uint32_t refreshRateHz);
 
   hwc2_display_t getId() const { return mId; }
 
@@ -108,6 +111,8 @@ class Display {
                                      uint32_t* outCapabilities);
   HWC2::Error getDisplayBrightnessSupport(bool* out_support);
   HWC2::Error setDisplayBrightness(float brightness);
+  void lock() { mStateMutex.lock(); }
+  void unlock() { mStateMutex.unlock(); }
 
  private:
   class Config {
