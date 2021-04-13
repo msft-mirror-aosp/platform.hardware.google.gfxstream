@@ -96,8 +96,9 @@ HWC2::Error Display::init(uint32_t width, uint32_t height, uint32_t dpiX,
   return HWC2::Error::None;
 }
 
-HWC2::Error Display::updateParameters(uint32_t width, uint32_t height, uint32_t dpiX,
-                                      uint32_t dpiY, uint32_t refreshRateHz) {
+HWC2::Error Display::updateParameters(uint32_t width, uint32_t height,
+                                      uint32_t dpiX, uint32_t dpiY,
+                                      uint32_t refreshRateHz) {
   DEBUG_LOG("%s updating display:%" PRIu64
             " width:%d height:%d dpiX:%d dpiY:%d refreshRateHz:%d",
             __FUNCTION__, mId, width, height, dpiX, dpiY, refreshRateHz);

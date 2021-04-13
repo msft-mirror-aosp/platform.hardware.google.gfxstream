@@ -17,17 +17,18 @@
 #ifndef ANDROID_HWC_DRMPRESENTER_H
 #define ANDROID_HWC_DRMPRESENTER_H
 
-#include <map>
-#include <memory>
-#include <vector>
-
+#include <android-base/unique_fd.h>
 #include <include/drmhwcgralloc.h>
 #include <utils/Thread.h>
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 
-#include "android/base/synchronization/AndroidLock.h"
+#include <map>
+#include <memory>
+#include <vector>
+
 #include "Common.h"
+#include "android/base/synchronization/AndroidLock.h"
 
 namespace android {
 
@@ -57,8 +58,8 @@ class DrmBuffer {
 
 class DrmPresenter {
  public:
-  DrmPresenter();
-  ~DrmPresenter();
+  DrmPresenter() = default;
+  ~DrmPresenter() = default;
 
   DrmPresenter(const DrmPresenter&) = delete;
   DrmPresenter& operator=(const DrmPresenter&) = delete;
@@ -66,29 +67,37 @@ class DrmPresenter {
   DrmPresenter(DrmPresenter&&) = delete;
   DrmPresenter& operator=(DrmPresenter&&) = delete;
 
-  using HotplugCallback =
-    std::function<void(bool /*connected*/, uint32_t /*id*/,
-                       uint32_t /*width*/, uint32_t /*height*/,
-                       uint32_t /*dpiX*/, uint32_t /*dpiY*/,
-                       uint32_t /*refreshRate*/)>;
+  using HotplugCallback = std::function<void(
+      bool /*connected*/, uint32_t /*id*/, uint32_t /*width*/,
+      uint32_t /*height*/, uint32_t /*dpiX*/, uint32_t /*dpiY*/,
+      uint32_t /*refreshRate*/)>;
 
   bool init(const HotplugCallback& cb);
 
-  void clearDrmElementsLocked();
-  bool configDrmElementsLocked();
-
-  int getDrmFB(hwc_drm_bo_t& bo);
-  int clearDrmFB(hwc_drm_bo_t& bo);
-
   uint32_t refreshRate() const { return mConnectors[0].mRefreshRateAsInteger; }
-  bool handleHotPlug();
 
   HWC2::Error flushToDisplay(int display, hwc_drm_bo_t& fb, int* outSyncFd);
 
  private:
+  // Grant visibility for getDrmFB and clearDrmFB to DrmBuffer.
+  friend class DrmBuffer;
+  int getDrmFB(hwc_drm_bo_t& bo);
+  int clearDrmFB(hwc_drm_bo_t& bo);
+
+  // Grant visibility for handleHotplug to DrmEventListener.
+  bool handleHotplug();
+
+  bool initDrmElementsLocked();
+  void resetDrmElementsLocked();
+
   // Drm device.
-  int32_t mFd = -1;
+  android::base::unique_fd mFd;
+
   HotplugCallback mHotplugCallback;
+
+  // Protects access to the below drm structs.
+  android::base::guest::ReadWriteLock mStateMutex;
+
   struct DrmPlane {
     uint32_t mId = -1;
     uint32_t mCrtcPropertyId = -1;
@@ -131,20 +140,23 @@ class DrmPresenter {
   std::vector<DrmConnector> mConnectors;
 
   class DrmEventListener : public Thread {
-    public:
-      DrmEventListener(DrmPresenter& presenter);
-      virtual ~DrmEventListener();
-    private:
-      bool threadLoop() final;
-      void UEventHandler();
-      void processHotplug(uint64_t timestamp);
-      DrmPresenter& mPresenter;
-      int mEventFd;
-      int mMaxFd;
-      fd_set mFds;
+   public:
+    DrmEventListener(DrmPresenter& presenter);
+    virtual ~DrmEventListener();
+
+    bool init();
+
+   private:
+    bool threadLoop() final;
+    void eventThreadLoop();
+    void processHotplug(uint64_t timestamp);
+
+    DrmPresenter& mPresenter;
+    android::base::unique_fd mEventFd;
+    int mMaxFd;
+    fd_set mMonitoredFds;
   };
   std::unique_ptr<DrmEventListener> mDrmEventListener;
-  android::base::guest::ReadWriteLock mStateMutex;
 };
 
 }  // namespace android
