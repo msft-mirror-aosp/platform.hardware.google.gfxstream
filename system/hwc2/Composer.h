@@ -31,11 +31,10 @@ class Composer {
  public:
   virtual ~Composer() {}
 
-  using HotplugCallback =
-    std::function<void(bool /*connected*/, uint32_t /*id*/,
-                       uint32_t /*width*/, uint32_t /*height*/,
-                       uint32_t /*dpiX*/, uint32_t /*dpiY*/,
-                       uint32_t /*refreshRate*/)>;
+  using HotplugCallback = std::function<void(
+      bool /*connected*/, uint32_t /*id*/, uint32_t /*width*/,
+      uint32_t /*height*/, uint32_t /*dpiX*/, uint32_t /*dpiY*/,
+      uint32_t /*refreshRate*/)>;
 
   virtual HWC2::Error init(const HotplugCallback& cb) = 0;
 

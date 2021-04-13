@@ -62,12 +62,10 @@ HWC2::Error Device::init() {
   }
 
   HWC2::Error error = mComposer->init(
-    [this](bool connected, uint32_t id,
-           uint32_t width, uint32_t height,
-           uint32_t dpiX, uint32_t dpiY,
-           uint32_t refreshRate) {
-    handleHotplug(connected, id, width, height, dpiX, dpiY, refreshRate);
-  });
+      [this](bool connected, uint32_t id, uint32_t width, uint32_t height,
+             uint32_t dpiX, uint32_t dpiY, uint32_t refreshRate) {
+        handleHotplug(connected, id, width, height, dpiX, dpiY, refreshRate);
+      });
 
   if (error != HWC2::Error::None) {
     ALOGE("%s failed to initialize Composer", __FUNCTION__);
@@ -115,8 +113,8 @@ HWC2::Error Device::createDisplays() {
 }
 
 HWC2::Error Device::createDisplay(uint32_t displayId, uint32_t width,
-                                           uint32_t height, uint32_t dpiX, uint32_t dpiY,
-                                           uint32_t refreshRate) {
+                                  uint32_t height, uint32_t dpiX, uint32_t dpiY,
+                                  uint32_t refreshRate) {
   if (!mComposer) {
     ALOGE("%s composer not initialized!", __FUNCTION__);
     return HWC2::Error::NoResources;
@@ -129,9 +127,9 @@ HWC2::Error Device::createDisplay(uint32_t displayId, uint32_t width,
     return HWC2::Error::None;
   };
 
-  HWC2::Error error = mComposer->createDisplay(this, displayId, width, height,
-                                                        dpiX, dpiY, refreshRate,
-                                                        addDisplayLockedFn);
+  HWC2::Error error =
+      mComposer->createDisplay(this, displayId, width, height, dpiX, dpiY,
+                               refreshRate, addDisplayLockedFn);
   if (error != HWC2::Error::None) {
     ALOGE("%s composer failed to create displays", __FUNCTION__);
     return error;
@@ -512,7 +510,8 @@ bool Device::handleHotplug(bool connected, uint32_t id, uint32_t width,
   if (mCallbacks[HWC2::Callback::Hotplug].pointer == nullptr) {
     return false;
   }
-  auto hotplug = reinterpret_cast<HWC2_PFN_HOTPLUG>(mCallbacks[HWC2::Callback::Hotplug].pointer);
+  auto hotplug = reinterpret_cast<HWC2_PFN_HOTPLUG>(
+      mCallbacks[HWC2::Callback::Hotplug].pointer);
   auto hotplugConnect = static_cast<int32_t>(HWC2::Connection::Connected);
   auto hotplugDisconnect = static_cast<int32_t>(HWC2::Connection::Disconnected);
   Display* display = getDisplay(id);
