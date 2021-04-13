@@ -105,16 +105,13 @@ static HostConnectionType getConnectionTypeFromProperty() {
     return HOST_CONNECTION_ADDRESS_SPACE;
 #else
     char transportValue[PROPERTY_VALUE_MAX] = "";
-    property_get("ro.kernel.qemu.gltransport", transportValue, "");
+    property_get("ro.boot.qemu.gltransport", transportValue, "");
 
-    bool isValid = transportValue[0] != '\0';
-
-    if (!isValid) {
+    if (!transportValue[0]) {
         property_get("ro.boot.hardware.gltransport", transportValue, "");
-        isValid = transportValue[0] != '\0';
     }
 
-    if (!isValid) return HOST_CONNECTION_QEMU_PIPE;
+    if (!transportValue[0]) return HOST_CONNECTION_QEMU_PIPE;
 
     if (!strcmp("tcp", transportValue)) return HOST_CONNECTION_TCP;
     if (!strcmp("pipe", transportValue)) return HOST_CONNECTION_QEMU_PIPE;
@@ -128,17 +125,14 @@ static HostConnectionType getConnectionTypeFromProperty() {
 }
 
 static uint32_t getDrawCallFlushIntervalFromProperty() {
+    constexpr uint32_t kDefaultValue = 800;
+
     char flushValue[PROPERTY_VALUE_MAX] = "";
-    property_get("ro.kernel.qemu.gltransport.drawFlushInterval", flushValue, "");
+    property_get("ro.boot.qemu.gltransport.drawFlushInterval", flushValue, "");
+    if (!flushValue[0]) return kDefaultValue;
 
-    bool isValid = flushValue[0] != '\0';
-    if (!isValid) return 800;
-
-    long interval = strtol(flushValue, 0, 10);
-
-    if (!interval) return 800;
-
-    return (uint32_t)interval;
+    const long interval = strtol(flushValue, 0, 10);
+    return (interval > 0) ? uint32_t(interval) : kDefaultValue;
 }
 
 static GrallocType getGrallocTypeFromProperty() {
