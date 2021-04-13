@@ -70,6 +70,7 @@ static const struct _renderControl_funcs_by_name {
 	{"rcDestroySyncKHRAsync", (void*)rcDestroySyncKHRAsync},
 	{"rcComposeWithoutPost", (void*)rcComposeWithoutPost},
 	{"rcComposeAsyncWithoutPost", (void*)rcComposeAsyncWithoutPost},
+	{"rcCreateDisplayById", (void*)rcCreateDisplayById},
 };
 static const int renderControl_num_funcs = sizeof(renderControl_funcs_by_name) / sizeof(struct _renderControl_funcs_by_name);
 
