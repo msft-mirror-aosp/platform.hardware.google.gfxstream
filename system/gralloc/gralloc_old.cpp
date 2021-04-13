@@ -1587,7 +1587,7 @@ fallback_init(void)
     // qemu.gles=0 -> no GLES 2.x support (only 1.x through software).
     // qemu.gles=1 -> host-side GPU emulation through EmuGL
     // qemu.gles=2 -> guest-side GPU emulation.
-    property_get("ro.kernel.qemu.gles", prop, "999");
+    property_get("ro.boot.qemu.gles", prop, "999");
 
     bool useFallback = false;
     switch (atoi(prop)) {
