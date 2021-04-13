@@ -56,32 +56,33 @@ static bool useOmxCodecs() {
     return myret;
 }
 
-static bool useGoogleGoldfishComponentInstance(const char* libname) {
-    // We have a property set indicating whether to use the host side codec
-    // or not (ro.kernel.qemu.hwcodec.<mLibNameSuffix>).
-    char propValue[PROP_VALUE_MAX];
-    AString prop = "ro.kernel.qemu.hwcodec.";
-    prop.append(libname);
+// We have a property set indicating whether to use the host side codec
+// or not (ro.boot.qemu.hwcodec.<mLibNameSuffix>).
+static std::string BuildHWCodecPropName(const char *libname) {
+    using namespace std::literals::string_literals;
+    return "ro.boot.qemu.hwcodec."s + libname;
+}
 
-    bool myret = property_get(prop.c_str(), propValue, "") > 0 &&
+static bool useGoogleGoldfishComponentInstance(const char* libname) {
+    const std::string propName = BuildHWCodecPropName(libname);
+    char propValue[PROP_VALUE_MAX];
+
+    bool myret = property_get(propName.c_str(), propValue, "") > 0 &&
            strcmp("1", propValue) == 0;
     if (myret) {
-        ALOGD("%s %d found prop %s val %s", __func__, __LINE__, prop.c_str(), propValue);
+        ALOGD("%s %d found prop %s val %s", __func__, __LINE__, propName.c_str(), propValue);
     }
     return myret;
 }
 
 static bool useAndroidGoldfishComponentInstance(const char* libname) {
-    // We have a property set indicating whether to use the host side codec
-    // or not (ro.kernel.qemu.hwcodec.<mLibNameSuffix>).
+    const std::string propName = BuildHWCodecPropName(libname);
     char propValue[PROP_VALUE_MAX];
-    AString prop = "ro.kernel.qemu.hwcodec.";
-    prop.append(libname);
 
-    bool myret = property_get(prop.c_str(), propValue, "") > 0 &&
+    bool myret = property_get(propName.c_str(), propValue, "") > 0 &&
            strcmp("2", propValue) == 0;
     if (myret) {
-        ALOGD("%s %d found prop %s val %s", __func__, __LINE__, prop.c_str(), propValue);
+        ALOGD("%s %d found prop %s val %s", __func__, __LINE__, propName.c_str(), propValue);
     }
     return myret;
 }
