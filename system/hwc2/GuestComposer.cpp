@@ -412,14 +412,9 @@ HWC2::Error GuestComposer::createDisplays(
   }
   uint32_t id = 0;
   for (const auto& displayConfig : displayConfigs) {
-    error = createDisplay(device,
-                          id,
-                          displayConfig.width,
-                          displayConfig.height,
-                          displayConfig.dpiX,
-                          displayConfig.dpiY,
-                          displayConfig.refreshRateHz,
-                          addDisplayToDeviceFn);
+    error = createDisplay(device, id, displayConfig.width, displayConfig.height,
+                          displayConfig.dpiX, displayConfig.dpiY,
+                          displayConfig.refreshRateHz, addDisplayToDeviceFn);
     if (error != HWC2::Error::None) {
       ALOGE("%s: failed to create display %d", __FUNCTION__, id);
       return error;
@@ -432,11 +427,9 @@ HWC2::Error GuestComposer::createDisplays(
 }
 
 HWC2::Error GuestComposer::createDisplay(
-    Device* device, uint32_t id, uint32_t width, uint32_t height,
-    uint32_t dpiX, uint32_t dpiY, uint32_t refreshRateHz,
+    Device* device, uint32_t id, uint32_t width, uint32_t height, uint32_t dpiX,
+    uint32_t dpiY, uint32_t refreshRateHz,
     const AddDisplayToDeviceFunction& addDisplayToDeviceFn) {
-
-
   auto display = std::make_unique<Display>(*device, this, id);
   if (display == nullptr) {
     ALOGE("%s failed to allocate display", __FUNCTION__);
@@ -447,15 +440,13 @@ HWC2::Error GuestComposer::createDisplay(
 
   HWC2::Error error = display->init(width, height, dpiX, dpiY, refreshRateHz);
   if (error != HWC2::Error::None) {
-    ALOGE("%s failed to initialize display:%" PRIu64, __FUNCTION__,
-          displayId);
+    ALOGE("%s failed to initialize display:%" PRIu64, __FUNCTION__, displayId);
     return error;
   }
 
   auto it = mDisplayInfos.find(displayId);
   if (it != mDisplayInfos.end()) {
-    ALOGE("%s: display:%" PRIu64 " already created?", __FUNCTION__,
-          displayId);
+    ALOGE("%s: display:%" PRIu64 " already created?", __FUNCTION__, displayId);
   }
 
   GuestComposerDisplayInfo& displayInfo = mDisplayInfos[displayId];
@@ -464,8 +455,8 @@ HWC2::Error GuestComposer::createDisplay(
   buffer_handle_t bufferHandle;
 
   auto status = GraphicBufferAllocator::get().allocate(
-      width,     //
-      height,    //
+      width,                   //
+      height,                  //
       PIXEL_FORMAT_RGBA_8888,  //
       /*layerCount=*/1,        //
       GraphicBuffer::USAGE_HW_COMPOSER | GraphicBuffer::USAGE_SW_READ_OFTEN |
