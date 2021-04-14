@@ -6435,61 +6435,7 @@ static VkResult entry_vkCreateMetalSurfaceEXT(
     return vkCreateMetalSurfaceEXT_VkResult_return;
 }
 #endif
-#ifdef VK_GOOGLE_color_buffer
-static VkResult entry_vkRegisterImageColorBufferGOOGLE(
-    VkDevice device,
-    VkImage image,
-    uint32_t colorBuffer)
-{
-    AEMU_SCOPED_TRACE("vkRegisterImageColorBufferGOOGLE");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    VkResult vkRegisterImageColorBufferGOOGLE_VkResult_return = (VkResult)0;
-    vkRegisterImageColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterImageColorBufferGOOGLE(device, image, colorBuffer, true /* do lock */);
-    return vkRegisterImageColorBufferGOOGLE_VkResult_return;
-}
-static VkResult dynCheck_entry_vkRegisterImageColorBufferGOOGLE(
-    VkDevice device,
-    VkImage image,
-    uint32_t colorBuffer)
-{
-    auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_color_buffer"))
-    {
-        sOnInvalidDynamicallyCheckedCall("vkRegisterImageColorBufferGOOGLE", "VK_GOOGLE_color_buffer");
-    }
-    AEMU_SCOPED_TRACE("vkRegisterImageColorBufferGOOGLE");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    VkResult vkRegisterImageColorBufferGOOGLE_VkResult_return = (VkResult)0;
-    vkRegisterImageColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterImageColorBufferGOOGLE(device, image, colorBuffer, true /* do lock */);
-    return vkRegisterImageColorBufferGOOGLE_VkResult_return;
-}
-static VkResult entry_vkRegisterBufferColorBufferGOOGLE(
-    VkDevice device,
-    VkBuffer buffer,
-    uint32_t colorBuffer)
-{
-    AEMU_SCOPED_TRACE("vkRegisterBufferColorBufferGOOGLE");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    VkResult vkRegisterBufferColorBufferGOOGLE_VkResult_return = (VkResult)0;
-    vkRegisterBufferColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterBufferColorBufferGOOGLE(device, buffer, colorBuffer, true /* do lock */);
-    return vkRegisterBufferColorBufferGOOGLE_VkResult_return;
-}
-static VkResult dynCheck_entry_vkRegisterBufferColorBufferGOOGLE(
-    VkDevice device,
-    VkBuffer buffer,
-    uint32_t colorBuffer)
-{
-    auto resources = ResourceTracker::get();
-    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_color_buffer"))
-    {
-        sOnInvalidDynamicallyCheckedCall("vkRegisterBufferColorBufferGOOGLE", "VK_GOOGLE_color_buffer");
-    }
-    AEMU_SCOPED_TRACE("vkRegisterBufferColorBufferGOOGLE");
-    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
-    VkResult vkRegisterBufferColorBufferGOOGLE_VkResult_return = (VkResult)0;
-    vkRegisterBufferColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterBufferColorBufferGOOGLE(device, buffer, colorBuffer, true /* do lock */);
-    return vkRegisterBufferColorBufferGOOGLE_VkResult_return;
-}
+#ifdef VK_EXT_fragment_density_map
 #endif
 #ifdef VK_EXT_scalar_block_layout
 #endif
@@ -7122,6 +7068,60 @@ static VkBool32 entry_vkGetPhysicalDeviceDirectFBPresentationSupportEXT(
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
+static VkResult entry_vkRegisterImageColorBufferGOOGLE(
+    VkDevice device,
+    VkImage image,
+    uint32_t colorBuffer)
+{
+    AEMU_SCOPED_TRACE("vkRegisterImageColorBufferGOOGLE");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkRegisterImageColorBufferGOOGLE_VkResult_return = (VkResult)0;
+    vkRegisterImageColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterImageColorBufferGOOGLE(device, image, colorBuffer, true /* do lock */);
+    return vkRegisterImageColorBufferGOOGLE_VkResult_return;
+}
+static VkResult dynCheck_entry_vkRegisterImageColorBufferGOOGLE(
+    VkDevice device,
+    VkImage image,
+    uint32_t colorBuffer)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkRegisterImageColorBufferGOOGLE", "VK_GOOGLE_gfxstream");
+    }
+    AEMU_SCOPED_TRACE("vkRegisterImageColorBufferGOOGLE");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkRegisterImageColorBufferGOOGLE_VkResult_return = (VkResult)0;
+    vkRegisterImageColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterImageColorBufferGOOGLE(device, image, colorBuffer, true /* do lock */);
+    return vkRegisterImageColorBufferGOOGLE_VkResult_return;
+}
+static VkResult entry_vkRegisterBufferColorBufferGOOGLE(
+    VkDevice device,
+    VkBuffer buffer,
+    uint32_t colorBuffer)
+{
+    AEMU_SCOPED_TRACE("vkRegisterBufferColorBufferGOOGLE");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkRegisterBufferColorBufferGOOGLE_VkResult_return = (VkResult)0;
+    vkRegisterBufferColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterBufferColorBufferGOOGLE(device, buffer, colorBuffer, true /* do lock */);
+    return vkRegisterBufferColorBufferGOOGLE_VkResult_return;
+}
+static VkResult dynCheck_entry_vkRegisterBufferColorBufferGOOGLE(
+    VkDevice device,
+    VkBuffer buffer,
+    uint32_t colorBuffer)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkRegisterBufferColorBufferGOOGLE", "VK_GOOGLE_gfxstream");
+    }
+    AEMU_SCOPED_TRACE("vkRegisterBufferColorBufferGOOGLE");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkRegisterBufferColorBufferGOOGLE_VkResult_return = (VkResult)0;
+    vkRegisterBufferColorBufferGOOGLE_VkResult_return = vkEnc->vkRegisterBufferColorBufferGOOGLE(device, buffer, colorBuffer, true /* do lock */);
+    return vkRegisterBufferColorBufferGOOGLE_VkResult_return;
+}
 static VkResult entry_vkMapMemoryIntoAddressSpaceGOOGLE(
     VkDevice device,
     VkDeviceMemory memory,
@@ -9672,16 +9672,6 @@ void* goldfish_vulkan_get_proc_address(const char* name){
         return nullptr;
     }
 #endif
-#ifdef VK_GOOGLE_color_buffer
-    if (!strcmp(name, "vkRegisterImageColorBufferGOOGLE"))
-    {
-        return nullptr;
-    }
-    if (!strcmp(name, "vkRegisterBufferColorBufferGOOGLE"))
-    {
-        return nullptr;
-    }
-#endif
 #ifdef VK_EXT_buffer_device_address
     if (!strcmp(name, "vkGetBufferDeviceAddressEXT"))
     {
@@ -9853,6 +9843,14 @@ void* goldfish_vulkan_get_proc_address(const char* name){
     }
 #endif
 #ifdef VK_GOOGLE_gfxstream
+    if (!strcmp(name, "vkRegisterImageColorBufferGOOGLE"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkRegisterBufferColorBufferGOOGLE"))
+    {
+        return nullptr;
+    }
     if (!strcmp(name, "vkMapMemoryIntoAddressSpaceGOOGLE"))
     {
         return nullptr;
@@ -11899,16 +11897,6 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return hasExt ? (void*)entry_vkCreateMetalSurfaceEXT : nullptr;
     }
 #endif
-#ifdef VK_GOOGLE_color_buffer
-    if (!strcmp(name, "vkRegisterImageColorBufferGOOGLE"))
-    {
-        return (void*)dynCheck_entry_vkRegisterImageColorBufferGOOGLE;
-    }
-    if (!strcmp(name, "vkRegisterBufferColorBufferGOOGLE"))
-    {
-        return (void*)dynCheck_entry_vkRegisterBufferColorBufferGOOGLE;
-    }
-#endif
 #ifdef VK_EXT_buffer_device_address
     if (!strcmp(name, "vkGetBufferDeviceAddressEXT"))
     {
@@ -12104,6 +12092,14 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     }
 #endif
 #ifdef VK_GOOGLE_gfxstream
+    if (!strcmp(name, "vkRegisterImageColorBufferGOOGLE"))
+    {
+        return (void*)dynCheck_entry_vkRegisterImageColorBufferGOOGLE;
+    }
+    if (!strcmp(name, "vkRegisterBufferColorBufferGOOGLE"))
+    {
+        return (void*)dynCheck_entry_vkRegisterBufferColorBufferGOOGLE;
+    }
     if (!strcmp(name, "vkMapMemoryIntoAddressSpaceGOOGLE"))
     {
         return (void*)dynCheck_entry_vkMapMemoryIntoAddressSpaceGOOGLE;
@@ -14269,18 +14265,6 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
         return hasExt ? (void*)entry_vkCreateMetalSurfaceEXT : nullptr;
     }
 #endif
-#ifdef VK_GOOGLE_color_buffer
-    if (!strcmp(name, "vkRegisterImageColorBufferGOOGLE"))
-    {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_color_buffer");
-        return hasExt ? (void*)entry_vkRegisterImageColorBufferGOOGLE : nullptr;
-    }
-    if (!strcmp(name, "vkRegisterBufferColorBufferGOOGLE"))
-    {
-        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_color_buffer");
-        return hasExt ? (void*)entry_vkRegisterBufferColorBufferGOOGLE : nullptr;
-    }
-#endif
 #ifdef VK_EXT_buffer_device_address
     if (!strcmp(name, "vkGetBufferDeviceAddressEXT"))
     {
@@ -14488,6 +14472,16 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     }
 #endif
 #ifdef VK_GOOGLE_gfxstream
+    if (!strcmp(name, "vkRegisterImageColorBufferGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)entry_vkRegisterImageColorBufferGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkRegisterBufferColorBufferGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)entry_vkRegisterBufferColorBufferGOOGLE : nullptr;
+    }
     if (!strcmp(name, "vkMapMemoryIntoAddressSpaceGOOGLE"))
     {
         bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
