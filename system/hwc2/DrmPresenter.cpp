@@ -61,7 +61,7 @@ bool DrmPresenter::init(const HotplugCallback& cb) {
     }
   }
 
-  mDrmEventListener.reset(new DrmEventListener(*this));
+  mDrmEventListener = sp<DrmEventListener>::make(*this);
   if (mDrmEventListener->init()) {
     ALOGD("%s: Successfully initialized DRM event listener", __FUNCTION__);
   } else {
