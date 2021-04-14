@@ -89,13 +89,13 @@ VkResult VkEncoder::vkCreateInstance(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkInstanceCreateInfo*)pool->alloc(sizeof(const VkInstanceCreateInfo));
-        deepcopy_VkInstanceCreateInfo(pool, pCreateInfo, (VkInstanceCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkInstanceCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkInstanceCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -109,12 +109,12 @@ VkResult VkEncoder::vkCreateInstance(
     size_t count = 0;
     size_t* countPtr = &count;
     {
-        count_VkInstanceCreateInfo(sFeatureBits, (VkInstanceCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkInstanceCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkInstanceCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_0;
         *countPtr += 8;
@@ -127,7 +127,7 @@ VkResult VkEncoder::vkCreateInstance(
     memcpy(streamPtr, &opcode_vkCreateInstance, sizeof(uint32_t)); streamPtr += sizeof(uint32_t);
     memcpy(streamPtr, &packetSize_vkCreateInstance, sizeof(uint32_t)); streamPtr += sizeof(uint32_t);
     if (queueSubmitWithCommandsEnabled) { memcpy(streamPtr, &seqno, sizeof(uint32_t)); streamPtr += sizeof(uint32_t); }
-    reservedmarshal_VkInstanceCreateInfo(stream, (VkInstanceCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkInstanceCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkInstanceCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_0 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_0, 8);
@@ -135,7 +135,7 @@ VkResult VkEncoder::vkCreateInstance(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_1;
@@ -178,7 +178,7 @@ void VkEncoder::vkDestroyInstance(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -194,7 +194,7 @@ void VkEncoder::vkDestroyInstance(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyInstance = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -216,7 +216,7 @@ void VkEncoder::vkDestroyInstance(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkInstance((VkInstance*)&instance);
     stream->flush();
@@ -367,7 +367,7 @@ void VkEncoder::vkGetPhysicalDeviceFeatures(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceFeatures(sFeatureBits, (VkPhysicalDeviceFeatures*)(pFeatures), countPtr);
+        count_VkPhysicalDeviceFeatures(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceFeatures*)(pFeatures), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceFeatures = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceFeatures);
@@ -381,8 +381,8 @@ void VkEncoder::vkGetPhysicalDeviceFeatures(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceFeatures(stream, (VkPhysicalDeviceFeatures*)(pFeatures), streamPtrPtr);
-    unmarshal_VkPhysicalDeviceFeatures(stream, (VkPhysicalDeviceFeatures*)(pFeatures));
+    reservedmarshal_VkPhysicalDeviceFeatures(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceFeatures*)(pFeatures), streamPtrPtr);
+    unmarshal_VkPhysicalDeviceFeatures(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceFeatures*)(pFeatures));
     if (pFeatures)
     {
         transform_fromhost_VkPhysicalDeviceFeatures(sResourceTracker, (VkPhysicalDeviceFeatures*)(pFeatures));
@@ -417,7 +417,7 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties(
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkFormat);
-        count_VkFormatProperties(sFeatureBits, (VkFormatProperties*)(pFormatProperties), countPtr);
+        count_VkFormatProperties(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFormatProperties*)(pFormatProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceFormatProperties = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceFormatProperties);
@@ -433,8 +433,8 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkFormat*)&local_format, sizeof(VkFormat));
     *streamPtrPtr += sizeof(VkFormat);
-    reservedmarshal_VkFormatProperties(stream, (VkFormatProperties*)(pFormatProperties), streamPtrPtr);
-    unmarshal_VkFormatProperties(stream, (VkFormatProperties*)(pFormatProperties));
+    reservedmarshal_VkFormatProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFormatProperties*)(pFormatProperties), streamPtrPtr);
+    unmarshal_VkFormatProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFormatProperties*)(pFormatProperties));
     if (pFormatProperties)
     {
         transform_fromhost_VkFormatProperties(sResourceTracker, (VkFormatProperties*)(pFormatProperties));
@@ -485,7 +485,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties(
         *countPtr += sizeof(VkImageTiling);
         *countPtr += sizeof(VkImageUsageFlags);
         *countPtr += sizeof(VkImageCreateFlags);
-        count_VkImageFormatProperties(sFeatureBits, (VkImageFormatProperties*)(pImageFormatProperties), countPtr);
+        count_VkImageFormatProperties(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageFormatProperties*)(pImageFormatProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceImageFormatProperties = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceImageFormatProperties);
@@ -509,8 +509,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties(
     *streamPtrPtr += sizeof(VkImageUsageFlags);
     memcpy(*streamPtrPtr, (VkImageCreateFlags*)&local_flags, sizeof(VkImageCreateFlags));
     *streamPtrPtr += sizeof(VkImageCreateFlags);
-    reservedmarshal_VkImageFormatProperties(stream, (VkImageFormatProperties*)(pImageFormatProperties), streamPtrPtr);
-    unmarshal_VkImageFormatProperties(stream, (VkImageFormatProperties*)(pImageFormatProperties));
+    reservedmarshal_VkImageFormatProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageFormatProperties*)(pImageFormatProperties), streamPtrPtr);
+    unmarshal_VkImageFormatProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageFormatProperties*)(pImageFormatProperties));
     if (pImageFormatProperties)
     {
         transform_fromhost_VkImageFormatProperties(sResourceTracker, (VkImageFormatProperties*)(pImageFormatProperties));
@@ -544,7 +544,7 @@ void VkEncoder::vkGetPhysicalDeviceProperties(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceProperties(sFeatureBits, (VkPhysicalDeviceProperties*)(pProperties), countPtr);
+        count_VkPhysicalDeviceProperties(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceProperties*)(pProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceProperties = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceProperties);
@@ -558,8 +558,8 @@ void VkEncoder::vkGetPhysicalDeviceProperties(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceProperties(stream, (VkPhysicalDeviceProperties*)(pProperties), streamPtrPtr);
-    unmarshal_VkPhysicalDeviceProperties(stream, (VkPhysicalDeviceProperties*)(pProperties));
+    reservedmarshal_VkPhysicalDeviceProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceProperties*)(pProperties), streamPtrPtr);
+    unmarshal_VkPhysicalDeviceProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceProperties*)(pProperties));
     if (pProperties)
     {
         transform_fromhost_VkPhysicalDeviceProperties(sResourceTracker, (VkPhysicalDeviceProperties*)(pProperties));
@@ -606,7 +606,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
                 {
-                    count_VkQueueFamilyProperties(sFeatureBits, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i), countPtr);
+                    count_VkQueueFamilyProperties(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i), countPtr);
                 }
             }
         }
@@ -642,7 +642,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
         {
-            reservedmarshal_VkQueueFamilyProperties(stream, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i), streamPtrPtr);
+            reservedmarshal_VkQueueFamilyProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -669,7 +669,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
             {
-                unmarshal_VkQueueFamilyProperties(stream, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i));
+                unmarshal_VkQueueFamilyProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkQueueFamilyProperties*)(pQueueFamilyProperties + i));
             }
         }
     }
@@ -709,7 +709,7 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceMemoryProperties(sFeatureBits, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties), countPtr);
+        count_VkPhysicalDeviceMemoryProperties(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceMemoryProperties = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceMemoryProperties);
@@ -723,8 +723,8 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceMemoryProperties(stream, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties), streamPtrPtr);
-    unmarshal_VkPhysicalDeviceMemoryProperties(stream, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties));
+    reservedmarshal_VkPhysicalDeviceMemoryProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties), streamPtrPtr);
+    unmarshal_VkPhysicalDeviceMemoryProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties));
     if (pMemoryProperties)
     {
         transform_fromhost_VkPhysicalDeviceMemoryProperties(sResourceTracker, (VkPhysicalDeviceMemoryProperties*)(pMemoryProperties));
@@ -867,13 +867,13 @@ VkResult VkEncoder::vkCreateDevice(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDeviceCreateInfo*)pool->alloc(sizeof(const VkDeviceCreateInfo));
-        deepcopy_VkDeviceCreateInfo(pool, pCreateInfo, (VkDeviceCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkDeviceCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkDeviceCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -889,12 +889,12 @@ VkResult VkEncoder::vkCreateDevice(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDeviceCreateInfo(sFeatureBits, (VkDeviceCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkDeviceCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDeviceCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -911,7 +911,7 @@ VkResult VkEncoder::vkCreateDevice(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDeviceCreateInfo(stream, (VkDeviceCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkDeviceCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDeviceCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -919,7 +919,7 @@ VkResult VkEncoder::vkCreateDevice(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -963,7 +963,7 @@ void VkEncoder::vkDestroyDevice(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -979,7 +979,7 @@ void VkEncoder::vkDestroyDevice(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyDevice = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -1001,7 +1001,7 @@ void VkEncoder::vkDestroyDevice(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkDevice((VkDevice*)&device);
     stream->flush();
@@ -1058,7 +1058,7 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
-                    count_VkExtensionProperties(sFeatureBits, (VkExtensionProperties*)(pProperties + i), countPtr);
+                    count_VkExtensionProperties(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExtensionProperties*)(pProperties + i), countPtr);
                 }
             }
         }
@@ -1120,7 +1120,7 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            reservedmarshal_VkExtensionProperties(stream, (VkExtensionProperties*)(pProperties + i), streamPtrPtr);
+            reservedmarshal_VkExtensionProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExtensionProperties*)(pProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -1147,7 +1147,7 @@ VkResult VkEncoder::vkEnumerateInstanceExtensionProperties(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                unmarshal_VkExtensionProperties(stream, (VkExtensionProperties*)(pProperties + i));
+                unmarshal_VkExtensionProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExtensionProperties*)(pProperties + i));
             }
         }
     }
@@ -1222,7 +1222,7 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
-                    count_VkExtensionProperties(sFeatureBits, (VkExtensionProperties*)(pProperties + i), countPtr);
+                    count_VkExtensionProperties(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExtensionProperties*)(pProperties + i), countPtr);
                 }
             }
         }
@@ -1288,7 +1288,7 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            reservedmarshal_VkExtensionProperties(stream, (VkExtensionProperties*)(pProperties + i), streamPtrPtr);
+            reservedmarshal_VkExtensionProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExtensionProperties*)(pProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -1315,7 +1315,7 @@ VkResult VkEncoder::vkEnumerateDeviceExtensionProperties(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                unmarshal_VkExtensionProperties(stream, (VkExtensionProperties*)(pProperties + i));
+                unmarshal_VkExtensionProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExtensionProperties*)(pProperties + i));
             }
         }
     }
@@ -1368,7 +1368,7 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
-                    count_VkLayerProperties(sFeatureBits, (VkLayerProperties*)(pProperties + i), countPtr);
+                    count_VkLayerProperties(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkLayerProperties*)(pProperties + i), countPtr);
                 }
             }
         }
@@ -1400,7 +1400,7 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            reservedmarshal_VkLayerProperties(stream, (VkLayerProperties*)(pProperties + i), streamPtrPtr);
+            reservedmarshal_VkLayerProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkLayerProperties*)(pProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -1427,7 +1427,7 @@ VkResult VkEncoder::vkEnumerateInstanceLayerProperties(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                unmarshal_VkLayerProperties(stream, (VkLayerProperties*)(pProperties + i));
+                unmarshal_VkLayerProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkLayerProperties*)(pProperties + i));
             }
         }
     }
@@ -1485,7 +1485,7 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
-                    count_VkLayerProperties(sFeatureBits, (VkLayerProperties*)(pProperties + i), countPtr);
+                    count_VkLayerProperties(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkLayerProperties*)(pProperties + i), countPtr);
                 }
             }
         }
@@ -1521,7 +1521,7 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            reservedmarshal_VkLayerProperties(stream, (VkLayerProperties*)(pProperties + i), streamPtrPtr);
+            reservedmarshal_VkLayerProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkLayerProperties*)(pProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -1548,7 +1548,7 @@ VkResult VkEncoder::vkEnumerateDeviceLayerProperties(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                unmarshal_VkLayerProperties(stream, (VkLayerProperties*)(pProperties + i));
+                unmarshal_VkLayerProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkLayerProperties*)(pProperties + i));
             }
         }
     }
@@ -1662,7 +1662,7 @@ VkResult VkEncoder::vkQueueSubmit(
         local_pSubmits = (VkSubmitInfo*)pool->alloc(((submitCount)) * sizeof(const VkSubmitInfo));
         for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i)
         {
-            deepcopy_VkSubmitInfo(pool, pSubmits + i, (VkSubmitInfo*)(local_pSubmits + i));
+            deepcopy_VkSubmitInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pSubmits + i, (VkSubmitInfo*)(local_pSubmits + i));
         }
     }
     local_fence = fence;
@@ -1681,7 +1681,7 @@ VkResult VkEncoder::vkQueueSubmit(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i)
         {
-            count_VkSubmitInfo(sFeatureBits, (VkSubmitInfo*)(local_pSubmits + i), countPtr);
+            count_VkSubmitInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubmitInfo*)(local_pSubmits + i), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
@@ -1702,7 +1702,7 @@ VkResult VkEncoder::vkQueueSubmit(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i)
     {
-        reservedmarshal_VkSubmitInfo(stream, (VkSubmitInfo*)(local_pSubmits + i), streamPtrPtr);
+        reservedmarshal_VkSubmitInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubmitInfo*)(local_pSubmits + i), streamPtrPtr);
     }
     uint64_t cgen_var_1;
     *&cgen_var_1 = get_host_u64_VkFence((*&local_fence));
@@ -1822,13 +1822,13 @@ VkResult VkEncoder::vkAllocateMemory(
     if (pAllocateInfo)
     {
         local_pAllocateInfo = (VkMemoryAllocateInfo*)pool->alloc(sizeof(const VkMemoryAllocateInfo));
-        deepcopy_VkMemoryAllocateInfo(pool, pAllocateInfo, (VkMemoryAllocateInfo*)(local_pAllocateInfo));
+        deepcopy_VkMemoryAllocateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocateInfo, (VkMemoryAllocateInfo*)(local_pAllocateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocateInfo)
@@ -1844,12 +1844,12 @@ VkResult VkEncoder::vkAllocateMemory(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkMemoryAllocateInfo(sFeatureBits, (VkMemoryAllocateInfo*)(local_pAllocateInfo), countPtr);
+        count_VkMemoryAllocateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryAllocateInfo*)(local_pAllocateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -1866,7 +1866,7 @@ VkResult VkEncoder::vkAllocateMemory(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkMemoryAllocateInfo(stream, (VkMemoryAllocateInfo*)(local_pAllocateInfo), streamPtrPtr);
+    reservedmarshal_VkMemoryAllocateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryAllocateInfo*)(local_pAllocateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -1874,7 +1874,7 @@ VkResult VkEncoder::vkAllocateMemory(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -1919,7 +1919,7 @@ void VkEncoder::vkFreeMemory(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     sResourceTracker->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
@@ -1934,7 +1934,7 @@ void VkEncoder::vkFreeMemory(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkFreeMemory = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -1960,7 +1960,7 @@ void VkEncoder::vkFreeMemory(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkDeviceMemory((VkDeviceMemory*)&memory);
     stream->flush();
@@ -2020,7 +2020,7 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
         local_pMemoryRanges = (VkMappedMemoryRange*)pool->alloc(((memoryRangeCount)) * sizeof(const VkMappedMemoryRange));
         for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i)
         {
-            deepcopy_VkMappedMemoryRange(pool, pMemoryRanges + i, (VkMappedMemoryRange*)(local_pMemoryRanges + i));
+            deepcopy_VkMappedMemoryRange(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pMemoryRanges + i, (VkMappedMemoryRange*)(local_pMemoryRanges + i));
         }
     }
     if (local_pMemoryRanges)
@@ -2038,7 +2038,7 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i)
         {
-            count_VkMappedMemoryRange(sFeatureBits, (VkMappedMemoryRange*)(local_pMemoryRanges + i), countPtr);
+            count_VkMappedMemoryRange(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMappedMemoryRange*)(local_pMemoryRanges + i), countPtr);
         }
     }
     uint32_t packetSize_vkFlushMappedMemoryRanges = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -2057,7 +2057,7 @@ VkResult VkEncoder::vkFlushMappedMemoryRanges(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i)
     {
-        reservedmarshal_VkMappedMemoryRange(stream, (VkMappedMemoryRange*)(local_pMemoryRanges + i), streamPtrPtr);
+        reservedmarshal_VkMappedMemoryRange(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMappedMemoryRange*)(local_pMemoryRanges + i), streamPtrPtr);
     }
     if (!sResourceTracker->usingDirectMapping())
     {
@@ -2113,7 +2113,7 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
         local_pMemoryRanges = (VkMappedMemoryRange*)pool->alloc(((memoryRangeCount)) * sizeof(const VkMappedMemoryRange));
         for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i)
         {
-            deepcopy_VkMappedMemoryRange(pool, pMemoryRanges + i, (VkMappedMemoryRange*)(local_pMemoryRanges + i));
+            deepcopy_VkMappedMemoryRange(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pMemoryRanges + i, (VkMappedMemoryRange*)(local_pMemoryRanges + i));
         }
     }
     if (local_pMemoryRanges)
@@ -2131,7 +2131,7 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i)
         {
-            count_VkMappedMemoryRange(sFeatureBits, (VkMappedMemoryRange*)(local_pMemoryRanges + i), countPtr);
+            count_VkMappedMemoryRange(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMappedMemoryRange*)(local_pMemoryRanges + i), countPtr);
         }
     }
     uint32_t packetSize_vkInvalidateMappedMemoryRanges = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -2150,7 +2150,7 @@ VkResult VkEncoder::vkInvalidateMappedMemoryRanges(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((memoryRangeCount)); ++i)
     {
-        reservedmarshal_VkMappedMemoryRange(stream, (VkMappedMemoryRange*)(local_pMemoryRanges + i), streamPtrPtr);
+        reservedmarshal_VkMappedMemoryRange(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMappedMemoryRange*)(local_pMemoryRanges + i), streamPtrPtr);
     }
     VkResult vkInvalidateMappedMemoryRanges_VkResult_return = (VkResult)0;
     stream->read(&vkInvalidateMappedMemoryRanges_VkResult_return, sizeof(VkResult));
@@ -2390,7 +2390,7 @@ void VkEncoder::vkGetBufferMemoryRequirements(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
-        count_VkMemoryRequirements(sFeatureBits, (VkMemoryRequirements*)(pMemoryRequirements), countPtr);
+        count_VkMemoryRequirements(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements*)(pMemoryRequirements), countPtr);
     }
     uint32_t packetSize_vkGetBufferMemoryRequirements = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetBufferMemoryRequirements);
@@ -2408,8 +2408,8 @@ void VkEncoder::vkGetBufferMemoryRequirements(
     *&cgen_var_1 = get_host_u64_VkBuffer((*&local_buffer));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements), streamPtrPtr);
-    unmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
+    reservedmarshal_VkMemoryRequirements(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements*)(pMemoryRequirements), streamPtrPtr);
+    unmarshal_VkMemoryRequirements(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements*)(pMemoryRequirements));
     if (pMemoryRequirements)
     {
         transform_fromhost_VkMemoryRequirements(sResourceTracker, (VkMemoryRequirements*)(pMemoryRequirements));
@@ -2445,7 +2445,7 @@ void VkEncoder::vkGetImageMemoryRequirements(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
-        count_VkMemoryRequirements(sFeatureBits, (VkMemoryRequirements*)(pMemoryRequirements), countPtr);
+        count_VkMemoryRequirements(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements*)(pMemoryRequirements), countPtr);
     }
     uint32_t packetSize_vkGetImageMemoryRequirements = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetImageMemoryRequirements);
@@ -2463,8 +2463,8 @@ void VkEncoder::vkGetImageMemoryRequirements(
     *&cgen_var_1 = get_host_u64_VkImage((*&local_image));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements), streamPtrPtr);
-    unmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
+    reservedmarshal_VkMemoryRequirements(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements*)(pMemoryRequirements), streamPtrPtr);
+    unmarshal_VkMemoryRequirements(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements*)(pMemoryRequirements));
     if (pMemoryRequirements)
     {
         transform_fromhost_VkMemoryRequirements(sResourceTracker, (VkMemoryRequirements*)(pMemoryRequirements));
@@ -2515,7 +2515,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
                 {
-                    count_VkSparseImageMemoryRequirements(sFeatureBits, (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i), countPtr);
+                    count_VkSparseImageMemoryRequirements(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i), countPtr);
                 }
             }
         }
@@ -2555,7 +2555,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
         {
-            reservedmarshal_VkSparseImageMemoryRequirements(stream, (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i), streamPtrPtr);
+            reservedmarshal_VkSparseImageMemoryRequirements(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -2582,7 +2582,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
             {
-                unmarshal_VkSparseImageMemoryRequirements(stream, (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i));
+                unmarshal_VkSparseImageMemoryRequirements(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSparseImageMemoryRequirements*)(pSparseMemoryRequirements + i));
             }
         }
     }
@@ -2657,7 +2657,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
-                    count_VkSparseImageFormatProperties(sFeatureBits, (VkSparseImageFormatProperties*)(pProperties + i), countPtr);
+                    count_VkSparseImageFormatProperties(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSparseImageFormatProperties*)(pProperties + i), countPtr);
                 }
             }
         }
@@ -2703,7 +2703,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            reservedmarshal_VkSparseImageFormatProperties(stream, (VkSparseImageFormatProperties*)(pProperties + i), streamPtrPtr);
+            reservedmarshal_VkSparseImageFormatProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSparseImageFormatProperties*)(pProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -2730,7 +2730,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                unmarshal_VkSparseImageFormatProperties(stream, (VkSparseImageFormatProperties*)(pProperties + i));
+                unmarshal_VkSparseImageFormatProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSparseImageFormatProperties*)(pProperties + i));
             }
         }
     }
@@ -2777,7 +2777,7 @@ VkResult VkEncoder::vkQueueBindSparse(
         local_pBindInfo = (VkBindSparseInfo*)pool->alloc(((bindInfoCount)) * sizeof(const VkBindSparseInfo));
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            deepcopy_VkBindSparseInfo(pool, pBindInfo + i, (VkBindSparseInfo*)(local_pBindInfo + i));
+            deepcopy_VkBindSparseInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pBindInfo + i, (VkBindSparseInfo*)(local_pBindInfo + i));
         }
     }
     local_fence = fence;
@@ -2796,7 +2796,7 @@ VkResult VkEncoder::vkQueueBindSparse(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            count_VkBindSparseInfo(sFeatureBits, (VkBindSparseInfo*)(local_pBindInfo + i), countPtr);
+            count_VkBindSparseInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBindSparseInfo*)(local_pBindInfo + i), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
@@ -2817,7 +2817,7 @@ VkResult VkEncoder::vkQueueBindSparse(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
     {
-        reservedmarshal_VkBindSparseInfo(stream, (VkBindSparseInfo*)(local_pBindInfo + i), streamPtrPtr);
+        reservedmarshal_VkBindSparseInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBindSparseInfo*)(local_pBindInfo + i), streamPtrPtr);
     }
     uint64_t cgen_var_1;
     *&cgen_var_1 = get_host_u64_VkFence((*&local_fence));
@@ -2855,13 +2855,13 @@ VkResult VkEncoder::vkCreateFence(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkFenceCreateInfo*)pool->alloc(sizeof(const VkFenceCreateInfo));
-        deepcopy_VkFenceCreateInfo(pool, pCreateInfo, (VkFenceCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkFenceCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkFenceCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -2877,12 +2877,12 @@ VkResult VkEncoder::vkCreateFence(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkFenceCreateInfo(sFeatureBits, (VkFenceCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkFenceCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFenceCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -2899,7 +2899,7 @@ VkResult VkEncoder::vkCreateFence(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkFenceCreateInfo(stream, (VkFenceCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkFenceCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFenceCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -2907,7 +2907,7 @@ VkResult VkEncoder::vkCreateFence(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -2952,7 +2952,7 @@ void VkEncoder::vkDestroyFence(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -2970,7 +2970,7 @@ void VkEncoder::vkDestroyFence(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyFence = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -2996,7 +2996,7 @@ void VkEncoder::vkDestroyFence(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkFence((VkFence*)&fence);
     stream->flush();
@@ -3221,13 +3221,13 @@ VkResult VkEncoder::vkCreateSemaphore(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkSemaphoreCreateInfo*)pool->alloc(sizeof(const VkSemaphoreCreateInfo));
-        deepcopy_VkSemaphoreCreateInfo(pool, pCreateInfo, (VkSemaphoreCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkSemaphoreCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkSemaphoreCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -3243,12 +3243,12 @@ VkResult VkEncoder::vkCreateSemaphore(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkSemaphoreCreateInfo(sFeatureBits, (VkSemaphoreCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkSemaphoreCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSemaphoreCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -3265,7 +3265,7 @@ VkResult VkEncoder::vkCreateSemaphore(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkSemaphoreCreateInfo(stream, (VkSemaphoreCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkSemaphoreCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSemaphoreCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -3273,7 +3273,7 @@ VkResult VkEncoder::vkCreateSemaphore(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -3318,7 +3318,7 @@ void VkEncoder::vkDestroySemaphore(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -3336,7 +3336,7 @@ void VkEncoder::vkDestroySemaphore(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroySemaphore = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -3362,7 +3362,7 @@ void VkEncoder::vkDestroySemaphore(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkSemaphore((VkSemaphore*)&semaphore);
     stream->flush();
@@ -3395,13 +3395,13 @@ VkResult VkEncoder::vkCreateEvent(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkEventCreateInfo*)pool->alloc(sizeof(const VkEventCreateInfo));
-        deepcopy_VkEventCreateInfo(pool, pCreateInfo, (VkEventCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkEventCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkEventCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -3417,12 +3417,12 @@ VkResult VkEncoder::vkCreateEvent(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkEventCreateInfo(sFeatureBits, (VkEventCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkEventCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkEventCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -3439,7 +3439,7 @@ VkResult VkEncoder::vkCreateEvent(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkEventCreateInfo(stream, (VkEventCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkEventCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkEventCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -3447,7 +3447,7 @@ VkResult VkEncoder::vkCreateEvent(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -3492,7 +3492,7 @@ void VkEncoder::vkDestroyEvent(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -3510,7 +3510,7 @@ void VkEncoder::vkDestroyEvent(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyEvent = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -3536,7 +3536,7 @@ void VkEncoder::vkDestroyEvent(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkEvent((VkEvent*)&event);
     stream->flush();
@@ -3719,13 +3719,13 @@ VkResult VkEncoder::vkCreateQueryPool(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkQueryPoolCreateInfo*)pool->alloc(sizeof(const VkQueryPoolCreateInfo));
-        deepcopy_VkQueryPoolCreateInfo(pool, pCreateInfo, (VkQueryPoolCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkQueryPoolCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkQueryPoolCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -3741,12 +3741,12 @@ VkResult VkEncoder::vkCreateQueryPool(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkQueryPoolCreateInfo(sFeatureBits, (VkQueryPoolCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkQueryPoolCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkQueryPoolCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -3763,7 +3763,7 @@ VkResult VkEncoder::vkCreateQueryPool(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkQueryPoolCreateInfo(stream, (VkQueryPoolCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkQueryPoolCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkQueryPoolCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -3771,7 +3771,7 @@ VkResult VkEncoder::vkCreateQueryPool(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -3816,7 +3816,7 @@ void VkEncoder::vkDestroyQueryPool(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -3834,7 +3834,7 @@ void VkEncoder::vkDestroyQueryPool(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyQueryPool = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -3860,7 +3860,7 @@ void VkEncoder::vkDestroyQueryPool(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkQueryPool((VkQueryPool*)&queryPool);
     stream->flush();
@@ -3980,13 +3980,13 @@ VkResult VkEncoder::vkCreateBuffer(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkBufferCreateInfo*)pool->alloc(sizeof(const VkBufferCreateInfo));
-        deepcopy_VkBufferCreateInfo(pool, pCreateInfo, (VkBufferCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkBufferCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkBufferCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -4002,12 +4002,12 @@ VkResult VkEncoder::vkCreateBuffer(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkBufferCreateInfo(sFeatureBits, (VkBufferCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkBufferCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -4024,7 +4024,7 @@ VkResult VkEncoder::vkCreateBuffer(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkBufferCreateInfo(stream, (VkBufferCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkBufferCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -4032,7 +4032,7 @@ VkResult VkEncoder::vkCreateBuffer(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -4077,7 +4077,7 @@ void VkEncoder::vkDestroyBuffer(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -4095,7 +4095,7 @@ void VkEncoder::vkDestroyBuffer(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyBuffer = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -4121,7 +4121,7 @@ void VkEncoder::vkDestroyBuffer(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkBuffer((VkBuffer*)&buffer);
     stream->flush();
@@ -4154,13 +4154,13 @@ VkResult VkEncoder::vkCreateBufferView(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkBufferViewCreateInfo*)pool->alloc(sizeof(const VkBufferViewCreateInfo));
-        deepcopy_VkBufferViewCreateInfo(pool, pCreateInfo, (VkBufferViewCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkBufferViewCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkBufferViewCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -4176,12 +4176,12 @@ VkResult VkEncoder::vkCreateBufferView(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkBufferViewCreateInfo(sFeatureBits, (VkBufferViewCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkBufferViewCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferViewCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -4198,7 +4198,7 @@ VkResult VkEncoder::vkCreateBufferView(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkBufferViewCreateInfo(stream, (VkBufferViewCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkBufferViewCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferViewCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -4206,7 +4206,7 @@ VkResult VkEncoder::vkCreateBufferView(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -4251,7 +4251,7 @@ void VkEncoder::vkDestroyBufferView(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -4269,7 +4269,7 @@ void VkEncoder::vkDestroyBufferView(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyBufferView = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -4295,7 +4295,7 @@ void VkEncoder::vkDestroyBufferView(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkBufferView((VkBufferView*)&bufferView);
     stream->flush();
@@ -4328,13 +4328,13 @@ VkResult VkEncoder::vkCreateImage(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkImageCreateInfo*)pool->alloc(sizeof(const VkImageCreateInfo));
-        deepcopy_VkImageCreateInfo(pool, pCreateInfo, (VkImageCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkImageCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkImageCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     sResourceTracker->unwrap_VkNativeBufferANDROID(pCreateInfo, local_pCreateInfo);
     local_pAllocator = nullptr;
@@ -4351,12 +4351,12 @@ VkResult VkEncoder::vkCreateImage(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkImageCreateInfo(sFeatureBits, (VkImageCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkImageCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -4373,7 +4373,7 @@ VkResult VkEncoder::vkCreateImage(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkImageCreateInfo(stream, (VkImageCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkImageCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -4381,7 +4381,7 @@ VkResult VkEncoder::vkCreateImage(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -4426,7 +4426,7 @@ void VkEncoder::vkDestroyImage(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -4444,7 +4444,7 @@ void VkEncoder::vkDestroyImage(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyImage = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -4470,7 +4470,7 @@ void VkEncoder::vkDestroyImage(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkImage((VkImage*)&image);
     stream->flush();
@@ -4504,7 +4504,7 @@ void VkEncoder::vkGetImageSubresourceLayout(
     if (pSubresource)
     {
         local_pSubresource = (VkImageSubresource*)pool->alloc(sizeof(const VkImageSubresource));
-        deepcopy_VkImageSubresource(pool, pSubresource, (VkImageSubresource*)(local_pSubresource));
+        deepcopy_VkImageSubresource(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pSubresource, (VkImageSubresource*)(local_pSubresource));
     }
     if (local_pSubresource)
     {
@@ -4517,8 +4517,8 @@ void VkEncoder::vkGetImageSubresourceLayout(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
-        count_VkImageSubresource(sFeatureBits, (VkImageSubresource*)(local_pSubresource), countPtr);
-        count_VkSubresourceLayout(sFeatureBits, (VkSubresourceLayout*)(pLayout), countPtr);
+        count_VkImageSubresource(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageSubresource*)(local_pSubresource), countPtr);
+        count_VkSubresourceLayout(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubresourceLayout*)(pLayout), countPtr);
     }
     uint32_t packetSize_vkGetImageSubresourceLayout = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetImageSubresourceLayout);
@@ -4536,9 +4536,9 @@ void VkEncoder::vkGetImageSubresourceLayout(
     *&cgen_var_1 = get_host_u64_VkImage((*&local_image));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkImageSubresource(stream, (VkImageSubresource*)(local_pSubresource), streamPtrPtr);
-    reservedmarshal_VkSubresourceLayout(stream, (VkSubresourceLayout*)(pLayout), streamPtrPtr);
-    unmarshal_VkSubresourceLayout(stream, (VkSubresourceLayout*)(pLayout));
+    reservedmarshal_VkImageSubresource(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageSubresource*)(local_pSubresource), streamPtrPtr);
+    reservedmarshal_VkSubresourceLayout(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubresourceLayout*)(pLayout), streamPtrPtr);
+    unmarshal_VkSubresourceLayout(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubresourceLayout*)(pLayout));
     if (pLayout)
     {
         transform_fromhost_VkSubresourceLayout(sResourceTracker, (VkSubresourceLayout*)(pLayout));
@@ -4572,13 +4572,13 @@ VkResult VkEncoder::vkCreateImageView(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkImageViewCreateInfo*)pool->alloc(sizeof(const VkImageViewCreateInfo));
-        deepcopy_VkImageViewCreateInfo(pool, pCreateInfo, (VkImageViewCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkImageViewCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkImageViewCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -4594,12 +4594,12 @@ VkResult VkEncoder::vkCreateImageView(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkImageViewCreateInfo(sFeatureBits, (VkImageViewCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkImageViewCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageViewCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -4616,7 +4616,7 @@ VkResult VkEncoder::vkCreateImageView(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkImageViewCreateInfo(stream, (VkImageViewCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkImageViewCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageViewCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -4624,7 +4624,7 @@ VkResult VkEncoder::vkCreateImageView(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -4669,7 +4669,7 @@ void VkEncoder::vkDestroyImageView(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -4687,7 +4687,7 @@ void VkEncoder::vkDestroyImageView(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyImageView = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -4713,7 +4713,7 @@ void VkEncoder::vkDestroyImageView(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkImageView((VkImageView*)&imageView);
     stream->flush();
@@ -4746,13 +4746,13 @@ VkResult VkEncoder::vkCreateShaderModule(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkShaderModuleCreateInfo*)pool->alloc(sizeof(const VkShaderModuleCreateInfo));
-        deepcopy_VkShaderModuleCreateInfo(pool, pCreateInfo, (VkShaderModuleCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkShaderModuleCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkShaderModuleCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -4768,12 +4768,12 @@ VkResult VkEncoder::vkCreateShaderModule(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkShaderModuleCreateInfo(sFeatureBits, (VkShaderModuleCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkShaderModuleCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkShaderModuleCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -4790,7 +4790,7 @@ VkResult VkEncoder::vkCreateShaderModule(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkShaderModuleCreateInfo(stream, (VkShaderModuleCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkShaderModuleCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkShaderModuleCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -4798,7 +4798,7 @@ VkResult VkEncoder::vkCreateShaderModule(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -4843,7 +4843,7 @@ void VkEncoder::vkDestroyShaderModule(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -4861,7 +4861,7 @@ void VkEncoder::vkDestroyShaderModule(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyShaderModule = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -4887,7 +4887,7 @@ void VkEncoder::vkDestroyShaderModule(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkShaderModule((VkShaderModule*)&shaderModule);
     stream->flush();
@@ -4920,13 +4920,13 @@ VkResult VkEncoder::vkCreatePipelineCache(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkPipelineCacheCreateInfo*)pool->alloc(sizeof(const VkPipelineCacheCreateInfo));
-        deepcopy_VkPipelineCacheCreateInfo(pool, pCreateInfo, (VkPipelineCacheCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkPipelineCacheCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkPipelineCacheCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -4942,12 +4942,12 @@ VkResult VkEncoder::vkCreatePipelineCache(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPipelineCacheCreateInfo(sFeatureBits, (VkPipelineCacheCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkPipelineCacheCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPipelineCacheCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -4964,7 +4964,7 @@ VkResult VkEncoder::vkCreatePipelineCache(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPipelineCacheCreateInfo(stream, (VkPipelineCacheCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkPipelineCacheCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPipelineCacheCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -4972,7 +4972,7 @@ VkResult VkEncoder::vkCreatePipelineCache(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -5017,7 +5017,7 @@ void VkEncoder::vkDestroyPipelineCache(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -5035,7 +5035,7 @@ void VkEncoder::vkDestroyPipelineCache(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyPipelineCache = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -5061,7 +5061,7 @@ void VkEncoder::vkDestroyPipelineCache(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkPipelineCache((VkPipelineCache*)&pipelineCache);
     stream->flush();
@@ -5287,14 +5287,14 @@ VkResult VkEncoder::vkCreateGraphicsPipelines(
         local_pCreateInfos = (VkGraphicsPipelineCreateInfo*)pool->alloc(((createInfoCount)) * sizeof(const VkGraphicsPipelineCreateInfo));
         for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
         {
-            deepcopy_VkGraphicsPipelineCreateInfo(pool, pCreateInfos + i, (VkGraphicsPipelineCreateInfo*)(local_pCreateInfos + i));
+            deepcopy_VkGraphicsPipelineCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfos + i, (VkGraphicsPipelineCreateInfo*)(local_pCreateInfos + i));
         }
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfos)
@@ -5318,13 +5318,13 @@ VkResult VkEncoder::vkCreateGraphicsPipelines(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
         {
-            count_VkGraphicsPipelineCreateInfo(sFeatureBits, (VkGraphicsPipelineCreateInfo*)(local_pCreateInfos + i), countPtr);
+            count_VkGraphicsPipelineCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkGraphicsPipelineCreateInfo*)(local_pCreateInfos + i), countPtr);
         }
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         if (((createInfoCount)))
         {
@@ -5351,7 +5351,7 @@ VkResult VkEncoder::vkCreateGraphicsPipelines(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
     {
-        reservedmarshal_VkGraphicsPipelineCreateInfo(stream, (VkGraphicsPipelineCreateInfo*)(local_pCreateInfos + i), streamPtrPtr);
+        reservedmarshal_VkGraphicsPipelineCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkGraphicsPipelineCreateInfo*)(local_pCreateInfos + i), streamPtrPtr);
     }
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
@@ -5360,7 +5360,7 @@ VkResult VkEncoder::vkCreateGraphicsPipelines(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     if (((createInfoCount)))
@@ -5423,14 +5423,14 @@ VkResult VkEncoder::vkCreateComputePipelines(
         local_pCreateInfos = (VkComputePipelineCreateInfo*)pool->alloc(((createInfoCount)) * sizeof(const VkComputePipelineCreateInfo));
         for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
         {
-            deepcopy_VkComputePipelineCreateInfo(pool, pCreateInfos + i, (VkComputePipelineCreateInfo*)(local_pCreateInfos + i));
+            deepcopy_VkComputePipelineCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfos + i, (VkComputePipelineCreateInfo*)(local_pCreateInfos + i));
         }
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfos)
@@ -5454,13 +5454,13 @@ VkResult VkEncoder::vkCreateComputePipelines(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
         {
-            count_VkComputePipelineCreateInfo(sFeatureBits, (VkComputePipelineCreateInfo*)(local_pCreateInfos + i), countPtr);
+            count_VkComputePipelineCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkComputePipelineCreateInfo*)(local_pCreateInfos + i), countPtr);
         }
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         if (((createInfoCount)))
         {
@@ -5487,7 +5487,7 @@ VkResult VkEncoder::vkCreateComputePipelines(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
     {
-        reservedmarshal_VkComputePipelineCreateInfo(stream, (VkComputePipelineCreateInfo*)(local_pCreateInfos + i), streamPtrPtr);
+        reservedmarshal_VkComputePipelineCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkComputePipelineCreateInfo*)(local_pCreateInfos + i), streamPtrPtr);
     }
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
@@ -5496,7 +5496,7 @@ VkResult VkEncoder::vkCreateComputePipelines(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     if (((createInfoCount)))
@@ -5551,7 +5551,7 @@ void VkEncoder::vkDestroyPipeline(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -5569,7 +5569,7 @@ void VkEncoder::vkDestroyPipeline(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyPipeline = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -5595,7 +5595,7 @@ void VkEncoder::vkDestroyPipeline(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkPipeline((VkPipeline*)&pipeline);
     stream->flush();
@@ -5628,13 +5628,13 @@ VkResult VkEncoder::vkCreatePipelineLayout(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkPipelineLayoutCreateInfo*)pool->alloc(sizeof(const VkPipelineLayoutCreateInfo));
-        deepcopy_VkPipelineLayoutCreateInfo(pool, pCreateInfo, (VkPipelineLayoutCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkPipelineLayoutCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkPipelineLayoutCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -5650,12 +5650,12 @@ VkResult VkEncoder::vkCreatePipelineLayout(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPipelineLayoutCreateInfo(sFeatureBits, (VkPipelineLayoutCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkPipelineLayoutCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPipelineLayoutCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -5672,7 +5672,7 @@ VkResult VkEncoder::vkCreatePipelineLayout(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPipelineLayoutCreateInfo(stream, (VkPipelineLayoutCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkPipelineLayoutCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPipelineLayoutCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -5680,7 +5680,7 @@ VkResult VkEncoder::vkCreatePipelineLayout(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -5725,7 +5725,7 @@ void VkEncoder::vkDestroyPipelineLayout(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -5743,7 +5743,7 @@ void VkEncoder::vkDestroyPipelineLayout(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyPipelineLayout = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -5769,7 +5769,7 @@ void VkEncoder::vkDestroyPipelineLayout(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkPipelineLayout((VkPipelineLayout*)&pipelineLayout);
     stream->flush();
@@ -5802,13 +5802,13 @@ VkResult VkEncoder::vkCreateSampler(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkSamplerCreateInfo*)pool->alloc(sizeof(const VkSamplerCreateInfo));
-        deepcopy_VkSamplerCreateInfo(pool, pCreateInfo, (VkSamplerCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkSamplerCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkSamplerCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -5824,12 +5824,12 @@ VkResult VkEncoder::vkCreateSampler(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkSamplerCreateInfo(sFeatureBits, (VkSamplerCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkSamplerCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSamplerCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -5846,7 +5846,7 @@ VkResult VkEncoder::vkCreateSampler(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkSamplerCreateInfo(stream, (VkSamplerCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkSamplerCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSamplerCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -5854,7 +5854,7 @@ VkResult VkEncoder::vkCreateSampler(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -5899,7 +5899,7 @@ void VkEncoder::vkDestroySampler(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -5917,7 +5917,7 @@ void VkEncoder::vkDestroySampler(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroySampler = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -5943,7 +5943,7 @@ void VkEncoder::vkDestroySampler(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkSampler((VkSampler*)&sampler);
     stream->flush();
@@ -5976,13 +5976,13 @@ VkResult VkEncoder::vkCreateDescriptorSetLayout(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDescriptorSetLayoutCreateInfo*)pool->alloc(sizeof(const VkDescriptorSetLayoutCreateInfo));
-        deepcopy_VkDescriptorSetLayoutCreateInfo(pool, pCreateInfo, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkDescriptorSetLayoutCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -5998,12 +5998,12 @@ VkResult VkEncoder::vkCreateDescriptorSetLayout(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDescriptorSetLayoutCreateInfo(sFeatureBits, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkDescriptorSetLayoutCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -6020,7 +6020,7 @@ VkResult VkEncoder::vkCreateDescriptorSetLayout(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDescriptorSetLayoutCreateInfo(stream, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkDescriptorSetLayoutCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -6028,7 +6028,7 @@ VkResult VkEncoder::vkCreateDescriptorSetLayout(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -6073,7 +6073,7 @@ void VkEncoder::vkDestroyDescriptorSetLayout(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -6091,7 +6091,7 @@ void VkEncoder::vkDestroyDescriptorSetLayout(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyDescriptorSetLayout = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -6117,7 +6117,7 @@ void VkEncoder::vkDestroyDescriptorSetLayout(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkDescriptorSetLayout((VkDescriptorSetLayout*)&descriptorSetLayout);
     stream->flush();
@@ -6150,13 +6150,13 @@ VkResult VkEncoder::vkCreateDescriptorPool(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDescriptorPoolCreateInfo*)pool->alloc(sizeof(const VkDescriptorPoolCreateInfo));
-        deepcopy_VkDescriptorPoolCreateInfo(pool, pCreateInfo, (VkDescriptorPoolCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkDescriptorPoolCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkDescriptorPoolCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -6172,12 +6172,12 @@ VkResult VkEncoder::vkCreateDescriptorPool(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDescriptorPoolCreateInfo(sFeatureBits, (VkDescriptorPoolCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkDescriptorPoolCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorPoolCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -6194,7 +6194,7 @@ VkResult VkEncoder::vkCreateDescriptorPool(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDescriptorPoolCreateInfo(stream, (VkDescriptorPoolCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkDescriptorPoolCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorPoolCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -6202,7 +6202,7 @@ VkResult VkEncoder::vkCreateDescriptorPool(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -6247,7 +6247,7 @@ void VkEncoder::vkDestroyDescriptorPool(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -6265,7 +6265,7 @@ void VkEncoder::vkDestroyDescriptorPool(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyDescriptorPool = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -6291,7 +6291,7 @@ void VkEncoder::vkDestroyDescriptorPool(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkDescriptorPool((VkDescriptorPool*)&descriptorPool);
     stream->flush();
@@ -6378,7 +6378,7 @@ VkResult VkEncoder::vkAllocateDescriptorSets(
     if (pAllocateInfo)
     {
         local_pAllocateInfo = (VkDescriptorSetAllocateInfo*)pool->alloc(sizeof(const VkDescriptorSetAllocateInfo));
-        deepcopy_VkDescriptorSetAllocateInfo(pool, pAllocateInfo, (VkDescriptorSetAllocateInfo*)(local_pAllocateInfo));
+        deepcopy_VkDescriptorSetAllocateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocateInfo, (VkDescriptorSetAllocateInfo*)(local_pAllocateInfo));
     }
     if (local_pAllocateInfo)
     {
@@ -6389,7 +6389,7 @@ VkResult VkEncoder::vkAllocateDescriptorSets(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDescriptorSetAllocateInfo(sFeatureBits, (VkDescriptorSetAllocateInfo*)(local_pAllocateInfo), countPtr);
+        count_VkDescriptorSetAllocateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorSetAllocateInfo*)(local_pAllocateInfo), countPtr);
         if (pAllocateInfo->descriptorSetCount)
         {
             *countPtr += pAllocateInfo->descriptorSetCount * 8;
@@ -6407,7 +6407,7 @@ VkResult VkEncoder::vkAllocateDescriptorSets(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDescriptorSetAllocateInfo(stream, (VkDescriptorSetAllocateInfo*)(local_pAllocateInfo), streamPtrPtr);
+    reservedmarshal_VkDescriptorSetAllocateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorSetAllocateInfo*)(local_pAllocateInfo), streamPtrPtr);
     /* is handle, possibly out */;
     if (pAllocateInfo->descriptorSetCount)
     {
@@ -6558,7 +6558,7 @@ void VkEncoder::vkUpdateDescriptorSets(
         local_pDescriptorWrites = (VkWriteDescriptorSet*)pool->alloc(((descriptorWriteCount)) * sizeof(const VkWriteDescriptorSet));
         for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i)
         {
-            deepcopy_VkWriteDescriptorSet(pool, pDescriptorWrites + i, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i));
+            deepcopy_VkWriteDescriptorSet(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pDescriptorWrites + i, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i));
         }
     }
     local_descriptorCopyCount = descriptorCopyCount;
@@ -6568,7 +6568,7 @@ void VkEncoder::vkUpdateDescriptorSets(
         local_pDescriptorCopies = (VkCopyDescriptorSet*)pool->alloc(((descriptorCopyCount)) * sizeof(const VkCopyDescriptorSet));
         for (uint32_t i = 0; i < (uint32_t)((descriptorCopyCount)); ++i)
         {
-            deepcopy_VkCopyDescriptorSet(pool, pDescriptorCopies + i, (VkCopyDescriptorSet*)(local_pDescriptorCopies + i));
+            deepcopy_VkCopyDescriptorSet(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pDescriptorCopies + i, (VkCopyDescriptorSet*)(local_pDescriptorCopies + i));
         }
     }
     if (local_pDescriptorWrites)
@@ -6593,12 +6593,12 @@ void VkEncoder::vkUpdateDescriptorSets(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i)
         {
-            count_VkWriteDescriptorSet(sFeatureBits, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i), countPtr);
+            count_VkWriteDescriptorSet(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i), countPtr);
         }
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((descriptorCopyCount)); ++i)
         {
-            count_VkCopyDescriptorSet(sFeatureBits, (VkCopyDescriptorSet*)(local_pDescriptorCopies + i), countPtr);
+            count_VkCopyDescriptorSet(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyDescriptorSet*)(local_pDescriptorCopies + i), countPtr);
         }
     }
     uint32_t packetSize_vkUpdateDescriptorSets = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -6617,13 +6617,13 @@ void VkEncoder::vkUpdateDescriptorSets(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i)
     {
-        reservedmarshal_VkWriteDescriptorSet(stream, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i), streamPtrPtr);
+        reservedmarshal_VkWriteDescriptorSet(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i), streamPtrPtr);
     }
     memcpy(*streamPtrPtr, (uint32_t*)&local_descriptorCopyCount, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((descriptorCopyCount)); ++i)
     {
-        reservedmarshal_VkCopyDescriptorSet(stream, (VkCopyDescriptorSet*)(local_pDescriptorCopies + i), streamPtrPtr);
+        reservedmarshal_VkCopyDescriptorSet(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyDescriptorSet*)(local_pDescriptorCopies + i), streamPtrPtr);
     }
     stream->flush();
     ++encodeCount;;
@@ -6655,13 +6655,13 @@ VkResult VkEncoder::vkCreateFramebuffer(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkFramebufferCreateInfo*)pool->alloc(sizeof(const VkFramebufferCreateInfo));
-        deepcopy_VkFramebufferCreateInfo(pool, pCreateInfo, (VkFramebufferCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkFramebufferCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkFramebufferCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -6677,12 +6677,12 @@ VkResult VkEncoder::vkCreateFramebuffer(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkFramebufferCreateInfo(sFeatureBits, (VkFramebufferCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkFramebufferCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFramebufferCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -6699,7 +6699,7 @@ VkResult VkEncoder::vkCreateFramebuffer(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkFramebufferCreateInfo(stream, (VkFramebufferCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkFramebufferCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFramebufferCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -6707,7 +6707,7 @@ VkResult VkEncoder::vkCreateFramebuffer(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -6752,7 +6752,7 @@ void VkEncoder::vkDestroyFramebuffer(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -6770,7 +6770,7 @@ void VkEncoder::vkDestroyFramebuffer(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyFramebuffer = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -6796,7 +6796,7 @@ void VkEncoder::vkDestroyFramebuffer(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkFramebuffer((VkFramebuffer*)&framebuffer);
     stream->flush();
@@ -6829,13 +6829,13 @@ VkResult VkEncoder::vkCreateRenderPass(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkRenderPassCreateInfo*)pool->alloc(sizeof(const VkRenderPassCreateInfo));
-        deepcopy_VkRenderPassCreateInfo(pool, pCreateInfo, (VkRenderPassCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkRenderPassCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkRenderPassCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -6851,12 +6851,12 @@ VkResult VkEncoder::vkCreateRenderPass(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkRenderPassCreateInfo(sFeatureBits, (VkRenderPassCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkRenderPassCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRenderPassCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -6873,7 +6873,7 @@ VkResult VkEncoder::vkCreateRenderPass(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkRenderPassCreateInfo(stream, (VkRenderPassCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkRenderPassCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRenderPassCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -6881,7 +6881,7 @@ VkResult VkEncoder::vkCreateRenderPass(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -6926,7 +6926,7 @@ void VkEncoder::vkDestroyRenderPass(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -6944,7 +6944,7 @@ void VkEncoder::vkDestroyRenderPass(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyRenderPass = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -6970,7 +6970,7 @@ void VkEncoder::vkDestroyRenderPass(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkRenderPass((VkRenderPass*)&renderPass);
     stream->flush();
@@ -7005,7 +7005,7 @@ void VkEncoder::vkGetRenderAreaGranularity(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
-        count_VkExtent2D(sFeatureBits, (VkExtent2D*)(pGranularity), countPtr);
+        count_VkExtent2D(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExtent2D*)(pGranularity), countPtr);
     }
     uint32_t packetSize_vkGetRenderAreaGranularity = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetRenderAreaGranularity);
@@ -7023,8 +7023,8 @@ void VkEncoder::vkGetRenderAreaGranularity(
     *&cgen_var_1 = get_host_u64_VkRenderPass((*&local_renderPass));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkExtent2D(stream, (VkExtent2D*)(pGranularity), streamPtrPtr);
-    unmarshal_VkExtent2D(stream, (VkExtent2D*)(pGranularity));
+    reservedmarshal_VkExtent2D(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExtent2D*)(pGranularity), streamPtrPtr);
+    unmarshal_VkExtent2D(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExtent2D*)(pGranularity));
     if (pGranularity)
     {
         transform_fromhost_VkExtent2D(sResourceTracker, (VkExtent2D*)(pGranularity));
@@ -7058,13 +7058,13 @@ VkResult VkEncoder::vkCreateCommandPool(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkCommandPoolCreateInfo*)pool->alloc(sizeof(const VkCommandPoolCreateInfo));
-        deepcopy_VkCommandPoolCreateInfo(pool, pCreateInfo, (VkCommandPoolCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkCommandPoolCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkCommandPoolCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -7080,12 +7080,12 @@ VkResult VkEncoder::vkCreateCommandPool(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkCommandPoolCreateInfo(sFeatureBits, (VkCommandPoolCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkCommandPoolCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCommandPoolCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -7102,7 +7102,7 @@ VkResult VkEncoder::vkCreateCommandPool(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkCommandPoolCreateInfo(stream, (VkCommandPoolCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkCommandPoolCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCommandPoolCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -7110,7 +7110,7 @@ VkResult VkEncoder::vkCreateCommandPool(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -7155,7 +7155,7 @@ void VkEncoder::vkDestroyCommandPool(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -7173,7 +7173,7 @@ void VkEncoder::vkDestroyCommandPool(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyCommandPool = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -7199,7 +7199,7 @@ void VkEncoder::vkDestroyCommandPool(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkCommandPool((VkCommandPool*)&commandPool);
     stream->flush();
@@ -7286,7 +7286,7 @@ VkResult VkEncoder::vkAllocateCommandBuffers(
     if (pAllocateInfo)
     {
         local_pAllocateInfo = (VkCommandBufferAllocateInfo*)pool->alloc(sizeof(const VkCommandBufferAllocateInfo));
-        deepcopy_VkCommandBufferAllocateInfo(pool, pAllocateInfo, (VkCommandBufferAllocateInfo*)(local_pAllocateInfo));
+        deepcopy_VkCommandBufferAllocateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocateInfo, (VkCommandBufferAllocateInfo*)(local_pAllocateInfo));
     }
     if (local_pAllocateInfo)
     {
@@ -7297,7 +7297,7 @@ VkResult VkEncoder::vkAllocateCommandBuffers(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkCommandBufferAllocateInfo(sFeatureBits, (VkCommandBufferAllocateInfo*)(local_pAllocateInfo), countPtr);
+        count_VkCommandBufferAllocateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCommandBufferAllocateInfo*)(local_pAllocateInfo), countPtr);
         if (pAllocateInfo->commandBufferCount)
         {
             *countPtr += pAllocateInfo->commandBufferCount * 8;
@@ -7315,7 +7315,7 @@ VkResult VkEncoder::vkAllocateCommandBuffers(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkCommandBufferAllocateInfo(stream, (VkCommandBufferAllocateInfo*)(local_pAllocateInfo), streamPtrPtr);
+    reservedmarshal_VkCommandBufferAllocateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCommandBufferAllocateInfo*)(local_pAllocateInfo), streamPtrPtr);
     /* is handle, possibly out */;
     if (pAllocateInfo->commandBufferCount)
     {
@@ -7455,7 +7455,7 @@ VkResult VkEncoder::vkBeginCommandBuffer(
     if (pBeginInfo)
     {
         local_pBeginInfo = (VkCommandBufferBeginInfo*)pool->alloc(sizeof(const VkCommandBufferBeginInfo));
-        deepcopy_VkCommandBufferBeginInfo(pool, pBeginInfo, (VkCommandBufferBeginInfo*)(local_pBeginInfo));
+        deepcopy_VkCommandBufferBeginInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pBeginInfo, (VkCommandBufferBeginInfo*)(local_pBeginInfo));
     }
     if (local_pBeginInfo)
     {
@@ -7466,7 +7466,7 @@ VkResult VkEncoder::vkBeginCommandBuffer(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkCommandBufferBeginInfo(sFeatureBits, (VkCommandBufferBeginInfo*)(local_pBeginInfo), countPtr);
+        count_VkCommandBufferBeginInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCommandBufferBeginInfo*)(local_pBeginInfo), countPtr);
     }
     uint32_t packetSize_vkBeginCommandBuffer = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkBeginCommandBuffer -= 8;
@@ -7482,7 +7482,7 @@ VkResult VkEncoder::vkBeginCommandBuffer(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkCommandBufferBeginInfo(stream, (VkCommandBufferBeginInfo*)(local_pBeginInfo), streamPtrPtr);
+    reservedmarshal_VkCommandBufferBeginInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCommandBufferBeginInfo*)(local_pBeginInfo), streamPtrPtr);
     VkResult vkBeginCommandBuffer_VkResult_return = (VkResult)0;
     stream->read(&vkBeginCommandBuffer_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -7667,7 +7667,7 @@ void VkEncoder::vkCmdSetViewport(
         local_pViewports = (VkViewport*)pool->alloc(((viewportCount)) * sizeof(const VkViewport));
         for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
         {
-            deepcopy_VkViewport(pool, pViewports + i, (VkViewport*)(local_pViewports + i));
+            deepcopy_VkViewport(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pViewports + i, (VkViewport*)(local_pViewports + i));
         }
     }
     if (local_pViewports)
@@ -7686,7 +7686,7 @@ void VkEncoder::vkCmdSetViewport(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
         {
-            count_VkViewport(sFeatureBits, (VkViewport*)(local_pViewports + i), countPtr);
+            count_VkViewport(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkViewport*)(local_pViewports + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdSetViewport = 4 + 4 + count;
@@ -7709,7 +7709,7 @@ void VkEncoder::vkCmdSetViewport(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
     {
-        reservedmarshal_VkViewport(stream, (VkViewport*)(local_pViewports + i), streamPtrPtr);
+        reservedmarshal_VkViewport(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkViewport*)(local_pViewports + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -7745,7 +7745,7 @@ void VkEncoder::vkCmdSetScissor(
         local_pScissors = (VkRect2D*)pool->alloc(((scissorCount)) * sizeof(const VkRect2D));
         for (uint32_t i = 0; i < (uint32_t)((scissorCount)); ++i)
         {
-            deepcopy_VkRect2D(pool, pScissors + i, (VkRect2D*)(local_pScissors + i));
+            deepcopy_VkRect2D(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pScissors + i, (VkRect2D*)(local_pScissors + i));
         }
     }
     if (local_pScissors)
@@ -7764,7 +7764,7 @@ void VkEncoder::vkCmdSetScissor(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((scissorCount)); ++i)
         {
-            count_VkRect2D(sFeatureBits, (VkRect2D*)(local_pScissors + i), countPtr);
+            count_VkRect2D(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRect2D*)(local_pScissors + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdSetScissor = 4 + 4 + count;
@@ -7787,7 +7787,7 @@ void VkEncoder::vkCmdSetScissor(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((scissorCount)); ++i)
     {
-        reservedmarshal_VkRect2D(stream, (VkRect2D*)(local_pScissors + i), streamPtrPtr);
+        reservedmarshal_VkRect2D(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRect2D*)(local_pScissors + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -8801,7 +8801,7 @@ void VkEncoder::vkCmdCopyBuffer(
         local_pRegions = (VkBufferCopy*)pool->alloc(((regionCount)) * sizeof(const VkBufferCopy));
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            deepcopy_VkBufferCopy(pool, pRegions + i, (VkBufferCopy*)(local_pRegions + i));
+            deepcopy_VkBufferCopy(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pRegions + i, (VkBufferCopy*)(local_pRegions + i));
         }
     }
     if (local_pRegions)
@@ -8823,7 +8823,7 @@ void VkEncoder::vkCmdCopyBuffer(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            count_VkBufferCopy(sFeatureBits, (VkBufferCopy*)(local_pRegions + i), countPtr);
+            count_VkBufferCopy(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferCopy*)(local_pRegions + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdCopyBuffer = 4 + 4 + count;
@@ -8852,7 +8852,7 @@ void VkEncoder::vkCmdCopyBuffer(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
     {
-        reservedmarshal_VkBufferCopy(stream, (VkBufferCopy*)(local_pRegions + i), streamPtrPtr);
+        reservedmarshal_VkBufferCopy(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferCopy*)(local_pRegions + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -8897,7 +8897,7 @@ void VkEncoder::vkCmdCopyImage(
         local_pRegions = (VkImageCopy*)pool->alloc(((regionCount)) * sizeof(const VkImageCopy));
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            deepcopy_VkImageCopy(pool, pRegions + i, (VkImageCopy*)(local_pRegions + i));
+            deepcopy_VkImageCopy(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pRegions + i, (VkImageCopy*)(local_pRegions + i));
         }
     }
     if (local_pRegions)
@@ -8921,7 +8921,7 @@ void VkEncoder::vkCmdCopyImage(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            count_VkImageCopy(sFeatureBits, (VkImageCopy*)(local_pRegions + i), countPtr);
+            count_VkImageCopy(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageCopy*)(local_pRegions + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdCopyImage = 4 + 4 + count;
@@ -8954,7 +8954,7 @@ void VkEncoder::vkCmdCopyImage(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
     {
-        reservedmarshal_VkImageCopy(stream, (VkImageCopy*)(local_pRegions + i), streamPtrPtr);
+        reservedmarshal_VkImageCopy(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageCopy*)(local_pRegions + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -9001,7 +9001,7 @@ void VkEncoder::vkCmdBlitImage(
         local_pRegions = (VkImageBlit*)pool->alloc(((regionCount)) * sizeof(const VkImageBlit));
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            deepcopy_VkImageBlit(pool, pRegions + i, (VkImageBlit*)(local_pRegions + i));
+            deepcopy_VkImageBlit(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pRegions + i, (VkImageBlit*)(local_pRegions + i));
         }
     }
     local_filter = filter;
@@ -9026,7 +9026,7 @@ void VkEncoder::vkCmdBlitImage(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            count_VkImageBlit(sFeatureBits, (VkImageBlit*)(local_pRegions + i), countPtr);
+            count_VkImageBlit(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageBlit*)(local_pRegions + i), countPtr);
         }
         *countPtr += sizeof(VkFilter);
     }
@@ -9060,7 +9060,7 @@ void VkEncoder::vkCmdBlitImage(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
     {
-        reservedmarshal_VkImageBlit(stream, (VkImageBlit*)(local_pRegions + i), streamPtrPtr);
+        reservedmarshal_VkImageBlit(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageBlit*)(local_pRegions + i), streamPtrPtr);
     }
     memcpy(*streamPtrPtr, (VkFilter*)&local_filter, sizeof(VkFilter));
     *streamPtrPtr += sizeof(VkFilter);
@@ -9104,7 +9104,7 @@ void VkEncoder::vkCmdCopyBufferToImage(
         local_pRegions = (VkBufferImageCopy*)pool->alloc(((regionCount)) * sizeof(const VkBufferImageCopy));
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            deepcopy_VkBufferImageCopy(pool, pRegions + i, (VkBufferImageCopy*)(local_pRegions + i));
+            deepcopy_VkBufferImageCopy(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pRegions + i, (VkBufferImageCopy*)(local_pRegions + i));
         }
     }
     if (local_pRegions)
@@ -9127,7 +9127,7 @@ void VkEncoder::vkCmdCopyBufferToImage(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            count_VkBufferImageCopy(sFeatureBits, (VkBufferImageCopy*)(local_pRegions + i), countPtr);
+            count_VkBufferImageCopy(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferImageCopy*)(local_pRegions + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdCopyBufferToImage = 4 + 4 + count;
@@ -9158,7 +9158,7 @@ void VkEncoder::vkCmdCopyBufferToImage(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
     {
-        reservedmarshal_VkBufferImageCopy(stream, (VkBufferImageCopy*)(local_pRegions + i), streamPtrPtr);
+        reservedmarshal_VkBufferImageCopy(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferImageCopy*)(local_pRegions + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -9200,7 +9200,7 @@ void VkEncoder::vkCmdCopyImageToBuffer(
         local_pRegions = (VkBufferImageCopy*)pool->alloc(((regionCount)) * sizeof(const VkBufferImageCopy));
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            deepcopy_VkBufferImageCopy(pool, pRegions + i, (VkBufferImageCopy*)(local_pRegions + i));
+            deepcopy_VkBufferImageCopy(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pRegions + i, (VkBufferImageCopy*)(local_pRegions + i));
         }
     }
     if (local_pRegions)
@@ -9223,7 +9223,7 @@ void VkEncoder::vkCmdCopyImageToBuffer(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            count_VkBufferImageCopy(sFeatureBits, (VkBufferImageCopy*)(local_pRegions + i), countPtr);
+            count_VkBufferImageCopy(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferImageCopy*)(local_pRegions + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdCopyImageToBuffer = 4 + 4 + count;
@@ -9254,7 +9254,7 @@ void VkEncoder::vkCmdCopyImageToBuffer(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
     {
-        reservedmarshal_VkBufferImageCopy(stream, (VkBufferImageCopy*)(local_pRegions + i), streamPtrPtr);
+        reservedmarshal_VkBufferImageCopy(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferImageCopy*)(local_pRegions + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -9427,7 +9427,7 @@ void VkEncoder::vkCmdClearColorImage(
     if (pColor)
     {
         local_pColor = (VkClearColorValue*)pool->alloc(sizeof(const VkClearColorValue));
-        deepcopy_VkClearColorValue(pool, pColor, (VkClearColorValue*)(local_pColor));
+        deepcopy_VkClearColorValue(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pColor, (VkClearColorValue*)(local_pColor));
     }
     local_rangeCount = rangeCount;
     local_pRanges = nullptr;
@@ -9436,7 +9436,7 @@ void VkEncoder::vkCmdClearColorImage(
         local_pRanges = (VkImageSubresourceRange*)pool->alloc(((rangeCount)) * sizeof(const VkImageSubresourceRange));
         for (uint32_t i = 0; i < (uint32_t)((rangeCount)); ++i)
         {
-            deepcopy_VkImageSubresourceRange(pool, pRanges + i, (VkImageSubresourceRange*)(local_pRanges + i));
+            deepcopy_VkImageSubresourceRange(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pRanges + i, (VkImageSubresourceRange*)(local_pRanges + i));
         }
     }
     if (local_pColor)
@@ -9458,11 +9458,11 @@ void VkEncoder::vkCmdClearColorImage(
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkImageLayout);
-        count_VkClearColorValue(sFeatureBits, (VkClearColorValue*)(local_pColor), countPtr);
+        count_VkClearColorValue(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkClearColorValue*)(local_pColor), countPtr);
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((rangeCount)); ++i)
         {
-            count_VkImageSubresourceRange(sFeatureBits, (VkImageSubresourceRange*)(local_pRanges + i), countPtr);
+            count_VkImageSubresourceRange(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageSubresourceRange*)(local_pRanges + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdClearColorImage = 4 + 4 + count;
@@ -9485,12 +9485,12 @@ void VkEncoder::vkCmdClearColorImage(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkImageLayout*)&local_imageLayout, sizeof(VkImageLayout));
     *streamPtrPtr += sizeof(VkImageLayout);
-    reservedmarshal_VkClearColorValue(stream, (VkClearColorValue*)(local_pColor), streamPtrPtr);
+    reservedmarshal_VkClearColorValue(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkClearColorValue*)(local_pColor), streamPtrPtr);
     memcpy(*streamPtrPtr, (uint32_t*)&local_rangeCount, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((rangeCount)); ++i)
     {
-        reservedmarshal_VkImageSubresourceRange(stream, (VkImageSubresourceRange*)(local_pRanges + i), streamPtrPtr);
+        reservedmarshal_VkImageSubresourceRange(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageSubresourceRange*)(local_pRanges + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -9528,7 +9528,7 @@ void VkEncoder::vkCmdClearDepthStencilImage(
     if (pDepthStencil)
     {
         local_pDepthStencil = (VkClearDepthStencilValue*)pool->alloc(sizeof(const VkClearDepthStencilValue));
-        deepcopy_VkClearDepthStencilValue(pool, pDepthStencil, (VkClearDepthStencilValue*)(local_pDepthStencil));
+        deepcopy_VkClearDepthStencilValue(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pDepthStencil, (VkClearDepthStencilValue*)(local_pDepthStencil));
     }
     local_rangeCount = rangeCount;
     local_pRanges = nullptr;
@@ -9537,7 +9537,7 @@ void VkEncoder::vkCmdClearDepthStencilImage(
         local_pRanges = (VkImageSubresourceRange*)pool->alloc(((rangeCount)) * sizeof(const VkImageSubresourceRange));
         for (uint32_t i = 0; i < (uint32_t)((rangeCount)); ++i)
         {
-            deepcopy_VkImageSubresourceRange(pool, pRanges + i, (VkImageSubresourceRange*)(local_pRanges + i));
+            deepcopy_VkImageSubresourceRange(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pRanges + i, (VkImageSubresourceRange*)(local_pRanges + i));
         }
     }
     if (local_pDepthStencil)
@@ -9559,11 +9559,11 @@ void VkEncoder::vkCmdClearDepthStencilImage(
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkImageLayout);
-        count_VkClearDepthStencilValue(sFeatureBits, (VkClearDepthStencilValue*)(local_pDepthStencil), countPtr);
+        count_VkClearDepthStencilValue(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkClearDepthStencilValue*)(local_pDepthStencil), countPtr);
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((rangeCount)); ++i)
         {
-            count_VkImageSubresourceRange(sFeatureBits, (VkImageSubresourceRange*)(local_pRanges + i), countPtr);
+            count_VkImageSubresourceRange(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageSubresourceRange*)(local_pRanges + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdClearDepthStencilImage = 4 + 4 + count;
@@ -9586,12 +9586,12 @@ void VkEncoder::vkCmdClearDepthStencilImage(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkImageLayout*)&local_imageLayout, sizeof(VkImageLayout));
     *streamPtrPtr += sizeof(VkImageLayout);
-    reservedmarshal_VkClearDepthStencilValue(stream, (VkClearDepthStencilValue*)(local_pDepthStencil), streamPtrPtr);
+    reservedmarshal_VkClearDepthStencilValue(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkClearDepthStencilValue*)(local_pDepthStencil), streamPtrPtr);
     memcpy(*streamPtrPtr, (uint32_t*)&local_rangeCount, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((rangeCount)); ++i)
     {
-        reservedmarshal_VkImageSubresourceRange(stream, (VkImageSubresourceRange*)(local_pRanges + i), streamPtrPtr);
+        reservedmarshal_VkImageSubresourceRange(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageSubresourceRange*)(local_pRanges + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -9628,7 +9628,7 @@ void VkEncoder::vkCmdClearAttachments(
         local_pAttachments = (VkClearAttachment*)pool->alloc(((attachmentCount)) * sizeof(const VkClearAttachment));
         for (uint32_t i = 0; i < (uint32_t)((attachmentCount)); ++i)
         {
-            deepcopy_VkClearAttachment(pool, pAttachments + i, (VkClearAttachment*)(local_pAttachments + i));
+            deepcopy_VkClearAttachment(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAttachments + i, (VkClearAttachment*)(local_pAttachments + i));
         }
     }
     local_rectCount = rectCount;
@@ -9638,7 +9638,7 @@ void VkEncoder::vkCmdClearAttachments(
         local_pRects = (VkClearRect*)pool->alloc(((rectCount)) * sizeof(const VkClearRect));
         for (uint32_t i = 0; i < (uint32_t)((rectCount)); ++i)
         {
-            deepcopy_VkClearRect(pool, pRects + i, (VkClearRect*)(local_pRects + i));
+            deepcopy_VkClearRect(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pRects + i, (VkClearRect*)(local_pRects + i));
         }
     }
     if (local_pAttachments)
@@ -9663,12 +9663,12 @@ void VkEncoder::vkCmdClearAttachments(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((attachmentCount)); ++i)
         {
-            count_VkClearAttachment(sFeatureBits, (VkClearAttachment*)(local_pAttachments + i), countPtr);
+            count_VkClearAttachment(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkClearAttachment*)(local_pAttachments + i), countPtr);
         }
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((rectCount)); ++i)
         {
-            count_VkClearRect(sFeatureBits, (VkClearRect*)(local_pRects + i), countPtr);
+            count_VkClearRect(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkClearRect*)(local_pRects + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdClearAttachments = 4 + 4 + count;
@@ -9689,13 +9689,13 @@ void VkEncoder::vkCmdClearAttachments(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((attachmentCount)); ++i)
     {
-        reservedmarshal_VkClearAttachment(stream, (VkClearAttachment*)(local_pAttachments + i), streamPtrPtr);
+        reservedmarshal_VkClearAttachment(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkClearAttachment*)(local_pAttachments + i), streamPtrPtr);
     }
     memcpy(*streamPtrPtr, (uint32_t*)&local_rectCount, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((rectCount)); ++i)
     {
-        reservedmarshal_VkClearRect(stream, (VkClearRect*)(local_pRects + i), streamPtrPtr);
+        reservedmarshal_VkClearRect(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkClearRect*)(local_pRects + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -9740,7 +9740,7 @@ void VkEncoder::vkCmdResolveImage(
         local_pRegions = (VkImageResolve*)pool->alloc(((regionCount)) * sizeof(const VkImageResolve));
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            deepcopy_VkImageResolve(pool, pRegions + i, (VkImageResolve*)(local_pRegions + i));
+            deepcopy_VkImageResolve(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pRegions + i, (VkImageResolve*)(local_pRegions + i));
         }
     }
     if (local_pRegions)
@@ -9764,7 +9764,7 @@ void VkEncoder::vkCmdResolveImage(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
         {
-            count_VkImageResolve(sFeatureBits, (VkImageResolve*)(local_pRegions + i), countPtr);
+            count_VkImageResolve(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageResolve*)(local_pRegions + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdResolveImage = 4 + 4 + count;
@@ -9797,7 +9797,7 @@ void VkEncoder::vkCmdResolveImage(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((regionCount)); ++i)
     {
-        reservedmarshal_VkImageResolve(stream, (VkImageResolve*)(local_pRegions + i), streamPtrPtr);
+        reservedmarshal_VkImageResolve(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageResolve*)(local_pRegions + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -9961,7 +9961,7 @@ void VkEncoder::vkCmdWaitEvents(
         local_pMemoryBarriers = (VkMemoryBarrier*)pool->alloc(((memoryBarrierCount)) * sizeof(const VkMemoryBarrier));
         for (uint32_t i = 0; i < (uint32_t)((memoryBarrierCount)); ++i)
         {
-            deepcopy_VkMemoryBarrier(pool, pMemoryBarriers + i, (VkMemoryBarrier*)(local_pMemoryBarriers + i));
+            deepcopy_VkMemoryBarrier(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pMemoryBarriers + i, (VkMemoryBarrier*)(local_pMemoryBarriers + i));
         }
     }
     local_bufferMemoryBarrierCount = bufferMemoryBarrierCount;
@@ -9971,7 +9971,7 @@ void VkEncoder::vkCmdWaitEvents(
         local_pBufferMemoryBarriers = (VkBufferMemoryBarrier*)pool->alloc(((bufferMemoryBarrierCount)) * sizeof(const VkBufferMemoryBarrier));
         for (uint32_t i = 0; i < (uint32_t)((bufferMemoryBarrierCount)); ++i)
         {
-            deepcopy_VkBufferMemoryBarrier(pool, pBufferMemoryBarriers + i, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i));
+            deepcopy_VkBufferMemoryBarrier(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pBufferMemoryBarriers + i, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i));
         }
     }
     local_imageMemoryBarrierCount = imageMemoryBarrierCount;
@@ -9981,7 +9981,7 @@ void VkEncoder::vkCmdWaitEvents(
         local_pImageMemoryBarriers = (VkImageMemoryBarrier*)pool->alloc(((imageMemoryBarrierCount)) * sizeof(const VkImageMemoryBarrier));
         for (uint32_t i = 0; i < (uint32_t)((imageMemoryBarrierCount)); ++i)
         {
-            deepcopy_VkImageMemoryBarrier(pool, pImageMemoryBarriers + i, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i));
+            deepcopy_VkImageMemoryBarrier(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pImageMemoryBarriers + i, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i));
         }
     }
     if (local_pMemoryBarriers)
@@ -10020,17 +10020,17 @@ void VkEncoder::vkCmdWaitEvents(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((memoryBarrierCount)); ++i)
         {
-            count_VkMemoryBarrier(sFeatureBits, (VkMemoryBarrier*)(local_pMemoryBarriers + i), countPtr);
+            count_VkMemoryBarrier(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryBarrier*)(local_pMemoryBarriers + i), countPtr);
         }
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((bufferMemoryBarrierCount)); ++i)
         {
-            count_VkBufferMemoryBarrier(sFeatureBits, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i), countPtr);
+            count_VkBufferMemoryBarrier(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i), countPtr);
         }
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((imageMemoryBarrierCount)); ++i)
         {
-            count_VkImageMemoryBarrier(sFeatureBits, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i), countPtr);
+            count_VkImageMemoryBarrier(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdWaitEvents = 4 + 4 + count;
@@ -10067,19 +10067,19 @@ void VkEncoder::vkCmdWaitEvents(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((memoryBarrierCount)); ++i)
     {
-        reservedmarshal_VkMemoryBarrier(stream, (VkMemoryBarrier*)(local_pMemoryBarriers + i), streamPtrPtr);
+        reservedmarshal_VkMemoryBarrier(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryBarrier*)(local_pMemoryBarriers + i), streamPtrPtr);
     }
     memcpy(*streamPtrPtr, (uint32_t*)&local_bufferMemoryBarrierCount, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((bufferMemoryBarrierCount)); ++i)
     {
-        reservedmarshal_VkBufferMemoryBarrier(stream, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i), streamPtrPtr);
+        reservedmarshal_VkBufferMemoryBarrier(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i), streamPtrPtr);
     }
     memcpy(*streamPtrPtr, (uint32_t*)&local_imageMemoryBarrierCount, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((imageMemoryBarrierCount)); ++i)
     {
-        reservedmarshal_VkImageMemoryBarrier(stream, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i), streamPtrPtr);
+        reservedmarshal_VkImageMemoryBarrier(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -10129,7 +10129,7 @@ void VkEncoder::vkCmdPipelineBarrier(
         local_pMemoryBarriers = (VkMemoryBarrier*)pool->alloc(((memoryBarrierCount)) * sizeof(const VkMemoryBarrier));
         for (uint32_t i = 0; i < (uint32_t)((memoryBarrierCount)); ++i)
         {
-            deepcopy_VkMemoryBarrier(pool, pMemoryBarriers + i, (VkMemoryBarrier*)(local_pMemoryBarriers + i));
+            deepcopy_VkMemoryBarrier(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pMemoryBarriers + i, (VkMemoryBarrier*)(local_pMemoryBarriers + i));
         }
     }
     local_bufferMemoryBarrierCount = bufferMemoryBarrierCount;
@@ -10139,7 +10139,7 @@ void VkEncoder::vkCmdPipelineBarrier(
         local_pBufferMemoryBarriers = (VkBufferMemoryBarrier*)pool->alloc(((bufferMemoryBarrierCount)) * sizeof(const VkBufferMemoryBarrier));
         for (uint32_t i = 0; i < (uint32_t)((bufferMemoryBarrierCount)); ++i)
         {
-            deepcopy_VkBufferMemoryBarrier(pool, pBufferMemoryBarriers + i, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i));
+            deepcopy_VkBufferMemoryBarrier(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pBufferMemoryBarriers + i, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i));
         }
     }
     local_imageMemoryBarrierCount = imageMemoryBarrierCount;
@@ -10149,7 +10149,7 @@ void VkEncoder::vkCmdPipelineBarrier(
         local_pImageMemoryBarriers = (VkImageMemoryBarrier*)pool->alloc(((imageMemoryBarrierCount)) * sizeof(const VkImageMemoryBarrier));
         for (uint32_t i = 0; i < (uint32_t)((imageMemoryBarrierCount)); ++i)
         {
-            deepcopy_VkImageMemoryBarrier(pool, pImageMemoryBarriers + i, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i));
+            deepcopy_VkImageMemoryBarrier(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pImageMemoryBarriers + i, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i));
         }
     }
     if (local_pMemoryBarriers)
@@ -10184,17 +10184,17 @@ void VkEncoder::vkCmdPipelineBarrier(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((memoryBarrierCount)); ++i)
         {
-            count_VkMemoryBarrier(sFeatureBits, (VkMemoryBarrier*)(local_pMemoryBarriers + i), countPtr);
+            count_VkMemoryBarrier(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryBarrier*)(local_pMemoryBarriers + i), countPtr);
         }
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((bufferMemoryBarrierCount)); ++i)
         {
-            count_VkBufferMemoryBarrier(sFeatureBits, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i), countPtr);
+            count_VkBufferMemoryBarrier(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i), countPtr);
         }
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((imageMemoryBarrierCount)); ++i)
         {
-            count_VkImageMemoryBarrier(sFeatureBits, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i), countPtr);
+            count_VkImageMemoryBarrier(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdPipelineBarrier = 4 + 4 + count;
@@ -10221,19 +10221,19 @@ void VkEncoder::vkCmdPipelineBarrier(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((memoryBarrierCount)); ++i)
     {
-        reservedmarshal_VkMemoryBarrier(stream, (VkMemoryBarrier*)(local_pMemoryBarriers + i), streamPtrPtr);
+        reservedmarshal_VkMemoryBarrier(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryBarrier*)(local_pMemoryBarriers + i), streamPtrPtr);
     }
     memcpy(*streamPtrPtr, (uint32_t*)&local_bufferMemoryBarrierCount, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((bufferMemoryBarrierCount)); ++i)
     {
-        reservedmarshal_VkBufferMemoryBarrier(stream, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i), streamPtrPtr);
+        reservedmarshal_VkBufferMemoryBarrier(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferMemoryBarrier*)(local_pBufferMemoryBarriers + i), streamPtrPtr);
     }
     memcpy(*streamPtrPtr, (uint32_t*)&local_imageMemoryBarrierCount, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((imageMemoryBarrierCount)); ++i)
     {
-        reservedmarshal_VkImageMemoryBarrier(stream, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i), streamPtrPtr);
+        reservedmarshal_VkImageMemoryBarrier(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageMemoryBarrier*)(local_pImageMemoryBarriers + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -10663,7 +10663,7 @@ void VkEncoder::vkCmdBeginRenderPass(
     if (pRenderPassBegin)
     {
         local_pRenderPassBegin = (VkRenderPassBeginInfo*)pool->alloc(sizeof(const VkRenderPassBeginInfo));
-        deepcopy_VkRenderPassBeginInfo(pool, pRenderPassBegin, (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
+        deepcopy_VkRenderPassBeginInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pRenderPassBegin, (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
     }
     local_contents = contents;
     if (local_pRenderPassBegin)
@@ -10675,7 +10675,7 @@ void VkEncoder::vkCmdBeginRenderPass(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkRenderPassBeginInfo(sFeatureBits, (VkRenderPassBeginInfo*)(local_pRenderPassBegin), countPtr);
+        count_VkRenderPassBeginInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRenderPassBeginInfo*)(local_pRenderPassBegin), countPtr);
         *countPtr += sizeof(VkSubpassContents);
     }
     uint32_t packetSize_vkCmdBeginRenderPass = 4 + 4 + count;
@@ -10692,7 +10692,7 @@ void VkEncoder::vkCmdBeginRenderPass(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkRenderPassBeginInfo(stream, (VkRenderPassBeginInfo*)(local_pRenderPassBegin), streamPtrPtr);
+    reservedmarshal_VkRenderPassBeginInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRenderPassBeginInfo*)(local_pRenderPassBegin), streamPtrPtr);
     memcpy(*streamPtrPtr, (VkSubpassContents*)&local_contents, sizeof(VkSubpassContents));
     *streamPtrPtr += sizeof(VkSubpassContents);
     ++encodeCount;;
@@ -10915,7 +10915,7 @@ VkResult VkEncoder::vkBindBufferMemory2(
         local_pBindInfos = (VkBindBufferMemoryInfo*)pool->alloc(((bindInfoCount)) * sizeof(const VkBindBufferMemoryInfo));
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            deepcopy_VkBindBufferMemoryInfo(pool, pBindInfos + i, (VkBindBufferMemoryInfo*)(local_pBindInfos + i));
+            deepcopy_VkBindBufferMemoryInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pBindInfos + i, (VkBindBufferMemoryInfo*)(local_pBindInfos + i));
         }
     }
     if (local_pBindInfos)
@@ -10933,7 +10933,7 @@ VkResult VkEncoder::vkBindBufferMemory2(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            count_VkBindBufferMemoryInfo(sFeatureBits, (VkBindBufferMemoryInfo*)(local_pBindInfos + i), countPtr);
+            count_VkBindBufferMemoryInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBindBufferMemoryInfo*)(local_pBindInfos + i), countPtr);
         }
     }
     uint32_t packetSize_vkBindBufferMemory2 = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -10952,7 +10952,7 @@ VkResult VkEncoder::vkBindBufferMemory2(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
     {
-        reservedmarshal_VkBindBufferMemoryInfo(stream, (VkBindBufferMemoryInfo*)(local_pBindInfos + i), streamPtrPtr);
+        reservedmarshal_VkBindBufferMemoryInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBindBufferMemoryInfo*)(local_pBindInfos + i), streamPtrPtr);
     }
     VkResult vkBindBufferMemory2_VkResult_return = (VkResult)0;
     stream->read(&vkBindBufferMemory2_VkResult_return, sizeof(VkResult));
@@ -10988,7 +10988,7 @@ VkResult VkEncoder::vkBindImageMemory2(
         local_pBindInfos = (VkBindImageMemoryInfo*)pool->alloc(((bindInfoCount)) * sizeof(const VkBindImageMemoryInfo));
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            deepcopy_VkBindImageMemoryInfo(pool, pBindInfos + i, (VkBindImageMemoryInfo*)(local_pBindInfos + i));
+            deepcopy_VkBindImageMemoryInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pBindInfos + i, (VkBindImageMemoryInfo*)(local_pBindInfos + i));
         }
     }
     if (local_pBindInfos)
@@ -11006,7 +11006,7 @@ VkResult VkEncoder::vkBindImageMemory2(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            count_VkBindImageMemoryInfo(sFeatureBits, (VkBindImageMemoryInfo*)(local_pBindInfos + i), countPtr);
+            count_VkBindImageMemoryInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBindImageMemoryInfo*)(local_pBindInfos + i), countPtr);
         }
     }
     uint32_t packetSize_vkBindImageMemory2 = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -11025,7 +11025,7 @@ VkResult VkEncoder::vkBindImageMemory2(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
     {
-        reservedmarshal_VkBindImageMemoryInfo(stream, (VkBindImageMemoryInfo*)(local_pBindInfos + i), streamPtrPtr);
+        reservedmarshal_VkBindImageMemoryInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBindImageMemoryInfo*)(local_pBindInfos + i), streamPtrPtr);
     }
     VkResult vkBindImageMemory2_VkResult_return = (VkResult)0;
     stream->read(&vkBindImageMemory2_VkResult_return, sizeof(VkResult));
@@ -11254,7 +11254,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
                 {
-                    count_VkPhysicalDeviceGroupProperties(sFeatureBits, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i), countPtr);
+                    count_VkPhysicalDeviceGroupProperties(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i), countPtr);
                 }
             }
         }
@@ -11290,7 +11290,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
         {
-            reservedmarshal_VkPhysicalDeviceGroupProperties(stream, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i), streamPtrPtr);
+            reservedmarshal_VkPhysicalDeviceGroupProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -11317,7 +11317,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroups(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
             {
-                unmarshal_VkPhysicalDeviceGroupProperties(stream, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
+                unmarshal_VkPhysicalDeviceGroupProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
             }
         }
     }
@@ -11361,7 +11361,7 @@ void VkEncoder::vkGetImageMemoryRequirements2(
     if (pInfo)
     {
         local_pInfo = (VkImageMemoryRequirementsInfo2*)pool->alloc(sizeof(const VkImageMemoryRequirementsInfo2));
-        deepcopy_VkImageMemoryRequirementsInfo2(pool, pInfo, (VkImageMemoryRequirementsInfo2*)(local_pInfo));
+        deepcopy_VkImageMemoryRequirementsInfo2(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkImageMemoryRequirementsInfo2*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -11372,8 +11372,8 @@ void VkEncoder::vkGetImageMemoryRequirements2(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkImageMemoryRequirementsInfo2(sFeatureBits, (VkImageMemoryRequirementsInfo2*)(local_pInfo), countPtr);
-        count_VkMemoryRequirements2(sFeatureBits, (VkMemoryRequirements2*)(pMemoryRequirements), countPtr);
+        count_VkImageMemoryRequirementsInfo2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageMemoryRequirementsInfo2*)(local_pInfo), countPtr);
+        count_VkMemoryRequirements2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements2*)(pMemoryRequirements), countPtr);
     }
     uint32_t packetSize_vkGetImageMemoryRequirements2 = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetImageMemoryRequirements2);
@@ -11387,9 +11387,9 @@ void VkEncoder::vkGetImageMemoryRequirements2(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkImageMemoryRequirementsInfo2(stream, (VkImageMemoryRequirementsInfo2*)(local_pInfo), streamPtrPtr);
-    reservedmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements), streamPtrPtr);
-    unmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
+    reservedmarshal_VkImageMemoryRequirementsInfo2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageMemoryRequirementsInfo2*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkMemoryRequirements2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements2*)(pMemoryRequirements), streamPtrPtr);
+    unmarshal_VkMemoryRequirements2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements2*)(pMemoryRequirements));
     if (pMemoryRequirements)
     {
         transform_fromhost_VkMemoryRequirements2(sResourceTracker, (VkMemoryRequirements2*)(pMemoryRequirements));
@@ -11421,7 +11421,7 @@ void VkEncoder::vkGetBufferMemoryRequirements2(
     if (pInfo)
     {
         local_pInfo = (VkBufferMemoryRequirementsInfo2*)pool->alloc(sizeof(const VkBufferMemoryRequirementsInfo2));
-        deepcopy_VkBufferMemoryRequirementsInfo2(pool, pInfo, (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
+        deepcopy_VkBufferMemoryRequirementsInfo2(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -11432,8 +11432,8 @@ void VkEncoder::vkGetBufferMemoryRequirements2(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkBufferMemoryRequirementsInfo2(sFeatureBits, (VkBufferMemoryRequirementsInfo2*)(local_pInfo), countPtr);
-        count_VkMemoryRequirements2(sFeatureBits, (VkMemoryRequirements2*)(pMemoryRequirements), countPtr);
+        count_VkBufferMemoryRequirementsInfo2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferMemoryRequirementsInfo2*)(local_pInfo), countPtr);
+        count_VkMemoryRequirements2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements2*)(pMemoryRequirements), countPtr);
     }
     uint32_t packetSize_vkGetBufferMemoryRequirements2 = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetBufferMemoryRequirements2);
@@ -11447,9 +11447,9 @@ void VkEncoder::vkGetBufferMemoryRequirements2(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkBufferMemoryRequirementsInfo2(stream, (VkBufferMemoryRequirementsInfo2*)(local_pInfo), streamPtrPtr);
-    reservedmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements), streamPtrPtr);
-    unmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
+    reservedmarshal_VkBufferMemoryRequirementsInfo2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferMemoryRequirementsInfo2*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkMemoryRequirements2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements2*)(pMemoryRequirements), streamPtrPtr);
+    unmarshal_VkMemoryRequirements2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements2*)(pMemoryRequirements));
     if (pMemoryRequirements)
     {
         transform_fromhost_VkMemoryRequirements2(sResourceTracker, (VkMemoryRequirements2*)(pMemoryRequirements));
@@ -11482,7 +11482,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
     if (pInfo)
     {
         local_pInfo = (VkImageSparseMemoryRequirementsInfo2*)pool->alloc(sizeof(const VkImageSparseMemoryRequirementsInfo2));
-        deepcopy_VkImageSparseMemoryRequirementsInfo2(pool, pInfo, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo));
+        deepcopy_VkImageSparseMemoryRequirementsInfo2(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -11493,7 +11493,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkImageSparseMemoryRequirementsInfo2(sFeatureBits, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo), countPtr);
+        count_VkImageSparseMemoryRequirementsInfo2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (pSparseMemoryRequirementCount)
@@ -11508,7 +11508,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
                 {
-                    count_VkSparseImageMemoryRequirements2(sFeatureBits, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i), countPtr);
+                    count_VkSparseImageMemoryRequirements2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i), countPtr);
                 }
             }
         }
@@ -11525,7 +11525,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkImageSparseMemoryRequirementsInfo2(stream, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkImageSparseMemoryRequirementsInfo2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pSparseMemoryRequirementCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -11545,7 +11545,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
         {
-            reservedmarshal_VkSparseImageMemoryRequirements2(stream, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i), streamPtrPtr);
+            reservedmarshal_VkSparseImageMemoryRequirements2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -11572,7 +11572,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
             {
-                unmarshal_VkSparseImageMemoryRequirements2(stream, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
+                unmarshal_VkSparseImageMemoryRequirements2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
             }
         }
     }
@@ -11612,7 +11612,7 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceFeatures2(sFeatureBits, (VkPhysicalDeviceFeatures2*)(pFeatures), countPtr);
+        count_VkPhysicalDeviceFeatures2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceFeatures2*)(pFeatures), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceFeatures2 = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceFeatures2);
@@ -11626,8 +11626,8 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceFeatures2(stream, (VkPhysicalDeviceFeatures2*)(pFeatures), streamPtrPtr);
-    unmarshal_VkPhysicalDeviceFeatures2(stream, (VkPhysicalDeviceFeatures2*)(pFeatures));
+    reservedmarshal_VkPhysicalDeviceFeatures2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceFeatures2*)(pFeatures), streamPtrPtr);
+    unmarshal_VkPhysicalDeviceFeatures2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceFeatures2*)(pFeatures));
     if (pFeatures)
     {
         transform_fromhost_VkPhysicalDeviceFeatures2(sResourceTracker, (VkPhysicalDeviceFeatures2*)(pFeatures));
@@ -11658,7 +11658,7 @@ void VkEncoder::vkGetPhysicalDeviceProperties2(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceProperties2(sFeatureBits, (VkPhysicalDeviceProperties2*)(pProperties), countPtr);
+        count_VkPhysicalDeviceProperties2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceProperties2*)(pProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceProperties2 = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceProperties2);
@@ -11672,8 +11672,8 @@ void VkEncoder::vkGetPhysicalDeviceProperties2(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceProperties2(stream, (VkPhysicalDeviceProperties2*)(pProperties), streamPtrPtr);
-    unmarshal_VkPhysicalDeviceProperties2(stream, (VkPhysicalDeviceProperties2*)(pProperties));
+    reservedmarshal_VkPhysicalDeviceProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceProperties2*)(pProperties), streamPtrPtr);
+    unmarshal_VkPhysicalDeviceProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceProperties2*)(pProperties));
     if (pProperties)
     {
         transform_fromhost_VkPhysicalDeviceProperties2(sResourceTracker, (VkPhysicalDeviceProperties2*)(pProperties));
@@ -11709,7 +11709,7 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2(
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkFormat);
-        count_VkFormatProperties2(sFeatureBits, (VkFormatProperties2*)(pFormatProperties), countPtr);
+        count_VkFormatProperties2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFormatProperties2*)(pFormatProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceFormatProperties2 = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceFormatProperties2);
@@ -11725,8 +11725,8 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkFormat*)&local_format, sizeof(VkFormat));
     *streamPtrPtr += sizeof(VkFormat);
-    reservedmarshal_VkFormatProperties2(stream, (VkFormatProperties2*)(pFormatProperties), streamPtrPtr);
-    unmarshal_VkFormatProperties2(stream, (VkFormatProperties2*)(pFormatProperties));
+    reservedmarshal_VkFormatProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFormatProperties2*)(pFormatProperties), streamPtrPtr);
+    unmarshal_VkFormatProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFormatProperties2*)(pFormatProperties));
     if (pFormatProperties)
     {
         transform_fromhost_VkFormatProperties2(sResourceTracker, (VkFormatProperties2*)(pFormatProperties));
@@ -11758,7 +11758,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2(
     if (pImageFormatInfo)
     {
         local_pImageFormatInfo = (VkPhysicalDeviceImageFormatInfo2*)pool->alloc(sizeof(const VkPhysicalDeviceImageFormatInfo2));
-        deepcopy_VkPhysicalDeviceImageFormatInfo2(pool, pImageFormatInfo, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
+        deepcopy_VkPhysicalDeviceImageFormatInfo2(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pImageFormatInfo, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
     }
     if (local_pImageFormatInfo)
     {
@@ -11769,8 +11769,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceImageFormatInfo2(sFeatureBits, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo), countPtr);
-        count_VkImageFormatProperties2(sFeatureBits, (VkImageFormatProperties2*)(pImageFormatProperties), countPtr);
+        count_VkPhysicalDeviceImageFormatInfo2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo), countPtr);
+        count_VkImageFormatProperties2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageFormatProperties2*)(pImageFormatProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceImageFormatProperties2 = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceImageFormatProperties2);
@@ -11784,9 +11784,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceImageFormatInfo2(stream, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo), streamPtrPtr);
-    reservedmarshal_VkImageFormatProperties2(stream, (VkImageFormatProperties2*)(pImageFormatProperties), streamPtrPtr);
-    unmarshal_VkImageFormatProperties2(stream, (VkImageFormatProperties2*)(pImageFormatProperties));
+    reservedmarshal_VkPhysicalDeviceImageFormatInfo2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo), streamPtrPtr);
+    reservedmarshal_VkImageFormatProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageFormatProperties2*)(pImageFormatProperties), streamPtrPtr);
+    unmarshal_VkImageFormatProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageFormatProperties2*)(pImageFormatProperties));
     if (pImageFormatProperties)
     {
         transform_fromhost_VkImageFormatProperties2(sResourceTracker, (VkImageFormatProperties2*)(pImageFormatProperties));
@@ -11835,7 +11835,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
                 {
-                    count_VkQueueFamilyProperties2(sFeatureBits, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i), countPtr);
+                    count_VkQueueFamilyProperties2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i), countPtr);
                 }
             }
         }
@@ -11871,7 +11871,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
         {
-            reservedmarshal_VkQueueFamilyProperties2(stream, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i), streamPtrPtr);
+            reservedmarshal_VkQueueFamilyProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -11898,7 +11898,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
             {
-                unmarshal_VkQueueFamilyProperties2(stream, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
+                unmarshal_VkQueueFamilyProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
             }
         }
     }
@@ -11938,7 +11938,7 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceMemoryProperties2(sFeatureBits, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties), countPtr);
+        count_VkPhysicalDeviceMemoryProperties2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceMemoryProperties2 = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceMemoryProperties2);
@@ -11952,8 +11952,8 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceMemoryProperties2(stream, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties), streamPtrPtr);
-    unmarshal_VkPhysicalDeviceMemoryProperties2(stream, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
+    reservedmarshal_VkPhysicalDeviceMemoryProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties), streamPtrPtr);
+    unmarshal_VkPhysicalDeviceMemoryProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     if (pMemoryProperties)
     {
         transform_fromhost_VkPhysicalDeviceMemoryProperties2(sResourceTracker, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
@@ -11987,7 +11987,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
     if (pFormatInfo)
     {
         local_pFormatInfo = (VkPhysicalDeviceSparseImageFormatInfo2*)pool->alloc(sizeof(const VkPhysicalDeviceSparseImageFormatInfo2));
-        deepcopy_VkPhysicalDeviceSparseImageFormatInfo2(pool, pFormatInfo, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo));
+        deepcopy_VkPhysicalDeviceSparseImageFormatInfo2(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pFormatInfo, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo));
     }
     if (local_pFormatInfo)
     {
@@ -11998,7 +11998,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceSparseImageFormatInfo2(sFeatureBits, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo), countPtr);
+        count_VkPhysicalDeviceSparseImageFormatInfo2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (pPropertyCount)
@@ -12013,7 +12013,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
-                    count_VkSparseImageFormatProperties2(sFeatureBits, (VkSparseImageFormatProperties2*)(pProperties + i), countPtr);
+                    count_VkSparseImageFormatProperties2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSparseImageFormatProperties2*)(pProperties + i), countPtr);
                 }
             }
         }
@@ -12030,7 +12030,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceSparseImageFormatInfo2(stream, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo), streamPtrPtr);
+    reservedmarshal_VkPhysicalDeviceSparseImageFormatInfo2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -12050,7 +12050,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            reservedmarshal_VkSparseImageFormatProperties2(stream, (VkSparseImageFormatProperties2*)(pProperties + i), streamPtrPtr);
+            reservedmarshal_VkSparseImageFormatProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSparseImageFormatProperties2*)(pProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -12077,7 +12077,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                unmarshal_VkSparseImageFormatProperties2(stream, (VkSparseImageFormatProperties2*)(pProperties + i));
+                unmarshal_VkSparseImageFormatProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSparseImageFormatProperties2*)(pProperties + i));
             }
         }
     }
@@ -12172,7 +12172,7 @@ void VkEncoder::vkGetDeviceQueue2(
     if (pQueueInfo)
     {
         local_pQueueInfo = (VkDeviceQueueInfo2*)pool->alloc(sizeof(const VkDeviceQueueInfo2));
-        deepcopy_VkDeviceQueueInfo2(pool, pQueueInfo, (VkDeviceQueueInfo2*)(local_pQueueInfo));
+        deepcopy_VkDeviceQueueInfo2(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pQueueInfo, (VkDeviceQueueInfo2*)(local_pQueueInfo));
     }
     if (local_pQueueInfo)
     {
@@ -12183,7 +12183,7 @@ void VkEncoder::vkGetDeviceQueue2(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDeviceQueueInfo2(sFeatureBits, (VkDeviceQueueInfo2*)(local_pQueueInfo), countPtr);
+        count_VkDeviceQueueInfo2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDeviceQueueInfo2*)(local_pQueueInfo), countPtr);
         uint64_t cgen_var_1;
         *countPtr += 8;
     }
@@ -12199,7 +12199,7 @@ void VkEncoder::vkGetDeviceQueue2(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDeviceQueueInfo2(stream, (VkDeviceQueueInfo2*)(local_pQueueInfo), streamPtrPtr);
+    reservedmarshal_VkDeviceQueueInfo2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDeviceQueueInfo2*)(local_pQueueInfo), streamPtrPtr);
     /* is handle, possibly out */;
     uint64_t cgen_var_1;
     *&cgen_var_1 = (uint64_t)((*pQueue));
@@ -12238,13 +12238,13 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversion(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkSamplerYcbcrConversionCreateInfo*)pool->alloc(sizeof(const VkSamplerYcbcrConversionCreateInfo));
-        deepcopy_VkSamplerYcbcrConversionCreateInfo(pool, pCreateInfo, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkSamplerYcbcrConversionCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -12260,12 +12260,12 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversion(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkSamplerYcbcrConversionCreateInfo(sFeatureBits, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkSamplerYcbcrConversionCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -12282,7 +12282,7 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversion(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkSamplerYcbcrConversionCreateInfo(stream, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkSamplerYcbcrConversionCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -12290,7 +12290,7 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversion(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -12335,7 +12335,7 @@ void VkEncoder::vkDestroySamplerYcbcrConversion(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -12353,7 +12353,7 @@ void VkEncoder::vkDestroySamplerYcbcrConversion(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroySamplerYcbcrConversion = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -12379,7 +12379,7 @@ void VkEncoder::vkDestroySamplerYcbcrConversion(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkSamplerYcbcrConversion((VkSamplerYcbcrConversion*)&ycbcrConversion);
     stream->flush();
@@ -12412,13 +12412,13 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplate(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDescriptorUpdateTemplateCreateInfo*)pool->alloc(sizeof(const VkDescriptorUpdateTemplateCreateInfo));
-        deepcopy_VkDescriptorUpdateTemplateCreateInfo(pool, pCreateInfo, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkDescriptorUpdateTemplateCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -12434,12 +12434,12 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplate(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDescriptorUpdateTemplateCreateInfo(sFeatureBits, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkDescriptorUpdateTemplateCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -12456,7 +12456,7 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplate(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDescriptorUpdateTemplateCreateInfo(stream, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkDescriptorUpdateTemplateCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -12464,7 +12464,7 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplate(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -12510,7 +12510,7 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplate(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -12528,7 +12528,7 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplate(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyDescriptorUpdateTemplate = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -12554,7 +12554,7 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplate(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkDescriptorUpdateTemplate((VkDescriptorUpdateTemplate*)&descriptorUpdateTemplate);
     stream->flush();
@@ -12662,7 +12662,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
     if (pExternalBufferInfo)
     {
         local_pExternalBufferInfo = (VkPhysicalDeviceExternalBufferInfo*)pool->alloc(sizeof(const VkPhysicalDeviceExternalBufferInfo));
-        deepcopy_VkPhysicalDeviceExternalBufferInfo(pool, pExternalBufferInfo, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
+        deepcopy_VkPhysicalDeviceExternalBufferInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pExternalBufferInfo, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
     }
     if (local_pExternalBufferInfo)
     {
@@ -12674,8 +12674,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceExternalBufferInfo(sFeatureBits, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo), countPtr);
-        count_VkExternalBufferProperties(sFeatureBits, (VkExternalBufferProperties*)(pExternalBufferProperties), countPtr);
+        count_VkPhysicalDeviceExternalBufferInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo), countPtr);
+        count_VkExternalBufferProperties(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalBufferProperties*)(pExternalBufferProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceExternalBufferProperties = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceExternalBufferProperties);
@@ -12689,9 +12689,9 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferProperties(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceExternalBufferInfo(stream, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo), streamPtrPtr);
-    reservedmarshal_VkExternalBufferProperties(stream, (VkExternalBufferProperties*)(pExternalBufferProperties), streamPtrPtr);
-    unmarshal_VkExternalBufferProperties(stream, (VkExternalBufferProperties*)(pExternalBufferProperties));
+    reservedmarshal_VkPhysicalDeviceExternalBufferInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo), streamPtrPtr);
+    reservedmarshal_VkExternalBufferProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalBufferProperties*)(pExternalBufferProperties), streamPtrPtr);
+    unmarshal_VkExternalBufferProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalBufferProperties*)(pExternalBufferProperties));
     if (pExternalBufferProperties)
     {
         sResourceTracker->transformImpl_VkExternalBufferProperties_fromhost(pExternalBufferProperties, 1);
@@ -12724,7 +12724,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalFenceProperties(
     if (pExternalFenceInfo)
     {
         local_pExternalFenceInfo = (VkPhysicalDeviceExternalFenceInfo*)pool->alloc(sizeof(const VkPhysicalDeviceExternalFenceInfo));
-        deepcopy_VkPhysicalDeviceExternalFenceInfo(pool, pExternalFenceInfo, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
+        deepcopy_VkPhysicalDeviceExternalFenceInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pExternalFenceInfo, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
     }
     if (local_pExternalFenceInfo)
     {
@@ -12735,8 +12735,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalFenceProperties(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceExternalFenceInfo(sFeatureBits, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo), countPtr);
-        count_VkExternalFenceProperties(sFeatureBits, (VkExternalFenceProperties*)(pExternalFenceProperties), countPtr);
+        count_VkPhysicalDeviceExternalFenceInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo), countPtr);
+        count_VkExternalFenceProperties(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalFenceProperties*)(pExternalFenceProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceExternalFenceProperties = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceExternalFenceProperties);
@@ -12750,9 +12750,9 @@ void VkEncoder::vkGetPhysicalDeviceExternalFenceProperties(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceExternalFenceInfo(stream, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo), streamPtrPtr);
-    reservedmarshal_VkExternalFenceProperties(stream, (VkExternalFenceProperties*)(pExternalFenceProperties), streamPtrPtr);
-    unmarshal_VkExternalFenceProperties(stream, (VkExternalFenceProperties*)(pExternalFenceProperties));
+    reservedmarshal_VkPhysicalDeviceExternalFenceInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo), streamPtrPtr);
+    reservedmarshal_VkExternalFenceProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalFenceProperties*)(pExternalFenceProperties), streamPtrPtr);
+    unmarshal_VkExternalFenceProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalFenceProperties*)(pExternalFenceProperties));
     if (pExternalFenceProperties)
     {
         transform_fromhost_VkExternalFenceProperties(sResourceTracker, (VkExternalFenceProperties*)(pExternalFenceProperties));
@@ -12784,7 +12784,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphoreProperties(
     if (pExternalSemaphoreInfo)
     {
         local_pExternalSemaphoreInfo = (VkPhysicalDeviceExternalSemaphoreInfo*)pool->alloc(sizeof(const VkPhysicalDeviceExternalSemaphoreInfo));
-        deepcopy_VkPhysicalDeviceExternalSemaphoreInfo(pool, pExternalSemaphoreInfo, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
+        deepcopy_VkPhysicalDeviceExternalSemaphoreInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pExternalSemaphoreInfo, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
     }
     if (local_pExternalSemaphoreInfo)
     {
@@ -12795,8 +12795,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphoreProperties(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceExternalSemaphoreInfo(sFeatureBits, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo), countPtr);
-        count_VkExternalSemaphoreProperties(sFeatureBits, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties), countPtr);
+        count_VkPhysicalDeviceExternalSemaphoreInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo), countPtr);
+        count_VkExternalSemaphoreProperties(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceExternalSemaphoreProperties = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceExternalSemaphoreProperties);
@@ -12810,9 +12810,9 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphoreProperties(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceExternalSemaphoreInfo(stream, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo), streamPtrPtr);
-    reservedmarshal_VkExternalSemaphoreProperties(stream, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties), streamPtrPtr);
-    unmarshal_VkExternalSemaphoreProperties(stream, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
+    reservedmarshal_VkPhysicalDeviceExternalSemaphoreInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo), streamPtrPtr);
+    reservedmarshal_VkExternalSemaphoreProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties), streamPtrPtr);
+    unmarshal_VkExternalSemaphoreProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
     if (pExternalSemaphoreProperties)
     {
         transform_fromhost_VkExternalSemaphoreProperties(sResourceTracker, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
@@ -12845,7 +12845,7 @@ void VkEncoder::vkGetDescriptorSetLayoutSupport(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDescriptorSetLayoutCreateInfo*)pool->alloc(sizeof(const VkDescriptorSetLayoutCreateInfo));
-        deepcopy_VkDescriptorSetLayoutCreateInfo(pool, pCreateInfo, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkDescriptorSetLayoutCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
     }
     if (local_pCreateInfo)
     {
@@ -12856,8 +12856,8 @@ void VkEncoder::vkGetDescriptorSetLayoutSupport(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDescriptorSetLayoutCreateInfo(sFeatureBits, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), countPtr);
-        count_VkDescriptorSetLayoutSupport(sFeatureBits, (VkDescriptorSetLayoutSupport*)(pSupport), countPtr);
+        count_VkDescriptorSetLayoutCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkDescriptorSetLayoutSupport(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorSetLayoutSupport*)(pSupport), countPtr);
     }
     uint32_t packetSize_vkGetDescriptorSetLayoutSupport = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDescriptorSetLayoutSupport);
@@ -12871,9 +12871,9 @@ void VkEncoder::vkGetDescriptorSetLayoutSupport(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDescriptorSetLayoutCreateInfo(stream, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), streamPtrPtr);
-    reservedmarshal_VkDescriptorSetLayoutSupport(stream, (VkDescriptorSetLayoutSupport*)(pSupport), streamPtrPtr);
-    unmarshal_VkDescriptorSetLayoutSupport(stream, (VkDescriptorSetLayoutSupport*)(pSupport));
+    reservedmarshal_VkDescriptorSetLayoutCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkDescriptorSetLayoutSupport(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorSetLayoutSupport*)(pSupport), streamPtrPtr);
+    unmarshal_VkDescriptorSetLayoutSupport(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorSetLayoutSupport*)(pSupport));
     if (pSupport)
     {
         transform_fromhost_VkDescriptorSetLayoutSupport(sResourceTracker, (VkDescriptorSetLayoutSupport*)(pSupport));
@@ -13073,13 +13073,13 @@ VkResult VkEncoder::vkCreateRenderPass2(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkRenderPassCreateInfo2*)pool->alloc(sizeof(const VkRenderPassCreateInfo2));
-        deepcopy_VkRenderPassCreateInfo2(pool, pCreateInfo, (VkRenderPassCreateInfo2*)(local_pCreateInfo));
+        deepcopy_VkRenderPassCreateInfo2(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkRenderPassCreateInfo2*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -13095,12 +13095,12 @@ VkResult VkEncoder::vkCreateRenderPass2(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkRenderPassCreateInfo2(sFeatureBits, (VkRenderPassCreateInfo2*)(local_pCreateInfo), countPtr);
+        count_VkRenderPassCreateInfo2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRenderPassCreateInfo2*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -13117,7 +13117,7 @@ VkResult VkEncoder::vkCreateRenderPass2(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkRenderPassCreateInfo2(stream, (VkRenderPassCreateInfo2*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkRenderPassCreateInfo2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRenderPassCreateInfo2*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -13125,7 +13125,7 @@ VkResult VkEncoder::vkCreateRenderPass2(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -13167,13 +13167,13 @@ void VkEncoder::vkCmdBeginRenderPass2(
     if (pRenderPassBegin)
     {
         local_pRenderPassBegin = (VkRenderPassBeginInfo*)pool->alloc(sizeof(const VkRenderPassBeginInfo));
-        deepcopy_VkRenderPassBeginInfo(pool, pRenderPassBegin, (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
+        deepcopy_VkRenderPassBeginInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pRenderPassBegin, (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
     }
     local_pSubpassBeginInfo = nullptr;
     if (pSubpassBeginInfo)
     {
         local_pSubpassBeginInfo = (VkSubpassBeginInfo*)pool->alloc(sizeof(const VkSubpassBeginInfo));
-        deepcopy_VkSubpassBeginInfo(pool, pSubpassBeginInfo, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo));
+        deepcopy_VkSubpassBeginInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pSubpassBeginInfo, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo));
     }
     if (local_pRenderPassBegin)
     {
@@ -13188,8 +13188,8 @@ void VkEncoder::vkCmdBeginRenderPass2(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkRenderPassBeginInfo(sFeatureBits, (VkRenderPassBeginInfo*)(local_pRenderPassBegin), countPtr);
-        count_VkSubpassBeginInfo(sFeatureBits, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo), countPtr);
+        count_VkRenderPassBeginInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRenderPassBeginInfo*)(local_pRenderPassBegin), countPtr);
+        count_VkSubpassBeginInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo), countPtr);
     }
     uint32_t packetSize_vkCmdBeginRenderPass2 = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdBeginRenderPass2 -= 8;
@@ -13205,8 +13205,8 @@ void VkEncoder::vkCmdBeginRenderPass2(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkRenderPassBeginInfo(stream, (VkRenderPassBeginInfo*)(local_pRenderPassBegin), streamPtrPtr);
-    reservedmarshal_VkSubpassBeginInfo(stream, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo), streamPtrPtr);
+    reservedmarshal_VkRenderPassBeginInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRenderPassBeginInfo*)(local_pRenderPassBegin), streamPtrPtr);
+    reservedmarshal_VkSubpassBeginInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -13235,13 +13235,13 @@ void VkEncoder::vkCmdNextSubpass2(
     if (pSubpassBeginInfo)
     {
         local_pSubpassBeginInfo = (VkSubpassBeginInfo*)pool->alloc(sizeof(const VkSubpassBeginInfo));
-        deepcopy_VkSubpassBeginInfo(pool, pSubpassBeginInfo, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo));
+        deepcopy_VkSubpassBeginInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pSubpassBeginInfo, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo));
     }
     local_pSubpassEndInfo = nullptr;
     if (pSubpassEndInfo)
     {
         local_pSubpassEndInfo = (VkSubpassEndInfo*)pool->alloc(sizeof(const VkSubpassEndInfo));
-        deepcopy_VkSubpassEndInfo(pool, pSubpassEndInfo, (VkSubpassEndInfo*)(local_pSubpassEndInfo));
+        deepcopy_VkSubpassEndInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pSubpassEndInfo, (VkSubpassEndInfo*)(local_pSubpassEndInfo));
     }
     if (local_pSubpassBeginInfo)
     {
@@ -13256,8 +13256,8 @@ void VkEncoder::vkCmdNextSubpass2(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkSubpassBeginInfo(sFeatureBits, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo), countPtr);
-        count_VkSubpassEndInfo(sFeatureBits, (VkSubpassEndInfo*)(local_pSubpassEndInfo), countPtr);
+        count_VkSubpassBeginInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo), countPtr);
+        count_VkSubpassEndInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubpassEndInfo*)(local_pSubpassEndInfo), countPtr);
     }
     uint32_t packetSize_vkCmdNextSubpass2 = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdNextSubpass2 -= 8;
@@ -13273,8 +13273,8 @@ void VkEncoder::vkCmdNextSubpass2(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkSubpassBeginInfo(stream, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo), streamPtrPtr);
-    reservedmarshal_VkSubpassEndInfo(stream, (VkSubpassEndInfo*)(local_pSubpassEndInfo), streamPtrPtr);
+    reservedmarshal_VkSubpassBeginInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo), streamPtrPtr);
+    reservedmarshal_VkSubpassEndInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubpassEndInfo*)(local_pSubpassEndInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -13301,7 +13301,7 @@ void VkEncoder::vkCmdEndRenderPass2(
     if (pSubpassEndInfo)
     {
         local_pSubpassEndInfo = (VkSubpassEndInfo*)pool->alloc(sizeof(const VkSubpassEndInfo));
-        deepcopy_VkSubpassEndInfo(pool, pSubpassEndInfo, (VkSubpassEndInfo*)(local_pSubpassEndInfo));
+        deepcopy_VkSubpassEndInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pSubpassEndInfo, (VkSubpassEndInfo*)(local_pSubpassEndInfo));
     }
     if (local_pSubpassEndInfo)
     {
@@ -13312,7 +13312,7 @@ void VkEncoder::vkCmdEndRenderPass2(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkSubpassEndInfo(sFeatureBits, (VkSubpassEndInfo*)(local_pSubpassEndInfo), countPtr);
+        count_VkSubpassEndInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubpassEndInfo*)(local_pSubpassEndInfo), countPtr);
     }
     uint32_t packetSize_vkCmdEndRenderPass2 = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdEndRenderPass2 -= 8;
@@ -13328,7 +13328,7 @@ void VkEncoder::vkCmdEndRenderPass2(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkSubpassEndInfo(stream, (VkSubpassEndInfo*)(local_pSubpassEndInfo), streamPtrPtr);
+    reservedmarshal_VkSubpassEndInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubpassEndInfo*)(local_pSubpassEndInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -13472,7 +13472,7 @@ VkResult VkEncoder::vkWaitSemaphores(
     if (pWaitInfo)
     {
         local_pWaitInfo = (VkSemaphoreWaitInfo*)pool->alloc(sizeof(const VkSemaphoreWaitInfo));
-        deepcopy_VkSemaphoreWaitInfo(pool, pWaitInfo, (VkSemaphoreWaitInfo*)(local_pWaitInfo));
+        deepcopy_VkSemaphoreWaitInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pWaitInfo, (VkSemaphoreWaitInfo*)(local_pWaitInfo));
     }
     local_timeout = timeout;
     if (local_pWaitInfo)
@@ -13484,7 +13484,7 @@ VkResult VkEncoder::vkWaitSemaphores(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkSemaphoreWaitInfo(sFeatureBits, (VkSemaphoreWaitInfo*)(local_pWaitInfo), countPtr);
+        count_VkSemaphoreWaitInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSemaphoreWaitInfo*)(local_pWaitInfo), countPtr);
         *countPtr += sizeof(uint64_t);
     }
     uint32_t packetSize_vkWaitSemaphores = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -13499,7 +13499,7 @@ VkResult VkEncoder::vkWaitSemaphores(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkSemaphoreWaitInfo(stream, (VkSemaphoreWaitInfo*)(local_pWaitInfo), streamPtrPtr);
+    reservedmarshal_VkSemaphoreWaitInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSemaphoreWaitInfo*)(local_pWaitInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (uint64_t*)&local_timeout, sizeof(uint64_t));
     *streamPtrPtr += sizeof(uint64_t);
     VkResult vkWaitSemaphores_VkResult_return = (VkResult)0;
@@ -13531,7 +13531,7 @@ VkResult VkEncoder::vkSignalSemaphore(
     if (pSignalInfo)
     {
         local_pSignalInfo = (VkSemaphoreSignalInfo*)pool->alloc(sizeof(const VkSemaphoreSignalInfo));
-        deepcopy_VkSemaphoreSignalInfo(pool, pSignalInfo, (VkSemaphoreSignalInfo*)(local_pSignalInfo));
+        deepcopy_VkSemaphoreSignalInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pSignalInfo, (VkSemaphoreSignalInfo*)(local_pSignalInfo));
     }
     if (local_pSignalInfo)
     {
@@ -13542,7 +13542,7 @@ VkResult VkEncoder::vkSignalSemaphore(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkSemaphoreSignalInfo(sFeatureBits, (VkSemaphoreSignalInfo*)(local_pSignalInfo), countPtr);
+        count_VkSemaphoreSignalInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSemaphoreSignalInfo*)(local_pSignalInfo), countPtr);
     }
     uint32_t packetSize_vkSignalSemaphore = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkSignalSemaphore);
@@ -13556,7 +13556,7 @@ VkResult VkEncoder::vkSignalSemaphore(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkSemaphoreSignalInfo(stream, (VkSemaphoreSignalInfo*)(local_pSignalInfo), streamPtrPtr);
+    reservedmarshal_VkSemaphoreSignalInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSemaphoreSignalInfo*)(local_pSignalInfo), streamPtrPtr);
     VkResult vkSignalSemaphore_VkResult_return = (VkResult)0;
     stream->read(&vkSignalSemaphore_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -13586,7 +13586,7 @@ VkDeviceAddress VkEncoder::vkGetBufferDeviceAddress(
     if (pInfo)
     {
         local_pInfo = (VkBufferDeviceAddressInfo*)pool->alloc(sizeof(const VkBufferDeviceAddressInfo));
-        deepcopy_VkBufferDeviceAddressInfo(pool, pInfo, (VkBufferDeviceAddressInfo*)(local_pInfo));
+        deepcopy_VkBufferDeviceAddressInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkBufferDeviceAddressInfo*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -13597,7 +13597,7 @@ VkDeviceAddress VkEncoder::vkGetBufferDeviceAddress(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkBufferDeviceAddressInfo(sFeatureBits, (VkBufferDeviceAddressInfo*)(local_pInfo), countPtr);
+        count_VkBufferDeviceAddressInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferDeviceAddressInfo*)(local_pInfo), countPtr);
     }
     uint32_t packetSize_vkGetBufferDeviceAddress = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetBufferDeviceAddress);
@@ -13611,7 +13611,7 @@ VkDeviceAddress VkEncoder::vkGetBufferDeviceAddress(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkBufferDeviceAddressInfo(stream, (VkBufferDeviceAddressInfo*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkBufferDeviceAddressInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferDeviceAddressInfo*)(local_pInfo), streamPtrPtr);
     VkDeviceAddress vkGetBufferDeviceAddress_VkDeviceAddress_return = (VkDeviceAddress)0;
     stream->read(&vkGetBufferDeviceAddress_VkDeviceAddress_return, sizeof(VkDeviceAddress));
     ++encodeCount;;
@@ -13641,7 +13641,7 @@ uint64_t VkEncoder::vkGetBufferOpaqueCaptureAddress(
     if (pInfo)
     {
         local_pInfo = (VkBufferDeviceAddressInfo*)pool->alloc(sizeof(const VkBufferDeviceAddressInfo));
-        deepcopy_VkBufferDeviceAddressInfo(pool, pInfo, (VkBufferDeviceAddressInfo*)(local_pInfo));
+        deepcopy_VkBufferDeviceAddressInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkBufferDeviceAddressInfo*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -13652,7 +13652,7 @@ uint64_t VkEncoder::vkGetBufferOpaqueCaptureAddress(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkBufferDeviceAddressInfo(sFeatureBits, (VkBufferDeviceAddressInfo*)(local_pInfo), countPtr);
+        count_VkBufferDeviceAddressInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferDeviceAddressInfo*)(local_pInfo), countPtr);
     }
     uint32_t packetSize_vkGetBufferOpaqueCaptureAddress = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetBufferOpaqueCaptureAddress);
@@ -13666,7 +13666,7 @@ uint64_t VkEncoder::vkGetBufferOpaqueCaptureAddress(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkBufferDeviceAddressInfo(stream, (VkBufferDeviceAddressInfo*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkBufferDeviceAddressInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferDeviceAddressInfo*)(local_pInfo), streamPtrPtr);
     uint64_t vkGetBufferOpaqueCaptureAddress_uint64_t_return = (uint64_t)0;
     stream->read(&vkGetBufferOpaqueCaptureAddress_uint64_t_return, sizeof(uint64_t));
     ++encodeCount;;
@@ -13696,7 +13696,7 @@ uint64_t VkEncoder::vkGetDeviceMemoryOpaqueCaptureAddress(
     if (pInfo)
     {
         local_pInfo = (VkDeviceMemoryOpaqueCaptureAddressInfo*)pool->alloc(sizeof(const VkDeviceMemoryOpaqueCaptureAddressInfo));
-        deepcopy_VkDeviceMemoryOpaqueCaptureAddressInfo(pool, pInfo, (VkDeviceMemoryOpaqueCaptureAddressInfo*)(local_pInfo));
+        deepcopy_VkDeviceMemoryOpaqueCaptureAddressInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkDeviceMemoryOpaqueCaptureAddressInfo*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -13707,7 +13707,7 @@ uint64_t VkEncoder::vkGetDeviceMemoryOpaqueCaptureAddress(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDeviceMemoryOpaqueCaptureAddressInfo(sFeatureBits, (VkDeviceMemoryOpaqueCaptureAddressInfo*)(local_pInfo), countPtr);
+        count_VkDeviceMemoryOpaqueCaptureAddressInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDeviceMemoryOpaqueCaptureAddressInfo*)(local_pInfo), countPtr);
     }
     uint32_t packetSize_vkGetDeviceMemoryOpaqueCaptureAddress = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDeviceMemoryOpaqueCaptureAddress);
@@ -13721,7 +13721,7 @@ uint64_t VkEncoder::vkGetDeviceMemoryOpaqueCaptureAddress(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDeviceMemoryOpaqueCaptureAddressInfo(stream, (VkDeviceMemoryOpaqueCaptureAddressInfo*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkDeviceMemoryOpaqueCaptureAddressInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDeviceMemoryOpaqueCaptureAddressInfo*)(local_pInfo), streamPtrPtr);
     uint64_t vkGetDeviceMemoryOpaqueCaptureAddress_uint64_t_return = (uint64_t)0;
     stream->read(&vkGetDeviceMemoryOpaqueCaptureAddress_uint64_t_return, sizeof(uint64_t));
     ++encodeCount;;
@@ -13756,7 +13756,7 @@ void VkEncoder::vkDestroySurfaceKHR(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -13774,7 +13774,7 @@ void VkEncoder::vkDestroySurfaceKHR(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroySurfaceKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -13800,7 +13800,7 @@ void VkEncoder::vkDestroySurfaceKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkSurfaceKHR((VkSurfaceKHR*)&surface);
     stream->flush();
@@ -13896,7 +13896,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
-        count_VkSurfaceCapabilitiesKHR(sFeatureBits, (VkSurfaceCapabilitiesKHR*)(pSurfaceCapabilities), countPtr);
+        count_VkSurfaceCapabilitiesKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSurfaceCapabilitiesKHR*)(pSurfaceCapabilities), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceSurfaceCapabilitiesKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
@@ -13914,8 +13914,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
     *&cgen_var_1 = get_host_u64_VkSurfaceKHR((*&local_surface));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkSurfaceCapabilitiesKHR(stream, (VkSurfaceCapabilitiesKHR*)(pSurfaceCapabilities), streamPtrPtr);
-    unmarshal_VkSurfaceCapabilitiesKHR(stream, (VkSurfaceCapabilitiesKHR*)(pSurfaceCapabilities));
+    reservedmarshal_VkSurfaceCapabilitiesKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSurfaceCapabilitiesKHR*)(pSurfaceCapabilities), streamPtrPtr);
+    unmarshal_VkSurfaceCapabilitiesKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSurfaceCapabilitiesKHR*)(pSurfaceCapabilities));
     if (pSurfaceCapabilities)
     {
         transform_fromhost_VkSurfaceCapabilitiesKHR(sResourceTracker, (VkSurfaceCapabilitiesKHR*)(pSurfaceCapabilities));
@@ -13969,7 +13969,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
                 {
-                    count_VkSurfaceFormatKHR(sFeatureBits, (VkSurfaceFormatKHR*)(pSurfaceFormats + i), countPtr);
+                    count_VkSurfaceFormatKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSurfaceFormatKHR*)(pSurfaceFormats + i), countPtr);
                 }
             }
         }
@@ -14009,7 +14009,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
         {
-            reservedmarshal_VkSurfaceFormatKHR(stream, (VkSurfaceFormatKHR*)(pSurfaceFormats + i), streamPtrPtr);
+            reservedmarshal_VkSurfaceFormatKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSurfaceFormatKHR*)(pSurfaceFormats + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -14036,7 +14036,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormatsKHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
             {
-                unmarshal_VkSurfaceFormatKHR(stream, (VkSurfaceFormatKHR*)(pSurfaceFormats + i));
+                unmarshal_VkSurfaceFormatKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSurfaceFormatKHR*)(pSurfaceFormats + i));
             }
         }
     }
@@ -14193,13 +14193,13 @@ VkResult VkEncoder::vkCreateSwapchainKHR(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkSwapchainCreateInfoKHR*)pool->alloc(sizeof(const VkSwapchainCreateInfoKHR));
-        deepcopy_VkSwapchainCreateInfoKHR(pool, pCreateInfo, (VkSwapchainCreateInfoKHR*)(local_pCreateInfo));
+        deepcopy_VkSwapchainCreateInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkSwapchainCreateInfoKHR*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -14215,12 +14215,12 @@ VkResult VkEncoder::vkCreateSwapchainKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkSwapchainCreateInfoKHR(sFeatureBits, (VkSwapchainCreateInfoKHR*)(local_pCreateInfo), countPtr);
+        count_VkSwapchainCreateInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSwapchainCreateInfoKHR*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -14237,7 +14237,7 @@ VkResult VkEncoder::vkCreateSwapchainKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkSwapchainCreateInfoKHR(stream, (VkSwapchainCreateInfoKHR*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkSwapchainCreateInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSwapchainCreateInfoKHR*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -14245,7 +14245,7 @@ VkResult VkEncoder::vkCreateSwapchainKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -14290,7 +14290,7 @@ void VkEncoder::vkDestroySwapchainKHR(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -14308,7 +14308,7 @@ void VkEncoder::vkDestroySwapchainKHR(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroySwapchainKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -14334,7 +14334,7 @@ void VkEncoder::vkDestroySwapchainKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkSwapchainKHR((VkSwapchainKHR*)&swapchain);
     stream->flush();
@@ -14571,7 +14571,7 @@ VkResult VkEncoder::vkQueuePresentKHR(
     if (pPresentInfo)
     {
         local_pPresentInfo = (VkPresentInfoKHR*)pool->alloc(sizeof(const VkPresentInfoKHR));
-        deepcopy_VkPresentInfoKHR(pool, pPresentInfo, (VkPresentInfoKHR*)(local_pPresentInfo));
+        deepcopy_VkPresentInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pPresentInfo, (VkPresentInfoKHR*)(local_pPresentInfo));
     }
     if (local_pPresentInfo)
     {
@@ -14582,7 +14582,7 @@ VkResult VkEncoder::vkQueuePresentKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPresentInfoKHR(sFeatureBits, (VkPresentInfoKHR*)(local_pPresentInfo), countPtr);
+        count_VkPresentInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPresentInfoKHR*)(local_pPresentInfo), countPtr);
     }
     uint32_t packetSize_vkQueuePresentKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkQueuePresentKHR);
@@ -14596,7 +14596,7 @@ VkResult VkEncoder::vkQueuePresentKHR(
     *&cgen_var_0 = get_host_u64_VkQueue((*&local_queue));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPresentInfoKHR(stream, (VkPresentInfoKHR*)(local_pPresentInfo), streamPtrPtr);
+    reservedmarshal_VkPresentInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPresentInfoKHR*)(local_pPresentInfo), streamPtrPtr);
     VkResult vkQueuePresentKHR_VkResult_return = (VkResult)0;
     stream->read(&vkQueuePresentKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -14626,7 +14626,7 @@ VkResult VkEncoder::vkGetDeviceGroupPresentCapabilitiesKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDeviceGroupPresentCapabilitiesKHR(sFeatureBits, (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities), countPtr);
+        count_VkDeviceGroupPresentCapabilitiesKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities), countPtr);
     }
     uint32_t packetSize_vkGetDeviceGroupPresentCapabilitiesKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDeviceGroupPresentCapabilitiesKHR);
@@ -14640,8 +14640,8 @@ VkResult VkEncoder::vkGetDeviceGroupPresentCapabilitiesKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDeviceGroupPresentCapabilitiesKHR(stream, (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities), streamPtrPtr);
-    unmarshal_VkDeviceGroupPresentCapabilitiesKHR(stream, (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities));
+    reservedmarshal_VkDeviceGroupPresentCapabilitiesKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities), streamPtrPtr);
+    unmarshal_VkDeviceGroupPresentCapabilitiesKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities));
     if (pDeviceGroupPresentCapabilities)
     {
         transform_fromhost_VkDeviceGroupPresentCapabilitiesKHR(sResourceTracker, (VkDeviceGroupPresentCapabilitiesKHR*)(pDeviceGroupPresentCapabilities));
@@ -14773,7 +14773,7 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i)
                 {
-                    count_VkRect2D(sFeatureBits, (VkRect2D*)(pRects + i), countPtr);
+                    count_VkRect2D(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRect2D*)(pRects + i), countPtr);
                 }
             }
         }
@@ -14813,7 +14813,7 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i)
         {
-            reservedmarshal_VkRect2D(stream, (VkRect2D*)(pRects + i), streamPtrPtr);
+            reservedmarshal_VkRect2D(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRect2D*)(pRects + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -14840,7 +14840,7 @@ VkResult VkEncoder::vkGetPhysicalDevicePresentRectanglesKHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pRectCount)); ++i)
             {
-                unmarshal_VkRect2D(stream, (VkRect2D*)(pRects + i));
+                unmarshal_VkRect2D(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRect2D*)(pRects + i));
             }
         }
     }
@@ -14884,7 +14884,7 @@ VkResult VkEncoder::vkAcquireNextImage2KHR(
     if (pAcquireInfo)
     {
         local_pAcquireInfo = (VkAcquireNextImageInfoKHR*)pool->alloc(sizeof(const VkAcquireNextImageInfoKHR));
-        deepcopy_VkAcquireNextImageInfoKHR(pool, pAcquireInfo, (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo));
+        deepcopy_VkAcquireNextImageInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAcquireInfo, (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo));
     }
     if (local_pAcquireInfo)
     {
@@ -14895,7 +14895,7 @@ VkResult VkEncoder::vkAcquireNextImage2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkAcquireNextImageInfoKHR(sFeatureBits, (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo), countPtr);
+        count_VkAcquireNextImageInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo), countPtr);
         *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkAcquireNextImage2KHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -14910,7 +14910,7 @@ VkResult VkEncoder::vkAcquireNextImage2KHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkAcquireNextImageInfoKHR(stream, (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo), streamPtrPtr);
+    reservedmarshal_VkAcquireNextImageInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAcquireNextImageInfoKHR*)(local_pAcquireInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (uint32_t*)pImageIndex, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
     stream->read((uint32_t*)pImageIndex, sizeof(uint32_t));
@@ -14960,7 +14960,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
-                    count_VkDisplayPropertiesKHR(sFeatureBits, (VkDisplayPropertiesKHR*)(pProperties + i), countPtr);
+                    count_VkDisplayPropertiesKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayPropertiesKHR*)(pProperties + i), countPtr);
                 }
             }
         }
@@ -14996,7 +14996,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            reservedmarshal_VkDisplayPropertiesKHR(stream, (VkDisplayPropertiesKHR*)(pProperties + i), streamPtrPtr);
+            reservedmarshal_VkDisplayPropertiesKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayPropertiesKHR*)(pProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -15023,7 +15023,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPropertiesKHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                unmarshal_VkDisplayPropertiesKHR(stream, (VkDisplayPropertiesKHR*)(pProperties + i));
+                unmarshal_VkDisplayPropertiesKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayPropertiesKHR*)(pProperties + i));
             }
         }
     }
@@ -15081,7 +15081,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
-                    count_VkDisplayPlanePropertiesKHR(sFeatureBits, (VkDisplayPlanePropertiesKHR*)(pProperties + i), countPtr);
+                    count_VkDisplayPlanePropertiesKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayPlanePropertiesKHR*)(pProperties + i), countPtr);
                 }
             }
         }
@@ -15117,7 +15117,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            reservedmarshal_VkDisplayPlanePropertiesKHR(stream, (VkDisplayPlanePropertiesKHR*)(pProperties + i), streamPtrPtr);
+            reservedmarshal_VkDisplayPlanePropertiesKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayPlanePropertiesKHR*)(pProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -15144,7 +15144,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlanePropertiesKHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                unmarshal_VkDisplayPlanePropertiesKHR(stream, (VkDisplayPlanePropertiesKHR*)(pProperties + i));
+                unmarshal_VkDisplayPlanePropertiesKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayPlanePropertiesKHR*)(pProperties + i));
             }
         }
     }
@@ -15332,7 +15332,7 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
-                    count_VkDisplayModePropertiesKHR(sFeatureBits, (VkDisplayModePropertiesKHR*)(pProperties + i), countPtr);
+                    count_VkDisplayModePropertiesKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayModePropertiesKHR*)(pProperties + i), countPtr);
                 }
             }
         }
@@ -15372,7 +15372,7 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            reservedmarshal_VkDisplayModePropertiesKHR(stream, (VkDisplayModePropertiesKHR*)(pProperties + i), streamPtrPtr);
+            reservedmarshal_VkDisplayModePropertiesKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayModePropertiesKHR*)(pProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -15399,7 +15399,7 @@ VkResult VkEncoder::vkGetDisplayModePropertiesKHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                unmarshal_VkDisplayModePropertiesKHR(stream, (VkDisplayModePropertiesKHR*)(pProperties + i));
+                unmarshal_VkDisplayModePropertiesKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayModePropertiesKHR*)(pProperties + i));
             }
         }
     }
@@ -15448,13 +15448,13 @@ VkResult VkEncoder::vkCreateDisplayModeKHR(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDisplayModeCreateInfoKHR*)pool->alloc(sizeof(const VkDisplayModeCreateInfoKHR));
-        deepcopy_VkDisplayModeCreateInfoKHR(pool, pCreateInfo, (VkDisplayModeCreateInfoKHR*)(local_pCreateInfo));
+        deepcopy_VkDisplayModeCreateInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkDisplayModeCreateInfoKHR*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -15472,12 +15472,12 @@ VkResult VkEncoder::vkCreateDisplayModeKHR(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
-        count_VkDisplayModeCreateInfoKHR(sFeatureBits, (VkDisplayModeCreateInfoKHR*)(local_pCreateInfo), countPtr);
+        count_VkDisplayModeCreateInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayModeCreateInfoKHR*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_2;
         *countPtr += 8;
@@ -15498,7 +15498,7 @@ VkResult VkEncoder::vkCreateDisplayModeKHR(
     *&cgen_var_1 = get_host_u64_VkDisplayKHR((*&local_display));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDisplayModeCreateInfoKHR(stream, (VkDisplayModeCreateInfoKHR*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkDisplayModeCreateInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayModeCreateInfoKHR*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
@@ -15506,7 +15506,7 @@ VkResult VkEncoder::vkCreateDisplayModeKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_3;
@@ -15557,7 +15557,7 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilitiesKHR(
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
         *countPtr += sizeof(uint32_t);
-        count_VkDisplayPlaneCapabilitiesKHR(sFeatureBits, (VkDisplayPlaneCapabilitiesKHR*)(pCapabilities), countPtr);
+        count_VkDisplayPlaneCapabilitiesKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayPlaneCapabilitiesKHR*)(pCapabilities), countPtr);
     }
     uint32_t packetSize_vkGetDisplayPlaneCapabilitiesKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDisplayPlaneCapabilitiesKHR);
@@ -15577,8 +15577,8 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilitiesKHR(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (uint32_t*)&local_planeIndex, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
-    reservedmarshal_VkDisplayPlaneCapabilitiesKHR(stream, (VkDisplayPlaneCapabilitiesKHR*)(pCapabilities), streamPtrPtr);
-    unmarshal_VkDisplayPlaneCapabilitiesKHR(stream, (VkDisplayPlaneCapabilitiesKHR*)(pCapabilities));
+    reservedmarshal_VkDisplayPlaneCapabilitiesKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayPlaneCapabilitiesKHR*)(pCapabilities), streamPtrPtr);
+    unmarshal_VkDisplayPlaneCapabilitiesKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayPlaneCapabilitiesKHR*)(pCapabilities));
     if (pCapabilities)
     {
         transform_fromhost_VkDisplayPlaneCapabilitiesKHR(sResourceTracker, (VkDisplayPlaneCapabilitiesKHR*)(pCapabilities));
@@ -15615,13 +15615,13 @@ VkResult VkEncoder::vkCreateDisplayPlaneSurfaceKHR(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDisplaySurfaceCreateInfoKHR*)pool->alloc(sizeof(const VkDisplaySurfaceCreateInfoKHR));
-        deepcopy_VkDisplaySurfaceCreateInfoKHR(pool, pCreateInfo, (VkDisplaySurfaceCreateInfoKHR*)(local_pCreateInfo));
+        deepcopy_VkDisplaySurfaceCreateInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkDisplaySurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -15637,12 +15637,12 @@ VkResult VkEncoder::vkCreateDisplayPlaneSurfaceKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDisplaySurfaceCreateInfoKHR(sFeatureBits, (VkDisplaySurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
+        count_VkDisplaySurfaceCreateInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplaySurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -15659,7 +15659,7 @@ VkResult VkEncoder::vkCreateDisplayPlaneSurfaceKHR(
     *&cgen_var_0 = get_host_u64_VkInstance((*&local_instance));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDisplaySurfaceCreateInfoKHR(stream, (VkDisplaySurfaceCreateInfoKHR*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkDisplaySurfaceCreateInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplaySurfaceCreateInfoKHR*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -15667,7 +15667,7 @@ VkResult VkEncoder::vkCreateDisplayPlaneSurfaceKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -15717,14 +15717,14 @@ VkResult VkEncoder::vkCreateSharedSwapchainsKHR(
         local_pCreateInfos = (VkSwapchainCreateInfoKHR*)pool->alloc(((swapchainCount)) * sizeof(const VkSwapchainCreateInfoKHR));
         for (uint32_t i = 0; i < (uint32_t)((swapchainCount)); ++i)
         {
-            deepcopy_VkSwapchainCreateInfoKHR(pool, pCreateInfos + i, (VkSwapchainCreateInfoKHR*)(local_pCreateInfos + i));
+            deepcopy_VkSwapchainCreateInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfos + i, (VkSwapchainCreateInfoKHR*)(local_pCreateInfos + i));
         }
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfos)
@@ -15746,13 +15746,13 @@ VkResult VkEncoder::vkCreateSharedSwapchainsKHR(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((swapchainCount)); ++i)
         {
-            count_VkSwapchainCreateInfoKHR(sFeatureBits, (VkSwapchainCreateInfoKHR*)(local_pCreateInfos + i), countPtr);
+            count_VkSwapchainCreateInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSwapchainCreateInfoKHR*)(local_pCreateInfos + i), countPtr);
         }
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         if (((swapchainCount)))
         {
@@ -15775,7 +15775,7 @@ VkResult VkEncoder::vkCreateSharedSwapchainsKHR(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((swapchainCount)); ++i)
     {
-        reservedmarshal_VkSwapchainCreateInfoKHR(stream, (VkSwapchainCreateInfoKHR*)(local_pCreateInfos + i), streamPtrPtr);
+        reservedmarshal_VkSwapchainCreateInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSwapchainCreateInfoKHR*)(local_pCreateInfos + i), streamPtrPtr);
     }
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
@@ -15784,7 +15784,7 @@ VkResult VkEncoder::vkCreateSharedSwapchainsKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     if (((swapchainCount)))
@@ -15839,13 +15839,13 @@ VkResult VkEncoder::vkCreateXlibSurfaceKHR(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkXlibSurfaceCreateInfoKHR*)pool->alloc(sizeof(const VkXlibSurfaceCreateInfoKHR));
-        deepcopy_VkXlibSurfaceCreateInfoKHR(pool, pCreateInfo, (VkXlibSurfaceCreateInfoKHR*)(local_pCreateInfo));
+        deepcopy_VkXlibSurfaceCreateInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkXlibSurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -15861,12 +15861,12 @@ VkResult VkEncoder::vkCreateXlibSurfaceKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkXlibSurfaceCreateInfoKHR(sFeatureBits, (VkXlibSurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
+        count_VkXlibSurfaceCreateInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkXlibSurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -15883,7 +15883,7 @@ VkResult VkEncoder::vkCreateXlibSurfaceKHR(
     *&cgen_var_0 = get_host_u64_VkInstance((*&local_instance));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkXlibSurfaceCreateInfoKHR(stream, (VkXlibSurfaceCreateInfoKHR*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkXlibSurfaceCreateInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkXlibSurfaceCreateInfoKHR*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -15891,7 +15891,7 @@ VkResult VkEncoder::vkCreateXlibSurfaceKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -15994,13 +15994,13 @@ VkResult VkEncoder::vkCreateXcbSurfaceKHR(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkXcbSurfaceCreateInfoKHR*)pool->alloc(sizeof(const VkXcbSurfaceCreateInfoKHR));
-        deepcopy_VkXcbSurfaceCreateInfoKHR(pool, pCreateInfo, (VkXcbSurfaceCreateInfoKHR*)(local_pCreateInfo));
+        deepcopy_VkXcbSurfaceCreateInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkXcbSurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -16016,12 +16016,12 @@ VkResult VkEncoder::vkCreateXcbSurfaceKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkXcbSurfaceCreateInfoKHR(sFeatureBits, (VkXcbSurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
+        count_VkXcbSurfaceCreateInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkXcbSurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -16038,7 +16038,7 @@ VkResult VkEncoder::vkCreateXcbSurfaceKHR(
     *&cgen_var_0 = get_host_u64_VkInstance((*&local_instance));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkXcbSurfaceCreateInfoKHR(stream, (VkXcbSurfaceCreateInfoKHR*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkXcbSurfaceCreateInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkXcbSurfaceCreateInfoKHR*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -16046,7 +16046,7 @@ VkResult VkEncoder::vkCreateXcbSurfaceKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -16149,13 +16149,13 @@ VkResult VkEncoder::vkCreateWaylandSurfaceKHR(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkWaylandSurfaceCreateInfoKHR*)pool->alloc(sizeof(const VkWaylandSurfaceCreateInfoKHR));
-        deepcopy_VkWaylandSurfaceCreateInfoKHR(pool, pCreateInfo, (VkWaylandSurfaceCreateInfoKHR*)(local_pCreateInfo));
+        deepcopy_VkWaylandSurfaceCreateInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkWaylandSurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -16171,12 +16171,12 @@ VkResult VkEncoder::vkCreateWaylandSurfaceKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkWaylandSurfaceCreateInfoKHR(sFeatureBits, (VkWaylandSurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
+        count_VkWaylandSurfaceCreateInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkWaylandSurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -16193,7 +16193,7 @@ VkResult VkEncoder::vkCreateWaylandSurfaceKHR(
     *&cgen_var_0 = get_host_u64_VkInstance((*&local_instance));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkWaylandSurfaceCreateInfoKHR(stream, (VkWaylandSurfaceCreateInfoKHR*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkWaylandSurfaceCreateInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkWaylandSurfaceCreateInfoKHR*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -16201,7 +16201,7 @@ VkResult VkEncoder::vkCreateWaylandSurfaceKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -16298,13 +16298,13 @@ VkResult VkEncoder::vkCreateAndroidSurfaceKHR(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkAndroidSurfaceCreateInfoKHR*)pool->alloc(sizeof(const VkAndroidSurfaceCreateInfoKHR));
-        deepcopy_VkAndroidSurfaceCreateInfoKHR(pool, pCreateInfo, (VkAndroidSurfaceCreateInfoKHR*)(local_pCreateInfo));
+        deepcopy_VkAndroidSurfaceCreateInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkAndroidSurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -16320,12 +16320,12 @@ VkResult VkEncoder::vkCreateAndroidSurfaceKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkAndroidSurfaceCreateInfoKHR(sFeatureBits, (VkAndroidSurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
+        count_VkAndroidSurfaceCreateInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAndroidSurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -16342,7 +16342,7 @@ VkResult VkEncoder::vkCreateAndroidSurfaceKHR(
     *&cgen_var_0 = get_host_u64_VkInstance((*&local_instance));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkAndroidSurfaceCreateInfoKHR(stream, (VkAndroidSurfaceCreateInfoKHR*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkAndroidSurfaceCreateInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAndroidSurfaceCreateInfoKHR*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -16350,7 +16350,7 @@ VkResult VkEncoder::vkCreateAndroidSurfaceKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -16395,13 +16395,13 @@ VkResult VkEncoder::vkCreateWin32SurfaceKHR(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkWin32SurfaceCreateInfoKHR*)pool->alloc(sizeof(const VkWin32SurfaceCreateInfoKHR));
-        deepcopy_VkWin32SurfaceCreateInfoKHR(pool, pCreateInfo, (VkWin32SurfaceCreateInfoKHR*)(local_pCreateInfo));
+        deepcopy_VkWin32SurfaceCreateInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkWin32SurfaceCreateInfoKHR*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -16417,12 +16417,12 @@ VkResult VkEncoder::vkCreateWin32SurfaceKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkWin32SurfaceCreateInfoKHR(sFeatureBits, (VkWin32SurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
+        count_VkWin32SurfaceCreateInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkWin32SurfaceCreateInfoKHR*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -16439,7 +16439,7 @@ VkResult VkEncoder::vkCreateWin32SurfaceKHR(
     *&cgen_var_0 = get_host_u64_VkInstance((*&local_instance));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkWin32SurfaceCreateInfoKHR(stream, (VkWin32SurfaceCreateInfoKHR*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkWin32SurfaceCreateInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkWin32SurfaceCreateInfoKHR*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -16447,7 +16447,7 @@ VkResult VkEncoder::vkCreateWin32SurfaceKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -16540,7 +16540,7 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceFeatures2(sFeatureBits, (VkPhysicalDeviceFeatures2*)(pFeatures), countPtr);
+        count_VkPhysicalDeviceFeatures2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceFeatures2*)(pFeatures), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceFeatures2KHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceFeatures2KHR);
@@ -16554,8 +16554,8 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2KHR(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceFeatures2(stream, (VkPhysicalDeviceFeatures2*)(pFeatures), streamPtrPtr);
-    unmarshal_VkPhysicalDeviceFeatures2(stream, (VkPhysicalDeviceFeatures2*)(pFeatures));
+    reservedmarshal_VkPhysicalDeviceFeatures2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceFeatures2*)(pFeatures), streamPtrPtr);
+    unmarshal_VkPhysicalDeviceFeatures2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceFeatures2*)(pFeatures));
     if (pFeatures)
     {
         transform_fromhost_VkPhysicalDeviceFeatures2(sResourceTracker, (VkPhysicalDeviceFeatures2*)(pFeatures));
@@ -16586,7 +16586,7 @@ void VkEncoder::vkGetPhysicalDeviceProperties2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceProperties2(sFeatureBits, (VkPhysicalDeviceProperties2*)(pProperties), countPtr);
+        count_VkPhysicalDeviceProperties2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceProperties2*)(pProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceProperties2KHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceProperties2KHR);
@@ -16600,8 +16600,8 @@ void VkEncoder::vkGetPhysicalDeviceProperties2KHR(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceProperties2(stream, (VkPhysicalDeviceProperties2*)(pProperties), streamPtrPtr);
-    unmarshal_VkPhysicalDeviceProperties2(stream, (VkPhysicalDeviceProperties2*)(pProperties));
+    reservedmarshal_VkPhysicalDeviceProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceProperties2*)(pProperties), streamPtrPtr);
+    unmarshal_VkPhysicalDeviceProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceProperties2*)(pProperties));
     if (pProperties)
     {
         transform_fromhost_VkPhysicalDeviceProperties2(sResourceTracker, (VkPhysicalDeviceProperties2*)(pProperties));
@@ -16637,7 +16637,7 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2KHR(
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkFormat);
-        count_VkFormatProperties2(sFeatureBits, (VkFormatProperties2*)(pFormatProperties), countPtr);
+        count_VkFormatProperties2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFormatProperties2*)(pFormatProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceFormatProperties2KHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceFormatProperties2KHR);
@@ -16653,8 +16653,8 @@ void VkEncoder::vkGetPhysicalDeviceFormatProperties2KHR(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkFormat*)&local_format, sizeof(VkFormat));
     *streamPtrPtr += sizeof(VkFormat);
-    reservedmarshal_VkFormatProperties2(stream, (VkFormatProperties2*)(pFormatProperties), streamPtrPtr);
-    unmarshal_VkFormatProperties2(stream, (VkFormatProperties2*)(pFormatProperties));
+    reservedmarshal_VkFormatProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFormatProperties2*)(pFormatProperties), streamPtrPtr);
+    unmarshal_VkFormatProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFormatProperties2*)(pFormatProperties));
     if (pFormatProperties)
     {
         transform_fromhost_VkFormatProperties2(sResourceTracker, (VkFormatProperties2*)(pFormatProperties));
@@ -16686,7 +16686,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2KHR(
     if (pImageFormatInfo)
     {
         local_pImageFormatInfo = (VkPhysicalDeviceImageFormatInfo2*)pool->alloc(sizeof(const VkPhysicalDeviceImageFormatInfo2));
-        deepcopy_VkPhysicalDeviceImageFormatInfo2(pool, pImageFormatInfo, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
+        deepcopy_VkPhysicalDeviceImageFormatInfo2(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pImageFormatInfo, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo));
     }
     if (local_pImageFormatInfo)
     {
@@ -16697,8 +16697,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceImageFormatInfo2(sFeatureBits, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo), countPtr);
-        count_VkImageFormatProperties2(sFeatureBits, (VkImageFormatProperties2*)(pImageFormatProperties), countPtr);
+        count_VkPhysicalDeviceImageFormatInfo2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo), countPtr);
+        count_VkImageFormatProperties2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageFormatProperties2*)(pImageFormatProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceImageFormatProperties2KHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceImageFormatProperties2KHR);
@@ -16712,9 +16712,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceImageFormatProperties2KHR(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceImageFormatInfo2(stream, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo), streamPtrPtr);
-    reservedmarshal_VkImageFormatProperties2(stream, (VkImageFormatProperties2*)(pImageFormatProperties), streamPtrPtr);
-    unmarshal_VkImageFormatProperties2(stream, (VkImageFormatProperties2*)(pImageFormatProperties));
+    reservedmarshal_VkPhysicalDeviceImageFormatInfo2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceImageFormatInfo2*)(local_pImageFormatInfo), streamPtrPtr);
+    reservedmarshal_VkImageFormatProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageFormatProperties2*)(pImageFormatProperties), streamPtrPtr);
+    unmarshal_VkImageFormatProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageFormatProperties2*)(pImageFormatProperties));
     if (pImageFormatProperties)
     {
         transform_fromhost_VkImageFormatProperties2(sResourceTracker, (VkImageFormatProperties2*)(pImageFormatProperties));
@@ -16763,7 +16763,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
                 {
-                    count_VkQueueFamilyProperties2(sFeatureBits, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i), countPtr);
+                    count_VkQueueFamilyProperties2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i), countPtr);
                 }
             }
         }
@@ -16799,7 +16799,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
         {
-            reservedmarshal_VkQueueFamilyProperties2(stream, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i), streamPtrPtr);
+            reservedmarshal_VkQueueFamilyProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -16826,7 +16826,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyProperties2KHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pQueueFamilyPropertyCount)); ++i)
             {
-                unmarshal_VkQueueFamilyProperties2(stream, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
+                unmarshal_VkQueueFamilyProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkQueueFamilyProperties2*)(pQueueFamilyProperties + i));
             }
         }
     }
@@ -16866,7 +16866,7 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceMemoryProperties2(sFeatureBits, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties), countPtr);
+        count_VkPhysicalDeviceMemoryProperties2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceMemoryProperties2KHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceMemoryProperties2KHR);
@@ -16880,8 +16880,8 @@ void VkEncoder::vkGetPhysicalDeviceMemoryProperties2KHR(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceMemoryProperties2(stream, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties), streamPtrPtr);
-    unmarshal_VkPhysicalDeviceMemoryProperties2(stream, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
+    reservedmarshal_VkPhysicalDeviceMemoryProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties), streamPtrPtr);
+    unmarshal_VkPhysicalDeviceMemoryProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
     if (pMemoryProperties)
     {
         transform_fromhost_VkPhysicalDeviceMemoryProperties2(sResourceTracker, (VkPhysicalDeviceMemoryProperties2*)(pMemoryProperties));
@@ -16915,7 +16915,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
     if (pFormatInfo)
     {
         local_pFormatInfo = (VkPhysicalDeviceSparseImageFormatInfo2*)pool->alloc(sizeof(const VkPhysicalDeviceSparseImageFormatInfo2));
-        deepcopy_VkPhysicalDeviceSparseImageFormatInfo2(pool, pFormatInfo, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo));
+        deepcopy_VkPhysicalDeviceSparseImageFormatInfo2(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pFormatInfo, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo));
     }
     if (local_pFormatInfo)
     {
@@ -16926,7 +16926,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceSparseImageFormatInfo2(sFeatureBits, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo), countPtr);
+        count_VkPhysicalDeviceSparseImageFormatInfo2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (pPropertyCount)
@@ -16941,7 +16941,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
-                    count_VkSparseImageFormatProperties2(sFeatureBits, (VkSparseImageFormatProperties2*)(pProperties + i), countPtr);
+                    count_VkSparseImageFormatProperties2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSparseImageFormatProperties2*)(pProperties + i), countPtr);
                 }
             }
         }
@@ -16958,7 +16958,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceSparseImageFormatInfo2(stream, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo), streamPtrPtr);
+    reservedmarshal_VkPhysicalDeviceSparseImageFormatInfo2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceSparseImageFormatInfo2*)(local_pFormatInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pPropertyCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -16978,7 +16978,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            reservedmarshal_VkSparseImageFormatProperties2(stream, (VkSparseImageFormatProperties2*)(pProperties + i), streamPtrPtr);
+            reservedmarshal_VkSparseImageFormatProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSparseImageFormatProperties2*)(pProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -17005,7 +17005,7 @@ void VkEncoder::vkGetPhysicalDeviceSparseImageFormatProperties2KHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                unmarshal_VkSparseImageFormatProperties2(stream, (VkSparseImageFormatProperties2*)(pProperties + i));
+                unmarshal_VkSparseImageFormatProperties2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSparseImageFormatProperties2*)(pProperties + i));
             }
         }
     }
@@ -17305,7 +17305,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
                 {
-                    count_VkPhysicalDeviceGroupProperties(sFeatureBits, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i), countPtr);
+                    count_VkPhysicalDeviceGroupProperties(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i), countPtr);
                 }
             }
         }
@@ -17341,7 +17341,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
         {
-            reservedmarshal_VkPhysicalDeviceGroupProperties(stream, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i), streamPtrPtr);
+            reservedmarshal_VkPhysicalDeviceGroupProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -17368,7 +17368,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceGroupsKHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPhysicalDeviceGroupCount)); ++i)
             {
-                unmarshal_VkPhysicalDeviceGroupProperties(stream, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
+                unmarshal_VkPhysicalDeviceGroupProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceGroupProperties*)(pPhysicalDeviceGroupProperties + i));
             }
         }
     }
@@ -17414,7 +17414,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
     if (pExternalBufferInfo)
     {
         local_pExternalBufferInfo = (VkPhysicalDeviceExternalBufferInfo*)pool->alloc(sizeof(const VkPhysicalDeviceExternalBufferInfo));
-        deepcopy_VkPhysicalDeviceExternalBufferInfo(pool, pExternalBufferInfo, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
+        deepcopy_VkPhysicalDeviceExternalBufferInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pExternalBufferInfo, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo));
     }
     if (local_pExternalBufferInfo)
     {
@@ -17426,8 +17426,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceExternalBufferInfo(sFeatureBits, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo), countPtr);
-        count_VkExternalBufferProperties(sFeatureBits, (VkExternalBufferProperties*)(pExternalBufferProperties), countPtr);
+        count_VkPhysicalDeviceExternalBufferInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo), countPtr);
+        count_VkExternalBufferProperties(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalBufferProperties*)(pExternalBufferProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceExternalBufferPropertiesKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceExternalBufferPropertiesKHR);
@@ -17441,9 +17441,9 @@ void VkEncoder::vkGetPhysicalDeviceExternalBufferPropertiesKHR(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceExternalBufferInfo(stream, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo), streamPtrPtr);
-    reservedmarshal_VkExternalBufferProperties(stream, (VkExternalBufferProperties*)(pExternalBufferProperties), streamPtrPtr);
-    unmarshal_VkExternalBufferProperties(stream, (VkExternalBufferProperties*)(pExternalBufferProperties));
+    reservedmarshal_VkPhysicalDeviceExternalBufferInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceExternalBufferInfo*)(local_pExternalBufferInfo), streamPtrPtr);
+    reservedmarshal_VkExternalBufferProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalBufferProperties*)(pExternalBufferProperties), streamPtrPtr);
+    unmarshal_VkExternalBufferProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalBufferProperties*)(pExternalBufferProperties));
     if (pExternalBufferProperties)
     {
         sResourceTracker->transformImpl_VkExternalBufferProperties_fromhost(pExternalBufferProperties, 1);
@@ -17480,7 +17480,7 @@ VkResult VkEncoder::vkGetMemoryWin32HandleKHR(
     if (pGetWin32HandleInfo)
     {
         local_pGetWin32HandleInfo = (VkMemoryGetWin32HandleInfoKHR*)pool->alloc(sizeof(const VkMemoryGetWin32HandleInfoKHR));
-        deepcopy_VkMemoryGetWin32HandleInfoKHR(pool, pGetWin32HandleInfo, (VkMemoryGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
+        deepcopy_VkMemoryGetWin32HandleInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pGetWin32HandleInfo, (VkMemoryGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
     }
     if (local_pGetWin32HandleInfo)
     {
@@ -17491,7 +17491,7 @@ VkResult VkEncoder::vkGetMemoryWin32HandleKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkMemoryGetWin32HandleInfoKHR(sFeatureBits, (VkMemoryGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), countPtr);
+        count_VkMemoryGetWin32HandleInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), countPtr);
         *countPtr += sizeof(HANDLE);
     }
     uint32_t packetSize_vkGetMemoryWin32HandleKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -17506,7 +17506,7 @@ VkResult VkEncoder::vkGetMemoryWin32HandleKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkMemoryGetWin32HandleInfoKHR(stream, (VkMemoryGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), streamPtrPtr);
+    reservedmarshal_VkMemoryGetWin32HandleInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (HANDLE*)pHandle, sizeof(HANDLE));
     *streamPtrPtr += sizeof(HANDLE);
     stream->read((HANDLE*)pHandle, sizeof(HANDLE));
@@ -17547,7 +17547,7 @@ VkResult VkEncoder::vkGetMemoryWin32HandlePropertiesKHR(
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkExternalMemoryHandleTypeFlagBits);
         *countPtr += sizeof(HANDLE);
-        count_VkMemoryWin32HandlePropertiesKHR(sFeatureBits, (VkMemoryWin32HandlePropertiesKHR*)(pMemoryWin32HandleProperties), countPtr);
+        count_VkMemoryWin32HandlePropertiesKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryWin32HandlePropertiesKHR*)(pMemoryWin32HandleProperties), countPtr);
     }
     uint32_t packetSize_vkGetMemoryWin32HandlePropertiesKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetMemoryWin32HandlePropertiesKHR);
@@ -17565,8 +17565,8 @@ VkResult VkEncoder::vkGetMemoryWin32HandlePropertiesKHR(
     *streamPtrPtr += sizeof(VkExternalMemoryHandleTypeFlagBits);
     memcpy(*streamPtrPtr, (HANDLE*)&local_handle, sizeof(HANDLE));
     *streamPtrPtr += sizeof(HANDLE);
-    reservedmarshal_VkMemoryWin32HandlePropertiesKHR(stream, (VkMemoryWin32HandlePropertiesKHR*)(pMemoryWin32HandleProperties), streamPtrPtr);
-    unmarshal_VkMemoryWin32HandlePropertiesKHR(stream, (VkMemoryWin32HandlePropertiesKHR*)(pMemoryWin32HandleProperties));
+    reservedmarshal_VkMemoryWin32HandlePropertiesKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryWin32HandlePropertiesKHR*)(pMemoryWin32HandleProperties), streamPtrPtr);
+    unmarshal_VkMemoryWin32HandlePropertiesKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryWin32HandlePropertiesKHR*)(pMemoryWin32HandleProperties));
     if (pMemoryWin32HandleProperties)
     {
         transform_fromhost_VkMemoryWin32HandlePropertiesKHR(sResourceTracker, (VkMemoryWin32HandlePropertiesKHR*)(pMemoryWin32HandleProperties));
@@ -17603,7 +17603,7 @@ VkResult VkEncoder::vkGetMemoryFdKHR(
     if (pGetFdInfo)
     {
         local_pGetFdInfo = (VkMemoryGetFdInfoKHR*)pool->alloc(sizeof(const VkMemoryGetFdInfoKHR));
-        deepcopy_VkMemoryGetFdInfoKHR(pool, pGetFdInfo, (VkMemoryGetFdInfoKHR*)(local_pGetFdInfo));
+        deepcopy_VkMemoryGetFdInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pGetFdInfo, (VkMemoryGetFdInfoKHR*)(local_pGetFdInfo));
     }
     if (local_pGetFdInfo)
     {
@@ -17614,7 +17614,7 @@ VkResult VkEncoder::vkGetMemoryFdKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkMemoryGetFdInfoKHR(sFeatureBits, (VkMemoryGetFdInfoKHR*)(local_pGetFdInfo), countPtr);
+        count_VkMemoryGetFdInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryGetFdInfoKHR*)(local_pGetFdInfo), countPtr);
         *countPtr += sizeof(int);
     }
     uint32_t packetSize_vkGetMemoryFdKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -17629,7 +17629,7 @@ VkResult VkEncoder::vkGetMemoryFdKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkMemoryGetFdInfoKHR(stream, (VkMemoryGetFdInfoKHR*)(local_pGetFdInfo), streamPtrPtr);
+    reservedmarshal_VkMemoryGetFdInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryGetFdInfoKHR*)(local_pGetFdInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (int*)pFd, sizeof(int));
     *streamPtrPtr += sizeof(int);
     stream->read((int*)pFd, sizeof(int));
@@ -17670,7 +17670,7 @@ VkResult VkEncoder::vkGetMemoryFdPropertiesKHR(
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkExternalMemoryHandleTypeFlagBits);
         *countPtr += sizeof(int);
-        count_VkMemoryFdPropertiesKHR(sFeatureBits, (VkMemoryFdPropertiesKHR*)(pMemoryFdProperties), countPtr);
+        count_VkMemoryFdPropertiesKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryFdPropertiesKHR*)(pMemoryFdProperties), countPtr);
     }
     uint32_t packetSize_vkGetMemoryFdPropertiesKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetMemoryFdPropertiesKHR);
@@ -17688,8 +17688,8 @@ VkResult VkEncoder::vkGetMemoryFdPropertiesKHR(
     *streamPtrPtr += sizeof(VkExternalMemoryHandleTypeFlagBits);
     memcpy(*streamPtrPtr, (int*)&local_fd, sizeof(int));
     *streamPtrPtr += sizeof(int);
-    reservedmarshal_VkMemoryFdPropertiesKHR(stream, (VkMemoryFdPropertiesKHR*)(pMemoryFdProperties), streamPtrPtr);
-    unmarshal_VkMemoryFdPropertiesKHR(stream, (VkMemoryFdPropertiesKHR*)(pMemoryFdProperties));
+    reservedmarshal_VkMemoryFdPropertiesKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryFdPropertiesKHR*)(pMemoryFdProperties), streamPtrPtr);
+    unmarshal_VkMemoryFdPropertiesKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryFdPropertiesKHR*)(pMemoryFdProperties));
     if (pMemoryFdProperties)
     {
         transform_fromhost_VkMemoryFdPropertiesKHR(sResourceTracker, (VkMemoryFdPropertiesKHR*)(pMemoryFdProperties));
@@ -17728,7 +17728,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
     if (pExternalSemaphoreInfo)
     {
         local_pExternalSemaphoreInfo = (VkPhysicalDeviceExternalSemaphoreInfo*)pool->alloc(sizeof(const VkPhysicalDeviceExternalSemaphoreInfo));
-        deepcopy_VkPhysicalDeviceExternalSemaphoreInfo(pool, pExternalSemaphoreInfo, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
+        deepcopy_VkPhysicalDeviceExternalSemaphoreInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pExternalSemaphoreInfo, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo));
     }
     if (local_pExternalSemaphoreInfo)
     {
@@ -17739,8 +17739,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceExternalSemaphoreInfo(sFeatureBits, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo), countPtr);
-        count_VkExternalSemaphoreProperties(sFeatureBits, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties), countPtr);
+        count_VkPhysicalDeviceExternalSemaphoreInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo), countPtr);
+        count_VkExternalSemaphoreProperties(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceExternalSemaphorePropertiesKHR);
@@ -17754,9 +17754,9 @@ void VkEncoder::vkGetPhysicalDeviceExternalSemaphorePropertiesKHR(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceExternalSemaphoreInfo(stream, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo), streamPtrPtr);
-    reservedmarshal_VkExternalSemaphoreProperties(stream, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties), streamPtrPtr);
-    unmarshal_VkExternalSemaphoreProperties(stream, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
+    reservedmarshal_VkPhysicalDeviceExternalSemaphoreInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceExternalSemaphoreInfo*)(local_pExternalSemaphoreInfo), streamPtrPtr);
+    reservedmarshal_VkExternalSemaphoreProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties), streamPtrPtr);
+    unmarshal_VkExternalSemaphoreProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
     if (pExternalSemaphoreProperties)
     {
         transform_fromhost_VkExternalSemaphoreProperties(sResourceTracker, (VkExternalSemaphoreProperties*)(pExternalSemaphoreProperties));
@@ -17792,7 +17792,7 @@ VkResult VkEncoder::vkImportSemaphoreWin32HandleKHR(
     if (pImportSemaphoreWin32HandleInfo)
     {
         local_pImportSemaphoreWin32HandleInfo = (VkImportSemaphoreWin32HandleInfoKHR*)pool->alloc(sizeof(const VkImportSemaphoreWin32HandleInfoKHR));
-        deepcopy_VkImportSemaphoreWin32HandleInfoKHR(pool, pImportSemaphoreWin32HandleInfo, (VkImportSemaphoreWin32HandleInfoKHR*)(local_pImportSemaphoreWin32HandleInfo));
+        deepcopy_VkImportSemaphoreWin32HandleInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pImportSemaphoreWin32HandleInfo, (VkImportSemaphoreWin32HandleInfoKHR*)(local_pImportSemaphoreWin32HandleInfo));
     }
     if (local_pImportSemaphoreWin32HandleInfo)
     {
@@ -17803,7 +17803,7 @@ VkResult VkEncoder::vkImportSemaphoreWin32HandleKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkImportSemaphoreWin32HandleInfoKHR(sFeatureBits, (VkImportSemaphoreWin32HandleInfoKHR*)(local_pImportSemaphoreWin32HandleInfo), countPtr);
+        count_VkImportSemaphoreWin32HandleInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImportSemaphoreWin32HandleInfoKHR*)(local_pImportSemaphoreWin32HandleInfo), countPtr);
     }
     uint32_t packetSize_vkImportSemaphoreWin32HandleKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkImportSemaphoreWin32HandleKHR);
@@ -17817,7 +17817,7 @@ VkResult VkEncoder::vkImportSemaphoreWin32HandleKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkImportSemaphoreWin32HandleInfoKHR(stream, (VkImportSemaphoreWin32HandleInfoKHR*)(local_pImportSemaphoreWin32HandleInfo), streamPtrPtr);
+    reservedmarshal_VkImportSemaphoreWin32HandleInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImportSemaphoreWin32HandleInfoKHR*)(local_pImportSemaphoreWin32HandleInfo), streamPtrPtr);
     VkResult vkImportSemaphoreWin32HandleKHR_VkResult_return = (VkResult)0;
     stream->read(&vkImportSemaphoreWin32HandleKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -17848,7 +17848,7 @@ VkResult VkEncoder::vkGetSemaphoreWin32HandleKHR(
     if (pGetWin32HandleInfo)
     {
         local_pGetWin32HandleInfo = (VkSemaphoreGetWin32HandleInfoKHR*)pool->alloc(sizeof(const VkSemaphoreGetWin32HandleInfoKHR));
-        deepcopy_VkSemaphoreGetWin32HandleInfoKHR(pool, pGetWin32HandleInfo, (VkSemaphoreGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
+        deepcopy_VkSemaphoreGetWin32HandleInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pGetWin32HandleInfo, (VkSemaphoreGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
     }
     if (local_pGetWin32HandleInfo)
     {
@@ -17859,7 +17859,7 @@ VkResult VkEncoder::vkGetSemaphoreWin32HandleKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkSemaphoreGetWin32HandleInfoKHR(sFeatureBits, (VkSemaphoreGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), countPtr);
+        count_VkSemaphoreGetWin32HandleInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSemaphoreGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), countPtr);
         *countPtr += sizeof(HANDLE);
     }
     uint32_t packetSize_vkGetSemaphoreWin32HandleKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -17874,7 +17874,7 @@ VkResult VkEncoder::vkGetSemaphoreWin32HandleKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkSemaphoreGetWin32HandleInfoKHR(stream, (VkSemaphoreGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), streamPtrPtr);
+    reservedmarshal_VkSemaphoreGetWin32HandleInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSemaphoreGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (HANDLE*)pHandle, sizeof(HANDLE));
     *streamPtrPtr += sizeof(HANDLE);
     stream->read((HANDLE*)pHandle, sizeof(HANDLE));
@@ -17909,7 +17909,7 @@ VkResult VkEncoder::vkImportSemaphoreFdKHR(
     if (pImportSemaphoreFdInfo)
     {
         local_pImportSemaphoreFdInfo = (VkImportSemaphoreFdInfoKHR*)pool->alloc(sizeof(const VkImportSemaphoreFdInfoKHR));
-        deepcopy_VkImportSemaphoreFdInfoKHR(pool, pImportSemaphoreFdInfo, (VkImportSemaphoreFdInfoKHR*)(local_pImportSemaphoreFdInfo));
+        deepcopy_VkImportSemaphoreFdInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pImportSemaphoreFdInfo, (VkImportSemaphoreFdInfoKHR*)(local_pImportSemaphoreFdInfo));
     }
     if (local_pImportSemaphoreFdInfo)
     {
@@ -17920,7 +17920,7 @@ VkResult VkEncoder::vkImportSemaphoreFdKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkImportSemaphoreFdInfoKHR(sFeatureBits, (VkImportSemaphoreFdInfoKHR*)(local_pImportSemaphoreFdInfo), countPtr);
+        count_VkImportSemaphoreFdInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImportSemaphoreFdInfoKHR*)(local_pImportSemaphoreFdInfo), countPtr);
     }
     uint32_t packetSize_vkImportSemaphoreFdKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkImportSemaphoreFdKHR);
@@ -17934,7 +17934,7 @@ VkResult VkEncoder::vkImportSemaphoreFdKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkImportSemaphoreFdInfoKHR(stream, (VkImportSemaphoreFdInfoKHR*)(local_pImportSemaphoreFdInfo), streamPtrPtr);
+    reservedmarshal_VkImportSemaphoreFdInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImportSemaphoreFdInfoKHR*)(local_pImportSemaphoreFdInfo), streamPtrPtr);
     VkResult vkImportSemaphoreFdKHR_VkResult_return = (VkResult)0;
     stream->read(&vkImportSemaphoreFdKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -17965,7 +17965,7 @@ VkResult VkEncoder::vkGetSemaphoreFdKHR(
     if (pGetFdInfo)
     {
         local_pGetFdInfo = (VkSemaphoreGetFdInfoKHR*)pool->alloc(sizeof(const VkSemaphoreGetFdInfoKHR));
-        deepcopy_VkSemaphoreGetFdInfoKHR(pool, pGetFdInfo, (VkSemaphoreGetFdInfoKHR*)(local_pGetFdInfo));
+        deepcopy_VkSemaphoreGetFdInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pGetFdInfo, (VkSemaphoreGetFdInfoKHR*)(local_pGetFdInfo));
     }
     if (local_pGetFdInfo)
     {
@@ -17976,7 +17976,7 @@ VkResult VkEncoder::vkGetSemaphoreFdKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkSemaphoreGetFdInfoKHR(sFeatureBits, (VkSemaphoreGetFdInfoKHR*)(local_pGetFdInfo), countPtr);
+        count_VkSemaphoreGetFdInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSemaphoreGetFdInfoKHR*)(local_pGetFdInfo), countPtr);
         *countPtr += sizeof(int);
     }
     uint32_t packetSize_vkGetSemaphoreFdKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -17991,7 +17991,7 @@ VkResult VkEncoder::vkGetSemaphoreFdKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkSemaphoreGetFdInfoKHR(stream, (VkSemaphoreGetFdInfoKHR*)(local_pGetFdInfo), streamPtrPtr);
+    reservedmarshal_VkSemaphoreGetFdInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSemaphoreGetFdInfoKHR*)(local_pGetFdInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (int*)pFd, sizeof(int));
     *streamPtrPtr += sizeof(int);
     stream->read((int*)pFd, sizeof(int));
@@ -18040,7 +18040,7 @@ void VkEncoder::vkCmdPushDescriptorSetKHR(
         local_pDescriptorWrites = (VkWriteDescriptorSet*)pool->alloc(((descriptorWriteCount)) * sizeof(const VkWriteDescriptorSet));
         for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i)
         {
-            deepcopy_VkWriteDescriptorSet(pool, pDescriptorWrites + i, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i));
+            deepcopy_VkWriteDescriptorSet(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pDescriptorWrites + i, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i));
         }
     }
     if (local_pDescriptorWrites)
@@ -18062,7 +18062,7 @@ void VkEncoder::vkCmdPushDescriptorSetKHR(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i)
         {
-            count_VkWriteDescriptorSet(sFeatureBits, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i), countPtr);
+            count_VkWriteDescriptorSet(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdPushDescriptorSetKHR = 4 + 4 + count;
@@ -18091,7 +18091,7 @@ void VkEncoder::vkCmdPushDescriptorSetKHR(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((descriptorWriteCount)); ++i)
     {
-        reservedmarshal_VkWriteDescriptorSet(stream, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i), streamPtrPtr);
+        reservedmarshal_VkWriteDescriptorSet(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkWriteDescriptorSet*)(local_pDescriptorWrites + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -18214,13 +18214,13 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDescriptorUpdateTemplateCreateInfo*)pool->alloc(sizeof(const VkDescriptorUpdateTemplateCreateInfo));
-        deepcopy_VkDescriptorUpdateTemplateCreateInfo(pool, pCreateInfo, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkDescriptorUpdateTemplateCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -18236,12 +18236,12 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDescriptorUpdateTemplateCreateInfo(sFeatureBits, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkDescriptorUpdateTemplateCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -18258,7 +18258,7 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDescriptorUpdateTemplateCreateInfo(stream, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkDescriptorUpdateTemplateCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorUpdateTemplateCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -18266,7 +18266,7 @@ VkResult VkEncoder::vkCreateDescriptorUpdateTemplateKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -18312,7 +18312,7 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplateKHR(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -18330,7 +18330,7 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplateKHR(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyDescriptorUpdateTemplateKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -18356,7 +18356,7 @@ void VkEncoder::vkDestroyDescriptorUpdateTemplateKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkDescriptorUpdateTemplate((VkDescriptorUpdateTemplate*)&descriptorUpdateTemplate);
     stream->flush();
@@ -18470,13 +18470,13 @@ VkResult VkEncoder::vkCreateRenderPass2KHR(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkRenderPassCreateInfo2*)pool->alloc(sizeof(const VkRenderPassCreateInfo2));
-        deepcopy_VkRenderPassCreateInfo2(pool, pCreateInfo, (VkRenderPassCreateInfo2*)(local_pCreateInfo));
+        deepcopy_VkRenderPassCreateInfo2(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkRenderPassCreateInfo2*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -18492,12 +18492,12 @@ VkResult VkEncoder::vkCreateRenderPass2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkRenderPassCreateInfo2(sFeatureBits, (VkRenderPassCreateInfo2*)(local_pCreateInfo), countPtr);
+        count_VkRenderPassCreateInfo2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRenderPassCreateInfo2*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -18514,7 +18514,7 @@ VkResult VkEncoder::vkCreateRenderPass2KHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkRenderPassCreateInfo2(stream, (VkRenderPassCreateInfo2*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkRenderPassCreateInfo2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRenderPassCreateInfo2*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -18522,7 +18522,7 @@ VkResult VkEncoder::vkCreateRenderPass2KHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -18564,13 +18564,13 @@ void VkEncoder::vkCmdBeginRenderPass2KHR(
     if (pRenderPassBegin)
     {
         local_pRenderPassBegin = (VkRenderPassBeginInfo*)pool->alloc(sizeof(const VkRenderPassBeginInfo));
-        deepcopy_VkRenderPassBeginInfo(pool, pRenderPassBegin, (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
+        deepcopy_VkRenderPassBeginInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pRenderPassBegin, (VkRenderPassBeginInfo*)(local_pRenderPassBegin));
     }
     local_pSubpassBeginInfo = nullptr;
     if (pSubpassBeginInfo)
     {
         local_pSubpassBeginInfo = (VkSubpassBeginInfo*)pool->alloc(sizeof(const VkSubpassBeginInfo));
-        deepcopy_VkSubpassBeginInfo(pool, pSubpassBeginInfo, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo));
+        deepcopy_VkSubpassBeginInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pSubpassBeginInfo, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo));
     }
     if (local_pRenderPassBegin)
     {
@@ -18585,8 +18585,8 @@ void VkEncoder::vkCmdBeginRenderPass2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkRenderPassBeginInfo(sFeatureBits, (VkRenderPassBeginInfo*)(local_pRenderPassBegin), countPtr);
-        count_VkSubpassBeginInfo(sFeatureBits, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo), countPtr);
+        count_VkRenderPassBeginInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRenderPassBeginInfo*)(local_pRenderPassBegin), countPtr);
+        count_VkSubpassBeginInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo), countPtr);
     }
     uint32_t packetSize_vkCmdBeginRenderPass2KHR = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdBeginRenderPass2KHR -= 8;
@@ -18602,8 +18602,8 @@ void VkEncoder::vkCmdBeginRenderPass2KHR(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkRenderPassBeginInfo(stream, (VkRenderPassBeginInfo*)(local_pRenderPassBegin), streamPtrPtr);
-    reservedmarshal_VkSubpassBeginInfo(stream, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo), streamPtrPtr);
+    reservedmarshal_VkRenderPassBeginInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRenderPassBeginInfo*)(local_pRenderPassBegin), streamPtrPtr);
+    reservedmarshal_VkSubpassBeginInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -18632,13 +18632,13 @@ void VkEncoder::vkCmdNextSubpass2KHR(
     if (pSubpassBeginInfo)
     {
         local_pSubpassBeginInfo = (VkSubpassBeginInfo*)pool->alloc(sizeof(const VkSubpassBeginInfo));
-        deepcopy_VkSubpassBeginInfo(pool, pSubpassBeginInfo, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo));
+        deepcopy_VkSubpassBeginInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pSubpassBeginInfo, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo));
     }
     local_pSubpassEndInfo = nullptr;
     if (pSubpassEndInfo)
     {
         local_pSubpassEndInfo = (VkSubpassEndInfo*)pool->alloc(sizeof(const VkSubpassEndInfo));
-        deepcopy_VkSubpassEndInfo(pool, pSubpassEndInfo, (VkSubpassEndInfo*)(local_pSubpassEndInfo));
+        deepcopy_VkSubpassEndInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pSubpassEndInfo, (VkSubpassEndInfo*)(local_pSubpassEndInfo));
     }
     if (local_pSubpassBeginInfo)
     {
@@ -18653,8 +18653,8 @@ void VkEncoder::vkCmdNextSubpass2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkSubpassBeginInfo(sFeatureBits, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo), countPtr);
-        count_VkSubpassEndInfo(sFeatureBits, (VkSubpassEndInfo*)(local_pSubpassEndInfo), countPtr);
+        count_VkSubpassBeginInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo), countPtr);
+        count_VkSubpassEndInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubpassEndInfo*)(local_pSubpassEndInfo), countPtr);
     }
     uint32_t packetSize_vkCmdNextSubpass2KHR = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdNextSubpass2KHR -= 8;
@@ -18670,8 +18670,8 @@ void VkEncoder::vkCmdNextSubpass2KHR(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkSubpassBeginInfo(stream, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo), streamPtrPtr);
-    reservedmarshal_VkSubpassEndInfo(stream, (VkSubpassEndInfo*)(local_pSubpassEndInfo), streamPtrPtr);
+    reservedmarshal_VkSubpassBeginInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubpassBeginInfo*)(local_pSubpassBeginInfo), streamPtrPtr);
+    reservedmarshal_VkSubpassEndInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubpassEndInfo*)(local_pSubpassEndInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -18698,7 +18698,7 @@ void VkEncoder::vkCmdEndRenderPass2KHR(
     if (pSubpassEndInfo)
     {
         local_pSubpassEndInfo = (VkSubpassEndInfo*)pool->alloc(sizeof(const VkSubpassEndInfo));
-        deepcopy_VkSubpassEndInfo(pool, pSubpassEndInfo, (VkSubpassEndInfo*)(local_pSubpassEndInfo));
+        deepcopy_VkSubpassEndInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pSubpassEndInfo, (VkSubpassEndInfo*)(local_pSubpassEndInfo));
     }
     if (local_pSubpassEndInfo)
     {
@@ -18709,7 +18709,7 @@ void VkEncoder::vkCmdEndRenderPass2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkSubpassEndInfo(sFeatureBits, (VkSubpassEndInfo*)(local_pSubpassEndInfo), countPtr);
+        count_VkSubpassEndInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubpassEndInfo*)(local_pSubpassEndInfo), countPtr);
     }
     uint32_t packetSize_vkCmdEndRenderPass2KHR = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdEndRenderPass2KHR -= 8;
@@ -18725,7 +18725,7 @@ void VkEncoder::vkCmdEndRenderPass2KHR(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkSubpassEndInfo(stream, (VkSubpassEndInfo*)(local_pSubpassEndInfo), streamPtrPtr);
+    reservedmarshal_VkSubpassEndInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubpassEndInfo*)(local_pSubpassEndInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -18807,7 +18807,7 @@ void VkEncoder::vkGetPhysicalDeviceExternalFencePropertiesKHR(
     if (pExternalFenceInfo)
     {
         local_pExternalFenceInfo = (VkPhysicalDeviceExternalFenceInfo*)pool->alloc(sizeof(const VkPhysicalDeviceExternalFenceInfo));
-        deepcopy_VkPhysicalDeviceExternalFenceInfo(pool, pExternalFenceInfo, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
+        deepcopy_VkPhysicalDeviceExternalFenceInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pExternalFenceInfo, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo));
     }
     if (local_pExternalFenceInfo)
     {
@@ -18818,8 +18818,8 @@ void VkEncoder::vkGetPhysicalDeviceExternalFencePropertiesKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceExternalFenceInfo(sFeatureBits, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo), countPtr);
-        count_VkExternalFenceProperties(sFeatureBits, (VkExternalFenceProperties*)(pExternalFenceProperties), countPtr);
+        count_VkPhysicalDeviceExternalFenceInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo), countPtr);
+        count_VkExternalFenceProperties(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalFenceProperties*)(pExternalFenceProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceExternalFencePropertiesKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceExternalFencePropertiesKHR);
@@ -18833,9 +18833,9 @@ void VkEncoder::vkGetPhysicalDeviceExternalFencePropertiesKHR(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceExternalFenceInfo(stream, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo), streamPtrPtr);
-    reservedmarshal_VkExternalFenceProperties(stream, (VkExternalFenceProperties*)(pExternalFenceProperties), streamPtrPtr);
-    unmarshal_VkExternalFenceProperties(stream, (VkExternalFenceProperties*)(pExternalFenceProperties));
+    reservedmarshal_VkPhysicalDeviceExternalFenceInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceExternalFenceInfo*)(local_pExternalFenceInfo), streamPtrPtr);
+    reservedmarshal_VkExternalFenceProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalFenceProperties*)(pExternalFenceProperties), streamPtrPtr);
+    unmarshal_VkExternalFenceProperties(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalFenceProperties*)(pExternalFenceProperties));
     if (pExternalFenceProperties)
     {
         transform_fromhost_VkExternalFenceProperties(sResourceTracker, (VkExternalFenceProperties*)(pExternalFenceProperties));
@@ -18870,7 +18870,7 @@ VkResult VkEncoder::vkImportFenceWin32HandleKHR(
     if (pImportFenceWin32HandleInfo)
     {
         local_pImportFenceWin32HandleInfo = (VkImportFenceWin32HandleInfoKHR*)pool->alloc(sizeof(const VkImportFenceWin32HandleInfoKHR));
-        deepcopy_VkImportFenceWin32HandleInfoKHR(pool, pImportFenceWin32HandleInfo, (VkImportFenceWin32HandleInfoKHR*)(local_pImportFenceWin32HandleInfo));
+        deepcopy_VkImportFenceWin32HandleInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pImportFenceWin32HandleInfo, (VkImportFenceWin32HandleInfoKHR*)(local_pImportFenceWin32HandleInfo));
     }
     if (local_pImportFenceWin32HandleInfo)
     {
@@ -18881,7 +18881,7 @@ VkResult VkEncoder::vkImportFenceWin32HandleKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkImportFenceWin32HandleInfoKHR(sFeatureBits, (VkImportFenceWin32HandleInfoKHR*)(local_pImportFenceWin32HandleInfo), countPtr);
+        count_VkImportFenceWin32HandleInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImportFenceWin32HandleInfoKHR*)(local_pImportFenceWin32HandleInfo), countPtr);
     }
     uint32_t packetSize_vkImportFenceWin32HandleKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkImportFenceWin32HandleKHR);
@@ -18895,7 +18895,7 @@ VkResult VkEncoder::vkImportFenceWin32HandleKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkImportFenceWin32HandleInfoKHR(stream, (VkImportFenceWin32HandleInfoKHR*)(local_pImportFenceWin32HandleInfo), streamPtrPtr);
+    reservedmarshal_VkImportFenceWin32HandleInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImportFenceWin32HandleInfoKHR*)(local_pImportFenceWin32HandleInfo), streamPtrPtr);
     VkResult vkImportFenceWin32HandleKHR_VkResult_return = (VkResult)0;
     stream->read(&vkImportFenceWin32HandleKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -18926,7 +18926,7 @@ VkResult VkEncoder::vkGetFenceWin32HandleKHR(
     if (pGetWin32HandleInfo)
     {
         local_pGetWin32HandleInfo = (VkFenceGetWin32HandleInfoKHR*)pool->alloc(sizeof(const VkFenceGetWin32HandleInfoKHR));
-        deepcopy_VkFenceGetWin32HandleInfoKHR(pool, pGetWin32HandleInfo, (VkFenceGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
+        deepcopy_VkFenceGetWin32HandleInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pGetWin32HandleInfo, (VkFenceGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo));
     }
     if (local_pGetWin32HandleInfo)
     {
@@ -18937,7 +18937,7 @@ VkResult VkEncoder::vkGetFenceWin32HandleKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkFenceGetWin32HandleInfoKHR(sFeatureBits, (VkFenceGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), countPtr);
+        count_VkFenceGetWin32HandleInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFenceGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), countPtr);
         *countPtr += sizeof(HANDLE);
     }
     uint32_t packetSize_vkGetFenceWin32HandleKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -18952,7 +18952,7 @@ VkResult VkEncoder::vkGetFenceWin32HandleKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkFenceGetWin32HandleInfoKHR(stream, (VkFenceGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), streamPtrPtr);
+    reservedmarshal_VkFenceGetWin32HandleInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFenceGetWin32HandleInfoKHR*)(local_pGetWin32HandleInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (HANDLE*)pHandle, sizeof(HANDLE));
     *streamPtrPtr += sizeof(HANDLE);
     stream->read((HANDLE*)pHandle, sizeof(HANDLE));
@@ -18987,7 +18987,7 @@ VkResult VkEncoder::vkImportFenceFdKHR(
     if (pImportFenceFdInfo)
     {
         local_pImportFenceFdInfo = (VkImportFenceFdInfoKHR*)pool->alloc(sizeof(const VkImportFenceFdInfoKHR));
-        deepcopy_VkImportFenceFdInfoKHR(pool, pImportFenceFdInfo, (VkImportFenceFdInfoKHR*)(local_pImportFenceFdInfo));
+        deepcopy_VkImportFenceFdInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pImportFenceFdInfo, (VkImportFenceFdInfoKHR*)(local_pImportFenceFdInfo));
     }
     if (local_pImportFenceFdInfo)
     {
@@ -18998,7 +18998,7 @@ VkResult VkEncoder::vkImportFenceFdKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkImportFenceFdInfoKHR(sFeatureBits, (VkImportFenceFdInfoKHR*)(local_pImportFenceFdInfo), countPtr);
+        count_VkImportFenceFdInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImportFenceFdInfoKHR*)(local_pImportFenceFdInfo), countPtr);
     }
     uint32_t packetSize_vkImportFenceFdKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkImportFenceFdKHR);
@@ -19012,7 +19012,7 @@ VkResult VkEncoder::vkImportFenceFdKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkImportFenceFdInfoKHR(stream, (VkImportFenceFdInfoKHR*)(local_pImportFenceFdInfo), streamPtrPtr);
+    reservedmarshal_VkImportFenceFdInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImportFenceFdInfoKHR*)(local_pImportFenceFdInfo), streamPtrPtr);
     VkResult vkImportFenceFdKHR_VkResult_return = (VkResult)0;
     stream->read(&vkImportFenceFdKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -19043,7 +19043,7 @@ VkResult VkEncoder::vkGetFenceFdKHR(
     if (pGetFdInfo)
     {
         local_pGetFdInfo = (VkFenceGetFdInfoKHR*)pool->alloc(sizeof(const VkFenceGetFdInfoKHR));
-        deepcopy_VkFenceGetFdInfoKHR(pool, pGetFdInfo, (VkFenceGetFdInfoKHR*)(local_pGetFdInfo));
+        deepcopy_VkFenceGetFdInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pGetFdInfo, (VkFenceGetFdInfoKHR*)(local_pGetFdInfo));
     }
     if (local_pGetFdInfo)
     {
@@ -19054,7 +19054,7 @@ VkResult VkEncoder::vkGetFenceFdKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkFenceGetFdInfoKHR(sFeatureBits, (VkFenceGetFdInfoKHR*)(local_pGetFdInfo), countPtr);
+        count_VkFenceGetFdInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFenceGetFdInfoKHR*)(local_pGetFdInfo), countPtr);
         *countPtr += sizeof(int);
     }
     uint32_t packetSize_vkGetFenceFdKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -19069,7 +19069,7 @@ VkResult VkEncoder::vkGetFenceFdKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkFenceGetFdInfoKHR(stream, (VkFenceGetFdInfoKHR*)(local_pGetFdInfo), streamPtrPtr);
+    reservedmarshal_VkFenceGetFdInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFenceGetFdInfoKHR*)(local_pGetFdInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (int*)pFd, sizeof(int));
     *streamPtrPtr += sizeof(int);
     stream->read((int*)pFd, sizeof(int));
@@ -19124,7 +19124,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCounters
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
                 {
-                    count_VkPerformanceCounterKHR(sFeatureBits, (VkPerformanceCounterKHR*)(pCounters + i), countPtr);
+                    count_VkPerformanceCounterKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPerformanceCounterKHR*)(pCounters + i), countPtr);
                 }
             }
         }
@@ -19136,7 +19136,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCounters
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
                 {
-                    count_VkPerformanceCounterDescriptionKHR(sFeatureBits, (VkPerformanceCounterDescriptionKHR*)(pCounterDescriptions + i), countPtr);
+                    count_VkPerformanceCounterDescriptionKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPerformanceCounterDescriptionKHR*)(pCounterDescriptions + i), countPtr);
                 }
             }
         }
@@ -19174,7 +19174,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCounters
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
         {
-            reservedmarshal_VkPerformanceCounterKHR(stream, (VkPerformanceCounterKHR*)(pCounters + i), streamPtrPtr);
+            reservedmarshal_VkPerformanceCounterKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPerformanceCounterKHR*)(pCounters + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -19186,7 +19186,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCounters
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
         {
-            reservedmarshal_VkPerformanceCounterDescriptionKHR(stream, (VkPerformanceCounterDescriptionKHR*)(pCounterDescriptions + i), streamPtrPtr);
+            reservedmarshal_VkPerformanceCounterDescriptionKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPerformanceCounterDescriptionKHR*)(pCounterDescriptions + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -19213,7 +19213,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCounters
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
             {
-                unmarshal_VkPerformanceCounterKHR(stream, (VkPerformanceCounterKHR*)(pCounters + i));
+                unmarshal_VkPerformanceCounterKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPerformanceCounterKHR*)(pCounters + i));
             }
         }
     }
@@ -19240,7 +19240,7 @@ VkResult VkEncoder::vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCounters
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pCounterCount)); ++i)
             {
-                unmarshal_VkPerformanceCounterDescriptionKHR(stream, (VkPerformanceCounterDescriptionKHR*)(pCounterDescriptions + i));
+                unmarshal_VkPerformanceCounterDescriptionKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPerformanceCounterDescriptionKHR*)(pCounterDescriptions + i));
             }
         }
     }
@@ -19284,7 +19284,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR(
     if (pPerformanceQueryCreateInfo)
     {
         local_pPerformanceQueryCreateInfo = (VkQueryPoolPerformanceCreateInfoKHR*)pool->alloc(sizeof(const VkQueryPoolPerformanceCreateInfoKHR));
-        deepcopy_VkQueryPoolPerformanceCreateInfoKHR(pool, pPerformanceQueryCreateInfo, (VkQueryPoolPerformanceCreateInfoKHR*)(local_pPerformanceQueryCreateInfo));
+        deepcopy_VkQueryPoolPerformanceCreateInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pPerformanceQueryCreateInfo, (VkQueryPoolPerformanceCreateInfoKHR*)(local_pPerformanceQueryCreateInfo));
     }
     if (local_pPerformanceQueryCreateInfo)
     {
@@ -19295,7 +19295,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkQueryPoolPerformanceCreateInfoKHR(sFeatureBits, (VkQueryPoolPerformanceCreateInfoKHR*)(local_pPerformanceQueryCreateInfo), countPtr);
+        count_VkQueryPoolPerformanceCreateInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkQueryPoolPerformanceCreateInfoKHR*)(local_pPerformanceQueryCreateInfo), countPtr);
         *countPtr += sizeof(uint32_t);
     }
     uint32_t packetSize_vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -19310,7 +19310,7 @@ void VkEncoder::vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkQueryPoolPerformanceCreateInfoKHR(stream, (VkQueryPoolPerformanceCreateInfoKHR*)(local_pPerformanceQueryCreateInfo), streamPtrPtr);
+    reservedmarshal_VkQueryPoolPerformanceCreateInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkQueryPoolPerformanceCreateInfoKHR*)(local_pPerformanceQueryCreateInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (uint32_t*)pNumPasses, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
     stream->read((uint32_t*)pNumPasses, sizeof(uint32_t));
@@ -19340,7 +19340,7 @@ VkResult VkEncoder::vkAcquireProfilingLockKHR(
     if (pInfo)
     {
         local_pInfo = (VkAcquireProfilingLockInfoKHR*)pool->alloc(sizeof(const VkAcquireProfilingLockInfoKHR));
-        deepcopy_VkAcquireProfilingLockInfoKHR(pool, pInfo, (VkAcquireProfilingLockInfoKHR*)(local_pInfo));
+        deepcopy_VkAcquireProfilingLockInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkAcquireProfilingLockInfoKHR*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -19351,7 +19351,7 @@ VkResult VkEncoder::vkAcquireProfilingLockKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkAcquireProfilingLockInfoKHR(sFeatureBits, (VkAcquireProfilingLockInfoKHR*)(local_pInfo), countPtr);
+        count_VkAcquireProfilingLockInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAcquireProfilingLockInfoKHR*)(local_pInfo), countPtr);
     }
     uint32_t packetSize_vkAcquireProfilingLockKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkAcquireProfilingLockKHR);
@@ -19365,7 +19365,7 @@ VkResult VkEncoder::vkAcquireProfilingLockKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkAcquireProfilingLockInfoKHR(stream, (VkAcquireProfilingLockInfoKHR*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkAcquireProfilingLockInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAcquireProfilingLockInfoKHR*)(local_pInfo), streamPtrPtr);
     VkResult vkAcquireProfilingLockKHR_VkResult_return = (VkResult)0;
     stream->read(&vkAcquireProfilingLockKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -19439,7 +19439,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2KHR(
     if (pSurfaceInfo)
     {
         local_pSurfaceInfo = (VkPhysicalDeviceSurfaceInfo2KHR*)pool->alloc(sizeof(const VkPhysicalDeviceSurfaceInfo2KHR));
-        deepcopy_VkPhysicalDeviceSurfaceInfo2KHR(pool, pSurfaceInfo, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
+        deepcopy_VkPhysicalDeviceSurfaceInfo2KHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pSurfaceInfo, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
     }
     if (local_pSurfaceInfo)
     {
@@ -19450,8 +19450,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceSurfaceInfo2KHR(sFeatureBits, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), countPtr);
-        count_VkSurfaceCapabilities2KHR(sFeatureBits, (VkSurfaceCapabilities2KHR*)(pSurfaceCapabilities), countPtr);
+        count_VkPhysicalDeviceSurfaceInfo2KHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), countPtr);
+        count_VkSurfaceCapabilities2KHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSurfaceCapabilities2KHR*)(pSurfaceCapabilities), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceSurfaceCapabilities2KHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceSurfaceCapabilities2KHR);
@@ -19465,9 +19465,9 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2KHR(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceSurfaceInfo2KHR(stream, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), streamPtrPtr);
-    reservedmarshal_VkSurfaceCapabilities2KHR(stream, (VkSurfaceCapabilities2KHR*)(pSurfaceCapabilities), streamPtrPtr);
-    unmarshal_VkSurfaceCapabilities2KHR(stream, (VkSurfaceCapabilities2KHR*)(pSurfaceCapabilities));
+    reservedmarshal_VkPhysicalDeviceSurfaceInfo2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), streamPtrPtr);
+    reservedmarshal_VkSurfaceCapabilities2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSurfaceCapabilities2KHR*)(pSurfaceCapabilities), streamPtrPtr);
+    unmarshal_VkSurfaceCapabilities2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSurfaceCapabilities2KHR*)(pSurfaceCapabilities));
     if (pSurfaceCapabilities)
     {
         transform_fromhost_VkSurfaceCapabilities2KHR(sResourceTracker, (VkSurfaceCapabilities2KHR*)(pSurfaceCapabilities));
@@ -19503,7 +19503,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
     if (pSurfaceInfo)
     {
         local_pSurfaceInfo = (VkPhysicalDeviceSurfaceInfo2KHR*)pool->alloc(sizeof(const VkPhysicalDeviceSurfaceInfo2KHR));
-        deepcopy_VkPhysicalDeviceSurfaceInfo2KHR(pool, pSurfaceInfo, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
+        deepcopy_VkPhysicalDeviceSurfaceInfo2KHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pSurfaceInfo, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
     }
     if (local_pSurfaceInfo)
     {
@@ -19514,7 +19514,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceSurfaceInfo2KHR(sFeatureBits, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), countPtr);
+        count_VkPhysicalDeviceSurfaceInfo2KHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (pSurfaceFormatCount)
@@ -19529,7 +19529,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
                 {
-                    count_VkSurfaceFormat2KHR(sFeatureBits, (VkSurfaceFormat2KHR*)(pSurfaceFormats + i), countPtr);
+                    count_VkSurfaceFormat2KHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSurfaceFormat2KHR*)(pSurfaceFormats + i), countPtr);
                 }
             }
         }
@@ -19546,7 +19546,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceSurfaceInfo2KHR(stream, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), streamPtrPtr);
+    reservedmarshal_VkPhysicalDeviceSurfaceInfo2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pSurfaceFormatCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -19566,7 +19566,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
         {
-            reservedmarshal_VkSurfaceFormat2KHR(stream, (VkSurfaceFormat2KHR*)(pSurfaceFormats + i), streamPtrPtr);
+            reservedmarshal_VkSurfaceFormat2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSurfaceFormat2KHR*)(pSurfaceFormats + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -19593,7 +19593,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceFormats2KHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSurfaceFormatCount)); ++i)
             {
-                unmarshal_VkSurfaceFormat2KHR(stream, (VkSurfaceFormat2KHR*)(pSurfaceFormats + i));
+                unmarshal_VkSurfaceFormat2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSurfaceFormat2KHR*)(pSurfaceFormats + i));
             }
         }
     }
@@ -19655,7 +19655,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
-                    count_VkDisplayProperties2KHR(sFeatureBits, (VkDisplayProperties2KHR*)(pProperties + i), countPtr);
+                    count_VkDisplayProperties2KHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayProperties2KHR*)(pProperties + i), countPtr);
                 }
             }
         }
@@ -19691,7 +19691,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            reservedmarshal_VkDisplayProperties2KHR(stream, (VkDisplayProperties2KHR*)(pProperties + i), streamPtrPtr);
+            reservedmarshal_VkDisplayProperties2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayProperties2KHR*)(pProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -19718,7 +19718,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayProperties2KHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                unmarshal_VkDisplayProperties2KHR(stream, (VkDisplayProperties2KHR*)(pProperties + i));
+                unmarshal_VkDisplayProperties2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayProperties2KHR*)(pProperties + i));
             }
         }
     }
@@ -19776,7 +19776,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
-                    count_VkDisplayPlaneProperties2KHR(sFeatureBits, (VkDisplayPlaneProperties2KHR*)(pProperties + i), countPtr);
+                    count_VkDisplayPlaneProperties2KHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayPlaneProperties2KHR*)(pProperties + i), countPtr);
                 }
             }
         }
@@ -19812,7 +19812,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            reservedmarshal_VkDisplayPlaneProperties2KHR(stream, (VkDisplayPlaneProperties2KHR*)(pProperties + i), streamPtrPtr);
+            reservedmarshal_VkDisplayPlaneProperties2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayPlaneProperties2KHR*)(pProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -19839,7 +19839,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceDisplayPlaneProperties2KHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                unmarshal_VkDisplayPlaneProperties2KHR(stream, (VkDisplayPlaneProperties2KHR*)(pProperties + i));
+                unmarshal_VkDisplayPlaneProperties2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayPlaneProperties2KHR*)(pProperties + i));
             }
         }
     }
@@ -19902,7 +19902,7 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
-                    count_VkDisplayModeProperties2KHR(sFeatureBits, (VkDisplayModeProperties2KHR*)(pProperties + i), countPtr);
+                    count_VkDisplayModeProperties2KHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayModeProperties2KHR*)(pProperties + i), countPtr);
                 }
             }
         }
@@ -19942,7 +19942,7 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            reservedmarshal_VkDisplayModeProperties2KHR(stream, (VkDisplayModeProperties2KHR*)(pProperties + i), streamPtrPtr);
+            reservedmarshal_VkDisplayModeProperties2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayModeProperties2KHR*)(pProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -19969,7 +19969,7 @@ VkResult VkEncoder::vkGetDisplayModeProperties2KHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                unmarshal_VkDisplayModeProperties2KHR(stream, (VkDisplayModeProperties2KHR*)(pProperties + i));
+                unmarshal_VkDisplayModeProperties2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayModeProperties2KHR*)(pProperties + i));
             }
         }
     }
@@ -20013,7 +20013,7 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilities2KHR(
     if (pDisplayPlaneInfo)
     {
         local_pDisplayPlaneInfo = (VkDisplayPlaneInfo2KHR*)pool->alloc(sizeof(const VkDisplayPlaneInfo2KHR));
-        deepcopy_VkDisplayPlaneInfo2KHR(pool, pDisplayPlaneInfo, (VkDisplayPlaneInfo2KHR*)(local_pDisplayPlaneInfo));
+        deepcopy_VkDisplayPlaneInfo2KHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pDisplayPlaneInfo, (VkDisplayPlaneInfo2KHR*)(local_pDisplayPlaneInfo));
     }
     if (local_pDisplayPlaneInfo)
     {
@@ -20024,8 +20024,8 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilities2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDisplayPlaneInfo2KHR(sFeatureBits, (VkDisplayPlaneInfo2KHR*)(local_pDisplayPlaneInfo), countPtr);
-        count_VkDisplayPlaneCapabilities2KHR(sFeatureBits, (VkDisplayPlaneCapabilities2KHR*)(pCapabilities), countPtr);
+        count_VkDisplayPlaneInfo2KHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayPlaneInfo2KHR*)(local_pDisplayPlaneInfo), countPtr);
+        count_VkDisplayPlaneCapabilities2KHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayPlaneCapabilities2KHR*)(pCapabilities), countPtr);
     }
     uint32_t packetSize_vkGetDisplayPlaneCapabilities2KHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDisplayPlaneCapabilities2KHR);
@@ -20039,9 +20039,9 @@ VkResult VkEncoder::vkGetDisplayPlaneCapabilities2KHR(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDisplayPlaneInfo2KHR(stream, (VkDisplayPlaneInfo2KHR*)(local_pDisplayPlaneInfo), streamPtrPtr);
-    reservedmarshal_VkDisplayPlaneCapabilities2KHR(stream, (VkDisplayPlaneCapabilities2KHR*)(pCapabilities), streamPtrPtr);
-    unmarshal_VkDisplayPlaneCapabilities2KHR(stream, (VkDisplayPlaneCapabilities2KHR*)(pCapabilities));
+    reservedmarshal_VkDisplayPlaneInfo2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayPlaneInfo2KHR*)(local_pDisplayPlaneInfo), streamPtrPtr);
+    reservedmarshal_VkDisplayPlaneCapabilities2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayPlaneCapabilities2KHR*)(pCapabilities), streamPtrPtr);
+    unmarshal_VkDisplayPlaneCapabilities2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayPlaneCapabilities2KHR*)(pCapabilities));
     if (pCapabilities)
     {
         transform_fromhost_VkDisplayPlaneCapabilities2KHR(sResourceTracker, (VkDisplayPlaneCapabilities2KHR*)(pCapabilities));
@@ -20084,7 +20084,7 @@ void VkEncoder::vkGetImageMemoryRequirements2KHR(
     if (pInfo)
     {
         local_pInfo = (VkImageMemoryRequirementsInfo2*)pool->alloc(sizeof(const VkImageMemoryRequirementsInfo2));
-        deepcopy_VkImageMemoryRequirementsInfo2(pool, pInfo, (VkImageMemoryRequirementsInfo2*)(local_pInfo));
+        deepcopy_VkImageMemoryRequirementsInfo2(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkImageMemoryRequirementsInfo2*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -20095,8 +20095,8 @@ void VkEncoder::vkGetImageMemoryRequirements2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkImageMemoryRequirementsInfo2(sFeatureBits, (VkImageMemoryRequirementsInfo2*)(local_pInfo), countPtr);
-        count_VkMemoryRequirements2(sFeatureBits, (VkMemoryRequirements2*)(pMemoryRequirements), countPtr);
+        count_VkImageMemoryRequirementsInfo2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageMemoryRequirementsInfo2*)(local_pInfo), countPtr);
+        count_VkMemoryRequirements2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements2*)(pMemoryRequirements), countPtr);
     }
     uint32_t packetSize_vkGetImageMemoryRequirements2KHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetImageMemoryRequirements2KHR);
@@ -20110,9 +20110,9 @@ void VkEncoder::vkGetImageMemoryRequirements2KHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkImageMemoryRequirementsInfo2(stream, (VkImageMemoryRequirementsInfo2*)(local_pInfo), streamPtrPtr);
-    reservedmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements), streamPtrPtr);
-    unmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
+    reservedmarshal_VkImageMemoryRequirementsInfo2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageMemoryRequirementsInfo2*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkMemoryRequirements2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements2*)(pMemoryRequirements), streamPtrPtr);
+    unmarshal_VkMemoryRequirements2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements2*)(pMemoryRequirements));
     if (pMemoryRequirements)
     {
         transform_fromhost_VkMemoryRequirements2(sResourceTracker, (VkMemoryRequirements2*)(pMemoryRequirements));
@@ -20144,7 +20144,7 @@ void VkEncoder::vkGetBufferMemoryRequirements2KHR(
     if (pInfo)
     {
         local_pInfo = (VkBufferMemoryRequirementsInfo2*)pool->alloc(sizeof(const VkBufferMemoryRequirementsInfo2));
-        deepcopy_VkBufferMemoryRequirementsInfo2(pool, pInfo, (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
+        deepcopy_VkBufferMemoryRequirementsInfo2(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkBufferMemoryRequirementsInfo2*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -20155,8 +20155,8 @@ void VkEncoder::vkGetBufferMemoryRequirements2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkBufferMemoryRequirementsInfo2(sFeatureBits, (VkBufferMemoryRequirementsInfo2*)(local_pInfo), countPtr);
-        count_VkMemoryRequirements2(sFeatureBits, (VkMemoryRequirements2*)(pMemoryRequirements), countPtr);
+        count_VkBufferMemoryRequirementsInfo2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferMemoryRequirementsInfo2*)(local_pInfo), countPtr);
+        count_VkMemoryRequirements2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements2*)(pMemoryRequirements), countPtr);
     }
     uint32_t packetSize_vkGetBufferMemoryRequirements2KHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetBufferMemoryRequirements2KHR);
@@ -20170,9 +20170,9 @@ void VkEncoder::vkGetBufferMemoryRequirements2KHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkBufferMemoryRequirementsInfo2(stream, (VkBufferMemoryRequirementsInfo2*)(local_pInfo), streamPtrPtr);
-    reservedmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements), streamPtrPtr);
-    unmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
+    reservedmarshal_VkBufferMemoryRequirementsInfo2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferMemoryRequirementsInfo2*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkMemoryRequirements2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements2*)(pMemoryRequirements), streamPtrPtr);
+    unmarshal_VkMemoryRequirements2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements2*)(pMemoryRequirements));
     if (pMemoryRequirements)
     {
         transform_fromhost_VkMemoryRequirements2(sResourceTracker, (VkMemoryRequirements2*)(pMemoryRequirements));
@@ -20205,7 +20205,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
     if (pInfo)
     {
         local_pInfo = (VkImageSparseMemoryRequirementsInfo2*)pool->alloc(sizeof(const VkImageSparseMemoryRequirementsInfo2));
-        deepcopy_VkImageSparseMemoryRequirementsInfo2(pool, pInfo, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo));
+        deepcopy_VkImageSparseMemoryRequirementsInfo2(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -20216,7 +20216,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkImageSparseMemoryRequirementsInfo2(sFeatureBits, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo), countPtr);
+        count_VkImageSparseMemoryRequirementsInfo2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (pSparseMemoryRequirementCount)
@@ -20231,7 +20231,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
                 {
-                    count_VkSparseImageMemoryRequirements2(sFeatureBits, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i), countPtr);
+                    count_VkSparseImageMemoryRequirements2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i), countPtr);
                 }
             }
         }
@@ -20248,7 +20248,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkImageSparseMemoryRequirementsInfo2(stream, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkImageSparseMemoryRequirementsInfo2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageSparseMemoryRequirementsInfo2*)(local_pInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pSparseMemoryRequirementCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -20268,7 +20268,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
         {
-            reservedmarshal_VkSparseImageMemoryRequirements2(stream, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i), streamPtrPtr);
+            reservedmarshal_VkSparseImageMemoryRequirements2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -20295,7 +20295,7 @@ void VkEncoder::vkGetImageSparseMemoryRequirements2KHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pSparseMemoryRequirementCount)); ++i)
             {
-                unmarshal_VkSparseImageMemoryRequirements2(stream, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
+                unmarshal_VkSparseImageMemoryRequirements2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSparseImageMemoryRequirements2*)(pSparseMemoryRequirements + i));
             }
         }
     }
@@ -20342,13 +20342,13 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkSamplerYcbcrConversionCreateInfo*)pool->alloc(sizeof(const VkSamplerYcbcrConversionCreateInfo));
-        deepcopy_VkSamplerYcbcrConversionCreateInfo(pool, pCreateInfo, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkSamplerYcbcrConversionCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -20364,12 +20364,12 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkSamplerYcbcrConversionCreateInfo(sFeatureBits, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkSamplerYcbcrConversionCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -20386,7 +20386,7 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkSamplerYcbcrConversionCreateInfo(stream, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkSamplerYcbcrConversionCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSamplerYcbcrConversionCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -20394,7 +20394,7 @@ VkResult VkEncoder::vkCreateSamplerYcbcrConversionKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -20439,7 +20439,7 @@ void VkEncoder::vkDestroySamplerYcbcrConversionKHR(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -20457,7 +20457,7 @@ void VkEncoder::vkDestroySamplerYcbcrConversionKHR(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroySamplerYcbcrConversionKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -20483,7 +20483,7 @@ void VkEncoder::vkDestroySamplerYcbcrConversionKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkSamplerYcbcrConversion((VkSamplerYcbcrConversion*)&ycbcrConversion);
     stream->flush();
@@ -20520,7 +20520,7 @@ VkResult VkEncoder::vkBindBufferMemory2KHR(
         local_pBindInfos = (VkBindBufferMemoryInfo*)pool->alloc(((bindInfoCount)) * sizeof(const VkBindBufferMemoryInfo));
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            deepcopy_VkBindBufferMemoryInfo(pool, pBindInfos + i, (VkBindBufferMemoryInfo*)(local_pBindInfos + i));
+            deepcopy_VkBindBufferMemoryInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pBindInfos + i, (VkBindBufferMemoryInfo*)(local_pBindInfos + i));
         }
     }
     if (local_pBindInfos)
@@ -20538,7 +20538,7 @@ VkResult VkEncoder::vkBindBufferMemory2KHR(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            count_VkBindBufferMemoryInfo(sFeatureBits, (VkBindBufferMemoryInfo*)(local_pBindInfos + i), countPtr);
+            count_VkBindBufferMemoryInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBindBufferMemoryInfo*)(local_pBindInfos + i), countPtr);
         }
     }
     uint32_t packetSize_vkBindBufferMemory2KHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -20557,7 +20557,7 @@ VkResult VkEncoder::vkBindBufferMemory2KHR(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
     {
-        reservedmarshal_VkBindBufferMemoryInfo(stream, (VkBindBufferMemoryInfo*)(local_pBindInfos + i), streamPtrPtr);
+        reservedmarshal_VkBindBufferMemoryInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBindBufferMemoryInfo*)(local_pBindInfos + i), streamPtrPtr);
     }
     VkResult vkBindBufferMemory2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkBindBufferMemory2KHR_VkResult_return, sizeof(VkResult));
@@ -20593,7 +20593,7 @@ VkResult VkEncoder::vkBindImageMemory2KHR(
         local_pBindInfos = (VkBindImageMemoryInfo*)pool->alloc(((bindInfoCount)) * sizeof(const VkBindImageMemoryInfo));
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            deepcopy_VkBindImageMemoryInfo(pool, pBindInfos + i, (VkBindImageMemoryInfo*)(local_pBindInfos + i));
+            deepcopy_VkBindImageMemoryInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pBindInfos + i, (VkBindImageMemoryInfo*)(local_pBindInfos + i));
         }
     }
     if (local_pBindInfos)
@@ -20611,7 +20611,7 @@ VkResult VkEncoder::vkBindImageMemory2KHR(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            count_VkBindImageMemoryInfo(sFeatureBits, (VkBindImageMemoryInfo*)(local_pBindInfos + i), countPtr);
+            count_VkBindImageMemoryInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBindImageMemoryInfo*)(local_pBindInfos + i), countPtr);
         }
     }
     uint32_t packetSize_vkBindImageMemory2KHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -20630,7 +20630,7 @@ VkResult VkEncoder::vkBindImageMemory2KHR(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
     {
-        reservedmarshal_VkBindImageMemoryInfo(stream, (VkBindImageMemoryInfo*)(local_pBindInfos + i), streamPtrPtr);
+        reservedmarshal_VkBindImageMemoryInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBindImageMemoryInfo*)(local_pBindInfos + i), streamPtrPtr);
     }
     VkResult vkBindImageMemory2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkBindImageMemory2KHR_VkResult_return, sizeof(VkResult));
@@ -20666,7 +20666,7 @@ void VkEncoder::vkGetDescriptorSetLayoutSupportKHR(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDescriptorSetLayoutCreateInfo*)pool->alloc(sizeof(const VkDescriptorSetLayoutCreateInfo));
-        deepcopy_VkDescriptorSetLayoutCreateInfo(pool, pCreateInfo, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkDescriptorSetLayoutCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo));
     }
     if (local_pCreateInfo)
     {
@@ -20677,8 +20677,8 @@ void VkEncoder::vkGetDescriptorSetLayoutSupportKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDescriptorSetLayoutCreateInfo(sFeatureBits, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), countPtr);
-        count_VkDescriptorSetLayoutSupport(sFeatureBits, (VkDescriptorSetLayoutSupport*)(pSupport), countPtr);
+        count_VkDescriptorSetLayoutCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkDescriptorSetLayoutSupport(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorSetLayoutSupport*)(pSupport), countPtr);
     }
     uint32_t packetSize_vkGetDescriptorSetLayoutSupportKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDescriptorSetLayoutSupportKHR);
@@ -20692,9 +20692,9 @@ void VkEncoder::vkGetDescriptorSetLayoutSupportKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDescriptorSetLayoutCreateInfo(stream, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), streamPtrPtr);
-    reservedmarshal_VkDescriptorSetLayoutSupport(stream, (VkDescriptorSetLayoutSupport*)(pSupport), streamPtrPtr);
-    unmarshal_VkDescriptorSetLayoutSupport(stream, (VkDescriptorSetLayoutSupport*)(pSupport));
+    reservedmarshal_VkDescriptorSetLayoutCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorSetLayoutCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkDescriptorSetLayoutSupport(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorSetLayoutSupport*)(pSupport), streamPtrPtr);
+    unmarshal_VkDescriptorSetLayoutSupport(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorSetLayoutSupport*)(pSupport));
     if (pSupport)
     {
         transform_fromhost_VkDescriptorSetLayoutSupport(sResourceTracker, (VkDescriptorSetLayoutSupport*)(pSupport));
@@ -20966,7 +20966,7 @@ VkResult VkEncoder::vkWaitSemaphoresKHR(
     if (pWaitInfo)
     {
         local_pWaitInfo = (VkSemaphoreWaitInfo*)pool->alloc(sizeof(const VkSemaphoreWaitInfo));
-        deepcopy_VkSemaphoreWaitInfo(pool, pWaitInfo, (VkSemaphoreWaitInfo*)(local_pWaitInfo));
+        deepcopy_VkSemaphoreWaitInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pWaitInfo, (VkSemaphoreWaitInfo*)(local_pWaitInfo));
     }
     local_timeout = timeout;
     if (local_pWaitInfo)
@@ -20978,7 +20978,7 @@ VkResult VkEncoder::vkWaitSemaphoresKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkSemaphoreWaitInfo(sFeatureBits, (VkSemaphoreWaitInfo*)(local_pWaitInfo), countPtr);
+        count_VkSemaphoreWaitInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSemaphoreWaitInfo*)(local_pWaitInfo), countPtr);
         *countPtr += sizeof(uint64_t);
     }
     uint32_t packetSize_vkWaitSemaphoresKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -20993,7 +20993,7 @@ VkResult VkEncoder::vkWaitSemaphoresKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkSemaphoreWaitInfo(stream, (VkSemaphoreWaitInfo*)(local_pWaitInfo), streamPtrPtr);
+    reservedmarshal_VkSemaphoreWaitInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSemaphoreWaitInfo*)(local_pWaitInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (uint64_t*)&local_timeout, sizeof(uint64_t));
     *streamPtrPtr += sizeof(uint64_t);
     VkResult vkWaitSemaphoresKHR_VkResult_return = (VkResult)0;
@@ -21025,7 +21025,7 @@ VkResult VkEncoder::vkSignalSemaphoreKHR(
     if (pSignalInfo)
     {
         local_pSignalInfo = (VkSemaphoreSignalInfo*)pool->alloc(sizeof(const VkSemaphoreSignalInfo));
-        deepcopy_VkSemaphoreSignalInfo(pool, pSignalInfo, (VkSemaphoreSignalInfo*)(local_pSignalInfo));
+        deepcopy_VkSemaphoreSignalInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pSignalInfo, (VkSemaphoreSignalInfo*)(local_pSignalInfo));
     }
     if (local_pSignalInfo)
     {
@@ -21036,7 +21036,7 @@ VkResult VkEncoder::vkSignalSemaphoreKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkSemaphoreSignalInfo(sFeatureBits, (VkSemaphoreSignalInfo*)(local_pSignalInfo), countPtr);
+        count_VkSemaphoreSignalInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSemaphoreSignalInfo*)(local_pSignalInfo), countPtr);
     }
     uint32_t packetSize_vkSignalSemaphoreKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkSignalSemaphoreKHR);
@@ -21050,7 +21050,7 @@ VkResult VkEncoder::vkSignalSemaphoreKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkSemaphoreSignalInfo(stream, (VkSemaphoreSignalInfo*)(local_pSignalInfo), streamPtrPtr);
+    reservedmarshal_VkSemaphoreSignalInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSemaphoreSignalInfo*)(local_pSignalInfo), streamPtrPtr);
     VkResult vkSignalSemaphoreKHR_VkResult_return = (VkResult)0;
     stream->read(&vkSignalSemaphoreKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -21101,7 +21101,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceFragmentShadingRatesKHR(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pFragmentShadingRateCount)); ++i)
                 {
-                    count_VkPhysicalDeviceFragmentShadingRateKHR(sFeatureBits, (VkPhysicalDeviceFragmentShadingRateKHR*)(pFragmentShadingRates + i), countPtr);
+                    count_VkPhysicalDeviceFragmentShadingRateKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceFragmentShadingRateKHR*)(pFragmentShadingRates + i), countPtr);
                 }
             }
         }
@@ -21137,7 +21137,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceFragmentShadingRatesKHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pFragmentShadingRateCount)); ++i)
         {
-            reservedmarshal_VkPhysicalDeviceFragmentShadingRateKHR(stream, (VkPhysicalDeviceFragmentShadingRateKHR*)(pFragmentShadingRates + i), streamPtrPtr);
+            reservedmarshal_VkPhysicalDeviceFragmentShadingRateKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceFragmentShadingRateKHR*)(pFragmentShadingRates + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -21164,7 +21164,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceFragmentShadingRatesKHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pFragmentShadingRateCount)); ++i)
             {
-                unmarshal_VkPhysicalDeviceFragmentShadingRateKHR(stream, (VkPhysicalDeviceFragmentShadingRateKHR*)(pFragmentShadingRates + i));
+                unmarshal_VkPhysicalDeviceFragmentShadingRateKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceFragmentShadingRateKHR*)(pFragmentShadingRates + i));
             }
         }
     }
@@ -21209,7 +21209,7 @@ void VkEncoder::vkCmdSetFragmentShadingRateKHR(
     if (pFragmentSize)
     {
         local_pFragmentSize = (VkExtent2D*)pool->alloc(sizeof(const VkExtent2D));
-        deepcopy_VkExtent2D(pool, pFragmentSize, (VkExtent2D*)(local_pFragmentSize));
+        deepcopy_VkExtent2D(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pFragmentSize, (VkExtent2D*)(local_pFragmentSize));
     }
     memcpy(local_combinerOps, combinerOps, 2 * sizeof(const VkFragmentShadingRateCombinerOpKHR));
     if (local_pFragmentSize)
@@ -21221,7 +21221,7 @@ void VkEncoder::vkCmdSetFragmentShadingRateKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkExtent2D(sFeatureBits, (VkExtent2D*)(local_pFragmentSize), countPtr);
+        count_VkExtent2D(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExtent2D*)(local_pFragmentSize), countPtr);
         *countPtr += 2 * sizeof(VkFragmentShadingRateCombinerOpKHR);
     }
     uint32_t packetSize_vkCmdSetFragmentShadingRateKHR = 4 + 4 + count;
@@ -21238,7 +21238,7 @@ void VkEncoder::vkCmdSetFragmentShadingRateKHR(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkExtent2D(stream, (VkExtent2D*)(local_pFragmentSize), streamPtrPtr);
+    reservedmarshal_VkExtent2D(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExtent2D*)(local_pFragmentSize), streamPtrPtr);
     memcpy(*streamPtrPtr, (VkFragmentShadingRateCombinerOpKHR*)local_combinerOps, 2 * sizeof(VkFragmentShadingRateCombinerOpKHR));
     *streamPtrPtr += 2 * sizeof(VkFragmentShadingRateCombinerOpKHR);
     ++encodeCount;;
@@ -21277,7 +21277,7 @@ VkDeviceAddress VkEncoder::vkGetBufferDeviceAddressKHR(
     if (pInfo)
     {
         local_pInfo = (VkBufferDeviceAddressInfo*)pool->alloc(sizeof(const VkBufferDeviceAddressInfo));
-        deepcopy_VkBufferDeviceAddressInfo(pool, pInfo, (VkBufferDeviceAddressInfo*)(local_pInfo));
+        deepcopy_VkBufferDeviceAddressInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkBufferDeviceAddressInfo*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -21288,7 +21288,7 @@ VkDeviceAddress VkEncoder::vkGetBufferDeviceAddressKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkBufferDeviceAddressInfo(sFeatureBits, (VkBufferDeviceAddressInfo*)(local_pInfo), countPtr);
+        count_VkBufferDeviceAddressInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferDeviceAddressInfo*)(local_pInfo), countPtr);
     }
     uint32_t packetSize_vkGetBufferDeviceAddressKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetBufferDeviceAddressKHR);
@@ -21302,7 +21302,7 @@ VkDeviceAddress VkEncoder::vkGetBufferDeviceAddressKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkBufferDeviceAddressInfo(stream, (VkBufferDeviceAddressInfo*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkBufferDeviceAddressInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferDeviceAddressInfo*)(local_pInfo), streamPtrPtr);
     VkDeviceAddress vkGetBufferDeviceAddressKHR_VkDeviceAddress_return = (VkDeviceAddress)0;
     stream->read(&vkGetBufferDeviceAddressKHR_VkDeviceAddress_return, sizeof(VkDeviceAddress));
     ++encodeCount;;
@@ -21332,7 +21332,7 @@ uint64_t VkEncoder::vkGetBufferOpaqueCaptureAddressKHR(
     if (pInfo)
     {
         local_pInfo = (VkBufferDeviceAddressInfo*)pool->alloc(sizeof(const VkBufferDeviceAddressInfo));
-        deepcopy_VkBufferDeviceAddressInfo(pool, pInfo, (VkBufferDeviceAddressInfo*)(local_pInfo));
+        deepcopy_VkBufferDeviceAddressInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkBufferDeviceAddressInfo*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -21343,7 +21343,7 @@ uint64_t VkEncoder::vkGetBufferOpaqueCaptureAddressKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkBufferDeviceAddressInfo(sFeatureBits, (VkBufferDeviceAddressInfo*)(local_pInfo), countPtr);
+        count_VkBufferDeviceAddressInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferDeviceAddressInfo*)(local_pInfo), countPtr);
     }
     uint32_t packetSize_vkGetBufferOpaqueCaptureAddressKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetBufferOpaqueCaptureAddressKHR);
@@ -21357,7 +21357,7 @@ uint64_t VkEncoder::vkGetBufferOpaqueCaptureAddressKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkBufferDeviceAddressInfo(stream, (VkBufferDeviceAddressInfo*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkBufferDeviceAddressInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferDeviceAddressInfo*)(local_pInfo), streamPtrPtr);
     uint64_t vkGetBufferOpaqueCaptureAddressKHR_uint64_t_return = (uint64_t)0;
     stream->read(&vkGetBufferOpaqueCaptureAddressKHR_uint64_t_return, sizeof(uint64_t));
     ++encodeCount;;
@@ -21387,7 +21387,7 @@ uint64_t VkEncoder::vkGetDeviceMemoryOpaqueCaptureAddressKHR(
     if (pInfo)
     {
         local_pInfo = (VkDeviceMemoryOpaqueCaptureAddressInfo*)pool->alloc(sizeof(const VkDeviceMemoryOpaqueCaptureAddressInfo));
-        deepcopy_VkDeviceMemoryOpaqueCaptureAddressInfo(pool, pInfo, (VkDeviceMemoryOpaqueCaptureAddressInfo*)(local_pInfo));
+        deepcopy_VkDeviceMemoryOpaqueCaptureAddressInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkDeviceMemoryOpaqueCaptureAddressInfo*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -21398,7 +21398,7 @@ uint64_t VkEncoder::vkGetDeviceMemoryOpaqueCaptureAddressKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDeviceMemoryOpaqueCaptureAddressInfo(sFeatureBits, (VkDeviceMemoryOpaqueCaptureAddressInfo*)(local_pInfo), countPtr);
+        count_VkDeviceMemoryOpaqueCaptureAddressInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDeviceMemoryOpaqueCaptureAddressInfo*)(local_pInfo), countPtr);
     }
     uint32_t packetSize_vkGetDeviceMemoryOpaqueCaptureAddressKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetDeviceMemoryOpaqueCaptureAddressKHR);
@@ -21412,7 +21412,7 @@ uint64_t VkEncoder::vkGetDeviceMemoryOpaqueCaptureAddressKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDeviceMemoryOpaqueCaptureAddressInfo(stream, (VkDeviceMemoryOpaqueCaptureAddressInfo*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkDeviceMemoryOpaqueCaptureAddressInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDeviceMemoryOpaqueCaptureAddressInfo*)(local_pInfo), streamPtrPtr);
     uint64_t vkGetDeviceMemoryOpaqueCaptureAddressKHR_uint64_t_return = (uint64_t)0;
     stream->read(&vkGetDeviceMemoryOpaqueCaptureAddressKHR_uint64_t_return, sizeof(uint64_t));
     ++encodeCount;;
@@ -21445,7 +21445,7 @@ VkResult VkEncoder::vkCreateDeferredOperationKHR(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -21461,7 +21461,7 @@ VkResult VkEncoder::vkCreateDeferredOperationKHR(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         *countPtr += 8;
     }
@@ -21484,7 +21484,7 @@ VkResult VkEncoder::vkCreateDeferredOperationKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     uint64_t cgen_var_2 = (uint64_t)(*pDeferredOperation);
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
@@ -21523,7 +21523,7 @@ void VkEncoder::vkDestroyDeferredOperationKHR(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -21540,7 +21540,7 @@ void VkEncoder::vkDestroyDeferredOperationKHR(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyDeferredOperationKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -21566,7 +21566,7 @@ void VkEncoder::vkDestroyDeferredOperationKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     stream->flush();
     ++encodeCount;;
@@ -21746,7 +21746,7 @@ VkResult VkEncoder::vkGetPipelineExecutablePropertiesKHR(
     if (pPipelineInfo)
     {
         local_pPipelineInfo = (VkPipelineInfoKHR*)pool->alloc(sizeof(const VkPipelineInfoKHR));
-        deepcopy_VkPipelineInfoKHR(pool, pPipelineInfo, (VkPipelineInfoKHR*)(local_pPipelineInfo));
+        deepcopy_VkPipelineInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pPipelineInfo, (VkPipelineInfoKHR*)(local_pPipelineInfo));
     }
     if (local_pPipelineInfo)
     {
@@ -21757,7 +21757,7 @@ VkResult VkEncoder::vkGetPipelineExecutablePropertiesKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPipelineInfoKHR(sFeatureBits, (VkPipelineInfoKHR*)(local_pPipelineInfo), countPtr);
+        count_VkPipelineInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPipelineInfoKHR*)(local_pPipelineInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (pExecutableCount)
@@ -21772,7 +21772,7 @@ VkResult VkEncoder::vkGetPipelineExecutablePropertiesKHR(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pExecutableCount)); ++i)
                 {
-                    count_VkPipelineExecutablePropertiesKHR(sFeatureBits, (VkPipelineExecutablePropertiesKHR*)(pProperties + i), countPtr);
+                    count_VkPipelineExecutablePropertiesKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPipelineExecutablePropertiesKHR*)(pProperties + i), countPtr);
                 }
             }
         }
@@ -21789,7 +21789,7 @@ VkResult VkEncoder::vkGetPipelineExecutablePropertiesKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPipelineInfoKHR(stream, (VkPipelineInfoKHR*)(local_pPipelineInfo), streamPtrPtr);
+    reservedmarshal_VkPipelineInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPipelineInfoKHR*)(local_pPipelineInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pExecutableCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -21809,7 +21809,7 @@ VkResult VkEncoder::vkGetPipelineExecutablePropertiesKHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pExecutableCount)); ++i)
         {
-            reservedmarshal_VkPipelineExecutablePropertiesKHR(stream, (VkPipelineExecutablePropertiesKHR*)(pProperties + i), streamPtrPtr);
+            reservedmarshal_VkPipelineExecutablePropertiesKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPipelineExecutablePropertiesKHR*)(pProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -21836,7 +21836,7 @@ VkResult VkEncoder::vkGetPipelineExecutablePropertiesKHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pExecutableCount)); ++i)
             {
-                unmarshal_VkPipelineExecutablePropertiesKHR(stream, (VkPipelineExecutablePropertiesKHR*)(pProperties + i));
+                unmarshal_VkPipelineExecutablePropertiesKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPipelineExecutablePropertiesKHR*)(pProperties + i));
             }
         }
     }
@@ -21881,7 +21881,7 @@ VkResult VkEncoder::vkGetPipelineExecutableStatisticsKHR(
     if (pExecutableInfo)
     {
         local_pExecutableInfo = (VkPipelineExecutableInfoKHR*)pool->alloc(sizeof(const VkPipelineExecutableInfoKHR));
-        deepcopy_VkPipelineExecutableInfoKHR(pool, pExecutableInfo, (VkPipelineExecutableInfoKHR*)(local_pExecutableInfo));
+        deepcopy_VkPipelineExecutableInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pExecutableInfo, (VkPipelineExecutableInfoKHR*)(local_pExecutableInfo));
     }
     if (local_pExecutableInfo)
     {
@@ -21892,7 +21892,7 @@ VkResult VkEncoder::vkGetPipelineExecutableStatisticsKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPipelineExecutableInfoKHR(sFeatureBits, (VkPipelineExecutableInfoKHR*)(local_pExecutableInfo), countPtr);
+        count_VkPipelineExecutableInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPipelineExecutableInfoKHR*)(local_pExecutableInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (pStatisticCount)
@@ -21907,7 +21907,7 @@ VkResult VkEncoder::vkGetPipelineExecutableStatisticsKHR(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pStatisticCount)); ++i)
                 {
-                    count_VkPipelineExecutableStatisticKHR(sFeatureBits, (VkPipelineExecutableStatisticKHR*)(pStatistics + i), countPtr);
+                    count_VkPipelineExecutableStatisticKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPipelineExecutableStatisticKHR*)(pStatistics + i), countPtr);
                 }
             }
         }
@@ -21924,7 +21924,7 @@ VkResult VkEncoder::vkGetPipelineExecutableStatisticsKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPipelineExecutableInfoKHR(stream, (VkPipelineExecutableInfoKHR*)(local_pExecutableInfo), streamPtrPtr);
+    reservedmarshal_VkPipelineExecutableInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPipelineExecutableInfoKHR*)(local_pExecutableInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pStatisticCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -21944,7 +21944,7 @@ VkResult VkEncoder::vkGetPipelineExecutableStatisticsKHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pStatisticCount)); ++i)
         {
-            reservedmarshal_VkPipelineExecutableStatisticKHR(stream, (VkPipelineExecutableStatisticKHR*)(pStatistics + i), streamPtrPtr);
+            reservedmarshal_VkPipelineExecutableStatisticKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPipelineExecutableStatisticKHR*)(pStatistics + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -21971,7 +21971,7 @@ VkResult VkEncoder::vkGetPipelineExecutableStatisticsKHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pStatisticCount)); ++i)
             {
-                unmarshal_VkPipelineExecutableStatisticKHR(stream, (VkPipelineExecutableStatisticKHR*)(pStatistics + i));
+                unmarshal_VkPipelineExecutableStatisticKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPipelineExecutableStatisticKHR*)(pStatistics + i));
             }
         }
     }
@@ -22016,7 +22016,7 @@ VkResult VkEncoder::vkGetPipelineExecutableInternalRepresentationsKHR(
     if (pExecutableInfo)
     {
         local_pExecutableInfo = (VkPipelineExecutableInfoKHR*)pool->alloc(sizeof(const VkPipelineExecutableInfoKHR));
-        deepcopy_VkPipelineExecutableInfoKHR(pool, pExecutableInfo, (VkPipelineExecutableInfoKHR*)(local_pExecutableInfo));
+        deepcopy_VkPipelineExecutableInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pExecutableInfo, (VkPipelineExecutableInfoKHR*)(local_pExecutableInfo));
     }
     if (local_pExecutableInfo)
     {
@@ -22027,7 +22027,7 @@ VkResult VkEncoder::vkGetPipelineExecutableInternalRepresentationsKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPipelineExecutableInfoKHR(sFeatureBits, (VkPipelineExecutableInfoKHR*)(local_pExecutableInfo), countPtr);
+        count_VkPipelineExecutableInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPipelineExecutableInfoKHR*)(local_pExecutableInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (pInternalRepresentationCount)
@@ -22042,7 +22042,7 @@ VkResult VkEncoder::vkGetPipelineExecutableInternalRepresentationsKHR(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pInternalRepresentationCount)); ++i)
                 {
-                    count_VkPipelineExecutableInternalRepresentationKHR(sFeatureBits, (VkPipelineExecutableInternalRepresentationKHR*)(pInternalRepresentations + i), countPtr);
+                    count_VkPipelineExecutableInternalRepresentationKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPipelineExecutableInternalRepresentationKHR*)(pInternalRepresentations + i), countPtr);
                 }
             }
         }
@@ -22059,7 +22059,7 @@ VkResult VkEncoder::vkGetPipelineExecutableInternalRepresentationsKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPipelineExecutableInfoKHR(stream, (VkPipelineExecutableInfoKHR*)(local_pExecutableInfo), streamPtrPtr);
+    reservedmarshal_VkPipelineExecutableInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPipelineExecutableInfoKHR*)(local_pExecutableInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pInternalRepresentationCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -22079,7 +22079,7 @@ VkResult VkEncoder::vkGetPipelineExecutableInternalRepresentationsKHR(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pInternalRepresentationCount)); ++i)
         {
-            reservedmarshal_VkPipelineExecutableInternalRepresentationKHR(stream, (VkPipelineExecutableInternalRepresentationKHR*)(pInternalRepresentations + i), streamPtrPtr);
+            reservedmarshal_VkPipelineExecutableInternalRepresentationKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPipelineExecutableInternalRepresentationKHR*)(pInternalRepresentations + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -22106,7 +22106,7 @@ VkResult VkEncoder::vkGetPipelineExecutableInternalRepresentationsKHR(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pInternalRepresentationCount)); ++i)
             {
-                unmarshal_VkPipelineExecutableInternalRepresentationKHR(stream, (VkPipelineExecutableInternalRepresentationKHR*)(pInternalRepresentations + i));
+                unmarshal_VkPipelineExecutableInternalRepresentationKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPipelineExecutableInternalRepresentationKHR*)(pInternalRepresentations + i));
             }
         }
     }
@@ -22155,7 +22155,7 @@ void VkEncoder::vkCmdCopyBuffer2KHR(
     if (pCopyBufferInfo)
     {
         local_pCopyBufferInfo = (VkCopyBufferInfo2KHR*)pool->alloc(sizeof(const VkCopyBufferInfo2KHR));
-        deepcopy_VkCopyBufferInfo2KHR(pool, pCopyBufferInfo, (VkCopyBufferInfo2KHR*)(local_pCopyBufferInfo));
+        deepcopy_VkCopyBufferInfo2KHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCopyBufferInfo, (VkCopyBufferInfo2KHR*)(local_pCopyBufferInfo));
     }
     if (local_pCopyBufferInfo)
     {
@@ -22166,7 +22166,7 @@ void VkEncoder::vkCmdCopyBuffer2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkCopyBufferInfo2KHR(sFeatureBits, (VkCopyBufferInfo2KHR*)(local_pCopyBufferInfo), countPtr);
+        count_VkCopyBufferInfo2KHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyBufferInfo2KHR*)(local_pCopyBufferInfo), countPtr);
     }
     uint32_t packetSize_vkCmdCopyBuffer2KHR = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdCopyBuffer2KHR -= 8;
@@ -22182,7 +22182,7 @@ void VkEncoder::vkCmdCopyBuffer2KHR(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkCopyBufferInfo2KHR(stream, (VkCopyBufferInfo2KHR*)(local_pCopyBufferInfo), streamPtrPtr);
+    reservedmarshal_VkCopyBufferInfo2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyBufferInfo2KHR*)(local_pCopyBufferInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -22209,7 +22209,7 @@ void VkEncoder::vkCmdCopyImage2KHR(
     if (pCopyImageInfo)
     {
         local_pCopyImageInfo = (VkCopyImageInfo2KHR*)pool->alloc(sizeof(const VkCopyImageInfo2KHR));
-        deepcopy_VkCopyImageInfo2KHR(pool, pCopyImageInfo, (VkCopyImageInfo2KHR*)(local_pCopyImageInfo));
+        deepcopy_VkCopyImageInfo2KHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCopyImageInfo, (VkCopyImageInfo2KHR*)(local_pCopyImageInfo));
     }
     if (local_pCopyImageInfo)
     {
@@ -22220,7 +22220,7 @@ void VkEncoder::vkCmdCopyImage2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkCopyImageInfo2KHR(sFeatureBits, (VkCopyImageInfo2KHR*)(local_pCopyImageInfo), countPtr);
+        count_VkCopyImageInfo2KHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyImageInfo2KHR*)(local_pCopyImageInfo), countPtr);
     }
     uint32_t packetSize_vkCmdCopyImage2KHR = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdCopyImage2KHR -= 8;
@@ -22236,7 +22236,7 @@ void VkEncoder::vkCmdCopyImage2KHR(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkCopyImageInfo2KHR(stream, (VkCopyImageInfo2KHR*)(local_pCopyImageInfo), streamPtrPtr);
+    reservedmarshal_VkCopyImageInfo2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyImageInfo2KHR*)(local_pCopyImageInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -22263,7 +22263,7 @@ void VkEncoder::vkCmdCopyBufferToImage2KHR(
     if (pCopyBufferToImageInfo)
     {
         local_pCopyBufferToImageInfo = (VkCopyBufferToImageInfo2KHR*)pool->alloc(sizeof(const VkCopyBufferToImageInfo2KHR));
-        deepcopy_VkCopyBufferToImageInfo2KHR(pool, pCopyBufferToImageInfo, (VkCopyBufferToImageInfo2KHR*)(local_pCopyBufferToImageInfo));
+        deepcopy_VkCopyBufferToImageInfo2KHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCopyBufferToImageInfo, (VkCopyBufferToImageInfo2KHR*)(local_pCopyBufferToImageInfo));
     }
     if (local_pCopyBufferToImageInfo)
     {
@@ -22274,7 +22274,7 @@ void VkEncoder::vkCmdCopyBufferToImage2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkCopyBufferToImageInfo2KHR(sFeatureBits, (VkCopyBufferToImageInfo2KHR*)(local_pCopyBufferToImageInfo), countPtr);
+        count_VkCopyBufferToImageInfo2KHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyBufferToImageInfo2KHR*)(local_pCopyBufferToImageInfo), countPtr);
     }
     uint32_t packetSize_vkCmdCopyBufferToImage2KHR = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdCopyBufferToImage2KHR -= 8;
@@ -22290,7 +22290,7 @@ void VkEncoder::vkCmdCopyBufferToImage2KHR(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkCopyBufferToImageInfo2KHR(stream, (VkCopyBufferToImageInfo2KHR*)(local_pCopyBufferToImageInfo), streamPtrPtr);
+    reservedmarshal_VkCopyBufferToImageInfo2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyBufferToImageInfo2KHR*)(local_pCopyBufferToImageInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -22317,7 +22317,7 @@ void VkEncoder::vkCmdCopyImageToBuffer2KHR(
     if (pCopyImageToBufferInfo)
     {
         local_pCopyImageToBufferInfo = (VkCopyImageToBufferInfo2KHR*)pool->alloc(sizeof(const VkCopyImageToBufferInfo2KHR));
-        deepcopy_VkCopyImageToBufferInfo2KHR(pool, pCopyImageToBufferInfo, (VkCopyImageToBufferInfo2KHR*)(local_pCopyImageToBufferInfo));
+        deepcopy_VkCopyImageToBufferInfo2KHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCopyImageToBufferInfo, (VkCopyImageToBufferInfo2KHR*)(local_pCopyImageToBufferInfo));
     }
     if (local_pCopyImageToBufferInfo)
     {
@@ -22328,7 +22328,7 @@ void VkEncoder::vkCmdCopyImageToBuffer2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkCopyImageToBufferInfo2KHR(sFeatureBits, (VkCopyImageToBufferInfo2KHR*)(local_pCopyImageToBufferInfo), countPtr);
+        count_VkCopyImageToBufferInfo2KHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyImageToBufferInfo2KHR*)(local_pCopyImageToBufferInfo), countPtr);
     }
     uint32_t packetSize_vkCmdCopyImageToBuffer2KHR = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdCopyImageToBuffer2KHR -= 8;
@@ -22344,7 +22344,7 @@ void VkEncoder::vkCmdCopyImageToBuffer2KHR(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkCopyImageToBufferInfo2KHR(stream, (VkCopyImageToBufferInfo2KHR*)(local_pCopyImageToBufferInfo), streamPtrPtr);
+    reservedmarshal_VkCopyImageToBufferInfo2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyImageToBufferInfo2KHR*)(local_pCopyImageToBufferInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -22371,7 +22371,7 @@ void VkEncoder::vkCmdBlitImage2KHR(
     if (pBlitImageInfo)
     {
         local_pBlitImageInfo = (VkBlitImageInfo2KHR*)pool->alloc(sizeof(const VkBlitImageInfo2KHR));
-        deepcopy_VkBlitImageInfo2KHR(pool, pBlitImageInfo, (VkBlitImageInfo2KHR*)(local_pBlitImageInfo));
+        deepcopy_VkBlitImageInfo2KHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pBlitImageInfo, (VkBlitImageInfo2KHR*)(local_pBlitImageInfo));
     }
     if (local_pBlitImageInfo)
     {
@@ -22382,7 +22382,7 @@ void VkEncoder::vkCmdBlitImage2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkBlitImageInfo2KHR(sFeatureBits, (VkBlitImageInfo2KHR*)(local_pBlitImageInfo), countPtr);
+        count_VkBlitImageInfo2KHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBlitImageInfo2KHR*)(local_pBlitImageInfo), countPtr);
     }
     uint32_t packetSize_vkCmdBlitImage2KHR = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdBlitImage2KHR -= 8;
@@ -22398,7 +22398,7 @@ void VkEncoder::vkCmdBlitImage2KHR(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkBlitImageInfo2KHR(stream, (VkBlitImageInfo2KHR*)(local_pBlitImageInfo), streamPtrPtr);
+    reservedmarshal_VkBlitImageInfo2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBlitImageInfo2KHR*)(local_pBlitImageInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -22425,7 +22425,7 @@ void VkEncoder::vkCmdResolveImage2KHR(
     if (pResolveImageInfo)
     {
         local_pResolveImageInfo = (VkResolveImageInfo2KHR*)pool->alloc(sizeof(const VkResolveImageInfo2KHR));
-        deepcopy_VkResolveImageInfo2KHR(pool, pResolveImageInfo, (VkResolveImageInfo2KHR*)(local_pResolveImageInfo));
+        deepcopy_VkResolveImageInfo2KHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pResolveImageInfo, (VkResolveImageInfo2KHR*)(local_pResolveImageInfo));
     }
     if (local_pResolveImageInfo)
     {
@@ -22436,7 +22436,7 @@ void VkEncoder::vkCmdResolveImage2KHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkResolveImageInfo2KHR(sFeatureBits, (VkResolveImageInfo2KHR*)(local_pResolveImageInfo), countPtr);
+        count_VkResolveImageInfo2KHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkResolveImageInfo2KHR*)(local_pResolveImageInfo), countPtr);
     }
     uint32_t packetSize_vkCmdResolveImage2KHR = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdResolveImage2KHR -= 8;
@@ -22452,7 +22452,7 @@ void VkEncoder::vkCmdResolveImage2KHR(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkResolveImageInfo2KHR(stream, (VkResolveImageInfo2KHR*)(local_pResolveImageInfo), streamPtrPtr);
+    reservedmarshal_VkResolveImageInfo2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkResolveImageInfo2KHR*)(local_pResolveImageInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -22712,13 +22712,13 @@ VkResult VkEncoder::vkCreateDebugReportCallbackEXT(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDebugReportCallbackCreateInfoEXT*)pool->alloc(sizeof(const VkDebugReportCallbackCreateInfoEXT));
-        deepcopy_VkDebugReportCallbackCreateInfoEXT(pool, pCreateInfo, (VkDebugReportCallbackCreateInfoEXT*)(local_pCreateInfo));
+        deepcopy_VkDebugReportCallbackCreateInfoEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkDebugReportCallbackCreateInfoEXT*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -22734,12 +22734,12 @@ VkResult VkEncoder::vkCreateDebugReportCallbackEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDebugReportCallbackCreateInfoEXT(sFeatureBits, (VkDebugReportCallbackCreateInfoEXT*)(local_pCreateInfo), countPtr);
+        count_VkDebugReportCallbackCreateInfoEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugReportCallbackCreateInfoEXT*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -22756,7 +22756,7 @@ VkResult VkEncoder::vkCreateDebugReportCallbackEXT(
     *&cgen_var_0 = get_host_u64_VkInstance((*&local_instance));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDebugReportCallbackCreateInfoEXT(stream, (VkDebugReportCallbackCreateInfoEXT*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkDebugReportCallbackCreateInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugReportCallbackCreateInfoEXT*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -22764,7 +22764,7 @@ VkResult VkEncoder::vkCreateDebugReportCallbackEXT(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -22809,7 +22809,7 @@ void VkEncoder::vkDestroyDebugReportCallbackEXT(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -22827,7 +22827,7 @@ void VkEncoder::vkDestroyDebugReportCallbackEXT(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyDebugReportCallbackEXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -22853,7 +22853,7 @@ void VkEncoder::vkDestroyDebugReportCallbackEXT(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkDebugReportCallbackEXT((VkDebugReportCallbackEXT*)&callback);
     stream->flush();
@@ -22994,7 +22994,7 @@ VkResult VkEncoder::vkDebugMarkerSetObjectTagEXT(
     if (pTagInfo)
     {
         local_pTagInfo = (VkDebugMarkerObjectTagInfoEXT*)pool->alloc(sizeof(const VkDebugMarkerObjectTagInfoEXT));
-        deepcopy_VkDebugMarkerObjectTagInfoEXT(pool, pTagInfo, (VkDebugMarkerObjectTagInfoEXT*)(local_pTagInfo));
+        deepcopy_VkDebugMarkerObjectTagInfoEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pTagInfo, (VkDebugMarkerObjectTagInfoEXT*)(local_pTagInfo));
     }
     if (local_pTagInfo)
     {
@@ -23005,7 +23005,7 @@ VkResult VkEncoder::vkDebugMarkerSetObjectTagEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDebugMarkerObjectTagInfoEXT(sFeatureBits, (VkDebugMarkerObjectTagInfoEXT*)(local_pTagInfo), countPtr);
+        count_VkDebugMarkerObjectTagInfoEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugMarkerObjectTagInfoEXT*)(local_pTagInfo), countPtr);
     }
     uint32_t packetSize_vkDebugMarkerSetObjectTagEXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDebugMarkerSetObjectTagEXT);
@@ -23019,7 +23019,7 @@ VkResult VkEncoder::vkDebugMarkerSetObjectTagEXT(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDebugMarkerObjectTagInfoEXT(stream, (VkDebugMarkerObjectTagInfoEXT*)(local_pTagInfo), streamPtrPtr);
+    reservedmarshal_VkDebugMarkerObjectTagInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugMarkerObjectTagInfoEXT*)(local_pTagInfo), streamPtrPtr);
     VkResult vkDebugMarkerSetObjectTagEXT_VkResult_return = (VkResult)0;
     stream->read(&vkDebugMarkerSetObjectTagEXT_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -23049,7 +23049,7 @@ VkResult VkEncoder::vkDebugMarkerSetObjectNameEXT(
     if (pNameInfo)
     {
         local_pNameInfo = (VkDebugMarkerObjectNameInfoEXT*)pool->alloc(sizeof(const VkDebugMarkerObjectNameInfoEXT));
-        deepcopy_VkDebugMarkerObjectNameInfoEXT(pool, pNameInfo, (VkDebugMarkerObjectNameInfoEXT*)(local_pNameInfo));
+        deepcopy_VkDebugMarkerObjectNameInfoEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pNameInfo, (VkDebugMarkerObjectNameInfoEXT*)(local_pNameInfo));
     }
     if (local_pNameInfo)
     {
@@ -23060,7 +23060,7 @@ VkResult VkEncoder::vkDebugMarkerSetObjectNameEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDebugMarkerObjectNameInfoEXT(sFeatureBits, (VkDebugMarkerObjectNameInfoEXT*)(local_pNameInfo), countPtr);
+        count_VkDebugMarkerObjectNameInfoEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugMarkerObjectNameInfoEXT*)(local_pNameInfo), countPtr);
     }
     uint32_t packetSize_vkDebugMarkerSetObjectNameEXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDebugMarkerSetObjectNameEXT);
@@ -23074,7 +23074,7 @@ VkResult VkEncoder::vkDebugMarkerSetObjectNameEXT(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDebugMarkerObjectNameInfoEXT(stream, (VkDebugMarkerObjectNameInfoEXT*)(local_pNameInfo), streamPtrPtr);
+    reservedmarshal_VkDebugMarkerObjectNameInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugMarkerObjectNameInfoEXT*)(local_pNameInfo), streamPtrPtr);
     VkResult vkDebugMarkerSetObjectNameEXT_VkResult_return = (VkResult)0;
     stream->read(&vkDebugMarkerSetObjectNameEXT_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -23104,7 +23104,7 @@ void VkEncoder::vkCmdDebugMarkerBeginEXT(
     if (pMarkerInfo)
     {
         local_pMarkerInfo = (VkDebugMarkerMarkerInfoEXT*)pool->alloc(sizeof(const VkDebugMarkerMarkerInfoEXT));
-        deepcopy_VkDebugMarkerMarkerInfoEXT(pool, pMarkerInfo, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
+        deepcopy_VkDebugMarkerMarkerInfoEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pMarkerInfo, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
     }
     if (local_pMarkerInfo)
     {
@@ -23115,7 +23115,7 @@ void VkEncoder::vkCmdDebugMarkerBeginEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDebugMarkerMarkerInfoEXT(sFeatureBits, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo), countPtr);
+        count_VkDebugMarkerMarkerInfoEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo), countPtr);
     }
     uint32_t packetSize_vkCmdDebugMarkerBeginEXT = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdDebugMarkerBeginEXT -= 8;
@@ -23131,7 +23131,7 @@ void VkEncoder::vkCmdDebugMarkerBeginEXT(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkDebugMarkerMarkerInfoEXT(stream, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo), streamPtrPtr);
+    reservedmarshal_VkDebugMarkerMarkerInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -23198,7 +23198,7 @@ void VkEncoder::vkCmdDebugMarkerInsertEXT(
     if (pMarkerInfo)
     {
         local_pMarkerInfo = (VkDebugMarkerMarkerInfoEXT*)pool->alloc(sizeof(const VkDebugMarkerMarkerInfoEXT));
-        deepcopy_VkDebugMarkerMarkerInfoEXT(pool, pMarkerInfo, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
+        deepcopy_VkDebugMarkerMarkerInfoEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pMarkerInfo, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo));
     }
     if (local_pMarkerInfo)
     {
@@ -23209,7 +23209,7 @@ void VkEncoder::vkCmdDebugMarkerInsertEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDebugMarkerMarkerInfoEXT(sFeatureBits, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo), countPtr);
+        count_VkDebugMarkerMarkerInfoEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo), countPtr);
     }
     uint32_t packetSize_vkCmdDebugMarkerInsertEXT = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdDebugMarkerInsertEXT -= 8;
@@ -23225,7 +23225,7 @@ void VkEncoder::vkCmdDebugMarkerInsertEXT(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkDebugMarkerMarkerInfoEXT(stream, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo), streamPtrPtr);
+    reservedmarshal_VkDebugMarkerMarkerInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugMarkerMarkerInfoEXT*)(local_pMarkerInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -23770,7 +23770,7 @@ uint32_t VkEncoder::vkGetImageViewHandleNVX(
     if (pInfo)
     {
         local_pInfo = (VkImageViewHandleInfoNVX*)pool->alloc(sizeof(const VkImageViewHandleInfoNVX));
-        deepcopy_VkImageViewHandleInfoNVX(pool, pInfo, (VkImageViewHandleInfoNVX*)(local_pInfo));
+        deepcopy_VkImageViewHandleInfoNVX(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkImageViewHandleInfoNVX*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -23781,7 +23781,7 @@ uint32_t VkEncoder::vkGetImageViewHandleNVX(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkImageViewHandleInfoNVX(sFeatureBits, (VkImageViewHandleInfoNVX*)(local_pInfo), countPtr);
+        count_VkImageViewHandleInfoNVX(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageViewHandleInfoNVX*)(local_pInfo), countPtr);
     }
     uint32_t packetSize_vkGetImageViewHandleNVX = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetImageViewHandleNVX);
@@ -23795,7 +23795,7 @@ uint32_t VkEncoder::vkGetImageViewHandleNVX(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkImageViewHandleInfoNVX(stream, (VkImageViewHandleInfoNVX*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkImageViewHandleInfoNVX(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageViewHandleInfoNVX*)(local_pInfo), streamPtrPtr);
     uint32_t vkGetImageViewHandleNVX_uint32_t_return = (uint32_t)0;
     stream->read(&vkGetImageViewHandleNVX_uint32_t_return, sizeof(uint32_t));
     ++encodeCount;;
@@ -23830,7 +23830,7 @@ VkResult VkEncoder::vkGetImageViewAddressNVX(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
-        count_VkImageViewAddressPropertiesNVX(sFeatureBits, (VkImageViewAddressPropertiesNVX*)(pProperties), countPtr);
+        count_VkImageViewAddressPropertiesNVX(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageViewAddressPropertiesNVX*)(pProperties), countPtr);
     }
     uint32_t packetSize_vkGetImageViewAddressNVX = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetImageViewAddressNVX);
@@ -23848,8 +23848,8 @@ VkResult VkEncoder::vkGetImageViewAddressNVX(
     *&cgen_var_1 = get_host_u64_VkImageView((*&local_imageView));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkImageViewAddressPropertiesNVX(stream, (VkImageViewAddressPropertiesNVX*)(pProperties), streamPtrPtr);
-    unmarshal_VkImageViewAddressPropertiesNVX(stream, (VkImageViewAddressPropertiesNVX*)(pProperties));
+    reservedmarshal_VkImageViewAddressPropertiesNVX(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageViewAddressPropertiesNVX*)(pProperties), streamPtrPtr);
+    unmarshal_VkImageViewAddressPropertiesNVX(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageViewAddressPropertiesNVX*)(pProperties));
     if (pProperties)
     {
         transform_fromhost_VkImageViewAddressPropertiesNVX(sResourceTracker, (VkImageViewAddressPropertiesNVX*)(pProperties));
@@ -24189,13 +24189,13 @@ VkResult VkEncoder::vkCreateStreamDescriptorSurfaceGGP(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkStreamDescriptorSurfaceCreateInfoGGP*)pool->alloc(sizeof(const VkStreamDescriptorSurfaceCreateInfoGGP));
-        deepcopy_VkStreamDescriptorSurfaceCreateInfoGGP(pool, pCreateInfo, (VkStreamDescriptorSurfaceCreateInfoGGP*)(local_pCreateInfo));
+        deepcopy_VkStreamDescriptorSurfaceCreateInfoGGP(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkStreamDescriptorSurfaceCreateInfoGGP*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -24211,12 +24211,12 @@ VkResult VkEncoder::vkCreateStreamDescriptorSurfaceGGP(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkStreamDescriptorSurfaceCreateInfoGGP(sFeatureBits, (VkStreamDescriptorSurfaceCreateInfoGGP*)(local_pCreateInfo), countPtr);
+        count_VkStreamDescriptorSurfaceCreateInfoGGP(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkStreamDescriptorSurfaceCreateInfoGGP*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -24233,7 +24233,7 @@ VkResult VkEncoder::vkCreateStreamDescriptorSurfaceGGP(
     *&cgen_var_0 = get_host_u64_VkInstance((*&local_instance));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkStreamDescriptorSurfaceCreateInfoGGP(stream, (VkStreamDescriptorSurfaceCreateInfoGGP*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkStreamDescriptorSurfaceCreateInfoGGP(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkStreamDescriptorSurfaceCreateInfoGGP*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -24241,7 +24241,7 @@ VkResult VkEncoder::vkCreateStreamDescriptorSurfaceGGP(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -24311,7 +24311,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceExternalImageFormatPropertiesNV(
         *countPtr += sizeof(VkImageUsageFlags);
         *countPtr += sizeof(VkImageCreateFlags);
         *countPtr += sizeof(VkExternalMemoryHandleTypeFlagsNV);
-        count_VkExternalImageFormatPropertiesNV(sFeatureBits, (VkExternalImageFormatPropertiesNV*)(pExternalImageFormatProperties), countPtr);
+        count_VkExternalImageFormatPropertiesNV(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalImageFormatPropertiesNV*)(pExternalImageFormatProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceExternalImageFormatPropertiesNV = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceExternalImageFormatPropertiesNV);
@@ -24337,8 +24337,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceExternalImageFormatPropertiesNV(
     *streamPtrPtr += sizeof(VkImageCreateFlags);
     memcpy(*streamPtrPtr, (VkExternalMemoryHandleTypeFlagsNV*)&local_externalHandleType, sizeof(VkExternalMemoryHandleTypeFlagsNV));
     *streamPtrPtr += sizeof(VkExternalMemoryHandleTypeFlagsNV);
-    reservedmarshal_VkExternalImageFormatPropertiesNV(stream, (VkExternalImageFormatPropertiesNV*)(pExternalImageFormatProperties), streamPtrPtr);
-    unmarshal_VkExternalImageFormatPropertiesNV(stream, (VkExternalImageFormatPropertiesNV*)(pExternalImageFormatProperties));
+    reservedmarshal_VkExternalImageFormatPropertiesNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalImageFormatPropertiesNV*)(pExternalImageFormatProperties), streamPtrPtr);
+    unmarshal_VkExternalImageFormatPropertiesNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkExternalImageFormatPropertiesNV*)(pExternalImageFormatProperties));
     if (pExternalImageFormatProperties)
     {
         transform_fromhost_VkExternalImageFormatPropertiesNV(sResourceTracker, (VkExternalImageFormatPropertiesNV*)(pExternalImageFormatProperties));
@@ -24447,13 +24447,13 @@ VkResult VkEncoder::vkCreateViSurfaceNN(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkViSurfaceCreateInfoNN*)pool->alloc(sizeof(const VkViSurfaceCreateInfoNN));
-        deepcopy_VkViSurfaceCreateInfoNN(pool, pCreateInfo, (VkViSurfaceCreateInfoNN*)(local_pCreateInfo));
+        deepcopy_VkViSurfaceCreateInfoNN(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkViSurfaceCreateInfoNN*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -24469,12 +24469,12 @@ VkResult VkEncoder::vkCreateViSurfaceNN(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkViSurfaceCreateInfoNN(sFeatureBits, (VkViSurfaceCreateInfoNN*)(local_pCreateInfo), countPtr);
+        count_VkViSurfaceCreateInfoNN(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkViSurfaceCreateInfoNN*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -24491,7 +24491,7 @@ VkResult VkEncoder::vkCreateViSurfaceNN(
     *&cgen_var_0 = get_host_u64_VkInstance((*&local_instance));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkViSurfaceCreateInfoNN(stream, (VkViSurfaceCreateInfoNN*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkViSurfaceCreateInfoNN(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkViSurfaceCreateInfoNN*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -24499,7 +24499,7 @@ VkResult VkEncoder::vkCreateViSurfaceNN(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -24549,7 +24549,7 @@ void VkEncoder::vkCmdBeginConditionalRenderingEXT(
     if (pConditionalRenderingBegin)
     {
         local_pConditionalRenderingBegin = (VkConditionalRenderingBeginInfoEXT*)pool->alloc(sizeof(const VkConditionalRenderingBeginInfoEXT));
-        deepcopy_VkConditionalRenderingBeginInfoEXT(pool, pConditionalRenderingBegin, (VkConditionalRenderingBeginInfoEXT*)(local_pConditionalRenderingBegin));
+        deepcopy_VkConditionalRenderingBeginInfoEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pConditionalRenderingBegin, (VkConditionalRenderingBeginInfoEXT*)(local_pConditionalRenderingBegin));
     }
     if (local_pConditionalRenderingBegin)
     {
@@ -24560,7 +24560,7 @@ void VkEncoder::vkCmdBeginConditionalRenderingEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkConditionalRenderingBeginInfoEXT(sFeatureBits, (VkConditionalRenderingBeginInfoEXT*)(local_pConditionalRenderingBegin), countPtr);
+        count_VkConditionalRenderingBeginInfoEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkConditionalRenderingBeginInfoEXT*)(local_pConditionalRenderingBegin), countPtr);
     }
     uint32_t packetSize_vkCmdBeginConditionalRenderingEXT = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdBeginConditionalRenderingEXT -= 8;
@@ -24576,7 +24576,7 @@ void VkEncoder::vkCmdBeginConditionalRenderingEXT(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkConditionalRenderingBeginInfoEXT(stream, (VkConditionalRenderingBeginInfoEXT*)(local_pConditionalRenderingBegin), streamPtrPtr);
+    reservedmarshal_VkConditionalRenderingBeginInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkConditionalRenderingBeginInfoEXT*)(local_pConditionalRenderingBegin), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -24653,7 +24653,7 @@ void VkEncoder::vkCmdSetViewportWScalingNV(
         local_pViewportWScalings = (VkViewportWScalingNV*)pool->alloc(((viewportCount)) * sizeof(const VkViewportWScalingNV));
         for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
         {
-            deepcopy_VkViewportWScalingNV(pool, pViewportWScalings + i, (VkViewportWScalingNV*)(local_pViewportWScalings + i));
+            deepcopy_VkViewportWScalingNV(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pViewportWScalings + i, (VkViewportWScalingNV*)(local_pViewportWScalings + i));
         }
     }
     if (local_pViewportWScalings)
@@ -24672,7 +24672,7 @@ void VkEncoder::vkCmdSetViewportWScalingNV(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
         {
-            count_VkViewportWScalingNV(sFeatureBits, (VkViewportWScalingNV*)(local_pViewportWScalings + i), countPtr);
+            count_VkViewportWScalingNV(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkViewportWScalingNV*)(local_pViewportWScalings + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdSetViewportWScalingNV = 4 + 4 + count;
@@ -24695,7 +24695,7 @@ void VkEncoder::vkCmdSetViewportWScalingNV(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
     {
-        reservedmarshal_VkViewportWScalingNV(stream, (VkViewportWScalingNV*)(local_pViewportWScalings + i), streamPtrPtr);
+        reservedmarshal_VkViewportWScalingNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkViewportWScalingNV*)(local_pViewportWScalings + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -24903,7 +24903,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2EXT(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
-        count_VkSurfaceCapabilities2EXT(sFeatureBits, (VkSurfaceCapabilities2EXT*)(pSurfaceCapabilities), countPtr);
+        count_VkSurfaceCapabilities2EXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSurfaceCapabilities2EXT*)(pSurfaceCapabilities), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceSurfaceCapabilities2EXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceSurfaceCapabilities2EXT);
@@ -24921,8 +24921,8 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfaceCapabilities2EXT(
     *&cgen_var_1 = get_host_u64_VkSurfaceKHR((*&local_surface));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkSurfaceCapabilities2EXT(stream, (VkSurfaceCapabilities2EXT*)(pSurfaceCapabilities), streamPtrPtr);
-    unmarshal_VkSurfaceCapabilities2EXT(stream, (VkSurfaceCapabilities2EXT*)(pSurfaceCapabilities));
+    reservedmarshal_VkSurfaceCapabilities2EXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSurfaceCapabilities2EXT*)(pSurfaceCapabilities), streamPtrPtr);
+    unmarshal_VkSurfaceCapabilities2EXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSurfaceCapabilities2EXT*)(pSurfaceCapabilities));
     if (pSurfaceCapabilities)
     {
         transform_fromhost_VkSurfaceCapabilities2EXT(sResourceTracker, (VkSurfaceCapabilities2EXT*)(pSurfaceCapabilities));
@@ -24961,7 +24961,7 @@ VkResult VkEncoder::vkDisplayPowerControlEXT(
     if (pDisplayPowerInfo)
     {
         local_pDisplayPowerInfo = (VkDisplayPowerInfoEXT*)pool->alloc(sizeof(const VkDisplayPowerInfoEXT));
-        deepcopy_VkDisplayPowerInfoEXT(pool, pDisplayPowerInfo, (VkDisplayPowerInfoEXT*)(local_pDisplayPowerInfo));
+        deepcopy_VkDisplayPowerInfoEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pDisplayPowerInfo, (VkDisplayPowerInfoEXT*)(local_pDisplayPowerInfo));
     }
     if (local_pDisplayPowerInfo)
     {
@@ -24974,7 +24974,7 @@ VkResult VkEncoder::vkDisplayPowerControlEXT(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
-        count_VkDisplayPowerInfoEXT(sFeatureBits, (VkDisplayPowerInfoEXT*)(local_pDisplayPowerInfo), countPtr);
+        count_VkDisplayPowerInfoEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayPowerInfoEXT*)(local_pDisplayPowerInfo), countPtr);
     }
     uint32_t packetSize_vkDisplayPowerControlEXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkDisplayPowerControlEXT);
@@ -24992,7 +24992,7 @@ VkResult VkEncoder::vkDisplayPowerControlEXT(
     *&cgen_var_1 = get_host_u64_VkDisplayKHR((*&local_display));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDisplayPowerInfoEXT(stream, (VkDisplayPowerInfoEXT*)(local_pDisplayPowerInfo), streamPtrPtr);
+    reservedmarshal_VkDisplayPowerInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayPowerInfoEXT*)(local_pDisplayPowerInfo), streamPtrPtr);
     VkResult vkDisplayPowerControlEXT_VkResult_return = (VkResult)0;
     stream->read(&vkDisplayPowerControlEXT_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -25025,13 +25025,13 @@ VkResult VkEncoder::vkRegisterDeviceEventEXT(
     if (pDeviceEventInfo)
     {
         local_pDeviceEventInfo = (VkDeviceEventInfoEXT*)pool->alloc(sizeof(const VkDeviceEventInfoEXT));
-        deepcopy_VkDeviceEventInfoEXT(pool, pDeviceEventInfo, (VkDeviceEventInfoEXT*)(local_pDeviceEventInfo));
+        deepcopy_VkDeviceEventInfoEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pDeviceEventInfo, (VkDeviceEventInfoEXT*)(local_pDeviceEventInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pDeviceEventInfo)
@@ -25047,12 +25047,12 @@ VkResult VkEncoder::vkRegisterDeviceEventEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDeviceEventInfoEXT(sFeatureBits, (VkDeviceEventInfoEXT*)(local_pDeviceEventInfo), countPtr);
+        count_VkDeviceEventInfoEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDeviceEventInfoEXT*)(local_pDeviceEventInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -25069,7 +25069,7 @@ VkResult VkEncoder::vkRegisterDeviceEventEXT(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDeviceEventInfoEXT(stream, (VkDeviceEventInfoEXT*)(local_pDeviceEventInfo), streamPtrPtr);
+    reservedmarshal_VkDeviceEventInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDeviceEventInfoEXT*)(local_pDeviceEventInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -25077,7 +25077,7 @@ VkResult VkEncoder::vkRegisterDeviceEventEXT(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -25123,13 +25123,13 @@ VkResult VkEncoder::vkRegisterDisplayEventEXT(
     if (pDisplayEventInfo)
     {
         local_pDisplayEventInfo = (VkDisplayEventInfoEXT*)pool->alloc(sizeof(const VkDisplayEventInfoEXT));
-        deepcopy_VkDisplayEventInfoEXT(pool, pDisplayEventInfo, (VkDisplayEventInfoEXT*)(local_pDisplayEventInfo));
+        deepcopy_VkDisplayEventInfoEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pDisplayEventInfo, (VkDisplayEventInfoEXT*)(local_pDisplayEventInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pDisplayEventInfo)
@@ -25147,12 +25147,12 @@ VkResult VkEncoder::vkRegisterDisplayEventEXT(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
-        count_VkDisplayEventInfoEXT(sFeatureBits, (VkDisplayEventInfoEXT*)(local_pDisplayEventInfo), countPtr);
+        count_VkDisplayEventInfoEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayEventInfoEXT*)(local_pDisplayEventInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_2;
         *countPtr += 8;
@@ -25173,7 +25173,7 @@ VkResult VkEncoder::vkRegisterDisplayEventEXT(
     *&cgen_var_1 = get_host_u64_VkDisplayKHR((*&local_display));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDisplayEventInfoEXT(stream, (VkDisplayEventInfoEXT*)(local_pDisplayEventInfo), streamPtrPtr);
+    reservedmarshal_VkDisplayEventInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDisplayEventInfoEXT*)(local_pDisplayEventInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
@@ -25181,7 +25181,7 @@ VkResult VkEncoder::vkRegisterDisplayEventEXT(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_3;
@@ -25289,7 +25289,7 @@ VkResult VkEncoder::vkGetRefreshCycleDurationGOOGLE(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
-        count_VkRefreshCycleDurationGOOGLE(sFeatureBits, (VkRefreshCycleDurationGOOGLE*)(pDisplayTimingProperties), countPtr);
+        count_VkRefreshCycleDurationGOOGLE(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRefreshCycleDurationGOOGLE*)(pDisplayTimingProperties), countPtr);
     }
     uint32_t packetSize_vkGetRefreshCycleDurationGOOGLE = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetRefreshCycleDurationGOOGLE);
@@ -25307,8 +25307,8 @@ VkResult VkEncoder::vkGetRefreshCycleDurationGOOGLE(
     *&cgen_var_1 = get_host_u64_VkSwapchainKHR((*&local_swapchain));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkRefreshCycleDurationGOOGLE(stream, (VkRefreshCycleDurationGOOGLE*)(pDisplayTimingProperties), streamPtrPtr);
-    unmarshal_VkRefreshCycleDurationGOOGLE(stream, (VkRefreshCycleDurationGOOGLE*)(pDisplayTimingProperties));
+    reservedmarshal_VkRefreshCycleDurationGOOGLE(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRefreshCycleDurationGOOGLE*)(pDisplayTimingProperties), streamPtrPtr);
+    unmarshal_VkRefreshCycleDurationGOOGLE(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRefreshCycleDurationGOOGLE*)(pDisplayTimingProperties));
     if (pDisplayTimingProperties)
     {
         transform_fromhost_VkRefreshCycleDurationGOOGLE(sResourceTracker, (VkRefreshCycleDurationGOOGLE*)(pDisplayTimingProperties));
@@ -25362,7 +25362,7 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPresentationTimingCount)); ++i)
                 {
-                    count_VkPastPresentationTimingGOOGLE(sFeatureBits, (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i), countPtr);
+                    count_VkPastPresentationTimingGOOGLE(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i), countPtr);
                 }
             }
         }
@@ -25402,7 +25402,7 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPresentationTimingCount)); ++i)
         {
-            reservedmarshal_VkPastPresentationTimingGOOGLE(stream, (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i), streamPtrPtr);
+            reservedmarshal_VkPastPresentationTimingGOOGLE(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -25429,7 +25429,7 @@ VkResult VkEncoder::vkGetPastPresentationTimingGOOGLE(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPresentationTimingCount)); ++i)
             {
-                unmarshal_VkPastPresentationTimingGOOGLE(stream, (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i));
+                unmarshal_VkPastPresentationTimingGOOGLE(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPastPresentationTimingGOOGLE*)(pPresentationTimings + i));
             }
         }
     }
@@ -25492,7 +25492,7 @@ void VkEncoder::vkCmdSetDiscardRectangleEXT(
         local_pDiscardRectangles = (VkRect2D*)pool->alloc(((discardRectangleCount)) * sizeof(const VkRect2D));
         for (uint32_t i = 0; i < (uint32_t)((discardRectangleCount)); ++i)
         {
-            deepcopy_VkRect2D(pool, pDiscardRectangles + i, (VkRect2D*)(local_pDiscardRectangles + i));
+            deepcopy_VkRect2D(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pDiscardRectangles + i, (VkRect2D*)(local_pDiscardRectangles + i));
         }
     }
     if (local_pDiscardRectangles)
@@ -25511,7 +25511,7 @@ void VkEncoder::vkCmdSetDiscardRectangleEXT(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((discardRectangleCount)); ++i)
         {
-            count_VkRect2D(sFeatureBits, (VkRect2D*)(local_pDiscardRectangles + i), countPtr);
+            count_VkRect2D(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRect2D*)(local_pDiscardRectangles + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdSetDiscardRectangleEXT = 4 + 4 + count;
@@ -25534,7 +25534,7 @@ void VkEncoder::vkCmdSetDiscardRectangleEXT(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((discardRectangleCount)); ++i)
     {
-        reservedmarshal_VkRect2D(stream, (VkRect2D*)(local_pDiscardRectangles + i), streamPtrPtr);
+        reservedmarshal_VkRect2D(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRect2D*)(local_pDiscardRectangles + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -25579,7 +25579,7 @@ void VkEncoder::vkSetHdrMetadataEXT(
         local_pMetadata = (VkHdrMetadataEXT*)pool->alloc(((swapchainCount)) * sizeof(const VkHdrMetadataEXT));
         for (uint32_t i = 0; i < (uint32_t)((swapchainCount)); ++i)
         {
-            deepcopy_VkHdrMetadataEXT(pool, pMetadata + i, (VkHdrMetadataEXT*)(local_pMetadata + i));
+            deepcopy_VkHdrMetadataEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pMetadata + i, (VkHdrMetadataEXT*)(local_pMetadata + i));
         }
     }
     if (local_pMetadata)
@@ -25601,7 +25601,7 @@ void VkEncoder::vkSetHdrMetadataEXT(
         }
         for (uint32_t i = 0; i < (uint32_t)((swapchainCount)); ++i)
         {
-            count_VkHdrMetadataEXT(sFeatureBits, (VkHdrMetadataEXT*)(local_pMetadata + i), countPtr);
+            count_VkHdrMetadataEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkHdrMetadataEXT*)(local_pMetadata + i), countPtr);
         }
     }
     uint32_t packetSize_vkSetHdrMetadataEXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -25630,7 +25630,7 @@ void VkEncoder::vkSetHdrMetadataEXT(
     }
     for (uint32_t i = 0; i < (uint32_t)((swapchainCount)); ++i)
     {
-        reservedmarshal_VkHdrMetadataEXT(stream, (VkHdrMetadataEXT*)(local_pMetadata + i), streamPtrPtr);
+        reservedmarshal_VkHdrMetadataEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkHdrMetadataEXT*)(local_pMetadata + i), streamPtrPtr);
     }
     stream->flush();
     ++encodeCount;;
@@ -25664,13 +25664,13 @@ VkResult VkEncoder::vkCreateIOSSurfaceMVK(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkIOSSurfaceCreateInfoMVK*)pool->alloc(sizeof(const VkIOSSurfaceCreateInfoMVK));
-        deepcopy_VkIOSSurfaceCreateInfoMVK(pool, pCreateInfo, (VkIOSSurfaceCreateInfoMVK*)(local_pCreateInfo));
+        deepcopy_VkIOSSurfaceCreateInfoMVK(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkIOSSurfaceCreateInfoMVK*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -25686,12 +25686,12 @@ VkResult VkEncoder::vkCreateIOSSurfaceMVK(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkIOSSurfaceCreateInfoMVK(sFeatureBits, (VkIOSSurfaceCreateInfoMVK*)(local_pCreateInfo), countPtr);
+        count_VkIOSSurfaceCreateInfoMVK(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkIOSSurfaceCreateInfoMVK*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -25708,7 +25708,7 @@ VkResult VkEncoder::vkCreateIOSSurfaceMVK(
     *&cgen_var_0 = get_host_u64_VkInstance((*&local_instance));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkIOSSurfaceCreateInfoMVK(stream, (VkIOSSurfaceCreateInfoMVK*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkIOSSurfaceCreateInfoMVK(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkIOSSurfaceCreateInfoMVK*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -25716,7 +25716,7 @@ VkResult VkEncoder::vkCreateIOSSurfaceMVK(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -25761,13 +25761,13 @@ VkResult VkEncoder::vkCreateMacOSSurfaceMVK(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkMacOSSurfaceCreateInfoMVK*)pool->alloc(sizeof(const VkMacOSSurfaceCreateInfoMVK));
-        deepcopy_VkMacOSSurfaceCreateInfoMVK(pool, pCreateInfo, (VkMacOSSurfaceCreateInfoMVK*)(local_pCreateInfo));
+        deepcopy_VkMacOSSurfaceCreateInfoMVK(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkMacOSSurfaceCreateInfoMVK*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -25783,12 +25783,12 @@ VkResult VkEncoder::vkCreateMacOSSurfaceMVK(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkMacOSSurfaceCreateInfoMVK(sFeatureBits, (VkMacOSSurfaceCreateInfoMVK*)(local_pCreateInfo), countPtr);
+        count_VkMacOSSurfaceCreateInfoMVK(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMacOSSurfaceCreateInfoMVK*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -25805,7 +25805,7 @@ VkResult VkEncoder::vkCreateMacOSSurfaceMVK(
     *&cgen_var_0 = get_host_u64_VkInstance((*&local_instance));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkMacOSSurfaceCreateInfoMVK(stream, (VkMacOSSurfaceCreateInfoMVK*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkMacOSSurfaceCreateInfoMVK(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMacOSSurfaceCreateInfoMVK*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -25813,7 +25813,7 @@ VkResult VkEncoder::vkCreateMacOSSurfaceMVK(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -26125,7 +26125,7 @@ VkResult VkEncoder::vkSetDebugUtilsObjectNameEXT(
     if (pNameInfo)
     {
         local_pNameInfo = (VkDebugUtilsObjectNameInfoEXT*)pool->alloc(sizeof(const VkDebugUtilsObjectNameInfoEXT));
-        deepcopy_VkDebugUtilsObjectNameInfoEXT(pool, pNameInfo, (VkDebugUtilsObjectNameInfoEXT*)(local_pNameInfo));
+        deepcopy_VkDebugUtilsObjectNameInfoEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pNameInfo, (VkDebugUtilsObjectNameInfoEXT*)(local_pNameInfo));
     }
     if (local_pNameInfo)
     {
@@ -26136,7 +26136,7 @@ VkResult VkEncoder::vkSetDebugUtilsObjectNameEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDebugUtilsObjectNameInfoEXT(sFeatureBits, (VkDebugUtilsObjectNameInfoEXT*)(local_pNameInfo), countPtr);
+        count_VkDebugUtilsObjectNameInfoEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugUtilsObjectNameInfoEXT*)(local_pNameInfo), countPtr);
     }
     uint32_t packetSize_vkSetDebugUtilsObjectNameEXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkSetDebugUtilsObjectNameEXT);
@@ -26150,7 +26150,7 @@ VkResult VkEncoder::vkSetDebugUtilsObjectNameEXT(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDebugUtilsObjectNameInfoEXT(stream, (VkDebugUtilsObjectNameInfoEXT*)(local_pNameInfo), streamPtrPtr);
+    reservedmarshal_VkDebugUtilsObjectNameInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugUtilsObjectNameInfoEXT*)(local_pNameInfo), streamPtrPtr);
     VkResult vkSetDebugUtilsObjectNameEXT_VkResult_return = (VkResult)0;
     stream->read(&vkSetDebugUtilsObjectNameEXT_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -26180,7 +26180,7 @@ VkResult VkEncoder::vkSetDebugUtilsObjectTagEXT(
     if (pTagInfo)
     {
         local_pTagInfo = (VkDebugUtilsObjectTagInfoEXT*)pool->alloc(sizeof(const VkDebugUtilsObjectTagInfoEXT));
-        deepcopy_VkDebugUtilsObjectTagInfoEXT(pool, pTagInfo, (VkDebugUtilsObjectTagInfoEXT*)(local_pTagInfo));
+        deepcopy_VkDebugUtilsObjectTagInfoEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pTagInfo, (VkDebugUtilsObjectTagInfoEXT*)(local_pTagInfo));
     }
     if (local_pTagInfo)
     {
@@ -26191,7 +26191,7 @@ VkResult VkEncoder::vkSetDebugUtilsObjectTagEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDebugUtilsObjectTagInfoEXT(sFeatureBits, (VkDebugUtilsObjectTagInfoEXT*)(local_pTagInfo), countPtr);
+        count_VkDebugUtilsObjectTagInfoEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugUtilsObjectTagInfoEXT*)(local_pTagInfo), countPtr);
     }
     uint32_t packetSize_vkSetDebugUtilsObjectTagEXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkSetDebugUtilsObjectTagEXT);
@@ -26205,7 +26205,7 @@ VkResult VkEncoder::vkSetDebugUtilsObjectTagEXT(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDebugUtilsObjectTagInfoEXT(stream, (VkDebugUtilsObjectTagInfoEXT*)(local_pTagInfo), streamPtrPtr);
+    reservedmarshal_VkDebugUtilsObjectTagInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugUtilsObjectTagInfoEXT*)(local_pTagInfo), streamPtrPtr);
     VkResult vkSetDebugUtilsObjectTagEXT_VkResult_return = (VkResult)0;
     stream->read(&vkSetDebugUtilsObjectTagEXT_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -26235,7 +26235,7 @@ void VkEncoder::vkQueueBeginDebugUtilsLabelEXT(
     if (pLabelInfo)
     {
         local_pLabelInfo = (VkDebugUtilsLabelEXT*)pool->alloc(sizeof(const VkDebugUtilsLabelEXT));
-        deepcopy_VkDebugUtilsLabelEXT(pool, pLabelInfo, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
+        deepcopy_VkDebugUtilsLabelEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pLabelInfo, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
     if (local_pLabelInfo)
     {
@@ -26246,7 +26246,7 @@ void VkEncoder::vkQueueBeginDebugUtilsLabelEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDebugUtilsLabelEXT(sFeatureBits, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), countPtr);
+        count_VkDebugUtilsLabelEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), countPtr);
     }
     uint32_t packetSize_vkQueueBeginDebugUtilsLabelEXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkQueueBeginDebugUtilsLabelEXT);
@@ -26260,7 +26260,7 @@ void VkEncoder::vkQueueBeginDebugUtilsLabelEXT(
     *&cgen_var_0 = get_host_u64_VkQueue((*&local_queue));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDebugUtilsLabelEXT(stream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), streamPtrPtr);
+    reservedmarshal_VkDebugUtilsLabelEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), streamPtrPtr);
     stream->flush();
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -26327,7 +26327,7 @@ void VkEncoder::vkQueueInsertDebugUtilsLabelEXT(
     if (pLabelInfo)
     {
         local_pLabelInfo = (VkDebugUtilsLabelEXT*)pool->alloc(sizeof(const VkDebugUtilsLabelEXT));
-        deepcopy_VkDebugUtilsLabelEXT(pool, pLabelInfo, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
+        deepcopy_VkDebugUtilsLabelEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pLabelInfo, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
     if (local_pLabelInfo)
     {
@@ -26338,7 +26338,7 @@ void VkEncoder::vkQueueInsertDebugUtilsLabelEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDebugUtilsLabelEXT(sFeatureBits, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), countPtr);
+        count_VkDebugUtilsLabelEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), countPtr);
     }
     uint32_t packetSize_vkQueueInsertDebugUtilsLabelEXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkQueueInsertDebugUtilsLabelEXT);
@@ -26352,7 +26352,7 @@ void VkEncoder::vkQueueInsertDebugUtilsLabelEXT(
     *&cgen_var_0 = get_host_u64_VkQueue((*&local_queue));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDebugUtilsLabelEXT(stream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), streamPtrPtr);
+    reservedmarshal_VkDebugUtilsLabelEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), streamPtrPtr);
     stream->flush();
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -26380,7 +26380,7 @@ void VkEncoder::vkCmdBeginDebugUtilsLabelEXT(
     if (pLabelInfo)
     {
         local_pLabelInfo = (VkDebugUtilsLabelEXT*)pool->alloc(sizeof(const VkDebugUtilsLabelEXT));
-        deepcopy_VkDebugUtilsLabelEXT(pool, pLabelInfo, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
+        deepcopy_VkDebugUtilsLabelEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pLabelInfo, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
     if (local_pLabelInfo)
     {
@@ -26391,7 +26391,7 @@ void VkEncoder::vkCmdBeginDebugUtilsLabelEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDebugUtilsLabelEXT(sFeatureBits, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), countPtr);
+        count_VkDebugUtilsLabelEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), countPtr);
     }
     uint32_t packetSize_vkCmdBeginDebugUtilsLabelEXT = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdBeginDebugUtilsLabelEXT -= 8;
@@ -26407,7 +26407,7 @@ void VkEncoder::vkCmdBeginDebugUtilsLabelEXT(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkDebugUtilsLabelEXT(stream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), streamPtrPtr);
+    reservedmarshal_VkDebugUtilsLabelEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -26474,7 +26474,7 @@ void VkEncoder::vkCmdInsertDebugUtilsLabelEXT(
     if (pLabelInfo)
     {
         local_pLabelInfo = (VkDebugUtilsLabelEXT*)pool->alloc(sizeof(const VkDebugUtilsLabelEXT));
-        deepcopy_VkDebugUtilsLabelEXT(pool, pLabelInfo, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
+        deepcopy_VkDebugUtilsLabelEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pLabelInfo, (VkDebugUtilsLabelEXT*)(local_pLabelInfo));
     }
     if (local_pLabelInfo)
     {
@@ -26485,7 +26485,7 @@ void VkEncoder::vkCmdInsertDebugUtilsLabelEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDebugUtilsLabelEXT(sFeatureBits, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), countPtr);
+        count_VkDebugUtilsLabelEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), countPtr);
     }
     uint32_t packetSize_vkCmdInsertDebugUtilsLabelEXT = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdInsertDebugUtilsLabelEXT -= 8;
@@ -26501,7 +26501,7 @@ void VkEncoder::vkCmdInsertDebugUtilsLabelEXT(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkDebugUtilsLabelEXT(stream, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), streamPtrPtr);
+    reservedmarshal_VkDebugUtilsLabelEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugUtilsLabelEXT*)(local_pLabelInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -26531,13 +26531,13 @@ VkResult VkEncoder::vkCreateDebugUtilsMessengerEXT(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDebugUtilsMessengerCreateInfoEXT*)pool->alloc(sizeof(const VkDebugUtilsMessengerCreateInfoEXT));
-        deepcopy_VkDebugUtilsMessengerCreateInfoEXT(pool, pCreateInfo, (VkDebugUtilsMessengerCreateInfoEXT*)(local_pCreateInfo));
+        deepcopy_VkDebugUtilsMessengerCreateInfoEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkDebugUtilsMessengerCreateInfoEXT*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -26553,12 +26553,12 @@ VkResult VkEncoder::vkCreateDebugUtilsMessengerEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDebugUtilsMessengerCreateInfoEXT(sFeatureBits, (VkDebugUtilsMessengerCreateInfoEXT*)(local_pCreateInfo), countPtr);
+        count_VkDebugUtilsMessengerCreateInfoEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugUtilsMessengerCreateInfoEXT*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -26575,7 +26575,7 @@ VkResult VkEncoder::vkCreateDebugUtilsMessengerEXT(
     *&cgen_var_0 = get_host_u64_VkInstance((*&local_instance));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDebugUtilsMessengerCreateInfoEXT(stream, (VkDebugUtilsMessengerCreateInfoEXT*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkDebugUtilsMessengerCreateInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugUtilsMessengerCreateInfoEXT*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -26583,7 +26583,7 @@ VkResult VkEncoder::vkCreateDebugUtilsMessengerEXT(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -26628,7 +26628,7 @@ void VkEncoder::vkDestroyDebugUtilsMessengerEXT(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -26646,7 +26646,7 @@ void VkEncoder::vkDestroyDebugUtilsMessengerEXT(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyDebugUtilsMessengerEXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -26672,7 +26672,7 @@ void VkEncoder::vkDestroyDebugUtilsMessengerEXT(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkDebugUtilsMessengerEXT((VkDebugUtilsMessengerEXT*)&messenger);
     stream->flush();
@@ -26708,7 +26708,7 @@ void VkEncoder::vkSubmitDebugUtilsMessageEXT(
     if (pCallbackData)
     {
         local_pCallbackData = (VkDebugUtilsMessengerCallbackDataEXT*)pool->alloc(sizeof(const VkDebugUtilsMessengerCallbackDataEXT));
-        deepcopy_VkDebugUtilsMessengerCallbackDataEXT(pool, pCallbackData, (VkDebugUtilsMessengerCallbackDataEXT*)(local_pCallbackData));
+        deepcopy_VkDebugUtilsMessengerCallbackDataEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCallbackData, (VkDebugUtilsMessengerCallbackDataEXT*)(local_pCallbackData));
     }
     if (local_pCallbackData)
     {
@@ -26721,7 +26721,7 @@ void VkEncoder::vkSubmitDebugUtilsMessageEXT(
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkDebugUtilsMessageSeverityFlagBitsEXT);
         *countPtr += sizeof(VkDebugUtilsMessageTypeFlagsEXT);
-        count_VkDebugUtilsMessengerCallbackDataEXT(sFeatureBits, (VkDebugUtilsMessengerCallbackDataEXT*)(local_pCallbackData), countPtr);
+        count_VkDebugUtilsMessengerCallbackDataEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugUtilsMessengerCallbackDataEXT*)(local_pCallbackData), countPtr);
     }
     uint32_t packetSize_vkSubmitDebugUtilsMessageEXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkSubmitDebugUtilsMessageEXT);
@@ -26739,7 +26739,7 @@ void VkEncoder::vkSubmitDebugUtilsMessageEXT(
     *streamPtrPtr += sizeof(VkDebugUtilsMessageSeverityFlagBitsEXT);
     memcpy(*streamPtrPtr, (VkDebugUtilsMessageTypeFlagsEXT*)&local_messageTypes, sizeof(VkDebugUtilsMessageTypeFlagsEXT));
     *streamPtrPtr += sizeof(VkDebugUtilsMessageTypeFlagsEXT);
-    reservedmarshal_VkDebugUtilsMessengerCallbackDataEXT(stream, (VkDebugUtilsMessengerCallbackDataEXT*)(local_pCallbackData), streamPtrPtr);
+    reservedmarshal_VkDebugUtilsMessengerCallbackDataEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDebugUtilsMessengerCallbackDataEXT*)(local_pCallbackData), streamPtrPtr);
     stream->flush();
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -26774,7 +26774,7 @@ VkResult VkEncoder::vkGetAndroidHardwareBufferPropertiesANDROID(
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
         *countPtr += sizeof(AHardwareBuffer);
-        count_VkAndroidHardwareBufferPropertiesANDROID(sFeatureBits, (VkAndroidHardwareBufferPropertiesANDROID*)(pProperties), countPtr);
+        count_VkAndroidHardwareBufferPropertiesANDROID(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAndroidHardwareBufferPropertiesANDROID*)(pProperties), countPtr);
     }
     uint32_t packetSize_vkGetAndroidHardwareBufferPropertiesANDROID = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetAndroidHardwareBufferPropertiesANDROID);
@@ -26790,8 +26790,8 @@ VkResult VkEncoder::vkGetAndroidHardwareBufferPropertiesANDROID(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (AHardwareBuffer*)local_buffer, sizeof(AHardwareBuffer));
     *streamPtrPtr += sizeof(AHardwareBuffer);
-    reservedmarshal_VkAndroidHardwareBufferPropertiesANDROID(stream, (VkAndroidHardwareBufferPropertiesANDROID*)(pProperties), streamPtrPtr);
-    unmarshal_VkAndroidHardwareBufferPropertiesANDROID(stream, (VkAndroidHardwareBufferPropertiesANDROID*)(pProperties));
+    reservedmarshal_VkAndroidHardwareBufferPropertiesANDROID(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAndroidHardwareBufferPropertiesANDROID*)(pProperties), streamPtrPtr);
+    unmarshal_VkAndroidHardwareBufferPropertiesANDROID(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAndroidHardwareBufferPropertiesANDROID*)(pProperties));
     if (pProperties)
     {
         transform_fromhost_VkAndroidHardwareBufferPropertiesANDROID(sResourceTracker, (VkAndroidHardwareBufferPropertiesANDROID*)(pProperties));
@@ -26826,7 +26826,7 @@ VkResult VkEncoder::vkGetMemoryAndroidHardwareBufferANDROID(
     if (pInfo)
     {
         local_pInfo = (VkMemoryGetAndroidHardwareBufferInfoANDROID*)pool->alloc(sizeof(const VkMemoryGetAndroidHardwareBufferInfoANDROID));
-        deepcopy_VkMemoryGetAndroidHardwareBufferInfoANDROID(pool, pInfo, (VkMemoryGetAndroidHardwareBufferInfoANDROID*)(local_pInfo));
+        deepcopy_VkMemoryGetAndroidHardwareBufferInfoANDROID(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkMemoryGetAndroidHardwareBufferInfoANDROID*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -26837,7 +26837,7 @@ VkResult VkEncoder::vkGetMemoryAndroidHardwareBufferANDROID(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkMemoryGetAndroidHardwareBufferInfoANDROID(sFeatureBits, (VkMemoryGetAndroidHardwareBufferInfoANDROID*)(local_pInfo), countPtr);
+        count_VkMemoryGetAndroidHardwareBufferInfoANDROID(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryGetAndroidHardwareBufferInfoANDROID*)(local_pInfo), countPtr);
         *countPtr += sizeof(AHardwareBuffer*);
     }
     uint32_t packetSize_vkGetMemoryAndroidHardwareBufferANDROID = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -26852,7 +26852,7 @@ VkResult VkEncoder::vkGetMemoryAndroidHardwareBufferANDROID(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkMemoryGetAndroidHardwareBufferInfoANDROID(stream, (VkMemoryGetAndroidHardwareBufferInfoANDROID*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkMemoryGetAndroidHardwareBufferInfoANDROID(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryGetAndroidHardwareBufferInfoANDROID*)(local_pInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (AHardwareBuffer**)pBuffer, sizeof(AHardwareBuffer*));
     *streamPtrPtr += sizeof(AHardwareBuffer*);
     stream->read((AHardwareBuffer**)pBuffer, sizeof(AHardwareBuffer*));
@@ -26899,7 +26899,7 @@ void VkEncoder::vkCmdSetSampleLocationsEXT(
     if (pSampleLocationsInfo)
     {
         local_pSampleLocationsInfo = (VkSampleLocationsInfoEXT*)pool->alloc(sizeof(const VkSampleLocationsInfoEXT));
-        deepcopy_VkSampleLocationsInfoEXT(pool, pSampleLocationsInfo, (VkSampleLocationsInfoEXT*)(local_pSampleLocationsInfo));
+        deepcopy_VkSampleLocationsInfoEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pSampleLocationsInfo, (VkSampleLocationsInfoEXT*)(local_pSampleLocationsInfo));
     }
     if (local_pSampleLocationsInfo)
     {
@@ -26910,7 +26910,7 @@ void VkEncoder::vkCmdSetSampleLocationsEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkSampleLocationsInfoEXT(sFeatureBits, (VkSampleLocationsInfoEXT*)(local_pSampleLocationsInfo), countPtr);
+        count_VkSampleLocationsInfoEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSampleLocationsInfoEXT*)(local_pSampleLocationsInfo), countPtr);
     }
     uint32_t packetSize_vkCmdSetSampleLocationsEXT = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdSetSampleLocationsEXT -= 8;
@@ -26926,7 +26926,7 @@ void VkEncoder::vkCmdSetSampleLocationsEXT(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkSampleLocationsInfoEXT(stream, (VkSampleLocationsInfoEXT*)(local_pSampleLocationsInfo), streamPtrPtr);
+    reservedmarshal_VkSampleLocationsInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSampleLocationsInfoEXT*)(local_pSampleLocationsInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -26957,7 +26957,7 @@ void VkEncoder::vkGetPhysicalDeviceMultisamplePropertiesEXT(
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkSampleCountFlagBits);
-        count_VkMultisamplePropertiesEXT(sFeatureBits, (VkMultisamplePropertiesEXT*)(pMultisampleProperties), countPtr);
+        count_VkMultisamplePropertiesEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMultisamplePropertiesEXT*)(pMultisampleProperties), countPtr);
     }
     uint32_t packetSize_vkGetPhysicalDeviceMultisamplePropertiesEXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPhysicalDeviceMultisamplePropertiesEXT);
@@ -26973,8 +26973,8 @@ void VkEncoder::vkGetPhysicalDeviceMultisamplePropertiesEXT(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkSampleCountFlagBits*)&local_samples, sizeof(VkSampleCountFlagBits));
     *streamPtrPtr += sizeof(VkSampleCountFlagBits);
-    reservedmarshal_VkMultisamplePropertiesEXT(stream, (VkMultisamplePropertiesEXT*)(pMultisampleProperties), streamPtrPtr);
-    unmarshal_VkMultisamplePropertiesEXT(stream, (VkMultisamplePropertiesEXT*)(pMultisampleProperties));
+    reservedmarshal_VkMultisamplePropertiesEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMultisamplePropertiesEXT*)(pMultisampleProperties), streamPtrPtr);
+    unmarshal_VkMultisamplePropertiesEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMultisamplePropertiesEXT*)(pMultisampleProperties));
     if (pMultisampleProperties)
     {
         transform_fromhost_VkMultisamplePropertiesEXT(sResourceTracker, (VkMultisamplePropertiesEXT*)(pMultisampleProperties));
@@ -27024,7 +27024,7 @@ VkResult VkEncoder::vkGetImageDrmFormatModifierPropertiesEXT(
         *countPtr += 1 * 8;
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
-        count_VkImageDrmFormatModifierPropertiesEXT(sFeatureBits, (VkImageDrmFormatModifierPropertiesEXT*)(pProperties), countPtr);
+        count_VkImageDrmFormatModifierPropertiesEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageDrmFormatModifierPropertiesEXT*)(pProperties), countPtr);
     }
     uint32_t packetSize_vkGetImageDrmFormatModifierPropertiesEXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetImageDrmFormatModifierPropertiesEXT);
@@ -27042,8 +27042,8 @@ VkResult VkEncoder::vkGetImageDrmFormatModifierPropertiesEXT(
     *&cgen_var_1 = get_host_u64_VkImage((*&local_image));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkImageDrmFormatModifierPropertiesEXT(stream, (VkImageDrmFormatModifierPropertiesEXT*)(pProperties), streamPtrPtr);
-    unmarshal_VkImageDrmFormatModifierPropertiesEXT(stream, (VkImageDrmFormatModifierPropertiesEXT*)(pProperties));
+    reservedmarshal_VkImageDrmFormatModifierPropertiesEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageDrmFormatModifierPropertiesEXT*)(pProperties), streamPtrPtr);
+    unmarshal_VkImageDrmFormatModifierPropertiesEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageDrmFormatModifierPropertiesEXT*)(pProperties));
     if (pProperties)
     {
         transform_fromhost_VkImageDrmFormatModifierPropertiesEXT(sResourceTracker, (VkImageDrmFormatModifierPropertiesEXT*)(pProperties));
@@ -27082,13 +27082,13 @@ VkResult VkEncoder::vkCreateValidationCacheEXT(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkValidationCacheCreateInfoEXT*)pool->alloc(sizeof(const VkValidationCacheCreateInfoEXT));
-        deepcopy_VkValidationCacheCreateInfoEXT(pool, pCreateInfo, (VkValidationCacheCreateInfoEXT*)(local_pCreateInfo));
+        deepcopy_VkValidationCacheCreateInfoEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkValidationCacheCreateInfoEXT*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -27104,12 +27104,12 @@ VkResult VkEncoder::vkCreateValidationCacheEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkValidationCacheCreateInfoEXT(sFeatureBits, (VkValidationCacheCreateInfoEXT*)(local_pCreateInfo), countPtr);
+        count_VkValidationCacheCreateInfoEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkValidationCacheCreateInfoEXT*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -27126,7 +27126,7 @@ VkResult VkEncoder::vkCreateValidationCacheEXT(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkValidationCacheCreateInfoEXT(stream, (VkValidationCacheCreateInfoEXT*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkValidationCacheCreateInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkValidationCacheCreateInfoEXT*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -27134,7 +27134,7 @@ VkResult VkEncoder::vkCreateValidationCacheEXT(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -27179,7 +27179,7 @@ void VkEncoder::vkDestroyValidationCacheEXT(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -27197,7 +27197,7 @@ void VkEncoder::vkDestroyValidationCacheEXT(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyValidationCacheEXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -27223,7 +27223,7 @@ void VkEncoder::vkDestroyValidationCacheEXT(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkValidationCacheEXT((VkValidationCacheEXT*)&validationCache);
     stream->flush();
@@ -27507,7 +27507,7 @@ void VkEncoder::vkCmdSetViewportShadingRatePaletteNV(
         local_pShadingRatePalettes = (VkShadingRatePaletteNV*)pool->alloc(((viewportCount)) * sizeof(const VkShadingRatePaletteNV));
         for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
         {
-            deepcopy_VkShadingRatePaletteNV(pool, pShadingRatePalettes + i, (VkShadingRatePaletteNV*)(local_pShadingRatePalettes + i));
+            deepcopy_VkShadingRatePaletteNV(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pShadingRatePalettes + i, (VkShadingRatePaletteNV*)(local_pShadingRatePalettes + i));
         }
     }
     if (local_pShadingRatePalettes)
@@ -27526,7 +27526,7 @@ void VkEncoder::vkCmdSetViewportShadingRatePaletteNV(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
         {
-            count_VkShadingRatePaletteNV(sFeatureBits, (VkShadingRatePaletteNV*)(local_pShadingRatePalettes + i), countPtr);
+            count_VkShadingRatePaletteNV(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkShadingRatePaletteNV*)(local_pShadingRatePalettes + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdSetViewportShadingRatePaletteNV = 4 + 4 + count;
@@ -27549,7 +27549,7 @@ void VkEncoder::vkCmdSetViewportShadingRatePaletteNV(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
     {
-        reservedmarshal_VkShadingRatePaletteNV(stream, (VkShadingRatePaletteNV*)(local_pShadingRatePalettes + i), streamPtrPtr);
+        reservedmarshal_VkShadingRatePaletteNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkShadingRatePaletteNV*)(local_pShadingRatePalettes + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -27585,7 +27585,7 @@ void VkEncoder::vkCmdSetCoarseSampleOrderNV(
         local_pCustomSampleOrders = (VkCoarseSampleOrderCustomNV*)pool->alloc(((customSampleOrderCount)) * sizeof(const VkCoarseSampleOrderCustomNV));
         for (uint32_t i = 0; i < (uint32_t)((customSampleOrderCount)); ++i)
         {
-            deepcopy_VkCoarseSampleOrderCustomNV(pool, pCustomSampleOrders + i, (VkCoarseSampleOrderCustomNV*)(local_pCustomSampleOrders + i));
+            deepcopy_VkCoarseSampleOrderCustomNV(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCustomSampleOrders + i, (VkCoarseSampleOrderCustomNV*)(local_pCustomSampleOrders + i));
         }
     }
     if (local_pCustomSampleOrders)
@@ -27604,7 +27604,7 @@ void VkEncoder::vkCmdSetCoarseSampleOrderNV(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((customSampleOrderCount)); ++i)
         {
-            count_VkCoarseSampleOrderCustomNV(sFeatureBits, (VkCoarseSampleOrderCustomNV*)(local_pCustomSampleOrders + i), countPtr);
+            count_VkCoarseSampleOrderCustomNV(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCoarseSampleOrderCustomNV*)(local_pCustomSampleOrders + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdSetCoarseSampleOrderNV = 4 + 4 + count;
@@ -27627,7 +27627,7 @@ void VkEncoder::vkCmdSetCoarseSampleOrderNV(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((customSampleOrderCount)); ++i)
     {
-        reservedmarshal_VkCoarseSampleOrderCustomNV(stream, (VkCoarseSampleOrderCustomNV*)(local_pCustomSampleOrders + i), streamPtrPtr);
+        reservedmarshal_VkCoarseSampleOrderCustomNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCoarseSampleOrderCustomNV*)(local_pCustomSampleOrders + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -27660,13 +27660,13 @@ VkResult VkEncoder::vkCreateAccelerationStructureNV(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkAccelerationStructureCreateInfoNV*)pool->alloc(sizeof(const VkAccelerationStructureCreateInfoNV));
-        deepcopy_VkAccelerationStructureCreateInfoNV(pool, pCreateInfo, (VkAccelerationStructureCreateInfoNV*)(local_pCreateInfo));
+        deepcopy_VkAccelerationStructureCreateInfoNV(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkAccelerationStructureCreateInfoNV*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -27682,12 +27682,12 @@ VkResult VkEncoder::vkCreateAccelerationStructureNV(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkAccelerationStructureCreateInfoNV(sFeatureBits, (VkAccelerationStructureCreateInfoNV*)(local_pCreateInfo), countPtr);
+        count_VkAccelerationStructureCreateInfoNV(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureCreateInfoNV*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -27704,7 +27704,7 @@ VkResult VkEncoder::vkCreateAccelerationStructureNV(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkAccelerationStructureCreateInfoNV(stream, (VkAccelerationStructureCreateInfoNV*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkAccelerationStructureCreateInfoNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureCreateInfoNV*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -27712,7 +27712,7 @@ VkResult VkEncoder::vkCreateAccelerationStructureNV(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -27757,7 +27757,7 @@ void VkEncoder::vkDestroyAccelerationStructureNV(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -27775,7 +27775,7 @@ void VkEncoder::vkDestroyAccelerationStructureNV(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyAccelerationStructureNV = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -27801,7 +27801,7 @@ void VkEncoder::vkDestroyAccelerationStructureNV(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkAccelerationStructureNV((VkAccelerationStructureNV*)&accelerationStructure);
     stream->flush();
@@ -27832,7 +27832,7 @@ void VkEncoder::vkGetAccelerationStructureMemoryRequirementsNV(
     if (pInfo)
     {
         local_pInfo = (VkAccelerationStructureMemoryRequirementsInfoNV*)pool->alloc(sizeof(const VkAccelerationStructureMemoryRequirementsInfoNV));
-        deepcopy_VkAccelerationStructureMemoryRequirementsInfoNV(pool, pInfo, (VkAccelerationStructureMemoryRequirementsInfoNV*)(local_pInfo));
+        deepcopy_VkAccelerationStructureMemoryRequirementsInfoNV(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkAccelerationStructureMemoryRequirementsInfoNV*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -27843,8 +27843,8 @@ void VkEncoder::vkGetAccelerationStructureMemoryRequirementsNV(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkAccelerationStructureMemoryRequirementsInfoNV(sFeatureBits, (VkAccelerationStructureMemoryRequirementsInfoNV*)(local_pInfo), countPtr);
-        count_VkMemoryRequirements2KHR(sFeatureBits, (VkMemoryRequirements2KHR*)(pMemoryRequirements), countPtr);
+        count_VkAccelerationStructureMemoryRequirementsInfoNV(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureMemoryRequirementsInfoNV*)(local_pInfo), countPtr);
+        count_VkMemoryRequirements2KHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements2KHR*)(pMemoryRequirements), countPtr);
     }
     uint32_t packetSize_vkGetAccelerationStructureMemoryRequirementsNV = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetAccelerationStructureMemoryRequirementsNV);
@@ -27858,9 +27858,9 @@ void VkEncoder::vkGetAccelerationStructureMemoryRequirementsNV(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkAccelerationStructureMemoryRequirementsInfoNV(stream, (VkAccelerationStructureMemoryRequirementsInfoNV*)(local_pInfo), streamPtrPtr);
-    reservedmarshal_VkMemoryRequirements2KHR(stream, (VkMemoryRequirements2KHR*)(pMemoryRequirements), streamPtrPtr);
-    unmarshal_VkMemoryRequirements2KHR(stream, (VkMemoryRequirements2KHR*)(pMemoryRequirements));
+    reservedmarshal_VkAccelerationStructureMemoryRequirementsInfoNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureMemoryRequirementsInfoNV*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkMemoryRequirements2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements2KHR*)(pMemoryRequirements), streamPtrPtr);
+    unmarshal_VkMemoryRequirements2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements2KHR*)(pMemoryRequirements));
     if (pMemoryRequirements)
     {
         transform_fromhost_VkMemoryRequirements2KHR(sResourceTracker, (VkMemoryRequirements2KHR*)(pMemoryRequirements));
@@ -27896,7 +27896,7 @@ VkResult VkEncoder::vkBindAccelerationStructureMemoryNV(
         local_pBindInfos = (VkBindAccelerationStructureMemoryInfoNV*)pool->alloc(((bindInfoCount)) * sizeof(const VkBindAccelerationStructureMemoryInfoNV));
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            deepcopy_VkBindAccelerationStructureMemoryInfoNV(pool, pBindInfos + i, (VkBindAccelerationStructureMemoryInfoNV*)(local_pBindInfos + i));
+            deepcopy_VkBindAccelerationStructureMemoryInfoNV(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pBindInfos + i, (VkBindAccelerationStructureMemoryInfoNV*)(local_pBindInfos + i));
         }
     }
     if (local_pBindInfos)
@@ -27914,7 +27914,7 @@ VkResult VkEncoder::vkBindAccelerationStructureMemoryNV(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            count_VkBindAccelerationStructureMemoryInfoNV(sFeatureBits, (VkBindAccelerationStructureMemoryInfoNV*)(local_pBindInfos + i), countPtr);
+            count_VkBindAccelerationStructureMemoryInfoNV(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBindAccelerationStructureMemoryInfoNV*)(local_pBindInfos + i), countPtr);
         }
     }
     uint32_t packetSize_vkBindAccelerationStructureMemoryNV = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -27933,7 +27933,7 @@ VkResult VkEncoder::vkBindAccelerationStructureMemoryNV(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
     {
-        reservedmarshal_VkBindAccelerationStructureMemoryInfoNV(stream, (VkBindAccelerationStructureMemoryInfoNV*)(local_pBindInfos + i), streamPtrPtr);
+        reservedmarshal_VkBindAccelerationStructureMemoryInfoNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBindAccelerationStructureMemoryInfoNV*)(local_pBindInfos + i), streamPtrPtr);
     }
     VkResult vkBindAccelerationStructureMemoryNV_VkResult_return = (VkResult)0;
     stream->read(&vkBindAccelerationStructureMemoryNV_VkResult_return, sizeof(VkResult));
@@ -27978,7 +27978,7 @@ void VkEncoder::vkCmdBuildAccelerationStructureNV(
     if (pInfo)
     {
         local_pInfo = (VkAccelerationStructureInfoNV*)pool->alloc(sizeof(const VkAccelerationStructureInfoNV));
-        deepcopy_VkAccelerationStructureInfoNV(pool, pInfo, (VkAccelerationStructureInfoNV*)(local_pInfo));
+        deepcopy_VkAccelerationStructureInfoNV(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkAccelerationStructureInfoNV*)(local_pInfo));
     }
     local_instanceData = instanceData;
     local_instanceOffset = instanceOffset;
@@ -27996,7 +27996,7 @@ void VkEncoder::vkCmdBuildAccelerationStructureNV(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkAccelerationStructureInfoNV(sFeatureBits, (VkAccelerationStructureInfoNV*)(local_pInfo), countPtr);
+        count_VkAccelerationStructureInfoNV(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureInfoNV*)(local_pInfo), countPtr);
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkDeviceSize);
@@ -28023,7 +28023,7 @@ void VkEncoder::vkCmdBuildAccelerationStructureNV(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkAccelerationStructureInfoNV(stream, (VkAccelerationStructureInfoNV*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkAccelerationStructureInfoNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureInfoNV*)(local_pInfo), streamPtrPtr);
     uint64_t cgen_var_0;
     *&cgen_var_0 = get_host_u64_VkBuffer((*&local_instanceData));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
@@ -28283,14 +28283,14 @@ VkResult VkEncoder::vkCreateRayTracingPipelinesNV(
         local_pCreateInfos = (VkRayTracingPipelineCreateInfoNV*)pool->alloc(((createInfoCount)) * sizeof(const VkRayTracingPipelineCreateInfoNV));
         for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
         {
-            deepcopy_VkRayTracingPipelineCreateInfoNV(pool, pCreateInfos + i, (VkRayTracingPipelineCreateInfoNV*)(local_pCreateInfos + i));
+            deepcopy_VkRayTracingPipelineCreateInfoNV(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfos + i, (VkRayTracingPipelineCreateInfoNV*)(local_pCreateInfos + i));
         }
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfos)
@@ -28314,13 +28314,13 @@ VkResult VkEncoder::vkCreateRayTracingPipelinesNV(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
         {
-            count_VkRayTracingPipelineCreateInfoNV(sFeatureBits, (VkRayTracingPipelineCreateInfoNV*)(local_pCreateInfos + i), countPtr);
+            count_VkRayTracingPipelineCreateInfoNV(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRayTracingPipelineCreateInfoNV*)(local_pCreateInfos + i), countPtr);
         }
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         if (((createInfoCount)))
         {
@@ -28347,7 +28347,7 @@ VkResult VkEncoder::vkCreateRayTracingPipelinesNV(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
     {
-        reservedmarshal_VkRayTracingPipelineCreateInfoNV(stream, (VkRayTracingPipelineCreateInfoNV*)(local_pCreateInfos + i), streamPtrPtr);
+        reservedmarshal_VkRayTracingPipelineCreateInfoNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRayTracingPipelineCreateInfoNV*)(local_pCreateInfos + i), streamPtrPtr);
     }
     // WARNING PTR CHECK
     uint64_t cgen_var_2 = (uint64_t)(uintptr_t)local_pAllocator;
@@ -28356,7 +28356,7 @@ VkResult VkEncoder::vkCreateRayTracingPipelinesNV(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     if (((createInfoCount)))
@@ -28784,7 +28784,7 @@ VkResult VkEncoder::vkGetMemoryHostPointerPropertiesEXT(
         {
             *countPtr += sizeof(uint8_t);
         }
-        count_VkMemoryHostPointerPropertiesEXT(sFeatureBits, (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties), countPtr);
+        count_VkMemoryHostPointerPropertiesEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties), countPtr);
     }
     uint32_t packetSize_vkGetMemoryHostPointerPropertiesEXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetMemoryHostPointerPropertiesEXT);
@@ -28810,8 +28810,8 @@ VkResult VkEncoder::vkGetMemoryHostPointerPropertiesEXT(
         memcpy(*streamPtrPtr, (void*)local_pHostPointer, sizeof(uint8_t));
         *streamPtrPtr += sizeof(uint8_t);
     }
-    reservedmarshal_VkMemoryHostPointerPropertiesEXT(stream, (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties), streamPtrPtr);
-    unmarshal_VkMemoryHostPointerPropertiesEXT(stream, (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties));
+    reservedmarshal_VkMemoryHostPointerPropertiesEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties), streamPtrPtr);
+    unmarshal_VkMemoryHostPointerPropertiesEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties));
     if (pMemoryHostPointerProperties)
     {
         transform_fromhost_VkMemoryHostPointerPropertiesEXT(sResourceTracker, (VkMemoryHostPointerPropertiesEXT*)(pMemoryHostPointerProperties));
@@ -29025,7 +29025,7 @@ VkResult VkEncoder::vkGetCalibratedTimestampsEXT(
         local_pTimestampInfos = (VkCalibratedTimestampInfoEXT*)pool->alloc(((timestampCount)) * sizeof(const VkCalibratedTimestampInfoEXT));
         for (uint32_t i = 0; i < (uint32_t)((timestampCount)); ++i)
         {
-            deepcopy_VkCalibratedTimestampInfoEXT(pool, pTimestampInfos + i, (VkCalibratedTimestampInfoEXT*)(local_pTimestampInfos + i));
+            deepcopy_VkCalibratedTimestampInfoEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pTimestampInfos + i, (VkCalibratedTimestampInfoEXT*)(local_pTimestampInfos + i));
         }
     }
     if (local_pTimestampInfos)
@@ -29043,7 +29043,7 @@ VkResult VkEncoder::vkGetCalibratedTimestampsEXT(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((timestampCount)); ++i)
         {
-            count_VkCalibratedTimestampInfoEXT(sFeatureBits, (VkCalibratedTimestampInfoEXT*)(local_pTimestampInfos + i), countPtr);
+            count_VkCalibratedTimestampInfoEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCalibratedTimestampInfoEXT*)(local_pTimestampInfos + i), countPtr);
         }
         *countPtr += ((timestampCount)) * sizeof(uint64_t);
         *countPtr += sizeof(uint64_t);
@@ -29064,7 +29064,7 @@ VkResult VkEncoder::vkGetCalibratedTimestampsEXT(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((timestampCount)); ++i)
     {
-        reservedmarshal_VkCalibratedTimestampInfoEXT(stream, (VkCalibratedTimestampInfoEXT*)(local_pTimestampInfos + i), streamPtrPtr);
+        reservedmarshal_VkCalibratedTimestampInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCalibratedTimestampInfoEXT*)(local_pTimestampInfos + i), streamPtrPtr);
     }
     memcpy(*streamPtrPtr, (uint64_t*)pTimestamps, ((timestampCount)) * sizeof(uint64_t));
     *streamPtrPtr += ((timestampCount)) * sizeof(uint64_t);
@@ -29332,7 +29332,7 @@ void VkEncoder::vkCmdSetExclusiveScissorNV(
         local_pExclusiveScissors = (VkRect2D*)pool->alloc(((exclusiveScissorCount)) * sizeof(const VkRect2D));
         for (uint32_t i = 0; i < (uint32_t)((exclusiveScissorCount)); ++i)
         {
-            deepcopy_VkRect2D(pool, pExclusiveScissors + i, (VkRect2D*)(local_pExclusiveScissors + i));
+            deepcopy_VkRect2D(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pExclusiveScissors + i, (VkRect2D*)(local_pExclusiveScissors + i));
         }
     }
     if (local_pExclusiveScissors)
@@ -29351,7 +29351,7 @@ void VkEncoder::vkCmdSetExclusiveScissorNV(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((exclusiveScissorCount)); ++i)
         {
-            count_VkRect2D(sFeatureBits, (VkRect2D*)(local_pExclusiveScissors + i), countPtr);
+            count_VkRect2D(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRect2D*)(local_pExclusiveScissors + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdSetExclusiveScissorNV = 4 + 4 + count;
@@ -29374,7 +29374,7 @@ void VkEncoder::vkCmdSetExclusiveScissorNV(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((exclusiveScissorCount)); ++i)
     {
-        reservedmarshal_VkRect2D(stream, (VkRect2D*)(local_pExclusiveScissors + i), streamPtrPtr);
+        reservedmarshal_VkRect2D(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRect2D*)(local_pExclusiveScissors + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -29479,7 +29479,7 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i)
                 {
-                    count_VkCheckpointDataNV(sFeatureBits, (VkCheckpointDataNV*)(pCheckpointData + i), countPtr);
+                    count_VkCheckpointDataNV(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCheckpointDataNV*)(pCheckpointData + i), countPtr);
                 }
             }
         }
@@ -29515,7 +29515,7 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i)
         {
-            reservedmarshal_VkCheckpointDataNV(stream, (VkCheckpointDataNV*)(pCheckpointData + i), streamPtrPtr);
+            reservedmarshal_VkCheckpointDataNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCheckpointDataNV*)(pCheckpointData + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -29542,7 +29542,7 @@ void VkEncoder::vkGetQueueCheckpointDataNV(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pCheckpointDataCount)); ++i)
             {
-                unmarshal_VkCheckpointDataNV(stream, (VkCheckpointDataNV*)(pCheckpointData + i));
+                unmarshal_VkCheckpointDataNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCheckpointDataNV*)(pCheckpointData + i));
             }
         }
     }
@@ -29586,7 +29586,7 @@ VkResult VkEncoder::vkInitializePerformanceApiINTEL(
     if (pInitializeInfo)
     {
         local_pInitializeInfo = (VkInitializePerformanceApiInfoINTEL*)pool->alloc(sizeof(const VkInitializePerformanceApiInfoINTEL));
-        deepcopy_VkInitializePerformanceApiInfoINTEL(pool, pInitializeInfo, (VkInitializePerformanceApiInfoINTEL*)(local_pInitializeInfo));
+        deepcopy_VkInitializePerformanceApiInfoINTEL(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInitializeInfo, (VkInitializePerformanceApiInfoINTEL*)(local_pInitializeInfo));
     }
     if (local_pInitializeInfo)
     {
@@ -29597,7 +29597,7 @@ VkResult VkEncoder::vkInitializePerformanceApiINTEL(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkInitializePerformanceApiInfoINTEL(sFeatureBits, (VkInitializePerformanceApiInfoINTEL*)(local_pInitializeInfo), countPtr);
+        count_VkInitializePerformanceApiInfoINTEL(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkInitializePerformanceApiInfoINTEL*)(local_pInitializeInfo), countPtr);
     }
     uint32_t packetSize_vkInitializePerformanceApiINTEL = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkInitializePerformanceApiINTEL);
@@ -29611,7 +29611,7 @@ VkResult VkEncoder::vkInitializePerformanceApiINTEL(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkInitializePerformanceApiInfoINTEL(stream, (VkInitializePerformanceApiInfoINTEL*)(local_pInitializeInfo), streamPtrPtr);
+    reservedmarshal_VkInitializePerformanceApiInfoINTEL(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkInitializePerformanceApiInfoINTEL*)(local_pInitializeInfo), streamPtrPtr);
     VkResult vkInitializePerformanceApiINTEL_VkResult_return = (VkResult)0;
     stream->read(&vkInitializePerformanceApiINTEL_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -29680,7 +29680,7 @@ VkResult VkEncoder::vkCmdSetPerformanceMarkerINTEL(
     if (pMarkerInfo)
     {
         local_pMarkerInfo = (VkPerformanceMarkerInfoINTEL*)pool->alloc(sizeof(const VkPerformanceMarkerInfoINTEL));
-        deepcopy_VkPerformanceMarkerInfoINTEL(pool, pMarkerInfo, (VkPerformanceMarkerInfoINTEL*)(local_pMarkerInfo));
+        deepcopy_VkPerformanceMarkerInfoINTEL(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pMarkerInfo, (VkPerformanceMarkerInfoINTEL*)(local_pMarkerInfo));
     }
     if (local_pMarkerInfo)
     {
@@ -29691,7 +29691,7 @@ VkResult VkEncoder::vkCmdSetPerformanceMarkerINTEL(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPerformanceMarkerInfoINTEL(sFeatureBits, (VkPerformanceMarkerInfoINTEL*)(local_pMarkerInfo), countPtr);
+        count_VkPerformanceMarkerInfoINTEL(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPerformanceMarkerInfoINTEL*)(local_pMarkerInfo), countPtr);
     }
     uint32_t packetSize_vkCmdSetPerformanceMarkerINTEL = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdSetPerformanceMarkerINTEL -= 8;
@@ -29707,7 +29707,7 @@ VkResult VkEncoder::vkCmdSetPerformanceMarkerINTEL(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkPerformanceMarkerInfoINTEL(stream, (VkPerformanceMarkerInfoINTEL*)(local_pMarkerInfo), streamPtrPtr);
+    reservedmarshal_VkPerformanceMarkerInfoINTEL(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPerformanceMarkerInfoINTEL*)(local_pMarkerInfo), streamPtrPtr);
     VkResult vkCmdSetPerformanceMarkerINTEL_VkResult_return = (VkResult)0;
     stream->read(&vkCmdSetPerformanceMarkerINTEL_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -29737,7 +29737,7 @@ VkResult VkEncoder::vkCmdSetPerformanceStreamMarkerINTEL(
     if (pMarkerInfo)
     {
         local_pMarkerInfo = (VkPerformanceStreamMarkerInfoINTEL*)pool->alloc(sizeof(const VkPerformanceStreamMarkerInfoINTEL));
-        deepcopy_VkPerformanceStreamMarkerInfoINTEL(pool, pMarkerInfo, (VkPerformanceStreamMarkerInfoINTEL*)(local_pMarkerInfo));
+        deepcopy_VkPerformanceStreamMarkerInfoINTEL(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pMarkerInfo, (VkPerformanceStreamMarkerInfoINTEL*)(local_pMarkerInfo));
     }
     if (local_pMarkerInfo)
     {
@@ -29748,7 +29748,7 @@ VkResult VkEncoder::vkCmdSetPerformanceStreamMarkerINTEL(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPerformanceStreamMarkerInfoINTEL(sFeatureBits, (VkPerformanceStreamMarkerInfoINTEL*)(local_pMarkerInfo), countPtr);
+        count_VkPerformanceStreamMarkerInfoINTEL(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPerformanceStreamMarkerInfoINTEL*)(local_pMarkerInfo), countPtr);
     }
     uint32_t packetSize_vkCmdSetPerformanceStreamMarkerINTEL = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdSetPerformanceStreamMarkerINTEL -= 8;
@@ -29764,7 +29764,7 @@ VkResult VkEncoder::vkCmdSetPerformanceStreamMarkerINTEL(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkPerformanceStreamMarkerInfoINTEL(stream, (VkPerformanceStreamMarkerInfoINTEL*)(local_pMarkerInfo), streamPtrPtr);
+    reservedmarshal_VkPerformanceStreamMarkerInfoINTEL(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPerformanceStreamMarkerInfoINTEL*)(local_pMarkerInfo), streamPtrPtr);
     VkResult vkCmdSetPerformanceStreamMarkerINTEL_VkResult_return = (VkResult)0;
     stream->read(&vkCmdSetPerformanceStreamMarkerINTEL_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -29794,7 +29794,7 @@ VkResult VkEncoder::vkCmdSetPerformanceOverrideINTEL(
     if (pOverrideInfo)
     {
         local_pOverrideInfo = (VkPerformanceOverrideInfoINTEL*)pool->alloc(sizeof(const VkPerformanceOverrideInfoINTEL));
-        deepcopy_VkPerformanceOverrideInfoINTEL(pool, pOverrideInfo, (VkPerformanceOverrideInfoINTEL*)(local_pOverrideInfo));
+        deepcopy_VkPerformanceOverrideInfoINTEL(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pOverrideInfo, (VkPerformanceOverrideInfoINTEL*)(local_pOverrideInfo));
     }
     if (local_pOverrideInfo)
     {
@@ -29805,7 +29805,7 @@ VkResult VkEncoder::vkCmdSetPerformanceOverrideINTEL(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPerformanceOverrideInfoINTEL(sFeatureBits, (VkPerformanceOverrideInfoINTEL*)(local_pOverrideInfo), countPtr);
+        count_VkPerformanceOverrideInfoINTEL(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPerformanceOverrideInfoINTEL*)(local_pOverrideInfo), countPtr);
     }
     uint32_t packetSize_vkCmdSetPerformanceOverrideINTEL = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdSetPerformanceOverrideINTEL -= 8;
@@ -29821,7 +29821,7 @@ VkResult VkEncoder::vkCmdSetPerformanceOverrideINTEL(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkPerformanceOverrideInfoINTEL(stream, (VkPerformanceOverrideInfoINTEL*)(local_pOverrideInfo), streamPtrPtr);
+    reservedmarshal_VkPerformanceOverrideInfoINTEL(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPerformanceOverrideInfoINTEL*)(local_pOverrideInfo), streamPtrPtr);
     VkResult vkCmdSetPerformanceOverrideINTEL_VkResult_return = (VkResult)0;
     stream->read(&vkCmdSetPerformanceOverrideINTEL_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -29852,7 +29852,7 @@ VkResult VkEncoder::vkAcquirePerformanceConfigurationINTEL(
     if (pAcquireInfo)
     {
         local_pAcquireInfo = (VkPerformanceConfigurationAcquireInfoINTEL*)pool->alloc(sizeof(const VkPerformanceConfigurationAcquireInfoINTEL));
-        deepcopy_VkPerformanceConfigurationAcquireInfoINTEL(pool, pAcquireInfo, (VkPerformanceConfigurationAcquireInfoINTEL*)(local_pAcquireInfo));
+        deepcopy_VkPerformanceConfigurationAcquireInfoINTEL(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAcquireInfo, (VkPerformanceConfigurationAcquireInfoINTEL*)(local_pAcquireInfo));
     }
     if (local_pAcquireInfo)
     {
@@ -29863,7 +29863,7 @@ VkResult VkEncoder::vkAcquirePerformanceConfigurationINTEL(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPerformanceConfigurationAcquireInfoINTEL(sFeatureBits, (VkPerformanceConfigurationAcquireInfoINTEL*)(local_pAcquireInfo), countPtr);
+        count_VkPerformanceConfigurationAcquireInfoINTEL(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPerformanceConfigurationAcquireInfoINTEL*)(local_pAcquireInfo), countPtr);
         *countPtr += 8;
     }
     uint32_t packetSize_vkAcquirePerformanceConfigurationINTEL = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -29878,7 +29878,7 @@ VkResult VkEncoder::vkAcquirePerformanceConfigurationINTEL(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPerformanceConfigurationAcquireInfoINTEL(stream, (VkPerformanceConfigurationAcquireInfoINTEL*)(local_pAcquireInfo), streamPtrPtr);
+    reservedmarshal_VkPerformanceConfigurationAcquireInfoINTEL(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPerformanceConfigurationAcquireInfoINTEL*)(local_pAcquireInfo), streamPtrPtr);
     uint64_t cgen_var_1 = (uint64_t)(*pConfiguration);
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
     android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
@@ -30015,7 +30015,7 @@ VkResult VkEncoder::vkGetPerformanceParameterINTEL(
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkPerformanceParameterTypeINTEL);
-        count_VkPerformanceValueINTEL(sFeatureBits, (VkPerformanceValueINTEL*)(pValue), countPtr);
+        count_VkPerformanceValueINTEL(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPerformanceValueINTEL*)(pValue), countPtr);
     }
     uint32_t packetSize_vkGetPerformanceParameterINTEL = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetPerformanceParameterINTEL);
@@ -30031,8 +30031,8 @@ VkResult VkEncoder::vkGetPerformanceParameterINTEL(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkPerformanceParameterTypeINTEL*)&local_parameter, sizeof(VkPerformanceParameterTypeINTEL));
     *streamPtrPtr += sizeof(VkPerformanceParameterTypeINTEL);
-    reservedmarshal_VkPerformanceValueINTEL(stream, (VkPerformanceValueINTEL*)(pValue), streamPtrPtr);
-    unmarshal_VkPerformanceValueINTEL(stream, (VkPerformanceValueINTEL*)(pValue));
+    reservedmarshal_VkPerformanceValueINTEL(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPerformanceValueINTEL*)(pValue), streamPtrPtr);
+    unmarshal_VkPerformanceValueINTEL(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPerformanceValueINTEL*)(pValue));
     if (pValue)
     {
         transform_fromhost_VkPerformanceValueINTEL(sResourceTracker, (VkPerformanceValueINTEL*)(pValue));
@@ -30129,13 +30129,13 @@ VkResult VkEncoder::vkCreateImagePipeSurfaceFUCHSIA(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkImagePipeSurfaceCreateInfoFUCHSIA*)pool->alloc(sizeof(const VkImagePipeSurfaceCreateInfoFUCHSIA));
-        deepcopy_VkImagePipeSurfaceCreateInfoFUCHSIA(pool, pCreateInfo, (VkImagePipeSurfaceCreateInfoFUCHSIA*)(local_pCreateInfo));
+        deepcopy_VkImagePipeSurfaceCreateInfoFUCHSIA(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkImagePipeSurfaceCreateInfoFUCHSIA*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -30151,12 +30151,12 @@ VkResult VkEncoder::vkCreateImagePipeSurfaceFUCHSIA(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkImagePipeSurfaceCreateInfoFUCHSIA(sFeatureBits, (VkImagePipeSurfaceCreateInfoFUCHSIA*)(local_pCreateInfo), countPtr);
+        count_VkImagePipeSurfaceCreateInfoFUCHSIA(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImagePipeSurfaceCreateInfoFUCHSIA*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -30173,7 +30173,7 @@ VkResult VkEncoder::vkCreateImagePipeSurfaceFUCHSIA(
     *&cgen_var_0 = get_host_u64_VkInstance((*&local_instance));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkImagePipeSurfaceCreateInfoFUCHSIA(stream, (VkImagePipeSurfaceCreateInfoFUCHSIA*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkImagePipeSurfaceCreateInfoFUCHSIA(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImagePipeSurfaceCreateInfoFUCHSIA*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -30181,7 +30181,7 @@ VkResult VkEncoder::vkCreateImagePipeSurfaceFUCHSIA(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -30226,13 +30226,13 @@ VkResult VkEncoder::vkCreateMetalSurfaceEXT(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkMetalSurfaceCreateInfoEXT*)pool->alloc(sizeof(const VkMetalSurfaceCreateInfoEXT));
-        deepcopy_VkMetalSurfaceCreateInfoEXT(pool, pCreateInfo, (VkMetalSurfaceCreateInfoEXT*)(local_pCreateInfo));
+        deepcopy_VkMetalSurfaceCreateInfoEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkMetalSurfaceCreateInfoEXT*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -30248,12 +30248,12 @@ VkResult VkEncoder::vkCreateMetalSurfaceEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkMetalSurfaceCreateInfoEXT(sFeatureBits, (VkMetalSurfaceCreateInfoEXT*)(local_pCreateInfo), countPtr);
+        count_VkMetalSurfaceCreateInfoEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMetalSurfaceCreateInfoEXT*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -30270,7 +30270,7 @@ VkResult VkEncoder::vkCreateMetalSurfaceEXT(
     *&cgen_var_0 = get_host_u64_VkInstance((*&local_instance));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkMetalSurfaceCreateInfoEXT(stream, (VkMetalSurfaceCreateInfoEXT*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkMetalSurfaceCreateInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMetalSurfaceCreateInfoEXT*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -30278,7 +30278,7 @@ VkResult VkEncoder::vkCreateMetalSurfaceEXT(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -30302,119 +30302,7 @@ VkResult VkEncoder::vkCreateMetalSurfaceEXT(
 }
 
 #endif
-#ifdef VK_GOOGLE_color_buffer
-VkResult VkEncoder::vkRegisterImageColorBufferGOOGLE(
-    VkDevice device,
-    VkImage image,
-    uint32_t colorBuffer,
-    uint32_t doLock)
-{
-    (void)doLock;
-    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
-    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
-    auto stream = mImpl->stream();
-    auto pool = mImpl->pool();
-    VkDevice local_device;
-    VkImage local_image;
-    uint32_t local_colorBuffer;
-    local_device = device;
-    local_image = image;
-    local_colorBuffer = colorBuffer;
-    size_t count = 0;
-    size_t* countPtr = &count;
-    {
-        uint64_t cgen_var_0;
-        *countPtr += 1 * 8;
-        uint64_t cgen_var_1;
-        *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
-    }
-    uint32_t packetSize_vkRegisterImageColorBufferGOOGLE = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
-    uint8_t* streamPtr = stream->reserve(packetSize_vkRegisterImageColorBufferGOOGLE);
-    uint8_t** streamPtrPtr = &streamPtr;
-    uint32_t opcode_vkRegisterImageColorBufferGOOGLE = OP_vkRegisterImageColorBufferGOOGLE;
-    uint32_t seqno; if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
-    memcpy(streamPtr, &opcode_vkRegisterImageColorBufferGOOGLE, sizeof(uint32_t)); streamPtr += sizeof(uint32_t);
-    memcpy(streamPtr, &packetSize_vkRegisterImageColorBufferGOOGLE, sizeof(uint32_t)); streamPtr += sizeof(uint32_t);
-    if (queueSubmitWithCommandsEnabled) { memcpy(streamPtr, &seqno, sizeof(uint32_t)); streamPtr += sizeof(uint32_t); }
-    uint64_t cgen_var_0;
-    *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
-    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
-    *streamPtrPtr += 1 * 8;
-    uint64_t cgen_var_1;
-    *&cgen_var_1 = get_host_u64_VkImage((*&local_image));
-    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
-    *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_colorBuffer, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    VkResult vkRegisterImageColorBufferGOOGLE_VkResult_return = (VkResult)0;
-    stream->read(&vkRegisterImageColorBufferGOOGLE_VkResult_return, sizeof(VkResult));
-    ++encodeCount;;
-    if (0 == encodeCount % POOL_CLEAR_INTERVAL)
-    {
-        pool->freeAll();
-        stream->clearPool();
-    }
-    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
-    return vkRegisterImageColorBufferGOOGLE_VkResult_return;
-}
-
-VkResult VkEncoder::vkRegisterBufferColorBufferGOOGLE(
-    VkDevice device,
-    VkBuffer buffer,
-    uint32_t colorBuffer,
-    uint32_t doLock)
-{
-    (void)doLock;
-    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
-    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
-    auto stream = mImpl->stream();
-    auto pool = mImpl->pool();
-    VkDevice local_device;
-    VkBuffer local_buffer;
-    uint32_t local_colorBuffer;
-    local_device = device;
-    local_buffer = buffer;
-    local_colorBuffer = colorBuffer;
-    size_t count = 0;
-    size_t* countPtr = &count;
-    {
-        uint64_t cgen_var_0;
-        *countPtr += 1 * 8;
-        uint64_t cgen_var_1;
-        *countPtr += 1 * 8;
-        *countPtr += sizeof(uint32_t);
-    }
-    uint32_t packetSize_vkRegisterBufferColorBufferGOOGLE = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
-    uint8_t* streamPtr = stream->reserve(packetSize_vkRegisterBufferColorBufferGOOGLE);
-    uint8_t** streamPtrPtr = &streamPtr;
-    uint32_t opcode_vkRegisterBufferColorBufferGOOGLE = OP_vkRegisterBufferColorBufferGOOGLE;
-    uint32_t seqno; if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
-    memcpy(streamPtr, &opcode_vkRegisterBufferColorBufferGOOGLE, sizeof(uint32_t)); streamPtr += sizeof(uint32_t);
-    memcpy(streamPtr, &packetSize_vkRegisterBufferColorBufferGOOGLE, sizeof(uint32_t)); streamPtr += sizeof(uint32_t);
-    if (queueSubmitWithCommandsEnabled) { memcpy(streamPtr, &seqno, sizeof(uint32_t)); streamPtr += sizeof(uint32_t); }
-    uint64_t cgen_var_0;
-    *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
-    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
-    *streamPtrPtr += 1 * 8;
-    uint64_t cgen_var_1;
-    *&cgen_var_1 = get_host_u64_VkBuffer((*&local_buffer));
-    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
-    *streamPtrPtr += 1 * 8;
-    memcpy(*streamPtrPtr, (uint32_t*)&local_colorBuffer, sizeof(uint32_t));
-    *streamPtrPtr += sizeof(uint32_t);
-    VkResult vkRegisterBufferColorBufferGOOGLE_VkResult_return = (VkResult)0;
-    stream->read(&vkRegisterBufferColorBufferGOOGLE_VkResult_return, sizeof(VkResult));
-    ++encodeCount;;
-    if (0 == encodeCount % POOL_CLEAR_INTERVAL)
-    {
-        pool->freeAll();
-        stream->clearPool();
-    }
-    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
-    return vkRegisterBufferColorBufferGOOGLE_VkResult_return;
-}
-
+#ifdef VK_EXT_fragment_density_map
 #endif
 #ifdef VK_EXT_scalar_block_layout
 #endif
@@ -30454,7 +30342,7 @@ VkDeviceAddress VkEncoder::vkGetBufferDeviceAddressEXT(
     if (pInfo)
     {
         local_pInfo = (VkBufferDeviceAddressInfo*)pool->alloc(sizeof(const VkBufferDeviceAddressInfo));
-        deepcopy_VkBufferDeviceAddressInfo(pool, pInfo, (VkBufferDeviceAddressInfo*)(local_pInfo));
+        deepcopy_VkBufferDeviceAddressInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkBufferDeviceAddressInfo*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -30465,7 +30353,7 @@ VkDeviceAddress VkEncoder::vkGetBufferDeviceAddressEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkBufferDeviceAddressInfo(sFeatureBits, (VkBufferDeviceAddressInfo*)(local_pInfo), countPtr);
+        count_VkBufferDeviceAddressInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferDeviceAddressInfo*)(local_pInfo), countPtr);
     }
     uint32_t packetSize_vkGetBufferDeviceAddressEXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetBufferDeviceAddressEXT);
@@ -30479,7 +30367,7 @@ VkDeviceAddress VkEncoder::vkGetBufferDeviceAddressEXT(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkBufferDeviceAddressInfo(stream, (VkBufferDeviceAddressInfo*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkBufferDeviceAddressInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferDeviceAddressInfo*)(local_pInfo), streamPtrPtr);
     VkDeviceAddress vkGetBufferDeviceAddressEXT_VkDeviceAddress_return = (VkDeviceAddress)0;
     stream->read(&vkGetBufferDeviceAddressEXT_VkDeviceAddress_return, sizeof(VkDeviceAddress));
     ++encodeCount;;
@@ -30526,7 +30414,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i)
                 {
-                    count_VkPhysicalDeviceToolPropertiesEXT(sFeatureBits, (VkPhysicalDeviceToolPropertiesEXT*)(pToolProperties + i), countPtr);
+                    count_VkPhysicalDeviceToolPropertiesEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceToolPropertiesEXT*)(pToolProperties + i), countPtr);
                 }
             }
         }
@@ -30562,7 +30450,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i)
         {
-            reservedmarshal_VkPhysicalDeviceToolPropertiesEXT(stream, (VkPhysicalDeviceToolPropertiesEXT*)(pToolProperties + i), streamPtrPtr);
+            reservedmarshal_VkPhysicalDeviceToolPropertiesEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceToolPropertiesEXT*)(pToolProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -30589,7 +30477,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceToolPropertiesEXT(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pToolCount)); ++i)
             {
-                unmarshal_VkPhysicalDeviceToolPropertiesEXT(stream, (VkPhysicalDeviceToolPropertiesEXT*)(pToolProperties + i));
+                unmarshal_VkPhysicalDeviceToolPropertiesEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceToolPropertiesEXT*)(pToolProperties + i));
             }
         }
     }
@@ -30653,7 +30541,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceCooperativeMatrixPropertiesNV(
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
                 {
-                    count_VkCooperativeMatrixPropertiesNV(sFeatureBits, (VkCooperativeMatrixPropertiesNV*)(pProperties + i), countPtr);
+                    count_VkCooperativeMatrixPropertiesNV(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCooperativeMatrixPropertiesNV*)(pProperties + i), countPtr);
                 }
             }
         }
@@ -30689,7 +30577,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceCooperativeMatrixPropertiesNV(
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
         {
-            reservedmarshal_VkCooperativeMatrixPropertiesNV(stream, (VkCooperativeMatrixPropertiesNV*)(pProperties + i), streamPtrPtr);
+            reservedmarshal_VkCooperativeMatrixPropertiesNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCooperativeMatrixPropertiesNV*)(pProperties + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -30716,7 +30604,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceCooperativeMatrixPropertiesNV(
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pPropertyCount)); ++i)
             {
-                unmarshal_VkCooperativeMatrixPropertiesNV(stream, (VkCooperativeMatrixPropertiesNV*)(pProperties + i));
+                unmarshal_VkCooperativeMatrixPropertiesNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCooperativeMatrixPropertiesNV*)(pProperties + i));
             }
         }
     }
@@ -30776,7 +30664,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinati
             {
                 for (uint32_t i = 0; i < (uint32_t)(*(pCombinationCount)); ++i)
                 {
-                    count_VkFramebufferMixedSamplesCombinationNV(sFeatureBits, (VkFramebufferMixedSamplesCombinationNV*)(pCombinations + i), countPtr);
+                    count_VkFramebufferMixedSamplesCombinationNV(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFramebufferMixedSamplesCombinationNV*)(pCombinations + i), countPtr);
                 }
             }
         }
@@ -30812,7 +30700,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinati
     {
         for (uint32_t i = 0; i < (uint32_t)(*(pCombinationCount)); ++i)
         {
-            reservedmarshal_VkFramebufferMixedSamplesCombinationNV(stream, (VkFramebufferMixedSamplesCombinationNV*)(pCombinations + i), streamPtrPtr);
+            reservedmarshal_VkFramebufferMixedSamplesCombinationNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFramebufferMixedSamplesCombinationNV*)(pCombinations + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -30839,7 +30727,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinati
         {
             for (uint32_t i = 0; i < (uint32_t)(*(pCombinationCount)); ++i)
             {
-                unmarshal_VkFramebufferMixedSamplesCombinationNV(stream, (VkFramebufferMixedSamplesCombinationNV*)(pCombinations + i));
+                unmarshal_VkFramebufferMixedSamplesCombinationNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkFramebufferMixedSamplesCombinationNV*)(pCombinations + i));
             }
         }
     }
@@ -30890,7 +30778,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModes2EXT(
     if (pSurfaceInfo)
     {
         local_pSurfaceInfo = (VkPhysicalDeviceSurfaceInfo2KHR*)pool->alloc(sizeof(const VkPhysicalDeviceSurfaceInfo2KHR));
-        deepcopy_VkPhysicalDeviceSurfaceInfo2KHR(pool, pSurfaceInfo, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
+        deepcopy_VkPhysicalDeviceSurfaceInfo2KHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pSurfaceInfo, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
     }
     if (local_pSurfaceInfo)
     {
@@ -30901,7 +30789,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModes2EXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceSurfaceInfo2KHR(sFeatureBits, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), countPtr);
+        count_VkPhysicalDeviceSurfaceInfo2KHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (pPresentModeCount)
@@ -30930,7 +30818,7 @@ VkResult VkEncoder::vkGetPhysicalDeviceSurfacePresentModes2EXT(
     *&cgen_var_0 = get_host_u64_VkPhysicalDevice((*&local_physicalDevice));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceSurfaceInfo2KHR(stream, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), streamPtrPtr);
+    reservedmarshal_VkPhysicalDeviceSurfaceInfo2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pPresentModeCount;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -31103,7 +30991,7 @@ VkResult VkEncoder::vkGetDeviceGroupSurfacePresentModes2EXT(
     if (pSurfaceInfo)
     {
         local_pSurfaceInfo = (VkPhysicalDeviceSurfaceInfo2KHR*)pool->alloc(sizeof(const VkPhysicalDeviceSurfaceInfo2KHR));
-        deepcopy_VkPhysicalDeviceSurfaceInfo2KHR(pool, pSurfaceInfo, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
+        deepcopy_VkPhysicalDeviceSurfaceInfo2KHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pSurfaceInfo, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo));
     }
     if (local_pSurfaceInfo)
     {
@@ -31114,7 +31002,7 @@ VkResult VkEncoder::vkGetDeviceGroupSurfacePresentModes2EXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPhysicalDeviceSurfaceInfo2KHR(sFeatureBits, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), countPtr);
+        count_VkPhysicalDeviceSurfaceInfo2KHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (pModes)
@@ -31134,7 +31022,7 @@ VkResult VkEncoder::vkGetDeviceGroupSurfacePresentModes2EXT(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPhysicalDeviceSurfaceInfo2KHR(stream, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), streamPtrPtr);
+    reservedmarshal_VkPhysicalDeviceSurfaceInfo2KHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPhysicalDeviceSurfaceInfo2KHR*)(local_pSurfaceInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)pModes;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -31190,13 +31078,13 @@ VkResult VkEncoder::vkCreateHeadlessSurfaceEXT(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkHeadlessSurfaceCreateInfoEXT*)pool->alloc(sizeof(const VkHeadlessSurfaceCreateInfoEXT));
-        deepcopy_VkHeadlessSurfaceCreateInfoEXT(pool, pCreateInfo, (VkHeadlessSurfaceCreateInfoEXT*)(local_pCreateInfo));
+        deepcopy_VkHeadlessSurfaceCreateInfoEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkHeadlessSurfaceCreateInfoEXT*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -31212,12 +31100,12 @@ VkResult VkEncoder::vkCreateHeadlessSurfaceEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkHeadlessSurfaceCreateInfoEXT(sFeatureBits, (VkHeadlessSurfaceCreateInfoEXT*)(local_pCreateInfo), countPtr);
+        count_VkHeadlessSurfaceCreateInfoEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkHeadlessSurfaceCreateInfoEXT*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -31234,7 +31122,7 @@ VkResult VkEncoder::vkCreateHeadlessSurfaceEXT(
     *&cgen_var_0 = get_host_u64_VkInstance((*&local_instance));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkHeadlessSurfaceCreateInfoEXT(stream, (VkHeadlessSurfaceCreateInfoEXT*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkHeadlessSurfaceCreateInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkHeadlessSurfaceCreateInfoEXT*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -31242,7 +31130,7 @@ VkResult VkEncoder::vkCreateHeadlessSurfaceEXT(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -31547,7 +31435,7 @@ void VkEncoder::vkCmdSetViewportWithCountEXT(
         local_pViewports = (VkViewport*)pool->alloc(((viewportCount)) * sizeof(const VkViewport));
         for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
         {
-            deepcopy_VkViewport(pool, pViewports + i, (VkViewport*)(local_pViewports + i));
+            deepcopy_VkViewport(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pViewports + i, (VkViewport*)(local_pViewports + i));
         }
     }
     if (local_pViewports)
@@ -31565,7 +31453,7 @@ void VkEncoder::vkCmdSetViewportWithCountEXT(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
         {
-            count_VkViewport(sFeatureBits, (VkViewport*)(local_pViewports + i), countPtr);
+            count_VkViewport(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkViewport*)(local_pViewports + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdSetViewportWithCountEXT = 4 + 4 + count;
@@ -31586,7 +31474,7 @@ void VkEncoder::vkCmdSetViewportWithCountEXT(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((viewportCount)); ++i)
     {
-        reservedmarshal_VkViewport(stream, (VkViewport*)(local_pViewports + i), streamPtrPtr);
+        reservedmarshal_VkViewport(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkViewport*)(local_pViewports + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -31619,7 +31507,7 @@ void VkEncoder::vkCmdSetScissorWithCountEXT(
         local_pScissors = (VkRect2D*)pool->alloc(((scissorCount)) * sizeof(const VkRect2D));
         for (uint32_t i = 0; i < (uint32_t)((scissorCount)); ++i)
         {
-            deepcopy_VkRect2D(pool, pScissors + i, (VkRect2D*)(local_pScissors + i));
+            deepcopy_VkRect2D(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pScissors + i, (VkRect2D*)(local_pScissors + i));
         }
     }
     if (local_pScissors)
@@ -31637,7 +31525,7 @@ void VkEncoder::vkCmdSetScissorWithCountEXT(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((scissorCount)); ++i)
         {
-            count_VkRect2D(sFeatureBits, (VkRect2D*)(local_pScissors + i), countPtr);
+            count_VkRect2D(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRect2D*)(local_pScissors + i), countPtr);
         }
     }
     uint32_t packetSize_vkCmdSetScissorWithCountEXT = 4 + 4 + count;
@@ -31658,7 +31546,7 @@ void VkEncoder::vkCmdSetScissorWithCountEXT(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((scissorCount)); ++i)
     {
-        reservedmarshal_VkRect2D(stream, (VkRect2D*)(local_pScissors + i), streamPtrPtr);
+        reservedmarshal_VkRect2D(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRect2D*)(local_pScissors + i), streamPtrPtr);
     }
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
@@ -32108,7 +31996,7 @@ void VkEncoder::vkGetGeneratedCommandsMemoryRequirementsNV(
     if (pInfo)
     {
         local_pInfo = (VkGeneratedCommandsMemoryRequirementsInfoNV*)pool->alloc(sizeof(const VkGeneratedCommandsMemoryRequirementsInfoNV));
-        deepcopy_VkGeneratedCommandsMemoryRequirementsInfoNV(pool, pInfo, (VkGeneratedCommandsMemoryRequirementsInfoNV*)(local_pInfo));
+        deepcopy_VkGeneratedCommandsMemoryRequirementsInfoNV(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkGeneratedCommandsMemoryRequirementsInfoNV*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -32119,8 +32007,8 @@ void VkEncoder::vkGetGeneratedCommandsMemoryRequirementsNV(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkGeneratedCommandsMemoryRequirementsInfoNV(sFeatureBits, (VkGeneratedCommandsMemoryRequirementsInfoNV*)(local_pInfo), countPtr);
-        count_VkMemoryRequirements2(sFeatureBits, (VkMemoryRequirements2*)(pMemoryRequirements), countPtr);
+        count_VkGeneratedCommandsMemoryRequirementsInfoNV(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkGeneratedCommandsMemoryRequirementsInfoNV*)(local_pInfo), countPtr);
+        count_VkMemoryRequirements2(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements2*)(pMemoryRequirements), countPtr);
     }
     uint32_t packetSize_vkGetGeneratedCommandsMemoryRequirementsNV = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetGeneratedCommandsMemoryRequirementsNV);
@@ -32134,9 +32022,9 @@ void VkEncoder::vkGetGeneratedCommandsMemoryRequirementsNV(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkGeneratedCommandsMemoryRequirementsInfoNV(stream, (VkGeneratedCommandsMemoryRequirementsInfoNV*)(local_pInfo), streamPtrPtr);
-    reservedmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements), streamPtrPtr);
-    unmarshal_VkMemoryRequirements2(stream, (VkMemoryRequirements2*)(pMemoryRequirements));
+    reservedmarshal_VkGeneratedCommandsMemoryRequirementsInfoNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkGeneratedCommandsMemoryRequirementsInfoNV*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkMemoryRequirements2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements2*)(pMemoryRequirements), streamPtrPtr);
+    unmarshal_VkMemoryRequirements2(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements2*)(pMemoryRequirements));
     if (pMemoryRequirements)
     {
         transform_fromhost_VkMemoryRequirements2(sResourceTracker, (VkMemoryRequirements2*)(pMemoryRequirements));
@@ -32167,7 +32055,7 @@ void VkEncoder::vkCmdPreprocessGeneratedCommandsNV(
     if (pGeneratedCommandsInfo)
     {
         local_pGeneratedCommandsInfo = (VkGeneratedCommandsInfoNV*)pool->alloc(sizeof(const VkGeneratedCommandsInfoNV));
-        deepcopy_VkGeneratedCommandsInfoNV(pool, pGeneratedCommandsInfo, (VkGeneratedCommandsInfoNV*)(local_pGeneratedCommandsInfo));
+        deepcopy_VkGeneratedCommandsInfoNV(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pGeneratedCommandsInfo, (VkGeneratedCommandsInfoNV*)(local_pGeneratedCommandsInfo));
     }
     if (local_pGeneratedCommandsInfo)
     {
@@ -32178,7 +32066,7 @@ void VkEncoder::vkCmdPreprocessGeneratedCommandsNV(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkGeneratedCommandsInfoNV(sFeatureBits, (VkGeneratedCommandsInfoNV*)(local_pGeneratedCommandsInfo), countPtr);
+        count_VkGeneratedCommandsInfoNV(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkGeneratedCommandsInfoNV*)(local_pGeneratedCommandsInfo), countPtr);
     }
     uint32_t packetSize_vkCmdPreprocessGeneratedCommandsNV = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdPreprocessGeneratedCommandsNV -= 8;
@@ -32194,7 +32082,7 @@ void VkEncoder::vkCmdPreprocessGeneratedCommandsNV(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkGeneratedCommandsInfoNV(stream, (VkGeneratedCommandsInfoNV*)(local_pGeneratedCommandsInfo), streamPtrPtr);
+    reservedmarshal_VkGeneratedCommandsInfoNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkGeneratedCommandsInfoNV*)(local_pGeneratedCommandsInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -32224,7 +32112,7 @@ void VkEncoder::vkCmdExecuteGeneratedCommandsNV(
     if (pGeneratedCommandsInfo)
     {
         local_pGeneratedCommandsInfo = (VkGeneratedCommandsInfoNV*)pool->alloc(sizeof(const VkGeneratedCommandsInfoNV));
-        deepcopy_VkGeneratedCommandsInfoNV(pool, pGeneratedCommandsInfo, (VkGeneratedCommandsInfoNV*)(local_pGeneratedCommandsInfo));
+        deepcopy_VkGeneratedCommandsInfoNV(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pGeneratedCommandsInfo, (VkGeneratedCommandsInfoNV*)(local_pGeneratedCommandsInfo));
     }
     if (local_pGeneratedCommandsInfo)
     {
@@ -32236,7 +32124,7 @@ void VkEncoder::vkCmdExecuteGeneratedCommandsNV(
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkBool32);
-        count_VkGeneratedCommandsInfoNV(sFeatureBits, (VkGeneratedCommandsInfoNV*)(local_pGeneratedCommandsInfo), countPtr);
+        count_VkGeneratedCommandsInfoNV(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkGeneratedCommandsInfoNV*)(local_pGeneratedCommandsInfo), countPtr);
     }
     uint32_t packetSize_vkCmdExecuteGeneratedCommandsNV = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdExecuteGeneratedCommandsNV -= 8;
@@ -32254,7 +32142,7 @@ void VkEncoder::vkCmdExecuteGeneratedCommandsNV(
     }
     memcpy(*streamPtrPtr, (VkBool32*)&local_isPreprocessed, sizeof(VkBool32));
     *streamPtrPtr += sizeof(VkBool32);
-    reservedmarshal_VkGeneratedCommandsInfoNV(stream, (VkGeneratedCommandsInfoNV*)(local_pGeneratedCommandsInfo), streamPtrPtr);
+    reservedmarshal_VkGeneratedCommandsInfoNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkGeneratedCommandsInfoNV*)(local_pGeneratedCommandsInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -32345,13 +32233,13 @@ VkResult VkEncoder::vkCreateIndirectCommandsLayoutNV(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkIndirectCommandsLayoutCreateInfoNV*)pool->alloc(sizeof(const VkIndirectCommandsLayoutCreateInfoNV));
-        deepcopy_VkIndirectCommandsLayoutCreateInfoNV(pool, pCreateInfo, (VkIndirectCommandsLayoutCreateInfoNV*)(local_pCreateInfo));
+        deepcopy_VkIndirectCommandsLayoutCreateInfoNV(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkIndirectCommandsLayoutCreateInfoNV*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -32367,12 +32255,12 @@ VkResult VkEncoder::vkCreateIndirectCommandsLayoutNV(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkIndirectCommandsLayoutCreateInfoNV(sFeatureBits, (VkIndirectCommandsLayoutCreateInfoNV*)(local_pCreateInfo), countPtr);
+        count_VkIndirectCommandsLayoutCreateInfoNV(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkIndirectCommandsLayoutCreateInfoNV*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -32389,7 +32277,7 @@ VkResult VkEncoder::vkCreateIndirectCommandsLayoutNV(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkIndirectCommandsLayoutCreateInfoNV(stream, (VkIndirectCommandsLayoutCreateInfoNV*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkIndirectCommandsLayoutCreateInfoNV(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkIndirectCommandsLayoutCreateInfoNV*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -32397,7 +32285,7 @@ VkResult VkEncoder::vkCreateIndirectCommandsLayoutNV(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -32442,7 +32330,7 @@ void VkEncoder::vkDestroyIndirectCommandsLayoutNV(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -32460,7 +32348,7 @@ void VkEncoder::vkDestroyIndirectCommandsLayoutNV(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyIndirectCommandsLayoutNV = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -32486,7 +32374,7 @@ void VkEncoder::vkDestroyIndirectCommandsLayoutNV(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkIndirectCommandsLayoutNV((VkIndirectCommandsLayoutNV*)&indirectCommandsLayout);
     stream->flush();
@@ -32533,13 +32421,13 @@ VkResult VkEncoder::vkCreatePrivateDataSlotEXT(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkPrivateDataSlotCreateInfoEXT*)pool->alloc(sizeof(const VkPrivateDataSlotCreateInfoEXT));
-        deepcopy_VkPrivateDataSlotCreateInfoEXT(pool, pCreateInfo, (VkPrivateDataSlotCreateInfoEXT*)(local_pCreateInfo));
+        deepcopy_VkPrivateDataSlotCreateInfoEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkPrivateDataSlotCreateInfoEXT*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -32555,12 +32443,12 @@ VkResult VkEncoder::vkCreatePrivateDataSlotEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkPrivateDataSlotCreateInfoEXT(sFeatureBits, (VkPrivateDataSlotCreateInfoEXT*)(local_pCreateInfo), countPtr);
+        count_VkPrivateDataSlotCreateInfoEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPrivateDataSlotCreateInfoEXT*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         *countPtr += 8;
     }
@@ -32576,7 +32464,7 @@ VkResult VkEncoder::vkCreatePrivateDataSlotEXT(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkPrivateDataSlotCreateInfoEXT(stream, (VkPrivateDataSlotCreateInfoEXT*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkPrivateDataSlotCreateInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkPrivateDataSlotCreateInfoEXT*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -32584,7 +32472,7 @@ VkResult VkEncoder::vkCreatePrivateDataSlotEXT(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     uint64_t cgen_var_2 = (uint64_t)(*pPrivateDataSlot);
     memcpy((*streamPtrPtr), &cgen_var_2, 8);
@@ -32623,7 +32511,7 @@ void VkEncoder::vkDestroyPrivateDataSlotEXT(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -32640,7 +32528,7 @@ void VkEncoder::vkDestroyPrivateDataSlotEXT(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyPrivateDataSlotEXT = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -32666,7 +32554,7 @@ void VkEncoder::vkDestroyPrivateDataSlotEXT(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     stream->flush();
     ++encodeCount;;
@@ -32898,13 +32786,13 @@ VkResult VkEncoder::vkCreateDirectFBSurfaceEXT(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkDirectFBSurfaceCreateInfoEXT*)pool->alloc(sizeof(const VkDirectFBSurfaceCreateInfoEXT));
-        deepcopy_VkDirectFBSurfaceCreateInfoEXT(pool, pCreateInfo, (VkDirectFBSurfaceCreateInfoEXT*)(local_pCreateInfo));
+        deepcopy_VkDirectFBSurfaceCreateInfoEXT(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkDirectFBSurfaceCreateInfoEXT*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -32920,12 +32808,12 @@ VkResult VkEncoder::vkCreateDirectFBSurfaceEXT(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkDirectFBSurfaceCreateInfoEXT(sFeatureBits, (VkDirectFBSurfaceCreateInfoEXT*)(local_pCreateInfo), countPtr);
+        count_VkDirectFBSurfaceCreateInfoEXT(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDirectFBSurfaceCreateInfoEXT*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -32942,7 +32830,7 @@ VkResult VkEncoder::vkCreateDirectFBSurfaceEXT(
     *&cgen_var_0 = get_host_u64_VkInstance((*&local_instance));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkDirectFBSurfaceCreateInfoEXT(stream, (VkDirectFBSurfaceCreateInfoEXT*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkDirectFBSurfaceCreateInfoEXT(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDirectFBSurfaceCreateInfoEXT*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -32950,7 +32838,7 @@ VkResult VkEncoder::vkCreateDirectFBSurfaceEXT(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -33027,6 +32915,118 @@ VkBool32 VkEncoder::vkGetPhysicalDeviceDirectFBPresentationSupportEXT(
 
 #endif
 #ifdef VK_GOOGLE_gfxstream
+VkResult VkEncoder::vkRegisterImageColorBufferGOOGLE(
+    VkDevice device,
+    VkImage image,
+    uint32_t colorBuffer,
+    uint32_t doLock)
+{
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkDevice local_device;
+    VkImage local_image;
+    uint32_t local_colorBuffer;
+    local_device = device;
+    local_image = image;
+    local_colorBuffer = colorBuffer;
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        uint64_t cgen_var_1;
+        *countPtr += 1 * 8;
+        *countPtr += sizeof(uint32_t);
+    }
+    uint32_t packetSize_vkRegisterImageColorBufferGOOGLE = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    uint8_t* streamPtr = stream->reserve(packetSize_vkRegisterImageColorBufferGOOGLE);
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkRegisterImageColorBufferGOOGLE = OP_vkRegisterImageColorBufferGOOGLE;
+    uint32_t seqno; if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    memcpy(streamPtr, &opcode_vkRegisterImageColorBufferGOOGLE, sizeof(uint32_t)); streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkRegisterImageColorBufferGOOGLE, sizeof(uint32_t)); streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) { memcpy(streamPtr, &seqno, sizeof(uint32_t)); streamPtr += sizeof(uint32_t); }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkImage((*&local_image));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    memcpy(*streamPtrPtr, (uint32_t*)&local_colorBuffer, sizeof(uint32_t));
+    *streamPtrPtr += sizeof(uint32_t);
+    VkResult vkRegisterImageColorBufferGOOGLE_VkResult_return = (VkResult)0;
+    stream->read(&vkRegisterImageColorBufferGOOGLE_VkResult_return, sizeof(VkResult));
+    ++encodeCount;;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL)
+    {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+    return vkRegisterImageColorBufferGOOGLE_VkResult_return;
+}
+
+VkResult VkEncoder::vkRegisterBufferColorBufferGOOGLE(
+    VkDevice device,
+    VkBuffer buffer,
+    uint32_t colorBuffer,
+    uint32_t doLock)
+{
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkDevice local_device;
+    VkBuffer local_buffer;
+    uint32_t local_colorBuffer;
+    local_device = device;
+    local_buffer = buffer;
+    local_colorBuffer = colorBuffer;
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        uint64_t cgen_var_1;
+        *countPtr += 1 * 8;
+        *countPtr += sizeof(uint32_t);
+    }
+    uint32_t packetSize_vkRegisterBufferColorBufferGOOGLE = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    uint8_t* streamPtr = stream->reserve(packetSize_vkRegisterBufferColorBufferGOOGLE);
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkRegisterBufferColorBufferGOOGLE = OP_vkRegisterBufferColorBufferGOOGLE;
+    uint32_t seqno; if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    memcpy(streamPtr, &opcode_vkRegisterBufferColorBufferGOOGLE, sizeof(uint32_t)); streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkRegisterBufferColorBufferGOOGLE, sizeof(uint32_t)); streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) { memcpy(streamPtr, &seqno, sizeof(uint32_t)); streamPtr += sizeof(uint32_t); }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    uint64_t cgen_var_1;
+    *&cgen_var_1 = get_host_u64_VkBuffer((*&local_buffer));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    memcpy(*streamPtrPtr, (uint32_t*)&local_colorBuffer, sizeof(uint32_t));
+    *streamPtrPtr += sizeof(uint32_t);
+    VkResult vkRegisterBufferColorBufferGOOGLE_VkResult_return = (VkResult)0;
+    stream->read(&vkRegisterBufferColorBufferGOOGLE_VkResult_return, sizeof(VkResult));
+    ++encodeCount;;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL)
+    {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+    return vkRegisterBufferColorBufferGOOGLE_VkResult_return;
+}
+
 VkResult VkEncoder::vkMapMemoryIntoAddressSpaceGOOGLE(
     VkDevice device,
     VkDeviceMemory memory,
@@ -33158,7 +33158,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
         local_pImageInfos = (VkDescriptorImageInfo*)pool->alloc(((imageInfoCount)) * sizeof(const VkDescriptorImageInfo));
         for (uint32_t i = 0; i < (uint32_t)((imageInfoCount)); ++i)
         {
-            deepcopy_VkDescriptorImageInfo(pool, pImageInfos + i, (VkDescriptorImageInfo*)(local_pImageInfos + i));
+            deepcopy_VkDescriptorImageInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pImageInfos + i, (VkDescriptorImageInfo*)(local_pImageInfos + i));
         }
     }
     local_pBufferInfos = nullptr;
@@ -33167,7 +33167,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
         local_pBufferInfos = (VkDescriptorBufferInfo*)pool->alloc(((bufferInfoCount)) * sizeof(const VkDescriptorBufferInfo));
         for (uint32_t i = 0; i < (uint32_t)((bufferInfoCount)); ++i)
         {
-            deepcopy_VkDescriptorBufferInfo(pool, pBufferInfos + i, (VkDescriptorBufferInfo*)(local_pBufferInfos + i));
+            deepcopy_VkDescriptorBufferInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pBufferInfos + i, (VkDescriptorBufferInfo*)(local_pBufferInfos + i));
         }
     }
     // Avoiding deepcopy for pBufferViews
@@ -33222,7 +33222,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
         {
             for (uint32_t i = 0; i < (uint32_t)((imageInfoCount)); ++i)
             {
-                count_VkDescriptorImageInfo(sFeatureBits, (VkDescriptorImageInfo*)(local_pImageInfos + i), countPtr);
+                count_VkDescriptorImageInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorImageInfo*)(local_pImageInfos + i), countPtr);
             }
         }
         // WARNING PTR CHECK
@@ -33231,7 +33231,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
         {
             for (uint32_t i = 0; i < (uint32_t)((bufferInfoCount)); ++i)
             {
-                count_VkDescriptorBufferInfo(sFeatureBits, (VkDescriptorBufferInfo*)(local_pBufferInfos + i), countPtr);
+                count_VkDescriptorBufferInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorBufferInfo*)(local_pBufferInfos + i), countPtr);
             }
         }
         // WARNING PTR CHECK
@@ -33309,7 +33309,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     {
         for (uint32_t i = 0; i < (uint32_t)((imageInfoCount)); ++i)
         {
-            reservedmarshal_VkDescriptorImageInfo(stream, (VkDescriptorImageInfo*)(local_pImageInfos + i), streamPtrPtr);
+            reservedmarshal_VkDescriptorImageInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorImageInfo*)(local_pImageInfos + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -33321,7 +33321,7 @@ void VkEncoder::vkUpdateDescriptorSetWithTemplateSizedGOOGLE(
     {
         for (uint32_t i = 0; i < (uint32_t)((bufferInfoCount)); ++i)
         {
-            reservedmarshal_VkDescriptorBufferInfo(stream, (VkDescriptorBufferInfo*)(local_pBufferInfos + i), streamPtrPtr);
+            reservedmarshal_VkDescriptorBufferInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkDescriptorBufferInfo*)(local_pBufferInfos + i), streamPtrPtr);
         }
     }
     // WARNING PTR CHECK
@@ -33369,7 +33369,7 @@ void VkEncoder::vkBeginCommandBufferAsyncGOOGLE(
     if (pBeginInfo)
     {
         local_pBeginInfo = (VkCommandBufferBeginInfo*)pool->alloc(sizeof(const VkCommandBufferBeginInfo));
-        deepcopy_VkCommandBufferBeginInfo(pool, pBeginInfo, (VkCommandBufferBeginInfo*)(local_pBeginInfo));
+        deepcopy_VkCommandBufferBeginInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pBeginInfo, (VkCommandBufferBeginInfo*)(local_pBeginInfo));
     }
     if (local_pBeginInfo)
     {
@@ -33380,7 +33380,7 @@ void VkEncoder::vkBeginCommandBufferAsyncGOOGLE(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkCommandBufferBeginInfo(sFeatureBits, (VkCommandBufferBeginInfo*)(local_pBeginInfo), countPtr);
+        count_VkCommandBufferBeginInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCommandBufferBeginInfo*)(local_pBeginInfo), countPtr);
     }
     uint32_t packetSize_vkBeginCommandBufferAsyncGOOGLE = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkBeginCommandBufferAsyncGOOGLE -= 8;
@@ -33396,7 +33396,7 @@ void VkEncoder::vkBeginCommandBufferAsyncGOOGLE(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkCommandBufferBeginInfo(stream, (VkCommandBufferBeginInfo*)(local_pBeginInfo), streamPtrPtr);
+    reservedmarshal_VkCommandBufferBeginInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCommandBufferBeginInfo*)(local_pBeginInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -33566,13 +33566,13 @@ VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkImageCreateInfo*)pool->alloc(sizeof(const VkImageCreateInfo));
-        deepcopy_VkImageCreateInfo(pool, pCreateInfo, (VkImageCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkImageCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkImageCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     sResourceTracker->unwrap_VkNativeBufferANDROID(pCreateInfo, local_pCreateInfo);
     local_pAllocator = nullptr;
@@ -33589,16 +33589,16 @@ VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkImageCreateInfo(sFeatureBits, (VkImageCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkImageCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
-        count_VkMemoryRequirements(sFeatureBits, (VkMemoryRequirements*)(pMemoryRequirements), countPtr);
+        count_VkMemoryRequirements(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements*)(pMemoryRequirements), countPtr);
     }
     uint32_t packetSize_vkCreateImageWithRequirementsGOOGLE = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateImageWithRequirementsGOOGLE);
@@ -33612,7 +33612,7 @@ VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkImageCreateInfo(stream, (VkImageCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkImageCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -33620,7 +33620,7 @@ VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -33628,13 +33628,13 @@ VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_2, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    reservedmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements), streamPtrPtr);
+    reservedmarshal_VkMemoryRequirements(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements*)(pMemoryRequirements), streamPtrPtr);
     stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_3;
     stream->read((uint64_t*)&cgen_var_3, 8);
     stream->handleMapping()->mapHandles_u64_VkImage(&cgen_var_3, (VkImage*)pImage, 1);
     stream->unsetHandleMapping();
-    unmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
+    unmarshal_VkMemoryRequirements(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements*)(pMemoryRequirements));
     if (pMemoryRequirements)
     {
         transform_fromhost_VkMemoryRequirements(sResourceTracker, (VkMemoryRequirements*)(pMemoryRequirements));
@@ -33672,13 +33672,13 @@ VkResult VkEncoder::vkCreateBufferWithRequirementsGOOGLE(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkBufferCreateInfo*)pool->alloc(sizeof(const VkBufferCreateInfo));
-        deepcopy_VkBufferCreateInfo(pool, pCreateInfo, (VkBufferCreateInfo*)(local_pCreateInfo));
+        deepcopy_VkBufferCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkBufferCreateInfo*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -33694,16 +33694,16 @@ VkResult VkEncoder::vkCreateBufferWithRequirementsGOOGLE(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkBufferCreateInfo(sFeatureBits, (VkBufferCreateInfo*)(local_pCreateInfo), countPtr);
+        count_VkBufferCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferCreateInfo*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
-        count_VkMemoryRequirements(sFeatureBits, (VkMemoryRequirements*)(pMemoryRequirements), countPtr);
+        count_VkMemoryRequirements(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements*)(pMemoryRequirements), countPtr);
     }
     uint32_t packetSize_vkCreateBufferWithRequirementsGOOGLE = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCreateBufferWithRequirementsGOOGLE);
@@ -33717,7 +33717,7 @@ VkResult VkEncoder::vkCreateBufferWithRequirementsGOOGLE(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkBufferCreateInfo(stream, (VkBufferCreateInfo*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkBufferCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBufferCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -33725,7 +33725,7 @@ VkResult VkEncoder::vkCreateBufferWithRequirementsGOOGLE(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -33733,13 +33733,13 @@ VkResult VkEncoder::vkCreateBufferWithRequirementsGOOGLE(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_2, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
-    reservedmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements), streamPtrPtr);
+    reservedmarshal_VkMemoryRequirements(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements*)(pMemoryRequirements), streamPtrPtr);
     stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_3;
     stream->read((uint64_t*)&cgen_var_3, 8);
     stream->handleMapping()->mapHandles_u64_VkBuffer(&cgen_var_3, (VkBuffer*)pBuffer, 1);
     stream->unsetHandleMapping();
-    unmarshal_VkMemoryRequirements(stream, (VkMemoryRequirements*)(pMemoryRequirements));
+    unmarshal_VkMemoryRequirements(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkMemoryRequirements*)(pMemoryRequirements));
     if (pMemoryRequirements)
     {
         transform_fromhost_VkMemoryRequirements(sResourceTracker, (VkMemoryRequirements*)(pMemoryRequirements));
@@ -33911,7 +33911,7 @@ VkResult VkEncoder::vkFreeMemorySyncGOOGLE(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     sResourceTracker->deviceMemoryTransform_tohost((VkDeviceMemory*)&local_memory, 1, (VkDeviceSize*)nullptr, 0, (VkDeviceSize*)nullptr, 0, (uint32_t*)nullptr, 0, (uint32_t*)nullptr, 0);
@@ -33926,7 +33926,7 @@ VkResult VkEncoder::vkFreeMemorySyncGOOGLE(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkFreeMemorySyncGOOGLE = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -33952,7 +33952,7 @@ VkResult VkEncoder::vkFreeMemorySyncGOOGLE(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     VkResult vkFreeMemorySyncGOOGLE_VkResult_return = (VkResult)0;
     stream->read(&vkFreeMemorySyncGOOGLE_VkResult_return, sizeof(VkResult));
@@ -34042,7 +34042,7 @@ void VkEncoder::vkQueueSubmitAsyncGOOGLE(
         local_pSubmits = (VkSubmitInfo*)pool->alloc(((submitCount)) * sizeof(const VkSubmitInfo));
         for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i)
         {
-            deepcopy_VkSubmitInfo(pool, pSubmits + i, (VkSubmitInfo*)(local_pSubmits + i));
+            deepcopy_VkSubmitInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pSubmits + i, (VkSubmitInfo*)(local_pSubmits + i));
         }
     }
     local_fence = fence;
@@ -34061,7 +34061,7 @@ void VkEncoder::vkQueueSubmitAsyncGOOGLE(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i)
         {
-            count_VkSubmitInfo(sFeatureBits, (VkSubmitInfo*)(local_pSubmits + i), countPtr);
+            count_VkSubmitInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubmitInfo*)(local_pSubmits + i), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
@@ -34082,7 +34082,7 @@ void VkEncoder::vkQueueSubmitAsyncGOOGLE(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((submitCount)); ++i)
     {
-        reservedmarshal_VkSubmitInfo(stream, (VkSubmitInfo*)(local_pSubmits + i), streamPtrPtr);
+        reservedmarshal_VkSubmitInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkSubmitInfo*)(local_pSubmits + i), streamPtrPtr);
     }
     uint64_t cgen_var_1;
     *&cgen_var_1 = get_host_u64_VkFence((*&local_fence));
@@ -34161,7 +34161,7 @@ void VkEncoder::vkQueueBindSparseAsyncGOOGLE(
         local_pBindInfo = (VkBindSparseInfo*)pool->alloc(((bindInfoCount)) * sizeof(const VkBindSparseInfo));
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            deepcopy_VkBindSparseInfo(pool, pBindInfo + i, (VkBindSparseInfo*)(local_pBindInfo + i));
+            deepcopy_VkBindSparseInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pBindInfo + i, (VkBindSparseInfo*)(local_pBindInfo + i));
         }
     }
     local_fence = fence;
@@ -34180,7 +34180,7 @@ void VkEncoder::vkQueueBindSparseAsyncGOOGLE(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
         {
-            count_VkBindSparseInfo(sFeatureBits, (VkBindSparseInfo*)(local_pBindInfo + i), countPtr);
+            count_VkBindSparseInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBindSparseInfo*)(local_pBindInfo + i), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 1 * 8;
@@ -34201,7 +34201,7 @@ void VkEncoder::vkQueueBindSparseAsyncGOOGLE(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((bindInfoCount)); ++i)
     {
-        reservedmarshal_VkBindSparseInfo(stream, (VkBindSparseInfo*)(local_pBindInfo + i), streamPtrPtr);
+        reservedmarshal_VkBindSparseInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkBindSparseInfo*)(local_pBindInfo + i), streamPtrPtr);
     }
     uint64_t cgen_var_1;
     *&cgen_var_1 = get_host_u64_VkFence((*&local_fence));
@@ -34333,7 +34333,7 @@ void VkEncoder::vkQueueCommitDescriptorSetUpdatesGOOGLE(
         local_pPendingDescriptorWrites = (VkWriteDescriptorSet*)pool->alloc(((pendingDescriptorWriteCount)) * sizeof(const VkWriteDescriptorSet));
         for (uint32_t i = 0; i < (uint32_t)((pendingDescriptorWriteCount)); ++i)
         {
-            deepcopy_VkWriteDescriptorSet(pool, pPendingDescriptorWrites + i, (VkWriteDescriptorSet*)(local_pPendingDescriptorWrites + i));
+            deepcopy_VkWriteDescriptorSet(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pPendingDescriptorWrites + i, (VkWriteDescriptorSet*)(local_pPendingDescriptorWrites + i));
         }
     }
     if (local_pPendingDescriptorWrites)
@@ -34365,7 +34365,7 @@ void VkEncoder::vkQueueCommitDescriptorSetUpdatesGOOGLE(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((pendingDescriptorWriteCount)); ++i)
         {
-            count_VkWriteDescriptorSet(sFeatureBits, (VkWriteDescriptorSet*)(local_pPendingDescriptorWrites + i), countPtr);
+            count_VkWriteDescriptorSet(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkWriteDescriptorSet*)(local_pPendingDescriptorWrites + i), countPtr);
         }
     }
     uint32_t packetSize_vkQueueCommitDescriptorSetUpdatesGOOGLE = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -34416,7 +34416,7 @@ void VkEncoder::vkQueueCommitDescriptorSetUpdatesGOOGLE(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((pendingDescriptorWriteCount)); ++i)
     {
-        reservedmarshal_VkWriteDescriptorSet(stream, (VkWriteDescriptorSet*)(local_pPendingDescriptorWrites + i), streamPtrPtr);
+        reservedmarshal_VkWriteDescriptorSet(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkWriteDescriptorSet*)(local_pPendingDescriptorWrites + i), streamPtrPtr);
     }
     stream->flush();
     ++encodeCount;;
@@ -34533,13 +34533,13 @@ VkResult VkEncoder::vkCreateAccelerationStructureKHR(
     if (pCreateInfo)
     {
         local_pCreateInfo = (VkAccelerationStructureCreateInfoKHR*)pool->alloc(sizeof(const VkAccelerationStructureCreateInfoKHR));
-        deepcopy_VkAccelerationStructureCreateInfoKHR(pool, pCreateInfo, (VkAccelerationStructureCreateInfoKHR*)(local_pCreateInfo));
+        deepcopy_VkAccelerationStructureCreateInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkAccelerationStructureCreateInfoKHR*)(local_pCreateInfo));
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
@@ -34555,12 +34555,12 @@ VkResult VkEncoder::vkCreateAccelerationStructureKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkAccelerationStructureCreateInfoKHR(sFeatureBits, (VkAccelerationStructureCreateInfoKHR*)(local_pCreateInfo), countPtr);
+        count_VkAccelerationStructureCreateInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureCreateInfoKHR*)(local_pCreateInfo), countPtr);
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         uint64_t cgen_var_1;
         *countPtr += 8;
@@ -34577,7 +34577,7 @@ VkResult VkEncoder::vkCreateAccelerationStructureKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkAccelerationStructureCreateInfoKHR(stream, (VkAccelerationStructureCreateInfoKHR*)(local_pCreateInfo), streamPtrPtr);
+    reservedmarshal_VkAccelerationStructureCreateInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureCreateInfoKHR*)(local_pCreateInfo), streamPtrPtr);
     // WARNING PTR CHECK
     uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pAllocator;
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
@@ -34585,7 +34585,7 @@ VkResult VkEncoder::vkCreateAccelerationStructureKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     uint64_t cgen_var_2;
@@ -34630,7 +34630,7 @@ void VkEncoder::vkDestroyAccelerationStructureKHR(
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pAllocator)
@@ -34648,7 +34648,7 @@ void VkEncoder::vkDestroyAccelerationStructureKHR(
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
     }
     uint32_t packetSize_vkDestroyAccelerationStructureKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -34674,7 +34674,7 @@ void VkEncoder::vkDestroyAccelerationStructureKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     sResourceTracker->destroyMapping()->mapHandles_VkAccelerationStructureKHR((VkAccelerationStructureKHR*)&accelerationStructure);
     stream->flush();
@@ -34711,7 +34711,7 @@ void VkEncoder::vkCmdBuildAccelerationStructuresKHR(
         local_pInfos = (VkAccelerationStructureBuildGeometryInfoKHR*)pool->alloc(((infoCount)) * sizeof(const VkAccelerationStructureBuildGeometryInfoKHR));
         for (uint32_t i = 0; i < (uint32_t)((infoCount)); ++i)
         {
-            deepcopy_VkAccelerationStructureBuildGeometryInfoKHR(pool, pInfos + i, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pInfos + i));
+            deepcopy_VkAccelerationStructureBuildGeometryInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfos + i, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pInfos + i));
         }
     }
     (void)ppBuildRangeInfos;
@@ -34731,7 +34731,7 @@ void VkEncoder::vkCmdBuildAccelerationStructuresKHR(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((infoCount)); ++i)
         {
-            count_VkAccelerationStructureBuildGeometryInfoKHR(sFeatureBits, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pInfos + i), countPtr);
+            count_VkAccelerationStructureBuildGeometryInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pInfos + i), countPtr);
         }
         (void)local_ppBuildRangeInfos;
     }
@@ -34753,7 +34753,7 @@ void VkEncoder::vkCmdBuildAccelerationStructuresKHR(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((infoCount)); ++i)
     {
-        reservedmarshal_VkAccelerationStructureBuildGeometryInfoKHR(stream, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pInfos + i), streamPtrPtr);
+        reservedmarshal_VkAccelerationStructureBuildGeometryInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pInfos + i), streamPtrPtr);
     }
     (void)local_ppBuildRangeInfos;
     ++encodeCount;;
@@ -34793,7 +34793,7 @@ void VkEncoder::vkCmdBuildAccelerationStructuresIndirectKHR(
         local_pInfos = (VkAccelerationStructureBuildGeometryInfoKHR*)pool->alloc(((infoCount)) * sizeof(const VkAccelerationStructureBuildGeometryInfoKHR));
         for (uint32_t i = 0; i < (uint32_t)((infoCount)); ++i)
         {
-            deepcopy_VkAccelerationStructureBuildGeometryInfoKHR(pool, pInfos + i, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pInfos + i));
+            deepcopy_VkAccelerationStructureBuildGeometryInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfos + i, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pInfos + i));
         }
     }
     // Avoiding deepcopy for pIndirectDeviceAddresses
@@ -34817,7 +34817,7 @@ void VkEncoder::vkCmdBuildAccelerationStructuresIndirectKHR(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((infoCount)); ++i)
         {
-            count_VkAccelerationStructureBuildGeometryInfoKHR(sFeatureBits, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pInfos + i), countPtr);
+            count_VkAccelerationStructureBuildGeometryInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pInfos + i), countPtr);
         }
         *countPtr += ((infoCount)) * sizeof(VkDeviceAddress);
         *countPtr += ((infoCount)) * sizeof(uint32_t);
@@ -34841,7 +34841,7 @@ void VkEncoder::vkCmdBuildAccelerationStructuresIndirectKHR(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((infoCount)); ++i)
     {
-        reservedmarshal_VkAccelerationStructureBuildGeometryInfoKHR(stream, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pInfos + i), streamPtrPtr);
+        reservedmarshal_VkAccelerationStructureBuildGeometryInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pInfos + i), streamPtrPtr);
     }
     memcpy(*streamPtrPtr, (VkDeviceAddress*)local_pIndirectDeviceAddresses, ((infoCount)) * sizeof(VkDeviceAddress));
     *streamPtrPtr += ((infoCount)) * sizeof(VkDeviceAddress);
@@ -34884,7 +34884,7 @@ VkResult VkEncoder::vkBuildAccelerationStructuresKHR(
         local_pInfos = (VkAccelerationStructureBuildGeometryInfoKHR*)pool->alloc(((infoCount)) * sizeof(const VkAccelerationStructureBuildGeometryInfoKHR));
         for (uint32_t i = 0; i < (uint32_t)((infoCount)); ++i)
         {
-            deepcopy_VkAccelerationStructureBuildGeometryInfoKHR(pool, pInfos + i, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pInfos + i));
+            deepcopy_VkAccelerationStructureBuildGeometryInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfos + i, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pInfos + i));
         }
     }
     (void)ppBuildRangeInfos;
@@ -34905,7 +34905,7 @@ VkResult VkEncoder::vkBuildAccelerationStructuresKHR(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((infoCount)); ++i)
         {
-            count_VkAccelerationStructureBuildGeometryInfoKHR(sFeatureBits, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pInfos + i), countPtr);
+            count_VkAccelerationStructureBuildGeometryInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pInfos + i), countPtr);
         }
         (void)local_ppBuildRangeInfos;
     }
@@ -34929,7 +34929,7 @@ VkResult VkEncoder::vkBuildAccelerationStructuresKHR(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((infoCount)); ++i)
     {
-        reservedmarshal_VkAccelerationStructureBuildGeometryInfoKHR(stream, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pInfos + i), streamPtrPtr);
+        reservedmarshal_VkAccelerationStructureBuildGeometryInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pInfos + i), streamPtrPtr);
     }
     (void)local_ppBuildRangeInfos;
     VkResult vkBuildAccelerationStructuresKHR_VkResult_return = (VkResult)0;
@@ -34964,7 +34964,7 @@ VkResult VkEncoder::vkCopyAccelerationStructureKHR(
     if (pInfo)
     {
         local_pInfo = (VkCopyAccelerationStructureInfoKHR*)pool->alloc(sizeof(const VkCopyAccelerationStructureInfoKHR));
-        deepcopy_VkCopyAccelerationStructureInfoKHR(pool, pInfo, (VkCopyAccelerationStructureInfoKHR*)(local_pInfo));
+        deepcopy_VkCopyAccelerationStructureInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkCopyAccelerationStructureInfoKHR*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -34976,7 +34976,7 @@ VkResult VkEncoder::vkCopyAccelerationStructureKHR(
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
         *countPtr += 8;
-        count_VkCopyAccelerationStructureInfoKHR(sFeatureBits, (VkCopyAccelerationStructureInfoKHR*)(local_pInfo), countPtr);
+        count_VkCopyAccelerationStructureInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyAccelerationStructureInfoKHR*)(local_pInfo), countPtr);
     }
     uint32_t packetSize_vkCopyAccelerationStructureKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCopyAccelerationStructureKHR);
@@ -34994,7 +34994,7 @@ VkResult VkEncoder::vkCopyAccelerationStructureKHR(
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
     android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
-    reservedmarshal_VkCopyAccelerationStructureInfoKHR(stream, (VkCopyAccelerationStructureInfoKHR*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkCopyAccelerationStructureInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyAccelerationStructureInfoKHR*)(local_pInfo), streamPtrPtr);
     VkResult vkCopyAccelerationStructureKHR_VkResult_return = (VkResult)0;
     stream->read(&vkCopyAccelerationStructureKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -35027,7 +35027,7 @@ VkResult VkEncoder::vkCopyAccelerationStructureToMemoryKHR(
     if (pInfo)
     {
         local_pInfo = (VkCopyAccelerationStructureToMemoryInfoKHR*)pool->alloc(sizeof(const VkCopyAccelerationStructureToMemoryInfoKHR));
-        deepcopy_VkCopyAccelerationStructureToMemoryInfoKHR(pool, pInfo, (VkCopyAccelerationStructureToMemoryInfoKHR*)(local_pInfo));
+        deepcopy_VkCopyAccelerationStructureToMemoryInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkCopyAccelerationStructureToMemoryInfoKHR*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -35039,7 +35039,7 @@ VkResult VkEncoder::vkCopyAccelerationStructureToMemoryKHR(
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
         *countPtr += 8;
-        count_VkCopyAccelerationStructureToMemoryInfoKHR(sFeatureBits, (VkCopyAccelerationStructureToMemoryInfoKHR*)(local_pInfo), countPtr);
+        count_VkCopyAccelerationStructureToMemoryInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyAccelerationStructureToMemoryInfoKHR*)(local_pInfo), countPtr);
     }
     uint32_t packetSize_vkCopyAccelerationStructureToMemoryKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCopyAccelerationStructureToMemoryKHR);
@@ -35057,7 +35057,7 @@ VkResult VkEncoder::vkCopyAccelerationStructureToMemoryKHR(
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
     android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
-    reservedmarshal_VkCopyAccelerationStructureToMemoryInfoKHR(stream, (VkCopyAccelerationStructureToMemoryInfoKHR*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkCopyAccelerationStructureToMemoryInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyAccelerationStructureToMemoryInfoKHR*)(local_pInfo), streamPtrPtr);
     VkResult vkCopyAccelerationStructureToMemoryKHR_VkResult_return = (VkResult)0;
     stream->read(&vkCopyAccelerationStructureToMemoryKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -35090,7 +35090,7 @@ VkResult VkEncoder::vkCopyMemoryToAccelerationStructureKHR(
     if (pInfo)
     {
         local_pInfo = (VkCopyMemoryToAccelerationStructureInfoKHR*)pool->alloc(sizeof(const VkCopyMemoryToAccelerationStructureInfoKHR));
-        deepcopy_VkCopyMemoryToAccelerationStructureInfoKHR(pool, pInfo, (VkCopyMemoryToAccelerationStructureInfoKHR*)(local_pInfo));
+        deepcopy_VkCopyMemoryToAccelerationStructureInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkCopyMemoryToAccelerationStructureInfoKHR*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -35102,7 +35102,7 @@ VkResult VkEncoder::vkCopyMemoryToAccelerationStructureKHR(
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
         *countPtr += 8;
-        count_VkCopyMemoryToAccelerationStructureInfoKHR(sFeatureBits, (VkCopyMemoryToAccelerationStructureInfoKHR*)(local_pInfo), countPtr);
+        count_VkCopyMemoryToAccelerationStructureInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyMemoryToAccelerationStructureInfoKHR*)(local_pInfo), countPtr);
     }
     uint32_t packetSize_vkCopyMemoryToAccelerationStructureKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkCopyMemoryToAccelerationStructureKHR);
@@ -35120,7 +35120,7 @@ VkResult VkEncoder::vkCopyMemoryToAccelerationStructureKHR(
     memcpy((*streamPtrPtr), &cgen_var_1, 8);
     android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
     *streamPtrPtr += 8;
-    reservedmarshal_VkCopyMemoryToAccelerationStructureInfoKHR(stream, (VkCopyMemoryToAccelerationStructureInfoKHR*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkCopyMemoryToAccelerationStructureInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyMemoryToAccelerationStructureInfoKHR*)(local_pInfo), streamPtrPtr);
     VkResult vkCopyMemoryToAccelerationStructureKHR_VkResult_return = (VkResult)0;
     stream->read(&vkCopyMemoryToAccelerationStructureKHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -35242,7 +35242,7 @@ void VkEncoder::vkCmdCopyAccelerationStructureKHR(
     if (pInfo)
     {
         local_pInfo = (VkCopyAccelerationStructureInfoKHR*)pool->alloc(sizeof(const VkCopyAccelerationStructureInfoKHR));
-        deepcopy_VkCopyAccelerationStructureInfoKHR(pool, pInfo, (VkCopyAccelerationStructureInfoKHR*)(local_pInfo));
+        deepcopy_VkCopyAccelerationStructureInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkCopyAccelerationStructureInfoKHR*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -35253,7 +35253,7 @@ void VkEncoder::vkCmdCopyAccelerationStructureKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkCopyAccelerationStructureInfoKHR(sFeatureBits, (VkCopyAccelerationStructureInfoKHR*)(local_pInfo), countPtr);
+        count_VkCopyAccelerationStructureInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyAccelerationStructureInfoKHR*)(local_pInfo), countPtr);
     }
     uint32_t packetSize_vkCmdCopyAccelerationStructureKHR = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdCopyAccelerationStructureKHR -= 8;
@@ -35269,7 +35269,7 @@ void VkEncoder::vkCmdCopyAccelerationStructureKHR(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkCopyAccelerationStructureInfoKHR(stream, (VkCopyAccelerationStructureInfoKHR*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkCopyAccelerationStructureInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyAccelerationStructureInfoKHR*)(local_pInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -35296,7 +35296,7 @@ void VkEncoder::vkCmdCopyAccelerationStructureToMemoryKHR(
     if (pInfo)
     {
         local_pInfo = (VkCopyAccelerationStructureToMemoryInfoKHR*)pool->alloc(sizeof(const VkCopyAccelerationStructureToMemoryInfoKHR));
-        deepcopy_VkCopyAccelerationStructureToMemoryInfoKHR(pool, pInfo, (VkCopyAccelerationStructureToMemoryInfoKHR*)(local_pInfo));
+        deepcopy_VkCopyAccelerationStructureToMemoryInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkCopyAccelerationStructureToMemoryInfoKHR*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -35307,7 +35307,7 @@ void VkEncoder::vkCmdCopyAccelerationStructureToMemoryKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkCopyAccelerationStructureToMemoryInfoKHR(sFeatureBits, (VkCopyAccelerationStructureToMemoryInfoKHR*)(local_pInfo), countPtr);
+        count_VkCopyAccelerationStructureToMemoryInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyAccelerationStructureToMemoryInfoKHR*)(local_pInfo), countPtr);
     }
     uint32_t packetSize_vkCmdCopyAccelerationStructureToMemoryKHR = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdCopyAccelerationStructureToMemoryKHR -= 8;
@@ -35323,7 +35323,7 @@ void VkEncoder::vkCmdCopyAccelerationStructureToMemoryKHR(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkCopyAccelerationStructureToMemoryInfoKHR(stream, (VkCopyAccelerationStructureToMemoryInfoKHR*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkCopyAccelerationStructureToMemoryInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyAccelerationStructureToMemoryInfoKHR*)(local_pInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -35350,7 +35350,7 @@ void VkEncoder::vkCmdCopyMemoryToAccelerationStructureKHR(
     if (pInfo)
     {
         local_pInfo = (VkCopyMemoryToAccelerationStructureInfoKHR*)pool->alloc(sizeof(const VkCopyMemoryToAccelerationStructureInfoKHR));
-        deepcopy_VkCopyMemoryToAccelerationStructureInfoKHR(pool, pInfo, (VkCopyMemoryToAccelerationStructureInfoKHR*)(local_pInfo));
+        deepcopy_VkCopyMemoryToAccelerationStructureInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkCopyMemoryToAccelerationStructureInfoKHR*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -35361,7 +35361,7 @@ void VkEncoder::vkCmdCopyMemoryToAccelerationStructureKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkCopyMemoryToAccelerationStructureInfoKHR(sFeatureBits, (VkCopyMemoryToAccelerationStructureInfoKHR*)(local_pInfo), countPtr);
+        count_VkCopyMemoryToAccelerationStructureInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyMemoryToAccelerationStructureInfoKHR*)(local_pInfo), countPtr);
     }
     uint32_t packetSize_vkCmdCopyMemoryToAccelerationStructureKHR = 4 + 4 + count;
     if (queueSubmitWithCommandsEnabled) packetSize_vkCmdCopyMemoryToAccelerationStructureKHR -= 8;
@@ -35377,7 +35377,7 @@ void VkEncoder::vkCmdCopyMemoryToAccelerationStructureKHR(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkCopyMemoryToAccelerationStructureInfoKHR(stream, (VkCopyMemoryToAccelerationStructureInfoKHR*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkCopyMemoryToAccelerationStructureInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkCopyMemoryToAccelerationStructureInfoKHR*)(local_pInfo), streamPtrPtr);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -35404,7 +35404,7 @@ VkDeviceAddress VkEncoder::vkGetAccelerationStructureDeviceAddressKHR(
     if (pInfo)
     {
         local_pInfo = (VkAccelerationStructureDeviceAddressInfoKHR*)pool->alloc(sizeof(const VkAccelerationStructureDeviceAddressInfoKHR));
-        deepcopy_VkAccelerationStructureDeviceAddressInfoKHR(pool, pInfo, (VkAccelerationStructureDeviceAddressInfoKHR*)(local_pInfo));
+        deepcopy_VkAccelerationStructureDeviceAddressInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pInfo, (VkAccelerationStructureDeviceAddressInfoKHR*)(local_pInfo));
     }
     if (local_pInfo)
     {
@@ -35415,7 +35415,7 @@ VkDeviceAddress VkEncoder::vkGetAccelerationStructureDeviceAddressKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkAccelerationStructureDeviceAddressInfoKHR(sFeatureBits, (VkAccelerationStructureDeviceAddressInfoKHR*)(local_pInfo), countPtr);
+        count_VkAccelerationStructureDeviceAddressInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureDeviceAddressInfoKHR*)(local_pInfo), countPtr);
     }
     uint32_t packetSize_vkGetAccelerationStructureDeviceAddressKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetAccelerationStructureDeviceAddressKHR);
@@ -35429,7 +35429,7 @@ VkDeviceAddress VkEncoder::vkGetAccelerationStructureDeviceAddressKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkAccelerationStructureDeviceAddressInfoKHR(stream, (VkAccelerationStructureDeviceAddressInfoKHR*)(local_pInfo), streamPtrPtr);
+    reservedmarshal_VkAccelerationStructureDeviceAddressInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureDeviceAddressInfoKHR*)(local_pInfo), streamPtrPtr);
     VkDeviceAddress vkGetAccelerationStructureDeviceAddressKHR_VkDeviceAddress_return = (VkDeviceAddress)0;
     stream->read(&vkGetAccelerationStructureDeviceAddressKHR_VkDeviceAddress_return, sizeof(VkDeviceAddress));
     ++encodeCount;;
@@ -35545,7 +35545,7 @@ void VkEncoder::vkGetDeviceAccelerationStructureCompatibilityKHR(
     if (pVersionInfo)
     {
         local_pVersionInfo = (VkAccelerationStructureVersionInfoKHR*)pool->alloc(sizeof(const VkAccelerationStructureVersionInfoKHR));
-        deepcopy_VkAccelerationStructureVersionInfoKHR(pool, pVersionInfo, (VkAccelerationStructureVersionInfoKHR*)(local_pVersionInfo));
+        deepcopy_VkAccelerationStructureVersionInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pVersionInfo, (VkAccelerationStructureVersionInfoKHR*)(local_pVersionInfo));
     }
     if (local_pVersionInfo)
     {
@@ -35556,7 +35556,7 @@ void VkEncoder::vkGetDeviceAccelerationStructureCompatibilityKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkAccelerationStructureVersionInfoKHR(sFeatureBits, (VkAccelerationStructureVersionInfoKHR*)(local_pVersionInfo), countPtr);
+        count_VkAccelerationStructureVersionInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureVersionInfoKHR*)(local_pVersionInfo), countPtr);
         *countPtr += sizeof(VkAccelerationStructureCompatibilityKHR);
     }
     uint32_t packetSize_vkGetDeviceAccelerationStructureCompatibilityKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
@@ -35571,7 +35571,7 @@ void VkEncoder::vkGetDeviceAccelerationStructureCompatibilityKHR(
     *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
     *streamPtrPtr += 1 * 8;
-    reservedmarshal_VkAccelerationStructureVersionInfoKHR(stream, (VkAccelerationStructureVersionInfoKHR*)(local_pVersionInfo), streamPtrPtr);
+    reservedmarshal_VkAccelerationStructureVersionInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureVersionInfoKHR*)(local_pVersionInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (VkAccelerationStructureCompatibilityKHR*)pCompatibility, sizeof(VkAccelerationStructureCompatibilityKHR));
     *streamPtrPtr += sizeof(VkAccelerationStructureCompatibilityKHR);
     stream->read((VkAccelerationStructureCompatibilityKHR*)pCompatibility, sizeof(VkAccelerationStructureCompatibilityKHR));
@@ -35607,7 +35607,7 @@ void VkEncoder::vkGetAccelerationStructureBuildSizesKHR(
     if (pBuildInfo)
     {
         local_pBuildInfo = (VkAccelerationStructureBuildGeometryInfoKHR*)pool->alloc(sizeof(const VkAccelerationStructureBuildGeometryInfoKHR));
-        deepcopy_VkAccelerationStructureBuildGeometryInfoKHR(pool, pBuildInfo, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pBuildInfo));
+        deepcopy_VkAccelerationStructureBuildGeometryInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pBuildInfo, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pBuildInfo));
     }
     // Avoiding deepcopy for pMaxPrimitiveCounts
     local_pMaxPrimitiveCounts = (uint32_t*)pMaxPrimitiveCounts;
@@ -35621,9 +35621,9 @@ void VkEncoder::vkGetAccelerationStructureBuildSizesKHR(
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkAccelerationStructureBuildTypeKHR);
-        count_VkAccelerationStructureBuildGeometryInfoKHR(sFeatureBits, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pBuildInfo), countPtr);
+        count_VkAccelerationStructureBuildGeometryInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pBuildInfo), countPtr);
         *countPtr += pBuildInfo->geometryCount * sizeof(uint32_t);
-        count_VkAccelerationStructureBuildSizesInfoKHR(sFeatureBits, (VkAccelerationStructureBuildSizesInfoKHR*)(pSizeInfo), countPtr);
+        count_VkAccelerationStructureBuildSizesInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureBuildSizesInfoKHR*)(pSizeInfo), countPtr);
     }
     uint32_t packetSize_vkGetAccelerationStructureBuildSizesKHR = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
     uint8_t* streamPtr = stream->reserve(packetSize_vkGetAccelerationStructureBuildSizesKHR);
@@ -35639,11 +35639,11 @@ void VkEncoder::vkGetAccelerationStructureBuildSizesKHR(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkAccelerationStructureBuildTypeKHR*)&local_buildType, sizeof(VkAccelerationStructureBuildTypeKHR));
     *streamPtrPtr += sizeof(VkAccelerationStructureBuildTypeKHR);
-    reservedmarshal_VkAccelerationStructureBuildGeometryInfoKHR(stream, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pBuildInfo), streamPtrPtr);
+    reservedmarshal_VkAccelerationStructureBuildGeometryInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureBuildGeometryInfoKHR*)(local_pBuildInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (uint32_t*)local_pMaxPrimitiveCounts, pBuildInfo->geometryCount * sizeof(uint32_t));
     *streamPtrPtr += pBuildInfo->geometryCount * sizeof(uint32_t);
-    reservedmarshal_VkAccelerationStructureBuildSizesInfoKHR(stream, (VkAccelerationStructureBuildSizesInfoKHR*)(pSizeInfo), streamPtrPtr);
-    unmarshal_VkAccelerationStructureBuildSizesInfoKHR(stream, (VkAccelerationStructureBuildSizesInfoKHR*)(pSizeInfo));
+    reservedmarshal_VkAccelerationStructureBuildSizesInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureBuildSizesInfoKHR*)(pSizeInfo), streamPtrPtr);
+    unmarshal_VkAccelerationStructureBuildSizesInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAccelerationStructureBuildSizesInfoKHR*)(pSizeInfo));
     if (pSizeInfo)
     {
         transform_fromhost_VkAccelerationStructureBuildSizesInfoKHR(sResourceTracker, (VkAccelerationStructureBuildSizesInfoKHR*)(pSizeInfo));
@@ -35688,25 +35688,25 @@ void VkEncoder::vkCmdTraceRaysKHR(
     if (pRaygenShaderBindingTable)
     {
         local_pRaygenShaderBindingTable = (VkStridedDeviceAddressRegionKHR*)pool->alloc(sizeof(const VkStridedDeviceAddressRegionKHR));
-        deepcopy_VkStridedDeviceAddressRegionKHR(pool, pRaygenShaderBindingTable, (VkStridedDeviceAddressRegionKHR*)(local_pRaygenShaderBindingTable));
+        deepcopy_VkStridedDeviceAddressRegionKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pRaygenShaderBindingTable, (VkStridedDeviceAddressRegionKHR*)(local_pRaygenShaderBindingTable));
     }
     local_pMissShaderBindingTable = nullptr;
     if (pMissShaderBindingTable)
     {
         local_pMissShaderBindingTable = (VkStridedDeviceAddressRegionKHR*)pool->alloc(sizeof(const VkStridedDeviceAddressRegionKHR));
-        deepcopy_VkStridedDeviceAddressRegionKHR(pool, pMissShaderBindingTable, (VkStridedDeviceAddressRegionKHR*)(local_pMissShaderBindingTable));
+        deepcopy_VkStridedDeviceAddressRegionKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pMissShaderBindingTable, (VkStridedDeviceAddressRegionKHR*)(local_pMissShaderBindingTable));
     }
     local_pHitShaderBindingTable = nullptr;
     if (pHitShaderBindingTable)
     {
         local_pHitShaderBindingTable = (VkStridedDeviceAddressRegionKHR*)pool->alloc(sizeof(const VkStridedDeviceAddressRegionKHR));
-        deepcopy_VkStridedDeviceAddressRegionKHR(pool, pHitShaderBindingTable, (VkStridedDeviceAddressRegionKHR*)(local_pHitShaderBindingTable));
+        deepcopy_VkStridedDeviceAddressRegionKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pHitShaderBindingTable, (VkStridedDeviceAddressRegionKHR*)(local_pHitShaderBindingTable));
     }
     local_pCallableShaderBindingTable = nullptr;
     if (pCallableShaderBindingTable)
     {
         local_pCallableShaderBindingTable = (VkStridedDeviceAddressRegionKHR*)pool->alloc(sizeof(const VkStridedDeviceAddressRegionKHR));
-        deepcopy_VkStridedDeviceAddressRegionKHR(pool, pCallableShaderBindingTable, (VkStridedDeviceAddressRegionKHR*)(local_pCallableShaderBindingTable));
+        deepcopy_VkStridedDeviceAddressRegionKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCallableShaderBindingTable, (VkStridedDeviceAddressRegionKHR*)(local_pCallableShaderBindingTable));
     }
     local_width = width;
     local_height = height;
@@ -35732,10 +35732,10 @@ void VkEncoder::vkCmdTraceRaysKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkStridedDeviceAddressRegionKHR(sFeatureBits, (VkStridedDeviceAddressRegionKHR*)(local_pRaygenShaderBindingTable), countPtr);
-        count_VkStridedDeviceAddressRegionKHR(sFeatureBits, (VkStridedDeviceAddressRegionKHR*)(local_pMissShaderBindingTable), countPtr);
-        count_VkStridedDeviceAddressRegionKHR(sFeatureBits, (VkStridedDeviceAddressRegionKHR*)(local_pHitShaderBindingTable), countPtr);
-        count_VkStridedDeviceAddressRegionKHR(sFeatureBits, (VkStridedDeviceAddressRegionKHR*)(local_pCallableShaderBindingTable), countPtr);
+        count_VkStridedDeviceAddressRegionKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkStridedDeviceAddressRegionKHR*)(local_pRaygenShaderBindingTable), countPtr);
+        count_VkStridedDeviceAddressRegionKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkStridedDeviceAddressRegionKHR*)(local_pMissShaderBindingTable), countPtr);
+        count_VkStridedDeviceAddressRegionKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkStridedDeviceAddressRegionKHR*)(local_pHitShaderBindingTable), countPtr);
+        count_VkStridedDeviceAddressRegionKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkStridedDeviceAddressRegionKHR*)(local_pCallableShaderBindingTable), countPtr);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
         *countPtr += sizeof(uint32_t);
@@ -35754,10 +35754,10 @@ void VkEncoder::vkCmdTraceRaysKHR(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkStridedDeviceAddressRegionKHR(stream, (VkStridedDeviceAddressRegionKHR*)(local_pRaygenShaderBindingTable), streamPtrPtr);
-    reservedmarshal_VkStridedDeviceAddressRegionKHR(stream, (VkStridedDeviceAddressRegionKHR*)(local_pMissShaderBindingTable), streamPtrPtr);
-    reservedmarshal_VkStridedDeviceAddressRegionKHR(stream, (VkStridedDeviceAddressRegionKHR*)(local_pHitShaderBindingTable), streamPtrPtr);
-    reservedmarshal_VkStridedDeviceAddressRegionKHR(stream, (VkStridedDeviceAddressRegionKHR*)(local_pCallableShaderBindingTable), streamPtrPtr);
+    reservedmarshal_VkStridedDeviceAddressRegionKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkStridedDeviceAddressRegionKHR*)(local_pRaygenShaderBindingTable), streamPtrPtr);
+    reservedmarshal_VkStridedDeviceAddressRegionKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkStridedDeviceAddressRegionKHR*)(local_pMissShaderBindingTable), streamPtrPtr);
+    reservedmarshal_VkStridedDeviceAddressRegionKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkStridedDeviceAddressRegionKHR*)(local_pHitShaderBindingTable), streamPtrPtr);
+    reservedmarshal_VkStridedDeviceAddressRegionKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkStridedDeviceAddressRegionKHR*)(local_pCallableShaderBindingTable), streamPtrPtr);
     memcpy(*streamPtrPtr, (uint32_t*)&local_width, sizeof(uint32_t));
     *streamPtrPtr += sizeof(uint32_t);
     memcpy(*streamPtrPtr, (uint32_t*)&local_height, sizeof(uint32_t));
@@ -35804,14 +35804,14 @@ VkResult VkEncoder::vkCreateRayTracingPipelinesKHR(
         local_pCreateInfos = (VkRayTracingPipelineCreateInfoKHR*)pool->alloc(((createInfoCount)) * sizeof(const VkRayTracingPipelineCreateInfoKHR));
         for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
         {
-            deepcopy_VkRayTracingPipelineCreateInfoKHR(pool, pCreateInfos + i, (VkRayTracingPipelineCreateInfoKHR*)(local_pCreateInfos + i));
+            deepcopy_VkRayTracingPipelineCreateInfoKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfos + i, (VkRayTracingPipelineCreateInfoKHR*)(local_pCreateInfos + i));
         }
     }
     local_pAllocator = nullptr;
     if (pAllocator)
     {
         local_pAllocator = (VkAllocationCallbacks*)pool->alloc(sizeof(const VkAllocationCallbacks));
-        deepcopy_VkAllocationCallbacks(pool, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
+        deepcopy_VkAllocationCallbacks(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pAllocator, (VkAllocationCallbacks*)(local_pAllocator));
     }
     local_pAllocator = nullptr;
     if (local_pCreateInfos)
@@ -35836,13 +35836,13 @@ VkResult VkEncoder::vkCreateRayTracingPipelinesKHR(
         *countPtr += sizeof(uint32_t);
         for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
         {
-            count_VkRayTracingPipelineCreateInfoKHR(sFeatureBits, (VkRayTracingPipelineCreateInfoKHR*)(local_pCreateInfos + i), countPtr);
+            count_VkRayTracingPipelineCreateInfoKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRayTracingPipelineCreateInfoKHR*)(local_pCreateInfos + i), countPtr);
         }
         // WARNING PTR CHECK
         *countPtr += 8;
         if (local_pAllocator)
         {
-            count_VkAllocationCallbacks(sFeatureBits, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
+            count_VkAllocationCallbacks(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), countPtr);
         }
         if (((createInfoCount)))
         {
@@ -35873,7 +35873,7 @@ VkResult VkEncoder::vkCreateRayTracingPipelinesKHR(
     *streamPtrPtr += sizeof(uint32_t);
     for (uint32_t i = 0; i < (uint32_t)((createInfoCount)); ++i)
     {
-        reservedmarshal_VkRayTracingPipelineCreateInfoKHR(stream, (VkRayTracingPipelineCreateInfoKHR*)(local_pCreateInfos + i), streamPtrPtr);
+        reservedmarshal_VkRayTracingPipelineCreateInfoKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkRayTracingPipelineCreateInfoKHR*)(local_pCreateInfos + i), streamPtrPtr);
     }
     // WARNING PTR CHECK
     uint64_t cgen_var_3 = (uint64_t)(uintptr_t)local_pAllocator;
@@ -35882,7 +35882,7 @@ VkResult VkEncoder::vkCreateRayTracingPipelinesKHR(
     *streamPtrPtr += 8;
     if (local_pAllocator)
     {
-        reservedmarshal_VkAllocationCallbacks(stream, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
+        reservedmarshal_VkAllocationCallbacks(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkAllocationCallbacks*)(local_pAllocator), streamPtrPtr);
     }
     /* is handle, possibly out */;
     if (((createInfoCount)))
@@ -36015,25 +36015,25 @@ void VkEncoder::vkCmdTraceRaysIndirectKHR(
     if (pRaygenShaderBindingTable)
     {
         local_pRaygenShaderBindingTable = (VkStridedDeviceAddressRegionKHR*)pool->alloc(sizeof(const VkStridedDeviceAddressRegionKHR));
-        deepcopy_VkStridedDeviceAddressRegionKHR(pool, pRaygenShaderBindingTable, (VkStridedDeviceAddressRegionKHR*)(local_pRaygenShaderBindingTable));
+        deepcopy_VkStridedDeviceAddressRegionKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pRaygenShaderBindingTable, (VkStridedDeviceAddressRegionKHR*)(local_pRaygenShaderBindingTable));
     }
     local_pMissShaderBindingTable = nullptr;
     if (pMissShaderBindingTable)
     {
         local_pMissShaderBindingTable = (VkStridedDeviceAddressRegionKHR*)pool->alloc(sizeof(const VkStridedDeviceAddressRegionKHR));
-        deepcopy_VkStridedDeviceAddressRegionKHR(pool, pMissShaderBindingTable, (VkStridedDeviceAddressRegionKHR*)(local_pMissShaderBindingTable));
+        deepcopy_VkStridedDeviceAddressRegionKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pMissShaderBindingTable, (VkStridedDeviceAddressRegionKHR*)(local_pMissShaderBindingTable));
     }
     local_pHitShaderBindingTable = nullptr;
     if (pHitShaderBindingTable)
     {
         local_pHitShaderBindingTable = (VkStridedDeviceAddressRegionKHR*)pool->alloc(sizeof(const VkStridedDeviceAddressRegionKHR));
-        deepcopy_VkStridedDeviceAddressRegionKHR(pool, pHitShaderBindingTable, (VkStridedDeviceAddressRegionKHR*)(local_pHitShaderBindingTable));
+        deepcopy_VkStridedDeviceAddressRegionKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pHitShaderBindingTable, (VkStridedDeviceAddressRegionKHR*)(local_pHitShaderBindingTable));
     }
     local_pCallableShaderBindingTable = nullptr;
     if (pCallableShaderBindingTable)
     {
         local_pCallableShaderBindingTable = (VkStridedDeviceAddressRegionKHR*)pool->alloc(sizeof(const VkStridedDeviceAddressRegionKHR));
-        deepcopy_VkStridedDeviceAddressRegionKHR(pool, pCallableShaderBindingTable, (VkStridedDeviceAddressRegionKHR*)(local_pCallableShaderBindingTable));
+        deepcopy_VkStridedDeviceAddressRegionKHR(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCallableShaderBindingTable, (VkStridedDeviceAddressRegionKHR*)(local_pCallableShaderBindingTable));
     }
     local_indirectDeviceAddress = indirectDeviceAddress;
     if (local_pRaygenShaderBindingTable)
@@ -36057,10 +36057,10 @@ void VkEncoder::vkCmdTraceRaysIndirectKHR(
     {
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
-        count_VkStridedDeviceAddressRegionKHR(sFeatureBits, (VkStridedDeviceAddressRegionKHR*)(local_pRaygenShaderBindingTable), countPtr);
-        count_VkStridedDeviceAddressRegionKHR(sFeatureBits, (VkStridedDeviceAddressRegionKHR*)(local_pMissShaderBindingTable), countPtr);
-        count_VkStridedDeviceAddressRegionKHR(sFeatureBits, (VkStridedDeviceAddressRegionKHR*)(local_pHitShaderBindingTable), countPtr);
-        count_VkStridedDeviceAddressRegionKHR(sFeatureBits, (VkStridedDeviceAddressRegionKHR*)(local_pCallableShaderBindingTable), countPtr);
+        count_VkStridedDeviceAddressRegionKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkStridedDeviceAddressRegionKHR*)(local_pRaygenShaderBindingTable), countPtr);
+        count_VkStridedDeviceAddressRegionKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkStridedDeviceAddressRegionKHR*)(local_pMissShaderBindingTable), countPtr);
+        count_VkStridedDeviceAddressRegionKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkStridedDeviceAddressRegionKHR*)(local_pHitShaderBindingTable), countPtr);
+        count_VkStridedDeviceAddressRegionKHR(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkStridedDeviceAddressRegionKHR*)(local_pCallableShaderBindingTable), countPtr);
         *countPtr += sizeof(VkDeviceAddress);
     }
     uint32_t packetSize_vkCmdTraceRaysIndirectKHR = 4 + 4 + count;
@@ -36077,10 +36077,10 @@ void VkEncoder::vkCmdTraceRaysIndirectKHR(
         memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
         *streamPtrPtr += 1 * 8;
     }
-    reservedmarshal_VkStridedDeviceAddressRegionKHR(stream, (VkStridedDeviceAddressRegionKHR*)(local_pRaygenShaderBindingTable), streamPtrPtr);
-    reservedmarshal_VkStridedDeviceAddressRegionKHR(stream, (VkStridedDeviceAddressRegionKHR*)(local_pMissShaderBindingTable), streamPtrPtr);
-    reservedmarshal_VkStridedDeviceAddressRegionKHR(stream, (VkStridedDeviceAddressRegionKHR*)(local_pHitShaderBindingTable), streamPtrPtr);
-    reservedmarshal_VkStridedDeviceAddressRegionKHR(stream, (VkStridedDeviceAddressRegionKHR*)(local_pCallableShaderBindingTable), streamPtrPtr);
+    reservedmarshal_VkStridedDeviceAddressRegionKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkStridedDeviceAddressRegionKHR*)(local_pRaygenShaderBindingTable), streamPtrPtr);
+    reservedmarshal_VkStridedDeviceAddressRegionKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkStridedDeviceAddressRegionKHR*)(local_pMissShaderBindingTable), streamPtrPtr);
+    reservedmarshal_VkStridedDeviceAddressRegionKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkStridedDeviceAddressRegionKHR*)(local_pHitShaderBindingTable), streamPtrPtr);
+    reservedmarshal_VkStridedDeviceAddressRegionKHR(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkStridedDeviceAddressRegionKHR*)(local_pCallableShaderBindingTable), streamPtrPtr);
     memcpy(*streamPtrPtr, (VkDeviceAddress*)&local_indirectDeviceAddress, sizeof(VkDeviceAddress));
     *streamPtrPtr += sizeof(VkDeviceAddress);
     ++encodeCount;;
