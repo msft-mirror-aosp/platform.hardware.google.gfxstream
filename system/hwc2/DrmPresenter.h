@@ -156,7 +156,7 @@ class DrmPresenter {
     int mMaxFd;
     fd_set mMonitoredFds;
   };
-  std::unique_ptr<DrmEventListener> mDrmEventListener;
+  android::sp<DrmEventListener> mDrmEventListener;
 };
 
 }  // namespace android
