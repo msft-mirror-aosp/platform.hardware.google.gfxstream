@@ -67,6 +67,7 @@ extern "C" {
 	void rcDestroySyncKHRAsync(uint64_t sync);
 	GLint rcComposeWithoutPost(uint32_t bufferSize, void* buffer);
 	void rcComposeAsyncWithoutPost(uint32_t bufferSize, void* buffer);
+	int rcCreateDisplayById(uint32_t displayId);
 };
 
 #ifndef GET_CONTEXT
@@ -445,5 +446,11 @@ void rcComposeAsyncWithoutPost(uint32_t bufferSize, void* buffer)
 {
 	GET_CONTEXT;
 	ctx->rcComposeAsyncWithoutPost(ctx, bufferSize, buffer);
+}
+
+int rcCreateDisplayById(uint32_t displayId)
+{
+	GET_CONTEXT;
+	return ctx->rcCreateDisplayById(ctx, displayId);
 }
 
