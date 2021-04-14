@@ -2597,17 +2597,7 @@ public:
         VkSurfaceKHR* pSurface,
         uint32_t doLock);
 #endif
-#ifdef VK_GOOGLE_color_buffer
-    VkResult vkRegisterImageColorBufferGOOGLE(
-    VkDevice device,
-        VkImage image,
-        uint32_t colorBuffer,
-        uint32_t doLock);
-    VkResult vkRegisterBufferColorBufferGOOGLE(
-    VkDevice device,
-        VkBuffer buffer,
-        uint32_t colorBuffer,
-        uint32_t doLock);
+#ifdef VK_EXT_fragment_density_map
 #endif
 #ifdef VK_EXT_scalar_block_layout
 #endif
@@ -2882,6 +2872,16 @@ public:
         uint32_t doLock);
 #endif
 #ifdef VK_GOOGLE_gfxstream
+    VkResult vkRegisterImageColorBufferGOOGLE(
+    VkDevice device,
+        VkImage image,
+        uint32_t colorBuffer,
+        uint32_t doLock);
+    VkResult vkRegisterBufferColorBufferGOOGLE(
+    VkDevice device,
+        VkBuffer buffer,
+        uint32_t colorBuffer,
+        uint32_t doLock);
     VkResult vkMapMemoryIntoAddressSpaceGOOGLE(
     VkDevice device,
         VkDeviceMemory memory,
