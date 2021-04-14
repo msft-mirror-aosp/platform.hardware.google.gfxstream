@@ -5169,7 +5169,7 @@ public:
 
         info.device = device;
         info.eventHandle = event_handle;
-#ifdef VK_PLATFORM_FUCHSIA
+#ifdef VK_USE_PLATFORM_FUCHSIA
         info.eventKoid = getEventKoid(info.eventHandle);
 #endif
 
