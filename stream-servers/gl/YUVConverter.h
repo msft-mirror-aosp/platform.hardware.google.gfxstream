@@ -63,6 +63,8 @@ public:
     // the host color buffer
     // (rcUpdateColorBuffer)
     void drawConvert(int x, int y, int width, int height, const char* pixels);
+    void drawConvertFromFormat(FrameworkFormat format, int x, int y, int width, int height,
+                               const char* pixels);
 
     uint32_t getDataSize();
     // read YUV data into pixels, exactly pixels_size bytes;
@@ -101,6 +103,7 @@ private:
     GLuint mTextureY = 0;
     GLuint mTextureU = 0;
     GLuint mTextureV = 0;
+    bool mTexturesSwapped = false;
     GLint mUniformLocYWidthCutoff = -1;
     GLint mUniformLocUVWidthCutoff = -1;
     GLint mUniformLocSamplerY = -1;
