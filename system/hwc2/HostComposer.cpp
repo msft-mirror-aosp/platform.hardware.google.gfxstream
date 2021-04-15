@@ -259,19 +259,19 @@ HWC2::Error HostComposer::createDisplay(
     ALOGD("%s display %d already existed, then update", __func__, displayId);
   }
 
-  uint32_t actualHostDisplayId = displayId;
   DEFINE_AND_VALIDATE_HOST_CONNECTION
   hostCon->lock();
-  rcEnc->rcCreateDisplay(rcEnc, &actualHostDisplayId);
-  rcEnc->rcSetDisplayPose(rcEnc, actualHostDisplayId, -1, -1, width, height);
-  hostCon->unlock();
-
-  if (actualHostDisplayId != displayId) {
-    ALOGW(
-        "Something wrong with host displayId allocation, expected %d "
-        "but received %d",
-        displayId, actualHostDisplayId);
+  if (rcEnc->rcCreateDisplayById(rcEnc, displayId)) {
+    ALOGE("%s host failed to create display %" PRIu32, __func__, displayId);
+    hostCon->unlock();
+    return HWC2::Error::NoResources;
   }
+  if (rcEnc->rcSetDisplayPose(rcEnc, displayId, -1, -1, width, height)) {
+    ALOGE("%s host failed to set display %" PRIu32, __func__, displayId);
+    hostCon->unlock();
+    return HWC2::Error::NoResources;
+  }
+  hostCon->unlock();
 
   if (!display) {
     auto newDisplay = std::make_unique<Display>(*device, this, displayId);
@@ -288,7 +288,7 @@ HWC2::Error HostComposer::createDisplay(
     }
 
     error =
-        createHostComposerDisplayInfo(newDisplay.get(), actualHostDisplayId);
+        createHostComposerDisplayInfo(newDisplay.get(), displayId);
     if (error != HWC2::Error::None) {
       ALOGE("%s failed to initialize host info for display:%" PRIu32,
             __FUNCTION__, displayId);
@@ -310,7 +310,7 @@ HWC2::Error HostComposer::createDisplay(
       return error;
     }
 
-    error = createHostComposerDisplayInfo(display, actualHostDisplayId);
+    error = createHostComposerDisplayInfo(display, displayId);
     if (error != HWC2::Error::None) {
       ALOGE("%s failed to initialize host info for display:%" PRIu32,
             __FUNCTION__, displayId);
