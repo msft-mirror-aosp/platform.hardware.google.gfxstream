@@ -1742,8 +1742,8 @@ public:
         VkExternalMemoryHandleTypeFlagBits handleType,
         uint32_t handle,
         VkMemoryZirconHandlePropertiesFUCHSIA* pProperties) {
-        using fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_DEVICE_LOCAL;
-        using fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_HOST_VISIBLE;
+        using fuchsia_hardware_goldfish::wire::kMemoryPropertyDeviceLocal;
+        using fuchsia_hardware_goldfish::wire::kMemoryPropertyHostVisible;
 
         if (handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA &&
             handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA) {
@@ -1791,7 +1791,7 @@ public:
             // If an VMO is allocated while ColorBuffer/Buffer is not created,
             // it must be a device-local buffer, since for host-visible buffers,
             // ColorBuffer/Buffer is created at sysmem allocation time.
-            memoryProperty = MEMORY_PROPERTY_DEVICE_LOCAL;
+            memoryProperty = kMemoryPropertyDeviceLocal;
         } else {
             // Importing read-only host memory into the Vulkan driver should not
             // work, but it is not an error to try to do so. Returning a
@@ -1805,10 +1805,10 @@ public:
 
         pProperties->memoryTypeBits = 0;
         for (uint32_t i = 0; i < info.memProps.memoryTypeCount; ++i) {
-            if (((memoryProperty & MEMORY_PROPERTY_DEVICE_LOCAL) &&
+            if (((memoryProperty & kMemoryPropertyDeviceLocal) &&
                  (info.memProps.memoryTypes[i].propertyFlags &
                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) ||
-                ((memoryProperty & MEMORY_PROPERTY_HOST_VISIBLE) &&
+                ((memoryProperty & kMemoryPropertyHostVisible) &&
                  (info.memProps.memoryTypes[i].propertyFlags &
                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT))) {
                 pProperties->memoryTypeBits |= 1ull << i;
@@ -2002,9 +2002,9 @@ public:
         buffer_constraints.inaccessible_domain_supported = true;
         buffer_constraints.heap_permitted_count = 2;
         buffer_constraints.heap_permitted[0] =
-            fuchsia_sysmem::wire::HeapType::GOLDFISH_DEVICE_LOCAL;
+            fuchsia_sysmem::wire::HeapType::kGoldfishDeviceLocal;
         buffer_constraints.heap_permitted[1] =
-            fuchsia_sysmem::wire::HeapType::GOLDFISH_HOST_VISIBLE;
+            fuchsia_sysmem::wire::HeapType::kGoldfishHostVisible;
 
         return constraints;
     }
@@ -2014,15 +2014,15 @@ public:
         uint32_t usage = 0u;
         VkImageUsageFlags imageUsage = pImageInfo->usage;
 
-#define SetUsageBit(USAGE)                                           \
-    if (imageUsage & VK_IMAGE_USAGE_##USAGE##_BIT) {                 \
-        usage |= fuchsia_sysmem::wire::VULKAN_IMAGE_USAGE_##USAGE; \
+#define SetUsageBit(BIT, VALUE)                                           \
+    if (imageUsage & VK_IMAGE_USAGE_##BIT##_BIT) {                 \
+        usage |= fuchsia_sysmem::wire::kVulkanImageUsage##VALUE; \
     }
 
-        SetUsageBit(COLOR_ATTACHMENT);
-        SetUsageBit(TRANSFER_SRC);
-        SetUsageBit(TRANSFER_DST);
-        SetUsageBit(SAMPLED);
+        SetUsageBit(COLOR_ATTACHMENT, ColorAttachment);
+        SetUsageBit(TRANSFER_SRC, TransferSrc);
+        SetUsageBit(TRANSFER_DST, TransferDst);
+        SetUsageBit(SAMPLED, Sampled);
 
 #undef SetUsageBit
         return usage;
@@ -2034,20 +2034,20 @@ public:
         VkBufferUsageFlags bufferUsage =
             pBufferConstraintsInfo->pBufferCreateInfo->usage;
 
-#define SetUsageBit(USAGE)                                            \
-    if (bufferUsage & VK_BUFFER_USAGE_##USAGE##_BIT) {                \
-        usage |= fuchsia_sysmem::wire::VULKAN_BUFFER_USAGE_##USAGE; \
+#define SetUsageBit(BIT, VALUE)                                            \
+    if (bufferUsage & VK_BUFFER_USAGE_##BIT##_BIT) {                \
+        usage |= fuchsia_sysmem::wire::kVulkanBufferUsage##VALUE; \
     }
 
-        SetUsageBit(TRANSFER_SRC);
-        SetUsageBit(TRANSFER_DST);
-        SetUsageBit(UNIFORM_TEXEL_BUFFER);
-        SetUsageBit(STORAGE_TEXEL_BUFFER);
-        SetUsageBit(UNIFORM_BUFFER);
-        SetUsageBit(STORAGE_BUFFER);
-        SetUsageBit(INDEX_BUFFER);
-        SetUsageBit(VERTEX_BUFFER);
-        SetUsageBit(INDIRECT_BUFFER);
+        SetUsageBit(TRANSFER_SRC, TransferSrc);
+        SetUsageBit(TRANSFER_DST, TransferDst);
+        SetUsageBit(UNIFORM_TEXEL_BUFFER, UniformTexelBuffer);
+        SetUsageBit(STORAGE_TEXEL_BUFFER, StorageTexelBuffer);
+        SetUsageBit(UNIFORM_BUFFER, UniformBuffer);
+        SetUsageBit(STORAGE_BUFFER, StorageBuffer);
+        SetUsageBit(INDEX_BUFFER, IndexBuffer);
+        SetUsageBit(VERTEX_BUFFER, VertexBuffer);
+        SetUsageBit(INDIRECT_BUFFER, IndirectBuffer);
 
 #undef SetUsageBit
         return usage;
@@ -2062,14 +2062,14 @@ public:
             case VK_FORMAT_B8G8R8A8_SNORM:
             case VK_FORMAT_B8G8R8A8_SSCALED:
             case VK_FORMAT_B8G8R8A8_USCALED:
-                return fuchsia_sysmem::wire::PixelFormatType::BGRA32;
+                return fuchsia_sysmem::wire::PixelFormatType::kBgra32;
             case VK_FORMAT_R8G8B8A8_SINT:
             case VK_FORMAT_R8G8B8A8_UNORM:
             case VK_FORMAT_R8G8B8A8_SRGB:
             case VK_FORMAT_R8G8B8A8_SNORM:
             case VK_FORMAT_R8G8B8A8_SSCALED:
             case VK_FORMAT_R8G8B8A8_USCALED:
-                return fuchsia_sysmem::wire::PixelFormatType::R8G8B8A8;
+                return fuchsia_sysmem::wire::PixelFormatType::kR8G8B8A8;
             case VK_FORMAT_R8_UNORM:
             case VK_FORMAT_R8_UINT:
             case VK_FORMAT_R8_USCALED:
@@ -2077,7 +2077,7 @@ public:
             case VK_FORMAT_R8_SINT:
             case VK_FORMAT_R8_SSCALED:
             case VK_FORMAT_R8_SRGB:
-                return fuchsia_sysmem::wire::PixelFormatType::R8;
+                return fuchsia_sysmem::wire::PixelFormatType::kR8;
             case VK_FORMAT_R8G8_UNORM:
             case VK_FORMAT_R8G8_UINT:
             case VK_FORMAT_R8G8_USCALED:
@@ -2085,9 +2085,9 @@ public:
             case VK_FORMAT_R8G8_SINT:
             case VK_FORMAT_R8G8_SSCALED:
             case VK_FORMAT_R8G8_SRGB:
-                return fuchsia_sysmem::wire::PixelFormatType::R8G8;
+                return fuchsia_sysmem::wire::PixelFormatType::kR8G8;
             default:
-                return fuchsia_sysmem::wire::PixelFormatType::INVALID;
+                return fuchsia_sysmem::wire::PixelFormatType::kInvalid;
         }
     }
 
@@ -2102,7 +2102,7 @@ public:
             case VK_FORMAT_B8G8R8A8_SSCALED:
             case VK_FORMAT_B8G8R8A8_USCALED:
                 return sysmemFormat ==
-                       fuchsia_sysmem::wire::PixelFormatType::BGRA32;
+                       fuchsia_sysmem::wire::PixelFormatType::kBgra32;
             case VK_FORMAT_R8G8B8A8_SINT:
             case VK_FORMAT_R8G8B8A8_UNORM:
             case VK_FORMAT_R8G8B8A8_SRGB:
@@ -2110,7 +2110,7 @@ public:
             case VK_FORMAT_R8G8B8A8_SSCALED:
             case VK_FORMAT_R8G8B8A8_USCALED:
                 return sysmemFormat ==
-                       fuchsia_sysmem::wire::PixelFormatType::R8G8B8A8;
+                       fuchsia_sysmem::wire::PixelFormatType::kR8G8B8A8;
             case VK_FORMAT_R8_UNORM:
             case VK_FORMAT_R8_UINT:
             case VK_FORMAT_R8_USCALED:
@@ -2119,9 +2119,9 @@ public:
             case VK_FORMAT_R8_SSCALED:
             case VK_FORMAT_R8_SRGB:
                 return sysmemFormat ==
-                           fuchsia_sysmem::wire::PixelFormatType::R8 ||
+                           fuchsia_sysmem::wire::PixelFormatType::kR8 ||
                        sysmemFormat ==
-                           fuchsia_sysmem::wire::PixelFormatType::L8;
+                           fuchsia_sysmem::wire::PixelFormatType::kL8;
             case VK_FORMAT_R8G8_UNORM:
             case VK_FORMAT_R8G8_UINT:
             case VK_FORMAT_R8G8_USCALED:
@@ -2130,7 +2130,7 @@ public:
             case VK_FORMAT_R8G8_SSCALED:
             case VK_FORMAT_R8G8_SRGB:
                 return sysmemFormat ==
-                       fuchsia_sysmem::wire::PixelFormatType::R8G8;
+                       fuchsia_sysmem::wire::PixelFormatType::kR8G8;
             default:
                 return false;
         }
@@ -2139,14 +2139,14 @@ public:
     static VkFormat sysmemPixelFormatTypeToVk(
         fuchsia_sysmem::wire::PixelFormatType format) {
         switch (format) {
-            case fuchsia_sysmem::wire::PixelFormatType::BGRA32:
+            case fuchsia_sysmem::wire::PixelFormatType::kBgra32:
                 return VK_FORMAT_B8G8R8A8_SRGB;
-            case fuchsia_sysmem::wire::PixelFormatType::R8G8B8A8:
+            case fuchsia_sysmem::wire::PixelFormatType::kR8G8B8A8:
                 return VK_FORMAT_R8G8B8A8_SRGB;
-            case fuchsia_sysmem::wire::PixelFormatType::L8:
-            case fuchsia_sysmem::wire::PixelFormatType::R8:
+            case fuchsia_sysmem::wire::PixelFormatType::kL8:
+            case fuchsia_sysmem::wire::PixelFormatType::kR8:
                 return VK_FORMAT_R8_UNORM;
-            case fuchsia_sysmem::wire::PixelFormatType::R8G8:
+            case fuchsia_sysmem::wire::PixelFormatType::kR8G8:
                 return VK_FORMAT_R8G8_UNORM;
             default:
                 return VK_FORMAT_UNDEFINED;
@@ -2265,7 +2265,7 @@ public:
         } else {
             auto pixel_format = vkFormatTypeToSysmem(createInfo->format);
             if (pixel_format ==
-                fuchsia_sysmem::wire::PixelFormatType::INVALID) {
+                fuchsia_sysmem::wire::PixelFormatType::kInvalid) {
                 ALOGW("%s: Unsupported VkFormat %u", __func__,
                       static_cast<uint32_t>(createInfo->format));
                 return VK_ERROR_FORMAT_NOT_SUPPORTED;
@@ -2276,7 +2276,7 @@ public:
         if (!formatConstraints || formatConstraints->colorSpaceCount == 0u) {
             imageConstraints.color_spaces_count = 1;
             imageConstraints.color_space[0].type =
-                fuchsia_sysmem::wire::ColorSpaceType::SRGB;
+                fuchsia_sysmem::wire::ColorSpaceType::kSrgb;
         } else {
             imageConstraints.color_spaces_count =
                 formatConstraints->colorSpaceCount;
@@ -2318,9 +2318,8 @@ public:
         imageConstraints.pixel_format.has_format_modifier = true;
         imageConstraints.pixel_format.format_modifier.value =
             (tiling == VK_IMAGE_TILING_LINEAR)
-                ? fuchsia_sysmem::wire::FORMAT_MODIFIER_LINEAR
-                : fuchsia_sysmem::wire::
-                      FORMAT_MODIFIER_GOOGLE_GOLDFISH_OPTIMAL;
+                ? fuchsia_sysmem::wire::kFormatModifierLinear
+                : fuchsia_sysmem::wire::kFormatModifierGoogleGoldfishOptimal;
 
         constraints->image_format_constraints
             [constraints->image_format_constraints_count++] =
@@ -2416,13 +2415,13 @@ public:
         // and flags.
         VkImageConstraintsInfoFlagsFUCHSIA flags = pImageConstraintsInfo->flags;
         if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_RARELY_FUCHSIA)
-            constraints.usage.cpu |= fuchsia_sysmem::wire::cpuUsageRead;
+            constraints.usage.cpu |= fuchsia_sysmem::wire::kCpuUsageRead;
         if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_OFTEN_FUCHSIA)
-            constraints.usage.cpu |= fuchsia_sysmem::wire::cpuUsageReadOften;
+            constraints.usage.cpu |= fuchsia_sysmem::wire::kCpuUsageReadOften;
         if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_RARELY_FUCHSIA)
-            constraints.usage.cpu |= fuchsia_sysmem::wire::cpuUsageWrite;
+            constraints.usage.cpu |= fuchsia_sysmem::wire::kCpuUsageWrite;
         if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_OFTEN_FUCHSIA)
-            constraints.usage.cpu |= fuchsia_sysmem::wire::cpuUsageWriteOften;
+            constraints.usage.cpu |= fuchsia_sysmem::wire::kCpuUsageWriteOften;
 
         constraints.has_buffer_memory_constraints = true;
         auto& memory_constraints = constraints.buffer_memory_constraints;
@@ -2438,13 +2437,13 @@ public:
         if (memory_constraints.inaccessible_domain_supported) {
             memory_constraints.heap_permitted_count = 2;
             memory_constraints.heap_permitted[0] =
-                fuchsia_sysmem::wire::HeapType::GOLDFISH_DEVICE_LOCAL;
+                fuchsia_sysmem::wire::HeapType::kGoldfishDeviceLocal;
             memory_constraints.heap_permitted[1] =
-                fuchsia_sysmem::wire::HeapType::GOLDFISH_HOST_VISIBLE;
+                fuchsia_sysmem::wire::HeapType::kGoldfishHostVisible;
         } else {
             memory_constraints.heap_permitted_count = 1;
             memory_constraints.heap_permitted[0] =
-                fuchsia_sysmem::wire::HeapType::GOLDFISH_HOST_VISIBLE;
+                fuchsia_sysmem::wire::HeapType::kGoldfishHostVisible;
         }
 
         if (constraints.image_format_constraints_count == 0) {
@@ -2580,7 +2579,7 @@ public:
 
     VkResult getBufferCollectionImageCreateInfoIndexLocked(
         VkBufferCollectionFUCHSIA collection,
-        fuchsia_sysmem::wire::BufferCollectionInfo_2& info,
+        fuchsia_sysmem::wire::BufferCollectionInfo2& info,
         uint32_t* outCreateInfoIndex) {
         if (!info_VkBufferCollectionFUCHSIA[collection]
                  .constraints.hasValue()) {
@@ -2665,13 +2664,13 @@ public:
                   GET_STATUS_SAFE(result, status));
             return VK_ERROR_INITIALIZATION_FAILED;
         }
-        fuchsia_sysmem::wire::BufferCollectionInfo_2 info =
+        fuchsia_sysmem::wire::BufferCollectionInfo2 info =
             std::move(result.Unwrap()->buffer_collection_info);
 
         bool is_host_visible = info.settings.buffer_settings.heap ==
-                               fuchsia_sysmem::wire::HeapType::GOLDFISH_HOST_VISIBLE;
+                               fuchsia_sysmem::wire::HeapType::kGoldfishHostVisible;
         bool is_device_local = info.settings.buffer_settings.heap ==
-                               fuchsia_sysmem::wire::HeapType::GOLDFISH_DEVICE_LOCAL;
+                               fuchsia_sysmem::wire::HeapType::kGoldfishDeviceLocal;
         if (!is_host_visible && !is_device_local) {
             ALOGE("buffer collection uses a non-goldfish heap (type 0x%lu)",
                 static_cast<uint64_t>(info.settings.buffer_settings.heap));
@@ -3189,7 +3188,7 @@ public:
                       GET_STATUS_SAFE(result, status));
                 return VK_ERROR_INITIALIZATION_FAILED;
             }
-            fuchsia_sysmem::wire::BufferCollectionInfo_2& info =
+            fuchsia_sysmem::wire::BufferCollectionInfo2& info =
                 result.Unwrap()->buffer_collection_info;
             uint32_t index = importBufferCollectionInfoPtr->index;
             if (info.buffer_count < index) {
@@ -3328,7 +3327,7 @@ public:
                 {
                     auto result = collection.WaitForBuffersAllocated();
                     if (result.ok() && result.Unwrap()->status == ZX_OK) {
-                        fuchsia_sysmem::wire::BufferCollectionInfo_2& info =
+                        fuchsia_sysmem::wire::BufferCollectionInfo2& info =
                             result.Unwrap()->buffer_collection_info;
                         if (!info.buffer_count) {
                             ALOGE(
@@ -3374,7 +3373,7 @@ public:
                             case VK_FORMAT_B8G8R8A8_SSCALED:
                             case VK_FORMAT_B8G8R8A8_USCALED:
                                 format = fuchsia_hardware_goldfish::wire::
-                                    ColorBufferFormatType::BGRA;
+                                    ColorBufferFormatType::kBgra;
                                 break;
                             case VK_FORMAT_R8G8B8A8_SINT:
                             case VK_FORMAT_R8G8B8A8_UNORM:
@@ -3383,7 +3382,7 @@ public:
                             case VK_FORMAT_R8G8B8A8_SSCALED:
                             case VK_FORMAT_R8G8B8A8_USCALED:
                                 format = fuchsia_hardware_goldfish::wire::
-                                    ColorBufferFormatType::RGBA;
+                                    ColorBufferFormatType::kRgba;
                                 break;
                             case VK_FORMAT_R8_UNORM:
                             case VK_FORMAT_R8_UINT:
@@ -3393,7 +3392,7 @@ public:
                             case VK_FORMAT_R8_SSCALED:
                             case VK_FORMAT_R8_SRGB:
                                 format = fuchsia_hardware_goldfish::wire::
-                                    ColorBufferFormatType::LUMINANCE;
+                                    ColorBufferFormatType::kLuminance;
                                 break;
                             case VK_FORMAT_R8G8_UNORM:
                             case VK_FORMAT_R8G8_UINT:
@@ -3403,7 +3402,7 @@ public:
                             case VK_FORMAT_R8G8_SSCALED:
                             case VK_FORMAT_R8G8_SRGB:
                                 format = fuchsia_hardware_goldfish::wire::
-                                    ColorBufferFormatType::RG;
+                                    ColorBufferFormatType::kRg;
                                 break;
                             default:
                                 ALOGE("Unsupported format: %d",
@@ -3418,7 +3417,7 @@ public:
                             .set_height(allocator, pImageCreateInfo->extent.height)
                             .set_format(allocator, format)
                             .set_memory_property(allocator,
-                                fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_DEVICE_LOCAL);
+                                fuchsia_hardware_goldfish::wire::kMemoryPropertyDeviceLocal);
 
                         auto result = mControlDevice->CreateColorBuffer2(
                             std::move(vmo_copy), std::move(createParams));
@@ -3444,7 +3443,7 @@ public:
                     createParams.set_size(allocator,
                             pBufferConstraintsInfo->pBufferCreateInfo->size)
                         .set_memory_property(allocator,
-                            fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_DEVICE_LOCAL);
+                            fuchsia_hardware_goldfish::wire::kMemoryPropertyDeviceLocal);
 
                     auto result =
                         mControlDevice->CreateBuffer2(std::move(vmo_copy), std::move(createParams));
@@ -3478,7 +3477,7 @@ public:
                 uint32_t buffer_handle = result.Unwrap()->id;
 
                 if (handle_type == fuchsia_hardware_goldfish::wire::
-                                       BufferHandleType::BUFFER) {
+                                       BufferHandleType::kBuffer) {
                     importBufferInfo.buffer = buffer_handle;
                     vk_append_struct(&structChainIter, &importBufferInfo);
                 } else {
@@ -3922,7 +3921,7 @@ public:
             uint32_t index = extBufferCollectionPtr->index;
             zx::vmo vmo;
 
-            fuchsia_sysmem::wire::BufferCollectionInfo_2 info;
+            fuchsia_sysmem::wire::BufferCollectionInfo2 info;
 
             auto result = collection->WaitForBuffersAllocated();
             if (result.ok() && result.Unwrap()->status == ZX_OK) {
@@ -3953,7 +3952,7 @@ public:
                     // Buffer handle already exists.
                     // If it is a ColorBuffer, no-op; Otherwise return error.
                     if (buffer_handle_result.value().type !=
-                        fuchsia_hardware_goldfish::wire::BufferHandleType::COLOR_BUFFER) {
+                        fuchsia_hardware_goldfish::wire::BufferHandleType::kColorBuffer) {
                         ALOGE("%s: BufferHandle %u is not a ColorBuffer", __func__,
                               buffer_handle_result.value().id);
                         return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -3962,15 +3961,15 @@ public:
                     // Buffer handle not found. Create ColorBuffer based on buffer settings.
                     auto format =
                         info.settings.image_format_constraints.pixel_format.type ==
-                                fuchsia_sysmem::wire::PixelFormatType::R8G8B8A8
-                            ? fuchsia_hardware_goldfish::wire::ColorBufferFormatType::RGBA
-                            : fuchsia_hardware_goldfish::wire::ColorBufferFormatType::BGRA;
+                                fuchsia_sysmem::wire::PixelFormatType::kR8G8B8A8
+                            ? fuchsia_hardware_goldfish::wire::ColorBufferFormatType::kRgba
+                            : fuchsia_hardware_goldfish::wire::ColorBufferFormatType::kBgra;
 
                     uint32_t memory_property =
                         info.settings.buffer_settings.heap ==
-                                fuchsia_sysmem::wire::HeapType::GOLDFISH_DEVICE_LOCAL
-                            ? fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_DEVICE_LOCAL
-                            : fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_HOST_VISIBLE;
+                                fuchsia_sysmem::wire::HeapType::kGoldfishDeviceLocal
+                            ? fuchsia_hardware_goldfish::wire::kMemoryPropertyDeviceLocal
+                            : fuchsia_hardware_goldfish::wire::kMemoryPropertyHostVisible;
 
                     fidl::FidlAllocator allocator;
                     fuchsia_hardware_goldfish::wire::CreateColorBuffer2Params createParams(
@@ -3991,7 +3990,7 @@ public:
                 }
 
                 if (info.settings.buffer_settings.heap ==
-                    fuchsia_sysmem::wire::HeapType::GOLDFISH_HOST_VISIBLE) {
+                    fuchsia_sysmem::wire::HeapType::kGoldfishHostVisible) {
                     ALOGD(
                         "%s: Image uses host visible memory heap; set tiling "
                         "to linear to match host ImageCreateInfo",
@@ -4963,7 +4962,7 @@ public:
                 fuchsia_hardware_goldfish::wire::CreateBuffer2Params createParams(allocator);
                 createParams.set_size(allocator, pCreateInfo->size)
                     .set_memory_property(allocator,
-                        fuchsia_hardware_goldfish::wire::MEMORY_PROPERTY_DEVICE_LOCAL);
+                        fuchsia_hardware_goldfish::wire::kMemoryPropertyDeviceLocal);
 
                 auto result =
                     mControlDevice->CreateBuffer2(std::move(*vmo), std::move(createParams));
