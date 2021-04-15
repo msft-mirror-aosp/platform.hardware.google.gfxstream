@@ -174,15 +174,13 @@ void FreeDisplayColorBuffer(const native_handle_t* h) {
 
 HWC2::Error HostComposer::init(const HotplugCallback& cb) {
   mIsMinigbm = isMinigbmFromProperty();
-  if (!mIsMinigbm) {
+  if (mIsMinigbm) {
+    if (!mDrmPresenter.init(cb)) {
+      ALOGE("%s: failed to initialize DrmPresenter", __FUNCTION__);
+      return HWC2::Error::NoResources;
+    }
+  } else {
     mSyncDeviceFd = goldfish_sync_open();
-  }
-
-  if (!mDrmPresenter.init(cb)) {
-    ALOGE("%s: failed to initialize DrmPresenter", __FUNCTION__);
-
-    // Non-fatal for HostComposer.
-    // return HWC2::Error::NoResources;
   }
 
   return HWC2::Error::None;
