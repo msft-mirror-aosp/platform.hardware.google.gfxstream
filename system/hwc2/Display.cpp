@@ -810,11 +810,10 @@ HWC2::Error Display::getDisplayCapabilities(uint32_t* outNumCapabilities,
     return HWC2::Error::None;
   }
 
-  bool brightness_support = true;
-  bool doze_support = true;
+  bool brightness_support = false;
+  bool doze_support = false;
 
-  uint32_t count =
-      1 + static_cast<uint32_t>(doze_support) + (brightness_support ? 1 : 0);
+  uint32_t count = 1 + (doze_support ? 1 : 0) + (brightness_support ? 1 : 0);
   int index = 0;
   if (outCapabilities != nullptr && (*outNumCapabilities >= count)) {
     outCapabilities[index++] =
@@ -844,7 +843,7 @@ HWC2::Error Display::setDisplayBrightness(float brightness) {
 
   ALOGW("TODO: setDisplayBrightness() is not implemented yet: brightness=%f",
         brightness);
-  return HWC2::Error::None;
+  return HWC2::Error::Unsupported;
 }
 
 void Display::Config::setAttribute(HWC2::Attribute attribute, int32_t value) {
