@@ -73,6 +73,7 @@ struct renderControl_client_context_t {
 	rcComposeWithoutPost_client_proc_t rcComposeWithoutPost;
 	rcComposeAsyncWithoutPost_client_proc_t rcComposeAsyncWithoutPost;
 	rcCreateDisplayById_client_proc_t rcCreateDisplayById;
+	rcSetDisplayPoseDpi_client_proc_t rcSetDisplayPoseDpi;
 	virtual ~renderControl_client_context_t() {}
 
 	typedef renderControl_client_context_t *CONTEXT_ACCESSOR_TYPE(void);
