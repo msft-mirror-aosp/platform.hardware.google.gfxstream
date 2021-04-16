@@ -38,6 +38,8 @@
 
 #include <gralloc_cb_bp.h>
 
+#include <color_buffer_utils.h>
+
 #include "C2GoldfishVpxDec.h"
 
 #define DEBUG 0
@@ -458,7 +460,7 @@ void C2GoldfishVpxDec::checkContext(const std::shared_ptr<C2BlockPool> &pool) {
     // check for decoding mode:
     {
         // now get the block
-        constexpr uint32_t format = 19;
+        constexpr uint32_t format = HAL_PIXEL_FORMAT_YCBCR_420_888;
         std::shared_ptr<C2GraphicBlock> block;
         C2MemoryUsage usage = {C2MemoryUsage::CPU_READ,
                                C2MemoryUsage::CPU_WRITE};
@@ -473,8 +475,7 @@ void C2GoldfishVpxDec::checkContext(const std::shared_ptr<C2BlockPool> &pool) {
         auto c2Handle = block->handle();
         native_handle_t *grallocHandle =
             UnwrapNativeCodec2GrallocHandle(c2Handle);
-        cb_handle_t *cbhandle = (cb_handle_t *)grallocHandle;
-        int hostColorBufferId = cbhandle->hostHandle;
+        int hostColorBufferId = getColorBufferHandle(grallocHandle);
         if (hostColorBufferId > 0) {
             DDD("decoding to host color buffer");
             mEnableAndroidNativeBuffers = true;
@@ -699,10 +700,9 @@ C2GoldfishVpxDec::outputBuffer(const std::shared_ptr<C2BlockPool> &pool,
         return BAD_VALUE;
 
     // now get the block
-    uint32_t format = HAL_PIXEL_FORMAT_YV12;
     std::shared_ptr<C2GraphicBlock> block;
     C2MemoryUsage usage = {C2MemoryUsage::CPU_READ, C2MemoryUsage::CPU_WRITE};
-    format = 19; // HAL_PIXEL_FORMAT_YV12;
+    uint32_t format = HAL_PIXEL_FORMAT_YCBCR_420_888;
     usage.expected = (uint64_t)(BufferUsage::GPU_DATA_BUFFER);
 
     c2_status_t err = pool->fetchGraphicBlock(align(mWidth, 2), mHeight, format,
@@ -718,8 +718,7 @@ C2GoldfishVpxDec::outputBuffer(const std::shared_ptr<C2BlockPool> &pool,
         auto c2Handle = block->handle();
         native_handle_t *grallocHandle =
             UnwrapNativeCodec2GrallocHandle(c2Handle);
-        cb_handle_t *cbhandle = (cb_handle_t *)grallocHandle;
-        int hostColorBufferId = cbhandle->hostHandle;
+        int hostColorBufferId = getColorBufferHandle(grallocHandle);
         if (hostColorBufferId > 0) {
             DDD("found handle %d", hostColorBufferId);
         } else {
