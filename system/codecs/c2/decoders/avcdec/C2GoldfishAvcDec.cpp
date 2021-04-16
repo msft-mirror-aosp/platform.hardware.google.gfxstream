@@ -38,6 +38,8 @@
 #include <goldfish_codec2/store/GoldfishComponentStore.h>
 #include <gralloc_cb_bp.h>
 
+#include <color_buffer_utils.h>
+
 #include "C2GoldfishAvcDec.h"
 
 #define DEBUG 0
@@ -635,9 +637,7 @@ C2GoldfishAvcDec::ensureDecoderState(const std::shared_ptr<C2BlockPool> &pool) {
         mOutBlock.reset();
     }
     if (!mOutBlock) {
-        // uint32_t format = HAL_PIXEL_FORMAT_YCBCR_420_888;//19;
-        // //HAL_PIXEL_FORMAT_YV12;
-        uint32_t format = 19; // HAL_PIXEL_FORMAT_YV12;
+        uint32_t format = HAL_PIXEL_FORMAT_YCBCR_420_888;
         C2MemoryUsage usage = {C2MemoryUsage::CPU_READ,
                                C2MemoryUsage::CPU_WRITE};
         usage.expected = (uint64_t)(BufferUsage::GPU_DATA_BUFFER);
@@ -654,9 +654,8 @@ C2GoldfishAvcDec::ensureDecoderState(const std::shared_ptr<C2BlockPool> &pool) {
             auto c2Handle = mOutBlock->handle();
             native_handle_t *grallocHandle =
                 UnwrapNativeCodec2GrallocHandle(c2Handle);
-            cb_handle_t *cbhandle = (cb_handle_t *)grallocHandle;
-            DDD("found handle %d", cbhandle->hostHandle);
-            mHostColorBufferId = cbhandle->hostHandle;
+            mHostColorBufferId = getColorBufferHandle(grallocHandle);
+            DDD("found handle %d", mHostColorBufferId);
         } else {
             C2GraphicView wView = mOutBlock->map().get();
             if (wView.error()) {
@@ -678,7 +677,7 @@ void C2GoldfishAvcDec::checkMode(const std::shared_ptr<C2BlockPool> &pool) {
     mHeight = mIntf->height();
     {
         // now get the block
-        constexpr uint32_t format = 19;
+        constexpr uint32_t format = HAL_PIXEL_FORMAT_YCBCR_420_888;
         std::shared_ptr<C2GraphicBlock> block;
         C2MemoryUsage usage = {C2MemoryUsage::CPU_READ,
                                C2MemoryUsage::CPU_WRITE};
@@ -693,8 +692,7 @@ void C2GoldfishAvcDec::checkMode(const std::shared_ptr<C2BlockPool> &pool) {
         auto c2Handle = block->handle();
         native_handle_t *grallocHandle =
             UnwrapNativeCodec2GrallocHandle(c2Handle);
-        cb_handle_t *cbhandle = (cb_handle_t *)grallocHandle;
-        int hostColorBufferId = cbhandle->hostHandle;
+        int hostColorBufferId = getColorBufferHandle(grallocHandle);
         if (hostColorBufferId > 0) {
             DDD("decoding to host color buffer");
             mEnableAndroidNativeBuffers = true;

@@ -18,6 +18,7 @@ cc_library_shared {
         "SimpleC2Component.cpp",
         "SimpleC2Interface.cpp",
         "goldfish_media_utils.cpp",
+        "color_buffer_utils.cpp",
     ],
 
     export_include_dirs: [
@@ -33,6 +34,7 @@ cc_library_shared {
         "libcutils", // for properties
         "liblog",    // for ALOG
         "libdrm",    // for ALOG
+        "libbase",   // for properties, parseint
         "libsfplugin_ccodec_utils", // for ImageCopy
         "libstagefright_foundation", // for Mutexed
         "libgoldfish_codec2_store", // for goldfish store
@@ -40,6 +42,10 @@ cc_library_shared {
 
     static_libs: [
         "libGoldfishAddressSpace",
+    ],
+
+    header_libs: [
+        "libgralloc_cb.ranchu",
     ],
 
     sanitize: {
