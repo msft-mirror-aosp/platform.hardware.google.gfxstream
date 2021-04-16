@@ -73,6 +73,7 @@ int renderControl_client_context_t::initDispatchByName(void *(*getProc)(const ch
 	rcComposeWithoutPost = (rcComposeWithoutPost_client_proc_t) getProc("rcComposeWithoutPost", userData);
 	rcComposeAsyncWithoutPost = (rcComposeAsyncWithoutPost_client_proc_t) getProc("rcComposeAsyncWithoutPost", userData);
 	rcCreateDisplayById = (rcCreateDisplayById_client_proc_t) getProc("rcCreateDisplayById", userData);
+	rcSetDisplayPoseDpi = (rcSetDisplayPoseDpi_client_proc_t) getProc("rcSetDisplayPoseDpi", userData);
 	return 0;
 }
 

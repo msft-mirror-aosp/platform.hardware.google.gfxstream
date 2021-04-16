@@ -2444,6 +2444,52 @@ int rcCreateDisplayById_enc(void *self , uint32_t displayId)
 	return retval;
 }
 
+int rcSetDisplayPoseDpi_enc(void *self , uint32_t displayId, GLint x, GLint y, uint32_t w, uint32_t h, uint32_t dpi)
+{
+	AEMU_SCOPED_TRACE("rcSetDisplayPoseDpi encode");
+
+	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + 4 + 4 + 4 + 4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_rcSetDisplayPoseDpi;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &displayId, 4); ptr += 4;
+		memcpy(ptr, &x, 4); ptr += 4;
+		memcpy(ptr, &y, 4); ptr += 4;
+		memcpy(ptr, &w, 4); ptr += 4;
+		memcpy(ptr, &h, 4); ptr += 4;
+		memcpy(ptr, &dpi, 4); ptr += 4;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+
+	int retval;
+	stream->readback(&retval, 4);
+	if (useChecksum) checksumCalculator->addBuffer(&retval, 4);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			ALOGE("rcSetDisplayPoseDpi: GL communication error, please report this issue to b.android.com.\n");
+			abort();
+		}
+	}
+	return retval;
+}
+
 }  // namespace
 
 renderControl_encoder_context_t::renderControl_encoder_context_t(IOStream *stream, ChecksumCalculator *checksumCalculator)
@@ -2514,5 +2560,6 @@ renderControl_encoder_context_t::renderControl_encoder_context_t(IOStream *strea
 	this->rcComposeWithoutPost = &rcComposeWithoutPost_enc;
 	this->rcComposeAsyncWithoutPost = &rcComposeAsyncWithoutPost_enc;
 	this->rcCreateDisplayById = &rcCreateDisplayById_enc;
+	this->rcSetDisplayPoseDpi = &rcSetDisplayPoseDpi_enc;
 }
 
