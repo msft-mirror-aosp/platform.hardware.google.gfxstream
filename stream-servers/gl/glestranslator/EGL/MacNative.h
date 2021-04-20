@@ -50,6 +50,7 @@ void* finalizePixelFormat(
 int getPixelFormatAttrib(int i, int attrib);
 
 void* nsCreateContext(void* finalizedPixelFormat,void* share);
+void* nsGetLowLevelContext(void* context);
 // convert to NV12 textures from decoded output iosurface
 void nsConvertVideoFrameToNV12Textures(void* context,
                                        void* iosurface,

@@ -42,7 +42,6 @@
 #include "aemu/base/system/System.h"
 #include "aemu/base/Tracing.h"
 #include "gl/YUVConverter.h"
-#include "gl/glestranslator/EGL/EglGlobalInfo.h"
 #include "gl/gles2_dec/gles2_dec.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/crash_reporter.h"
@@ -2029,12 +2028,6 @@ void FrameBuffer::destroyYUVTextures(uint32_t type,
     }
 }
 
-extern "C" {
-typedef void (*yuv_updater_t)(void* privData,
-                              uint32_t type,
-                              uint32_t* textures);
-}
-
 void FrameBuffer::updateYUVTextures(uint32_t type,
                                     uint32_t* textures,
                                     void* privData,
@@ -2056,9 +2049,7 @@ void FrameBuffer::updateYUVTextures(uint32_t type,
 
 #ifdef __APPLE__
     EGLContext prevContext = s_egl.eglGetCurrentContext();
-    long long hndl = reinterpret_cast<long long>(prevContext);
-    auto mydisp = EglGlobalInfo::getInstance()->getDisplay(EGL_DEFAULT_DISPLAY);
-    void* nativecontext = mydisp->getLowLevelContext(prevContext);
+    void* nativecontext = getDisplay().getLowLevelContext(prevContext);
     struct MediaNativeCallerData callerdata;
     callerdata.ctx = nativecontext;
     callerdata.converter = nsConvertVideoFrameToNV12Textures;
@@ -2067,7 +2058,7 @@ void FrameBuffer::updateYUVTextures(uint32_t type,
     void* pcallerdata = nullptr;
 #endif
 
-    updater(privData, type, gtextures);
+    updater(privData, type, gtextures, pcallerdata);
 }
 
 void FrameBuffer::swapTexturesAndUpdateColorBuffer(uint32_t p_colorbuffer,

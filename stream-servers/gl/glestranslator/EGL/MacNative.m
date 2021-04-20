@@ -223,6 +223,11 @@ void* nsCreateContext(void* format,void* share){
     return [[EmuGLContext alloc] initWithFormat:frmt shareContext:share];
 }
 
+void* nsGetLowLevelContext(void* context) {
+    EmuGLContext* ctx = (EmuGLContext*)context;
+    return ctx;
+}
+
 void nsCopyTexture(void* context, int from, int to, int width, int height) {
     EmuGLContext* ctx = (EmuGLContext*)context;
 
@@ -305,7 +310,6 @@ void nsConvertVideoFrameToNV12Textures(void* context,
     nsCopyTexture(context, (int)Ytex, Ytexd, surface_w, surface_h);
     nsCopyTexture(context, (int)UVtex, UVtexd, surface_w/2, surface_h/2);
 }
-
 
 void  nsPBufferMakeCurrent(void* context,void* nativePBuffer,int level){
     EmuGLContext* ctx = (EmuGLContext *)context;
