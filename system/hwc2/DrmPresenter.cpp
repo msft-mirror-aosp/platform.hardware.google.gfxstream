@@ -222,6 +222,8 @@ bool DrmPresenter::initDrmElementsLocked() {
             mFd.get(), connectorProps->props[connectorPropIndex]);
         if (!strcmp(connectorProp->name, "CRTC_ID")) {
           connector.mCrtcPropertyId = connectorProp->prop_id;
+        } else if (!strcmp(connectorProp->name, "EDID")) {
+          connector.mEdidBlobId = connectorProps->prop_values[connectorPropIndex];
         }
         drmModeFreeProperty(connectorProp);
       }
@@ -244,11 +246,11 @@ bool DrmPresenter::initDrmElementsLocked() {
 
         // Dots per 1000 inches
         connector.dpiX =
-            c->mmWidth ? (c->mmWidth * kUmPerInch * 10) / c->modes[0].hdisplay
+            c->mmWidth ? (c->modes[0].hdisplay * kUmPerInch) / (c->mmWidth)
                        : -1;
         // Dots per 1000 inches
         connector.dpiY =
-            c->mmHeight ? (c->mmHeight * kUmPerInch * 10) / c->modes[0].vdisplay
+            c->mmHeight ? (c->modes[0].vdisplay * kUmPerInch) / (c->mmHeight)
                         : -1;
       }
       ALOGD("%s connector %" PRIu32 " dpiX %" PRIi32 " dpiY %" PRIi32
@@ -490,6 +492,29 @@ HWC2::Error DrmPresenter::flushToDisplay(int display, hwc_drm_bo_t& bo,
 
   DEBUG_LOG("%s: out fence: %d\n", __FUNCTION__, *outSyncFd);
   return error;
+}
+
+std::optional<std::vector<uint8_t>> DrmPresenter::getEdid(uint32_t id) {
+  AutoReadLock lock(mStateMutex);
+
+  if (mConnectors[id].mEdidBlobId == -1) {
+    ALOGW("%s: EDID not supported", __func__);
+    return std::nullopt;
+  }
+  drmModePropertyBlobPtr blob = drmModeGetPropertyBlob(mFd.get(),
+                                                       mConnectors[id].mEdidBlobId);
+  if (!blob) {
+    ALOGE("%s: fail to read EDID from DRM", __func__);
+    return std::nullopt;
+  }
+
+  std::vector<uint8_t> edid;
+  uint8_t* start = static_cast<uint8_t*>(blob->data);
+  edid.insert(edid.begin(), start, start + blob->length);
+
+  drmModeFreePropertyBlob(blob);
+
+  return edid;
 }
 
 DrmBuffer::DrmBuffer(const native_handle_t* handle, DrmPresenter& DrmPresenter)
