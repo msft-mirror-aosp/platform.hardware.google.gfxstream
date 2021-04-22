@@ -6440,6 +6440,14 @@ public:
         struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
         cb->flags = pBeginInfo->flags;
 
+        VkCommandBufferBeginInfo modifiedBeginInfo;
+
+        if (pBeginInfo->pInheritanceInfo && !cb->isSecondary) {
+            modifiedBeginInfo = *pBeginInfo;
+            modifiedBeginInfo.pInheritanceInfo = nullptr;
+            pBeginInfo = &modifiedBeginInfo;
+        }
+
         if (!supportsDeferredCommands()) {
             return enc->vkBeginCommandBuffer(commandBuffer, pBeginInfo, true /* do lock */);
         }
@@ -6599,6 +6607,27 @@ public:
         VkDescriptorSetLayout descriptorSetLayout,
         const VkAllocationCallbacks* pAllocator) {
         decDescriptorSetLayoutRef(context, device, descriptorSetLayout, pAllocator);
+    }
+
+    VkResult on_vkAllocateCommandBuffers(
+        void* context,
+        VkResult input_result,
+        VkDevice device,
+        const VkCommandBufferAllocateInfo* pAllocateInfo,
+        VkCommandBuffer* pCommandBuffers) {
+
+        (void)input_result;
+
+        VkEncoder* enc = (VkEncoder*)context;
+        VkResult res = enc->vkAllocateCommandBuffers(device, pAllocateInfo, pCommandBuffers, true /* do lock */);
+        if (VK_SUCCESS != res) return res;
+
+        for (uint32_t i = 0; i < pAllocateInfo->commandBufferCount; ++i) {
+            struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(pCommandBuffers[i]);
+            cb->isSecondary = pAllocateInfo->level == VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+        }
+
+        return res;
     }
 
     uint32_t getApiVersionFromInstance(VkInstance instance) const {
@@ -7715,6 +7744,15 @@ void ResourceTracker::on_vkDestroyDescriptorSetLayout(
     VkDescriptorSetLayout descriptorSetLayout,
     const VkAllocationCallbacks* pAllocator) {
     mImpl->on_vkDestroyDescriptorSetLayout(context, device, descriptorSetLayout, pAllocator);
+}
+
+VkResult ResourceTracker::on_vkAllocateCommandBuffers(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    const VkCommandBufferAllocateInfo* pAllocateInfo,
+    VkCommandBuffer* pCommandBuffers) {
+    return mImpl->on_vkAllocateCommandBuffers(context, input_result, device, pAllocateInfo, pCommandBuffers);
 }
 
 void ResourceTracker::deviceMemoryTransform_tohost(
