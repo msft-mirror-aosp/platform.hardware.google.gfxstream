@@ -65,7 +65,6 @@ class C2GoldfishAvcDec : public SimpleC2Component {
     status_t initDecoder();
     bool setDecodeArgs(C2ReadView *inBuffer, C2GraphicView *outBuffer,
                        size_t inOffset, size_t inSize, uint32_t tsMarker);
-    bool getVuiParams();
     c2_status_t ensureDecoderState(const std::shared_ptr<C2BlockPool> &pool);
     void finishWork(uint64_t index, const std::unique_ptr<C2Work> &work);
     status_t setFlushMode();
@@ -98,6 +97,7 @@ class C2GoldfishAvcDec : public SimpleC2Component {
 
     int mHostColorBufferId{-1};
 
+    void getVuiParams(h264_image_t &img);
     void copyImageData(uint8_t *pBuffer, h264_image_t &img);
 
     uint8_t *mByteBuffer{nullptr};
