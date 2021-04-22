@@ -89,8 +89,8 @@ class C2GoldfishVpxDec::IntfImpl : public SimpleInterface<void>::BaseParams {
             DefineParam(mSize, C2_PARAMKEY_PICTURE_SIZE)
                 .withDefault(new C2StreamPictureSizeInfo::output(0u, 320, 240))
                 .withFields({
-                    C2F(mSize, width).inRange(2, 2048, 2),
-                    C2F(mSize, height).inRange(2, 2048, 2),
+                    C2F(mSize, width).inRange(2, 4096, 2),
+                    C2F(mSize, height).inRange(2, 4096, 2),
                 })
                 .withSetter(SizeSetter)
                 .build());
@@ -178,8 +178,8 @@ class C2GoldfishVpxDec::IntfImpl : public SimpleInterface<void>::BaseParams {
                          .withDefault(new C2StreamMaxPictureSizeTuning::output(
                              0u, 320, 240))
                          .withFields({
-                             C2F(mSize, width).inRange(2, 2048, 2),
-                             C2F(mSize, height).inRange(2, 2048, 2),
+                             C2F(mSize, width).inRange(2, 4096, 2),
+                             C2F(mSize, height).inRange(2, 4096, 2),
                          })
                          .withSetter(MaxPictureSizeSetter, mSize)
                          .build());
@@ -242,17 +242,25 @@ class C2GoldfishVpxDec::IntfImpl : public SimpleInterface<void>::BaseParams {
                           const C2P<C2StreamPictureSizeInfo::output> &oldMe,
                           C2P<C2StreamPictureSizeInfo::output> &me) {
         (void)mayBlock;
-        DDD("calling sizesetter now %d", oldMe.v.height);
-        DDD("new calling sizesetter now %d", me.v.height);
+        DDD("calling sizesetter old w %d", oldMe.v.width);
+        DDD("calling sizesetter old h %d", oldMe.v.height);
+        DDD("calling sizesetter change to w %d", me.v.width);
+        DDD("calling sizesetter change to h %d", me.v.height);
         C2R res = C2R::Ok();
-        if (!me.F(me.v.width).supportsAtAll(me.v.width)) {
+        auto mewidth = me.F(me.v.width);
+        auto meheight = me.F(me.v.height);
+
+        if (!mewidth.supportsAtAll(me.v.width)) {
             res = res.plus(C2SettingResultBuilder::BadValue(me.F(me.v.width)));
+            DDD("override width with oldMe value");
             me.set().width = oldMe.v.width;
+            DDD("something wrong here %s %d", __func__, __LINE__);
         }
-        if (!me.F(me.v.height).supportsAtAll(me.v.height)) {
+        if (!meheight.supportsAtAll(me.v.height)) {
             res = res.plus(C2SettingResultBuilder::BadValue(me.F(me.v.height)));
-            DDD("override with oldMe value");
+            DDD("override height with oldMe value");
             me.set().height = oldMe.v.height;
+            DDD("something wrong here %s %d", __func__, __LINE__);
         }
         return res;
     }
@@ -264,8 +272,8 @@ class C2GoldfishVpxDec::IntfImpl : public SimpleInterface<void>::BaseParams {
         (void)mayBlock;
         // TODO: get max width/height from the size's field helpers vs.
         // hardcoding
-        me.set().width = c2_min(c2_max(me.v.width, size.v.width), 2048u);
-        me.set().height = c2_min(c2_max(me.v.height, size.v.height), 2048u);
+        me.set().width = c2_min(c2_max(me.v.width, size.v.width), 4096u);
+        me.set().height = c2_min(c2_max(me.v.height, size.v.height), 4096u);
         return C2R::Ok();
     }
 
