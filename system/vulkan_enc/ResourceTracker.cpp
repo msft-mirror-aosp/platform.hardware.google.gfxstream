@@ -5183,6 +5183,10 @@ public:
 
         if (exportEvent) {
             finalCreateInfo.pNext = nullptr;
+            // If we have timeline semaphores externally, leave it there.
+            const VkSemaphoreTypeCreateInfo* typeCi =
+                vk_find_struct<VkSemaphoreTypeCreateInfo>(pCreateInfo);
+            if (typeCi) finalCreateInfo.pNext = typeCi;
         }
 #endif
 
@@ -5193,6 +5197,10 @@ public:
 
         if (exportSyncFd) {
             finalCreateInfo.pNext = nullptr;
+            // If we have timeline semaphores externally, leave it there.
+            const VkSemaphoreTypeCreateInfo* typeCi =
+                vk_find_struct<VkSemaphoreTypeCreateInfo>(pCreateInfo);
+            if (typeCi) finalCreateInfo.pNext = typeCi;
         }
 #endif
         input_result = enc->vkCreateSemaphore(
