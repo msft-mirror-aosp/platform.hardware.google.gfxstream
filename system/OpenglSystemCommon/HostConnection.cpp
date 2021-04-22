@@ -620,6 +620,7 @@ GL2Encoder *HostConnection::gl2Encoder()
         m_gl2Enc->setDrawCallFlushInterval(
             getDrawCallFlushIntervalFromProperty());
         m_gl2Enc->setHasAsyncUnmapBuffer(m_rcEnc->hasAsyncUnmapBuffer());
+        m_gl2Enc->setHasSyncBufferData(m_rcEnc->hasSyncBufferData());
     }
     return m_gl2Enc.get();
 }
@@ -664,6 +665,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetAsyncFrameCommands(rcEnc);
         queryAndSetVulkanQueueSubmitWithCommandsSupport(rcEnc);
         queryAndSetVulkanBatchedDescriptorSetUpdateSupport(rcEnc);
+        queryAndSetSyncBufferData(rcEnc);
         if (m_processPipe) {
             m_processPipe->processPipeInit(m_connectionType, rcEnc);
         }
@@ -952,5 +954,12 @@ void HostConnection::queryAndSetVulkanBatchedDescriptorSetUpdateSupport(Extended
     std::string glExtensions = queryGLExtensions(rcEnc);
     if (glExtensions.find(kVulkanBatchedDescriptorSetUpdate) != std::string::npos) {
         rcEnc->featureInfo()->hasVulkanBatchedDescriptorSetUpdate = true;
+    }
+}
+
+void HostConnection::queryAndSetSyncBufferData(ExtendedRCEncoderContext* rcEnc) {
+    std::string glExtensions = queryGLExtensions(rcEnc);
+    if (glExtensions.find(kSyncBufferData) != std::string::npos) {
+        rcEnc->featureInfo()->hasSyncBufferData = true;
     }
 }

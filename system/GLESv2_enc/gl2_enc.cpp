@@ -11918,6 +11918,52 @@ void glFlushMappedBufferRangeAEMU2_enc(void *self , GLenum target, GLintptr offs
 
 }
 
+GLboolean glBufferDataSyncAEMU_enc(void *self , GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage)
+{
+	AEMU_SCOPED_TRACE("glBufferDataSyncAEMU encode");
+
+	gl2_encoder_context_t *ctx = (gl2_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	const unsigned int __size_data = ((data != NULL) ?  size : 0);
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + 4 + 4 + __size_data + 4 + 1*4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_glBufferDataSyncAEMU;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+		memcpy(ptr, &target, 4); ptr += 4;
+		memcpy(ptr, &size, 4); ptr += 4;
+	memcpy(ptr, &__size_data, 4); ptr += 4;
+	if (data != NULL) memcpy(ptr, data, __size_data);ptr += __size_data;
+		memcpy(ptr, &usage, 4); ptr += 4;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+
+	GLboolean retval;
+	stream->readback(&retval, 1);
+	if (useChecksum) checksumCalculator->addBuffer(&retval, 1);
+	if (useChecksum) {
+		unsigned char *checksumBufPtr = NULL;
+		unsigned char checksumBuf[ChecksumCalculator::kMaxChecksumSize];
+		if (checksumSize > 0) checksumBufPtr = &checksumBuf[0];
+		stream->readback(checksumBufPtr, checksumSize);
+		if (!checksumCalculator->validate(checksumBufPtr, checksumSize)) {
+			ALOGE("glBufferDataSyncAEMU: GL communication error, please report this issue to b.android.com.\n");
+			abort();
+		}
+	}
+	return retval;
+}
+
 }  // namespace
 
 gl2_encoder_context_t::gl2_encoder_context_t(IOStream *stream, ChecksumCalculator *checksumCalculator)
@@ -12351,5 +12397,6 @@ gl2_encoder_context_t::gl2_encoder_context_t(IOStream *stream, ChecksumCalculato
 	this->glDrawElementsDataNullAEMU = &glDrawElementsDataNullAEMU_enc;
 	this->glUnmapBufferAsyncAEMU = &glUnmapBufferAsyncAEMU_enc;
 	this->glFlushMappedBufferRangeAEMU2 = &glFlushMappedBufferRangeAEMU2_enc;
+	this->glBufferDataSyncAEMU = &glBufferDataSyncAEMU_enc;
 }
 
