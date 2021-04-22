@@ -75,6 +75,8 @@ public:
     bool hasAsyncFrameCommands() const {
         return m_featureInfo.hasAsyncFrameCommands;
     }
+    bool hasSyncBufferData() const {
+        return m_featureInfo.hasSyncBufferData; }
     DmaImpl getDmaVersion() const { return m_featureInfo.dmaImpl; }
     void bindDmaContext(struct goldfish_dma_context* cxt) { m_dmaCxt = cxt; }
     void bindDmaDirectly(void* dmaPtr, uint64_t dmaPhysAddr) {
@@ -239,6 +241,7 @@ private:
     void queryAndSetAsyncFrameCommands(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanQueueSubmitWithCommandsSupport(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanBatchedDescriptorSetUpdateSupport(ExtendedRCEncoderContext *rcEnc);
+    void queryAndSetSyncBufferData(ExtendedRCEncoderContext *rcEnc);
 
 private:
     HostConnectionType m_connectionType;

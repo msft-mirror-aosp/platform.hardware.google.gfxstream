@@ -35,6 +35,9 @@ public:
     void setHasAsyncUnmapBuffer(int version) {
         m_hasAsyncUnmapBuffer = version;
     }
+    void setHasSyncBufferData(bool value) {
+        m_hasSyncBufferData = value;
+    }
     void setNoHostError(bool noHostError) {
         m_noHostError = noHostError;
     }
@@ -113,6 +116,7 @@ private:
     std::vector<std::string> m_currExtensionsArray;
 
     bool    m_hasAsyncUnmapBuffer;
+    bool    m_hasSyncBufferData;
     bool    m_initialized;
     bool    m_noHostError;
     GLClientState *m_state;

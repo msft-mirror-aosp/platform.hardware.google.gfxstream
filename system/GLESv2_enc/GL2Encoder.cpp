@@ -74,6 +74,7 @@ GL2Encoder::GL2Encoder(IOStream *stream, ChecksumCalculator *protocol)
     m_currMajorVersion = 2;
     m_currMinorVersion = 0;
     m_hasAsyncUnmapBuffer = false;
+    m_hasSyncBufferData = false;
     m_initialized = false;
     m_noHostError = false;
     m_state = NULL;
@@ -668,7 +669,11 @@ void GL2Encoder::s_glBufferData(void * self, GLenum target, GLsizeiptr size, con
 
     ctx->m_shared->updateBufferData(bufferId, size, data);
     ctx->m_shared->setBufferUsage(bufferId, usage);
-    ctx->m_glBufferData_enc(self, target, size, data, usage);
+    if (ctx->m_hasSyncBufferData) {
+        ctx->glBufferDataSyncAEMU(self, target, size, data, usage);
+    } else {
+        ctx->m_glBufferData_enc(self, target, size, data, usage);
+    }
 }
 
 void GL2Encoder::s_glBufferSubData(void * self, GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid * data)
