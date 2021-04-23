@@ -86,7 +86,6 @@
     f(VkBufferView) \
     f(VkImageView) \
     f(VkShaderModule) \
-    f(VkSampler) \
     f(VkPipeline) \
     f(VkPipelineCache) \
     f(VkPipelineLayout) \
@@ -118,6 +117,7 @@
     f(VkDescriptorSet) \
     f(VkDescriptorSetLayout) \
     f(VkCommandPool) \
+    f(VkSampler) \
     __GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES_FUCHSIA(f) \
     GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(f) \
 
@@ -129,6 +129,12 @@
     GOLDFISH_VK_LIST_TRIVIAL_DISPATCHABLE_HANDLE_TYPES(f) \
     GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(f)
 
+#define GOLDFISH_VK_LIST_AUTODEFINED_STRUCT_DISPATCHABLE_HANDLE_TYPES(f) \
+    f(VkInstance) \
+    f(VkDevice) \
+    f(VkQueue) \
+    GOLDFISH_VK_LIST_TRIVIAL_DISPATCHABLE_HANDLE_TYPES(f)
+
 #define GOLDFISH_VK_LIST_AUTODEFINED_STRUCT_NON_DISPATCHABLE_HANDLE_TYPES(f) \
     f(VkDeviceMemory) \
     f(VkBuffer) \
@@ -137,6 +143,7 @@
     f(VkFence) \
     f(VkDescriptorUpdateTemplate) \
     f(VkCommandPool) \
+    f(VkSampler) \
     __GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES_FUCHSIA(f) \
     GOLDFISH_VK_LIST_TRIVIAL_NON_DISPATCHABLE_HANDLE_TYPES(f) \
 
