@@ -414,7 +414,7 @@ public:
     // For accurate error detection, bindTexture should be called for *all*
     // targets, not just 2D and EXTERNAL_OES.
     GLenum bindTexture(GLenum target, GLuint texture, GLboolean* firstUse);
-    void setBoundEGLImage(GLenum target, GLeglImageOES image);
+    void setBoundEGLImage(GLenum target, GLeglImageOES image, int width, int height);
 
     // Return the texture currently bound to GL_TEXTURE_(2D|EXTERNAL_OES).
     GLuint getBoundTexture(GLenum target) const;
