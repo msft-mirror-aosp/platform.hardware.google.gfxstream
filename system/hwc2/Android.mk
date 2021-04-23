@@ -100,4 +100,7 @@ LOCAL_C_INCLUDES += external/libdrm
 LOCAL_C_INCLUDES += external/drm_hwcomposer
 LOCAL_C_INCLUDES += external/minigbm/cros_gralloc
 LOCAL_MODULE := emulatorDrmTest
+LOCAL_LICENSE_KINDS := SPDX-license-identifier-Apache-2.0
+LOCAL_LICENSE_CONDITIONS := notice
+LOCAL_NOTICE_FILE := $(LOCAL_PATH)/../../LICENSE
 include $(BUILD_EXECUTABLE)
