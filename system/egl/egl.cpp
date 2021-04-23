@@ -1216,6 +1216,7 @@ EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig 
     }
 
     int attribs_size = 0;
+    EGLint backup_attribs[1];
     if (attrib_list) {
         const EGLint * attrib_p = attrib_list;
         while (attrib_p[0] != EGL_NONE) {
@@ -1223,6 +1224,10 @@ EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig 
             attrib_p += 2;
         }
         attribs_size++; //for the terminating EGL_NONE
+    } else {
+        attribs_size = 1;
+        backup_attribs[0] = EGL_NONE;
+        attrib_list = backup_attribs;
     }
 
     // API 19 passes EGL_SWAP_BEHAVIOR_PRESERVED_BIT to surface type,
@@ -2275,6 +2280,8 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
         image->dpy = dpy;
         image->target = target;
         image->native_buffer = native_buffer;
+        image->width = native_buffer->width;
+        image->height = native_buffer->width;
 
         return (EGLImageKHR)image;
     }
@@ -2291,6 +2298,8 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
         image->dpy = dpy;
         image->target = target;
         image->host_egl_image = img;
+        image->width = context->getClientState()->queryTexWidth(0, texture);
+        image->height = context->getClientState()->queryTexHeight(0, texture);
 
         return (EGLImageKHR)image;
     }
@@ -2376,17 +2385,17 @@ EGLSyncKHR eglCreateSyncKHR(EGLDisplay dpy, EGLenum type,
 
         // Validate and input attribs
         for (int i = 0; i < num_actual_attribs; i += 2) {
-            if (attrib_list[i] == EGL_SYNC_TYPE_KHR) {
-                DPRINT("ERROR: attrib key = EGL_SYNC_TYPE_KHR");
-            }
-            if (attrib_list[i] == EGL_SYNC_STATUS_KHR) {
-                DPRINT("ERROR: attrib key = EGL_SYNC_STATUS_KHR");
-            }
-            if (attrib_list[i] == EGL_SYNC_CONDITION_KHR) {
-                DPRINT("ERROR: attrib key = EGL_SYNC_CONDITION_KHR");
-            }
             EGLint attrib_key = attrib_list[i];
             EGLint attrib_val = attrib_list[i + 1];
+            switch (attrib_key) {
+                case EGL_SYNC_TYPE_KHR:
+                case EGL_SYNC_STATUS_KHR:
+                case EGL_SYNC_CONDITION_KHR:
+                case EGL_SYNC_NATIVE_FENCE_FD_ANDROID:
+                    break;
+                default:
+                    setErrorReturn(EGL_BAD_ATTRIBUTE, EGL_NO_SYNC_KHR);
+            }
             if (attrib_key == EGL_SYNC_NATIVE_FENCE_FD_ANDROID) {
                 if (attrib_val != EGL_NO_NATIVE_FENCE_FD_ANDROID) {
                     inputFenceFd = attrib_val;
@@ -2455,8 +2464,8 @@ EGLBoolean eglDestroySyncKHR(EGLDisplay dpy, EGLSyncKHR eglsync)
     (void)dpy;
 
     if (!eglsync) {
-        DPRINT("WARNING: null sync object")
-        return EGL_TRUE;
+        ALOGE("%s: null sync object!", __FUNCTION__);
+        setErrorReturn(EGL_BAD_PARAMETER, EGL_FALSE);
     }
 
     EGLSync_t* sync = static_cast<EGLSync_t*>(eglsync);
@@ -2487,8 +2496,8 @@ EGLint eglClientWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR eglsync, EGLint flags,
     (void)dpy;
 
     if (!eglsync) {
-        DPRINT("WARNING: null sync object");
-        return EGL_CONDITION_SATISFIED_KHR;
+        ALOGE("%s: null sync object!", __FUNCTION__);
+        setErrorReturn(EGL_BAD_PARAMETER, EGL_FALSE);
     }
 
     EGLSync_t* sync = (EGLSync_t*)eglsync;
@@ -2526,6 +2535,14 @@ EGLBoolean eglGetSyncAttribKHR(EGLDisplay dpy, EGLSyncKHR eglsync,
     (void)dpy;
 
     EGLSync_t* sync = (EGLSync_t*)eglsync;
+
+    if (!sync) {
+        setErrorReturn(EGL_BAD_PARAMETER, EGL_FALSE);
+    }
+
+    if (!value) {
+        setErrorReturn(EGL_BAD_PARAMETER, EGL_FALSE);
+    }
 
     switch (attribute) {
     case EGL_SYNC_TYPE_KHR:
@@ -2574,12 +2591,12 @@ EGLint eglWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR eglsync, EGLint flags) {
 
     if (!eglsync) {
         ALOGE("%s: null sync object!", __FUNCTION__);
-        return EGL_FALSE;
+        setErrorReturn(EGL_BAD_PARAMETER, EGL_FALSE);
     }
 
     if (flags) {
         ALOGE("%s: flags must be 0, got 0x%x", __FUNCTION__, flags);
-        return EGL_FALSE;
+        setErrorReturn(EGL_BAD_PARAMETER, EGL_FALSE);
     }
 
     DEFINE_HOST_CONNECTION;
