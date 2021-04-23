@@ -83,7 +83,7 @@ struct goldfish_vk_object_list {
 #define GOLDFISH_VK_GET_HOST_U64_DECL(type) \
     uint64_t get_host_u64_##type(type);
 
-GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_DEFINE_DISPATCHABLE_HANDLE_STRUCT)
+GOLDFISH_VK_LIST_AUTODEFINED_STRUCT_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_DEFINE_DISPATCHABLE_HANDLE_STRUCT)
 GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_NEW_FROM_HOST_DECL)
 GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_AS_GOLDFISH_DECL)
 GOLDFISH_VK_LIST_DISPATCHABLE_HANDLE_TYPES(GOLDFISH_VK_GET_HOST_DECL)
@@ -114,6 +114,21 @@ struct goldfish_VkDescriptorSet {
 struct goldfish_VkDescriptorSetLayout {
     uint64_t underlying;
     goldfish_vk::DescriptorSetLayoutInfo* layoutInfo;
+};
+
+struct goldfish_VkCommandBuffer {
+    hwvulkan_dispatch_t dispatch;
+    uint64_t underlying;
+    goldfish_vk::VkEncoder* lastUsedEncoder;
+    uint32_t sequenceNumber;
+    goldfish_vk::VkEncoder* privateEncoder;
+    IOStream* privateStream;
+    uint32_t flags;
+    struct goldfish_vk_object_list* poolObjects;
+    struct goldfish_vk_object_list* subObjects;
+    struct goldfish_vk_object_list* superObjects;
+    void* userPtr;
+    bool isSecondary;
 };
 
 } // extern "C"
