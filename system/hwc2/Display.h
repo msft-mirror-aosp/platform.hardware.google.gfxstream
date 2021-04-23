@@ -47,10 +47,13 @@ class Display {
   Display& operator=(Display&& display) = delete;
 
   HWC2::Error init(uint32_t width, uint32_t height, uint32_t dpiX,
-                   uint32_t dpiY, uint32_t refreshRateHz);
+                   uint32_t dpiY, uint32_t refreshRateHz,
+                   const std::optional<std::vector<uint8_t>>& edid = std::nullopt);
 
   HWC2::Error updateParameters(uint32_t width, uint32_t height, uint32_t dpiX,
-                               uint32_t dpiY, uint32_t refreshRateHz);
+                               uint32_t dpiY, uint32_t refreshRateHz,
+                               const std::optional<std::vector<uint8_t>>& edid
+                                   = std::nullopt);
 
   hwc2_display_t getId() const { return mId; }
 
@@ -226,6 +229,7 @@ class Display {
   std::set<android_color_mode_t> mColorModes;
   android_color_mode_t mActiveColorMode;
   bool mSetColorTransform = false;
+  std::optional<std::vector<uint8_t>> mEdid;
 };
 
 }  // namespace android
