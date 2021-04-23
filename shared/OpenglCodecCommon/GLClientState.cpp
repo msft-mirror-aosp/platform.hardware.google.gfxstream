@@ -1481,7 +1481,7 @@ GLenum GLClientState::bindTexture(GLenum target, GLuint texture,
     return GL_NO_ERROR;
 }
 
-void GLClientState::setBoundEGLImage(GLenum target, GLeglImageOES image) {
+void GLClientState::setBoundEGLImage(GLenum target, GLeglImageOES image, int width, int height) {
     (void)image;
 
     if (target == GL_RENDERBUFFER) {
@@ -1489,7 +1489,7 @@ void GLClientState::setBoundEGLImage(GLenum target, GLeglImageOES image) {
         setBoundRenderbufferEGLImageBacked();
         setBoundRenderbufferFormat(GL_RGBA);
         setBoundRenderbufferSamples(0);
-        setBoundRenderbufferDimensions(1, 1);
+        setBoundRenderbufferDimensions(width, height);
     } else {
         GLuint texture = getBoundTexture(target);
         TextureRec* texrec = getTextureRec(texture);
@@ -1499,7 +1499,7 @@ void GLClientState::setBoundEGLImage(GLenum target, GLeglImageOES image) {
         setBoundTextureFormat(target, GL_RGBA);
         setBoundTextureType(target, GL_UNSIGNED_BYTE);
         setBoundTextureSamples(target, 0);
-        setBoundTextureDims(target, target, 0, 1, 1, 1);
+        setBoundTextureDims(target, target, 0, width, height, 1);
     }
 }
 

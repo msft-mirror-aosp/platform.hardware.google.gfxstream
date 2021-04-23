@@ -97,7 +97,7 @@ public:
 
     void override2DTextureTarget(GLenum target);
     void restore2DTextureTarget(GLenum target);
-    void associateEGLImage(GLenum target, GLeglImageOES eglImage);
+    void associateEGLImage(GLenum target, GLeglImageOES eglImage, int width, int height);
 
     // Convenience functions for buffers
     GLuint boundBuffer(GLenum target) const;
