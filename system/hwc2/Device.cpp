@@ -525,7 +525,9 @@ bool Device::handleHotplug(bool connected, uint32_t id, uint32_t width,
   }
   if (connected) {
     createDisplay(id, width, height, dpiX, dpiY, refreshRate);
-    ALOGD("callback hotplugConnect display %" PRIu32, id);
+    ALOGD("callback hotplugConnect display %" PRIu32 " width %" PRIu32
+          " height %" PRIu32 " dpiX %" PRIu32 " dpiY %" PRIu32
+          "fps %" PRIu32, id, width, height, dpiX, dpiY, refreshRate);
     hotplug(mCallbacks[HWC2::Callback::Hotplug].data, id, hotplugConnect);
   };
 
