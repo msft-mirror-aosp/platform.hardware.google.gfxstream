@@ -40,6 +40,7 @@ public:
     void setNoHostError(bool) { }
     void setDrawCallFlushInterval(uint32_t) { }
     void setHasAsyncUnmapBuffer(int) { }
+    void setHasSyncBufferData(int) { }
 };
 #else
 #include "GLEncoder.h"
