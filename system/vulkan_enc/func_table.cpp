@@ -1025,7 +1025,8 @@ static VkResult entry_vkAllocateCommandBuffers(
     AEMU_SCOPED_TRACE("vkAllocateCommandBuffers");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     VkResult vkAllocateCommandBuffers_VkResult_return = (VkResult)0;
-    vkAllocateCommandBuffers_VkResult_return = vkEnc->vkAllocateCommandBuffers(device, pAllocateInfo, pCommandBuffers, true /* do lock */);
+    auto resources = ResourceTracker::get();
+    vkAllocateCommandBuffers_VkResult_return = resources->on_vkAllocateCommandBuffers(vkEnc, VK_SUCCESS, device, pAllocateInfo, pCommandBuffers);
     if (vkAllocateCommandBuffers_VkResult_return == VK_SUCCESS) {
         ResourceTracker::get()->addToCommandPool(pAllocateInfo->commandPool, pAllocateInfo->commandBufferCount, pCommandBuffers);
     }

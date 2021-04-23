@@ -419,6 +419,10 @@ public:
         uint32_t unused;
     };
 
+    struct VkSampler_Info {
+        uint32_t unused;
+    };
+
     struct VkBufferCollectionFUCHSIA_Info {
 #ifdef VK_USE_PLATFORM_FUCHSIA
         android::base::Optional<
@@ -476,6 +480,13 @@ public:
 
         AutoLock lock(mLock);
         info_VkCommandPool.erase(pool);
+    }
+
+    void unregister_VkSampler(VkSampler sampler) {
+        if (!sampler) return;
+
+        AutoLock lock(mLock);
+        info_VkSampler.erase(sampler);
     }
 
     void unregister_VkCommandBuffer(VkCommandBuffer commandBuffer) {
@@ -709,33 +720,31 @@ public:
         return res;
     }
 
-    VkWriteDescriptorSet
-    createImmutableSamplersFilteredWriteDescriptorSetLocked(
-        const VkWriteDescriptorSet* descriptorWrite,
-        std::vector<VkDescriptorImageInfo>* imageInfoArray) {
+    bool descriptorBindingIsImmutableSampler(
+        VkDescriptorSet dstSet,
+        uint32_t dstBinding) {
 
-        VkWriteDescriptorSet res = *descriptorWrite;
+        return as_goldfish_VkDescriptorSet(dstSet)->reified->bindingIsImmutableSampler[dstBinding];
+    }
 
-        if  (descriptorWrite->descriptorCount == 0) return res;
+    VkDescriptorImageInfo
+    filterNonexistentSampler(
+        const VkDescriptorImageInfo& inputInfo) {
 
-        if  (descriptorWrite->descriptorType != VK_DESCRIPTOR_TYPE_SAMPLER &&
-             descriptorWrite->descriptorType != VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) return res;
+        VkSampler sampler =
+            inputInfo.sampler;
 
-        bool immutableSampler =
-            as_goldfish_VkDescriptorSet(descriptorWrite->dstSet)->reified->bindingIsImmutableSampler[descriptorWrite->dstBinding];
+        VkDescriptorImageInfo res = inputInfo;
 
-        if (!immutableSampler) return res;
-
-        for (uint32_t i = 0; i < descriptorWrite->descriptorCount; ++i) {
-            VkDescriptorImageInfo imageInfo = descriptorWrite->pImageInfo[i];
-            imageInfo.sampler = 0;
-            imageInfoArray->push_back(imageInfo);
+        if (sampler) {
+            auto it = info_VkSampler.find(sampler);
+            bool samplerExists = it != info_VkSampler.end();
+            if (!samplerExists) res.sampler = 0;
         }
-
-        res.pImageInfo = imageInfoArray->data();
 
         return res;
     }
+
 
     void freeDescriptorSetsIfHostAllocated(VkEncoder* enc, VkDevice device, uint32_t descriptorSetCount, const VkDescriptorSet* sets) {
         for (uint32_t i = 0; i < descriptorSetCount; ++i) {
@@ -4782,25 +4791,62 @@ public:
 
         VkEncoder* enc = (VkEncoder*)context;
 
-        std::vector<std::vector<VkDescriptorImageInfo>> imageInfosPerWrite(
-                descriptorWriteCount);
+        std::vector<VkDescriptorImageInfo> transformedImageInfos;
+        std::vector<VkWriteDescriptorSet> transformedWrites(descriptorWriteCount);
 
-        std::vector<VkWriteDescriptorSet> writesWithSuppressedSamplers;
+        memcpy(transformedWrites.data(), pDescriptorWrites, sizeof(VkWriteDescriptorSet) * descriptorWriteCount);
+
+        size_t imageInfosNeeded = 0;
+        for (uint32_t i = 0; i < descriptorWriteCount; ++i) {
+            if (!isDescriptorTypeImageInfo(transformedWrites[i].descriptorType)) continue;
+            if (!transformedWrites[i].pImageInfo) continue;
+
+            imageInfosNeeded += transformedWrites[i].descriptorCount;
+        }
+
+        transformedImageInfos.resize(imageInfosNeeded);
+
+        size_t imageInfoIndex = 0;
+        for (uint32_t i = 0; i < descriptorWriteCount; ++i) {
+            if (!isDescriptorTypeImageInfo(transformedWrites[i].descriptorType)) continue;
+            if (!transformedWrites[i].pImageInfo) continue;
+
+            for (uint32_t j = 0; j < transformedWrites[i].descriptorCount; ++j) {
+                transformedImageInfos[imageInfoIndex] = transformedWrites[i].pImageInfo[j];
+                ++imageInfoIndex;
+            }
+            transformedWrites[i].pImageInfo = &transformedImageInfos[imageInfoIndex - transformedWrites[i].descriptorCount];
+        }
 
         {
+            // Validate and filter samplers
             AutoLock lock(mLock);
+            size_t imageInfoIndex = 0;
             for (uint32_t i = 0; i < descriptorWriteCount; ++i) {
-                writesWithSuppressedSamplers.push_back(
-                        createImmutableSamplersFilteredWriteDescriptorSetLocked(
-                            pDescriptorWrites + i,
-                            imageInfosPerWrite.data() + i));
+
+                if (!isDescriptorTypeImageInfo(transformedWrites[i].descriptorType)) continue;
+                if (!transformedWrites[i].pImageInfo) continue;
+
+                bool isImmutableSampler =
+                    descriptorBindingIsImmutableSampler(
+                        transformedWrites[i].dstSet,
+                        transformedWrites[i].dstBinding);
+
+                for (uint32_t j = 0; j < transformedWrites[i].descriptorCount; ++j) {
+                    if (isImmutableSampler) {
+                        transformedImageInfos[imageInfoIndex].sampler = 0;
+                    }
+                    transformedImageInfos[imageInfoIndex] =
+                        filterNonexistentSampler(transformedImageInfos[imageInfoIndex]);
+                    ++imageInfoIndex;
+                }
             }
         }
 
         if (mFeatureInfo->hasVulkanBatchedDescriptorSetUpdate) {
             for (uint32_t i = 0; i < descriptorWriteCount; ++i) {
-                VkDescriptorSet set = writesWithSuppressedSamplers[i].dstSet;
-                doEmulatedDescriptorWrite(&writesWithSuppressedSamplers[i],
+                VkDescriptorSet set = transformedWrites[i].dstSet;
+                doEmulatedDescriptorWrite(&transformedWrites[i],
                         as_goldfish_VkDescriptorSet(set)->reified);
             }
 
@@ -4811,7 +4857,7 @@ public:
             }
         } else {
             enc->vkUpdateDescriptorSets(
-                    device, descriptorWriteCount, writesWithSuppressedSamplers.data(),
+                    device, descriptorWriteCount, transformedWrites.data(),
                     descriptorCopyCount, pDescriptorCopies, true /* do lock */);
         }
     }
@@ -5137,6 +5183,10 @@ public:
 
         if (exportEvent) {
             finalCreateInfo.pNext = nullptr;
+            // If we have timeline semaphores externally, leave it there.
+            const VkSemaphoreTypeCreateInfo* typeCi =
+                vk_find_struct<VkSemaphoreTypeCreateInfo>(pCreateInfo);
+            if (typeCi) finalCreateInfo.pNext = typeCi;
         }
 #endif
 
@@ -5147,6 +5197,10 @@ public:
 
         if (exportSyncFd) {
             finalCreateInfo.pNext = nullptr;
+            // If we have timeline semaphores externally, leave it there.
+            const VkSemaphoreTypeCreateInfo* typeCi =
+                vk_find_struct<VkSemaphoreTypeCreateInfo>(pCreateInfo);
+            if (typeCi) finalCreateInfo.pNext = typeCi;
         }
 #endif
         input_result = enc->vkCreateSemaphore(
@@ -6440,6 +6494,14 @@ public:
         struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
         cb->flags = pBeginInfo->flags;
 
+        VkCommandBufferBeginInfo modifiedBeginInfo;
+
+        if (pBeginInfo->pInheritanceInfo && !cb->isSecondary) {
+            modifiedBeginInfo = *pBeginInfo;
+            modifiedBeginInfo.pInheritanceInfo = nullptr;
+            pBeginInfo = &modifiedBeginInfo;
+        }
+
         if (!supportsDeferredCommands()) {
             return enc->vkBeginCommandBuffer(commandBuffer, pBeginInfo, true /* do lock */);
         }
@@ -6599,6 +6661,27 @@ public:
         VkDescriptorSetLayout descriptorSetLayout,
         const VkAllocationCallbacks* pAllocator) {
         decDescriptorSetLayoutRef(context, device, descriptorSetLayout, pAllocator);
+    }
+
+    VkResult on_vkAllocateCommandBuffers(
+        void* context,
+        VkResult input_result,
+        VkDevice device,
+        const VkCommandBufferAllocateInfo* pAllocateInfo,
+        VkCommandBuffer* pCommandBuffers) {
+
+        (void)input_result;
+
+        VkEncoder* enc = (VkEncoder*)context;
+        VkResult res = enc->vkAllocateCommandBuffers(device, pAllocateInfo, pCommandBuffers, true /* do lock */);
+        if (VK_SUCCESS != res) return res;
+
+        for (uint32_t i = 0; i < pAllocateInfo->commandBufferCount; ++i) {
+            struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(pCommandBuffers[i]);
+            cb->isSecondary = pAllocateInfo->level == VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+        }
+
+        return res;
     }
 
     uint32_t getApiVersionFromInstance(VkInstance instance) const {
@@ -7715,6 +7798,15 @@ void ResourceTracker::on_vkDestroyDescriptorSetLayout(
     VkDescriptorSetLayout descriptorSetLayout,
     const VkAllocationCallbacks* pAllocator) {
     mImpl->on_vkDestroyDescriptorSetLayout(context, device, descriptorSetLayout, pAllocator);
+}
+
+VkResult ResourceTracker::on_vkAllocateCommandBuffers(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    const VkCommandBufferAllocateInfo* pAllocateInfo,
+    VkCommandBuffer* pCommandBuffers) {
+    return mImpl->on_vkAllocateCommandBuffers(context, input_result, device, pAllocateInfo, pCommandBuffers);
 }
 
 void ResourceTracker::deviceMemoryTransform_tohost(
