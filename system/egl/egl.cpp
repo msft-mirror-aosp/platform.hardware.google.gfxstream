@@ -1216,6 +1216,7 @@ EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig 
     }
 
     int attribs_size = 0;
+    EGLint backup_attribs[1];
     if (attrib_list) {
         const EGLint * attrib_p = attrib_list;
         while (attrib_p[0] != EGL_NONE) {
@@ -1223,6 +1224,10 @@ EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig 
             attrib_p += 2;
         }
         attribs_size++; //for the terminating EGL_NONE
+    } else {
+        attribs_size = 1;
+        backup_attribs[0] = EGL_NONE;
+        attrib_list = backup_attribs;
     }
 
     // API 19 passes EGL_SWAP_BEHAVIOR_PRESERVED_BIT to surface type,
