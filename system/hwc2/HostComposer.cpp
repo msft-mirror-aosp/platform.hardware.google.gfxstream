@@ -152,7 +152,6 @@ class ComposeMsg_v2 {
 const native_handle_t* AllocateDisplayColorBuffer(int width, int height) {
   const uint32_t layerCount = 1;
   const uint64_t graphicBufferId = 0;  // not used
-
   buffer_handle_t h;
   uint32_t stride;
 
@@ -266,13 +265,17 @@ HWC2::Error HostComposer::createDisplay(
     hostCon->unlock();
     return HWC2::Error::NoResources;
   }
-  if (rcEnc->rcSetDisplayPose(rcEnc, displayId, -1, -1, width, height)) {
+  if (rcEnc->rcSetDisplayPoseDpi(rcEnc, displayId, -1, -1, width, height, dpiX/1000)) {
     ALOGE("%s host failed to set display %" PRIu32, __func__, displayId);
     hostCon->unlock();
     return HWC2::Error::NoResources;
   }
   hostCon->unlock();
 
+  std::optional<std::vector<uint8_t>> edid;
+  if (mIsMinigbm) {
+    edid = mDrmPresenter.getEdid(displayId);
+  }
   if (!display) {
     auto newDisplay = std::make_unique<Display>(*device, this, displayId);
     if (newDisplay == nullptr) {
@@ -280,7 +283,8 @@ HWC2::Error HostComposer::createDisplay(
       return HWC2::Error::NoResources;
     }
 
-    error = newDisplay->init(width, height, dpiX, dpiY, refreshRateHz);
+
+    error = newDisplay->init(width, height, dpiX, dpiY, refreshRateHz, edid);
     if (error != HWC2::Error::None) {
       ALOGE("%s failed to initialize display:%" PRIu32, __FUNCTION__,
             displayId);
@@ -303,7 +307,8 @@ HWC2::Error HostComposer::createDisplay(
   } else {
     display->lock();
     // update display parameters
-    error = display->updateParameters(width, height, dpiX, dpiY, refreshRateHz);
+    error = display->updateParameters(width, height, dpiX, dpiY,
+                                      refreshRateHz, edid);
     if (error != HWC2::Error::None) {
       ALOGE("%s failed to update display:%" PRIu32, __FUNCTION__, displayId);
       display->unlock();
@@ -568,6 +573,7 @@ HWC2::Error HostComposer::validateDisplay(
     if (display->hasColorTransform()) {
       fallBack = true;
     }
+
     if (fallBack) {
       for (auto& layer : layers) {
         if (layer->getCompositionType() == HWC2::Composition::Invalid) {
