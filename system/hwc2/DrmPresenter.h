@@ -78,6 +78,8 @@ class DrmPresenter {
 
   HWC2::Error flushToDisplay(int display, hwc_drm_bo_t& fb, int* outSyncFd);
 
+  std::optional<std::vector<uint8_t>> getEdid(uint32_t id);
+
  private:
   // Grant visibility for getDrmFB and clearDrmFB to DrmBuffer.
   friend class DrmBuffer;
@@ -136,6 +138,7 @@ class DrmPresenter {
     uint32_t mModeBlobId = 0;
     float mRefreshRateAsFloat;
     uint32_t mRefreshRateAsInteger;
+    uint64_t mEdidBlobId = -1;
   };
   std::vector<DrmConnector> mConnectors;
 
