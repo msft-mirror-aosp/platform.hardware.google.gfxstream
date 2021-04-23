@@ -2280,6 +2280,8 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
         image->dpy = dpy;
         image->target = target;
         image->native_buffer = native_buffer;
+        image->width = native_buffer->width;
+        image->height = native_buffer->width;
 
         return (EGLImageKHR)image;
     }
@@ -2296,6 +2298,8 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
         image->dpy = dpy;
         image->target = target;
         image->host_egl_image = img;
+        image->width = context->getClientState()->queryTexWidth(0, texture);
+        image->height = context->getClientState()->queryTexHeight(0, texture);
 
         return (EGLImageKHR)image;
     }
