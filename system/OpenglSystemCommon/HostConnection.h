@@ -242,6 +242,7 @@ private:
     void queryAndSetVulkanQueueSubmitWithCommandsSupport(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanBatchedDescriptorSetUpdateSupport(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetSyncBufferData(ExtendedRCEncoderContext *rcEnc);
+    GLint queryVersion(ExtendedRCEncoderContext* rcEnc);
 
 private:
     HostConnectionType m_connectionType;
