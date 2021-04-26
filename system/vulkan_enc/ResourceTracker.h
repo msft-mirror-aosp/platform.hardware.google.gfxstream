@@ -107,6 +107,15 @@ public:
         void* context,
         VkPhysicalDevice physicalDevice,
         VkPhysicalDeviceMemoryProperties2* pMemoryProperties);
+    void on_vkGetDeviceQueue(void* context,
+                             VkDevice device,
+                             uint32_t queueFamilyIndex,
+                             uint32_t queueIndex,
+                             VkQueue* pQueue);
+    void on_vkGetDeviceQueue2(void* context,
+                              VkDevice device,
+                              const VkDeviceQueueInfo2* pQueueInfo,
+                              VkQueue* pQueue);
 
     VkResult on_vkCreateInstance(
         void* context,
