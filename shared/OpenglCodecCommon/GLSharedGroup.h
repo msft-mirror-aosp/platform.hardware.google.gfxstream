@@ -30,6 +30,7 @@
 #include <GLES2/gl2ext.h>
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -39,7 +40,6 @@
 #include <utils/threads.h>
 #include "auto_goldfish_dma_context.h"
 #include "IndexRangeCache.h"
-#include "SmartPtr.h"
 #include "StateTrackingSupport.h"
 
 struct BufferData {
@@ -258,6 +258,6 @@ public:
     int getActiveAttributesCountForProgram(GLuint program);
 };
 
-typedef SmartPtr<GLSharedGroup> GLSharedGroupPtr; 
+typedef std::shared_ptr<GLSharedGroup> GLSharedGroupPtr;
 
 #endif //_GL_SHARED_GROUP_H_
