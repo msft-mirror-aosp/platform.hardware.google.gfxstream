@@ -1629,6 +1629,8 @@ void VkEncoder::vkGetDeviceQueue(
     stream->read((uint64_t*)&cgen_var_2, 8);
     stream->handleMapping()->mapHandles_u64_VkQueue(&cgen_var_2, (VkQueue*)pQueue, 1);
     stream->unsetHandleMapping();
+    sResourceTracker->on_vkGetDeviceQueue(this, device, queueFamilyIndex,
+                                          queueIndex, pQueue);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -12209,6 +12211,7 @@ void VkEncoder::vkGetDeviceQueue2(
     uint64_t cgen_var_2;
     stream->read((uint64_t*)&cgen_var_2, 8);
     stream->handleMapping()->mapHandles_u64_VkQueue(&cgen_var_2, (VkQueue*)pQueue, 1);
+    sResourceTracker->on_vkGetDeviceQueue2(this, device, pQueueInfo, pQueue);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
