@@ -125,6 +125,7 @@ VkResult getMemoryAndroidHardwareBufferANDROID(struct AHardwareBuffer **) { retu
 
 #include "HostVisibleMemoryVirtualization.h"
 #include "Resources.h"
+#include "SyncFencePool.h"
 #include "VkEncoder.h"
 
 #include "android/base/AlignedBuf.h"
@@ -315,6 +316,7 @@ public:
         std::vector<HostMemBlocks> hostMemBlocks { VK_MAX_MEMORY_TYPES };
         uint32_t apiVersion;
         std::set<std::string> enabledExtensions;
+        std::unique_ptr<SyncFencePool> fencePool;
     };
 
     struct VirtioGpuHostmemResourceInfo {
@@ -345,7 +347,6 @@ public:
         uint64_t id;
 
         VkFence fence = VK_NULL_HANDLE;
-        VkFence tempFence = VK_NULL_HANDLE;
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
         std::vector<zx::event> eventsToWait;
@@ -353,7 +354,6 @@ public:
 
         zx::eventpair syncEvent;
         std::unique_ptr<async::WaitOnce> wait;
-        fidl::WireSyncClient<fuchsia_hardware_goldfish::SyncTimeline> timelineClient;
 #endif // VK_USE_PLATFORM_FUCHSIA
     };
 
@@ -491,7 +491,6 @@ public:
 
         auto it = info_VkDevice.find(device);
         if (it == info_VkDevice.end()) return;
-        auto info = it->second;
         info_VkDevice.erase(device);
         lock.unlock();
     }
@@ -845,6 +844,9 @@ public:
             mFeatureInfo.get(),
             &mHostVisibleMemoryVirtInfo);
         info.apiVersion = props.apiVersion;
+#ifdef VK_USE_PLATFORM_FUCHSIA
+        info.fencePool = std::make_unique<SyncFencePool>(device, mSyncDevice.get());
+#endif  // VK_USE_PLATFORM_FUCHSIA
 
         if (!ppEnabledExtensionNames) return;
 
@@ -1697,7 +1699,7 @@ public:
 
         auto it = info_VkDevice.find(device);
         if (it == info_VkDevice.end()) return;
-        auto info = it->second;
+        auto hostMemBlocks = it->second.hostMemBlocks;
 
         lock.unlock();
 
@@ -1706,7 +1708,7 @@ public:
         bool freeMemorySyncSupported =
             mFeatureInfo->hasVulkanFreeMemorySync;
         for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
-            for (auto& block : info.hostMemBlocks[i]) {
+            for (auto& block : hostMemBlocks[i]) {
                 destroyHostMemAlloc(
                     freeMemorySyncSupported,
                     enc, device, &block);
@@ -5722,9 +5724,13 @@ public:
         }
         lock.unlock();
 
-        // Create a temporary VkFence.
+        // Acquire a VkFence and timeline from syncFencePool.
         VkFence tempFence = VK_NULL_HANDLE;
         VkDevice device = VK_NULL_HANDLE;
+
+        SyncFencePool* syncFencePool = nullptr;
+        SyncFence* syncFence = nullptr;
+
         if (!postWaitEvents.empty()) {
             lock.lock();
             const auto& queueInfo = info_VkQueue.find(queue);
@@ -5732,19 +5738,15 @@ public:
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
             }
             device = queueInfo->second.device;
+            const auto& deviceInfo = info_VkDevice.find(device);
+            if (deviceInfo == info_VkDevice.end() || deviceInfo->second.fencePool == nullptr) {
+                return VK_ERROR_OUT_OF_HOST_MEMORY;
+            }
+            syncFencePool = deviceInfo->second.fencePool.get();
             lock.unlock();
 
-            VkFenceCreateInfo fenceCreateInfo = {
-                .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-                .pNext = nullptr,
-                .flags = 0,
-            };
-
-            auto result = enc->vkCreateFence(device, &fenceCreateInfo, nullptr, &tempFence,
-                                             true /* do lock */);
-            if (result != VK_SUCCESS) {
-                return result;
-            }
+            syncFence = syncFencePool->acquire();
+            tempFence = syncFence->fence;
         }
 
         if (!preSignalSemaphores.empty()) {
@@ -5790,20 +5792,6 @@ public:
         }
 
         if (!postWaitEvents.empty()) {
-            auto timelineEnds = fidl::CreateEndpoints<fuchsia_hardware_goldfish::SyncTimeline>();
-            if (!timelineEnds.is_ok()) {
-                ALOGE("Cannot create sync timeline channels, error: %s",
-                      timelineEnds.status_string());
-                return VK_ERROR_DEVICE_LOST;
-            }
-
-            auto createTimelineResult =
-                mSyncDevice->CreateTimeline(std::move(timelineEnds->server));
-            if (!createTimelineResult.ok()) {
-                ALOGE("CreateTimeline failed, error: %s", createTimelineResult.status_string());
-                return VK_ERROR_DEVICE_LOST;
-            }
-
             zx::eventpair syncEventClient, syncEventServer;
             auto status = zx::eventpair::create(0u, &syncEventClient, &syncEventServer);
             if (status != ZX_OK) {
@@ -5818,10 +5806,7 @@ public:
             queueSubmitState = {
                 .id = queueInfo.vkQueueSubmitId,
                 .fence = fence,
-                .tempFence = tempFence,
                 .syncEvent = std::move(syncEventClient),
-                .timelineClient =
-                    fidl::WireSyncClient(fidl::BindSyncClient(std::move(timelineEnds->client))),
             };
 
             queueSubmitState.wait = std::make_unique<async::WaitOnce>(
@@ -5829,7 +5814,7 @@ public:
             queueSubmitState.wait->Begin(
                 mLoop->dispatcher(),
                 [this, queue, id = queueSubmitState.id, postWaitEvents /* copy of zx handles */,
-                 fence, device, tempFence](async_dispatcher_t* dispatcher, async::WaitOnce* wait,
+                 fence, device, syncFence](async_dispatcher_t* dispatcher, async::WaitOnce* wait,
                                            zx_status_t status, const zx_packet_signal_t* signal) {
 #ifndef FUCHSIA_NO_TRACE
                     AEMU_SCOPED_TRACE("sync event handler");
@@ -5860,13 +5845,16 @@ public:
                             break;
                     }
 
-                    vkEncoder->vkDestroyFence(device, tempFence, nullptr, true /* do lock */);
-
-                    AutoLock lock(mLock);
-                    info_VkQueue[queue].vkQueueSubmitStateMap.erase(id);
+                    SyncFencePool* fencePool = nullptr;
+                    {
+                        AutoLock lock(mLock);
+                        info_VkQueue[queue].vkQueueSubmitStateMap.erase(id);
+                        fencePool = info_VkDevice[device].fencePool.get();
+                    }
+                    fencePool->release(syncFence);
                 });
 
-            auto triggerResult = queueSubmitState.timelineClient.TriggerHostWait(
+            auto triggerResult = syncFence->timelineClient.TriggerHostWait(
                 get_host_u64_VkFence(tempFence), 1u, std::move(syncEventServer));
             if (!triggerResult.ok()) {
                 ALOGE("TriggerHostWait failed, error: %s", triggerResult.status_string());
