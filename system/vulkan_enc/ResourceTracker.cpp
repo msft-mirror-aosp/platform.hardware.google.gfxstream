@@ -54,6 +54,10 @@ void zx_event_create(int, zx_handle_t*) { }
 #include <cutils/native_handle.h>
 #include <fuchsia/hardware/goldfish/llcpp/fidl.h>
 #include <fuchsia/sysmem/llcpp/fidl.h>
+#include <lib/async-loop/cpp/loop.h>
+#include <lib/async-loop/default.h>
+#include <lib/async/cpp/task.h>
+#include <lib/async/cpp/wait.h>
 #include <lib/zx/channel.h>
 #include <lib/zx/vmo.h>
 #include <zircon/errors.h>
@@ -337,8 +341,27 @@ public:
         uint32_t placeholder;
     };
 
+    struct VkQueueSubmit_State {
+        uint64_t id;
+
+        VkFence fence = VK_NULL_HANDLE;
+        VkFence tempFence = VK_NULL_HANDLE;
+
+#ifdef VK_USE_PLATFORM_FUCHSIA
+        std::vector<zx::event> eventsToWait;
+        std::vector<zx::event> eventsToSignal;
+
+        zx::eventpair syncEvent;
+        std::unique_ptr<async::WaitOnce> wait;
+        fidl::WireSyncClient<fuchsia_hardware_goldfish::SyncTimeline> timelineClient;
+#endif // VK_USE_PLATFORM_FUCHSIA
+    };
+
     struct VkQueue_Info {
         VkDevice device;
+
+        uint64_t vkQueueSubmitId = 0u;
+        std::unordered_map<uint64_t, VkQueueSubmit_State> vkQueueSubmitStateMap;
     };
 
     // custom guest-side structs for images/buffers because of AHardwareBuffer :((
@@ -933,6 +956,9 @@ public:
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
         if (mFeatureInfo->hasVulkan) {
+            mLoop = std::make_unique<async::Loop>(&kAsyncLoopConfigNeverAttachToThread);
+            mLoop->StartThread("goldfish-vulkan-event-thread");
+
             fidl::ClientEnd<fuchsia_hardware_goldfish::ControlDevice> channel{
                 zx::channel(GetConnectToServiceFunction()("/dev/class/goldfish-control/000"))};
             if (!channel) {
@@ -942,6 +968,16 @@ public:
             mControlDevice = std::make_unique<
                 fidl::WireSyncClient<fuchsia_hardware_goldfish::ControlDevice>>(
                 std::move(channel));
+
+            fidl::ClientEnd<fuchsia_hardware_goldfish::SyncDevice> sync_channel{
+                zx::channel(GetConnectToServiceFunction()("/dev/class/goldfish-sync/000"))};
+            if (!sync_channel) {
+                ALOGE("failed to open sync device");
+                abort();
+            }
+            mSyncDevice =
+                std::make_unique<fidl::WireSyncClient<fuchsia_hardware_goldfish::SyncDevice>>(
+                    std::move(sync_channel));
 
             fidl::ClientEnd<fuchsia_sysmem::Allocator> sysmem_channel{
                 zx::channel(GetConnectToServiceFunction()("/svc/fuchsia.sysmem.Allocator"))};
@@ -5633,18 +5669,20 @@ public:
         }
     }
 
-    VkResult on_vkQueueSubmit(
-        void* context, VkResult input_result,
-        VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence) {
-        AEMU_SCOPED_TRACE("on_vkQueueSubmit");
+#ifdef VK_USE_PLATFORM_FUCHSIA
+    VkResult on_vkQueueSubmit_Fuchsia(void* context,
+                                      VkResult input_result,
+                                      VkQueue queue,
+                                      uint32_t submitCount,
+                                      const VkSubmitInfo* pSubmits,
+                                      VkFence fence) {
+        AEMU_SCOPED_TRACE("on_vkQueueSubmit_Fuchsia");
 
         flushStagingStreams(context, queue, submitCount, pSubmits);
 
-        std::vector<VkSemaphore> pre_signal_semaphores;
-        std::vector<zx_handle_t> pre_signal_events;
-        std::vector<int> pre_signal_sync_fds;
-        std::vector<std::pair<zx_handle_t, zx_koid_t>> post_wait_events;
-        std::vector<int> post_wait_sync_fds;
+        std::vector<VkSemaphore> preSignalSemaphores;
+        std::vector<zx_handle_t> preSignalEvents;
+        std::vector<std::pair<zx_handle_t, zx_koid_t>> postWaitEvents;
 
         VkEncoder* enc = (VkEncoder*)context;
 
@@ -5655,28 +5693,18 @@ public:
                 auto it = info_VkSemaphore.find(pSubmits[i].pWaitSemaphores[j]);
                 if (it != info_VkSemaphore.end()) {
                     auto& semInfo = it->second;
-#ifdef VK_USE_PLATFORM_FUCHSIA
                     if (semInfo.eventHandle) {
-                        pre_signal_events.push_back(semInfo.eventHandle);
-                        pre_signal_semaphores.push_back(pSubmits[i].pWaitSemaphores[j]);
+                        preSignalEvents.push_back(semInfo.eventHandle);
+                        preSignalSemaphores.push_back(pSubmits[i].pWaitSemaphores[j]);
                     }
-#endif
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
-                    if (semInfo.syncFd >= 0) {
-                        pre_signal_sync_fds.push_back(semInfo.syncFd);
-                        pre_signal_semaphores.push_back(pSubmits[i].pWaitSemaphores[j]);
-                    }
-#endif
                 }
             }
             for (uint32_t j = 0; j < pSubmits[i].signalSemaphoreCount; ++j) {
                 auto it = info_VkSemaphore.find(pSubmits[i].pSignalSemaphores[j]);
                 if (it != info_VkSemaphore.end()) {
                     auto& semInfo = it->second;
-#ifdef VK_USE_PLATFORM_FUCHSIA
                     if (semInfo.eventHandle) {
-                        post_wait_events.push_back(
-                            {semInfo.eventHandle, semInfo.eventKoid});
+                        postWaitEvents.push_back({semInfo.eventHandle, semInfo.eventKoid});
 #ifndef FUCHSIA_NO_TRACE
                         if (semInfo.eventKoid != ZX_KOID_INVALID) {
                             // TODO(fxbug.dev/66098): Remove the "semaphore"
@@ -5689,12 +5717,208 @@ public:
                         }
 #endif
                     }
+                }
+            }
+        }
+        lock.unlock();
+
+        // Create a temporary VkFence.
+        VkFence tempFence = VK_NULL_HANDLE;
+        VkDevice device = VK_NULL_HANDLE;
+        if (!postWaitEvents.empty()) {
+            lock.lock();
+            const auto& queueInfo = info_VkQueue.find(queue);
+            if (queueInfo == info_VkQueue.end() || queueInfo->second.device == VK_NULL_HANDLE) {
+                return VK_ERROR_OUT_OF_HOST_MEMORY;
+            }
+            device = queueInfo->second.device;
+            lock.unlock();
+
+            VkFenceCreateInfo fenceCreateInfo = {
+                .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+            };
+
+            auto result = enc->vkCreateFence(device, &fenceCreateInfo, nullptr, &tempFence,
+                                             true /* do lock */);
+            if (result != VK_SUCCESS) {
+                return result;
+            }
+        }
+
+        if (!preSignalSemaphores.empty()) {
+            // Schedule waits on the OS external objects and
+            // signal the wait semaphores
+            // in a separate thread.
+            std::vector<WorkPool::Task> preSignalTasks;
+            std::vector<WorkPool::Task> preSignalQueueSubmitTasks;
+            for (auto event : preSignalEvents) {
+                preSignalTasks.push_back([event] {
+                    zx_object_wait_one(event, ZX_EVENT_SIGNALED, ZX_TIME_INFINITE, nullptr);
+                });
+            }
+            auto waitGroupHandle = mWorkPool.schedule(preSignalTasks);
+            mWorkPool.waitAll(waitGroupHandle);
+
+            VkSubmitInfo submitInfo = {
+                .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                .waitSemaphoreCount = 0,
+                .pWaitSemaphores = nullptr,
+                .pWaitDstStageMask = nullptr,
+                .signalSemaphoreCount = static_cast<uint32_t>(preSignalSemaphores.size()),
+                .pSignalSemaphores = preSignalSemaphores.data()};
+
+            if (supportsAsyncQueueSubmit()) {
+                enc->vkQueueSubmitAsyncGOOGLE(queue, 1, &submitInfo, VK_NULL_HANDLE,
+                                              true /* do lock */);
+            } else {
+                enc->vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE, true /* do lock */);
+            }
+        }
+
+        VkFence fenceToTrigger = tempFence != VK_NULL_HANDLE ? tempFence : fence;
+        if (supportsAsyncQueueSubmit()) {
+            enc->vkQueueSubmitAsyncGOOGLE(queue, submitCount, pSubmits, fenceToTrigger,
+                                          true /* do lock */);
+            input_result = VK_SUCCESS;
+        } else {
+            input_result = enc->vkQueueSubmit(queue, submitCount, pSubmits, fenceToTrigger,
+                                              true /* do lock */);
+            if (input_result != VK_SUCCESS)
+                return input_result;
+        }
+
+        if (!postWaitEvents.empty()) {
+            auto timelineEnds = fidl::CreateEndpoints<fuchsia_hardware_goldfish::SyncTimeline>();
+            if (!timelineEnds.is_ok()) {
+                ALOGE("Cannot create sync timeline channels, error: %s",
+                      timelineEnds.status_string());
+                return VK_ERROR_DEVICE_LOST;
+            }
+
+            auto createTimelineResult =
+                mSyncDevice->CreateTimeline(std::move(timelineEnds->server));
+            if (!createTimelineResult.ok()) {
+                ALOGE("CreateTimeline failed, error: %s", createTimelineResult.status_string());
+                return VK_ERROR_DEVICE_LOST;
+            }
+
+            zx::eventpair syncEventClient, syncEventServer;
+            auto status = zx::eventpair::create(0u, &syncEventClient, &syncEventServer);
+            if (status != ZX_OK) {
+                ALOGE("Create eventpair failed, error: %s", zx_status_get_string(status));
+                return VK_ERROR_DEVICE_LOST;
+            }
+
+            lock.lock();
+            auto& queueInfo = info_VkQueue[queue];
+            ++queueInfo.vkQueueSubmitId;
+            auto& queueSubmitState = queueInfo.vkQueueSubmitStateMap[queueInfo.vkQueueSubmitId];
+            queueSubmitState = {
+                .id = queueInfo.vkQueueSubmitId,
+                .fence = fence,
+                .tempFence = tempFence,
+                .syncEvent = std::move(syncEventClient),
+                .timelineClient =
+                    fidl::WireSyncClient(fidl::BindSyncClient(std::move(timelineEnds->client))),
+            };
+
+            queueSubmitState.wait = std::make_unique<async::WaitOnce>(
+                queueSubmitState.syncEvent.get(), ZX_EVENTPAIR_SIGNALED, 0u);
+            queueSubmitState.wait->Begin(
+                mLoop->dispatcher(),
+                [this, queue, id = queueSubmitState.id, postWaitEvents /* copy of zx handles */,
+                 fence, device, tempFence](async_dispatcher_t* dispatcher, async::WaitOnce* wait,
+                                           zx_status_t status, const zx_packet_signal_t* signal) {
+#ifndef FUCHSIA_NO_TRACE
+                    AEMU_SCOPED_TRACE("sync event handler");
 #endif
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+                    auto hostConn = ResourceTracker::threadingCallbacks.hostConnectionGetFunc();
+                    auto vkEncoder = ResourceTracker::threadingCallbacks.vkEncoderGetFunc(hostConn);
+                    switch (status) {
+                        case ZX_OK: {
+                            for (auto& [event, koid] : postWaitEvents) {
+#ifndef FUCHSIA_NO_TRACE
+                                if (koid != ZX_KOID_INVALID) {
+                                    TRACE_FLOW_END("gfx", "goldfish_post_wait_event", koid);
+                                    TRACE_FLOW_BEGIN("gfx", "event_signal", koid);
+                                }
+#endif
+                                zx_object_signal(event, 0, ZX_EVENT_SIGNALED);
+                            }
+                            vkEncoder->vkQueueSubmitAsyncGOOGLE(queue, 0, nullptr, fence,
+                                                                true /* do lock */);
+                            break;
+                        }
+                        case ZX_ERR_CANCELED:
+                            ALOGW("queueSubmit wait is canceled");
+                            break;
+                        default:
+                            ALOGE("queueSubmit wait failed: error %s",
+                                  zx_status_get_string(status));
+                            break;
+                    }
+
+                    vkEncoder->vkDestroyFence(device, tempFence, nullptr, true /* do lock */);
+
+                    AutoLock lock(mLock);
+                    info_VkQueue[queue].vkQueueSubmitStateMap.erase(id);
+                });
+
+            auto triggerResult = queueSubmitState.timelineClient.TriggerHostWait(
+                get_host_u64_VkFence(tempFence), 1u, std::move(syncEventServer));
+            if (!triggerResult.ok()) {
+                ALOGE("TriggerHostWait failed, error: %s", triggerResult.status_string());
+                queueInfo.vkQueueSubmitStateMap.erase(queueInfo.vkQueueSubmitId);
+                return VK_ERROR_DEVICE_LOST;
+            }
+            lock.unlock();
+        }
+
+        return VK_SUCCESS;
+    }
+#endif  // VK_USE_PLATFORM_FUCHSIA
+
+    VkResult on_vkQueueSubmit(void* context,
+                              VkResult input_result,
+                              VkQueue queue,
+                              uint32_t submitCount,
+                              const VkSubmitInfo* pSubmits,
+                              VkFence fence) {
+        AEMU_SCOPED_TRACE("on_vkQueueSubmit");
+
+#ifdef VK_USE_PLATFORM_FUCHSIA
+        return on_vkQueueSubmit_Fuchsia(context, input_result, queue, submitCount, pSubmits, fence);
+#else   // VK_USE_PLATFORM_FUCHSIA
+        flushStagingStreams(context, queue, submitCount, pSubmits);
+
+        std::vector<VkSemaphore> pre_signal_semaphores;
+        std::vector<int> pre_signal_sync_fds;
+        std::vector<int> post_wait_sync_fds;
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        AutoLock lock(mLock);
+
+        for (uint32_t i = 0; i < submitCount; ++i) {
+            for (uint32_t j = 0; j < pSubmits[i].waitSemaphoreCount; ++j) {
+                auto it = info_VkSemaphore.find(pSubmits[i].pWaitSemaphores[j]);
+                if (it != info_VkSemaphore.end()) {
+                    auto& semInfo = it->second;
+                    if (semInfo.syncFd >= 0) {
+                        pre_signal_sync_fds.push_back(semInfo.syncFd);
+                        pre_signal_semaphores.push_back(pSubmits[i].pWaitSemaphores[j]);
+                    }
+                }
+            }
+            for (uint32_t j = 0; j < pSubmits[i].signalSemaphoreCount; ++j) {
+                auto it = info_VkSemaphore.find(pSubmits[i].pSignalSemaphores[j]);
+                if (it != info_VkSemaphore.end()) {
+                    auto& semInfo = it->second;
                     if (semInfo.syncFd >= 0) {
                         post_wait_sync_fds.push_back(semInfo.syncFd);
                     }
-#endif
                 }
             }
         }
@@ -5714,24 +5938,11 @@ public:
             // in a separate thread.
             std::vector<WorkPool::Task> preSignalTasks;
             std::vector<WorkPool::Task> preSignalQueueSubmitTasks;;
-#ifdef VK_USE_PLATFORM_FUCHSIA
-            for (auto event : pre_signal_events) {
-                preSignalTasks.push_back([event] {
-                    zx_object_wait_one(
-                        event,
-                        ZX_EVENT_SIGNALED,
-                        ZX_TIME_INFINITE,
-                        nullptr);
-                });
-            }
-#endif
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
             for (auto fd : pre_signal_sync_fds) {
                 preSignalTasks.push_back([fd] {
                     sync_wait(fd, 3000);
                 });
             }
-#endif
             auto waitGroupHandle = mWorkPool.schedule(preSignalTasks);
             mWorkPool.waitAll(waitGroupHandle);
 
@@ -5762,7 +5973,6 @@ public:
         lock.lock();
         int externalFenceFdToSignal = -1;
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
         if (fence != VK_NULL_HANDLE) {
             auto it = info_VkFence.find(fence);
             if (it != info_VkFence.end()) {
@@ -5772,33 +5982,15 @@ public:
                 }
             }
         }
-#endif
-        if (externalFenceFdToSignal >= 0 ||
-            !post_wait_events.empty() ||
-            !post_wait_sync_fds.empty()) {
-
+        if (externalFenceFdToSignal >= 0 || !post_wait_sync_fds.empty()) {
             std::vector<WorkPool::Task> tasks;
 
             tasks.push_back([queue, externalFenceFdToSignal,
-                             post_wait_events /* copy of zx handles */,
                              post_wait_sync_fds /* copy of sync fds */] {
+                (void)(externalFenceFdToSignal);
                 auto hostConn = ResourceTracker::threadingCallbacks.hostConnectionGetFunc();
                 auto vkEncoder = ResourceTracker::threadingCallbacks.vkEncoderGetFunc(hostConn);
                 auto waitIdleRes = vkEncoder->vkQueueWaitIdle(queue, true /* do lock */);
-#ifdef VK_USE_PLATFORM_FUCHSIA
-                AEMU_SCOPED_TRACE("on_vkQueueSubmit::SignalSemaphores");
-                (void)externalFenceFdToSignal;
-                for (auto& [event, koid] : post_wait_events) {
-#ifndef FUCHSIA_NO_TRACE
-                    if (koid != ZX_KOID_INVALID) {
-                        TRACE_FLOW_END("gfx", "goldfish_post_wait_event", koid);
-                        TRACE_FLOW_BEGIN("gfx", "event_signal", koid);
-                    }
-#endif
-                    zx_object_signal(event, 0, ZX_EVENT_SIGNALED);
-                }
-#endif
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
                 for (auto& fd : post_wait_sync_fds) {
                     goldfish_sync_signal(fd);
                 }
@@ -5807,14 +5999,13 @@ public:
                     ALOGV("%s: external fence real signal: %d\n", __func__, externalFenceFdToSignal);
                     goldfish_sync_signal(externalFenceFdToSignal);
                 }
-#endif
             });
             auto queueAsyncWaitHandle = mWorkPool.schedule(tasks);
             auto& queueWorkItems = mQueueSensitiveWorkPoolItems[queue];
             queueWorkItems.push_back(queueAsyncWaitHandle);
         }
-
         return VK_SUCCESS;
+#endif  // VK_USE_PLATFORM_FUCHSIA
     }
 
     VkResult on_vkQueueWaitIdle(
@@ -6831,8 +7022,11 @@ private:
     std::unique_ptr<
         fidl::WireSyncClient<fuchsia_hardware_goldfish::ControlDevice>>
         mControlDevice;
+    std::unique_ptr<fidl::WireSyncClient<fuchsia_hardware_goldfish::SyncDevice>> mSyncDevice;
     std::unique_ptr<fidl::WireSyncClient<fuchsia_sysmem::Allocator>>
         mSysmemAllocator;
+
+    std::unique_ptr<async::Loop> mLoop;
 #endif
 
     WorkPool mWorkPool { 4 };
@@ -6840,7 +7034,6 @@ private:
         mQueueSensitiveWorkPoolItems;
 
     std::unordered_map<const VkEncoder*, std::unordered_map<void*, CleanupCallback>> mEncoderCleanupCallbacks;
-
 };
 
 ResourceTracker::ResourceTracker() : mImpl(new ResourceTracker::Impl()) { }
