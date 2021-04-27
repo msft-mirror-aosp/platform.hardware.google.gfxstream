@@ -65,7 +65,7 @@ public:
     }
     void setSharedGroup(GLSharedGroupPtr shared) {
         m_shared = shared;
-        if (m_state && m_shared.Ptr()) {
+        if (m_state && m_shared) {
             m_state->setTextureData(m_shared->getTextureData());
             m_state->setRenderbufferInfo(m_shared->getRenderbufferInfo());
             m_state->setSamplerInfo(m_shared->getSamplerInfo());
