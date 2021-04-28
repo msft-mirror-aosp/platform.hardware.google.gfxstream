@@ -1109,10 +1109,14 @@ void GL2Encoder::s_glGetBooleanv(void *self, GLenum param, GLboolean *ptr)
 
     default:
         if (!state) return;
-        if (!state->getClientStateParameter<GLboolean>(param, ptr)) {
-            ctx->safe_glGetBooleanv(param, ptr);
+        {
+            GLint intVal;
+            if (!state->getClientStateParameter<GLint>(param, &intVal)) {
+                ctx->safe_glGetBooleanv(param, ptr);
+            } else {
+                *ptr = (intVal != 0) ? GL_TRUE : GL_FALSE;
+            }
         }
-        *ptr = (*ptr != 0) ? GL_TRUE : GL_FALSE;
         break;
     }
 }
