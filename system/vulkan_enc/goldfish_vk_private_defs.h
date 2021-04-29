@@ -534,19 +534,42 @@ typedef struct VkMemoryGetZirconHandleInfoFUCHSIA {
 #define VK_STRUCTURE_TYPE_BUFFER_COLLECTION_BUFFER_CREATE_INFO_FUCHSIA \
     ((VkStructureType)1001004008)
 
+#if VK_HEADER_VERSION < 174
+#define VK_STRUCTURE_TYPE_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA \
+    ((VkStructureType)1000364000)
+#define VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA \
+    ((VkExternalMemoryHandleTypeFlagBits)0x00000800)
+#endif
+
 // Deprecated
 #define VK_STRUCTURE_TYPE_TEMP_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA \
     ((VkStructureType)1001005000)
 #define VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA \
     ((VkExternalMemoryHandleTypeFlagBits)0x00100000)
-#endif  // VK_FUCHSIA_external_memory
 
+#else // VK_FUCHSIA_external_memory
 
-// To be moved inside the ifdef above once spec is updated
-#define VK_STRUCTURE_TYPE_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA \
-    ((VkStructureType)1000364000)
+// For backward compatibility
+#if VK_HEADER_VERSION >= 174
+#define VK_STRUCTURE_TYPE_TEMP_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA \
+    ((VkStructureType)1001005000)
+#define VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA \
+    ((VkExternalMemoryHandleTypeFlagBits)0x00100000)
+#endif  // VK_HEADER_VERSION >= 174
+
+// For forward compatibility
+#ifndef VK_STRUCTURE_TYPE_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA
+#define VK_STRUCTURE_TYPE_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA ((VkStructureType)1000364000)
+#endif  // VK_STRUCTURE_TYPE_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA
+
+// For forward compatibility
+#ifndef VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA
 #define VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA \
     ((VkExternalMemoryHandleTypeFlagBits)0x00000800)
+#endif  // VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA
+
+#endif  // VK_FUCHSIA_external_memory
+
 
 #ifndef VK_FUCHSIA_external_semaphore
 #define VK_FUCHSIA_external_semaphore 1
@@ -559,7 +582,11 @@ typedef struct VkImportSemaphoreZirconHandleInfoFUCHSIA {
     VkSemaphore                              semaphore;
     VkSemaphoreImportFlags                   flags;
     VkExternalSemaphoreHandleTypeFlagBits    handleType;
+#if VK_HEADER_VERSION < 174
     uint32_t                                 handle;
+#else // VK_HEADER_VERSION >= 174
+    uint32_t                                 zirconHandle;
+#endif // VK_HEADER_VERSION < 174
 } VkImportSemaphoreZirconHandleInfoFUCHSIA;
 
 typedef struct VkSemaphoreGetZirconHandleInfoFUCHSIA {
@@ -569,13 +596,31 @@ typedef struct VkSemaphoreGetZirconHandleInfoFUCHSIA {
     VkExternalSemaphoreHandleTypeFlagBits    handleType;
 } VkSemaphoreGetZirconHandleInfoFUCHSIA;
 
-#define VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA \
-    ((VkExternalSemaphoreHandleTypeFlagBits)0x00100000)
-#endif  // VK_FUCHSIA_external_semaphore
-
-// To be moved inside the ifdef above once spec is updated
+#if VK_HEADER_VERSION < 174
 #define VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ZIRCON_EVENT_BIT_FUCHSIA \
     ((VkExternalMemoryHandleTypeFlagBits)0x00000080)
+#endif
+
+// Deprecated
+#define VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA \
+    ((VkExternalSemaphoreHandleTypeFlagBits)0x00100000)
+
+#else // VK_FUCHSIA_external_semaphore
+
+// For backward compatibility
+#if VK_HEADER_VERSION >= 174
+#define VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA \
+    ((VkExternalSemaphoreHandleTypeFlagBits)0x00100000)
+#endif  // VK_HEADER_VERSION >= 174
+
+// For forward compatibility
+#ifndef VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA
+#define VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ZIRCON_EVENT_BIT_FUCHSIA \
+    ((VkExternalMemoryHandleTypeFlagBits)0x00000080)
+#endif  // VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA
+
+#endif  // VK_FUCHSIA_external_semaphore
+
 
 // VulkanStream features
 #define VULKAN_STREAM_FEATURE_NULL_OPTIONAL_STRINGS_BIT (1 << 0)
