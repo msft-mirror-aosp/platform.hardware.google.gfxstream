@@ -107,6 +107,7 @@ android_format_is_yuv(unsigned android_format)
    case HAL_PIXEL_FORMAT_NV12_Y_TILED_INTEL:
    case OMX_COLOR_FormatYUV420Planar:
    case HAL_PIXEL_FORMAT_YV12:
+   case AHARDWAREBUFFER_FORMAT_Y8Cb8Cr8_420:
       return true;
 
    default:
