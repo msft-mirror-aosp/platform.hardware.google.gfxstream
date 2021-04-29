@@ -1887,7 +1887,11 @@ public:
         if (info.eventHandle != ZX_HANDLE_INVALID) {
             zx_handle_close(info.eventHandle);
         }
+#if VK_HEADER_VERSION < 174
         info.eventHandle = pInfo->handle;
+#else // VK_HEADER_VERSION >= 174
+        info.eventHandle = pInfo->zirconHandle;
+#endif // VK_HEADER_VERSION < 174
         if (info.eventHandle != ZX_HANDLE_INVALID) {
             info.eventKoid = getEventKoid(info.eventHandle);
         }
