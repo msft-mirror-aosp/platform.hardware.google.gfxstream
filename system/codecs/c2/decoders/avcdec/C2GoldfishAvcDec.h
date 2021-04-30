@@ -73,7 +73,7 @@ class C2GoldfishAvcDec : public SimpleC2Component {
                               const std::unique_ptr<C2Work> &work);
     status_t resetDecoder();
     void resetPlugin();
-    status_t deleteDecoder();
+    void deleteContext();
 
     std::shared_ptr<IntfImpl> mIntf;
 
