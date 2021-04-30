@@ -413,6 +413,14 @@ void C2GoldfishAvcDec::onRelease() {
     }
 }
 
+void C2GoldfishAvcDec::decodeHeaderAfterFlush() {
+    if (mContext && !mCsd0.empty() && !mCsd1.empty()) {
+        mContext->decodeFrame(&(mCsd0[0]), mCsd0.size(), 0);
+        mContext->decodeFrame(&(mCsd1[0]), mCsd1.size(), 0);
+        DDD("resending csd0 and csd1");
+    }
+}
+
 c2_status_t C2GoldfishAvcDec::onFlush_sm() {
     if (OK != setFlushMode())
         return C2_CORRUPTED;
@@ -430,7 +438,6 @@ c2_status_t C2GoldfishAvcDec::onFlush_sm() {
         return C2_NO_MEMORY;
     }
 
-    mContext->flush();
     while (true) {
         mPts = 0;
         setDecodeArgs(nullptr, nullptr, 0, 0, 0);
@@ -446,6 +453,7 @@ c2_status_t C2GoldfishAvcDec::onFlush_sm() {
         mOutBufferFlush = nullptr;
     }
 
+    mContext.reset();
     return C2_OK;
 }
 
@@ -516,6 +524,7 @@ status_t C2GoldfishAvcDec::setFlushMode() {
     if (mContext) {
         mContext->flush();
     }
+    mHeaderDecoded = false;
     return OK;
 }
 
@@ -791,6 +800,7 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
         DDD("creating decoder context to host in process work");
         checkMode(pool);
         createDecoder();
+        decodeHeaderAfterFlush();
     }
 
     size_t inOffset = 0u;
@@ -843,6 +853,17 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
                 setParams(mStride);
             }
 
+            DDD("flag is %x", work->input.flags);
+            if (work->input.flags & C2FrameData::FLAG_CODEC_CONFIG) {
+                if (mCsd0.empty()) {
+                    mCsd0.assign(mInPBuffer, mInPBuffer + mInPBufferSize);
+                    DDD("assign to csd0 with %d bytpes", mInPBufferSize);
+                } else if (mCsd1.empty()) {
+                    mCsd1.assign(mInPBuffer, mInPBuffer + mInPBufferSize);
+                    DDD("assign to csd1 with %d bytpes", mInPBufferSize);
+                }
+            }
+
             uint32_t delay;
             GETTIME(&mTimeStart, nullptr);
             TIME_DIFF(mTimeEnd, mTimeStart, delay);
@@ -878,6 +899,7 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
         if (mImg.data != nullptr) {
             DDD("got data %" PRIu64,  mPts2Index[mImg.pts]);
             hasPicture = true;
+            mHeaderDecoded = true;
             copyImageData(mByteBuffer, mImg);
             finishWork(mPts2Index[mImg.pts], work);
             removePts(mImg.pts);
@@ -954,6 +976,7 @@ C2GoldfishAvcDec::drainInternal(uint32_t drainMode,
         }
     }
 
+    mContext.reset();
     return C2_OK;
 }
 
