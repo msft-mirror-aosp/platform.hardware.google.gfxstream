@@ -2,8 +2,10 @@ shared_library("libvulkan_goldfish") {
   sources = [
     "android-emu/android/base/AlignedBuf.cpp",
     "android-emu/android/base/AlignedBuf.h",
+    "android-emu/android/base/Allocator.h",
     "android-emu/android/base/AndroidSubAllocator.cpp",
     "android-emu/android/base/AndroidSubAllocator.h",
+    "android-emu/android/base/BumpPool.h",
     "android-emu/android/base/Pool.cpp",
     "android-emu/android/base/Pool.h",
     "android-emu/android/base/Tracing.cpp",
