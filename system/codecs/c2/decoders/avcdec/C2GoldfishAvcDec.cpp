@@ -407,7 +407,7 @@ c2_status_t C2GoldfishAvcDec::onStop() {
 void C2GoldfishAvcDec::onReset() { (void)onStop(); }
 
 void C2GoldfishAvcDec::onRelease() {
-    (void)deleteDecoder();
+    deleteContext();
     if (mOutBlock) {
         mOutBlock.reset();
     }
@@ -453,7 +453,7 @@ c2_status_t C2GoldfishAvcDec::onFlush_sm() {
         mOutBufferFlush = nullptr;
     }
 
-    mContext.reset();
+    deleteContext();
     return C2_OK;
 }
 
@@ -532,13 +532,7 @@ status_t C2GoldfishAvcDec::resetDecoder() {
     mStride = 0;
     mSignalledError = false;
     mHeaderDecoded = false;
-    if (mContext) {
-        // The resolution may have changed, so our safest bet is to just destroy
-        // the current context and recreate another one, with the new width and
-        // height.
-        mContext->destroyH264Context();
-        mContext.reset(nullptr);
-    }
+    deleteContext();
 
     return OK;
 }
@@ -549,12 +543,11 @@ void C2GoldfishAvcDec::resetPlugin() {
     gettimeofday(&mTimeEnd, nullptr);
 }
 
-status_t C2GoldfishAvcDec::deleteDecoder() {
+void C2GoldfishAvcDec::deleteContext() {
     if (mContext) {
         mContext->destroyH264Context();
         mContext.reset(nullptr);
     }
-    return OK;
 }
 
 static void fillEmptyWork(const std::unique_ptr<C2Work> &work) {
@@ -976,7 +969,7 @@ C2GoldfishAvcDec::drainInternal(uint32_t drainMode,
         }
     }
 
-    mContext.reset();
+    deleteContext();
     return C2_OK;
 }
 
