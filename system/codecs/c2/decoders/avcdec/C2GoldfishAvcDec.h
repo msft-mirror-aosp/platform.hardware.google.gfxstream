@@ -141,6 +141,10 @@ class C2GoldfishAvcDec : public SimpleC2Component {
     char mInFile[200];
 #endif /* FILE_DUMP_ENABLE */
 
+    std::vector<uint8_t> mCsd0;
+    std::vector<uint8_t> mCsd1;
+    void decodeHeaderAfterFlush();
+
     C2_DO_NOT_COPY(C2GoldfishAvcDec);
 };
 
