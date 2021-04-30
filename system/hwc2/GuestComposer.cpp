@@ -769,13 +769,17 @@ HWC2::Error GuestComposer::presentDisplay(Display* display,
 
   const std::vector<Layer*>& layers = display->getOrderedLayers();
 
+  const bool noOpComposition = layers.empty();
   const bool allLayersClientComposed = std::all_of(
       layers.begin(),  //
       layers.end(),    //
       [](const Layer* layer) {
         return layer->getCompositionType() == HWC2::Composition::Client;
       });
-  if (allLayersClientComposed) {
+
+  if (noOpComposition) {
+    ALOGW("%s: display:%" PRIu64 " empty composition", __FUNCTION__, displayId);
+  } else if (allLayersClientComposed) {
     auto clientTargetBufferOpt =
         mGralloc.Import(display->waitAndGetClientTargetBuffer());
     if (!clientTargetBufferOpt) {
