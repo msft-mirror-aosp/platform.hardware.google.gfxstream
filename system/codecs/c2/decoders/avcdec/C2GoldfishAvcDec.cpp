@@ -969,7 +969,6 @@ C2GoldfishAvcDec::drainInternal(uint32_t drainMode,
         }
     }
 
-    deleteContext();
     return C2_OK;
 }
 
