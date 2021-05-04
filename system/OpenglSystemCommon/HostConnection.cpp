@@ -106,11 +106,16 @@ static HostConnectionType getConnectionTypeFromProperty() {
     return HOST_CONNECTION_ADDRESS_SPACE;
 #else
     char transportValue[PROPERTY_VALUE_MAX] = "";
-    property_get("ro.boot.qemu.gltransport", transportValue, "");
 
-    if (!transportValue[0]) {
+    do {
+        property_get("ro.boot.qemu.gltransport.name", transportValue, "");
+        if (transportValue[0]) { break; }
+
+        property_get("ro.boot.qemu.gltransport", transportValue, "");
+        if (transportValue[0]) { break; }
+
         property_get("ro.boot.hardware.gltransport", transportValue, "");
-    }
+    } while (false);
 
     if (!transportValue[0]) return HOST_CONNECTION_QEMU_PIPE;
 
