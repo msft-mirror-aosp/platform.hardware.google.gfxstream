@@ -6115,7 +6115,7 @@ void GL2Encoder::s_glCopyTexSubImage2D(void *self , GLenum target, GLint level, 
     GLuint tex = ctx->m_state->getBoundTexture(target);
     GLsizei neededWidth = xoffset + width;
     GLsizei neededHeight = yoffset + height;
-    ALOGD("%s: tex %u needed width height %d %d xoff %d width %d yoff %d height %d (texture width %d height %d) level %d\n", __func__,
+    ALOGV("%s: tex %u needed width height %d %d xoff %d width %d yoff %d height %d (texture width %d height %d) level %d\n", __func__,
             tex,
             neededWidth,
             neededHeight,
