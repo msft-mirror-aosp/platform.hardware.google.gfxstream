@@ -178,6 +178,7 @@ using android::aligned_buf_alloc;
 using android::aligned_buf_free;
 using android::base::Optional;
 using android::base::guest::AutoLock;
+using android::base::guest::RecursiveLock;
 using android::base::guest::Lock;
 using android::base::guest::WorkPool;
 
@@ -6818,7 +6819,7 @@ public:
     }
 
 private:
-    mutable Lock mLock;
+    mutable RecursiveLock mLock;
     HostVisibleMemoryVirtualizationInfo mHostVisibleMemoryVirtInfo;
     std::unique_ptr<EmulatorFeatureInfo> mFeatureInfo;
     std::unique_ptr<GoldfishAddressSpaceBlockProvider> mGoldfishAddressSpaceBlockProvider;
