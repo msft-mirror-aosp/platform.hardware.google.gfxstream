@@ -37,7 +37,9 @@ namespace android {
 namespace base {
 namespace guest {
 
+template <class Lockable>
 class AutoLock;
+
 class AutoWriteLock;
 class AutoReadLock;
 
@@ -46,7 +48,7 @@ class AutoReadLock;
 // member locks.
 class StaticLock {
 public:
-    using AutoLock = android::base::guest::AutoLock;
+    using AutoLock = android::base::guest::AutoLock<StaticLock>;
 
     constexpr StaticLock() = default;
 
@@ -147,11 +149,12 @@ private:
 // Helper class to lock / unlock a mutex automatically on scope
 // entry and exit.
 // NB: not thread-safe (as opposed to the Lock class)
+template <class Lockable>
 class AutoLock {
 public:
-    AutoLock(StaticLock& lock) : mLock(lock) { mLock.lock(); }
+    AutoLock(Lockable& lock) : mLock(lock) { mLock.lock(); }
 
-    AutoLock(AutoLock&& other) : mLock(other.mLock), mLocked(other.mLocked) {
+    AutoLock(AutoLock<Lockable>&& other) : mLock(other.mLock), mLocked(other.mLocked) {
         other.mLocked = false;
     }
 
@@ -176,7 +179,7 @@ public:
     }
 
 private:
-    StaticLock& mLock;
+    Lockable& mLock;
     bool mLocked = true;
 
     friend class ConditionVariable;
