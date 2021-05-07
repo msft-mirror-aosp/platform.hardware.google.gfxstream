@@ -152,13 +152,21 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t ignored_bufSize) {
     return nullptr;
 }
 #else
+static address_space_handle_t openVirtGpuAddressSpace() {
+    address_space_handle_t ret;
+    uint8_t retryCount = 64;
+    do {
+        ret = virtgpu_address_space_open();
+    } while(ret < 0 && retryCount-- > 0 && errno == EINTR);
+    return ret;
+}
+
 AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t ignored_bufSize) {
     // Ignore incoming ignored_bufSize
     (void)ignored_bufSize;
 
-    auto handle = virtgpu_address_space_open();
-
-    if (handle == reinterpret_cast<address_space_handle_t>(-1)) {
+    auto handle = openVirtGpuAddressSpace();
+    if (handle <= reinterpret_cast<address_space_handle_t>(-1)) {
         ALOGE("AddressSpaceStream::create failed (open device) %d (%s)\n", errno, strerror(errno));
         return nullptr;
     }
