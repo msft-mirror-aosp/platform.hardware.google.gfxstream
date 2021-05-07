@@ -156,7 +156,7 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t ignored_bufSize) {
     auto handle = virtgpu_address_space_open();
 
     if (handle == reinterpret_cast<address_space_handle_t>(-1)) {
-        ALOGE("AddressSpaceStream::create failed (open device)\n");
+        ALOGE("AddressSpaceStream::create failed (open device) %d (%s)\n", errno, strerror(errno));
         return nullptr;
     }
 
