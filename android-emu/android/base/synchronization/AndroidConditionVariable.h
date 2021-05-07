@@ -42,12 +42,17 @@ public:
     // (Windows) it's exactly the opposite. Functions implement the best way
     // for each platform and abstract it out from the user.
     void signalAndUnlock(StaticLock* lock);
-    void signalAndUnlock(AutoLock* lock);
+
+    template <class Lockable>
+    void signalAndUnlock(AutoLock<Lockable>* lock);
 
     void broadcastAndUnlock(StaticLock* lock);
-    void broadcastAndUnlock(AutoLock* lock);
 
-    void wait(AutoLock* userLock) {
+    template <class Lockable>
+    void broadcastAndUnlock(AutoLock<Lockable>* lock);
+
+    template <class Lockable>
+    void wait(AutoLock<Lockable>* userLock) {
         assert(userLock->mLocked);
         wait(&userLock->mLock);
     }
@@ -77,8 +82,8 @@ public:
         }
     }
 
-    template <class Predicate>
-    void wait(AutoLock* lock, Predicate pred) {
+    template <class Lockable, class Predicate>
+    void wait(AutoLock<Lockable>* lock, Predicate pred) {
         this->wait(&lock->mLock, pred);
     }
 
@@ -175,7 +180,8 @@ inline void ConditionVariable::signalAndUnlock(StaticLock* lock) {
     lock->unlock();
     signal();
 }
-inline void ConditionVariable::signalAndUnlock(AutoLock* lock) {
+template <class Lockable>
+inline void ConditionVariable::signalAndUnlock(AutoLock<Lockable>* lock) {
     lock->unlock();
     signal();
 }
@@ -184,7 +190,8 @@ inline void ConditionVariable::broadcastAndUnlock(StaticLock* lock) {
     lock->unlock();
     broadcast();
 }
-inline void ConditionVariable::broadcastAndUnlock(AutoLock* lock) {
+template <class Lockable>
+inline void ConditionVariable::broadcastAndUnlock(AutoLock<Lockable>* lock) {
     lock->unlock();
     broadcast();
 }
@@ -193,7 +200,8 @@ inline void ConditionVariable::signalAndUnlock(StaticLock* lock) {
     signal();
     lock->unlock();
 }
-inline void ConditionVariable::signalAndUnlock(AutoLock* lock) {
+template <class Lockable>
+inline void ConditionVariable::signalAndUnlock(AutoLock<Lockable>* lock) {
     signal();
     lock->unlock();
 }
@@ -201,7 +209,8 @@ inline void ConditionVariable::broadcastAndUnlock(StaticLock* lock) {
     broadcast();
     lock->unlock();
 }
-inline void ConditionVariable::broadcastAndUnlock(AutoLock* lock) {
+template <class Lockable>
+inline void ConditionVariable::broadcastAndUnlock(AutoLock<Lockable>* lock) {
     broadcast();
     lock->unlock();
 }
