@@ -1463,7 +1463,7 @@ void GL2Encoder::s_glDrawElements(void *self, GLenum mode, GLsizei count, GLenum
 
     if (!has_client_vertex_arrays && !has_indirect_arrays) {
         // ALOGW("glDrawElements: no vertex arrays / buffers bound to the command\n");
-        GLenum status = ctx->m_glCheckFramebufferStatus_enc(self, GL_FRAMEBUFFER);
+        GLenum status = ctx->glCheckFramebufferStatus(self, GL_FRAMEBUFFER);
         SET_ERROR_IF(status != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
     }
 
@@ -1580,7 +1580,7 @@ void GL2Encoder::s_glDrawElementsNullAEMU(void *self, GLenum mode, GLsizei count
 
     if (!has_client_vertex_arrays && !has_indirect_arrays) {
         // ALOGW("glDrawElements: no vertex arrays / buffers bound to the command\n");
-        GLenum status = ctx->m_glCheckFramebufferStatus_enc(self, GL_FRAMEBUFFER);
+        GLenum status = ctx->glCheckFramebufferStatus(self, GL_FRAMEBUFFER);
         SET_ERROR_IF(status != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
     }
 
@@ -4581,7 +4581,7 @@ void GL2Encoder::s_glDrawElementsInstanced(void* self, GLenum mode, GLsizei coun
 
     if (!has_client_vertex_arrays && !has_indirect_arrays) {
         // ALOGW("glDrawElements: no vertex arrays / buffers bound to the command\n");
-        GLenum status = ctx->m_glCheckFramebufferStatus_enc(self, GL_FRAMEBUFFER);
+        GLenum status = ctx->glCheckFramebufferStatus(self, GL_FRAMEBUFFER);
         SET_ERROR_IF(status != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
     }
 
@@ -4674,7 +4674,7 @@ void GL2Encoder::s_glDrawRangeElements(void* self, GLenum mode, GLuint start, GL
 
     if (!has_client_vertex_arrays && !has_indirect_arrays) {
         // ALOGW("glDrawElements: no vertex arrays / buffers bound to the command\n");
-        GLenum status = ctx->m_glCheckFramebufferStatus_enc(self, GL_FRAMEBUFFER);
+        GLenum status = ctx->glCheckFramebufferStatus(self, GL_FRAMEBUFFER);
         SET_ERROR_IF(status != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
     }
 
