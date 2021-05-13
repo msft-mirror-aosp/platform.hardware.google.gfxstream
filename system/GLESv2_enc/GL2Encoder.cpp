@@ -2602,7 +2602,8 @@ void GL2Encoder::s_glTexImage2D(void* self, GLenum target, GLint level,
     SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, target), GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::pixelType(ctx, type), GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::pixelFormat(ctx, format), GL_INVALID_ENUM);
-    SET_ERROR_IF(!GLESv2Validation::pixelFormat(ctx, internalformat) && !GLESv2Validation::pixelInternalFormat(internalformat), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::pixelFormat(ctx, internalformat) && !GLESv2Validation::pixelInternalFormat(internalformat), GL_INVALID_VALUE);
+    SET_ERROR_IF(!(GLESv2Validation::pixelOp(format,type)),GL_INVALID_OPERATION);
     SET_ERROR_IF(!GLESv2Validation::pixelSizedFormat(ctx, internalformat, format, type), GL_INVALID_OPERATION);
     // If unpack buffer is nonzero, verify unmapped state.
     SET_ERROR_IF(ctx->isBufferTargetMapped(GL_PIXEL_UNPACK_BUFFER), GL_INVALID_OPERATION);
@@ -2753,7 +2754,7 @@ void GL2Encoder::s_glCopyTexImage2D(void* self, GLenum target, GLint level,
     GLClientState* state = ctx->m_state;
 
     SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, target), GL_INVALID_ENUM);
-    SET_ERROR_IF(!GLESv2Validation::pixelFormat(ctx, internalformat) && !GLESv2Validation::pixelInternalFormat(internalformat), GL_INVALID_ENUM);
+    SET_ERROR_IF(!GLESv2Validation::pixelFormat(ctx, internalformat) && !GLESv2Validation::pixelInternalFormat(internalformat), GL_INVALID_VALUE);
     GLint max_texture_size;
     GLint max_cube_map_texture_size;
     ctx->glGetIntegerv(ctx, GL_MAX_TEXTURE_SIZE, &max_texture_size);
@@ -2939,6 +2940,7 @@ void GL2Encoder::s_glRenderbufferStorage(void* self,
     GLClientState* state = ctx->m_state;
 
     SET_ERROR_IF(target != GL_RENDERBUFFER, GL_INVALID_ENUM);
+    SET_ERROR_IF(0 == ctx->m_state->boundRenderbuffer(), GL_INVALID_OPERATION);
     SET_ERROR_IF(
         !GLESv2Validation::rboFormat(ctx, internalformat),
         GL_INVALID_ENUM);
@@ -3365,6 +3367,7 @@ void GL2Encoder::s_glCompressedTexImage2D(void* self, GLenum target, GLint level
 
     SET_ERROR_IF(!GLESv2Validation::textureTarget(ctx, target), GL_INVALID_ENUM);
     SET_ERROR_IF(target == GL_TEXTURE_CUBE_MAP, GL_INVALID_ENUM);
+    fprintf(stderr, "%s: format: 0x%x\n", __func__, internalformat);
     // Filter compressed formats support.
     SET_ERROR_IF(!GLESv2Validation::supportedCompressedFormat(ctx, internalformat), GL_INVALID_ENUM);
     // Verify level <= log2(GL_MAX_TEXTURE_SIZE).
@@ -4237,6 +4240,7 @@ void GL2Encoder::s_glTexImage3D(void* self, GLenum target, GLint level, GLint in
                  GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::pixelType(ctx, type), GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::pixelFormat(ctx, format), GL_INVALID_ENUM);
+    SET_ERROR_IF(!(GLESv2Validation::pixelOp(format,type)),GL_INVALID_OPERATION);
     SET_ERROR_IF(!GLESv2Validation::pixelSizedFormat(ctx, internalFormat, format, type), GL_INVALID_OPERATION);
     SET_ERROR_IF(target == GL_TEXTURE_3D &&
         ((format == GL_DEPTH_COMPONENT) ||
@@ -6575,6 +6579,7 @@ void GL2Encoder::s_glGetRenderbufferParameteriv(void *self , GLenum target, GLen
     GL2Encoder* ctx = (GL2Encoder*)self;
     SET_ERROR_IF(target != GL_RENDERBUFFER, GL_INVALID_ENUM);
     SET_ERROR_IF(!GLESv2Validation::allowedGetRenderbufferParameter(pname), GL_INVALID_ENUM);
+    SET_ERROR_IF(0 == ctx->m_state->boundRenderbuffer(), GL_INVALID_OPERATION);
     ctx->m_glGetRenderbufferParameteriv_enc(ctx, target, pname, params);
 }
 
