@@ -1760,7 +1760,9 @@ GLuint GLClientState::getBoundFramebuffer(GLenum target) const
 GLenum GLClientState::checkFramebufferCompleteness(GLenum target) {
     // Default framebuffer is complete
     // TODO: Check the case where the default framebuffer is 0x0
-    if (0 == boundFramebuffer(target)) return GL_FRAMEBUFFER_COMPLETE;
+    if (0 == boundFramebuffer(target)) {
+        return GL_FRAMEBUFFER_COMPLETE;
+    }
 
     bool hasAttachment = false;
     FboProps& props = boundFboProps(target);
@@ -2469,6 +2471,10 @@ void GLClientState::addFreshFramebuffer(GLuint name) {
     props.depthAttachment_hasRbo = false;
     props.stencilAttachment_hasRbo = false;
     props.depthstencilAttachment_hasRbo = false;
+
+    props.defaultWidth = 0;
+    props.defaultHeight = 0;
+
     mFboState.fboData[name] = props;
 }
 
