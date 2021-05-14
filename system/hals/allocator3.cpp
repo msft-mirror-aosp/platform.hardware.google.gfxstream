@@ -323,6 +323,12 @@ private:
             return false;
         }
 
+        // b/186585177
+        if ((usage & (BufferUsage::CPU_READ_MASK | BufferUsage::CPU_WRITE_MASK)) &&
+                (0 == (usage & ~(BufferUsage::CPU_READ_MASK | BufferUsage::CPU_WRITE_MASK)))) {
+            return false;
+        }
+
         return ((usage & BufferUsage::GPU_DATA_BUFFER)
                    || (format != PixelFormat::BLOB &&
                        format != PixelFormat::RAW16 &&
