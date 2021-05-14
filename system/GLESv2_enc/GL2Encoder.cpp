@@ -1673,6 +1673,7 @@ GLint * GL2Encoder::getCompressedTextureFormats()
 // Replace uses of samplerExternalOES with sampler2D, recording the names of
 // modified shaders in data. Also remove
 //   #extension GL_OES_EGL_image_external : require
+//   #extension GL_OES_EGL_image_external_essl3 : require
 // statements.
 //
 // This implementation assumes the input has already been pre-processed. If not,
@@ -1762,34 +1763,40 @@ static bool replaceExternalSamplerUniformDefinition(char* str, const std::string
         }
         char* sampler_start = c;
         c += samplerExternalType.size();
-        if (!isspace(*c) && *c != '\0') {
+        if (!isspace(*c) && *c != '\0' && *c != ';') {
             continue;
+        } else {
+            // capture sampler name
+            while (isspace(*c) && *c != '\0') {
+                c++;
+            }
         }
 
-        // capture sampler name
-        while (isspace(*c) && *c != '\0') {
-            c++;
-        }
-        if (!isalpha(*c) && *c != '_') {
-            // not an identifier
-            return false;
-        }
-        char* name_start = c;
-        do {
-            c++;
-        } while (isalnum(*c) || *c == '_');
+        if ((!isalpha(*c) && *c != '_') || *c == ';') {
+            // not an identifier, but might have some effect anyway.
+            if (samplerExternalType == STR_SAMPLER_EXTERNAL_OES) {
+                memcpy(sampler_start, STR_SAMPLER2D_SPACE, sizeof(STR_SAMPLER2D_SPACE)-1);
+            }
+        } else {
+            char* name_start = c;
+            do {
+                c++;
+            } while (isalnum(*c) || *c == '_');
 
-        size_t len = (size_t)(c - name_start);
-        data->samplerExternalNames.push_back(
-            std::string(name_start, len));
+            size_t len = (size_t)(c - name_start);
+            if (len) {
+                data->samplerExternalNames.push_back(
+                        std::string(name_start, len));
+            }
 
-        // We only need to perform a string replacement for the original
-        // occurrence of samplerExternalOES if a #define was used.
-        //
-        // The important part was to record the name in
-        // |data->samplerExternalNames|.
-        if (samplerExternalType == STR_SAMPLER_EXTERNAL_OES) {
-            memcpy(sampler_start, STR_SAMPLER2D_SPACE, sizeof(STR_SAMPLER2D_SPACE)-1);
+            // We only need to perform a string replacement for the original
+            // occurrence of samplerExternalOES if a #define was used.
+            //
+            // The important part was to record the name in
+            // |data->samplerExternalNames|.
+            if (samplerExternalType == STR_SAMPLER_EXTERNAL_OES) {
+                memcpy(sampler_start, STR_SAMPLER2D_SPACE, sizeof(STR_SAMPLER2D_SPACE)-1);
+            }
         }
     }
 
