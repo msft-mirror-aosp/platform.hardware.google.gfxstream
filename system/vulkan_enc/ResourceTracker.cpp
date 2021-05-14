@@ -1271,6 +1271,8 @@ public:
         VkExtensionProperties* pProperties) {
 
         std::vector<const char*> allowedExtensionNames = {
+            "VK_KHR_vulkan_memory_model",
+            "VK_KHR_buffer_device_address",
             "VK_KHR_maintenance1",
             "VK_KHR_maintenance2",
             "VK_KHR_maintenance3",
@@ -1283,6 +1285,8 @@ public:
             "VK_KHR_timeline_semaphore",
             "VK_AMD_gpu_shader_half_float",
             "VK_NV_shader_subgroup_partitioned",
+            "VK_KHR_shader_subgroup_extended_types",
+            "VK_EXT_subgroup_size_control",
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
             "VK_KHR_external_semaphore",
             "VK_KHR_external_semaphore_fd",
