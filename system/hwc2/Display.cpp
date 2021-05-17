@@ -98,10 +98,9 @@ HWC2::Error Display::init(uint32_t width, uint32_t height, uint32_t dpiX,
   return HWC2::Error::None;
 }
 
-HWC2::Error Display::updateParameters(uint32_t width, uint32_t height,
-                                      uint32_t dpiX, uint32_t dpiY,
-                                      uint32_t refreshRateHz,
-                                      const std::optional<std::vector<uint8_t>>& edid) {
+HWC2::Error Display::updateParameters(
+    uint32_t width, uint32_t height, uint32_t dpiX, uint32_t dpiY,
+    uint32_t refreshRateHz, const std::optional<std::vector<uint8_t>>& edid) {
   DEBUG_LOG("%s updating display:%" PRIu64
             " width:%d height:%d dpiX:%d dpiY:%d refreshRateHz:%d",
             __FUNCTION__, mId, width, height, dpiX, dpiY, refreshRateHz);
@@ -205,8 +204,13 @@ HWC2::Error Display::destroyLayer(hwc2_layer_t layerId) {
     return HWC2::Error::BadLayer;
   }
 
-  std::remove_if(mOrderedLayers.begin(), mOrderedLayers.end(),
-                 [layerId](Layer* layer) { return layer->getId() == layerId; });
+  mOrderedLayers.erase(std::remove_if(mOrderedLayers.begin(),  //
+                                      mOrderedLayers.end(),    //
+                                      [layerId](Layer* layer) {
+                                        return layer->getId() == layerId;
+                                      }),
+                       mOrderedLayers.end());
+
   mLayers.erase(it);
 
   DEBUG_LOG("%s destroyed layer:%" PRIu64, __FUNCTION__, layerId);
@@ -305,8 +309,8 @@ HWC2::Error Display::getColorModes(uint32_t* outNumModes, int32_t* outModes) {
   }
 
   // we only support HAL_COLOR_MODE_NATIVE so far
-  uint32_t numModes =
-      std::min<uint32_t>(*outNumModes, static_cast<uint32_t>(mColorModes.size()));
+  uint32_t numModes = std::min<uint32_t>(
+      *outNumModes, static_cast<uint32_t>(mColorModes.size()));
   std::copy_n(mColorModes.cbegin(), numModes, outModes);
   *outNumModes = numModes;
   return HWC2::Error::None;
