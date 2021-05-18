@@ -477,7 +477,7 @@ status_t C2GoldfishAvcDec::setParams(size_t stride) {
 
 status_t C2GoldfishAvcDec::initDecoder() {
     //    if (OK != createDecoder()) return UNKNOWN_ERROR;
-    mStride = ALIGN32(mWidth);
+    mStride = ALIGN16(mWidth);
     mSignalledError = false;
     resetPlugin();
 
@@ -632,7 +632,7 @@ void C2GoldfishAvcDec::finishWork(uint64_t index,
 
 c2_status_t
 C2GoldfishAvcDec::ensureDecoderState(const std::shared_ptr<C2BlockPool> &pool) {
-    if (mOutBlock && (mOutBlock->width() != ALIGN32(mWidth) ||
+    if (mOutBlock && (mOutBlock->width() != ALIGN16(mWidth) ||
                       mOutBlock->height() != mHeight)) {
         mOutBlock.reset();
     }
@@ -644,7 +644,7 @@ C2GoldfishAvcDec::ensureDecoderState(const std::shared_ptr<C2BlockPool> &pool) {
         // C2MemoryUsage usage = {(unsigned
         // int)(BufferUsage::GPU_DATA_BUFFER)};// { C2MemoryUsage::CPU_READ,
         // C2MemoryUsage::CPU_WRITE };
-        c2_status_t err = pool->fetchGraphicBlock(ALIGN32(mWidth), mHeight,
+        c2_status_t err = pool->fetchGraphicBlock(ALIGN16(mWidth), mHeight,
                                                   format, usage, &mOutBlock);
         if (err != C2_OK) {
             ALOGE("fetchGraphicBlock for Output failed with status %d", err);
@@ -666,7 +666,7 @@ C2GoldfishAvcDec::ensureDecoderState(const std::shared_ptr<C2BlockPool> &pool) {
                 const_cast<uint8_t *>(wView.data()[C2PlanarLayout::PLANE_Y]);
         }
         DDD("provided (%dx%d) required (%dx%d)", mOutBlock->width(),
-            mOutBlock->height(), ALIGN32(mWidth), mHeight);
+            mOutBlock->height(), ALIGN16(mWidth), mHeight);
     }
 
     return C2_OK;
