@@ -28,6 +28,7 @@
 
 namespace android {
 
+#define ALIGN16(x) ((((x) + 15) >> 4) << 4)
 #define ALIGN32(x) ((((x) + 31) >> 5) << 5)
 #define MAX_NUM_CORES 4
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
