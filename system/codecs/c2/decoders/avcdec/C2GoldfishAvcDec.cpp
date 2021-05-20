@@ -657,14 +657,6 @@ C2GoldfishAvcDec::ensureDecoderState(const std::shared_ptr<C2BlockPool> &pool) {
                 UnwrapNativeCodec2GrallocHandle(c2Handle);
             mHostColorBufferId = getColorBufferHandle(grallocHandle);
             DDD("found handle %d", mHostColorBufferId);
-        } else {
-            C2GraphicView wView = mOutBlock->map().get();
-            if (wView.error()) {
-                ALOGE("graphic view map failed %d", wView.error());
-                return C2_CORRUPTED;
-            }
-            mByteBuffer =
-                const_cast<uint8_t *>(wView.data()[C2PlanarLayout::PLANE_Y]);
         }
         DDD("provided (%dx%d) required (%dx%d)", mOutBlock->width(),
             mOutBlock->height(), ALIGN16(mWidth), mHeight);
@@ -737,22 +729,32 @@ void C2GoldfishAvcDec::getVuiParams(h264_image_t &img) {
     }
 }
 
-void C2GoldfishAvcDec::copyImageData(uint8_t *pBuffer, h264_image_t &img) {
+void C2GoldfishAvcDec::copyImageData(h264_image_t &img) {
     getVuiParams(img);
     if (mEnableAndroidNativeBuffers)
         return;
-    int myStride = mWidth;
-    for (int i = 0; i < mHeight; ++i) {
-        memcpy(pBuffer + i * myStride, img.data + i * mWidth, mWidth);
+
+    auto writeView = mOutBlock->map().get();
+    if (writeView.error()) {
+        ALOGE("graphic view map failed %d", writeView.error());
+        return;
     }
-    int Y = myStride * mHeight;
+    size_t dstYStride = writeView.layout().planes[C2PlanarLayout::PLANE_Y].rowInc;
+    size_t dstUVStride = writeView.layout().planes[C2PlanarLayout::PLANE_U].rowInc;
+
+    uint8_t *pYBuffer = const_cast<uint8_t *>(writeView.data()[C2PlanarLayout::PLANE_Y]);
+    uint8_t *pUBuffer = const_cast<uint8_t *>(writeView.data()[C2PlanarLayout::PLANE_U]);
+    uint8_t *pVBuffer = const_cast<uint8_t *>(writeView.data()[C2PlanarLayout::PLANE_V]);
+
+    for (int i = 0; i < mHeight; ++i) {
+        memcpy(pYBuffer + i * dstYStride, img.data + i * mWidth, mWidth);
+    }
     for (int i = 0; i < mHeight / 2; ++i) {
-        memcpy(pBuffer + Y + i * myStride / 2,
+        memcpy(pUBuffer + i * dstUVStride,
                img.data + mWidth * mHeight + i * mWidth / 2, mWidth / 2);
     }
-    int UV = Y / 4;
     for (int i = 0; i < mHeight / 2; ++i) {
-        memcpy(pBuffer + Y + UV + i * myStride / 2,
+        memcpy(pVBuffer + i * dstUVStride,
                img.data + mWidth * mHeight * 5 / 4 + i * mWidth / 2,
                mWidth / 2);
     }
@@ -918,7 +920,7 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
 
             DDD("got data %" PRIu64 " with pts %" PRIu64,  mPts2Index[mImg.pts], mImg.pts);
             mHeaderDecoded = true;
-            copyImageData(mByteBuffer, mImg);
+            copyImageData(mImg);
             finishWork(mPts2Index[mImg.pts], work);
             removePts(mImg.pts);
         } else {
@@ -985,7 +987,7 @@ C2GoldfishAvcDec::drainInternal(uint32_t drainMode,
         //        mImg = mContext->getImage();
         if (mImg.data != nullptr) {
             DDD("got data in drain mode %" PRIu64 " with pts %" PRIu64,  mPts2Index[mImg.pts], mImg.pts);
-            copyImageData(mByteBuffer, mImg);
+            copyImageData(mImg);
             finishWork(mPts2Index[mImg.pts], work);
             removePts(mImg.pts);
         } else {
