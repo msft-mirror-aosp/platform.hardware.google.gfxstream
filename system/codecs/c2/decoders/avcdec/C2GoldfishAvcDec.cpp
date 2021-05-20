@@ -556,6 +556,7 @@ static void fillEmptyWork(const std::unique_ptr<C2Work> &work) {
         flags |= C2FrameData::FLAG_END_OF_STREAM;
         DDD("signalling eos");
     }
+    DDD("fill empty work");
     work->worklets.front()->output.flags = (C2FrameData::flags_t)flags;
     work->worklets.front()->output.buffers.clear();
     work->worklets.front()->output.ordinal = work->input.ordinal;
@@ -812,7 +813,7 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
         }
     }
     bool eos = ((work->input.flags & C2FrameData::FLAG_END_OF_STREAM) != 0);
-    bool hasPicture = false;
+    bool hasPicture = (inSize > 0);
 
     DDD("in buffer attr. size %zu timestamp %d frameindex %d, flags %x", inSize,
         (int)work->input.ordinal.timestamp.peeku(),
@@ -848,6 +849,7 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
 
             DDD("flag is %x", work->input.flags);
             if (work->input.flags & C2FrameData::FLAG_CODEC_CONFIG) {
+                hasPicture = false;
                 if (mCsd0.empty()) {
                     mCsd0.assign(mInPBuffer, mInPBuffer + mInPBufferSize);
                     DDD("assign to csd0 with %d bytpes", mInPBufferSize);
@@ -865,6 +867,7 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
             h264_result_t h264Res =
                 mContext->decodeFrame(mInPBuffer, mInPBufferSize, mIndex2Pts[mInTsMarker]);
             mConsumedBytes = h264Res.bytesProcessed;
+            DDD("decoding consumed %d", (int)mConsumedBytes);
 
             if (mHostColorBufferId > 0) {
                 mImg = mContext->renderOnHostAndReturnImageMetadata(
@@ -890,8 +893,30 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
             //            &s_decode_op);
         }
         if (mImg.data != nullptr) {
-            DDD("got data %" PRIu64,  mPts2Index[mImg.pts]);
-            hasPicture = true;
+            // check for new width and height
+            auto decodedW = mImg.width;
+            auto decodedH = mImg.height;
+            if (decodedW != mWidth || decodedH != mHeight) {
+                mWidth = decodedW;
+                mHeight = decodedH;
+
+                C2StreamPictureSizeInfo::output size(0u, mWidth, mHeight);
+                std::vector<std::unique_ptr<C2SettingResult>> failures;
+                c2_status_t err = mIntf->config({&size}, C2_MAY_BLOCK, &failures);
+                if (err == OK) {
+                    work->worklets.front()->output.configUpdate.push_back(
+                        C2Param::Copy(size));
+                    ensureDecoderState(pool);
+                } else {
+                    ALOGE("Cannot set width and height");
+                    mSignalledError = true;
+                    work->workletsProcessed = 1u;
+                    work->result = C2_CORRUPTED;
+                    return;
+                }
+            }
+
+            DDD("got data %" PRIu64 " with pts %" PRIu64,  mPts2Index[mImg.pts], mImg.pts);
             mHeaderDecoded = true;
             copyImageData(mByteBuffer, mImg);
             finishWork(mPts2Index[mImg.pts], work);
@@ -907,8 +932,8 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
         drainInternal(DRAIN_COMPONENT_WITH_EOS, pool, work);
         mSignalledOutputEos = true;
     } else if (!hasPicture) {
+        DDD("no picture, fill empty work");
         fillEmptyWork(work);
-        work->workletsProcessed = 0u;
     }
 
     work->input.buffers.clear();
@@ -959,7 +984,7 @@ C2GoldfishAvcDec::drainInternal(uint32_t drainMode,
         // TODO: maybe keep rendering to screen
         //        mImg = mContext->getImage();
         if (mImg.data != nullptr) {
-            DDD("got data in drain mode %" PRIu64, mPts2Index[mImg.pts]);
+            DDD("got data in drain mode %" PRIu64 " with pts %" PRIu64,  mPts2Index[mImg.pts], mImg.pts);
             copyImageData(mByteBuffer, mImg);
             finishWork(mPts2Index[mImg.pts], work);
             removePts(mImg.pts);
