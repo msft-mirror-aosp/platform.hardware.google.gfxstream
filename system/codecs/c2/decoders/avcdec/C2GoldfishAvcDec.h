@@ -99,9 +99,8 @@ class C2GoldfishAvcDec : public SimpleC2Component {
     int mHostColorBufferId{-1};
 
     void getVuiParams(h264_image_t &img);
-    void copyImageData(uint8_t *pBuffer, h264_image_t &img);
+    void copyImageData(h264_image_t &img);
 
-    uint8_t *mByteBuffer{nullptr};
     h264_image_t mImg{};
     uint32_t mConsumedBytes{0};
     uint8_t *mInPBuffer{nullptr};
