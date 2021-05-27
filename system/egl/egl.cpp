@@ -1253,7 +1253,7 @@ EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig 
             attribs_size * sizeof(EGLint), (uint32_t*)tempConfigs, config_size);
 
     if (local_attrib_list) delete [] local_attrib_list;
-    if (*num_config <= 0) {
+    if (*num_config < 0) {
         EGLint err = -(*num_config);
         *num_config = 0;
         switch (err) {
