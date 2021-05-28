@@ -503,8 +503,7 @@ bool C2GoldfishAvcDec::setDecodeArgs(C2ReadView *inBuffer,
         mInPBuffer = const_cast<uint8_t *>(inBuffer->data() + inOffset);
         mInPBufferSize = inSize;
         mInTsMarker = tsMarker;
-        mIndex2Pts[mInTsMarker] = mPts;
-        mPts2Index[mPts] = mInTsMarker;
+        insertPts(tsMarker, mPts);
     }
 
     // uint32_t displayHeight = mHeight;
@@ -760,13 +759,61 @@ void C2GoldfishAvcDec::copyImageData(h264_image_t &img) {
     }
 }
 
-void C2GoldfishAvcDec::removePts(uint64_t pts) {
+uint64_t C2GoldfishAvcDec::getWorkIndex(uint64_t pts) {
+    if (!mOldPts2Index.empty()) {
+        auto iter = mOldPts2Index.find(pts);
+        if (iter != mOldPts2Index.end()) {
+            auto index = iter->second;
+            DDD("found index %d for pts %" PRIu64, (int)index, pts);
+            return index;
+        }
+    }
     auto iter = mPts2Index.find(pts);
-    if (iter == mPts2Index.end()) return;
+    if (iter != mPts2Index.end()) {
+        auto index = iter->second;
+        DDD("found index %d for pts %" PRIu64, (int)index, pts);
+        return index;
+    }
+    DDD("not found index for pts %" PRIu64, pts);
+    return 0;
+}
 
-    auto index = iter->second;
+void C2GoldfishAvcDec::insertPts(uint32_t work_index, uint64_t pts) {
+    auto iter = mPts2Index.find(pts);
+    if (iter != mPts2Index.end()) {
+        // we have a collision here:
+        // apparently, older session is not done yet,
+        // lets save them
+        DDD("inserted to old pts %" PRIu64 " with index %d", pts, (int)iter->second);
+        mOldPts2Index[iter->first] = iter->second;
+    }
+    DDD("inserted pts %" PRIu64 " with index %d", pts, (int)work_index);
+    mIndex2Pts[work_index] = pts;
+    mPts2Index[pts] = work_index;
+}
 
-    mPts2Index.erase(iter);
+void C2GoldfishAvcDec::removePts(uint64_t pts) {
+    bool found = false;
+    uint64_t index = 0;
+    // note: check old pts first to see
+    // if we have some left over, check them
+    if (!mOldPts2Index.empty()) {
+        auto iter = mOldPts2Index.find(pts);
+        if (iter != mOldPts2Index.end()) {
+            mOldPts2Index.erase(iter);
+            index = iter->second;
+            found = true;
+        }
+    } else {
+        auto iter = mPts2Index.find(pts);
+        if (iter != mPts2Index.end()) {
+            mPts2Index.erase(iter);
+            index = iter->second;
+            found = true;
+        }
+    }
+
+    if (!found) return;
 
     auto iter2 = mIndex2Pts.find(index);
     if (iter2 == mIndex2Pts.end()) return;
@@ -859,6 +906,8 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
                     mCsd1.assign(mInPBuffer, mInPBuffer + mInPBufferSize);
                     DDD("assign to csd1 with %d bytpes", mInPBufferSize);
                 }
+                // this is not really a valid pts from config
+                removePts(mPts);
             }
 
             uint32_t delay;
@@ -918,10 +967,10 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
                 }
             }
 
-            DDD("got data %" PRIu64 " with pts %" PRIu64,  mPts2Index[mImg.pts], mImg.pts);
+            DDD("got data %" PRIu64 " with pts %" PRIu64,  getWorkIndex(mImg.pts), mImg.pts);
             mHeaderDecoded = true;
             copyImageData(mImg);
-            finishWork(mPts2Index[mImg.pts], work);
+            finishWork(getWorkIndex(mImg.pts), work);
             removePts(mImg.pts);
         } else {
             work->workletsProcessed = 0u;
@@ -986,9 +1035,9 @@ C2GoldfishAvcDec::drainInternal(uint32_t drainMode,
         // TODO: maybe keep rendering to screen
         //        mImg = mContext->getImage();
         if (mImg.data != nullptr) {
-            DDD("got data in drain mode %" PRIu64 " with pts %" PRIu64,  mPts2Index[mImg.pts], mImg.pts);
+            DDD("got data in drain mode %" PRIu64 " with pts %" PRIu64,  getWorkIndex(mImg.pts), mImg.pts);
             copyImageData(mImg);
-            finishWork(mPts2Index[mImg.pts], work);
+            finishWork(getWorkIndex(mImg.pts), work);
             removePts(mImg.pts);
         } else {
             fillEmptyWork(work);
