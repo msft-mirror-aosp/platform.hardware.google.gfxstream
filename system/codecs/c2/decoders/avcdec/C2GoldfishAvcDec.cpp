@@ -546,6 +546,9 @@ void C2GoldfishAvcDec::deleteContext() {
     if (mContext) {
         mContext->destroyH264Context();
         mContext.reset(nullptr);
+        mPts2Index.clear();
+        mOldPts2Index.clear();
+        mIndex2Pts.clear();
     }
 }
 
