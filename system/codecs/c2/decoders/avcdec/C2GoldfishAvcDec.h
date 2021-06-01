@@ -79,7 +79,12 @@ class C2GoldfishAvcDec : public SimpleC2Component {
     std::shared_ptr<IntfImpl> mIntf;
 
     void removePts(uint64_t pts);
+    void insertPts(uint32_t work_index, uint64_t pts);
+    uint64_t getWorkIndex(uint64_t pts);
 
+    // there are same pts matching to different work indices
+    // this happen during csd0/csd1 switching
+    std::map<uint64_t, uint64_t> mOldPts2Index;
     std::map<uint64_t, uint64_t> mPts2Index;
     std::map<uint64_t, uint64_t> mIndex2Pts;
     uint64_t  mPts {0};
