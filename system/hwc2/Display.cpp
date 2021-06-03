@@ -26,6 +26,8 @@
 namespace android {
 namespace {
 
+using android::hardware::graphics::common::V1_0::ColorTransform;
+
 std::atomic<hwc2_config_t> sNextConfigId{0};
 
 bool IsValidColorMode(android_color_mode_t mode) {
@@ -544,17 +546,38 @@ HWC2::Error Display::setColorMode(int32_t intMode) {
   return HWC2::Error::None;
 }
 
-HWC2::Error Display::setColorTransform(const float* /*matrix*/, int32_t hint) {
-  DEBUG_LOG("%s: display:%" PRIu64 " setting hint to %d", __FUNCTION__, mId,
-            hint);
+HWC2::Error Display::setColorTransform(const float* transformMatrix,
+                                       int transformTypeRaw) {
+  const auto transformType = static_cast<ColorTransform>(transformTypeRaw);
+  return setColorTransformEnum(transformMatrix, transformType);
+}
+
+HWC2::Error Display::setColorTransformEnum(
+    const float* transformMatrix, ColorTransform transformType) {
+  const auto transformTypeString = toString(transformType);
+  DEBUG_LOG("%s: display:%" PRIu64 " color transform type %s", __FUNCTION__, mId,
+            transformTypeString.c_str());
+
+  if (transformType == ColorTransform::ARBITRARY_MATRIX &&
+      transformMatrix == nullptr) {
+    return HWC2::Error::BadParameter;
+  }
 
   std::unique_lock<std::recursive_mutex> lock(mStateMutex);
-  // we force client composition if this is set
-  if (hint == 0) {
-    mSetColorTransform = false;
+
+  if (transformType == ColorTransform::IDENTITY) {
+    mColorTransform.reset();
   } else {
-    mSetColorTransform = true;
+    ColorTransformWithMatrix& colorTransform = mColorTransform.emplace();
+    colorTransform.transformType = transformType;
+
+    if (transformType == ColorTransform::ARBITRARY_MATRIX) {
+      auto& colorTransformMatrix = colorTransform.transformMatrixOpt.emplace();
+      std::copy_n(transformMatrix, colorTransformMatrix.size(),
+                  colorTransformMatrix.begin());
+    }
   }
+
   return HWC2::Error::None;
 }
 
