@@ -29,6 +29,8 @@
 #include <unistd.h>
 #include <string.h>
 
+#include <sys/mman.h>
+
 static const size_t kReadSize = 512 * 1024;
 static const size_t kWriteOffset = kReadSize;
 
@@ -178,6 +180,9 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t ignored_bufSize) {
             handle, GoldfishAddressSpaceSubdeviceType::VirtioGpuGraphics,
             &virtgpu_info)) {
         ALOGE("AddressSpaceStream::create failed (create subdevice)\n");
+        if (virtgpu_info.resp_mapped_ptr) {
+            munmap(virtgpu_info.resp_mapped_ptr, 4096);
+        }
         virtgpu_address_space_close(handle);
         return nullptr;
     }
@@ -191,6 +196,9 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t ignored_bufSize) {
     if (!virtgpu_address_space_ping_with_response(
         &virtgpu_info, &request)) {
         ALOGE("AddressSpaceStream::create failed (get ring version)\n");
+        if (virtgpu_info.resp_mapped_ptr) {
+            munmap(virtgpu_info.resp_mapped_ptr, 4096);
+        }
         virtgpu_address_space_close(handle);
         return nullptr;
     }
@@ -200,6 +208,9 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t ignored_bufSize) {
     if (!virtgpu_address_space_ping_with_response(
         &virtgpu_info, &request)) {
         ALOGE("AddressSpaceStream::create failed (get ring version)\n");
+        if (virtgpu_info.resp_mapped_ptr) {
+            munmap(virtgpu_info.resp_mapped_ptr, 4096);
+        }
         virtgpu_address_space_close(handle);
         return nullptr;
     }
@@ -211,6 +222,9 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t ignored_bufSize) {
     if (!virtgpu_address_space_ping_with_response(
         &virtgpu_info, &request)) {
         ALOGE("AddressSpaceStream::create failed (set version)\n");
+        if (virtgpu_info.resp_mapped_ptr) {
+            munmap(virtgpu_info.resp_mapped_ptr, 4096);
+        }
         virtgpu_address_space_close(handle);
         return nullptr;
     }
@@ -232,6 +246,9 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t ignored_bufSize) {
             hostmem_id,
             &hostmem_info)) {
         ALOGE("AddressSpaceStream::create failed (alloc hostmem)\n");
+        if (virtgpu_info.resp_mapped_ptr) {
+            munmap(virtgpu_info.resp_mapped_ptr, 4096);
+        }
         virtgpu_address_space_close(handle);
         return nullptr;
     }
@@ -240,6 +257,9 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t ignored_bufSize) {
     if (!virtgpu_address_space_ping_with_response(
         &virtgpu_info, &request)) {
         ALOGE("AddressSpaceStream::create failed (get config)\n");
+        if (virtgpu_info.resp_mapped_ptr) {
+            munmap(virtgpu_info.resp_mapped_ptr, 4096);
+        }
         virtgpu_address_space_close(handle);
         return nullptr;
     }
@@ -262,6 +282,10 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t ignored_bufSize) {
         .allocate_hostmem = virtgpu_address_space_allocate_hostmem,
         .ping_with_response = virtgpu_address_space_ping_with_response,
     };
+
+    if (virtgpu_info.resp_mapped_ptr) {
+        munmap(virtgpu_info.resp_mapped_ptr, 4096);
+    }
 
     AddressSpaceStream* res =
         new AddressSpaceStream(
@@ -304,7 +328,8 @@ AddressSpaceStream::AddressSpaceStream(
     m_notifs(0),
     m_written(0),
     m_backoffIters(0),
-    m_backoffFactor(1) {
+    m_backoffFactor(1),
+    m_ringStorageSize(sizeof(struct asg_ring_storage) + m_writeBufferSize) {
     // We'll use this in the future, but at the moment,
     // it's a potential compile Werror.
     (void)m_version;
@@ -314,7 +339,11 @@ AddressSpaceStream::~AddressSpaceStream() {
     flush();
     ensureType3Finished();
     ensureType1Finished();
-    if (!m_virtioMode) {
+    if (m_virtioMode) {
+        if (m_context.to_host) {
+            munmap(m_context.to_host, m_ringStorageSize);
+        }
+    } else {
         m_ops.unmap(m_context.to_host, sizeof(struct asg_ring_storage));
         m_ops.unmap(m_context.buffer, m_writeBufferSize);
         m_ops.unclaim_shared(m_handle, m_ringOffset);
