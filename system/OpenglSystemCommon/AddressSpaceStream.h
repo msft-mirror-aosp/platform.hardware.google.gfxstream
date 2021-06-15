@@ -100,6 +100,8 @@ private:
 
     uint64_t m_backoffIters;
     uint64_t m_backoffFactor;
+
+    size_t m_ringStorageSize;
 };
 
 #endif
