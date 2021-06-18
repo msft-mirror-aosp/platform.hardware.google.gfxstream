@@ -66,6 +66,21 @@ static bool isMinigbmFromProperty() {
   }
 }
 
+static bool useAngleFromProperty() {
+  static constexpr const auto kEglProp = "ro.hardware.egl";
+
+  const auto eglProp = android::base::GetProperty(kEglProp, "");
+  DEBUG_LOG("%s: prop value is: %s", __FUNCTION__, eglProp.c_str());
+
+  if (eglProp == "angle") {
+    ALOGD("%s: Using ANGLE.\n", __FUNCTION__);
+    return true;
+  } else {
+    ALOGD("%s: Not using ANGLE.\n", __FUNCTION__);
+    return false;
+  }
+}
+
 #define DEFINE_AND_VALIDATE_HOST_CONNECTION                                   \
   HostConnection* hostCon = createOrGetHostConnection();                      \
   if (!hostCon) {                                                             \
@@ -173,6 +188,8 @@ void FreeDisplayColorBuffer(const native_handle_t* h) {
 
 HWC2::Error HostComposer::init(const HotplugCallback& cb) {
   mIsMinigbm = isMinigbmFromProperty();
+  mUseAngle = useAngleFromProperty();
+
   if (mIsMinigbm) {
     if (!mDrmPresenter.init(cb)) {
       ALOGE("%s: failed to initialize DrmPresenter", __FUNCTION__);
@@ -797,11 +814,17 @@ HWC2::Error HostComposer::presentDisplay(Display* display,
     uint64_t sync_handle, thread_handle;
     int retire_fd;
 
-    hostCon->lock();
-    rcEnc->rcCreateSyncKHR(rcEnc, EGL_SYNC_NATIVE_FENCE_ANDROID, attribs,
-                           2 * sizeof(EGLint), true /* destroy when signaled */,
-                           &sync_handle, &thread_handle);
-    hostCon->unlock();
+    // We don't use rc command to sync if we are using ANGLE on the guest with
+    // virtio-gpu.
+    bool useRcCommandToSync = !(mUseAngle && mIsMinigbm);
+
+    if (useRcCommandToSync) {
+      hostCon->lock();
+      rcEnc->rcCreateSyncKHR(rcEnc, EGL_SYNC_NATIVE_FENCE_ANDROID, attribs,
+                             2 * sizeof(EGLint), true /* destroy when signaled */,
+                             &sync_handle, &thread_handle);
+      hostCon->unlock();
+    }
 
     if (mIsMinigbm) {
       displayInfo.compositionResultDrmBuffer->flushToDisplay(display->getId(),
@@ -817,13 +840,15 @@ HWC2::Error HostComposer::presentDisplay(Display* display,
 
     *outRetireFence = dup(retire_fd);
     close(retire_fd);
-    hostCon->lock();
-    if (rcEnc->hasAsyncFrameCommands()) {
-      rcEnc->rcDestroySyncKHRAsync(rcEnc, sync_handle);
-    } else {
-      rcEnc->rcDestroySyncKHR(rcEnc, sync_handle);
+    if (useRcCommandToSync) {
+      hostCon->lock();
+      if (rcEnc->hasAsyncFrameCommands()) {
+        rcEnc->rcDestroySyncKHRAsync(rcEnc, sync_handle);
+      } else {
+        rcEnc->rcDestroySyncKHR(rcEnc, sync_handle);
+      }
+      hostCon->unlock();
     }
-    hostCon->unlock();
 
   } else {
     // we set all layers Composition::Client, so do nothing.
