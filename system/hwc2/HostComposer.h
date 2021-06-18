@@ -75,6 +75,8 @@ class HostComposer : public Composer {
 
   bool mIsMinigbm = false;
 
+  bool mUseAngle = false;
+
   int mSyncDeviceFd = -1;
 
   struct HostComposerDisplayInfo {
