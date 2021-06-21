@@ -312,6 +312,7 @@ public:
         std::vector<HostMemBlocks> hostMemBlocks { VK_MAX_MEMORY_TYPES };
         uint32_t apiVersion;
         std::set<std::string> enabledExtensions;
+        std::vector<std::pair<PFN_vkDeviceMemoryReportCallbackEXT, void *>> deviceMemoryReportCallbacks;
     };
 
     struct VirtioGpuHostmemResourceInfo {
@@ -331,6 +332,7 @@ public:
         VirtioGpuHostmemResourceInfo resInfo;
         SubAlloc subAlloc;
         AHardwareBuffer* ahw = nullptr;
+        bool imported = false;
         zx_handle_t vmoHandle = ZX_HANDLE_INVALID;
     };
 
@@ -812,7 +814,8 @@ public:
                        VkPhysicalDeviceProperties props,
                        VkPhysicalDeviceMemoryProperties memProps,
                        uint32_t enabledExtensionCount,
-                       const char* const* ppEnabledExtensionNames) {
+                       const char* const* ppEnabledExtensionNames,
+                       const void* pNext) {
         AutoLock lock(mLock);
         auto& info = info_VkDevice[device];
         info.physdev = physdev;
@@ -824,10 +827,52 @@ public:
             &mHostVisibleMemoryVirtInfo);
         info.apiVersion = props.apiVersion;
 
+        const VkBaseInStructure *extensionCreateInfo =
+            reinterpret_cast<const VkBaseInStructure *>(pNext);
+        while(extensionCreateInfo) {
+            if(extensionCreateInfo->sType
+                == VK_STRUCTURE_TYPE_DEVICE_DEVICE_MEMORY_REPORT_CREATE_INFO_EXT) {
+                auto deviceMemoryReportCreateInfo =
+                    reinterpret_cast<const VkDeviceDeviceMemoryReportCreateInfoEXT *>(
+                        extensionCreateInfo);
+                if(deviceMemoryReportCreateInfo->pfnUserCallback != nullptr) {
+                    info.deviceMemoryReportCallbacks.emplace_back(
+                        deviceMemoryReportCreateInfo->pfnUserCallback,
+                        deviceMemoryReportCreateInfo->pUserData);
+                }
+            }
+            extensionCreateInfo = extensionCreateInfo->pNext;
+        }
+
         if (!ppEnabledExtensionNames) return;
 
         for (uint32_t i = 0; i < enabledExtensionCount; ++i) {
             info.enabledExtensions.insert(ppEnabledExtensionNames[i]);
+        }
+    }
+
+    void emitDeviceMemoryReport(VkDevice_Info info,
+                                VkDeviceMemoryReportEventTypeEXT type,
+                                uint64_t memoryObjectId,
+                                VkDeviceSize size,
+                                VkObjectType objectType,
+                                uint64_t objectHandle,
+                                uint32_t heapIndex = 0) {
+        if(info.deviceMemoryReportCallbacks.empty()) return;
+
+        const VkDeviceMemoryReportCallbackDataEXT callbackData = {
+            VK_STRUCTURE_TYPE_DEVICE_MEMORY_REPORT_CALLBACK_DATA_EXT,  // sType
+            nullptr,                                                   // pNext
+            0,                                                         // flags
+            type,                                                      // type
+            memoryObjectId,                                            // memoryObjectId
+            size,                                                      // size
+            objectType,                                                // objectType
+            objectHandle,                                              // objectHandle
+            heapIndex,                                                 // heapIndex
+        };
+        for(const auto &callback : info.deviceMemoryReportCallbacks) {
+            callback.first(&callbackData, callback.second);
         }
     }
 
@@ -838,6 +883,7 @@ public:
                              uint8_t* ptr,
                              uint32_t memoryTypeIndex,
                              AHardwareBuffer* ahw = nullptr,
+                             bool imported = false,
                              zx_handle_t vmoHandle = ZX_HANDLE_INVALID) {
         AutoLock lock(mLock);
         auto& deviceInfo = info_VkDevice[device];
@@ -848,6 +894,7 @@ public:
         info.mappedPtr = ptr;
         info.memoryTypeIndex = memoryTypeIndex;
         info.ahw = ahw;
+        info.imported = imported;
         info.vmoHandle = vmoHandle;
     }
 
@@ -1295,6 +1342,7 @@ public:
             "VK_KHR_external_memory",
             "VK_KHR_external_fence",
             "VK_KHR_external_fence_fd",
+            "VK_EXT_device_memory_report",
 #endif
         };
 
@@ -1558,6 +1606,14 @@ public:
         if (pProperties) {
             pProperties->properties.deviceType =
                 VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
+
+            VkPhysicalDeviceDeviceMemoryReportFeaturesEXT *memoryReportFeaturesEXT
+                = new VkPhysicalDeviceDeviceMemoryReportFeaturesEXT();
+            memoryReportFeaturesEXT->sType
+                = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_MEMORY_REPORT_FEATURES_EXT;
+            memoryReportFeaturesEXT->pNext = pProperties->pNext;
+            memoryReportFeaturesEXT->deviceMemoryReport = VK_TRUE;
+            pProperties->pNext = memoryReportFeaturesEXT;
         }
     }
 
@@ -1653,7 +1709,8 @@ public:
 
         setDeviceInfo(
             *pDevice, physicalDevice, props, memProps,
-            pCreateInfo->enabledExtensionCount, pCreateInfo->ppEnabledExtensionNames);
+            pCreateInfo->enabledExtensionCount, pCreateInfo->ppEnabledExtensionNames,
+            pCreateInfo->pNext);
 
         return input_result;
     }
@@ -3023,6 +3080,16 @@ public:
         return INVALID_HOST_MEM_BLOCK;
     }
 
+    uint64_t getAHardwareBufferId(AHardwareBuffer* ahw) {
+        uint64_t id = 0;
+#if defined(PLATFORM_SDK_VERSION) && PLATFORM_SDK_VERSION >= 31
+        AHardwareBuffer_getId(ahw, &id);
+#else
+        (void)ahw;
+#endif
+        return id;
+    }
+
     VkResult on_vkAllocateMemory(
         void* context,
         VkResult input_result,
@@ -3031,7 +3098,40 @@ public:
         const VkAllocationCallbacks* pAllocator,
         VkDeviceMemory* pMemory) {
 
-        if (input_result != VK_SUCCESS) return input_result;
+#define _RETURN_FAILURE_WITH_DEVICE_MEMORY_REPORT(result) \
+        { \
+            auto it = info_VkDevice.find(device); \
+            if (it == info_VkDevice.end()) return result; \
+            emitDeviceMemoryReport( \
+                it->second, \
+                VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_ALLOCATION_FAILED_EXT, \
+                0, \
+                pAllocateInfo->allocationSize, \
+                VK_OBJECT_TYPE_DEVICE_MEMORY, \
+                0, \
+                pAllocateInfo->memoryTypeIndex); \
+            return result; \
+        }
+
+#define _RETURN_SCUCCESS_WITH_DEVICE_MEMORY_REPORT \
+        { \
+            uint64_t memoryObjectId = (uint64_t)(void*)*pMemory; \
+            if (ahw) { \
+                memoryObjectId = getAHardwareBufferId(ahw); \
+            } \
+            emitDeviceMemoryReport( \
+                info_VkDevice[device], \
+                isImport ? VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_IMPORT_EXT : VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_ALLOCATE_EXT, \
+                memoryObjectId, \
+                pAllocateInfo->allocationSize, \
+                VK_OBJECT_TYPE_DEVICE_MEMORY, \
+                (uint64_t)(void*)*pMemory, \
+                pAllocateInfo->memoryTypeIndex); \
+            return VK_SUCCESS; \
+        }
+
+
+        if (input_result != VK_SUCCESS) _RETURN_FAILURE_WITH_DEVICE_MEMORY_REPORT(input_result);
 
         VkEncoder* enc = (VkEncoder*)context;
 
@@ -3133,6 +3233,7 @@ public:
         } else if (importVmoInfoPtr) {
             importVmo = true;
         }
+        bool isImport = importAhb || importBufferCollection || importVmo;
 
         if (exportAhb) {
             bool hasDedicatedImage = dedicatedAllocInfoPtr &&
@@ -3153,7 +3254,7 @@ public:
 
                 auto it = info_VkImage.find(
                     dedicatedAllocInfoPtr->image);
-                if (it == info_VkImage.end()) return VK_ERROR_INITIALIZATION_FAILED;
+                if (it == info_VkImage.end()) _RETURN_FAILURE_WITH_DEVICE_MEMORY_REPORT(VK_ERROR_INITIALIZATION_FAILED);
                 const auto& info = it->second;
                 const auto& imgCi = info.createInfo;
 
@@ -3169,7 +3270,7 @@ public:
 
                 auto it = info_VkBuffer.find(
                     dedicatedAllocInfoPtr->buffer);
-                if (it == info_VkBuffer.end()) return VK_ERROR_INITIALIZATION_FAILED;
+                if (it == info_VkBuffer.end()) _RETURN_FAILURE_WITH_DEVICE_MEMORY_REPORT(VK_ERROR_INITIALIZATION_FAILED);
                 const auto& info = it->second;
                 const auto& bufCi = info.createInfo;
 
@@ -3190,7 +3291,7 @@ public:
                     &ahw);
 
             if (ahbCreateRes != VK_SUCCESS) {
-                return ahbCreateRes;
+                _RETURN_FAILURE_WITH_DEVICE_MEMORY_REPORT(ahbCreateRes);
             }
         }
 
@@ -3222,14 +3323,14 @@ public:
             if (!result.ok() || result.Unwrap()->status != ZX_OK) {
                 ALOGE("WaitForBuffersAllocated failed: %d %d", result.status(),
                       GET_STATUS_SAFE(result, status));
-                return VK_ERROR_INITIALIZATION_FAILED;
+                _RETURN_FAILURE_WITH_DEVICE_MEMORY_REPORT(VK_ERROR_INITIALIZATION_FAILED);
             }
             fuchsia_sysmem::wire::BufferCollectionInfo2& info =
                 result.Unwrap()->buffer_collection_info;
             uint32_t index = importBufferCollectionInfoPtr->index;
             if (info.buffer_count < index) {
                 ALOGE("Invalid buffer index: %d %d", index);
-                return VK_ERROR_INITIALIZATION_FAILED;
+                _RETURN_FAILURE_WITH_DEVICE_MEMORY_REPORT(VK_ERROR_INITIALIZATION_FAILED);
             }
             vmo_handle = info.buffers[index].vmo.release();
 #endif
@@ -3531,7 +3632,7 @@ public:
                 enc->vkAllocateMemory(
                     device, &finalAllocInfo, pAllocator, pMemory, true /* do lock */);
 
-            if (input_result != VK_SUCCESS) return input_result;
+            if (input_result != VK_SUCCESS) _RETURN_FAILURE_WITH_DEVICE_MEMORY_REPORT(input_result);
 
             VkDeviceSize allocationSize = finalAllocInfo.allocationSize;
             setDeviceMemoryInfo(
@@ -3540,9 +3641,10 @@ public:
                 0, nullptr,
                 finalAllocInfo.memoryTypeIndex,
                 ahw,
+                isImport,
                 vmo_handle);
 
-            return VK_SUCCESS;
+            _RETURN_SCUCCESS_WITH_DEVICE_MEMORY_REPORT;
         }
 
         // Device-local memory dealing is over. What follows:
@@ -3589,7 +3691,7 @@ public:
             setDeviceMemoryInfo(device, *pMemory,
                 finalAllocInfo.allocationSize, finalAllocInfo.allocationSize,
                 reinterpret_cast<uint8_t*>(addr), finalAllocInfo.memoryTypeIndex,
-                /*ahw=*/nullptr, vmo_handle);
+                /*ahw=*/nullptr, isImport, vmo_handle);
             return VK_SUCCESS;
         }
 #endif
@@ -3616,7 +3718,7 @@ public:
                 finalAllocInfo.allocationSize,
                 mappedSize, mappedPtr,
                 finalAllocInfo.memoryTypeIndex);
-            return VK_SUCCESS;
+            _RETURN_SCUCCESS_WITH_DEVICE_MEMORY_REPORT;
         }
 
         // Host visible memory with direct mapping via
@@ -3632,7 +3734,7 @@ public:
         AutoLock lock(mLock);
 
         auto it = info_VkDevice.find(device);
-        if (it == info_VkDevice.end()) return VK_ERROR_DEVICE_LOST;
+        if (it == info_VkDevice.end()) _RETURN_FAILURE_WITH_DEVICE_MEMORY_REPORT(VK_ERROR_DEVICE_LOST);
         auto& deviceInfo = it->second;
 
         auto& hostMemBlocksForTypeIndex =
@@ -3647,7 +3749,7 @@ public:
                 deviceInfo);
 
         if (blockIndex == (HostMemBlockIndex) INVALID_HOST_MEM_BLOCK) {
-            return VK_ERROR_OUT_OF_HOST_MEMORY;
+            _RETURN_FAILURE_WITH_DEVICE_MEMORY_REPORT(VK_ERROR_OUT_OF_HOST_MEMORY);
         }
 
         VkDeviceMemory_Info virtualMemInfo;
@@ -3673,7 +3775,7 @@ public:
 
         *pMemory = virtualMemInfo.subAlloc.subMemory;
 
-        return VK_SUCCESS;
+        _RETURN_SCUCCESS_WITH_DEVICE_MEMORY_REPORT;
     }
 
     void on_vkFreeMemory(
@@ -3687,6 +3789,19 @@ public:
         auto it = info_VkDeviceMemory.find(memory);
         if (it == info_VkDeviceMemory.end()) return;
         auto& info = it->second;
+        uint64_t memoryObjectId = (uint64_t)(void*)memory;
+        if (info.ahw) {
+            memoryObjectId = getAHardwareBufferId(info.ahw);
+        }
+        emitDeviceMemoryReport(
+            info_VkDevice[device],
+            info.imported ? VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_UNIMPORT_EXT
+                          : VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_FREE_EXT,
+            memoryObjectId,
+            0 /* size */,
+            VK_OBJECT_TYPE_DEVICE_MEMORY,
+            (uint64_t)(void*)memory
+        );
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
         if (info.vmoHandle && info.mappedPtr) {
