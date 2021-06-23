@@ -23,6 +23,7 @@
 #include <lib/zx/channel.h>
 #include <lib/zx/socket.h>
 #include <lib/zxio/zxio.h>
+#include <lib/zxio/inception.h>
 #include <unistd.h>
 
 #include "TraceProviderFuchsia.h"
@@ -860,11 +861,13 @@ public:
             return false;
 
         zxio_storage_t io_storage;
-        zx_status_t status = zxio_create(handle, &io_storage);
+        zx_status_t status = zxio_remote_init(&io_storage, handle, ZX_HANDLE_INVALID);
         if (status != ZX_OK)
             return false;
 
-        status = zxio_close(&io_storage.io);
+        zxio_node_attributes_t attr;
+        status = zxio_attr_get(&io_storage.io, &attr);
+        zxio_close(&io_storage.io);
         if (status != ZX_OK)
             return false;
 
