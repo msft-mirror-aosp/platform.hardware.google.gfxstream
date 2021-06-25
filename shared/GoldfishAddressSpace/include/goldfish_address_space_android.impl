@@ -261,10 +261,6 @@ void *GoldfishAddressSpaceBlock::mmap(uint64_t host_addr)
         ::abort();
     }
 
-    bool nonzeroOffsetInPage = host_addr & (PAGE_SIZE - 1);
-    uint64_t extraBytes = nonzeroOffsetInPage ? PAGE_SIZE : 0;
-    m_size += extraBytes;
-
     void *result;
     const int res = memoryMap(NULL, m_size, m_handle, m_offset, &result);
     if (res) {
