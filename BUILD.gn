@@ -134,6 +134,8 @@ shared_library("libvulkan_goldfish") {
     "-Wno-unused-value",
     "-Wno-unused-variable",
     "-Wno-conversion",
+    "-Wno-unused-but-set-parameter",
+    "-Wno-unused-but-set-variable",
   ]
 
   ldflags = [ "-static-libstdc++" ]
