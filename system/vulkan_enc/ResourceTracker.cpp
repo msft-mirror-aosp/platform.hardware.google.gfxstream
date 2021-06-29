@@ -1595,13 +1595,8 @@ public:
         void*,
         VkPhysicalDevice,
         VkPhysicalDeviceProperties* pProperties) {
-        // We have host properties at this point
         if (pProperties) {
-            // We need this to ignore some cts tests when using Swiftshader Vk
-            if (pProperties->deviceType != VK_PHYSICAL_DEVICE_TYPE_CPU) {
-                // Otherwise, if not CPU type, mark as virtual type
-                pProperties->deviceType = VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
-            }
+            pProperties->deviceType = VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
         }
     }
 
@@ -1610,11 +1605,8 @@ public:
         VkPhysicalDevice,
         VkPhysicalDeviceProperties2* pProperties) {
         if (pProperties) {
-            // We need this to ignore some cts tests when using Swiftshader Vk
-            if (pProperties->properties.deviceType != VK_PHYSICAL_DEVICE_TYPE_CPU) {
-                // Otherwise, if not CPU type, mark as virtual type
-                pProperties->properties.deviceType = VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
-            }
+            pProperties->properties.deviceType =
+                VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
 
             VkPhysicalDeviceDeviceMemoryReportFeaturesEXT* memoryReportFeaturesEXT =
                 vk_find_struct<VkPhysicalDeviceDeviceMemoryReportFeaturesEXT>(pProperties);
