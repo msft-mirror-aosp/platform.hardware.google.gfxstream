@@ -3,7 +3,7 @@ ifneq (false,$(BUILD_EMULATOR_OPENGL_DRIVER))
 LOCAL_PATH := $(call my-dir)
 
 $(call emugl-begin-shared-library,libEGL_emulation)
-$(call emugl-import,libOpenglSystemCommon)
+$(call emugl-import,libOpenglSystemCommon libGoldfishProfiler)
 $(call emugl-set-shared-library-subpath,egl)
 
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
