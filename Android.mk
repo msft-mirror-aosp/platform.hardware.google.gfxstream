@@ -151,6 +151,9 @@ endif
 
 include $(GOLDFISH_OPENGL_PATH)/system/OpenglSystemCommon/Android.mk
 
+# Profiler library
+include $(GOLDFISH_OPENGL_PATH)/system/profiler/Android.mk
+
 # System shared libraries
 include $(GOLDFISH_OPENGL_PATH)/system/GLESv1/Android.mk
 include $(GOLDFISH_OPENGL_PATH)/system/GLESv2/Android.mk
