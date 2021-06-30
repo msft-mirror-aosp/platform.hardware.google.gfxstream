@@ -427,12 +427,12 @@ public:
         uint32_t unused;
     };
 
-    struct VkBufferCollectionFUCHSIA_Info {
+    struct VkBufferCollectionFUCHSIAX_Info {
 #ifdef VK_USE_PLATFORM_FUCHSIA
         android::base::Optional<
             fuchsia_sysmem::wire::BufferCollectionConstraints>
             constraints;
-        android::base::Optional<VkBufferCollectionProperties2FUCHSIA>
+        android::base::Optional<VkBufferCollectionProperties2FUCHSIAX>
             properties;
 
         // the index of corresponding createInfo for each image format
@@ -638,10 +638,10 @@ public:
     }
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
-    void unregister_VkBufferCollectionFUCHSIA(
-        VkBufferCollectionFUCHSIA collection) {
+    void unregister_VkBufferCollectionFUCHSIAX(
+        VkBufferCollectionFUCHSIAX collection) {
         AutoLock lock(mLock);
-        info_VkBufferCollectionFUCHSIA.erase(collection);
+        info_VkBufferCollectionFUCHSIAX.erase(collection);
     }
 #endif
 
@@ -1995,11 +1995,13 @@ public:
         return VK_SUCCESS;
     }
 
-    VkResult on_vkCreateBufferCollectionFUCHSIA(
-        void*, VkResult, VkDevice,
-        const VkBufferCollectionCreateInfoFUCHSIA* pInfo,
+    VkResult on_vkCreateBufferCollectionFUCHSIAX(
+        void*,
+        VkResult,
+        VkDevice,
+        const VkBufferCollectionCreateInfoFUCHSIAX* pInfo,
         const VkAllocationCallbacks*,
-        VkBufferCollectionFUCHSIA* pCollection) {
+        VkBufferCollectionFUCHSIAX* pCollection) {
         fidl::ClientEnd<::fuchsia_sysmem::BufferCollectionToken> token_client;
 
         if (pInfo->collectionToken) {
@@ -2039,15 +2041,18 @@ public:
         auto* sysmem_collection =
             new fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>(
                 std::move(collection_client));
-        *pCollection = reinterpret_cast<VkBufferCollectionFUCHSIA>(sysmem_collection);
+        *pCollection =
+            reinterpret_cast<VkBufferCollectionFUCHSIAX>(sysmem_collection);
 
-        register_VkBufferCollectionFUCHSIA(*pCollection);
+        register_VkBufferCollectionFUCHSIAX(*pCollection);
         return VK_SUCCESS;
     }
 
-    void on_vkDestroyBufferCollectionFUCHSIA(
-        void*, VkResult, VkDevice,
-        VkBufferCollectionFUCHSIA collection,
+    void on_vkDestroyBufferCollectionFUCHSIAX(
+        void*,
+        VkResult,
+        VkDevice,
+        VkBufferCollectionFUCHSIAX collection,
         const VkAllocationCallbacks*) {
         auto sysmem_collection = reinterpret_cast<
             fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>*>(collection);
@@ -2056,7 +2061,7 @@ public:
         }
         delete sysmem_collection;
 
-        unregister_VkBufferCollectionFUCHSIA(collection);
+        unregister_VkBufferCollectionFUCHSIAX(collection);
     }
 
     inline fuchsia_sysmem::wire::BufferCollectionConstraints
@@ -2121,7 +2126,7 @@ public:
     }
 
     uint32_t getBufferCollectionConstraintsVulkanBufferUsage(
-        const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo) {
+        const VkBufferConstraintsInfoFUCHSIAX* pBufferConstraintsInfo) {
         uint32_t usage = 0u;
         VkBufferUsageFlags bufferUsage =
             pBufferConstraintsInfo->pBufferCreateInfo->usage;
@@ -2270,9 +2275,9 @@ public:
             createInfos.push_back(*pImageInfo);
         }
 
-        VkImageConstraintsInfoFUCHSIA imageConstraints;
+        VkImageConstraintsInfoFUCHSIAX imageConstraints;
         imageConstraints.sType =
-            VK_STRUCTURE_TYPE_IMAGE_CONSTRAINTS_INFO_FUCHSIA;
+            VK_STRUCTURE_TYPE_IMAGE_CONSTRAINTS_INFO_FUCHSIAX;
         imageConstraints.pNext = nullptr;
         imageConstraints.createInfoCount = createInfos.size();
         imageConstraints.pCreateInfos = createInfos.data();
@@ -2293,7 +2298,7 @@ public:
         VkDevice device,
         VkPhysicalDevice physicalDevice,
         const VkImageCreateInfo* createInfo,
-        const VkImageFormatConstraintsInfoFUCHSIA* formatConstraints,
+        const VkImageFormatConstraintsInfoFUCHSIAX* formatConstraints,
         VkImageTiling tiling,
         fuchsia_sysmem::wire::BufferCollectionConstraints* constraints) {
         // First check if the format, tiling and usage is supported on host.
@@ -2423,10 +2428,12 @@ public:
         VkEncoder* enc,
         VkDevice device,
         fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>* collection,
-        const VkImageConstraintsInfoFUCHSIA* pImageConstraintsInfo) {
+        const VkImageConstraintsInfoFUCHSIAX* pImageConstraintsInfo) {
         if (!pImageConstraintsInfo ||
-            pImageConstraintsInfo->sType !=
-                VK_STRUCTURE_TYPE_IMAGE_CONSTRAINTS_INFO_FUCHSIA) {
+            (pImageConstraintsInfo->sType !=
+                 VK_STRUCTURE_TYPE_IMAGE_CONSTRAINTS_INFO_FUCHSIAX &&
+             pImageConstraintsInfo->sType !=
+                 VK_STRUCTURE_TYPE_IMAGE_CONSTRAINTS_INFO_FUCHSIA)) {
             ALOGE("%s: invalid pImageConstraintsInfo", __func__);
             return VK_ERROR_INITIALIZATION_FAILED;
         }
@@ -2463,7 +2470,7 @@ public:
         for (uint32_t i = 0; i < pImageConstraintsInfo->createInfoCount; i++) {
             const VkImageCreateInfo* createInfo =
                 &pImageConstraintsInfo->pCreateInfos[i];
-            const VkImageFormatConstraintsInfoFUCHSIA* formatConstraints =
+            const VkImageFormatConstraintsInfoFUCHSIAX* formatConstraints =
                 pImageConstraintsInfo->pFormatConstraints
                     ? &pImageConstraintsInfo->pFormatConstraints[i]
                     : nullptr;
@@ -2505,14 +2512,15 @@ public:
 
         // Set buffer memory constraints based on optimal/linear tiling support
         // and flags.
-        VkImageConstraintsInfoFlagsFUCHSIA flags = pImageConstraintsInfo->flags;
-        if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_RARELY_FUCHSIA)
+        VkImageConstraintsInfoFlagsFUCHSIAX flags =
+            pImageConstraintsInfo->flags;
+        if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_RARELY_FUCHSIAX)
             constraints.usage.cpu |= fuchsia_sysmem::wire::kCpuUsageRead;
-        if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_OFTEN_FUCHSIA)
+        if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_OFTEN_FUCHSIAX)
             constraints.usage.cpu |= fuchsia_sysmem::wire::kCpuUsageReadOften;
-        if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_RARELY_FUCHSIA)
+        if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_RARELY_FUCHSIAX)
             constraints.usage.cpu |= fuchsia_sysmem::wire::kCpuUsageWrite;
-        if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_OFTEN_FUCHSIA)
+        if (flags & VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_OFTEN_FUCHSIAX)
             constraints.usage.cpu |= fuchsia_sysmem::wire::kCpuUsageWriteOften;
 
         constraints.has_buffer_memory_constraints = true;
@@ -2521,10 +2529,10 @@ public:
         memory_constraints.ram_domain_supported = true;
         memory_constraints.inaccessible_domain_supported =
             hasOptimalTiling &&
-            !(flags & (VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_RARELY_FUCHSIA |
-                       VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_OFTEN_FUCHSIA |
-                       VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_RARELY_FUCHSIA |
-                       VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_OFTEN_FUCHSIA));
+            !(flags & (VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_RARELY_FUCHSIAX |
+                       VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_OFTEN_FUCHSIAX |
+                       VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_RARELY_FUCHSIAX |
+                       VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_OFTEN_FUCHSIAX));
 
         if (memory_constraints.inaccessible_domain_supported) {
             memory_constraints.heap_permitted_count = 2;
@@ -2555,16 +2563,16 @@ public:
             return VK_ERROR_OUT_OF_DEVICE_MEMORY;
         }
 
-        // copy constraints to info_VkBufferCollectionFUCHSIA if
-        // |collection| is a valid VkBufferCollectionFUCHSIA handle.
+        // copy constraints to info_VkBufferCollectionFUCHSIAX if
+        // |collection| is a valid VkBufferCollectionFUCHSIAX handle.
         AutoLock lock(mLock);
-        VkBufferCollectionFUCHSIA buffer_collection =
-            reinterpret_cast<VkBufferCollectionFUCHSIA>(collection);
-        if (info_VkBufferCollectionFUCHSIA.find(buffer_collection) !=
-            info_VkBufferCollectionFUCHSIA.end()) {
-            info_VkBufferCollectionFUCHSIA[buffer_collection].constraints =
+        VkBufferCollectionFUCHSIAX buffer_collection =
+            reinterpret_cast<VkBufferCollectionFUCHSIAX>(collection);
+        if (info_VkBufferCollectionFUCHSIAX.find(buffer_collection) !=
+            info_VkBufferCollectionFUCHSIAX.end()) {
+            info_VkBufferCollectionFUCHSIAX[buffer_collection].constraints =
                 android::base::makeOptional(std::move(constraints));
-            info_VkBufferCollectionFUCHSIA[buffer_collection].createInfoIndex =
+            info_VkBufferCollectionFUCHSIAX[buffer_collection].createInfoIndex =
                 std::move(createInfoIndex);
         }
 
@@ -2573,7 +2581,7 @@ public:
 
     VkResult setBufferCollectionBufferConstraints(
         fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>* collection,
-        const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo) {
+        const VkBufferConstraintsInfoFUCHSIAX* pBufferConstraintsInfo) {
         if (pBufferConstraintsInfo == nullptr) {
             ALOGE(
                 "setBufferCollectionBufferConstraints: "
@@ -2600,23 +2608,25 @@ public:
             return VK_ERROR_OUT_OF_DEVICE_MEMORY;
         }
 
-        // copy constraints to info_VkBufferCollectionFUCHSIA if
-        // |collection| is a valid VkBufferCollectionFUCHSIA handle.
+        // copy constraints to info_VkBufferCollectionFUCHSIAX if
+        // |collection| is a valid VkBufferCollectionFUCHSIAX handle.
         AutoLock lock(mLock);
-        VkBufferCollectionFUCHSIA buffer_collection =
-            reinterpret_cast<VkBufferCollectionFUCHSIA>(collection);
-        if (info_VkBufferCollectionFUCHSIA.find(buffer_collection) !=
-            info_VkBufferCollectionFUCHSIA.end()) {
-            info_VkBufferCollectionFUCHSIA[buffer_collection].constraints =
+        VkBufferCollectionFUCHSIAX buffer_collection =
+            reinterpret_cast<VkBufferCollectionFUCHSIAX>(collection);
+        if (info_VkBufferCollectionFUCHSIAX.find(buffer_collection) !=
+            info_VkBufferCollectionFUCHSIAX.end()) {
+            info_VkBufferCollectionFUCHSIAX[buffer_collection].constraints =
                 android::base::makeOptional(std::move(constraints));
         }
 
         return VK_SUCCESS;
     }
 
-    VkResult on_vkSetBufferCollectionConstraintsFUCHSIA(
-        void* context, VkResult, VkDevice device,
-        VkBufferCollectionFUCHSIA collection,
+    VkResult on_vkSetBufferCollectionConstraintsFUCHSIAX(
+        void* context,
+        VkResult,
+        VkDevice device,
+        VkBufferCollectionFUCHSIAX collection,
         const VkImageCreateInfo* pImageInfo) {
         VkEncoder* enc = (VkEncoder*)context;
         auto sysmem_collection = reinterpret_cast<
@@ -2624,12 +2634,12 @@ public:
         return setBufferCollectionConstraints(enc, device, sysmem_collection, pImageInfo);
     }
 
-    VkResult on_vkSetBufferCollectionImageConstraintsFUCHSIA(
+    VkResult on_vkSetBufferCollectionImageConstraintsFUCHSIAX(
         void* context,
         VkResult,
         VkDevice device,
-        VkBufferCollectionFUCHSIA collection,
-        const VkImageConstraintsInfoFUCHSIA* pImageConstraintsInfo) {
+        VkBufferCollectionFUCHSIAX collection,
+        const VkImageConstraintsInfoFUCHSIAX* pImageConstraintsInfo) {
         VkEncoder* enc = (VkEncoder*)context;
         auto sysmem_collection = reinterpret_cast<
             fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>*>(collection);
@@ -2637,28 +2647,28 @@ public:
             enc, device, sysmem_collection, pImageConstraintsInfo);
     }
 
-    VkResult on_vkSetBufferCollectionBufferConstraintsFUCHSIA(
+    VkResult on_vkSetBufferCollectionBufferConstraintsFUCHSIAX(
         void*,
         VkResult,
         VkDevice,
-        VkBufferCollectionFUCHSIA collection,
-        const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo) {
+        VkBufferCollectionFUCHSIAX collection,
+        const VkBufferConstraintsInfoFUCHSIAX* pBufferConstraintsInfo) {
         auto sysmem_collection = reinterpret_cast<
             fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>*>(collection);
         return setBufferCollectionBufferConstraints(sysmem_collection,
                                                     pBufferConstraintsInfo);
     }
 
-    VkResult on_vkGetBufferCollectionPropertiesFUCHSIA(
+    VkResult on_vkGetBufferCollectionPropertiesFUCHSIAX(
         void* context,
         VkResult,
         VkDevice device,
-        VkBufferCollectionFUCHSIA collection,
-        VkBufferCollectionPropertiesFUCHSIA* pProperties) {
-        VkBufferCollectionProperties2FUCHSIA properties2 = {
-            .sType = VK_STRUCTURE_TYPE_BUFFER_COLLECTION_PROPERTIES2_FUCHSIA,
+        VkBufferCollectionFUCHSIAX collection,
+        VkBufferCollectionPropertiesFUCHSIAX* pProperties) {
+        VkBufferCollectionProperties2FUCHSIAX properties2 = {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_COLLECTION_PROPERTIES2_FUCHSIAX,
             .pNext = nullptr};
-        auto result = on_vkGetBufferCollectionProperties2FUCHSIA(
+        auto result = on_vkGetBufferCollectionProperties2FUCHSIAX(
             context, VK_SUCCESS, device, collection, &properties2);
         if (result != VK_SUCCESS) {
             return result;
@@ -2670,10 +2680,10 @@ public:
     }
 
     VkResult getBufferCollectionImageCreateInfoIndexLocked(
-        VkBufferCollectionFUCHSIA collection,
+        VkBufferCollectionFUCHSIAX collection,
         fuchsia_sysmem::wire::BufferCollectionInfo2& info,
         uint32_t* outCreateInfoIndex) {
-        if (!info_VkBufferCollectionFUCHSIA[collection]
+        if (!info_VkBufferCollectionFUCHSIAX[collection]
                  .constraints.hasValue()) {
             ALOGE("%s: constraints not set", __func__);
             return VK_ERROR_OUT_OF_DEVICE_MEMORY;
@@ -2685,9 +2695,9 @@ public:
         }
 
         const auto& constraints =
-            *info_VkBufferCollectionFUCHSIA[collection].constraints;
+            *info_VkBufferCollectionFUCHSIAX[collection].constraints;
         const auto& createInfoIndices =
-            info_VkBufferCollectionFUCHSIA[collection].createInfoIndex;
+            info_VkBufferCollectionFUCHSIAX[collection].createInfoIndex;
         const auto& out = info.settings.image_format_constraints;
         bool foundCreateInfo = false;
 
@@ -2740,12 +2750,12 @@ public:
         return VK_ERROR_OUT_OF_DEVICE_MEMORY;
     }
 
-    VkResult on_vkGetBufferCollectionProperties2FUCHSIA(
+    VkResult on_vkGetBufferCollectionProperties2FUCHSIAX(
         void* context,
         VkResult,
         VkDevice device,
-        VkBufferCollectionFUCHSIA collection,
-        VkBufferCollectionProperties2FUCHSIA* pProperties) {
+        VkBufferCollectionFUCHSIAX collection,
+        VkBufferCollectionProperties2FUCHSIAX* pProperties) {
         VkEncoder* enc = (VkEncoder*)context;
         auto sysmem_collection = reinterpret_cast<
             fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>*>(collection);
@@ -2800,18 +2810,18 @@ public:
         auto storeProperties = [this, collection, pProperties]() -> VkResult {
             // store properties to storage
             AutoLock lock(mLock);
-            if (info_VkBufferCollectionFUCHSIA.find(collection) ==
-                info_VkBufferCollectionFUCHSIA.end()) {
+            if (info_VkBufferCollectionFUCHSIAX.find(collection) ==
+                info_VkBufferCollectionFUCHSIAX.end()) {
                 return VK_ERROR_OUT_OF_DEVICE_MEMORY;
             }
 
-            info_VkBufferCollectionFUCHSIA[collection].properties =
+            info_VkBufferCollectionFUCHSIAX[collection].properties =
                 android::base::makeOptional(*pProperties);
 
             // We only do a shallow copy so we should remove all pNext pointers.
-            info_VkBufferCollectionFUCHSIA[collection].properties->pNext =
+            info_VkBufferCollectionFUCHSIAX[collection].properties->pNext =
                 nullptr;
-            info_VkBufferCollectionFUCHSIA[collection]
+            info_VkBufferCollectionFUCHSIAX[collection]
                 .properties->colorSpace.pNext = nullptr;
             return VK_SUCCESS;
         };
@@ -3357,15 +3367,15 @@ public:
 
             const VkImageCreateInfo* pImageCreateInfo = nullptr;
 
-            VkBufferConstraintsInfoFUCHSIA bufferConstraintsInfo = {
+            VkBufferConstraintsInfoFUCHSIAX bufferConstraintsInfo = {
                 .sType =
-                    VK_STRUCTURE_TYPE_BUFFER_COLLECTION_CREATE_INFO_FUCHSIA,
+                    VK_STRUCTURE_TYPE_BUFFER_COLLECTION_CREATE_INFO_FUCHSIAX,
                 .pNext = nullptr,
                 .pBufferCreateInfo = nullptr,
                 .requiredFormatFeatures = 0,
                 .minCount = 1,
             };
-            const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo =
+            const VkBufferConstraintsInfoFUCHSIAX* pBufferConstraintsInfo =
                 nullptr;
 
             if (hasDedicatedImage) {
@@ -4052,8 +4062,18 @@ public:
 #endif
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
-        const VkBufferCollectionImageCreateInfoFUCHSIA* extBufferCollectionPtr =
-            vk_find_struct<VkBufferCollectionImageCreateInfoFUCHSIA>(pCreateInfo);
+        const VkBufferCollectionImageCreateInfoFUCHSIAX*
+            extBufferCollectionPtr =
+                vk_find_struct<VkBufferCollectionImageCreateInfoFUCHSIAX>(
+                    pCreateInfo);
+        if (extBufferCollectionPtr == nullptr) {
+            // TODO(fxbug.dev/73447): remove this once we finish migration to
+            // FUCHSIAX.
+            extBufferCollectionPtr = reinterpret_cast<
+                const VkBufferCollectionImageCreateInfoFUCHSIAX*>(
+                vk_find_struct<VkBufferCollectionImageCreateInfoFUCHSIA>(
+                    pCreateInfo));
+        }
         bool isSysmemBackedMemory = false;
 
         if (extImgCiPtr &&
@@ -5123,8 +5143,16 @@ public:
         }
 
         const auto* extBufferCollectionPtr =
+            vk_find_struct<VkBufferCollectionBufferCreateInfoFUCHSIAX>(
+                pCreateInfo);
+        if (extBufferCollectionPtr == nullptr) {
+            // TODO(fxbug.dev/73447): Remove this once we finish migration to
+            // FUCHSIAX.
+            extBufferCollectionPtr = reinterpret_cast<
+                const VkBufferCollectionBufferCreateInfoFUCHSIAX*>(
                 vk_find_struct<VkBufferCollectionBufferCreateInfoFUCHSIA>(
-                        pCreateInfo);
+                    pCreateInfo));
+        }
 
         if (extBufferCollectionPtr) {
             auto collection = reinterpret_cast<
@@ -7493,8 +7521,10 @@ VkResult ResourceTracker::on_vkCreateBufferCollectionFUCHSIA(
     const VkBufferCollectionCreateInfoFUCHSIA* pInfo,
     const VkAllocationCallbacks* pAllocator,
     VkBufferCollectionFUCHSIA* pCollection) {
-    return mImpl->on_vkCreateBufferCollectionFUCHSIA(
-        context, input_result, device, pInfo, pAllocator, pCollection);
+    return mImpl->on_vkCreateBufferCollectionFUCHSIAX(
+        context, input_result, device,
+        reinterpret_cast<const VkBufferCollectionCreateInfoFUCHSIAX*>(pInfo),
+        pAllocator, reinterpret_cast<VkBufferCollectionFUCHSIAX*>(pCollection));
 }
 
 void ResourceTracker::on_vkDestroyBufferCollectionFUCHSIA(
@@ -7502,8 +7532,9 @@ void ResourceTracker::on_vkDestroyBufferCollectionFUCHSIA(
         VkDevice device,
         VkBufferCollectionFUCHSIA collection,
         const VkAllocationCallbacks* pAllocator) {
-    return mImpl->on_vkDestroyBufferCollectionFUCHSIA(
-        context, input_result, device, collection, pAllocator);
+    return mImpl->on_vkDestroyBufferCollectionFUCHSIAX(
+        context, input_result, device,
+        reinterpret_cast<VkBufferCollectionFUCHSIAX>(collection), pAllocator);
 }
 
 VkResult ResourceTracker::on_vkSetBufferCollectionConstraintsFUCHSIA(
@@ -7511,17 +7542,22 @@ VkResult ResourceTracker::on_vkSetBufferCollectionConstraintsFUCHSIA(
         VkDevice device,
         VkBufferCollectionFUCHSIA collection,
         const VkImageCreateInfo* pImageInfo) {
-    return mImpl->on_vkSetBufferCollectionConstraintsFUCHSIA(
-        context, input_result, device, collection, pImageInfo);
+    return mImpl->on_vkSetBufferCollectionConstraintsFUCHSIAX(
+        context, input_result, device,
+        reinterpret_cast<VkBufferCollectionFUCHSIAX>(collection), pImageInfo);
 }
 
 VkResult ResourceTracker::on_vkSetBufferCollectionBufferConstraintsFUCHSIA(
-        void* context, VkResult input_result,
-        VkDevice device,
-        VkBufferCollectionFUCHSIA collection,
-        const VkBufferConstraintsInfoFUCHSIA* pBufferDConstraintsInfo) {
-    return mImpl->on_vkSetBufferCollectionBufferConstraintsFUCHSIA(
-        context, input_result, device, collection, pBufferDConstraintsInfo);
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    VkBufferCollectionFUCHSIA collection,
+    const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo) {
+    return mImpl->on_vkSetBufferCollectionBufferConstraintsFUCHSIAX(
+        context, input_result, device,
+        reinterpret_cast<VkBufferCollectionFUCHSIAX>(collection),
+        reinterpret_cast<const VkBufferConstraintsInfoFUCHSIAX*>(
+            pBufferConstraintsInfo));
 }
 
 VkResult ResourceTracker::on_vkSetBufferCollectionImageConstraintsFUCHSIA(
@@ -7530,8 +7566,11 @@ VkResult ResourceTracker::on_vkSetBufferCollectionImageConstraintsFUCHSIA(
     VkDevice device,
     VkBufferCollectionFUCHSIA collection,
     const VkImageConstraintsInfoFUCHSIA* pImageConstraintsInfo) {
-    return mImpl->on_vkSetBufferCollectionImageConstraintsFUCHSIA(
-        context, input_result, device, collection, pImageConstraintsInfo);
+    return mImpl->on_vkSetBufferCollectionImageConstraintsFUCHSIAX(
+        context, input_result, device,
+        reinterpret_cast<VkBufferCollectionFUCHSIAX>(collection),
+        reinterpret_cast<const VkImageConstraintsInfoFUCHSIAX*>(
+            pImageConstraintsInfo));
 }
 
 VkResult ResourceTracker::on_vkGetBufferCollectionPropertiesFUCHSIA(
@@ -7539,8 +7578,10 @@ VkResult ResourceTracker::on_vkGetBufferCollectionPropertiesFUCHSIA(
         VkDevice device,
         VkBufferCollectionFUCHSIA collection,
         VkBufferCollectionPropertiesFUCHSIA* pProperties) {
-    return mImpl->on_vkGetBufferCollectionPropertiesFUCHSIA(
-        context, input_result, device, collection, pProperties);
+    return mImpl->on_vkGetBufferCollectionPropertiesFUCHSIAX(
+        context, input_result, device,
+        reinterpret_cast<VkBufferCollectionFUCHSIAX>(collection),
+        reinterpret_cast<VkBufferCollectionPropertiesFUCHSIAX*>(pProperties));
 }
 
 VkResult ResourceTracker::on_vkGetBufferCollectionProperties2FUCHSIA(
@@ -7549,7 +7590,80 @@ VkResult ResourceTracker::on_vkGetBufferCollectionProperties2FUCHSIA(
     VkDevice device,
     VkBufferCollectionFUCHSIA collection,
     VkBufferCollectionProperties2FUCHSIA* pProperties) {
-    return mImpl->on_vkGetBufferCollectionProperties2FUCHSIA(
+    return mImpl->on_vkGetBufferCollectionProperties2FUCHSIAX(
+        context, input_result, device,
+        reinterpret_cast<VkBufferCollectionFUCHSIAX>(collection),
+        reinterpret_cast<VkBufferCollectionProperties2FUCHSIAX*>(pProperties));
+}
+
+VkResult ResourceTracker::on_vkCreateBufferCollectionFUCHSIAX(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    const VkBufferCollectionCreateInfoFUCHSIAX* pInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkBufferCollectionFUCHSIAX* pCollection) {
+    return mImpl->on_vkCreateBufferCollectionFUCHSIAX(
+        context, input_result, device, pInfo, pAllocator, pCollection);
+}
+
+void ResourceTracker::on_vkDestroyBufferCollectionFUCHSIAX(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    VkBufferCollectionFUCHSIAX collection,
+    const VkAllocationCallbacks* pAllocator) {
+    return mImpl->on_vkDestroyBufferCollectionFUCHSIAX(
+        context, input_result, device, collection, pAllocator);
+}
+
+VkResult ResourceTracker::on_vkSetBufferCollectionConstraintsFUCHSIAX(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    VkBufferCollectionFUCHSIAX collection,
+    const VkImageCreateInfo* pImageInfo) {
+    return mImpl->on_vkSetBufferCollectionConstraintsFUCHSIAX(
+        context, input_result, device, collection, pImageInfo);
+}
+
+VkResult ResourceTracker::on_vkSetBufferCollectionBufferConstraintsFUCHSIAX(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    VkBufferCollectionFUCHSIAX collection,
+    const VkBufferConstraintsInfoFUCHSIAX* pBufferDConstraintsInfo) {
+    return mImpl->on_vkSetBufferCollectionBufferConstraintsFUCHSIAX(
+        context, input_result, device, collection, pBufferDConstraintsInfo);
+}
+
+VkResult ResourceTracker::on_vkSetBufferCollectionImageConstraintsFUCHSIAX(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    VkBufferCollectionFUCHSIAX collection,
+    const VkImageConstraintsInfoFUCHSIAX* pImageConstraintsInfo) {
+    return mImpl->on_vkSetBufferCollectionImageConstraintsFUCHSIAX(
+        context, input_result, device, collection, pImageConstraintsInfo);
+}
+
+VkResult ResourceTracker::on_vkGetBufferCollectionPropertiesFUCHSIAX(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    VkBufferCollectionFUCHSIAX collection,
+    VkBufferCollectionPropertiesFUCHSIAX* pProperties) {
+    return mImpl->on_vkGetBufferCollectionPropertiesFUCHSIAX(
+        context, input_result, device, collection, pProperties);
+}
+
+VkResult ResourceTracker::on_vkGetBufferCollectionProperties2FUCHSIAX(
+    void* context,
+    VkResult input_result,
+    VkDevice device,
+    VkBufferCollectionFUCHSIAX collection,
+    VkBufferCollectionProperties2FUCHSIAX* pProperties) {
+    return mImpl->on_vkGetBufferCollectionProperties2FUCHSIAX(
         context, input_result, device, collection, pProperties);
 }
 #endif
