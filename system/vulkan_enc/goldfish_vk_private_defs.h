@@ -498,6 +498,137 @@ typedef struct VkBufferCollectionPropertiesFUCHSIA {
     ((VkStructureType)1001004008)
 #endif  // VK_FUCHSIA_buffer_collection
 
+#ifndef VK_FUCHSIA_buffer_collection_x
+
+#define VK_FUCHSIA_buffer_collection_x 1
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkBufferCollectionFUCHSIAX)
+#define VK_FUCHSIA_BUFFER_COLLECTION_X_SPEC_VERSION 1
+#define VK_FUCHSIA_BUFFER_COLLECTION_X_EXTENSION_NAME \
+    "VK_FUCHSIA_buffer_collection_x"
+
+typedef enum VkImageFormatConstraintsFlagBitsFUCHSIAX {
+    VK_IMAGE_FORMAT_CONSTRAINTS_FLAG_BITS_MAX_ENUM_FUCHSIAX = 0x7FFFFFFF
+} VkImageFormatConstraintsFlagBitsFUCHSIAX;
+typedef VkFlags VkImageFormatConstraintsFlagsFUCHSIAX;
+
+typedef enum VkImageConstraintsInfoFlagBitsFUCHSIAX {
+    VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_RARELY_FUCHSIAX = 0x00000001,
+    VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_OFTEN_FUCHSIAX = 0x00000002,
+    VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_RARELY_FUCHSIAX = 0x00000004,
+    VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_OFTEN_FUCHSIAX = 0x00000008,
+    VK_IMAGE_CONSTRAINTS_INFO_PROTECTED_OPTIONAL_FUCHSIAX = 0x00000010,
+    VK_IMAGE_CONSTRAINTS_INFO_FLAG_BITS_MAX_ENUM_FUCHSIAX = 0x7FFFFFFF
+} VkImageConstraintsInfoFlagBitsFUCHSIAX;
+typedef VkFlags VkImageConstraintsInfoFlagsFUCHSIAX;
+typedef struct VkBufferCollectionCreateInfoFUCHSIAX {
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t collectionToken;
+} VkBufferCollectionCreateInfoFUCHSIAX;
+
+typedef struct VkImportMemoryBufferCollectionFUCHSIAX {
+    VkStructureType sType;
+    const void* pNext;
+    VkBufferCollectionFUCHSIAX collection;
+    uint32_t index;
+} VkImportMemoryBufferCollectionFUCHSIAX;
+
+typedef struct VkBufferCollectionImageCreateInfoFUCHSIAX {
+    VkStructureType sType;
+    const void* pNext;
+    VkBufferCollectionFUCHSIAX collection;
+    uint32_t index;
+} VkBufferCollectionImageCreateInfoFUCHSIAX;
+
+typedef struct VkBufferConstraintsInfoFUCHSIAX {
+    VkStructureType sType;
+    const void* pNext;
+    const VkBufferCreateInfo* pBufferCreateInfo;
+    VkFormatFeatureFlags requiredFormatFeatures;
+    uint32_t minCount;
+} VkBufferConstraintsInfoFUCHSIAX;
+
+typedef struct VkBufferCollectionBufferCreateInfoFUCHSIAX {
+    VkStructureType sType;
+    const void* pNext;
+    VkBufferCollectionFUCHSIAX collection;
+    uint32_t index;
+} VkBufferCollectionBufferCreateInfoFUCHSIAX;
+
+typedef struct VkBufferCollectionPropertiesFUCHSIAX {
+    VkStructureType sType;
+    void* pNext;
+    uint32_t memoryTypeBits;
+    uint32_t count;
+} VkBufferCollectionPropertiesFUCHSIAX;
+
+typedef struct VkSysmemColorSpaceFUCHSIAX {
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t colorSpace;
+} VkSysmemColorSpaceFUCHSIAX;
+
+typedef struct VkBufferCollectionProperties2FUCHSIAX {
+    VkStructureType sType;
+    void* pNext;
+    uint32_t memoryTypeBits;
+    uint32_t bufferCount;
+    uint32_t createInfoIndex;
+    uint64_t sysmemFormat;
+    VkFormatFeatureFlags formatFeatures;
+    VkSysmemColorSpaceFUCHSIAX colorSpace;
+    VkComponentMapping samplerYcbcrConversionComponents;
+    VkSamplerYcbcrModelConversion suggestedYcbcrModel;
+    VkSamplerYcbcrRange suggestedYcbcrRange;
+    VkChromaLocation suggestedXChromaOffset;
+    VkChromaLocation suggestedYChromaOffset;
+} VkBufferCollectionProperties2FUCHSIAX;
+
+typedef struct VkImageFormatConstraintsInfoFUCHSIAX {
+    VkStructureType sType;
+    const void* pNext;
+    VkFormatFeatureFlags requiredFormatFeatures;
+    VkImageFormatConstraintsFlagsFUCHSIAX flags;
+    uint64_t sysmemFormat;
+    uint32_t colorSpaceCount;
+    const VkSysmemColorSpaceFUCHSIAX* pColorSpaces;
+} VkImageFormatConstraintsInfoFUCHSIAX;
+
+typedef struct VkImageConstraintsInfoFUCHSIAX {
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t createInfoCount;
+    const VkImageCreateInfo* pCreateInfos;
+    const VkImageFormatConstraintsInfoFUCHSIAX* pFormatConstraints;
+    uint32_t minBufferCount;
+    uint32_t maxBufferCount;
+    uint32_t minBufferCountForCamping;
+    uint32_t minBufferCountForDedicatedSlack;
+    uint32_t minBufferCountForSharedSlack;
+    VkImageConstraintsInfoFlagsFUCHSIAX flags;
+} VkImageConstraintsInfoFUCHSIAX;
+
+#define VK_STRUCTURE_TYPE_BUFFER_COLLECTION_CREATE_INFO_FUCHSIAX \
+    ((VkStructureType)1000367000)
+#define VK_STRUCTURE_TYPE_IMPORT_MEMORY_BUFFER_COLLECTION_FUCHSIAX \
+    ((VkStructureType)1000367004)
+#define VK_STRUCTURE_TYPE_BUFFER_COLLECTION_IMAGE_CREATE_INFO_FUCHSIAX \
+    ((VkStructureType)1000367005)
+#define VK_STRUCTURE_TYPE_BUFFER_COLLECTION_PROPERTIES_FUCHSIAX \
+    ((VkStructureType)1000367006)
+#define VK_STRUCTURE_TYPE_BUFFER_CONSTRAINTS_INFO_FUCHSIAX \
+    ((VkStructureType)1000367007)
+#define VK_STRUCTURE_TYPE_BUFFER_COLLECTION_BUFFER_CREATE_INFO_FUCHSIAX \
+    ((VkStructureType)1000367008)
+#define VK_STRUCTURE_TYPE_IMAGE_CONSTRAINTS_INFO_FUCHSIAX \
+    ((VkStructureType)1000367009)
+#define VK_STRUCTURE_TYPE_IMAGE_FORMAT_CONSTRAINTS_INFO_FUCHSIAX \
+    ((VkStructureType)1000367010)
+#define VK_STRUCTURE_TYPE_BUFFER_COLLECTION_PROPERTIES2_FUCHSIAX \
+    ((VkStructureType)1000367011)
+
+#endif  // VK_FUCHSIA_buffer_collection_x
+
 #ifndef VK_FUCHSIA_external_memory
 #define VK_FUCHSIA_external_memory 1
 #define VK_FUCHSIA_EXTERNAL_MEMORY_SPEC_VERSION 1
