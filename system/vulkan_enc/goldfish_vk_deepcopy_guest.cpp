@@ -6469,7 +6469,7 @@ void deepcopy_VkDeviceGroupPresentCapabilitiesKHR(
     to->pNext = nullptr;
     if (pNext_size)
     {
-        to->pNext = (const void*)alloc->alloc(pNext_size);
+        to->pNext = (void*)alloc->alloc(pNext_size);
         deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
     }
     memcpy(to->presentMask, from->presentMask, VK_MAX_DEVICE_GROUP_SIZE * sizeof(uint32_t));
@@ -7728,7 +7728,7 @@ void deepcopy_VkPerformanceCounterKHR(
     to->pNext = nullptr;
     if (pNext_size)
     {
-        to->pNext = (const void*)alloc->alloc(pNext_size);
+        to->pNext = (void*)alloc->alloc(pNext_size);
         deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
     }
     memcpy(to->uuid, from->uuid, VK_UUID_SIZE * sizeof(uint8_t));
@@ -7757,7 +7757,7 @@ void deepcopy_VkPerformanceCounterDescriptionKHR(
     to->pNext = nullptr;
     if (pNext_size)
     {
-        to->pNext = (const void*)alloc->alloc(pNext_size);
+        to->pNext = (void*)alloc->alloc(pNext_size);
         deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
     }
     memcpy(to->name, from->name, VK_MAX_DESCRIPTION_SIZE * sizeof(char));
@@ -15452,7 +15452,7 @@ void deepcopy_VkDeviceMemoryReportCallbackDataEXT(
     to->pNext = nullptr;
     if (pNext_size)
     {
-        to->pNext = (const void*)alloc->alloc(pNext_size);
+        to->pNext = (void*)alloc->alloc(pNext_size);
         deepcopy_extension_struct(alloc, rootType, from_pNext, (void*)(to->pNext));
     }
 }
