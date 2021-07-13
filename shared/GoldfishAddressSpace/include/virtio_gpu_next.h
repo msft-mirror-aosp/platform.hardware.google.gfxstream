@@ -65,3 +65,4 @@ struct drm_virtgpu_resource_create_blob {
 #define DRM_IOCTL_VIRTGPU_RESOURCE_CREATE_BLOB              \
         DRM_IOWR(DRM_COMMAND_BASE + DRM_VIRTGPU_RESOURCE_CREATE_BLOB,   \
                         struct drm_virtgpu_resource_create_blob)
+
