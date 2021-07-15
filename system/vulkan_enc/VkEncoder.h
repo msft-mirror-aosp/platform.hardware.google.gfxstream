@@ -2994,6 +2994,12 @@ public:
         uint32_t* pPoolIdCount,
         uint64_t* pPoolIds,
         uint32_t doLock);
+    void vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(
+    VkQueue queue,
+        uint32_t waitSemaphoreCount,
+        const VkSemaphore* pWaitSemaphores,
+        VkImage image,
+        uint32_t doLock);
 #endif
 #ifdef VK_KHR_acceleration_structure
     VkResult vkCreateAccelerationStructureKHR(

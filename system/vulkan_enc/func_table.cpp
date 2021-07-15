@@ -7456,6 +7456,16 @@ static void dynCheck_entry_vkCollectDescriptorPoolIdsGOOGLE(
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     vkEnc->vkCollectDescriptorPoolIdsGOOGLE(device, descriptorPool, pPoolIdCount, pPoolIds, true /* do lock */);
 }
+static void entry_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(
+    VkQueue queue,
+    uint32_t waitSemaphoreCount,
+    const VkSemaphore* pWaitSemaphores,
+    VkImage image)
+{
+    AEMU_SCOPED_TRACE("vkQueueSignalReleaseImageANDROIDAsyncGOOGLE");
+    auto vkEnc = ResourceTracker::getQueueEncoder(queue);
+    vkEnc->vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(queue, waitSemaphoreCount, pWaitSemaphores, image, true /* do lock */);
+}
 #endif
 #ifdef VK_KHR_acceleration_structure
 static VkResult entry_vkCreateAccelerationStructureKHR(
@@ -9924,6 +9934,10 @@ void* goldfish_vulkan_get_proc_address(const char* name){
     {
         return nullptr;
     }
+    if (!strcmp(name, "vkQueueSignalReleaseImageANDROIDAsyncGOOGLE"))
+    {
+        return nullptr;
+    }
 #endif
 #ifdef VK_KHR_acceleration_structure
     if (!strcmp(name, "vkCreateAccelerationStructureKHR"))
@@ -12182,6 +12196,11 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     if (!strcmp(name, "vkCollectDescriptorPoolIdsGOOGLE"))
     {
         return (void*)dynCheck_entry_vkCollectDescriptorPoolIdsGOOGLE;
+    }
+    if (!strcmp(name, "vkQueueSignalReleaseImageANDROIDAsyncGOOGLE"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)entry_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE : nullptr;
     }
 #endif
 #ifdef VK_KHR_acceleration_structure
@@ -14572,6 +14591,11 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     {
         bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkCollectDescriptorPoolIdsGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkQueueSignalReleaseImageANDROIDAsyncGOOGLE"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)entry_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE : nullptr;
     }
 #endif
 #ifdef VK_KHR_acceleration_structure
