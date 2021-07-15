@@ -6852,6 +6852,19 @@ public:
         return res;
     }
 
+    VkResult on_vkQueueSignalReleaseImageANDROID(
+        void* context,
+        VkResult input_result,
+        VkQueue queue,
+        uint32_t waitSemaphoreCount,
+        const VkSemaphore* pWaitSemaphores,
+        VkImage image,
+        int* pNativeFenceFd) {
+        (void)input_result;
+        VkEncoder* enc = (VkEncoder*)context;
+        return enc->vkQueueSignalReleaseImageANDROID(queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd, true /* lock */);
+    }
+
     uint32_t getApiVersionFromInstance(VkInstance instance) const {
         AutoLock lock(mLock);
         uint32_t api = kDefaultApiVersion;
@@ -8077,6 +8090,17 @@ VkResult ResourceTracker::on_vkAllocateCommandBuffers(
     const VkCommandBufferAllocateInfo* pAllocateInfo,
     VkCommandBuffer* pCommandBuffers) {
     return mImpl->on_vkAllocateCommandBuffers(context, input_result, device, pAllocateInfo, pCommandBuffers);
+}
+
+VkResult ResourceTracker::on_vkQueueSignalReleaseImageANDROID(
+    void* context,
+    VkResult input_result,
+    VkQueue queue,
+    uint32_t waitSemaphoreCount,
+    const VkSemaphore* pWaitSemaphores,
+    VkImage image,
+    int* pNativeFenceFd) {
+    return mImpl->on_vkQueueSignalReleaseImageANDROID(context, input_result, queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd);
 }
 
 void ResourceTracker::deviceMemoryTransform_tohost(
