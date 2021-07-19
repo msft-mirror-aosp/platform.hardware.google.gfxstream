@@ -672,6 +672,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetVulkanQueueSubmitWithCommandsSupport(rcEnc);
         queryAndSetVulkanBatchedDescriptorSetUpdateSupport(rcEnc);
         queryAndSetSyncBufferData(rcEnc);
+        queryAndSetVulkanAsyncQsri(rcEnc);
         queryVersion(rcEnc);
         if (m_processPipe) {
             m_processPipe->processPipeInit(m_connectionType, rcEnc);
@@ -968,6 +969,13 @@ void HostConnection::queryAndSetSyncBufferData(ExtendedRCEncoderContext* rcEnc) 
     std::string glExtensions = queryGLExtensions(rcEnc);
     if (glExtensions.find(kSyncBufferData) != std::string::npos) {
         rcEnc->featureInfo()->hasSyncBufferData = true;
+    }
+}
+
+void HostConnection::queryAndSetVulkanAsyncQsri(ExtendedRCEncoderContext* rcEnc) {
+    std::string glExtensions = queryGLExtensions(rcEnc);
+    if (glExtensions.find(kVulkanAsyncQsri) != std::string::npos) {
+        rcEnc->featureInfo()->hasVulkanAsyncQsri = true;
     }
 }
 
