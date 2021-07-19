@@ -620,6 +620,15 @@ public:
         const VkCommandBufferAllocateInfo* pAllocateInfo,
         VkCommandBuffer* pCommandBuffers);
 
+    VkResult on_vkQueueSignalReleaseImageANDROID(
+        void* context,
+        VkResult input_result,
+        VkQueue queue,
+        uint32_t waitSemaphoreCount,
+        const VkSemaphore* pWaitSemaphores,
+        VkImage image,
+        int* pNativeFenceFd);
+
     bool isMemoryTypeHostVisible(VkDevice device, uint32_t typeIndex) const;
     uint8_t* getMappedPointer(VkDeviceMemory memory);
     VkDeviceSize getMappedSize(VkDeviceMemory memory);
