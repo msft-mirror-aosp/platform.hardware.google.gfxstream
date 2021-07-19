@@ -1629,8 +1629,7 @@ void VkEncoder::vkGetDeviceQueue(
     stream->read((uint64_t*)&cgen_var_2, 8);
     stream->handleMapping()->mapHandles_u64_VkQueue(&cgen_var_2, (VkQueue*)pQueue, 1);
     stream->unsetHandleMapping();
-    sResourceTracker->on_vkGetDeviceQueue(this, device, queueFamilyIndex,
-                                          queueIndex, pQueue);
+    sResourceTracker->on_vkGetDeviceQueue(this, device, queueFamilyIndex, queueIndex, pQueue);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -34505,6 +34504,91 @@ void VkEncoder::vkCollectDescriptorPoolIdsGOOGLE(
         }
         stream->read((uint64_t*)pPoolIds, (*(pPoolIdCount)) * sizeof(uint64_t));
     }
+    ++encodeCount;;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL)
+    {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+}
+
+void VkEncoder::vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(
+    VkQueue queue,
+    uint32_t waitSemaphoreCount,
+    const VkSemaphore* pWaitSemaphores,
+    VkImage image,
+    uint32_t doLock)
+{
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkQueue local_queue;
+    uint32_t local_waitSemaphoreCount;
+    VkSemaphore* local_pWaitSemaphores;
+    VkImage local_image;
+    local_queue = queue;
+    local_waitSemaphoreCount = waitSemaphoreCount;
+    // Avoiding deepcopy for pWaitSemaphores
+    local_pWaitSemaphores = (VkSemaphore*)pWaitSemaphores;
+    local_image = image;
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        *countPtr += sizeof(uint32_t);
+        // WARNING PTR CHECK
+        *countPtr += 8;
+        if (local_pWaitSemaphores)
+        {
+            if (((waitSemaphoreCount)))
+            {
+                *countPtr += ((waitSemaphoreCount)) * 8;
+            }
+        }
+        uint64_t cgen_var_1;
+        *countPtr += 1 * 8;
+    }
+    uint32_t packetSize_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    uint8_t* streamPtr = stream->reserve(packetSize_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE);
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE = OP_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE;
+    uint32_t seqno; if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    memcpy(streamPtr, &opcode_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE, sizeof(uint32_t)); streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE, sizeof(uint32_t)); streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) { memcpy(streamPtr, &seqno, sizeof(uint32_t)); streamPtr += sizeof(uint32_t); }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkQueue((*&local_queue));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    memcpy(*streamPtrPtr, (uint32_t*)&local_waitSemaphoreCount, sizeof(uint32_t));
+    *streamPtrPtr += sizeof(uint32_t);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_1 = (uint64_t)(uintptr_t)local_pWaitSemaphores;
+    memcpy((*streamPtrPtr), &cgen_var_1, 8);
+    android::base::Stream::toBe64((uint8_t*)(*streamPtrPtr));
+    *streamPtrPtr += 8;
+    if (local_pWaitSemaphores)
+    {
+        if (((waitSemaphoreCount)))
+        {
+            uint8_t* cgen_var_1_0_ptr = (uint8_t*)(*streamPtrPtr);
+            for (uint32_t k = 0; k < ((waitSemaphoreCount)); ++k)
+            {
+                uint64_t tmpval = get_host_u64_VkSemaphore(local_pWaitSemaphores[k]);
+                memcpy(cgen_var_1_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+            }
+            *streamPtrPtr += 8 * ((waitSemaphoreCount));
+        }
+    }
+    uint64_t cgen_var_2;
+    *&cgen_var_2 = get_host_u64_VkImage((*&local_image));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_2, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    stream->flush();
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
