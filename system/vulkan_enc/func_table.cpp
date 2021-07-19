@@ -4489,7 +4489,8 @@ static VkResult entry_vkQueueSignalReleaseImageANDROID(
     AEMU_SCOPED_TRACE("vkQueueSignalReleaseImageANDROID");
     auto vkEnc = ResourceTracker::getQueueEncoder(queue);
     VkResult vkQueueSignalReleaseImageANDROID_VkResult_return = (VkResult)0;
-    vkQueueSignalReleaseImageANDROID_VkResult_return = vkEnc->vkQueueSignalReleaseImageANDROID(queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd, true /* do lock */);
+    auto resources = ResourceTracker::get();
+    vkQueueSignalReleaseImageANDROID_VkResult_return = resources->on_vkQueueSignalReleaseImageANDROID(vkEnc, VK_SUCCESS, queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd);
     return vkQueueSignalReleaseImageANDROID_VkResult_return;
 }
 #endif
