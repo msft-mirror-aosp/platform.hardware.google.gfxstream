@@ -6308,19 +6308,19 @@ public:
                         (const VkDescriptorImageInfo*)(userBuffer + offset + j * stride);
 
                     memcpy(((uint8_t*)imageInfos) + currImageInfoOffset,
-                           userBuffer + offset + j * stride,
-                           sizeof(VkDescriptorImageInfo));
+                           user, sizeof(VkDescriptorImageInfo));
                     currImageInfoOffset += sizeof(VkDescriptorImageInfo);
                 }
 
-                if (batched) doEmulatedDescriptorImageInfoWriteFromTemplate(
+                if (batched) {
+                  doEmulatedDescriptorImageInfoWriteFromTemplate(
                         descType,
                         dstBinding,
                         dstArrayElement,
                         descCount,
                         currImageInfoBegin,
                         reified);
-
+                }
             } else if (isDescriptorTypeBufferInfo(descType)) {
 
 
@@ -6334,18 +6334,19 @@ public:
                         (const VkDescriptorBufferInfo*)(userBuffer + offset + j * stride);
 
                     memcpy(((uint8_t*)bufferInfos) + currBufferInfoOffset,
-                           userBuffer + offset + j * stride,
-                           sizeof(VkDescriptorBufferInfo));
+                           user, sizeof(VkDescriptorBufferInfo));
                     currBufferInfoOffset += sizeof(VkDescriptorBufferInfo);
                 }
 
-                if (batched) doEmulatedDescriptorBufferInfoWriteFromTemplate(
+                if (batched) {
+                  doEmulatedDescriptorBufferInfoWriteFromTemplate(
                         descType,
                         dstBinding,
                         dstArrayElement,
                         descCount,
                         currBufferInfoBegin,
                         reified);
+                }
 
             } else if (isDescriptorTypeBufferView(descType)) {
                 if (!stride) stride = sizeof(VkBufferView);
@@ -6354,19 +6355,23 @@ public:
                     (const VkBufferView*)((uint8_t*)bufferViews + currBufferViewOffset);
 
                 for (uint32_t j = 0; j < descCount; ++j) {
+                  const VkBufferView* user =
+                        (const VkBufferView*)(userBuffer + offset + j * stride);
+
                     memcpy(((uint8_t*)bufferViews) + currBufferViewOffset,
-                           userBuffer + offset + j * stride,
-                           sizeof(VkBufferView));
+                           user, sizeof(VkBufferView));
                     currBufferViewOffset += sizeof(VkBufferView);
                 }
 
-                if (batched) doEmulatedDescriptorBufferViewWriteFromTemplate(
+                if (batched) {
+                  doEmulatedDescriptorBufferViewWriteFromTemplate(
                         descType,
                         dstBinding,
                         dstArrayElement,
                         descCount,
                         currBufferViewBegin,
                         reified);
+                }
             } else {
                 ALOGE("%s: FATAL: Unknown descriptor type %d\n", __func__, descType);
                 abort();
@@ -6911,7 +6916,8 @@ public:
     }
 
     // Resets staging stream for this command buffer and primary command buffers
-    // where this command buffer has been recorded.
+    // where this command buffer has been recorded. If requested, also clears the pending
+    // descriptor sets.
     void resetCommandBufferStagingInfo(VkCommandBuffer commandBuffer, bool alsoResetPrimaries, bool alsoClearPendingDescriptorSets) {
         struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
         if (!cb) {
