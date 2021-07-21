@@ -567,11 +567,7 @@ private:  // **** impl ****
 
         case PixelFormat::IMPLEMENTATION_DEFINED:
             if (usage & BufferUsage::CAMERA_OUTPUT) {
-                if (usage & BufferUsage::GPU_TEXTURE) {
-                    RETURN(true);
-                } else if (usage & BufferUsage::VIDEO_ENCODER) {
-                    RETURN(true);
-                }
+                RETURN(true);
             }
             RETURN(false);
 
