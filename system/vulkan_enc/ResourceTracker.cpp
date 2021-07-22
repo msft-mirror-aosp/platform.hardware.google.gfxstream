@@ -21,6 +21,7 @@
 
 #include "android/base/Optional.h"
 #include "android/base/threads/AndroidWorkPool.h"
+#include "android/base/Tracing.h"
 
 #include "goldfish_vk_private_defs.h"
 
@@ -30,6 +31,7 @@
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
 
 #include "../egl/goldfish_sync.h"
+#include "virtio_gpu_context_init.h"
 
 typedef uint32_t zx_handle_t;
 typedef uint64_t zx_koid_t;
@@ -1025,10 +1027,32 @@ public:
             ResourceTracker::streamFeatureBits |= VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
         }
 #if !defined(HOST_BUILD) && defined(VK_USE_PLATFORM_ANDROID_KHR)
-       if (mFeatureInfo->hasVirtioGpuNext) {
-           ALOGD("%s: has virtio-gpu-next; create hostmem rendernode\n", __func__);
-           mRendernodeFd = drmOpenRender(128 /* RENDERNODE_MINOR */);
-       }
+        if (mFeatureInfo->hasVirtioGpuNext) {
+            ALOGD("%s: has virtio-gpu-next; create auxiliary rendernode\n", __func__);
+            mRendernodeFd = drmOpenRender(128 /* RENDERNODE_MINOR */);
+            if (mRendernodeFd < 0) {
+                ALOGE("%s: error: could not init auxiliary rendernode\n", __func__);
+            } else {
+                ALOGD("%s: has virtio-gpu-next; aux context init\n", __func__);
+                struct drm_virtgpu_context_set_param drm_setparams[] = {
+                    {
+                        VIRTGPU_CONTEXT_PARAM_NUM_RINGS,
+                        2,
+                    },
+                };
+
+                struct drm_virtgpu_context_init drm_ctx_init = {
+                    1,
+                    0,
+                    (uint64_t)(uintptr_t)drm_setparams,
+                };
+
+                int ctxInitret = drmIoctl(mRendernodeFd, DRM_IOCTL_VIRTGPU_CONTEXT_INIT, &drm_ctx_init);
+                if (ctxInitret < 0) {
+                    ALOGE("%s: error: could not ctx init. ret %d errno %d\n", __func__, ctxInitret, errno);
+                }
+            }
+        }
 #endif
     }
 
@@ -4626,13 +4650,16 @@ public:
                     hostFenceHandleHi,
                 };
 
-                drm_virtgpu_execbuffer execbuffer = {
-                    .flags = VIRTGPU_EXECBUF_FENCE_FD_OUT,
+                struct drm_virtgpu_execbuffer_with_ring_idx execbuffer = {
+                    .flags = (uint32_t)(mFeatureInfo->hasVulkanAsyncQsri ?
+                                        (VIRTGPU_EXECBUF_FENCE_FD_OUT | VIRTGPU_EXECBUF_FENCE_CONTEXT) :
+                                        VIRTGPU_EXECBUF_FENCE_FD_OUT),
                     .size = 5 * sizeof(uint32_t),
                     .command = (uint64_t)(cmdDwords),
                     .bo_handles = 0,
                     .num_bo_handles = 0,
                     .fence_fd = -1,
+                    .ring_idx = 0,
                 };
 
                 int res = drmIoctl(mRendernodeFd, DRM_IOCTL_VIRTGPU_EXECBUFFER, &execbuffer);
@@ -5417,13 +5444,16 @@ public:
                     hostFenceHandleHi,
                 };
 
-                drm_virtgpu_execbuffer execbuffer = {
-                    .flags = VIRTGPU_EXECBUF_FENCE_FD_OUT,
+                struct drm_virtgpu_execbuffer_with_ring_idx execbuffer = {
+                    .flags = (uint32_t)(mFeatureInfo->hasVulkanAsyncQsri ?
+                                        (VIRTGPU_EXECBUF_FENCE_FD_OUT | VIRTGPU_EXECBUF_FENCE_CONTEXT) :
+                                        VIRTGPU_EXECBUF_FENCE_FD_OUT),
                     .size = 5 * sizeof(uint32_t),
                     .command = (uint64_t)(cmdDwords),
                     .bo_handles = 0,
                     .num_bo_handles = 0,
                     .fence_fd = -1,
+                    .ring_idx = 0,
                 };
 
                 int res = drmIoctl(mRendernodeFd, DRM_IOCTL_VIRTGPU_EXECBUFFER, &execbuffer);
@@ -6029,6 +6059,7 @@ public:
     void unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int*) {
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
         if (fd != -1) {
+            AEMU_SCOPED_TRACE("waitNativeFenceInAcquire");
             // Implicit Synchronization
             sync_wait(fd, 3000);
             // From libvulkan's swapchain.cpp:
@@ -6857,6 +6888,55 @@ public:
         return res;
     }
 
+    int exportSyncFdForQSRI(VkImage image) {
+        ALOGV("%s: call for image %p hos timage handle 0x%llx\n", __func__, (void*)image,
+                (unsigned long long)get_host_u64_VkImage(image));
+        int fd;
+        if (mFeatureInfo->hasVirtioGpuNativeSync) {
+#if !defined(HOST_BUILD) && defined(VK_USE_PLATFORM_ANDROID_KHR)
+            uint64_t hostImageHandle = get_host_u64_VkImage(image);
+            uint32_t hostImageHandleLo = (uint32_t)hostImageHandle;
+            uint32_t hostImageHandleHi = (uint32_t)(hostImageHandle >> 32);
+
+#define VIRTIO_GPU_NATIVE_SYNC_VULKAN_QSRI_EXPORT 0xa002
+
+            uint32_t cmdDwords[3] = {
+                VIRTIO_GPU_NATIVE_SYNC_VULKAN_QSRI_EXPORT,
+                hostImageHandleLo,
+                hostImageHandleHi,
+            };
+
+            struct drm_virtgpu_execbuffer_with_ring_idx execbuffer = {
+                // Assume fence context support if we enabled hasVulkanAsyncQsri
+                .flags = VIRTGPU_EXECBUF_FENCE_FD_OUT | VIRTGPU_EXECBUF_FENCE_CONTEXT,
+                .size = sizeof(cmdDwords),
+                .command = (uint64_t)(cmdDwords),
+                .bo_handles = 0,
+                .num_bo_handles = 0,
+                .fence_fd = -1,
+                .ring_idx = 0,
+            };
+
+            int res = drmIoctl(mRendernodeFd, DRM_IOCTL_VIRTGPU_EXECBUFFER, &execbuffer);
+            if (res) {
+                ALOGE("%s: Failed to virtgpu execbuffer: sterror: %s errno: %d\n", __func__,
+                        strerror(errno), errno);
+                abort();
+            }
+
+            fd = execbuffer.fence_fd;
+#endif
+        } else {
+            goldfish_sync_queue_work(
+                    mSyncDeviceFd,
+                    get_host_u64_VkImage(image) /* the handle */,
+                    GOLDFISH_SYNC_VULKAN_QSRI /* thread handle (doubling as type field) */,
+                    &fd);
+        }
+        ALOGV("%s: got fd: %d\n", __func__, fd);
+        return fd;
+    }
+
     VkResult on_vkQueueSignalReleaseImageANDROID(
         void* context,
         VkResult input_result,
@@ -6865,9 +6945,36 @@ public:
         const VkSemaphore* pWaitSemaphores,
         VkImage image,
         int* pNativeFenceFd) {
+
         (void)input_result;
+
         VkEncoder* enc = (VkEncoder*)context;
-        return enc->vkQueueSignalReleaseImageANDROID(queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd, true /* lock */);
+
+        if (!mFeatureInfo->hasVulkanAsyncQsri) {
+            return enc->vkQueueSignalReleaseImageANDROID(queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd, true /* lock */);
+        }
+
+        AutoLock lock(mLock);
+
+        auto it = info_VkImage.find(image);
+        if (it == info_VkImage.end()) {
+            if (pNativeFenceFd) *pNativeFenceFd = -1;
+            return VK_ERROR_INITIALIZATION_FAILED;
+        }
+
+        auto& imageInfo = it->second;
+
+        enc->vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(queue, waitSemaphoreCount, pWaitSemaphores, image, true /* lock */);
+
+        if (pNativeFenceFd) {
+            *pNativeFenceFd =
+                exportSyncFdForQSRI(image);
+        } else {
+            int syncFd = exportSyncFdForQSRI(image);
+            if (syncFd >= 0) close(syncFd);
+        }
+
+        return VK_SUCCESS;
     }
 
     uint32_t getApiVersionFromInstance(VkInstance instance) const {
