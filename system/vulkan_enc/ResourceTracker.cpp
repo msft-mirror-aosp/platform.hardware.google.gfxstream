@@ -31,7 +31,9 @@
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
 
 #include "../egl/goldfish_sync.h"
+#ifndef HOST_BUILD
 #include "virtio_gpu_context_init.h"
+#endif
 
 typedef uint32_t zx_handle_t;
 typedef uint64_t zx_koid_t;
