@@ -301,6 +301,10 @@ private:
                     // Camera-to-encoder is NV21
                     *format = PixelFormat::YCRCB_420_SP;
                     RETURN(Error3::NONE);
+                } else {
+                    // b/189957071
+                    *format = PixelFormat::YCBCR_420_888;
+                    RETURN(Error3::NONE);
                 }
             }
             RETURN_ERROR(Error3::UNSUPPORTED);
