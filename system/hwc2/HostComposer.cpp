@@ -31,25 +31,10 @@
 #include "../egl/goldfish_sync.h"
 #include "Device.h"
 #include "Display.h"
+#include "HostUtils.h"
 
 namespace android {
 namespace {
-
-static int getVsyncHzFromProperty() {
-  static constexpr const auto kVsyncProp = "ro.boot.qemu.vsync";
-
-  const auto vsyncProp = android::base::GetProperty(kVsyncProp, "");
-  DEBUG_LOG("%s: prop value is: %s", __FUNCTION__, vsyncProp.c_str());
-
-  uint64_t vsyncPeriod;
-  if (!android::base::ParseUint(vsyncProp, &vsyncPeriod)) {
-    ALOGE("%s: failed to parse vsync period '%s', returning default 60",
-          __FUNCTION__, vsyncProp.c_str());
-    return 60;
-  }
-
-  return static_cast<int>(vsyncPeriod);
-}
 
 static bool isMinigbmFromProperty() {
   static constexpr const auto kGrallocProp = "ro.hardware.gralloc";
@@ -79,27 +64,6 @@ static bool useAngleFromProperty() {
     ALOGD("%s: Not using ANGLE.\n", __FUNCTION__);
     return false;
   }
-}
-
-#define DEFINE_AND_VALIDATE_HOST_CONNECTION                                   \
-  HostConnection* hostCon = createOrGetHostConnection();                      \
-  if (!hostCon) {                                                             \
-    ALOGE("%s: Failed to get host connection\n", __FUNCTION__);               \
-    return HWC2::Error::NoResources;                                          \
-  }                                                                           \
-  ExtendedRCEncoderContext* rcEnc = hostCon->rcEncoder();                     \
-  if (!rcEnc) {                                                               \
-    ALOGE("%s: Failed to get renderControl encoder context\n", __FUNCTION__); \
-    return HWC2::Error::NoResources;                                          \
-  }
-
-static std::unique_ptr<HostConnection> sHostCon;
-
-static HostConnection* createOrGetHostConnection() {
-  if (!sHostCon) {
-    sHostCon = HostConnection::createUnique();
-  }
-  return sHostCon.get();
 }
 
 typedef struct compose_layer {
@@ -202,245 +166,6 @@ HWC2::Error HostComposer::init(const HotplugCallback& cb) {
   return HWC2::Error::None;
 }
 
-HWC2::Error HostComposer::createDisplays(
-    Device* device, const AddDisplayToDeviceFunction& addDisplayToDeviceFn) {
-  HWC2::Error error = HWC2::Error::None;
-
-  error = createPrimaryDisplay(device, addDisplayToDeviceFn);
-  if (error != HWC2::Error::None) {
-    ALOGE("%s failed to create primary display", __FUNCTION__);
-    return error;
-  }
-
-  error = createSecondaryDisplays(device, addDisplayToDeviceFn);
-  if (error != HWC2::Error::None) {
-    ALOGE("%s failed to create secondary displays", __FUNCTION__);
-    return error;
-  }
-
-  return HWC2::Error::None;
-}
-
-HWC2::Error HostComposer::createPrimaryDisplay(
-    Device* device, const AddDisplayToDeviceFunction& addDisplayToDeviceFn) {
-  HWC2::Error error = HWC2::Error::None;
-
-  DEFINE_AND_VALIDATE_HOST_CONNECTION
-  hostCon->lock();
-  int width = rcEnc->rcGetFBParam(rcEnc, FB_WIDTH);
-  int height = rcEnc->rcGetFBParam(rcEnc, FB_HEIGHT);
-  int dpiX = rcEnc->rcGetFBParam(rcEnc, FB_XDPI);
-  int dpiY = rcEnc->rcGetFBParam(rcEnc, FB_YDPI);
-  hostCon->unlock();
-
-  int refreshRateHz = getVsyncHzFromProperty();
-
-  auto display = std::make_unique<Display>(*device, this, 0);
-  if (display == nullptr) {
-    ALOGE("%s failed to allocate display", __FUNCTION__);
-    return HWC2::Error::NoResources;
-  }
-
-  auto displayId = display->getId();
-
-  error = display->init(width, height, dpiX, dpiY, refreshRateHz);
-  if (error != HWC2::Error::None) {
-    ALOGE("%s failed to initialize display:%" PRIu64, __FUNCTION__, displayId);
-    return error;
-  }
-
-  error = createHostComposerDisplayInfo(display.get(), /*hostDisplayId=*/0);
-  if (error != HWC2::Error::None) {
-    ALOGE("%s failed to initialize host info for display:%" PRIu64,
-          __FUNCTION__, displayId);
-    return error;
-  }
-
-  error = addDisplayToDeviceFn(std::move(display));
-  if (error != HWC2::Error::None) {
-    ALOGE("%s failed to add display:%" PRIu64, __FUNCTION__, displayId);
-    return error;
-  }
-
-  return HWC2::Error::None;
-}
-
-HWC2::Error HostComposer::createDisplay(
-    Device* device, uint32_t displayId, uint32_t width, uint32_t height,
-    uint32_t dpiX, uint32_t dpiY, uint32_t refreshRateHz,
-    const AddDisplayToDeviceFunction& addDisplayToDeviceFn) {
-  HWC2::Error error;
-  Display* display = device->getDisplay(displayId);
-  if (display) {
-    ALOGD("%s display %d already existed, then update", __func__, displayId);
-  }
-
-  DEFINE_AND_VALIDATE_HOST_CONNECTION
-  hostCon->lock();
-  if (rcEnc->rcCreateDisplayById(rcEnc, displayId)) {
-    ALOGE("%s host failed to create display %" PRIu32, __func__, displayId);
-    hostCon->unlock();
-    return HWC2::Error::NoResources;
-  }
-  if (rcEnc->rcSetDisplayPoseDpi(rcEnc, displayId, -1, -1, width, height, dpiX/1000)) {
-    ALOGE("%s host failed to set display %" PRIu32, __func__, displayId);
-    hostCon->unlock();
-    return HWC2::Error::NoResources;
-  }
-  hostCon->unlock();
-
-  std::optional<std::vector<uint8_t>> edid;
-  if (mIsMinigbm) {
-    edid = mDrmPresenter.getEdid(displayId);
-  }
-  if (!display) {
-    auto newDisplay = std::make_unique<Display>(*device, this, displayId);
-    if (newDisplay == nullptr) {
-      ALOGE("%s failed to allocate display", __FUNCTION__);
-      return HWC2::Error::NoResources;
-    }
-
-
-    error = newDisplay->init(width, height, dpiX, dpiY, refreshRateHz, edid);
-    if (error != HWC2::Error::None) {
-      ALOGE("%s failed to initialize display:%" PRIu32, __FUNCTION__,
-            displayId);
-      return error;
-    }
-
-    error =
-        createHostComposerDisplayInfo(newDisplay.get(), displayId);
-    if (error != HWC2::Error::None) {
-      ALOGE("%s failed to initialize host info for display:%" PRIu32,
-            __FUNCTION__, displayId);
-      return error;
-    }
-
-    error = addDisplayToDeviceFn(std::move(newDisplay));
-    if (error != HWC2::Error::None) {
-      ALOGE("%s failed to add display:%" PRIu32, __FUNCTION__, displayId);
-      return error;
-    }
-  } else {
-    display->lock();
-    // update display parameters
-    error = display->updateParameters(width, height, dpiX, dpiY,
-                                      refreshRateHz, edid);
-    if (error != HWC2::Error::None) {
-      ALOGE("%s failed to update display:%" PRIu32, __FUNCTION__, displayId);
-      display->unlock();
-      return error;
-    }
-
-    error = createHostComposerDisplayInfo(display, displayId);
-    if (error != HWC2::Error::None) {
-      ALOGE("%s failed to initialize host info for display:%" PRIu32,
-            __FUNCTION__, displayId);
-      display->unlock();
-      return error;
-    }
-    display->unlock();
-  }
-
-  return HWC2::Error::None;
-}
-
-HWC2::Error HostComposer::createSecondaryDisplays(
-    Device* device, const AddDisplayToDeviceFunction& addDisplayToDeviceFn) {
-  HWC2::Error error = HWC2::Error::None;
-
-  static constexpr const char kExternalDisplayProp[] =
-      "hwservicemanager.external.displays";
-
-  const auto propString = android::base::GetProperty(kExternalDisplayProp, "");
-  DEBUG_LOG("%s: prop value is: %s", __FUNCTION__, propString.c_str());
-
-  if (propString.empty()) {
-    return HWC2::Error::None;
-  }
-
-  const std::vector<std::string> propStringParts =
-      android::base::Split(propString, ",");
-  if (propStringParts.size() % 5 != 0) {
-    ALOGE("%s: Invalid syntax for system prop %s which is %s", __FUNCTION__,
-          kExternalDisplayProp, propString.c_str());
-    return HWC2::Error::BadParameter;
-  }
-
-  std::vector<int> propIntParts;
-  for (const std::string& propStringPart : propStringParts) {
-    uint64_t propUintPart;
-    if (!android::base::ParseUint(propStringPart, &propUintPart)) {
-      ALOGE("%s: Invalid syntax for system prop %s which is %s", __FUNCTION__,
-            kExternalDisplayProp, propString.c_str());
-      return HWC2::Error::BadParameter;
-    }
-    propIntParts.push_back(static_cast<int>(propUintPart));
-  }
-
-  static constexpr const uint32_t kHostDisplayIdStart = 6;
-
-  uint32_t secondaryDisplayIndex = 1;
-  while (!propIntParts.empty()) {
-    int width = propIntParts[1];
-    int height = propIntParts[2];
-    int dpiX = propIntParts[3];
-    int dpiY = propIntParts[3];
-    int refreshRateHz = 160;
-
-    propIntParts.erase(propIntParts.begin(), propIntParts.begin() + 5);
-
-    uint32_t expectedHostDisplayId =
-        kHostDisplayIdStart + secondaryDisplayIndex - 1;
-    uint32_t actualHostDisplayId = 0;
-
-    DEFINE_AND_VALIDATE_HOST_CONNECTION
-    hostCon->lock();
-    rcEnc->rcDestroyDisplay(rcEnc, expectedHostDisplayId);
-    rcEnc->rcCreateDisplay(rcEnc, &actualHostDisplayId);
-    rcEnc->rcSetDisplayPose(rcEnc, actualHostDisplayId, -1, -1, width, height);
-    hostCon->unlock();
-
-    if (actualHostDisplayId != expectedHostDisplayId) {
-      ALOGE(
-          "Something wrong with host displayId allocation, expected %d "
-          "but received %d",
-          expectedHostDisplayId, actualHostDisplayId);
-    }
-
-    auto display =
-        std::make_unique<Display>(*device, this, secondaryDisplayIndex++);
-    if (display == nullptr) {
-      ALOGE("%s failed to allocate display", __FUNCTION__);
-      return HWC2::Error::NoResources;
-    }
-
-    auto displayId = display->getId();
-
-    error = display->init(width, height, dpiX, dpiY, refreshRateHz);
-    if (error != HWC2::Error::None) {
-      ALOGE("%s failed to initialize display:%" PRIu64, __FUNCTION__,
-            displayId);
-      return error;
-    }
-
-    error = createHostComposerDisplayInfo(display.get(), actualHostDisplayId);
-    if (error != HWC2::Error::None) {
-      ALOGE("%s failed to initialize host info for display:%" PRIu64,
-            __FUNCTION__, displayId);
-      return error;
-    }
-
-    error = addDisplayToDeviceFn(std::move(display));
-    if (error != HWC2::Error::None) {
-      ALOGE("%s failed to add display:%" PRIu64, __FUNCTION__, displayId);
-      return error;
-    }
-  }
-
-  return HWC2::Error::None;
-}
-
 HWC2::Error HostComposer::createHostComposerDisplayInfo(
     Display* display, uint32_t hostDisplayId) {
   HWC2::Error error = HWC2::Error::None;
@@ -500,6 +225,106 @@ HWC2::Error HostComposer::createHostComposerDisplayInfo(
       ALOGE("%s: display:%" PRIu64 " failed to set vsync height", __FUNCTION__,
             displayId);
       return error;
+    }
+  }
+
+  return HWC2::Error::None;
+}
+
+HWC2::Error HostComposer::onDisplayCreate(Display* display) {
+  HWC2::Error error = HWC2::Error::None;
+
+  hwc2_display_t displayId = display->getId();
+  hwc2_config_t displayConfigId;
+  int32_t displayWidth;
+  int32_t displayHeight;
+  int32_t displayDpiX;
+
+  error = display->getActiveConfig(&displayConfigId);
+  if (error != HWC2::Error::None) {
+    ALOGE("%s: display:%" PRIu64 " has no active config", __FUNCTION__,
+          displayId);
+    return error;
+  }
+
+  error = display->getDisplayAttributeEnum(
+      displayConfigId, HWC2::Attribute::Width, &displayWidth);
+  if (error != HWC2::Error::None) {
+    ALOGE("%s: display:%" PRIu64 " failed to get width", __FUNCTION__,
+          displayId);
+    return error;
+  }
+
+  error = display->getDisplayAttributeEnum(
+      displayConfigId, HWC2::Attribute::Height, &displayHeight);
+  if (error != HWC2::Error::None) {
+    ALOGE("%s: display:%" PRIu64 " failed to get height", __FUNCTION__,
+          displayId);
+    return error;
+  }
+
+  error = display->getDisplayAttributeEnum(displayConfigId,
+                                           HWC2::Attribute::DpiX, &displayDpiX);
+  if (error != HWC2::Error::None) {
+    ALOGE("%s: display:%" PRIu64 " failed to get height", __FUNCTION__,
+          displayId);
+    return error;
+  }
+
+  uint32_t hostDisplayId = 0;
+
+  DEFINE_AND_VALIDATE_HOST_CONNECTION
+  if (displayId == 0) {
+    // Primary display:
+    hostCon->lock();
+    if (rcEnc->rcCreateDisplayById(rcEnc, displayId)) {
+      ALOGE("%s host failed to create display %" PRIu64, __func__, displayId);
+      hostCon->unlock();
+      return HWC2::Error::NoResources;
+    }
+    if (rcEnc->rcSetDisplayPoseDpi(rcEnc, displayId, -1, -1, displayWidth,
+                                   displayHeight, displayDpiX / 1000)) {
+      ALOGE("%s host failed to set display %" PRIu64, __func__, displayId);
+      hostCon->unlock();
+      return HWC2::Error::NoResources;
+    }
+    hostCon->unlock();
+  } else {
+    // Secondary display:
+    static constexpr const uint32_t kHostDisplayIdStart = 6;
+
+    uint32_t expectedHostDisplayId = kHostDisplayIdStart + displayId - 1;
+    uint32_t actualHostDisplayId = 0;
+
+    hostCon->lock();
+    rcEnc->rcDestroyDisplay(rcEnc, expectedHostDisplayId);
+    rcEnc->rcCreateDisplay(rcEnc, &actualHostDisplayId);
+    rcEnc->rcSetDisplayPose(rcEnc, actualHostDisplayId, -1, -1, displayWidth,
+                            displayHeight);
+    hostCon->unlock();
+
+    if (actualHostDisplayId != expectedHostDisplayId) {
+      ALOGE(
+          "Something wrong with host displayId allocation, expected %d "
+          "but received %d",
+          expectedHostDisplayId, actualHostDisplayId);
+    }
+
+    hostDisplayId = actualHostDisplayId;
+  }
+
+  error = createHostComposerDisplayInfo(display, hostDisplayId);
+  if (error != HWC2::Error::None) {
+    ALOGE("%s failed to initialize host info for display:%" PRIu64,
+          __FUNCTION__, displayId);
+    return error;
+  }
+
+  std::optional<std::vector<uint8_t>> edid;
+  if (mIsMinigbm) {
+    edid = mDrmPresenter.getEdid(displayId);
+    if (edid) {
+      display->setEdid(*edid);
     }
   }
 
@@ -820,9 +645,9 @@ HWC2::Error HostComposer::presentDisplay(Display* display,
 
     if (useRcCommandToSync) {
       hostCon->lock();
-      rcEnc->rcCreateSyncKHR(rcEnc, EGL_SYNC_NATIVE_FENCE_ANDROID, attribs,
-                             2 * sizeof(EGLint), true /* destroy when signaled */,
-                             &sync_handle, &thread_handle);
+      rcEnc->rcCreateSyncKHR(
+          rcEnc, EGL_SYNC_NATIVE_FENCE_ANDROID, attribs, 2 * sizeof(EGLint),
+          true /* destroy when signaled */, &sync_handle, &thread_handle);
       hostCon->unlock();
     }
 
