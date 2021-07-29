@@ -60,11 +60,13 @@ emulator_hwcomposer_relative_path := hw
 emulator_hwcomposer2_src_files := \
     Device.cpp \
     Display.cpp \
+    DisplayFinder.cpp \
     Drm.cpp \
     DrmPresenter.cpp \
     Gralloc.cpp \
     GuestComposer.cpp \
     HostComposer.cpp \
+    HostUtils.cpp \
     Layer.cpp \
 
 include $(CLEAR_VARS)
