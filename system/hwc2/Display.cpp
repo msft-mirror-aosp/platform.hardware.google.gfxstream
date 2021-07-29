@@ -552,11 +552,11 @@ HWC2::Error Display::setColorTransform(const float* transformMatrix,
   return setColorTransformEnum(transformMatrix, transformType);
 }
 
-HWC2::Error Display::setColorTransformEnum(const float* transformMatrix,
-                                           ColorTransform transformType) {
+HWC2::Error Display::setColorTransformEnum(
+    const float* transformMatrix, ColorTransform transformType) {
   const auto transformTypeString = toString(transformType);
-  DEBUG_LOG("%s: display:%" PRIu64 " color transform type %s", __FUNCTION__,
-            mId, transformTypeString.c_str());
+  DEBUG_LOG("%s: display:%" PRIu64 " color transform type %s", __FUNCTION__, mId,
+            transformTypeString.c_str());
 
   if (transformType == ColorTransform::ARBITRARY_MATRIX &&
       transformMatrix == nullptr) {
@@ -782,13 +782,6 @@ static const uint8_t sEDID2[] = {
     0x70, 0x6c, 0x61, 0x79, 0x5f, 0x32, 0x00, 0x49};
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
-
-HWC2::Error Display::setEdid(std::vector<uint8_t> edid) {
-  DEBUG_LOG("%s: display:%" PRIu64, __FUNCTION__, mId);
-
-  mEdid = edid;
-  return HWC2::Error::None;
-}
 
 HWC2::Error Display::getDisplayIdentificationData(uint8_t* outPort,
                                                   uint32_t* outDataSize,
