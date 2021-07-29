@@ -18,7 +18,6 @@
 
 #include <android-base/properties.h>
 
-#include "DisplayFinder.h"
 #include "GuestComposer.h"
 #include "HostComposer.h"
 
@@ -37,7 +36,7 @@ static int CloseHook(hw_device_t* dev) {
   return 0;
 }
 
-bool ShouldUseGuestComposer() {
+bool IsCuttlefish() {
   return android::base::GetProperty("ro.hardware.vulkan", "") == "pastel";
 }
 
@@ -56,7 +55,7 @@ Device::Device() {
 HWC2::Error Device::init() {
   DEBUG_LOG("%s", __FUNCTION__);
 
-  if (ShouldUseGuestComposer()) {
+  if (IsCuttlefish()) {
     mComposer = std::make_unique<GuestComposer>();
   } else {
     mComposer = std::make_unique<HostComposer>();
@@ -97,22 +96,17 @@ HWC2::Error Device::createDisplays() {
     return HWC2::Error::NoResources;
   }
 
-  std::vector<DisplayConfig> displayConfigs;
+  auto addDisplayLockedFn = [this](std::unique_ptr<Display> display) {
+    auto displayId = display->getId();
+    DEBUG_LOG("%s: adding display:%" PRIu64, __FUNCTION__, displayId);
+    mDisplays.emplace(displayId, std::move(display));
+    return HWC2::Error::None;
+  };
 
-  HWC2::Error error = findDisplayConfigs(&displayConfigs);
+  HWC2::Error error = mComposer->createDisplays(this, addDisplayLockedFn);
   if (error != HWC2::Error::None) {
-    ALOGE("%s failed to find display configs", __FUNCTION__);
+    ALOGE("%s composer failed to create displays", __FUNCTION__);
     return error;
-  }
-
-  for (const DisplayConfig& displayConfig : displayConfigs) {
-    error = createDisplay(displayConfig.id, displayConfig.width,
-                          displayConfig.height, displayConfig.dpiX,
-                          displayConfig.dpiY, displayConfig.refreshRateHz);
-    if (error != HWC2::Error::None) {
-      ALOGE("%s failed to create display from config", __FUNCTION__);
-      return error;
-    }
   }
 
   return HWC2::Error::None;
@@ -120,35 +114,26 @@ HWC2::Error Device::createDisplays() {
 
 HWC2::Error Device::createDisplay(uint32_t displayId, uint32_t width,
                                   uint32_t height, uint32_t dpiX, uint32_t dpiY,
-                                  uint32_t refreshRateHz) {
-  DEBUG_LOG("%s", __FUNCTION__);
-
+                                  uint32_t refreshRate) {
   if (!mComposer) {
     ALOGE("%s composer not initialized!", __FUNCTION__);
     return HWC2::Error::NoResources;
   }
 
-  auto display = std::make_unique<Display>(*this, mComposer.get(), displayId);
-  if (display == nullptr) {
-    ALOGE("%s failed to allocate display", __FUNCTION__);
-    return HWC2::Error::NoResources;
-  }
+  auto addDisplayLockedFn = [this](std::unique_ptr<Display> display) {
+    auto displayId = display->getId();
+    DEBUG_LOG("%s: adding display:%" PRIu64, __FUNCTION__, displayId);
+    mDisplays.emplace(displayId, std::move(display));
+    return HWC2::Error::None;
+  };
 
-  HWC2::Error error = display->init(width, height, dpiX, dpiY, refreshRateHz);
+  HWC2::Error error =
+      mComposer->createDisplay(this, displayId, width, height, dpiX, dpiY,
+                               refreshRate, addDisplayLockedFn);
   if (error != HWC2::Error::None) {
-    ALOGE("%s failed to initialize display:%" PRIu32, __FUNCTION__, displayId);
+    ALOGE("%s composer failed to create displays", __FUNCTION__);
     return error;
   }
-
-  error = mComposer->onDisplayCreate(display.get());
-  if (error != HWC2::Error::None) {
-    ALOGE("%s failed to register display:%" PRIu32 " with composer",
-          __FUNCTION__, displayId);
-    return error;
-  }
-
-  DEBUG_LOG("%s: adding display:%" PRIu64, __FUNCTION__, displayId);
-  mDisplays.emplace(displayId, std::move(display));
 
   return HWC2::Error::None;
 }
@@ -541,8 +526,8 @@ bool Device::handleHotplug(bool connected, uint32_t id, uint32_t width,
   if (connected) {
     createDisplay(id, width, height, dpiX, dpiY, refreshRate);
     ALOGD("callback hotplugConnect display %" PRIu32 " width %" PRIu32
-          " height %" PRIu32 " dpiX %" PRIu32 " dpiY %" PRIu32 "fps %" PRIu32,
-          id, width, height, dpiX, dpiY, refreshRate);
+          " height %" PRIu32 " dpiX %" PRIu32 " dpiY %" PRIu32
+          "fps %" PRIu32, id, width, height, dpiX, dpiY, refreshRate);
     hotplug(mCallbacks[HWC2::Callback::Hotplug].data, id, hotplugConnect);
   };
 
