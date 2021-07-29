@@ -394,32 +394,56 @@ HWC2::Error GuestComposer::init(const HotplugCallback& cb) {
   return HWC2::Error::None;
 }
 
-HWC2::Error GuestComposer::onDisplayCreate(Display* display) {
-  hwc2_display_t displayId = display->getId();
-  hwc2_config_t displayConfigId;
-  int32_t displayWidth;
-  int32_t displayHeight;
+HWC2::Error GuestComposer::createDisplays(
+    Device* device, const AddDisplayToDeviceFunction& addDisplayToDeviceFn) {
+  DEBUG_LOG("%s", __FUNCTION__);
 
-  HWC2::Error error = display->getActiveConfig(&displayConfigId);
+  HWC2::Error error = HWC2::Error::None;
+
+  std::vector<DisplayConfig> displayConfigs;
+
+  error = getDisplayConfigsFromDeviceConfig(&displayConfigs);
   if (error != HWC2::Error::None) {
-    ALOGE("%s: display:%" PRIu64 " has no active config", __FUNCTION__,
-          displayId);
+    ALOGE("%s failed to get display configs from device config", __FUNCTION__);
     return error;
   }
 
-  error = display->getDisplayAttributeEnum(
-      displayConfigId, HWC2::Attribute::Width, &displayWidth);
+  error = getDisplayConfigsFromSystemProp(&displayConfigs);
   if (error != HWC2::Error::None) {
-    ALOGE("%s: display:%" PRIu64 " failed to get width", __FUNCTION__,
-          displayId);
+    ALOGE("%s failed to get display configs from system prop", __FUNCTION__);
     return error;
   }
+  uint32_t id = 0;
+  for (const auto& displayConfig : displayConfigs) {
+    error = createDisplay(device, id, displayConfig.width, displayConfig.height,
+                          displayConfig.dpiX, displayConfig.dpiY,
+                          displayConfig.refreshRateHz, addDisplayToDeviceFn);
+    if (error != HWC2::Error::None) {
+      ALOGE("%s: failed to create display %d", __FUNCTION__, id);
+      return error;
+    }
 
-  error = display->getDisplayAttributeEnum(
-      displayConfigId, HWC2::Attribute::Height, &displayHeight);
+    ++id;
+  }
+
+  return HWC2::Error::None;
+}
+
+HWC2::Error GuestComposer::createDisplay(
+    Device* device, uint32_t id, uint32_t width, uint32_t height, uint32_t dpiX,
+    uint32_t dpiY, uint32_t refreshRateHz,
+    const AddDisplayToDeviceFunction& addDisplayToDeviceFn) {
+  auto display = std::make_unique<Display>(*device, this, id);
+  if (display == nullptr) {
+    ALOGE("%s failed to allocate display", __FUNCTION__);
+    return HWC2::Error::NoResources;
+  }
+
+  auto displayId = display->getId();
+
+  HWC2::Error error = display->init(width, height, dpiX, dpiY, refreshRateHz);
   if (error != HWC2::Error::None) {
-    ALOGE("%s: display:%" PRIu64 " failed to get height", __FUNCTION__,
-          displayId);
+    ALOGE("%s failed to initialize display:%" PRIu64, __FUNCTION__, displayId);
     return error;
   }
 
@@ -434,8 +458,8 @@ HWC2::Error GuestComposer::onDisplayCreate(Display* display) {
   buffer_handle_t bufferHandle;
 
   auto status = GraphicBufferAllocator::get().allocate(
-      displayWidth,            //
-      displayHeight,           //
+      width,                   //
+      height,                  //
       PIXEL_FORMAT_RGBA_8888,  //
       /*layerCount=*/1,        //
       GraphicBuffer::USAGE_HW_COMPOSER | GraphicBuffer::USAGE_SW_READ_OFTEN |
@@ -469,6 +493,12 @@ HWC2::Error GuestComposer::onDisplayCreate(Display* display) {
     } else {
       close(flushSyncFd);
     }
+  }
+
+  error = addDisplayToDeviceFn(std::move(display));
+  if (error != HWC2::Error::None) {
+    ALOGE("%s failed to add display:%" PRIu64, __FUNCTION__, displayId);
+    return error;
   }
 
   return HWC2::Error::None;

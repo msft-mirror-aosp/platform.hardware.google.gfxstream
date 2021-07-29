@@ -106,13 +106,10 @@ class Display {
                               int32_t dataspace, hwc_region_t damage);
   HWC2::Error setColorMode(int32_t mode);
   HWC2::Error setColorTransform(const float* matrix, int transform);
-  HWC2::Error setColorTransformEnum(
-      const float* matrix,
-      android::hardware::graphics::common::V1_0::ColorTransform transform);
+  HWC2::Error setColorTransformEnum(const float* matrix,
+                                    android::hardware::graphics::common::V1_0::ColorTransform transform);
   bool hasColorTransform() const { return mColorTransform.has_value(); }
-  ColorTransformWithMatrix getColorTransform() const {
-    return *mColorTransform;
-  }
+  ColorTransformWithMatrix getColorTransform() const { return *mColorTransform; }
 
   HWC2::Error setOutputBuffer(buffer_handle_t buffer, int32_t releaseFence);
   HWC2::Error setPowerMode(int32_t mode);
@@ -122,7 +119,6 @@ class Display {
   HWC2::Error updateLayerZ(hwc2_layer_t layerId, uint32_t z);
   HWC2::Error getClientTargetSupport(uint32_t width, uint32_t height,
                                      int32_t format, int32_t dataspace);
-  HWC2::Error setEdid(std::vector<uint8_t> edid);
   HWC2::Error getDisplayIdentificationData(uint8_t* outPort,
                                            uint32_t* outDataSize,
                                            uint8_t* outData);
