@@ -15,6 +15,7 @@ add_subdirectory(renderControl_dec)
 set(stream-server-core-sources
     GfxStreamAgents.cpp
     VirtioGpuTimelines.cpp
+    VsyncThread.cpp
     ChannelStream.cpp
     Debug.cpp
     DisplaySurface.cpp
@@ -212,7 +213,8 @@ endfunction()
         tests/GLES1Dispatch_unittest.cpp
         tests/DefaultFramebufferBlit_unittest.cpp
         tests/TextureDraw_unittest.cpp
-        tests/StalePtrRegistry_unittest.cpp)
+        tests/StalePtrRegistry_unittest.cpp
+        tests/VsyncThread_unittest.cpp)
     target_link_libraries(
         OpenglRender_unittests
         PRIVATE

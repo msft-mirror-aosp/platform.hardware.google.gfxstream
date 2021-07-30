@@ -79,6 +79,7 @@ cc_library_shared {
         "virtio-gpu-gfxstream-renderer.cpp",
         "GfxStreamBackendInitOverride.cpp",
         "VirtioGpuTimelines.cpp",
+        "VsyncThread.cpp",
     ],
     host_ldlibs: [
         "-lpthread",
