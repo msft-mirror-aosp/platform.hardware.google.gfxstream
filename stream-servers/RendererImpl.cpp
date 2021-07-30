@@ -670,8 +670,9 @@ void RendererImpl::snapshotOperationCallback(int op, int stage) {
 }
 
 void RendererImpl::setVsyncHz(int vsyncHz) {
-    // TODO: need CP
-    (void)vsyncHz;
+    if (mRenderWindow) {
+        mRenderWindow->setVsyncHz(vsyncHz);
+    }
 }
 
 void RendererImpl::setDisplayConfigs(int configId, int w, int h,
@@ -688,4 +689,5 @@ void RendererImpl::setDisplayActiveConfig(int configId) {
     // TODO: need CP
     (void)configId;
 }
+
 }  // namespace emugl
