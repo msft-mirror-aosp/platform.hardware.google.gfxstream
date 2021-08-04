@@ -3582,13 +3582,13 @@ public:
                                 abort();
                         }
 
-                        fidl::FidlAllocator allocator;
+                        fidl::Arena arena;
                         fuchsia_hardware_goldfish::wire::CreateColorBuffer2Params createParams(
-                            allocator);
-                        createParams.set_width(allocator, pImageCreateInfo->extent.width)
-                            .set_height(allocator, pImageCreateInfo->extent.height)
-                            .set_format(allocator, format)
-                            .set_memory_property(allocator,
+                            arena);
+                        createParams.set_width(arena, pImageCreateInfo->extent.width)
+                            .set_height(arena, pImageCreateInfo->extent.height)
+                            .set_format(arena, format)
+                            .set_memory_property(arena,
                                 fuchsia_hardware_goldfish::wire::kMemoryPropertyDeviceLocal);
 
                         auto result = mControlDevice->CreateColorBuffer2(
@@ -3610,11 +3610,11 @@ public:
                 }
 
                 if (pBufferConstraintsInfo) {
-                    fidl::FidlAllocator allocator;
-                    fuchsia_hardware_goldfish::wire::CreateBuffer2Params createParams(allocator);
-                    createParams.set_size(allocator,
+                    fidl::Arena arena;
+                    fuchsia_hardware_goldfish::wire::CreateBuffer2Params createParams(arena);
+                    createParams.set_size(arena,
                             pBufferConstraintsInfo->pBufferCreateInfo->size)
-                        .set_memory_property(allocator,
+                        .set_memory_property(arena,
                             fuchsia_hardware_goldfish::wire::kMemoryPropertyDeviceLocal);
 
                     auto result =
@@ -4167,15 +4167,15 @@ public:
                             ? fuchsia_hardware_goldfish::wire::kMemoryPropertyDeviceLocal
                             : fuchsia_hardware_goldfish::wire::kMemoryPropertyHostVisible;
 
-                    fidl::FidlAllocator allocator;
+                    fidl::Arena arena;
                     fuchsia_hardware_goldfish::wire::CreateColorBuffer2Params createParams(
-                        allocator);
-                    createParams.set_width(allocator,
+                        arena);
+                    createParams.set_width(arena,
                             info.settings.image_format_constraints.min_coded_width)
-                        .set_height(allocator,
+                        .set_height(arena,
                             info.settings.image_format_constraints.min_coded_height)
-                        .set_format(allocator, format)
-                        .set_memory_property(allocator, memory_property);
+                        .set_format(arena, format)
+                        .set_memory_property(arena, memory_property);
 
                     auto result =
                         mControlDevice->CreateColorBuffer2(std::move(vmo), std::move(createParams));
@@ -5202,10 +5202,10 @@ public:
             }
 
             if (vmo && vmo->is_valid()) {
-                fidl::FidlAllocator allocator;
-                fuchsia_hardware_goldfish::wire::CreateBuffer2Params createParams(allocator);
-                createParams.set_size(allocator, pCreateInfo->size)
-                    .set_memory_property(allocator,
+                fidl::Arena arena;
+                fuchsia_hardware_goldfish::wire::CreateBuffer2Params createParams(arena);
+                createParams.set_size(arena, pCreateInfo->size)
+                    .set_memory_property(arena,
                         fuchsia_hardware_goldfish::wire::kMemoryPropertyDeviceLocal);
 
                 auto result =
