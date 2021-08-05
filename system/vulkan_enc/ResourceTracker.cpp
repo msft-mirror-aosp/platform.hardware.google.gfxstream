@@ -987,7 +987,7 @@ public:
 #ifdef VK_USE_PLATFORM_FUCHSIA
         if (mFeatureInfo->hasVulkan) {
             fidl::ClientEnd<fuchsia_hardware_goldfish::ControlDevice> channel{
-                zx::channel(GetConnectToServiceFunction()("/dev/class/goldfish-control/000"))};
+                zx::channel(GetConnectToServiceFunction()("/loader-gpu-devices/class/goldfish-control/000"))};
             if (!channel) {
                 ALOGE("failed to open control device");
                 abort();
