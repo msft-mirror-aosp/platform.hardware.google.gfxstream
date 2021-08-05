@@ -179,8 +179,8 @@ shared_library("libvulkan_goldfish") {
     ]
 
     defines += [
-      "QEMU_PIPE_PATH=\"/dev/class/goldfish-pipe/000\"",
-      "GOLDFISH_ADDRESS_SPACE_DEVICE_NAME=\"/dev/class/goldfish-address-space/000\"",
+      "QEMU_PIPE_PATH=\"/loader-gpu-devices/class/goldfish-pipe/000\"",
+      "GOLDFISH_ADDRESS_SPACE_DEVICE_NAME=\"/loader-gpu-devices/class/goldfish-address-space/000\"",
     ]
   }
 }
