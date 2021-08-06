@@ -69,6 +69,7 @@ extern "C" {
 	void rcComposeAsyncWithoutPost(uint32_t bufferSize, void* buffer);
 	int rcCreateDisplayById(uint32_t displayId);
 	int rcSetDisplayPoseDpi(uint32_t displayId, GLint x, GLint y, uint32_t w, uint32_t h, uint32_t dpi);
+	int rcReadColorBufferDMA(uint32_t colorbuffer, GLint x, GLint y, GLint width, GLint height, GLenum format, GLenum type, void* pixels, uint32_t pixels_size);
 };
 
 #ifndef GET_CONTEXT
@@ -459,5 +460,11 @@ int rcSetDisplayPoseDpi(uint32_t displayId, GLint x, GLint y, uint32_t w, uint32
 {
 	GET_CONTEXT;
 	return ctx->rcSetDisplayPoseDpi(ctx, displayId, x, y, w, h, dpi);
+}
+
+int rcReadColorBufferDMA(uint32_t colorbuffer, GLint x, GLint y, GLint width, GLint height, GLenum format, GLenum type, void* pixels, uint32_t pixels_size)
+{
+	GET_CONTEXT;
+	return ctx->rcReadColorBufferDMA(ctx, colorbuffer, x, y, width, height, format, type, pixels, pixels_size);
 }
 
