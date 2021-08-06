@@ -85,7 +85,9 @@ public:
     }
     virtual uint64_t lockAndWriteDma(void* data, uint32_t size) {
         if (m_dmaPtr && m_dmaPhysAddr) {
-            memcpy(m_dmaPtr, data, size);
+            if (data != m_dmaPtr) {
+                memcpy(m_dmaPtr, data, size);
+            }
             return m_dmaPhysAddr;
         } else if (m_dmaCxt) {
             return writeGoldfishDma(data, size, m_dmaCxt);
@@ -243,6 +245,7 @@ private:
     void queryAndSetVulkanBatchedDescriptorSetUpdateSupport(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetSyncBufferData(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanAsyncQsri(ExtendedRCEncoderContext *rcEnc);
+    void queryAndSetReadColorBufferDma(ExtendedRCEncoderContext *rcEnc);
     GLint queryVersion(ExtendedRCEncoderContext* rcEnc);
 
 private:
