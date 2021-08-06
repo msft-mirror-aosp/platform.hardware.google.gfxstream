@@ -449,11 +449,24 @@ private:  // **** impl ****
                     }
                 }
             } else {
-                rcEnc->rcReadColorBuffer(rcEnc,
-                                         cb.hostHandle,
-                                         0, 0, cb.width, cb.height,
-                                         cb.glFormat, cb.glType,
-                                         bufferBits);
+                if (rcEnc->featureInfo()->hasReadColorBufferDma) {
+                    {
+                        AEMU_SCOPED_TRACE("bindDmaDirectly");
+                        rcEnc->bindDmaDirectly(bufferBits,
+                                getMmapedPhysAddr(cb.getMmapedOffset()));
+                    }
+                    rcEnc->rcReadColorBufferDMA(rcEnc,
+                        cb.hostHandle,
+                        0, 0, cb.width, cb.height,
+                        cb.glFormat, cb.glType,
+                        bufferBits, cb.width * cb.height * cb.bytesPerPixel);
+                } else {
+                    rcEnc->rcReadColorBuffer(rcEnc,
+                        cb.hostHandle,
+                        0, 0, cb.width, cb.height,
+                        cb.glFormat, cb.glType,
+                        bufferBits);
+                }
             }
         }
 
