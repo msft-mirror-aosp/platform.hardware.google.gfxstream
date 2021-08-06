@@ -74,6 +74,7 @@ struct renderControl_client_context_t {
 	rcComposeAsyncWithoutPost_client_proc_t rcComposeAsyncWithoutPost;
 	rcCreateDisplayById_client_proc_t rcCreateDisplayById;
 	rcSetDisplayPoseDpi_client_proc_t rcSetDisplayPoseDpi;
+	rcReadColorBufferDMA_client_proc_t rcReadColorBufferDMA;
 	virtual ~renderControl_client_context_t() {}
 
 	typedef renderControl_client_context_t *CONTEXT_ACCESSOR_TYPE(void);
