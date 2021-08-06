@@ -243,6 +243,7 @@ private:
     void queryAndSetVulkanBatchedDescriptorSetUpdateSupport(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetSyncBufferData(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanAsyncQsri(ExtendedRCEncoderContext *rcEnc);
+    void queryAndSetReadColorBufferDma(ExtendedRCEncoderContext *rcEnc);
     GLint queryVersion(ExtendedRCEncoderContext* rcEnc);
 
 private:
