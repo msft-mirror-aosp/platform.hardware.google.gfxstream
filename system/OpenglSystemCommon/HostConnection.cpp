@@ -673,6 +673,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetVulkanBatchedDescriptorSetUpdateSupport(rcEnc);
         queryAndSetSyncBufferData(rcEnc);
         queryAndSetVulkanAsyncQsri(rcEnc);
+        queryAndSetReadColorBufferDma(rcEnc);
         queryVersion(rcEnc);
         if (m_processPipe) {
             m_processPipe->processPipeInit(m_connectionType, rcEnc);
@@ -976,6 +977,13 @@ void HostConnection::queryAndSetVulkanAsyncQsri(ExtendedRCEncoderContext* rcEnc)
     std::string glExtensions = queryGLExtensions(rcEnc);
     if (glExtensions.find(kVulkanAsyncQsri) != std::string::npos) {
         rcEnc->featureInfo()->hasVulkanAsyncQsri = true;
+    }
+}
+
+void HostConnection::queryAndSetReadColorBufferDma(ExtendedRCEncoderContext* rcEnc) {
+    std::string glExtensions = queryGLExtensions(rcEnc);
+    if (glExtensions.find(kReadColorBufferDma) != std::string::npos) {
+        rcEnc->featureInfo()->hasReadColorBufferDma = true;
     }
 }
 

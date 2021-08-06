@@ -35,7 +35,7 @@ LOCAL_SHARED_LIBRARIES += \
     libcutils \
     libhidlbase \
     liblog \
-    libutils
+    libutils \
 
 LOCAL_STATIC_LIBRARIES += libqemupipe.ranchu libGoldfishAddressSpace$(GOLDFISH_OPENGL_LIB_SUFFIX)
 LOCAL_HEADER_LIBRARIES += libgralloc_cb.ranchu
@@ -75,7 +75,8 @@ LOCAL_SHARED_LIBRARIES += \
     libhidlbase \
     liblog \
     libutils \
-    libsync
+    libsync \
+	libandroidemu \
 
 LOCAL_STATIC_LIBRARIES += libqemupipe.ranchu libGoldfishAddressSpace$(GOLDFISH_OPENGL_LIB_SUFFIX)
 LOCAL_HEADER_LIBRARIES += libgralloc_cb.ranchu
