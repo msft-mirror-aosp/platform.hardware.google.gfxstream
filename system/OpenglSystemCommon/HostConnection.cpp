@@ -672,6 +672,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetVulkanQueueSubmitWithCommandsSupport(rcEnc);
         queryAndSetVulkanBatchedDescriptorSetUpdateSupport(rcEnc);
         queryAndSetSyncBufferData(rcEnc);
+        queryAndSetReadColorBufferDma(rcEnc);
         queryVersion(rcEnc);
         if (m_processPipe) {
             m_processPipe->processPipeInit(m_connectionType, rcEnc);
@@ -968,6 +969,13 @@ void HostConnection::queryAndSetSyncBufferData(ExtendedRCEncoderContext* rcEnc) 
     std::string glExtensions = queryGLExtensions(rcEnc);
     if (glExtensions.find(kSyncBufferData) != std::string::npos) {
         rcEnc->featureInfo()->hasSyncBufferData = true;
+    }
+}
+
+void HostConnection::queryAndSetReadColorBufferDma(ExtendedRCEncoderContext* rcEnc) {
+    std::string glExtensions = queryGLExtensions(rcEnc);
+    if (glExtensions.find(kReadColorBufferDma) != std::string::npos) {
+        rcEnc->featureInfo()->hasReadColorBufferDma = true;
     }
 }
 
