@@ -1475,6 +1475,9 @@ public:
             filteredExts.push_back({
                 "VK_FUCHSIA_buffer_collection", 1
             });
+            filteredExts.push_back({
+                "VK_FUCHSIA_buffer_collection_x", 1
+            });
 #endif
         }
 
