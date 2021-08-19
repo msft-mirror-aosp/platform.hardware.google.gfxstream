@@ -4179,9 +4179,12 @@ public:
 
                     auto result =
                         mControlDevice->CreateColorBuffer2(std::move(vmo), std::move(createParams));
-                    if (!result.ok() || result.Unwrap()->res != ZX_OK) {
+                    if (result.ok() && result.Unwrap()->res == ZX_ERR_ALREADY_EXISTS) {
+                        ALOGD(
+                            "CreateColorBuffer: color buffer already exists\n");
+                    } else {
                         ALOGE("CreateColorBuffer failed: %d:%d", result.status(),
-                              GET_STATUS_SAFE(result, res));
+                            GET_STATUS_SAFE(result, res));
                     }
                 }
 
