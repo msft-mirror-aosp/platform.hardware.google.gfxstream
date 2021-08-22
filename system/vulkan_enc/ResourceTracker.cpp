@@ -4185,7 +4185,7 @@ public:
                     if (result.ok() && result.Unwrap()->res == ZX_ERR_ALREADY_EXISTS) {
                         ALOGD(
                             "CreateColorBuffer: color buffer already exists\n");
-                    } else {
+                    } else if (!result.ok() || result.Unwrap()->res != ZX_OK) {
                         ALOGE("CreateColorBuffer failed: %d:%d", result.status(),
                             GET_STATUS_SAFE(result, res));
                     }
