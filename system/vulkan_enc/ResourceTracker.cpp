@@ -3194,8 +3194,19 @@ public:
         const VkImportAndroidHardwareBufferInfoANDROID* importAhbInfoPtr =
             vk_find_struct<VkImportAndroidHardwareBufferInfoANDROID>(pAllocateInfo);
 
-        const VkImportMemoryBufferCollectionFUCHSIA* importBufferCollectionInfoPtr =
-            vk_find_struct<VkImportMemoryBufferCollectionFUCHSIA>(pAllocateInfo);
+        const VkImportMemoryBufferCollectionFUCHSIAX*
+            importBufferCollectionInfoPtr =
+                vk_find_struct<VkImportMemoryBufferCollectionFUCHSIAX>(
+                    pAllocateInfo);
+
+        // TODO(fxbug.dev/73447): remove this once we finish migration to
+        // FUCHSIAX.
+        if (!importBufferCollectionInfoPtr) {
+            importBufferCollectionInfoPtr =
+                reinterpret_cast<const VkImportMemoryBufferCollectionFUCHSIAX*>(
+                    vk_find_struct<VkImportMemoryBufferCollectionFUCHSIA>(
+                        pAllocateInfo));
+        }
 
         const VkImportMemoryZirconHandleInfoFUCHSIA* importVmoInfoPtr =
             vk_find_struct<VkImportMemoryZirconHandleInfoFUCHSIA>(pAllocateInfo);
