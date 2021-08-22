@@ -1000,6 +1000,27 @@ static PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* name) {
     if (!strcmp(name, "vkGetBufferCollectionProperties2FUCHSIA")) {
         return (PFN_vkVoidFunction)GetBufferCollectionProperties2FUCHSIA;
     }
+    if (!strcmp(name, "vkCreateBufferCollectionFUCHSIAX")) {
+        return (PFN_vkVoidFunction)CreateBufferCollectionFUCHSIAX;
+    }
+    if (!strcmp(name, "vkDestroyBufferCollectionFUCHSIAX")) {
+        return (PFN_vkVoidFunction)DestroyBufferCollectionFUCHSIAX;
+    }
+    if (!strcmp(name, "vkSetBufferCollectionConstraintsFUCHSIAX")) {
+        return (PFN_vkVoidFunction)SetBufferCollectionConstraintsFUCHSIAX;
+    }
+    if (!strcmp(name, "vkSetBufferCollectionImageConstraintsFUCHSIAX")) {
+        return (PFN_vkVoidFunction)SetBufferCollectionImageConstraintsFUCHSIAX;
+    }
+    if (!strcmp(name, "vkSetBufferCollectionBufferConstraintsFUCHSIAX")) {
+        return (PFN_vkVoidFunction)SetBufferCollectionBufferConstraintsFUCHSIAX;
+    }
+    if (!strcmp(name, "vkGetBufferCollectionPropertiesFUCHSIAX")) {
+        return (PFN_vkVoidFunction)GetBufferCollectionPropertiesFUCHSIAX;
+    }
+    if (!strcmp(name, "vkGetBufferCollectionProperties2FUCHSIAX")) {
+        return (PFN_vkVoidFunction)GetBufferCollectionProperties2FUCHSIAX;
+    }
 #endif
     if (!strcmp(name, "vkQueueSignalReleaseImageANDROID")) {
         if (!sQueueSignalReleaseImageAndroidImpl) {
