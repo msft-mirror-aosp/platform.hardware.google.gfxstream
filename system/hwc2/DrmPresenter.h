@@ -18,7 +18,6 @@
 #define ANDROID_HWC_DRMPRESENTER_H
 
 #include <android-base/unique_fd.h>
-#include <include/drmhwcgralloc.h>
 #include <utils/Thread.h>
 #include <xf86drm.h>
 #include <xf86drmMode.h>
@@ -27,6 +26,7 @@
 #include <memory>
 #include <vector>
 
+#include "drmhwcgralloc.h"
 #include "Common.h"
 #include "android/base/synchronization/AndroidLock.h"
 
