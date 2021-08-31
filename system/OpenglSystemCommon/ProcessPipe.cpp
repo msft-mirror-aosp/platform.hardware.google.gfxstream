@@ -29,7 +29,7 @@
 #include <errno.h>
 
 #ifdef __Fuchsia__
-#include <fuchsia/hardware/goldfish/llcpp/fidl.h>
+#include <fidl/fuchsia.hardware.goldfish/cpp/wire.h>
 #include <lib/zx/vmo.h>
 
 #include "services/service_connector.h"
