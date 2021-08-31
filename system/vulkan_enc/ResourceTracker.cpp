@@ -56,8 +56,8 @@ void zx_event_create(int, zx_handle_t*) { }
 #ifdef VK_USE_PLATFORM_FUCHSIA
 
 #include <cutils/native_handle.h>
-#include <fuchsia/hardware/goldfish/llcpp/fidl.h>
-#include <fuchsia/sysmem/llcpp/fidl.h>
+#include <fidl/fuchsia.hardware.goldfish/cpp/wire.h>
+#include <fidl/fuchsia.sysmem/cpp/wire.h>
 #include <lib/zx/channel.h>
 #include <lib/zx/vmo.h>
 #include <zircon/errors.h>
