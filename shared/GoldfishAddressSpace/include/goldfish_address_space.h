@@ -19,7 +19,7 @@
 #include <stddef.h>
 
 #ifdef __Fuchsia__
-#include <fuchsia/hardware/goldfish/llcpp/fidl.h>
+#include <fidl/fuchsia.hardware.goldfish/cpp/wire.h>
 #endif
 
 class GoldfishAddressSpaceBlock;
