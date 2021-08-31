@@ -27,7 +27,7 @@
 #include <qemu_pipe_bp.h>
 
 #ifdef __Fuchsia__
-#include <fuchsia/hardware/goldfish/llcpp/fidl.h>
+#include <fidl/fuchsia.hardware.goldfish/cpp/wire.h>
 #include <lib/zx/event.h>
 #include <lib/zx/vmo.h>
 #endif
