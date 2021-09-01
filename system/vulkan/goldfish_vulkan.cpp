@@ -18,7 +18,7 @@
 #include <errno.h>
 #include <string.h>
 #ifdef VK_USE_PLATFORM_FUCHSIA
-#include <fuchsia/logger/llcpp/fidl.h>
+#include <fidl/fuchsia.logger/cpp/wire.h>
 #include <lib/syslog/global.h>
 #include <lib/zx/channel.h>
 #include <lib/zx/socket.h>
