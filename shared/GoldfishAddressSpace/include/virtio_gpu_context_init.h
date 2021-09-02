@@ -23,7 +23,7 @@ struct drm_virtgpu_execbuffer_with_ring_idx {
     uint64_t command; /* void* */
     uint64_t bo_handles;
     uint32_t num_bo_handles;
-    int64_t fence_fd; /* in/out fence fd (see VIRTGPU_EXECBUF_FENCE_FD_IN/OUT) */
+    int32_t fence_fd; /* in/out fence fd (see VIRTGPU_EXECBUF_FENCE_FD_IN/OUT) */
     uint32_t ring_idx; /* command ring index (see VIRTGPU_EXECBUF_RING_IDX) */
     uint32_t pad;
 };
