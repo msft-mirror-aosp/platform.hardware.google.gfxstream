@@ -1331,7 +1331,11 @@ public:
             "VK_KHR_image_format_list",
             "VK_KHR_sampler_ycbcr_conversion",
             "VK_KHR_shader_float16_int8",
+            // Timeline semaphores buggy in newer NVIDIA drivers
+            // (vkWaitSemaphoresKHR causes further vkCommandBuffer dispatches to deadlock)
+#ifndef VK_USE_PLATFORM_ANDROID_KHR
             "VK_KHR_timeline_semaphore",
+#endif
             "VK_AMD_gpu_shader_half_float",
             "VK_NV_shader_subgroup_partitioned",
             "VK_KHR_shader_subgroup_extended_types",
