@@ -54,6 +54,7 @@ class Composer {
   // to the display.
   virtual HWC2::Error presentDisplay(Display* display,
                                      int32_t* outPresentFence) = 0;
+  virtual HWC2::Error onActiveConfigChange(Display* display) = 0;
 };
 
 }  // namespace android

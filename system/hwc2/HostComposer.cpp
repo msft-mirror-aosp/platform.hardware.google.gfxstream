@@ -198,15 +198,13 @@ HWC2::Error HostComposer::createHostComposerDisplayInfo(
     return error;
   }
 
-  auto it = mDisplayInfos.find(displayId);
-  if (it != mDisplayInfos.end()) {
-    ALOGE("%s: display:%" PRIu64 " already created?", __FUNCTION__, displayId);
-  }
-
   HostComposerDisplayInfo& displayInfo = mDisplayInfos[displayId];
 
   displayInfo.hostDisplayId = hostDisplayId;
 
+  if (displayInfo.compositionResultBuffer) {
+      FreeDisplayColorBuffer(displayInfo.compositionResultBuffer);
+  }
   displayInfo.compositionResultBuffer =
       AllocateDisplayColorBuffer(displayWidth, displayHeight);
   if (displayInfo.compositionResultBuffer == nullptr) {
@@ -680,6 +678,17 @@ void HostComposer::post(HostConnection* hostCon,
   rcEnc->rcFBPost(rcEnc, hostCon->grallocHelper()->getHostHandle(h));
   hostCon->flush();
   hostCon->unlock();
+}
+
+HWC2::Error HostComposer::onActiveConfigChange(Display* display) {
+  DEBUG_LOG("%s: display:%" PRIu64, __FUNCTION__, display->getId());
+  HWC2::Error error = createHostComposerDisplayInfo(display, display->getId());
+  if (error != HWC2::Error::None) {
+    ALOGE("%s failed to update host info for display:%" PRIu64,
+          __FUNCTION__, display->getId());
+    return error;
+  }
+  return HWC2::Error::None;
 }
 
 }  // namespace android

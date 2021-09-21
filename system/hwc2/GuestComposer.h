@@ -57,6 +57,10 @@ class GuestComposer : public Composer {
   HWC2::Error presentDisplay(Display* display,
                              int32_t* outPresentFence) override;
 
+  HWC2::Error onActiveConfigChange(Display* /*display*/) override {
+    return HWC2::Error::None;
+  };
+
  private:
   struct DisplayConfig {
     int width;
