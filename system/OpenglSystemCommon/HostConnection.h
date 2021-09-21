@@ -77,6 +77,9 @@ public:
     }
     bool hasSyncBufferData() const {
         return m_featureInfo.hasSyncBufferData; }
+    bool hasHWCMultiConfigs() const {
+        return m_featureInfo.hasHWCMultiConfigs;
+    }
     DmaImpl getDmaVersion() const { return m_featureInfo.dmaImpl; }
     void bindDmaContext(struct goldfish_dma_context* cxt) { m_dmaCxt = cxt; }
     void bindDmaDirectly(void* dmaPtr, uint64_t dmaPhysAddr) {
@@ -246,6 +249,7 @@ private:
     void queryAndSetSyncBufferData(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetVulkanAsyncQsri(ExtendedRCEncoderContext *rcEnc);
     void queryAndSetReadColorBufferDma(ExtendedRCEncoderContext *rcEnc);
+    void queryAndSetHWCMultiConfigs(ExtendedRCEncoderContext* rcEnc);
     GLint queryVersion(ExtendedRCEncoderContext* rcEnc);
 
 private:
