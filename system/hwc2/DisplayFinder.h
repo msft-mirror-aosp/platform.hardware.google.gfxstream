@@ -32,7 +32,15 @@ struct DisplayConfig {
   int refreshRateHz;
 };
 
-HWC2::Error findDisplayConfigs(std::vector<DisplayConfig>* configs);
+struct DisplayMultiConfigs {
+  int id;
+  int activeConfig;
+  // Modes that this display can be configured to use.
+  std::vector<DisplayConfig> configs;
+};
+
+typedef std::vector<DisplayMultiConfigs> DisplayConfigs;
+HWC2::Error findDisplayConfigs(DisplayConfigs& configs);
 
 }  // namespace android
 
