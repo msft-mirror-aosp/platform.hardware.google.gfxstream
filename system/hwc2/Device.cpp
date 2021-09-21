@@ -97,18 +97,17 @@ HWC2::Error Device::createDisplays() {
     return HWC2::Error::NoResources;
   }
 
-  std::vector<DisplayConfig> displayConfigs;
+  std::vector<DisplayMultiConfigs> displays;
 
-  HWC2::Error error = findDisplayConfigs(&displayConfigs);
+  HWC2::Error error = findDisplays(displays);
   if (error != HWC2::Error::None) {
     ALOGE("%s failed to find display configs", __FUNCTION__);
     return error;
   }
 
-  for (const DisplayConfig& displayConfig : displayConfigs) {
-    error = createDisplay(displayConfig.id, displayConfig.width,
-                          displayConfig.height, displayConfig.dpiX,
-                          displayConfig.dpiY, displayConfig.refreshRateHz);
+  for (const auto& iter: displays) {
+
+    error = createDisplay(iter.configs, iter.activeConfigId);
     if (error != HWC2::Error::None) {
       ALOGE("%s failed to create display from config", __FUNCTION__);
       return error;
@@ -118,9 +117,8 @@ HWC2::Error Device::createDisplays() {
   return HWC2::Error::None;
 }
 
-HWC2::Error Device::createDisplay(uint32_t displayId, uint32_t width,
-                                  uint32_t height, uint32_t dpiX, uint32_t dpiY,
-                                  uint32_t refreshRateHz) {
+HWC2::Error Device::createDisplay(const std::vector<DisplayConfig>& configs,
+                                  int activeConfig) {
   DEBUG_LOG("%s", __FUNCTION__);
 
   if (!mComposer) {
@@ -128,13 +126,15 @@ HWC2::Error Device::createDisplay(uint32_t displayId, uint32_t width,
     return HWC2::Error::NoResources;
   }
 
-  auto display = std::make_unique<Display>(*this, mComposer.get(), displayId);
+  uint32_t displayId = configs[0].id;
+  auto display = std::make_unique<Display>(*this, mComposer.get(),
+                                           displayId);
   if (display == nullptr) {
     ALOGE("%s failed to allocate display", __FUNCTION__);
     return HWC2::Error::NoResources;
   }
 
-  HWC2::Error error = display->init(width, height, dpiX, dpiY, refreshRateHz);
+  HWC2::Error error = display->init(configs, activeConfig);
   if (error != HWC2::Error::None) {
     ALOGE("%s failed to initialize display:%" PRIu32, __FUNCTION__, displayId);
     return error;
@@ -539,7 +539,11 @@ bool Device::handleHotplug(bool connected, uint32_t id, uint32_t width,
     display->unlock();
   }
   if (connected) {
-    createDisplay(id, width, height, dpiX, dpiY, refreshRate);
+    std::vector<DisplayConfig> config;
+    config.push_back({static_cast<int>(id), static_cast<int>(width),
+                      static_cast<int>(height), static_cast<int>(dpiX),
+                      static_cast<int>(dpiY), static_cast<int>(refreshRate)});
+    createDisplay(config, 0);
     ALOGD("callback hotplugConnect display %" PRIu32 " width %" PRIu32
           " height %" PRIu32 " dpiX %" PRIu32 " dpiY %" PRIu32 "fps %" PRIu32,
           id, width, height, dpiX, dpiY, refreshRate);
