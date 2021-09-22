@@ -677,17 +677,15 @@ void RendererImpl::setVsyncHz(int vsyncHz) {
 
 void RendererImpl::setDisplayConfigs(int configId, int w, int h,
                                      int dpiX, int dpiY) {
-    // TODO: need CP
-    (void)configId;
-    (void)w;
-    (void)h;
-    (void)dpiX;
-    (void)dpiY;
+    if (mRenderWindow) {
+        mRenderWindow->setDisplayConfigs(configId, w, h, dpiX, dpiY);
+    }
 }
 
 void RendererImpl::setDisplayActiveConfig(int configId) {
-    // TODO: need CP
-    (void)configId;
+    if (mRenderWindow) {
+        mRenderWindow->setDisplayActiveConfig(configId);
+    }
 }
 
 }  // namespace emugl
