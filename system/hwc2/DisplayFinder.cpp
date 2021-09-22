@@ -43,7 +43,7 @@ HWC2::Error findCuttlefishDisplays(std::vector<DisplayMultiConfigs>& displays) {
         .activeConfigId = 0,
         .configs = {{displayId,
                      deviceDisplayConfig.width(),
-                     deviceDisplayConfig.width(),
+                     deviceDisplayConfig.height(),
                      deviceDisplayConfig.dpi(),
                      deviceDisplayConfig.dpi(),
                      deviceDisplayConfig.refresh_rate_hz()}},
