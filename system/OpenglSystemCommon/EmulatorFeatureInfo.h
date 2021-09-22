@@ -138,9 +138,6 @@ static const char kVulkanAsyncQsri[] = "ANDROID_EMU_vulkan_async_qsri";
 // DMA for readback
 static const char kReadColorBufferDma[] = "ANDROID_EMU_read_color_buffer_dma";
 
-// HWC multiple display configs
-static const char kHWCMultiConfigs[] = "ANDROID_EMU_hwc_multi_configs";
-
 // Struct describing available emulator features
 struct EmulatorFeatureInfo {
 
@@ -169,8 +166,7 @@ struct EmulatorFeatureInfo {
         hasVulkanBatchedDescriptorSetUpdate(false),
         hasSyncBufferData(false),
         hasVulkanAsyncQsri(false),
-        hasReadColorBufferDma(false),
-        hasHWCMultiConfigs(false)
+        hasReadColorBufferDma(false)
     { }
 
     SyncImpl syncImpl;
@@ -198,7 +194,6 @@ struct EmulatorFeatureInfo {
     bool hasSyncBufferData;
     bool hasVulkanAsyncQsri;
     bool hasReadColorBufferDma;
-    bool hasHWCMultiConfigs;
 };
 
 enum HostConnectionType {

@@ -29,7 +29,6 @@
 
 #include "Common.h"
 #include "Composer.h"
-#include "DisplayFinder.h"
 #include "FencedBuffer.h"
 #include "Layer.h"
 
@@ -54,7 +53,9 @@ class Display {
   Display(Display&& display) = delete;
   Display& operator=(Display&& display) = delete;
 
-  HWC2::Error init(const std::vector<DisplayConfig>& configs, int activeConfig,
+  HWC2::Error init(
+      uint32_t width, uint32_t height, uint32_t dpiX, uint32_t dpiY,
+      uint32_t refreshRateHz,
       const std::optional<std::vector<uint8_t>>& edid = std::nullopt);
 
   HWC2::Error updateParameters(

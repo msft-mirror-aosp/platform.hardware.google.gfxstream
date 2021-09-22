@@ -53,8 +53,6 @@ class HostComposer : public Composer {
   HWC2::Error presentDisplay(Display* display,
                              int32_t* outPresentFence) override;
 
-  HWC2::Error onActiveConfigChange(Display* display) override;
-
  private:
   HWC2::Error createHostComposerDisplayInfo(Display* display,
                                             uint32_t hostDisplayId);

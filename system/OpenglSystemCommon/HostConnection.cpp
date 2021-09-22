@@ -674,7 +674,6 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetSyncBufferData(rcEnc);
         queryAndSetVulkanAsyncQsri(rcEnc);
         queryAndSetReadColorBufferDma(rcEnc);
-        queryAndSetHWCMultiConfigs(rcEnc);
         queryVersion(rcEnc);
         if (m_processPipe) {
             m_processPipe->processPipeInit(m_connectionType, rcEnc);
@@ -985,13 +984,6 @@ void HostConnection::queryAndSetReadColorBufferDma(ExtendedRCEncoderContext* rcE
     std::string glExtensions = queryGLExtensions(rcEnc);
     if (glExtensions.find(kReadColorBufferDma) != std::string::npos) {
         rcEnc->featureInfo()->hasReadColorBufferDma = true;
-    }
-}
-
-void HostConnection::queryAndSetHWCMultiConfigs(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kHWCMultiConfigs) != std::string::npos) {
-        rcEnc->featureInfo()->hasHWCMultiConfigs = true;
     }
 }
 
