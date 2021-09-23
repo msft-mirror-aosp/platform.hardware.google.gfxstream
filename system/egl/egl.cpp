@@ -492,6 +492,14 @@ egl_window_surface_t::egl_window_surface_t (
 
 EGLBoolean egl_window_surface_t::init()
 {
+    int consumerUsage = 0;
+    if (nativeWindow->query(nativeWindow, NATIVE_WINDOW_CONSUMER_USAGE_BITS, &consumerUsage) != NO_ERROR) {
+        setErrorReturn(EGL_BAD_ALLOC, EGL_FALSE);
+    } else {
+        int producerUsage = GRALLOC_USAGE_HW_RENDER;
+        native_window_set_usage(nativeWindow, consumerUsage | producerUsage);
+    }
+
     if (nativeWindow->dequeueBuffer_DEPRECATED(nativeWindow, &buffer) != NO_ERROR) {
         setErrorReturn(EGL_BAD_ALLOC, EGL_FALSE);
     }
