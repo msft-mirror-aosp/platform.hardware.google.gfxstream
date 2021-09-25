@@ -3082,14 +3082,8 @@ public:
 #if !defined(HOST_BUILD) && defined(VK_USE_PLATFORM_ANDROID_KHR)
                 uint64_t hvaSizeId[3];
 
-                int rendernodeFdForMem = dup(mRendernodeFd);
-                if (rendernodeFdForMem < 0) {
-                    ALOGE("%s: Failed to dup rendernode fd(%d): error: %s,"
-                          "errno: %d", __func__, mRendernodeFd,
-                          strerror(errno), errno);
-                    abort();
-                }
-                hostMemAlloc.rendernodeFd = rendernodeFdForMem;
+                int rendernodeFdForMem = drmOpenRender(128 /* RENDERNODE_MINOR */);
+                ALOGE("%s: render fd = %d\n", __func__, rendernodeFdForMem);
 
                 mLock.unlock();
                 enc->vkGetMemoryHostAddressInfoGOOGLE(
@@ -3115,8 +3109,6 @@ public:
                             strerror(errno), errno);
                     abort();
                 }
-                hostMemAlloc.boCreated = true;
-                hostMemAlloc.boHandle = drm_rc_blob.bo_handle;
 
                 drm_virtgpu_map map_info;
                 memset(&map_info, 0, sizeof(map_info));
@@ -3142,8 +3134,9 @@ public:
 
                 // add the host's page offset
                 directMappedAddr += (uint64_t)(uintptr_t)(hvaSizeId[0]) & (PAGE_SIZE - 1);
-                directMapResult = VK_SUCCESS;
+				directMapResult = VK_SUCCESS;
 
+                hostMemAlloc.fd = rendernodeFdForMem;
 #endif // VK_USE_PLATFORM_ANDROID_KHR
             }
 
