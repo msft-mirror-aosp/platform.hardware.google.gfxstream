@@ -28,7 +28,6 @@
 #ifdef ANDROID
 #include <unistd.h>
 #include <errno.h>
-#include <drm/drm.h>
 #endif
 #include <sys/mman.h>
 
@@ -262,48 +261,26 @@ void destroyHostMemAlloc(
     VkDevice device,
     HostMemAlloc* toDestroy) {
 
-#ifdef ANDROID
-    int rendernodeFd = toDestroy->rendernodeFd;
-    if (rendernodeFd >= 0) {
-
-        if (toDestroy->memoryAddr) {
-            int ret = munmap((void*)toDestroy->memoryAddr, toDestroy->memorySize);
-            if (ret != 0) {
-                ALOGE("%s: fail to unmap addr = 0x%" PRIx64", size = %d, ret = "
-                      "%d, errno = %d", __func__, toDestroy->memoryAddr,
-                      (int32_t)toDestroy->memorySize, ret, errno);
-            }
-        }
-
-        if (toDestroy->boCreated) {
-            ALOGV("%s: trying to destroy bo = %u\n", __func__,
-                  toDestroy->boHandle);
-            struct drm_gem_close drmGemClose = {};
-            drmGemClose.handle = toDestroy->boHandle;
-            int ret = ioctl(rendernodeFd, DRM_IOCTL_GEM_CLOSE, &drmGemClose);
-            if (ret != 0) {
-                ALOGE("%s: fail to close gem = %u, ret = %d, errno = %d\n",
-                      __func__, toDestroy->boHandle, ret, errno);
-            } else {
-                ALOGV("%s: successfully close gem = %u, ret = %d\n", __func__,
-                      toDestroy->boHandle, ret);
-            }
-        }
-        ALOGV("%s: trying to close fd = %d\n", __func__, rendernodeFd);
-        int ret = close(rendernodeFd);
-        if (ret != 0) {
-            ALOGE("%s: fail to close fd = %d, ret = %d, errno = %d\n", __func__,
-                  rendernodeFd, ret, errno);
-        } else {
-            ALOGV("%s: successfully close fd = %d, ret = %d\n", __func__,
-                  rendernodeFd, ret);
-        }
-    }
-#endif
-
     if (toDestroy->initResult != VK_SUCCESS) return;
     if (!toDestroy->initialized) return;
 
+#ifdef ANDROID
+    if (toDestroy->fd > 0) {
+
+        if (toDestroy->memoryAddr) {
+            int ret = munmap((void*)toDestroy->memoryAddr, toDestroy->memorySize);
+            ALOGE("%s: trying to unmap addr = 0x%" PRIx64", size = %d, ret = %d, errno = %d\n", __func__, toDestroy->memoryAddr, (int32_t)toDestroy->memorySize, ret, errno);
+        }
+
+        ALOGE("%s: trying to close fd = %d\n", __func__, toDestroy->fd);
+        int ret = close(toDestroy->fd);
+        if (ret != 0) {
+            ALOGE("%s: fail to close fd = %d, ret = %d, errno = %d\n", __func__, toDestroy->fd, ret, errno);
+        } else {
+            ALOGE("%s: successfully close fd = %d, ret = %d\n", __func__, toDestroy->fd, ret);
+        }
+    }
+#endif
 
     if (freeMemorySyncSupported) {
         enc->vkFreeMemorySyncGOOGLE(device, toDestroy->memory, nullptr, false /* no lock */);
