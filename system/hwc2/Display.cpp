@@ -20,7 +20,9 @@
 
 #include <atomic>
 #include <numeric>
+#include <sstream>
 
+#include "Common.h"
 #include "Device.h"
 
 namespace android {
@@ -617,6 +619,17 @@ HWC2::Error Display::setPowerMode(int32_t intMode) {
   }
 
   std::unique_lock<std::recursive_mutex> lock(mStateMutex);
+
+  if (IsCuttlefish()) {
+    if (int fd = open("/dev/kmsg", O_WRONLY | O_CLOEXEC); fd != -1) {
+      std::ostringstream stream;
+      stream << "VIRTUAL_DEVICE_DISPLAY_POWER_MODE_CHANGED display="
+             << mId << " mode=" << modeString;
+      std::string message = stream.str();
+      write(fd, message.c_str(), message.length());
+      close(fd);
+    }
+  }
 
   mPowerMode = mode;
   return HWC2::Error::None;
