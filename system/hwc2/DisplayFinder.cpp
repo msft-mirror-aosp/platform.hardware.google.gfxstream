@@ -21,14 +21,11 @@
 #include <android-base/strings.h>
 #include <device_config_shared.h>
 
+#include "Common.h"
 #include "HostUtils.h"
 
 namespace android {
 namespace {
-
-bool IsCuttlefish() {
-  return android::base::GetProperty("ro.product.board", "") == "cutf";
-}
 
 HWC2::Error findCuttlefishDisplays(std::vector<DisplayMultiConfigs>& displays) {
   DEBUG_LOG("%s", __FUNCTION__);
