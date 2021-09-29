@@ -39,4 +39,6 @@
 #undef HWC2_INCLUDE_STRINGIFICATION
 #undef HWC2_USE_CPP11
 
+bool IsCuttlefish();
+
 #endif
