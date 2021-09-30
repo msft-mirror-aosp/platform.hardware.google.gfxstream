@@ -653,14 +653,6 @@ HWC2::Error Display::setVsyncEnabled(int32_t intEnable) {
   return HWC2::Error::None;
 }
 
-HWC2::Error Display::setVsyncPeriod(uint32_t period) {
-  DEBUG_LOG("%s: display:%" PRIu64 " setting vsync period to %d", __FUNCTION__,
-            mId, period);
-
-  mVsyncPeriod = period;
-  return HWC2::Error::None;
-}
-
 HWC2::Error Display::validate(uint32_t* outNumTypes, uint32_t* outNumRequests) {
   DEBUG_LOG("%s: display:%" PRIu64, __FUNCTION__, mId);
 
