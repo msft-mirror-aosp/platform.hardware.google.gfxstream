@@ -1155,7 +1155,7 @@ void VulkanDevice::InitLogger() {
     if (status != ZX_OK)
       return std::nullopt;
 
-    auto result = WireCall(channel).Connect(std::move(remote_socket));
+    auto result = fidl::WireCall(channel)->Connect(std::move(remote_socket));
 
     if (!result.ok())
       return std::nullopt;
