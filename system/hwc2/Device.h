@@ -53,8 +53,9 @@ class Device : public hwc2_device_t {
 
   HWC2::Error createDisplays();
 
-  HWC2::Error createDisplay(const std::vector<DisplayConfig>& configs,
-                            int activeConfig);
+  HWC2::Error createDisplay(hwc2_display_t displayId,
+                            hwc2_config_t activeConfigId,
+                            const std::vector<DisplayConfig>& configs);
 
   Display* getDisplay(hwc2_display_t displayId);
 

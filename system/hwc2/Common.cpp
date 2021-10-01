@@ -21,3 +21,9 @@
 bool IsCuttlefish() {
   return android::base::GetProperty("ro.product.board", "") == "cutf";
 }
+
+bool IsCuttlefishFoldable() {
+  return IsCuttlefish() &&
+         android::base::GetProperty("ro.product.name", "").find("foldable") !=
+             std::string::npos;
+}

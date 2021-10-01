@@ -105,9 +105,8 @@ HWC2::Error Device::createDisplays() {
     return error;
   }
 
-  for (const auto& iter: displays) {
-
-    error = createDisplay(iter.configs, iter.activeConfigId);
+  for (const auto& iter : displays) {
+    error = createDisplay(iter.displayId, iter.activeConfigId, iter.configs);
     if (error != HWC2::Error::None) {
       ALOGE("%s failed to create display from config", __FUNCTION__);
       return error;
@@ -117,8 +116,9 @@ HWC2::Error Device::createDisplays() {
   return HWC2::Error::None;
 }
 
-HWC2::Error Device::createDisplay(const std::vector<DisplayConfig>& configs,
-                                  int activeConfig) {
+HWC2::Error Device::createDisplay(hwc2_display_t displayId,
+                                  hwc2_config_t activeConfigId,
+                                  const std::vector<DisplayConfig>& configs) {
   DEBUG_LOG("%s", __FUNCTION__);
 
   if (!mComposer) {
@@ -126,23 +126,21 @@ HWC2::Error Device::createDisplay(const std::vector<DisplayConfig>& configs,
     return HWC2::Error::NoResources;
   }
 
-  uint32_t displayId = configs[0].id;
-  auto display = std::make_unique<Display>(*this, mComposer.get(),
-                                           displayId);
+  auto display = std::make_unique<Display>(mComposer.get(), displayId);
   if (display == nullptr) {
     ALOGE("%s failed to allocate display", __FUNCTION__);
     return HWC2::Error::NoResources;
   }
 
-  HWC2::Error error = display->init(configs, activeConfig);
+  HWC2::Error error = display->init(configs, activeConfigId);
   if (error != HWC2::Error::None) {
-    ALOGE("%s failed to initialize display:%" PRIu32, __FUNCTION__, displayId);
+    ALOGE("%s failed to initialize display:%" PRIu64, __FUNCTION__, displayId);
     return error;
   }
 
   error = mComposer->onDisplayCreate(display.get());
   if (error != HWC2::Error::None) {
-    ALOGE("%s failed to register display:%" PRIu32 " with composer",
+    ALOGE("%s failed to register display:%" PRIu64 " with composer",
           __FUNCTION__, displayId);
     return error;
   }
@@ -354,6 +352,33 @@ hwc2_function_pointer_t Device::getFunction(int32_t desc) {
       return asFP<HWC2_PFN_SET_DISPLAY_BRIGHTNESS>(
           displayHook<decltype(&Display::setDisplayBrightness),
                       &Display::setDisplayBrightness, float>);
+    case HWC2::FunctionDescriptor::GetDisplayVsyncPeriod:
+      return asFP<HWC2_PFN_GET_DISPLAY_VSYNC_PERIOD>(
+          displayHook<decltype(&Display::getDisplayVsyncPeriod),
+                      &Display::getDisplayVsyncPeriod, hwc2_vsync_period_t*>);
+    case HWC2::FunctionDescriptor::SetActiveConfigWithConstraints:
+      return asFP<HWC2_PFN_SET_ACTIVE_CONFIG_WITH_CONSTRAINTS>(
+          displayHook<decltype(&Display::setActiveConfigWithConstraints),
+                      &Display::setActiveConfigWithConstraints, hwc2_config_t,
+                      hwc_vsync_period_change_constraints_t*,
+                      hwc_vsync_period_change_timeline_t*>);
+    case HWC2::FunctionDescriptor::GetDisplayConnectionType:
+      return asFP<HWC2_PFN_GET_DISPLAY_CONNECTION_TYPE>(
+          displayHook<decltype(&Display::getDisplayConnectionType),
+                      &Display::getDisplayConnectionType, uint32_t*>);
+    case HWC2::FunctionDescriptor::SetAutoLowLatencyMode:
+      return asFP<HWC2_PFN_SET_AUTO_LOW_LATENCY_MODE>(
+          displayHook<decltype(&Display::setAutoLowLatencyMode),
+                      &Display::setAutoLowLatencyMode, bool>);
+    case HWC2::FunctionDescriptor::GetSupportedContentTypes:
+      return asFP<HWC2_PFN_GET_SUPPORTED_CONTENT_TYPES>(
+          displayHook<decltype(&Display::getSupportedContentTypes),
+                      &Display::getSupportedContentTypes, uint32_t*,
+                      uint32_t*>);
+    case HWC2::FunctionDescriptor::SetContentType:
+      return asFP<HWC2_PFN_SET_CONTENT_TYPE>(
+          displayHook<decltype(&Display::setContentType),
+                      &Display::setContentType, int32_t>);
 
     // Layer functions
     case HWC2::FunctionDescriptor::SetCursorPosition:
@@ -455,64 +480,50 @@ uint32_t Device::getMaxVirtualDisplayCount() {
   return 0;
 }
 
-static bool IsHandledCallback(HWC2::Callback descriptor) {
-  switch (descriptor) {
-    case HWC2::Callback::Hotplug: {
-      return true;
-    }
-    case HWC2::Callback::Refresh: {
-      return true;
-    }
-    case HWC2::Callback::Vsync: {
-      return true;
-    }
-    case HWC2::Callback::Vsync_2_4: {
-      return false;
-    }
-    case HWC2::Callback::VsyncPeriodTimingChanged: {
-      return false;
-    }
-    case HWC2::Callback::Invalid: {
-      return false;
-    }
-    case HWC2::Callback::SeamlessPossible: {
-      return false;
-    }
-  }
-  return false;
-}
-
 HWC2::Error Device::registerCallback(int32_t desc,
                                      hwc2_callback_data_t callbackData,
-                                     hwc2_function_pointer_t pointer) {
+                                     hwc2_function_pointer_t callbackPointer) {
   const auto callbackType = static_cast<HWC2::Callback>(desc);
   const auto callbackTypeString = to_string(callbackType);
   DEBUG_LOG("%s callback %s", __FUNCTION__, callbackTypeString.c_str());
 
-  if (!IsHandledCallback(callbackType)) {
-    ALOGE("%s unhandled callback: %s", __FUNCTION__,
-          callbackTypeString.c_str());
-    return HWC2::Error::BadParameter;
-  }
-
   std::unique_lock<std::mutex> lock(mStateMutex);
 
-  if (pointer != nullptr) {
-    mCallbacks[callbackType] = {callbackData, pointer};
+  if (callbackPointer != nullptr) {
+    mCallbacks[callbackType] = {callbackData, callbackPointer};
   } else {
     mCallbacks.erase(callbackType);
-    return HWC2::Error::None;
   }
 
-  if (callbackType == HWC2::Callback::Hotplug) {
+  if (callbackType == HWC2::Callback::Vsync) {
+    auto callback = reinterpret_cast<HWC2_PFN_VSYNC>(callbackPointer);
+    for (const auto& [displayId, display] : mDisplays) {
+      display->setVsyncCallback(callback, callbackData);
+    }
+  } else if (callbackType == HWC2::Callback::Vsync_2_4) {
+    auto callback = reinterpret_cast<HWC2_PFN_VSYNC_2_4>(callbackPointer);
+    for (const auto& [displayId, display] : mDisplays) {
+      display->setVsync24Callback(callback, callbackData);
+    }
+  } else if (callbackType == HWC2::Callback::Hotplug) {
+    if (callbackPointer == nullptr) {
+      return HWC2::Error::None;
+    }
+
     // Callback without the state lock held
     lock.unlock();
-    auto hotplug = reinterpret_cast<HWC2_PFN_HOTPLUG>(pointer);
+    auto hotplug = reinterpret_cast<HWC2_PFN_HOTPLUG>(callbackPointer);
     auto hotplugConnect = static_cast<int32_t>(HWC2::Connection::Connected);
     for (const auto& [displayId, display] : mDisplays) {
       ALOGI("%s hotplug connecting display:%" PRIu64, __FUNCTION__, displayId);
       hotplug(callbackData, displayId, hotplugConnect);
     }
+  } else if (callbackType == HWC2::Callback::Refresh) {
+    // Not used
+  } else {
+    ALOGE("%s unhandled callback: %s", __FUNCTION__,
+          callbackTypeString.c_str());
+    return HWC2::Error::BadParameter;
   }
 
   return HWC2::Error::None;
@@ -539,11 +550,13 @@ bool Device::handleHotplug(bool connected, uint32_t id, uint32_t width,
     display->unlock();
   }
   if (connected) {
-    std::vector<DisplayConfig> config;
-    config.push_back({static_cast<int>(id), static_cast<int>(width),
+    hwc2_display_t displayId = static_cast<hwc2_display_t>(id);
+    hwc2_config_t configId = static_cast<hwc2_config_t>(id);
+    std::vector<DisplayConfig> configs = {
+        DisplayConfig(configId, static_cast<int>(width),
                       static_cast<int>(height), static_cast<int>(dpiX),
-                      static_cast<int>(dpiY), static_cast<int>(refreshRate)});
-    createDisplay(config, 0);
+                      static_cast<int>(dpiY), static_cast<int>(refreshRate))};
+    createDisplay(displayId, configId, configs);
     ALOGD("callback hotplugConnect display %" PRIu32 " width %" PRIu32
           " height %" PRIu32 " dpiX %" PRIu32 " dpiY %" PRIu32 "fps %" PRIu32,
           id, width, height, dpiX, dpiY, refreshRate);
@@ -598,7 +611,7 @@ static struct hw_module_methods_t hwc2_module_methods = {
 hw_module_t HAL_MODULE_INFO_SYM = {
     .tag = HARDWARE_MODULE_TAG,
     .version_major = 2,
-    .version_minor = 3,
+    .version_minor = 4,
     .id = HWC_HARDWARE_MODULE_ID,
     .name = "goldfish HWC2 module",
     .author = "The Android Open Source Project",
