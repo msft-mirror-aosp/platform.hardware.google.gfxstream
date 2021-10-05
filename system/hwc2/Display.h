@@ -116,7 +116,6 @@ class Display {
   HWC2::Error setOutputBuffer(buffer_handle_t buffer, int32_t releaseFence);
   HWC2::Error setPowerMode(int32_t mode);
   HWC2::Error setVsyncEnabled(int32_t enabled);
-  HWC2::Error setVsyncPeriod(uint32_t period);
   HWC2::Error validate(uint32_t* outNumTypes, uint32_t* outNumRequests);
   HWC2::Error updateLayerZ(hwc2_layer_t layerId, uint32_t z);
   HWC2::Error getClientTargetSupport(uint32_t width, uint32_t height,
