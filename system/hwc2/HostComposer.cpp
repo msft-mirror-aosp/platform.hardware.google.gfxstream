@@ -216,14 +216,6 @@ HWC2::Error HostComposer::createHostComposerDisplayInfo(
   if (mIsMinigbm) {
     displayInfo.compositionResultDrmBuffer.reset(
         new DrmBuffer(displayInfo.compositionResultBuffer, mDrmPresenter));
-
-    uint32_t vsyncPeriod = 1000 * 1000 * 1000 / mDrmPresenter.refreshRate();
-    error = display->setVsyncPeriod(vsyncPeriod);
-    if (error != HWC2::Error::None) {
-      ALOGE("%s: display:%" PRIu64 " failed to set vsync height", __FUNCTION__,
-            displayId);
-      return error;
-    }
   }
 
   return HWC2::Error::None;
