@@ -20,21 +20,13 @@
 #include <vector>
 
 #include "Common.h"
+#include "DisplayConfig.h"
 
 namespace android {
 
-struct DisplayConfig {
-  int id;
-  int width;
-  int height;
-  int dpiX;
-  int dpiY;
-  int refreshRateHz;
-};
-
 struct DisplayMultiConfigs {
-  int id;
-  int activeConfigId;
+  hwc2_display_t displayId;
+  hwc2_config_t activeConfigId;
   // Modes that this display can be configured to use.
   std::vector<DisplayConfig> configs;
 };

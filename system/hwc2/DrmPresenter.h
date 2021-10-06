@@ -26,9 +26,9 @@
 #include <memory>
 #include <vector>
 
-#include "drmhwcgralloc.h"
 #include "Common.h"
 #include "android/base/synchronization/AndroidLock.h"
+#include "drmhwcgralloc.h"
 
 namespace android {
 
