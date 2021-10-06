@@ -27,25 +27,36 @@
 namespace android {
 namespace {
 
+constexpr int32_t HertzToPeriodNanos(uint32_t hertz) {
+  return 1000 * 1000 * 1000 / hertz;
+}
+
 HWC2::Error findCuttlefishDisplays(std::vector<DisplayMultiConfigs>& displays) {
   DEBUG_LOG("%s", __FUNCTION__);
 
   // TODO: replace with initializing directly from DRM info.
   const auto deviceConfig = cuttlefish::GetDeviceConfig();
 
-  int displayId = 0;
+  hwc2_display_t displayId = 0;
+  hwc2_config_t configId = 0;
   for (const auto& deviceDisplayConfig : deviceConfig.display_config()) {
     DisplayMultiConfigs display = {
-        .id = displayId,
-        .activeConfigId = 0,
-        .configs = {{displayId,
-                     deviceDisplayConfig.width(),
-                     deviceDisplayConfig.height(),
-                     deviceDisplayConfig.dpi(),
-                     deviceDisplayConfig.dpi(),
-                     deviceDisplayConfig.refresh_rate_hz()}},
+        .displayId = displayId,
+        .activeConfigId = configId,
+        .configs =
+            {
+                DisplayConfig(configId,                      //
+                              deviceDisplayConfig.width(),   //
+                              deviceDisplayConfig.height(),  //
+                              deviceDisplayConfig.dpi(),     //
+                              deviceDisplayConfig.dpi(),     //
+                              HertzToPeriodNanos(
+                                  deviceDisplayConfig.refresh_rate_hz())  //
+                              ),                                          //
+            },
     };
     displays.push_back(display);
+    ++configId;
     ++displayId;
   }
 
@@ -68,45 +79,43 @@ static int getVsyncHzFromProperty() {
   return static_cast<int>(vsyncPeriod);
 }
 
-HWC2::Error findGoldfishPrimaryDisplay(std::vector<DisplayMultiConfigs>& displays) {
+HWC2::Error findGoldfishPrimaryDisplay(
+    std::vector<DisplayMultiConfigs>& displays) {
   DEBUG_LOG("%s", __FUNCTION__);
 
   DEFINE_AND_VALIDATE_HOST_CONNECTION
   hostCon->lock();
-  int activeConfigId;
-  const int refreshRateHz = getVsyncHzFromProperty();
+  const int32_t vsyncPeriodNanos = HertzToPeriodNanos(getVsyncHzFromProperty());
   DisplayMultiConfigs display;
-  display.id = 0;
+  display.displayId = 0;
   if (rcEnc->hasHWCMultiConfigs()) {
-    int count= rcEnc->rcGetFBDisplayConfigsCount(rcEnc);
+    int count = rcEnc->rcGetFBDisplayConfigsCount(rcEnc);
     if (count <= 0) {
-      ALOGE("%s failed to allocate primary display, config count %d", __func__, count);
+      ALOGE("%s failed to allocate primary display, config count %d", __func__,
+            count);
       return HWC2::Error::NoResources;
     }
     display.activeConfigId = rcEnc->rcGetFBDisplayActiveConfig(rcEnc);
-    for(int configId = 0; configId < count; configId++) {
-      display.configs.push_back({
-                                0,
-                                rcEnc->rcGetFBDisplayConfigsParam(
-                                    rcEnc, configId, FB_WIDTH),
-                                rcEnc->rcGetFBDisplayConfigsParam(
-                                    rcEnc, configId, FB_HEIGHT),
-                                rcEnc->rcGetFBDisplayConfigsParam(
-                                    rcEnc, configId, FB_XDPI),
-                                rcEnc->rcGetFBDisplayConfigsParam(
-                                    rcEnc, configId, FB_YDPI),
-                                refreshRateHz,
-                                });
+    for (int configId = 0; configId < count; configId++) {
+      display.configs.push_back(DisplayConfig(
+          configId,                                                       //
+          rcEnc->rcGetFBDisplayConfigsParam(rcEnc, configId, FB_WIDTH),   //
+          rcEnc->rcGetFBDisplayConfigsParam(rcEnc, configId, FB_HEIGHT),  //
+          rcEnc->rcGetFBDisplayConfigsParam(rcEnc, configId, FB_XDPI),    //
+          rcEnc->rcGetFBDisplayConfigsParam(rcEnc, configId, FB_YDPI),    //
+          vsyncPeriodNanos                                                //
+          ));
     }
   } else {
     display.activeConfigId = 0;
-    display.configs.push_back({
-                              0,
-                              rcEnc->rcGetFBParam(rcEnc, FB_WIDTH),
-                              rcEnc->rcGetFBParam(rcEnc, FB_HEIGHT),
-                              rcEnc->rcGetFBParam(rcEnc, FB_XDPI),
-                              rcEnc->rcGetFBParam(rcEnc, FB_YDPI),
-                              refreshRateHz});
+    display.configs.push_back(DisplayConfig(
+        0,                                      //
+        rcEnc->rcGetFBParam(rcEnc, FB_WIDTH),   //
+        rcEnc->rcGetFBParam(rcEnc, FB_HEIGHT),  //
+        rcEnc->rcGetFBParam(rcEnc, FB_XDPI),    //
+        rcEnc->rcGetFBParam(rcEnc, FB_YDPI),    //
+        vsyncPeriodNanos                        //
+        ));
   }
   hostCon->unlock();
 
@@ -115,7 +124,8 @@ HWC2::Error findGoldfishPrimaryDisplay(std::vector<DisplayMultiConfigs>& display
   return HWC2::Error::None;
 }
 
-HWC2::Error findGoldfishSecondaryDisplays(std::vector<DisplayMultiConfigs>& displays) {
+HWC2::Error findGoldfishSecondaryDisplays(
+    std::vector<DisplayMultiConfigs>& displays) {
   DEBUG_LOG("%s", __FUNCTION__);
 
   static constexpr const char kExternalDisplayProp[] =
@@ -147,21 +157,23 @@ HWC2::Error findGoldfishSecondaryDisplays(std::vector<DisplayMultiConfigs>& disp
     propIntParts.push_back(propIntPart);
   }
 
-  int secondaryDisplayId = 1;
+  hwc2_display_t secondaryDisplayId = 1;
+  hwc2_config_t secondaryConfigId = 1;
   while (!propIntParts.empty()) {
     DisplayMultiConfigs display;
-    display.id = secondaryDisplayId;
+    display.displayId = secondaryDisplayId;
     display.activeConfigId = 0;
-    display.configs.push_back(DisplayConfig{
-        .id = secondaryDisplayId,
-        .width = propIntParts[1],
-        .height = propIntParts[2],
-        .dpiX = propIntParts[3],
-        .dpiY = propIntParts[3],
-        .refreshRateHz = 160,
-    });
+    display.configs.push_back(DisplayConfig(
+        secondaryConfigId,                       //
+        /*width=*/propIntParts[1],               //
+        /*heighth=*/propIntParts[2],             //
+        /*dpiXh=*/propIntParts[3],               //
+        /*dpiYh=*/propIntParts[3],               //
+        /*vsyncPeriod=*/HertzToPeriodNanos(160)  //
+        ));
     displays.push_back(display);
 
+    ++secondaryConfigId;
     ++secondaryDisplayId;
 
     propIntParts.erase(propIntParts.begin(), propIntParts.begin() + 5);
@@ -188,11 +200,23 @@ HWC2::Error findGoldfishDisplays(std::vector<DisplayMultiConfigs>& displays) {
 }  // namespace
 
 HWC2::Error findDisplays(std::vector<DisplayMultiConfigs>& displays) {
+  HWC2::Error error = HWC2::Error::None;
   if (IsCuttlefish()) {
-    return findCuttlefishDisplays(displays);
+    error = findCuttlefishDisplays(displays);
   } else {
-    return findGoldfishDisplays(displays);
+    error = findGoldfishDisplays(displays);
   }
+
+  if (error != HWC2::Error::None) {
+    ALOGE("%s failed to find displays", __FUNCTION__);
+    return error;
+  }
+
+  for (auto& display : displays) {
+    DisplayConfig::addConfigGroups(&display.configs);
+  }
+
+  return HWC2::Error::None;
 }
 
 }  // namespace android

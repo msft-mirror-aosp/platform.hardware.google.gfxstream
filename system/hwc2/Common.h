@@ -40,5 +40,6 @@
 #undef HWC2_USE_CPP11
 
 bool IsCuttlefish();
+bool IsCuttlefishFoldable();
 
 #endif
