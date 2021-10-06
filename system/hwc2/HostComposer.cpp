@@ -203,7 +203,7 @@ HWC2::Error HostComposer::createHostComposerDisplayInfo(
   displayInfo.hostDisplayId = hostDisplayId;
 
   if (displayInfo.compositionResultBuffer) {
-      FreeDisplayColorBuffer(displayInfo.compositionResultBuffer);
+    FreeDisplayColorBuffer(displayInfo.compositionResultBuffer);
   }
   displayInfo.compositionResultBuffer =
       AllocateDisplayColorBuffer(displayWidth, displayHeight);
@@ -572,7 +572,7 @@ HWC2::Error HostComposer::presentDisplay(Display* display,
       p2->numLayers = numLayer;
     }
 
-    void *buffer;
+    void* buffer;
     uint32_t bufferSize;
     if (hostCompositionV1) {
       buffer = (void*)p;
@@ -676,8 +676,8 @@ HWC2::Error HostComposer::onActiveConfigChange(Display* display) {
   DEBUG_LOG("%s: display:%" PRIu64, __FUNCTION__, display->getId());
   HWC2::Error error = createHostComposerDisplayInfo(display, display->getId());
   if (error != HWC2::Error::None) {
-    ALOGE("%s failed to update host info for display:%" PRIu64,
-          __FUNCTION__, display->getId());
+    ALOGE("%s failed to update host info for display:%" PRIu64, __FUNCTION__,
+          display->getId());
     return error;
   }
   return HWC2::Error::None;
