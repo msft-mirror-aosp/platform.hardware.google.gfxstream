@@ -38,25 +38,24 @@ HWC2::Error findCuttlefishDisplays(std::vector<DisplayMultiConfigs>& displays) {
   const auto deviceConfig = cuttlefish::GetDeviceConfig();
 
   hwc2_display_t displayId = 0;
-  hwc2_config_t configId = 0;
   for (const auto& deviceDisplayConfig : deviceConfig.display_config()) {
+    const auto vsyncPeriodNanos =
+        HertzToPeriodNanos(deviceDisplayConfig.refresh_rate_hz());
+
     DisplayMultiConfigs display = {
         .displayId = displayId,
-        .activeConfigId = configId,
+        .activeConfigId = 0,
         .configs =
             {
-                DisplayConfig(configId,                      //
+                DisplayConfig(0,                             //
                               deviceDisplayConfig.width(),   //
                               deviceDisplayConfig.height(),  //
                               deviceDisplayConfig.dpi(),     //
                               deviceDisplayConfig.dpi(),     //
-                              HertzToPeriodNanos(
-                                  deviceDisplayConfig.refresh_rate_hz())  //
-                              ),                                          //
+                              vsyncPeriodNanos),
             },
     };
     displays.push_back(display);
-    ++configId;
     ++displayId;
   }
 
@@ -158,13 +157,12 @@ HWC2::Error findGoldfishSecondaryDisplays(
   }
 
   hwc2_display_t secondaryDisplayId = 1;
-  hwc2_config_t secondaryConfigId = 1;
   while (!propIntParts.empty()) {
     DisplayMultiConfigs display;
     display.displayId = secondaryDisplayId;
     display.activeConfigId = 0;
     display.configs.push_back(DisplayConfig(
-        secondaryConfigId,                       //
+        0,                                       //
         /*width=*/propIntParts[1],               //
         /*heighth=*/propIntParts[2],             //
         /*dpiXh=*/propIntParts[3],               //
@@ -173,7 +171,6 @@ HWC2::Error findGoldfishSecondaryDisplays(
         ));
     displays.push_back(display);
 
-    ++secondaryConfigId;
     ++secondaryDisplayId;
 
     propIntParts.erase(propIntParts.begin(), propIntParts.begin() + 5);
