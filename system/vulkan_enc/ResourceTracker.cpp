@@ -31,9 +31,6 @@
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
 
 #include "../egl/goldfish_sync.h"
-#ifndef HOST_BUILD
-#include "virtio_gpu_context_init.h"
-#endif
 
 typedef uint32_t zx_handle_t;
 typedef uint64_t zx_koid_t;
@@ -45,11 +42,9 @@ void zx_event_create(int, zx_handle_t*) { }
 #include "AndroidHardwareBuffer.h"
 
 #ifndef HOST_BUILD
-#include <drm/virtgpu_drm.h>
+#include "virtgpu_drm.h"
 #include <xf86drm.h>
 #endif
-
-#include "VirtioGpuNext.h"
 
 #endif // VK_USE_PLATFORM_ANDROID_KHR
 
@@ -3096,8 +3091,8 @@ public:
                 mLock.lock();
 
                 struct drm_virtgpu_resource_create_blob drm_rc_blob = { 0 };
-                drm_rc_blob.blob_mem = VIRTGPU_BLOB_MEM_HOST;
-                drm_rc_blob.blob_flags = VIRTGPU_BLOB_FLAG_MAPPABLE;
+                drm_rc_blob.blob_mem = VIRTGPU_BLOB_MEM_HOST3D;
+                drm_rc_blob.blob_flags = VIRTGPU_BLOB_FLAG_USE_MAPPABLE;
                 drm_rc_blob.blob_id = hvaSizeId[2];
                 drm_rc_blob.size = hvaSizeId[1];
 
@@ -4819,9 +4814,9 @@ public:
                     hostFenceHandleHi,
                 };
 
-                struct drm_virtgpu_execbuffer_with_ring_idx execbuffer = {
+                struct drm_virtgpu_execbuffer execbuffer = {
                     .flags = (uint32_t)(mFeatureInfo->hasVulkanAsyncQsri ?
-                                        (VIRTGPU_EXECBUF_FENCE_FD_OUT | VIRTGPU_EXECBUF_FENCE_CONTEXT) :
+                                        (VIRTGPU_EXECBUF_FENCE_FD_OUT | VIRTGPU_EXECBUF_RING_IDX) :
                                         VIRTGPU_EXECBUF_FENCE_FD_OUT),
                     .size = 5 * sizeof(uint32_t),
                     .command = (uint64_t)(cmdDwords),
@@ -5613,9 +5608,9 @@ public:
                     hostFenceHandleHi,
                 };
 
-                struct drm_virtgpu_execbuffer_with_ring_idx execbuffer = {
+                struct drm_virtgpu_execbuffer execbuffer = {
                     .flags = (uint32_t)(mFeatureInfo->hasVulkanAsyncQsri ?
-                                        (VIRTGPU_EXECBUF_FENCE_FD_OUT | VIRTGPU_EXECBUF_FENCE_CONTEXT) :
+                                        (VIRTGPU_EXECBUF_FENCE_FD_OUT | VIRTGPU_EXECBUF_RING_IDX) :
                                         VIRTGPU_EXECBUF_FENCE_FD_OUT),
                     .size = 5 * sizeof(uint32_t),
                     .command = (uint64_t)(cmdDwords),
@@ -7076,9 +7071,9 @@ public:
                 hostImageHandleHi,
             };
 
-            struct drm_virtgpu_execbuffer_with_ring_idx execbuffer = {
+            struct drm_virtgpu_execbuffer execbuffer = {
                 // Assume fence context support if we enabled hasVulkanAsyncQsri
-                .flags = VIRTGPU_EXECBUF_FENCE_FD_OUT | VIRTGPU_EXECBUF_FENCE_CONTEXT,
+                .flags = VIRTGPU_EXECBUF_FENCE_FD_OUT | VIRTGPU_EXECBUF_RING_IDX,
                 .size = sizeof(cmdDwords),
                 .command = (uint64_t)(cmdDwords),
                 .bo_handles = 0,
