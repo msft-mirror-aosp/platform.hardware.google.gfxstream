@@ -1803,7 +1803,7 @@ public:
             for (auto& block : info.hostMemBlocks[i]) {
                 destroyHostMemAlloc(
                     freeMemorySyncSupported,
-                    enc, device, &block);
+                    enc, device, &block, false);
             }
         }
     }
@@ -3757,22 +3757,23 @@ public:
                     abort();
                 }
 
-                directMappedAddr = (uint64_t)(uintptr_t)
-                    mmap64(0, hvaSizeId[1], PROT_WRITE, MAP_SHARED, mRendernodeFd, map_info.offset);
+                void* mapRes = mmap64(
+                    0, hvaSizeId[1], PROT_WRITE, MAP_SHARED, mRendernodeFd, map_info.offset);
 
-                if ((void*)directMappedAddr == MAP_FAILED) {
-                    ALOGE("%s: mmap of virtio gpu resource failed\n", __func__);
-                    abort();
+                if (mapRes == MAP_FAILED || mapRes == nullptr) {
+                    ALOGE("%s: mmap of virtio gpu resource failed: sterror: %s errno: %d\n\n",
+                            __func__, strerror(errno), errno);
+                     directMapResult = VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                } else {
+                    directMappedAddr = (uint64_t)(uintptr_t)mapRes;
+                    // Does not take  ownership for the device.
+                    hostMemAlloc.rendernodeFd = mRendernodeFd;
+                    hostMemAlloc.memoryAddr = directMappedAddr;
+                    hostMemAlloc.memorySize = hvaSizeId[1];
+                    // add the host's page offset
+                    directMappedAddr += (uint64_t)(uintptr_t)(hvaSizeId[0]) & (PAGE_SIZE - 1);
+                    directMapResult = VK_SUCCESS;
                 }
-
-                // Does not take  ownership for the device.
-                hostMemAlloc.rendernodeFd = mRendernodeFd;
-                hostMemAlloc.memoryAddr = directMappedAddr;
-                hostMemAlloc.memorySize = hvaSizeId[1];
-
-                // add the host's page offset
-                directMappedAddr += (uint64_t)(uintptr_t)(hvaSizeId[0]) & (PAGE_SIZE - 1);
-                directMapResult = VK_SUCCESS;
 
 #endif // VK_USE_PLATFORM_ANDROID_KHR
             }
@@ -3782,7 +3783,12 @@ public:
                 hostMemAlloc.initialized = true;
                 hostMemAlloc.initResult = directMapResult;
                 mLock.unlock();
-                enc->vkFreeMemory(device, hostMemAlloc.memory, nullptr, true /* do lock */);
+                destroyHostMemAlloc(
+                    mFeatureInfo->hasDirectMem,
+                    enc,
+                    device,
+                    &hostMemAlloc,
+                    true) /* doLock */;
                 mLock.lock();
                 return INVALID_HOST_MEM_BLOCK;
             }
@@ -4669,7 +4675,8 @@ public:
             destroyHostMemAlloc(
                 freeMemorySyncSupported,
                 enc, device,
-                hostMemBlocksForTypeIndex.data() + indexToRemove);
+                hostMemBlocksForTypeIndex.data() + indexToRemove,
+                false);
 
             ALOGV("%s: Destroying host mem alloc block at index %zu (done)\n", __func__, indexToRemove);
 

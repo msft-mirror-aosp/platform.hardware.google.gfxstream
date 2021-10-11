@@ -106,7 +106,8 @@ void destroyHostMemAlloc(
     bool freeMemorySyncSupported,
     VkEncoder* enc,
     VkDevice device,
-    HostMemAlloc* toDestroy);
+    HostMemAlloc* toDestroy,
+    bool doLock);
 
 struct SubAlloc {
     uint8_t* mappedPtr = nullptr;

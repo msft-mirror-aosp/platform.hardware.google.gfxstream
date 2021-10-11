@@ -264,7 +264,8 @@ void destroyHostMemAlloc(
     bool freeMemorySyncSupported,
     VkEncoder* enc,
     VkDevice device,
-    HostMemAlloc* toDestroy) {
+    HostMemAlloc* toDestroy,
+    bool doLock) {
 #if !defined(HOST_BUILD) && defined(VIRTIO_GPU)
     if (toDestroy->rendernodeFd >= 0) {
 
@@ -299,9 +300,9 @@ void destroyHostMemAlloc(
 
 
     if (freeMemorySyncSupported) {
-        enc->vkFreeMemorySyncGOOGLE(device, toDestroy->memory, nullptr, false /* no lock */);
+        enc->vkFreeMemorySyncGOOGLE(device, toDestroy->memory, nullptr, doLock);
     } else {
-        enc->vkFreeMemory(device, toDestroy->memory, nullptr, false /* no lock */);
+        enc->vkFreeMemory(device, toDestroy->memory, nullptr, doLock);
     }
 
     delete toDestroy->subAlloc;
