@@ -60,6 +60,9 @@ class DisplayConfig {
   int32_t getDpiY() const { return mDpiY; }
   void setDpiY(int32_t dpi) { mDpiY = dpi; }
 
+  int32_t getDotsPerThousandInchesX() const { return mDpiX * 1000; }
+  int32_t getDotsPerThousandInchesY() const { return mDpiY * 1000; }
+
   int32_t getVsyncPeriod() const { return mVsyncPeriodNanos; }
   void setVsyncPeriod(int32_t vsync) { mVsyncPeriodNanos = vsync; }
 

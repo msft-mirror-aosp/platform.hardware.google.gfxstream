@@ -57,10 +57,12 @@ int32_t DisplayConfig::getAttribute(HWC2::Attribute attribute) const {
     return mHeight;
   }
   if (attribute == HWC2::Attribute::DpiX) {
-    return mDpiX;
+    // From hwcomposer2.h, HWC2_ATTRIBUTE_DPI_X returns "Dots per thousand inches (DPI * 1000)".
+    return getDotsPerThousandInchesX();
   }
   if (attribute == HWC2::Attribute::DpiY) {
-    return mDpiY;
+    // From hwcomposer2.h, HWC2_ATTRIBUTE_DPI_Y returns "Dots per thousand inches (DPI * 1000)"
+    return getDotsPerThousandInchesY();
   }
   if (attribute == HWC2::Attribute::VsyncPeriod) {
     return mVsyncPeriodNanos;
@@ -75,8 +77,8 @@ std::string DisplayConfig::toString() const {
   std::string output;
   output += " w:" + std::to_string(mWidth);
   output += " h:" + std::to_string(mHeight);
-  output += " dpi-x:" + std::to_string(mDpiX / 1000.0f);
-  output += " dpi-y:" + std::to_string(mDpiY / 1000.0f);
+  output += " dpi-x:" + std::to_string(mDpiX);
+  output += " dpi-y:" + std::to_string(mDpiY);
   output += " vsync:" + std::to_string(1e9 / mVsyncPeriodNanos);
   output += " config-group:" + std::to_string(mConfigGroup);
   return output;

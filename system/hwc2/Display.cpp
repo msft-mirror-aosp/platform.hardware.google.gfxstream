@@ -114,8 +114,8 @@ HWC2::Error Display::updateParameters(
                           1000 * 1000 * 1000 / refreshRateHz);
   it->second.setAttribute(HWC2::Attribute::Width, width);
   it->second.setAttribute(HWC2::Attribute::Height, height);
-  it->second.setAttribute(HWC2::Attribute::DpiX, dpiX * 1000);
-  it->second.setAttribute(HWC2::Attribute::DpiY, dpiY * 1000);
+  it->second.setAttribute(HWC2::Attribute::DpiX, dpiX);
+  it->second.setAttribute(HWC2::Attribute::DpiY, dpiY);
 
   mEdid = edid;
 
