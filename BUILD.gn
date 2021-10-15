@@ -38,7 +38,7 @@ shared_library("libvulkan_goldfish") {
     "android-emu/android/base/threads/AndroidWorkPool.cpp",
     "android-emu/android/base/threads/AndroidWorkPool.h",
     "shared/GoldfishAddressSpace/goldfish_address_space.cpp",
-    "shared/GoldfishAddressSpace/goldfish_address_space.h",
+    "shared/GoldfishAddressSpace/include/goldfish_address_space.h",
     "shared/OpenglCodecCommon/ChecksumCalculator.cpp",
     "shared/OpenglCodecCommon/ChecksumCalculator.h",
     "shared/OpenglCodecCommon/glUtils.cpp",
