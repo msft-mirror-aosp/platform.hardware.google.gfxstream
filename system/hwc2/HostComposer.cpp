@@ -481,15 +481,15 @@ std::tuple<HWC2::Error, base::unique_fd> HostComposer::presentDisplay(
 
       FencedBuffer& displayClientTarget = display->getClientTarget();
       if (displayClientTarget.getBuffer() != nullptr) {
+        base::unique_fd fence = displayClientTarget.getFence();
         if (mIsMinigbm) {
-          int retireFence;
-          displayInfo.clientTargetDrmBuffer->flushToDisplay(display->getId(),
-                                                            &retireFence);
-          outRetireFence = base::unique_fd(dup(retireFence));
-          close(retireFence);
+          auto [_, flushCompleteFence] =
+              displayInfo.clientTargetDrmBuffer->flushToDisplay(
+                  display->getId(), fence);
+          outRetireFence = std::move(flushCompleteFence);
         } else {
           post(hostCon, rcEnc, displayClientTarget.getBuffer());
-          outRetireFence = displayClientTarget.getFence();
+          outRetireFence = std::move(fence);
         }
       }
       return std::make_tuple(HWC2::Error::None, std::move(outRetireFence));
@@ -627,10 +627,9 @@ std::tuple<HWC2::Error, base::unique_fd> HostComposer::presentDisplay(
     }
 
     if (mIsMinigbm) {
-      int fd;
-      displayInfo.compositionResultDrmBuffer->flushToDisplay(display->getId(),
-                                                             &fd);
-      retire_fd = base::unique_fd(fd);
+      auto [_, fence] = displayInfo.compositionResultDrmBuffer->flushToDisplay(
+          display->getId(), -1);
+      retire_fd = std::move(fence);
     } else {
       int fd;
       goldfish_sync_queue_work(mSyncDeviceFd, sync_handle, thread_handle, &fd);
@@ -655,16 +654,16 @@ std::tuple<HWC2::Error, base::unique_fd> HostComposer::presentDisplay(
 
   } else {
     // we set all layers Composition::Client, so do nothing.
+    FencedBuffer& displayClientTarget = display->getClientTarget();
+    base::unique_fd fence = displayClientTarget.getFence();
     if (mIsMinigbm) {
-      int retireFence;
-      displayInfo.clientTargetDrmBuffer->flushToDisplay(display->getId(),
-                                                        &retireFence);
-      outRetireFence = base::unique_fd(dup(retireFence));
-      close(retireFence);
+      auto [_, outRetireFence] =
+          displayInfo.clientTargetDrmBuffer->flushToDisplay(display->getId(),
+                                                            fence);
+      outRetireFence = std::move(fence);
     } else {
-      FencedBuffer& displayClientTarget = display->getClientTarget();
       post(hostCon, rcEnc, displayClientTarget.getBuffer());
-      outRetireFence = displayClientTarget.getFence();
+      outRetireFence = std::move(fence);
     }
     ALOGV("%s fallback to post, returns outRetireFence %d", __FUNCTION__,
           outRetireFence.get());
