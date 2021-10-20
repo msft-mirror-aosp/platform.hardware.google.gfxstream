@@ -372,18 +372,12 @@ HWC2::Error Display::getName(uint32_t* outSize, char* outName) {
   return HWC2::Error::None;
 }
 
-HWC2::Error Display::addReleaseFenceLocked(int32_t fence) {
-  DEBUG_LOG("%s: display:%" PRIu64 " fence:%d", __FUNCTION__, mId, fence);
+HWC2::Error Display::addReleaseFenceLocked(hwc2_layer_t layerId,
+                                           base::unique_fd fence) {
+  DEBUG_LOG("%s: display:%" PRIu64 " layer: %" PRIu64 ", fence: %d",
+            __FUNCTION__, mId, static_cast<uint64_t>(layerId), fence.get());
 
-  mReleaseFences.push_back(fence);
-  return HWC2::Error::None;
-}
-
-HWC2::Error Display::addReleaseLayerLocked(hwc2_layer_t layerId) {
-  DEBUG_LOG("%s: display:%" PRIu64 " layer:%" PRIu64, __FUNCTION__, mId,
-            layerId);
-
-  mReleaseLayerIds.push_back(layerId);
+  mReleaseFences[layerId] = std::move(fence);
   return HWC2::Error::None;
 }
 
@@ -394,18 +388,44 @@ HWC2::Error Display::getReleaseFences(uint32_t* outNumElements,
 
   std::unique_lock<std::recursive_mutex> lock(mStateMutex);
 
-  *outNumElements = mReleaseLayerIds.size();
+  uint32_t outArraySize = *outNumElements;
 
-  if (*outNumElements && outLayers) {
-    DEBUG_LOG("%s export release layers", __FUNCTION__);
-    memcpy(outLayers, mReleaseLayerIds.data(),
-           sizeof(hwc2_layer_t) * (*outNumElements));
+  *outNumElements = 0;
+  for (const auto& [_, releaseFence] : mReleaseFences) {
+    if (releaseFence.ok()) {
+      (*outNumElements)++;
+    }
   }
 
-  if (*outNumElements && outFences) {
-    DEBUG_LOG("%s export release fences", __FUNCTION__);
-    memcpy(outFences, mReleaseFences.data(),
-           sizeof(int32_t) * (*outNumElements));
+  if ((!outLayers && !outFences) || (outArraySize == 0) ||
+      (*outNumElements == 0)) {
+    return HWC2::Error::None;
+  }
+  DEBUG_LOG("%s export release fences", __FUNCTION__);
+
+  uint32_t index = 0;
+  for (const auto& [layer_id, releaseFence] : mReleaseFences) {
+    if (index >= outArraySize) {
+      break;
+    }
+    if (!releaseFence.ok()) {
+      continue;
+    }
+    if (outLayers) {
+      outLayers[index] = layer_id;
+    }
+    if (outFences) {
+      int outFence = dup(releaseFence.get());
+      if (outFence < 0) {
+        ALOGE("%s: Fail to dup release fence for display id = %" PRIu64
+              ", layer id = %" PRIu64 ", fence = %d, error(%d): %s",
+              __FUNCTION__, static_cast<uint64_t>(mId),
+              static_cast<uint64_t>(layer_id), releaseFence.get(), errno,
+              strerror(errno));
+      }
+      outFences[index] = outFence;
+    }
+    index++;
   }
 
   return HWC2::Error::None;
@@ -414,7 +434,6 @@ HWC2::Error Display::getReleaseFences(uint32_t* outNumElements,
 HWC2::Error Display::clearReleaseFencesAndIdsLocked() {
   DEBUG_LOG("%s: display:%" PRIu64, __FUNCTION__, mId);
 
-  mReleaseLayerIds.clear();
   mReleaseFences.clear();
 
   return HWC2::Error::None;

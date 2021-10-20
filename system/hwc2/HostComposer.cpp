@@ -517,7 +517,7 @@ std::tuple<HWC2::Error, base::unique_fd> HostComposer::presentDisplay(
       l = p2->layer;
     }
 
-    int releaseLayersCount = 0;
+    std::vector<hwc2_layer_t> releaseLayerIds;
     for (auto layer : layers) {
       // TODO: use local var composisitonType to store getCompositionType()
       if (layer->getCompositionType() != HWC2::Composition::Device &&
@@ -528,8 +528,7 @@ std::tuple<HWC2::Error, base::unique_fd> HostComposer::presentDisplay(
       }
       // send layer composition command to host
       if (layer->getCompositionType() == HWC2::Composition::Device) {
-        display->addReleaseLayerLocked(layer->getId());
-        releaseLayersCount++;
+        releaseLayerIds.emplace_back(layer->getId());
 
         base::unique_fd fence = layer->getBuffer().getFence();
         if (fence.ok()) {
@@ -638,8 +637,9 @@ std::tuple<HWC2::Error, base::unique_fd> HostComposer::presentDisplay(
       retire_fd = base::unique_fd(fd);
     }
 
-    for (size_t i = 0; i < releaseLayersCount; ++i) {
-      display->addReleaseFenceLocked(dup(retire_fd.get()));
+    for (hwc2_layer_t layerId : releaseLayerIds) {
+      display->addReleaseFenceLocked(layerId,
+                                     base::unique_fd(dup(retire_fd.get())));
     }
 
     outRetireFence = base::unique_fd(dup(retire_fd.get()));
