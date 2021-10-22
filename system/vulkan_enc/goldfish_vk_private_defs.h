@@ -129,7 +129,7 @@ struct AHardwareBuffer;
 struct VkAndroidHardwareBufferPropertiesANDROID;
 struct VkMemoryGetAndroidHardwareBufferInfoANDROID;
 
-#ifdef __Fuchsia__
+#ifndef VK_USE_PLATFORM_ANDROID_KHR
 
 typedef struct VkAndroidHardwareBufferUsageANDROID {
     VkStructureType    sType;
