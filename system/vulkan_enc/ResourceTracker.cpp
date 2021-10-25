@@ -252,14 +252,14 @@ struct StagingInfo {
     }
 
     void pushStaging(CommandBufferStagingStream* stream, VkEncoder* encoder) {
-        AutoLock lock(mLock);
+        AutoLock<Lock> lock(mLock);
         stream->reset();
         streams.push_back(stream);
         encoders.push_back(encoder);
     }
 
     void popStaging(CommandBufferStagingStream** streamOut, VkEncoder** encoderOut) {
-        AutoLock lock(mLock);
+        AutoLock<Lock> lock(mLock);
         CommandBufferStagingStream* stream;
         VkEncoder* encoder;
         if (streams.empty()) {
@@ -443,13 +443,13 @@ public:
 #define HANDLE_REGISTER_IMPL_IMPL(type) \
     std::unordered_map<type, type##_Info> info_##type; \
     void register_##type(type obj) { \
-        AutoLock lock(mLock); \
+        AutoLock<RecursiveLock> lock(mLock); \
         info_##type[obj] = type##_Info(); \
     } \
 
 #define HANDLE_UNREGISTER_IMPL_IMPL(type) \
     void unregister_##type(type obj) { \
-        AutoLock lock(mLock); \
+        AutoLock<RecursiveLock> lock(mLock); \
         info_##type.erase(obj); \
     } \
 
@@ -457,7 +457,7 @@ public:
     GOLDFISH_VK_LIST_TRIVIAL_HANDLE_TYPES(HANDLE_UNREGISTER_IMPL_IMPL)
 
     void unregister_VkInstance(VkInstance instance) {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkInstance.find(instance);
         if (it == info_VkInstance.end()) return;
@@ -467,7 +467,7 @@ public:
     }
 
     void unregister_VkDevice(VkDevice device) {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkDevice.find(device);
         if (it == info_VkDevice.end()) return;
@@ -481,14 +481,14 @@ public:
 
         clearCommandPool(pool);
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         info_VkCommandPool.erase(pool);
     }
 
     void unregister_VkSampler(VkSampler sampler) {
         if (!sampler) return;
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         info_VkSampler.erase(sampler);
     }
 
@@ -510,7 +510,7 @@ public:
             delete pendingSets;
         }
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         info_VkCommandBuffer.erase(commandBuffer);
     }
 
@@ -519,12 +519,12 @@ public:
         if (!q) return;
         if (q->lastUsedEncoder) { q->lastUsedEncoder->decRef(); }
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         info_VkQueue.erase(queue);
     }
 
     void unregister_VkDeviceMemory(VkDeviceMemory mem) {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkDeviceMemory.find(mem);
         if (it == info_VkDeviceMemory.end()) return;
@@ -556,7 +556,7 @@ public:
     }
 
     void unregister_VkImage(VkImage img) {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkImage.find(img);
         if (it == info_VkImage.end()) return;
@@ -567,7 +567,7 @@ public:
     }
 
     void unregister_VkBuffer(VkBuffer buf) {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkBuffer.find(buf);
         if (it == info_VkBuffer.end()) return;
@@ -576,7 +576,7 @@ public:
     }
 
     void unregister_VkSemaphore(VkSemaphore sem) {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkSemaphore.find(sem);
         if (it == info_VkSemaphore.end()) return;
@@ -598,7 +598,7 @@ public:
 
     void unregister_VkDescriptorUpdateTemplate(VkDescriptorUpdateTemplate templ) {
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         auto it = info_VkDescriptorUpdateTemplate.find(templ);
         if (it == info_VkDescriptorUpdateTemplate.end())
             return;
@@ -621,7 +621,7 @@ public:
     }
 
     void unregister_VkFence(VkFence fence) {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         auto it = info_VkFence.find(fence);
         if (it == info_VkFence.end()) return;
 
@@ -640,7 +640,7 @@ public:
 #ifdef VK_USE_PLATFORM_FUCHSIA
     void unregister_VkBufferCollectionFUCHSIAX(
         VkBufferCollectionFUCHSIAX collection) {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         info_VkBufferCollectionFUCHSIAX.erase(collection);
     }
 #endif
@@ -654,14 +654,14 @@ public:
     void unregister_VkDescriptorSet(VkDescriptorSet set) {
         if (!set) return;
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         unregister_VkDescriptorSet_locked(set);
     }
 
     void unregister_VkDescriptorSetLayout(VkDescriptorSetLayout setLayout) {
         if (!setLayout) return;
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         delete as_goldfish_VkDescriptorSetLayout(setLayout)->layoutInfo;
         info_VkDescriptorSetLayout.erase(setLayout);
     }
@@ -780,7 +780,7 @@ public:
     void unregister_VkDescriptorPool(VkDescriptorPool pool) {
         if (!pool) return;
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         struct goldfish_VkDescriptorPool* dp = as_goldfish_VkDescriptorPool(pool);
         delete dp->allocInfo;
@@ -799,7 +799,7 @@ public:
                          uint32_t enabledExtensionCount,
                          const char* const* ppEnabledExtensionNames,
                          uint32_t apiVersion) {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         auto& info = info_VkInstance[instance];
         info.highestApiVersion = apiVersion;
 
@@ -817,7 +817,7 @@ public:
                        uint32_t enabledExtensionCount,
                        const char* const* ppEnabledExtensionNames,
                        const void* pNext) {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         auto& info = info_VkDevice[device];
         info.physdev = physdev;
         info.props = props;
@@ -886,7 +886,7 @@ public:
                              AHardwareBuffer* ahw = nullptr,
                              bool imported = false,
                              zx_handle_t vmoHandle = ZX_HANDLE_INVALID) {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         auto& deviceInfo = info_VkDevice[device];
         auto& info = info_VkDeviceMemory[memory];
 
@@ -902,7 +902,7 @@ public:
     void setImageInfo(VkImage image,
                       VkDevice device,
                       const VkImageCreateInfo *pCreateInfo) {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         auto& info = info_VkImage[image];
 
         info.device = device;
@@ -910,7 +910,7 @@ public:
     }
 
     bool isMemoryTypeHostVisible(VkDevice device, uint32_t typeIndex) const {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         const auto it = info_VkDevice.find(device);
 
         if (it == info_VkDevice.end()) return false;
@@ -921,7 +921,7 @@ public:
     }
 
     uint8_t* getMappedPointer(VkDeviceMemory memory) {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         const auto it = info_VkDeviceMemory.find(memory);
         if (it == info_VkDeviceMemory.end()) return nullptr;
 
@@ -930,7 +930,7 @@ public:
     }
 
     VkDeviceSize getMappedSize(VkDeviceMemory memory) {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         const auto it = info_VkDeviceMemory.find(memory);
         if (it == info_VkDeviceMemory.end()) return 0;
 
@@ -939,7 +939,7 @@ public:
     }
 
     VkDeviceSize getNonCoherentExtendedSize(VkDevice device, VkDeviceSize basicSize) const {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         const auto it = info_VkDevice.find(device);
         if (it == info_VkDevice.end()) return basicSize;
         const auto& info = it->second;
@@ -952,7 +952,7 @@ public:
     }
 
     bool isValidMemoryRange(const VkMappedMemoryRange& range) const {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         const auto it = info_VkDeviceMemory.find(range.memory);
         if (it == info_VkDeviceMemory.end()) return false;
         const auto& info = it->second;
@@ -1126,7 +1126,7 @@ public:
         if (!hostVirt.virtualizationSupported) return;
 
         if (memory) {
-            AutoLock lock (mLock);
+            AutoLock<RecursiveLock> lock (mLock);
 
             for (uint32_t i = 0; i < memoryCount; ++i) {
                 VkDeviceMemory mem = memory[i];
@@ -1190,7 +1190,7 @@ public:
 
         if (!hostVirt.virtualizationSupported) return;
 
-        AutoLock lock (mLock);
+        AutoLock<RecursiveLock> lock (mLock);
 
         for (uint32_t i = 0; i < memoryCount; ++i) {
             // TODO
@@ -1539,7 +1539,7 @@ public:
 
         if (!pPhysicalDeviceCount) return VK_ERROR_INITIALIZATION_FAILED;
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         // When this function is called, we actually need to do two things:
         // - Get full information about physical devices from the host,
@@ -1682,7 +1682,7 @@ public:
                              uint32_t,
                              uint32_t,
                              VkQueue* pQueue) {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         info_VkQueue[*pQueue].device = device;
     }
 
@@ -1690,7 +1690,7 @@ public:
                               VkDevice device,
                               const VkDeviceQueueInfo2*,
                               VkQueue* pQueue) {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         info_VkQueue[*pQueue].device = device;
     }
 
@@ -1748,7 +1748,7 @@ public:
         VkDevice device,
         const VkAllocationCallbacks*) {
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkDevice.find(device);
         if (it == info_VkDevice.end()) return;
@@ -1791,7 +1791,7 @@ public:
         if (!pInfo) return VK_ERROR_INITIALIZATION_FAILED;
         if (!pInfo->memory) return VK_ERROR_INITIALIZATION_FAILED;
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto deviceIt = info_VkDevice.find(device);
 
@@ -1827,7 +1827,7 @@ public:
         if (!pInfo) return VK_ERROR_INITIALIZATION_FAILED;
         if (!pInfo->memory) return VK_ERROR_INITIALIZATION_FAILED;
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto deviceIt = info_VkDevice.find(device);
 
@@ -1875,7 +1875,7 @@ public:
             return VK_ERROR_INVALID_EXTERNAL_HANDLE;
         }
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto deviceIt = info_VkDevice.find(device);
 
@@ -1959,7 +1959,7 @@ public:
         if (!pInfo) return VK_ERROR_INITIALIZATION_FAILED;
         if (!pInfo->semaphore) return VK_ERROR_INITIALIZATION_FAILED;
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto deviceIt = info_VkDevice.find(device);
 
@@ -1999,7 +1999,7 @@ public:
         if (!pInfo) return VK_ERROR_INITIALIZATION_FAILED;
         if (!pInfo->semaphore) return VK_ERROR_INITIALIZATION_FAILED;
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto deviceIt = info_VkDevice.find(device);
 
@@ -2485,7 +2485,7 @@ public:
 
         VkPhysicalDevice physicalDevice;
         {
-            AutoLock lock(mLock);
+            AutoLock<RecursiveLock> lock(mLock);
             auto deviceIt = info_VkDevice.find(device);
             if (deviceIt == info_VkDevice.end()) {
                 return VK_ERROR_INITIALIZATION_FAILED;
@@ -2594,7 +2594,7 @@ public:
 
         // copy constraints to info_VkBufferCollectionFUCHSIAX if
         // |collection| is a valid VkBufferCollectionFUCHSIAX handle.
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         VkBufferCollectionFUCHSIAX buffer_collection =
             reinterpret_cast<VkBufferCollectionFUCHSIAX>(collection);
         if (info_VkBufferCollectionFUCHSIAX.find(buffer_collection) !=
@@ -2639,7 +2639,7 @@ public:
 
         // copy constraints to info_VkBufferCollectionFUCHSIAX if
         // |collection| is a valid VkBufferCollectionFUCHSIAX handle.
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         VkBufferCollectionFUCHSIAX buffer_collection =
             reinterpret_cast<VkBufferCollectionFUCHSIAX>(collection);
         if (info_VkBufferCollectionFUCHSIAX.find(buffer_collection) !=
@@ -2811,7 +2811,7 @@ public:
         // memoryTypeBits
         // ====================================================================
         {
-            AutoLock lock(mLock);
+            AutoLock<RecursiveLock> lock(mLock);
             auto deviceIt = info_VkDevice.find(device);
             if (deviceIt == info_VkDevice.end()) {
                 return VK_ERROR_INITIALIZATION_FAILED;
@@ -2838,7 +2838,7 @@ public:
 
         auto storeProperties = [this, collection, pProperties]() -> VkResult {
             // store properties to storage
-            AutoLock lock(mLock);
+            AutoLock<RecursiveLock> lock(mLock);
             if (info_VkBufferCollectionFUCHSIAX.find(collection) ==
                 info_VkBufferCollectionFUCHSIAX.end()) {
                 return VK_ERROR_OUT_OF_DEVICE_MEMORY;
@@ -2884,7 +2884,7 @@ public:
         // createInfoIndex
         // ====================================================================
         {
-            AutoLock lock(mLock);
+            AutoLock<RecursiveLock> lock(mLock);
             auto getIndexResult = getBufferCollectionImageCreateInfoIndexLocked(
                 collection, info, &pProperties->createInfoIndex);
             if (getIndexResult != VK_SUCCESS) {
@@ -2896,7 +2896,7 @@ public:
         // ====================================================================
         VkPhysicalDevice physicalDevice;
         {
-            AutoLock lock(mLock);
+            AutoLock<RecursiveLock> lock(mLock);
             auto deviceIt = info_VkDevice.find(device);
             if (deviceIt == info_VkDevice.end()) {
                 return VK_ERROR_INITIALIZATION_FAILED;
@@ -3377,7 +3377,7 @@ public:
                 finalAllocInfo.allocationSize;
 
             if (hasDedicatedImage) {
-                AutoLock lock(mLock);
+                AutoLock<RecursiveLock> lock(mLock);
 
                 auto it = info_VkImage.find(
                     dedicatedAllocInfoPtr->image);
@@ -3393,7 +3393,7 @@ public:
             }
 
             if (hasDedicatedBuffer) {
-                AutoLock lock(mLock);
+                AutoLock<RecursiveLock> lock(mLock);
 
                 auto it = info_VkBuffer.find(
                     dedicatedAllocInfoPtr->buffer);
@@ -3497,7 +3497,7 @@ public:
                 nullptr;
 
             if (hasDedicatedImage) {
-                AutoLock lock(mLock);
+                AutoLock<RecursiveLock> lock(mLock);
 
                 auto it = info_VkImage.find(dedicatedAllocInfoPtr->image);
                 if (it == info_VkImage.end()) return VK_ERROR_INITIALIZATION_FAILED;
@@ -3507,7 +3507,7 @@ public:
             }
 
             if (hasDedicatedBuffer) {
-                AutoLock lock(mLock);
+                AutoLock<RecursiveLock> lock(mLock);
 
                 auto it = info_VkBuffer.find(dedicatedAllocInfoPtr->buffer);
                 if (it == info_VkBuffer.end())
@@ -3858,7 +3858,7 @@ public:
         // }
 
         // Host visible memory with direct mapping
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkDevice.find(device);
         if (it == info_VkDevice.end()) _RETURN_FAILURE_WITH_DEVICE_MEMORY_REPORT(VK_ERROR_DEVICE_LOST);
@@ -3911,7 +3911,7 @@ public:
         VkDeviceMemory memory,
         const VkAllocationCallbacks* pAllocateInfo) {
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkDeviceMemory.find(memory);
         if (it == info_VkDeviceMemory.end()) return;
@@ -4019,7 +4019,7 @@ public:
             return host_result;
         }
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkDeviceMemory.find(memory);
         if (it == info_VkDeviceMemory.end()) {
@@ -4144,7 +4144,7 @@ public:
         VkImage image,
         VkMemoryRequirements2* reqs2) {
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkImage.find(image);
         if (it == info_VkImage.end()) return;
@@ -4176,7 +4176,7 @@ public:
         VkBuffer buffer,
         VkMemoryRequirements2* reqs2) {
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkBuffer.find(buffer);
         if (it == info_VkBuffer.end()) return;
@@ -4375,7 +4375,7 @@ public:
 
         if (res != VK_SUCCESS) return res;
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkImage.find(*pImage);
         if (it == info_VkImage.end()) return VK_ERROR_INITIALIZATION_FAILED;
@@ -4606,7 +4606,7 @@ public:
             }
 
             ALOGV("%s: getting fence info\n", __func__);
-            AutoLock lock(mLock);
+            AutoLock<RecursiveLock> lock(mLock);
             auto it = info_VkFence.find(*pFence);
 
             if (it == info_VkFence.end())
@@ -4651,7 +4651,7 @@ public:
         // Permanence: temporary
         // on fence reset, close the fence fd
         // and act like we need to GetFenceFdKHR/ImportFenceFdKHR again
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         for (uint32_t i = 0; i < fenceCount; ++i) {
             VkFence fence = pFences[i];
             auto it = info_VkFence.find(fence);
@@ -4700,7 +4700,7 @@ public:
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         auto it = info_VkFence.find(pImportFenceFdInfo->fence);
         if (it == info_VkFence.end()) {
             ALOGV("%s: VK_ERROR_OUT_OF_HOST_MEMORY: no fence info\n", __func__);
@@ -4774,7 +4774,7 @@ public:
         }
 
         if (VK_NOT_READY == currentFenceStatus) { // Fence unsignaled; create fd here
-            AutoLock lock(mLock);
+            AutoLock<RecursiveLock> lock(mLock);
 
             auto it = info_VkFence.find(pGetFdInfo->fence);
             if (it == info_VkFence.end()) {
@@ -4870,7 +4870,7 @@ public:
         std::vector<int> fencesExternalWaitFds;
         std::vector<VkFence> fencesNonExternal;
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         for (uint32_t i = 0; i < fenceCount; ++i) {
             auto it = info_VkFence.find(pFences[i]);
@@ -5047,7 +5047,7 @@ public:
         // (people expect VK_SUCCESS to always be returned by vkFreeDescriptorSets)
         std::vector<VkDescriptorSet> toActuallyFree;
         {
-            AutoLock lock(mLock);
+            AutoLock<RecursiveLock> lock(mLock);
 
             // Pool was destroyed
             if (info_VkDescriptorPool.find(descriptorPool) == info_VkDescriptorPool.end()) {
@@ -5171,7 +5171,7 @@ public:
 
         {
             // Validate and filter samplers
-            AutoLock lock(mLock);
+            AutoLock<RecursiveLock> lock(mLock);
             size_t imageInfoIndex = 0;
             for (uint32_t i = 0; i < descriptorWriteCount; ++i) {
 
@@ -5242,7 +5242,7 @@ public:
         void *context, VkDevice device, VkImage image,
         VkMemoryRequirements *pMemoryRequirements) {
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkImage.find(image);
         if (it == info_VkImage.end()) return;
@@ -5394,7 +5394,7 @@ public:
 
         if (res != VK_SUCCESS) return res;
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkBuffer.find(*pBuffer);
         if (it == info_VkBuffer.end()) return VK_ERROR_INITIALIZATION_FAILED;
@@ -5440,7 +5440,7 @@ public:
     void on_vkGetBufferMemoryRequirements(
         void* context, VkDevice device, VkBuffer buffer, VkMemoryRequirements *pMemoryRequirements) {
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkBuffer.find(buffer);
         if (it == info_VkBuffer.end()) return;
@@ -5573,7 +5573,7 @@ public:
         }
 #endif
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkSemaphore.find(*pSemaphore);
         if (it == info_VkSemaphore.end()) return VK_ERROR_INITIALIZATION_FAILED;
@@ -5669,7 +5669,7 @@ public:
             pGetFdInfo->handleType & VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
 
         if (getSyncFd) {
-            AutoLock lock(mLock);
+            AutoLock<RecursiveLock> lock(mLock);
             auto it = info_VkSemaphore.find(pGetFdInfo->semaphore);
             if (it == info_VkSemaphore.end()) return VK_ERROR_OUT_OF_HOST_MEMORY;
             auto& semInfo = it->second;
@@ -5709,7 +5709,7 @@ public:
             VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT) {
             VkImportSemaphoreFdInfoKHR tmpInfo = *pImportSemaphoreFdInfo;
 
-            AutoLock lock(mLock);
+            AutoLock<RecursiveLock> lock(mLock);
 
             auto semaphoreIt = info_VkSemaphore.find(pImportSemaphoreFdInfo->semaphore);
             auto& info = semaphoreIt->second;
@@ -5994,7 +5994,7 @@ public:
 
         VkEncoder* enc = (VkEncoder*)context;
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         for (uint32_t i = 0; i < submitCount; ++i) {
             for (uint32_t j = 0; j < pSubmits[i].waitSemaphoreCount; ++j) {
@@ -6169,7 +6169,7 @@ public:
 
         VkEncoder* enc = (VkEncoder*)context;
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         std::vector<WorkPool::WaitGroupHandle> toWait =
             mQueueSensitiveWorkPoolItems[queue];
         mQueueSensitiveWorkPoolItems[queue].clear();
@@ -6262,7 +6262,7 @@ public:
         VkDeviceMemory memory,
         uint64_t* pAddress) {
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkDeviceMemory.find(memory);
         if (it == info_VkDeviceMemory.end()) {
@@ -6295,7 +6295,7 @@ public:
         }
 
         // Now pAddress points to the gpu addr from host.
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkDeviceMemory.find(memory);
         if (it == info_VkDeviceMemory.end()) {
@@ -6325,7 +6325,7 @@ public:
         const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
         VkDescriptorUpdateTemplate descriptorUpdateTemplate) {
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkDescriptorUpdateTemplate.find(descriptorUpdateTemplate);
         if (it == info_VkDescriptorUpdateTemplate.end()) {
@@ -6447,7 +6447,7 @@ public:
         if (!userBuffer) return;
 
         // TODO: Make this thread safe
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkDescriptorUpdateTemplate.find(descriptorUpdateTemplate);
         if (it == info_VkDescriptorUpdateTemplate.end()) {
@@ -6766,18 +6766,18 @@ public:
     }
 
     void registerEncoderCleanupCallback(const VkEncoder* encoder, void* object, CleanupCallback callback) {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         auto& callbacks = mEncoderCleanupCallbacks[encoder];
         callbacks[object] = callback;
     }
 
     void unregisterEncoderCleanupCallback(const VkEncoder* encoder, void* object) {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         mEncoderCleanupCallbacks[encoder].erase(object);
     }
 
     void onEncoderDeleted(const VkEncoder* encoder) {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         if (mEncoderCleanupCallbacks.find(encoder) == mEncoderCleanupCallbacks.end()) return;
 
         std::unordered_map<void*, CleanupCallback> callbackCopies = mEncoderCleanupCallbacks[encoder];
@@ -7121,7 +7121,7 @@ public:
             return enc->vkQueueSignalReleaseImageANDROID(queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd, true /* lock */);
         }
 
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkImage.find(image);
         if (it == info_VkImage.end()) {
@@ -7145,7 +7145,7 @@ public:
     }
 
     uint32_t getApiVersionFromInstance(VkInstance instance) const {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
         uint32_t api = kDefaultApiVersion;
 
         auto it = info_VkInstance.find(instance);
@@ -7157,7 +7157,7 @@ public:
     }
 
     uint32_t getApiVersionFromDevice(VkDevice device) const {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         uint32_t api = kDefaultApiVersion;
 
@@ -7170,7 +7170,7 @@ public:
     }
 
     bool hasInstanceExtension(VkInstance instance, const std::string& name) const {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkInstance.find(instance);
         if (it == info_VkInstance.end()) return false;
@@ -7180,7 +7180,7 @@ public:
     }
 
     bool hasDeviceExtension(VkDevice device, const std::string& name) const {
-        AutoLock lock(mLock);
+        AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkDevice.find(device);
         if (it == info_VkDevice.end()) return false;
