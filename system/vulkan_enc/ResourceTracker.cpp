@@ -28,26 +28,7 @@
 #include "../OpenglSystemCommon/EmulatorFeatureInfo.h"
 #include "../OpenglSystemCommon/HostConnection.h"
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
-
-#include "../egl/goldfish_sync.h"
-
-typedef uint32_t zx_handle_t;
-typedef uint64_t zx_koid_t;
-#define ZX_HANDLE_INVALID         ((zx_handle_t)0)
-#define ZX_KOID_INVALID ((zx_koid_t)0)
-void zx_handle_close(zx_handle_t) { }
-void zx_event_create(int, zx_handle_t*) { }
-
-#include "AndroidHardwareBuffer.h"
-
-#ifndef HOST_BUILD
-#include "virtgpu_drm.h"
-#include <xf86drm.h>
-#endif
-
-#endif // VK_USE_PLATFORM_ANDROID_KHR
-
+/// Use installed headers or locally defined Fuchsia-specific bits
 #ifdef VK_USE_PLATFORM_FUCHSIA
 
 #include <cutils/native_handle.h>
@@ -69,6 +50,30 @@ void zx_event_create(int, zx_handle_t*) { }
 
 #define GET_STATUS_SAFE(result, member) \
     ((result).ok() ? ((result).Unwrap()->member) : ZX_OK)
+
+#else
+
+typedef uint32_t zx_handle_t;
+typedef uint64_t zx_koid_t;
+#define ZX_HANDLE_INVALID         ((zx_handle_t)0)
+#define ZX_KOID_INVALID ((zx_koid_t)0)
+void zx_handle_close(zx_handle_t) { }
+void zx_event_create(int, zx_handle_t*) { }
+#endif // VK_USE_PLATFORM_FUCHSIA
+
+/// Use installed headers or locally defined Android-specific bits
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+
+/// Goldfish sync only used for AEMU -- should replace in virtio-gpu when possibe
+#include "../egl/goldfish_sync.h"
+#include "AndroidHardwareBuffer.h"
+
+#ifndef HOST_BUILD
+#include "virtgpu_drm.h"
+#include <xf86drm.h>
+#endif
+
+#else
 
 struct AHardwareBuffer;
 
@@ -116,7 +121,7 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
 
 VkResult getMemoryAndroidHardwareBufferANDROID(struct AHardwareBuffer **) { return VK_SUCCESS; }
 
-#endif // VK_USE_PLATFORM_FUCHSIA
+#endif // VK_USE_PLATFORM_ANDROID_KHR
 
 #include "HostVisibleMemoryVirtualization.h"
 #include "Resources.h"
