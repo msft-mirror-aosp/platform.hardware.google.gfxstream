@@ -17,7 +17,9 @@
 #ifndef ANDROID_HWC_COMPOSER_H
 #define ANDROID_HWC_COMPOSER_H
 
+#include <android-base/unique_fd.h>
 #include <functional>
+#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -52,8 +54,8 @@ class Composer {
 
   // Performs the actual composition of layers and presents the composed result
   // to the display.
-  virtual HWC2::Error presentDisplay(Display* display,
-                                     int32_t* outPresentFence) = 0;
+  virtual std::tuple<HWC2::Error, base::unique_fd> presentDisplay(
+      Display* display) = 0;
   virtual HWC2::Error onActiveConfigChange(Display* display) = 0;
 };
 
