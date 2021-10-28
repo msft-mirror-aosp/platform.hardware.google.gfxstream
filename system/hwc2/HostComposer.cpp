@@ -21,12 +21,15 @@
 #include <android-base/parseint.h>
 #include <android-base/properties.h>
 #include <android-base/strings.h>
+#include <android-base/unique_fd.h>
 #include <drm/virtgpu_drm.h>
 #include <poll.h>
 #include <sync/sync.h>
 #include <ui/GraphicBuffer.h>
 #include <ui/GraphicBufferAllocator.h>
 #include <ui/GraphicBufferMapper.h>
+
+#include <tuple>
 
 #include "../egl/goldfish_sync.h"
 #include "Device.h"
@@ -428,18 +431,24 @@ HWC2::Error HostComposer::validateDisplay(
   return HWC2::Error::None;
 }
 
-HWC2::Error HostComposer::presentDisplay(Display* display,
-                                         int32_t* outRetireFence) {
+std::tuple<HWC2::Error, base::unique_fd> HostComposer::presentDisplay(
+    Display* display) {
   auto it = mDisplayInfos.find(display->getId());
+  base::unique_fd outRetireFence;
   if (it == mDisplayInfos.end()) {
     ALOGE("%s: failed to find display buffers for display:%" PRIu64,
           __FUNCTION__, display->getId());
-    return HWC2::Error::BadDisplay;
+    return std::make_tuple(HWC2::Error::BadDisplay, base::unique_fd());
   }
 
   HostComposerDisplayInfo& displayInfo = it->second;
 
-  DEFINE_AND_VALIDATE_HOST_CONNECTION
+  HostConnection* hostCon;
+  ExtendedRCEncoderContext* rcEnc;
+  HWC2::Error res = getAndValidateHostConnection(&hostCon, &rcEnc);
+  if (res != HWC2::Error::None) {
+    return std::make_tuple(res, base::unique_fd());
+  }
   hostCon->lock();
   bool hostCompositionV1 = rcEnc->hasHostCompositionV1();
   bool hostCompositionV2 = rcEnc->hasHostCompositionV2();
@@ -476,14 +485,14 @@ HWC2::Error HostComposer::presentDisplay(Display* display,
           int retireFence;
           displayInfo.clientTargetDrmBuffer->flushToDisplay(display->getId(),
                                                             &retireFence);
-          *outRetireFence = dup(retireFence);
+          outRetireFence = base::unique_fd(dup(retireFence));
           close(retireFence);
         } else {
           post(hostCon, rcEnc, displayClientTarget.getBuffer());
-          *outRetireFence = displayClientTarget.getFence();
+          outRetireFence = displayClientTarget.getFence();
         }
       }
-      return HWC2::Error::None;
+      return std::make_tuple(HWC2::Error::None, std::move(outRetireFence));
     }
 
     std::unique_ptr<ComposeMsg> composeMsg;
@@ -522,13 +531,13 @@ HWC2::Error HostComposer::presentDisplay(Display* display,
         display->addReleaseLayerLocked(layer->getId());
         releaseLayersCount++;
 
-        int fence = layer->getBuffer().getFence();
-        if (fence != -1) {
-          int err = sync_wait(fence, 3000);
+        base::unique_fd fence = layer->getBuffer().getFence();
+        if (fence.ok()) {
+          int err = sync_wait(fence.get(), 3000);
           if (err < 0 && errno == ETIME) {
-            ALOGE("%s waited on fence %d for 3000 ms", __FUNCTION__, fence);
+            ALOGE("%s waited on fence %d for 3000 ms", __FUNCTION__,
+                  fence.get());
           }
-          close(fence);
         } else {
           ALOGV("%s: acquire fence not set for layer %u", __FUNCTION__,
                 (uint32_t)layer->getId());
@@ -582,7 +591,7 @@ HWC2::Error HostComposer::presentDisplay(Display* display,
       buffer = (void*)p2;
     }
 
-    int retire_fd = -1;
+    base::unique_fd retire_fd;
     hostCon->lock();
     if (rcEnc->hasAsyncFrameCommands()) {
       if (mIsMinigbm) {
@@ -619,19 +628,21 @@ HWC2::Error HostComposer::presentDisplay(Display* display,
     }
 
     if (mIsMinigbm) {
+      int fd;
       displayInfo.compositionResultDrmBuffer->flushToDisplay(display->getId(),
-                                                             &retire_fd);
+                                                             &fd);
+      retire_fd = base::unique_fd(fd);
     } else {
-      goldfish_sync_queue_work(mSyncDeviceFd, sync_handle, thread_handle,
-                               &retire_fd);
+      int fd;
+      goldfish_sync_queue_work(mSyncDeviceFd, sync_handle, thread_handle, &fd);
+      retire_fd = base::unique_fd(fd);
     }
 
     for (size_t i = 0; i < releaseLayersCount; ++i) {
-      display->addReleaseFenceLocked(dup(retire_fd));
+      display->addReleaseFenceLocked(dup(retire_fd.get()));
     }
 
-    *outRetireFence = dup(retire_fd);
-    close(retire_fd);
+    outRetireFence = base::unique_fd(dup(retire_fd.get()));
     if (useRcCommandToSync) {
       hostCon->lock();
       if (rcEnc->hasAsyncFrameCommands()) {
@@ -648,18 +659,18 @@ HWC2::Error HostComposer::presentDisplay(Display* display,
       int retireFence;
       displayInfo.clientTargetDrmBuffer->flushToDisplay(display->getId(),
                                                         &retireFence);
-      *outRetireFence = dup(retireFence);
+      outRetireFence = base::unique_fd(dup(retireFence));
       close(retireFence);
     } else {
       FencedBuffer& displayClientTarget = display->getClientTarget();
       post(hostCon, rcEnc, displayClientTarget.getBuffer());
-      *outRetireFence = displayClientTarget.getFence();
+      outRetireFence = displayClientTarget.getFence();
     }
     ALOGV("%s fallback to post, returns outRetireFence %d", __FUNCTION__,
-          *outRetireFence);
+          outRetireFence.get());
   }
 
-  return HWC2::Error::None;
+  return std::make_tuple(HWC2::Error::None, std::move(outRetireFence));
 }
 
 void HostComposer::post(HostConnection* hostCon,
