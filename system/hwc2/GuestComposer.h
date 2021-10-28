@@ -54,8 +54,8 @@ class GuestComposer : public Composer {
 
   // Performs the actual composition of layers and presents the composed result
   // to the display.
-  HWC2::Error presentDisplay(Display* display,
-                             int32_t* outPresentFence) override;
+  std::tuple<HWC2::Error, base::unique_fd> presentDisplay(
+      Display* display) override;
 
   HWC2::Error onActiveConfigChange(Display* /*display*/) override {
     return HWC2::Error::None;

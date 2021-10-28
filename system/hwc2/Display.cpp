@@ -16,6 +16,7 @@
 
 #include "Display.h"
 
+#include <android-base/unique_fd.h>
 #include <sync/sync.h>
 
 #include <atomic>
@@ -135,13 +136,13 @@ Layer* Display::getLayer(hwc2_layer_t layerId) {
 buffer_handle_t Display::waitAndGetClientTargetBuffer() {
   DEBUG_LOG("%s: display:%" PRIu64, __FUNCTION__, mId);
 
-  int fence = mClientTarget.getFence();
-  if (fence != -1) {
-    int err = sync_wait(fence, 3000);
+  base::unique_fd fence = mClientTarget.getFence();
+  if (fence.ok()) {
+    int err = sync_wait(fence.get(), 3000);
     if (err < 0 && errno == ETIME) {
-      ALOGE("%s waited on fence %" PRId32 " for 3000 ms", __FUNCTION__, fence);
+      ALOGE("%s waited on fence %" PRId32 " for 3000 ms", __FUNCTION__,
+            fence.get());
     }
-    close(fence);
   }
 
   return mClientTarget.getBuffer();
@@ -462,10 +463,10 @@ HWC2::Error Display::getType(int32_t* outType) {
   return HWC2::Error::None;
 }
 
-HWC2::Error Display::present(int32_t* outRetireFence) {
+HWC2::Error Display::present(int32_t* outRetireFencePtr) {
   DEBUG_LOG("%s: display:%" PRIu64, __FUNCTION__, mId);
 
-  *outRetireFence = -1;
+  *outRetireFencePtr = -1;
 
   std::unique_lock<std::recursive_mutex> lock(mStateMutex);
 
@@ -480,13 +481,16 @@ HWC2::Error Display::present(int32_t* outRetireFence) {
     return HWC2::Error::NoResources;
   }
 
-  HWC2::Error error = mComposer->presentDisplay(this, outRetireFence);
+  HWC2::Error error;
+  base::unique_fd outRetireFence;
+  std::tie(error, outRetireFence) = mComposer->presentDisplay(this);
   if (error != HWC2::Error::None) {
     ALOGE("%s: display:%" PRIu64 " failed to present", __FUNCTION__, mId);
     return error;
   }
 
   DEBUG_LOG("%s: display:%" PRIu64 " present done!", __FUNCTION__, mId);
+  *outRetireFencePtr = outRetireFence.release();
   return HWC2::Error::None;
 }
 
@@ -509,7 +513,7 @@ HWC2::Error Display::setClientTarget(buffer_handle_t target,
 
   std::unique_lock<std::recursive_mutex> lock(mStateMutex);
   mClientTarget.setBuffer(target);
-  mClientTarget.setFence(acquireFence);
+  mClientTarget.setFence(base::unique_fd(acquireFence));
   mComposer->onDisplayClientTargetSet(this);
   return HWC2::Error::None;
 }
