@@ -17,6 +17,9 @@
 #ifndef ANDROID_HWC_HOSTCOMPOSER_H
 #define ANDROID_HWC_HOSTCOMPOSER_H
 
+#include <android-base/unique_fd.h>
+#include <tuple>
+
 #include "Common.h"
 #include "Composer.h"
 #include "DrmPresenter.h"
@@ -50,8 +53,8 @@ class HostComposer : public Composer {
 
   // Performs the actual composition of layers and presents the composed result
   // to the display.
-  HWC2::Error presentDisplay(Display* display,
-                             int32_t* outPresentFence) override;
+  std::tuple<HWC2::Error, base::unique_fd> presentDisplay(
+      Display* display) override;
 
   HWC2::Error onActiveConfigChange(Display* display) override;
 
