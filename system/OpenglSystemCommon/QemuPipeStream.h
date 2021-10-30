@@ -61,7 +61,7 @@ private:
 #ifdef __Fuchsia__
     std::unique_ptr<::fidl::WireSyncClient<fuchsia_hardware_goldfish::PipeDevice>>
         m_device;
-    std::unique_ptr<::fidl::WireSyncClient<fuchsia_hardware_goldfish::Pipe>>
+    ::fidl::WireSyncClient<fuchsia_hardware_goldfish::Pipe>
         m_pipe;
     zx::event m_event;
     zx::vmo m_vmo;
