@@ -22,7 +22,6 @@
 #include <android-base/properties.h>
 #include <android-base/strings.h>
 #include <android-base/unique_fd.h>
-#include <drm/virtgpu_drm.h>
 #include <poll.h>
 #include <sync/sync.h>
 #include <ui/GraphicBuffer.h>
@@ -35,6 +34,7 @@
 #include "Device.h"
 #include "Display.h"
 #include "HostUtils.h"
+#include "virtgpu_drm.h"
 
 namespace android {
 namespace {
