@@ -23,6 +23,7 @@
 #include <device_config_shared.h>
 #include <drm_fourcc.h>
 #include <libyuv.h>
+#include <sync/sync.h>
 #include <ui/GraphicBuffer.h>
 #include <ui/GraphicBufferAllocator.h>
 #include <ui/GraphicBufferMapper.h>
@@ -455,19 +456,14 @@ HWC2::Error GuestComposer::onDisplayCreate(Display* display) {
       displayInfo.compositionResultBuffer, mDrmPresenter);
 
   if (displayId == 0) {
-    int flushSyncFd = -1;
-
-    HWC2::Error flushError =
-        displayInfo.compositionResultDrmBuffer->flushToDisplay(displayId,
-                                                               &flushSyncFd);
+    auto [flushError, flushSyncFd] =
+        displayInfo.compositionResultDrmBuffer->flushToDisplay(displayId, -1);
     if (flushError != HWC2::Error::None) {
       ALOGW(
           "%s: Initial display flush failed. HWComposer assuming that we are "
           "running in QEMU without a display and disabling presenting.",
           __FUNCTION__);
       mPresentDisabled = true;
-    } else {
-      close(flushSyncFd);
     }
   }
 
@@ -674,7 +670,7 @@ std::tuple<HWC2::Error, base::unique_fd> GuestComposer::presentDisplay(
   if (displayInfo.compositionResultBuffer == nullptr) {
     ALOGE("%s: display:%" PRIu64 " missing composition result buffer",
           __FUNCTION__, displayId);
-    return std::make_tuple(HWC2::Error::NoResources, base::unique_fd());;
+    return std::make_tuple(HWC2::Error::NoResources, base::unique_fd());
   }
 
   std::optional<GrallocBuffer> compositionResultBufferOpt =
@@ -825,10 +821,9 @@ std::tuple<HWC2::Error, base::unique_fd> GuestComposer::presentDisplay(
   DEBUG_LOG("%s display:%" PRIu64 " flushing drm buffer", __FUNCTION__,
             displayId);
 
-  int fence;
-  HWC2::Error error = displayInfo.compositionResultDrmBuffer->flushToDisplay(
-      static_cast<int>(displayId), &fence);
-  base::unique_fd outRetireFence(fence);
+  auto [error, outRetireFence] =
+      displayInfo.compositionResultDrmBuffer->flushToDisplay(
+          static_cast<int>(displayId), -1);
   if (error != HWC2::Error::None) {
     ALOGE("%s: display:%" PRIu64 " failed to flush drm buffer" PRIu64,
           __FUNCTION__, displayId);
