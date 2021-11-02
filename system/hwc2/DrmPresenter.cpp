@@ -105,7 +105,7 @@ bool DrmPresenter::initDrmElementsLocked() {
           drmModeGetProperty(mFd.get(), crtcProps->props[crtcPropsIndex]);
 
       if (!strcmp(crtcProp->name, "OUT_FENCE_PTR")) {
-        crtc.mFencePropertyId = crtcProp->prop_id;
+        crtc.mOutFencePtrPropertyId = crtcProp->prop_id;
       } else if (!strcmp(crtcProp->name, "ACTIVE")) {
         crtc.mActivePropertyId = crtcProp->prop_id;
       } else if (!strcmp(crtcProp->name, "MODE_ID")) {
@@ -143,6 +143,8 @@ bool DrmPresenter::initDrmElementsLocked() {
 
       if (!strcmp(planeProp->name, "CRTC_ID")) {
         plane.mCrtcPropertyId = planeProp->prop_id;
+      } else if (!strcmp(planeProp->name, "IN_FENCE_FD")) {
+        plane.mInFenceFdPropertyId = planeProp->prop_id;
       } else if (!strcmp(planeProp->name, "FB_ID")) {
         plane.mFbPropertyId = planeProp->prop_id;
       } else if (!strcmp(planeProp->name, "CRTC_X")) {
@@ -376,16 +378,14 @@ bool DrmPresenter::handleHotplug() {
   return true;
 }
 
-HWC2::Error DrmPresenter::flushToDisplay(int display, hwc_drm_bo_t& bo,
-                                         int* outSyncFd) {
+std::tuple<HWC2::Error, base::unique_fd> DrmPresenter::flushToDisplay(
+    int display, hwc_drm_bo_t& bo, base::borrowed_fd inSyncFd) {
   AutoReadLock lock(mStateMutex);
 
   DrmConnector& connector = mConnectors[display];
   DrmCrtc& crtc = mCrtcs[display];
 
   HWC2::Error error = HWC2::Error::None;
-
-  *outSyncFd = -1;
 
   drmModeAtomicReqPtr pset = drmModeAtomicAlloc();
 
@@ -413,18 +413,21 @@ HWC2::Error DrmPresenter::flushToDisplay(int display, hwc_drm_bo_t& bo,
     DEBUG_LOG("%s: Already set crtc\n", __FUNCTION__);
   }
 
-  uint64_t outSyncFdUint = (uint64_t)outSyncFd;
+  int rawOutSyncFd;
+  uint64_t outSyncFdUint =
+      static_cast<uint64_t>(reinterpret_cast<uintptr_t>(&rawOutSyncFd));
 
-  ret = drmModeAtomicAddProperty(pset, crtc.mId, crtc.mFencePropertyId,
+  ret = drmModeAtomicAddProperty(pset, crtc.mId, crtc.mOutFencePtrPropertyId,
                                  outSyncFdUint);
   if (ret < 0) {
-    ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
+    ALOGE("%s:%d: set OUT_FENCE_PTR failed %d errno %d\n", __FUNCTION__,
+          __LINE__, ret, errno);
   }
 
   if (crtc.mPlaneId == -1) {
     ALOGE("%s:%d: no plane available for crtc id %" PRIu32, __FUNCTION__,
           __LINE__, crtc.mId);
-    return HWC2::Error::NoResources;
+    return std::make_tuple(HWC2::Error::NoResources, base::unique_fd());
   }
 
   DrmPlane& plane = mPlanes[crtc.mPlaneId];
@@ -436,6 +439,12 @@ HWC2::Error DrmPresenter::flushToDisplay(int display, hwc_drm_bo_t& bo,
                                  crtc.mId);
   if (ret < 0) {
     ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
+  }
+  ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mInFenceFdPropertyId,
+                                 inSyncFd.get());
+  if (ret < 0) {
+    ALOGE("%s:%d: set IN_FENCE_FD failed %d errno %d\n", __FUNCTION__, __LINE__,
+          ret, errno);
   }
   ret =
       drmModeAtomicAddProperty(pset, plane.mId, plane.mFbPropertyId, bo.fb_id);
@@ -486,13 +495,14 @@ HWC2::Error DrmPresenter::flushToDisplay(int display, hwc_drm_bo_t& bo,
     ALOGE("%s: Atomic commit failed with %d %d\n", __FUNCTION__, ret, errno);
     error = HWC2::Error::NoResources;
   }
+  base::unique_fd outSyncFd(rawOutSyncFd);
 
   if (pset) {
     drmModeAtomicFree(pset);
   }
 
-  DEBUG_LOG("%s: out fence: %d\n", __FUNCTION__, *outSyncFd);
-  return error;
+  DEBUG_LOG("%s: out fence: %d\n", __FUNCTION__, outSyncFd.get());
+  return std::make_tuple(error, std::move(outSyncFd));
 }
 
 std::optional<std::vector<uint8_t>> DrmPresenter::getEdid(uint32_t id) {
@@ -543,8 +553,9 @@ int DrmBuffer::convertBoInfo(const native_handle_t* handle) {
   return 0;
 }
 
-HWC2::Error DrmBuffer::flushToDisplay(int display, int* outFlushDoneSyncFd) {
-  return mDrmPresenter.flushToDisplay(display, mBo, outFlushDoneSyncFd);
+std::tuple<HWC2::Error, base::unique_fd> DrmBuffer::flushToDisplay(
+    int display, base::borrowed_fd inWaitSyncFd) {
+  return mDrmPresenter.flushToDisplay(display, mBo, inWaitSyncFd);
 }
 
 DrmPresenter::DrmEventListener::DrmEventListener(DrmPresenter& presenter)
