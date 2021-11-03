@@ -67,11 +67,9 @@ private:
     static void closeHandle(address_space_handle_t handle);
 
 #ifdef __Fuchsia__
-    std::unique_ptr<
-        ::fidl::WireSyncClient<fuchsia_hardware_goldfish::AddressSpaceDevice>>
+    ::fidl::WireSyncClient<fuchsia_hardware_goldfish::AddressSpaceDevice>
         m_device;
-    std::unique_ptr<
-        ::fidl::WireSyncClient<fuchsia_hardware_goldfish::AddressSpaceChildDriver>>
+    ::fidl::WireSyncClient<fuchsia_hardware_goldfish::AddressSpaceChildDriver>
         m_child_driver;
 #else // __Fuchsia__
     address_space_handle_t m_handle;
