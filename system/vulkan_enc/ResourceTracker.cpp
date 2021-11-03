@@ -993,9 +993,9 @@ public:
                 ALOGE("failed to open control device");
                 abort();
             }
-            mControlDevice = std::make_unique<
-                fidl::WireSyncClient<fuchsia_hardware_goldfish::ControlDevice>>(
-                std::move(channel));
+            mControlDevice =
+                fidl::WireSyncClient<fuchsia_hardware_goldfish::ControlDevice>(
+                    std::move(channel));
 
             fidl::ClientEnd<fuchsia_sysmem::Allocator> sysmem_channel{
                 zx::channel(GetConnectToServiceFunction()("/svc/fuchsia.sysmem.Allocator"))};
@@ -1003,7 +1003,7 @@ public:
                 ALOGE("failed to open sysmem connection");
             }
             mSysmemAllocator =
-                std::make_unique<fidl::WireSyncClient<fuchsia_sysmem::Allocator>>(
+                fidl::WireSyncClient<fuchsia_sysmem::Allocator>(
                     std::move(sysmem_channel));
             char name[ZX_MAX_NAME_LEN] = {};
             zx_object_get_property(zx_process_self(), ZX_PROP_NAME, name, sizeof(name));
@@ -2087,7 +2087,7 @@ public:
         auto sysmem_collection = reinterpret_cast<
             fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>*>(collection);
         if (sysmem_collection) {
-            sysmem_collection->Close();
+            (*sysmem_collection)->Close();
         }
         delete sysmem_collection;
 
@@ -2449,16 +2449,16 @@ public:
                 : fuchsia_sysmem::wire::kFormatModifierGoogleGoldfishOptimal;
 
         constraints->image_format_constraints
-            [constraints->image_format_constraints_count++] =
-            std::move(imageConstraints);
+            [constraints->image_format_constraints_count++] = imageConstraints;
         return VK_SUCCESS;
     }
 
     VkResult setBufferCollectionImageConstraints(
         VkEncoder* enc,
         VkDevice device,
-        fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>* collection,
+        fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>* pCollection,
         const VkImageConstraintsInfoFUCHSIAX* pImageConstraintsInfo) {
+        const auto& collection = *pCollection;
         if (!pImageConstraintsInfo ||
             (pImageConstraintsInfo->sType !=
                  VK_STRUCTURE_TYPE_IMAGE_CONSTRAINTS_INFO_FUCHSIAX &&
@@ -2597,7 +2597,7 @@ public:
         // |collection| is a valid VkBufferCollectionFUCHSIAX handle.
         AutoLock<RecursiveLock> lock(mLock);
         VkBufferCollectionFUCHSIAX buffer_collection =
-            reinterpret_cast<VkBufferCollectionFUCHSIAX>(collection);
+            reinterpret_cast<VkBufferCollectionFUCHSIAX>(pCollection);
         if (info_VkBufferCollectionFUCHSIAX.find(buffer_collection) !=
             info_VkBufferCollectionFUCHSIAX.end()) {
             info_VkBufferCollectionFUCHSIAX[buffer_collection].constraints =
@@ -2610,8 +2610,9 @@ public:
     }
 
     VkResult setBufferCollectionBufferConstraints(
-        fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>* collection,
+        fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>* pCollection,
         const VkBufferConstraintsInfoFUCHSIAX* pBufferConstraintsInfo) {
+        const auto& collection = *pCollection;
         if (pBufferConstraintsInfo == nullptr) {
             ALOGE(
                 "setBufferCollectionBufferConstraints: "
@@ -2642,11 +2643,11 @@ public:
         // |collection| is a valid VkBufferCollectionFUCHSIAX handle.
         AutoLock<RecursiveLock> lock(mLock);
         VkBufferCollectionFUCHSIAX buffer_collection =
-            reinterpret_cast<VkBufferCollectionFUCHSIAX>(collection);
+            reinterpret_cast<VkBufferCollectionFUCHSIAX>(pCollection);
         if (info_VkBufferCollectionFUCHSIAX.find(buffer_collection) !=
             info_VkBufferCollectionFUCHSIAX.end()) {
             info_VkBufferCollectionFUCHSIAX[buffer_collection].constraints =
-                android::base::makeOptional(std::move(constraints));
+                android::base::makeOptional(constraints);
         }
 
         return VK_SUCCESS;
@@ -2787,7 +2788,7 @@ public:
         VkBufferCollectionFUCHSIAX collection,
         VkBufferCollectionProperties2FUCHSIAX* pProperties) {
         VkEncoder* enc = (VkEncoder*)context;
-        auto sysmem_collection = reinterpret_cast<
+        const auto& sysmem_collection = *reinterpret_cast<
             fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>*>(collection);
 
         auto result = sysmem_collection->WaitForBuffersAllocated();
@@ -3444,7 +3445,7 @@ public:
         if (importBufferCollection) {
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
-            auto collection = reinterpret_cast<
+            const auto& collection = *reinterpret_cast<
                 fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>*>(
                 importBufferCollectionInfoPtr->collection);
             auto result = collection->WaitForBuffersAllocated();
@@ -3590,7 +3591,7 @@ public:
                 }
 
                 {
-                    auto result = collection.WaitForBuffersAllocated();
+                    auto result = collection->WaitForBuffersAllocated();
                     if (result.ok() && result.Unwrap()->status == ZX_OK) {
                         fuchsia_sysmem::wire::BufferCollectionInfo2& info =
                             result.Unwrap()->buffer_collection_info;
@@ -3609,7 +3610,7 @@ public:
                     }
                 }
 
-                collection.Close();
+                collection->Close();
 
                 zx::vmo vmo_copy;
                 zx_status_t status = zx_handle_duplicate(vmo_handle, ZX_RIGHT_SAME_RIGHTS,
@@ -4271,7 +4272,7 @@ public:
         }
 
         if (extBufferCollectionPtr) {
-            auto collection = reinterpret_cast<
+            const auto& collection = *reinterpret_cast<
                 fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>*>(
                 extBufferCollectionPtr->collection);
             uint32_t index = extBufferCollectionPtr->index;
@@ -5347,7 +5348,7 @@ public:
         }
 
         if (extBufferCollectionPtr) {
-            auto collection = reinterpret_cast<
+            const auto& collection = *reinterpret_cast<
                 fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>*>(
                 extBufferCollectionPtr->collection);
             uint32_t index = extBufferCollectionPtr->index;
@@ -5372,7 +5373,7 @@ public:
                         fuchsia_hardware_goldfish::wire::kMemoryPropertyDeviceLocal);
 
                 auto result =
-                    mControlDevice->CreateBuffer2(std::move(*vmo), std::move(createParams));
+                    mControlDevice->CreateBuffer2(std::move(*vmo), createParams);
                 if (!result.ok() ||
                     (result.Unwrap()->result.is_err() != ZX_OK &&
                      result.Unwrap()->result.err() != ZX_ERR_ALREADY_EXISTS)) {
@@ -7274,10 +7275,9 @@ private:
 #endif
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
-    std::unique_ptr<
-        fidl::WireSyncClient<fuchsia_hardware_goldfish::ControlDevice>>
+    fidl::WireSyncClient<fuchsia_hardware_goldfish::ControlDevice>
         mControlDevice;
-    std::unique_ptr<fidl::WireSyncClient<fuchsia_sysmem::Allocator>>
+    fidl::WireSyncClient<fuchsia_sysmem::Allocator>
         mSysmemAllocator;
 #endif
 
