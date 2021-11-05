@@ -20,7 +20,7 @@
 template <class T> struct vk_get_vk_struct_id;
 
 #define REGISTER_VK_STRUCT_ID(T, ID) \
-    template <> struct vk_get_vk_struct_id<T> { static constexpr VkStructureType id = ID; };
+    template <> struct vk_get_vk_struct_id<T> { static constexpr VkStructureType id = ID; }
 
 REGISTER_VK_STRUCT_ID(VkAndroidHardwareBufferPropertiesANDROID, VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_PROPERTIES_ANDROID);
 REGISTER_VK_STRUCT_ID(VkAndroidHardwareBufferFormatPropertiesANDROID, VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_PROPERTIES_ANDROID);
