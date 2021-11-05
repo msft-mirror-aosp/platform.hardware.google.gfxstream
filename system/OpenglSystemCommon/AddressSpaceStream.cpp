@@ -397,7 +397,7 @@ void *AddressSpaceStream::allocBuffer(size_t minSize) {
 
         return m_writeStart;
     }
-};
+}
 
 int AddressSpaceStream::commitBuffer(size_t size)
 {
