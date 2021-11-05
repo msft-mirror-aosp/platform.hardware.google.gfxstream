@@ -119,7 +119,10 @@ shared_library("libvulkan_goldfish") {
     "PAGE_SIZE=4096",
   ]
 
+  cflags = [ "-Wextra-semi" ]
+
   cflags_c = [
+    "-Wstrict-prototypes",
     "-Wno-missing-field-initializers",
     "-Wno-newline-eof",
     "-Wno-unused-function",
