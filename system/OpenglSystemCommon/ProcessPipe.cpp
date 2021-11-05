@@ -255,7 +255,7 @@ void processPipeRestart() {
 #endif // __Fuchsia__
 
     processPipeInitOnce();
-};
+}
 
 void refreshHostConnection() {
     HostConnection* hostConn = HostConnection::get();
