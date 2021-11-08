@@ -3683,10 +3683,10 @@ public:
                         fidl::Arena arena;
                         fuchsia_hardware_goldfish::wire::CreateColorBuffer2Params createParams(
                             arena);
-                        createParams.set_width(arena, pImageCreateInfo->extent.width)
-                            .set_height(arena, pImageCreateInfo->extent.height)
-                            .set_format(arena, format)
-                            .set_memory_property(arena,
+                        createParams.set_width(pImageCreateInfo->extent.width)
+                            .set_height(pImageCreateInfo->extent.height)
+                            .set_format(format)
+                            .set_memory_property(
                                 fuchsia_hardware_goldfish::wire::kMemoryPropertyDeviceLocal);
 
                         auto result = mControlDevice->CreateColorBuffer2(
@@ -3712,7 +3712,7 @@ public:
                     fuchsia_hardware_goldfish::wire::CreateBuffer2Params createParams(arena);
                     createParams.set_size(arena,
                             pBufferConstraintsInfo->pBufferCreateInfo->size)
-                        .set_memory_property(arena,
+                        .set_memory_property(
                             fuchsia_hardware_goldfish::wire::kMemoryPropertyDeviceLocal);
 
                     auto result =
@@ -4335,12 +4335,12 @@ public:
                     fidl::Arena arena;
                     fuchsia_hardware_goldfish::wire::CreateColorBuffer2Params createParams(
                         arena);
-                    createParams.set_width(arena,
+                    createParams.set_width(
                             info.settings.image_format_constraints.min_coded_width)
-                        .set_height(arena,
+                        .set_height(
                             info.settings.image_format_constraints.min_coded_height)
-                        .set_format(arena, format)
-                        .set_memory_property(arena, memory_property);
+                        .set_format(format)
+                        .set_memory_property(memory_property);
 
                     auto result =
                         mControlDevice->CreateColorBuffer2(std::move(vmo), std::move(createParams));
@@ -5373,7 +5373,7 @@ public:
                 fidl::Arena arena;
                 fuchsia_hardware_goldfish::wire::CreateBuffer2Params createParams(arena);
                 createParams.set_size(arena, pCreateInfo->size)
-                    .set_memory_property(arena,
+                    .set_memory_property(
                         fuchsia_hardware_goldfish::wire::kMemoryPropertyDeviceLocal);
 
                 auto result =
