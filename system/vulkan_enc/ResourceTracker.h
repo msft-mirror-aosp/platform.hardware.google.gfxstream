@@ -648,14 +648,19 @@ public:
                           VkCommandBuffer* pCommandBuffers);
     void resetCommandPoolStagingInfo(VkCommandPool commandPool);
 
+#ifdef __GNUC__
+    #define ALWAYS_INLINE
+#elif
+    #define ALWAYS_INLINE __attribute__((always_inline))
+#endif
 
     static VkEncoder* getCommandBufferEncoder(VkCommandBuffer commandBuffer);
     static VkEncoder* getQueueEncoder(VkQueue queue);
     static VkEncoder* getThreadLocalEncoder();
 
     static void setSeqnoPtr(uint32_t* seqnoptr);
-    static __attribute__((always_inline)) uint32_t nextSeqno();
-    static __attribute__((always_inline)) uint32_t getSeqno();
+    static ALWAYS_INLINE uint32_t nextSeqno();
+    static ALWAYS_INLINE uint32_t getSeqno();
 
     // Transforms
     void deviceMemoryTransform_tohost(
