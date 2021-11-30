@@ -494,7 +494,7 @@ EGLBoolean egl_window_surface_t::init()
 {
 #ifndef HOST_BUILD
     int consumerUsage = 0;
-    if (nativeWindow->query(nativeWindow, NATIVE_WINDOW_CONSUMER_USAGE_BITS, &consumerUsage) != NO_ERROR) {
+    if (nativeWindow->query(nativeWindow, NATIVE_WINDOW_CONSUMER_USAGE_BITS, &consumerUsage) != 0) {
         setErrorReturn(EGL_BAD_ALLOC, EGL_FALSE);
     } else {
         int producerUsage = GRALLOC_USAGE_HW_RENDER;
@@ -502,7 +502,7 @@ EGLBoolean egl_window_surface_t::init()
     }
 #endif
 
-    if (nativeWindow->dequeueBuffer_DEPRECATED(nativeWindow, &buffer) != NO_ERROR) {
+    if (nativeWindow->dequeueBuffer_DEPRECATED(nativeWindow, &buffer) != 0) {
         setErrorReturn(EGL_BAD_ALLOC, EGL_FALSE);
     }
     setWidth(buffer->width);
