@@ -3112,20 +3112,20 @@ struct FenceRegistry {
     PredicateMap<uint64_t, false> existence;
 
     void onFenceCreated(GLsync sync) {
-        AutoLock scopedLock(lock);
+        AutoLock<Lock> scopedLock(lock);
         uint64_t asUint64 = (uint64_t)(uintptr_t)(sync);
         existence.add(asUint64);
         existence.set(asUint64, true);
     }
 
     void onFenceDestroyed(GLsync sync) {
-        AutoLock scopedLock(lock);
+        AutoLock<Lock> scopedLock(lock);
         uint64_t asUint64 = (uint64_t)(uintptr_t)(sync);
         existence.remove(asUint64);
     }
 
     bool exists(GLsync sync) {
-        AutoLock scopedLock(lock);
+        AutoLock<Lock> scopedLock(lock);
         uint64_t asUint64 = (uint64_t)(uintptr_t)(sync);
         return existence.get(asUint64);
     }
