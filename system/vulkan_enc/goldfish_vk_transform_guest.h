@@ -46,6 +46,7 @@ f(VkExternalBufferProperties) \
 
 #define LIST_NON_TRIVIAL_TRANSFORMED_TYPES(f) \
 f(VkExternalMemoryProperties) \
+f(VkImageCreateInfo) \
 
 #define LIST_TRANSFORMED_TYPES(f) \
 LIST_TRIVIAL_TRANSFORMED_TYPES(f) \
