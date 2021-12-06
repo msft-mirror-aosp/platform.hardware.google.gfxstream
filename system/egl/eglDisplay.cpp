@@ -111,13 +111,9 @@ bool eglDisplay::initialize(EGLClient_eglInterface *eglIface)
             return false;
         }
 
-#ifdef WITH_GLES2
         m_gles2_iface = loadGLESClientAPI("libGLESv2_emulation",
                                           eglIface,
                                           &s_gles2_lib);
-        // Note that if loading gles2 failed, we can still run with no
-        // GLES2 support, having GLES2 is not mandatory.
-#endif
 
         //
         // establish connection with the host
