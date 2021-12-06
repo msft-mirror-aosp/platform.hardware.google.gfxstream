@@ -43,9 +43,7 @@
 #include <qemu_pipe_bp.h>
 
 #include "GLEncoder.h"
-#ifdef WITH_GLES2
 #include "GL2Encoder.h"
-#endif
 
 #include <GLES3/gl31.h>
 
