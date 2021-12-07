@@ -62,18 +62,7 @@
 #define override
 #endif
 
-#if PLATFORM_SDK_VERSION >= 16
 #include <system/window.h>
-#else // PLATFORM_SDK_VERSION >= 16
-#include <private/ui/android_natives_priv.h>
-#endif // PLATFORM_SDK_VERSION >= 16
-
-#if PLATFORM_SDK_VERSION <= 16
-#define queueBuffer_DEPRECATED queueBuffer
-#define dequeueBuffer_DEPRECATED dequeueBuffer
-#define cancelBuffer_DEPRECATED cancelBuffer
-#endif // PLATFORM_SDK_VERSION <= 16
-
 #define DEBUG_EGL 0
 
 #if DEBUG_EGL
@@ -788,30 +777,17 @@ EGLBoolean egl_window_surface_t::swapBuffers()
         setErrorReturn(EGL_BAD_SURFACE, EGL_FALSE);
     }
 
-#if PLATFORM_SDK_VERSION <= 16
-    rcEnc->rcFlushWindowColorBuffer(rcEnc, rcSurface);
-    // equivalent to glFinish if no native sync
-    eglWaitClient();
-    nativeWindow->queueBuffer(nativeWindow, buffer);
-#else
     sFlushBufferAndCreateFence(
         hostCon, rcEnc, rcSurface,
         sFrameTracingState.frameNumber, &presentFenceFd);
 
     DPRINT("queueBuffer with fence %d", presentFenceFd);
     nativeWindow->queueBuffer(nativeWindow, buffer, presentFenceFd);
-#endif
 
     appTimeMetric.onQueueBufferReturn();
 
     DPRINT("calling dequeueBuffer...");
 
-#if PLATFORM_SDK_VERSION <= 16
-    if (nativeWindow->dequeueBuffer(nativeWindow, &buffer)) {
-        buffer = NULL;
-        setErrorReturn(EGL_BAD_SURFACE, EGL_FALSE);
-    }
-#else
     int acquireFenceFd = -1;
     if (nativeWindow->dequeueBuffer(nativeWindow, &buffer, &acquireFenceFd)) {
         buffer = NULL;
@@ -823,7 +799,6 @@ EGLBoolean egl_window_surface_t::swapBuffers()
     if (acquireFenceFd > 0) {
         close(acquireFenceFd);
     }
-#endif
 
     rcEnc->rcSetWindowColorBuffer(rcEnc, rcSurface,
             grallocHelper->getHostHandle(buffer->handle));
