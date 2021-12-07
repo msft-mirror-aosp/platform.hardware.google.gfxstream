@@ -1292,12 +1292,12 @@ EGLSurface eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWin
         setErrorReturn(EGL_BAD_MATCH, EGL_NO_SURFACE);
     }
 
-    if (static_cast<ANativeWindow*>(win)->common.magic != ANDROID_NATIVE_WINDOW_MAGIC) {
+    if (reinterpret_cast<ANativeWindow*>(win)->common.magic != ANDROID_NATIVE_WINDOW_MAGIC) {
         setErrorReturn(EGL_BAD_NATIVE_WINDOW, EGL_NO_SURFACE);
     }
 
     egl_surface_t* surface = egl_window_surface_t::create(
-            &s_display, config, EGL_WINDOW_BIT, static_cast<ANativeWindow*>(win));
+            &s_display, config, EGL_WINDOW_BIT, reinterpret_cast<ANativeWindow*>(win));
     if (!surface) {
         setErrorReturn(EGL_BAD_ALLOC, EGL_NO_SURFACE);
     }
