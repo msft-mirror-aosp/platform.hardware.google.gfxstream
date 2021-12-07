@@ -1439,7 +1439,8 @@ public:
             getHostDeviceExtensionIndex(
                 "VK_KHR_external_fence_fd") != -1;
         if (!hostSupportsExternalFenceFd) {
-            filteredExts.push_back({ "VK_KHR_external_fence_fd", 1});
+            filteredExts.push_back(
+                VkExtensionProperties { "VK_KHR_external_fence_fd", 1});
         }
 #endif
 
@@ -1447,7 +1448,7 @@ public:
         if (hostSupportsExternalSemaphore &&
             !hostHasPosixExternalSemaphore) {
             filteredExts.push_back(
-                { "VK_KHR_external_semaphore_fd", 1});
+                VkExtensionProperties { "VK_KHR_external_semaphore_fd", 1});
         }
 #endif
 
@@ -1466,23 +1467,20 @@ public:
 
         if (hostHasExternalMemorySupport) {
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
-            filteredExts.push_back({
-                "VK_ANDROID_external_memory_android_hardware_buffer", 7
-            });
-            filteredExts.push_back({
-                "VK_EXT_queue_family_foreign", 1
-            });
+            filteredExts.push_back(
+                VkExtensionProperties {
+                   "VK_ANDROID_external_memory_android_hardware_buffer", 7
+                });
+            filteredExts.push_back(
+                VkExtensionProperties { "VK_EXT_queue_family_foreign", 1 });
 #endif
 #ifdef VK_USE_PLATFORM_FUCHSIA
-            filteredExts.push_back({
-                "VK_FUCHSIA_external_memory", 1
-            });
-            filteredExts.push_back({
-                "VK_FUCHSIA_buffer_collection", 1
-            });
-            filteredExts.push_back({
-                "VK_FUCHSIA_buffer_collection_x", 1
-            });
+            filteredExts.push_back(
+                VkExtensionProperties { "VK_FUCHSIA_external_memory", 1});
+            filteredExts.push_back(
+                VkExtensionProperties { "VK_FUCHSIA_buffer_collection", 1 });
+            filteredExts.push_back(
+                VkExtensionProperties { "VK_FUCHSIA_buffer_collection_x", 1});
 #endif
         }
 
