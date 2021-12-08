@@ -10132,21 +10132,10 @@ void marshal_VkXcbSurfaceCreateInfoKHR(
     const VkXcbSurfaceCreateInfoKHR* forMarshaling)
 {
     (void)rootType;
-    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM)
-    {
-        rootType = forMarshaling->sType;
-    }
-    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
-    vkStream->write((VkXcbSurfaceCreateFlagsKHR*)&forMarshaling->flags, sizeof(VkXcbSurfaceCreateFlagsKHR));
-    // WARNING PTR CHECK
-    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->connection;
-    vkStream->putBe64(cgen_var_0);
-    if (forMarshaling->connection)
-    {
-        vkStream->write((xcb_connection_t*)forMarshaling->connection, sizeof(xcb_connection_t));
-    }
-    vkStream->write((xcb_window_t*)&forMarshaling->window, sizeof(xcb_window_t));
+    
+    // This struct should never be marshaled / unmarshaled.
+    __builtin_trap();
+    
 }
 
 void unmarshal_VkXcbSurfaceCreateInfoKHR(
@@ -10155,25 +10144,10 @@ void unmarshal_VkXcbSurfaceCreateInfoKHR(
     VkXcbSurfaceCreateInfoKHR* forUnmarshaling)
 {
     (void)rootType;
-    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM)
-    {
-        rootType = forUnmarshaling->sType;
-    }
-    unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
-    vkStream->read((VkXcbSurfaceCreateFlagsKHR*)&forUnmarshaling->flags, sizeof(VkXcbSurfaceCreateFlagsKHR));
-    // WARNING PTR CHECK
-    xcb_connection_t* check_connection;
-    check_connection = (xcb_connection_t*)(uintptr_t)vkStream->getBe64();
-    if (forUnmarshaling->connection)
-    {
-        if (!(check_connection))
-        {
-            fprintf(stderr, "fatal: forUnmarshaling->connection inconsistent between guest and host\n");
-        }
-        vkStream->read((xcb_connection_t*)forUnmarshaling->connection, sizeof(xcb_connection_t));
-    }
-    vkStream->read((xcb_window_t*)&forUnmarshaling->window, sizeof(xcb_window_t));
+    
+    // This struct should never be marshaled / unmarshaled.
+    __builtin_trap();
+    
 }
 
 #endif
@@ -19216,20 +19190,10 @@ void marshal_VkMetalSurfaceCreateInfoEXT(
     const VkMetalSurfaceCreateInfoEXT* forMarshaling)
 {
     (void)rootType;
-    vkStream->write((VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM)
-    {
-        rootType = forMarshaling->sType;
-    }
-    marshal_extension_struct(vkStream, rootType, forMarshaling->pNext);
-    vkStream->write((VkMetalSurfaceCreateFlagsEXT*)&forMarshaling->flags, sizeof(VkMetalSurfaceCreateFlagsEXT));
-    // WARNING PTR CHECK
-    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pLayer;
-    vkStream->putBe64(cgen_var_0);
-    if (forMarshaling->pLayer)
-    {
-        vkStream->write((const CAMetalLayer*)forMarshaling->pLayer, sizeof(const CAMetalLayer));
-    }
+    
+    // This struct should never be marshaled / unmarshaled.
+    __builtin_trap();
+    
 }
 
 void unmarshal_VkMetalSurfaceCreateInfoEXT(
@@ -19238,24 +19202,10 @@ void unmarshal_VkMetalSurfaceCreateInfoEXT(
     VkMetalSurfaceCreateInfoEXT* forUnmarshaling)
 {
     (void)rootType;
-    vkStream->read((VkStructureType*)&forUnmarshaling->sType, sizeof(VkStructureType));
-    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM)
-    {
-        rootType = forUnmarshaling->sType;
-    }
-    unmarshal_extension_struct(vkStream, rootType, (void*)(forUnmarshaling->pNext));
-    vkStream->read((VkMetalSurfaceCreateFlagsEXT*)&forUnmarshaling->flags, sizeof(VkMetalSurfaceCreateFlagsEXT));
-    // WARNING PTR CHECK
-    const CAMetalLayer* check_pLayer;
-    check_pLayer = (const CAMetalLayer*)(uintptr_t)vkStream->getBe64();
-    if (forUnmarshaling->pLayer)
-    {
-        if (!(check_pLayer))
-        {
-            fprintf(stderr, "fatal: forUnmarshaling->pLayer inconsistent between guest and host\n");
-        }
-        vkStream->read((CAMetalLayer*)forUnmarshaling->pLayer, sizeof(const CAMetalLayer));
-    }
+    
+    // This struct should never be marshaled / unmarshaled.
+    __builtin_trap();
+    
 }
 
 #endif
