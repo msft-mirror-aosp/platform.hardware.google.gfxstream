@@ -58,10 +58,6 @@
 #endif
 #include <cutils/trace.h>
 
-#if PLATFORM_SDK_VERSION < 18
-#define override
-#endif
-
 #include <system/window.h>
 #define DEBUG_EGL 0
 
@@ -1214,29 +1210,11 @@ EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig 
         attrib_list = backup_attribs;
     }
 
-    // API 19 passes EGL_SWAP_BEHAVIOR_PRESERVED_BIT to surface type,
-    // while the host never supports it.
-    // We remove the bit here.
-    EGLint* local_attrib_list = NULL;
-    if (PLATFORM_SDK_VERSION <= 19) {
-        local_attrib_list = new EGLint[attribs_size];
-        memcpy(local_attrib_list, attrib_list, attribs_size * sizeof(EGLint));
-        EGLint* local_attrib_p = local_attrib_list;
-        while (local_attrib_p[0] != EGL_NONE) {
-            if (local_attrib_p[0] == EGL_SURFACE_TYPE) {
-                local_attrib_p[1] &= ~(EGLint)EGL_SWAP_BEHAVIOR_PRESERVED_BIT;
-            }
-            local_attrib_p += 2;
-        }
-    }
-
     uint32_t* tempConfigs[config_size];
     DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
-    *num_config = rcEnc->rcChooseConfig(rcEnc,
-            local_attrib_list ? local_attrib_list:(EGLint*)attrib_list,
+    *num_config = rcEnc->rcChooseConfig(rcEnc, (EGLint*)attrib_list,
             attribs_size * sizeof(EGLint), (uint32_t*)tempConfigs, config_size);
 
-    if (local_attrib_list) delete [] local_attrib_list;
     if (*num_config < 0) {
         EGLint err = -(*num_config);
         *num_config = 0;
