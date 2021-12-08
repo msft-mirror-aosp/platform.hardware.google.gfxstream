@@ -4341,7 +4341,6 @@ VkResult VkEncoder::vkCreateImage(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        sResourceTracker->transformImpl_VkImageCreateInfo_tohost(local_pCreateInfo, 1);
         transform_tohost_VkImageCreateInfo(sResourceTracker, (VkImageCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
@@ -33581,7 +33580,6 @@ VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        sResourceTracker->transformImpl_VkImageCreateInfo_tohost(local_pCreateInfo, 1);
         transform_tohost_VkImageCreateInfo(sResourceTracker, (VkImageCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
