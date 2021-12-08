@@ -682,6 +682,7 @@ public:
     void transformImpl_VkExternalMemoryProperties_tohost(
         VkExternalMemoryProperties* pProperties,
         uint32_t);
+    void transformImpl_VkImageCreateInfo_tohost(VkImageCreateInfo*, uint32_t);
 
 #define DEFINE_TRANSFORMED_TYPE_PROTOTYPE(type)          \
     void transformImpl_##type##_tohost(type*, uint32_t); \
