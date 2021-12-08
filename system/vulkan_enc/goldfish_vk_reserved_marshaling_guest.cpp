@@ -6937,10 +6937,29 @@ void reservedmarshal_VkXcbSurfaceCreateInfoKHR(
     const VkXcbSurfaceCreateInfoKHR* forMarshaling,
     uint8_t** ptr)
 {
-    
-    // This struct should never be marshaled / unmarshaled.
-    __builtin_trap();
-    
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM)
+    {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkXcbSurfaceCreateFlagsKHR*)&forMarshaling->flags, sizeof(VkXcbSurfaceCreateFlagsKHR));
+    *ptr += sizeof(VkXcbSurfaceCreateFlagsKHR);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->connection;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->connection)
+    {
+        memcpy(*ptr, (xcb_connection_t*)forMarshaling->connection, sizeof(xcb_connection_t));
+        *ptr += sizeof(xcb_connection_t);
+    }
+    memcpy(*ptr, (xcb_window_t*)&forMarshaling->window, sizeof(xcb_window_t));
+    *ptr += sizeof(xcb_window_t);
 }
 
 #endif
@@ -12888,10 +12907,27 @@ void reservedmarshal_VkMetalSurfaceCreateInfoEXT(
     const VkMetalSurfaceCreateInfoEXT* forMarshaling,
     uint8_t** ptr)
 {
-    
-    // This struct should never be marshaled / unmarshaled.
-    __builtin_trap();
-    
+    (void)vkStream;
+    (void)rootType;
+    memcpy(*ptr, (VkStructureType*)&forMarshaling->sType, sizeof(VkStructureType));
+    *ptr += sizeof(VkStructureType);
+    if (rootType == VK_STRUCTURE_TYPE_MAX_ENUM)
+    {
+        rootType = forMarshaling->sType;
+    }
+    reservedmarshal_extension_struct(vkStream, rootType, forMarshaling->pNext, ptr);
+    memcpy(*ptr, (VkMetalSurfaceCreateFlagsEXT*)&forMarshaling->flags, sizeof(VkMetalSurfaceCreateFlagsEXT));
+    *ptr += sizeof(VkMetalSurfaceCreateFlagsEXT);
+    // WARNING PTR CHECK
+    uint64_t cgen_var_0 = (uint64_t)(uintptr_t)forMarshaling->pLayer;
+    memcpy((*ptr), &cgen_var_0, 8);
+    android::base::Stream::toBe64((uint8_t*)(*ptr));
+    *ptr += 8;
+    if (forMarshaling->pLayer)
+    {
+        memcpy(*ptr, (const CAMetalLayer*)forMarshaling->pLayer, sizeof(const CAMetalLayer));
+        *ptr += sizeof(const CAMetalLayer);
+    }
 }
 
 #endif
