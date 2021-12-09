@@ -743,7 +743,9 @@ WorkerProcessingResult FrameBuffer::postWorkerFunc(Post& post) {
 
 std::future<void> FrameBuffer::sendPostWorkerCmd(Post post) {
 #ifdef __APPLE__
-    bool postOnlyOnMainThread = m_subWin && (emugl::getRenderer() == SELECTED_RENDERER_HOST);
+    bool postOnlyOnMainThread = m_subWin &&
+        ((emugl::getRenderer() == SELECTED_RENDERER_HOST) ||
+            (emugl::getRenderer() == SELECTED_RENDERER_ANGLE_INDIRECT));
 #else
     bool postOnlyOnMainThread = false;
 #endif
