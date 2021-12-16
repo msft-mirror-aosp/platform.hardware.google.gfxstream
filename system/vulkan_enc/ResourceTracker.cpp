@@ -3123,7 +3123,7 @@ public:
                 directMappedAddr = (uint64_t)(uintptr_t)
                     mmap64(0, hvaSizeId[1], PROT_WRITE, MAP_SHARED, rendernodeFdForMem, map_info.offset);
 
-                if (!directMappedAddr) {
+                if ((void*)directMappedAddr == MAP_FAILED) {
                     ALOGE("%s: mmap of virtio gpu resource failed\n", __func__);
                     abort();
                 }
