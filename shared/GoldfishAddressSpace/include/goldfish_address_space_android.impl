@@ -711,7 +711,7 @@ bool virtgpu_address_space_allocate_hostmem(
 
     void* directMappedAddr = mmap64(0, size, PROT_WRITE, MAP_SHARED, fd, map.offset);
 
-    if (!directMappedAddr) {
+    if (directMappedAddr == MAP_FAILED) {
         ALOGE("%s: mmap of virtio gpu resource failed\n", __func__);
         abort();
     }
