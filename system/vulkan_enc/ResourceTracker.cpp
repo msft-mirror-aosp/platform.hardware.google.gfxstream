@@ -3281,15 +3281,6 @@ public:
                 vk_find_struct<VkImportMemoryBufferCollectionFUCHSIAX>(
                     pAllocateInfo);
 
-        // TODO(fxbug.dev/73447): remove this once we finish migration to
-        // FUCHSIAX.
-        if (!importBufferCollectionInfoPtr) {
-            importBufferCollectionInfoPtr =
-                reinterpret_cast<const VkImportMemoryBufferCollectionFUCHSIAX*>(
-                    vk_find_struct<VkImportMemoryBufferCollectionFUCHSIA>(
-                        pAllocateInfo));
-        }
-
         const VkImportMemoryZirconHandleInfoFUCHSIA* importVmoInfoPtr =
                 vk_find_struct<VkImportMemoryZirconHandleInfoFUCHSIA>(
                         pAllocateInfo);
@@ -4250,14 +4241,6 @@ public:
             extBufferCollectionPtr =
                 vk_find_struct<VkBufferCollectionImageCreateInfoFUCHSIAX>(
                     pCreateInfo);
-        if (extBufferCollectionPtr == nullptr) {
-            // TODO(fxbug.dev/73447): remove this once we finish migration to
-            // FUCHSIAX.
-            extBufferCollectionPtr = reinterpret_cast<
-                const VkBufferCollectionImageCreateInfoFUCHSIAX*>(
-                vk_find_struct<VkBufferCollectionImageCreateInfoFUCHSIA>(
-                    pCreateInfo));
-        }
         bool isSysmemBackedMemory = false;
 
         if (extImgCiPtr &&
@@ -5331,14 +5314,6 @@ public:
         const auto* extBufferCollectionPtr =
             vk_find_struct<VkBufferCollectionBufferCreateInfoFUCHSIAX>(
                 pCreateInfo);
-        if (extBufferCollectionPtr == nullptr) {
-            // TODO(fxbug.dev/73447): Remove this once we finish migration to
-            // FUCHSIAX.
-            extBufferCollectionPtr = reinterpret_cast<
-                const VkBufferCollectionBufferCreateInfoFUCHSIAX*>(
-                vk_find_struct<VkBufferCollectionBufferCreateInfoFUCHSIA>(
-                    pCreateInfo));
-        }
 
         if (extBufferCollectionPtr) {
             const auto& collection = *reinterpret_cast<
