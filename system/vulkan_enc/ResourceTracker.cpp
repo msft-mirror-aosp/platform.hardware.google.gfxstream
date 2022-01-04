@@ -3276,6 +3276,7 @@ public:
         const VkImportAndroidHardwareBufferInfoANDROID* importAhbInfoPtr =
             vk_find_struct<VkImportAndroidHardwareBufferInfoANDROID>(pAllocateInfo);
 
+#ifdef VK_USE_PLATFORM_FUCHSIA
         const VkImportMemoryBufferCollectionFUCHSIAX*
             importBufferCollectionInfoPtr =
                 vk_find_struct<VkImportMemoryBufferCollectionFUCHSIAX>(
@@ -3297,6 +3298,10 @@ public:
                 __vk_find_struct(const_cast<void*>(pAllocateInfo->pNext),
                     VK_STRUCTURE_TYPE_TEMP_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA));
         }
+#else
+        const void* importBufferCollectionInfoPtr = nullptr;
+        const void* importVmoInfoPtr = nullptr;
+#endif  // VK_USE_PLATFORM_FUCHSIA
 
         const VkMemoryDedicatedAllocateInfo* dedicatedAllocInfoPtr =
             vk_find_struct<VkMemoryDedicatedAllocateInfo>(pAllocateInfo);
@@ -3352,11 +3357,13 @@ public:
             exportAhb =
                 exportAllocateInfoPtr->handleTypes &
                 VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
+#ifdef VK_USE_PLATFORM_FUCHSIA
             exportVmo =
                 (exportAllocateInfoPtr->handleTypes &
                     VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA) ||
                 (exportAllocateInfoPtr->handleTypes &
                     VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA);
+#endif  // VK_USE_PLATFORM_FUCHSIA
         } else if (importAhbInfoPtr) {
             importAhb = true;
         } else if (importBufferCollectionInfoPtr) {
@@ -3444,9 +3451,8 @@ public:
 
         zx_handle_t vmo_handle = ZX_HANDLE_INVALID;
 
-        if (importBufferCollection) {
-
 #ifdef VK_USE_PLATFORM_FUCHSIA
+        if (importBufferCollection) {
             const auto& collection = *reinterpret_cast<
                 fidl::WireSyncClient<fuchsia_sysmem::BufferCollection>*>(
                 importBufferCollectionInfoPtr->collection);
@@ -3464,15 +3470,12 @@ public:
                 _RETURN_FAILURE_WITH_DEVICE_MEMORY_REPORT(VK_ERROR_INITIALIZATION_FAILED);
             }
             vmo_handle = info.buffers[index].vmo.release();
-#endif
-
         }
 
         if (importVmo) {
             vmo_handle = importVmoInfoPtr->handle;
         }
 
-#ifdef VK_USE_PLATFORM_FUCHSIA
         if (exportVmo) {
             bool hasDedicatedImage = dedicatedAllocInfoPtr &&
                 (dedicatedAllocInfoPtr->image != VK_NULL_HANDLE);
