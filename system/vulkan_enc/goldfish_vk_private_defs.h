@@ -451,55 +451,6 @@ typedef void (VKAPI_PTR *PFN_vkCreateImageWithRequirementsGOOGLE)(
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
 
-#ifndef VK_FUCHSIA_buffer_collection
-#define VK_FUCHSIA_buffer_collection 1
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkBufferCollectionFUCHSIA)
-
-#define VK_FUCHSIA_BUFFER_COLLECTION_SPEC_VERSION 1
-#define VK_FUCHSIA_BUFFER_COLLECTION_EXTENSION_NAME "VK_FUCHSIA_buffer_collection"
-
-typedef struct VkBufferCollectionCreateInfoFUCHSIA {
-    VkStructureType    sType;
-    const void*        pNext;
-    uint32_t           collectionToken;
-} VkBufferCollectionCreateInfoFUCHSIA;
-
-typedef struct VkImportMemoryBufferCollectionFUCHSIA {
-    VkStructureType              sType;
-    const void*                  pNext;
-    VkBufferCollectionFUCHSIA    collection;
-    uint32_t                     index;
-} VkImportMemoryBufferCollectionFUCHSIA;
-
-typedef struct VkBufferCollectionImageCreateInfoFUCHSIA {
-    VkStructureType              sType;
-    const void*                  pNext;
-    VkBufferCollectionFUCHSIA    collection;
-    uint32_t                     index;
-} VkBufferCollectionImageCreateInfoFUCHSIA;
-
-typedef struct VkBufferCollectionBufferCreateInfoFUCHSIA {
-    VkStructureType              sType;
-    const void*                  pNext;
-    VkBufferCollectionFUCHSIA    collection;
-    uint32_t                     index;
-} VkBufferCollectionBufferCreateInfoFUCHSIA;
-
-typedef struct VkBufferCollectionPropertiesFUCHSIA {
-    VkStructureType    sType;
-    void*              pNext;
-    uint32_t           memoryTypeBits;
-    uint32_t           count;
-} VkBufferCollectionPropertiesFUCHSIA;
-
-#define VK_STRUCTURE_TYPE_IMPORT_MEMORY_BUFFER_COLLECTION_FUCHSIA       \
-    ((VkStructureType)1001004004)
-#define VK_STRUCTURE_TYPE_BUFFER_COLLECTION_IMAGE_CREATE_INFO_FUCHSIA \
-    ((VkStructureType)1001004005)
-#define VK_STRUCTURE_TYPE_BUFFER_COLLECTION_BUFFER_CREATE_INFO_FUCHSIA \
-    ((VkStructureType)1001004008)
-#endif  // VK_FUCHSIA_buffer_collection
-
 #ifndef VK_FUCHSIA_buffer_collection_x
 
 #define VK_FUCHSIA_buffer_collection_x 1
