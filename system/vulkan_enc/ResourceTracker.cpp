@@ -1231,8 +1231,7 @@ public:
         VkExternalMemoryHandleTypeFlags supportedHandleType = 0u;
 #ifdef VK_USE_PLATFORM_FUCHSIA
         supportedHandleType |=
-            VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA |
-            VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA;
+                VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA;
 #endif  // VK_USE_PLATFORM_FUCHSIA
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
         supportedHandleType |=
@@ -1865,8 +1864,8 @@ public:
         using fuchsia_hardware_goldfish::wire::kMemoryPropertyDeviceLocal;
         using fuchsia_hardware_goldfish::wire::kMemoryPropertyHostVisible;
 
-        if (handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA &&
-            handleType != VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA) {
+        if (handleType !=
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA) {
             return VK_ERROR_INITIALIZATION_FAILED;
         }
 
@@ -3292,12 +3291,8 @@ public:
         }
 
         const VkImportMemoryZirconHandleInfoFUCHSIA* importVmoInfoPtr =
-            vk_find_struct<VkImportMemoryZirconHandleInfoFUCHSIA>(pAllocateInfo);
-        if (!importVmoInfoPtr) {
-            importVmoInfoPtr = reinterpret_cast<const VkImportMemoryZirconHandleInfoFUCHSIA*>(
-                __vk_find_struct(const_cast<void*>(pAllocateInfo->pNext),
-                    VK_STRUCTURE_TYPE_TEMP_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA));
-        }
+                vk_find_struct<VkImportMemoryZirconHandleInfoFUCHSIA>(
+                        pAllocateInfo);
 #else
         const void* importBufferCollectionInfoPtr = nullptr;
         const void* importVmoInfoPtr = nullptr;
@@ -3358,11 +3353,8 @@ public:
                 exportAllocateInfoPtr->handleTypes &
                 VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID;
 #ifdef VK_USE_PLATFORM_FUCHSIA
-            exportVmo =
-                (exportAllocateInfoPtr->handleTypes &
-                    VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA) ||
-                (exportAllocateInfoPtr->handleTypes &
-                    VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA);
+            exportVmo = exportAllocateInfoPtr->handleTypes &
+                        VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA;
 #endif  // VK_USE_PLATFORM_FUCHSIA
         } else if (importAhbInfoPtr) {
             importAhb = true;
@@ -4269,10 +4261,8 @@ public:
         bool isSysmemBackedMemory = false;
 
         if (extImgCiPtr &&
-            ((extImgCiPtr->handleTypes &
-                VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA) ||
             (extImgCiPtr->handleTypes &
-                VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA))) {
+             VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA)) {
             isSysmemBackedMemory = true;
         }
 
@@ -5333,10 +5323,8 @@ public:
         const VkExternalMemoryBufferCreateInfo* extBufCiPtr =
             vk_find_struct<VkExternalMemoryBufferCreateInfo>(pCreateInfo);
         if (extBufCiPtr &&
-            ((extBufCiPtr->handleTypes &
-             VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA) ||
             (extBufCiPtr->handleTypes &
-             VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA))) {
+             VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA)) {
             isSysmemBackedMemory = true;
         }
 
@@ -5541,11 +5529,10 @@ public:
             vk_find_struct<VkExportSemaphoreCreateInfoKHR>(pCreateInfo);
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
-        bool exportEvent = exportSemaphoreInfoPtr &&
-            ((exportSemaphoreInfoPtr->handleTypes &
-             VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA) ||
-            (exportSemaphoreInfoPtr->handleTypes &
-             VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ZIRCON_EVENT_BIT_FUCHSIA));
+        bool exportEvent =
+                exportSemaphoreInfoPtr &&
+                (exportSemaphoreInfoPtr->handleTypes &
+                 VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ZIRCON_EVENT_BIT_FUCHSIA);
 
         if (exportEvent) {
             finalCreateInfo.pNext = nullptr;
@@ -6673,27 +6660,17 @@ public:
             const VkPhysicalDeviceExternalImageFormatInfo* ext_img_info =
                 vk_find_struct<VkPhysicalDeviceExternalImageFormatInfo>(pImageFormatInfo);
             if (ext_img_info) {
-                switch (static_cast<uint32_t>(ext_img_info->handleType)) {
-                case VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA:
+                if (static_cast<uint32_t>(ext_img_info->handleType) ==
+                    VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA) {
                     ext_img_properties->externalMemoryProperties = {
-                        .externalMemoryFeatures = VK_EXTERNAL_MEMORY_FEATURE_EXPORTABLE_BIT |
-                                                  VK_EXTERNAL_MEMORY_FEATURE_IMPORTABLE_BIT,
-                        .exportFromImportedHandleTypes =
-                            VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA,
-                        .compatibleHandleTypes =
-                            VK_EXTERNAL_MEMORY_HANDLE_TYPE_TEMP_ZIRCON_VMO_BIT_FUCHSIA,
+                            .externalMemoryFeatures =
+                                    VK_EXTERNAL_MEMORY_FEATURE_EXPORTABLE_BIT |
+                                    VK_EXTERNAL_MEMORY_FEATURE_IMPORTABLE_BIT,
+                            .exportFromImportedHandleTypes =
+                                    VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA,
+                            .compatibleHandleTypes =
+                                    VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA,
                     };
-                    break;
-                case VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA:
-                    ext_img_properties->externalMemoryProperties = {
-                        .externalMemoryFeatures = VK_EXTERNAL_MEMORY_FEATURE_EXPORTABLE_BIT |
-                                                  VK_EXTERNAL_MEMORY_FEATURE_IMPORTABLE_BIT,
-                        .exportFromImportedHandleTypes =
-                            VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA,
-                        .compatibleHandleTypes =
-                            VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA,
-                    };
-                    break;
                 }
             }
         }
@@ -6737,16 +6714,6 @@ public:
         (void)pExternalSemaphoreInfo;
         (void)pExternalSemaphoreProperties;
 #ifdef VK_USE_PLATFORM_FUCHSIA
-        if (pExternalSemaphoreInfo->handleType ==
-            VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA) {
-            pExternalSemaphoreProperties->compatibleHandleTypes |=
-                VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA;
-            pExternalSemaphoreProperties->exportFromImportedHandleTypes |=
-                VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TEMP_ZIRCON_EVENT_BIT_FUCHSIA;
-            pExternalSemaphoreProperties->externalSemaphoreFeatures |=
-                VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT |
-                VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT;
-        }
         if (pExternalSemaphoreInfo->handleType ==
             static_cast<uint32_t>(VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ZIRCON_EVENT_BIT_FUCHSIA)) {
             pExternalSemaphoreProperties->compatibleHandleTypes |=
