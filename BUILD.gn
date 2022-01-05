@@ -32,7 +32,6 @@ shared_library("libvulkan_goldfish") {
     "android-emu/android/base/threads/AndroidFunctorThread.h",
     "android-emu/android/base/threads/AndroidThread.h",
     "android-emu/android/base/threads/AndroidThreadStore.h",
-    "android-emu/android/base/threads/AndroidThreadStore.h",
     "android-emu/android/base/threads/AndroidThreadTypes.h",
     "android-emu/android/base/threads/AndroidThread_pthread.cpp",
     "android-emu/android/base/threads/AndroidWorkPool.cpp",
