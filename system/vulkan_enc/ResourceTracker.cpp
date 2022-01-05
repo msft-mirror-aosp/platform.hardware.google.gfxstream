@@ -75,9 +75,7 @@ void zx_event_create(int, zx_handle_t*) { }
 
 #else
 
-struct AHardwareBuffer;
-
-void AHardwareBuffer_release(AHardwareBuffer*) { }
+#include <android/hardware_buffer.h>
 
 native_handle_t *AHardwareBuffer_getNativeHandle(AHardwareBuffer*) { return NULL; }
 
