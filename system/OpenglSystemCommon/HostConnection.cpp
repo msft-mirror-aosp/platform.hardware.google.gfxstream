@@ -432,8 +432,8 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
             break;
         }
         case HOST_CONNECTION_TCP: {
-#ifdef __Fuchsia__
-            ALOGE("Fuchsia doesn't support HOST_CONNECTION_TCP!!!\n");
+#ifndef __ANDROID__
+            ALOGE("Failed to create TCP connection on non-Android guest\n");
             return nullptr;
             break;
 #else
