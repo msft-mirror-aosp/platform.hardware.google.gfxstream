@@ -35,7 +35,7 @@ struct goldfish_dma_context;
 #endif
 
 #include <memory>
-#include <string>
+#include <cstring>
 
 class GLEncoder;
 struct gl_client_context_t;
