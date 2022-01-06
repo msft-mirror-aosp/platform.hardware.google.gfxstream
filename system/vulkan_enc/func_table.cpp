@@ -32,6 +32,7 @@
 #include "goldfish_vk_private_defs.h"
 
 #include <log/log.h>
+#include <cstring>
 
 // Stuff we are not going to use but if included,
 // will cause compile errors. These are Android Vulkan
