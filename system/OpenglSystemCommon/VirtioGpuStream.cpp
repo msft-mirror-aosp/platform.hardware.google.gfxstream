@@ -16,7 +16,7 @@
 
 #include "VirtioGpuStream.h"
 
-#include <drm/virtgpu_drm.h>
+#include <virtgpu_drm.h>
 #include <xf86drm.h>
 
 #include <sys/types.h>

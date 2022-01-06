@@ -85,7 +85,7 @@ using goldfish_vk::VkEncoder;
 #include "VirtioGpuPipeStream.h"
 
 #include <cros_gralloc_handle.h>
-#include <drm/virtgpu_drm.h>
+#include <virtgpu_drm.h>
 #include <xf86drm.h>
 
 #endif
