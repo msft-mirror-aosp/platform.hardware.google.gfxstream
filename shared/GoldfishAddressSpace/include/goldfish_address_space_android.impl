@@ -24,6 +24,7 @@
 #include <cstdlib>
 #include <errno.h>
 #include <memory>
+#include <cstring>
 
 #ifdef VIRTIO_GPU
 #include <xf86drm.h>
