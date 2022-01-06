@@ -8288,9 +8288,7 @@ void ResourceTracker::transformImpl_VkExternalMemoryProperties_fromhost(
 void ResourceTracker::transformImpl_VkExternalMemoryProperties_tohost(
     VkExternalMemoryProperties*, uint32_t) {}
 
-void ResourceTracker::transformImpl_VkImageCreateInfo_fromhost(const VkImageCreateInfo*,
-                                                               uint32_t) {}
-void ResourceTracker::transformImpl_VkImageCreateInfo_tohost(const VkImageCreateInfo*,
+void ResourceTracker::transformImpl_VkImageCreateInfo_tohost(VkImageCreateInfo*,
                                                              uint32_t) {}
 
 #define DEFINE_TRANSFORMED_TYPE_IMPL(type)                                  \
