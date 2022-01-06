@@ -182,7 +182,7 @@ static inline uint32_t align_up(uint32_t n, uint32_t a) {
     return ((n + a - 1) / a) * a;
 }
 
-#ifdef VIRTIO_GPU
+#if defined(VIRTIO_GPU)
 
 class MinigbmGralloc : public Gralloc {
 public:
