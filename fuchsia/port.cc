@@ -26,7 +26,7 @@ static void linux_log_prefix(const char *prefix, const char *file, int line, con
                              va_list ap, ...)
 {
   char buf[50];
-  snprintf(buf, sizeof(buf), "[%s:%s(%d)]", prefix, basename(file), line);
+  snprintf(buf, sizeof(buf), "[%s:%s(%d)]", prefix, file, line);
   fprintf(stderr, "%s ", buf);
   vfprintf(stderr, format, ap);
 }
