@@ -273,6 +273,37 @@ public:
         void* context, VkResult input_result,
         VkDevice device,
         const VkImportSemaphoreZirconHandleInfoFUCHSIA* pInfo);
+    VkResult on_vkCreateBufferCollectionFUCHSIA(
+        void* context,
+        VkResult input_result,
+        VkDevice device,
+        const VkBufferCollectionCreateInfoFUCHSIA* pInfo,
+        const VkAllocationCallbacks* pAllocator,
+        VkBufferCollectionFUCHSIA* pCollection);
+    void on_vkDestroyBufferCollectionFUCHSIA(
+        void* context,
+        VkResult input_result,
+        VkDevice device,
+        VkBufferCollectionFUCHSIA collection,
+        const VkAllocationCallbacks* pAllocator);
+    VkResult on_vkSetBufferCollectionBufferConstraintsFUCHSIA(
+        void* context,
+        VkResult input_result,
+        VkDevice device,
+        VkBufferCollectionFUCHSIA collection,
+        const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo);
+    VkResult on_vkSetBufferCollectionImageConstraintsFUCHSIA(
+        void* context,
+        VkResult input_result,
+        VkDevice device,
+        VkBufferCollectionFUCHSIA collection,
+        const VkImageConstraintsInfoFUCHSIA* pImageConstraintsInfo);
+    VkResult on_vkGetBufferCollectionPropertiesFUCHSIA(
+        void* context,
+        VkResult input_result,
+        VkDevice device,
+        VkBufferCollectionFUCHSIA collection,
+        VkBufferCollectionPropertiesFUCHSIA* pProperties);
     VkResult on_vkCreateBufferCollectionFUCHSIAX(
         void* context,
         VkResult input_result,
