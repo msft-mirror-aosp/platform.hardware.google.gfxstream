@@ -380,6 +380,8 @@ bool DrmPresenter::handleHotplug() {
 
 std::tuple<HWC2::Error, base::unique_fd> DrmPresenter::flushToDisplay(
     int display, hwc_drm_bo_t& bo, base::borrowed_fd inSyncFd) {
+  ATRACE_CALL();
+
   AutoReadLock lock(mStateMutex);
 
   DrmConnector& connector = mConnectors[display];
