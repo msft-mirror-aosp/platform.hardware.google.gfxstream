@@ -483,6 +483,8 @@ HWC2::Error Display::getType(int32_t* outType) {
 }
 
 HWC2::Error Display::present(int32_t* outRetireFencePtr) {
+  ATRACE_CALL();
+
   DEBUG_LOG("%s: display:%" PRIu64, __FUNCTION__, mId);
 
   *outRetireFencePtr = -1;
@@ -691,6 +693,7 @@ HWC2::Error Display::getDisplayVsyncPeriod(
 }
 
 HWC2::Error Display::validate(uint32_t* outNumTypes, uint32_t* outNumRequests) {
+  ATRACE_CALL();
   DEBUG_LOG("%s: display:%" PRIu64, __FUNCTION__, mId);
 
   std::unique_lock<std::recursive_mutex> lock(mStateMutex);
