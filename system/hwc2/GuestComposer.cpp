@@ -156,6 +156,8 @@ struct BufferSpec {
 
 int ConvertFromRGB565(const BufferSpec& src, const BufferSpec& dst,
                       bool vFlip) {
+  ATRACE_CALL();
+
   // Point to the upper left corner of the crop rectangle
   uint8_t* srcBuffer =
       src.buffer + src.cropY * src.strideBytes + src.cropX * src.sampleBytes;
@@ -174,6 +176,8 @@ int ConvertFromRGB565(const BufferSpec& src, const BufferSpec& dst,
 }
 
 int ConvertFromYV12(const BufferSpec& src, const BufferSpec& dst, bool vFlip) {
+  ATRACE_CALL();
+
   // The following calculation of plane offsets and alignments are based on
   // swiftshader's Sampler::setTextureLevel() implementation
   // (Renderer/Sampler.cpp:225)
@@ -227,6 +231,8 @@ int DoConversion(const BufferSpec& src, const BufferSpec& dst, bool v_flip) {
 }
 
 int DoCopy(const BufferSpec& src, const BufferSpec& dst, bool v_flip) {
+  ATRACE_CALL();
+
   // Point to the upper left corner of the crop rectangle
   uint8_t* srcBuffer =
       src.buffer + src.cropY * src.strideBytes + src.cropX * src.sampleBytes;
@@ -250,6 +256,8 @@ int DoCopy(const BufferSpec& src, const BufferSpec& dst, bool v_flip) {
 
 int DoRotation(const BufferSpec& src, const BufferSpec& dst,
                libyuv::RotationMode rotation, bool v_flip) {
+  ATRACE_CALL();
+
   // Point to the upper left corner of the crop rectangles
   uint8_t* srcBuffer =
       src.buffer + src.cropY * src.strideBytes + src.cropX * src.sampleBytes;
@@ -267,6 +275,8 @@ int DoRotation(const BufferSpec& src, const BufferSpec& dst,
 }
 
 int DoScaling(const BufferSpec& src, const BufferSpec& dst, bool v_flip) {
+  ATRACE_CALL();
+
   // Point to the upper left corner of the crop rectangles
   uint8_t* srcBuffer =
       src.buffer + src.cropY * src.strideBytes + src.cropX * src.sampleBytes;
@@ -287,6 +297,8 @@ int DoScaling(const BufferSpec& src, const BufferSpec& dst, bool v_flip) {
 }
 
 int DoAttenuation(const BufferSpec& src, const BufferSpec& dst, bool v_flip) {
+  ATRACE_CALL();
+
   // Point to the upper left corner of the crop rectangles
   uint8_t* srcBuffer =
       src.buffer + src.cropY * src.strideBytes + src.cropX * src.sampleBytes;
@@ -304,6 +316,8 @@ int DoAttenuation(const BufferSpec& src, const BufferSpec& dst, bool v_flip) {
 }
 
 int DoBlending(const BufferSpec& src, const BufferSpec& dst, bool v_flip) {
+  ATRACE_CALL();
+
   // Point to the upper left corner of the crop rectangles
   uint8_t* srcBuffer =
       src.buffer + src.cropY * src.strideBytes + src.cropX * src.sampleBytes;
@@ -652,6 +666,8 @@ HWC2::Error GuestComposer::validateDisplay(
 
 std::tuple<HWC2::Error, base::unique_fd> GuestComposer::presentDisplay(
     Display* display) {
+  ATRACE_CALL();
+
   const auto displayId = display->getId();
   DEBUG_LOG("%s display:%" PRIu64, __FUNCTION__, displayId);
 
@@ -863,6 +879,8 @@ HWC2::Error GuestComposer::composeLayerInto(
     Layer* srcLayer, std::uint8_t* dstBuffer, std::uint32_t dstBufferWidth,
     std::uint32_t dstBufferHeight, std::uint32_t dstBufferStrideBytes,
     std::uint32_t dstBufferBytesPerPixel) {
+  ATRACE_CALL();
+
   libyuv::RotationMode rotation =
       GetRotationFromTransform(srcLayer->getTransform());
 
@@ -1088,6 +1106,8 @@ HWC2::Error GuestComposer::applyColorTransformToRGBA(
     std::uint32_t bufferWidth,                  //
     std::uint32_t bufferHeight,                 //
     std::uint32_t bufferStrideBytes) {
+  ATRACE_CALL();
+
   if (transform.transformType == ColorTransform::ARBITRARY_MATRIX) {
     if (!transform.transformMatrixOpt.has_value()) {
       ALOGE("%s: color transform matrix missing", __FUNCTION__);
