@@ -470,6 +470,18 @@ bool isBptcFormat(GLenum internalformat) {
     }
 }
 
+bool isRgtcFormat(GLenum internalformat) {
+    switch(internalformat)
+    {
+        case GL_COMPRESSED_RED_RGTC1_EXT:
+        case GL_COMPRESSED_SIGNED_RED_RGTC1_EXT:
+        case GL_COMPRESSED_RED_GREEN_RGTC2_EXT:
+        case GL_COMPRESSED_SIGNED_RED_GREEN_RGTC2_EXT:
+            return true;
+    }
+    return false;
+}
+
 bool isS3tcFormat(GLenum internalformat) {
     switch (internalformat) {
         case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
@@ -586,11 +598,15 @@ GLsizei getCompressedImageBlocksize(GLenum internalformat) {
         case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
         case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
         case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT:
+        case GL_COMPRESSED_RED_RGTC1_EXT:
+        case GL_COMPRESSED_SIGNED_RED_RGTC1_EXT:
             return 8;
         case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
         case GL_COMPRESSED_SRGB_S3TC_DXT1_EXT:
         case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT:
         case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT:
+        case GL_COMPRESSED_RED_GREEN_RGTC2_EXT:
+        case GL_COMPRESSED_SIGNED_RED_GREEN_RGTC2_EXT:
             return 16;
     }
 
@@ -617,7 +633,7 @@ GLsizei getCompressedImageSize(GLenum internalformat, GLsizei width, GLsizei hei
         return getAstcCompressedSize(internalformat, width, height, depth, error);
     }
 
-    if (isBptcFormat(internalformat) || isS3tcFormat(internalformat)) {
+    if (isBptcFormat(internalformat) || isS3tcFormat(internalformat) || isRgtcFormat(internalformat)) {
         GLsizei blocksize = getCompressedImageBlocksize(internalformat);
         return get4x4CompressedSize(width, height, depth, blocksize, error);
     }
