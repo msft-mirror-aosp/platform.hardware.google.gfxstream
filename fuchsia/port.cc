@@ -10,9 +10,12 @@
 #include <cstdint>
 #include <cstdio>
 #include <thread>
+#include <cstring>
 
 #if defined(__Fuchsia__)
 #include <lib/syslog/global.h>
+#else
+#include <libgen.h>
 #endif
 
 #include "cutils/log.h"
@@ -26,9 +29,15 @@ static void linux_log_prefix(const char *prefix, const char *file, int line, con
                              va_list ap, ...)
 {
   char buf[50];
-  snprintf(buf, sizeof(buf), "[%s:%s(%d)]", prefix, file, line);
-  fprintf(stderr, "%s ", buf);
+  char *dup = strdup(file);
+  if (!dup)
+    return;
+
+  snprintf(buf, sizeof(buf), "[%s(%d)]", basename(dup), line);
+  fprintf(stderr, "%s\n", buf);
   vfprintf(stderr, format, ap);
+
+  free(dup);
 }
 #endif
 
