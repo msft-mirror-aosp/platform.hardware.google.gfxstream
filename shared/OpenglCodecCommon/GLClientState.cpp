@@ -36,6 +36,9 @@
 #include <GLES3/gl3.h>
 #include <GLES3/gl31.h>
 
+using android::base::guest::AutoReadLock;
+using android::base::guest::AutoWriteLock;
+
 void GLClientState::init() {
     m_initialized = false;
 
@@ -1521,17 +1524,23 @@ TextureRec* GLClientState::addTextureRec(GLuint id, GLenum target)
     tex->hasCubeNegZ = false;
     tex->hasCubePosZ = false;
 
-    (*(m_tex.textureRecs))[id] = tex;
+    AutoWriteLock guard(m_tex.textureRecs->lock);
+    m_tex.textureRecs->map[id] = tex;
     return tex;
 }
 
-TextureRec* GLClientState::getTextureRec(GLuint id) const {
+TextureRec* GLClientState::getTextureRecLocked(GLuint id) const {
     SharedTextureDataMap::const_iterator it =
-        m_tex.textureRecs->find(id);
-    if (it == m_tex.textureRecs->end()) {
+        m_tex.textureRecs->map.find(id);
+    if (it == m_tex.textureRecs->map.end()) {
         return NULL;
     }
     return it->second;
+}
+
+TextureRec* GLClientState::getTextureRec(GLuint id) const {
+    AutoReadLock guard(m_tex.textureRecs->lock);
+    return getTextureRecLocked(id);
 }
 
 void GLClientState::setBoundTextureInternalFormat(GLenum target, GLint internalformat) {
@@ -2042,12 +2051,13 @@ void GLClientState::deleteTextures(GLsizei n, const GLuint* textures)
     // - could swap deleted textures to the end and re-sort.
     TextureRec* texrec;
     for (const GLuint* texture = textures; texture != textures + n; texture++) {
-        texrec = getTextureRec(*texture);
+        AutoWriteLock guard(m_tex.textureRecs->lock);
+        texrec = getTextureRecLocked(*texture);
         if (texrec && texrec->dims) {
             delete [] texrec->dims;
         }
         if (texrec) {
-            m_tex.textureRecs->erase(*texture);
+            m_tex.textureRecs->map.erase(*texture);
             delete texrec;
             for (TextureUnit* unit = m_tex.unit;
                  unit != m_tex.unit + MAX_TEXTURE_UNITS;
