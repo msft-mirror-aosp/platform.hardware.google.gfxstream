@@ -5412,19 +5412,17 @@ public:
 
         VkResult currentFenceStatus = enc->vkGetFenceStatus(device, pGetFdInfo->fence, true /* do lock */);
 
-        if (VK_SUCCESS == currentFenceStatus) { // Fence already signaled
-            ALOGV("%s: VK_SUCCESS: already signaled\n", __func__);
-            *pFd = -1;
-            return VK_SUCCESS;
-        }
-
         if (VK_ERROR_DEVICE_LOST == currentFenceStatus) { // Other error
             ALOGV("%s: VK_ERROR_DEVICE_LOST: Other error\n", __func__);
             *pFd = -1;
             return VK_ERROR_DEVICE_LOST;
         }
 
-        if (VK_NOT_READY == currentFenceStatus) { // Fence unsignaled; create fd here
+        if (VK_NOT_READY == currentFenceStatus || VK_SUCCESS == currentFenceStatus) {
+            // Fence is valid. We also create a new sync fd for a signaled
+            // fence, because ANGLE will use the returned fd directly to
+            // implement eglDupNativeFenceFDANDROID, where -1 is only returned
+            // when error occurs.
             AutoLock<RecursiveLock> lock(mLock);
 
             auto it = info_VkFence.find(pGetFdInfo->fence);
