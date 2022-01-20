@@ -104,7 +104,7 @@ using goldfish_vk::VkEncoder;
 static HostConnectionType getConnectionTypeFromProperty() {
 #ifdef __Fuchsia__
     return HOST_CONNECTION_ADDRESS_SPACE;
-#elif __ANDROID__
+#elif defined(__ANDROID__) || defined(HOST_BUILD)
     char transportValue[PROPERTY_VALUE_MAX] = "";
 
     do {
