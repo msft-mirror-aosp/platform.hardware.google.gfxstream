@@ -1058,13 +1058,17 @@ public:
                 ALOGD("%s: has virtio-gpu-next; aux context init\n", __func__);
                 struct drm_virtgpu_context_set_param drm_setparams[] = {
                     {
+                        VIRTGPU_CONTEXT_PARAM_CAPSET_ID,
+                        3, /* CAPSET_GFXSTREAM */
+                    },
+                    {
                         VIRTGPU_CONTEXT_PARAM_NUM_RINGS,
                         2,
                     },
                 };
 
                 struct drm_virtgpu_context_init drm_ctx_init = {
-                    1,
+                    2,
                     0,
                     (uint64_t)(uintptr_t)drm_setparams,
                 };
