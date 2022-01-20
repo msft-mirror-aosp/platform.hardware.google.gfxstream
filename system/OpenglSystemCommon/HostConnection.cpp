@@ -104,7 +104,7 @@ using goldfish_vk::VkEncoder;
 static HostConnectionType getConnectionTypeFromProperty() {
 #ifdef __Fuchsia__
     return HOST_CONNECTION_ADDRESS_SPACE;
-#else
+#elif __ANDROID__
     char transportValue[PROPERTY_VALUE_MAX] = "";
 
     do {
@@ -127,6 +127,8 @@ static HostConnectionType getConnectionTypeFromProperty() {
     if (!strcmp("virtio-gpu-asg", transportValue)) return HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE;
 
     return HOST_CONNECTION_QEMU_PIPE;
+#else
+    return HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE;
 #endif
 }
 
