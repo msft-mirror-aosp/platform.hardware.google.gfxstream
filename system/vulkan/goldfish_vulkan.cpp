@@ -1030,9 +1030,7 @@ int OpenDevice(const hw_module_t* /*module*/,
     return -ENOENT;
 }
 
-#endif
-
-#ifdef VK_USE_PLATFORM_FUCHSIA
+#elif VK_USE_PLATFORM_FUCHSIA
 
 class VulkanDevice {
 public:
@@ -1154,6 +1152,34 @@ extern "C" __attribute__((visibility("default"))) void
 vk_icdInitializeOpenInNamespaceCallback(PFN_vkOpenInNamespaceAddr callback) {
     g_vulkan_connector = callback;
     SetConnectToServiceFunction(&LocalConnectToServiceFunction);
+}
+
+#else
+class VulkanDevice {
+public:
+    VulkanDevice() {
+        goldfish_vk::ResourceTracker::get();
+    }
+
+    static VulkanDevice& GetInstance() {
+        static VulkanDevice g_instance;
+        return g_instance;
+    }
+
+    PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* name) {
+        return ::GetInstanceProcAddr(instance, name);
+    }
+};
+
+extern "C" __attribute__((visibility("default"))) PFN_vkVoidFunction
+vk_icdGetInstanceProcAddr(VkInstance instance, const char* name) {
+    return VulkanDevice::GetInstance().GetInstanceProcAddr(instance, name);
+}
+
+extern "C" __attribute__((visibility("default"))) VkResult
+vk_icdNegotiateLoaderICDInterfaceVersion(uint32_t* pSupportedVersion) {
+    *pSupportedVersion = std::min(*pSupportedVersion, 3u);
+    return VK_SUCCESS;
 }
 
 #endif
