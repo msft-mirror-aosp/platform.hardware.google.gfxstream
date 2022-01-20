@@ -547,13 +547,36 @@ bool goldfish_address_space_ping(
     return true;
 }
 
+#define CAPSET_GFXSTREAM 3
+
 // virtio-gpu version
 address_space_handle_t virtgpu_address_space_open() {
-return drmOpenRender(128);
+    int ret;
+    struct drm_virtgpu_context_init init = {0};
+    struct drm_virtgpu_context_set_param ctx_set_params[1] = {{0}};
+
+    int fd = drmOpenRender(128);
+    if (fd < 0) {
+        ALOGE("Failed to open rendernode: %s", strerror(errno));
+        return fd;
+    }
+
+    init.ctx_set_params = (unsigned long long)&ctx_set_params[0];
+    init.num_params = 1;
+    ctx_set_params[0].param = VIRTGPU_CONTEXT_PARAM_CAPSET_ID;
+    ctx_set_params[0].value = CAPSET_GFXSTREAM;
+
+    ret = drmIoctl(fd, DRM_IOCTL_VIRTGPU_CONTEXT_INIT, &init);
+    if (ret) {
+        ALOGE("DRM_IOCTL_VIRTGPU_CONTEXT_INIT failed with %s", strerror(errno));
+        return ret;
+    }
+
+    return fd;
 }
 
 void virtgpu_address_space_close(address_space_handle_t fd) {
-close(fd);
+    close(fd);
 }
 
 // kVirtioGpuAddressSpaceContextCreateWithSubdevice | subdeviceType
