@@ -398,14 +398,11 @@ std::optional<BufferSpec> GetBufferSpec(GrallocBuffer& buffer,
 
 }  // namespace
 
-HWC2::Error GuestComposer::init(const HotplugCallback& cb) {
+GuestComposer::GuestComposer(DrmPresenter* drmPresenter) :
+        mDrmPresenter(drmPresenter) {}
+
+HWC2::Error GuestComposer::init() {
   DEBUG_LOG("%s", __FUNCTION__);
-
-  if (!mDrmPresenter.init(cb)) {
-    ALOGE("%s: failed to initialize DrmPresenter", __FUNCTION__);
-    return HWC2::Error::NoResources;
-  }
-
   return HWC2::Error::None;
 }
 
