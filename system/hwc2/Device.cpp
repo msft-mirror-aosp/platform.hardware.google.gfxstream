@@ -25,6 +25,21 @@
 namespace android {
 namespace {
 
+static bool isMinigbmFromProperty() {
+  static constexpr const auto kGrallocProp = "ro.hardware.gralloc";
+
+  const auto grallocProp = android::base::GetProperty(kGrallocProp, "");
+  DEBUG_LOG("%s: prop value is: %s", __FUNCTION__, grallocProp.c_str());
+
+  if (grallocProp == "minigbm") {
+    ALOGD("%s: Using minigbm, in minigbm mode.\n", __FUNCTION__);
+    return true;
+  } else {
+    ALOGD("%s: Is not using minigbm, in goldfish mode.\n", __FUNCTION__);
+    return false;
+  }
+}
+
 template <typename PFN, typename T>
 static hwc2_function_pointer_t asFP(T function) {
   static_assert(std::is_same<PFN, T>::value, "Incompatible function pointer");
@@ -51,22 +66,33 @@ Device::Device() {
   common.close = CloseHook;
   hwc2_device_t::getCapabilities = getCapabilitiesHook;
   hwc2_device_t::getFunction = getFunctionHook;
+
+  mDrmPresenter = std::make_unique<DrmPresenter>();
 }
 
 HWC2::Error Device::init() {
   DEBUG_LOG("%s", __FUNCTION__);
-
+  bool isMinigbm = isMinigbmFromProperty();
   if (ShouldUseGuestComposer()) {
-    mComposer = std::make_unique<GuestComposer>();
+    mComposer = std::make_unique<GuestComposer>(mDrmPresenter.get());
   } else {
-    mComposer = std::make_unique<HostComposer>();
+    mComposer = std::make_unique<HostComposer>(mDrmPresenter.get(), isMinigbm);
   }
 
-  HWC2::Error error = mComposer->init(
-      [this](bool connected, uint32_t id, uint32_t width, uint32_t height,
-             uint32_t dpiX, uint32_t dpiY, uint32_t refreshRate) {
-        handleHotplug(connected, id, width, height, dpiX, dpiY, refreshRate);
-      });
+  if (ShouldUseGuestComposer() || isMinigbm) {
+      bool success = mDrmPresenter->init(
+        [this](bool connected, uint32_t id, uint32_t width, uint32_t height,
+           uint32_t dpiX, uint32_t dpiY, uint32_t refreshRate) {
+      handleHotplug(connected, id, width, height, dpiX, dpiY, refreshRate);
+    });
+
+    if (!success) {
+      ALOGE("%s: failed to initialize DrmPresenter", __FUNCTION__);
+      return HWC2::Error::NoResources;
+    }
+  }
+
+  HWC2::Error error = mComposer->init();
 
   if (error != HWC2::Error::None) {
     ALOGE("%s failed to initialize Composer", __FUNCTION__);
@@ -99,7 +125,7 @@ HWC2::Error Device::createDisplays() {
 
   std::vector<DisplayMultiConfigs> displays;
 
-  HWC2::Error error = findDisplays(displays);
+  HWC2::Error error = findDisplays(mDrmPresenter.get(), displays);
   if (error != HWC2::Error::None) {
     ALOGE("%s failed to find display configs", __FUNCTION__);
     return error;

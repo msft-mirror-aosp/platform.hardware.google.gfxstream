@@ -530,14 +530,15 @@ std::optional<std::vector<uint8_t>> DrmPresenter::getEdid(uint32_t id) {
   return edid;
 }
 
-DrmBuffer::DrmBuffer(const native_handle_t* handle, DrmPresenter& DrmPresenter)
-    : mDrmPresenter(DrmPresenter), mBo({}) {
+DrmBuffer::DrmBuffer(const native_handle_t* handle,
+                     DrmPresenter* drmPresenter)
+    : mDrmPresenter(drmPresenter), mBo({}) {
   if (!convertBoInfo(handle)) {
-    mDrmPresenter.getDrmFB(mBo);
+    mDrmPresenter->getDrmFB(mBo);
   }
 }
 
-DrmBuffer::~DrmBuffer() { mDrmPresenter.clearDrmFB(mBo); }
+DrmBuffer::~DrmBuffer() { mDrmPresenter->clearDrmFB(mBo); }
 
 int DrmBuffer::convertBoInfo(const native_handle_t* handle) {
   cros_gralloc_handle* gr_handle = (cros_gralloc_handle*)handle;
@@ -557,7 +558,7 @@ int DrmBuffer::convertBoInfo(const native_handle_t* handle) {
 
 std::tuple<HWC2::Error, base::unique_fd> DrmBuffer::flushToDisplay(
     int display, base::borrowed_fd inWaitSyncFd) {
-  return mDrmPresenter.flushToDisplay(display, mBo, inWaitSyncFd);
+  return mDrmPresenter->flushToDisplay(display, mBo, inWaitSyncFd);
 }
 
 DrmPresenter::DrmEventListener::DrmEventListener(DrmPresenter& presenter)
