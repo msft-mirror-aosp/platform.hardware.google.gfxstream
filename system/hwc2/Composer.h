@@ -38,7 +38,7 @@ class Composer {
       uint32_t /*height*/, uint32_t /*dpiX*/, uint32_t /*dpiY*/,
       uint32_t /*refreshRate*/)>;
 
-  virtual HWC2::Error init(const HotplugCallback& cb) = 0;
+  virtual HWC2::Error init() = 0;
 
   virtual HWC2::Error onDisplayCreate(Display* display) = 0;
 

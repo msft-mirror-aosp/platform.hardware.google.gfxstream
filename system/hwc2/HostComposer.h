@@ -29,7 +29,7 @@ namespace android {
 
 class HostComposer : public Composer {
  public:
-  HostComposer() = default;
+  HostComposer(DrmPresenter* drmPresenter, bool isMinigbm);
 
   HostComposer(const HostComposer&) = delete;
   HostComposer& operator=(const HostComposer&) = delete;
@@ -37,7 +37,7 @@ class HostComposer : public Composer {
   HostComposer(HostComposer&&) = delete;
   HostComposer& operator=(HostComposer&&) = delete;
 
-  HWC2::Error init(const HotplugCallback& cb) override;
+  HWC2::Error init() override;
 
   HWC2::Error onDisplayCreate(Display* display) override;
 
@@ -83,8 +83,7 @@ class HostComposer : public Composer {
   };
 
   std::unordered_map<hwc2_display_t, HostComposerDisplayInfo> mDisplayInfos;
-
-  DrmPresenter mDrmPresenter;
+  DrmPresenter* mDrmPresenter;
 };
 
 }  // namespace android

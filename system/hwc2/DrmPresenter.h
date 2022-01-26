@@ -40,7 +40,8 @@ class DrmPresenter;
 // A RAII object that will clear a drm framebuffer upon destruction.
 class DrmBuffer {
  public:
-  DrmBuffer(const native_handle_t* handle, DrmPresenter& drmPresenter);
+  DrmBuffer(const native_handle_t* handle,
+            DrmPresenter* drmPresenter);
   ~DrmBuffer();
 
   DrmBuffer(const DrmBuffer&) = delete;
@@ -55,7 +56,7 @@ class DrmBuffer {
  private:
   int convertBoInfo(const native_handle_t* handle);
 
-  DrmPresenter& mDrmPresenter;
+  DrmPresenter* mDrmPresenter;
   hwc_drm_bo_t mBo;
 };
 
@@ -77,7 +78,13 @@ class DrmPresenter {
 
   bool init(const HotplugCallback& cb);
 
-  uint32_t refreshRate() const { return mConnectors[0].mRefreshRateAsInteger; }
+  uint32_t refreshRate(uint32_t display) const {
+      if (display < mConnectors.size()) {
+          return mConnectors[display].mRefreshRateAsInteger;
+      }
+
+      return -1;
+  }
 
   std::tuple<HWC2::Error, base::unique_fd> flushToDisplay(
       int display, hwc_drm_bo_t& fb, base::borrowed_fd inWaitSyncFd);
