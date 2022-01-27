@@ -2813,6 +2813,271 @@ static VkBool32 entry_vkGetPhysicalDeviceWin32PresentationSupportKHR(
 #endif
 #ifdef VK_KHR_sampler_mirror_clamp_to_edge
 #endif
+#ifdef VK_KHR_video_queue
+static VkResult entry_vkGetPhysicalDeviceVideoCapabilitiesKHR(
+    VkPhysicalDevice physicalDevice,
+    const VkVideoProfileKHR* pVideoProfile,
+    VkVideoCapabilitiesKHR* pCapabilities)
+{
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceVideoCapabilitiesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceVideoCapabilitiesKHR_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceVideoCapabilitiesKHR_VkResult_return = vkEnc->vkGetPhysicalDeviceVideoCapabilitiesKHR(physicalDevice, pVideoProfile, pCapabilities, true /* do lock */);
+    return vkGetPhysicalDeviceVideoCapabilitiesKHR_VkResult_return;
+}
+static VkResult entry_vkGetPhysicalDeviceVideoFormatPropertiesKHR(
+    VkPhysicalDevice physicalDevice,
+    const VkPhysicalDeviceVideoFormatInfoKHR* pVideoFormatInfo,
+    uint32_t* pVideoFormatPropertyCount,
+    VkVideoFormatPropertiesKHR* pVideoFormatProperties)
+{
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceVideoFormatPropertiesKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetPhysicalDeviceVideoFormatPropertiesKHR_VkResult_return = (VkResult)0;
+    vkGetPhysicalDeviceVideoFormatPropertiesKHR_VkResult_return = vkEnc->vkGetPhysicalDeviceVideoFormatPropertiesKHR(physicalDevice, pVideoFormatInfo, pVideoFormatPropertyCount, pVideoFormatProperties, true /* do lock */);
+    return vkGetPhysicalDeviceVideoFormatPropertiesKHR_VkResult_return;
+}
+static VkResult entry_vkCreateVideoSessionKHR(
+    VkDevice device,
+    const VkVideoSessionCreateInfoKHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkVideoSessionKHR* pVideoSession)
+{
+    AEMU_SCOPED_TRACE("vkCreateVideoSessionKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateVideoSessionKHR_VkResult_return = (VkResult)0;
+    vkCreateVideoSessionKHR_VkResult_return = vkEnc->vkCreateVideoSessionKHR(device, pCreateInfo, pAllocator, pVideoSession, true /* do lock */);
+    return vkCreateVideoSessionKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateVideoSessionKHR(
+    VkDevice device,
+    const VkVideoSessionCreateInfoKHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkVideoSessionKHR* pVideoSession)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_video_queue"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkCreateVideoSessionKHR", "VK_KHR_video_queue");
+    }
+    AEMU_SCOPED_TRACE("vkCreateVideoSessionKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateVideoSessionKHR_VkResult_return = (VkResult)0;
+    vkCreateVideoSessionKHR_VkResult_return = vkEnc->vkCreateVideoSessionKHR(device, pCreateInfo, pAllocator, pVideoSession, true /* do lock */);
+    return vkCreateVideoSessionKHR_VkResult_return;
+}
+static void entry_vkDestroyVideoSessionKHR(
+    VkDevice device,
+    VkVideoSessionKHR videoSession,
+    const VkAllocationCallbacks* pAllocator)
+{
+    AEMU_SCOPED_TRACE("vkDestroyVideoSessionKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyVideoSessionKHR(device, videoSession, pAllocator, true /* do lock */);
+}
+static void dynCheck_entry_vkDestroyVideoSessionKHR(
+    VkDevice device,
+    VkVideoSessionKHR videoSession,
+    const VkAllocationCallbacks* pAllocator)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_video_queue"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyVideoSessionKHR", "VK_KHR_video_queue");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyVideoSessionKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyVideoSessionKHR(device, videoSession, pAllocator, true /* do lock */);
+}
+static VkResult entry_vkGetVideoSessionMemoryRequirementsKHR(
+    VkDevice device,
+    VkVideoSessionKHR videoSession,
+    uint32_t* pVideoSessionMemoryRequirementsCount,
+    VkVideoGetMemoryPropertiesKHR* pVideoSessionMemoryRequirements)
+{
+    AEMU_SCOPED_TRACE("vkGetVideoSessionMemoryRequirementsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetVideoSessionMemoryRequirementsKHR_VkResult_return = (VkResult)0;
+    vkGetVideoSessionMemoryRequirementsKHR_VkResult_return = vkEnc->vkGetVideoSessionMemoryRequirementsKHR(device, videoSession, pVideoSessionMemoryRequirementsCount, pVideoSessionMemoryRequirements, true /* do lock */);
+    return vkGetVideoSessionMemoryRequirementsKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetVideoSessionMemoryRequirementsKHR(
+    VkDevice device,
+    VkVideoSessionKHR videoSession,
+    uint32_t* pVideoSessionMemoryRequirementsCount,
+    VkVideoGetMemoryPropertiesKHR* pVideoSessionMemoryRequirements)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_video_queue"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetVideoSessionMemoryRequirementsKHR", "VK_KHR_video_queue");
+    }
+    AEMU_SCOPED_TRACE("vkGetVideoSessionMemoryRequirementsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetVideoSessionMemoryRequirementsKHR_VkResult_return = (VkResult)0;
+    vkGetVideoSessionMemoryRequirementsKHR_VkResult_return = vkEnc->vkGetVideoSessionMemoryRequirementsKHR(device, videoSession, pVideoSessionMemoryRequirementsCount, pVideoSessionMemoryRequirements, true /* do lock */);
+    return vkGetVideoSessionMemoryRequirementsKHR_VkResult_return;
+}
+static VkResult entry_vkBindVideoSessionMemoryKHR(
+    VkDevice device,
+    VkVideoSessionKHR videoSession,
+    uint32_t videoSessionBindMemoryCount,
+    const VkVideoBindMemoryKHR* pVideoSessionBindMemories)
+{
+    AEMU_SCOPED_TRACE("vkBindVideoSessionMemoryKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkBindVideoSessionMemoryKHR_VkResult_return = (VkResult)0;
+    vkBindVideoSessionMemoryKHR_VkResult_return = vkEnc->vkBindVideoSessionMemoryKHR(device, videoSession, videoSessionBindMemoryCount, pVideoSessionBindMemories, true /* do lock */);
+    return vkBindVideoSessionMemoryKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkBindVideoSessionMemoryKHR(
+    VkDevice device,
+    VkVideoSessionKHR videoSession,
+    uint32_t videoSessionBindMemoryCount,
+    const VkVideoBindMemoryKHR* pVideoSessionBindMemories)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_video_queue"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkBindVideoSessionMemoryKHR", "VK_KHR_video_queue");
+    }
+    AEMU_SCOPED_TRACE("vkBindVideoSessionMemoryKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkBindVideoSessionMemoryKHR_VkResult_return = (VkResult)0;
+    vkBindVideoSessionMemoryKHR_VkResult_return = vkEnc->vkBindVideoSessionMemoryKHR(device, videoSession, videoSessionBindMemoryCount, pVideoSessionBindMemories, true /* do lock */);
+    return vkBindVideoSessionMemoryKHR_VkResult_return;
+}
+static VkResult entry_vkCreateVideoSessionParametersKHR(
+    VkDevice device,
+    const VkVideoSessionParametersCreateInfoKHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkVideoSessionParametersKHR* pVideoSessionParameters)
+{
+    AEMU_SCOPED_TRACE("vkCreateVideoSessionParametersKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateVideoSessionParametersKHR_VkResult_return = (VkResult)0;
+    vkCreateVideoSessionParametersKHR_VkResult_return = vkEnc->vkCreateVideoSessionParametersKHR(device, pCreateInfo, pAllocator, pVideoSessionParameters, true /* do lock */);
+    return vkCreateVideoSessionParametersKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateVideoSessionParametersKHR(
+    VkDevice device,
+    const VkVideoSessionParametersCreateInfoKHR* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkVideoSessionParametersKHR* pVideoSessionParameters)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_video_queue"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkCreateVideoSessionParametersKHR", "VK_KHR_video_queue");
+    }
+    AEMU_SCOPED_TRACE("vkCreateVideoSessionParametersKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateVideoSessionParametersKHR_VkResult_return = (VkResult)0;
+    vkCreateVideoSessionParametersKHR_VkResult_return = vkEnc->vkCreateVideoSessionParametersKHR(device, pCreateInfo, pAllocator, pVideoSessionParameters, true /* do lock */);
+    return vkCreateVideoSessionParametersKHR_VkResult_return;
+}
+static VkResult entry_vkUpdateVideoSessionParametersKHR(
+    VkDevice device,
+    VkVideoSessionParametersKHR videoSessionParameters,
+    const VkVideoSessionParametersUpdateInfoKHR* pUpdateInfo)
+{
+    AEMU_SCOPED_TRACE("vkUpdateVideoSessionParametersKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkUpdateVideoSessionParametersKHR_VkResult_return = (VkResult)0;
+    vkUpdateVideoSessionParametersKHR_VkResult_return = vkEnc->vkUpdateVideoSessionParametersKHR(device, videoSessionParameters, pUpdateInfo, true /* do lock */);
+    return vkUpdateVideoSessionParametersKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkUpdateVideoSessionParametersKHR(
+    VkDevice device,
+    VkVideoSessionParametersKHR videoSessionParameters,
+    const VkVideoSessionParametersUpdateInfoKHR* pUpdateInfo)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_video_queue"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkUpdateVideoSessionParametersKHR", "VK_KHR_video_queue");
+    }
+    AEMU_SCOPED_TRACE("vkUpdateVideoSessionParametersKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkUpdateVideoSessionParametersKHR_VkResult_return = (VkResult)0;
+    vkUpdateVideoSessionParametersKHR_VkResult_return = vkEnc->vkUpdateVideoSessionParametersKHR(device, videoSessionParameters, pUpdateInfo, true /* do lock */);
+    return vkUpdateVideoSessionParametersKHR_VkResult_return;
+}
+static void entry_vkDestroyVideoSessionParametersKHR(
+    VkDevice device,
+    VkVideoSessionParametersKHR videoSessionParameters,
+    const VkAllocationCallbacks* pAllocator)
+{
+    AEMU_SCOPED_TRACE("vkDestroyVideoSessionParametersKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyVideoSessionParametersKHR(device, videoSessionParameters, pAllocator, true /* do lock */);
+}
+static void dynCheck_entry_vkDestroyVideoSessionParametersKHR(
+    VkDevice device,
+    VkVideoSessionParametersKHR videoSessionParameters,
+    const VkAllocationCallbacks* pAllocator)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_video_queue"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyVideoSessionParametersKHR", "VK_KHR_video_queue");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyVideoSessionParametersKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyVideoSessionParametersKHR(device, videoSessionParameters, pAllocator, true /* do lock */);
+}
+static void entry_vkCmdBeginVideoCodingKHR(
+    VkCommandBuffer commandBuffer,
+    const VkVideoBeginCodingInfoKHR* pBeginInfo)
+{
+    AEMU_SCOPED_TRACE("vkCmdBeginVideoCodingKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBeginVideoCodingKHR(commandBuffer, pBeginInfo, true /* do lock */);
+}
+static void entry_vkCmdEndVideoCodingKHR(
+    VkCommandBuffer commandBuffer,
+    const VkVideoEndCodingInfoKHR* pEndCodingInfo)
+{
+    AEMU_SCOPED_TRACE("vkCmdEndVideoCodingKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdEndVideoCodingKHR(commandBuffer, pEndCodingInfo, true /* do lock */);
+}
+static void entry_vkCmdControlVideoCodingKHR(
+    VkCommandBuffer commandBuffer,
+    const VkVideoCodingControlInfoKHR* pCodingControlInfo)
+{
+    AEMU_SCOPED_TRACE("vkCmdControlVideoCodingKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdControlVideoCodingKHR(commandBuffer, pCodingControlInfo, true /* do lock */);
+}
+#endif
+#ifdef VK_KHR_video_decode_queue
+static void entry_vkCmdDecodeVideoKHR(
+    VkCommandBuffer commandBuffer,
+    const VkVideoDecodeInfoKHR* pFrameInfo)
+{
+    AEMU_SCOPED_TRACE("vkCmdDecodeVideoKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDecodeVideoKHR(commandBuffer, pFrameInfo, true /* do lock */);
+}
+#endif
+#ifdef VK_KHR_dynamic_rendering
+static void entry_vkCmdBeginRenderingKHR(
+    VkCommandBuffer commandBuffer,
+    const VkRenderingInfoKHR* pRenderingInfo)
+{
+    AEMU_SCOPED_TRACE("vkCmdBeginRenderingKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBeginRenderingKHR(commandBuffer, pRenderingInfo, true /* do lock */);
+}
+static void entry_vkCmdEndRenderingKHR(
+    VkCommandBuffer commandBuffer)
+{
+    AEMU_SCOPED_TRACE("vkCmdEndRenderingKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdEndRenderingKHR(commandBuffer, true /* do lock */);
+}
+#endif
 #ifdef VK_KHR_multiview
 #endif
 #ifdef VK_KHR_get_physical_device_properties2
@@ -4070,6 +4335,37 @@ static void entry_vkCmdSetFragmentShadingRateKHR(
 #endif
 #ifdef VK_KHR_separate_depth_stencil_layouts
 #endif
+#ifdef VK_KHR_present_wait
+static VkResult entry_vkWaitForPresentKHR(
+    VkDevice device,
+    VkSwapchainKHR swapchain,
+    uint64_t presentId,
+    uint64_t timeout)
+{
+    AEMU_SCOPED_TRACE("vkWaitForPresentKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkWaitForPresentKHR_VkResult_return = (VkResult)0;
+    vkWaitForPresentKHR_VkResult_return = vkEnc->vkWaitForPresentKHR(device, swapchain, presentId, timeout, true /* do lock */);
+    return vkWaitForPresentKHR_VkResult_return;
+}
+static VkResult dynCheck_entry_vkWaitForPresentKHR(
+    VkDevice device,
+    VkSwapchainKHR swapchain,
+    uint64_t presentId,
+    uint64_t timeout)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_present_wait"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkWaitForPresentKHR", "VK_KHR_present_wait");
+    }
+    AEMU_SCOPED_TRACE("vkWaitForPresentKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkWaitForPresentKHR_VkResult_return = (VkResult)0;
+    vkWaitForPresentKHR_VkResult_return = vkEnc->vkWaitForPresentKHR(device, swapchain, presentId, timeout, true /* do lock */);
+    return vkWaitForPresentKHR_VkResult_return;
+}
+#endif
 #ifdef VK_KHR_uniform_buffer_standard_layout
 #endif
 #ifdef VK_KHR_buffer_device_address
@@ -4365,9 +4661,109 @@ static VkResult dynCheck_entry_vkGetPipelineExecutableInternalRepresentationsKHR
     return vkGetPipelineExecutableInternalRepresentationsKHR_VkResult_return;
 }
 #endif
+#ifdef VK_KHR_shader_integer_dot_product
+#endif
 #ifdef VK_KHR_pipeline_library
 #endif
 #ifdef VK_KHR_shader_non_semantic_info
+#endif
+#ifdef VK_KHR_present_id
+#endif
+#ifdef VK_KHR_video_encode_queue
+static void entry_vkCmdEncodeVideoKHR(
+    VkCommandBuffer commandBuffer,
+    const VkVideoEncodeInfoKHR* pEncodeInfo)
+{
+    AEMU_SCOPED_TRACE("vkCmdEncodeVideoKHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdEncodeVideoKHR(commandBuffer, pEncodeInfo, true /* do lock */);
+}
+#endif
+#ifdef VK_KHR_synchronization2
+static void entry_vkCmdSetEvent2KHR(
+    VkCommandBuffer commandBuffer,
+    VkEvent event,
+    const VkDependencyInfoKHR* pDependencyInfo)
+{
+    AEMU_SCOPED_TRACE("vkCmdSetEvent2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetEvent2KHR(commandBuffer, event, pDependencyInfo, true /* do lock */);
+}
+static void entry_vkCmdResetEvent2KHR(
+    VkCommandBuffer commandBuffer,
+    VkEvent event,
+    VkPipelineStageFlags2KHR stageMask)
+{
+    AEMU_SCOPED_TRACE("vkCmdResetEvent2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdResetEvent2KHR(commandBuffer, event, stageMask, true /* do lock */);
+}
+static void entry_vkCmdWaitEvents2KHR(
+    VkCommandBuffer commandBuffer,
+    uint32_t eventCount,
+    const VkEvent* pEvents,
+    const VkDependencyInfoKHR* pDependencyInfos)
+{
+    AEMU_SCOPED_TRACE("vkCmdWaitEvents2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdWaitEvents2KHR(commandBuffer, eventCount, pEvents, pDependencyInfos, true /* do lock */);
+}
+static void entry_vkCmdPipelineBarrier2KHR(
+    VkCommandBuffer commandBuffer,
+    const VkDependencyInfoKHR* pDependencyInfo)
+{
+    AEMU_SCOPED_TRACE("vkCmdPipelineBarrier2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdPipelineBarrier2KHR(commandBuffer, pDependencyInfo, true /* do lock */);
+}
+static void entry_vkCmdWriteTimestamp2KHR(
+    VkCommandBuffer commandBuffer,
+    VkPipelineStageFlags2KHR stage,
+    VkQueryPool queryPool,
+    uint32_t query)
+{
+    AEMU_SCOPED_TRACE("vkCmdWriteTimestamp2KHR");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdWriteTimestamp2KHR(commandBuffer, stage, queryPool, query, true /* do lock */);
+}
+static VkResult entry_vkQueueSubmit2KHR(
+    VkQueue queue,
+    uint32_t submitCount,
+    const VkSubmitInfo2KHR* pSubmits,
+    VkFence fence)
+{
+    AEMU_SCOPED_TRACE("vkQueueSubmit2KHR");
+    auto vkEnc = ResourceTracker::getQueueEncoder(queue);
+    VkResult vkQueueSubmit2KHR_VkResult_return = (VkResult)0;
+    vkQueueSubmit2KHR_VkResult_return = vkEnc->vkQueueSubmit2KHR(queue, submitCount, pSubmits, fence, true /* do lock */);
+    return vkQueueSubmit2KHR_VkResult_return;
+}
+static void entry_vkCmdWriteBufferMarker2AMD(
+    VkCommandBuffer commandBuffer,
+    VkPipelineStageFlags2KHR stage,
+    VkBuffer dstBuffer,
+    VkDeviceSize dstOffset,
+    uint32_t marker)
+{
+    AEMU_SCOPED_TRACE("vkCmdWriteBufferMarker2AMD");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdWriteBufferMarker2AMD(commandBuffer, stage, dstBuffer, dstOffset, marker, true /* do lock */);
+}
+static void entry_vkGetQueueCheckpointData2NV(
+    VkQueue queue,
+    uint32_t* pCheckpointDataCount,
+    VkCheckpointData2NV* pCheckpointData)
+{
+    AEMU_SCOPED_TRACE("vkGetQueueCheckpointData2NV");
+    auto vkEnc = ResourceTracker::getQueueEncoder(queue);
+    vkEnc->vkGetQueueCheckpointData2NV(queue, pCheckpointDataCount, pCheckpointData, true /* do lock */);
+}
+#endif
+#ifdef VK_KHR_shader_subgroup_uniform_control_flow
+#endif
+#ifdef VK_KHR_zero_initialize_workgroup_memory
+#endif
+#ifdef VK_KHR_workgroup_memory_explicit_layout
 #endif
 #ifdef VK_KHR_copy_commands2
 static void entry_vkCmdCopyBuffer2KHR(
@@ -4417,6 +4813,81 @@ static void entry_vkCmdResolveImage2KHR(
     AEMU_SCOPED_TRACE("vkCmdResolveImage2KHR");
     auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
     vkEnc->vkCmdResolveImage2KHR(commandBuffer, pResolveImageInfo, true /* do lock */);
+}
+#endif
+#ifdef VK_KHR_format_feature_flags2
+#endif
+#ifdef VK_KHR_maintenance4
+static void entry_vkGetDeviceBufferMemoryRequirementsKHR(
+    VkDevice device,
+    const VkDeviceBufferMemoryRequirementsKHR* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements)
+{
+    AEMU_SCOPED_TRACE("vkGetDeviceBufferMemoryRequirementsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDeviceBufferMemoryRequirementsKHR(device, pInfo, pMemoryRequirements, true /* do lock */);
+}
+static void dynCheck_entry_vkGetDeviceBufferMemoryRequirementsKHR(
+    VkDevice device,
+    const VkDeviceBufferMemoryRequirementsKHR* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_maintenance4"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceBufferMemoryRequirementsKHR", "VK_KHR_maintenance4");
+    }
+    AEMU_SCOPED_TRACE("vkGetDeviceBufferMemoryRequirementsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDeviceBufferMemoryRequirementsKHR(device, pInfo, pMemoryRequirements, true /* do lock */);
+}
+static void entry_vkGetDeviceImageMemoryRequirementsKHR(
+    VkDevice device,
+    const VkDeviceImageMemoryRequirementsKHR* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements)
+{
+    AEMU_SCOPED_TRACE("vkGetDeviceImageMemoryRequirementsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDeviceImageMemoryRequirementsKHR(device, pInfo, pMemoryRequirements, true /* do lock */);
+}
+static void dynCheck_entry_vkGetDeviceImageMemoryRequirementsKHR(
+    VkDevice device,
+    const VkDeviceImageMemoryRequirementsKHR* pInfo,
+    VkMemoryRequirements2* pMemoryRequirements)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_maintenance4"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceImageMemoryRequirementsKHR", "VK_KHR_maintenance4");
+    }
+    AEMU_SCOPED_TRACE("vkGetDeviceImageMemoryRequirementsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDeviceImageMemoryRequirementsKHR(device, pInfo, pMemoryRequirements, true /* do lock */);
+}
+static void entry_vkGetDeviceImageSparseMemoryRequirementsKHR(
+    VkDevice device,
+    const VkDeviceImageMemoryRequirementsKHR* pInfo,
+    uint32_t* pSparseMemoryRequirementCount,
+    VkSparseImageMemoryRequirements2* pSparseMemoryRequirements)
+{
+    AEMU_SCOPED_TRACE("vkGetDeviceImageSparseMemoryRequirementsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDeviceImageSparseMemoryRequirementsKHR(device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements, true /* do lock */);
+}
+static void dynCheck_entry_vkGetDeviceImageSparseMemoryRequirementsKHR(
+    VkDevice device,
+    const VkDeviceImageMemoryRequirementsKHR* pInfo,
+    uint32_t* pSparseMemoryRequirementCount,
+    VkSparseImageMemoryRequirements2* pSparseMemoryRequirements)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_KHR_maintenance4"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceImageSparseMemoryRequirementsKHR", "VK_KHR_maintenance4");
+    }
+    AEMU_SCOPED_TRACE("vkGetDeviceImageSparseMemoryRequirementsKHR");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkGetDeviceImageSparseMemoryRequirementsKHR(device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements, true /* do lock */);
 }
 #endif
 #ifdef VK_ANDROID_native_buffer
@@ -4693,6 +5164,120 @@ static void entry_vkCmdDrawIndirectByteCountEXT(
     vkEnc->vkCmdDrawIndirectByteCountEXT(commandBuffer, instanceCount, firstInstance, counterBuffer, counterBufferOffset, counterOffset, vertexStride, true /* do lock */);
 }
 #endif
+#ifdef VK_NVX_binary_import
+static VkResult entry_vkCreateCuModuleNVX(
+    VkDevice device,
+    const VkCuModuleCreateInfoNVX* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkCuModuleNVX* pModule)
+{
+    AEMU_SCOPED_TRACE("vkCreateCuModuleNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateCuModuleNVX_VkResult_return = (VkResult)0;
+    vkCreateCuModuleNVX_VkResult_return = vkEnc->vkCreateCuModuleNVX(device, pCreateInfo, pAllocator, pModule, true /* do lock */);
+    return vkCreateCuModuleNVX_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateCuModuleNVX(
+    VkDevice device,
+    const VkCuModuleCreateInfoNVX* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkCuModuleNVX* pModule)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NVX_binary_import"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkCreateCuModuleNVX", "VK_NVX_binary_import");
+    }
+    AEMU_SCOPED_TRACE("vkCreateCuModuleNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateCuModuleNVX_VkResult_return = (VkResult)0;
+    vkCreateCuModuleNVX_VkResult_return = vkEnc->vkCreateCuModuleNVX(device, pCreateInfo, pAllocator, pModule, true /* do lock */);
+    return vkCreateCuModuleNVX_VkResult_return;
+}
+static VkResult entry_vkCreateCuFunctionNVX(
+    VkDevice device,
+    const VkCuFunctionCreateInfoNVX* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkCuFunctionNVX* pFunction)
+{
+    AEMU_SCOPED_TRACE("vkCreateCuFunctionNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateCuFunctionNVX_VkResult_return = (VkResult)0;
+    vkCreateCuFunctionNVX_VkResult_return = vkEnc->vkCreateCuFunctionNVX(device, pCreateInfo, pAllocator, pFunction, true /* do lock */);
+    return vkCreateCuFunctionNVX_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateCuFunctionNVX(
+    VkDevice device,
+    const VkCuFunctionCreateInfoNVX* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkCuFunctionNVX* pFunction)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NVX_binary_import"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkCreateCuFunctionNVX", "VK_NVX_binary_import");
+    }
+    AEMU_SCOPED_TRACE("vkCreateCuFunctionNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateCuFunctionNVX_VkResult_return = (VkResult)0;
+    vkCreateCuFunctionNVX_VkResult_return = vkEnc->vkCreateCuFunctionNVX(device, pCreateInfo, pAllocator, pFunction, true /* do lock */);
+    return vkCreateCuFunctionNVX_VkResult_return;
+}
+static void entry_vkDestroyCuModuleNVX(
+    VkDevice device,
+    VkCuModuleNVX module,
+    const VkAllocationCallbacks* pAllocator)
+{
+    AEMU_SCOPED_TRACE("vkDestroyCuModuleNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyCuModuleNVX(device, module, pAllocator, true /* do lock */);
+}
+static void dynCheck_entry_vkDestroyCuModuleNVX(
+    VkDevice device,
+    VkCuModuleNVX module,
+    const VkAllocationCallbacks* pAllocator)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NVX_binary_import"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyCuModuleNVX", "VK_NVX_binary_import");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyCuModuleNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyCuModuleNVX(device, module, pAllocator, true /* do lock */);
+}
+static void entry_vkDestroyCuFunctionNVX(
+    VkDevice device,
+    VkCuFunctionNVX function,
+    const VkAllocationCallbacks* pAllocator)
+{
+    AEMU_SCOPED_TRACE("vkDestroyCuFunctionNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyCuFunctionNVX(device, function, pAllocator, true /* do lock */);
+}
+static void dynCheck_entry_vkDestroyCuFunctionNVX(
+    VkDevice device,
+    VkCuFunctionNVX function,
+    const VkAllocationCallbacks* pAllocator)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NVX_binary_import"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyCuFunctionNVX", "VK_NVX_binary_import");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyCuFunctionNVX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyCuFunctionNVX(device, function, pAllocator, true /* do lock */);
+}
+static void entry_vkCmdCuLaunchKernelNVX(
+    VkCommandBuffer commandBuffer,
+    const VkCuLaunchInfoNVX* pLaunchInfo)
+{
+    AEMU_SCOPED_TRACE("vkCmdCuLaunchKernelNVX");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdCuLaunchKernelNVX(commandBuffer, pLaunchInfo, true /* do lock */);
+}
+#endif
 #ifdef VK_NVX_image_view_handle
 static uint32_t entry_vkGetImageViewHandleNVX(
     VkDevice device,
@@ -4780,6 +5365,12 @@ static void entry_vkCmdDrawIndexedIndirectCountAMD(
 #ifdef VK_AMD_gpu_shader_half_float
 #endif
 #ifdef VK_AMD_shader_ballot
+#endif
+#ifdef VK_EXT_video_encode_h264
+#endif
+#ifdef VK_EXT_video_encode_h265
+#endif
+#ifdef VK_EXT_video_decode_h264
 #endif
 #ifdef VK_AMD_texture_gather_bias_lod
 #endif
@@ -6134,6 +6725,8 @@ static VkResult dynCheck_entry_vkGetCalibratedTimestampsEXT(
 #endif
 #ifdef VK_AMD_shader_core_properties
 #endif
+#ifdef VK_EXT_video_decode_h265
+#endif
 #ifdef VK_AMD_memory_overallocation_behavior
 #endif
 #ifdef VK_EXT_vertex_attribute_divisor
@@ -6534,6 +7127,8 @@ static VkResult entry_vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombina
 #endif
 #ifdef VK_EXT_ycbcr_image_arrays
 #endif
+#ifdef VK_EXT_provoking_vertex
+#endif
 #ifdef VK_EXT_full_screen_exclusive
 static VkResult entry_vkGetPhysicalDeviceSurfacePresentModes2EXT(
     VkPhysicalDevice physicalDevice,
@@ -6790,6 +7385,8 @@ static void entry_vkCmdSetStencilOpEXT(
     vkEnc->vkCmdSetStencilOpEXT(commandBuffer, faceMask, failOp, passOp, depthFailOp, compareOp, true /* do lock */);
 }
 #endif
+#ifdef VK_EXT_shader_atomic_float2
+#endif
 #ifdef VK_EXT_shader_demote_to_helper_invocation
 #endif
 #ifdef VK_NV_device_generated_commands
@@ -6896,11 +7493,38 @@ static void dynCheck_entry_vkDestroyIndirectCommandsLayoutNV(
     vkEnc->vkDestroyIndirectCommandsLayoutNV(device, indirectCommandsLayout, pAllocator, true /* do lock */);
 }
 #endif
+#ifdef VK_NV_inherited_viewport_scissor
+#endif
 #ifdef VK_EXT_texel_buffer_alignment
 #endif
 #ifdef VK_QCOM_render_pass_transform
 #endif
 #ifdef VK_EXT_device_memory_report
+#endif
+#ifdef VK_EXT_acquire_drm_display
+static VkResult entry_vkAcquireDrmDisplayEXT(
+    VkPhysicalDevice physicalDevice,
+    int32_t drmFd,
+    VkDisplayKHR display)
+{
+    AEMU_SCOPED_TRACE("vkAcquireDrmDisplayEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkAcquireDrmDisplayEXT_VkResult_return = (VkResult)0;
+    vkAcquireDrmDisplayEXT_VkResult_return = vkEnc->vkAcquireDrmDisplayEXT(physicalDevice, drmFd, display, true /* do lock */);
+    return vkAcquireDrmDisplayEXT_VkResult_return;
+}
+static VkResult entry_vkGetDrmDisplayEXT(
+    VkPhysicalDevice physicalDevice,
+    int32_t drmFd,
+    uint32_t connectorId,
+    VkDisplayKHR* display)
+{
+    AEMU_SCOPED_TRACE("vkGetDrmDisplayEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDrmDisplayEXT_VkResult_return = (VkResult)0;
+    vkGetDrmDisplayEXT_VkResult_return = vkEnc->vkGetDrmDisplayEXT(physicalDevice, drmFd, connectorId, display, true /* do lock */);
+    return vkGetDrmDisplayEXT_VkResult_return;
+}
 #endif
 #ifdef VK_EXT_robustness2
 #endif
@@ -7037,6 +7661,10 @@ static void entry_vkCmdSetFragmentShadingRateEnumNV(
     vkEnc->vkCmdSetFragmentShadingRateEnumNV(commandBuffer, shadingRate, combinerOps, true /* do lock */);
 }
 #endif
+#ifdef VK_NV_ray_tracing_motion_blur
+#endif
+#ifdef VK_EXT_ycbcr_2plane_444_formats
+#endif
 #ifdef VK_EXT_fragment_density_map2
 #endif
 #ifdef VK_QCOM_rotated_copy_commands
@@ -7044,6 +7672,31 @@ static void entry_vkCmdSetFragmentShadingRateEnumNV(
 #ifdef VK_EXT_image_robustness
 #endif
 #ifdef VK_EXT_4444_formats
+#endif
+#ifdef VK_EXT_rgba10x6_formats
+#endif
+#ifdef VK_NV_acquire_winrt_display
+static VkResult entry_vkAcquireWinrtDisplayNV(
+    VkPhysicalDevice physicalDevice,
+    VkDisplayKHR display)
+{
+    AEMU_SCOPED_TRACE("vkAcquireWinrtDisplayNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkAcquireWinrtDisplayNV_VkResult_return = (VkResult)0;
+    vkAcquireWinrtDisplayNV_VkResult_return = vkEnc->vkAcquireWinrtDisplayNV(physicalDevice, display, true /* do lock */);
+    return vkAcquireWinrtDisplayNV_VkResult_return;
+}
+static VkResult entry_vkGetWinrtDisplayNV(
+    VkPhysicalDevice physicalDevice,
+    uint32_t deviceRelativeId,
+    VkDisplayKHR* pDisplay)
+{
+    AEMU_SCOPED_TRACE("vkGetWinrtDisplayNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetWinrtDisplayNV_VkResult_return = (VkResult)0;
+    vkGetWinrtDisplayNV_VkResult_return = vkEnc->vkGetWinrtDisplayNV(physicalDevice, deviceRelativeId, pDisplay, true /* do lock */);
+    return vkGetWinrtDisplayNV_VkResult_return;
+}
 #endif
 #ifdef VK_EXT_directfb_surface
 static VkResult entry_vkCreateDirectFBSurfaceEXT(
@@ -7068,6 +7721,426 @@ static VkBool32 entry_vkGetPhysicalDeviceDirectFBPresentationSupportEXT(
     VkBool32 vkGetPhysicalDeviceDirectFBPresentationSupportEXT_VkBool32_return = (VkBool32)0;
     vkGetPhysicalDeviceDirectFBPresentationSupportEXT_VkBool32_return = vkEnc->vkGetPhysicalDeviceDirectFBPresentationSupportEXT(physicalDevice, queueFamilyIndex, dfb, true /* do lock */);
     return vkGetPhysicalDeviceDirectFBPresentationSupportEXT_VkBool32_return;
+}
+#endif
+#ifdef VK_VALVE_mutable_descriptor_type
+#endif
+#ifdef VK_EXT_vertex_input_dynamic_state
+static void entry_vkCmdSetVertexInputEXT(
+    VkCommandBuffer commandBuffer,
+    uint32_t vertexBindingDescriptionCount,
+    const VkVertexInputBindingDescription2EXT* pVertexBindingDescriptions,
+    uint32_t vertexAttributeDescriptionCount,
+    const VkVertexInputAttributeDescription2EXT* pVertexAttributeDescriptions)
+{
+    AEMU_SCOPED_TRACE("vkCmdSetVertexInputEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetVertexInputEXT(commandBuffer, vertexBindingDescriptionCount, pVertexBindingDescriptions, vertexAttributeDescriptionCount, pVertexAttributeDescriptions, true /* do lock */);
+}
+#endif
+#ifdef VK_EXT_physical_device_drm
+#endif
+#ifdef VK_EXT_primitive_topology_list_restart
+#endif
+#ifdef VK_FUCHSIA_external_memory
+static VkResult entry_vkGetMemoryZirconHandleFUCHSIA(
+    VkDevice device,
+    const VkMemoryGetZirconHandleInfoFUCHSIA* pGetZirconHandleInfo,
+    zx_handle_t* pZirconHandle)
+{
+    AEMU_SCOPED_TRACE("vkGetMemoryZirconHandleFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryZirconHandleFUCHSIA_VkResult_return = (VkResult)0;
+    vkGetMemoryZirconHandleFUCHSIA_VkResult_return = vkEnc->vkGetMemoryZirconHandleFUCHSIA(device, pGetZirconHandleInfo, pZirconHandle, true /* do lock */);
+    return vkGetMemoryZirconHandleFUCHSIA_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetMemoryZirconHandleFUCHSIA(
+    VkDevice device,
+    const VkMemoryGetZirconHandleInfoFUCHSIA* pGetZirconHandleInfo,
+    zx_handle_t* pZirconHandle)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_FUCHSIA_external_memory"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryZirconHandleFUCHSIA", "VK_FUCHSIA_external_memory");
+    }
+    AEMU_SCOPED_TRACE("vkGetMemoryZirconHandleFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryZirconHandleFUCHSIA_VkResult_return = (VkResult)0;
+    vkGetMemoryZirconHandleFUCHSIA_VkResult_return = vkEnc->vkGetMemoryZirconHandleFUCHSIA(device, pGetZirconHandleInfo, pZirconHandle, true /* do lock */);
+    return vkGetMemoryZirconHandleFUCHSIA_VkResult_return;
+}
+static VkResult entry_vkGetMemoryZirconHandlePropertiesFUCHSIA(
+    VkDevice device,
+    VkExternalMemoryHandleTypeFlagBits handleType,
+    zx_handle_t zirconHandle,
+    VkMemoryZirconHandlePropertiesFUCHSIA* pMemoryZirconHandleProperties)
+{
+    AEMU_SCOPED_TRACE("vkGetMemoryZirconHandlePropertiesFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryZirconHandlePropertiesFUCHSIA_VkResult_return = (VkResult)0;
+    vkGetMemoryZirconHandlePropertiesFUCHSIA_VkResult_return = vkEnc->vkGetMemoryZirconHandlePropertiesFUCHSIA(device, handleType, zirconHandle, pMemoryZirconHandleProperties, true /* do lock */);
+    return vkGetMemoryZirconHandlePropertiesFUCHSIA_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetMemoryZirconHandlePropertiesFUCHSIA(
+    VkDevice device,
+    VkExternalMemoryHandleTypeFlagBits handleType,
+    zx_handle_t zirconHandle,
+    VkMemoryZirconHandlePropertiesFUCHSIA* pMemoryZirconHandleProperties)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_FUCHSIA_external_memory"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryZirconHandlePropertiesFUCHSIA", "VK_FUCHSIA_external_memory");
+    }
+    AEMU_SCOPED_TRACE("vkGetMemoryZirconHandlePropertiesFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryZirconHandlePropertiesFUCHSIA_VkResult_return = (VkResult)0;
+    vkGetMemoryZirconHandlePropertiesFUCHSIA_VkResult_return = vkEnc->vkGetMemoryZirconHandlePropertiesFUCHSIA(device, handleType, zirconHandle, pMemoryZirconHandleProperties, true /* do lock */);
+    return vkGetMemoryZirconHandlePropertiesFUCHSIA_VkResult_return;
+}
+#endif
+#ifdef VK_FUCHSIA_external_semaphore
+static VkResult entry_vkImportSemaphoreZirconHandleFUCHSIA(
+    VkDevice device,
+    const VkImportSemaphoreZirconHandleInfoFUCHSIA* pImportSemaphoreZirconHandleInfo)
+{
+    AEMU_SCOPED_TRACE("vkImportSemaphoreZirconHandleFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkImportSemaphoreZirconHandleFUCHSIA_VkResult_return = (VkResult)0;
+    vkImportSemaphoreZirconHandleFUCHSIA_VkResult_return = vkEnc->vkImportSemaphoreZirconHandleFUCHSIA(device, pImportSemaphoreZirconHandleInfo, true /* do lock */);
+    return vkImportSemaphoreZirconHandleFUCHSIA_VkResult_return;
+}
+static VkResult dynCheck_entry_vkImportSemaphoreZirconHandleFUCHSIA(
+    VkDevice device,
+    const VkImportSemaphoreZirconHandleInfoFUCHSIA* pImportSemaphoreZirconHandleInfo)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_FUCHSIA_external_semaphore"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkImportSemaphoreZirconHandleFUCHSIA", "VK_FUCHSIA_external_semaphore");
+    }
+    AEMU_SCOPED_TRACE("vkImportSemaphoreZirconHandleFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkImportSemaphoreZirconHandleFUCHSIA_VkResult_return = (VkResult)0;
+    vkImportSemaphoreZirconHandleFUCHSIA_VkResult_return = vkEnc->vkImportSemaphoreZirconHandleFUCHSIA(device, pImportSemaphoreZirconHandleInfo, true /* do lock */);
+    return vkImportSemaphoreZirconHandleFUCHSIA_VkResult_return;
+}
+static VkResult entry_vkGetSemaphoreZirconHandleFUCHSIA(
+    VkDevice device,
+    const VkSemaphoreGetZirconHandleInfoFUCHSIA* pGetZirconHandleInfo,
+    zx_handle_t* pZirconHandle)
+{
+    AEMU_SCOPED_TRACE("vkGetSemaphoreZirconHandleFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return = (VkResult)0;
+    vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return = vkEnc->vkGetSemaphoreZirconHandleFUCHSIA(device, pGetZirconHandleInfo, pZirconHandle, true /* do lock */);
+    return vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetSemaphoreZirconHandleFUCHSIA(
+    VkDevice device,
+    const VkSemaphoreGetZirconHandleInfoFUCHSIA* pGetZirconHandleInfo,
+    zx_handle_t* pZirconHandle)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_FUCHSIA_external_semaphore"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetSemaphoreZirconHandleFUCHSIA", "VK_FUCHSIA_external_semaphore");
+    }
+    AEMU_SCOPED_TRACE("vkGetSemaphoreZirconHandleFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return = (VkResult)0;
+    vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return = vkEnc->vkGetSemaphoreZirconHandleFUCHSIA(device, pGetZirconHandleInfo, pZirconHandle, true /* do lock */);
+    return vkGetSemaphoreZirconHandleFUCHSIA_VkResult_return;
+}
+#endif
+#ifdef VK_FUCHSIA_buffer_collection
+static VkResult entry_vkCreateBufferCollectionFUCHSIA(
+    VkDevice device,
+    const VkBufferCollectionCreateInfoFUCHSIA* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkBufferCollectionFUCHSIA* pCollection)
+{
+    AEMU_SCOPED_TRACE("vkCreateBufferCollectionFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateBufferCollectionFUCHSIA_VkResult_return = (VkResult)0;
+    vkCreateBufferCollectionFUCHSIA_VkResult_return = vkEnc->vkCreateBufferCollectionFUCHSIA(device, pCreateInfo, pAllocator, pCollection, true /* do lock */);
+    return vkCreateBufferCollectionFUCHSIA_VkResult_return;
+}
+static VkResult dynCheck_entry_vkCreateBufferCollectionFUCHSIA(
+    VkDevice device,
+    const VkBufferCollectionCreateInfoFUCHSIA* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkBufferCollectionFUCHSIA* pCollection)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkCreateBufferCollectionFUCHSIA", "VK_FUCHSIA_buffer_collection");
+    }
+    AEMU_SCOPED_TRACE("vkCreateBufferCollectionFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateBufferCollectionFUCHSIA_VkResult_return = (VkResult)0;
+    vkCreateBufferCollectionFUCHSIA_VkResult_return = vkEnc->vkCreateBufferCollectionFUCHSIA(device, pCreateInfo, pAllocator, pCollection, true /* do lock */);
+    return vkCreateBufferCollectionFUCHSIA_VkResult_return;
+}
+static VkResult entry_vkSetBufferCollectionImageConstraintsFUCHSIA(
+    VkDevice device,
+    VkBufferCollectionFUCHSIA collection,
+    const VkImageConstraintsInfoFUCHSIA* pImageConstraintsInfo)
+{
+    AEMU_SCOPED_TRACE("vkSetBufferCollectionImageConstraintsFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkSetBufferCollectionImageConstraintsFUCHSIA_VkResult_return = (VkResult)0;
+    vkSetBufferCollectionImageConstraintsFUCHSIA_VkResult_return = vkEnc->vkSetBufferCollectionImageConstraintsFUCHSIA(device, collection, pImageConstraintsInfo, true /* do lock */);
+    return vkSetBufferCollectionImageConstraintsFUCHSIA_VkResult_return;
+}
+static VkResult dynCheck_entry_vkSetBufferCollectionImageConstraintsFUCHSIA(
+    VkDevice device,
+    VkBufferCollectionFUCHSIA collection,
+    const VkImageConstraintsInfoFUCHSIA* pImageConstraintsInfo)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkSetBufferCollectionImageConstraintsFUCHSIA", "VK_FUCHSIA_buffer_collection");
+    }
+    AEMU_SCOPED_TRACE("vkSetBufferCollectionImageConstraintsFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkSetBufferCollectionImageConstraintsFUCHSIA_VkResult_return = (VkResult)0;
+    vkSetBufferCollectionImageConstraintsFUCHSIA_VkResult_return = vkEnc->vkSetBufferCollectionImageConstraintsFUCHSIA(device, collection, pImageConstraintsInfo, true /* do lock */);
+    return vkSetBufferCollectionImageConstraintsFUCHSIA_VkResult_return;
+}
+static VkResult entry_vkSetBufferCollectionBufferConstraintsFUCHSIA(
+    VkDevice device,
+    VkBufferCollectionFUCHSIA collection,
+    const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo)
+{
+    AEMU_SCOPED_TRACE("vkSetBufferCollectionBufferConstraintsFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkSetBufferCollectionBufferConstraintsFUCHSIA_VkResult_return = (VkResult)0;
+    vkSetBufferCollectionBufferConstraintsFUCHSIA_VkResult_return = vkEnc->vkSetBufferCollectionBufferConstraintsFUCHSIA(device, collection, pBufferConstraintsInfo, true /* do lock */);
+    return vkSetBufferCollectionBufferConstraintsFUCHSIA_VkResult_return;
+}
+static VkResult dynCheck_entry_vkSetBufferCollectionBufferConstraintsFUCHSIA(
+    VkDevice device,
+    VkBufferCollectionFUCHSIA collection,
+    const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkSetBufferCollectionBufferConstraintsFUCHSIA", "VK_FUCHSIA_buffer_collection");
+    }
+    AEMU_SCOPED_TRACE("vkSetBufferCollectionBufferConstraintsFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkSetBufferCollectionBufferConstraintsFUCHSIA_VkResult_return = (VkResult)0;
+    vkSetBufferCollectionBufferConstraintsFUCHSIA_VkResult_return = vkEnc->vkSetBufferCollectionBufferConstraintsFUCHSIA(device, collection, pBufferConstraintsInfo, true /* do lock */);
+    return vkSetBufferCollectionBufferConstraintsFUCHSIA_VkResult_return;
+}
+static void entry_vkDestroyBufferCollectionFUCHSIA(
+    VkDevice device,
+    VkBufferCollectionFUCHSIA collection,
+    const VkAllocationCallbacks* pAllocator)
+{
+    AEMU_SCOPED_TRACE("vkDestroyBufferCollectionFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyBufferCollectionFUCHSIA(device, collection, pAllocator, true /* do lock */);
+}
+static void dynCheck_entry_vkDestroyBufferCollectionFUCHSIA(
+    VkDevice device,
+    VkBufferCollectionFUCHSIA collection,
+    const VkAllocationCallbacks* pAllocator)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkDestroyBufferCollectionFUCHSIA", "VK_FUCHSIA_buffer_collection");
+    }
+    AEMU_SCOPED_TRACE("vkDestroyBufferCollectionFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkDestroyBufferCollectionFUCHSIA(device, collection, pAllocator, true /* do lock */);
+}
+static VkResult entry_vkGetBufferCollectionPropertiesFUCHSIA(
+    VkDevice device,
+    VkBufferCollectionFUCHSIA collection,
+    VkBufferCollectionPropertiesFUCHSIA* pProperties)
+{
+    AEMU_SCOPED_TRACE("vkGetBufferCollectionPropertiesFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetBufferCollectionPropertiesFUCHSIA_VkResult_return = (VkResult)0;
+    vkGetBufferCollectionPropertiesFUCHSIA_VkResult_return = vkEnc->vkGetBufferCollectionPropertiesFUCHSIA(device, collection, pProperties, true /* do lock */);
+    return vkGetBufferCollectionPropertiesFUCHSIA_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetBufferCollectionPropertiesFUCHSIA(
+    VkDevice device,
+    VkBufferCollectionFUCHSIA collection,
+    VkBufferCollectionPropertiesFUCHSIA* pProperties)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetBufferCollectionPropertiesFUCHSIA", "VK_FUCHSIA_buffer_collection");
+    }
+    AEMU_SCOPED_TRACE("vkGetBufferCollectionPropertiesFUCHSIA");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetBufferCollectionPropertiesFUCHSIA_VkResult_return = (VkResult)0;
+    vkGetBufferCollectionPropertiesFUCHSIA_VkResult_return = vkEnc->vkGetBufferCollectionPropertiesFUCHSIA(device, collection, pProperties, true /* do lock */);
+    return vkGetBufferCollectionPropertiesFUCHSIA_VkResult_return;
+}
+#endif
+#ifdef VK_HUAWEI_subpass_shading
+static VkResult entry_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI(
+    VkDevice device,
+    VkRenderPass renderpass,
+    VkExtent2D* pMaxWorkgroupSize)
+{
+    AEMU_SCOPED_TRACE("vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI_VkResult_return = (VkResult)0;
+    vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI_VkResult_return = vkEnc->vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI(device, renderpass, pMaxWorkgroupSize, true /* do lock */);
+    return vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI(
+    VkDevice device,
+    VkRenderPass renderpass,
+    VkExtent2D* pMaxWorkgroupSize)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_HUAWEI_subpass_shading"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI", "VK_HUAWEI_subpass_shading");
+    }
+    AEMU_SCOPED_TRACE("vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI_VkResult_return = (VkResult)0;
+    vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI_VkResult_return = vkEnc->vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI(device, renderpass, pMaxWorkgroupSize, true /* do lock */);
+    return vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI_VkResult_return;
+}
+static void entry_vkCmdSubpassShadingHUAWEI(
+    VkCommandBuffer commandBuffer)
+{
+    AEMU_SCOPED_TRACE("vkCmdSubpassShadingHUAWEI");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSubpassShadingHUAWEI(commandBuffer, true /* do lock */);
+}
+#endif
+#ifdef VK_HUAWEI_invocation_mask
+static void entry_vkCmdBindInvocationMaskHUAWEI(
+    VkCommandBuffer commandBuffer,
+    VkImageView imageView,
+    VkImageLayout imageLayout)
+{
+    AEMU_SCOPED_TRACE("vkCmdBindInvocationMaskHUAWEI");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdBindInvocationMaskHUAWEI(commandBuffer, imageView, imageLayout, true /* do lock */);
+}
+#endif
+#ifdef VK_NV_external_memory_rdma
+static VkResult entry_vkGetMemoryRemoteAddressNV(
+    VkDevice device,
+    const VkMemoryGetRemoteAddressInfoNV* pMemoryGetRemoteAddressInfo,
+    VkRemoteAddressNV* pAddress)
+{
+    AEMU_SCOPED_TRACE("vkGetMemoryRemoteAddressNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryRemoteAddressNV_VkResult_return = (VkResult)0;
+    vkGetMemoryRemoteAddressNV_VkResult_return = vkEnc->vkGetMemoryRemoteAddressNV(device, pMemoryGetRemoteAddressInfo, pAddress, true /* do lock */);
+    return vkGetMemoryRemoteAddressNV_VkResult_return;
+}
+static VkResult dynCheck_entry_vkGetMemoryRemoteAddressNV(
+    VkDevice device,
+    const VkMemoryGetRemoteAddressInfoNV* pMemoryGetRemoteAddressInfo,
+    VkRemoteAddressNV* pAddress)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_NV_external_memory_rdma"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkGetMemoryRemoteAddressNV", "VK_NV_external_memory_rdma");
+    }
+    AEMU_SCOPED_TRACE("vkGetMemoryRemoteAddressNV");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkGetMemoryRemoteAddressNV_VkResult_return = (VkResult)0;
+    vkGetMemoryRemoteAddressNV_VkResult_return = vkEnc->vkGetMemoryRemoteAddressNV(device, pMemoryGetRemoteAddressInfo, pAddress, true /* do lock */);
+    return vkGetMemoryRemoteAddressNV_VkResult_return;
+}
+#endif
+#ifdef VK_EXT_extended_dynamic_state2
+static void entry_vkCmdSetPatchControlPointsEXT(
+    VkCommandBuffer commandBuffer,
+    uint32_t patchControlPoints)
+{
+    AEMU_SCOPED_TRACE("vkCmdSetPatchControlPointsEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetPatchControlPointsEXT(commandBuffer, patchControlPoints, true /* do lock */);
+}
+static void entry_vkCmdSetRasterizerDiscardEnableEXT(
+    VkCommandBuffer commandBuffer,
+    VkBool32 rasterizerDiscardEnable)
+{
+    AEMU_SCOPED_TRACE("vkCmdSetRasterizerDiscardEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetRasterizerDiscardEnableEXT(commandBuffer, rasterizerDiscardEnable, true /* do lock */);
+}
+static void entry_vkCmdSetDepthBiasEnableEXT(
+    VkCommandBuffer commandBuffer,
+    VkBool32 depthBiasEnable)
+{
+    AEMU_SCOPED_TRACE("vkCmdSetDepthBiasEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetDepthBiasEnableEXT(commandBuffer, depthBiasEnable, true /* do lock */);
+}
+static void entry_vkCmdSetLogicOpEXT(
+    VkCommandBuffer commandBuffer,
+    VkLogicOp logicOp)
+{
+    AEMU_SCOPED_TRACE("vkCmdSetLogicOpEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetLogicOpEXT(commandBuffer, logicOp, true /* do lock */);
+}
+static void entry_vkCmdSetPrimitiveRestartEnableEXT(
+    VkCommandBuffer commandBuffer,
+    VkBool32 primitiveRestartEnable)
+{
+    AEMU_SCOPED_TRACE("vkCmdSetPrimitiveRestartEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetPrimitiveRestartEnableEXT(commandBuffer, primitiveRestartEnable, true /* do lock */);
+}
+#endif
+#ifdef VK_QNX_screen_surface
+static VkResult entry_vkCreateScreenSurfaceQNX(
+    VkInstance instance,
+    const VkScreenSurfaceCreateInfoQNX* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkSurfaceKHR* pSurface)
+{
+    AEMU_SCOPED_TRACE("vkCreateScreenSurfaceQNX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkResult vkCreateScreenSurfaceQNX_VkResult_return = (VkResult)0;
+    vkCreateScreenSurfaceQNX_VkResult_return = vkEnc->vkCreateScreenSurfaceQNX(instance, pCreateInfo, pAllocator, pSurface, true /* do lock */);
+    return vkCreateScreenSurfaceQNX_VkResult_return;
+}
+static VkBool32 entry_vkGetPhysicalDeviceScreenPresentationSupportQNX(
+    VkPhysicalDevice physicalDevice,
+    uint32_t queueFamilyIndex,
+    _screen_window* window)
+{
+    AEMU_SCOPED_TRACE("vkGetPhysicalDeviceScreenPresentationSupportQNX");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    VkBool32 vkGetPhysicalDeviceScreenPresentationSupportQNX_VkBool32_return = (VkBool32)0;
+    vkGetPhysicalDeviceScreenPresentationSupportQNX_VkBool32_return = vkEnc->vkGetPhysicalDeviceScreenPresentationSupportQNX(physicalDevice, queueFamilyIndex, window, true /* do lock */);
+    return vkGetPhysicalDeviceScreenPresentationSupportQNX_VkBool32_return;
+}
+#endif
+#ifdef VK_EXT_color_write_enable
+static void entry_vkCmdSetColorWriteEnableEXT(
+    VkCommandBuffer commandBuffer,
+    uint32_t attachmentCount,
+    const VkBool32* pColorWriteEnables)
+{
+    AEMU_SCOPED_TRACE("vkCmdSetColorWriteEnableEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdSetColorWriteEnableEXT(commandBuffer, attachmentCount, pColorWriteEnables, true /* do lock */);
 }
 #endif
 #ifdef VK_GOOGLE_gfxstream
@@ -7467,6 +8540,64 @@ static void entry_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(
     AEMU_SCOPED_TRACE("vkQueueSignalReleaseImageANDROIDAsyncGOOGLE");
     auto vkEnc = ResourceTracker::getQueueEncoder(queue);
     vkEnc->vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(queue, waitSemaphoreCount, pWaitSemaphores, image, true /* do lock */);
+}
+#endif
+#ifdef VK_EXT_global_priority_query
+#endif
+#ifdef VK_EXT_multi_draw
+static void entry_vkCmdDrawMultiEXT(
+    VkCommandBuffer commandBuffer,
+    uint32_t drawCount,
+    const VkMultiDrawInfoEXT* pVertexInfo,
+    uint32_t instanceCount,
+    uint32_t firstInstance,
+    uint32_t stride)
+{
+    AEMU_SCOPED_TRACE("vkCmdDrawMultiEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawMultiEXT(commandBuffer, drawCount, pVertexInfo, instanceCount, firstInstance, stride, true /* do lock */);
+}
+static void entry_vkCmdDrawMultiIndexedEXT(
+    VkCommandBuffer commandBuffer,
+    uint32_t drawCount,
+    const VkMultiDrawIndexedInfoEXT* pIndexInfo,
+    uint32_t instanceCount,
+    uint32_t firstInstance,
+    uint32_t stride,
+    const int32_t* pVertexOffset)
+{
+    AEMU_SCOPED_TRACE("vkCmdDrawMultiIndexedEXT");
+    auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
+    vkEnc->vkCmdDrawMultiIndexedEXT(commandBuffer, drawCount, pIndexInfo, instanceCount, firstInstance, stride, pVertexOffset, true /* do lock */);
+}
+#endif
+#ifdef VK_EXT_load_store_op_none
+#endif
+#ifdef VK_EXT_border_color_swizzle
+#endif
+#ifdef VK_EXT_pageable_device_local_memory
+static void entry_vkSetDeviceMemoryPriorityEXT(
+    VkDevice device,
+    VkDeviceMemory memory,
+    float priority)
+{
+    AEMU_SCOPED_TRACE("vkSetDeviceMemoryPriorityEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkSetDeviceMemoryPriorityEXT(device, memory, priority, true /* do lock */);
+}
+static void dynCheck_entry_vkSetDeviceMemoryPriorityEXT(
+    VkDevice device,
+    VkDeviceMemory memory,
+    float priority)
+{
+    auto resources = ResourceTracker::get();
+    if (!resources->hasDeviceExtension(device, "VK_EXT_pageable_device_local_memory"))
+    {
+        sOnInvalidDynamicallyCheckedCall("vkSetDeviceMemoryPriorityEXT", "VK_EXT_pageable_device_local_memory");
+    }
+    AEMU_SCOPED_TRACE("vkSetDeviceMemoryPriorityEXT");
+    auto vkEnc = ResourceTracker::getThreadLocalEncoder();
+    vkEnc->vkSetDeviceMemoryPriorityEXT(device, memory, priority, true /* do lock */);
 }
 #endif
 #ifdef VK_KHR_acceleration_structure
@@ -8799,6 +9930,72 @@ void* goldfish_vulkan_get_proc_address(const char* name){
         return nullptr;
     }
 #endif
+#ifdef VK_KHR_video_queue
+    if (!strcmp(name, "vkGetPhysicalDeviceVideoCapabilitiesKHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceVideoFormatPropertiesKHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCreateVideoSessionKHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyVideoSessionKHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetVideoSessionMemoryRequirementsKHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkBindVideoSessionMemoryKHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCreateVideoSessionParametersKHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkUpdateVideoSessionParametersKHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyVideoSessionParametersKHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdBeginVideoCodingKHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndVideoCodingKHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdControlVideoCodingKHR"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_video_decode_queue
+    if (!strcmp(name, "vkCmdDecodeVideoKHR"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_dynamic_rendering
+    if (!strcmp(name, "vkCmdBeginRenderingKHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndRenderingKHR"))
+    {
+        return nullptr;
+    }
+#endif
 #ifdef VK_KHR_get_physical_device_properties2
     if (!strcmp(name, "vkGetPhysicalDeviceFeatures2KHR"))
     {
@@ -9101,6 +10298,12 @@ void* goldfish_vulkan_get_proc_address(const char* name){
         return nullptr;
     }
 #endif
+#ifdef VK_KHR_present_wait
+    if (!strcmp(name, "vkWaitForPresentKHR"))
+    {
+        return nullptr;
+    }
+#endif
 #ifdef VK_KHR_buffer_device_address
     if (!strcmp(name, "vkGetBufferDeviceAddressKHR"))
     {
@@ -9151,6 +10354,46 @@ void* goldfish_vulkan_get_proc_address(const char* name){
         return nullptr;
     }
 #endif
+#ifdef VK_KHR_video_encode_queue
+    if (!strcmp(name, "vkCmdEncodeVideoKHR"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_synchronization2
+    if (!strcmp(name, "vkCmdSetEvent2KHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdResetEvent2KHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdWaitEvents2KHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdPipelineBarrier2KHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdWriteTimestamp2KHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkQueueSubmit2KHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdWriteBufferMarker2AMD"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetQueueCheckpointData2NV"))
+    {
+        return nullptr;
+    }
+#endif
 #ifdef VK_KHR_copy_commands2
     if (!strcmp(name, "vkCmdCopyBuffer2KHR"))
     {
@@ -9173,6 +10416,20 @@ void* goldfish_vulkan_get_proc_address(const char* name){
         return nullptr;
     }
     if (!strcmp(name, "vkCmdResolveImage2KHR"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_KHR_maintenance4
+    if (!strcmp(name, "vkGetDeviceBufferMemoryRequirementsKHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceImageMemoryRequirementsKHR"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceImageSparseMemoryRequirementsKHR"))
     {
         return nullptr;
     }
@@ -9249,6 +10506,28 @@ void* goldfish_vulkan_get_proc_address(const char* name){
         return nullptr;
     }
     if (!strcmp(name, "vkCmdDrawIndirectByteCountEXT"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NVX_binary_import
+    if (!strcmp(name, "vkCreateCuModuleNVX"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCreateCuFunctionNVX"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyCuModuleNVX"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyCuFunctionNVX"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdCuLaunchKernelNVX"))
     {
         return nullptr;
     }
@@ -9821,6 +11100,16 @@ void* goldfish_vulkan_get_proc_address(const char* name){
         return nullptr;
     }
 #endif
+#ifdef VK_EXT_acquire_drm_display
+    if (!strcmp(name, "vkAcquireDrmDisplayEXT"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetDrmDisplayEXT"))
+    {
+        return nullptr;
+    }
+#endif
 #ifdef VK_EXT_private_data
     if (!strcmp(name, "vkCreatePrivateDataSlotEXT"))
     {
@@ -9845,12 +11134,130 @@ void* goldfish_vulkan_get_proc_address(const char* name){
         return nullptr;
     }
 #endif
+#ifdef VK_NV_acquire_winrt_display
+    if (!strcmp(name, "vkAcquireWinrtDisplayNV"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetWinrtDisplayNV"))
+    {
+        return nullptr;
+    }
+#endif
 #ifdef VK_EXT_directfb_surface
     if (!strcmp(name, "vkCreateDirectFBSurfaceEXT"))
     {
         return nullptr;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceDirectFBPresentationSupportEXT"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_vertex_input_dynamic_state
+    if (!strcmp(name, "vkCmdSetVertexInputEXT"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_FUCHSIA_external_memory
+    if (!strcmp(name, "vkGetMemoryZirconHandleFUCHSIA"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetMemoryZirconHandlePropertiesFUCHSIA"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_FUCHSIA_external_semaphore
+    if (!strcmp(name, "vkImportSemaphoreZirconHandleFUCHSIA"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetSemaphoreZirconHandleFUCHSIA"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_FUCHSIA_buffer_collection
+    if (!strcmp(name, "vkCreateBufferCollectionFUCHSIA"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkSetBufferCollectionImageConstraintsFUCHSIA"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkSetBufferCollectionBufferConstraintsFUCHSIA"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkDestroyBufferCollectionFUCHSIA"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetBufferCollectionPropertiesFUCHSIA"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_HUAWEI_subpass_shading
+    if (!strcmp(name, "vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSubpassShadingHUAWEI"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_HUAWEI_invocation_mask
+    if (!strcmp(name, "vkCmdBindInvocationMaskHUAWEI"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_NV_external_memory_rdma
+    if (!strcmp(name, "vkGetMemoryRemoteAddressNV"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_extended_dynamic_state2
+    if (!strcmp(name, "vkCmdSetPatchControlPointsEXT"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetRasterizerDiscardEnableEXT"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDepthBiasEnableEXT"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetLogicOpEXT"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetPrimitiveRestartEnableEXT"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_QNX_screen_surface
+    if (!strcmp(name, "vkCreateScreenSurfaceQNX"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceScreenPresentationSupportQNX"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_color_write_enable
+    if (!strcmp(name, "vkCmdSetColorWriteEnableEXT"))
     {
         return nullptr;
     }
@@ -9937,6 +11344,22 @@ void* goldfish_vulkan_get_proc_address(const char* name){
         return nullptr;
     }
     if (!strcmp(name, "vkQueueSignalReleaseImageANDROIDAsyncGOOGLE"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_multi_draw
+    if (!strcmp(name, "vkCmdDrawMultiEXT"))
+    {
+        return nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawMultiIndexedEXT"))
+    {
+        return nullptr;
+    }
+#endif
+#ifdef VK_EXT_pageable_device_local_memory
+    if (!strcmp(name, "vkSetDeviceMemoryPriorityEXT"))
     {
         return nullptr;
     }
@@ -10926,6 +12349,80 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return hasExt ? (void*)entry_vkGetPhysicalDeviceWin32PresentationSupportKHR : nullptr;
     }
 #endif
+#ifdef VK_KHR_video_queue
+    if (!strcmp(name, "vkGetPhysicalDeviceVideoCapabilitiesKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceVideoCapabilitiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceVideoFormatPropertiesKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceVideoFormatPropertiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCreateVideoSessionKHR"))
+    {
+        return (void*)dynCheck_entry_vkCreateVideoSessionKHR;
+    }
+    if (!strcmp(name, "vkDestroyVideoSessionKHR"))
+    {
+        return (void*)dynCheck_entry_vkDestroyVideoSessionKHR;
+    }
+    if (!strcmp(name, "vkGetVideoSessionMemoryRequirementsKHR"))
+    {
+        return (void*)dynCheck_entry_vkGetVideoSessionMemoryRequirementsKHR;
+    }
+    if (!strcmp(name, "vkBindVideoSessionMemoryKHR"))
+    {
+        return (void*)dynCheck_entry_vkBindVideoSessionMemoryKHR;
+    }
+    if (!strcmp(name, "vkCreateVideoSessionParametersKHR"))
+    {
+        return (void*)dynCheck_entry_vkCreateVideoSessionParametersKHR;
+    }
+    if (!strcmp(name, "vkUpdateVideoSessionParametersKHR"))
+    {
+        return (void*)dynCheck_entry_vkUpdateVideoSessionParametersKHR;
+    }
+    if (!strcmp(name, "vkDestroyVideoSessionParametersKHR"))
+    {
+        return (void*)dynCheck_entry_vkDestroyVideoSessionParametersKHR;
+    }
+    if (!strcmp(name, "vkCmdBeginVideoCodingKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkCmdBeginVideoCodingKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndVideoCodingKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkCmdEndVideoCodingKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdControlVideoCodingKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkCmdControlVideoCodingKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_video_decode_queue
+    if (!strcmp(name, "vkCmdDecodeVideoKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_video_decode_queue");
+        return hasExt ? (void*)entry_vkCmdDecodeVideoKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_dynamic_rendering
+    if (!strcmp(name, "vkCmdBeginRenderingKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_dynamic_rendering");
+        return hasExt ? (void*)entry_vkCmdBeginRenderingKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndRenderingKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_dynamic_rendering");
+        return hasExt ? (void*)entry_vkCmdEndRenderingKHR : nullptr;
+    }
+#endif
 #ifdef VK_KHR_get_physical_device_properties2
     if (!strcmp(name, "vkGetPhysicalDeviceFeatures2KHR"))
     {
@@ -11258,6 +12755,12 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return hasExt ? (void*)entry_vkCmdSetFragmentShadingRateKHR : nullptr;
     }
 #endif
+#ifdef VK_KHR_present_wait
+    if (!strcmp(name, "vkWaitForPresentKHR"))
+    {
+        return (void*)dynCheck_entry_vkWaitForPresentKHR;
+    }
+#endif
 #ifdef VK_KHR_buffer_device_address
     if (!strcmp(name, "vkGetBufferDeviceAddressKHR"))
     {
@@ -11308,6 +12811,55 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return (void*)dynCheck_entry_vkGetPipelineExecutableInternalRepresentationsKHR;
     }
 #endif
+#ifdef VK_KHR_video_encode_queue
+    if (!strcmp(name, "vkCmdEncodeVideoKHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_video_encode_queue");
+        return hasExt ? (void*)entry_vkCmdEncodeVideoKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_synchronization2
+    if (!strcmp(name, "vkCmdSetEvent2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkCmdSetEvent2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdResetEvent2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkCmdResetEvent2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdWaitEvents2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkCmdWaitEvents2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdPipelineBarrier2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkCmdPipelineBarrier2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdWriteTimestamp2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkCmdWriteTimestamp2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkQueueSubmit2KHR"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkQueueSubmit2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdWriteBufferMarker2AMD"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkCmdWriteBufferMarker2AMD : nullptr;
+    }
+    if (!strcmp(name, "vkGetQueueCheckpointData2NV"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkGetQueueCheckpointData2NV : nullptr;
+    }
+#endif
 #ifdef VK_KHR_copy_commands2
     if (!strcmp(name, "vkCmdCopyBuffer2KHR"))
     {
@@ -11338,6 +12890,20 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     {
         bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_copy_commands2");
         return hasExt ? (void*)entry_vkCmdResolveImage2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_maintenance4
+    if (!strcmp(name, "vkGetDeviceBufferMemoryRequirementsKHR"))
+    {
+        return (void*)dynCheck_entry_vkGetDeviceBufferMemoryRequirementsKHR;
+    }
+    if (!strcmp(name, "vkGetDeviceImageMemoryRequirementsKHR"))
+    {
+        return (void*)dynCheck_entry_vkGetDeviceImageMemoryRequirementsKHR;
+    }
+    if (!strcmp(name, "vkGetDeviceImageSparseMemoryRequirementsKHR"))
+    {
+        return (void*)dynCheck_entry_vkGetDeviceImageSparseMemoryRequirementsKHR;
     }
 #endif
 #ifdef VK_ANDROID_native_buffer
@@ -11427,6 +12993,29 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     {
         bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_transform_feedback");
         return hasExt ? (void*)entry_vkCmdDrawIndirectByteCountEXT : nullptr;
+    }
+#endif
+#ifdef VK_NVX_binary_import
+    if (!strcmp(name, "vkCreateCuModuleNVX"))
+    {
+        return (void*)dynCheck_entry_vkCreateCuModuleNVX;
+    }
+    if (!strcmp(name, "vkCreateCuFunctionNVX"))
+    {
+        return (void*)dynCheck_entry_vkCreateCuFunctionNVX;
+    }
+    if (!strcmp(name, "vkDestroyCuModuleNVX"))
+    {
+        return (void*)dynCheck_entry_vkDestroyCuModuleNVX;
+    }
+    if (!strcmp(name, "vkDestroyCuFunctionNVX"))
+    {
+        return (void*)dynCheck_entry_vkDestroyCuFunctionNVX;
+    }
+    if (!strcmp(name, "vkCmdCuLaunchKernelNVX"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_NVX_binary_import");
+        return hasExt ? (void*)entry_vkCmdCuLaunchKernelNVX : nullptr;
     }
 #endif
 #ifdef VK_NVX_image_view_handle
@@ -12071,6 +13660,18 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return (void*)dynCheck_entry_vkDestroyIndirectCommandsLayoutNV;
     }
 #endif
+#ifdef VK_EXT_acquire_drm_display
+    if (!strcmp(name, "vkAcquireDrmDisplayEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_acquire_drm_display");
+        return hasExt ? (void*)entry_vkAcquireDrmDisplayEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetDrmDisplayEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_acquire_drm_display");
+        return hasExt ? (void*)entry_vkGetDrmDisplayEXT : nullptr;
+    }
+#endif
 #ifdef VK_EXT_private_data
     if (!strcmp(name, "vkCreatePrivateDataSlotEXT"))
     {
@@ -12096,6 +13697,18 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
         return hasExt ? (void*)entry_vkCmdSetFragmentShadingRateEnumNV : nullptr;
     }
 #endif
+#ifdef VK_NV_acquire_winrt_display
+    if (!strcmp(name, "vkAcquireWinrtDisplayNV"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_NV_acquire_winrt_display");
+        return hasExt ? (void*)entry_vkAcquireWinrtDisplayNV : nullptr;
+    }
+    if (!strcmp(name, "vkGetWinrtDisplayNV"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_NV_acquire_winrt_display");
+        return hasExt ? (void*)entry_vkGetWinrtDisplayNV : nullptr;
+    }
+#endif
 #ifdef VK_EXT_directfb_surface
     if (!strcmp(name, "vkCreateDirectFBSurfaceEXT"))
     {
@@ -12106,6 +13719,125 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     {
         bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_directfb_surface");
         return hasExt ? (void*)entry_vkGetPhysicalDeviceDirectFBPresentationSupportEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_vertex_input_dynamic_state
+    if (!strcmp(name, "vkCmdSetVertexInputEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_vertex_input_dynamic_state");
+        return hasExt ? (void*)entry_vkCmdSetVertexInputEXT : nullptr;
+    }
+#endif
+#ifdef VK_FUCHSIA_external_memory
+    if (!strcmp(name, "vkGetMemoryZirconHandleFUCHSIA"))
+    {
+        return (void*)dynCheck_entry_vkGetMemoryZirconHandleFUCHSIA;
+    }
+    if (!strcmp(name, "vkGetMemoryZirconHandlePropertiesFUCHSIA"))
+    {
+        return (void*)dynCheck_entry_vkGetMemoryZirconHandlePropertiesFUCHSIA;
+    }
+#endif
+#ifdef VK_FUCHSIA_external_semaphore
+    if (!strcmp(name, "vkImportSemaphoreZirconHandleFUCHSIA"))
+    {
+        return (void*)dynCheck_entry_vkImportSemaphoreZirconHandleFUCHSIA;
+    }
+    if (!strcmp(name, "vkGetSemaphoreZirconHandleFUCHSIA"))
+    {
+        return (void*)dynCheck_entry_vkGetSemaphoreZirconHandleFUCHSIA;
+    }
+#endif
+#ifdef VK_FUCHSIA_buffer_collection
+    if (!strcmp(name, "vkCreateBufferCollectionFUCHSIA"))
+    {
+        return (void*)dynCheck_entry_vkCreateBufferCollectionFUCHSIA;
+    }
+    if (!strcmp(name, "vkSetBufferCollectionImageConstraintsFUCHSIA"))
+    {
+        return (void*)dynCheck_entry_vkSetBufferCollectionImageConstraintsFUCHSIA;
+    }
+    if (!strcmp(name, "vkSetBufferCollectionBufferConstraintsFUCHSIA"))
+    {
+        return (void*)dynCheck_entry_vkSetBufferCollectionBufferConstraintsFUCHSIA;
+    }
+    if (!strcmp(name, "vkDestroyBufferCollectionFUCHSIA"))
+    {
+        return (void*)dynCheck_entry_vkDestroyBufferCollectionFUCHSIA;
+    }
+    if (!strcmp(name, "vkGetBufferCollectionPropertiesFUCHSIA"))
+    {
+        return (void*)dynCheck_entry_vkGetBufferCollectionPropertiesFUCHSIA;
+    }
+#endif
+#ifdef VK_HUAWEI_subpass_shading
+    if (!strcmp(name, "vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI"))
+    {
+        return (void*)dynCheck_entry_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI;
+    }
+    if (!strcmp(name, "vkCmdSubpassShadingHUAWEI"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_HUAWEI_subpass_shading");
+        return hasExt ? (void*)entry_vkCmdSubpassShadingHUAWEI : nullptr;
+    }
+#endif
+#ifdef VK_HUAWEI_invocation_mask
+    if (!strcmp(name, "vkCmdBindInvocationMaskHUAWEI"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_HUAWEI_invocation_mask");
+        return hasExt ? (void*)entry_vkCmdBindInvocationMaskHUAWEI : nullptr;
+    }
+#endif
+#ifdef VK_NV_external_memory_rdma
+    if (!strcmp(name, "vkGetMemoryRemoteAddressNV"))
+    {
+        return (void*)dynCheck_entry_vkGetMemoryRemoteAddressNV;
+    }
+#endif
+#ifdef VK_EXT_extended_dynamic_state2
+    if (!strcmp(name, "vkCmdSetPatchControlPointsEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_extended_dynamic_state2");
+        return hasExt ? (void*)entry_vkCmdSetPatchControlPointsEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetRasterizerDiscardEnableEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_extended_dynamic_state2");
+        return hasExt ? (void*)entry_vkCmdSetRasterizerDiscardEnableEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDepthBiasEnableEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_extended_dynamic_state2");
+        return hasExt ? (void*)entry_vkCmdSetDepthBiasEnableEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetLogicOpEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_extended_dynamic_state2");
+        return hasExt ? (void*)entry_vkCmdSetLogicOpEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetPrimitiveRestartEnableEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_extended_dynamic_state2");
+        return hasExt ? (void*)entry_vkCmdSetPrimitiveRestartEnableEXT : nullptr;
+    }
+#endif
+#ifdef VK_QNX_screen_surface
+    if (!strcmp(name, "vkCreateScreenSurfaceQNX"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_QNX_screen_surface");
+        return hasExt ? (void*)entry_vkCreateScreenSurfaceQNX : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceScreenPresentationSupportQNX"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_QNX_screen_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceScreenPresentationSupportQNX : nullptr;
+    }
+#endif
+#ifdef VK_EXT_color_write_enable
+    if (!strcmp(name, "vkCmdSetColorWriteEnableEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_color_write_enable");
+        return hasExt ? (void*)entry_vkCmdSetColorWriteEnableEXT : nullptr;
     }
 #endif
 #ifdef VK_GOOGLE_gfxstream
@@ -12203,6 +13935,24 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     {
         bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE : nullptr;
+    }
+#endif
+#ifdef VK_EXT_multi_draw
+    if (!strcmp(name, "vkCmdDrawMultiEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_multi_draw");
+        return hasExt ? (void*)entry_vkCmdDrawMultiEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawMultiIndexedEXT"))
+    {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_multi_draw");
+        return hasExt ? (void*)entry_vkCmdDrawMultiIndexedEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_pageable_device_local_memory
+    if (!strcmp(name, "vkSetDeviceMemoryPriorityEXT"))
+    {
+        return (void*)dynCheck_entry_vkSetDeviceMemoryPriorityEXT;
     }
 #endif
 #ifdef VK_KHR_acceleration_structure
@@ -13215,6 +14965,87 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
         return hasExt ? (void*)entry_vkGetPhysicalDeviceWin32PresentationSupportKHR : nullptr;
     }
 #endif
+#ifdef VK_KHR_video_queue
+    if (!strcmp(name, "vkGetPhysicalDeviceVideoCapabilitiesKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceVideoCapabilitiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceVideoFormatPropertiesKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceVideoFormatPropertiesKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCreateVideoSessionKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkCreateVideoSessionKHR : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyVideoSessionKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkDestroyVideoSessionKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetVideoSessionMemoryRequirementsKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkGetVideoSessionMemoryRequirementsKHR : nullptr;
+    }
+    if (!strcmp(name, "vkBindVideoSessionMemoryKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkBindVideoSessionMemoryKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCreateVideoSessionParametersKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkCreateVideoSessionParametersKHR : nullptr;
+    }
+    if (!strcmp(name, "vkUpdateVideoSessionParametersKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkUpdateVideoSessionParametersKHR : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyVideoSessionParametersKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkDestroyVideoSessionParametersKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdBeginVideoCodingKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkCmdBeginVideoCodingKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndVideoCodingKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkCmdEndVideoCodingKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdControlVideoCodingKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_queue");
+        return hasExt ? (void*)entry_vkCmdControlVideoCodingKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_video_decode_queue
+    if (!strcmp(name, "vkCmdDecodeVideoKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_decode_queue");
+        return hasExt ? (void*)entry_vkCmdDecodeVideoKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_dynamic_rendering
+    if (!strcmp(name, "vkCmdBeginRenderingKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_dynamic_rendering");
+        return hasExt ? (void*)entry_vkCmdBeginRenderingKHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdEndRenderingKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_dynamic_rendering");
+        return hasExt ? (void*)entry_vkCmdEndRenderingKHR : nullptr;
+    }
+#endif
 #ifdef VK_KHR_get_physical_device_properties2
     if (!strcmp(name, "vkGetPhysicalDeviceFeatures2KHR"))
     {
@@ -13579,6 +15410,13 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
         return hasExt ? (void*)entry_vkCmdSetFragmentShadingRateKHR : nullptr;
     }
 #endif
+#ifdef VK_KHR_present_wait
+    if (!strcmp(name, "vkWaitForPresentKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_present_wait");
+        return hasExt ? (void*)entry_vkWaitForPresentKHR : nullptr;
+    }
+#endif
 #ifdef VK_KHR_buffer_device_address
     if (!strcmp(name, "vkGetBufferDeviceAddressKHR"))
     {
@@ -13640,6 +15478,55 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
         return hasExt ? (void*)entry_vkGetPipelineExecutableInternalRepresentationsKHR : nullptr;
     }
 #endif
+#ifdef VK_KHR_video_encode_queue
+    if (!strcmp(name, "vkCmdEncodeVideoKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_video_encode_queue");
+        return hasExt ? (void*)entry_vkCmdEncodeVideoKHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_synchronization2
+    if (!strcmp(name, "vkCmdSetEvent2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkCmdSetEvent2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdResetEvent2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkCmdResetEvent2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdWaitEvents2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkCmdWaitEvents2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdPipelineBarrier2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkCmdPipelineBarrier2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdWriteTimestamp2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkCmdWriteTimestamp2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkQueueSubmit2KHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkQueueSubmit2KHR : nullptr;
+    }
+    if (!strcmp(name, "vkCmdWriteBufferMarker2AMD"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkCmdWriteBufferMarker2AMD : nullptr;
+    }
+    if (!strcmp(name, "vkGetQueueCheckpointData2NV"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_synchronization2");
+        return hasExt ? (void*)entry_vkGetQueueCheckpointData2NV : nullptr;
+    }
+#endif
 #ifdef VK_KHR_copy_commands2
     if (!strcmp(name, "vkCmdCopyBuffer2KHR"))
     {
@@ -13670,6 +15557,23 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     {
         bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_copy_commands2");
         return hasExt ? (void*)entry_vkCmdResolveImage2KHR : nullptr;
+    }
+#endif
+#ifdef VK_KHR_maintenance4
+    if (!strcmp(name, "vkGetDeviceBufferMemoryRequirementsKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_maintenance4");
+        return hasExt ? (void*)entry_vkGetDeviceBufferMemoryRequirementsKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceImageMemoryRequirementsKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_maintenance4");
+        return hasExt ? (void*)entry_vkGetDeviceImageMemoryRequirementsKHR : nullptr;
+    }
+    if (!strcmp(name, "vkGetDeviceImageSparseMemoryRequirementsKHR"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_KHR_maintenance4");
+        return hasExt ? (void*)entry_vkGetDeviceImageSparseMemoryRequirementsKHR : nullptr;
     }
 #endif
 #ifdef VK_ANDROID_native_buffer
@@ -13763,6 +15667,33 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     {
         bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_transform_feedback");
         return hasExt ? (void*)entry_vkCmdDrawIndirectByteCountEXT : nullptr;
+    }
+#endif
+#ifdef VK_NVX_binary_import
+    if (!strcmp(name, "vkCreateCuModuleNVX"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_binary_import");
+        return hasExt ? (void*)entry_vkCreateCuModuleNVX : nullptr;
+    }
+    if (!strcmp(name, "vkCreateCuFunctionNVX"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_binary_import");
+        return hasExt ? (void*)entry_vkCreateCuFunctionNVX : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyCuModuleNVX"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_binary_import");
+        return hasExt ? (void*)entry_vkDestroyCuModuleNVX : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyCuFunctionNVX"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_binary_import");
+        return hasExt ? (void*)entry_vkDestroyCuFunctionNVX : nullptr;
+    }
+    if (!strcmp(name, "vkCmdCuLaunchKernelNVX"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NVX_binary_import");
+        return hasExt ? (void*)entry_vkCmdCuLaunchKernelNVX : nullptr;
     }
 #endif
 #ifdef VK_NVX_image_view_handle
@@ -14452,6 +16383,18 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
         return hasExt ? (void*)entry_vkDestroyIndirectCommandsLayoutNV : nullptr;
     }
 #endif
+#ifdef VK_EXT_acquire_drm_display
+    if (!strcmp(name, "vkAcquireDrmDisplayEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_acquire_drm_display");
+        return hasExt ? (void*)entry_vkAcquireDrmDisplayEXT : nullptr;
+    }
+    if (!strcmp(name, "vkGetDrmDisplayEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_acquire_drm_display");
+        return hasExt ? (void*)entry_vkGetDrmDisplayEXT : nullptr;
+    }
+#endif
 #ifdef VK_EXT_private_data
     if (!strcmp(name, "vkCreatePrivateDataSlotEXT"))
     {
@@ -14481,6 +16424,18 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
         return hasExt ? (void*)entry_vkCmdSetFragmentShadingRateEnumNV : nullptr;
     }
 #endif
+#ifdef VK_NV_acquire_winrt_display
+    if (!strcmp(name, "vkAcquireWinrtDisplayNV"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_acquire_winrt_display");
+        return hasExt ? (void*)entry_vkAcquireWinrtDisplayNV : nullptr;
+    }
+    if (!strcmp(name, "vkGetWinrtDisplayNV"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_acquire_winrt_display");
+        return hasExt ? (void*)entry_vkGetWinrtDisplayNV : nullptr;
+    }
+#endif
 #ifdef VK_EXT_directfb_surface
     if (!strcmp(name, "vkCreateDirectFBSurfaceEXT"))
     {
@@ -14491,6 +16446,136 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     {
         bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_directfb_surface");
         return hasExt ? (void*)entry_vkGetPhysicalDeviceDirectFBPresentationSupportEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_vertex_input_dynamic_state
+    if (!strcmp(name, "vkCmdSetVertexInputEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_vertex_input_dynamic_state");
+        return hasExt ? (void*)entry_vkCmdSetVertexInputEXT : nullptr;
+    }
+#endif
+#ifdef VK_FUCHSIA_external_memory
+    if (!strcmp(name, "vkGetMemoryZirconHandleFUCHSIA"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_FUCHSIA_external_memory");
+        return hasExt ? (void*)entry_vkGetMemoryZirconHandleFUCHSIA : nullptr;
+    }
+    if (!strcmp(name, "vkGetMemoryZirconHandlePropertiesFUCHSIA"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_FUCHSIA_external_memory");
+        return hasExt ? (void*)entry_vkGetMemoryZirconHandlePropertiesFUCHSIA : nullptr;
+    }
+#endif
+#ifdef VK_FUCHSIA_external_semaphore
+    if (!strcmp(name, "vkImportSemaphoreZirconHandleFUCHSIA"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_FUCHSIA_external_semaphore");
+        return hasExt ? (void*)entry_vkImportSemaphoreZirconHandleFUCHSIA : nullptr;
+    }
+    if (!strcmp(name, "vkGetSemaphoreZirconHandleFUCHSIA"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_FUCHSIA_external_semaphore");
+        return hasExt ? (void*)entry_vkGetSemaphoreZirconHandleFUCHSIA : nullptr;
+    }
+#endif
+#ifdef VK_FUCHSIA_buffer_collection
+    if (!strcmp(name, "vkCreateBufferCollectionFUCHSIA"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection");
+        return hasExt ? (void*)entry_vkCreateBufferCollectionFUCHSIA : nullptr;
+    }
+    if (!strcmp(name, "vkSetBufferCollectionImageConstraintsFUCHSIA"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection");
+        return hasExt ? (void*)entry_vkSetBufferCollectionImageConstraintsFUCHSIA : nullptr;
+    }
+    if (!strcmp(name, "vkSetBufferCollectionBufferConstraintsFUCHSIA"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection");
+        return hasExt ? (void*)entry_vkSetBufferCollectionBufferConstraintsFUCHSIA : nullptr;
+    }
+    if (!strcmp(name, "vkDestroyBufferCollectionFUCHSIA"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection");
+        return hasExt ? (void*)entry_vkDestroyBufferCollectionFUCHSIA : nullptr;
+    }
+    if (!strcmp(name, "vkGetBufferCollectionPropertiesFUCHSIA"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_FUCHSIA_buffer_collection");
+        return hasExt ? (void*)entry_vkGetBufferCollectionPropertiesFUCHSIA : nullptr;
+    }
+#endif
+#ifdef VK_HUAWEI_subpass_shading
+    if (!strcmp(name, "vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_HUAWEI_subpass_shading");
+        return hasExt ? (void*)entry_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSubpassShadingHUAWEI"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_HUAWEI_subpass_shading");
+        return hasExt ? (void*)entry_vkCmdSubpassShadingHUAWEI : nullptr;
+    }
+#endif
+#ifdef VK_HUAWEI_invocation_mask
+    if (!strcmp(name, "vkCmdBindInvocationMaskHUAWEI"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_HUAWEI_invocation_mask");
+        return hasExt ? (void*)entry_vkCmdBindInvocationMaskHUAWEI : nullptr;
+    }
+#endif
+#ifdef VK_NV_external_memory_rdma
+    if (!strcmp(name, "vkGetMemoryRemoteAddressNV"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_NV_external_memory_rdma");
+        return hasExt ? (void*)entry_vkGetMemoryRemoteAddressNV : nullptr;
+    }
+#endif
+#ifdef VK_EXT_extended_dynamic_state2
+    if (!strcmp(name, "vkCmdSetPatchControlPointsEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state2");
+        return hasExt ? (void*)entry_vkCmdSetPatchControlPointsEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetRasterizerDiscardEnableEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state2");
+        return hasExt ? (void*)entry_vkCmdSetRasterizerDiscardEnableEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetDepthBiasEnableEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state2");
+        return hasExt ? (void*)entry_vkCmdSetDepthBiasEnableEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetLogicOpEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state2");
+        return hasExt ? (void*)entry_vkCmdSetLogicOpEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdSetPrimitiveRestartEnableEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_extended_dynamic_state2");
+        return hasExt ? (void*)entry_vkCmdSetPrimitiveRestartEnableEXT : nullptr;
+    }
+#endif
+#ifdef VK_QNX_screen_surface
+    if (!strcmp(name, "vkCreateScreenSurfaceQNX"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_QNX_screen_surface");
+        return hasExt ? (void*)entry_vkCreateScreenSurfaceQNX : nullptr;
+    }
+    if (!strcmp(name, "vkGetPhysicalDeviceScreenPresentationSupportQNX"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_QNX_screen_surface");
+        return hasExt ? (void*)entry_vkGetPhysicalDeviceScreenPresentationSupportQNX : nullptr;
+    }
+#endif
+#ifdef VK_EXT_color_write_enable
+    if (!strcmp(name, "vkCmdSetColorWriteEnableEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_color_write_enable");
+        return hasExt ? (void*)entry_vkCmdSetColorWriteEnableEXT : nullptr;
     }
 #endif
 #ifdef VK_GOOGLE_gfxstream
@@ -14598,6 +16683,25 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     {
         bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE : nullptr;
+    }
+#endif
+#ifdef VK_EXT_multi_draw
+    if (!strcmp(name, "vkCmdDrawMultiEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_multi_draw");
+        return hasExt ? (void*)entry_vkCmdDrawMultiEXT : nullptr;
+    }
+    if (!strcmp(name, "vkCmdDrawMultiIndexedEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_multi_draw");
+        return hasExt ? (void*)entry_vkCmdDrawMultiIndexedEXT : nullptr;
+    }
+#endif
+#ifdef VK_EXT_pageable_device_local_memory
+    if (!strcmp(name, "vkSetDeviceMemoryPriorityEXT"))
+    {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_EXT_pageable_device_local_memory");
+        return hasExt ? (void*)entry_vkSetDeviceMemoryPriorityEXT : nullptr;
     }
 #endif
 #ifdef VK_KHR_acceleration_structure

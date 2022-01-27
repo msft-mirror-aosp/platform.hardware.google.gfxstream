@@ -419,6 +419,75 @@ typedef void (VKAPI_PTR *PFN_vkQueueCommitDescriptorSetUpdatesGOOGLE)(VkQueue qu
 typedef void (VKAPI_PTR *PFN_vkCollectDescriptorPoolIdsGOOGLE)(VkDevice device, VkDescriptorPool descriptorPool, uint32_t* pPoolIdCount, uint64_t* pPoolIds);
 typedef void (VKAPI_PTR *PFN_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE)(VkQueue queue, uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores, VkImage image);
 
+// TODO(liyl): Remove once Android vulkan-headers is updated
+// to 1.2.184 or higher.
+
+#if VK_HEADER_VERSION < 184
+
+typedef struct VkPipelineCacheHeaderVersionOne {
+    uint32_t                        headerSize;
+    VkPipelineCacheHeaderVersion    headerVersion;
+    uint32_t                        vendorID;
+    uint32_t                        deviceID;
+    uint8_t                         pipelineCacheUUID[VK_UUID_SIZE];
+} VkPipelineCacheHeaderVersionOne;
+
+#endif  // VK_HEADER_VERSION < 184
+
+// TODO(liyl): Remove once Android vulkan-headers is updated
+// to 1.2.195 or higher.
+
+#ifdef VK_EXT_image_drm_format_modifier
+
+#if VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_SPEC_VERSION < 2
+
+#ifndef VK_KHR_format_feature_flags2
+typedef uint64_t VkFormatFeatureFlags2KHR;
+#endif  // VK_KHR_format_feature_flags2
+
+#define VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_2_EXT ((VkStructureType)1000158006)
+typedef struct VkDrmFormatModifierProperties2EXT {
+    uint64_t                    drmFormatModifier;
+    uint32_t                    drmFormatModifierPlaneCount;
+    VkFormatFeatureFlags2KHR    drmFormatModifierTilingFeatures;
+} VkDrmFormatModifierProperties2EXT;
+
+typedef struct VkDrmFormatModifierPropertiesList2EXT {
+    VkStructureType                       sType;
+    void*                                 pNext;
+    uint32_t                              drmFormatModifierCount;
+    VkDrmFormatModifierProperties2EXT*    pDrmFormatModifierProperties;
+} VkDrmFormatModifierPropertiesList2EXT;
+
+#endif  // VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_SPEC_VERSION < 2
+
+#endif  // VK_EXT_image_drm_format_modifier
+
+// TODO(liyl): Remove once Android vulkan-headers is updated
+// to 1.2.195 or higher.
+
+#ifdef VK_ANDROID_external_memory_android_hardware_buffer
+
+#if VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_SPEC_VERSION < 4
+
+#define VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_PROPERTIES_2_ANDROID ((VkStructureType)1000129006)
+typedef struct VkAndroidHardwareBufferFormatProperties2ANDROID {
+    VkStructureType                  sType;
+    void*                            pNext;
+    VkFormat                         format;
+    uint64_t                         externalFormat;
+    VkFormatFeatureFlags2KHR         formatFeatures;
+    VkComponentMapping               samplerYcbcrConversionComponents;
+    VkSamplerYcbcrModelConversion    suggestedYcbcrModel;
+    VkSamplerYcbcrRange              suggestedYcbcrRange;
+    VkChromaLocation                 suggestedXChromaOffset;
+    VkChromaLocation                 suggestedYChromaOffset;
+} VkAndroidHardwareBufferFormatProperties2ANDROID;
+
+#endif  // VK_ANDROID_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER_SPEC_VERSION < 4
+
+#endif  // VK_ANDROID_external_memory_android_hardware_buffer
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
