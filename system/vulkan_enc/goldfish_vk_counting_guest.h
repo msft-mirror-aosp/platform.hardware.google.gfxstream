@@ -118,6 +118,12 @@ void count_VkMemoryBarrier(
     const VkMemoryBarrier* toCount,
     size_t* count);
 
+void count_VkPipelineCacheHeaderVersionOne(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPipelineCacheHeaderVersionOne* toCount,
+    size_t* count);
+
 void count_VkAllocationCallbacks(
     uint32_t featureBits,
     VkStructureType rootType,
@@ -1569,6 +1575,170 @@ void count_VkWin32SurfaceCreateInfoKHR(
 #endif
 #ifdef VK_KHR_sampler_mirror_clamp_to_edge
 #endif
+#ifdef VK_KHR_video_queue
+void count_VkVideoQueueFamilyProperties2KHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoQueueFamilyProperties2KHR* toCount,
+    size_t* count);
+
+void count_VkVideoProfileKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoProfileKHR* toCount,
+    size_t* count);
+
+void count_VkVideoProfilesKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoProfilesKHR* toCount,
+    size_t* count);
+
+void count_VkVideoCapabilitiesKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoCapabilitiesKHR* toCount,
+    size_t* count);
+
+void count_VkPhysicalDeviceVideoFormatInfoKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceVideoFormatInfoKHR* toCount,
+    size_t* count);
+
+void count_VkVideoFormatPropertiesKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoFormatPropertiesKHR* toCount,
+    size_t* count);
+
+void count_VkVideoPictureResourceKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoPictureResourceKHR* toCount,
+    size_t* count);
+
+void count_VkVideoReferenceSlotKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoReferenceSlotKHR* toCount,
+    size_t* count);
+
+void count_VkVideoGetMemoryPropertiesKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoGetMemoryPropertiesKHR* toCount,
+    size_t* count);
+
+void count_VkVideoBindMemoryKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoBindMemoryKHR* toCount,
+    size_t* count);
+
+void count_VkVideoSessionCreateInfoKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoSessionCreateInfoKHR* toCount,
+    size_t* count);
+
+void count_VkVideoSessionParametersCreateInfoKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoSessionParametersCreateInfoKHR* toCount,
+    size_t* count);
+
+void count_VkVideoSessionParametersUpdateInfoKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoSessionParametersUpdateInfoKHR* toCount,
+    size_t* count);
+
+void count_VkVideoBeginCodingInfoKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoBeginCodingInfoKHR* toCount,
+    size_t* count);
+
+void count_VkVideoEndCodingInfoKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEndCodingInfoKHR* toCount,
+    size_t* count);
+
+void count_VkVideoCodingControlInfoKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoCodingControlInfoKHR* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_KHR_video_decode_queue
+void count_VkVideoDecodeInfoKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoDecodeInfoKHR* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_KHR_dynamic_rendering
+void count_VkRenderingAttachmentInfoKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkRenderingAttachmentInfoKHR* toCount,
+    size_t* count);
+
+void count_VkRenderingInfoKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkRenderingInfoKHR* toCount,
+    size_t* count);
+
+void count_VkPipelineRenderingCreateInfoKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPipelineRenderingCreateInfoKHR* toCount,
+    size_t* count);
+
+void count_VkPhysicalDeviceDynamicRenderingFeaturesKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceDynamicRenderingFeaturesKHR* toCount,
+    size_t* count);
+
+void count_VkCommandBufferInheritanceRenderingInfoKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkCommandBufferInheritanceRenderingInfoKHR* toCount,
+    size_t* count);
+
+void count_VkRenderingFragmentShadingRateAttachmentInfoKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkRenderingFragmentShadingRateAttachmentInfoKHR* toCount,
+    size_t* count);
+
+void count_VkRenderingFragmentDensityMapAttachmentInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkRenderingFragmentDensityMapAttachmentInfoEXT* toCount,
+    size_t* count);
+
+void count_VkAttachmentSampleCountInfoAMD(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkAttachmentSampleCountInfoAMD* toCount,
+    size_t* count);
+
+DEFINE_ALIAS_FUNCTION(count_VkAttachmentSampleCountInfoAMD, count_VkAttachmentSampleCountInfoNV)
+
+void count_VkMultiviewPerViewAttributesInfoNVX(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkMultiviewPerViewAttributesInfoNVX* toCount,
+    size_t* count);
+
+#endif
 #ifdef VK_KHR_multiview
 DEFINE_ALIAS_FUNCTION(count_VkRenderPassMultiviewCreateInfo, count_VkRenderPassMultiviewCreateInfoKHR)
 
@@ -2173,6 +2343,14 @@ DEFINE_ALIAS_FUNCTION(count_VkAttachmentReferenceStencilLayout, count_VkAttachme
 DEFINE_ALIAS_FUNCTION(count_VkAttachmentDescriptionStencilLayout, count_VkAttachmentDescriptionStencilLayoutKHR)
 
 #endif
+#ifdef VK_KHR_present_wait
+void count_VkPhysicalDevicePresentWaitFeaturesKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDevicePresentWaitFeaturesKHR* toCount,
+    size_t* count);
+
+#endif
 #ifdef VK_KHR_uniform_buffer_standard_layout
 DEFINE_ALIAS_FUNCTION(count_VkPhysicalDeviceUniformBufferStandardLayoutFeatures, count_VkPhysicalDeviceUniformBufferStandardLayoutFeaturesKHR)
 
@@ -2235,6 +2413,20 @@ void count_VkPipelineExecutableInternalRepresentationKHR(
     size_t* count);
 
 #endif
+#ifdef VK_KHR_shader_integer_dot_product
+void count_VkPhysicalDeviceShaderIntegerDotProductFeaturesKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceShaderIntegerDotProductFeaturesKHR* toCount,
+    size_t* count);
+
+void count_VkPhysicalDeviceShaderIntegerDotProductPropertiesKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceShaderIntegerDotProductPropertiesKHR* toCount,
+    size_t* count);
+
+#endif
 #ifdef VK_KHR_pipeline_library
 void count_VkPipelineLibraryCreateInfoKHR(
     uint32_t featureBits,
@@ -2244,6 +2436,120 @@ void count_VkPipelineLibraryCreateInfoKHR(
 
 #endif
 #ifdef VK_KHR_shader_non_semantic_info
+#endif
+#ifdef VK_KHR_present_id
+void count_VkPresentIdKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPresentIdKHR* toCount,
+    size_t* count);
+
+void count_VkPhysicalDevicePresentIdFeaturesKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDevicePresentIdFeaturesKHR* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_KHR_video_encode_queue
+void count_VkVideoEncodeInfoKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeInfoKHR* toCount,
+    size_t* count);
+
+void count_VkVideoEncodeRateControlInfoKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeRateControlInfoKHR* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_KHR_synchronization2
+void count_VkMemoryBarrier2KHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkMemoryBarrier2KHR* toCount,
+    size_t* count);
+
+void count_VkBufferMemoryBarrier2KHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkBufferMemoryBarrier2KHR* toCount,
+    size_t* count);
+
+void count_VkImageMemoryBarrier2KHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkImageMemoryBarrier2KHR* toCount,
+    size_t* count);
+
+void count_VkDependencyInfoKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkDependencyInfoKHR* toCount,
+    size_t* count);
+
+void count_VkSemaphoreSubmitInfoKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkSemaphoreSubmitInfoKHR* toCount,
+    size_t* count);
+
+void count_VkCommandBufferSubmitInfoKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkCommandBufferSubmitInfoKHR* toCount,
+    size_t* count);
+
+void count_VkSubmitInfo2KHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkSubmitInfo2KHR* toCount,
+    size_t* count);
+
+void count_VkPhysicalDeviceSynchronization2FeaturesKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceSynchronization2FeaturesKHR* toCount,
+    size_t* count);
+
+void count_VkQueueFamilyCheckpointProperties2NV(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkQueueFamilyCheckpointProperties2NV* toCount,
+    size_t* count);
+
+void count_VkCheckpointData2NV(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkCheckpointData2NV* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_KHR_shader_subgroup_uniform_control_flow
+void count_VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_KHR_zero_initialize_workgroup_memory
+void count_VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeaturesKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeaturesKHR* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_KHR_workgroup_memory_explicit_layout
+void count_VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR* toCount,
+    size_t* count);
+
 #endif
 #ifdef VK_KHR_copy_commands2
 void count_VkBufferCopy2KHR(
@@ -2310,6 +2616,40 @@ void count_VkResolveImageInfo2KHR(
     uint32_t featureBits,
     VkStructureType rootType,
     const VkResolveImageInfo2KHR* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_KHR_format_feature_flags2
+void count_VkFormatProperties3KHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkFormatProperties3KHR* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_KHR_maintenance4
+void count_VkPhysicalDeviceMaintenance4FeaturesKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceMaintenance4FeaturesKHR* toCount,
+    size_t* count);
+
+void count_VkPhysicalDeviceMaintenance4PropertiesKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceMaintenance4PropertiesKHR* toCount,
+    size_t* count);
+
+void count_VkDeviceBufferMemoryRequirementsKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkDeviceBufferMemoryRequirementsKHR* toCount,
+    size_t* count);
+
+void count_VkDeviceImageMemoryRequirementsKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkDeviceImageMemoryRequirementsKHR* toCount,
     size_t* count);
 
 #endif
@@ -2409,6 +2749,26 @@ void count_VkPipelineRasterizationStateStreamCreateInfoEXT(
     size_t* count);
 
 #endif
+#ifdef VK_NVX_binary_import
+void count_VkCuModuleCreateInfoNVX(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkCuModuleCreateInfoNVX* toCount,
+    size_t* count);
+
+void count_VkCuFunctionCreateInfoNVX(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkCuFunctionCreateInfoNVX* toCount,
+    size_t* count);
+
+void count_VkCuLaunchInfoNVX(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkCuLaunchInfoNVX* toCount,
+    size_t* count);
+
+#endif
 #ifdef VK_NVX_image_view_handle
 void count_VkImageViewHandleInfoNVX(
     uint32_t featureBits,
@@ -2430,6 +2790,174 @@ void count_VkImageViewAddressPropertiesNVX(
 #ifdef VK_AMD_gpu_shader_half_float
 #endif
 #ifdef VK_AMD_shader_ballot
+#endif
+#ifdef VK_EXT_video_encode_h264
+void count_VkVideoEncodeH264CapabilitiesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeH264CapabilitiesEXT* toCount,
+    size_t* count);
+
+void count_VkVideoEncodeH264SessionCreateInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeH264SessionCreateInfoEXT* toCount,
+    size_t* count);
+
+void count_VkVideoEncodeH264SessionParametersAddInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeH264SessionParametersAddInfoEXT* toCount,
+    size_t* count);
+
+void count_VkVideoEncodeH264SessionParametersCreateInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeH264SessionParametersCreateInfoEXT* toCount,
+    size_t* count);
+
+void count_VkVideoEncodeH264DpbSlotInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeH264DpbSlotInfoEXT* toCount,
+    size_t* count);
+
+void count_VkVideoEncodeH264NaluSliceEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeH264NaluSliceEXT* toCount,
+    size_t* count);
+
+void count_VkVideoEncodeH264VclFrameInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeH264VclFrameInfoEXT* toCount,
+    size_t* count);
+
+void count_VkVideoEncodeH264EmitPictureParametersEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeH264EmitPictureParametersEXT* toCount,
+    size_t* count);
+
+void count_VkVideoEncodeH264ProfileEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeH264ProfileEXT* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_EXT_video_encode_h265
+void count_VkVideoEncodeH265CapabilitiesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeH265CapabilitiesEXT* toCount,
+    size_t* count);
+
+void count_VkVideoEncodeH265SessionCreateInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeH265SessionCreateInfoEXT* toCount,
+    size_t* count);
+
+void count_VkVideoEncodeH265SessionParametersAddInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeH265SessionParametersAddInfoEXT* toCount,
+    size_t* count);
+
+void count_VkVideoEncodeH265SessionParametersCreateInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeH265SessionParametersCreateInfoEXT* toCount,
+    size_t* count);
+
+void count_VkVideoEncodeH265DpbSlotInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeH265DpbSlotInfoEXT* toCount,
+    size_t* count);
+
+void count_VkVideoEncodeH265ReferenceListsEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeH265ReferenceListsEXT* toCount,
+    size_t* count);
+
+void count_VkVideoEncodeH265NaluSliceEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeH265NaluSliceEXT* toCount,
+    size_t* count);
+
+void count_VkVideoEncodeH265VclFrameInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeH265VclFrameInfoEXT* toCount,
+    size_t* count);
+
+void count_VkVideoEncodeH265EmitPictureParametersEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeH265EmitPictureParametersEXT* toCount,
+    size_t* count);
+
+void count_VkVideoEncodeH265ProfileEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoEncodeH265ProfileEXT* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_EXT_video_decode_h264
+void count_VkVideoDecodeH264ProfileEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoDecodeH264ProfileEXT* toCount,
+    size_t* count);
+
+void count_VkVideoDecodeH264CapabilitiesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoDecodeH264CapabilitiesEXT* toCount,
+    size_t* count);
+
+void count_VkVideoDecodeH264SessionCreateInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoDecodeH264SessionCreateInfoEXT* toCount,
+    size_t* count);
+
+void count_VkVideoDecodeH264SessionParametersAddInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoDecodeH264SessionParametersAddInfoEXT* toCount,
+    size_t* count);
+
+void count_VkVideoDecodeH264SessionParametersCreateInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoDecodeH264SessionParametersCreateInfoEXT* toCount,
+    size_t* count);
+
+void count_VkVideoDecodeH264PictureInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoDecodeH264PictureInfoEXT* toCount,
+    size_t* count);
+
+void count_VkVideoDecodeH264MvcEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoDecodeH264MvcEXT* toCount,
+    size_t* count);
+
+void count_VkVideoDecodeH264DpbSlotInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoDecodeH264DpbSlotInfoEXT* toCount,
+    size_t* count);
+
 #endif
 #ifdef VK_AMD_texture_gather_bias_lod
 void count_VkTextureLODGatherFormatPropertiesAMD(
@@ -2834,6 +3362,12 @@ void count_VkExternalFormatANDROID(
     const VkExternalFormatANDROID* toCount,
     size_t* count);
 
+void count_VkAndroidHardwareBufferFormatProperties2ANDROID(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkAndroidHardwareBufferFormatProperties2ANDROID* toCount,
+    size_t* count);
+
 #endif
 #ifdef VK_EXT_sampler_filter_minmax
 DEFINE_ALIAS_FUNCTION(count_VkSamplerReductionModeCreateInfo, count_VkSamplerReductionModeCreateInfoEXT)
@@ -3014,6 +3548,18 @@ void count_VkImageDrmFormatModifierPropertiesEXT(
     uint32_t featureBits,
     VkStructureType rootType,
     const VkImageDrmFormatModifierPropertiesEXT* toCount,
+    size_t* count);
+
+void count_VkDrmFormatModifierProperties2EXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkDrmFormatModifierProperties2EXT* toCount,
+    size_t* count);
+
+void count_VkDrmFormatModifierPropertiesList2EXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkDrmFormatModifierPropertiesList2EXT* toCount,
     size_t* count);
 
 #endif
@@ -3268,6 +3814,50 @@ void count_VkPhysicalDeviceShaderCorePropertiesAMD(
     uint32_t featureBits,
     VkStructureType rootType,
     const VkPhysicalDeviceShaderCorePropertiesAMD* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_EXT_video_decode_h265
+void count_VkVideoDecodeH265ProfileEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoDecodeH265ProfileEXT* toCount,
+    size_t* count);
+
+void count_VkVideoDecodeH265CapabilitiesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoDecodeH265CapabilitiesEXT* toCount,
+    size_t* count);
+
+void count_VkVideoDecodeH265SessionCreateInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoDecodeH265SessionCreateInfoEXT* toCount,
+    size_t* count);
+
+void count_VkVideoDecodeH265SessionParametersAddInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoDecodeH265SessionParametersAddInfoEXT* toCount,
+    size_t* count);
+
+void count_VkVideoDecodeH265SessionParametersCreateInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoDecodeH265SessionParametersCreateInfoEXT* toCount,
+    size_t* count);
+
+void count_VkVideoDecodeH265PictureInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoDecodeH265PictureInfoEXT* toCount,
+    size_t* count);
+
+void count_VkVideoDecodeH265DpbSlotInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVideoDecodeH265DpbSlotInfoEXT* toCount,
     size_t* count);
 
 #endif
@@ -3695,6 +4285,26 @@ void count_VkPhysicalDeviceYcbcrImageArraysFeaturesEXT(
     size_t* count);
 
 #endif
+#ifdef VK_EXT_provoking_vertex
+void count_VkPhysicalDeviceProvokingVertexFeaturesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceProvokingVertexFeaturesEXT* toCount,
+    size_t* count);
+
+void count_VkPhysicalDeviceProvokingVertexPropertiesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceProvokingVertexPropertiesEXT* toCount,
+    size_t* count);
+
+void count_VkPipelineRasterizationProvokingVertexStateCreateInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPipelineRasterizationProvokingVertexStateCreateInfoEXT* toCount,
+    size_t* count);
+
+#endif
 #ifdef VK_EXT_full_screen_exclusive
 void count_VkSurfaceFullScreenExclusiveInfoEXT(
     uint32_t featureBits,
@@ -3768,6 +4378,14 @@ void count_VkPhysicalDeviceExtendedDynamicStateFeaturesEXT(
     uint32_t featureBits,
     VkStructureType rootType,
     const VkPhysicalDeviceExtendedDynamicStateFeaturesEXT* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_EXT_shader_atomic_float2
+void count_VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT* toCount,
     size_t* count);
 
 #endif
@@ -3859,6 +4477,20 @@ void count_VkGeneratedCommandsMemoryRequirementsInfoNV(
     size_t* count);
 
 #endif
+#ifdef VK_NV_inherited_viewport_scissor
+void count_VkPhysicalDeviceInheritedViewportScissorFeaturesNV(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceInheritedViewportScissorFeaturesNV* toCount,
+    size_t* count);
+
+void count_VkCommandBufferInheritanceViewportScissorInfoNV(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkCommandBufferInheritanceViewportScissorInfoNV* toCount,
+    size_t* count);
+
+#endif
 #ifdef VK_EXT_texel_buffer_alignment
 void count_VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT(
     uint32_t featureBits,
@@ -3906,6 +4538,8 @@ void count_VkDeviceDeviceMemoryReportCreateInfoEXT(
     const VkDeviceDeviceMemoryReportCreateInfoEXT* toCount,
     size_t* count);
 
+#endif
+#ifdef VK_EXT_acquire_drm_display
 #endif
 #ifdef VK_EXT_robustness2
 void count_VkPhysicalDeviceRobustness2FeaturesEXT(
@@ -4007,6 +4641,70 @@ void count_VkPipelineFragmentShadingRateEnumStateCreateInfoNV(
     size_t* count);
 
 #endif
+#ifdef VK_NV_ray_tracing_motion_blur
+void count_VkDeviceOrHostAddressConstKHR(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkDeviceOrHostAddressConstKHR* toCount,
+    size_t* count);
+
+void count_VkAccelerationStructureGeometryMotionTrianglesDataNV(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkAccelerationStructureGeometryMotionTrianglesDataNV* toCount,
+    size_t* count);
+
+void count_VkAccelerationStructureMotionInfoNV(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkAccelerationStructureMotionInfoNV* toCount,
+    size_t* count);
+
+void count_VkAccelerationStructureMatrixMotionInstanceNV(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkAccelerationStructureMatrixMotionInstanceNV* toCount,
+    size_t* count);
+
+void count_VkSRTDataNV(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkSRTDataNV* toCount,
+    size_t* count);
+
+void count_VkAccelerationStructureSRTMotionInstanceNV(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkAccelerationStructureSRTMotionInstanceNV* toCount,
+    size_t* count);
+
+void count_VkAccelerationStructureMotionInstanceDataNV(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkAccelerationStructureMotionInstanceDataNV* toCount,
+    size_t* count);
+
+void count_VkAccelerationStructureMotionInstanceNV(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkAccelerationStructureMotionInstanceNV* toCount,
+    size_t* count);
+
+void count_VkPhysicalDeviceRayTracingMotionBlurFeaturesNV(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceRayTracingMotionBlurFeaturesNV* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_EXT_ycbcr_2plane_444_formats
+void count_VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT* toCount,
+    size_t* count);
+
+#endif
 #ifdef VK_EXT_fragment_density_map2
 void count_VkPhysicalDeviceFragmentDensityMap2FeaturesEXT(
     uint32_t featureBits,
@@ -4045,11 +4743,245 @@ void count_VkPhysicalDevice4444FormatsFeaturesEXT(
     size_t* count);
 
 #endif
+#ifdef VK_EXT_rgba10x6_formats
+void count_VkPhysicalDeviceRGBA10X6FormatsFeaturesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceRGBA10X6FormatsFeaturesEXT* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_NV_acquire_winrt_display
+#endif
 #ifdef VK_EXT_directfb_surface
 void count_VkDirectFBSurfaceCreateInfoEXT(
     uint32_t featureBits,
     VkStructureType rootType,
     const VkDirectFBSurfaceCreateInfoEXT* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_VALVE_mutable_descriptor_type
+void count_VkPhysicalDeviceMutableDescriptorTypeFeaturesVALVE(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceMutableDescriptorTypeFeaturesVALVE* toCount,
+    size_t* count);
+
+void count_VkMutableDescriptorTypeListVALVE(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkMutableDescriptorTypeListVALVE* toCount,
+    size_t* count);
+
+void count_VkMutableDescriptorTypeCreateInfoVALVE(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkMutableDescriptorTypeCreateInfoVALVE* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_EXT_vertex_input_dynamic_state
+void count_VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT* toCount,
+    size_t* count);
+
+void count_VkVertexInputBindingDescription2EXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVertexInputBindingDescription2EXT* toCount,
+    size_t* count);
+
+void count_VkVertexInputAttributeDescription2EXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkVertexInputAttributeDescription2EXT* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_EXT_physical_device_drm
+void count_VkPhysicalDeviceDrmPropertiesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceDrmPropertiesEXT* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_EXT_primitive_topology_list_restart
+void count_VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_FUCHSIA_external_memory
+void count_VkImportMemoryZirconHandleInfoFUCHSIA(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkImportMemoryZirconHandleInfoFUCHSIA* toCount,
+    size_t* count);
+
+void count_VkMemoryZirconHandlePropertiesFUCHSIA(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkMemoryZirconHandlePropertiesFUCHSIA* toCount,
+    size_t* count);
+
+void count_VkMemoryGetZirconHandleInfoFUCHSIA(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkMemoryGetZirconHandleInfoFUCHSIA* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_FUCHSIA_external_semaphore
+void count_VkImportSemaphoreZirconHandleInfoFUCHSIA(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkImportSemaphoreZirconHandleInfoFUCHSIA* toCount,
+    size_t* count);
+
+void count_VkSemaphoreGetZirconHandleInfoFUCHSIA(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkSemaphoreGetZirconHandleInfoFUCHSIA* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_FUCHSIA_buffer_collection
+void count_VkBufferCollectionCreateInfoFUCHSIA(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkBufferCollectionCreateInfoFUCHSIA* toCount,
+    size_t* count);
+
+void count_VkImportMemoryBufferCollectionFUCHSIA(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkImportMemoryBufferCollectionFUCHSIA* toCount,
+    size_t* count);
+
+void count_VkBufferCollectionImageCreateInfoFUCHSIA(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkBufferCollectionImageCreateInfoFUCHSIA* toCount,
+    size_t* count);
+
+void count_VkBufferCollectionConstraintsInfoFUCHSIA(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkBufferCollectionConstraintsInfoFUCHSIA* toCount,
+    size_t* count);
+
+void count_VkBufferConstraintsInfoFUCHSIA(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkBufferConstraintsInfoFUCHSIA* toCount,
+    size_t* count);
+
+void count_VkBufferCollectionBufferCreateInfoFUCHSIA(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkBufferCollectionBufferCreateInfoFUCHSIA* toCount,
+    size_t* count);
+
+void count_VkSysmemColorSpaceFUCHSIA(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkSysmemColorSpaceFUCHSIA* toCount,
+    size_t* count);
+
+void count_VkBufferCollectionPropertiesFUCHSIA(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkBufferCollectionPropertiesFUCHSIA* toCount,
+    size_t* count);
+
+void count_VkImageFormatConstraintsInfoFUCHSIA(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkImageFormatConstraintsInfoFUCHSIA* toCount,
+    size_t* count);
+
+void count_VkImageConstraintsInfoFUCHSIA(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkImageConstraintsInfoFUCHSIA* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_HUAWEI_subpass_shading
+void count_VkSubpassShadingPipelineCreateInfoHUAWEI(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkSubpassShadingPipelineCreateInfoHUAWEI* toCount,
+    size_t* count);
+
+void count_VkPhysicalDeviceSubpassShadingFeaturesHUAWEI(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceSubpassShadingFeaturesHUAWEI* toCount,
+    size_t* count);
+
+void count_VkPhysicalDeviceSubpassShadingPropertiesHUAWEI(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceSubpassShadingPropertiesHUAWEI* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_HUAWEI_invocation_mask
+void count_VkPhysicalDeviceInvocationMaskFeaturesHUAWEI(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceInvocationMaskFeaturesHUAWEI* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_NV_external_memory_rdma
+void count_VkMemoryGetRemoteAddressInfoNV(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkMemoryGetRemoteAddressInfoNV* toCount,
+    size_t* count);
+
+void count_VkPhysicalDeviceExternalMemoryRDMAFeaturesNV(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceExternalMemoryRDMAFeaturesNV* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_EXT_extended_dynamic_state2
+void count_VkPhysicalDeviceExtendedDynamicState2FeaturesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceExtendedDynamicState2FeaturesEXT* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_QNX_screen_surface
+void count_VkScreenSurfaceCreateInfoQNX(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkScreenSurfaceCreateInfoQNX* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_EXT_color_write_enable
+void count_VkPhysicalDeviceColorWriteEnableFeaturesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceColorWriteEnableFeaturesEXT* toCount,
+    size_t* count);
+
+void count_VkPipelineColorWriteCreateInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPipelineColorWriteCreateInfoEXT* toCount,
     size_t* count);
 
 #endif
@@ -4073,17 +5005,75 @@ void count_VkImportPhysicalAddressGOOGLE(
     size_t* count);
 
 #endif
+#ifdef VK_EXT_global_priority_query
+void count_VkPhysicalDeviceGlobalPriorityQueryFeaturesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceGlobalPriorityQueryFeaturesEXT* toCount,
+    size_t* count);
+
+void count_VkQueueFamilyGlobalPriorityPropertiesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkQueueFamilyGlobalPriorityPropertiesEXT* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_EXT_multi_draw
+void count_VkPhysicalDeviceMultiDrawFeaturesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceMultiDrawFeaturesEXT* toCount,
+    size_t* count);
+
+void count_VkPhysicalDeviceMultiDrawPropertiesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceMultiDrawPropertiesEXT* toCount,
+    size_t* count);
+
+void count_VkMultiDrawInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkMultiDrawInfoEXT* toCount,
+    size_t* count);
+
+void count_VkMultiDrawIndexedInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkMultiDrawIndexedInfoEXT* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_EXT_load_store_op_none
+#endif
+#ifdef VK_EXT_border_color_swizzle
+void count_VkPhysicalDeviceBorderColorSwizzleFeaturesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDeviceBorderColorSwizzleFeaturesEXT* toCount,
+    size_t* count);
+
+void count_VkSamplerBorderColorComponentMappingCreateInfoEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkSamplerBorderColorComponentMappingCreateInfoEXT* toCount,
+    size_t* count);
+
+#endif
+#ifdef VK_EXT_pageable_device_local_memory
+void count_VkPhysicalDevicePageableDeviceLocalMemoryFeaturesEXT(
+    uint32_t featureBits,
+    VkStructureType rootType,
+    const VkPhysicalDevicePageableDeviceLocalMemoryFeaturesEXT* toCount,
+    size_t* count);
+
+#endif
 #ifdef VK_KHR_acceleration_structure
 void count_VkDeviceOrHostAddressKHR(
     uint32_t featureBits,
     VkStructureType rootType,
     const VkDeviceOrHostAddressKHR* toCount,
-    size_t* count);
-
-void count_VkDeviceOrHostAddressConstKHR(
-    uint32_t featureBits,
-    VkStructureType rootType,
-    const VkDeviceOrHostAddressConstKHR* toCount,
     size_t* count);
 
 void count_VkAccelerationStructureBuildRangeInfoKHR(
