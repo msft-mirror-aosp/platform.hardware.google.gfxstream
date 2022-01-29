@@ -1388,6 +1388,7 @@ public:
             "VK_NV_shader_subgroup_partitioned",
             "VK_KHR_shader_subgroup_extended_types",
             "VK_EXT_subgroup_size_control",
+            "VK_EXT_provoking_vertex",
             "VK_KHR_pipeline_executable_properties",
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
             "VK_KHR_external_semaphore",
