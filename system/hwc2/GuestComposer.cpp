@@ -905,7 +905,8 @@ HWC2::Error GuestComposer::composeLayerInto(
   BufferSpec srcLayerSpec = *srcLayerSpecOpt;
 
   // TODO(jemoreira): Remove the hardcoded fomat.
-  bool needsConversion = srcLayerSpec.drmFormat != DRM_FORMAT_XBGR8888;
+  bool needsConversion = srcLayerSpec.drmFormat != DRM_FORMAT_XBGR8888 &&
+                         srcLayerSpec.drmFormat != DRM_FORMAT_ABGR8888;
   bool needsScaling = LayerNeedsScaling(*srcLayer);
   bool needsRotation = rotation != libyuv::kRotate0;
   bool needsTranspose = needsRotation && rotation != libyuv::kRotate180;
