@@ -568,8 +568,7 @@ address_space_handle_t virtgpu_address_space_open() {
 
     ret = drmIoctl(fd, DRM_IOCTL_VIRTGPU_CONTEXT_INIT, &init);
     if (ret) {
-        ALOGE("DRM_IOCTL_VIRTGPU_CONTEXT_INIT failed with %s", strerror(errno));
-        return ret;
+        ALOGE("DRM_IOCTL_VIRTGPU_CONTEXT_INIT failed with %s, continuing without context...", strerror(errno));
     }
 
     return fd;
