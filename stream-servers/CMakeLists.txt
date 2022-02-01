@@ -74,6 +74,9 @@ target_include_directories(
         ${GFXSTREAM_REPO_ROOT}/stream-servers/vulkan
         ${GFXSTREAM_REPO_ROOT}/third-party/glm/include)
 
+if (APPLE)
+    target_link_libraries(gfxstream_backend_static PUBLIC "-framework AppKit -framework QuartzCore")
+endif()
 if (WIN32)
     target_link_libraries(gfxstream_backend_static PRIVATE D3d9.lib)
 endif()
