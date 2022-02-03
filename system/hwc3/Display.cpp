@@ -872,7 +872,7 @@ HWC3::Error Display::acceptChanges() {
   mPendingChanges.reset();
 
   mPresentFlowState = PresentFlowState::WAITING_FOR_PRESENT;
-  ALOGE("%s: display:%" PRId64 " now WAITING_FOR_PRESENT", __FUNCTION__, mId);
+  DEBUG_LOG("%s: display:%" PRId64 " now WAITING_FOR_PRESENT", __FUNCTION__, mId);
 
   return HWC3::Error::None;
 }
@@ -904,7 +904,7 @@ HWC3::Error Display::present(
     }
   }
   mPresentFlowState = PresentFlowState::WAITING_FOR_VALIDATE;
-  ALOGE("%s: display:%" PRId64 " now WAITING_FOR_VALIDATE", __FUNCTION__, mId);
+  DEBUG_LOG("%s: display:%" PRId64 " now WAITING_FOR_VALIDATE", __FUNCTION__, mId);
 
   if (mComposer == nullptr) {
     ALOGE("%s: display:%" PRId64 " missing composer", __FUNCTION__, mId);
