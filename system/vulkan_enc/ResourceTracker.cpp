@@ -68,11 +68,6 @@ void zx_event_create(int, zx_handle_t*) { }
 #include "../egl/goldfish_sync.h"
 #include "AndroidHardwareBuffer.h"
 
-#ifndef HOST_BUILD
-#include "virtgpu_drm.h"
-#include <xf86drm.h>
-#endif
-
 #else
 
 #include <android/hardware_buffer.h>
@@ -144,13 +139,17 @@ VkResult getMemoryAndroidHardwareBufferANDROID(struct AHardwareBuffer **) { retu
 #include <stdlib.h>
 #include <sync/sync.h>
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(__ANDROID__) || defined(__linux__)
 
 #include <sys/mman.h>
+#include <unistd.h>
 #include <sys/syscall.h>
 
 #ifdef HOST_BUILD
 #include "android/utils/tempfile.h"
+#else
+#include "virtgpu_drm.h"
+#include <xf86drm.h>
 #endif
 
 static inline int
@@ -163,8 +162,9 @@ inline_memfd_create(const char *name, unsigned int flags) {
     return syscall(SYS_memfd_create, name, flags);
 #endif
 }
+
 #define memfd_create inline_memfd_create
-#endif // !VK_USE_PLATFORM_ANDROID_KHR
+#endif
 
 #define RESOURCE_TRACKER_DEBUG 0
 
@@ -1048,7 +1048,7 @@ public:
         if (mFeatureInfo->hasVulkanQueueSubmitWithCommands) {
             ResourceTracker::streamFeatureBits |= VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
         }
-#if !defined(HOST_BUILD) && defined(VK_USE_PLATFORM_ANDROID_KHR)
+#if !defined(HOST_BUILD) && defined(VIRTIO_GPU)
         if (mFeatureInfo->hasVirtioGpuNext) {
             ALOGD("%s: has virtio-gpu-next; create auxiliary rendernode\n", __func__);
             mRendernodeFd = drmOpenRender(128 /* RENDERNODE_MINOR */);
@@ -3715,7 +3715,7 @@ public:
                       (unsigned long long)directMappedAddr);
                 mLock.lock();
             } else if (mFeatureInfo->hasVirtioGpuNext) {
-#if !defined(HOST_BUILD) && defined(VK_USE_PLATFORM_ANDROID_KHR)
+#if !defined(HOST_BUILD) && defined(VIRTIO_GPU)
                 uint64_t hvaSizeId[3];
 
                 int rendernodeFdForMem = drmOpenRender(128 /* RENDERNODE_MINOR */);
@@ -7910,9 +7910,7 @@ private:
     std::vector<VkExtensionProperties> mHostDeviceExtensions;
 
     int mSyncDeviceFd = -1;
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
     int mRendernodeFd = -1;
-#endif
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
     fidl::WireSyncClient<fuchsia_hardware_goldfish::ControlDevice>
