@@ -192,6 +192,7 @@ public:
     // Otherwise, attempts to create a rendernode fd assuming
     // virtio-gpu is available.
     int getOrCreateRendernodeFd();
+    int getRendernodeFd() { return m_rendernodeFd; }
 
     ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
     Gralloc *grallocHelper() { return m_grallocHelper; }
