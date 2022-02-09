@@ -139,7 +139,7 @@ VkResult getMemoryAndroidHardwareBufferANDROID(struct AHardwareBuffer **) { retu
 #include <stdlib.h>
 #include <sync/sync.h>
 
-#if defined(__ANDROID__) || defined(__linux__)
+#if defined(__ANDROID__) || defined(__linux__) || defined(__APPLE__)
 
 #include <sys/mman.h>
 #include <unistd.h>
