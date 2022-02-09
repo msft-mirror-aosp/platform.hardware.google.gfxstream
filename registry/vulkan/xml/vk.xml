@@ -17651,6 +17651,7 @@ typedef void <name>CAMetalLayer</name>;
                 <enum offset="0" extends="VkStructureType"                  name="VK_STRUCTURE_TYPE_IMPORT_COLOR_BUFFER_GOOGLE"/>
                 <enum offset="1" extends="VkStructureType"                  name="VK_STRUCTURE_TYPE_IMPORT_PHYSICAL_ADDRESS_GOOGLE"/>
                 <enum offset="2" extends="VkStructureType"                  name="VK_STRUCTURE_TYPE_IMPORT_BUFFER_HANDLE_GOOGLE"/>
+                <enum offset="3" extends="VkStructureType"                  name="VK_STRUCTURE_TYPE_IMPORT_BUFFER_GOOGLE"/>
                 <type name="VkImportColorBufferGOOGLE"/>
                 <type name="VkImportBufferGOOGLE"/>
                 <type name="VkImportPhysicalAddressGOOGLE"/>
