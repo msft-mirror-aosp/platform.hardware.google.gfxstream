@@ -1057,10 +1057,12 @@ public:
             } else {
                 ALOGD("%s: has virtio-gpu-next; aux context init\n", __func__);
                 struct drm_virtgpu_context_set_param drm_setparams[] = {
+#ifdef __linux__
                     {
                         VIRTGPU_CONTEXT_PARAM_CAPSET_ID,
                         3, /* CAPSET_GFXSTREAM */
                     },
+#endif
                     {
                         VIRTGPU_CONTEXT_PARAM_NUM_RINGS,
                         2,
@@ -1068,7 +1070,7 @@ public:
                 };
 
                 struct drm_virtgpu_context_init drm_ctx_init = {
-                    2,
+                    std::size(drm_setparams),
                     0,
                     (uint64_t)(uintptr_t)drm_setparams,
                 };
@@ -6545,7 +6547,7 @@ public:
         }
 
         enc->vkQueueCommitDescriptorSetUpdatesGOOGLE(
-            queue, 
+            queue,
             (uint32_t)pools.size(), pools.data(),
             (uint32_t)sets.size(),
             setLayouts.data(),
@@ -8955,7 +8957,7 @@ void ResourceTracker::on_vkCmdBindDescriptorSets(
     mImpl->on_vkCmdBindDescriptorSets(
         context,
         commandBuffer,
-        pipelineBindPoint, 
+        pipelineBindPoint,
         layout,
         firstSet,
         descriptorSetCount,
