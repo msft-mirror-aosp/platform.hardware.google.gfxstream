@@ -551,15 +551,18 @@ bool goldfish_address_space_ping(
 
 // virtio-gpu version
 address_space_handle_t virtgpu_address_space_open() {
-    int ret;
-    struct drm_virtgpu_context_init init = {0};
-    struct drm_virtgpu_context_set_param ctx_set_params[1] = {{0}};
-
     int fd = drmOpenRender(128);
     if (fd < 0) {
         ALOGE("Failed to open rendernode: %s", strerror(errno));
         return fd;
     }
+
+// TODO(b/218538495): A KI in the 5.4 kernel will sometimes result in capsets not
+// being properly queried.
+#ifdef __linux__
+    int ret;
+    struct drm_virtgpu_context_init init = {0};
+    struct drm_virtgpu_context_set_param ctx_set_params[1] = {{0}};
 
     init.ctx_set_params = (unsigned long long)&ctx_set_params[0];
     init.num_params = 1;
@@ -570,7 +573,7 @@ address_space_handle_t virtgpu_address_space_open() {
     if (ret) {
         ALOGE("DRM_IOCTL_VIRTGPU_CONTEXT_INIT failed with %s, continuing without context...", strerror(errno));
     }
-
+#endif
     return fd;
 }
 
