@@ -70,6 +70,10 @@ void zx_event_create(int, zx_handle_t*) { }
 
 #else
 
+#if defined(__linux__)
+#include "../egl/goldfish_sync.h"
+#endif
+
 #include <android/hardware_buffer.h>
 
 native_handle_t *AHardwareBuffer_getNativeHandle(AHardwareBuffer*) { return NULL; }
@@ -404,7 +408,7 @@ public:
         VkDevice device;
         bool external = false;
         VkExportFenceCreateInfo exportFenceCreateInfo;
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         int syncFd = -1;
 #endif
     };
@@ -603,7 +607,7 @@ public:
             zx_handle_close(semInfo.eventHandle);
         }
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         if (semInfo.syncFd >= 0) {
             close(semInfo.syncFd);
         }
@@ -644,7 +648,7 @@ public:
         auto& fenceInfo = it->second;
         (void)fenceInfo;
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         if (fenceInfo.syncFd >= 0) {
             close(fenceInfo.syncFd);
         }
@@ -1278,7 +1282,7 @@ public:
         std::vector<const char*> allowedExtensionNames = {
             "VK_KHR_get_physical_device_properties2",
             "VK_KHR_sampler_ycbcr_conversion",
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
             "VK_KHR_external_semaphore_capabilities",
             "VK_KHR_external_memory_capabilities",
             "VK_KHR_external_fence_capabilities",
@@ -1403,7 +1407,7 @@ public:
             "VK_KHR_image_format_list",
             "VK_KHR_incremental_present",
             "VK_KHR_pipeline_executable_properties",
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
             "VK_KHR_external_semaphore",
             "VK_KHR_external_semaphore_fd",
             // "VK_KHR_external_semaphore_win32", not exposed because it's translated to fd
@@ -1470,7 +1474,7 @@ public:
             filteredExts.push_back(anbExtProp);
         }
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         bool hostSupportsExternalFenceFd =
             getHostDeviceExtensionIndex(
                 "VK_KHR_external_fence_fd") != -1;
@@ -1480,7 +1484,7 @@ public:
         }
 #endif
 
-#ifndef VK_USE_PLATFORM_FUCHSIA
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         if (hostSupportsExternalSemaphore &&
             !hostHasPosixExternalSemaphore) {
             filteredExts.push_back(
@@ -4752,7 +4756,7 @@ public:
         uint32_t res = 0;
         for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
             bool shouldAcceptMemoryIndex = normalBits & (1 << i);
-#ifndef VK_USE_PLATFORM_FUCHSIA
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
             shouldAcceptMemoryIndex &= !isHostVisibleMemoryTypeIndexForGuest(
                 &mHostVisibleMemoryVirtInfo, i);
 #endif  // VK_USE_PLATFORM_FUCHSIA
@@ -5143,7 +5147,7 @@ public:
 
         VkSamplerYcbcrConversionCreateInfo localCreateInfo = vk_make_orphan_copy(*pCreateInfo);
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
         const VkExternalFormatANDROID* extFormatAndroidPtr =
             vk_find_struct<VkExternalFormatANDROID>(pCreateInfo);
         if (extFormatAndroidPtr) {
@@ -5231,7 +5235,7 @@ public:
             return;
         }
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         pExternalFenceProperties->exportFromImportedHandleTypes =
             VK_EXTERNAL_FENCE_HANDLE_TYPE_SYNC_FD_BIT;
         pExternalFenceProperties->compatibleHandleTypes =
@@ -5257,7 +5261,7 @@ public:
         const VkExportFenceCreateInfo* exportFenceInfoPtr =
             vk_find_struct<VkExportFenceCreateInfo>(pCreateInfo);
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         bool exportSyncFd =
             exportFenceInfoPtr &&
             (exportFenceInfoPtr->handleTypes &
@@ -5274,7 +5278,7 @@ public:
 
         if (input_result != VK_SUCCESS) return input_result;
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         if (exportSyncFd) {
             if (!mFeatureInfo->hasVirtioGpuNativeSync) {
                 ALOGV("%s: ensure sync device\n", __func__);
@@ -5334,7 +5338,7 @@ public:
             auto& info = it->second;
             if (!info.external) continue;
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
             if (info.syncFd >= 0) {
                 ALOGV("%s: resetting fence. make fd -1\n", __func__);
                 goldfish_sync_signal(info.syncFd);
@@ -5366,7 +5370,7 @@ public:
 
         if (!hasFence) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
 
         bool syncFdImport =
             pImportFenceFdInfo->handleType & VK_EXTERNAL_FENCE_HANDLE_TYPE_SYNC_FD_BIT;
@@ -5426,7 +5430,7 @@ public:
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         bool syncFdExport =
             pGetFdInfo->handleType & VK_EXTERNAL_FENCE_HANDLE_TYPE_SYNC_FD_BIT;
 
@@ -5539,7 +5543,7 @@ public:
 
         VkEncoder* enc = (VkEncoder*)context;
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         std::vector<VkFence> fencesExternal;
         std::vector<int> fencesExternalWaitFds;
         std::vector<VkFence> fencesNonExternal;
@@ -6181,7 +6185,7 @@ public:
 
     void ensureSyncDeviceFd() {
         if (mSyncDeviceFd >= 0) return;
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         mSyncDeviceFd = goldfish_sync_open();
         if (mSyncDeviceFd >= 0) {
             ALOGD("%s: created sync device for current Vulkan process: %d\n", __func__, mSyncDeviceFd);
@@ -6219,7 +6223,7 @@ public:
         }
 #endif
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         bool exportSyncFd = exportSemaphoreInfoPtr &&
             (exportSemaphoreInfoPtr->handleTypes &
              VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT);
@@ -6256,7 +6260,7 @@ public:
         info.eventKoid = getEventKoid(info.eventHandle);
 #endif
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         if (exportSyncFd) {
             if (mFeatureInfo->hasVirtioGpuNativeSync) {
 #if !defined(HOST_BUILD)
@@ -6333,7 +6337,7 @@ public:
         void* context, VkResult,
         VkDevice device, const VkSemaphoreGetFdInfoKHR* pGetFdInfo,
         int* pFd) {
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         VkEncoder* enc = (VkEncoder*)context;
         bool getSyncFd =
             pGetFdInfo->handleType & VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
@@ -6369,7 +6373,7 @@ public:
         void* context, VkResult input_result,
         VkDevice device,
         const VkImportSemaphoreFdInfoKHR* pImportSemaphoreFdInfo) {
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         VkEncoder* enc = (VkEncoder*)context;
         if (input_result != VK_SUCCESS) {
             return input_result;
@@ -6677,7 +6681,7 @@ public:
                         pre_signal_semaphores.push_back(pSubmits[i].pWaitSemaphores[j]);
                     }
 #endif
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
                     if (semInfo.syncFd >= 0) {
                         pre_signal_sync_fds.push_back(semInfo.syncFd);
                         pre_signal_semaphores.push_back(pSubmits[i].pWaitSemaphores[j]);
@@ -6706,7 +6710,7 @@ public:
 #endif
                     }
 #endif
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
                     if (semInfo.syncFd >= 0) {
                         post_wait_sync_fds.push_back(semInfo.syncFd);
                     }
@@ -6741,7 +6745,7 @@ public:
                 });
             }
 #endif
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
             for (auto fd : pre_signal_sync_fds) {
                 preSignalTasks.push_back([fd] {
                     sync_wait(fd, 3000);
@@ -6778,7 +6782,7 @@ public:
         lock.lock();
         int externalFenceFdToSignal = -1;
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         if (fence != VK_NULL_HANDLE) {
             auto it = info_VkFence.find(fence);
             if (it != info_VkFence.end()) {
@@ -6814,7 +6818,7 @@ public:
                     zx_object_signal(event, 0, ZX_EVENT_SIGNALED);
                 }
 #endif
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
                 for (auto& fd : post_wait_sync_fds) {
                     goldfish_sync_signal(fd);
                 }
@@ -6891,7 +6895,7 @@ public:
     }
 
     void unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int*) {
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#ifndef VK_USE_PLATFORM_FUCHSIA
         if (fd != -1) {
             AEMU_SCOPED_TRACE("waitNativeFenceInAcquire");
             // Implicit Synchronization
@@ -7400,8 +7404,7 @@ public:
                 VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT |
                 VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT;
         }
-#endif  // VK_USE_PLATFORM_FUCHSIA
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#else
         if (pExternalSemaphoreInfo->handleType ==
             VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT) {
             pExternalSemaphoreProperties->compatibleHandleTypes |=
@@ -7412,7 +7415,7 @@ public:
                 VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT |
                 VK_EXTERNAL_SEMAPHORE_FEATURE_IMPORTABLE_BIT;
         }
-#endif  // VK_USE_PLATFORM_ANDROID_KHR
+#endif  // VK_USE_PLATFORM_FUCHSIA
     }
 
     void registerEncoderCleanupCallback(const VkEncoder* encoder, void* object, CleanupCallback callback) {
@@ -7575,7 +7578,7 @@ public:
 
         VkImageViewCreateInfo localCreateInfo = vk_make_orphan_copy(*pCreateInfo);
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#ifndef VK_USE_PLATFORM_FUCHSIA
         const VkExternalFormatANDROID* extFormatAndroidPtr =
             vk_find_struct<VkExternalFormatANDROID>(pCreateInfo);
         if (extFormatAndroidPtr) {
@@ -7704,7 +7707,7 @@ public:
 
     int exportSyncFdForQSRI(VkImage image) {
         int fd = -1;
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#ifndef VK_USE_PLATFORM_FUCHSIA
         ALOGV("%s: call for image %p hos timage handle 0x%llx\n", __func__, (void*)image,
                 (unsigned long long)get_host_u64_VkImage(image));
         if (mFeatureInfo->hasVirtioGpuNativeSync) {
@@ -7749,7 +7752,7 @@ public:
                     &fd);
         }
         ALOGV("%s: got fd: %d\n", __func__, fd);
-#endif // VK_USE_PLATFORM_ANDROID_KHR
+#endif
         return fd;
     }
 
@@ -7764,7 +7767,7 @@ public:
 
         (void)input_result;
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
+#ifndef VK_USE_PLATFORM_FUCHSIA
         VkEncoder* enc = (VkEncoder*)context;
 
         if (!mFeatureInfo->hasVulkanAsyncQsri) {
@@ -7790,7 +7793,7 @@ public:
             int syncFd = exportSyncFdForQSRI(image);
             if (syncFd >= 0) close(syncFd);
         }
-#endif // VK_USE_PLATFORM_ANDROID_KHR
+#endif
         return VK_SUCCESS;
     }
 
