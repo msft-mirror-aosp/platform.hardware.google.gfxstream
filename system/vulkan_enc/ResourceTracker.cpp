@@ -1378,7 +1378,6 @@ public:
             "VK_KHR_bind_memory2",
             "VK_KHR_dedicated_allocation",
             "VK_KHR_get_memory_requirements2",
-            "VK_KHR_image_format_list",
             "VK_KHR_sampler_ycbcr_conversion",
             "VK_KHR_shader_float16_int8",
             // Timeline semaphores buggy in newer NVIDIA drivers
