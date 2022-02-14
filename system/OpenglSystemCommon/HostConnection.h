@@ -155,16 +155,26 @@ public:
 
 struct EGLThreadInfo;
 
+// Rutabaga capsets.
+#define VIRTIO_GPU_CAPSET_NONE 0
+#define VIRTIO_GPU_CAPSET_VIRGL 1
+#define VIRTIO_GPU_CAPSET_VIRGL2 2
+#define VIRTIO_GPU_CAPSET_GFXSTREAM 3
+#define VIRTIO_GPU_CAPSET_VENUS 4
+#define VIRTIO_GPU_CAPSET_CROSS_DOMAIN 5
 
 class HostConnection
 {
 public:
     static HostConnection *get();
-    static HostConnection *getWithThreadInfo(EGLThreadInfo* tInfo);
+    static HostConnection *getOrCreate(uint32_t capset_id);
+
+    static HostConnection *getWithThreadInfo(EGLThreadInfo* tInfo,
+                                             uint32_t capset_id = VIRTIO_GPU_CAPSET_NONE);
     static void exit();
     static void exitUnclean(); // for testing purposes
 
-    static std::unique_ptr<HostConnection> createUnique();
+    static std::unique_ptr<HostConnection> createUnique(uint32_t capset_id = VIRTIO_GPU_CAPSET_NONE);
     HostConnection(const HostConnection&) = delete;
 
     ~HostConnection();
@@ -213,7 +223,7 @@ public:
 private:
     // If the connection failed, |conn| is deleted.
     // Returns NULL if connection failed.
-    static std::unique_ptr<HostConnection> connect();
+    static std::unique_ptr<HostConnection> connect(uint32_t capset_id);
 
     HostConnection();
     static gl_client_context_t  *s_getGLContext();

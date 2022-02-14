@@ -396,7 +396,7 @@ HostConnection::~HostConnection()
 }
 
 // static
-std::unique_ptr<HostConnection> HostConnection::connect() {
+std::unique_ptr<HostConnection> HostConnection::connect(uint32_t capset_id) {
     const enum HostConnectionType connType = getConnectionTypeFromProperty();
 
     // Use "new" to access a non-public constructor.
@@ -514,7 +514,7 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
         }
 #if !defined(HOST_BUILD) && !defined(__Fuchsia__)
         case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
-            auto stream = createVirtioGpuAddressSpaceStream(STREAM_BUFFER_SIZE);
+            auto stream = createVirtioGpuAddressSpaceStream(STREAM_BUFFER_SIZE, capset_id);
             if (!stream) {
                 ALOGE("Failed to create virtgpu AddressSpaceStream for host connection\n");
                 return nullptr;
@@ -563,17 +563,21 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
 }
 
 HostConnection *HostConnection::get() {
-    return getWithThreadInfo(getEGLThreadInfo());
+    return getWithThreadInfo(getEGLThreadInfo(), VIRTIO_GPU_CAPSET_NONE);
 }
 
-HostConnection *HostConnection::getWithThreadInfo(EGLThreadInfo* tinfo) {
+HostConnection *HostConnection::getOrCreate(uint32_t capset_id) {
+    return getWithThreadInfo(getEGLThreadInfo(), capset_id);
+}
+
+HostConnection *HostConnection::getWithThreadInfo(EGLThreadInfo* tinfo, uint32_t capset_id) {
     // Get thread info
     if (!tinfo) {
         return NULL;
     }
 
     if (tinfo->hostConn == NULL) {
-        tinfo->hostConn = HostConnection::createUnique();
+        tinfo->hostConn = HostConnection::createUnique(capset_id);
     }
 
     return tinfo->hostConn.get();
@@ -599,9 +603,9 @@ void HostConnection::exitUnclean() {
 }
 
 // static
-std::unique_ptr<HostConnection> HostConnection::createUnique() {
+std::unique_ptr<HostConnection> HostConnection::createUnique(uint32_t capset_id) {
     ALOGD("%s: call\n", __func__);
-    return connect();
+    return connect(capset_id);
 }
 
 GLEncoder *HostConnection::glEncoder()
