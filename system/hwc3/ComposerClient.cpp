@@ -486,6 +486,18 @@ ndk::ScopedAStatus ComposerClient::getSupportedContentTypes(
   return ToBinderStatus(display->getSupportedContentTypes(outTypes));
 }
 
+ndk::ScopedAStatus ComposerClient::getDisplayDecorationSupport(
+    int64_t displayId,
+    std::optional<common::DisplayDecorationSupport>* outSupport) {
+  DEBUG_LOG("%s", __FUNCTION__);
+
+  std::unique_lock<std::mutex> lock(mStateMutex);
+
+  GET_DISPLAY_OR_RETURN_ERROR();
+
+  return ToBinderStatus(display->getDecorationSupport(outSupport));
+}
+
 ndk::ScopedAStatus ComposerClient::registerCallback(
     const std::shared_ptr<IComposerCallback>& callback) {
   DEBUG_LOG("%s", __FUNCTION__);
