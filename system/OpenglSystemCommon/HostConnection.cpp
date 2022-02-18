@@ -398,7 +398,6 @@ HostConnection::~HostConnection()
 // static
 std::unique_ptr<HostConnection> HostConnection::connect() {
     const enum HostConnectionType connType = getConnectionTypeFromProperty();
-    // const enum HostConnectionType connType = HOST_CONNECTION_VIRTIO_GPU;
 
     // Use "new" to access a non-public constructor.
     auto con = std::unique_ptr<HostConnection>(new HostConnection);
@@ -406,7 +405,7 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
         case HOST_CONNECTION_ADDRESS_SPACE: {
             auto stream = createAddressSpaceStream(STREAM_BUFFER_SIZE);
             if (!stream) {
-                ALOGE("Failed to create AddressSpaceStream for host connection!!!\n");
+                ALOGE("Failed to create AddressSpaceStream for host connection\n");
                 return nullptr;
             }
             con->m_connectionType = HOST_CONNECTION_ADDRESS_SPACE;
@@ -419,11 +418,11 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
         case HOST_CONNECTION_QEMU_PIPE: {
             auto stream = new QemuPipeStream(STREAM_BUFFER_SIZE);
             if (!stream) {
-                ALOGE("Failed to create QemuPipeStream for host connection!!!\n");
+                ALOGE("Failed to create QemuPipeStream for host connection\n");
                 return nullptr;
             }
             if (stream->connect() < 0) {
-                ALOGE("Failed to connect to host (QemuPipeStream)!!!\n");
+                ALOGE("Failed to connect to host (QemuPipeStream)\n");
                 return nullptr;
             }
             con->m_connectionType = HOST_CONNECTION_QEMU_PIPE;
@@ -441,12 +440,12 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
 #else
             auto stream = new TcpStream(STREAM_BUFFER_SIZE);
             if (!stream) {
-                ALOGE("Failed to create TcpStream for host connection!!!\n");
+                ALOGE("Failed to create TcpStream for host connection\n");
                 return nullptr;
             }
 
             if (stream->connect("10.0.2.2", STREAM_PORT_NUM) < 0) {
-                ALOGE("Failed to connect to host (TcpStream)!!!\n");
+                ALOGE("Failed to connect to host (TcpStream)\n");
                 return nullptr;
             }
             con->m_connectionType = HOST_CONNECTION_TCP;
@@ -461,11 +460,11 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
         case HOST_CONNECTION_VIRTIO_GPU: {
             auto stream = new VirtioGpuStream(STREAM_BUFFER_SIZE);
             if (!stream) {
-                ALOGE("Failed to create VirtioGpu for host connection!!!\n");
+                ALOGE("Failed to create VirtioGpu for host connection\n");
                 return nullptr;
             }
             if (stream->connect() < 0) {
-                ALOGE("Failed to connect to host (VirtioGpu)!!!\n");
+                ALOGE("Failed to connect to host (VirtioGpu)\n");
                 return nullptr;
             }
             con->m_connectionType = HOST_CONNECTION_VIRTIO_GPU;
@@ -483,11 +482,11 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
         case HOST_CONNECTION_VIRTIO_GPU_PIPE: {
             auto stream = new VirtioGpuPipeStream(STREAM_BUFFER_SIZE);
             if (!stream) {
-                ALOGE("Failed to create VirtioGpu for host connection!!!\n");
+                ALOGE("Failed to create VirtioGpu for host connection\n");
                 return nullptr;
             }
             if (stream->connect() < 0) {
-                ALOGE("Failed to connect to host (VirtioGpu)!!!\n");
+                ALOGE("Failed to connect to host (VirtioGpu)\n");
                 return nullptr;
             }
             con->m_connectionType = HOST_CONNECTION_VIRTIO_GPU_PIPE;
@@ -517,7 +516,7 @@ std::unique_ptr<HostConnection> HostConnection::connect() {
         case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
             auto stream = createVirtioGpuAddressSpaceStream(STREAM_BUFFER_SIZE);
             if (!stream) {
-                ALOGE("Failed to create virtgpu AddressSpaceStream for host connection!!!\n");
+                ALOGE("Failed to create virtgpu AddressSpaceStream for host connection\n");
                 return nullptr;
             }
             con->m_connectionType = HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE;
