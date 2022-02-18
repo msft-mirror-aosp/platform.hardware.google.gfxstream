@@ -56,7 +56,6 @@ EMUGL_COMMON_INCLUDES += $(HOST_EMUGL_PATH)/guest
 EMUGL_COMMON_CFLAGS += \
     -DPLATFORM_SDK_VERSION=29 \
     -DGOLDFISH_HIDL_GRALLOC \
-    -DEMULATOR_OPENGL_POST_O=1 \
     -DHOST_BUILD \
     -DANDROID \
     -DGL_GLEXT_PROTOTYPES \
@@ -79,10 +78,6 @@ endif
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 25 && echo isApi26OrHigher),isApi26OrHigher)
 EMUGL_COMMON_CFLAGS += -DGOLDFISH_HIDL_GRALLOC
-endif
-
-ifdef IS_AT_LEAST_OPD1
-    EMUGL_COMMON_CFLAGS += -DEMULATOR_OPENGL_POST_O=1
 endif
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 18 && echo PreJellyBeanMr2),PreJellyBeanMr2)
