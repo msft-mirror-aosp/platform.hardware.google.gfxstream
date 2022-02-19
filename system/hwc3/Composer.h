@@ -31,10 +31,11 @@ class Composer : public BnComposer {
  public:
   Composer() = default;
 
+  binder_status_t dump(int fd, const char** args, uint32_t numArgs) override;
+
   // compser3 api
   ndk::ScopedAStatus createClient(
       std::shared_ptr<IComposerClient>* client) override;
-  ndk::ScopedAStatus dumpDebugInfo(std::string* output) override;
   ndk::ScopedAStatus getCapabilities(std::vector<Capability>* caps) override;
 
  protected:
