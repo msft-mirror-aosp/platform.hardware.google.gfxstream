@@ -84,12 +84,13 @@ void Composer::onClientDestroyed() {
   mClientDestroyedCondition.notify_all();
 }
 
-ndk::ScopedAStatus Composer::dumpDebugInfo(std::string* output) {
-  DEBUG_LOG("%s", __FUNCTION__);
+binder_status_t Composer::dump(int fd, const char** /*args*/, uint32_t /*numArgs*/) {
+    DEBUG_LOG("%s", __FUNCTION__);
 
-  *output = "TODO";
+    std::string output("TODO");
 
-  return ndk::ScopedAStatus::ok();
+    write(fd, output.c_str(), output.size());
+    return STATUS_OK;
 }
 
 ndk::ScopedAStatus Composer::getCapabilities(std::vector<Capability>* caps) {
