@@ -3952,7 +3952,7 @@ public:
             !importBufferCollectionInfoPtr && !importBufferCollectionInfoPtrX &&
             !importVmoInfoPtr;
 
-#ifndef VK_USE_PLATFORM_FUCHSIA
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         shouldPassThroughDedicatedAllocInfo &=
             !isHostVisibleMemoryTypeIndexForGuest(
                 &mHostVisibleMemoryVirtInfo, pAllocateInfo->memoryTypeIndex);
@@ -6184,8 +6184,9 @@ public:
     }
 
     void ensureSyncDeviceFd() {
-        if (mSyncDeviceFd >= 0) return;
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
+        if (mSyncDeviceFd >= 0)
+            return;
         mSyncDeviceFd = goldfish_sync_open();
         if (mSyncDeviceFd >= 0) {
             ALOGD("%s: created sync device for current Vulkan process: %d\n", __func__, mSyncDeviceFd);
@@ -6895,7 +6896,7 @@ public:
     }
 
     void unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int*) {
-#ifndef VK_USE_PLATFORM_FUCHSIA
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         if (fd != -1) {
             AEMU_SCOPED_TRACE("waitNativeFenceInAcquire");
             // Implicit Synchronization
@@ -7578,7 +7579,7 @@ public:
 
         VkImageViewCreateInfo localCreateInfo = vk_make_orphan_copy(*pCreateInfo);
 
-#ifndef VK_USE_PLATFORM_FUCHSIA
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         const VkExternalFormatANDROID* extFormatAndroidPtr =
             vk_find_struct<VkExternalFormatANDROID>(pCreateInfo);
         if (extFormatAndroidPtr) {
@@ -7707,7 +7708,7 @@ public:
 
     int exportSyncFdForQSRI(VkImage image) {
         int fd = -1;
-#ifndef VK_USE_PLATFORM_FUCHSIA
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         ALOGV("%s: call for image %p hos timage handle 0x%llx\n", __func__, (void*)image,
                 (unsigned long long)get_host_u64_VkImage(image));
         if (mFeatureInfo->hasVirtioGpuNativeSync) {
@@ -7767,7 +7768,7 @@ public:
 
         (void)input_result;
 
-#ifndef VK_USE_PLATFORM_FUCHSIA
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         VkEncoder* enc = (VkEncoder*)context;
 
         if (!mFeatureInfo->hasVulkanAsyncQsri) {
@@ -7920,8 +7921,10 @@ private:
     std::vector<VkExtensionProperties> mHostInstanceExtensions;
     std::vector<VkExtensionProperties> mHostDeviceExtensions;
 
+#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
     int mSyncDeviceFd = -1;
     int mRendernodeFd = -1;
+#endif
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
     fidl::WireSyncClient<fuchsia_hardware_goldfish::ControlDevice>
