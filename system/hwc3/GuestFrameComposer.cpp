@@ -616,6 +616,7 @@ HWC3::Error GuestFrameComposer::validateDisplay(Display* display,
 
   const std::vector<Layer*>& layers = display->getOrderedLayers();
 
+  auto error = HWC3::Error::None;
   bool fallbackToClientComposition = false;
   for (Layer* layer : layers) {
     const auto layerId = layer->getId();
@@ -636,6 +637,12 @@ HWC3::Error GuestFrameComposer::validateDisplay(Display* display,
             " has composition type %s, falling back to client composition",
             __FUNCTION__, displayId, layerId,
             layerCompositionTypeString.c_str());
+      fallbackToClientComposition = true;
+      break;
+    }
+
+    if (layerCompositionType == Composition::DISPLAY_DECORATION) {
+      error = HWC3::Error::Unsupported;
       fallbackToClientComposition = true;
       break;
     }
@@ -699,7 +706,7 @@ HWC3::Error GuestFrameComposer::validateDisplay(Display* display,
     }
   }
 
-  return HWC3::Error::None;
+  return error;
 }
 
 HWC3::Error GuestFrameComposer::presentDisplay(

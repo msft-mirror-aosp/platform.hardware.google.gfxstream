@@ -458,12 +458,20 @@ HWC3::Error HostFrameComposer::validateDisplay(Display* display,
   bool hostCompositionV2 = rcEnc->hasHostCompositionV2();
   hostCon->unlock();
 
+  auto error = HWC3::Error::None;
   const std::vector<Layer*> layers = display->getOrderedLayers();
   for (const auto& layer : layers) {
-    if (layer->getCompositionType() == Composition::INVALID) {
-      // Log error for unused layers, layer leak?
-      ALOGE("%s layer:%" PRIu64 " CompositionType not set", __FUNCTION__,
-            layer->getId());
+    switch (layer->getCompositionType()) {
+      case Composition::INVALID:
+        // Log error for unused layers, layer leak?
+        ALOGE("%s layer:%" PRIu64 " CompositionType not set", __FUNCTION__,
+              layer->getId());
+        break;
+      case Composition::DISPLAY_DECORATION:
+        error = HWC3::Error::Unsupported;
+        break;
+      default:
+        break;
     }
   }
 
@@ -497,6 +505,9 @@ HWC3::Error HostFrameComposer::validateDisplay(Display* display,
         case Composition::SOLID_COLOR:
           layerFallBackTo = std::nullopt;
           break;
+        case Composition::DISPLAY_DECORATION:
+          layerFallBackTo = Composition::CLIENT;
+          break;
         default:
           ALOGE("%s: layer %" PRIu32 " has an unknown composition type: %d",
                 __FUNCTION__, static_cast<uint32_t>(layer->getId()),
@@ -526,7 +537,7 @@ HWC3::Error HostFrameComposer::validateDisplay(Display* display,
     }
   }
 
-  return HWC3::Error::None;
+  return error;
 }
 
 HWC3::Error HostFrameComposer::presentDisplay(
