@@ -17,6 +17,7 @@
 #ifndef ANDROID_HWC_DISPLAY_H
 #define ANDROID_HWC_DISPLAY_H
 
+#include <aidl/android/hardware/graphics/common/DisplayDecorationSupport.h>
 #include <aidl/android/hardware/graphics/composer3/ColorMode.h>
 #include <aidl/android/hardware/graphics/composer3/ContentType.h>
 #include <aidl/android/hardware/graphics/composer3/DisplayAttribute.h>
@@ -102,6 +103,8 @@ class Display {
   HWC3::Error getRenderIntents(ColorMode mode,
                                std::vector<RenderIntent>* intents);
   HWC3::Error getSupportedContentTypes(std::vector<ContentType>* types);
+  HWC3::Error getDecorationSupport(
+      std::optional<common::DisplayDecorationSupport>* support);
   HWC3::Error registerCallback(
       const std::shared_ptr<IComposerCallback>& callback);
   HWC3::Error setActiveConfig(int32_t configId);

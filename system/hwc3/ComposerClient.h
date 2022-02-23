@@ -93,6 +93,9 @@ class ComposerClient : public BnComposerClient {
       std::vector<RenderIntent>* intents) override;
   ndk::ScopedAStatus getSupportedContentTypes(
       int64_t displayId, std::vector<ContentType>* types) override;
+  ndk::ScopedAStatus getDisplayDecorationSupport(
+      int64_t displayId,
+      std::optional<common::DisplayDecorationSupport>* support) override;
   ndk::ScopedAStatus registerCallback(
       const std::shared_ptr<IComposerCallback>& callback) override;
   ndk::ScopedAStatus setActiveConfig(int64_t displayId,

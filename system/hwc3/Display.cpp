@@ -415,6 +415,15 @@ HWC3::Error Display::getSupportedContentTypes(
   return HWC3::Error::None;
 }
 
+HWC3::Error Display::getDecorationSupport(
+    std::optional<common::DisplayDecorationSupport>* outSupport) {
+  DEBUG_LOG("%s: display:%" PRId64, __FUNCTION__, mId);
+
+  outSupport->reset();
+
+  return HWC3::Error::Unsupported;
+}
+
 HWC3::Error Display::registerCallback(
     const std::shared_ptr<IComposerCallback>& callback) {
   DEBUG_LOG("%s: display:%" PRId64, __FUNCTION__, mId);
