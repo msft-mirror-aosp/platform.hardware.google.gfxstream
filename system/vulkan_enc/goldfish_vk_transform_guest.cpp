@@ -28,6 +28,8 @@
 #include "goldfish_vk_extension_structs_guest.h"
 #include "goldfish_vk_private_defs.h"
 
+#include <cstring>
+
 #include "ResourceTracker.h"
 
 
@@ -10156,7 +10158,6 @@ void transform_tohost_VkDeviceImageMemoryRequirementsKHR(
     }
     if (toTransform->pCreateInfo)
     {
-        resourceTracker->transformImpl_VkImageCreateInfo_tohost(toTransform->pCreateInfo, 1);
         transform_tohost_VkImageCreateInfo(resourceTracker, (VkImageCreateInfo*)(toTransform->pCreateInfo));
     }
 }
@@ -10173,7 +10174,6 @@ void transform_fromhost_VkDeviceImageMemoryRequirementsKHR(
     }
     if (toTransform->pCreateInfo)
     {
-        resourceTracker->transformImpl_VkImageCreateInfo_fromhost(toTransform->pCreateInfo, 1);
         transform_fromhost_VkImageCreateInfo(resourceTracker, (VkImageCreateInfo*)(toTransform->pCreateInfo));
     }
 }
@@ -18686,7 +18686,6 @@ void transform_tohost_VkImageFormatConstraintsInfoFUCHSIA(
     {
         transform_tohost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
     }
-    resourceTracker->transformImpl_VkImageCreateInfo_tohost(&toTransform->imageCreateInfo, 1);
     transform_tohost_VkImageCreateInfo(resourceTracker, (VkImageCreateInfo*)(&toTransform->imageCreateInfo));
     if (toTransform->pColorSpaces)
     {
@@ -18704,7 +18703,6 @@ void transform_fromhost_VkImageFormatConstraintsInfoFUCHSIA(
     {
         transform_fromhost_extension_struct(resourceTracker, (void*)(toTransform->pNext));
     }
-    resourceTracker->transformImpl_VkImageCreateInfo_fromhost(&toTransform->imageCreateInfo, 1);
     transform_fromhost_VkImageCreateInfo(resourceTracker, (VkImageCreateInfo*)(&toTransform->imageCreateInfo));
     if (toTransform->pColorSpaces)
     {
