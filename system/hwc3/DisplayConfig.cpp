@@ -78,6 +78,7 @@ int32_t DisplayConfig::getAttribute(DisplayAttribute attribute) const {
 
 std::string DisplayConfig::toString() const {
   std::string output;
+  output += " id: " + std::to_string(mId);
   output += " w:" + std::to_string(mWidth);
   output += " h:" + std::to_string(mHeight);
   output += " dpi-x:" + std::to_string(mDpiX);
