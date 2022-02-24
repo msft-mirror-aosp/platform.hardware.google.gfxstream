@@ -148,26 +148,26 @@ AddressSpaceStream* createAddressSpaceStream(size_t ignored_bufSize) {
 }
 
 #if defined(HOST_BUILD) || defined(__Fuchsia__)
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t ignored_bufSize) {
+AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t ignored_bufSize, uint32_t capset_id) {
     // Ignore incoming ignored_bufSize
     (void)ignored_bufSize;
     return nullptr;
 }
 #else
-static address_space_handle_t openVirtGpuAddressSpace() {
+static address_space_handle_t openVirtGpuAddressSpace(uint32_t capset_id) {
     address_space_handle_t ret;
     uint8_t retryCount = 64;
     do {
-        ret = virtgpu_address_space_open();
+        ret = open_virtgpu(capset_id);
     } while(ret < 0 && retryCount-- > 0 && errno == EINTR);
     return ret;
 }
 
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t ignored_bufSize) {
+AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t ignored_bufSize, uint32_t capset_id) {
     // Ignore incoming ignored_bufSize
     (void)ignored_bufSize;
 
-    auto handle = openVirtGpuAddressSpace();
+    auto handle = openVirtGpuAddressSpace(capset_id);
     if (handle <= reinterpret_cast<address_space_handle_t>(-1)) {
         ALOGE("AddressSpaceStream::create failed (open device) %d (%s)\n", errno, strerror(errno));
         return nullptr;

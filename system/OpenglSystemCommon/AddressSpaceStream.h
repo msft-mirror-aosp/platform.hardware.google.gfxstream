@@ -24,7 +24,7 @@
 class AddressSpaceStream;
 
 AddressSpaceStream* createAddressSpaceStream(size_t bufSize);
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t bufSize);
+AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t bufSize, uint32_t capset_id);
 
 class AddressSpaceStream : public IOStream {
 public:

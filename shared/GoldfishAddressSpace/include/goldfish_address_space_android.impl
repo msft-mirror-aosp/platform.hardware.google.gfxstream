@@ -549,8 +549,8 @@ bool goldfish_address_space_ping(
 
 #define CAPSET_GFXSTREAM 3
 
-// virtio-gpu version
-address_space_handle_t virtgpu_address_space_open() {
+// This is a no-op because virtgpu doesn't really use the GoldfishAddressSpaceBlockProvider
+address_space_handle_t open_virtgpu(uint32_t capset_id) {
     int fd = drmOpenRender(128);
     if (fd < 0) {
         ALOGE("Failed to open rendernode: %s", strerror(errno));
@@ -567,7 +567,7 @@ address_space_handle_t virtgpu_address_space_open() {
     init.ctx_set_params = (unsigned long long)&ctx_set_params[0];
     init.num_params = 1;
     ctx_set_params[0].param = VIRTGPU_CONTEXT_PARAM_CAPSET_ID;
-    ctx_set_params[0].value = CAPSET_GFXSTREAM;
+    ctx_set_params[0].value = capset_id;
 
     ret = drmIoctl(fd, DRM_IOCTL_VIRTGPU_CONTEXT_INIT, &init);
     if (ret) {
@@ -575,6 +575,10 @@ address_space_handle_t virtgpu_address_space_open() {
     }
 #endif
     return fd;
+}
+
+address_space_handle_t virtgpu_address_space_open() {
+    return -EINVAL;
 }
 
 void virtgpu_address_space_close(address_space_handle_t fd) {
