@@ -849,13 +849,8 @@ HWC3::Error Display::acceptChanges() {
       ALOGE("%s: display %" PRId64 " failed, not validated", __FUNCTION__, mId);
       return HWC3::Error::NotValidated;
     }
-    case PresentFlowState::WAITING_FOR_ACCEPT: {
-      break;
-    }
+    case PresentFlowState::WAITING_FOR_ACCEPT:
     case PresentFlowState::WAITING_FOR_PRESENT: {
-      ALOGE("%s: display %" PRId64
-            " failed, acceptedChanges() called more than once!",
-            __FUNCTION__, mId);
       break;
     }
   }
