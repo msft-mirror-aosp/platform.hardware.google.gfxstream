@@ -28,6 +28,8 @@
 #include "goldfish_vk_extension_structs_guest.h"
 #include "goldfish_vk_private_defs.h"
 
+#include <cstring>
+
 
 namespace goldfish_vk {
 
@@ -35991,6 +35993,12 @@ const char* api_opcode_to_string(
         case OP_vkGetPhysicalDeviceToolPropertiesEXT:
         {
             return "OP_vkGetPhysicalDeviceToolPropertiesEXT";
+        }
+#endif
+#ifdef VK_GOOGLE_gfxstream
+        case OP_vkGetLinearImageLayout2GOOGLE:
+        {
+            return "OP_vkGetLinearImageLayout2GOOGLE";
         }
 #endif
 #ifdef VK_EXT_acquire_drm_display

@@ -4341,7 +4341,6 @@ VkResult VkEncoder::vkCreateImage(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        sResourceTracker->transformImpl_VkImageCreateInfo_tohost(local_pCreateInfo, 1);
         transform_tohost_VkImageCreateInfo(sResourceTracker, (VkImageCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
@@ -37686,7 +37685,6 @@ VkResult VkEncoder::vkCreateImageWithRequirementsGOOGLE(
     local_pAllocator = nullptr;
     if (local_pCreateInfo)
     {
-        sResourceTracker->transformImpl_VkImageCreateInfo_tohost(local_pCreateInfo, 1);
         transform_tohost_VkImageCreateInfo(sResourceTracker, (VkImageCreateInfo*)(local_pCreateInfo));
     }
     if (local_pAllocator)
@@ -38365,6 +38363,68 @@ void VkEncoder::vkGetLinearImageLayoutGOOGLE(
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkFormat*)&local_format, sizeof(VkFormat));
     *streamPtrPtr += sizeof(VkFormat);
+    memcpy(*streamPtrPtr, (VkDeviceSize*)pOffset, sizeof(VkDeviceSize));
+    *streamPtrPtr += sizeof(VkDeviceSize);
+    memcpy(*streamPtrPtr, (VkDeviceSize*)pRowPitchAlignment, sizeof(VkDeviceSize));
+    *streamPtrPtr += sizeof(VkDeviceSize);
+    stream->read((VkDeviceSize*)pOffset, sizeof(VkDeviceSize));
+    stream->read((VkDeviceSize*)pRowPitchAlignment, sizeof(VkDeviceSize));
+    ++encodeCount;;
+    if (0 == encodeCount % POOL_CLEAR_INTERVAL)
+    {
+        pool->freeAll();
+        stream->clearPool();
+    }
+    if (!queueSubmitWithCommandsEnabled && doLock) this->unlock();
+}
+
+void VkEncoder::vkGetLinearImageLayout2GOOGLE(
+    VkDevice device,
+    const VkImageCreateInfo* pCreateInfo,
+    VkDeviceSize* pOffset,
+    VkDeviceSize* pRowPitchAlignment,
+    uint32_t doLock)
+{
+    (void)doLock;
+    bool queueSubmitWithCommandsEnabled = sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
+    if (!queueSubmitWithCommandsEnabled && doLock) this->lock();
+    auto stream = mImpl->stream();
+    auto pool = mImpl->pool();
+    VkDevice local_device;
+    VkImageCreateInfo* local_pCreateInfo;
+    local_device = device;
+    local_pCreateInfo = nullptr;
+    if (pCreateInfo)
+    {
+        local_pCreateInfo = (VkImageCreateInfo*)pool->alloc(sizeof(const VkImageCreateInfo));
+        deepcopy_VkImageCreateInfo(pool, VK_STRUCTURE_TYPE_MAX_ENUM, pCreateInfo, (VkImageCreateInfo*)(local_pCreateInfo));
+    }
+    if (local_pCreateInfo)
+    {
+        transform_tohost_VkImageCreateInfo(sResourceTracker, (VkImageCreateInfo*)(local_pCreateInfo));
+    }
+    size_t count = 0;
+    size_t* countPtr = &count;
+    {
+        uint64_t cgen_var_0;
+        *countPtr += 1 * 8;
+        count_VkImageCreateInfo(sFeatureBits, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageCreateInfo*)(local_pCreateInfo), countPtr);
+        *countPtr += sizeof(VkDeviceSize);
+        *countPtr += sizeof(VkDeviceSize);
+    }
+    uint32_t packetSize_vkGetLinearImageLayout2GOOGLE = 4 + 4 + (queueSubmitWithCommandsEnabled ? 4 : 0) + count;
+    uint8_t* streamPtr = stream->reserve(packetSize_vkGetLinearImageLayout2GOOGLE);
+    uint8_t** streamPtrPtr = &streamPtr;
+    uint32_t opcode_vkGetLinearImageLayout2GOOGLE = OP_vkGetLinearImageLayout2GOOGLE;
+    uint32_t seqno; if (queueSubmitWithCommandsEnabled) seqno = ResourceTracker::nextSeqno();
+    memcpy(streamPtr, &opcode_vkGetLinearImageLayout2GOOGLE, sizeof(uint32_t)); streamPtr += sizeof(uint32_t);
+    memcpy(streamPtr, &packetSize_vkGetLinearImageLayout2GOOGLE, sizeof(uint32_t)); streamPtr += sizeof(uint32_t);
+    if (queueSubmitWithCommandsEnabled) { memcpy(streamPtr, &seqno, sizeof(uint32_t)); streamPtr += sizeof(uint32_t); }
+    uint64_t cgen_var_0;
+    *&cgen_var_0 = get_host_u64_VkDevice((*&local_device));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_0, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    reservedmarshal_VkImageCreateInfo(stream, VK_STRUCTURE_TYPE_MAX_ENUM, (VkImageCreateInfo*)(local_pCreateInfo), streamPtrPtr);
     memcpy(*streamPtrPtr, (VkDeviceSize*)pOffset, sizeof(VkDeviceSize));
     *streamPtrPtr += sizeof(VkDeviceSize);
     memcpy(*streamPtrPtr, (VkDeviceSize*)pRowPitchAlignment, sizeof(VkDeviceSize));

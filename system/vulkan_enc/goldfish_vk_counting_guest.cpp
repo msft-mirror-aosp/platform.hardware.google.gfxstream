@@ -30,6 +30,7 @@
 
 #include <cstring>
 
+
 namespace goldfish_vk {
 
 void count_extension_struct(
