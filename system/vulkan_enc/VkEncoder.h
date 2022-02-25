@@ -3343,6 +3343,12 @@ public:
         VkDeviceSize* pOffset,
         VkDeviceSize* pRowPitchAlignment,
         uint32_t doLock);
+    void vkGetLinearImageLayout2GOOGLE(
+    VkDevice device,
+        const VkImageCreateInfo* pCreateInfo,
+        VkDeviceSize* pOffset,
+        VkDeviceSize* pRowPitchAlignment,
+        uint32_t doLock);
     void vkQueueFlushCommandsGOOGLE(
     VkQueue queue,
         VkCommandBuffer commandBuffer,
