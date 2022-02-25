@@ -28,6 +28,8 @@
 #include "goldfish_vk_extension_structs_guest.h"
 #include "goldfish_vk_private_defs.h"
 
+#include <cstring>
+
 #include "Resources.h"
 
 

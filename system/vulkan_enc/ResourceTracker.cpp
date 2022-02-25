@@ -2613,11 +2613,14 @@ public:
         // Get row alignment from host GPU.
         VkDeviceSize offset;
         VkDeviceSize rowPitchAlignment;
-        enc->vkGetLinearImageLayoutGOOGLE(device, createInfo->format, &offset,
-                                          &rowPitchAlignment,
-                                          true /* do lock */);
+
+        VkImageCreateInfo createInfoDup = *createInfo;
+        createInfoDup.pNext = nullptr;
+        enc->vkGetLinearImageLayout2GOOGLE(device, &createInfoDup, &offset,
+                                           &rowPitchAlignment,
+                                           true /* do lock */);
         ALOGD(
-            "vkGetLinearImageLayoutGOOGLE: format %d offset %lu "
+            "vkGetLinearImageLayout2GOOGLE: format %d offset %lu "
             "rowPitchAlignment = %lu",
             (int)createInfo->format, offset, rowPitchAlignment);
 
