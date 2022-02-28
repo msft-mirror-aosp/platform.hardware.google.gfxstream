@@ -1054,36 +1054,8 @@ public:
         }
 #if !defined(HOST_BUILD) && defined(VIRTIO_GPU)
         if (mFeatureInfo->hasVirtioGpuNext) {
-            ALOGD("%s: has virtio-gpu-next; create auxiliary rendernode\n", __func__);
-            mRendernodeFd = drmOpenRender(128 /* RENDERNODE_MINOR */);
-            if (mRendernodeFd < 0) {
-                ALOGE("%s: error: could not init auxiliary rendernode\n", __func__);
-            } else {
-                ALOGD("%s: has virtio-gpu-next; aux context init\n", __func__);
-                struct drm_virtgpu_context_set_param drm_setparams[] = {
-#ifdef __linux__
-                    {
-                        VIRTGPU_CONTEXT_PARAM_CAPSET_ID,
-                        3, /* CAPSET_GFXSTREAM */
-                    },
-#endif
-                    {
-                        VIRTGPU_CONTEXT_PARAM_NUM_RINGS,
-                        2,
-                    },
-                };
-
-                struct drm_virtgpu_context_init drm_ctx_init = {
-                    std::size(drm_setparams),
-                    0,
-                    (uint64_t)(uintptr_t)drm_setparams,
-                };
-
-                int ctxInitret = drmIoctl(mRendernodeFd, DRM_IOCTL_VIRTGPU_CONTEXT_INIT, &drm_ctx_init);
-                if (ctxInitret < 0) {
-                    ALOGE("%s: error: could not ctx init. ret %d errno %d\n", __func__, ctxInitret, errno);
-                }
-            }
+            mRendernodeFd =
+                ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->getRendernodeFd();
         }
 #endif
     }
