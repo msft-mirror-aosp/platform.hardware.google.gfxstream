@@ -190,6 +190,8 @@ class ComposerClient : public BnComposerClient {
       const std::vector<std::optional<PerFrameMetadata>>& perFrameMetadata);
   void executeLayerCommandSetLayerColorTransform(
       Display* display, Layer* layer, const std::vector<float>& colorTransform);
+  void executeLayerCommandSetLayerBrightness(Display* display, Layer* layer,
+                                             const LayerBrightness& brightness);
   void executeLayerCommandSetLayerPerFrameMetadataBlobs(
       Display* display, Layer* layer,
       const std::vector<std::optional<PerFrameMetadataBlob>>&
