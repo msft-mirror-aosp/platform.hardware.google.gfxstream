@@ -747,7 +747,12 @@ HWC3::Error Display::setColorTransform(
 HWC3::Error Display::setBrightness(float brightness) {
   DEBUG_LOG("%s: display:%" PRId64 " brightness:%f", __FUNCTION__, mId,
             brightness);
-  (void)brightness;
+
+  if (brightness < 0.0f) {
+    ALOGE("%s: display:%" PRId64 " invalid brightness:%f", __FUNCTION__, mId,
+          brightness);
+    return HWC3::Error::BadParameter;
+  }
 
   return HWC3::Error::Unsupported;
 }
@@ -876,7 +881,8 @@ HWC3::Error Display::acceptChanges() {
   mPendingChanges.reset();
 
   mPresentFlowState = PresentFlowState::WAITING_FOR_PRESENT;
-  DEBUG_LOG("%s: display:%" PRId64 " now WAITING_FOR_PRESENT", __FUNCTION__, mId);
+  DEBUG_LOG("%s: display:%" PRId64 " now WAITING_FOR_PRESENT", __FUNCTION__,
+            mId);
 
   return HWC3::Error::None;
 }
@@ -908,7 +914,8 @@ HWC3::Error Display::present(
     }
   }
   mPresentFlowState = PresentFlowState::WAITING_FOR_VALIDATE;
-  DEBUG_LOG("%s: display:%" PRId64 " now WAITING_FOR_VALIDATE", __FUNCTION__, mId);
+  DEBUG_LOG("%s: display:%" PRId64 " now WAITING_FOR_VALIDATE", __FUNCTION__,
+            mId);
 
   if (mComposer == nullptr) {
     ALOGE("%s: display:%" PRId64 " missing composer", __FUNCTION__, mId);

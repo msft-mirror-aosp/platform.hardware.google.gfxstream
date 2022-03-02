@@ -87,6 +87,9 @@ class Layer {
   HWC3::Error setColorTransform(const std::vector<float>& colorTransform);
   const std::optional<std::array<float, 16>>& getColorTransform() const;
 
+  HWC3::Error setBrightness(float brightness);
+  float getBrightness() const;
+
   HWC3::Error setPerFrameMetadataBlobs(
       const std::vector<std::optional<PerFrameMetadataBlob>>& perFrameMetadata);
 
@@ -105,6 +108,7 @@ class Layer {
   std::vector<common::Rect> mVisibleRegion;
   int32_t mZOrder = 0;
   std::optional<std::array<float, 16>> mColorTransform;
+  float mBrightness = 1.0f;
 };
 
 }  // namespace aidl::android::hardware::graphics::composer3::impl

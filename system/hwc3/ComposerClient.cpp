@@ -819,6 +819,7 @@ void ComposerClient::executeLayerCommand(Display* display,
   DISPATCH_LAYER_COMMAND(layerCommand, display, layer, z, ZOrder);
   DISPATCH_LAYER_COMMAND(layerCommand, display, layer, colorTransform,
                          ColorTransform);
+  DISPATCH_LAYER_COMMAND(layerCommand, display, layer, brightness, Brightness);
   DISPATCH_LAYER_COMMAND(layerCommand, display, layer, perFrameMetadata,
                          PerFrameMetadata);
   DISPATCH_LAYER_COMMAND(layerCommand, display, layer, perFrameMetadataBlob,
@@ -1187,6 +1188,17 @@ void ComposerClient::executeLayerCommandSetLayerColorTransform(
   DEBUG_LOG("%s", __FUNCTION__);
 
   auto error = layer->setColorTransform(colorTransform);
+  if (error != HWC3::Error::None) {
+    LOG_LAYER_COMMAND_ERROR(display, layer, error);
+    mCommandResults->addError(error);
+  }
+}
+
+void ComposerClient::executeLayerCommandSetLayerBrightness(
+    Display* display, Layer* layer, const LayerBrightness& brightness) {
+  DEBUG_LOG("%s", __FUNCTION__);
+
+  auto error = layer->setBrightness(brightness.brightness);
   if (error != HWC3::Error::None) {
     LOG_LAYER_COMMAND_ERROR(display, layer, error);
     mCommandResults->addError(error);

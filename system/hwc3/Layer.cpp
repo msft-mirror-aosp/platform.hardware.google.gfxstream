@@ -20,6 +20,7 @@
 #include <sync/sync.h>
 
 #include <atomic>
+#include <cmath>
 
 namespace aidl::android::hardware::graphics::composer3::impl {
 namespace {
@@ -306,6 +307,25 @@ const std::optional<std::array<float, 16>>& Layer::getColorTransform() const {
   DEBUG_LOG("%s: layer:%" PRId64, __FUNCTION__, mId);
 
   return mColorTransform;
+}
+
+HWC3::Error Layer::setBrightness(float brightness) {
+  DEBUG_LOG("%s: layer:%" PRId64 " brightness:%f", __FUNCTION__, mId,
+            brightness);
+
+  if (std::isnan(brightness) || brightness < 0.0f || brightness > 1.0f) {
+    ALOGE("%s: layer:%" PRId64 " brightness:%f", __FUNCTION__, mId, brightness);
+    return HWC3::Error::BadParameter;
+  }
+
+  mBrightness = brightness;
+  return HWC3::Error::None;
+}
+
+float Layer::getBrightness() const {
+  DEBUG_LOG("%s: layer:%" PRId64, __FUNCTION__, mId);
+
+  return mBrightness;
 }
 
 HWC3::Error Layer::setPerFrameMetadataBlobs(
