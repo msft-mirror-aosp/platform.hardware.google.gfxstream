@@ -3136,7 +3136,8 @@ public:
                 (out.required_max_coded_width < in.required_max_coded_width) ||
                 (out.required_max_coded_height <
                  in.required_max_coded_height) ||
-                (out.bytes_per_row_divisor % in.bytes_per_row_divisor != 0)) {
+                (in.bytes_per_row_divisor != 0 &&
+                 out.bytes_per_row_divisor % in.bytes_per_row_divisor != 0)) {
                 continue;
             }
             // Check if the out colorspaces are a subset of the in color spaces.
