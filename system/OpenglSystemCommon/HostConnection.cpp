@@ -762,9 +762,6 @@ void HostConnection::setChecksumHelper(ExtendedRCEncoderContext *rcEnc) {
 
 void HostConnection::queryAndSetSyncImpl(ExtendedRCEncoderContext *rcEnc) {
     const std::string& glExtensions = queryGLExtensions(rcEnc);
-#if PLATFORM_SDK_VERSION <= 16 || (!defined(__i386__) && !defined(__x86_64__))
-    rcEnc->setSyncImpl(SYNC_IMPL_NONE);
-#else
     if (glExtensions.find(kRCNativeSyncV4) != std::string::npos) {
         rcEnc->setSyncImpl(SYNC_IMPL_NATIVE_SYNC_V4);
     } else if (glExtensions.find(kRCNativeSyncV3) != std::string::npos) {
@@ -774,20 +771,15 @@ void HostConnection::queryAndSetSyncImpl(ExtendedRCEncoderContext *rcEnc) {
     } else {
         rcEnc->setSyncImpl(SYNC_IMPL_NONE);
     }
-#endif
 }
 
 void HostConnection::queryAndSetDmaImpl(ExtendedRCEncoderContext *rcEnc) {
     std::string glExtensions = queryGLExtensions(rcEnc);
-#if PLATFORM_SDK_VERSION <= 16 || (!defined(__i386__) && !defined(__x86_64__))
-    rcEnc->setDmaImpl(DMA_IMPL_NONE);
-#else
     if (glExtensions.find(kDmaExtStr_v1) != std::string::npos) {
         rcEnc->setDmaImpl(DMA_IMPL_v1);
     } else {
         rcEnc->setDmaImpl(DMA_IMPL_NONE);
     }
-#endif
 }
 
 void HostConnection::queryAndSetGLESMaxVersion(ExtendedRCEncoderContext* rcEnc) {
