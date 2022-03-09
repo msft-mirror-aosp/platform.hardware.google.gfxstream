@@ -179,10 +179,6 @@ public:
 
     ~HostConnection();
 
-    HostConnectionType connectionType() const {
-        return m_connectionType;
-    }
-
     GLEncoder *glEncoder();
     GL2Encoder *gl2Encoder();
     goldfish_vk::VkEncoder *vkEncoder();
