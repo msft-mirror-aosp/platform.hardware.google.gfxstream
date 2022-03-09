@@ -1494,6 +1494,14 @@ public:
             filteredExts.push_back(
                 VkExtensionProperties { "VK_FUCHSIA_buffer_collection_x", 1});
 #endif
+#if !defined(VK_USE_PLATFORM_ANDROID_KHR) && defined(__linux__)
+            filteredExts.push_back(
+                VkExtensionProperties {
+                   "VK_KHR_external_memory_fd", 1
+                });
+            filteredExts.push_back(
+                VkExtensionProperties { "VK_EXT_external_memory_dma_buf", 1 });
+#endif
         }
 
         // Spec:
