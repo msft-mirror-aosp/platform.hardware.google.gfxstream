@@ -659,7 +659,7 @@ static uint64_t createNativeSync_virtioGpu(
 
         int queue_work_err =
             drmIoctl(
-                hostCon->getOrCreateRendernodeFd(),
+                hostCon->getRendernodeFd(),
                 DRM_IOCTL_VIRTGPU_EXECBUFFER, &createSyncExport);
 
         if (queue_work_err) {

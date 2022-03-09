@@ -363,8 +363,7 @@ HostConnection::HostConnection() :
     m_glExtensions(),
     m_grallocOnly(true),
     m_noHostError(true),
-    m_rendernodeFd(-1),
-    m_rendernodeFdOwned(false) {
+    m_rendernodeFd(-1) {
 #ifdef HOST_BUILD
     android::base::initializeTracing();
 #endif
@@ -380,10 +379,6 @@ HostConnection::~HostConnection()
 
     if (m_grallocType == GRALLOC_TYPE_MINIGBM) {
         delete m_grallocHelper;
-    }
-
-    if (m_rendernodeFdOwned) {
-        close(m_rendernodeFd);
     }
 
     if (m_vkEnc) {
@@ -472,8 +467,7 @@ std::unique_ptr<HostConnection> HostConnection::connect(uint32_t capset_id) {
             auto rendernodeFd = stream->getRendernodeFd();
             con->m_processPipe = stream->getProcessPipe();
             con->m_stream = stream;
-            con->m_rendernodeFdOwned = false;
-            con->m_rendernodeFdOwned = rendernodeFd;
+            con->m_rendernodeFd = rendernodeFd;
             MinigbmGralloc* m = new MinigbmGralloc;
             m->setFd(rendernodeFd);
             con->m_grallocHelper = m;
@@ -491,7 +485,6 @@ std::unique_ptr<HostConnection> HostConnection::connect(uint32_t capset_id) {
             }
             con->m_connectionType = HOST_CONNECTION_VIRTIO_GPU_PIPE;
             con->m_grallocType = getGrallocTypeFromProperty();
-            con->m_rendernodeFdOwned = false;
             auto rendernodeFd = stream->getRendernodeFd();
             con->m_stream = stream;
             con->m_rendernodeFd = rendernodeFd;
@@ -521,7 +514,6 @@ std::unique_ptr<HostConnection> HostConnection::connect(uint32_t capset_id) {
             }
             con->m_connectionType = HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE;
             con->m_grallocType = getGrallocTypeFromProperty();
-            con->m_rendernodeFdOwned = false;
             auto rendernodeFd = stream->getRendernodeFd();
             con->m_stream = stream;
             con->m_rendernodeFd = rendernodeFd;
@@ -686,30 +678,6 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         }
     }
     return m_rcEnc.get();
-}
-
-int HostConnection::getOrCreateRendernodeFd() {
-    if (m_rendernodeFd >= 0) return m_rendernodeFd;
-#ifdef __Fuchsia__
-    return -1;
-#else
-#ifdef VIRTIO_GPU
-    m_rendernodeFd = VirtioGpuPipeStream::openRendernode();
-    if (m_rendernodeFd < 0) {
-        ALOGE("%s: failed to create secondary "
-              "rendernode for host connection. "
-              "error: %s (%d)\n", __FUNCTION__,
-              strerror(errno), errno);
-        return -1;
-    }
-
-    // Remember to close it on exit
-    m_rendernodeFdOwned = true;
-    return m_rendernodeFd;
-#else
-    return -1;
-#endif
-#endif
 }
 
 gl_client_context_t *HostConnection::s_getGLContext()

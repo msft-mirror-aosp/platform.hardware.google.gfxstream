@@ -188,10 +188,6 @@ public:
     goldfish_vk::VkEncoder *vkEncoder();
     ExtendedRCEncoderContext *rcEncoder();
 
-    // Returns rendernode fd, in case the stream is virtio-gpu based.
-    // Otherwise, attempts to create a rendernode fd assuming
-    // virtio-gpu is available.
-    int getOrCreateRendernodeFd();
     int getRendernodeFd() { return m_rendernodeFd; }
 
     ChecksumCalculator *checksumHelper() { return &m_checksumHelper; }
@@ -289,7 +285,6 @@ private:
     mutable android::Mutex m_lock;
 #endif
     int m_rendernodeFd;
-    bool m_rendernodeFdOwned;
 };
 
 #endif
