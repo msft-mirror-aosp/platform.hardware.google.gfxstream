@@ -141,11 +141,6 @@ void initHostVisibleMemoryVirtualizationInfo(
 
             // Set this memory type to have a separate heap.
             newVirtualMemoryType.heapIndex = firstFreeHeapIndex;
-
-            newVirtualMemoryType.propertyFlags =
-                type.propertyFlags &
-                ~(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
             guestMemoryType.propertyFlags =
                 type.propertyFlags & \
                 ~(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
@@ -157,9 +152,6 @@ void initHostVisibleMemoryVirtualizationInfo(
             // supported by the PCI device.
             newVirtualMemoryHeap =
                 memoryProperties->memoryHeaps[heapIndex];
-            newVirtualMemoryHeap.flags =
-                newVirtualMemoryHeap.flags &
-                ~(VK_MEMORY_HEAP_DEVICE_LOCAL_BIT);
 
             // TODO: Figure out how to support bigger sizes
             newVirtualMemoryHeap.size = VIRTUAL_HOST_VISIBLE_HEAP_SIZE;
