@@ -937,17 +937,6 @@ public:
         info.createInfo = *pCreateInfo;
     }
 
-    bool isMemoryTypeHostVisible(VkDevice device, uint32_t typeIndex) const {
-        AutoLock<RecursiveLock> lock(mLock);
-        const auto it = info_VkDevice.find(device);
-
-        if (it == info_VkDevice.end()) return false;
-
-        const auto& info = it->second;
-        return info.memProps.memoryTypes[typeIndex].propertyFlags &
-               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-    }
-
     uint8_t* getMappedPointer(VkDeviceMemory memory) {
         AutoLock<RecursiveLock> lock(mLock);
         const auto it = info_VkDeviceMemory.find(memory);
@@ -7958,11 +7947,6 @@ ResourceTracker* ResourceTracker::get() {
     } \
 
 GOLDFISH_VK_LIST_HANDLE_TYPES(HANDLE_REGISTER_IMPL)
-
-bool ResourceTracker::isMemoryTypeHostVisible(
-    VkDevice device, uint32_t typeIndex) const {
-    return mImpl->isMemoryTypeHostVisible(device, typeIndex);
-}
 
 uint8_t* ResourceTracker::getMappedPointer(VkDeviceMemory memory) {
     return mImpl->getMappedPointer(memory);
