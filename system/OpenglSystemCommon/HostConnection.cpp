@@ -290,19 +290,50 @@ private:
                   __func__, strerror(errno), errno);
             return false;
         }
+        struct ManagedDrmGem {
+            ManagedDrmGem(const ManagedDrmGem&) = delete;
+            ~ManagedDrmGem() {
+                struct drm_gem_close gem_close {
+                    .handle = m_prime_handle,
+                    .pad = 0,
+                };
+                int ret = drmIoctl(m_fd, DRM_IOCTL_GEM_CLOSE, &gem_close);
+                if (ret) {
+                    ALOGE("%s: DRM_IOCTL_GEM_CLOSE failed on handle %" PRIu32 ": %s(%d).",
+                          __func__, m_prime_handle, strerror(errno), errno);
+                }
+            }
 
-        info->bo_handle = prime_handle;
-        gem_close.handle = prime_handle;
+            int m_fd;
+            uint32_t m_prime_handle;
+        } managed_prime_handle{
+            .m_fd = m_fd,
+            .m_prime_handle = prime_handle,
+        };
+
+        info->bo_handle = managed_prime_handle.m_prime_handle;
+
+        struct drm_virtgpu_3d_wait virtgpuWait{
+            .handle = managed_prime_handle.m_prime_handle,
+            .flags = 0,
+        };
+        // This only works for host resources by VIRTGPU_RESOURCE_CREATE ioctl.
+        // We need to use a different mechanism to synchonize with the host if
+        // the minigbm gralloc swiches to virtio-gpu blobs or cross-domain
+        // backend.
+        ret = drmIoctl(m_fd, DRM_IOCTL_VIRTGPU_WAIT, &virtgpuWait);
+        if (ret) {
+            ALOGE("%s: DRM_IOCTL_VIRTGPU_WAIT failed: %s(%d)", __func__, strerror(errno), errno);
+            return false;
+        }
 
         ret = drmIoctl(m_fd, DRM_IOCTL_VIRTGPU_RESOURCE_INFO, info);
         if (ret) {
             ALOGE("%s: DRM_IOCTL_VIRTGPU_RESOURCE_INFO failed: %s (errno %d)\n",
                   __func__, strerror(errno), errno);
-            drmIoctl(m_fd, DRM_IOCTL_GEM_CLOSE, &gem_close);
             return false;
         }
 
-        drmIoctl(m_fd, DRM_IOCTL_GEM_CLOSE, &gem_close);
         return true;
     }
 
