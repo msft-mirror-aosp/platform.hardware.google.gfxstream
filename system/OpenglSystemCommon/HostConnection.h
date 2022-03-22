@@ -149,7 +149,7 @@ public:
 // Abstraction for process pipe helper
 class ProcessPipe {
 public:
-    virtual bool processPipeInit(HostConnectionType connType, renderControl_encoder_context_t *rcEnc) = 0;
+    virtual bool processPipeInit(int stream_handle, HostConnectionType connType, renderControl_encoder_context_t *rcEnc) = 0;
     virtual ~ProcessPipe() {}
 };
 

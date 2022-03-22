@@ -42,6 +42,7 @@ static QEMU_PIPE_HANDLE   sProcDevice = 0;
 
 #include "VirtioGpuPipeStream.h"
 static VirtioGpuPipeStream* sVirtioGpuPipeStream = 0;
+static int sStreamHandle = -1;
 
 #endif // !__Fuchsia__
 
@@ -193,7 +194,7 @@ static void processPipeInitOnce() {
             break;
         case HOST_CONNECTION_VIRTIO_GPU_PIPE:
         case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
-            sVirtioGpuPipeStream = new VirtioGpuPipeStream(4096);
+            sVirtioGpuPipeStream = new VirtioGpuPipeStream(4096, sStreamHandle);
             sProcUID = sVirtioGpuPipeStream->initProcessPipe();
             break;
         }
@@ -202,8 +203,9 @@ static void processPipeInitOnce() {
 }
 #endif // !__Fuchsia__
 
-bool processPipeInit(HostConnectionType connType, renderControl_encoder_context_t *rcEnc) {
+bool processPipeInit(int streamHandle, HostConnectionType connType, renderControl_encoder_context_t *rcEnc) {
     sConnType = connType;
+    sStreamHandle = streamHandle;
     pthread_once(&sProcPipeOnce, processPipeInitOnce);
     bool pipeHandleInvalid = !sProcPipe;
 #ifndef __Fuchsia__
