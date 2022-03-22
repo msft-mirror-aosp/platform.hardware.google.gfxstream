@@ -378,9 +378,9 @@ private:
 class GoldfishProcessPipe : public ProcessPipe
 {
 public:
-    bool processPipeInit(HostConnectionType connType, renderControl_encoder_context_t *rcEnc)
+    bool processPipeInit(int stream_handle, HostConnectionType connType, renderControl_encoder_context_t *rcEnc)
     {
-        return ::processPipeInit(connType, rcEnc);
+        return ::processPipeInit(stream_handle, connType, rcEnc);
     }
     
 };
@@ -705,7 +705,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetHWCMultiConfigs(rcEnc);
         queryVersion(rcEnc);
         if (m_processPipe) {
-            m_processPipe->processPipeInit(m_connectionType, rcEnc);
+            m_processPipe->processPipeInit(m_rendernodeFd, m_connectionType, rcEnc);
         }
     }
     return m_rcEnc.get();
