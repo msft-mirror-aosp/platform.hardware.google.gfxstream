@@ -21,6 +21,7 @@
 #include "DisplayFinder.h"
 #include "GuestComposer.h"
 #include "HostComposer.h"
+#include "NoOpComposer.h"
 
 namespace android {
 namespace {
@@ -73,18 +74,24 @@ Device::Device() {
 HWC2::Error Device::init() {
   DEBUG_LOG("%s", __FUNCTION__);
   bool isMinigbm = isMinigbmFromProperty();
-  if (ShouldUseGuestComposer()) {
+
+  if (IsNoOpMode()) {
+    DEBUG_LOG("%s: using NoOpComposer", __FUNCTION__);
+    mComposer = std::make_unique<NoOpComposer>();
+  } else if (ShouldUseGuestComposer()) {
+    DEBUG_LOG("%s: using GuestComposer", __FUNCTION__);
     mComposer = std::make_unique<GuestComposer>(mDrmPresenter.get());
   } else {
+    DEBUG_LOG("%s: using HostComposer", __FUNCTION__);
     mComposer = std::make_unique<HostComposer>(mDrmPresenter.get(), isMinigbm);
   }
 
-  if (ShouldUseGuestComposer() || isMinigbm) {
-      bool success = mDrmPresenter->init(
+  if (!IsNoOpMode() && (ShouldUseGuestComposer() || isMinigbm)) {
+    bool success = mDrmPresenter->init(
         [this](bool connected, uint32_t id, uint32_t width, uint32_t height,
-           uint32_t dpiX, uint32_t dpiY, uint32_t refreshRate) {
-      handleHotplug(connected, id, width, height, dpiX, dpiY, refreshRate);
-    });
+               uint32_t dpiX, uint32_t dpiY, uint32_t refreshRate) {
+          handleHotplug(connected, id, width, height, dpiX, dpiY, refreshRate);
+        });
 
     if (!success) {
       ALOGE("%s: failed to initialize DrmPresenter", __FUNCTION__);

@@ -22,7 +22,6 @@
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 
-#include <android-base/unique_fd.h>
 #include <map>
 #include <memory>
 #include <tuple>
@@ -40,8 +39,7 @@ class DrmPresenter;
 // A RAII object that will clear a drm framebuffer upon destruction.
 class DrmBuffer {
  public:
-  DrmBuffer(const native_handle_t* handle,
-            DrmPresenter* drmPresenter);
+  DrmBuffer(const native_handle_t* handle, DrmPresenter* drmPresenter);
   ~DrmBuffer();
 
   DrmBuffer(const DrmBuffer&) = delete;
@@ -79,11 +77,11 @@ class DrmPresenter {
   bool init(const HotplugCallback& cb);
 
   uint32_t refreshRate(uint32_t display) const {
-      if (display < mConnectors.size()) {
-          return mConnectors[display].mRefreshRateAsInteger;
-      }
+    if (display < mConnectors.size()) {
+      return mConnectors[display].mRefreshRateAsInteger;
+    }
 
-      return -1;
+    return -1;
   }
 
   std::tuple<HWC2::Error, base::unique_fd> flushToDisplay(

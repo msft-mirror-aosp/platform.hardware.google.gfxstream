@@ -18,6 +18,7 @@
 #define ANDROID_HWC_COMPOSER_H
 
 #include <android-base/unique_fd.h>
+
 #include <functional>
 #include <tuple>
 #include <unordered_map>
