@@ -44,6 +44,7 @@ namespace aidl::android::hardware::graphics::composer3::impl {
 
 bool IsCuttlefish();
 bool IsCuttlefishFoldable();
+bool IsNoOpMode();
 
 namespace HWC3 {
 enum class Error : int32_t {

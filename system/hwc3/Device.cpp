@@ -23,6 +23,7 @@
 #include "FrameComposer.h"
 #include "GuestFrameComposer.h"
 #include "HostFrameComposer.h"
+#include "NoOpFrameComposer.h"
 
 ANDROID_SINGLETON_STATIC_INSTANCE(
     aidl::android::hardware::graphics::composer3::impl::Device);
@@ -92,9 +93,14 @@ HWC3::Error Device::getComposer(FrameComposer** outComposer) {
   std::unique_lock<std::mutex> lock(mMutex);
 
   if (mComposer == nullptr) {
-    if (shouldUseGuestComposer()) {
+    if (IsNoOpMode()) {
+      DEBUG_LOG("%s: using NoOpFrameComposer", __FUNCTION__);
+      mComposer = std::make_unique<NoOpFrameComposer>();
+    } else if (shouldUseGuestComposer()) {
+      DEBUG_LOG("%s: using GuestFrameComposer", __FUNCTION__);
       mComposer = std::make_unique<GuestFrameComposer>();
     } else {
+      DEBUG_LOG("%s: using HostFrameComposer", __FUNCTION__);
       mComposer = std::make_unique<HostFrameComposer>();
     }
     if (!mComposer) {

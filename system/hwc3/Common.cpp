@@ -30,6 +30,11 @@ bool IsCuttlefishFoldable() {
              std::string::npos;
 }
 
+bool IsNoOpMode() {
+  return ::android::base::GetProperty("ro.vendor.hwcomposer.mode", "") ==
+         "noop";
+}
+
 std::string toString(HWC3::Error error) {
   switch (error) {
     case HWC3::Error::None:

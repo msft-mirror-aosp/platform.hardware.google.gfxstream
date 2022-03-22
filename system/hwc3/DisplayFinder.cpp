@@ -195,11 +195,31 @@ HWC3::Error findGoldfishDisplays(std::vector<DisplayMultiConfigs>& displays) {
   return error;
 }
 
+// This is currently only used for Gem5 bring-up where virtio-gpu and drm
+// are not currently available. For now, just return a placeholder display.
+HWC3::Error findNoOpDisplays(std::vector<DisplayMultiConfigs>& displays) {
+  displays.push_back(DisplayMultiConfigs{
+      .displayId = 0,
+      .activeConfigId = 0,
+      .configs = {DisplayConfig(0,
+                                /*width=*/720,                          //
+                                /*heighth=*/1280,                       //
+                                /*dpiXh=*/320,                          //
+                                /*dpiYh=*/320,                          //
+                                /*vsyncPeriod=*/HertzToPeriodNanos(30)  //
+                                )},
+  });
+
+  return HWC3::Error::None;
+}
+
 }  // namespace
 
 HWC3::Error findDisplays(std::vector<DisplayMultiConfigs>& displays) {
   HWC3::Error error = HWC3::Error::None;
-  if (IsCuttlefish()) {
+  if (IsNoOpMode()) {
+    error = findNoOpDisplays(displays);
+  } else if (IsCuttlefish()) {
     error = findCuttlefishDisplays(displays);
   } else {
     error = findGoldfishDisplays(displays);

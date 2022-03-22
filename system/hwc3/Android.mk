@@ -90,6 +90,7 @@ LOCAL_SRC_FILES := \
     HostUtils.cpp \
     Layer.cpp \
     Main.cpp \
+    NoOpFrameComposer.cpp \
     VsyncThread.cpp \
 
 LOCAL_VINTF_FRAGMENTS := hwc3.xml
