@@ -59,7 +59,7 @@ union process_pipe_info {
       } id;
 };
 
-bool VirtioGpuProcessPipe::processPipeInit(HostConnectionType, renderControl_encoder_context_t *rcEnc)
+bool VirtioGpuProcessPipe::processPipeInit(int stream_handle, HostConnectionType, renderControl_encoder_context_t *rcEnc)
 {
   union process_pipe_info info;
 
