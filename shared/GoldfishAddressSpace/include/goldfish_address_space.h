@@ -185,7 +185,6 @@ struct address_space_virtgpu_info {
     void* resp_mapped_ptr;
 };
 
-address_space_handle_t open_virtgpu(uint32_t capset_id);
 address_space_handle_t virtgpu_address_space_open();
 void virtgpu_address_space_close(address_space_handle_t);
 
