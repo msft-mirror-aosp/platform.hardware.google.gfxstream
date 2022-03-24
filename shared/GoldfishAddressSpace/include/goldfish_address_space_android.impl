@@ -549,43 +549,6 @@ bool goldfish_address_space_ping(
 
 #define CAPSET_GFXSTREAM 3
 
-// This is a no-op because virtgpu doesn't really use the GoldfishAddressSpaceBlockProvider
-address_space_handle_t open_virtgpu(uint32_t capset_id) {
-    int fd = drmOpenRender(128);
-    if (fd < 0) {
-        ALOGE("Failed to open rendernode: %s", strerror(errno));
-        return fd;
-    }
-
-    // Don't use capset id yet.  Not clear if we want just:
-    //   - one gfxstream capset
-    //   - a ranchu capset, a vulkan capset, or GLES capset
-    if (capset_id) {
-        int ret;
-        struct drm_virtgpu_context_init init = {0};
-        struct drm_virtgpu_context_set_param ctx_set_params[2] = {{0}};
-
-        ctx_set_params[0].param = VIRTGPU_CONTEXT_PARAM_NUM_RINGS;
-        ctx_set_params[0].value = 1;
-        init.num_params = 1;
-
-        // TODO(b/218538495): A KI in the 5.4 kernel will sometimes result in capsets not
-        // being properly queried.
-#if defined(__linux__) && !defined(__ANDROID__)
-        ctx_set_params[1].param = VIRTGPU_CONTEXT_PARAM_CAPSET_ID;
-        ctx_set_params[1].value = capset_id;
-        init.num_params++;
-#endif
-
-        init.ctx_set_params = (unsigned long long)&ctx_set_params[0];
-        ret = drmIoctl(fd, DRM_IOCTL_VIRTGPU_CONTEXT_INIT, &init);
-        if (ret) {
-            ALOGE("DRM_IOCTL_VIRTGPU_CONTEXT_INIT failed with %s, continuing without context...", strerror(errno));
-        }
-    }
-
-    return fd;
-}
 
 address_space_handle_t virtgpu_address_space_open() {
     return -EINVAL;
