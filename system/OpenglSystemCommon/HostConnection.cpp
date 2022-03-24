@@ -422,7 +422,7 @@ HostConnection::~HostConnection()
 }
 
 #if defined(VIRTIO_GPU) && !defined(HOST_BUILD)
-int open_virtgpu(uint32_t capset_id) {
+int virtgpuOpen(uint32_t capset_id) {
     int fd = drmOpenRender(128);
     if (fd < 0) {
         ALOGE("Failed to open rendernode: %s", strerror(errno));
@@ -454,16 +454,6 @@ int open_virtgpu(uint32_t capset_id) {
     }
 
     return fd;
-}
-
-int virtgpuOpen(uint32_t capset_id) {
-   int ret;
-   uint8_t retryCount = 64;
-   do {
-       ret = open_virtgpu(capset_id);
-   } while(ret < 0 && retryCount-- > 0 && errno == EINTR);
-
-   return ret;
 }
 #endif
 
