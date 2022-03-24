@@ -48,9 +48,11 @@
 #include <GLES3/gl31.h>
 
 #ifdef VIRTIO_GPU
-#include <drm/virtgpu_drm.h>
 #include <xf86drm.h>
 #include <poll.h>
+
+#include "virtgpu_drm.h"
+
 #endif // VIRTIO_GPU
 
 #ifdef GFXSTREAM
