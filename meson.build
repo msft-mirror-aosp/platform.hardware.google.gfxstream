@@ -51,6 +51,7 @@ thread_dep = dependency('threads')
 
 inc_android_emu = include_directories('android-emu')
 inc_host = include_directories('host/include/libOpenglRender')
+inc_system = include_directories('system/include')
 
 #================#
 # Subdirectories #

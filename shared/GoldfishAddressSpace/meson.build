@@ -12,6 +12,7 @@ lib_goldfish_address_space = static_library(
    files_lib_goldfish_address_space,
    cpp_args: cpp_args,
    include_directories: [inc_android_compat,
-                         inc_goldfish_address_space],
+                         inc_goldfish_address_space,
+                         inc_system],
    dependencies: drm_dep
 )
