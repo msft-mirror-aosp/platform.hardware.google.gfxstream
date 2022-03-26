@@ -124,10 +124,8 @@ void FreeDisplayColorBuffer(const native_handle_t* h) {
 
 }  // namespace
 
-HostComposer::HostComposer(DrmPresenter* drmPresenter,
-                           bool isMinigbm) :
-        mDrmPresenter(drmPresenter),
-        mIsMinigbm(isMinigbm) {}
+HostComposer::HostComposer(DrmPresenter* drmPresenter, bool isMinigbm)
+    : mDrmPresenter(drmPresenter), mIsMinigbm(isMinigbm) {}
 
 HWC2::Error HostComposer::init() {
   if (!mIsMinigbm) {
