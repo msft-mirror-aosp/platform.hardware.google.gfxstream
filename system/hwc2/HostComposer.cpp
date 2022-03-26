@@ -28,6 +28,8 @@
 #include <ui/GraphicBufferAllocator.h>
 #include <ui/GraphicBufferMapper.h>
 
+#include <algorithm>
+#include <iterator>
 #include <optional>
 #include <tuple>
 
@@ -102,30 +104,134 @@ class ComposeMsg_v2 {
   ComposeDevice_v2* mComposeDevice;
 };
 
-const native_handle_t* AllocateDisplayColorBuffer(int width, int height) {
+}  // namespace
+
+std::unique_ptr<HostComposer::CompositionResultBuffer>
+HostComposer::CompositionResultBuffer::create(int32_t width, int32_t height) {
   const uint32_t layerCount = 1;
   const uint64_t graphicBufferId = 0;  // not used
-  buffer_handle_t h;
+  buffer_handle_t handle;
   uint32_t stride;
 
   if (GraphicBufferAllocator::get().allocate(
           width, height, PIXEL_FORMAT_RGBA_8888, layerCount,
           (GraphicBuffer::USAGE_HW_COMPOSER | GraphicBuffer::USAGE_HW_RENDER),
-          &h, &stride, graphicBufferId, "EmuHWC2") == OK) {
-    return static_cast<const native_handle_t*>(h);
-  } else {
+          &handle, &stride, graphicBufferId, "EmuHWC2") != OK) {
     return nullptr;
+  }
+
+  std::unique_ptr<FencedBuffer> fencedBuffer = std::make_unique<FencedBuffer>();
+  fencedBuffer->setBuffer(handle);
+  std::unique_ptr<CompositionResultBuffer> res(new CompositionResultBuffer());
+  res->mFencedBuffer = std::move(fencedBuffer);
+  return res;
+}
+
+std::unique_ptr<HostComposer::CompositionResultBuffer>
+HostComposer::CompositionResultBuffer::createWithDrmBuffer(
+    int32_t width, int32_t height, DrmPresenter& drmPresenter) {
+  std::unique_ptr<CompositionResultBuffer> res = create(width, height);
+  if (!res) {
+    return nullptr;
+  }
+  res->mDrmBuffer = std::make_unique<DrmBuffer>(res->mFencedBuffer->getBuffer(),
+                                                &drmPresenter);
+  return res;
+}
+
+HostComposer::CompositionResultBuffer::~CompositionResultBuffer() {
+  mDrmBuffer = nullptr;
+  waitForFence();
+  buffer_handle_t handle = mFencedBuffer->getBuffer();
+  mFencedBuffer = nullptr;
+  GraphicBufferAllocator::get().free(handle);
+}
+
+DrmBuffer& HostComposer::CompositionResultBuffer::waitAndGetDrmBuffer() {
+  waitForFence();
+  return *mDrmBuffer;
+}
+
+buffer_handle_t
+HostComposer::CompositionResultBuffer::waitAndGetBufferHandle() {
+  waitForFence();
+  return mFencedBuffer->getBuffer();
+}
+
+bool HostComposer::CompositionResultBuffer::isReady() const {
+  base::unique_fd fence = mFencedBuffer->getFence();
+  if (!fence.ok()) {
+    return true;
+  }
+  if (sync_wait(fence, 0) == 0) {
+    return true;
+  }
+  if (errno != ETIME) {
+    ALOGE("%s: fail when calling sync_wait: %s(%d).", __func__, strerror(errno),
+          errno);
+  }
+  return false;
+}
+
+void HostComposer::CompositionResultBuffer::setFence(base::unique_fd fence) {
+  mFencedBuffer->setFence(std::move(fence));
+}
+
+void HostComposer::CompositionResultBuffer::waitForFence() {
+  base::unique_fd fence = mFencedBuffer->getFence();
+  if (!fence.ok()) {
+    return;
+  }
+  constexpr int kWaitInterval = 3000;
+  while (true) {
+    int ret = sync_wait(fence, kWaitInterval);
+    if (ret == 0) {
+      return;
+    }
+    if (errno == ETIME) {
+      ALOGI(
+          "%s: timeout when calling sync_wait with fence = %d, timeout = %d, "
+          "retry.",
+          __func__, static_cast<int>(fence), kWaitInterval);
+      continue;
+    }
+    ALOGE(
+        "%s: error when calling sync_wait with fence = %d, timeout = %d: "
+        "%s(%d). Quit.",
+        __func__, static_cast<int>(fence), kWaitInterval, strerror(errno),
+        errno);
+    return;
   }
 }
 
-void FreeDisplayColorBuffer(const native_handle_t* h) {
-  GraphicBufferAllocator::get().free(h);
+void HostComposer::HostComposerDisplayInfo::resetCompositionResultBuffers(
+    std::vector<std::unique_ptr<CompositionResultBuffer>>
+        newCompositionResultBuffers) {
+  compositionResultBuffers = std::move(newCompositionResultBuffers);
 }
 
-}  // namespace
+HostComposer::CompositionResultBuffer&
+HostComposer::HostComposerDisplayInfo::getNextCompositionResultBuffer() {
+  auto i = compositionResultBuffers.begin();
+  // Find the buffer that is already ready for the next composition.
+  for (; i != compositionResultBuffers.end(); i++) {
+    if ((*i)->isReady()) {
+      break;
+    }
+  }
+  // If no buffers are ready, choose the first buffer which should be the
+  // earliest buffer sent for composition.
+  if (i == compositionResultBuffers.end()) {
+    i = compositionResultBuffers.begin();
+  }
+  // Move the selected buffer to the end of compositionResultBuffers without
+  // changing the existing order of other buffers.
+  std::rotate(i, std::next(i), compositionResultBuffers.end());
+  return *compositionResultBuffers.back();
+}
 
 HostComposer::HostComposer(DrmPresenter* drmPresenter, bool isMinigbm)
-    : mDrmPresenter(drmPresenter), mIsMinigbm(isMinigbm) {}
+    : mIsMinigbm(isMinigbm), mDrmPresenter(drmPresenter) {}
 
 HWC2::Error HostComposer::init() {
   if (!mIsMinigbm) {
@@ -171,21 +277,27 @@ HWC2::Error HostComposer::createHostComposerDisplayInfo(
 
   displayInfo.hostDisplayId = hostDisplayId;
 
-  if (displayInfo.compositionResultBuffer) {
-    FreeDisplayColorBuffer(displayInfo.compositionResultBuffer);
+  std::vector<std::unique_ptr<CompositionResultBuffer>>
+      compositionResultBuffers;
+  constexpr uint32_t kCompositionInFlight = 3;
+  for (uint32_t i = 0; i < kCompositionInFlight; i++) {
+    std::unique_ptr<CompositionResultBuffer> buffer = nullptr;
+    if (mIsMinigbm) {
+      buffer = CompositionResultBuffer::createWithDrmBuffer(
+          displayWidth, displayHeight, *mDrmPresenter);
+    } else {
+      buffer = CompositionResultBuffer::create(displayWidth, displayHeight);
+    }
+    if (!buffer) {
+      ALOGE("%s: display:%" PRIu64
+            " failed to create composition target buffer",
+            __FUNCTION__, displayId);
+      return HWC2::Error::NoResources;
+    }
+    compositionResultBuffers.emplace_back(std::move(buffer));
   }
-  displayInfo.compositionResultBuffer =
-      AllocateDisplayColorBuffer(displayWidth, displayHeight);
-  if (displayInfo.compositionResultBuffer == nullptr) {
-    ALOGE("%s: display:%" PRIu64 " failed to create target buffer",
-          __FUNCTION__, displayId);
-    return HWC2::Error::NoResources;
-  }
-
-  if (mIsMinigbm) {
-    displayInfo.compositionResultDrmBuffer.reset(
-        new DrmBuffer(displayInfo.compositionResultBuffer, mDrmPresenter));
-  }
+  displayInfo.resetCompositionResultBuffers(
+      std::move(compositionResultBuffers));
 
   return HWC2::Error::None;
 }
@@ -308,8 +420,6 @@ HWC2::Error HostComposer::onDisplayDestroy(Display* display) {
     rcEnc->rcDestroyDisplay(rcEnc, displayInfo.hostDisplayId);
     hostCon->unlock();
   }
-
-  FreeDisplayColorBuffer(displayInfo.compositionResultBuffer);
 
   mDisplayInfos.erase(it);
 
@@ -552,16 +662,19 @@ std::tuple<HWC2::Error, base::unique_fd> HostComposer::presentDisplay(
           layer->getZ(), l->composeMode, l->transform);
       l++;
     }
+
+    auto& compositionResultBuffer =
+        displayInfo.getNextCompositionResultBuffer();
     if (hostCompositionV1) {
       p->version = 1;
       p->targetHandle = hostCon->grallocHelper()->getHostHandle(
-          displayInfo.compositionResultBuffer);
+          compositionResultBuffer.waitAndGetBufferHandle());
       p->numLayers = numLayer;
     } else {
       p2->version = 2;
       p2->displayId = displayInfo.hostDisplayId;
       p2->targetHandle = hostCon->grallocHelper()->getHostHandle(
-          displayInfo.compositionResultBuffer);
+          compositionResultBuffer.waitAndGetBufferHandle());
       p2->numLayers = numLayer;
     }
 
@@ -612,8 +725,9 @@ std::tuple<HWC2::Error, base::unique_fd> HostComposer::presentDisplay(
     }
 
     if (mIsMinigbm) {
-      auto [_, fence] = displayInfo.compositionResultDrmBuffer->flushToDisplay(
-          display->getId(), -1);
+      auto [_, fence] =
+          compositionResultBuffer.waitAndGetDrmBuffer().flushToDisplay(
+              display->getId(), -1);
       retire_fd = std::move(fence);
     } else {
       int fd;
@@ -636,7 +750,7 @@ std::tuple<HWC2::Error, base::unique_fd> HostComposer::presentDisplay(
       }
       hostCon->unlock();
     }
-
+    compositionResultBuffer.setFence(base::unique_fd(dup(retire_fd.get())));
   } else {
     // we set all layers Composition::Client, so do nothing.
     FencedBuffer& displayClientTarget = display->getClientTarget();
