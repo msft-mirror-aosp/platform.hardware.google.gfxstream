@@ -18,6 +18,7 @@
 #define ANDROID_HWC_HOSTCOMPOSER_H
 
 #include <android-base/unique_fd.h>
+
 #include <tuple>
 
 #include "Common.h"
