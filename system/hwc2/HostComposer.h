@@ -20,10 +20,12 @@
 #include <android-base/unique_fd.h>
 
 #include <tuple>
+#include <vector>
 
 #include "Common.h"
 #include "Composer.h"
 #include "DrmPresenter.h"
+#include "FencedBuffer.h"
 #include "HostConnection.h"
 
 namespace android {
@@ -70,17 +72,43 @@ class HostComposer : public Composer {
 
   int mSyncDeviceFd = -1;
 
-  struct HostComposerDisplayInfo {
-    uint32_t hostDisplayId = 0;
+  class CompositionResultBuffer {
+   public:
+    static std::unique_ptr<CompositionResultBuffer> create(int32_t width,
+                                                           int32_t height);
+    static std::unique_ptr<CompositionResultBuffer> createWithDrmBuffer(
+        int32_t width, int32_t height, DrmPresenter&);
+    ~CompositionResultBuffer();
 
-    // Additional per display buffer for the composition result.
-    const native_handle_t* compositionResultBuffer = nullptr;
+    DrmBuffer& waitAndGetDrmBuffer();
+    buffer_handle_t waitAndGetBufferHandle();
+    bool isReady() const;
+    void setFence(base::unique_fd fence);
 
+   private:
+    CompositionResultBuffer() = default;
+
+    void waitForFence();
+
+    std::unique_ptr<FencedBuffer> mFencedBuffer;
     // Drm info for the additional composition result buffer.
-    std::unique_ptr<DrmBuffer> compositionResultDrmBuffer;
+    std::unique_ptr<DrmBuffer> mDrmBuffer;
+  };
+  class HostComposerDisplayInfo {
+   public:
+    HostComposerDisplayInfo() = default;
+    void resetCompositionResultBuffers(
+        std::vector<std::unique_ptr<CompositionResultBuffer>>);
+    CompositionResultBuffer& getNextCompositionResultBuffer();
 
+    uint32_t hostDisplayId = 0;
     // Drm info for the displays client target buffer.
     std::unique_ptr<DrmBuffer> clientTargetDrmBuffer;
+
+   private:
+    // Additional per display buffer for the composition result.
+    std::vector<std::unique_ptr<CompositionResultBuffer>>
+        compositionResultBuffers;
   };
 
   std::unordered_map<hwc2_display_t, HostComposerDisplayInfo> mDisplayInfos;
