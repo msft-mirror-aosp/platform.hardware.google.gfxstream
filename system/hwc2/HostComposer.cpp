@@ -231,7 +231,7 @@ HostComposer::HostComposerDisplayInfo::getNextCompositionResultBuffer() {
 }
 
 HostComposer::HostComposer(DrmPresenter* drmPresenter, bool isMinigbm)
-    : mIsMinigbm(isMinigbm), mDrmPresenter(drmPresenter) {}
+    : mDrmPresenter(drmPresenter), mIsMinigbm(isMinigbm) {}
 
 HWC2::Error HostComposer::init() {
   if (!mIsMinigbm) {
