@@ -44,5 +44,6 @@
 
 bool IsCuttlefish();
 bool IsCuttlefishFoldable();
+bool IsNoOpMode();
 
 #endif
