@@ -530,8 +530,7 @@ std::optional<std::vector<uint8_t>> DrmPresenter::getEdid(uint32_t id) {
   return edid;
 }
 
-DrmBuffer::DrmBuffer(const native_handle_t* handle,
-                     DrmPresenter* drmPresenter)
+DrmBuffer::DrmBuffer(const native_handle_t* handle, DrmPresenter* drmPresenter)
     : mDrmPresenter(drmPresenter), mBo({}) {
   if (!convertBoInfo(handle)) {
     mDrmPresenter->getDrmFB(mBo);
