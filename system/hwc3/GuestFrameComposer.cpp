@@ -85,8 +85,8 @@ ConverterFunction GetConverterForDrmFormat(uint32_t drmFormat) {
     case DRM_FORMAT_YVU420:
       return &ConvertFromYV12;
   }
-  ALOGW("Unsupported drm format: %d(%s), returning null converter", drmFormat,
-        GetDrmFormatString(drmFormat));
+  DEBUG_LOG("Unsupported drm format: %d(%s), returning null converter",
+            drmFormat, GetDrmFormatString(drmFormat));
   return nullptr;
 }
 
@@ -632,10 +632,10 @@ HWC3::Error GuestFrameComposer::validateDisplay(Display* display,
         layerCompositionType == Composition::CURSOR ||
         layerCompositionType == Composition::SIDEBAND ||
         layerCompositionType == Composition::SOLID_COLOR) {
-      ALOGW("%s: display:%" PRIu64 " layer:%" PRIu64
-            " has composition type %s, falling back to client composition",
-            __FUNCTION__, displayId, layerId,
-            layerCompositionTypeString.c_str());
+      DEBUG_LOG("%s: display:%" PRIu64 " layer:%" PRIu64
+                " has composition type %s, falling back to client composition",
+                __FUNCTION__, displayId, layerId,
+                layerCompositionTypeString.c_str());
       fallbackToClientComposition = true;
       break;
     }
@@ -645,9 +645,10 @@ HWC3::Error GuestFrameComposer::validateDisplay(Display* display,
     }
 
     if (!canComposeLayer(layer)) {
-      ALOGW("%s: display:%" PRIu64 " layer:%" PRIu64
-            " composition not supported, falling back to client composition",
-            __FUNCTION__, displayId, layerId);
+      DEBUG_LOG(
+          "%s: display:%" PRIu64 " layer:%" PRIu64
+          " composition not supported, falling back to client composition",
+          __FUNCTION__, displayId, layerId);
       fallbackToClientComposition = true;
       break;
     }
