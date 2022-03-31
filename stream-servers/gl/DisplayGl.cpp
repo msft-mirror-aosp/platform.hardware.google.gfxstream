@@ -60,8 +60,7 @@ std::shared_future<void> DisplayGl::post(const Post& post) {
             if (hasDrawLayer) {
                 ERR("Cannot mix colorBuffer.postLayer with postWithOverlay!");
             }
-            layer.colorBuffer->postWithOverlay(layer.colorBuffer->getViewportScaledTexture(),
-                                               layer.overlayOptions->rotation,
+            layer.colorBuffer->postWithOverlay(layer.overlayOptions->rotation,
                                                layer.overlayOptions->dx,
                                                layer.overlayOptions->dy);
         }
