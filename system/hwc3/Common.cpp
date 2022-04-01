@@ -31,8 +31,15 @@ bool IsCuttlefishFoldable() {
 }
 
 bool IsNoOpMode() {
-  return ::android::base::GetProperty("ro.vendor.hwcomposer.mode", "") ==
-         "noop";
+  const std::string mode = ::android::base::GetProperty("ro.vendor.hwcomposer.mode", "");
+  DEBUG_LOG("%s: sysprop ro.vendor.hwcomposer.mode is %s", __FUNCTION__, mode.c_str());
+  return mode == "noop";
+}
+
+bool IsClientCompositionMode() {
+  const std::string mode = ::android::base::GetProperty("ro.vendor.hwcomposer.mode", "");
+  DEBUG_LOG("%s: sysprop ro.vendor.hwcomposer.mode is %s", __FUNCTION__, mode.c_str());
+  return mode == "client";
 }
 
 std::string toString(HWC3::Error error) {
