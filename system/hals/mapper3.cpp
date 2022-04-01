@@ -634,7 +634,7 @@ private:  // **** impl ****
 
         default:
             if (static_cast<int>(descriptor.format) == kOMX_COLOR_FormatYUV420Planar) {
-                return (usage & BufferUsage::GPU_DATA_BUFFER) != 0;
+                return (usage & BufferUsage::VIDEO_DECODER) != 0;
             }
 
             RETURN(false);
