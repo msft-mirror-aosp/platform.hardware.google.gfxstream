@@ -74,6 +74,7 @@ LOCAL_C_INCLUDES := \
     system/core/libsync/include \
 
 LOCAL_SRC_FILES := \
+    ClientFrameComposer.cpp \
     Common.cpp \
     Composer.cpp \
     ComposerClient.cpp \
