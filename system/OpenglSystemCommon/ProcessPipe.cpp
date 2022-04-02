@@ -205,7 +205,9 @@ static void processPipeInitOnce() {
 
 bool processPipeInit(int streamHandle, HostConnectionType connType, renderControl_encoder_context_t *rcEnc) {
     sConnType = connType;
+#ifndef __Fuchsia__
     sStreamHandle = streamHandle;
+#endif // !__Fuchsia
     pthread_once(&sProcPipeOnce, processPipeInitOnce);
     bool pipeHandleInvalid = !sProcPipe;
 #ifndef __Fuchsia__
