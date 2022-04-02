@@ -2580,18 +2580,20 @@ public:
         }
 
         // Get row alignment from host GPU.
-        VkDeviceSize offset;
-        VkDeviceSize rowPitchAlignment;
+        VkDeviceSize offset = 0;
+        VkDeviceSize rowPitchAlignment = 1u;
 
-        VkImageCreateInfo createInfoDup = *createInfo;
-        createInfoDup.pNext = nullptr;
-        enc->vkGetLinearImageLayout2GOOGLE(device, &createInfoDup, &offset,
-                                           &rowPitchAlignment,
-                                           true /* do lock */);
-        ALOGD(
-            "vkGetLinearImageLayout2GOOGLE: format %d offset %lu "
-            "rowPitchAlignment = %lu",
-            (int)createInfo->format, offset, rowPitchAlignment);
+        if (tiling == VK_IMAGE_TILING_LINEAR) {
+            VkImageCreateInfo createInfoDup = *createInfo;
+            createInfoDup.pNext = nullptr;
+            enc->vkGetLinearImageLayout2GOOGLE(device, &createInfoDup, &offset,
+                                            &rowPitchAlignment,
+                                            true /* do lock */);
+            ALOGD(
+                "vkGetLinearImageLayout2GOOGLE: format %d offset %lu "
+                "rowPitchAlignment = %lu",
+                (int)createInfo->format, offset, rowPitchAlignment);
+        }
 
         imageConstraints.min_coded_width = createInfo->extent.width;
         imageConstraints.max_coded_width = 0xfffffff;
