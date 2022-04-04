@@ -52,7 +52,7 @@ using ::android::hardware::graphics::common::V1_0::BufferUsage;
 using ::android::hardware::graphics::common::V1_2::PixelFormat;
 
 namespace android {
-constexpr size_t kMinInputBufferSize = 2 * 1024 * 1024;
+constexpr size_t kMinInputBufferSize = 6 * 1024 * 1024;
 #ifdef VP9
 constexpr char COMPONENT_NAME[] = "c2.goldfish.vp9.decoder";
 #else
