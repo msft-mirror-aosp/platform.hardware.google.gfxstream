@@ -1448,6 +1448,7 @@ GLenum GLClientState::bindTexture(GLenum target, GLuint texture,
     TextureRec* texrec = getTextureRec(texture);
     if (!texrec) {
         texrec = addTextureRec(texture, target);
+        first = GL_TRUE;
     }
 
     if (texture && target != texrec->target &&
