@@ -543,7 +543,7 @@ void GLSharedGroup::setProgramIndexInfo(
                 ShaderData::StringList::iterator nameEnd =
                     shader->samplerExternalNames.end();
                 while (nameIter != nameEnd) {
-                    if (*nameIter == name) {
+                    if (*nameIter == name || *nameIter + "[0]" == name) {
                         pData->setIndexFlags(
                             index,
                             ProgramData::INDEX_FLAG_SAMPLER_EXTERNAL);
