@@ -1368,6 +1368,7 @@ public:
             "VK_KHR_image_format_list",
             "VK_KHR_incremental_present",
             "VK_KHR_pipeline_executable_properties",
+            "VK_EXT_queue_family_foreign",
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
             "VK_KHR_external_semaphore",
             "VK_KHR_external_semaphore_fd",
