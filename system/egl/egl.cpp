@@ -2229,6 +2229,9 @@ EGLImageKHR eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EG
 #if PLATFORM_SDK_VERSION >= 28
             case HAL_PIXEL_FORMAT_YCBCR_420_888:
 #endif
+#if PLATFORM_SDK_VERSION >= 30
+            case HAL_PIXEL_FORMAT_YCBCR_P010:
+#endif
                 break;
             case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED:
                 ALOGW("%s:%d using HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED\n", __func__, __LINE__);
