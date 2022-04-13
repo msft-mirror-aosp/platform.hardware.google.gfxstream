@@ -82,6 +82,14 @@ public:
         VkInstance instance, uint32_t* pPhysicalDeviceCount,
         VkPhysicalDevice* pPhysicalDevices);
 
+    void on_vkGetPhysicalDeviceFeatures2(
+        void* context,
+        VkPhysicalDevice physicalDevice,
+        VkPhysicalDeviceFeatures2* pFeatures);
+    void on_vkGetPhysicalDeviceFeatures2KHR(
+        void* context,
+        VkPhysicalDevice physicalDevice,
+        VkPhysicalDeviceFeatures2* pFeatures);
     void on_vkGetPhysicalDeviceProperties(
         void* context,
         VkPhysicalDevice physicalDevice,
