@@ -11634,6 +11634,7 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2(
     {
         transform_fromhost_VkPhysicalDeviceFeatures2(sResourceTracker, (VkPhysicalDeviceFeatures2*)(pFeatures));
     }
+    sResourceTracker->on_vkGetPhysicalDeviceFeatures2(this, physicalDevice, pFeatures);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
@@ -17680,6 +17681,7 @@ void VkEncoder::vkGetPhysicalDeviceFeatures2KHR(
     {
         transform_fromhost_VkPhysicalDeviceFeatures2(sResourceTracker, (VkPhysicalDeviceFeatures2*)(pFeatures));
     }
+    sResourceTracker->on_vkGetPhysicalDeviceFeatures2KHR(this, physicalDevice, pFeatures);
     ++encodeCount;;
     if (0 == encodeCount % POOL_CLEAR_INTERVAL)
     {
