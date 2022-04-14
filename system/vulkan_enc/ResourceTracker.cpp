@@ -1642,6 +1642,19 @@ public:
         }
     }
 
+    void on_vkGetPhysicalDeviceFeatures2(
+        void*,
+        VkPhysicalDevice,
+        VkPhysicalDeviceFeatures2* pFeatures) {
+        if (pFeatures) {
+            VkPhysicalDeviceDeviceMemoryReportFeaturesEXT* memoryReportFeaturesEXT =
+                vk_find_struct<VkPhysicalDeviceDeviceMemoryReportFeaturesEXT>(pFeatures);
+            if (memoryReportFeaturesEXT) {
+                memoryReportFeaturesEXT->deviceMemoryReport = VK_TRUE;
+            }
+        }
+    }
+
     void on_vkGetPhysicalDeviceProperties2(
         void*,
         VkPhysicalDevice,
@@ -8116,6 +8129,22 @@ void ResourceTracker::on_vkGetPhysicalDeviceProperties(
     VkPhysicalDeviceProperties* pProperties) {
     mImpl->on_vkGetPhysicalDeviceProperties(context, physicalDevice,
         pProperties);
+}
+
+void ResourceTracker::on_vkGetPhysicalDeviceFeatures2(
+    void* context,
+    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceFeatures2* pFeatures) {
+    mImpl->on_vkGetPhysicalDeviceFeatures2(context, physicalDevice,
+        pFeatures);
+}
+
+void ResourceTracker::on_vkGetPhysicalDeviceFeatures2KHR(
+    void* context,
+    VkPhysicalDevice physicalDevice,
+    VkPhysicalDeviceFeatures2* pFeatures) {
+    mImpl->on_vkGetPhysicalDeviceFeatures2(context, physicalDevice,
+        pFeatures);
 }
 
 void ResourceTracker::on_vkGetPhysicalDeviceProperties2(
