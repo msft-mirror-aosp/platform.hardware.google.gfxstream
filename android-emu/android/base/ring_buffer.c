@@ -42,7 +42,7 @@
 
 #define RING_BUFFER_VERSION 1
 
-static inline void ring_buffer_pause() {
+static inline void ring_buffer_pause(void) {
 #if RING_BUFFER_X86
     _mm_pause();
 #else
