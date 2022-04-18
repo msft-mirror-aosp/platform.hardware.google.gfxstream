@@ -24,6 +24,7 @@ from cereal.wrapperdefs import VULKAN_STREAM_TYPE_GUEST
 
 # CerealGenerator - generates set of driver sources
 # while being agnostic to the stream implementation
+from reg import GroupInfo, TypeInfo, EnumInfo
 
 copyrightHeader = """// Copyright (C) 2018 The Android Open Source Project
 // Copyright (C) 2018 Google Inc.
@@ -598,8 +599,8 @@ class BumpPool;
 """ % namespaceEnd
 
     def addWrapper(self, moduleType, moduleName, **kwargs):
-        self.wrappers.append( \
-            moduleType( \
+        self.wrappers.append(
+            moduleType(
                 self.modules[moduleName],
                 self.typeInfo, **kwargs))
 
@@ -666,7 +667,7 @@ class BumpPool;
         self.forEachModule(lambda m: m.appendImpl("#endif\n"))
         self.forEachWrapper(lambda w: w.onEndFeature())
 
-    def genType(self, typeinfo, name, alias):
+    def genType(self, typeinfo: TypeInfo, name, alias):
         OutputGenerator.genType(self, typeinfo, name, alias)
         self.typeInfo.onGenType(typeinfo, name, alias)
         self.forEachWrapper(lambda w: w.onGenType(typeinfo, name, alias))
@@ -676,12 +677,12 @@ class BumpPool;
         self.typeInfo.onGenStruct(typeinfo, typeName, alias)
         self.forEachWrapper(lambda w: w.onGenStruct(typeinfo, typeName, alias))
 
-    def genGroup(self, groupinfo, groupName, alias = None):
+    def genGroup(self, groupinfo: GroupInfo, groupName, alias = None):
         OutputGenerator.genGroup(self, groupinfo, groupName, alias)
         self.typeInfo.onGenGroup(groupinfo, groupName, alias)
         self.forEachWrapper(lambda w: w.onGenGroup(groupinfo, groupName, alias))
 
-    def genEnum(self, enuminfo, name, alias):
+    def genEnum(self, enuminfo: EnumInfo, name, alias):
         OutputGenerator.genEnum(self, enuminfo, name, alias)
         self.typeInfo.onGenEnum(enuminfo, name, alias)
         self.forEachWrapper(lambda w: w.onGenEnum(enuminfo, name, alias))
