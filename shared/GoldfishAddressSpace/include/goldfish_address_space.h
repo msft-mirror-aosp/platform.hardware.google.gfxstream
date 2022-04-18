@@ -231,22 +231,6 @@ typedef bool (*address_space_set_subdevice_type_t)(
 typedef bool (*address_space_ping_t)(
     address_space_handle_t, struct address_space_ping*);
 
-// Specific to virtio-gpu
-typedef bool (*address_space_create_context_with_subdevice_t)(
-    address_space_handle_t,
-    uint32_t subdevice_type,
-    struct address_space_virtgpu_info* info_out);
-
-typedef bool (*address_space_allocate_hostmem_t)(
-    address_space_handle_t fd,
-    size_t size,
-    uint64_t hostmem_id,
-    struct address_space_virtgpu_hostmem_info* hostmem_info_out);
-
-typedef bool (*address_space_ping_with_response_t)(
-    struct address_space_virtgpu_info* info,
-    struct address_space_ping* ping);
-
 struct address_space_ops {
     address_space_open_t open;
     address_space_close_t close;
@@ -256,9 +240,6 @@ struct address_space_ops {
     address_space_unmap_t unmap;
     address_space_set_subdevice_type_t set_subdevice_type;
     address_space_ping_t ping;
-    address_space_create_context_with_subdevice_t create_context_with_subdevice;
-    address_space_allocate_hostmem_t allocate_hostmem;
-    address_space_ping_with_response_t ping_with_response;
 };
 
 #endif  // #ifndef ANDROID_INCLUDE_HARDWARE_GOLDFISH_ADDRESS_SPACE_H
