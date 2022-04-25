@@ -129,7 +129,6 @@ struct goldfish_VkCommandBuffer {
     struct goldfish_vk_object_list* superObjects;
     void* userPtr;
     bool isSecondary;
-    VkDevice device;
 };
 
 } // extern "C"
