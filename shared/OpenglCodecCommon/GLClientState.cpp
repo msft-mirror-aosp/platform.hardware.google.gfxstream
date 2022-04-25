@@ -2128,9 +2128,10 @@ void GLClientState::bindRenderbuffer(GLenum target, GLuint name) {
 
     (void)target; // Must be GL_RENDERBUFFER
     RenderbufferInfo::ScopedView view(mRboState.rboData);
-    if (name != mRboState.boundRenderbuffer) {
-        view.unref(mRboState.boundRenderbuffer);
+    if (name == mRboState.boundRenderbuffer) {
+        return;
     }
+    view.unref(mRboState.boundRenderbuffer);
 
     mRboState.boundRenderbuffer = name;
 
@@ -2496,6 +2497,7 @@ void GLClientState::addFramebuffers(GLsizei n, GLuint* framebuffers) {
 }
 
 void GLClientState::removeFramebuffers(GLsizei n, const GLuint* framebuffers) {
+    RenderbufferInfo::ScopedView view(mRboState.rboData);
     for (size_t i = 0; i < n; i++) {
         if (framebuffers[i] != 0) { // Never remove the zero fb.
             if (framebuffers[i] == mFboState.boundDrawFramebuffer) {
@@ -2503,6 +2505,22 @@ void GLClientState::removeFramebuffers(GLsizei n, const GLuint* framebuffers) {
             }
             if (framebuffers[i] == mFboState.boundReadFramebuffer) {
                 bindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+            }
+            // Remove references to all attachments
+            auto fboProps = mFboState.fboData.find(framebuffers[i]);
+            if (fboProps != mFboState.fboData.end()) {
+                for (size_t j = 0; j < fboProps->second.colorAttachmenti_hasRbo.size(); j++) {
+                    view.unref(fboProps->second.colorAttachmenti_rbos[j]);
+                }
+                if (fboProps->second.depthAttachment_hasRbo && fboProps->second.depthAttachment_rbo) {
+                    view.unref(fboProps->second.depthAttachment_rbo);
+                }
+                if (fboProps->second.stencilAttachment_hasRbo && fboProps->second.stencilAttachment_rbo) {
+                    view.unref(fboProps->second.stencilAttachment_rbo);
+                }
+                if (fboProps->second.depthstencilAttachment_hasRbo && fboProps->second.depthstencilAttachment_rbo) {
+                    view.unref(fboProps->second.depthstencilAttachment_rbo);
+                }
             }
             mFboState.fboData.erase(framebuffers[i]);
         }
@@ -2696,11 +2714,13 @@ void GLClientState::detachRboFromFbo(GLenum target, GLenum attachment, GLuint re
 
     boundFboProps(target).completenessDirty = true;
 
+    RenderbufferInfo::ScopedView view(mRboState.rboData);
     if (colorAttachmentIndex != -1) {
         if (boundFboProps(target).colorAttachmenti_hasRbo[colorAttachmentIndex] &&
             boundFboProps(target).colorAttachmenti_rbos[colorAttachmentIndex] == renderbuffer) {
             boundFboProps(target).colorAttachmenti_rbos[colorAttachmentIndex] = 0;
             boundFboProps(target).colorAttachmenti_hasRbo[colorAttachmentIndex] = false;
+            view.unref(renderbuffer);
         }
     }
 
@@ -2710,6 +2730,7 @@ void GLClientState::detachRboFromFbo(GLenum target, GLenum attachment, GLuint re
             boundFboProps(target).depthAttachment_hasRbo) {
             boundFboProps(target).depthAttachment_rbo = 0;
             boundFboProps(target).depthAttachment_hasRbo = false;
+            view.unref(renderbuffer);
         }
         break;
     case GL_STENCIL_ATTACHMENT:
@@ -2717,6 +2738,7 @@ void GLClientState::detachRboFromFbo(GLenum target, GLenum attachment, GLuint re
             boundFboProps(target).stencilAttachment_hasRbo) {
             boundFboProps(target).stencilAttachment_rbo = 0;
             boundFboProps(target).stencilAttachment_hasRbo = false;
+            view.unref(renderbuffer);
         }
         break;
     case GL_DEPTH_STENCIL_ATTACHMENT:
@@ -2724,16 +2746,19 @@ void GLClientState::detachRboFromFbo(GLenum target, GLenum attachment, GLuint re
             boundFboProps(target).depthAttachment_hasRbo) {
             boundFboProps(target).depthAttachment_rbo = 0;
             boundFboProps(target).depthAttachment_hasRbo = false;
+            view.unref(renderbuffer);
         }
         if (boundFboProps(target).stencilAttachment_rbo == renderbuffer &&
             boundFboProps(target).stencilAttachment_hasRbo) {
             boundFboProps(target).stencilAttachment_rbo = 0;
             boundFboProps(target).stencilAttachment_hasRbo = false;
+            view.unref(renderbuffer);
         }
         if (boundFboProps(target).depthstencilAttachment_rbo == renderbuffer &&
             boundFboProps(target).depthstencilAttachment_hasRbo) {
             boundFboProps(target).depthstencilAttachment_rbo = 0;
             boundFboProps(target).depthstencilAttachment_hasRbo = false;
+            view.unref(renderbuffer);
         }
         break;
     }
@@ -2748,21 +2773,34 @@ void GLClientState::attachRbo(GLenum target, GLenum attachment, GLuint renderbuf
 
     boundFboProps(target).completenessDirty = true;
 
+    RenderbufferInfo::ScopedView view(mRboState.rboData);
     if (colorAttachmentIndex != -1) {
+        view.unref(boundFboProps(target).colorAttachmenti_rbos[colorAttachmentIndex]);
+        view.ref(renderbuffer);
         boundFboProps(target).colorAttachmenti_rbos[colorAttachmentIndex] = renderbuffer;
         boundFboProps(target).colorAttachmenti_hasRbo[colorAttachmentIndex] = attach;
     }
 
     switch (attachment) {
     case GL_DEPTH_ATTACHMENT:
+        view.unref(boundFboProps(target).depthAttachment_rbo);
+        view.ref(renderbuffer);
         boundFboProps(target).depthAttachment_rbo = renderbuffer;
         boundFboProps(target).depthAttachment_hasRbo = attach;
         break;
     case GL_STENCIL_ATTACHMENT:
+        view.unref(boundFboProps(target).stencilAttachment_rbo);
+        view.ref(renderbuffer);
         boundFboProps(target).stencilAttachment_rbo = renderbuffer;
         boundFboProps(target).stencilAttachment_hasRbo = attach;
         break;
     case GL_DEPTH_STENCIL_ATTACHMENT:
+        view.unref(boundFboProps(target).depthAttachment_rbo);
+        view.ref(renderbuffer);
+        view.unref(boundFboProps(target).stencilAttachment_rbo);
+        view.ref(renderbuffer);
+        view.unref(boundFboProps(target).depthstencilAttachment_rbo);
+        view.ref(renderbuffer);
         boundFboProps(target).depthAttachment_rbo = renderbuffer;
         boundFboProps(target).depthAttachment_hasRbo = attach;
         boundFboProps(target).stencilAttachment_rbo = renderbuffer;
