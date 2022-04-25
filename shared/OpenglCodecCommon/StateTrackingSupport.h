@@ -169,11 +169,18 @@ struct RenderbufferInfo {
                 return res;
             }
             void ref(GLuint id) {
+                if (id == 0) {
+                    return;
+                }
+                if (!hasRbo(id)) addFresh(id);
                 RboProps* props = get(id);
                 if (!props) return;
                 ++props->refcount;
             }
             bool unref(GLuint id) {
+                if (id == 0) {
+                    return false;
+                }
                 RboProps* props = get(id);
                 if (!props) return false;
                 if (!props->refcount) return false;
