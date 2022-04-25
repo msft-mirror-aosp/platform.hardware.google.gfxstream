@@ -7685,7 +7685,6 @@ public:
         for (uint32_t i = 0; i < pAllocateInfo->commandBufferCount; ++i) {
             struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(pCommandBuffers[i]);
             cb->isSecondary = pAllocateInfo->level == VK_COMMAND_BUFFER_LEVEL_SECONDARY;
-            cb->device = device;
         }
 
         return res;
@@ -7826,14 +7825,6 @@ public:
 
         return it->second.enabledExtensions.find(name) !=
                it->second.enabledExtensions.end();
-    }
-
-    VkDevice getDevice(VkCommandBuffer commandBuffer) const {
-        struct goldfish_VkCommandBuffer* cb = as_goldfish_VkCommandBuffer(commandBuffer);
-        if (!cb) {
-            return nullptr;
-        }
-        return cb->device;
     }
 
     // Resets staging stream for this command buffer and primary command buffers
@@ -8016,9 +8007,6 @@ bool ResourceTracker::hasInstanceExtension(VkInstance instance, const std::strin
 }
 bool ResourceTracker::hasDeviceExtension(VkDevice device, const std::string &name) const {
     return mImpl->hasDeviceExtension(device, name);
-}
-VkDevice ResourceTracker::getDevice(VkCommandBuffer commandBuffer) const {
-    return mImpl->getDevice(commandBuffer);
 }
 void ResourceTracker::addToCommandPool(VkCommandPool commandPool,
                       uint32_t commandBufferCount,
