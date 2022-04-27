@@ -1079,7 +1079,7 @@ private:
 };
 
 void VulkanDevice::InitLogger() {
-  auto log_service = ([] () -> std::optional<zx::socket> {
+  auto log_socket = ([] () -> std::optional<zx::socket> {
     fidl::ClientEnd<fuchsia_logger::LogSink> channel{zx::channel{
       GetConnectToServiceFunction()("/svc/fuchsia.logger.LogSink")}};
     if (!channel.is_valid())
@@ -1097,14 +1097,16 @@ void VulkanDevice::InitLogger() {
 
     return local_socket;
   })();
-  if (!log_service)
+  if (!log_socket)
     return;
 
-  fx_logger_config_t config = {.min_severity = FX_LOG_INFO,
-                               .console_fd = -1,
-                               .log_service_channel = log_service->release(),
-                               .tags = nullptr,
-                               .num_tags = 0};
+  fx_logger_config_t config = {
+      .min_severity = FX_LOG_INFO,
+      .console_fd = -1,
+      .log_sink_socket = log_socket->release(),
+      .tags = nullptr,
+      .num_tags = 0,
+  };
 
   fx_log_reconfigure(&config);
 }
