@@ -100,14 +100,14 @@ struct FboProps {
     bool depthstencilAttachment_hasTexObj;
 
     std::vector<GLuint> colorAttachmenti_rbos;
-    GLuint depthAttachment_rbo;
-    GLuint stencilAttachment_rbo;
-    GLuint depthstencilAttachment_rbo;
+    GLuint depthAttachment_rbo = 0;
+    GLuint stencilAttachment_rbo = 0;
+    GLuint depthstencilAttachment_rbo = 0;
 
     std::vector<bool> colorAttachmenti_hasRbo;
-    bool depthAttachment_hasRbo;
-    bool stencilAttachment_hasRbo;
-    bool depthstencilAttachment_hasRbo;
+    bool depthAttachment_hasRbo = false;
+    bool stencilAttachment_hasRbo = false;
+    bool depthstencilAttachment_hasRbo = false;
 
     GLuint defaultWidth;
     GLuint defaultHeight;
