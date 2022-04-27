@@ -256,8 +256,6 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(const struct StreamCreate 
         .open = virtgpu_address_space_open,
         .close = virtgpu_address_space_close,
         .ping = virtgpu_address_space_ping,
-        .allocate_hostmem = virtgpu_address_space_allocate_hostmem,
-        .ping_with_response = virtgpu_address_space_ping_with_response,
     };
 
     if (virtgpu_info.resp_mapped_ptr) {
