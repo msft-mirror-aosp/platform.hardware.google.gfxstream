@@ -86,9 +86,16 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
         // VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT and
         // VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_LINEAR_FILTER_BIT.
 
+        // org.skia.skqp.SkQPRunner#UnitTest_VulkanHardwareBuffer* requires the following:
+        // VK_FORMAT_FEATURE_TRANSFER_SRC_BIT
+        // VK_FORMAT_FEATURE_TRANSFER_DST_BIT
+        // VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT
         ahbFormatProps->formatFeatures =
             VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT |
-            VK_FORMAT_FEATURE_MIDPOINT_CHROMA_SAMPLES_BIT;
+            VK_FORMAT_FEATURE_MIDPOINT_CHROMA_SAMPLES_BIT |
+            VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
+            VK_FORMAT_FEATURE_TRANSFER_DST_BIT |
+            VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT;
 
         // "Implementations may not always be able to determine the color model,
         // numerical range, or chroma offsets of the image contents, so the values in
