@@ -683,8 +683,8 @@ class VulkanMarshaling(VulkanWrapperGenerator):
         self.module.appendImpl(self.cgenImpl.makeFuncDecl(self.extensionMarshalPrototype))
         self.module.appendImpl(self.cgenImpl.makeFuncDecl(self.extensionUnmarshalPrototype))
 
-    def onBeginFeature(self, featureName):
-        VulkanWrapperGenerator.onBeginFeature(self, featureName)
+    def onBeginFeature(self, featureName, featureType):
+        VulkanWrapperGenerator.onBeginFeature(self, featureName, featureType)
         self.currentFeature = featureName
 
     def onGenType(self, typeXml, name, alias):

@@ -661,11 +661,15 @@ class BumpPool;
         # Start processing in superclass
         OutputGenerator.beginFeature(self, interface, emit)
 
-        self.typeInfo.onBeginFeature(self.featureName)
+        self.typeInfo.onBeginFeature(self.featureName, self.featureType)
 
         self.forEachModule(lambda m: m.appendHeader("#ifdef %s\n" % self.featureName))
         self.forEachModule(lambda m: m.appendImpl("#ifdef %s\n" % self.featureName))
-        self.forEachWrapper(lambda w: w.onBeginFeature(self.featureName))
+        self.forEachWrapper(lambda w: w.onBeginFeature(self.featureName, self.featureType))
+        # functable needs to understand the feature type (device vs instance) of each cmd
+        for features in interface.findall('require'):
+            for c in features.findall('command'):
+                self.forEachWrapper(lambda w: w.onFeatureNewCmd(c.get('name')))
 
     def endFeature(self):
         # Finish processing in superclass

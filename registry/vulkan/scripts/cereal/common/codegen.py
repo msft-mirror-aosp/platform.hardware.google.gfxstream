@@ -854,7 +854,10 @@ class VulkanWrapperGenerator(object):
     def onEnd(self):
         pass
 
-    def onBeginFeature(self, featureName):
+    def onBeginFeature(self, featureName, featureType):
+        pass
+
+    def onFeatureNewCmd(self, cmdName):
         pass
 
     def onEndFeature(self):

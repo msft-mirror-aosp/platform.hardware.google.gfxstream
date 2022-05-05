@@ -207,8 +207,8 @@ class VulkanDecoderSnapshot(VulkanWrapperGenerator):
         self.module.appendHeader(decoder_snapshot_decl_preamble)
         self.module.appendImpl(decoder_snapshot_impl_preamble)
 
-    def onBeginFeature(self, featureName):
-        VulkanWrapperGenerator.onBeginFeature(self, featureName)
+    def onBeginFeature(self, featureName, featureType):
+        VulkanWrapperGenerator.onBeginFeature(self, featureName, featureType)
         self.currentFeature = featureName
 
     def onGenCmd(self, cmdinfo, name, alias):
