@@ -167,11 +167,15 @@ class VulkanFuncTable(VulkanWrapperGenerator):
             cgen.beginBlock()
             if self.feature == "VK_VERSION_1_1":
                 cgen.stmt("auto resources = ResourceTracker::get()")
+                if "VkCommandBuffer" == api.parameters[0].typeName:
+                    cgen.stmt("VkDevice device = resources->getDevice(commandBuffer)")
                 cgen.beginIf("resources->getApiVersionFromDevice(device) < VK_API_VERSION_1_1")
                 cgen.stmt("sOnInvalidDynamicallyCheckedCall(\"%s\", \"%s\")" % (api.name, self.feature))
                 cgen.endIf()
             elif self.feature != "VK_VERSION_1_0":
                 cgen.stmt("auto resources = ResourceTracker::get()")
+                if "VkCommandBuffer" == api.parameters[0].typeName:
+                    cgen.stmt("VkDevice device = resources->getDevice(commandBuffer);")
                 cgen.beginIf("!resources->hasDeviceExtension(device, \"%s\")" % self.feature)
                 cgen.stmt("sOnInvalidDynamicallyCheckedCall(\"%s\", \"%s\")" % (api.name, self.feature))
                 cgen.endIf()
@@ -321,4 +325,5 @@ class VulkanFuncTable(VulkanWrapperGenerator):
         self.module.appendImpl(self.cgen.swapCode())
 
     def isDeviceDispatch(self, api):
-        return len(api.parameters) > 0 and "VkDevice" == api.parameters[0].typeName
+        return len(api.parameters) > 0 and (
+            "VkDevice" == api.parameters[0].typeName or "VkCommandBuffer" == api.parameters[0].typeName)
