@@ -864,7 +864,7 @@ class VulkanTypeInfo(object):
         category = self.typeCategories[typeName]
         return category in NON_ABI_PORTABLE_TYPE_CATEGORIES
 
-    def onBeginFeature(self, featureName):
+    def onBeginFeature(self, featureName, featureType):
         self.feature = featureName
 
     def onEndFeature(self):
