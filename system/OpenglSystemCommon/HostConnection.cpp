@@ -745,7 +745,8 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetHWCMultiConfigs(rcEnc);
         queryVersion(rcEnc);
         if (m_processPipe) {
-            m_processPipe->processPipeInit(m_rendernodeFd, m_connectionType, rcEnc);
+            auto fd = (m_connectionType == HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE) ? m_rendernodeFd : -1;
+            m_processPipe->processPipeInit(fd, m_connectionType, rcEnc);
         }
     }
     return m_rcEnc.get();
