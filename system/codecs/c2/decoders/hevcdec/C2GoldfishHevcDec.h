@@ -22,6 +22,7 @@
 #include <media/stagefright/foundation/ColorUtils.h>
 
 #include "MediaHevcDecoder.h"
+#include "GoldfishHevcHelper.h"
 #include <SimpleC2Component.h>
 #include <atomic>
 #include <map>
@@ -151,6 +152,8 @@ class C2GoldfishHevcDec : public SimpleC2Component {
     std::vector<uint8_t> mCsd0;
     std::vector<uint8_t> mCsd1;
     void decodeHeaderAfterFlush();
+
+    std::unique_ptr<GoldfishHevcHelper> mHevcHelper;
 
     C2_DO_NOT_COPY(C2GoldfishHevcDec);
 };
