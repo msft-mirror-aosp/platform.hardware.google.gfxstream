@@ -59,7 +59,6 @@ class GoldfishHevcHelper {
     int mNumCores = 1;
     int mStride = 16;
     int mOutputDelay = 8; // default
-    uint8_t* mOutBufferFlush = nullptr;
     IV_COLOR_FORMAT_T mIvColorformat = IV_YUV_420P;
 };
 
