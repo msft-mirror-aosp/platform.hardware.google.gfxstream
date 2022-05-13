@@ -5263,11 +5263,6 @@ public:
             exportFenceInfoPtr &&
             (exportFenceInfoPtr->handleTypes &
              VK_EXTERNAL_FENCE_HANDLE_TYPE_SYNC_FD_BIT);
-
-        if (exportSyncFd) {
-            ALOGV("%s: exporting sync fd, do not send pNext to host\n", __func__);
-            finalCreateInfo.pNext = nullptr;
-        }
 #endif
 
         input_result = enc->vkCreateFence(
