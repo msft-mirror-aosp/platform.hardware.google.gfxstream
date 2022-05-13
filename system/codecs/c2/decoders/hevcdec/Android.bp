@@ -15,6 +15,7 @@ cc_library_shared {
     ],
 
     srcs: ["C2GoldfishHevcDec.cpp",
+        "GoldfishHevcHelper.cpp",
         "MediaHevcDecoder.cpp",
     ],
 
@@ -27,6 +28,9 @@ cc_library_shared {
    header_libs: [
     "libgralloc_cb.ranchu",
     ],
+
+   static_libs: ["libhevcdec",
+   ],
 
 }
 
