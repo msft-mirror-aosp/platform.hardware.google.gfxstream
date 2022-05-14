@@ -64,10 +64,6 @@ GoldfishHevcHelper::GoldfishHevcHelper(int w, int h):mWidth(w),mHeight(h) { crea
 
 GoldfishHevcHelper::~GoldfishHevcHelper() {
     destroyDecoder();
-    if (mOutBufferFlush) {
-        ivd_aligned_free(nullptr, mOutBufferFlush);
-        mOutBufferFlush = nullptr;
-    }
 }
 
 void GoldfishHevcHelper::createDecoder() {
@@ -304,17 +300,10 @@ bool GoldfishHevcHelper::setDecodeArgs(ivd_video_decode_ip_t *ps_decode_ip,
     ps_decode_ip->s_out_buffer.u4_min_out_buf_size[0] = lumaSize;
     ps_decode_ip->s_out_buffer.u4_min_out_buf_size[1] = chromaSize;
     ps_decode_ip->s_out_buffer.u4_min_out_buf_size[2] = chromaSize;
-    if (!mOutBufferFlush) {
-        uint32_t displayStride = mStride;
-        uint32_t displayHeight = mHeight;
-        uint32_t bufferSize = displayStride * displayHeight * 3 / 2;
-        mOutBufferFlush = (uint8_t *)ivd_aligned_malloc(nullptr, 128, bufferSize);
-    }
     {
-        ps_decode_ip->s_out_buffer.pu1_bufs[0] = mOutBufferFlush;
-        ps_decode_ip->s_out_buffer.pu1_bufs[1] = mOutBufferFlush + lumaSize;
-        ps_decode_ip->s_out_buffer.pu1_bufs[2] =
-            mOutBufferFlush + lumaSize + chromaSize;
+        ps_decode_ip->s_out_buffer.pu1_bufs[0] = nullptr;
+        ps_decode_ip->s_out_buffer.pu1_bufs[1] = nullptr;
+        ps_decode_ip->s_out_buffer.pu1_bufs[2] = nullptr;
     }
     ps_decode_ip->s_out_buffer.u4_num_bufs = 3;
     ps_decode_op->u4_size = sizeof(ihevcd_cxa_video_decode_op_t);
