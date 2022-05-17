@@ -894,11 +894,6 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
                 return;
             }
 
-            if (false == mHeaderDecoded) {
-                /* Decode header and get dimensions */
-                setParams(mStride);
-            }
-
             DDD("flag is %x", work->input.flags);
             if (work->input.flags & C2FrameData::FLAG_CODEC_CONFIG) {
                 hasPicture = false;
@@ -913,9 +908,50 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
                 removePts(mPts);
             }
 
+            bool whChanged = false;
+            if (GoldfishH264Helper::isSpsFrame(mInPBuffer, mInPBufferSize)) {
+                mH264Helper.reset(new GoldfishH264Helper(mWidth, mHeight));
+                whChanged = mH264Helper->decodeHeader(mInPBuffer, mInPBufferSize);
+                if (whChanged) {
+                        DDD("w changed from old %d to new %d\n", mWidth, mH264Helper->getWidth());
+                        DDD("h changed from old %d to new %d\n", mHeight, mH264Helper->getHeight());
+                        if (1) {
+                            drainInternal(DRAIN_COMPONENT_NO_EOS, pool, work);
+                            resetDecoder();
+                            resetPlugin();
+                            work->workletsProcessed = 0u;
+                        }
+                        {
+                            mWidth = mH264Helper->getWidth();
+                            mHeight = mH264Helper->getHeight();
+                            C2StreamPictureSizeInfo::output size(0u, mWidth, mHeight);
+                            std::vector<std::unique_ptr<C2SettingResult>> failures;
+                            c2_status_t err = mIntf->config({&size}, C2_MAY_BLOCK, &failures);
+                            if (err == OK) {
+                                work->worklets.front()->output.configUpdate.push_back(
+                                        C2Param::Copy(size));
+                                ensureDecoderState(pool);
+                            } else {
+                                ALOGE("Cannot set width and height");
+                                mSignalledError = true;
+                                work->workletsProcessed = 1u;
+                                work->result = C2_CORRUPTED;
+                                return;
+                            }
+                        }
+                        if (!mContext) {
+                            DDD("creating decoder context to host in process work");
+                            checkMode(pool);
+                            createDecoder();
+                        }
+                        continue;
+                } // end of whChanged
+            } // end of isSpsFrame
+
             uint32_t delay;
             GETTIME(&mTimeStart, nullptr);
             TIME_DIFF(mTimeEnd, mTimeStart, delay);
+            (void)delay;
             //(void) ivdec_api_function(mDecHandle, &s_decode_ip, &s_decode_op);
             DDD("decoding");
             h264_result_t h264Res =
@@ -932,44 +968,10 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
             uint32_t decodeTime;
             GETTIME(&mTimeEnd, nullptr);
             TIME_DIFF(mTimeStart, mTimeEnd, decodeTime);
+            (void)decodeTime;
         }
-        // TODO: handle res change
-        if (0) {
-            DDD("resolution changed");
-            drainInternal(DRAIN_COMPONENT_NO_EOS, pool, work);
-            resetDecoder();
-            resetPlugin();
-            work->workletsProcessed = 0u;
 
-            /* Decode header and get new dimensions */
-            setParams(mStride);
-            //            (void) ivdec_api_function(mDecHandle, &s_decode_ip,
-            //            &s_decode_op);
-        }
         if (mImg.data != nullptr) {
-            // check for new width and height
-            auto decodedW = mImg.width;
-            auto decodedH = mImg.height;
-            if (decodedW != mWidth || decodedH != mHeight) {
-                mWidth = decodedW;
-                mHeight = decodedH;
-
-                C2StreamPictureSizeInfo::output size(0u, mWidth, mHeight);
-                std::vector<std::unique_ptr<C2SettingResult>> failures;
-                c2_status_t err = mIntf->config({&size}, C2_MAY_BLOCK, &failures);
-                if (err == OK) {
-                    work->worklets.front()->output.configUpdate.push_back(
-                        C2Param::Copy(size));
-                    ensureDecoderState(pool);
-                } else {
-                    ALOGE("Cannot set width and height");
-                    mSignalledError = true;
-                    work->workletsProcessed = 1u;
-                    work->result = C2_CORRUPTED;
-                    return;
-                }
-            }
-
             DDD("got data %" PRIu64 " with pts %" PRIu64,  getWorkIndex(mImg.pts), mImg.pts);
             mHeaderDecoded = true;
             copyImageData(mImg);
