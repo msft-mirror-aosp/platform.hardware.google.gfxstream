@@ -99,10 +99,10 @@ struct FboProps {
     bool stencilAttachment_hasTexObj;
     bool depthstencilAttachment_hasTexObj;
 
-    std::vector<GLuint> colorAttachmenti_rbos;
-    GLuint depthAttachment_rbo = 0;
-    GLuint stencilAttachment_rbo = 0;
-    GLuint depthstencilAttachment_rbo = 0;
+    std::vector<std::shared_ptr<RboProps>> colorAttachmenti_rbos;
+    std::shared_ptr<RboProps> depthAttachment_rbo = 0;
+    std::shared_ptr<RboProps> stencilAttachment_rbo = 0;
+    std::shared_ptr<RboProps> depthstencilAttachment_rbo = 0;
 
     std::vector<bool> colorAttachmenti_hasRbo;
     bool depthAttachment_hasRbo = false;
@@ -495,7 +495,7 @@ public:
     void detachRbo(GLuint renderbuffer);
     void detachRboFromFbo(GLenum target, GLenum attachment, GLuint renderbuffer);
     void attachRbo(GLenum target, GLenum attachment, GLuint renderbuffer);
-    GLuint getFboAttachmentRboId(GLenum target, GLenum attachment) const;
+    std::shared_ptr<RboProps> getFboAttachmentRbo(GLenum target, GLenum attachment) const;
 
     // FBO attachments in general
     bool attachmentHasObject(GLenum target, GLenum attachment) const;
@@ -503,7 +503,7 @@ public:
 
     // Dirty FBO completeness
     void setFboCompletenessDirtyForTexture(GLuint texture);
-    void setFboCompletenessDirtyForRbo(GLuint rbo_name);
+    void setFboCompletenessDirtyForRbo(std::shared_ptr<RboProps> rbo);
 
     // Transform feedback state
     void setTransformFeedbackActive(bool active);
@@ -712,7 +712,7 @@ private:
                                     GLenum internalformat);
 
     struct RboState {
-        GLuint boundRenderbuffer;
+        std::shared_ptr<RboProps> boundRenderbuffer;
         // Connects to share group.
         // Expected that share group lifetime outlives this context.
         RenderbufferInfo* rboData;
@@ -734,11 +734,6 @@ private:
     const FboProps& boundFboProps_const(GLenum target) const;
 
     // Querying framebuffer format
-    GLenum queryRboFormat(GLuint name) const;
-    GLsizei queryRboSamples(GLuint name) const;
-    GLsizei queryRboWidth(GLuint name) const;
-    GLsizei queryRboHeight(GLuint name) const;
-    bool queryRboEGLImageBacked(GLuint name) const;
     GLenum queryTexType(GLuint name) const;
     GLsizei queryTexSamples(GLuint name) const;
 
