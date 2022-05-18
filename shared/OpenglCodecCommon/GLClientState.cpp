@@ -2355,10 +2355,10 @@ int GLClientState::getMaxDrawBuffers() const {
 
 void GLClientState::validateUniform(bool isFloat, bool isUnsigned, GLint columns, GLint rows, GLint location, GLsizei count, GLenum* err) {
     UNIFORM_VALIDATION_ERR_COND(!m_currentProgram && !m_currentShaderProgram, GL_INVALID_OPERATION);
-    if (-1 == location) return; \
-    auto info = currentUniformValidationInfo.get_const(location); \
-    UNIFORM_VALIDATION_ERR_COND(!info || !info->valid, GL_INVALID_OPERATION); \
-    UNIFORM_VALIDATION_ERR_COND(columns != info->columns || rows != info->rows, GL_INVALID_OPERATION); \
+    if (-1 == location) return;
+    auto info = currentUniformValidationInfo.get_const(location);
+    UNIFORM_VALIDATION_ERR_COND(!info || !info->valid, GL_INVALID_OPERATION);
+    UNIFORM_VALIDATION_ERR_COND(columns != info->columns || rows != info->rows, GL_INVALID_OPERATION);
     UNIFORM_VALIDATION_ERR_COND(count > 1 && !info->isArray, GL_INVALID_OPERATION);
     if (isFloat) {
         UNIFORM_VALIDATION_ERR_COND(UNIFORM_VALIDATION_TYPE_VIOLATION_FOR_FLOATS, GL_INVALID_OPERATION);
