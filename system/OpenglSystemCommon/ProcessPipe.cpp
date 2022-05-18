@@ -35,7 +35,7 @@
 #include "services/service_connector.h"
 
 #define GET_STATUS_SAFE(result, member) \
-    ((result).ok() ? ((result).Unwrap()->member) : ZX_OK)
+    ((result).ok() ? ((result).Unwrap_NEW()->member) : ZX_OK)
 
 static QEMU_PIPE_HANDLE   sProcDevice = 0;
 #else // __Fuchsia__
@@ -101,12 +101,12 @@ static void processPipeInitOnce() {
     zx::vmo vmo;
     {
         auto result = pipe->GetBuffer();
-        if (!result.ok() || result.Unwrap()->res != ZX_OK) {
+        if (!result.ok() || result.Unwrap_NEW()->res != ZX_OK) {
             ALOGE("%s: failed to get buffer: %d:%d", __FUNCTION__,
                   result.status(), GET_STATUS_SAFE(result, res));
             return;
         }
-        vmo = std::move(result.Unwrap()->vmo);
+        vmo = std::move(result.Unwrap_NEW()->vmo);
     }
 
     size_t len = strlen("pipe:GLProcessPipe");
@@ -118,7 +118,7 @@ static void processPipeInitOnce() {
 
     {
         auto result = pipe->Write(len + 1, 0);
-        if (!result.ok() || result.Unwrap()->res != ZX_OK) {
+        if (!result.ok() || result.Unwrap_NEW()->res != ZX_OK) {
             ALOGD("%s: connecting to pipe service failed: %d:%d", __FUNCTION__,
                   result.status(), GET_STATUS_SAFE(result, res));
             return;
@@ -135,7 +135,7 @@ static void processPipeInitOnce() {
 
     {
         auto result = pipe->DoCall(sizeof(confirmInt), 0, sizeof(sProcUID), 0);
-        if (!result.ok() || result.Unwrap()->res != ZX_OK) {
+        if (!result.ok() || result.Unwrap_NEW()->res != ZX_OK) {
             ALOGD("%s: failed to get per-process ID: %d:%d", __FUNCTION__,
                   result.status(), GET_STATUS_SAFE(result, res));
             return;
