@@ -6009,12 +6009,22 @@ public:
         VkBuffer *pBuffer) {
         VkEncoder* enc = (VkEncoder*)context;
 
+        VkBufferCreateInfo localCreateInfo = vk_make_orphan_copy(*pCreateInfo);
+        vk_struct_chain_iterator structChainIter =
+            vk_make_chain_iterator(&localCreateInfo);
+        VkExternalMemoryBufferCreateInfo localExtBufCi;
+
+        const VkExternalMemoryBufferCreateInfo* extBufCiPtr =
+            vk_find_struct<VkExternalMemoryBufferCreateInfo>(pCreateInfo);
+        if (extBufCiPtr) {
+            localExtBufCi = vk_make_orphan_copy(*extBufCiPtr);
+            vk_append_struct(&structChainIter, &localExtBufCi);
+        }
+
 #ifdef VK_USE_PLATFORM_FUCHSIA
         Optional<zx::vmo> vmo;
         bool isSysmemBackedMemory = false;
 
-        const VkExternalMemoryBufferCreateInfo* extBufCiPtr =
-            vk_find_struct<VkExternalMemoryBufferCreateInfo>(pCreateInfo);
         if (extBufCiPtr &&
             (extBufCiPtr->handleTypes &
              VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA)) {
@@ -6074,9 +6084,12 @@ public:
         VkMemoryRequirements memReqs;
 
         if (supportsCreateResourcesWithRequirements()) {
-            res = enc->vkCreateBufferWithRequirementsGOOGLE(device, pCreateInfo, pAllocator, pBuffer, &memReqs, true /* do lock */);
+            res = enc->vkCreateBufferWithRequirementsGOOGLE(
+                device, &localCreateInfo, pAllocator, pBuffer, &memReqs,
+                true /* do lock */);
         } else {
-            res = enc->vkCreateBuffer(device, pCreateInfo, pAllocator, pBuffer, true /* do lock */);
+            res = enc->vkCreateBuffer(device, &localCreateInfo, pAllocator,
+                                      pBuffer, true /* do lock */);
         }
 
         if (res != VK_SUCCESS) return res;
@@ -6088,19 +6101,16 @@ public:
 
         auto& info = it->second;
 
-        info.createInfo = *pCreateInfo;
+        info.createInfo = localCreateInfo;
         info.createInfo.pNext = nullptr;
 
         if (supportsCreateResourcesWithRequirements()) {
             info.baseRequirementsKnown = true;
         }
 
-        const VkExternalMemoryBufferCreateInfo* extBufCi =
-            vk_find_struct<VkExternalMemoryBufferCreateInfo>(pCreateInfo);
-
-        if (extBufCi) {
+        if (extBufCiPtr) {
             info.external = true;
-            info.externalCreateInfo = *extBufCi;
+            info.externalCreateInfo = *extBufCiPtr;
         }
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
