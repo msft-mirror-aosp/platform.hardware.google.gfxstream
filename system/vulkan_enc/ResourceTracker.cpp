@@ -27,6 +27,7 @@
 
 #include "../OpenglSystemCommon/EmulatorFeatureInfo.h"
 #include "../OpenglSystemCommon/HostConnection.h"
+#include "vulkan/vulkan_core.h"
 
 /// Use installed headers or locally defined Fuchsia-specific bits
 #ifdef VK_USE_PLATFORM_FUCHSIA
@@ -5965,6 +5966,11 @@ public:
         VkDevice device, VkImage image, VkDeviceMemory memory,
         VkDeviceSize memoryOffset) {
         VkEncoder* enc = (VkEncoder*)context;
+        // Do not forward calls with invalid handles to host.
+        if (info_VkDeviceMemory.find(memory) == info_VkDeviceMemory.end() ||
+            info_VkImage.find(image) == info_VkImage.end()) {
+            return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+        }
         return enc->vkBindImageMemory(device, image, memory, memoryOffset, true /* do lock */);
     }
 
@@ -5972,6 +5978,13 @@ public:
         void* context, VkResult,
         VkDevice device, uint32_t bindingCount, const VkBindImageMemoryInfo* pBindInfos) {
         VkEncoder* enc = (VkEncoder*)context;
+        // Do not forward calls with invalid handles to host.
+        if (!pBindInfos ||
+            info_VkDeviceMemory.find(pBindInfos->memory) ==
+                info_VkDeviceMemory.end() ||
+            info_VkImage.find(pBindInfos->image) == info_VkImage.end()) {
+            return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+        }
         return enc->vkBindImageMemory2(device, bindingCount, pBindInfos, true /* do lock */);
     }
 
@@ -5979,6 +5992,13 @@ public:
         void* context, VkResult,
         VkDevice device, uint32_t bindingCount, const VkBindImageMemoryInfo* pBindInfos) {
         VkEncoder* enc = (VkEncoder*)context;
+        // Do not forward calls with invalid handles to host.
+        if (!pBindInfos ||
+            info_VkDeviceMemory.find(pBindInfos->memory) ==
+                info_VkDeviceMemory.end() ||
+            info_VkImage.find(pBindInfos->image) == info_VkImage.end()) {
+            return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+        }
         return enc->vkBindImageMemory2KHR(device, bindingCount, pBindInfos, true /* do lock */);
     }
 
