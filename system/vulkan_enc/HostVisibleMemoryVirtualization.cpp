@@ -40,61 +40,15 @@ using android::base::guest::SubAllocator;
 
 namespace goldfish_vk {
 
-bool canFitVirtualHostVisibleMemoryInfo(
-    const VkPhysicalDeviceMemoryProperties* memoryProperties) {
-    uint32_t typeCount =
-        memoryProperties->memoryTypeCount;
-    uint32_t heapCount =
-        memoryProperties->memoryHeapCount;
-
-    bool canFit = true;
-
-    if (typeCount == VK_MAX_MEMORY_TYPES) {
-        canFit = false;
-        ALOGE("Underlying device has no free memory types");
-    }
-
-    if (heapCount == VK_MAX_MEMORY_HEAPS) {
-        canFit = false;
-        ALOGE("Underlying device has no free memory heaps");
-    }
-
-    uint32_t numFreeMemoryTypes = VK_MAX_MEMORY_TYPES - typeCount;
-    uint32_t hostVisibleMemoryTypeCount = 0;
-
-    if (hostVisibleMemoryTypeCount > numFreeMemoryTypes) {
-        ALOGE("Underlying device has too many host visible memory types (%u)"
-              "and not enough free types (%u)",
-              hostVisibleMemoryTypeCount, numFreeMemoryTypes);
-        canFit = false;
-    }
-
-    return canFit;
-}
-
 void initHostVisibleMemoryVirtualizationInfo(
     VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceMemoryProperties* memoryProperties,
-    const EmulatorFeatureInfo* featureInfo,
     HostVisibleMemoryVirtualizationInfo* info_out) {
 
     if (info_out->initialized) return;
 
     info_out->hostMemoryProperties = *memoryProperties;
     info_out->initialized = true;
-
-    info_out->memoryPropertiesSupported =
-        canFitVirtualHostVisibleMemoryInfo(memoryProperties);
-
-    info_out->directMemSupported = featureInfo->hasDirectMem;
-    info_out->virtioGpuNextSupported = featureInfo->hasVirtioGpuNext;
-
-    if (!info_out->memoryPropertiesSupported ||
-        (!info_out->directMemSupported &&
-         !info_out->virtioGpuNextSupported)) {
-        info_out->virtualizationSupported = false;
-        return;
-    }
 
     info_out->virtualizationSupported = true;
 
