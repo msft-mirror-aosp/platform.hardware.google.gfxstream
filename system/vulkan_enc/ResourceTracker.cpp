@@ -853,7 +853,6 @@ public:
         info.memProps = memProps;
         initHostVisibleMemoryVirtualizationInfo(
             physdev, &memProps,
-            mFeatureInfo.get(),
             &mHostVisibleMemoryVirtInfo);
         info.apiVersion = props.apiVersion;
 
@@ -1677,10 +1676,11 @@ public:
         VkPhysicalDevice physdev,
         VkPhysicalDeviceMemoryProperties* out) {
 
+        // If the device supports VK_MAX_MEMORY_HEAPS heaps and VK_MAX_MEMORY_TYPES, the current
+        // logic will break unless refactored (see b:233803018 for progress).
         initHostVisibleMemoryVirtualizationInfo(
             physdev,
             out,
-            mFeatureInfo.get(),
             &mHostVisibleMemoryVirtInfo);
 
         if (mHostVisibleMemoryVirtInfo.virtualizationSupported) {
@@ -1693,10 +1693,11 @@ public:
         VkPhysicalDevice physdev,
         VkPhysicalDeviceMemoryProperties2* out) {
 
+        // If the device supports VK_MAX_MEMORY_HEAPS heaps and VK_MAX_MEMORY_TYPES, the current
+        // logic will break unless refactored (see b:233803018 for progress).
         initHostVisibleMemoryVirtualizationInfo(
             physdev,
             &out->memoryProperties,
-            mFeatureInfo.get(),
             &mHostVisibleMemoryVirtInfo);
 
         if (mHostVisibleMemoryVirtInfo.virtualizationSupported) {

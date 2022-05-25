@@ -55,13 +55,9 @@ struct HostVisibleMemoryVirtualizationInfo {
     bool memoryTypeBitsShouldAdvertiseBoth[VK_MAX_MEMORY_TYPES];
 };
 
-bool canFitVirtualHostVisibleMemoryInfo(
-    const VkPhysicalDeviceMemoryProperties* memoryProperties);
-
 void initHostVisibleMemoryVirtualizationInfo(
     VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceMemoryProperties* memoryProperties,
-    const EmulatorFeatureInfo* featureInfo,
     HostVisibleMemoryVirtualizationInfo* info_out);
 
 bool isHostVisibleMemoryTypeIndexForGuest(
