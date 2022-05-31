@@ -17,7 +17,7 @@
 AOSP_DIR=$(pwd)/../../
 export VK_CEREAL_GUEST_ENCODER_DIR=$AOSP_DIR/device/generic/goldfish-opengl/system/vulkan_enc
 export VK_CEREAL_GUEST_HAL_DIR=$AOSP_DIR/device/generic/goldfish-opengl/system/vulkan
-export VK_CEREAL_HOST_DECODER_DIR=$AOSP_DIR/external/qemu/android/android-emugl/host/libs/libOpenglRender/vulkan
+export VK_CEREAL_HOST_DECODER_DIR=$AOSP_DIR/device/generic/vulkan-cereal/stream-servers/vulkan
 
 VK_CEREAL_OUTPUT_DIR=$VK_CEREAL_HOST_DECODER_DIR/cereal
 mkdir -p $VK_CEREAL_GUEST_HAL_DIR
