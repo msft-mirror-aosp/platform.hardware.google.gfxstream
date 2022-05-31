@@ -31,7 +31,6 @@ public:
     VkDecoder();
     ~VkDecoder();
     void setForSnapshotLoad(bool forSnapshotLoad);
-    void onThreadTeardown();
     size_t decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr);
 private:
     class Impl;
@@ -44,11 +43,9 @@ using emugl::vkDispatch;
 
 using namespace goldfish_vk;
 
-using android::base::System;
-
 class VkDecoder::Impl {
 public:
-    Impl() : m_logCalls(System::get()->envGet("ANDROID_EMU_VK_LOG_CALLS") == "1"),
+    Impl() : m_logCalls(android::base::getEnvironmentVariable("ANDROID_EMU_VK_LOG_CALLS") == "1"),
              m_vk(vkDispatch()),
              m_state(VkDecoderGlobalState::get()),
              m_boxedHandleUnwrapMapping(m_state),
@@ -63,16 +60,11 @@ public:
         m_forSnapshotLoad = forSnapshotLoad;
     }
 
-    void onThreadTeardown() {
-        m_threadTeardown = true;
-    }
-
     size_t decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr);
 
 private:
     bool m_logCalls;
     bool m_forSnapshotLoad = false;
-    bool m_threadTeardown = false;
     VulkanDispatch* m_vk;
     VkDecoderGlobalState* m_state;
     %s m_vkStream { nullptr };
@@ -92,10 +84,6 @@ VkDecoder::~VkDecoder() = default;
 
 void VkDecoder::setForSnapshotLoad(bool forSnapshotLoad) {
     mImpl->setForSnapshotLoad(forSnapshotLoad);
-}
-
-void VkDecoder::onThreadTeardown() {
-    mImpl->onThreadTeardown();
 }
 
 size_t VkDecoder::decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr) {
@@ -524,7 +512,7 @@ def decode_vkFlushMappedMemoryRanges(typeInfo, api, cgen):
     cgen.stmt("uint64_t readStream = 0")
     cgen.stmt("memcpy(&readStream, *readStreamPtrPtr, sizeof(uint64_t)); *readStreamPtrPtr += sizeof(uint64_t)")
     cgen.stmt("auto hostPtr = m_state->getMappedHostPointer(memory)")
-    cgen.stmt("if (!hostPtr && readStream > 0) GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))")
+    cgen.stmt("if (!hostPtr && readStream > 0) GFXSTREAM_ABORT(::emugl::FatalError(::emugl::ABORT_REASON_OTHER))")
     cgen.stmt("if (!hostPtr) continue")
     cgen.stmt("uint8_t* targetRange = hostPtr + offset")
     cgen.stmt("memcpy(targetRange, *readStreamPtrPtr, readStream); *readStreamPtrPtr += readStream")
@@ -647,6 +635,7 @@ custom_decodes = {
     "vkQueueSubmit" : emit_global_state_wrapped_decoding,
     "vkQueueWaitIdle" : emit_global_state_wrapped_decoding,
     "vkBeginCommandBuffer" : emit_global_state_wrapped_decoding,
+    "vkEndCommandBuffer" : emit_global_state_wrapped_decoding,
     "vkResetCommandBuffer" : emit_global_state_wrapped_decoding,
     "vkFreeCommandBuffers" : emit_global_state_wrapped_decoding,
     "vkCreateCommandPool" : emit_global_state_wrapped_decoding,
@@ -733,7 +722,7 @@ class VulkanDecoder(VulkanWrapperGenerator):
         self.cgen.beginBlock() # function body
 
         self.cgen.stmt("if (len < 8) return 0;")
-        self.cgen.stmt("bool queueSubmitWithCommandsEnabled = emugl::emugl_feature_is_enabled(android::featurecontrol::VulkanQueueSubmitWithCommands)")
+        self.cgen.stmt("bool queueSubmitWithCommandsEnabled = feature_is_enabled(kFeature_VulkanQueueSubmitWithCommands)")
         self.cgen.stmt("unsigned char *ptr = (unsigned char *)buf")
         self.cgen.stmt("const unsigned char* const end = (const unsigned char*)buf + len")
 
@@ -745,7 +734,7 @@ class VulkanDecoder(VulkanWrapperGenerator):
         self.cgen.beginBlock() # while loop
 
         self.cgen.stmt("uint32_t opcode = *(uint32_t *)ptr")
-        self.cgen.stmt("int32_t packetLen = *(int32_t *)(ptr + 4)")
+        self.cgen.stmt("uint32_t packetLen = *(uint32_t *)(ptr + 4)")
         self.cgen.stmt("if (end - ptr < packetLen) return ptr - (unsigned char*)buf")
 
         self.cgen.stmt("stream()->setStream(ioStream)")
@@ -759,7 +748,7 @@ class VulkanDecoder(VulkanWrapperGenerator):
         if (queueSubmitWithCommandsEnabled && ((opcode >= OP_vkFirst && opcode < OP_vkLast) || (opcode >= OP_vkFirst_old && opcode < OP_vkLast_old))) {
             uint32_t seqno; memcpy(&seqno, *readStreamPtrPtr, sizeof(uint32_t)); *readStreamPtrPtr += sizeof(uint32_t);
             if (seqnoPtr && !m_forSnapshotLoad) {
-                while (!m_threadTeardown && (seqno - __atomic_load_n(seqnoPtr, __ATOMIC_SEQ_CST) != 1));
+                while ((seqno - __atomic_load_n(seqnoPtr, __ATOMIC_SEQ_CST) != 1));
             }
         }
         """)
