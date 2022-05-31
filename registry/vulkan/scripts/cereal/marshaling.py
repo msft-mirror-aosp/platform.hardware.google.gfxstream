@@ -137,7 +137,7 @@ class VulkanMarshalingCodegen(VulkanTypeIterator):
         if self.direction == "write":
             if self.handleMapOverwrites:
                 self.cgen.stmt(
-                    "static_assert(8 == sizeof(%s), \"handle map overwrite requres %s to be 8 bytes long\")" % \
+                    "static_assert(8 == sizeof(%s), \"handle map overwrite requires %s to be 8 bytes long\")" % \
                             (vulkanType.typeName, vulkanType.typeName))
                 self.cgen.stmt(
                     "%s->handleMapping()->mapHandles_%s((%s*)%s, %s)" %
@@ -548,7 +548,7 @@ class VulkanMarshalingCodegen(VulkanTypeIterator):
 
         lenAccess = self.lenAccessor(vulkanType)
         lenAccessGuard = self.lenAccessorGuard(vulkanType)
-    
+
         self.beginFilterGuard(vulkanType)
         self.doAllocSpace(vulkanType)
 
@@ -738,7 +738,7 @@ class VulkanMarshaling(VulkanWrapperGenerator):
                 marshalingCode = \
                     CUSTOM_MARSHAL_TYPES[name]["common"] + \
                     CUSTOM_MARSHAL_TYPES[name]["marshaling"].format(
-                        streamVarName=self.writeCodegen.streamVarName, 
+                        streamVarName=self.writeCodegen.streamVarName,
                         rootTypeVarName=self.writeCodegen.rootTypeVarName,
                         inputVarName=self.writeCodegen.inputVarName,
                         newInputVarName=self.writeCodegen.inputVarName + "_new")
