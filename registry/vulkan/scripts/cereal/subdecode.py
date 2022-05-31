@@ -294,6 +294,7 @@ custom_decodes = {
     "vkCmdCopyImageToBuffer": emit_global_state_wrapped_decoding,
     "vkCmdExecuteCommands": emit_global_state_wrapped_decoding,
     "vkBeginCommandBuffer": emit_global_state_wrapped_decoding,
+    "vkEndCommandBuffer": emit_global_state_wrapped_decoding,
     "vkResetCommandBuffer": emit_global_state_wrapped_decoding,
     "vkCmdPipelineBarrier": emit_global_state_wrapped_decoding,
     "vkCmdBindPipeline": emit_global_state_wrapped_decoding,
@@ -333,7 +334,7 @@ class VulkanSubDecoder(VulkanWrapperGenerator):
         self.cgen.beginBlock()  # while loop
 
         self.cgen.stmt("uint32_t opcode = *(uint32_t *)ptr")
-        self.cgen.stmt("int32_t packetLen = *(int32_t *)(ptr + 4)")
+        self.cgen.stmt("uint32_t packetLen = *(uint32_t *)(ptr + 4)")
         self.cgen.stmt(
             "if (end - ptr < packetLen) return ptr - (unsigned char*)buf")
 
@@ -371,7 +372,7 @@ class VulkanSubDecoder(VulkanWrapperGenerator):
         self.cgen.line("default:")
         self.cgen.beginBlock()
         self.cgen.stmt(
-            "GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << \"Unrecognized opcode \" << opcode")
+            "GFXSTREAM_ABORT(::emugl::FatalError(::emugl::ABORT_REASON_OTHER)) << \"Unrecognized opcode \" << opcode")
         self.cgen.endBlock()
 
         self.cgen.endBlock()  # switch stmt
