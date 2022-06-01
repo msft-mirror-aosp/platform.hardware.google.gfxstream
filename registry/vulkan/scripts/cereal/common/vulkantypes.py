@@ -375,6 +375,33 @@ class VulkanType(object):
     def getStructEnumExpr(self,):
         return None
 
+    def getPrintFormatSpecifier(self):
+        kKnownTypePrintFormatSpecifiers = {
+            'float': '%f',
+            'int': '%d',
+            'int32_t': '%d',
+            'size_t': '%ld',
+            'uint16_t': '%d',
+            'uint32_t': '%d',
+            'uint64_t': '%ld',
+            'VkBool32': '%d',
+            'VkDeviceSize': '%ld',
+            'VkFormat': '%d',
+            'VkImageLayout': '%d',
+        }
+
+        if self.pointerIndirectionLevels > 0 or self.isHandleType():
+            return '%p'
+
+        if self.typeName in kKnownTypePrintFormatSpecifiers:
+            return kKnownTypePrintFormatSpecifiers[self.typeName]
+
+        if self.typeName.endswith('Flags'):
+            # Based on `typedef uint32_t VkFlags;`
+            return '%d'
+
+        return None
+
 # Is an S-expression w/ the following spec:
 # From https://gist.github.com/pib/240957
 class Atom(object):
