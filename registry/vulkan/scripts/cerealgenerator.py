@@ -160,6 +160,7 @@ target_include_directories(OpenglRender_vulkan_cereal
 class IOStream;
 """
         encoderImplInclude = f"""
+#include "EncoderDebug.h"
 #include "IOStream.h"
 #include "Resources.h"
 #include "ResourceTracker.h"
