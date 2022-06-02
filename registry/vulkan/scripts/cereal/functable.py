@@ -70,6 +70,7 @@ RESOURCE_TRACKER_ENTRIES = [
     "vkDestroyDescriptorSetLayout",
     "vkAllocateCommandBuffers",
     "vkQueueSignalReleaseImageANDROID",
+    "vkCmdPipelineBarrier",
 ]
 
 SUCCESS_VAL = {
@@ -251,7 +252,7 @@ class VulkanFuncTable(VulkanWrapperGenerator):
             if featureEndif:
                 self.cgen.leftline("#endif")
                 self.cgen.leftline("#ifdef %s" % f)
-            
+
             if featureif:
                 self.cgen.leftline("#ifdef %s" % f)
 
@@ -304,7 +305,7 @@ class VulkanFuncTable(VulkanWrapperGenerator):
             if featureEndif:
                 self.cgen.leftline("#endif")
                 self.cgen.leftline("#ifdef %s" % f)
-            
+
             if featureif:
                 self.cgen.leftline("#ifdef %s" % f)
 
