@@ -3091,8 +3091,7 @@ void GL2Encoder::s_glGetFramebufferAttachmentParameteriv(void* self,
         GL_INVALID_ENUM);
     SET_ERROR_IF(attachment == GL_DEPTH_STENCIL_ATTACHMENT &&
                  pname == GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME &&
-                 (state->objectOfAttachment(target, GL_DEPTH_ATTACHMENT) !=
-                  state->objectOfAttachment(target, GL_STENCIL_ATTACHMENT)),
+                 !state->depthStencilHasSameObject(target),
                  GL_INVALID_OPERATION);
     SET_ERROR_IF(state->boundFramebuffer(target) &&
                  (attachment == GL_BACK ||
