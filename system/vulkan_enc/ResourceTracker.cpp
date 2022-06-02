@@ -5061,10 +5061,12 @@ public:
         info.createInfo = *pCreateInfo;
         info.createInfo.pNext = nullptr;
 
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
         if (extFormatAndroidPtr && extFormatAndroidPtr->externalFormat) {
             info.hasExternalFormat = true;
             info.androidFormat = extFormatAndroidPtr->externalFormat;
         }
+#endif  // VK_USE_PLATFORM_ANDROID_KHR
 
         if (supportsCreateResourcesWithRequirements()) {
             info.baseRequirementsKnown = true;
