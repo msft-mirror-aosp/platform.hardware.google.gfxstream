@@ -41,7 +41,6 @@ using android::base::guest::SubAllocator;
 namespace goldfish_vk {
 
 void initHostVisibleMemoryVirtualizationInfo(
-    VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceMemoryProperties* memoryProperties,
     HostVisibleMemoryVirtualizationInfo* info_out) {
 
@@ -50,7 +49,6 @@ void initHostVisibleMemoryVirtualizationInfo(
     info_out->hostMemoryProperties = *memoryProperties;
     info_out->initialized = true;
 
-    info_out->physicalDevice = physicalDevice;
     info_out->guestMemoryProperties = *memoryProperties;
 
     uint32_t typeCount =

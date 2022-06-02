@@ -38,8 +38,6 @@ struct HostVisibleMemoryVirtualizationInfo {
     bool initialized = false;
     bool memoryPropertiesSupported;
 
-    VkPhysicalDevice physicalDevice;
-
     VkPhysicalDeviceMemoryProperties hostMemoryProperties;
     VkPhysicalDeviceMemoryProperties guestMemoryProperties;
 
@@ -50,7 +48,6 @@ struct HostVisibleMemoryVirtualizationInfo {
 };
 
 void initHostVisibleMemoryVirtualizationInfo(
-    VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceMemoryProperties* memoryProperties,
     HostVisibleMemoryVirtualizationInfo* info_out);
 
