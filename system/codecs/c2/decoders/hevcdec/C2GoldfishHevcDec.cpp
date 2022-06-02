@@ -661,10 +661,11 @@ C2GoldfishHevcDec::ensureDecoderState(const std::shared_ptr<C2BlockPool> &pool) 
 void C2GoldfishHevcDec::checkMode(const std::shared_ptr<C2BlockPool> &pool) {
     mWidth = mIntf->width();
     mHeight = mIntf->height();
-    const bool isGraphic = (pool->getAllocatorId() == C2Allocator::GRAPHIC);
+    const bool isGraphic = (pool->getAllocatorId() & C2Allocator::GRAPHIC);
+    DDD("buffer id %d", (int)(pool->getAllocatorId()));
     if (isGraphic) {
         DDD("decoding to host color buffer");
-        mEnableAndroidNativeBuffers = false;
+        mEnableAndroidNativeBuffers = true;
     } else {
         DDD("decoding to guest byte buffer");
         mEnableAndroidNativeBuffers = false;
