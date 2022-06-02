@@ -38,7 +38,6 @@ struct HostVisibleMemoryVirtualizationInfo {
     bool initialized = false;
     bool memoryPropertiesSupported;
     bool directMemSupported;
-    bool virtualizationSupported;
     bool virtioGpuNextSupported;
 
     VkPhysicalDevice physicalDevice;
