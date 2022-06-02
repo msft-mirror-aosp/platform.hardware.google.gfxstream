@@ -55,10 +55,6 @@ bool isHostVisibleMemoryTypeIndexForGuest(
     const HostVisibleMemoryVirtualizationInfo* info,
     uint32_t index);
 
-bool isDeviceLocalMemoryTypeIndexForGuest(
-    const HostVisibleMemoryVirtualizationInfo* info,
-    uint32_t index);
-
 struct HostMemAlloc {
     bool initialized = false;
     VkResult initResult = VK_SUCCESS;
