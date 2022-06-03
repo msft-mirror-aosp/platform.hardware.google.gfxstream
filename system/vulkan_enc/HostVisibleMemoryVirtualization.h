@@ -37,8 +37,6 @@ class VkEncoder;
 struct HostVisibleMemoryVirtualizationInfo {
     bool initialized = false;
     bool memoryPropertiesSupported;
-    bool directMemSupported;
-    bool virtioGpuNextSupported;
 
     VkPhysicalDevice physicalDevice;
 
