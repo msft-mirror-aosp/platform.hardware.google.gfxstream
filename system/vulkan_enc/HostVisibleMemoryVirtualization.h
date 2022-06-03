@@ -47,10 +47,7 @@ struct HostVisibleMemoryVirtualizationInfo {
     VkPhysicalDeviceMemoryProperties guestMemoryProperties;
 
     uint32_t memoryTypeIndexMappingToHost[VK_MAX_MEMORY_TYPES];
-    uint32_t memoryHeapIndexMappingToHost[VK_MAX_MEMORY_TYPES];
-
     uint32_t memoryTypeIndexMappingFromHost[VK_MAX_MEMORY_TYPES];
-    uint32_t memoryHeapIndexMappingFromHost[VK_MAX_MEMORY_TYPES];
 
     bool memoryTypeBitsShouldAdvertiseBoth[VK_MAX_MEMORY_TYPES];
 };
