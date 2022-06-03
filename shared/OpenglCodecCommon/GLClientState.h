@@ -40,6 +40,7 @@
 
 #include <vector>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 
@@ -81,7 +82,7 @@ struct FboProps {
     bool previouslyBound;
     bool completenessDirty;
     GLenum cachedCompleteness;
-    std::vector<GLuint> colorAttachmenti_textures;
+    std::vector<std::shared_ptr<TextureRec>> colorAttachmenti_textures;
     std::vector<GLint> colorAttachmenti_texture_levels;
     std::vector<GLint> colorAttachmenti_texture_layers;
 
@@ -90,9 +91,9 @@ struct FboProps {
     GLint stencilAttachment_texture_level;
     GLint stencilAttachment_texture_layer;
 
-    GLuint depthAttachment_texture;
-    GLuint stencilAttachment_texture;
-    GLuint depthstencilAttachment_texture;
+    std::shared_ptr<TextureRec> depthAttachment_texture;
+    std::shared_ptr<TextureRec> stencilAttachment_texture;
+    std::shared_ptr<TextureRec> depthstencilAttachment_texture;
 
     std::vector<bool> colorAttachmenti_hasTex;
     bool depthAttachment_hasTexObj;
@@ -489,7 +490,7 @@ public:
 
     // Texture object -> FBO
     void attachTextureObject(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
-    GLuint getFboAttachmentTextureId(GLenum target, GLenum attachment) const;
+    std::shared_ptr<TextureRec> getFboAttachmentTexture(GLenum target, GLenum attachment) const;
 
     // RBO -> FBO
     void detachRbo(GLuint renderbuffer);
@@ -499,7 +500,7 @@ public:
 
     // FBO attachments in general
     bool attachmentHasObject(GLenum target, GLenum attachment) const;
-    GLuint objectOfAttachment(GLenum target, GLenum attachment) const;
+    bool depthStencilHasSameObject(GLenum target) const;
 
     // Dirty FBO completeness
     void setFboCompletenessDirtyForTexture(GLuint texture);
@@ -741,8 +742,9 @@ private:
 
     static int compareTexId(const void* pid, const void* prec);
     TextureRec* addTextureRec(GLuint id, GLenum target);
-    TextureRec* getTextureRec(GLuint id) const;
-    TextureRec* getTextureRecLocked(GLuint id) const;
+    std::shared_ptr<TextureRec> getTextureRec(GLuint id) const;
+    TextureRec* getTextureRecPtr(GLuint id) const;
+    TextureRec* getTextureRecPtrLocked(GLuint id) const;
 
 public:
     bool isTexture(GLuint name) const;
