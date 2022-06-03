@@ -68,10 +68,7 @@ void initHostVisibleMemoryVirtualizationInfo(
         // Set up identity mapping and not-both
         // by default, to be edited later.
         info_out->memoryTypeIndexMappingToHost[i] = i;
-        info_out->memoryHeapIndexMappingToHost[i] = i;
-
         info_out->memoryTypeIndexMappingFromHost[i] = i;
-        info_out->memoryHeapIndexMappingFromHost[i] = i;
 
         info_out->memoryTypeBitsShouldAdvertiseBoth[i] = false;
 
@@ -119,10 +116,7 @@ void initHostVisibleMemoryVirtualizationInfo(
             newVirtualMemoryHeap.size = VIRTUAL_HOST_VISIBLE_HEAP_SIZE;
 
             info_out->memoryTypeIndexMappingToHost[firstFreeTypeIndex] = i;
-            info_out->memoryHeapIndexMappingToHost[firstFreeHeapIndex] = i;
-
             info_out->memoryTypeIndexMappingFromHost[i] = firstFreeTypeIndex;
-            info_out->memoryHeapIndexMappingFromHost[i] = firstFreeHeapIndex;
 
             // Was the original memory type also a device local type? If so,
             // advertise both types in resulting type bits.
