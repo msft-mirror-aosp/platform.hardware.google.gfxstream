@@ -1064,7 +1064,7 @@ public:
     }
 
     bool usingDirectMapping() const {
-        return mHostVisibleMemoryVirtInfo.virtualizationSupported;
+        return true;
     }
 
     uint32_t getStreamFeatures() const {
@@ -1121,8 +1121,6 @@ public:
 
         const auto& hostVirt =
             mHostVisibleMemoryVirtInfo;
-
-        if (!hostVirt.virtualizationSupported) return;
 
         if (memory) {
             AutoLock<RecursiveLock> lock (mLock);
@@ -1186,8 +1184,6 @@ public:
 
         const auto& hostVirt =
             mHostVisibleMemoryVirtInfo;
-
-        if (!hostVirt.virtualizationSupported) return;
 
         AutoLock<RecursiveLock> lock (mLock);
 
@@ -1687,9 +1683,7 @@ public:
             out,
             &mHostVisibleMemoryVirtInfo);
 
-        if (mHostVisibleMemoryVirtInfo.virtualizationSupported) {
-            *out = mHostVisibleMemoryVirtInfo.guestMemoryProperties;
-        }
+        *out = mHostVisibleMemoryVirtInfo.guestMemoryProperties;
     }
 
     void on_vkGetPhysicalDeviceMemoryProperties2(
@@ -1704,9 +1698,7 @@ public:
             &out->memoryProperties,
             &mHostVisibleMemoryVirtInfo);
 
-        if (mHostVisibleMemoryVirtInfo.virtualizationSupported) {
-            out->memoryProperties = mHostVisibleMemoryVirtInfo.guestMemoryProperties;
-        }
+        out->memoryProperties = mHostVisibleMemoryVirtInfo.guestMemoryProperties;
     }
 
     void on_vkGetDeviceQueue(void*,
@@ -4500,31 +4492,6 @@ public:
             return VK_SUCCESS;
         }
 #endif
-
-        // Host visible memory, non external
-        bool directMappingSupported = usingDirectMapping();
-        if (!directMappingSupported) {
-            input_result =
-                enc->vkAllocateMemory(
-                    device, &finalAllocInfo, pAllocator, pMemory, true /* do lock */);
-
-            if (input_result != VK_SUCCESS) return input_result;
-
-            VkDeviceSize mappedSize =
-                getNonCoherentExtendedSize(device,
-                    finalAllocInfo.allocationSize);
-            uint8_t* mappedPtr = (uint8_t*)aligned_buf_alloc(4096, mappedSize);
-            D("host visible alloc (non-direct): "
-              "size 0x%llx host ptr %p mapped size 0x%llx",
-              (unsigned long long)finalAllocInfo.allocationSize, mappedPtr,
-              (unsigned long long)mappedSize);
-            setDeviceMemoryInfo(
-                device, *pMemory,
-                finalAllocInfo.allocationSize,
-                mappedSize, mappedPtr,
-                finalAllocInfo.memoryTypeIndex);
-            _RETURN_SCUCCESS_WITH_DEVICE_MEMORY_REPORT;
-        }
 
         // Host visible memory with direct mapping via
         // VkImportPhysicalAddressGOOGLE
