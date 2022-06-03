@@ -18,6 +18,7 @@
 
 #include <GLES/gl.h>
 #include <map>
+#include <memory>
 
 #include "android/base/synchronization/AndroidLock.h"
 
@@ -49,7 +50,7 @@ struct TextureRec {
 };
 
 struct SharedTextureDataMap {
-  using MapType = std::map<GLuint, TextureRec*>;
+  using MapType = std::map<GLuint, std::shared_ptr<TextureRec>>;
 
   using iterator = MapType::iterator;
   using const_iterator = MapType::const_iterator;
