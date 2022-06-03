@@ -38,8 +38,6 @@ struct HostVisibleMemoryVirtualizationInfo {
     bool initialized = false;
     bool memoryPropertiesSupported;
 
-    VkPhysicalDevice physicalDevice;
-
     VkPhysicalDeviceMemoryProperties hostMemoryProperties;
     VkPhysicalDeviceMemoryProperties guestMemoryProperties;
 
@@ -50,15 +48,10 @@ struct HostVisibleMemoryVirtualizationInfo {
 };
 
 void initHostVisibleMemoryVirtualizationInfo(
-    VkPhysicalDevice physicalDevice,
     const VkPhysicalDeviceMemoryProperties* memoryProperties,
     HostVisibleMemoryVirtualizationInfo* info_out);
 
 bool isHostVisibleMemoryTypeIndexForGuest(
-    const HostVisibleMemoryVirtualizationInfo* info,
-    uint32_t index);
-
-bool isDeviceLocalMemoryTypeIndexForGuest(
     const HostVisibleMemoryVirtualizationInfo* info,
     uint32_t index);
 
