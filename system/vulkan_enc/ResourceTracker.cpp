@@ -7612,7 +7612,7 @@ public:
         VkImageViewCreateInfo localCreateInfo = vk_make_orphan_copy(*pCreateInfo);
         vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&localCreateInfo);
 
-#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
         if (pCreateInfo->format == VK_FORMAT_UNDEFINED) {
             AutoLock<RecursiveLock> lock(mLock);
 
