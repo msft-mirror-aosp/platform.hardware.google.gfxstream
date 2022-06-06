@@ -4902,6 +4902,7 @@ class VkDecoderGlobalState::Impl {
      VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA)
 
     // Transforms
+    // If adding a new transform here, please check if it needs to be used in VkDecoderTestDispatch
 
     void transformImpl_VkExternalMemoryProperties_tohost(const VkExternalMemoryProperties* props,
                                                          uint32_t count) {
@@ -6221,6 +6222,12 @@ VkDecoderGlobalState* VkDecoderGlobalState::get() {
     if (sGlobalDecoderState) return sGlobalDecoderState;
     sGlobalDecoderState = new VkDecoderGlobalState;
     return sGlobalDecoderState;
+}
+
+// static
+void VkDecoderGlobalState::reset() {
+    delete sGlobalDecoderState;
+    sGlobalDecoderState = nullptr;
 }
 
 // Snapshots
