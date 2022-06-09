@@ -2105,7 +2105,6 @@ void GLClientState::addRenderbuffers(GLsizei n, GLuint* renderbuffers) {
 }
 
 void GLClientState::removeRenderbuffers(GLsizei n, const GLuint* renderbuffers) {
-    std::vector<std::shared_ptr<RboProps>> to_remove;
     bool unbindCurrent = false;
     {
         RenderbufferInfo::ScopedView view(mRboState.rboData);
@@ -2115,17 +2114,11 @@ void GLClientState::removeRenderbuffers(GLsizei n, const GLuint* renderbuffers) 
                 if (!rboPtr) {
                     continue;
                 }
-                to_remove.push_back(rboPtr);
+                unbindCurrent |=
+                        (mRboState.boundRenderbuffer == rboPtr);
                 setFboCompletenessDirtyForRbo(rboPtr);
+                view.remove(renderbuffers[i]);
             }
-        }
-
-        for (size_t i = 0; i < to_remove.size(); i++) {
-            if (mRboState.boundRenderbuffer == to_remove[i]) {
-                unbindCurrent = true;
-                break;
-            }
-            view.remove(to_remove[i]->id);
         }
     }
 
