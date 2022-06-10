@@ -362,6 +362,10 @@ public:
         VkDeviceSize currentBackingSize = 0;
         bool baseRequirementsKnown = false;
         VkMemoryRequirements baseRequirements;
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        bool hasExternalFormat = false;
+        unsigned androidFormat = 0;
+#endif
 #ifdef VK_USE_PLATFORM_FUCHSIA
         bool isSysmemBackedMemory = false;
 #endif
@@ -5055,6 +5059,11 @@ public:
         info.createInfo = *pCreateInfo;
         info.createInfo.pNext = nullptr;
 
+        if (extFormatAndroidPtr && extFormatAndroidPtr->externalFormat) {
+            info.hasExternalFormat = true;
+            info.androidFormat = extFormatAndroidPtr->externalFormat;
+        }
+
         if (supportsCreateResourcesWithRequirements()) {
             info.baseRequirementsKnown = true;
         }
@@ -5192,7 +5201,8 @@ public:
             vk_find_struct<VkSamplerYcbcrConversionInfo>(pCreateInfo);
         if (samplerYcbcrConversionInfo) {
             if (samplerYcbcrConversionInfo->conversion != VK_YCBCR_CONVERSION_DO_NOTHING) {
-                localVkSamplerYcbcrConversionInfo = vk_make_orphan_copy(*samplerYcbcrConversionInfo);
+                localVkSamplerYcbcrConversionInfo =
+                    vk_make_orphan_copy(*samplerYcbcrConversionInfo);
                 vk_append_struct(&structChainIter, &localVkSamplerYcbcrConversionInfo);
             }
         }
@@ -7575,14 +7585,24 @@ public:
         (void)input_result;
 
         VkImageViewCreateInfo localCreateInfo = vk_make_orphan_copy(*pCreateInfo);
+        vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&localCreateInfo);
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
-        const VkExternalFormatANDROID* extFormatAndroidPtr =
-            vk_find_struct<VkExternalFormatANDROID>(pCreateInfo);
-        if (extFormatAndroidPtr) {
-            if (extFormatAndroidPtr->externalFormat) {
-                localCreateInfo.format =
-                    vk_format_from_android(extFormatAndroidPtr->externalFormat);
+        if (pCreateInfo->format == VK_FORMAT_UNDEFINED) {
+            AutoLock<RecursiveLock> lock(mLock);
+
+            auto it = info_VkImage.find(pCreateInfo->image);
+            if (it != info_VkImage.end() && it->second.hasExternalFormat) {
+                localCreateInfo.format = vk_format_from_android(it->second.androidFormat);
+            }
+        }
+        VkSamplerYcbcrConversionInfo localVkSamplerYcbcrConversionInfo;
+        const VkSamplerYcbcrConversionInfo* samplerYcbcrConversionInfo =
+            vk_find_struct<VkSamplerYcbcrConversionInfo>(pCreateInfo);
+        if (samplerYcbcrConversionInfo) {
+            if (samplerYcbcrConversionInfo->conversion != VK_YCBCR_CONVERSION_DO_NOTHING) {
+                localVkSamplerYcbcrConversionInfo = vk_make_orphan_copy(*samplerYcbcrConversionInfo);
+                vk_append_struct(&structChainIter, &localVkSamplerYcbcrConversionInfo);
             }
         }
 #endif
