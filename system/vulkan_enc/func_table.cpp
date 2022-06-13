@@ -769,7 +769,8 @@ static VkResult entry_vkCreateGraphicsPipelines(
     AEMU_SCOPED_TRACE("vkCreateGraphicsPipelines");
     auto vkEnc = ResourceTracker::getThreadLocalEncoder();
     VkResult vkCreateGraphicsPipelines_VkResult_return = (VkResult)0;
-    vkCreateGraphicsPipelines_VkResult_return = vkEnc->vkCreateGraphicsPipelines(device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines, true /* do lock */);
+    auto resources = ResourceTracker::get();
+    vkCreateGraphicsPipelines_VkResult_return = resources->on_vkCreateGraphicsPipelines(vkEnc, VK_SUCCESS, device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines);
     return vkCreateGraphicsPipelines_VkResult_return;
 }
 static VkResult entry_vkCreateComputePipelines(
