@@ -3039,7 +3039,7 @@ void GL2Encoder::s_glFramebufferTexture2D(void* self,
     SET_ERROR_IF(!GLESv2Validation::isCubeMapTarget(textarget) && state->isTextureCubeMap(texture), GL_INVALID_OPERATION);
     SET_ERROR_IF((texture && (level < 0)), GL_INVALID_VALUE);
 
-    if (target == GL_TEXTURE_2D) {
+    if (textarget == GL_TEXTURE_2D) {
         SET_ERROR_IF(level > ilog2(ctx->m_state->getMaxTextureSize()), GL_INVALID_VALUE);
     } else {
         SET_ERROR_IF(level > ilog2(ctx->m_state->getMaxTextureSizeCubeMap()), GL_INVALID_VALUE);
