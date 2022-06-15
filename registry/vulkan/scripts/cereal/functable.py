@@ -242,6 +242,8 @@ class VulkanFuncTable(VulkanWrapperGenerator):
             "auto resources = ResourceTracker::get()")
         self.cgen.stmt(
             "bool has1_1OrHigher = resources->getApiVersionFromInstance(instance) >= VK_API_VERSION_1_1")
+        self.cgen.stmt(
+            "bool has1_2OrHigher = resources->getApiVersionFromInstance(instance) >= VK_API_VERSION_1_2")
 
         prevFeature = None
         for e, f in zip(self.entries, self.entryFeatures):
@@ -251,7 +253,7 @@ class VulkanFuncTable(VulkanWrapperGenerator):
             if featureEndif:
                 self.cgen.leftline("#endif")
                 self.cgen.leftline("#ifdef %s" % f)
-            
+
             if featureif:
                 self.cgen.leftline("#ifdef %s" % f)
 
@@ -261,6 +263,13 @@ class VulkanFuncTable(VulkanWrapperGenerator):
 
             if e.name in EXCLUDED_APIS:
                 self.cgen.stmt("return nullptr")
+            elif f == "VK_VERSION_1_2":
+                if self.isDeviceDispatch(e):
+                    self.cgen.stmt("return (void*)dynCheck_entry_%s" % e.name)
+                else:
+                    self.cgen.stmt( \
+                        "return has1_2OrHigher ? %s : nullptr" % \
+                        entryPointExpr)
             elif f == "VK_VERSION_1_1":
                 if self.isDeviceDispatch(e):
                     self.cgen.stmt("return (void*)dynCheck_entry_%s" % e.name)
@@ -269,12 +278,19 @@ class VulkanFuncTable(VulkanWrapperGenerator):
                         "return has1_1OrHigher ? %s : nullptr" % \
                         entryPointExpr)
             elif f != "VK_VERSION_1_0":
-                if self.isDeviceDispatch(e):
-                    self.cgen.stmt("return (void*)dynCheck_entry_%s" % e.name)
-                else:
-                    self.cgen.stmt( \
-                        "bool hasExt = resources->hasInstanceExtension(instance, \"%s\")"  % f)
+                entryNeedsInstanceExtensionCheck = self.cmdToFeatureType[e.name] == "instance"
+
+                entryPrefix = "dynCheck_" if self.isDeviceDispatch(e) else ""
+                entryPointExpr = "(void*)%sentry_%s" % (entryPrefix, e.name)
+
+                if entryNeedsInstanceExtensionCheck:
+                    self.cgen.stmt("bool hasExt = resources->hasInstanceExtension(instance, \"%s\")"  % f)
                     self.cgen.stmt("return hasExt ? %s : nullptr" % entryPointExpr)
+                else:
+                    # TODO(b/236246382): We need to check the device extension support here.
+                    self.cgen.stmt("// TODO(b/236246382): Check support for device extension");
+                    self.cgen.stmt("return %s" % entryPointExpr)
+
             else:
                 self.cgen.stmt("return %s" % entryPointExpr)
             self.cgen.endIf()
@@ -304,7 +320,7 @@ class VulkanFuncTable(VulkanWrapperGenerator):
             if featureEndif:
                 self.cgen.leftline("#endif")
                 self.cgen.leftline("#ifdef %s" % f)
-            
+
             if featureif:
                 self.cgen.leftline("#ifdef %s" % f)
 
