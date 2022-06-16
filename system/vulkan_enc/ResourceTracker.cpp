@@ -7670,6 +7670,65 @@ public:
             true /* do lock */);
     }
 
+    void on_vkCmdPipelineBarrier(
+        void* context,
+        VkCommandBuffer commandBuffer,
+        VkPipelineStageFlags srcStageMask,
+        VkPipelineStageFlags dstStageMask,
+        VkDependencyFlags dependencyFlags,
+        uint32_t memoryBarrierCount,
+        const VkMemoryBarrier* pMemoryBarriers,
+        uint32_t bufferMemoryBarrierCount,
+        const VkBufferMemoryBarrier* pBufferMemoryBarriers,
+        uint32_t imageMemoryBarrierCount,
+        const VkImageMemoryBarrier* pImageMemoryBarriers) {
+
+        VkEncoder* enc = (VkEncoder*)context;
+
+        std::vector<VkImageMemoryBarrier> updatedImageMemoryBarriers;
+        updatedImageMemoryBarriers.reserve(imageMemoryBarrierCount);
+        for (uint32_t i = 0; i < imageMemoryBarrierCount; i++) {
+            VkImageMemoryBarrier barrier = pImageMemoryBarriers[i];
+
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+            // Unfortunetly, Android does not yet have a mechanism for sharing the expected
+            // VkImageLayout when passing around AHardwareBuffer-s so many existing users
+            // that import AHardwareBuffer-s into VkImage-s/VkDeviceMemory-s simply use
+            // VK_IMAGE_LAYOUT_UNDEFINED. However, the Vulkan spec's image layout transition
+            // sections says "If the old layout is VK_IMAGE_LAYOUT_UNDEFINED, the contents of
+            // that range may be discarded." Some Vulkan drivers have been observed to actually
+            // perform the discard which leads to AHardwareBuffer-s being unintentionally
+            // cleared. See go/ahb-vkimagelayout for more information.
+            if (barrier.srcQueueFamilyIndex != barrier.dstQueueFamilyIndex &&
+                (barrier.srcQueueFamilyIndex == VK_QUEUE_FAMILY_EXTERNAL ||
+                 barrier.srcQueueFamilyIndex == VK_QUEUE_FAMILY_FOREIGN_EXT) &&
+                barrier.oldLayout == VK_IMAGE_LAYOUT_UNDEFINED) {
+                // This is not a complete solution as the Vulkan spec does not require that
+                // Vulkan drivers perform a no-op in the case when oldLayout equals newLayout
+                // but this has been observed to be enough to work for now to avoid clearing
+                // out images.
+                // TODO(b/236179843): figure out long term solution.
+                barrier.oldLayout = barrier.newLayout;
+            }
+#endif
+
+            updatedImageMemoryBarriers.push_back(barrier);
+        }
+
+        enc->vkCmdPipelineBarrier(
+            commandBuffer,
+            srcStageMask,
+            dstStageMask,
+            dependencyFlags,
+            memoryBarrierCount,
+            pMemoryBarriers,
+            bufferMemoryBarrierCount,
+            pBufferMemoryBarriers,
+            updatedImageMemoryBarriers.size(),
+            updatedImageMemoryBarriers.data(),
+            true /* do lock */);
+    }
+
     void decDescriptorSetLayoutRef(
         void* context,
         VkDevice device,
@@ -9008,6 +9067,32 @@ void ResourceTracker::on_vkCmdBindDescriptorSets(
         pDescriptorSets,
         dynamicOffsetCount,
         pDynamicOffsets);
+}
+
+void ResourceTracker::on_vkCmdPipelineBarrier(
+    void* context,
+    VkCommandBuffer commandBuffer,
+    VkPipelineStageFlags srcStageMask,
+    VkPipelineStageFlags dstStageMask,
+    VkDependencyFlags dependencyFlags,
+    uint32_t memoryBarrierCount,
+    const VkMemoryBarrier* pMemoryBarriers,
+    uint32_t bufferMemoryBarrierCount,
+    const VkBufferMemoryBarrier* pBufferMemoryBarriers,
+    uint32_t imageMemoryBarrierCount,
+    const VkImageMemoryBarrier* pImageMemoryBarriers) {
+    mImpl->on_vkCmdPipelineBarrier(
+        context,
+        commandBuffer,
+        srcStageMask,
+        dstStageMask,
+        dependencyFlags,
+        memoryBarrierCount,
+        pMemoryBarriers,
+        bufferMemoryBarrierCount,
+        pBufferMemoryBarriers,
+        imageMemoryBarrierCount,
+        pImageMemoryBarriers);
 }
 
 void ResourceTracker::on_vkDestroyDescriptorSetLayout(

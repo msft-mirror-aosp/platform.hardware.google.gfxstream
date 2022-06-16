@@ -605,6 +605,19 @@ public:
         uint32_t dynamicOffsetCount,
         const uint32_t* pDynamicOffsets);
 
+    void on_vkCmdPipelineBarrier(
+        void* context,
+        VkCommandBuffer commandBuffer,
+        VkPipelineStageFlags srcStageMask,
+        VkPipelineStageFlags dstStageMask,
+        VkDependencyFlags dependencyFlags,
+        uint32_t memoryBarrierCount,
+        const VkMemoryBarrier* pMemoryBarriers,
+        uint32_t bufferMemoryBarrierCount,
+        const VkBufferMemoryBarrier* pBufferMemoryBarriers,
+        uint32_t imageMemoryBarrierCount,
+        const VkImageMemoryBarrier* pImageMemoryBarriers);
+
     void on_vkDestroyDescriptorSetLayout(
         void* context,
         VkDevice device,
