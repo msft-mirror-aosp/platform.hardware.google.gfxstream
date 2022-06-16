@@ -1448,8 +1448,7 @@ static void entry_vkCmdPipelineBarrier(
 {
     AEMU_SCOPED_TRACE("vkCmdPipelineBarrier");
     auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
-    auto resources = ResourceTracker::get();
-    resources->on_vkCmdPipelineBarrier(vkEnc, commandBuffer, srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
+    vkEnc->vkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers, true /* do lock */);
 }
 static void entry_vkCmdBeginQuery(
     VkCommandBuffer commandBuffer,
@@ -13043,6 +13042,7 @@ void* goldfish_vulkan_get_proc_address(const char* name){
 void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char* name){
     auto resources = ResourceTracker::get();
     bool has1_1OrHigher = resources->getApiVersionFromInstance(instance) >= VK_API_VERSION_1_1;
+    bool has1_2OrHigher = resources->getApiVersionFromInstance(instance) >= VK_API_VERSION_1_2;
 #ifdef VK_VERSION_1_0
     if (!strcmp(name, "vkCreateInstance"))
     {
@@ -13710,13 +13710,11 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_VERSION_1_2
     if (!strcmp(name, "vkCmdDrawIndirectCount"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_VERSION_1_2");
-        return hasExt ? (void*)entry_vkCmdDrawIndirectCount : nullptr;
+        return has1_2OrHigher ? (void*)entry_vkCmdDrawIndirectCount : nullptr;
     }
     if (!strcmp(name, "vkCmdDrawIndexedIndirectCount"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_VERSION_1_2");
-        return hasExt ? (void*)entry_vkCmdDrawIndexedIndirectCount : nullptr;
+        return has1_2OrHigher ? (void*)entry_vkCmdDrawIndexedIndirectCount : nullptr;
     }
     if (!strcmp(name, "vkCreateRenderPass2"))
     {
@@ -13724,18 +13722,15 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     }
     if (!strcmp(name, "vkCmdBeginRenderPass2"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_VERSION_1_2");
-        return hasExt ? (void*)entry_vkCmdBeginRenderPass2 : nullptr;
+        return has1_2OrHigher ? (void*)entry_vkCmdBeginRenderPass2 : nullptr;
     }
     if (!strcmp(name, "vkCmdNextSubpass2"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_VERSION_1_2");
-        return hasExt ? (void*)entry_vkCmdNextSubpass2 : nullptr;
+        return has1_2OrHigher ? (void*)entry_vkCmdNextSubpass2 : nullptr;
     }
     if (!strcmp(name, "vkCmdEndRenderPass2"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_VERSION_1_2");
-        return hasExt ? (void*)entry_vkCmdEndRenderPass2 : nullptr;
+        return has1_2OrHigher ? (void*)entry_vkCmdEndRenderPass2 : nullptr;
     }
     if (!strcmp(name, "vkResetQueryPool"))
     {
@@ -13796,40 +13791,47 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_KHR_swapchain
     if (!strcmp(name, "vkCreateSwapchainKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCreateSwapchainKHR;
     }
     if (!strcmp(name, "vkDestroySwapchainKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkDestroySwapchainKHR;
     }
     if (!strcmp(name, "vkGetSwapchainImagesKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetSwapchainImagesKHR;
     }
     if (!strcmp(name, "vkAcquireNextImageKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkAcquireNextImageKHR;
     }
     if (!strcmp(name, "vkQueuePresentKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_swapchain");
-        return hasExt ? (void*)entry_vkQueuePresentKHR : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkQueuePresentKHR;
     }
     if (!strcmp(name, "vkGetDeviceGroupPresentCapabilitiesKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetDeviceGroupPresentCapabilitiesKHR;
     }
     if (!strcmp(name, "vkGetDeviceGroupSurfacePresentModesKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetDeviceGroupSurfacePresentModesKHR;
     }
     if (!strcmp(name, "vkGetPhysicalDevicePresentRectanglesKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_swapchain");
-        return hasExt ? (void*)entry_vkGetPhysicalDevicePresentRectanglesKHR : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDevicePresentRectanglesKHR;
     }
     if (!strcmp(name, "vkAcquireNextImage2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkAcquireNextImage2KHR;
     }
 #endif
@@ -13873,6 +13875,7 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_KHR_display_swapchain
     if (!strcmp(name, "vkCreateSharedSwapchainsKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCreateSharedSwapchainsKHR;
     }
 #endif
@@ -13934,68 +13937,81 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_KHR_video_queue
     if (!strcmp(name, "vkGetPhysicalDeviceVideoCapabilitiesKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_video_queue");
-        return hasExt ? (void*)entry_vkGetPhysicalDeviceVideoCapabilitiesKHR : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceVideoCapabilitiesKHR;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceVideoFormatPropertiesKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_video_queue");
-        return hasExt ? (void*)entry_vkGetPhysicalDeviceVideoFormatPropertiesKHR : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceVideoFormatPropertiesKHR;
     }
     if (!strcmp(name, "vkCreateVideoSessionKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCreateVideoSessionKHR;
     }
     if (!strcmp(name, "vkDestroyVideoSessionKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkDestroyVideoSessionKHR;
     }
     if (!strcmp(name, "vkGetVideoSessionMemoryRequirementsKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetVideoSessionMemoryRequirementsKHR;
     }
     if (!strcmp(name, "vkBindVideoSessionMemoryKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkBindVideoSessionMemoryKHR;
     }
     if (!strcmp(name, "vkCreateVideoSessionParametersKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCreateVideoSessionParametersKHR;
     }
     if (!strcmp(name, "vkUpdateVideoSessionParametersKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkUpdateVideoSessionParametersKHR;
     }
     if (!strcmp(name, "vkDestroyVideoSessionParametersKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkDestroyVideoSessionParametersKHR;
     }
     if (!strcmp(name, "vkCmdBeginVideoCodingKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdBeginVideoCodingKHR;
     }
     if (!strcmp(name, "vkCmdEndVideoCodingKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdEndVideoCodingKHR;
     }
     if (!strcmp(name, "vkCmdControlVideoCodingKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdControlVideoCodingKHR;
     }
 #endif
 #ifdef VK_KHR_video_decode_queue
     if (!strcmp(name, "vkCmdDecodeVideoKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdDecodeVideoKHR;
     }
 #endif
 #ifdef VK_KHR_dynamic_rendering
     if (!strcmp(name, "vkCmdBeginRenderingKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdBeginRenderingKHR;
     }
     if (!strcmp(name, "vkCmdEndRenderingKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdEndRenderingKHR;
     }
 #endif
@@ -14039,20 +14055,24 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_KHR_device_group
     if (!strcmp(name, "vkGetDeviceGroupPeerMemoryFeaturesKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetDeviceGroupPeerMemoryFeaturesKHR;
     }
     if (!strcmp(name, "vkCmdSetDeviceMaskKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetDeviceMaskKHR;
     }
     if (!strcmp(name, "vkCmdDispatchBaseKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdDispatchBaseKHR;
     }
 #endif
 #ifdef VK_KHR_maintenance1
     if (!strcmp(name, "vkTrimCommandPoolKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkTrimCommandPoolKHR;
     }
 #endif
@@ -14073,20 +14093,24 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_KHR_external_memory_win32
     if (!strcmp(name, "vkGetMemoryWin32HandleKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetMemoryWin32HandleKHR;
     }
     if (!strcmp(name, "vkGetMemoryWin32HandlePropertiesKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetMemoryWin32HandlePropertiesKHR;
     }
 #endif
 #ifdef VK_KHR_external_memory_fd
     if (!strcmp(name, "vkGetMemoryFdKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetMemoryFdKHR;
     }
     if (!strcmp(name, "vkGetMemoryFdPropertiesKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetMemoryFdPropertiesKHR;
     }
 #endif
@@ -14100,68 +14124,82 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_KHR_external_semaphore_win32
     if (!strcmp(name, "vkImportSemaphoreWin32HandleKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkImportSemaphoreWin32HandleKHR;
     }
     if (!strcmp(name, "vkGetSemaphoreWin32HandleKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetSemaphoreWin32HandleKHR;
     }
 #endif
 #ifdef VK_KHR_external_semaphore_fd
     if (!strcmp(name, "vkImportSemaphoreFdKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkImportSemaphoreFdKHR;
     }
     if (!strcmp(name, "vkGetSemaphoreFdKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetSemaphoreFdKHR;
     }
 #endif
 #ifdef VK_KHR_push_descriptor
     if (!strcmp(name, "vkCmdPushDescriptorSetKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdPushDescriptorSetKHR;
     }
     if (!strcmp(name, "vkCmdPushDescriptorSetWithTemplateKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdPushDescriptorSetWithTemplateKHR;
     }
 #endif
 #ifdef VK_KHR_descriptor_update_template
     if (!strcmp(name, "vkCreateDescriptorUpdateTemplateKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCreateDescriptorUpdateTemplateKHR;
     }
     if (!strcmp(name, "vkDestroyDescriptorUpdateTemplateKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkDestroyDescriptorUpdateTemplateKHR;
     }
     if (!strcmp(name, "vkUpdateDescriptorSetWithTemplateKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkUpdateDescriptorSetWithTemplateKHR;
     }
 #endif
 #ifdef VK_KHR_create_renderpass2
     if (!strcmp(name, "vkCreateRenderPass2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCreateRenderPass2KHR;
     }
     if (!strcmp(name, "vkCmdBeginRenderPass2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdBeginRenderPass2KHR;
     }
     if (!strcmp(name, "vkCmdNextSubpass2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdNextSubpass2KHR;
     }
     if (!strcmp(name, "vkCmdEndRenderPass2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdEndRenderPass2KHR;
     }
 #endif
 #ifdef VK_KHR_shared_presentable_image
     if (!strcmp(name, "vkGetSwapchainStatusKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetSwapchainStatusKHR;
     }
 #endif
@@ -14175,40 +14213,46 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_KHR_external_fence_win32
     if (!strcmp(name, "vkImportFenceWin32HandleKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkImportFenceWin32HandleKHR;
     }
     if (!strcmp(name, "vkGetFenceWin32HandleKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetFenceWin32HandleKHR;
     }
 #endif
 #ifdef VK_KHR_external_fence_fd
     if (!strcmp(name, "vkImportFenceFdKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkImportFenceFdKHR;
     }
     if (!strcmp(name, "vkGetFenceFdKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetFenceFdKHR;
     }
 #endif
 #ifdef VK_KHR_performance_query
     if (!strcmp(name, "vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_performance_query");
-        return hasExt ? (void*)entry_vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_performance_query");
-        return hasExt ? (void*)entry_vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR;
     }
     if (!strcmp(name, "vkAcquireProfilingLockKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkAcquireProfilingLockKHR;
     }
     if (!strcmp(name, "vkReleaseProfilingLockKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkReleaseProfilingLockKHR;
     }
 #endif
@@ -14249,229 +14293,273 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_KHR_get_memory_requirements2
     if (!strcmp(name, "vkGetImageMemoryRequirements2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetImageMemoryRequirements2KHR;
     }
     if (!strcmp(name, "vkGetBufferMemoryRequirements2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetBufferMemoryRequirements2KHR;
     }
     if (!strcmp(name, "vkGetImageSparseMemoryRequirements2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetImageSparseMemoryRequirements2KHR;
     }
 #endif
 #ifdef VK_KHR_sampler_ycbcr_conversion
     if (!strcmp(name, "vkCreateSamplerYcbcrConversionKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCreateSamplerYcbcrConversionKHR;
     }
     if (!strcmp(name, "vkDestroySamplerYcbcrConversionKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkDestroySamplerYcbcrConversionKHR;
     }
 #endif
 #ifdef VK_KHR_bind_memory2
     if (!strcmp(name, "vkBindBufferMemory2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkBindBufferMemory2KHR;
     }
     if (!strcmp(name, "vkBindImageMemory2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkBindImageMemory2KHR;
     }
 #endif
 #ifdef VK_KHR_maintenance3
     if (!strcmp(name, "vkGetDescriptorSetLayoutSupportKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetDescriptorSetLayoutSupportKHR;
     }
 #endif
 #ifdef VK_KHR_draw_indirect_count
     if (!strcmp(name, "vkCmdDrawIndirectCountKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdDrawIndirectCountKHR;
     }
     if (!strcmp(name, "vkCmdDrawIndexedIndirectCountKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdDrawIndexedIndirectCountKHR;
     }
 #endif
 #ifdef VK_KHR_timeline_semaphore
     if (!strcmp(name, "vkGetSemaphoreCounterValueKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetSemaphoreCounterValueKHR;
     }
     if (!strcmp(name, "vkWaitSemaphoresKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkWaitSemaphoresKHR;
     }
     if (!strcmp(name, "vkSignalSemaphoreKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkSignalSemaphoreKHR;
     }
 #endif
 #ifdef VK_KHR_fragment_shading_rate
     if (!strcmp(name, "vkGetPhysicalDeviceFragmentShadingRatesKHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_fragment_shading_rate");
-        return hasExt ? (void*)entry_vkGetPhysicalDeviceFragmentShadingRatesKHR : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceFragmentShadingRatesKHR;
     }
     if (!strcmp(name, "vkCmdSetFragmentShadingRateKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetFragmentShadingRateKHR;
     }
 #endif
 #ifdef VK_KHR_present_wait
     if (!strcmp(name, "vkWaitForPresentKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkWaitForPresentKHR;
     }
 #endif
 #ifdef VK_KHR_buffer_device_address
     if (!strcmp(name, "vkGetBufferDeviceAddressKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetBufferDeviceAddressKHR;
     }
     if (!strcmp(name, "vkGetBufferOpaqueCaptureAddressKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetBufferOpaqueCaptureAddressKHR;
     }
     if (!strcmp(name, "vkGetDeviceMemoryOpaqueCaptureAddressKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetDeviceMemoryOpaqueCaptureAddressKHR;
     }
 #endif
 #ifdef VK_KHR_deferred_host_operations
     if (!strcmp(name, "vkCreateDeferredOperationKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCreateDeferredOperationKHR;
     }
     if (!strcmp(name, "vkDestroyDeferredOperationKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkDestroyDeferredOperationKHR;
     }
     if (!strcmp(name, "vkGetDeferredOperationMaxConcurrencyKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetDeferredOperationMaxConcurrencyKHR;
     }
     if (!strcmp(name, "vkGetDeferredOperationResultKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetDeferredOperationResultKHR;
     }
     if (!strcmp(name, "vkDeferredOperationJoinKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkDeferredOperationJoinKHR;
     }
 #endif
 #ifdef VK_KHR_pipeline_executable_properties
     if (!strcmp(name, "vkGetPipelineExecutablePropertiesKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetPipelineExecutablePropertiesKHR;
     }
     if (!strcmp(name, "vkGetPipelineExecutableStatisticsKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetPipelineExecutableStatisticsKHR;
     }
     if (!strcmp(name, "vkGetPipelineExecutableInternalRepresentationsKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetPipelineExecutableInternalRepresentationsKHR;
     }
 #endif
 #ifdef VK_KHR_video_encode_queue
     if (!strcmp(name, "vkCmdEncodeVideoKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdEncodeVideoKHR;
     }
 #endif
 #ifdef VK_KHR_synchronization2
     if (!strcmp(name, "vkCmdSetEvent2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetEvent2KHR;
     }
     if (!strcmp(name, "vkCmdResetEvent2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdResetEvent2KHR;
     }
     if (!strcmp(name, "vkCmdWaitEvents2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdWaitEvents2KHR;
     }
     if (!strcmp(name, "vkCmdPipelineBarrier2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdPipelineBarrier2KHR;
     }
     if (!strcmp(name, "vkCmdWriteTimestamp2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdWriteTimestamp2KHR;
     }
     if (!strcmp(name, "vkQueueSubmit2KHR"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_synchronization2");
-        return hasExt ? (void*)entry_vkQueueSubmit2KHR : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkQueueSubmit2KHR;
     }
     if (!strcmp(name, "vkCmdWriteBufferMarker2AMD"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdWriteBufferMarker2AMD;
     }
     if (!strcmp(name, "vkGetQueueCheckpointData2NV"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_KHR_synchronization2");
-        return hasExt ? (void*)entry_vkGetQueueCheckpointData2NV : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetQueueCheckpointData2NV;
     }
 #endif
 #ifdef VK_KHR_copy_commands2
     if (!strcmp(name, "vkCmdCopyBuffer2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdCopyBuffer2KHR;
     }
     if (!strcmp(name, "vkCmdCopyImage2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdCopyImage2KHR;
     }
     if (!strcmp(name, "vkCmdCopyBufferToImage2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdCopyBufferToImage2KHR;
     }
     if (!strcmp(name, "vkCmdCopyImageToBuffer2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdCopyImageToBuffer2KHR;
     }
     if (!strcmp(name, "vkCmdBlitImage2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdBlitImage2KHR;
     }
     if (!strcmp(name, "vkCmdResolveImage2KHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdResolveImage2KHR;
     }
 #endif
 #ifdef VK_KHR_maintenance4
     if (!strcmp(name, "vkGetDeviceBufferMemoryRequirementsKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetDeviceBufferMemoryRequirementsKHR;
     }
     if (!strcmp(name, "vkGetDeviceImageMemoryRequirementsKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetDeviceImageMemoryRequirementsKHR;
     }
     if (!strcmp(name, "vkGetDeviceImageSparseMemoryRequirementsKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetDeviceImageSparseMemoryRequirementsKHR;
     }
 #endif
 #ifdef VK_ANDROID_native_buffer
     if (!strcmp(name, "vkGetSwapchainGrallocUsageANDROID"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetSwapchainGrallocUsageANDROID;
     }
     if (!strcmp(name, "vkAcquireImageANDROID"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkAcquireImageANDROID;
     }
     if (!strcmp(name, "vkQueueSignalReleaseImageANDROID"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_ANDROID_native_buffer");
-        return hasExt ? (void*)entry_vkQueueSignalReleaseImageANDROID : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkQueueSignalReleaseImageANDROID;
     }
 #endif
 #ifdef VK_EXT_debug_report
@@ -14494,96 +14582,117 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_EXT_debug_marker
     if (!strcmp(name, "vkDebugMarkerSetObjectTagEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkDebugMarkerSetObjectTagEXT;
     }
     if (!strcmp(name, "vkDebugMarkerSetObjectNameEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkDebugMarkerSetObjectNameEXT;
     }
     if (!strcmp(name, "vkCmdDebugMarkerBeginEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdDebugMarkerBeginEXT;
     }
     if (!strcmp(name, "vkCmdDebugMarkerEndEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdDebugMarkerEndEXT;
     }
     if (!strcmp(name, "vkCmdDebugMarkerInsertEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdDebugMarkerInsertEXT;
     }
 #endif
 #ifdef VK_EXT_transform_feedback
     if (!strcmp(name, "vkCmdBindTransformFeedbackBuffersEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdBindTransformFeedbackBuffersEXT;
     }
     if (!strcmp(name, "vkCmdBeginTransformFeedbackEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdBeginTransformFeedbackEXT;
     }
     if (!strcmp(name, "vkCmdEndTransformFeedbackEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdEndTransformFeedbackEXT;
     }
     if (!strcmp(name, "vkCmdBeginQueryIndexedEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdBeginQueryIndexedEXT;
     }
     if (!strcmp(name, "vkCmdEndQueryIndexedEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdEndQueryIndexedEXT;
     }
     if (!strcmp(name, "vkCmdDrawIndirectByteCountEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdDrawIndirectByteCountEXT;
     }
 #endif
 #ifdef VK_NVX_binary_import
     if (!strcmp(name, "vkCreateCuModuleNVX"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCreateCuModuleNVX;
     }
     if (!strcmp(name, "vkCreateCuFunctionNVX"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCreateCuFunctionNVX;
     }
     if (!strcmp(name, "vkDestroyCuModuleNVX"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkDestroyCuModuleNVX;
     }
     if (!strcmp(name, "vkDestroyCuFunctionNVX"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkDestroyCuFunctionNVX;
     }
     if (!strcmp(name, "vkCmdCuLaunchKernelNVX"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdCuLaunchKernelNVX;
     }
 #endif
 #ifdef VK_NVX_image_view_handle
     if (!strcmp(name, "vkGetImageViewHandleNVX"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetImageViewHandleNVX;
     }
     if (!strcmp(name, "vkGetImageViewAddressNVX"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetImageViewAddressNVX;
     }
 #endif
 #ifdef VK_AMD_draw_indirect_count
     if (!strcmp(name, "vkCmdDrawIndirectCountAMD"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdDrawIndirectCountAMD;
     }
     if (!strcmp(name, "vkCmdDrawIndexedIndirectCountAMD"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdDrawIndexedIndirectCountAMD;
     }
 #endif
 #ifdef VK_AMD_shader_info
     if (!strcmp(name, "vkGetShaderInfoAMD"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetShaderInfoAMD;
     }
 #endif
@@ -14604,6 +14713,7 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_NV_external_memory_win32
     if (!strcmp(name, "vkGetMemoryWin32HandleNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetMemoryWin32HandleNV;
     }
 #endif
@@ -14617,16 +14727,19 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_EXT_conditional_rendering
     if (!strcmp(name, "vkCmdBeginConditionalRenderingEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdBeginConditionalRenderingEXT;
     }
     if (!strcmp(name, "vkCmdEndConditionalRenderingEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdEndConditionalRenderingEXT;
     }
 #endif
 #ifdef VK_NV_clip_space_w_scaling
     if (!strcmp(name, "vkCmdSetViewportWScalingNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetViewportWScalingNV;
     }
 #endif
@@ -14659,40 +14772,48 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_EXT_display_control
     if (!strcmp(name, "vkDisplayPowerControlEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkDisplayPowerControlEXT;
     }
     if (!strcmp(name, "vkRegisterDeviceEventEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkRegisterDeviceEventEXT;
     }
     if (!strcmp(name, "vkRegisterDisplayEventEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkRegisterDisplayEventEXT;
     }
     if (!strcmp(name, "vkGetSwapchainCounterEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetSwapchainCounterEXT;
     }
 #endif
 #ifdef VK_GOOGLE_display_timing
     if (!strcmp(name, "vkGetRefreshCycleDurationGOOGLE"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetRefreshCycleDurationGOOGLE;
     }
     if (!strcmp(name, "vkGetPastPresentationTimingGOOGLE"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetPastPresentationTimingGOOGLE;
     }
 #endif
 #ifdef VK_EXT_discard_rectangles
     if (!strcmp(name, "vkCmdSetDiscardRectangleEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetDiscardRectangleEXT;
     }
 #endif
 #ifdef VK_EXT_hdr_metadata
     if (!strcmp(name, "vkSetHdrMetadataEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkSetHdrMetadataEXT;
     }
 #endif
@@ -14745,11 +14866,13 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_EXT_debug_utils
     if (!strcmp(name, "vkSetDebugUtilsObjectNameEXT"))
     {
-        return (void*)dynCheck_entry_vkSetDebugUtilsObjectNameEXT;
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)dynCheck_entry_vkSetDebugUtilsObjectNameEXT : nullptr;
     }
     if (!strcmp(name, "vkSetDebugUtilsObjectTagEXT"))
     {
-        return (void*)dynCheck_entry_vkSetDebugUtilsObjectTagEXT;
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_debug_utils");
+        return hasExt ? (void*)dynCheck_entry_vkSetDebugUtilsObjectTagEXT : nullptr;
     }
     if (!strcmp(name, "vkQueueBeginDebugUtilsLabelEXT"))
     {
@@ -14800,212 +14923,253 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_ANDROID_external_memory_android_hardware_buffer
     if (!strcmp(name, "vkGetAndroidHardwareBufferPropertiesANDROID"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetAndroidHardwareBufferPropertiesANDROID;
     }
     if (!strcmp(name, "vkGetMemoryAndroidHardwareBufferANDROID"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetMemoryAndroidHardwareBufferANDROID;
     }
 #endif
 #ifdef VK_EXT_sample_locations
     if (!strcmp(name, "vkCmdSetSampleLocationsEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetSampleLocationsEXT;
     }
     if (!strcmp(name, "vkGetPhysicalDeviceMultisamplePropertiesEXT"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_sample_locations");
-        return hasExt ? (void*)entry_vkGetPhysicalDeviceMultisamplePropertiesEXT : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceMultisamplePropertiesEXT;
     }
 #endif
 #ifdef VK_EXT_image_drm_format_modifier
     if (!strcmp(name, "vkGetImageDrmFormatModifierPropertiesEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetImageDrmFormatModifierPropertiesEXT;
     }
 #endif
 #ifdef VK_EXT_validation_cache
     if (!strcmp(name, "vkCreateValidationCacheEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCreateValidationCacheEXT;
     }
     if (!strcmp(name, "vkDestroyValidationCacheEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkDestroyValidationCacheEXT;
     }
     if (!strcmp(name, "vkMergeValidationCachesEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkMergeValidationCachesEXT;
     }
     if (!strcmp(name, "vkGetValidationCacheDataEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetValidationCacheDataEXT;
     }
 #endif
 #ifdef VK_NV_shading_rate_image
     if (!strcmp(name, "vkCmdBindShadingRateImageNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdBindShadingRateImageNV;
     }
     if (!strcmp(name, "vkCmdSetViewportShadingRatePaletteNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetViewportShadingRatePaletteNV;
     }
     if (!strcmp(name, "vkCmdSetCoarseSampleOrderNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetCoarseSampleOrderNV;
     }
 #endif
 #ifdef VK_NV_ray_tracing
     if (!strcmp(name, "vkCreateAccelerationStructureNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCreateAccelerationStructureNV;
     }
     if (!strcmp(name, "vkDestroyAccelerationStructureNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkDestroyAccelerationStructureNV;
     }
     if (!strcmp(name, "vkGetAccelerationStructureMemoryRequirementsNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetAccelerationStructureMemoryRequirementsNV;
     }
     if (!strcmp(name, "vkBindAccelerationStructureMemoryNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkBindAccelerationStructureMemoryNV;
     }
     if (!strcmp(name, "vkCmdBuildAccelerationStructureNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdBuildAccelerationStructureNV;
     }
     if (!strcmp(name, "vkCmdCopyAccelerationStructureNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdCopyAccelerationStructureNV;
     }
     if (!strcmp(name, "vkCmdTraceRaysNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdTraceRaysNV;
     }
     if (!strcmp(name, "vkCreateRayTracingPipelinesNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCreateRayTracingPipelinesNV;
     }
     if (!strcmp(name, "vkGetRayTracingShaderGroupHandlesKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetRayTracingShaderGroupHandlesKHR;
     }
     if (!strcmp(name, "vkGetRayTracingShaderGroupHandlesNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetRayTracingShaderGroupHandlesNV;
     }
     if (!strcmp(name, "vkGetAccelerationStructureHandleNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetAccelerationStructureHandleNV;
     }
     if (!strcmp(name, "vkCmdWriteAccelerationStructuresPropertiesNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdWriteAccelerationStructuresPropertiesNV;
     }
     if (!strcmp(name, "vkCompileDeferredNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCompileDeferredNV;
     }
 #endif
 #ifdef VK_EXT_external_memory_host
     if (!strcmp(name, "vkGetMemoryHostPointerPropertiesEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetMemoryHostPointerPropertiesEXT;
     }
 #endif
 #ifdef VK_AMD_buffer_marker
     if (!strcmp(name, "vkCmdWriteBufferMarkerAMD"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdWriteBufferMarkerAMD;
     }
 #endif
 #ifdef VK_EXT_calibrated_timestamps
     if (!strcmp(name, "vkGetPhysicalDeviceCalibrateableTimeDomainsEXT"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_calibrated_timestamps");
-        return hasExt ? (void*)entry_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT;
     }
     if (!strcmp(name, "vkGetCalibratedTimestampsEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetCalibratedTimestampsEXT;
     }
 #endif
 #ifdef VK_NV_mesh_shader
     if (!strcmp(name, "vkCmdDrawMeshTasksNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdDrawMeshTasksNV;
     }
     if (!strcmp(name, "vkCmdDrawMeshTasksIndirectNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdDrawMeshTasksIndirectNV;
     }
     if (!strcmp(name, "vkCmdDrawMeshTasksIndirectCountNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdDrawMeshTasksIndirectCountNV;
     }
 #endif
 #ifdef VK_NV_scissor_exclusive
     if (!strcmp(name, "vkCmdSetExclusiveScissorNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetExclusiveScissorNV;
     }
 #endif
 #ifdef VK_NV_device_diagnostic_checkpoints
     if (!strcmp(name, "vkCmdSetCheckpointNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetCheckpointNV;
     }
     if (!strcmp(name, "vkGetQueueCheckpointDataNV"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_NV_device_diagnostic_checkpoints");
-        return hasExt ? (void*)entry_vkGetQueueCheckpointDataNV : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetQueueCheckpointDataNV;
     }
 #endif
 #ifdef VK_INTEL_performance_query
     if (!strcmp(name, "vkInitializePerformanceApiINTEL"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkInitializePerformanceApiINTEL;
     }
     if (!strcmp(name, "vkUninitializePerformanceApiINTEL"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkUninitializePerformanceApiINTEL;
     }
     if (!strcmp(name, "vkCmdSetPerformanceMarkerINTEL"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetPerformanceMarkerINTEL;
     }
     if (!strcmp(name, "vkCmdSetPerformanceStreamMarkerINTEL"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetPerformanceStreamMarkerINTEL;
     }
     if (!strcmp(name, "vkCmdSetPerformanceOverrideINTEL"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetPerformanceOverrideINTEL;
     }
     if (!strcmp(name, "vkAcquirePerformanceConfigurationINTEL"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkAcquirePerformanceConfigurationINTEL;
     }
     if (!strcmp(name, "vkReleasePerformanceConfigurationINTEL"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkReleasePerformanceConfigurationINTEL;
     }
     if (!strcmp(name, "vkQueueSetPerformanceConfigurationINTEL"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_INTEL_performance_query");
-        return hasExt ? (void*)entry_vkQueueSetPerformanceConfigurationINTEL : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkQueueSetPerformanceConfigurationINTEL;
     }
     if (!strcmp(name, "vkGetPerformanceParameterINTEL"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetPerformanceParameterINTEL;
     }
 #endif
 #ifdef VK_AMD_display_native_hdr
     if (!strcmp(name, "vkSetLocalDimmingAMD"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkSetLocalDimmingAMD;
     }
 #endif
@@ -15026,46 +15190,50 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_EXT_buffer_device_address
     if (!strcmp(name, "vkGetBufferDeviceAddressEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetBufferDeviceAddressEXT;
     }
 #endif
 #ifdef VK_EXT_tooling_info
     if (!strcmp(name, "vkGetPhysicalDeviceToolPropertiesEXT"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_tooling_info");
-        return hasExt ? (void*)entry_vkGetPhysicalDeviceToolPropertiesEXT : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceToolPropertiesEXT;
     }
 #endif
 #ifdef VK_NV_cooperative_matrix
     if (!strcmp(name, "vkGetPhysicalDeviceCooperativeMatrixPropertiesNV"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_NV_cooperative_matrix");
-        return hasExt ? (void*)entry_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
     }
 #endif
 #ifdef VK_NV_coverage_reduction_mode
     if (!strcmp(name, "vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_NV_coverage_reduction_mode");
-        return hasExt ? (void*)entry_vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV;
     }
 #endif
 #ifdef VK_EXT_full_screen_exclusive
     if (!strcmp(name, "vkGetPhysicalDeviceSurfacePresentModes2EXT"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_EXT_full_screen_exclusive");
-        return hasExt ? (void*)entry_vkGetPhysicalDeviceSurfacePresentModes2EXT : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetPhysicalDeviceSurfacePresentModes2EXT;
     }
     if (!strcmp(name, "vkAcquireFullScreenExclusiveModeEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkAcquireFullScreenExclusiveModeEXT;
     }
     if (!strcmp(name, "vkReleaseFullScreenExclusiveModeEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkReleaseFullScreenExclusiveModeEXT;
     }
     if (!strcmp(name, "vkGetDeviceGroupSurfacePresentModes2EXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetDeviceGroupSurfacePresentModes2EXT;
     }
 #endif
@@ -15079,88 +15247,108 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_EXT_line_rasterization
     if (!strcmp(name, "vkCmdSetLineStippleEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetLineStippleEXT;
     }
 #endif
 #ifdef VK_EXT_host_query_reset
     if (!strcmp(name, "vkResetQueryPoolEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkResetQueryPoolEXT;
     }
 #endif
 #ifdef VK_EXT_extended_dynamic_state
     if (!strcmp(name, "vkCmdSetCullModeEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetCullModeEXT;
     }
     if (!strcmp(name, "vkCmdSetFrontFaceEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetFrontFaceEXT;
     }
     if (!strcmp(name, "vkCmdSetPrimitiveTopologyEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetPrimitiveTopologyEXT;
     }
     if (!strcmp(name, "vkCmdSetViewportWithCountEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetViewportWithCountEXT;
     }
     if (!strcmp(name, "vkCmdSetScissorWithCountEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetScissorWithCountEXT;
     }
     if (!strcmp(name, "vkCmdBindVertexBuffers2EXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdBindVertexBuffers2EXT;
     }
     if (!strcmp(name, "vkCmdSetDepthTestEnableEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetDepthTestEnableEXT;
     }
     if (!strcmp(name, "vkCmdSetDepthWriteEnableEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetDepthWriteEnableEXT;
     }
     if (!strcmp(name, "vkCmdSetDepthCompareOpEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetDepthCompareOpEXT;
     }
     if (!strcmp(name, "vkCmdSetDepthBoundsTestEnableEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetDepthBoundsTestEnableEXT;
     }
     if (!strcmp(name, "vkCmdSetStencilTestEnableEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetStencilTestEnableEXT;
     }
     if (!strcmp(name, "vkCmdSetStencilOpEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetStencilOpEXT;
     }
 #endif
 #ifdef VK_NV_device_generated_commands
     if (!strcmp(name, "vkGetGeneratedCommandsMemoryRequirementsNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetGeneratedCommandsMemoryRequirementsNV;
     }
     if (!strcmp(name, "vkCmdPreprocessGeneratedCommandsNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdPreprocessGeneratedCommandsNV;
     }
     if (!strcmp(name, "vkCmdExecuteGeneratedCommandsNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdExecuteGeneratedCommandsNV;
     }
     if (!strcmp(name, "vkCmdBindPipelineShaderGroupNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdBindPipelineShaderGroupNV;
     }
     if (!strcmp(name, "vkCreateIndirectCommandsLayoutNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCreateIndirectCommandsLayoutNV;
     }
     if (!strcmp(name, "vkDestroyIndirectCommandsLayoutNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkDestroyIndirectCommandsLayoutNV;
     }
 #endif
@@ -15179,37 +15367,42 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_EXT_private_data
     if (!strcmp(name, "vkCreatePrivateDataSlotEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCreatePrivateDataSlotEXT;
     }
     if (!strcmp(name, "vkDestroyPrivateDataSlotEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkDestroyPrivateDataSlotEXT;
     }
     if (!strcmp(name, "vkSetPrivateDataEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkSetPrivateDataEXT;
     }
     if (!strcmp(name, "vkGetPrivateDataEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetPrivateDataEXT;
     }
 #endif
 #ifdef VK_NV_fragment_shading_rate_enums
     if (!strcmp(name, "vkCmdSetFragmentShadingRateEnumNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetFragmentShadingRateEnumNV;
     }
 #endif
 #ifdef VK_NV_acquire_winrt_display
     if (!strcmp(name, "vkAcquireWinrtDisplayNV"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_NV_acquire_winrt_display");
-        return hasExt ? (void*)entry_vkAcquireWinrtDisplayNV : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkAcquireWinrtDisplayNV;
     }
     if (!strcmp(name, "vkGetWinrtDisplayNV"))
     {
-        bool hasExt = resources->hasInstanceExtension(instance, "VK_NV_acquire_winrt_display");
-        return hasExt ? (void*)entry_vkGetWinrtDisplayNV : nullptr;
+        // TODO(b/236246382): Check support for device extension;
+        return (void*)entry_vkGetWinrtDisplayNV;
     }
 #endif
 #ifdef VK_EXT_directfb_surface
@@ -15227,92 +15420,111 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_EXT_vertex_input_dynamic_state
     if (!strcmp(name, "vkCmdSetVertexInputEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetVertexInputEXT;
     }
 #endif
 #ifdef VK_FUCHSIA_external_memory
     if (!strcmp(name, "vkGetMemoryZirconHandleFUCHSIA"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetMemoryZirconHandleFUCHSIA;
     }
     if (!strcmp(name, "vkGetMemoryZirconHandlePropertiesFUCHSIA"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetMemoryZirconHandlePropertiesFUCHSIA;
     }
 #endif
 #ifdef VK_FUCHSIA_external_semaphore
     if (!strcmp(name, "vkImportSemaphoreZirconHandleFUCHSIA"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkImportSemaphoreZirconHandleFUCHSIA;
     }
     if (!strcmp(name, "vkGetSemaphoreZirconHandleFUCHSIA"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetSemaphoreZirconHandleFUCHSIA;
     }
 #endif
 #ifdef VK_FUCHSIA_buffer_collection
     if (!strcmp(name, "vkCreateBufferCollectionFUCHSIA"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCreateBufferCollectionFUCHSIA;
     }
     if (!strcmp(name, "vkSetBufferCollectionImageConstraintsFUCHSIA"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkSetBufferCollectionImageConstraintsFUCHSIA;
     }
     if (!strcmp(name, "vkSetBufferCollectionBufferConstraintsFUCHSIA"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkSetBufferCollectionBufferConstraintsFUCHSIA;
     }
     if (!strcmp(name, "vkDestroyBufferCollectionFUCHSIA"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkDestroyBufferCollectionFUCHSIA;
     }
     if (!strcmp(name, "vkGetBufferCollectionPropertiesFUCHSIA"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetBufferCollectionPropertiesFUCHSIA;
     }
 #endif
 #ifdef VK_HUAWEI_subpass_shading
     if (!strcmp(name, "vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI;
     }
     if (!strcmp(name, "vkCmdSubpassShadingHUAWEI"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSubpassShadingHUAWEI;
     }
 #endif
 #ifdef VK_HUAWEI_invocation_mask
     if (!strcmp(name, "vkCmdBindInvocationMaskHUAWEI"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdBindInvocationMaskHUAWEI;
     }
 #endif
 #ifdef VK_NV_external_memory_rdma
     if (!strcmp(name, "vkGetMemoryRemoteAddressNV"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetMemoryRemoteAddressNV;
     }
 #endif
 #ifdef VK_EXT_extended_dynamic_state2
     if (!strcmp(name, "vkCmdSetPatchControlPointsEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetPatchControlPointsEXT;
     }
     if (!strcmp(name, "vkCmdSetRasterizerDiscardEnableEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetRasterizerDiscardEnableEXT;
     }
     if (!strcmp(name, "vkCmdSetDepthBiasEnableEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetDepthBiasEnableEXT;
     }
     if (!strcmp(name, "vkCmdSetLogicOpEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetLogicOpEXT;
     }
     if (!strcmp(name, "vkCmdSetPrimitiveRestartEnableEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetPrimitiveRestartEnableEXT;
     }
 #endif
@@ -15331,25 +15543,30 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_EXT_color_write_enable
     if (!strcmp(name, "vkCmdSetColorWriteEnableEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetColorWriteEnableEXT;
     }
 #endif
 #ifdef VK_GOOGLE_gfxstream
     if (!strcmp(name, "vkRegisterImageColorBufferGOOGLE"))
     {
-        return (void*)dynCheck_entry_vkRegisterImageColorBufferGOOGLE;
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)dynCheck_entry_vkRegisterImageColorBufferGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkRegisterBufferColorBufferGOOGLE"))
     {
-        return (void*)dynCheck_entry_vkRegisterBufferColorBufferGOOGLE;
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)dynCheck_entry_vkRegisterBufferColorBufferGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkMapMemoryIntoAddressSpaceGOOGLE"))
     {
-        return (void*)dynCheck_entry_vkMapMemoryIntoAddressSpaceGOOGLE;
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)dynCheck_entry_vkMapMemoryIntoAddressSpaceGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkUpdateDescriptorSetWithTemplateSizedGOOGLE"))
     {
-        return (void*)dynCheck_entry_vkUpdateDescriptorSetWithTemplateSizedGOOGLE;
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)dynCheck_entry_vkUpdateDescriptorSetWithTemplateSizedGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkBeginCommandBufferAsyncGOOGLE"))
     {
@@ -15373,19 +15590,23 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     }
     if (!strcmp(name, "vkCreateImageWithRequirementsGOOGLE"))
     {
-        return (void*)dynCheck_entry_vkCreateImageWithRequirementsGOOGLE;
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)dynCheck_entry_vkCreateImageWithRequirementsGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkCreateBufferWithRequirementsGOOGLE"))
     {
-        return (void*)dynCheck_entry_vkCreateBufferWithRequirementsGOOGLE;
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)dynCheck_entry_vkCreateBufferWithRequirementsGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkGetMemoryHostAddressInfoGOOGLE"))
     {
-        return (void*)dynCheck_entry_vkGetMemoryHostAddressInfoGOOGLE;
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)dynCheck_entry_vkGetMemoryHostAddressInfoGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkFreeMemorySyncGOOGLE"))
     {
-        return (void*)dynCheck_entry_vkFreeMemorySyncGOOGLE;
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)dynCheck_entry_vkFreeMemorySyncGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkQueueHostSyncGOOGLE"))
     {
@@ -15409,11 +15630,13 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     }
     if (!strcmp(name, "vkGetLinearImageLayoutGOOGLE"))
     {
-        return (void*)dynCheck_entry_vkGetLinearImageLayoutGOOGLE;
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)dynCheck_entry_vkGetLinearImageLayoutGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkGetLinearImageLayout2GOOGLE"))
     {
-        return (void*)dynCheck_entry_vkGetLinearImageLayout2GOOGLE;
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)dynCheck_entry_vkGetLinearImageLayout2GOOGLE : nullptr;
     }
     if (!strcmp(name, "vkQueueFlushCommandsGOOGLE"))
     {
@@ -15427,7 +15650,8 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     }
     if (!strcmp(name, "vkCollectDescriptorPoolIdsGOOGLE"))
     {
-        return (void*)dynCheck_entry_vkCollectDescriptorPoolIdsGOOGLE;
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)dynCheck_entry_vkCollectDescriptorPoolIdsGOOGLE : nullptr;
     }
     if (!strcmp(name, "vkQueueSignalReleaseImageANDROIDAsyncGOOGLE"))
     {
@@ -15438,108 +15662,133 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
 #ifdef VK_EXT_multi_draw
     if (!strcmp(name, "vkCmdDrawMultiEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdDrawMultiEXT;
     }
     if (!strcmp(name, "vkCmdDrawMultiIndexedEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdDrawMultiIndexedEXT;
     }
 #endif
 #ifdef VK_EXT_pageable_device_local_memory
     if (!strcmp(name, "vkSetDeviceMemoryPriorityEXT"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkSetDeviceMemoryPriorityEXT;
     }
 #endif
 #ifdef VK_KHR_acceleration_structure
     if (!strcmp(name, "vkCreateAccelerationStructureKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCreateAccelerationStructureKHR;
     }
     if (!strcmp(name, "vkDestroyAccelerationStructureKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkDestroyAccelerationStructureKHR;
     }
     if (!strcmp(name, "vkCmdBuildAccelerationStructuresKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdBuildAccelerationStructuresKHR;
     }
     if (!strcmp(name, "vkCmdBuildAccelerationStructuresIndirectKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdBuildAccelerationStructuresIndirectKHR;
     }
     if (!strcmp(name, "vkBuildAccelerationStructuresKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkBuildAccelerationStructuresKHR;
     }
     if (!strcmp(name, "vkCopyAccelerationStructureKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCopyAccelerationStructureKHR;
     }
     if (!strcmp(name, "vkCopyAccelerationStructureToMemoryKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCopyAccelerationStructureToMemoryKHR;
     }
     if (!strcmp(name, "vkCopyMemoryToAccelerationStructureKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCopyMemoryToAccelerationStructureKHR;
     }
     if (!strcmp(name, "vkWriteAccelerationStructuresPropertiesKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkWriteAccelerationStructuresPropertiesKHR;
     }
     if (!strcmp(name, "vkCmdCopyAccelerationStructureKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdCopyAccelerationStructureKHR;
     }
     if (!strcmp(name, "vkCmdCopyAccelerationStructureToMemoryKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdCopyAccelerationStructureToMemoryKHR;
     }
     if (!strcmp(name, "vkCmdCopyMemoryToAccelerationStructureKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdCopyMemoryToAccelerationStructureKHR;
     }
     if (!strcmp(name, "vkGetAccelerationStructureDeviceAddressKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetAccelerationStructureDeviceAddressKHR;
     }
     if (!strcmp(name, "vkCmdWriteAccelerationStructuresPropertiesKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdWriteAccelerationStructuresPropertiesKHR;
     }
     if (!strcmp(name, "vkGetDeviceAccelerationStructureCompatibilityKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetDeviceAccelerationStructureCompatibilityKHR;
     }
     if (!strcmp(name, "vkGetAccelerationStructureBuildSizesKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetAccelerationStructureBuildSizesKHR;
     }
 #endif
 #ifdef VK_KHR_ray_tracing_pipeline
     if (!strcmp(name, "vkCmdTraceRaysKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdTraceRaysKHR;
     }
     if (!strcmp(name, "vkCreateRayTracingPipelinesKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCreateRayTracingPipelinesKHR;
     }
     if (!strcmp(name, "vkGetRayTracingCaptureReplayShaderGroupHandlesKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetRayTracingCaptureReplayShaderGroupHandlesKHR;
     }
     if (!strcmp(name, "vkCmdTraceRaysIndirectKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdTraceRaysIndirectKHR;
     }
     if (!strcmp(name, "vkGetRayTracingShaderGroupStackSizeKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkGetRayTracingShaderGroupStackSizeKHR;
     }
     if (!strcmp(name, "vkCmdSetRayTracingPipelineStackSizeKHR"))
     {
+        // TODO(b/236246382): Check support for device extension;
         return (void*)dynCheck_entry_vkCmdSetRayTracingPipelineStackSizeKHR;
     }
 #endif
