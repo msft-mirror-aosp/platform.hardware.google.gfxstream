@@ -1448,7 +1448,8 @@ static void entry_vkCmdPipelineBarrier(
 {
     AEMU_SCOPED_TRACE("vkCmdPipelineBarrier");
     auto vkEnc = ResourceTracker::getCommandBufferEncoder(commandBuffer);
-    vkEnc->vkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers, true /* do lock */);
+    auto resources = ResourceTracker::get();
+    resources->on_vkCmdPipelineBarrier(vkEnc, commandBuffer, srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
 }
 static void entry_vkCmdBeginQuery(
     VkCommandBuffer commandBuffer,
