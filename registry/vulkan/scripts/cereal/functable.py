@@ -71,6 +71,7 @@ RESOURCE_TRACKER_ENTRIES = [
     "vkAllocateCommandBuffers",
     "vkQueueSignalReleaseImageANDROID",
     "vkCmdPipelineBarrier",
+    "vkCreateGraphicsPipelines",
 ]
 
 SUCCESS_VAL = {
