@@ -168,16 +168,21 @@ shared_library("libvulkan_goldfish") {
       "//sdk/fidl/fuchsia.hardware.goldfish:fuchsia.hardware.goldfish_llcpp",
       "//sdk/fidl/fuchsia.logger:fuchsia.logger_llcpp",
       "//sdk/fidl/fuchsia.sysmem:fuchsia.sysmem_llcpp",
-      "//sdk/lib/fdio",
       "//src/zircon/lib/zircon",
       "//zircon/public/lib/async-cpp",
       "//zircon/public/lib/zx",
-      "//zircon/system/ulib/async-default",
       "//zircon/system/ulib/async-loop:async-loop-cpp",
       "//zircon/system/ulib/syslog:syslog-static",
       "//zircon/system/ulib/trace:trace-with-static-engine",
       "//zircon/system/ulib/trace-provider:trace-provider-with-static-engine",
       "//zircon/system/ulib/zxio",
+    ]
+
+    # Vulkan ICDs on Fuchsia are only allowed to depend on (parts of) libc
+    # and libzircon, and no other shared libraries.
+    assert_no_deps = [
+      "//sdk/lib/fdio",
+      "//zircon/system/ulib/async-default",
     ]
 
     defines += [
