@@ -673,6 +673,7 @@ void AddressSpaceStream::notifyAvailable() {
     AEMU_SCOPED_TRACE("PING");
     struct address_space_ping request;
     request.metadata = ASG_NOTIFY_AVAILABLE;
+    request.threadID = m_threadID;
     m_ops.ping(m_handle, &request);
     ++m_notifs;
 }
