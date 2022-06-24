@@ -63,6 +63,10 @@ public:
 #endif
     }
 
+    void setThreadID(uint32_t id) {
+        m_threadID = id;
+    }
+
 private:
     bool isInError() const;
     ssize_t speculativeRead(unsigned char* readBuffer, size_t trySize);
@@ -109,6 +113,7 @@ private:
     uint64_t m_backoffFactor;
 
     size_t m_ringStorageSize;
+    uint32_t m_threadID = 0;
 };
 
 #endif
