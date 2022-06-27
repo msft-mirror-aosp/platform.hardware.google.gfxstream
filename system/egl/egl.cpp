@@ -337,7 +337,7 @@ struct app_time_metric_t {
             float avgMs = ns2ms(totalAppTime) / numSamples;
             float minMs = ns2ms(minAppTime);
             float maxMs = ns2ms(maxAppTime);
-            ALOGD("app_time_stats: avg=%0.2fms min=%0.2fms max=%0.2fms count=%u", avgMs, minMs, maxMs, numSamples);
+            DPRINT("app_time_stats: avg=%0.2fms min=%0.2fms max=%0.2fms count=%u", avgMs, minMs, maxMs, numSamples);
             totalAppTime = 0;
             minAppTime = 0;
             maxAppTime = 0;
@@ -1250,7 +1250,7 @@ EGLBoolean eglGetConfigAttrib(EGLDisplay dpy, EGLConfig config, EGLint attribute
     }
     else
     {
-        ALOGD("%s: bad attrib 0x%x", __FUNCTION__, attribute);
+        DPRINT("%s: bad attrib 0x%x", __FUNCTION__, attribute);
         RETURN_ERROR(EGL_FALSE, EGL_BAD_ATTRIBUTE);
     }
 }
@@ -1628,7 +1628,7 @@ EGLBoolean eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute
         }
         return true;
     case EGL_TIMESTAMPS_ANDROID:
-        ALOGD("%s: set frame timestamps collecting %d\n", __func__, value);
+        DPRINT("%s: set frame timestamps collecting %d\n", __func__, value);
         p_surface->setCollectingTimestamps(value);
         return true;
     default:
@@ -1850,7 +1850,7 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
     }
 
     EGLContext_t * context = new EGLContext_t(dpy, config, shareCtx, majorVersion, minorVersion);
-    ALOGD("%s: %p: maj %d min %d rcv %d", __FUNCTION__, context, majorVersion, minorVersion, rcMajorVersion);
+    DPRINT("%s: %p: maj %d min %d rcv %d", __FUNCTION__, context, majorVersion, minorVersion, rcMajorVersion);
     if (!context) {
         ALOGE("could not alloc egl context!");
         setErrorReturn(EGL_BAD_ALLOC, EGL_NO_CONTEXT);
@@ -1959,7 +1959,7 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
             context->getClientState();
 
         if (!hostCon->gl2Encoder()->isInitialized()) {
-            ALOGD("%s: %p: ver %d %d (tinfo %p) (first time)",
+            DPRINT("%s: %p: ver %d %d (tinfo %p) (first time)",
                   __FUNCTION__,
                   context, context->majorVersion, context->minorVersion, tInfo);
             s_display.gles2_iface()->init();
@@ -2049,7 +2049,7 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
         }
         else {
             if (!hostCon->glEncoder()->isInitialized()) {
-                ALOGD("%s: %p: ver %d %d (tinfo %p) (first time)",
+                DPRINT("%s: %p: ver %d %d (tinfo %p) (first time)",
                       __FUNCTION__,
                       context, context->majorVersion, context->minorVersion, tInfo);
                 s_display.gles_iface()->init();
