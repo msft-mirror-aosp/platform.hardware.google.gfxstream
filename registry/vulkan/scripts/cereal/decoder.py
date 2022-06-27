@@ -623,6 +623,13 @@ custom_decodes = {
 
     "vkUpdateDescriptorSets" : emit_global_state_wrapped_decoding,
 
+    "vkCreateShaderModule": emit_global_state_wrapped_decoding,
+    "vkDestroyShaderModule": emit_global_state_wrapped_decoding,
+    "vkCreatePipelineCache": emit_global_state_wrapped_decoding,
+    "vkDestroyPipelineCache": emit_global_state_wrapped_decoding,
+    "vkCreateGraphicsPipelines": emit_global_state_wrapped_decoding,
+    "vkDestroyPipeline": emit_global_state_wrapped_decoding,
+
     "vkAllocateMemory" : emit_global_state_wrapped_decoding,
     "vkFreeMemory" : emit_global_state_wrapped_decoding,
     "vkMapMemory" : emit_global_state_wrapped_decoding,
@@ -646,6 +653,9 @@ custom_decodes = {
     "vkCmdBindDescriptorSets" : emit_global_state_wrapped_decoding,
 
     "vkCreateRenderPass" : emit_global_state_wrapped_decoding,
+    "vkDestroyRenderPass" : emit_global_state_wrapped_decoding,
+    "vkCreateFramebuffer" : emit_global_state_wrapped_decoding,
+    "vkDestroyFramebuffer" : emit_global_state_wrapped_decoding,
 
     # VK_ANDROID_native_buffer
     "vkGetSwapchainGrallocUsageANDROID" : emit_global_state_wrapped_decoding,
