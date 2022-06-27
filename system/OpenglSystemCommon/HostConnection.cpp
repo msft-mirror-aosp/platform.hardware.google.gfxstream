@@ -21,6 +21,14 @@
 #include "android/base/Tracing.h"
 #endif
 
+#define DEBUG_HOSTCONNECTION 0
+
+#if DEBUG_HOSTCONNECTION
+#define DPRINT(fmt,...) ALOGD("%s: " fmt, __FUNCTION__, ##__VA_ARGS__);
+#else
+#define DPRINT(...)
+#endif
+
 #ifdef GOLDFISH_NO_GL
 struct gl_client_context_t {
     int placeholder;
@@ -201,7 +209,7 @@ public:
         uint32_t bpp = 0;
         switch (glformat) {
             case kGlRGB:
-                ALOGD("Note: egl wanted GL_RGB, still using RGBA");
+                DPRINT("Note: egl wanted GL_RGB, still using RGBA");
                 virtgpu_format = kVirglFormatRGBA;
                 bpp = 4;
                 break;
@@ -210,7 +218,7 @@ public:
                 bpp = 4;
                 break;
             default:
-                ALOGD("Note: egl wanted 0x%x, still using RGBA", glformat);
+                DPRINT("Note: egl wanted 0x%x, still using RGBA", glformat);
                 virtgpu_format = kVirglFormatRGBA;
                 bpp = 4;
                 break;
@@ -618,10 +626,8 @@ std::unique_ptr<HostConnection> HostConnection::connect(uint32_t capset_id) {
     *pClientFlags = 0;
     con->m_stream->commitBuffer(sizeof(unsigned int));
 
-    ALOGD("HostConnection::get() New Host Connection established %p, tid %d\n",
+    DPRINT("HostConnection::get() New Host Connection established %p, tid %d\n",
           con.get(), getCurrentThreadId());
-
-    // ALOGD("Address space echo latency check done\n");
     return con;
 }
 
@@ -667,7 +673,7 @@ void HostConnection::exitUnclean() {
 
 // static
 std::unique_ptr<HostConnection> HostConnection::createUnique(uint32_t capset_id) {
-    ALOGD("%s: call\n", __func__);
+    DPRINT("%s: call\n", __func__);
     return connect(capset_id);
 }
 
@@ -800,7 +806,7 @@ const std::string& HostConnection::queryGLExtensions(ExtendedRCEncoderContext *r
 
 void HostConnection::queryAndSetHostCompositionImpl(ExtendedRCEncoderContext *rcEnc) {
     const std::string& glExtensions = queryGLExtensions(rcEnc);
-    ALOGD("HostComposition ext %s", glExtensions.c_str());
+    DPRINT("HostComposition ext %s", glExtensions.c_str());
     // make sure V2 is checked first before V1, as host may declare supporting both
     if (glExtensions.find(kHostCompositionV2) != std::string::npos) {
         rcEnc->setHostComposition(HOST_COMPOSITION_V2);
