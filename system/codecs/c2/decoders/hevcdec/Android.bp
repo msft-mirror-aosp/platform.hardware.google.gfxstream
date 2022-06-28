@@ -8,15 +8,15 @@ package {
 }
 
 cc_library_shared {
-    name: "libcodec2_goldfish_avcdec",
+    name: "libcodec2_goldfish_hevcdec",
     vendor: true,
     defaults: [
         "libcodec2_goldfish-defaults",
     ],
 
-    srcs: ["C2GoldfishAvcDec.cpp",
-        "GoldfishH264Helper.cpp",
-        "MediaH264Decoder.cpp",
+    srcs: ["C2GoldfishHevcDec.cpp",
+        "GoldfishHevcHelper.cpp",
+        "MediaHevcDecoder.cpp",
     ],
 
     shared_libs: [
@@ -29,6 +29,8 @@ cc_library_shared {
     "libgralloc_cb.ranchu",
     ],
 
-   static_libs: ["libavcdec",
+   static_libs: ["libhevcdec",
    ],
+
 }
+
