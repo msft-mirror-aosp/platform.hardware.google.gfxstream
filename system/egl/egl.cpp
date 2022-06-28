@@ -337,7 +337,8 @@ struct app_time_metric_t {
             float avgMs = ns2ms(totalAppTime) / numSamples;
             float minMs = ns2ms(minAppTime);
             float maxMs = ns2ms(maxAppTime);
-            DPRINT("app_time_stats: avg=%0.2fms min=%0.2fms max=%0.2fms count=%u", avgMs, minMs, maxMs, numSamples);
+            // B* needs the following log.
+            ALOGD("app_time_stats: avg=%0.2fms min=%0.2fms max=%0.2fms count=%u", avgMs, minMs, maxMs, numSamples);
             totalAppTime = 0;
             minAppTime = 0;
             maxAppTime = 0;
