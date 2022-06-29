@@ -20,7 +20,7 @@ export VK_CEREAL_GUEST_HAL_DIR=$AOSP_DIR/device/generic/goldfish-opengl/system/v
 export VK_CEREAL_HOST_DECODER_DIR=$AOSP_DIR/device/generic/vulkan-cereal/stream-servers/vulkan
 export VK_CEREAL_HOST_INCLUDE_DIR=$AOSP_DIR/device/generic/vulkan-cereal/stream-servers
 export VK_CEREAL_BASELIB_PREFIX=base
-export VK_CEREAL_BASELIB_LINKNAME=gfxstream-base
+export VK_CEREAL_BASELIB_LINKNAME=gfxstream-base.headers
 
 VK_CEREAL_OUTPUT_DIR=$VK_CEREAL_HOST_DECODER_DIR/cereal
 mkdir -p $VK_CEREAL_GUEST_HAL_DIR
