@@ -263,6 +263,10 @@ public:
         return ((cros_gralloc_handle *)handle)->droid_format;
     }
 
+    virtual std::optional<uint32_t> getFormatDrmFourcc(native_handle_t const* handle) override {
+        return ((cros_gralloc_handle *)handle)->format;
+    }
+
     virtual size_t getAllocatedSize(native_handle_t const* handle) {
         struct drm_virtgpu_resource_info info;
         if (!getResInfo(handle, &info)) {
@@ -390,7 +394,7 @@ public:
     {
         return ::processPipeInit(stream_handle, connType, rcEnc);
     }
-    
+
 };
 
 static GoldfishGralloc m_goldfishGralloc;
