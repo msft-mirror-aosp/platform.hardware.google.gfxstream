@@ -1405,9 +1405,9 @@ public:
             getHostDeviceExtensionIndex(
                 "VK_KHR_external_semaphore_fd") != -1;
 
-        ALOGD("%s: host has ext semaphore? win32 %d posix %d\n", __func__,
-                hostHasWin32ExternalSemaphore,
-                hostHasPosixExternalSemaphore);
+        D("%s: host has ext semaphore? win32 %d posix %d\n", __func__,
+          hostHasWin32ExternalSemaphore,
+          hostHasPosixExternalSemaphore);
 
         bool hostSupportsExternalSemaphore =
             hostHasWin32ExternalSemaphore ||
@@ -2602,10 +2602,9 @@ public:
             enc->vkGetLinearImageLayout2GOOGLE(device, &createInfoDup, &offset,
                                             &rowPitchAlignment,
                                             true /* do lock */);
-            ALOGD(
-                "vkGetLinearImageLayout2GOOGLE: format %d offset %lu "
-                "rowPitchAlignment = %lu",
-                (int)createInfo->format, offset, rowPitchAlignment);
+            D("vkGetLinearImageLayout2GOOGLE: format %d offset %lu "
+              "rowPitchAlignment = %lu",
+              (int)createInfo->format, offset, rowPitchAlignment);
         }
 
         imageConstraints.min_coded_width = createInfo->extent.width;
@@ -3715,10 +3714,10 @@ public:
                 enc->vkGetMemoryHostAddressInfoGOOGLE(
                         device, hostMemAlloc.memory,
                         &hvaSizeId[0], &hvaSizeId[1], &hvaSizeId[2], true /* do lock */);
-                ALOGD("%s: hvaOff, size: 0x%llx 0x%llx id: 0x%llx\n", __func__,
-                        (unsigned long long)hvaSizeId[0],
-                        (unsigned long long)hvaSizeId[1],
-                        (unsigned long long)hvaSizeId[2]);
+                D("%s: hvaOff, size: 0x%llx 0x%llx id: 0x%llx\n", __func__,
+                  (unsigned long long)hvaSizeId[0],
+                  (unsigned long long)hvaSizeId[1],
+                  (unsigned long long)hvaSizeId[2]);
                 mLock.lock();
 
                 struct drm_virtgpu_resource_create_blob drm_rc_blob = { 0 };
@@ -4073,7 +4072,7 @@ public:
         }
 
         if (ahw) {
-            ALOGD("%s: Import AHardwareBuffer", __func__);
+            D("%s: Import AHardwareBuffer", __func__);
             importCbInfo.colorBuffer =
                 ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper()->
                     getHostHandle(AHardwareBuffer_getNativeHandle(ahw));
@@ -5220,7 +5219,7 @@ public:
             VK_EXTERNAL_FENCE_FEATURE_IMPORTABLE_BIT |
             VK_EXTERNAL_FENCE_FEATURE_EXPORTABLE_BIT;
 
-        ALOGD("%s: asked for sync fd, set the features\n", __func__);
+        D("%s: asked for sync fd, set the features\n", __func__);
 #endif
     }
 
