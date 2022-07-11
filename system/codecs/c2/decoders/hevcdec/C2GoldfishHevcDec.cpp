@@ -404,10 +404,11 @@ void C2GoldfishHevcDec::onRelease() {
 }
 
 void C2GoldfishHevcDec::decodeHeaderAfterFlush() {
-    if (mContext && !mCsd0.empty() && !mCsd1.empty()) {
+        DDD("calling %s", __func__);
+    if (mContext && !mCsd0.empty()) {
         mContext->decodeFrame(&(mCsd0[0]), mCsd0.size(), 0);
-        mContext->decodeFrame(&(mCsd1[0]), mCsd1.size(), 0);
-        DDD("resending csd0 and csd1");
+        DDD("resending csd0");
+        DDD("calling %s success", __func__);
     }
 }
 
@@ -874,9 +875,6 @@ void C2GoldfishHevcDec::process(const std::unique_ptr<C2Work> &work,
                 if (mCsd0.empty()) {
                     mCsd0.assign(mInPBuffer, mInPBuffer + mInPBufferSize);
                     DDD("assign to csd0 with %d bytpes", mInPBufferSize);
-                } else if (mCsd1.empty()) {
-                    mCsd1.assign(mInPBuffer, mInPBuffer + mInPBufferSize);
-                    DDD("assign to csd1 with %d bytpes", mInPBufferSize);
                 }
                 // this is not really a valid pts from config
                 removePts(mPts);
