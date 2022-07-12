@@ -4073,10 +4073,19 @@ public:
 
         if (ahw) {
             D("%s: Import AHardwareBuffer", __func__);
-            importCbInfo.colorBuffer =
-                ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper()->
-                    getHostHandle(AHardwareBuffer_getNativeHandle(ahw));
-            vk_append_struct(&structChainIter, &importCbInfo);
+            const uint32_t hostHandle =
+                ResourceTracker::threadingCallbacks.hostConnectionGetFunc()->grallocHelper()
+                    ->getHostHandle(AHardwareBuffer_getNativeHandle(ahw));
+
+            AHardwareBuffer_Desc ahbDesc = {};
+            AHardwareBuffer_describe(ahw, &ahbDesc);
+            if (ahbDesc.format == AHARDWAREBUFFER_FORMAT_BLOB) {
+                importBufferInfo.buffer = hostHandle;
+                vk_append_struct(&structChainIter, &importBufferInfo);
+            } else {
+                importCbInfo.colorBuffer = hostHandle;
+                vk_append_struct(&structChainIter, &importCbInfo);
+            }
         }
 
         zx_handle_t vmo_handle = ZX_HANDLE_INVALID;
