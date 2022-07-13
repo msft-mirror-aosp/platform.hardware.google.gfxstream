@@ -4003,6 +4003,7 @@ public:
         bool isImport = importAhb || importBufferCollection ||
                         importBufferCollectionX || importVmo;
 
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
         if (exportAhb) {
             bool hasDedicatedImage = dedicatedAllocInfoPtr &&
                 (dedicatedAllocInfoPtr->image != VK_NULL_HANDLE);
@@ -4087,7 +4088,7 @@ public:
                 vk_append_struct(&structChainIter, &importCbInfo);
             }
         }
-
+#endif
         zx_handle_t vmo_handle = ZX_HANDLE_INVALID;
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
