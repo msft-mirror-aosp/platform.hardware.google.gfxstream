@@ -42,6 +42,8 @@
 
 #include "C2GoldfishAvcDec.h"
 
+#include <mutex>
+
 #define DEBUG 0
 #if DEBUG
 #define DDD(...) ALOGD(__VA_ARGS__)
@@ -64,6 +66,35 @@ constexpr uint32_t kDefaultOutputDelay = 8;
    So total maximum output delay is 34 */
 constexpr uint32_t kMaxOutputDelay = 34;
 constexpr uint32_t kMinInputBytes = 4;
+
+static std::mutex s_decoder_count_mutex;
+static int s_decoder_count = 0;
+
+int allocateDecoderId() {
+  DDD("calling %s", __func__);
+  std::lock_guard<std::mutex> lock(s_decoder_count_mutex);
+  if (s_decoder_count >= 32 || s_decoder_count < 0) {
+    ALOGE("calling %s failed", __func__);
+    return -1;
+  }
+  ++ s_decoder_count;
+  DDD("calling %s success total decoder %d", __func__, s_decoder_count);
+  return s_decoder_count;;
+}
+
+bool deAllocateDecoderId() {
+  DDD("calling %s", __func__);
+  std::lock_guard<std::mutex> lock(s_decoder_count_mutex);
+  if (s_decoder_count < 1) {
+    ALOGE("calling %s failed ", __func__);
+    return false;
+  }
+  -- s_decoder_count;
+  DDD("calling %s success total decoder %d", __func__, s_decoder_count);
+  return true;
+}
+
+
 } // namespace
 
 class C2GoldfishAvcDec::IntfImpl : public SimpleInterface<void>::BaseParams {
@@ -393,6 +424,9 @@ C2GoldfishAvcDec::C2GoldfishAvcDec(const char *name, c2_node_id_t id,
 C2GoldfishAvcDec::~C2GoldfishAvcDec() { onRelease(); }
 
 c2_status_t C2GoldfishAvcDec::onInit() {
+    ALOGD("calling onInit");
+    mId = allocateDecoderId();
+    if (mId <= 0) return C2_NO_MEMORY;
     status_t err = initDecoder();
     return err == OK ? C2_OK : C2_CORRUPTED;
 }
@@ -407,6 +441,11 @@ c2_status_t C2GoldfishAvcDec::onStop() {
 void C2GoldfishAvcDec::onReset() { (void)onStop(); }
 
 void C2GoldfishAvcDec::onRelease() {
+    DDD("calling onRelease");
+    if (mId > 0) {
+      deAllocateDecoderId();
+      mId = -1;
+    }
     deleteContext();
     if (mOutBlock) {
         mOutBlock.reset();
@@ -476,7 +515,6 @@ status_t C2GoldfishAvcDec::setParams(size_t stride) {
 }
 
 status_t C2GoldfishAvcDec::initDecoder() {
-    //    if (OK != createDecoder()) return UNKNOWN_ERROR;
     mStride = ALIGN2(mWidth);
     mSignalledError = false;
     resetPlugin();
