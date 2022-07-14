@@ -570,7 +570,7 @@ std::tuple<HWC2::Error, base::unique_fd> HostComposer::presentDisplay(
     display->clearReleaseFencesAndIdsLocked();
 
     if (numLayer == 0) {
-      ALOGW(
+      ALOGV(
           "%s display has no layers to compose, flushing client target buffer.",
           __FUNCTION__);
 
