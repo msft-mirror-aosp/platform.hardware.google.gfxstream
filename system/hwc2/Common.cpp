@@ -31,3 +31,7 @@ bool IsCuttlefishFoldable() {
 bool IsNoOpMode() {
   return android::base::GetProperty("ro.vendor.hwcomposer.mode", "") == "noop";
 }
+
+bool IsClientCompositionMode() {
+  return android::base::GetProperty("ro.vendor.hwcomposer.mode", "") == "client";
+}
