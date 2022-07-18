@@ -18,6 +18,7 @@
 
 #include <android-base/properties.h>
 
+#include "ClientComposer.h"
 #include "DisplayFinder.h"
 #include "GuestComposer.h"
 #include "HostComposer.h"
@@ -78,6 +79,9 @@ HWC2::Error Device::init() {
   if (IsNoOpMode()) {
     DEBUG_LOG("%s: using NoOpComposer", __FUNCTION__);
     mComposer = std::make_unique<NoOpComposer>();
+  } else if (IsClientCompositionMode()) {
+    DEBUG_LOG("%s: using ClientComposer", __FUNCTION__);
+    mComposer = std::make_unique<ClientComposer>(mDrmPresenter.get());
   } else if (ShouldUseGuestComposer()) {
     DEBUG_LOG("%s: using GuestComposer", __FUNCTION__);
     mComposer = std::make_unique<GuestComposer>(mDrmPresenter.get());
