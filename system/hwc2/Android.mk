@@ -58,6 +58,7 @@ emulator_hwcomposer_c_includes += \
 emulator_hwcomposer_relative_path := hw
 
 emulator_hwcomposer2_src_files := \
+    ClientComposer.cpp \
     Common.cpp \
     Device.cpp \
     Display.cpp \
