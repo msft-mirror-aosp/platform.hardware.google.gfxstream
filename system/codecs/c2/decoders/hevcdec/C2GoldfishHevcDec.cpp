@@ -347,6 +347,13 @@ class C2GoldfishHevcDec::IntfImpl : public SimpleInterface<void>::BaseParams {
 
     int height() const { return mSize->height; }
 
+    int primaries() const { return mColorAspects->primaries; }
+
+    int range() const { return mColorAspects->range; }
+
+    int transfer() const { return mColorAspects->transfer; }
+
+
   private:
     std::shared_ptr<C2StreamProfileLevelInfo::input> mProfileLevel;
     std::shared_ptr<C2StreamPictureSizeInfo::output> mSize;
@@ -446,6 +453,30 @@ c2_status_t C2GoldfishHevcDec::onFlush_sm() {
 
     deleteContext();
     return C2_OK;
+}
+
+void C2GoldfishHevcDec::sendMetadata() {
+    // compare and send if changed
+    MetaDataColorAspects currentMetaData = {1, 0, 0, 0};
+    currentMetaData.primaries = mIntf->primaries();
+    currentMetaData.range = mIntf->range();
+    currentMetaData.transfer = mIntf->transfer();
+
+    DDD("metadata primaries %d range %d transfer %d",
+            (int)(currentMetaData.primaries),
+            (int)(currentMetaData.range),
+            (int)(currentMetaData.transfer)
+       );
+
+    if (mSentMetadata.primaries == currentMetaData.primaries &&
+        mSentMetadata.range == currentMetaData.range &&
+        mSentMetadata.transfer == currentMetaData.transfer) {
+        DDD("metadata is the same, no need to update");
+        return;
+    }
+    std::swap(mSentMetadata, currentMetaData);
+
+    mContext->sendMetadata(&(mSentMetadata));
 }
 
 status_t C2GoldfishHevcDec::createDecoder() {
@@ -919,6 +950,8 @@ void C2GoldfishHevcDec::process(const std::unique_ptr<C2Work> &work,
                         continue;//return;
                 } // end of whChanged
             } // end of isVpsFrame
+
+            sendMetadata();
 
             uint32_t delay;
             GETTIME(&mTimeStart, nullptr);

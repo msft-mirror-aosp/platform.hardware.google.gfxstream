@@ -338,6 +338,8 @@ class C2GoldfishAvcDec::IntfImpl : public SimpleInterface<void>::BaseParams {
         if (me.v.matrix > C2Color::MATRIX_OTHER) {
             me.set().matrix = C2Color::MATRIX_OTHER;
         }
+        DDD("default primaries %d default range %d", me.set().primaries,
+            me.set().range);
         return C2R::Ok();
     }
 
@@ -357,6 +359,8 @@ class C2GoldfishAvcDec::IntfImpl : public SimpleInterface<void>::BaseParams {
         if (me.v.matrix > C2Color::MATRIX_OTHER) {
             me.set().matrix = C2Color::MATRIX_OTHER;
         }
+        DDD("coded primaries %d coded range %d", me.set().primaries,
+            me.set().range);
         return C2R::Ok();
     }
 
@@ -367,6 +371,7 @@ class C2GoldfishAvcDec::IntfImpl : public SimpleInterface<void>::BaseParams {
         (void)mayBlock;
         // take default values for all unspecified fields, and coded values for
         // specified ones
+        DDD("before change primaries %d range %d", me.v.primaries, me.v.range);
         me.set().range =
             coded.v.range == RANGE_UNSPECIFIED ? def.v.range : coded.v.range;
         me.set().primaries = coded.v.primaries == PRIMARIES_UNSPECIFIED
@@ -377,6 +382,8 @@ class C2GoldfishAvcDec::IntfImpl : public SimpleInterface<void>::BaseParams {
                                 : coded.v.transfer;
         me.set().matrix = coded.v.matrix == MATRIX_UNSPECIFIED ? def.v.matrix
                                                                : coded.v.matrix;
+
+        DDD("after change primaries %d range %d", me.v.primaries, me.v.range);
         return C2R::Ok();
     }
 
@@ -388,7 +395,13 @@ class C2GoldfishAvcDec::IntfImpl : public SimpleInterface<void>::BaseParams {
 
     int height() const { return mSize->height; }
 
-  private:
+    int primaries() const { return mColorAspects->primaries; }
+
+    int range() const { return mColorAspects->range; }
+
+    int transfer() const { return mColorAspects->transfer; }
+
+   private:
     std::shared_ptr<C2StreamProfileLevelInfo::input> mProfileLevel;
     std::shared_ptr<C2StreamPictureSizeInfo::output> mSize;
     std::shared_ptr<C2StreamMaxPictureSizeTuning::output> mMaxSize;
@@ -494,6 +507,30 @@ c2_status_t C2GoldfishAvcDec::onFlush_sm() {
 
     deleteContext();
     return C2_OK;
+}
+
+void C2GoldfishAvcDec::sendMetadata() {
+    // compare and send if changed
+    MetaDataColorAspects currentMetaData = {1, 0, 0, 0};
+    currentMetaData.primaries = mIntf->primaries();
+    currentMetaData.range = mIntf->range();
+    currentMetaData.transfer = mIntf->transfer();
+
+    DDD("metadata primaries %d range %d transfer %d",
+            (int)(currentMetaData.primaries),
+            (int)(currentMetaData.range),
+            (int)(currentMetaData.transfer)
+       );
+
+    if (mSentMetadata.primaries == currentMetaData.primaries &&
+        mSentMetadata.range == currentMetaData.range &&
+        mSentMetadata.transfer == currentMetaData.transfer) {
+        DDD("metadata is the same, no need to update");
+        return;
+    }
+    std::swap(mSentMetadata, currentMetaData);
+
+    mContext->sendMetadata(&(mSentMetadata));
 }
 
 status_t C2GoldfishAvcDec::createDecoder() {
@@ -720,7 +757,6 @@ void C2GoldfishAvcDec::checkMode(const std::shared_ptr<C2BlockPool> &pool) {
 }
 
 void C2GoldfishAvcDec::getVuiParams(h264_image_t &img) {
-
     VuiColorAspects vuiColorAspects;
     vuiColorAspects.primaries = img.color_primaries;
     vuiColorAspects.transfer = img.color_trc;
@@ -968,6 +1004,8 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
                         continue;
                 } // end of whChanged
             } // end of isSpsFrame
+
+            sendMetadata();
 
             uint32_t delay;
             GETTIME(&mTimeStart, nullptr);
