@@ -13302,9 +13302,11 @@ VkResult VkEncoder::vkCreateRenderPass2(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_2, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_3;
     stream->read((uint64_t*)&cgen_var_3, 8);
     stream->handleMapping()->mapHandles_u64_VkRenderPass(&cgen_var_3, (VkRenderPass*)pRenderPass, 1);
+    stream->unsetHandleMapping();
     VkResult vkCreateRenderPass2_VkResult_return = (VkResult)0;
     stream->read(&vkCreateRenderPass2_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
@@ -19901,9 +19903,11 @@ VkResult VkEncoder::vkCreateRenderPass2KHR(
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_2, 8);
     *streamPtrPtr += 8;
     /* is handle, possibly out */;
+    stream->setHandleMapping(sResourceTracker->createMapping());
     uint64_t cgen_var_3;
     stream->read((uint64_t*)&cgen_var_3, 8);
     stream->handleMapping()->mapHandles_u64_VkRenderPass(&cgen_var_3, (VkRenderPass*)pRenderPass, 1);
+    stream->unsetHandleMapping();
     VkResult vkCreateRenderPass2KHR_VkResult_return = (VkResult)0;
     stream->read(&vkCreateRenderPass2KHR_VkResult_return, sizeof(VkResult));
     ++encodeCount;;
