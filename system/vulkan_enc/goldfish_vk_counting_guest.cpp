@@ -2377,9 +2377,12 @@ void count_VkFramebufferCreateInfo(
     uint64_t cgen_var_0;
     *count += 1 * 8;
     *count += sizeof(uint32_t);
-    if (toCount->attachmentCount)
+    if ((!(featureBits & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) || (((toCount->flags & VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT) == 0))))
     {
-        *count += toCount->attachmentCount * 8;
+        if (toCount->attachmentCount)
+        {
+            *count += toCount->attachmentCount * 8;
+        }
     }
     *count += sizeof(uint32_t);
     *count += sizeof(uint32_t);
