@@ -2964,18 +2964,21 @@ void reservedmarshal_VkFramebufferCreateInfo(
     *ptr += 1 * 8;
     memcpy(*ptr, (uint32_t*)&forMarshaling->attachmentCount, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
-    if (forMarshaling->attachmentCount)
+    if ((!(vkStream->getFeatureBits() & VULKAN_STREAM_FEATURE_IGNORED_HANDLES_BIT) || (((forMarshaling->flags & VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT) == 0))))
     {
-        uint8_t* cgen_var_1_ptr = (uint8_t*)(*ptr);
-        if (forMarshaling)
+        if (forMarshaling->attachmentCount)
         {
-            for (uint32_t k = 0; k < forMarshaling->attachmentCount; ++k)
+            uint8_t* cgen_var_0_0_ptr = (uint8_t*)(*ptr);
+            if (forMarshaling)
             {
-                uint64_t tmpval = get_host_u64_VkImageView(forMarshaling->pAttachments[k]);
-                memcpy(cgen_var_1_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                for (uint32_t k = 0; k < forMarshaling->attachmentCount; ++k)
+                {
+                    uint64_t tmpval = get_host_u64_VkImageView(forMarshaling->pAttachments[k]);
+                    memcpy(cgen_var_0_0_ptr + k * 8, &tmpval, sizeof(uint64_t));
+                }
             }
+            *ptr += 8 * forMarshaling->attachmentCount;
         }
-        *ptr += 8 * forMarshaling->attachmentCount;
     }
     memcpy(*ptr, (uint32_t*)&forMarshaling->width, sizeof(uint32_t));
     *ptr += sizeof(uint32_t);
