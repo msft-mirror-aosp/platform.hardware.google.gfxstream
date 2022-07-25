@@ -1761,7 +1761,10 @@ typedef void <name>CAMetalLayer</name>;
             <member optional="true"><type>VkFramebufferCreateFlags</type>    <name>flags</name></member>
             <member><type>VkRenderPass</type>                           <name>renderPass</name></member>
             <member optional="true"><type>uint32_t</type>               <name>attachmentCount</name></member>
-            <member len="attachmentCount">const <type>VkImageView</type>*     <name>pAttachments</name></member>
+            <member len="attachmentCount"
+                filterVar="flags"
+                filterFunc="(eq (bitwise_and flags VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT) 0)">
+                const <type>VkImageView</type>*    <name>pAttachments</name></member>
             <member><type>uint32_t</type>               <name>width</name></member>
             <member><type>uint32_t</type>               <name>height</name></member>
             <member><type>uint32_t</type>               <name>layers</name></member>
