@@ -345,6 +345,7 @@ using DlSymFunc = void* (void*, const char*);
 
         decoderSnapshotHeaderIncludes = """
 #include <memory>
+#include "base/GfxApiLogger.h"
 #include "common/goldfish_vk_private_defs.h"
 """
         decoderSnapshotImplIncludes = f"""
@@ -356,6 +357,8 @@ using DlSymFunc = void* (void*, const char*);
 """
 
         decoderHeaderIncludes = """
+#include "base/GfxApiLogger.h"
+
 #include <memory>
 
 namespace android {

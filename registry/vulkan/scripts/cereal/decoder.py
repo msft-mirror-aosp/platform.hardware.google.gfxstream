@@ -21,6 +21,8 @@ DELAYED_DECODER_DELETES = [
     "vkDestroyPipelineLayout",
 ]
 
+global_state_prefix = "m_state->on_"
+
 decoder_decl_preamble = """
 
 class IOStream;
@@ -30,7 +32,7 @@ public:
     VkDecoder();
     ~VkDecoder();
     void setForSnapshotLoad(bool forSnapshotLoad);
-    size_t decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr);
+    size_t decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr, emugl::GfxApiLogger& gfx_logger);
 private:
     class Impl;
     std::unique_ptr<Impl> mImpl;
@@ -39,6 +41,7 @@ private:
 
 decoder_impl_preamble ="""
 using emugl::vkDispatch;
+using emugl::GfxApiLogger;
 
 using namespace goldfish_vk;
 
@@ -59,7 +62,7 @@ public:
         m_forSnapshotLoad = forSnapshotLoad;
     }
 
-    size_t decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr);
+    size_t decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr, GfxApiLogger& gfx_logger);
 
 private:
     bool m_logCalls;
@@ -85,8 +88,8 @@ void VkDecoder::setForSnapshotLoad(bool forSnapshotLoad) {
     mImpl->setForSnapshotLoad(forSnapshotLoad);
 }
 
-size_t VkDecoder::decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr) {
-    return mImpl->decode(buf, bufsize, stream, seqnoPtr);
+size_t VkDecoder::decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr, GfxApiLogger& gfx_logger) {
+    return mImpl->decode(buf, bufsize, stream, seqnoPtr, gfx_logger);
 }
 
 // VkDecoder::Impl::decode to follow
@@ -296,7 +299,8 @@ def emit_dispatch_call(api, cgen):
         else:
             cgen.stmt("m_state->lock()")
 
-    cgen.vkApiCall(api, customPrefix="vk->", customParameters=customParams)
+    cgen.vkApiCall(api, customPrefix="vk->", customParameters=customParams, \
+        globalStatePrefix=global_state_prefix, checkForDeviceLost=True)
 
     if api.name in driver_workarounds_global_lock_apis:
         if not delay:
@@ -307,14 +311,17 @@ def emit_dispatch_call(api, cgen):
     if delay:
         cgen.line("};")
 
-def emit_global_state_wrapped_call(api, cgen):
+def emit_global_state_wrapped_call(api, cgen, logger):
     if api.name in DELAYED_DECODER_DELETES:
         print("Error: Cannot generate a global state wrapped call that is also a delayed delete (yet)");
         raise
 
     customParams = ["&m_pool"] + list(map(lambda p: p.paramName, api.parameters))
-    cgen.vkApiCall(api, customPrefix="m_state->on_", \
-        customParameters=customParams)
+    if logger:
+        customParams += ["gfx_logger"]
+    cgen.vkApiCall(api, customPrefix=global_state_prefix, \
+        customParameters=customParams, globalStatePrefix=global_state_prefix, \
+        checkForDeviceLost=True)
 
 def emit_decode_parameters_writeback(typeInfo, api, cgen, autobox=True):
     decodingParams = DecodingParameters(api)
@@ -444,15 +451,19 @@ def emit_snapshot(typeInfo, api, cgen):
     cgen.vkApiCall(apiForSnapshot, customPrefix="m_state->snapshot()->")
     cgen.endIf()
 
-def emit_default_decoding(typeInfo, api, cgen):
+def emit_decoding(typeInfo, api, cgen, globalWrapped=False, logger=False):
     isAcquire = api.name in RELAXED_APIS
-    emit_decode_parameters(typeInfo, api, cgen)
+    emit_decode_parameters(typeInfo, api, cgen, globalWrapped)
 
     if isAcquire:
         emit_seqno_incr(api, cgen)
 
-    emit_dispatch_call(api, cgen)
-    emit_decode_parameters_writeback(typeInfo, api, cgen)
+    if globalWrapped:
+        emit_global_state_wrapped_call(api, cgen, logger)
+    else:
+        emit_dispatch_call(api, cgen)
+
+    emit_decode_parameters_writeback(typeInfo, api, cgen, autobox=not globalWrapped)
     emit_decode_return_writeback(api, cgen)
     emit_decode_finish(api, cgen)
     emit_snapshot(typeInfo, api, cgen)
@@ -461,24 +472,15 @@ def emit_default_decoding(typeInfo, api, cgen):
 
     if not isAcquire:
         emit_seqno_incr(api, cgen)
+
+def emit_default_decoding(typeInfo, api, cgen):
+    emit_decoding(typeInfo, api, cgen)
 
 def emit_global_state_wrapped_decoding(typeInfo, api, cgen):
-    isAcquire = api.name in RELAXED_APIS
+    emit_decoding(typeInfo, api, cgen, globalWrapped=True)
 
-    emit_decode_parameters(typeInfo, api, cgen, globalWrapped=True)
-
-    if isAcquire:
-        emit_seqno_incr(api, cgen)
-
-    emit_global_state_wrapped_call(api, cgen)
-    emit_decode_parameters_writeback(typeInfo, api, cgen, autobox=False)
-    emit_decode_return_writeback(api, cgen)
-    emit_decode_finish(api, cgen)
-    emit_snapshot(typeInfo, api, cgen)
-    emit_destroyed_handle_cleanup(api, cgen)
-    emit_pool_free(cgen)
-    if not isAcquire:
-        emit_seqno_incr(api, cgen)
+def emit_global_state_wrapped_decoding_with_logger(typeInfo, api, cgen):
+    emit_decoding(typeInfo, api, cgen, globalWrapped=True, logger=True)
 
 ## Custom decoding definitions##################################################
 def decode_vkFlushMappedMemoryRanges(typeInfo: VulkanTypeInfo, api, cgen):
@@ -622,8 +624,8 @@ custom_decodes = {
     "vkCmdExecuteCommands" : emit_global_state_wrapped_decoding,
     "vkQueueSubmit" : emit_global_state_wrapped_decoding,
     "vkQueueWaitIdle" : emit_global_state_wrapped_decoding,
-    "vkBeginCommandBuffer" : emit_global_state_wrapped_decoding,
-    "vkEndCommandBuffer" : emit_global_state_wrapped_decoding,
+    "vkBeginCommandBuffer" : emit_global_state_wrapped_decoding_with_logger,
+    "vkEndCommandBuffer" : emit_global_state_wrapped_decoding_with_logger,
     "vkResetCommandBuffer" : emit_global_state_wrapped_decoding,
     "vkFreeCommandBuffers" : emit_global_state_wrapped_decoding,
     "vkCreateCommandPool" : emit_global_state_wrapped_decoding,
@@ -672,8 +674,8 @@ custom_decodes = {
     "vkUpdateDescriptorSetWithTemplateSizedGOOGLE" : emit_global_state_wrapped_decoding,
 
     # VK_GOOGLE_gfxstream
-    "vkBeginCommandBufferAsyncGOOGLE" : emit_global_state_wrapped_decoding,
-    "vkEndCommandBufferAsyncGOOGLE" : emit_global_state_wrapped_decoding,
+    "vkBeginCommandBufferAsyncGOOGLE" : emit_global_state_wrapped_decoding_with_logger,
+    "vkEndCommandBufferAsyncGOOGLE" : emit_global_state_wrapped_decoding_with_logger,
     "vkResetCommandBufferAsyncGOOGLE" : emit_global_state_wrapped_decoding,
     "vkCommandBufferHostSyncGOOGLE" : emit_global_state_wrapped_decoding,
     "vkCreateImageWithRequirementsGOOGLE" : emit_global_state_wrapped_decoding,
@@ -684,7 +686,7 @@ custom_decodes = {
     "vkQueueBindSparseAsyncGOOGLE" : emit_global_state_wrapped_decoding,
     "vkGetLinearImageLayoutGOOGLE" : emit_global_state_wrapped_decoding,
     "vkGetLinearImageLayout2GOOGLE" : emit_global_state_wrapped_decoding,
-    "vkQueueFlushCommandsGOOGLE" : emit_global_state_wrapped_decoding,
+    "vkQueueFlushCommandsGOOGLE" : emit_global_state_wrapped_decoding_with_logger,
     "vkQueueCommitDescriptorSetUpdatesGOOGLE" : emit_global_state_wrapped_decoding,
     "vkCollectDescriptorPoolIdsGOOGLE" : emit_global_state_wrapped_decoding,
     "vkQueueSignalReleaseImageANDROIDAsyncGOOGLE" : emit_global_state_wrapped_decoding,
@@ -710,7 +712,7 @@ class VulkanDecoder(VulkanWrapperGenerator):
         self.module.appendImpl(decoder_impl_preamble)
 
         self.module.appendImpl(
-            "size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32_t* seqnoPtr)\n")
+            "size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32_t* seqnoPtr, GfxApiLogger& gfx_logger)\n")
 
         self.cgen.beginBlock() # function body
 
@@ -729,6 +731,7 @@ class VulkanDecoder(VulkanWrapperGenerator):
         self.cgen.stmt("uint32_t opcode = *(uint32_t *)ptr")
         self.cgen.stmt("uint32_t packetLen = *(uint32_t *)(ptr + 4)")
         self.cgen.stmt("if (end - ptr < packetLen) return ptr - (unsigned char*)buf")
+        self.cgen.stmt("gfx_logger.record(ptr, std::min(size_t(packetLen + 8), size_t(end - ptr)))")
 
         self.cgen.stmt("stream()->setStream(ioStream)")
         self.cgen.stmt("VulkanStream* %s = stream()" % WRITE_STREAM)
