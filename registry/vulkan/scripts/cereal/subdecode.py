@@ -14,6 +14,8 @@ decoder_decl_preamble = """
 decoder_impl_preamble = """
 """
 
+global_state_prefix = "this->on_"
+
 READ_STREAM = "readStream"
 WRITE_STREAM = "vkStream"
 
@@ -251,17 +253,19 @@ def emit_dispatch_call(api, cgen):
         cgen.stmt("lock()")
 
     cgen.vkApiCall(api, customPrefix="vk->", customParameters=customParams,
-                   retVarDecl=False, retVarAssign=False)
+                    checkForDeviceLost=True, globalStatePrefix=global_state_prefix)
 
     if api.name in driver_workarounds_global_lock_apis:
         cgen.stmt("unlock()")
 
 
-def emit_global_state_wrapped_call(api, cgen):
+def emit_global_state_wrapped_call(api, cgen, logger=False):
     customParams = ["pool", "(VkCommandBuffer)(boxed_dispatchHandle)"] + \
         list(map(lambda p: p.paramName, api.parameters[1:]))
-    cgen.vkApiCall(api, customPrefix="this->on_",
-                   customParameters=customParams, retVarDecl=False, retVarAssign=False)
+    if logger:
+        customParams += ["gfx_logger"];
+    cgen.vkApiCall(api, customPrefix=global_state_prefix,
+                   customParameters=customParams, checkForDeviceLost=True, globalStatePrefix=global_state_prefix)
 
 
 def emit_default_decoding(typeInfo, api, cgen):
@@ -273,20 +277,24 @@ def emit_global_state_wrapped_decoding(typeInfo, api, cgen):
     emit_decode_parameters(typeInfo, api, cgen, globalWrapped=True)
     emit_global_state_wrapped_call(api, cgen)
 
+def emit_global_state_wrapped_decoding_with_logger(typeInfo, api, cgen):
+    emit_decode_parameters(typeInfo, api, cgen, globalWrapped=True)
+    emit_global_state_wrapped_call(api, cgen, logger=True)
+
 
 custom_decodes = {
     "vkCmdCopyBufferToImage": emit_global_state_wrapped_decoding,
     "vkCmdCopyImage": emit_global_state_wrapped_decoding,
     "vkCmdCopyImageToBuffer": emit_global_state_wrapped_decoding,
     "vkCmdExecuteCommands": emit_global_state_wrapped_decoding,
-    "vkBeginCommandBuffer": emit_global_state_wrapped_decoding,
-    "vkEndCommandBuffer": emit_global_state_wrapped_decoding,
+    "vkBeginCommandBuffer": emit_global_state_wrapped_decoding_with_logger,
+    "vkEndCommandBuffer": emit_global_state_wrapped_decoding_with_logger,
     "vkResetCommandBuffer": emit_global_state_wrapped_decoding,
     "vkCmdPipelineBarrier": emit_global_state_wrapped_decoding,
     "vkCmdBindPipeline": emit_global_state_wrapped_decoding,
     "vkCmdBindDescriptorSets": emit_global_state_wrapped_decoding,
-    "vkBeginCommandBufferAsyncGOOGLE": emit_global_state_wrapped_decoding,
-    "vkEndCommandBufferAsyncGOOGLE": emit_global_state_wrapped_decoding,
+    "vkBeginCommandBufferAsyncGOOGLE": emit_global_state_wrapped_decoding_with_logger,
+    "vkEndCommandBufferAsyncGOOGLE": emit_global_state_wrapped_decoding_with_logger,
     "vkResetCommandBufferAsyncGOOGLE": emit_global_state_wrapped_decoding,
     "vkCommandBufferHostSyncGOOGLE": emit_global_state_wrapped_decoding,
 }
@@ -303,7 +311,7 @@ class VulkanSubDecoder(VulkanWrapperGenerator):
             "#define MAX_STACK_ITEMS %s\n" % MAX_STACK_ITEMS)
 
         self.module.appendImpl(
-            "size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* boxed_dispatchHandle, void* dispatchHandle, VkDeviceSize dataSize, const void* pData)\n")
+            "size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* boxed_dispatchHandle, void* dispatchHandle, VkDeviceSize dataSize, const void* pData, GfxApiLogger& gfx_logger)\n")
 
         self.cgen.beginBlock()  # function body
 
@@ -321,8 +329,9 @@ class VulkanSubDecoder(VulkanWrapperGenerator):
 
         self.cgen.stmt("uint32_t opcode = *(uint32_t *)ptr")
         self.cgen.stmt("uint32_t packetLen = *(uint32_t *)(ptr + 4)")
-        self.cgen.stmt(
-            "if (end - ptr < packetLen) return ptr - (unsigned char*)buf")
+        self.cgen.stmt("if (end - ptr < packetLen) return ptr - (unsigned char*)buf")
+        self.cgen.stmt("gfx_logger.record(ptr, std::min(size_t(packetLen + 8), size_t(end - ptr)))")
+
 
         self.cgen.stmt("%s->setBuf((uint8_t*)(ptr + 8))" % READ_STREAM)
         self.cgen.stmt(
