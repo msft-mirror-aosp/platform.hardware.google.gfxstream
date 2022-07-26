@@ -264,7 +264,8 @@ public:
     }
 
     virtual std::optional<uint32_t> getFormatDrmFourcc(native_handle_t const* handle) override {
-        return ((cros_gralloc_handle *)handle)->format;
+	uint32_t format = ((cros_gralloc_handle *)handle)->format;
+        return std::optional<uint32_t>(format);
     }
 
     virtual size_t getAllocatedSize(native_handle_t const* handle) {
