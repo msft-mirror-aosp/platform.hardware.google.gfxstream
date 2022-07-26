@@ -71,6 +71,10 @@ vk_format_from_android(unsigned android_format)
    case HAL_PIXEL_FORMAT_NV12_Y_TILED_INTEL:
    case AHARDWAREBUFFER_FORMAT_Y8Cb8Cr8_420:
       return VK_FORMAT_G8_B8R8_2PLANE_420_UNORM;
+#if __ANDROID_API__ >= 30
+   case AHARDWAREBUFFER_FORMAT_YCbCr_P010:
+      return VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16;
+#endif
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
    case HAL_PIXEL_FORMAT_YV12:
    case OMX_COLOR_FormatYUV420Planar:
@@ -125,6 +129,9 @@ android_format_is_yuv(unsigned android_format)
    case HAL_PIXEL_FORMAT_NV12_Y_TILED_INTEL:
    case OMX_COLOR_FormatYUV420Planar:
    case HAL_PIXEL_FORMAT_YV12:
+#if __ANDROID_API__ >= 30
+   case AHARDWAREBUFFER_FORMAT_YCbCr_P010:
+#endif
    case AHARDWAREBUFFER_FORMAT_Y8Cb8Cr8_420:
       return true;
    default:
