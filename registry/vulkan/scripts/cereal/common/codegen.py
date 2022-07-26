@@ -577,7 +577,7 @@ class CodeGen(object):
     def generalLengthAccessGuard(self, vulkanType, parentVarName="parent"):
         return self.makeLengthAccess(vulkanType, parentVarName)[1]
 
-    def vkApiCall(self, api, customPrefix="", customParameters=None, retVarDecl=True, retVarAssign=True):
+    def vkApiCall(self, api, customPrefix="", globalStatePrefix="", customParameters=None, checkForDeviceLost=False):
         callLhs = None
 
         retTypeName = api.getRetTypeExpr()
@@ -585,10 +585,8 @@ class CodeGen(object):
 
         if retTypeName != "void":
             retVar = api.getRetVarExpr()
-            if retVarDecl:
-                self.stmt("%s %s = (%s)0" % (retTypeName, retVar, retTypeName))
-            if retVarAssign:
-                callLhs = retVar
+            self.stmt("%s %s = (%s)0" % (retTypeName, retVar, retTypeName))
+            callLhs = retVar
 
         if customParameters is None:
             self.funcCall(
@@ -596,6 +594,9 @@ class CodeGen(object):
         else:
             self.funcCall(
                 callLhs, customPrefix + api.name, customParameters)
+
+        if retTypeName == "VkResult" and checkForDeviceLost:
+            self.stmt("if ((%s) == VK_ERROR_DEVICE_LOST) %sDeviceLost()" % (callLhs, globalStatePrefix))
 
         return (retTypeName, retVar)
 
