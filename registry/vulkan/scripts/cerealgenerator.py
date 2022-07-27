@@ -535,6 +535,9 @@ class BumpPool;
         self.forEachModule(addSrcEntry)
 
     def addGuestEncoderModule(self, basename, extraHeader = "", extraImpl = "", useNamespace = True):
+        if not os.path.exists(self.guest_abs_encoder_destination):
+            print("Path [%s] not found (guest encoder path), skipping" % self.guest_abs_encoder_destination)
+            return
         self.addModule(self.guest_encoder_tag,
                        basename,
                        extraHeader = extraHeader,
@@ -543,6 +546,9 @@ class BumpPool;
                        useNamespace = useNamespace)
 
     def addGuestHalModule(self, basename, extraHeader = "", extraImpl = "", useNamespace = True):
+        if not os.path.exists(self.guest_abs_hal_destination):
+            print("Path [%s] not found (guest encoder path), skipping" % self.guest_abs_encoder_destination)
+            return
         self.addModule(self.guest_hal_tag,
                        basename,
                        extraHeader = extraHeader,
@@ -552,6 +558,9 @@ class BumpPool;
 
     def addHostModule(self, basename, extraHeader = "", extraImpl = "", useNamespace = True,
                       implOnly = False, suppress = False):
+        if not os.path.exists(self.host_abs_decoder_destination):
+            print("Path [%s] not found (guest encoder path), skipping" % self.guest_abs_encoder_destination)
+            return
         self.addModule(self.host_tag,
                        basename,
                        extraHeader = extraHeader,
@@ -612,6 +621,9 @@ class BumpPool;
 """ % namespaceEnd
 
     def addWrapper(self, moduleType, moduleName, **kwargs):
+        if moduleName not in self.modules:
+            print(f'Unknown module: {moduleName}. All known modules are: {", ".join(self.modules)}.')
+            return
         self.wrappers.append(
             moduleType(
                 self.modules[moduleName],
