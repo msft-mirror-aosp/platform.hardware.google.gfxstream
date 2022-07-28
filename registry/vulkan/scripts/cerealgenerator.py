@@ -17,6 +17,7 @@
 
 import os, re, sys
 from generator import *
+from pathlib import Path, PurePosixPath
 
 import cereal
 from cereal.wrapperdefs import VULKAN_STREAM_TYPE
@@ -72,12 +73,12 @@ def banner_command(argv):
        Return a string corresponding to the command, with platform-specific
        paths removed."""
 
-    def makeRelative(someArg):
+    def makePosixRelative(someArg):
         if os.path.exists(someArg):
-            return os.path.relpath(someArg)
+            return str(PurePosixPath(Path(os.path.relpath(someArg))))
         return someArg
 
-    return ' '.join(map(makeRelative, argv))
+    return ' '.join(map(makePosixRelative, argv))
 
 suppressEnabled = False
 suppressExceptModule = None
