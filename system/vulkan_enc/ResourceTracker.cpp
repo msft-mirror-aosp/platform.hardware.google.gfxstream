@@ -326,7 +326,6 @@ public:
         VkDeviceSize mappedSize = 0;
         uint8_t* mappedPtr = nullptr;
         uint32_t memoryTypeIndex = 0;
-        bool virtualHostVisibleBacking = false;
         bool directMapped = false;
         GoldfishAddressSpaceBlock*
             goldfishAddressSpaceBlock = nullptr;
@@ -3776,7 +3775,6 @@ public:
 
             hostMemInfo.mappedPtr =
                 (uint8_t*)(uintptr_t)directMappedAddr;
-            hostMemInfo.virtualHostVisibleBacking = true;
             ALOGV("%s: Set mapped ptr to %p\n", __func__, hostMemInfo.mappedPtr);
 
             VkResult hostMemAllocRes =
