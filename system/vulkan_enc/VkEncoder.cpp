@@ -57,8 +57,6 @@ namespace goldfish_vk {
 
 using namespace goldfish_vk;
 
-using android::aligned_buf_alloc;
-using android::aligned_buf_free;
 using android::base::guest::AutoLock;
 using android::base::guest::Lock;
 using android::base::BumpPool;

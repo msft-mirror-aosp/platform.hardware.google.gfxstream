@@ -182,8 +182,6 @@ inline_memfd_create(const char *name, unsigned int flags) {
 #endif
 #endif
 
-using android::aligned_buf_alloc;
-using android::aligned_buf_free;
 using android::base::Optional;
 using android::base::guest::AutoLock;
 using android::base::guest::RecursiveLock;
@@ -557,12 +555,6 @@ public:
 
         if (memInfo.vmoHandle != ZX_HANDLE_INVALID) {
             zx_handle_close(memInfo.vmoHandle);
-        }
-
-        if (memInfo.mappedPtr &&
-            !memInfo.virtualHostVisibleBacking &&
-            !memInfo.directMapped) {
-            aligned_buf_free(memInfo.mappedPtr);
         }
 
         if (memInfo.directMapped) {
