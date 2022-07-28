@@ -263,7 +263,6 @@ void subAllocHostMemory(
 
     out->subMemory = new_from_host_VkDeviceMemory(VK_NULL_HANDLE);
     out->subAlloc = alloc->subAlloc;
-    out->memoryTypeIndex = alloc->memoryTypeIndex;
 }
 
 bool subFreeHostMemory(SubAlloc* toFree) {

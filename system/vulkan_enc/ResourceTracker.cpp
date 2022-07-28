@@ -4592,7 +4592,7 @@ public:
         }
 
         VkDeviceMemory baseMemory = info.subAlloc.baseMemory;
-        uint32_t memoryTypeIndex = info.subAlloc.memoryTypeIndex;
+        uint32_t memoryTypeIndex = info.memoryTypeIndex;
         // If this was a device address memory allocation,
         // free it right away.
         if (subFreeHostMemory(&info.subAlloc)) {
