@@ -165,9 +165,9 @@ shared_library("libvulkan_goldfish") {
     ]
 
     deps = [
-      "//sdk/fidl/fuchsia.hardware.goldfish:fuchsia.hardware.goldfish_llcpp",
-      "//sdk/fidl/fuchsia.logger:fuchsia.logger_llcpp",
-      "//sdk/fidl/fuchsia.sysmem:fuchsia.sysmem_llcpp",
+      "//sdk/fidl/fuchsia.hardware.goldfish:fuchsia.hardware.goldfish_cpp_wire",
+      "//sdk/fidl/fuchsia.logger:fuchsia.logger_cpp_wire",
+      "//sdk/fidl/fuchsia.sysmem:fuchsia.sysmem_cpp_wire",
       "//src/zircon/lib/zircon",
       "//zircon/public/lib/async-cpp",
       "//zircon/public/lib/zx",
