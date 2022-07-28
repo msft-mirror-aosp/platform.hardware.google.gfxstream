@@ -556,11 +556,6 @@ public:
             zx_handle_close(memInfo.vmoHandle);
         }
 
-        if (memInfo.directMapped) {
-            ALOGE("%s: warning: direct mapped memory never goes to unregister!\n", __func__);
-            subFreeHostMemory(&memInfo.subAlloc);
-        }
-
         delete memInfo.goldfishAddressSpaceBlock;
 
         info_VkDeviceMemory.erase(mem);
