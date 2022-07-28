@@ -16,6 +16,7 @@
 from .vulkantypes import VulkanType, VulkanTypeInfo, VulkanCompoundType, VulkanAPI
 from collections import OrderedDict
 from copy import copy
+from pathlib import Path, PurePosixPath
 
 import os
 import sys
@@ -53,10 +54,10 @@ class Module(object):
     def getCMakeSrcEntry(self):
         if self.customAbsDir:
             return "\n" + self.basename + ".cpp "
-        dirName = self.directory
-        baseName = self.basename
-        joined = os.path.join(dirName, baseName)
-        return "\n    " + joined + ".cpp "
+        dirName = Path(self.directory)
+        baseName = Path(self.basename)
+        joined = PurePosixPath(dirName / baseName)
+        return "\n    " + str(joined) + ".cpp "
 
     def begin(self, globalDir):
         if self.suppress:
