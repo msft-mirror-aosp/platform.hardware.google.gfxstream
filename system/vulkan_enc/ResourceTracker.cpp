@@ -323,11 +323,6 @@ public:
         std::vector<std::pair<PFN_vkDeviceMemoryReportCallbackEXT, void *>> deviceMemoryReportCallbacks;
     };
 
-    struct VirtioGpuHostmemResourceInfo {
-        uint32_t resourceId = 0;
-        int primeFd = -1;
-    };
-
     struct VkDeviceMemory_Info {
         VkDeviceSize allocationSize = 0;
         VkDeviceSize mappedSize = 0;
@@ -337,7 +332,6 @@ public:
         bool directMapped = false;
         GoldfishAddressSpaceBlock*
             goldfishAddressSpaceBlock = nullptr;
-        VirtioGpuHostmemResourceInfo resInfo;
         SubAlloc subAlloc;
         AHardwareBuffer* ahw = nullptr;
         bool imported = false;
