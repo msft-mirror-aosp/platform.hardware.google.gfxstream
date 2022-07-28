@@ -14,13 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if [[ "$OSTYPE" != "linux-gnu" ]]; then
-   echo "This guest codegen script expects to run on Linux only,"
-   echo "whereas you are running it on '${OSTYPE}'. Exiting."
-   exit 1
-fi
-
-AOSP_DIR=$(pwd)/../..
+AOSP_DIR=$(pwd)/../../
 export VK_CEREAL_GUEST_ENCODER_DIR=$AOSP_DIR/device/generic/goldfish-opengl/system/vulkan_enc
 export VK_CEREAL_GUEST_HAL_DIR=$AOSP_DIR/device/generic/goldfish-opengl/system/vulkan
 export VK_CEREAL_HOST_DECODER_DIR=$AOSP_DIR/device/generic/vulkan-cereal/stream-servers/vulkan
