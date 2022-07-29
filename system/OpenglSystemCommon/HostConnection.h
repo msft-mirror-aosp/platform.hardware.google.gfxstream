@@ -143,8 +143,9 @@ public:
         ExtendedRCEncoderContext* rcEnc, int width, int height, uint32_t glformat) = 0;
     virtual uint32_t getHostHandle(native_handle_t const* handle) = 0;
     virtual int getFormat(native_handle_t const* handle) = 0;
-    virtual std::optional<uint32_t> getFormatDrmFourcc(native_handle_t const* /*handle*/) {
-        return std::nullopt;
+    virtual uint32_t getFormatDrmFourcc(native_handle_t const* /*handle*/) {
+        // Equal to DRM_FORMAT_INVALID -- see <drm_fourcc.h>
+        return 0;
     }
     virtual size_t getAllocatedSize(native_handle_t const* handle) = 0;
     virtual ~Gralloc() {}
