@@ -3,7 +3,8 @@
 
 project('gfxstream', 'cpp', 'c',
          version : '0.0.1',
-         license : 'MIT OR Apache-2.0')
+         license : 'MIT OR Apache-2.0',
+         default_options : ['cpp_std=gnu++17'])
 
 cc = meson.get_compiler('cpp')
 prog_python = import('python').find_installation('python3')
