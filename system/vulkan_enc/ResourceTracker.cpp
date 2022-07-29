@@ -182,8 +182,6 @@ inline_memfd_create(const char *name, unsigned int flags) {
 #endif
 #endif
 
-using android::aligned_buf_alloc;
-using android::aligned_buf_free;
 using android::base::Optional;
 using android::base::guest::AutoLock;
 using android::base::guest::RecursiveLock;
@@ -323,21 +321,14 @@ public:
         std::vector<std::pair<PFN_vkDeviceMemoryReportCallbackEXT, void *>> deviceMemoryReportCallbacks;
     };
 
-    struct VirtioGpuHostmemResourceInfo {
-        uint32_t resourceId = 0;
-        int primeFd = -1;
-    };
-
     struct VkDeviceMemory_Info {
         VkDeviceSize allocationSize = 0;
         VkDeviceSize mappedSize = 0;
         uint8_t* mappedPtr = nullptr;
         uint32_t memoryTypeIndex = 0;
-        bool virtualHostVisibleBacking = false;
         bool directMapped = false;
         GoldfishAddressSpaceBlock*
             goldfishAddressSpaceBlock = nullptr;
-        VirtioGpuHostmemResourceInfo resInfo;
         SubAlloc subAlloc;
         AHardwareBuffer* ahw = nullptr;
         bool imported = false;
@@ -563,17 +554,6 @@ public:
 
         if (memInfo.vmoHandle != ZX_HANDLE_INVALID) {
             zx_handle_close(memInfo.vmoHandle);
-        }
-
-        if (memInfo.mappedPtr &&
-            !memInfo.virtualHostVisibleBacking &&
-            !memInfo.directMapped) {
-            aligned_buf_free(memInfo.mappedPtr);
-        }
-
-        if (memInfo.directMapped) {
-            ALOGE("%s: warning: direct mapped memory never goes to unregister!\n", __func__);
-            subFreeHostMemory(&memInfo.subAlloc);
         }
 
         delete memInfo.goldfishAddressSpaceBlock;
@@ -3790,7 +3770,6 @@ public:
 
             hostMemInfo.mappedPtr =
                 (uint8_t*)(uintptr_t)directMappedAddr;
-            hostMemInfo.virtualHostVisibleBacking = true;
             ALOGV("%s: Set mapped ptr to %p\n", __func__, hostMemInfo.mappedPtr);
 
             VkResult hostMemAllocRes =
@@ -4608,7 +4587,7 @@ public:
         }
 
         VkDeviceMemory baseMemory = info.subAlloc.baseMemory;
-        uint32_t memoryTypeIndex = info.subAlloc.memoryTypeIndex;
+        uint32_t memoryTypeIndex = info.memoryTypeIndex;
         // If this was a device address memory allocation,
         // free it right away.
         if (subFreeHostMemory(&info.subAlloc)) {
