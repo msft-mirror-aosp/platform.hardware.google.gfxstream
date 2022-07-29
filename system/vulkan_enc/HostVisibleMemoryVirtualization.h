@@ -101,8 +101,6 @@ struct SubAlloc {
     VkDeviceSize baseOffset = 0;
     android::base::guest::SubAllocator* subAlloc = nullptr;
     VkDeviceMemory subMemory = VK_NULL_HANDLE;
-    bool isDeviceAddressMemoryAllocation = false;
-    uint32_t memoryTypeIndex = 0;
 };
 
 void subAllocHostMemory(
