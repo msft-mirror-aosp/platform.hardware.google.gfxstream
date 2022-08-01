@@ -324,6 +324,12 @@ class C2GoldfishVpxDec::IntfImpl : public SimpleInterface<void>::BaseParams {
 
     int height() const { return mSize->height; }
 
+    int primaries() const { return mDefaultColorAspects->primaries; }
+
+    int range() const { return mDefaultColorAspects->range; }
+
+    int transfer() const { return mDefaultColorAspects->transfer; }
+
     static C2R Hdr10PlusInfoInputSetter(bool mayBlock,
                                         C2P<C2StreamHdr10PlusInfo::input> &me) {
         (void)mayBlock;
@@ -415,6 +421,30 @@ void C2GoldfishVpxDec::onReset() {
 }
 
 void C2GoldfishVpxDec::onRelease() { destroyDecoder(); }
+
+void C2GoldfishVpxDec::sendMetadata() {
+    // compare and send if changed
+    MetaDataColorAspects currentMetaData = {1, 0, 0, 0};
+    currentMetaData.primaries = mIntf->primaries();
+    currentMetaData.range = mIntf->range();
+    currentMetaData.transfer = mIntf->transfer();
+
+    DDD("metadata primaries %d range %d transfer %d",
+            (int)(currentMetaData.primaries),
+            (int)(currentMetaData.range),
+            (int)(currentMetaData.transfer)
+       );
+
+    if (mSentMetadata.primaries == currentMetaData.primaries &&
+        mSentMetadata.range == currentMetaData.range &&
+        mSentMetadata.transfer == currentMetaData.transfer) {
+        DDD("metadata is the same, no need to update");
+        return;
+    }
+    std::swap(mSentMetadata, currentMetaData);
+
+    vpx_codec_send_metadata(mCtx, &(mSentMetadata));
+}
 
 c2_status_t C2GoldfishVpxDec::onFlush_sm() {
     if (mFrameParallelMode) {
@@ -608,6 +638,8 @@ void C2GoldfishVpxDec::process(const std::unique_ptr<C2Work> &work,
             ALOGW("WARNING: Got CSD buffer for VP8. Continue");
         }
     }
+
+    sendMetadata();
 
     if (inSize) {
         uint8_t *bitstream = const_cast<uint8_t *>(rView.data() + inOffset);
