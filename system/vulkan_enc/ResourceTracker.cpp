@@ -3599,9 +3599,7 @@ public:
                 kLargestPageSize * ((pAllocateInfo->allocationSize + kLargestPageSize - 1) / kLargestPageSize);
 
             VkDeviceSize blockSizeNeeded =
-                std::max(roundedUpAllocSize,
-                    std::min(kHostVisibleHeapSize,
-                             kDefaultHostMemBlockSize));
+                std::max(roundedUpAllocSize, kDefaultHostMemBlockSize);
 
             VkMemoryAllocateInfo allocInfoForHost = vk_make_orphan_copy(*pAllocateInfo);
             vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&allocInfoForHost);
