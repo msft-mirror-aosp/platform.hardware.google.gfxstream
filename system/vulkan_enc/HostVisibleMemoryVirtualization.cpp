@@ -45,27 +45,9 @@ void initHostVisibleMemoryVirtualizationInfo(
     HostVisibleMemoryVirtualizationInfo* info_out) {
 
     if (info_out->initialized) return;
-
-    info_out->hostMemoryProperties = *memoryProperties;
     info_out->initialized = true;
 
     info_out->guestMemoryProperties = *memoryProperties;
-
-    uint32_t typeCount =
-        memoryProperties->memoryTypeCount;
-    uint32_t heapCount =
-        memoryProperties->memoryHeapCount;
-
-    uint32_t firstFreeTypeIndex = typeCount;
-    uint32_t firstFreeHeapIndex = heapCount;
-
-    for (uint32_t i = 0; i < typeCount; ++i) {
-
-        // Set up identity mapping and not-both
-        // by default, to be edited later.
-        info_out->memoryTypeIndexMappingToHost[i] = i;
-        info_out->memoryTypeIndexMappingFromHost[i] = i;
-    }
 }
 
 bool isHostVisibleMemoryTypeIndexForGuest(

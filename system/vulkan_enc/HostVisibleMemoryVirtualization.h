@@ -40,14 +40,7 @@ class VkEncoder;
 
 struct HostVisibleMemoryVirtualizationInfo {
     bool initialized = false;
-
-    VkPhysicalDeviceMemoryProperties hostMemoryProperties;
     VkPhysicalDeviceMemoryProperties guestMemoryProperties;
-
-    uint32_t memoryTypeIndexMappingToHost[VK_MAX_MEMORY_TYPES];
-    uint32_t memoryTypeIndexMappingFromHost[VK_MAX_MEMORY_TYPES];
-
-    bool memoryTypeBitsShouldAdvertiseBoth[VK_MAX_MEMORY_TYPES];
 };
 
 void initHostVisibleMemoryVirtualizationInfo(
