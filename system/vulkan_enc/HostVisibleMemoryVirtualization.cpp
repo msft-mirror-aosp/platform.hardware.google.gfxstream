@@ -195,12 +195,4 @@ bool canSubAlloc(android::base::guest::SubAllocator* subAlloc, VkDeviceSize size
     return true;
 }
 
-bool isNoFlagsMemoryTypeIndexForGuest(
-    const HostVisibleMemoryVirtualizationInfo* info,
-    uint32_t index) {
-    const auto& props = info->guestMemoryProperties;
-    return props.memoryTypes[index].propertyFlags == 0;
-}
-
-
 } // namespace goldfish_vk
