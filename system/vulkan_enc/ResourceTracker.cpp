@@ -3778,7 +3778,6 @@ public:
                     device,
                     pAllocateInfo->memoryTypeIndex,
                     nonCoherentAtomSize,
-                    hostMemInfo.allocationSize,
                     hostMemInfo.mappedSize,
                     hostMemInfo.mappedPtr,
                     &hostMemAlloc);
