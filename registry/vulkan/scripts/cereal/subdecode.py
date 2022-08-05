@@ -293,6 +293,7 @@ custom_decodes = {
     "vkCmdPipelineBarrier": emit_global_state_wrapped_decoding,
     "vkCmdBindPipeline": emit_global_state_wrapped_decoding,
     "vkCmdBindDescriptorSets": emit_global_state_wrapped_decoding,
+    "vkCmdCopyQueryPoolResults": emit_global_state_wrapped_decoding,
     "vkBeginCommandBufferAsyncGOOGLE": emit_global_state_wrapped_decoding_with_logger,
     "vkEndCommandBufferAsyncGOOGLE": emit_global_state_wrapped_decoding_with_logger,
     "vkResetCommandBufferAsyncGOOGLE": emit_global_state_wrapped_decoding,
