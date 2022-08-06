@@ -3576,7 +3576,6 @@ public:
                     if (blocks[i].initialized &&
                         blocks[i].initResult == VK_SUCCESS &&
                         !blocks[i].isDedicated &&
-                        blocks[i].isDeviceAddressMemoryAllocation == isDeviceAddressMemoryAllocation &&
                         canSubAlloc(
                             blocks[i].subAlloc,
                             pAllocateInfo->allocationSize)) {
@@ -3626,7 +3625,6 @@ public:
 
             // Support device address capture/replay allocations
             if (isDeviceAddressMemoryAllocation) {
-                hostMemAlloc.isDeviceAddressMemoryAllocation = true;
                 if (allocFlagsInfoPtr) {
                     ALOGV("%s: has alloc flags\n", __func__);
                     allocFlagsInfo = *allocFlagsInfoPtr;
