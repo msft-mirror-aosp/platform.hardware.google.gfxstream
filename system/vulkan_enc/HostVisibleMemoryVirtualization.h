@@ -16,7 +16,11 @@
 
 #include <vulkan/vulkan.h>
 
-#define VIRTUAL_HOST_VISIBLE_HEAP_SIZE 512ULL * (1048576ULL)
+constexpr uint64_t kMegaBtye = 1048576;
+// This needs to be a power of 2 that is at least the min alignment needed in HostVisibleMemoryVirtualization.cpp.
+constexpr uint64_t kLargestPageSize = 65536;
+constexpr uint64_t kDefaultHostMemBlockSize = 16 * kMegaBtye; // 16 mb
+constexpr uint64_t kHostVisibleHeapSize = 512 * kMegaBtye;    // 512 mb
 
 struct EmulatorFeatureInfo;
 

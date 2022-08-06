@@ -3591,25 +3591,16 @@ public:
             auto& hostMemAlloc = blocks.back();
 
             hostMemAlloc.isDedicated = isDedicated;
-
-            // Uninitialized block; allocate on host.
-            static constexpr VkDeviceSize oneMb = 1048576;
-            // This needs to be a power of 2 that is at least the min alignment needed in HostVisibleMemoryVirtualization.cpp.
-            static constexpr VkDeviceSize biggestPage = 65536;
-            static constexpr VkDeviceSize kDefaultHostMemBlockSize =
-                16 * oneMb; // 16 mb
             VkDeviceSize roundedUpAllocSize =
-                oneMb * ((pAllocateInfo->allocationSize + oneMb - 1) / oneMb);
+                kMegaBtye * ((pAllocateInfo->allocationSize + kMegaBtye - 1) / kMegaBtye);
 
             // If dedicated, use a smaller "page rounded alloc size".
             VkDeviceSize pageRoundedAllocSize =
-                biggestPage * ((pAllocateInfo->allocationSize + biggestPage - 1) / biggestPage);
-
-            VkDeviceSize virtualHeapSize = VIRTUAL_HOST_VISIBLE_HEAP_SIZE;
+                kLargestPageSize * ((pAllocateInfo->allocationSize + kLargestPageSize - 1) / kLargestPageSize);
 
             VkDeviceSize blockSizeNeeded =
                 std::max(roundedUpAllocSize,
-                    std::min(virtualHeapSize,
+                    std::min(kHostVisibleHeapSize,
                              kDefaultHostMemBlockSize));
 
             VkMemoryAllocateInfo allocInfoForHost = vk_make_orphan_copy(*pAllocateInfo);
