@@ -81,7 +81,6 @@ VkResult finishHostMemAllocInit(
     VkDevice device,
     uint32_t memoryTypeIndex,
     VkDeviceSize nonCoherentAtomSize,
-    VkDeviceSize allocSize,
     VkDeviceSize mappedSize,
     uint8_t* mappedPtr,
     HostMemAlloc* out) {
@@ -89,7 +88,6 @@ VkResult finishHostMemAllocInit(
     out->device = device;
     out->memoryTypeIndex = memoryTypeIndex;
     out->nonCoherentAtomSize = nonCoherentAtomSize;
-    out->allocSize = allocSize;
     out->mappedSize = mappedSize;
     out->mappedPtr = mappedPtr;
 
