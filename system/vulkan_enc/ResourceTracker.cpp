@@ -836,9 +836,6 @@ public:
         info.physdev = physdev;
         info.props = props;
         info.memProps = memProps;
-        initHostVisibleMemoryVirtualizationInfo(
-            &memProps,
-            &mHostVisibleMemoryVirtInfo);
         info.apiVersion = props.apiVersion;
 
         const VkBaseInStructure *extensionCreateInfo =
@@ -1663,14 +1660,7 @@ public:
         VkPhysicalDevice physdev,
         VkPhysicalDeviceMemoryProperties2* out) {
 
-        (void)physdev;
-        // If the device supports VK_MAX_MEMORY_HEAPS heaps and VK_MAX_MEMORY_TYPES, the current
-        // logic will break unless refactored (see b:233803018 for progress).
-        initHostVisibleMemoryVirtualizationInfo(
-            &out->memoryProperties,
-            &mHostVisibleMemoryVirtInfo);
-
-        out->memoryProperties = mHostVisibleMemoryVirtInfo.guestMemoryProperties;
+        on_vkGetPhysicalDeviceMemoryProperties(nullptr, physdev, &out->memoryProperties);
     }
 
     void on_vkGetDeviceQueue(void*,
