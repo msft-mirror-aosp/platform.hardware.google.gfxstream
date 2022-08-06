@@ -642,6 +642,9 @@ custom_decodes = {
     "vkCreateFramebuffer" : emit_global_state_wrapped_decoding,
     "vkDestroyFramebuffer" : emit_global_state_wrapped_decoding,
 
+    "vkCreateSamplerYcbcrConversion": emit_global_state_wrapped_decoding,
+    "vkDestroySamplerYcbcrConversion": emit_global_state_wrapped_decoding,
+
     # VK_ANDROID_native_buffer
     "vkGetSwapchainGrallocUsageANDROID" : emit_global_state_wrapped_decoding,
     "vkGetSwapchainGrallocUsage2ANDROID" : emit_global_state_wrapped_decoding,
@@ -699,6 +702,10 @@ custom_decodes = {
 
     # VK_EXT_metal_surface
     "vkCreateMetalSurfaceEXT": decode_unsupported_api,
+
+    # VK_KHR_sampler_ycbcr_conversion
+    "vkCreateSamplerYcbcrConversionKHR": emit_global_state_wrapped_decoding,
+    "vkDestroySamplerYcbcrConversionKHR": emit_global_state_wrapped_decoding,
 }
 
 class VulkanDecoder(VulkanWrapperGenerator):
