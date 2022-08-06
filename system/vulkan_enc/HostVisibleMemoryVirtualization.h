@@ -62,7 +62,6 @@ struct HostMemAlloc {
     uint32_t memoryTypeIndex = 0;
     VkDeviceSize nonCoherentAtomSize = 0;
     VkDeviceMemory memory = VK_NULL_HANDLE;
-    VkDeviceSize allocSize = 0;
     VkDeviceSize mappedSize = 0;
     uint8_t* mappedPtr = nullptr;
     android::base::guest::SubAllocator* subAlloc = nullptr;
@@ -80,7 +79,6 @@ VkResult finishHostMemAllocInit(
     VkDevice device,
     uint32_t memoryTypeIndex,
     VkDeviceSize nonCoherentAtomSize,
-    VkDeviceSize allocSize,
     VkDeviceSize mappedSize,
     uint8_t* mappedPtr,
     HostMemAlloc* out);
