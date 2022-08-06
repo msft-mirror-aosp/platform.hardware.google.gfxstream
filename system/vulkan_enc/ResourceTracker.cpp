@@ -940,19 +940,6 @@ public:
         return info.mappedSize;
     }
 
-    VkDeviceSize getNonCoherentExtendedSize(VkDevice device, VkDeviceSize basicSize) const {
-        AutoLock<RecursiveLock> lock(mLock);
-        const auto it = info_VkDevice.find(device);
-        if (it == info_VkDevice.end()) return basicSize;
-        const auto& info = it->second;
-
-        VkDeviceSize nonCoherentAtomSize =
-            info.props.limits.nonCoherentAtomSize;
-        VkDeviceSize atoms =
-            (basicSize + nonCoherentAtomSize - 1) / nonCoherentAtomSize;
-        return atoms * nonCoherentAtomSize;
-    }
-
     bool isValidMemoryRange(const VkMappedMemoryRange& range) const {
         AutoLock<RecursiveLock> lock(mLock);
         const auto it = info_VkDeviceMemory.find(range.memory);
@@ -8165,10 +8152,6 @@ uint8_t* ResourceTracker::getMappedPointer(VkDeviceMemory memory) {
 
 VkDeviceSize ResourceTracker::getMappedSize(VkDeviceMemory memory) {
     return mImpl->getMappedSize(memory);
-}
-
-VkDeviceSize ResourceTracker::getNonCoherentExtendedSize(VkDevice device, VkDeviceSize basicSize) const {
-    return mImpl->getNonCoherentExtendedSize(device, basicSize);
 }
 
 bool ResourceTracker::isValidMemoryRange(const VkMappedMemoryRange& range) const {
