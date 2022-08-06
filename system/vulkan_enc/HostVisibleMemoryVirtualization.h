@@ -70,7 +70,6 @@ struct HostMemAlloc {
     uint32_t boHandle = 0;
     uint64_t memoryAddr = 0;
     size_t memorySize = 0;
-    bool isDeviceAddressMemoryAllocation = false;
     bool isDedicated = false;
 };
 
