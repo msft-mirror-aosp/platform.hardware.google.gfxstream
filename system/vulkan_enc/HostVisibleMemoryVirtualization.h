@@ -40,7 +40,6 @@ class VkEncoder;
 
 struct HostVisibleMemoryVirtualizationInfo {
     bool initialized = false;
-    bool memoryPropertiesSupported;
 
     VkPhysicalDeviceMemoryProperties hostMemoryProperties;
     VkPhysicalDeviceMemoryProperties guestMemoryProperties;
