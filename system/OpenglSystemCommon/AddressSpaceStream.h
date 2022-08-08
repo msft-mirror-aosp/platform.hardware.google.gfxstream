@@ -63,8 +63,8 @@ public:
 #endif
     }
 
-    void setThreadID(uint32_t id) {
-        m_threadID = id;
+    void setResourceId(uint32_t id) {
+        m_resourceId = id;
     }
 
 private:
@@ -113,7 +113,7 @@ private:
     uint64_t m_backoffFactor;
 
     size_t m_ringStorageSize;
-    uint32_t m_threadID = 0;
+    uint32_t m_resourceId = 0;
 };
 
 #endif
