@@ -62,7 +62,7 @@ getAndroidHardwareBufferUsageFromVkUsage(const VkImageCreateFlags vk_create,
 
 VkResult getAndroidHardwareBufferPropertiesANDROID(
     Gralloc* grallocHelper,
-    const HostVisibleMemoryVirtualizationInfo* hostMemVirtInfo,
+    const VkPhysicalDeviceMemoryProperties* memProps,
     VkDevice,
     const AHardwareBuffer* buffer,
     VkAndroidHardwareBufferPropertiesANDROID* pProperties) {
@@ -233,8 +233,8 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
 
     // Disallow host visible (hard to make actual dedicated allocs)
     uint32_t memoryTypeBits = 0;
-    for (uint32_t i = 0; i < hostMemVirtInfo->guestMemoryProperties.memoryTypeCount; ++i) {
-        if (isHostVisibleMemoryTypeIndexForGuest(hostMemVirtInfo, i))
+    for (uint32_t i = 0; i < memProps->memoryTypeCount; ++i) {
+        if (isHostVisible(memProps, i))
             continue;
 
         memoryTypeBits |= (1 << i);
