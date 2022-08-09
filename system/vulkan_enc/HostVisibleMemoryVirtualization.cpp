@@ -40,22 +40,8 @@ using android::base::guest::SubAllocator;
 
 namespace goldfish_vk {
 
-void initHostVisibleMemoryVirtualizationInfo(
-    const VkPhysicalDeviceMemoryProperties* memoryProperties,
-    HostVisibleMemoryVirtualizationInfo* info_out) {
-
-    if (info_out->initialized) return;
-    info_out->initialized = true;
-
-    info_out->guestMemoryProperties = *memoryProperties;
-}
-
-bool isHostVisibleMemoryTypeIndexForGuest(
-    const HostVisibleMemoryVirtualizationInfo* info,
-    uint32_t index) {
-
-    const auto& props = info->guestMemoryProperties;
-    return props.memoryTypes[index].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+bool isHostVisible(const VkPhysicalDeviceMemoryProperties* memoryProps, uint32_t index) {
+    return memoryProps->memoryTypes[index].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 }
 
 VkResult finishHostMemAllocInit(

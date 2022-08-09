@@ -38,18 +38,7 @@ namespace goldfish_vk {
 
 class VkEncoder;
 
-struct HostVisibleMemoryVirtualizationInfo {
-    bool initialized = false;
-    VkPhysicalDeviceMemoryProperties guestMemoryProperties;
-};
-
-void initHostVisibleMemoryVirtualizationInfo(
-    const VkPhysicalDeviceMemoryProperties* memoryProperties,
-    HostVisibleMemoryVirtualizationInfo* info_out);
-
-bool isHostVisibleMemoryTypeIndexForGuest(
-    const HostVisibleMemoryVirtualizationInfo* info,
-    uint32_t index);
+bool isHostVisible(const VkPhysicalDeviceMemoryProperties *memoryProps, uint32_t index);
 
 struct HostMemAlloc {
     bool initialized = false;
