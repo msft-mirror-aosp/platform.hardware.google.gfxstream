@@ -1102,7 +1102,6 @@ void VulkanDevice::InitLogger() {
 
   fx_logger_config_t config = {
       .min_severity = FX_LOG_INFO,
-      .console_fd = -1,
       .log_sink_socket = log_socket->release(),
       .tags = nullptr,
       .num_tags = 0,
