@@ -1083,9 +1083,10 @@ public:
         (void)memoryCount;
         (void)offsetCount;
         (void)sizeCount;
-
-        const auto& hostVirt =
-            mHostVisibleMemoryVirtInfo;
+        (void)typeIndex;
+        (void)typeIndexCount;
+        (void)typeBits;
+        (void)typeBitsCount;
 
         if (memory) {
             AutoLock<RecursiveLock> lock (mLock);
@@ -1118,22 +1119,6 @@ public:
                 (void)size;
             }
         }
-
-        for (uint32_t i = 0; i < typeIndexCount; ++i) {
-            typeIndex[i] =
-                hostVirt.memoryTypeIndexMappingToHost[typeIndex[i]];
-        }
-
-        for (uint32_t i = 0; i < typeBitsCount; ++i) {
-            uint32_t bits = 0;
-            for (uint32_t j = 0; j < VK_MAX_MEMORY_TYPES; ++j) {
-                bool guestHas = typeBits[i] & (1 << j);
-                uint32_t hostIndex =
-                    hostVirt.memoryTypeIndexMappingToHost[j];
-                bits |= guestHas ? (1 << hostIndex) : 0;
-            }
-            typeBits[i] = bits;
-        }
     }
 
     void deviceMemoryTransform_fromhost(
@@ -1143,41 +1128,16 @@ public:
         uint32_t* typeIndex, uint32_t typeIndexCount,
         uint32_t* typeBits, uint32_t typeBitsCount) {
 
+        (void)memory;
         (void)memoryCount;
+        (void)offset;
         (void)offsetCount;
+        (void)size;
         (void)sizeCount;
-
-        const auto& hostVirt =
-            mHostVisibleMemoryVirtInfo;
-
-        AutoLock<RecursiveLock> lock (mLock);
-
-        for (uint32_t i = 0; i < memoryCount; ++i) {
-            // TODO
-            (void)memory;
-            (void)offset;
-            (void)size;
-        }
-
-        for (uint32_t i = 0; i < typeIndexCount; ++i) {
-            typeIndex[i] =
-                hostVirt.memoryTypeIndexMappingFromHost[typeIndex[i]];
-        }
-
-        for (uint32_t i = 0; i < typeBitsCount; ++i) {
-            uint32_t bits = 0;
-            for (uint32_t j = 0; j < VK_MAX_MEMORY_TYPES; ++j) {
-                bool hostHas = typeBits[i] & (1 << j);
-                uint32_t guestIndex =
-                    hostVirt.memoryTypeIndexMappingFromHost[j];
-                bits |= hostHas ? (1 << guestIndex) : 0;
-
-                if (hostVirt.memoryTypeBitsShouldAdvertiseBoth[j]) {
-                    bits |= hostHas ? (1 << j) : 0;
-                }
-            }
-            typeBits[i] = bits;
-        }
+        (void)typeIndex;
+        (void)typeIndexCount;
+        (void)typeBits;
+        (void)typeBitsCount;
     }
 
     void transformImpl_VkExternalMemoryProperties_fromhost(
