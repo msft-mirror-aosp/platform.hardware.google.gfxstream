@@ -4193,13 +4193,13 @@ public:
                     abort();
                 }
 
-                bool isHostVisible = isHostVisible(&mMemoryProps,
-                                                   pAllocateInfo->memoryTypeIndex);
+                bool hostVisible = isHostVisible(&mMemoryProps,
+                                                 pAllocateInfo->memoryTypeIndex);
 
                 // Only device-local images need to create color buffer; for
                 // host-visible images, the color buffer is already created when
                 // sysmem allocates memory.
-                if (!isHostVisible) {
+                if (!hostVisible) {
                     if (pImageCreateInfo) {
                         fuchsia_hardware_goldfish::wire::
                             ColorBufferFormatType format;
