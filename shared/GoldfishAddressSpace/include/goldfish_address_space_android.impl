@@ -734,8 +734,8 @@ uint64_t buildu64(uint32_t lo, uint32_t hi) {
 /* Used to retry DRM_IOCTL_VIRTGPU_WAIT, which can also return EBUSY. */
 #define TEMP_FAILURE_RETRY_BUSY(tag, exp) ({                                            \
     __typeof__(exp) _rc;                                                                \
+    uint32_t busy_times = 0;                                                            \
     do {                                                                                \
-        uint32_t busy_times = 0;                                                        \
         _rc = (exp);                                                                    \
         if (errno == EBUSY) {                                                           \
             ++busy_times;                                                               \
