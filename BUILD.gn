@@ -36,6 +36,10 @@ shared_library("libvulkan_goldfish") {
     "android-emu/android/base/threads/AndroidThread_pthread.cpp",
     "android-emu/android/base/threads/AndroidWorkPool.cpp",
     "android-emu/android/base/threads/AndroidWorkPool.h",
+    "platform/include/VirtGpu.h",
+    "platform/stub/VirtGpuBlob.cpp",
+    "platform/stub/VirtGpuBlobMapping.cpp",
+    "platform/stub/VirtGpuDevice.cpp",
     "shared/GoldfishAddressSpace/goldfish_address_space.cpp",
     "shared/GoldfishAddressSpace/include/goldfish_address_space.h",
     "shared/OpenglCodecCommon/ChecksumCalculator.cpp",
@@ -161,6 +165,7 @@ shared_library("libvulkan_goldfish") {
 
     include_dirs += [
       "fuchsia/include",
+      "platform/include",
       "//third_party/Vulkan-Headers/include",
     ]
 
