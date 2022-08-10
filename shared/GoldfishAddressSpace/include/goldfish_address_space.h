@@ -143,7 +143,7 @@ struct address_space_ping {
     uint64_t offset;
     uint64_t size;
     uint64_t metadata;
-    uint32_t threadID;
+    uint32_t resourceId;
     uint32_t wait_fd;
     uint32_t wait_flags;
     uint32_t direction;
