@@ -4292,6 +4292,10 @@ public:
                         abort();
                     }
                 }
+            } else {
+                ALOGW("Dedicated image / buffer not available. Cannot create "
+                      "BufferCollection to export VMOs.");
+                return VK_ERROR_OUT_OF_DEVICE_MEMORY;
             }
         }
 
