@@ -4193,16 +4193,15 @@ public:
                     abort();
                 }
 
-                bool hostVisible = isHostVisible(&mMemoryProps,
-                                                 pAllocateInfo->memoryTypeIndex);
-
-                // Only device-local images need to create color buffer; for
-                // host-visible images, the color buffer is already created when
-                // sysmem allocates memory.
-                if (!hostVisible) {
-                    if (pImageCreateInfo) {
-                        fuchsia_hardware_goldfish::wire::
-                            ColorBufferFormatType format;
+                if (pImageCreateInfo) {
+                    // Only device-local images need to create color buffer; for
+                    // host-visible images, the color buffer is already created
+                    // when sysmem allocates memory. Here we use the |tiling|
+                    // field of image creation info to determine if it uses
+                    // host-visible memory.
+                    bool isLinear = pImageCreateInfo->tiling == VK_IMAGE_TILING_LINEAR;
+                    if (!isLinear) {
+                        fuchsia_hardware_goldfish::wire::ColorBufferFormatType format;
                         switch (pImageCreateInfo->format) {
                             case VK_FORMAT_B8G8R8A8_SINT:
                             case VK_FORMAT_B8G8R8A8_UNORM:
@@ -4210,8 +4209,8 @@ public:
                             case VK_FORMAT_B8G8R8A8_SNORM:
                             case VK_FORMAT_B8G8R8A8_SSCALED:
                             case VK_FORMAT_B8G8R8A8_USCALED:
-                                format = fuchsia_hardware_goldfish::wire::
-                                    ColorBufferFormatType::kBgra;
+                                format = fuchsia_hardware_goldfish::wire::ColorBufferFormatType::
+                                        kBgra;
                                 break;
                             case VK_FORMAT_R8G8B8A8_SINT:
                             case VK_FORMAT_R8G8B8A8_UNORM:
@@ -4219,8 +4218,8 @@ public:
                             case VK_FORMAT_R8G8B8A8_SNORM:
                             case VK_FORMAT_R8G8B8A8_SSCALED:
                             case VK_FORMAT_R8G8B8A8_USCALED:
-                                format = fuchsia_hardware_goldfish::wire::
-                                    ColorBufferFormatType::kRgba;
+                                format = fuchsia_hardware_goldfish::wire::ColorBufferFormatType::
+                                        kRgba;
                                 break;
                             case VK_FORMAT_R8_UNORM:
                             case VK_FORMAT_R8_UINT:
@@ -4229,8 +4228,8 @@ public:
                             case VK_FORMAT_R8_SINT:
                             case VK_FORMAT_R8_SSCALED:
                             case VK_FORMAT_R8_SRGB:
-                                format = fuchsia_hardware_goldfish::wire::
-                                    ColorBufferFormatType::kLuminance;
+                                format = fuchsia_hardware_goldfish::wire::ColorBufferFormatType::
+                                        kLuminance;
                                 break;
                             case VK_FORMAT_R8G8_UNORM:
                             case VK_FORMAT_R8G8_UINT:
@@ -4239,8 +4238,8 @@ public:
                             case VK_FORMAT_R8G8_SINT:
                             case VK_FORMAT_R8G8_SSCALED:
                             case VK_FORMAT_R8G8_SRGB:
-                                format = fuchsia_hardware_goldfish::wire::
-                                    ColorBufferFormatType::kRg;
+                                format =
+                                        fuchsia_hardware_goldfish::wire::ColorBufferFormatType::kRg;
                                 break;
                             default:
                                 ALOGE("Unsupported format: %d",
@@ -4250,21 +4249,20 @@ public:
 
                         fidl::Arena arena;
                         fuchsia_hardware_goldfish::wire::CreateColorBuffer2Params createParams(
-                            arena);
+                                arena);
                         createParams.set_width(pImageCreateInfo->extent.width)
-                            .set_height(pImageCreateInfo->extent.height)
-                            .set_format(format)
-                            .set_memory_property(
-                                fuchsia_hardware_goldfish::wire::kMemoryPropertyDeviceLocal);
+                                .set_height(pImageCreateInfo->extent.height)
+                                .set_format(format)
+                                .set_memory_property(fuchsia_hardware_goldfish::wire::
+                                                             kMemoryPropertyDeviceLocal);
 
-                        auto result = mControlDevice->CreateColorBuffer2(
-                            std::move(vmo_copy), std::move(createParams));
+                        auto result = mControlDevice->CreateColorBuffer2(std::move(vmo_copy),
+                                                                         std::move(createParams));
                         if (!result.ok() || result->res != ZX_OK) {
                             if (result.ok() &&
                                 result->res == ZX_ERR_ALREADY_EXISTS) {
-                                ALOGD(
-                                    "CreateColorBuffer: color buffer already "
-                                    "exists\n");
+                                ALOGD("CreateColorBuffer: color buffer already "
+                                      "exists\n");
                             } else {
                                 ALOGE("CreateColorBuffer failed: %d:%d",
                                       result.status(),
