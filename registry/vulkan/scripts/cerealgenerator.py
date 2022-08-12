@@ -377,6 +377,7 @@ class BumpPool;
 #include "common/goldfish_vk_transform.h"
 
 #include "{self.baseLibDirPrefix}/BumpPool.h"
+#include "{self.baseLibDirPrefix}/Metrics.h"
 #include "{self.baseLibDirPrefix}/System.h"
 #include "{self.baseLibDirPrefix}/Tracing.h"
 #include "stream-servers/IOStream.h"
