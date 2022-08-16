@@ -167,6 +167,7 @@ endif
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 28 -o $(IS_AT_LEAST_QPR1) = true && echo isApi29OrHigher),isApi29OrHigher)
     # HWC2 enabled after P
     include $(GOLDFISH_OPENGL_PATH)/system/hwc2/Android.mk
+    include $(GOLDFISH_OPENGL_PATH)/system/hwc3/Android.mk
     # hardware codecs enabled after P
     include $(GOLDFISH_OPENGL_PATH)/system/codecs/omx/common/Android.mk
     include $(GOLDFISH_OPENGL_PATH)/system/codecs/omx/plugin/Android.mk

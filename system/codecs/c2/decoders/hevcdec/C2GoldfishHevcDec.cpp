@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The Android Open Source Project
+ * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 //#define LOG_NDEBUG 0
-#define LOG_TAG "C2GoldfishAvcDec"
+#define LOG_TAG "C2GoldfishHevcDec"
 #include <inttypes.h>
 #include <log/log.h>
 #include <media/stagefright/foundation/AUtils.h>
@@ -40,7 +40,7 @@
 
 #include <color_buffer_utils.h>
 
-#include "C2GoldfishAvcDec.h"
+#include "C2GoldfishHevcDec.h"
 
 #define DEBUG 0
 #if DEBUG
@@ -56,22 +56,17 @@ namespace android {
 
 namespace {
 constexpr size_t kMinInputBufferSize = 6 * 1024 * 1024;
-constexpr char COMPONENT_NAME[] = "c2.goldfish.h264.decoder";
+constexpr char COMPONENT_NAME[] = "c2.goldfish.hevc.decoder";
 constexpr uint32_t kDefaultOutputDelay = 8;
-/* avc specification allows for a maximum delay of 16 frames.
-   As soft avc decoder supports interlaced, this delay would be 32 fields.
-   And avc decoder implementation has an additional delay of 2 decode calls.
-   So total maximum output delay is 34 */
-constexpr uint32_t kMaxOutputDelay = 34;
-constexpr uint32_t kMinInputBytes = 4;
+constexpr uint32_t kMaxOutputDelay = 16;
 } // namespace
 
-class C2GoldfishAvcDec::IntfImpl : public SimpleInterface<void>::BaseParams {
+class C2GoldfishHevcDec::IntfImpl : public SimpleInterface<void>::BaseParams {
   public:
     explicit IntfImpl(const std::shared_ptr<C2ReflectorHelper> &helper)
         : SimpleInterface<void>::BaseParams(
               helper, COMPONENT_NAME, C2Component::KIND_DECODER,
-              C2Component::DOMAIN_VIDEO, MEDIA_MIMETYPE_VIDEO_AVC) {
+              C2Component::DOMAIN_VIDEO, MEDIA_MIMETYPE_VIDEO_HEVC) {
         noPrivateBuffers(); // TODO: account for our buffers here
         noInputReferences();
         noOutputReferences();
@@ -102,8 +97,8 @@ class C2GoldfishAvcDec::IntfImpl : public SimpleInterface<void>::BaseParams {
             DefineParam(mSize, C2_PARAMKEY_PICTURE_SIZE)
                 .withDefault(new C2StreamPictureSizeInfo::output(0u, 320, 240))
                 .withFields({
-                    C2F(mSize, width).inRange(2, 4080, 2),
-                    C2F(mSize, height).inRange(2, 4080, 2),
+                    C2F(mSize, width).inRange(2, 4096, 2),
+                    C2F(mSize, height).inRange(2, 4096, 2),
                 })
                 .withSetter(SizeSetter)
                 .build());
@@ -112,8 +107,8 @@ class C2GoldfishAvcDec::IntfImpl : public SimpleInterface<void>::BaseParams {
                          .withDefault(new C2StreamMaxPictureSizeTuning::output(
                              0u, 320, 240))
                          .withFields({
-                             C2F(mSize, width).inRange(2, 4080, 2),
-                             C2F(mSize, height).inRange(2, 4080, 2),
+                             C2F(mSize, width).inRange(2, 4096, 2),
+                             C2F(mSize, height).inRange(2, 4096, 2),
                          })
                          .withSetter(MaxPictureSizeSetter, mSize)
                          .build());
@@ -121,27 +116,22 @@ class C2GoldfishAvcDec::IntfImpl : public SimpleInterface<void>::BaseParams {
         addParameter(
             DefineParam(mProfileLevel, C2_PARAMKEY_PROFILE_LEVEL)
                 .withDefault(new C2StreamProfileLevelInfo::input(
-                    0u, C2Config::PROFILE_AVC_CONSTRAINED_BASELINE,
-                    C2Config::LEVEL_AVC_5_2))
-                .withFields(
-                    {C2F(mProfileLevel, profile)
-                         .oneOf({C2Config::PROFILE_AVC_CONSTRAINED_BASELINE,
-                                 C2Config::PROFILE_AVC_BASELINE,
-                                 C2Config::PROFILE_AVC_MAIN,
-                                 C2Config::PROFILE_AVC_CONSTRAINED_HIGH,
-                                 C2Config::PROFILE_AVC_PROGRESSIVE_HIGH,
-                                 C2Config::PROFILE_AVC_HIGH}),
-                     C2F(mProfileLevel, level)
-                         .oneOf(
-                             {C2Config::LEVEL_AVC_1, C2Config::LEVEL_AVC_1B,
-                              C2Config::LEVEL_AVC_1_1, C2Config::LEVEL_AVC_1_2,
-                              C2Config::LEVEL_AVC_1_3, C2Config::LEVEL_AVC_2,
-                              C2Config::LEVEL_AVC_2_1, C2Config::LEVEL_AVC_2_2,
-                              C2Config::LEVEL_AVC_3, C2Config::LEVEL_AVC_3_1,
-                              C2Config::LEVEL_AVC_3_2, C2Config::LEVEL_AVC_4,
-                              C2Config::LEVEL_AVC_4_1, C2Config::LEVEL_AVC_4_2,
-                              C2Config::LEVEL_AVC_5, C2Config::LEVEL_AVC_5_1,
-                              C2Config::LEVEL_AVC_5_2})})
+                    0u, C2Config::PROFILE_HEVC_MAIN, C2Config::LEVEL_HEVC_MAIN_5_1))
+                .withFields({
+                    C2F(mProfileLevel, profile).oneOf({
+                            C2Config::PROFILE_HEVC_MAIN,
+                            C2Config::PROFILE_HEVC_MAIN_STILL}),
+                    C2F(mProfileLevel, level).oneOf({
+                            C2Config::LEVEL_HEVC_MAIN_1,
+                            C2Config::LEVEL_HEVC_MAIN_2, C2Config::LEVEL_HEVC_MAIN_2_1,
+                            C2Config::LEVEL_HEVC_MAIN_3, C2Config::LEVEL_HEVC_MAIN_3_1,
+                            C2Config::LEVEL_HEVC_MAIN_4, C2Config::LEVEL_HEVC_MAIN_4_1,
+                            C2Config::LEVEL_HEVC_MAIN_5, C2Config::LEVEL_HEVC_MAIN_5_1,
+                            C2Config::LEVEL_HEVC_MAIN_5_2, C2Config::LEVEL_HEVC_HIGH_4,
+                            C2Config::LEVEL_HEVC_HIGH_4_1, C2Config::LEVEL_HEVC_HIGH_5,
+                            C2Config::LEVEL_HEVC_HIGH_5_1, C2Config::LEVEL_HEVC_HIGH_5_2
+                    })
+                })
                 .withSetter(ProfileLevelSetter, mSize)
                 .build());
 
@@ -266,8 +256,8 @@ class C2GoldfishAvcDec::IntfImpl : public SimpleInterface<void>::BaseParams {
         (void)mayBlock;
         // TODO: get max width/height from the size's field helpers vs.
         // hardcoding
-        me.set().width = c2_min(c2_max(me.v.width, size.v.width), 4080u);
-        me.set().height = c2_min(c2_max(me.v.height, size.v.height), 4080u);
+        me.set().width = c2_min(c2_max(me.v.width, size.v.width), 4096u);
+        me.set().height = c2_min(c2_max(me.v.height, size.v.height), 4096u);
         return C2R::Ok();
     }
 
@@ -276,8 +266,8 @@ class C2GoldfishAvcDec::IntfImpl : public SimpleInterface<void>::BaseParams {
         const C2P<C2StreamMaxPictureSizeTuning::output> &maxSize) {
         (void)mayBlock;
         // assume compression ratio of 2
-        me.set().value = c2_max((((maxSize.v.width + 15) / 16) *
-                                 ((maxSize.v.height + 15) / 16) * 192),
+        me.set().value = c2_max((((maxSize.v.width + 63) / 64) *
+                                 ((maxSize.v.height + 64) / 64) * 3072),
                                 kMinInputBufferSize);
         return C2R::Ok();
     }
@@ -379,7 +369,7 @@ static void ivd_aligned_free(void *ctxt, void *mem) {
     free(mem);
 }
 
-C2GoldfishAvcDec::C2GoldfishAvcDec(const char *name, c2_node_id_t id,
+C2GoldfishHevcDec::C2GoldfishHevcDec(const char *name, c2_node_id_t id,
                                    const std::shared_ptr<IntfImpl> &intfImpl)
     : SimpleC2Component(
           std::make_shared<SimpleInterface<IntfImpl>>(name, id, intfImpl)),
@@ -387,33 +377,33 @@ C2GoldfishAvcDec::C2GoldfishAvcDec(const char *name, c2_node_id_t id,
       mHeaderDecoded(false), mOutIndex(0u) {
     mWidth = mIntf->width();
     mHeight = mIntf->height();
-    DDD("creating avc decoder now w %d h %d", mWidth, mHeight);
+    DDD("creating hevc decoder now w %d h %d", mWidth, mHeight);
 }
 
-C2GoldfishAvcDec::~C2GoldfishAvcDec() { onRelease(); }
+C2GoldfishHevcDec::~C2GoldfishHevcDec() { onRelease(); }
 
-c2_status_t C2GoldfishAvcDec::onInit() {
+c2_status_t C2GoldfishHevcDec::onInit() {
     status_t err = initDecoder();
     return err == OK ? C2_OK : C2_CORRUPTED;
 }
 
-c2_status_t C2GoldfishAvcDec::onStop() {
+c2_status_t C2GoldfishHevcDec::onStop() {
     if (OK != resetDecoder())
         return C2_CORRUPTED;
     resetPlugin();
     return C2_OK;
 }
 
-void C2GoldfishAvcDec::onReset() { (void)onStop(); }
+void C2GoldfishHevcDec::onReset() { (void)onStop(); }
 
-void C2GoldfishAvcDec::onRelease() {
+void C2GoldfishHevcDec::onRelease() {
     deleteContext();
     if (mOutBlock) {
         mOutBlock.reset();
     }
 }
 
-void C2GoldfishAvcDec::decodeHeaderAfterFlush() {
+void C2GoldfishHevcDec::decodeHeaderAfterFlush() {
     if (mContext && !mCsd0.empty() && !mCsd1.empty()) {
         mContext->decodeFrame(&(mCsd0[0]), mCsd0.size(), 0);
         mContext->decodeFrame(&(mCsd1[0]), mCsd1.size(), 0);
@@ -421,7 +411,7 @@ void C2GoldfishAvcDec::decodeHeaderAfterFlush() {
     }
 }
 
-c2_status_t C2GoldfishAvcDec::onFlush_sm() {
+c2_status_t C2GoldfishHevcDec::onFlush_sm() {
     if (OK != setFlushMode())
         return C2_CORRUPTED;
 
@@ -457,25 +447,26 @@ c2_status_t C2GoldfishAvcDec::onFlush_sm() {
     return C2_OK;
 }
 
-status_t C2GoldfishAvcDec::createDecoder() {
+status_t C2GoldfishHevcDec::createDecoder() {
 
-    DDD("creating avc context now w %d h %d", mWidth, mHeight);
+    DDD("creating hevc context now w %d h %d", mWidth, mHeight);
     if (mEnableAndroidNativeBuffers) {
-        mContext.reset(new MediaH264Decoder(RenderMode::RENDER_BY_HOST_GPU));
+        mContext.reset(new MediaHevcDecoder(RenderMode::RENDER_BY_HOST_GPU));
     } else {
-        mContext.reset(new MediaH264Decoder(RenderMode::RENDER_BY_GUEST_CPU));
+        mContext.reset(new MediaHevcDecoder(RenderMode::RENDER_BY_GUEST_CPU));
     }
-    mContext->initH264Context(mWidth, mHeight, mWidth, mHeight,
-                              MediaH264Decoder::PixelFormat::YUV420P);
+    mContext->initHevcContext(mWidth, mHeight, mWidth, mHeight,
+                              MediaHevcDecoder::PixelFormat::YUV420P);
+
     return OK;
 }
 
-status_t C2GoldfishAvcDec::setParams(size_t stride) {
+status_t C2GoldfishHevcDec::setParams(size_t stride) {
     (void)stride;
     return OK;
 }
 
-status_t C2GoldfishAvcDec::initDecoder() {
+status_t C2GoldfishHevcDec::initDecoder() {
     //    if (OK != createDecoder()) return UNKNOWN_ERROR;
     mStride = ALIGN2(mWidth);
     mSignalledError = false;
@@ -484,7 +475,7 @@ status_t C2GoldfishAvcDec::initDecoder() {
     return OK;
 }
 
-bool C2GoldfishAvcDec::setDecodeArgs(C2ReadView *inBuffer,
+bool C2GoldfishHevcDec::setDecodeArgs(C2ReadView *inBuffer,
                                      C2GraphicView *outBuffer, size_t inOffset,
                                      size_t inSize, uint32_t tsMarker) {
     uint32_t displayStride = mStride;
@@ -519,7 +510,7 @@ bool C2GoldfishAvcDec::setDecodeArgs(C2ReadView *inBuffer,
     return true;
 }
 
-status_t C2GoldfishAvcDec::setFlushMode() {
+status_t C2GoldfishHevcDec::setFlushMode() {
     if (mContext) {
         mContext->flush();
     }
@@ -527,7 +518,7 @@ status_t C2GoldfishAvcDec::setFlushMode() {
     return OK;
 }
 
-status_t C2GoldfishAvcDec::resetDecoder() {
+status_t C2GoldfishHevcDec::resetDecoder() {
     mStride = 0;
     mSignalledError = false;
     mHeaderDecoded = false;
@@ -536,15 +527,15 @@ status_t C2GoldfishAvcDec::resetDecoder() {
     return OK;
 }
 
-void C2GoldfishAvcDec::resetPlugin() {
+void C2GoldfishHevcDec::resetPlugin() {
     mSignalledOutputEos = false;
     gettimeofday(&mTimeStart, nullptr);
     gettimeofday(&mTimeEnd, nullptr);
 }
 
-void C2GoldfishAvcDec::deleteContext() {
+void C2GoldfishHevcDec::deleteContext() {
     if (mContext) {
-        mContext->destroyH264Context();
+        mContext->destroyHevcContext();
         mContext.reset(nullptr);
         mPts2Index.clear();
         mOldPts2Index.clear();
@@ -565,7 +556,7 @@ static void fillEmptyWork(const std::unique_ptr<C2Work> &work) {
     work->workletsProcessed = 1u;
 }
 
-void C2GoldfishAvcDec::finishWork(uint64_t index,
+void C2GoldfishHevcDec::finishWork(uint64_t index,
                                   const std::unique_ptr<C2Work> &work) {
     std::shared_ptr<C2Buffer> buffer =
         createGraphicBuffer(std::move(mOutBlock), C2Rect(mWidth, mHeight));
@@ -634,7 +625,7 @@ void C2GoldfishAvcDec::finishWork(uint64_t index,
 }
 
 c2_status_t
-C2GoldfishAvcDec::ensureDecoderState(const std::shared_ptr<C2BlockPool> &pool) {
+C2GoldfishHevcDec::ensureDecoderState(const std::shared_ptr<C2BlockPool> &pool) {
     if (mOutBlock && (mOutBlock->width() != ALIGN2(mWidth) ||
                       mOutBlock->height() != mHeight)) {
         mOutBlock.reset();
@@ -667,7 +658,7 @@ C2GoldfishAvcDec::ensureDecoderState(const std::shared_ptr<C2BlockPool> &pool) {
     return C2_OK;
 }
 
-void C2GoldfishAvcDec::checkMode(const std::shared_ptr<C2BlockPool> &pool) {
+void C2GoldfishHevcDec::checkMode(const std::shared_ptr<C2BlockPool> &pool) {
     mWidth = mIntf->width();
     mHeight = mIntf->height();
     const bool isGraphic = (pool->getAllocatorId() & C2Allocator::GRAPHIC);
@@ -681,7 +672,7 @@ void C2GoldfishAvcDec::checkMode(const std::shared_ptr<C2BlockPool> &pool) {
     }
 }
 
-void C2GoldfishAvcDec::getVuiParams(h264_image_t &img) {
+void C2GoldfishHevcDec::getVuiParams(hevc_image_t &img) {
 
     VuiColorAspects vuiColorAspects;
     vuiColorAspects.primaries = img.color_primaries;
@@ -714,7 +705,7 @@ void C2GoldfishAvcDec::getVuiParams(h264_image_t &img) {
     }
 }
 
-void C2GoldfishAvcDec::copyImageData(h264_image_t &img) {
+void C2GoldfishHevcDec::copyImageData(hevc_image_t &img) {
     getVuiParams(img);
     if (mEnableAndroidNativeBuffers)
         return;
@@ -745,7 +736,7 @@ void C2GoldfishAvcDec::copyImageData(h264_image_t &img) {
     }
 }
 
-uint64_t C2GoldfishAvcDec::getWorkIndex(uint64_t pts) {
+uint64_t C2GoldfishHevcDec::getWorkIndex(uint64_t pts) {
     if (!mOldPts2Index.empty()) {
         auto iter = mOldPts2Index.find(pts);
         if (iter != mOldPts2Index.end()) {
@@ -764,7 +755,7 @@ uint64_t C2GoldfishAvcDec::getWorkIndex(uint64_t pts) {
     return 0;
 }
 
-void C2GoldfishAvcDec::insertPts(uint32_t work_index, uint64_t pts) {
+void C2GoldfishHevcDec::insertPts(uint32_t work_index, uint64_t pts) {
     auto iter = mPts2Index.find(pts);
     if (iter != mPts2Index.end()) {
         // we have a collision here:
@@ -778,7 +769,7 @@ void C2GoldfishAvcDec::insertPts(uint32_t work_index, uint64_t pts) {
     mPts2Index[pts] = work_index;
 }
 
-void C2GoldfishAvcDec::removePts(uint64_t pts) {
+void C2GoldfishHevcDec::removePts(uint64_t pts) {
     bool found = false;
     uint64_t index = 0;
     // note: check old pts first to see
@@ -813,7 +804,7 @@ void C2GoldfishAvcDec::removePts(uint64_t pts) {
 // TODO: pass coloraspects information to surface
 // TODO: test support for dynamic change in resolution
 // TODO: verify if the decoder sent back all frames
-void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
+void C2GoldfishHevcDec::process(const std::unique_ptr<C2Work> &work,
                                const std::shared_ptr<C2BlockPool> &pool) {
     // Initialize output work
     work->result = C2_OK;
@@ -854,7 +845,7 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
         (int)work->input.ordinal.timestamp.peeku(),
         (int)work->input.ordinal.frameIndex.peeku(), work->input.flags);
     size_t inPos = 0;
-    while (inPos < inSize && inSize - inPos >= kMinInputBytes) {
+    while (inPos < inSize) {
         if (C2_OK != ensureDecoderState(pool)) {
             mSignalledError = true;
             work->workletsProcessed = 1u;
@@ -892,12 +883,12 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
             }
 
             bool whChanged = false;
-            if (GoldfishH264Helper::isSpsFrame(mInPBuffer, mInPBufferSize)) {
-                mH264Helper.reset(new GoldfishH264Helper(mWidth, mHeight));
-                whChanged = mH264Helper->decodeHeader(mInPBuffer, mInPBufferSize);
+            if (GoldfishHevcHelper::isVpsFrame(mInPBuffer, mInPBufferSize)) {
+                mHevcHelper.reset(new GoldfishHevcHelper(mWidth, mHeight));
+                whChanged = mHevcHelper->decodeHeader(mInPBuffer, mInPBufferSize);
                 if (whChanged) {
-                        DDD("w changed from old %d to new %d\n", mWidth, mH264Helper->getWidth());
-                        DDD("h changed from old %d to new %d\n", mHeight, mH264Helper->getHeight());
+                        DDD("w changed from old %d to new %d\n", mWidth, mHevcHelper->getWidth());
+                        DDD("h changed from old %d to new %d\n", mHeight, mHevcHelper->getHeight());
                         if (1) {
                             drainInternal(DRAIN_COMPONENT_NO_EOS, pool, work);
                             resetDecoder();
@@ -905,8 +896,8 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
                             work->workletsProcessed = 0u;
                         }
                         {
-                            mWidth = mH264Helper->getWidth();
-                            mHeight = mH264Helper->getHeight();
+                            mWidth = mHevcHelper->getWidth();
+                            mHeight = mHevcHelper->getHeight();
                             C2StreamPictureSizeInfo::output size(0u, mWidth, mHeight);
                             std::vector<std::unique_ptr<C2SettingResult>> failures;
                             c2_status_t err = mIntf->config({&size}, C2_MAY_BLOCK, &failures);
@@ -927,9 +918,9 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
                             checkMode(pool);
                             createDecoder();
                         }
-                        continue;
+                        continue;//return;
                 } // end of whChanged
-            } // end of isSpsFrame
+            } // end of isVpsFrame
 
             uint32_t delay;
             GETTIME(&mTimeStart, nullptr);
@@ -937,9 +928,9 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
             (void)delay;
             //(void) ivdec_api_function(mDecHandle, &s_decode_ip, &s_decode_op);
             DDD("decoding");
-            h264_result_t h264Res =
+            hevc_result_t hevcRes =
                 mContext->decodeFrame(mInPBuffer, mInPBufferSize, mIndex2Pts[mInTsMarker]);
-            mConsumedBytes = h264Res.bytesProcessed;
+            mConsumedBytes = hevcRes.bytesProcessed;
             DDD("decoding consumed %d", (int)mConsumedBytes);
 
             if (mHostColorBufferId > 0) {
@@ -953,7 +944,6 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
             TIME_DIFF(mTimeStart, mTimeEnd, decodeTime);
             (void)decodeTime;
         }
-
         if (mImg.data != nullptr) {
             DDD("got data %" PRIu64 " with pts %" PRIu64,  getWorkIndex(mImg.pts), mImg.pts);
             mHeaderDecoded = true;
@@ -979,7 +969,7 @@ void C2GoldfishAvcDec::process(const std::unique_ptr<C2Work> &work,
 }
 
 c2_status_t
-C2GoldfishAvcDec::drainInternal(uint32_t drainMode,
+C2GoldfishHevcDec::drainInternal(uint32_t drainMode,
                                 const std::shared_ptr<C2BlockPool> &pool,
                                 const std::unique_ptr<C2Work> &work) {
     if (drainMode == NO_DRAIN) {
@@ -1036,15 +1026,15 @@ C2GoldfishAvcDec::drainInternal(uint32_t drainMode,
     return C2_OK;
 }
 
-c2_status_t C2GoldfishAvcDec::drain(uint32_t drainMode,
+c2_status_t C2GoldfishHevcDec::drain(uint32_t drainMode,
                                     const std::shared_ptr<C2BlockPool> &pool) {
     DDD("drainInternal because of drain");
     return drainInternal(drainMode, pool, nullptr);
 }
 
-class C2GoldfishAvcDecFactory : public C2ComponentFactory {
+class C2GoldfishHevcDecFactory : public C2ComponentFactory {
   public:
-    C2GoldfishAvcDecFactory()
+    C2GoldfishHevcDecFactory()
         : mHelper(std::static_pointer_cast<C2ReflectorHelper>(
               GoldfishComponentStore::Create()->getParamReflector())) {}
 
@@ -1053,9 +1043,9 @@ class C2GoldfishAvcDecFactory : public C2ComponentFactory {
                     std::shared_ptr<C2Component> *const component,
                     std::function<void(C2Component *)> deleter) override {
         *component = std::shared_ptr<C2Component>(
-            new C2GoldfishAvcDec(
+            new C2GoldfishHevcDec(
                 COMPONENT_NAME, id,
-                std::make_shared<C2GoldfishAvcDec::IntfImpl>(mHelper)),
+                std::make_shared<C2GoldfishHevcDec::IntfImpl>(mHelper)),
             deleter);
         return C2_OK;
     }
@@ -1064,14 +1054,14 @@ class C2GoldfishAvcDecFactory : public C2ComponentFactory {
         c2_node_id_t id, std::shared_ptr<C2ComponentInterface> *const interface,
         std::function<void(C2ComponentInterface *)> deleter) override {
         *interface = std::shared_ptr<C2ComponentInterface>(
-            new SimpleInterface<C2GoldfishAvcDec::IntfImpl>(
+            new SimpleInterface<C2GoldfishHevcDec::IntfImpl>(
                 COMPONENT_NAME, id,
-                std::make_shared<C2GoldfishAvcDec::IntfImpl>(mHelper)),
+                std::make_shared<C2GoldfishHevcDec::IntfImpl>(mHelper)),
             deleter);
         return C2_OK;
     }
 
-    virtual ~C2GoldfishAvcDecFactory() override = default;
+    virtual ~C2GoldfishHevcDecFactory() override = default;
 
   private:
     std::shared_ptr<C2ReflectorHelper> mHelper;
@@ -1081,7 +1071,7 @@ class C2GoldfishAvcDecFactory : public C2ComponentFactory {
 
 extern "C" ::C2ComponentFactory *CreateCodec2Factory() {
     DDD("in %s", __func__);
-    return new ::android::C2GoldfishAvcDecFactory();
+    return new ::android::C2GoldfishHevcDecFactory();
 }
 
 extern "C" void DestroyCodec2Factory(::C2ComponentFactory *factory) {
