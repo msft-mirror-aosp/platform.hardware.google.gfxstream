@@ -914,7 +914,15 @@ void C2GoldfishHevcDec::process(const std::unique_ptr<C2Work> &work,
             bool whChanged = false;
             if (GoldfishHevcHelper::isVpsFrame(mInPBuffer, mInPBufferSize)) {
                 mHevcHelper.reset(new GoldfishHevcHelper(mWidth, mHeight));
-                whChanged = mHevcHelper->decodeHeader(mInPBuffer, mInPBufferSize);
+                bool headerStatus = true;
+                whChanged = mHevcHelper->decodeHeader(
+                    mInPBuffer, mInPBufferSize, headerStatus);
+                if (!headerStatus) {
+                    mSignalledError = true;
+                    work->workletsProcessed = 1u;
+                    work->result = C2_CORRUPTED;
+                    return;
+                }
                 if (whChanged) {
                         DDD("w changed from old %d to new %d\n", mWidth, mHevcHelper->getWidth());
                         DDD("h changed from old %d to new %d\n", mHeight, mHevcHelper->getHeight());
