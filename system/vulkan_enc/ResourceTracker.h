@@ -312,49 +312,6 @@ public:
         VkDevice device,
         VkBufferCollectionFUCHSIA collection,
         VkBufferCollectionPropertiesFUCHSIA* pProperties);
-    VkResult on_vkCreateBufferCollectionFUCHSIAX(
-        void* context,
-        VkResult input_result,
-        VkDevice device,
-        const VkBufferCollectionCreateInfoFUCHSIAX* pInfo,
-        const VkAllocationCallbacks* pAllocator,
-        VkBufferCollectionFUCHSIAX* pCollection);
-    void on_vkDestroyBufferCollectionFUCHSIAX(
-        void* context,
-        VkResult input_result,
-        VkDevice device,
-        VkBufferCollectionFUCHSIAX collection,
-        const VkAllocationCallbacks* pAllocator);
-    VkResult on_vkSetBufferCollectionConstraintsFUCHSIAX(
-        void* context,
-        VkResult input_result,
-        VkDevice device,
-        VkBufferCollectionFUCHSIAX collection,
-        const VkImageCreateInfo* pImageInfo);
-    VkResult on_vkSetBufferCollectionBufferConstraintsFUCHSIAX(
-        void* context,
-        VkResult input_result,
-        VkDevice device,
-        VkBufferCollectionFUCHSIAX collection,
-        const VkBufferConstraintsInfoFUCHSIAX* pBufferConstraintsInfo);
-    VkResult on_vkSetBufferCollectionImageConstraintsFUCHSIAX(
-        void* context,
-        VkResult input_result,
-        VkDevice device,
-        VkBufferCollectionFUCHSIAX collection,
-        const VkImageConstraintsInfoFUCHSIAX* pImageConstraintsInfo);
-    VkResult on_vkGetBufferCollectionPropertiesFUCHSIAX(
-        void* context,
-        VkResult input_result,
-        VkDevice device,
-        VkBufferCollectionFUCHSIAX collection,
-        VkBufferCollectionPropertiesFUCHSIAX* pProperties);
-    VkResult on_vkGetBufferCollectionProperties2FUCHSIAX(
-        void* context,
-        VkResult input_result,
-        VkDevice device,
-        VkBufferCollectionFUCHSIAX collection,
-        VkBufferCollectionProperties2FUCHSIAX* pProperties);
 #endif
 
     VkResult on_vkGetAndroidHardwareBufferPropertiesANDROID(
