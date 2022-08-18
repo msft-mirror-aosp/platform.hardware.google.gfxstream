@@ -86,7 +86,7 @@
 #ifdef VK_USE_PLATFORM_FUCHSIA
 
 #define __GOLDFISH_VK_LIST_NON_DISPATCHABLE_HANDLE_TYPES_FUCHSIA(f) \
-    f(VkBufferCollectionFUCHSIA) f(VkBufferCollectionFUCHSIAX)
+    f(VkBufferCollectionFUCHSIA)
 
 #else
 
