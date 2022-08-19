@@ -30,11 +30,11 @@ public:
     GLuint update(GLuint texture, int width, int height, int skinRotation);
 
     struct Framebuffer {
-        GLuint texture;
-        GLuint framebuffer;
-        GLuint program;
-        GLuint aPosition;
-        GLuint uTexture;
+        GLuint texture = 0;
+        GLuint framebuffer = 0;
+        GLuint program = 0;
+        GLuint aPosition = 0;
+        GLuint uTexture = 0;
     };
 
     class GenericResizer {
