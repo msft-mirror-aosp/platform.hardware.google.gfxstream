@@ -34,7 +34,7 @@ else
 
 ifeq (true,$(GFXSTREAM))
 
-LOCAL_HEADER_LIBRARIES += vulkan_headers
+LOCAL_HEADER_LIBRARIES += gfxstream_vulkan_headers
 
 LOCAL_CFLAGS += -DVIRTIO_GPU
 LOCAL_SRC_FILES += \

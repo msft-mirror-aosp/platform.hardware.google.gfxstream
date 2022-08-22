@@ -15,8 +15,7 @@ endif
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 LOCAL_C_INCLUDES += \
     $(LOCAL_PATH) \
-    $(HOST_EMUGL_PATH)/host/include \
-    $(HOST_EMUGL_PATH)/host/include/vulkan
+    $(GFXSTREAM_PROTOCOLS_PATH)/include/vulkan/include
 endif
 
 ifneq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
@@ -28,7 +27,7 @@ LOCAL_C_INCLUDES += \
 
 LOCAL_HEADER_LIBRARIES += \
     hwvulkan_headers \
-    vulkan_headers \
+    gfxstream_vulkan_headers \
 
 LOCAL_SHARED_LIBRARIES += libdrm
 
