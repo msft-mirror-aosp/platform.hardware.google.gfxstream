@@ -507,6 +507,11 @@ HWC3::Error GuestFrameComposer::onDisplayCreate(Display* display) {
     }
   }
 
+  std::optional<std::vector<uint8_t>> edid = mDrmPresenter.getEdid(displayId);
+  if (edid) {
+    display->setEdid(*edid);
+  }
+
   return HWC3::Error::None;
 }
 
