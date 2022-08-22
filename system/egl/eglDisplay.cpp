@@ -283,8 +283,8 @@ EGLClient_glesInterface *eglDisplay::loadGLESClientAPI(const char *basename,
     std::string baseDir =
         android::base::System::get()->getProgramDirectory();
     std::string path =
-        android::base::pj(
-            baseDir, "lib64", std::string(basename) + LIBSUFFIX);
+        android::base::pj({
+            baseDir, "lib64", std::string(basename) + LIBSUFFIX});
     void *lib = dlopen(path.c_str(), RTLD_NOW);
 #else
     std::string path(PARTITION);
