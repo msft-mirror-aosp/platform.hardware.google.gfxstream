@@ -17,9 +17,6 @@ cc_library_static {
         "liblog",
         "libdrm",
     ],
-    static_libs: [
-        "libplatform",
-    ],
     export_include_dirs: [
         "include",
     ],
