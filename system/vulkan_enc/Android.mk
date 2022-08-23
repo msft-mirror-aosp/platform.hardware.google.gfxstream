@@ -8,6 +8,7 @@ $(call emugl-import,libandroidemu)
 $(call emugl-import,libGoldfishAddressSpace$(GOLDFISH_OPENGL_LIB_SUFFIX))
 else
 $(call emugl-export,SHARED_LIBRARIES,libandroidemu)
+$(call emugl-export,STATIC_LIBRARIES,libplatform)
 $(call emugl-export,STATIC_LIBRARIES,libGoldfishAddressSpace)
 endif
 
