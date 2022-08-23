@@ -22,19 +22,15 @@
 // VULKAN_REGISTRY_SCRIPTS_DIR : Directory containing genvk.py
 // CEREAL_OUTPUT_DIR: Where to put the generated sources.
 // python3 $VULKAN_REGISTRY_SCRIPTS_DIR/genvk.py -registry $VULKAN_REGISTRY_XML_DIR/vk.xml cereal -o $CEREAL_OUTPUT_DIR
-
 #pragma once
-
 #include <vulkan/vulkan.h>
-
+#include "vulkan_gfxstream.h"
 
 #include "vk_platform_compat.h"
 
 #include "goldfish_vk_private_defs.h"
 
-
 namespace goldfish_vk {
-
 class ResourceTracker;
 #define LIST_TRIVIAL_TRANSFORMED_TYPES(f) \
 f(VkPhysicalDeviceExternalImageFormatInfo) \
