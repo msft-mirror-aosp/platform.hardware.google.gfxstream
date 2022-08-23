@@ -394,6 +394,11 @@ class BumpPool;
 #include <unordered_map>
 """ % VULKAN_STREAM_TYPE
 
+        gfxstreamstructuretypePreamble = """
+#define VK_GOOGLE_GFXSTREAM_ENUM(type,id) \
+    ((type)(1000000000 + (1000 * (VK_GOOGLE_GFXSTREAM_NUMBER - 1)) + (id)))
+"""
+
         self.guest_encoder_tag = "guest_encoder"
         self.guest_hal_tag = "guest_hal"
         self.host_tag = "host"
@@ -452,6 +457,10 @@ class BumpPool;
         self.addGuestEncoderModule("goldfish_vk_transform_guest",
                                    extraHeader=commonCerealIncludesGuest + transformIncludeGuest,
                                    extraImpl=commonCerealImplIncludesGuest + transformImplIncludeGuest)
+        self.addGuestEncoderModule(
+            "vulkan_gfxstream_structure_type", headerOnly=True, suppressFeatureGuards=True,
+            moduleName="vulkan_gfxstream_structure_type_guest", useNamespace=False,
+            suppressVulkanHeaders=True, extraHeader=gfxstreamstructuretypePreamble)
 
         self.addGuestEncoderModule("func_table", extraImpl=functableImplInclude)
 
@@ -497,6 +506,10 @@ class BumpPool;
                            useNamespace=False,
                            implOnly=True,
                            suppress=True)
+        self.addHostModule(
+            "vulkan_gfxstream_structure_type", headerOnly=True, suppressFeatureGuards=True,
+            moduleName="vulkan_gfxstream_structure_type_host", useNamespace=False,
+            suppressVulkanHeaders=True, extraHeader=gfxstreamstructuretypePreamble)
 
         self.addWrapper(cereal.VulkanEncoder, "VkEncoder")
         self.addWrapper(cereal.VulkanExtensionStructs, "goldfish_vk_extension_structs_guest")
@@ -519,6 +532,9 @@ class BumpPool;
         self.addWrapper(cereal.VulkanDecoderSnapshot, "VkDecoderSnapshot")
         self.addWrapper(cereal.VulkanSubDecoder, "VkSubDecoder")
         self.addWrapper(cereal.ApiLogDecoder, "ApiLogDecoder")
+        self.addWrapper(cereal.VulkanGfxstreamStructureType,
+                        "vulkan_gfxstream_structure_type_guest")
+        self.addWrapper(cereal.VulkanGfxstreamStructureType, "vulkan_gfxstream_structure_type_host")
 
         self.guestAndroidMkCppFiles = ""
         self.hostCMakeCppFiles = ""
@@ -536,16 +552,17 @@ class BumpPool;
 
         self.forEachModule(addSrcEntry)
 
-    def addGuestEncoderModule(self, basename, extraHeader = "", extraImpl = "", useNamespace = True):
+    def addGuestEncoderModule(
+            self, basename, extraHeader="", extraImpl="", useNamespace=True, headerOnly=False,
+            suppressFeatureGuards=False, moduleName=None, suppressVulkanHeaders=False):
         if not os.path.exists(self.guest_abs_encoder_destination):
             print("Path [%s] not found (guest encoder path), skipping" % self.guest_abs_encoder_destination)
             return
-        self.addModule(self.guest_encoder_tag,
-                       basename,
-                       extraHeader = extraHeader,
-                       extraImpl = extraImpl,
-                       customAbsDir = self.guest_abs_encoder_destination,
-                       useNamespace = useNamespace)
+        self.addModule(self.guest_encoder_tag, basename, extraHeader=extraHeader,
+                       extraImpl=extraImpl, customAbsDir=self.guest_abs_encoder_destination,
+                       useNamespace=useNamespace, headerOnly=headerOnly,
+                       suppressFeatureGuards=suppressFeatureGuards, moduleName=moduleName,
+                       suppressVulkanHeaders=suppressVulkanHeaders)
 
     def addGuestHalModule(self, basename, extraHeader = "", extraImpl = "", useNamespace = True):
         if not os.path.exists(self.guest_abs_hal_destination):
@@ -558,55 +575,53 @@ class BumpPool;
                        customAbsDir = self.guest_abs_hal_destination,
                        useNamespace = useNamespace)
 
-    def addHostModule(self, basename, extraHeader = "", extraImpl = "", useNamespace = True,
-                      implOnly = False, suppress = False):
+    def addHostModule(
+            self, basename, extraHeader="", extraImpl="", useNamespace=True, implOnly=False,
+            suppress=False, headerOnly=False, suppressFeatureGuards=False, moduleName=None,
+            suppressVulkanHeaders=False):
         if not os.path.exists(self.host_abs_decoder_destination):
             print("Path [%s] not found (guest encoder path), skipping" % self.guest_abs_encoder_destination)
             return
-        self.addModule(self.host_tag,
-                       basename,
-                       extraHeader = extraHeader,
-                       extraImpl = extraImpl,
-                       customAbsDir = self.host_abs_decoder_destination,
-                       useNamespace = useNamespace,
-                       implOnly = implOnly,
-                       suppress = suppress)
+        self.addModule(
+            self.host_tag, basename, extraHeader=extraHeader, extraImpl=extraImpl,
+            customAbsDir=self.host_abs_decoder_destination, useNamespace=useNamespace,
+            implOnly=implOnly, suppress=suppress, headerOnly=headerOnly,
+            suppressFeatureGuards=suppressFeatureGuards, moduleName=moduleName,
+            suppressVulkanHeaders=suppressVulkanHeaders)
 
-    def addModule(self, directory, basename,
-                  extraHeader = "", extraImpl = "",
-                  customAbsDir = None,
-                  useNamespace = True,
-                  implOnly = False,
-                  suppress = False):
-        self.moduleList.append(basename)
-        self.modules[basename] = \
-            cereal.Module(directory, basename, customAbsDir = customAbsDir, suppress = suppress, implOnly = implOnly)
-        self.modules[basename].headerPreamble = copyrightHeader
-        self.modules[basename].headerPreamble += \
+    def addModule(
+            self, directory, basename, extraHeader="", extraImpl="", customAbsDir=None,
+            useNamespace=True, implOnly=False, suppress=False, headerOnly=False,
+            suppressFeatureGuards=False, moduleName=None, suppressVulkanHeaders=False):
+        if moduleName is None:
+            moduleName = basename
+        self.moduleList.append(moduleName)
+        self.modules[moduleName] = cereal.Module(
+            directory, basename, customAbsDir=customAbsDir, suppress=suppress, implOnly=implOnly,
+            headerOnly=headerOnly, suppressFeatureGuards=suppressFeatureGuards)
+        self.modules[moduleName].headerPreamble = copyrightHeader
+        self.modules[moduleName].headerPreamble += \
                 autogeneratedHeaderTemplate % \
                 (basename, "(header) generated by %s" % banner_command(sys.argv))
 
         namespaceBegin = "namespace goldfish_vk {" if useNamespace else ""
         namespaceEnd = "} // namespace goldfish_vk" if useNamespace else ""
 
-        self.modules[basename].headerPreamble += """
-#pragma once
+        self.modules[moduleName].headerPreamble += "#pragma once\n"
+        if (not suppressVulkanHeaders):
+            self.modules[moduleName].headerPreamble += "#include <vulkan/vulkan.h>\n"
+            self.modules[moduleName].headerPreamble += '#include "vulkan_gfxstream.h"\n'
+        self.modules[moduleName].headerPreamble += extraHeader + '\n'
+        if namespaceBegin:
+            self.modules[moduleName].headerPreamble += namespaceBegin + '\n'
 
-#include <vulkan/vulkan.h>
-
-%s
-
-%s
-
-""" % (extraHeader, namespaceBegin)
-
-        self.modules[basename].implPreamble = copyrightHeader
-        self.modules[basename].implPreamble += \
+        self.modules[moduleName].implPreamble = copyrightHeader
+        self.modules[moduleName].implPreamble += \
                 autogeneratedHeaderTemplate % \
                 (basename, "(impl) generated by %s" % \
                     banner_command(sys.argv))
         if not implOnly:
-            self.modules[basename].implPreamble += """
+            self.modules[moduleName].implPreamble += """
 #include "%s.h"
 
 %s
@@ -615,10 +630,10 @@ class BumpPool;
 
 """ % (basename, extraImpl, namespaceBegin)
 
-        self.modules[basename].headerPostamble = """
+        self.modules[moduleName].headerPostamble = """
 %s
 """ % namespaceEnd
-        self.modules[basename].implPostamble = """
+        self.modules[moduleName].implPostamble = """
 %s
 """ % namespaceEnd
 
@@ -676,8 +691,12 @@ class BumpPool;
 
         self.typeInfo.onBeginFeature(self.featureName, self.featureType)
 
-        self.forEachModule(lambda m: m.appendHeader("#ifdef %s\n" % self.featureName))
-        self.forEachModule(lambda m: m.appendImpl("#ifdef %s\n" % self.featureName))
+        self.forEachModule(
+            lambda m: m.appendHeader("#ifdef %s\n" % self.featureName)
+            if not m.suppressFeatureGuards else None)
+        self.forEachModule(
+            lambda m: m.appendImpl("#ifdef %s\n" % self.featureName)
+            if not m.suppressFeatureGuards else None)
         self.forEachWrapper(lambda w: w.onBeginFeature(self.featureName, self.featureType))
         # functable needs to understand the feature type (device vs instance) of each cmd
         for features in interface.findall('require'):
@@ -690,8 +709,10 @@ class BumpPool;
 
         self.typeInfo.onEndFeature()
 
-        self.forEachModule(lambda m: m.appendHeader("#endif\n"))
-        self.forEachModule(lambda m: m.appendImpl("#endif\n"))
+        self.forEachModule(lambda m: m.appendHeader("#endif\n")
+                           if not m.suppressFeatureGuards else None)
+        self.forEachModule(lambda m: m.appendImpl("#endif\n")
+                           if not m.suppressFeatureGuards else None)
         self.forEachWrapper(lambda w: w.onEndFeature())
 
     def genType(self, typeinfo: TypeInfo, name, alias):

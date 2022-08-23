@@ -17,19 +17,16 @@
 PROJECT_ROOT=$(pwd)
 
 # Generate Vulkan headers
-cd registry/vulkan/xml && make
-if [ $? -ne 0 ]; then
-    echo "Failed to generate Vulkan headers." 1>&2
-    exit $?
-fi
-rm -rf $PROJECT_ROOT/include/vulkan && mkdir -p $PROJECT_ROOT/include
+VULKAN_HEADERS_ROOT=$PROJECT_ROOT/include/vulkan
+rm -rf $VULKAN_HEADERS_ROOT && mkdir -p $VULKAN_HEADERS_ROOT
 if [ $? -ne 0 ]; then
     echo "Failed to clear the old Vulkan headers." 1>&2
     exit $?
 fi
-mv ../gen $PROJECT_ROOT/include/vulkan
+
+cd registry/vulkan/xml && make GENOPTS="-removeExtensions VK_GOOGLE_gfxstream" GENERATED=$VULKAN_HEADERS_ROOT
 if [ $? -ne 0 ]; then
-    echo "Failed to move the new Vulkan headers to the target folder." 1>&2
+    echo "Failed to generate Vulkan headers." 1>&2
     exit $?
 fi
 
@@ -54,3 +51,14 @@ VULKAN_REGISTRY_XML_DIR=$VULKAN_REGISTRY_DIR/xml
 VULKAN_REGISTRY_SCRIPTS_DIR=$VULKAN_REGISTRY_DIR/scripts
 
 python3 $VULKAN_REGISTRY_SCRIPTS_DIR/genvk.py -registry $VULKAN_REGISTRY_XML_DIR/vk.xml cereal -o $VK_CEREAL_OUTPUT_DIR
+
+for OUT_DIR in $VK_CEREAL_HOST_DECODER_DIR $VK_CEREAL_GUEST_ENCODER_DIR; do
+    mkdir -p $OUT_DIR
+    python3 registry/vulkan/scripts/genvk.py -registry registry/vulkan/xml/vk.xml -o $OUT_DIR \
+        vulkan_gfxstream.h
+
+    if [ $? -ne 0 ]; then
+        echo "Failed to generate gfxstream specific vulkan headers." 1>&2
+        exit $?
+    fi
+done
