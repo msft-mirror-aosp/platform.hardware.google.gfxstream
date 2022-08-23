@@ -173,6 +173,7 @@ VirtGpuBlobPtr VirtGpuDevice::importBlob(struct VirtGpuExternalHandle& handle) {
 int VirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer, VirtGpuBlobPtr blob) {
     int ret;
     struct drm_virtgpu_execbuffer exec = {0};
+    uint32_t blobHandle;
 
     exec.flags = execbuffer.flags;
     exec.size = execbuffer.command_size;
@@ -180,7 +181,7 @@ int VirtGpuDevice::execBuffer(struct VirtGpuExecBuffer& execbuffer, VirtGpuBlobP
     exec.fence_fd = -1;
 
     if (blob) {
-        uint32_t blobHandle = blob->getBlobHandle();
+        blobHandle = blob->getBlobHandle();
         exec.bo_handles = (uint64_t)(uintptr_t)(&blobHandle);
         exec.num_bo_handles = 1;
     }
