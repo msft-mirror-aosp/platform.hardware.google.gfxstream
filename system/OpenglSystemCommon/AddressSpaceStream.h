@@ -20,19 +20,12 @@
 
 #include "address_space_graphics_types.h"
 #include "goldfish_address_space.h"
+#include "VirtGpu.h"
 
 class AddressSpaceStream;
 
 AddressSpaceStream* createAddressSpaceStream(size_t bufSize);
-
-#if defined(VIRTIO_GPU) && !defined(HOST_BUILD)
-#include "VirtGpu.h"
-struct StreamCreate {
-   int streamHandle;
-};
-
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(const struct StreamCreate &streamCreate);
-#endif
+AddressSpaceStream* createVirtioGpuAddressSpaceStream(void);
 
 class AddressSpaceStream : public IOStream {
 public:
@@ -54,11 +47,9 @@ public:
     virtual int writeFullyAsync(const void *buf, size_t len);
     virtual const unsigned char *commitBufferAndReadFully(size_t size, void *buf, size_t len);
 
-#if defined(VIRTIO_GPU) && !defined(HOST_BUILD)
     void setMapping(VirtGpuBlobMappingPtr mapping) {
         m_mapping = mapping;
     }
-#endif
 
     void setResourceId(uint32_t id) {
         m_resourceId = id;
@@ -78,9 +69,7 @@ private:
     void backoff();
     void resetBackoff();
 
-#if defined(VIRTIO_GPU) && !defined(HOST_BUILD)
     VirtGpuBlobMappingPtr m_mapping = nullptr;
-#endif
     struct address_space_ops m_ops;
 
     unsigned char* m_tmpBuf;
