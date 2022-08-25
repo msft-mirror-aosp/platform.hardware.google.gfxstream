@@ -25,17 +25,6 @@
 
 #include <set>
 
-#if defined(__ANDROID__) || defined(__linux__)
-#include <unistd.h>
-#include <errno.h>
-#endif
-
-#include <sys/mman.h>
-
-#if !defined(HOST_BUILD) && defined(VIRTIO_GPU)
-#include <xf86drm.h>
-#endif
-
 using android::base::guest::SubAllocator;
 
 namespace goldfish_vk {
@@ -44,140 +33,54 @@ bool isHostVisible(const VkPhysicalDeviceMemoryProperties* memoryProps, uint32_t
     return memoryProps->memoryTypes[index].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 }
 
-VkResult finishHostMemAllocInit(
-    VkEncoder*,
-    VkDevice device,
-    uint32_t memoryTypeIndex,
-    VkDeviceSize nonCoherentAtomSize,
-    VkDeviceSize mappedSize,
-    uint8_t* mappedPtr,
-    HostMemAlloc* out) {
-
-    out->device = device;
-    out->memoryTypeIndex = memoryTypeIndex;
-    out->nonCoherentAtomSize = nonCoherentAtomSize;
-    out->mappedSize = mappedSize;
-    out->mappedPtr = mappedPtr;
-
-    // because it's not just nonCoherentAtomSize granularity,
-    // people will also use it for uniform buffers, images, etc.
-    // that need some bigger alignment
-// #define HIGHEST_BUFFER_OR_IMAGE_ALIGNMENT 1024
-// bug: 145153816
-// HACK: Make it 65k so yuv images are happy on vk cts 1.2.1
-// TODO: Use a munmap/mmap MAP_FIXED scheme to realign memories
-// if it's found that the buffer or image bind alignment will be violated
-#define HIGHEST_BUFFER_OR_IMAGE_ALIGNMENT 65536
-
-    uint64_t neededPageSize = out->nonCoherentAtomSize;
-    if (HIGHEST_BUFFER_OR_IMAGE_ALIGNMENT >
-        neededPageSize) {
-        neededPageSize = HIGHEST_BUFFER_OR_IMAGE_ALIGNMENT;
-    }
-
-    out->subAlloc = new
-        SubAllocator(
-            out->mappedPtr,
-            out->mappedSize,
-            neededPageSize);
-
-    out->initialized = true;
-    out->initResult = VK_SUCCESS;
-    return VK_SUCCESS;
+CoherentMemory::CoherentMemory(VirtGpuBlobMappingPtr blobMapping, uint64_t size, VkEncoder *enc,
+                               VkDevice device, VkDeviceMemory memory)
+    : mSize(size),
+      mBlobMapping(blobMapping),
+      mEnc(enc),
+      mDevice(device),
+      mMemory(memory)
+{
+    mAllocator = std::make_unique<android::base::guest::SubAllocator>(blobMapping->asRawPtr(),
+                                                                      mSize, 4096);
 }
 
-void destroyHostMemAlloc(
-    bool freeMemorySyncSupported,
-    VkEncoder* enc,
-    VkDevice device,
-    HostMemAlloc* toDestroy,
-    bool doLock) {
-#if !defined(HOST_BUILD) && defined(VIRTIO_GPU)
-    if (toDestroy->rendernodeFd >= 0) {
-
-        if (toDestroy->memoryAddr) {
-            int ret = munmap((void*)toDestroy->memoryAddr, toDestroy->memorySize);
-            if (ret != 0) {
-                ALOGE("%s: fail to unmap addr = 0x%" PRIx64", size = %d, ret = "
-                      "%d, errno = %d", __func__, toDestroy->memoryAddr,
-                      (int32_t)toDestroy->memorySize, ret, errno);
-            }
-        }
-
-        if (toDestroy->boCreated) {
-            ALOGV("%s: trying to destroy bo = %u\n", __func__,
-                  toDestroy->boHandle);
-            struct drm_gem_close drmGemClose = {};
-            drmGemClose.handle = toDestroy->boHandle;
-            int ret = drmIoctl(toDestroy->rendernodeFd, DRM_IOCTL_GEM_CLOSE, &drmGemClose);
-            if (ret != 0) {
-                ALOGE("%s: fail to close gem = %u, ret = %d, errno = %d\n",
-                      __func__, toDestroy->boHandle, ret, errno);
-            } else {
-                ALOGV("%s: successfully close gem = %u, ret = %d\n", __func__,
-                      toDestroy->boHandle, ret);
-            }
-        }
-    }
-#endif
-
-    if (toDestroy->initResult != VK_SUCCESS) return;
-    if (!toDestroy->initialized) return;
-
-
-    if (freeMemorySyncSupported) {
-        enc->vkFreeMemorySyncGOOGLE(device, toDestroy->memory, nullptr, doLock);
-    } else {
-        enc->vkFreeMemory(device, toDestroy->memory, nullptr, doLock);
-    }
-
-    delete toDestroy->subAlloc;
+CoherentMemory::CoherentMemory(GoldfishAddressSpaceBlockPtr block, uint64_t gpuAddr, uint64_t size,
+                               VkEncoder *enc, VkDevice device, VkDeviceMemory memory)
+    : mSize(size),
+      mBlock(block),
+      mEnc(enc),
+      mDevice(device),
+      mMemory(memory)
+{
+    void* address = block->mmap(gpuAddr);
+    mAllocator = std::make_unique<android::base::guest::SubAllocator>(address, mSize,
+                                                                      kLargestPageSize);
 }
 
-void subAllocHostMemory(
-    HostMemAlloc* alloc,
-    const VkMemoryAllocateInfo* pAllocateInfo,
-    SubAlloc* out) {
-
-    VkDeviceSize mappedSize =
-        alloc->nonCoherentAtomSize * (
-            (pAllocateInfo->allocationSize +
-             alloc->nonCoherentAtomSize - 1) /
-            alloc->nonCoherentAtomSize);
-
-    ALOGV("%s: alloc size %u mapped size %u ncaSize %u\n", __func__,
-            (unsigned int)pAllocateInfo->allocationSize,
-            (unsigned int)mappedSize,
-            (unsigned int)alloc->nonCoherentAtomSize);
-
-    void* subMapped = alloc->subAlloc->alloc(mappedSize);
-    out->mappedPtr = (uint8_t*)subMapped;
-
-    out->subAllocSize = pAllocateInfo->allocationSize;
-    out->subMappedSize = mappedSize;
-
-    out->baseMemory = alloc->memory;
-    out->baseOffset = alloc->subAlloc->getOffset(subMapped);
-
-    out->subMemory = new_from_host_VkDeviceMemory(VK_NULL_HANDLE);
-    out->subAlloc = alloc->subAlloc;
+CoherentMemory::~CoherentMemory()
+{
+    mEnc->vkFreeMemorySyncGOOGLE(mDevice, mMemory, nullptr, false);
 }
 
-bool subFreeHostMemory(SubAlloc* toFree) {
-    delete_goldfish_VkDeviceMemory(toFree->subMemory);
-    toFree->subAlloc->free(toFree->mappedPtr);
-    bool nowEmpty = toFree->subAlloc->empty();
-    if (nowEmpty) {
-        ALOGV("%s: We have an empty suballoc, time to free the block perhaps?\n", __func__);
-    }
-    memset(toFree, 0x0, sizeof(SubAlloc));
-    return nowEmpty;
+VkDeviceMemory CoherentMemory::getDeviceMemory() const
+{
+    return mMemory;
 }
 
-bool canSubAlloc(android::base::guest::SubAllocator* subAlloc, VkDeviceSize size) {
-    auto ptr = subAlloc->alloc(size);
-    if (!ptr) return false;
-    subAlloc->free(ptr);
+bool CoherentMemory::subAllocate(uint64_t size, uint8_t **ptr, uint64_t& offset) {
+    auto address = mAllocator->alloc(size);
+    if (!address)
+        return false;
+
+    *ptr = (uint8_t*)address;
+    offset = mAllocator->getOffset(address);
+    return true;
+}
+
+bool CoherentMemory::release(uint8_t *ptr)
+{
+    mAllocator->free(ptr);
     return true;
 }
 
