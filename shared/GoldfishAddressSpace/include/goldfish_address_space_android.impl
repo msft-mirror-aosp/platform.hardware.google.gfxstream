@@ -26,16 +26,9 @@
 #include <memory>
 #include <cstring>
 
-#ifdef VIRTIO_GPU
-#include "VirtGpu.h"
-#include "virtgpu_gfxstream_protocol.h"
-#include <xf86drm.h>
-#endif
-
+#include "goldfish_address_space.h"
 #include <log/log.h>
 
-#include "goldfish_address_space.h"
-#include "virtgpu_drm.h"
 
 // See virgl_hw.h and p_defines.h
 #define VIRGL_FORMAT_R8_UNORM 64
@@ -545,33 +538,6 @@ bool goldfish_address_space_ping(
         ALOGE("%s: ping failed: errno: %d\n", __func__, errno);
         return false;
     }
-
-    return true;
-}
-
-address_space_handle_t virtgpu_address_space_open() {
-    return -EINVAL;
-}
-
-void virtgpu_address_space_close(address_space_handle_t fd) {
-    // Handle opened by VirtioGpuDevice wrapper
-}
-
-bool virtgpu_address_space_ping(address_space_handle_t fd, struct address_space_ping* info) {
-    int ret;
-    struct VirtGpuExecBuffer exec = { 0 };
-    VirtGpuDevice& instance = VirtGpuDevice::getInstance();
-    struct gfxstreamContextPing ping = {0};
-
-    ping.hdr.opCode = GFXSTREAM_CONTEXT_PING;
-    ping.resourceId = info->resourceId;
-
-    exec.command = static_cast<void*>(&ping);
-    exec.command_size = sizeof(ping);
-
-    ret = instance.execBuffer(exec, nullptr);
-    if (ret)
-        return false;
 
     return true;
 }

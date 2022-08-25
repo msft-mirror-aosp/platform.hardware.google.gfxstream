@@ -16,6 +16,8 @@
 #include "AddressSpaceStream.h"
 
 #include "android/base/Tracing.h"
+#include "VirtGpu.h"
+#include "virtgpu_gfxstream_protocol.h"
 
 #if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
@@ -28,8 +30,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-
-#include <sys/mman.h>
 
 static const size_t kReadSize = 512 * 1024;
 static const size_t kWriteOffset = kReadSize;
@@ -147,13 +147,34 @@ AddressSpaceStream* createAddressSpaceStream(size_t ignored_bufSize) {
     return res;
 }
 
-#if defined(VIRTIO_GPU) && !defined(HOST_BUILD)
-#include "VirtGpu.h"
-#include "virtgpu_gfxstream_protocol.h"
+address_space_handle_t virtgpu_address_space_open() {
+    return -EINVAL;
+}
 
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(const struct StreamCreate &streamCreate) {
-    auto handle = reinterpret_cast<address_space_handle_t>(streamCreate.streamHandle);
+void virtgpu_address_space_close(address_space_handle_t fd) {
+    // Handle opened by VirtioGpuDevice wrapper
+}
 
+bool virtgpu_address_space_ping(address_space_handle_t fd, struct address_space_ping* info) {
+    int ret;
+    struct VirtGpuExecBuffer exec = { 0 };
+    VirtGpuDevice& instance = VirtGpuDevice::getInstance();
+    struct gfxstreamContextPing ping = {0};
+
+    ping.hdr.opCode = GFXSTREAM_CONTEXT_PING;
+    ping.resourceId = info->resourceId;
+
+    exec.command = static_cast<void*>(&ping);
+    exec.command_size = sizeof(ping);
+
+    ret = instance.execBuffer(exec, nullptr);
+    if (ret)
+        return false;
+
+    return true;
+}
+
+AddressSpaceStream* createVirtioGpuAddressSpaceStream(void) {
     VirtGpuBlobPtr pipe, blob;
     VirtGpuBlobMappingPtr pipeMapping, blobMapping;
     struct VirtGpuExecBuffer exec = { 0 };
@@ -216,15 +237,13 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(const struct StreamCreate 
 
     AddressSpaceStream* res =
         new AddressSpaceStream(
-            handle, 1, context,
+            -1, 1, context,
             0, 0, ops);
 
     res->setMapping(blobMapping);
     res->setResourceId(contextCreate.resourceId);
     return res;
 }
-#endif // VIRTIO_GPU && !HOST_BUILD
-
 
 AddressSpaceStream::AddressSpaceStream(
     address_space_handle_t handle,
@@ -266,13 +285,8 @@ AddressSpaceStream::~AddressSpaceStream() {
     flush();
     ensureType3Finished();
     ensureType1Finished();
-    bool goldfish = true;
 
-#if defined(VIRTIO_GPU) && !defined(HOST_BUILD)
-    goldfish = false;
-#endif
-
-    if (goldfish) {
+    if (!m_mapping) {
         m_ops.unmap(m_context.to_host, sizeof(struct asg_ring_storage));
         m_ops.unmap(m_context.buffer, m_writeBufferSize);
         m_ops.unclaim_shared(m_handle, m_ringOffset);
