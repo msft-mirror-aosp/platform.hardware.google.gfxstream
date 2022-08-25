@@ -72,10 +72,6 @@ AddressSpaceStream* createAddressSpaceStream(size_t bufSize) {
     ALOGE("%s: FATAL: Trying to create ASG stream in unsupported build\n", __func__);
     abort();
 }
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(size_t bufSize) {
-    ALOGE("%s: FATAL: Trying to create virtgpu ASG stream in unsupported build\n", __func__);
-    abort();
-}
 #endif
 
 using goldfish_vk::VkEncoder;
@@ -550,16 +546,9 @@ std::unique_ptr<HostConnection> HostConnection::connect(uint32_t capset_id) {
             break;
         }
         case HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE: {
-            struct StreamCreate streamCreate = {0};
             VirtGpuDevice& instance = VirtGpuDevice::getInstance((enum VirtGpuCapset)capset_id);
             auto deviceHandle = instance.getDeviceHandle();
-            streamCreate.streamHandle = deviceHandle;
-            if (streamCreate.streamHandle < 0) {
-                ALOGE("Failed to open virtgpu for ASG host connection\n");
-                return nullptr;
-            }
-
-            auto stream = createVirtioGpuAddressSpaceStream(streamCreate);
+            auto stream = createVirtioGpuAddressSpaceStream();
             if (!stream) {
                 ALOGE("Failed to create virtgpu AddressSpaceStream\n");
                 return nullptr;

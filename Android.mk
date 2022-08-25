@@ -128,6 +128,7 @@ ifeq (true,$(GOLDFISH_OPENGL_SHOULD_BUILD))
 include $(GOLDFISH_OPENGL_PATH)/shared/qemupipe/Android.mk
 include $(GOLDFISH_OPENGL_PATH)/shared/gralloc_cb/Android.mk
 include $(GOLDFISH_OPENGL_PATH)/shared/GoldfishAddressSpace/Android.mk
+include $(GOLDFISH_OPENGL_PATH)/platform/Android.mk
 
 ifeq (true,$(GFXSTREAM)) # android-emu
     include $(GOLDFISH_OPENGL_PATH)/android-emu/Android.mk
