@@ -302,33 +302,32 @@ public:
         std::vector<VkPhysicalDevice> physicalDevices;
     };
 
-    using HostMemBlocks = std::vector<HostMemAlloc>;
-    using HostMemBlockIndex = size_t;
-
-#define INVALID_HOST_MEM_BLOCK (-1)
-
     struct VkDevice_Info {
         VkPhysicalDevice physdev;
         VkPhysicalDeviceProperties props;
         VkPhysicalDeviceMemoryProperties memProps;
-        std::vector<HostMemBlocks> hostMemBlocks { VK_MAX_MEMORY_TYPES };
         uint32_t apiVersion;
         std::set<std::string> enabledExtensions;
         std::vector<std::pair<PFN_vkDeviceMemoryReportCallbackEXT, void *>> deviceMemoryReportCallbacks;
     };
 
     struct VkDeviceMemory_Info {
-        VkDeviceSize allocationSize = 0;
-        VkDeviceSize mappedSize = 0;
-        uint8_t* mappedPtr = nullptr;
-        uint32_t memoryTypeIndex = 0;
-        bool directMapped = false;
-        GoldfishAddressSpaceBlock*
-            goldfishAddressSpaceBlock = nullptr;
-        SubAlloc subAlloc;
-        AHardwareBuffer* ahw = nullptr;
+        bool dedicated = false;
         bool imported = false;
+
+        AHardwareBuffer* ahw = nullptr;
         zx_handle_t vmoHandle = ZX_HANDLE_INVALID;
+        VkDevice device;
+
+        uint8_t* ptr = nullptr;
+
+        uint64_t allocationSize = 0;
+        uint32_t memoryTypeIndex = 0;
+        uint64_t coherentMemorySize = 0;
+        uint64_t coherentMemoryOffset = 0;
+
+        GoldfishAddressSpaceBlockPtr goldfishBlock = nullptr;
+        CoherentMemoryPtr coherentMemory = nullptr;
     };
 
     struct VkCommandBuffer_Info {
@@ -537,8 +536,6 @@ public:
         if (memInfo.vmoHandle != ZX_HANDLE_INVALID) {
             zx_handle_close(memInfo.vmoHandle);
         }
-
-        delete memInfo.goldfishAddressSpaceBlock;
 
         info_VkDeviceMemory.erase(mem);
     }
@@ -864,19 +861,17 @@ public:
     void setDeviceMemoryInfo(VkDevice device,
                              VkDeviceMemory memory,
                              VkDeviceSize allocationSize,
-                             VkDeviceSize mappedSize,
                              uint8_t* ptr,
                              uint32_t memoryTypeIndex,
                              AHardwareBuffer* ahw = nullptr,
                              bool imported = false,
                              zx_handle_t vmoHandle = ZX_HANDLE_INVALID) {
         AutoLock<RecursiveLock> lock(mLock);
-        auto& deviceInfo = info_VkDevice[device];
         auto& info = info_VkDeviceMemory[memory];
 
+        info.device = device;
         info.allocationSize = allocationSize;
-        info.mappedSize = mappedSize;
-        info.mappedPtr = ptr;
+        info.ptr = ptr;
         info.memoryTypeIndex = memoryTypeIndex;
         info.ahw = ahw;
         info.imported = imported;
@@ -899,7 +894,7 @@ public:
         if (it == info_VkDeviceMemory.end()) return nullptr;
 
         const auto& info = it->second;
-        return info.mappedPtr;
+        return info.ptr;
     }
 
     VkDeviceSize getMappedSize(VkDeviceMemory memory) {
@@ -908,7 +903,7 @@ public:
         if (it == info_VkDeviceMemory.end()) return 0;
 
         const auto& info = it->second;
-        return info.mappedSize;
+        return info.allocationSize;
     }
 
     bool isValidMemoryRange(const VkMappedMemoryRange& range) const {
@@ -917,16 +912,16 @@ public:
         if (it == info_VkDeviceMemory.end()) return false;
         const auto& info = it->second;
 
-        if (!info.mappedPtr) return false;
+        if (!info.ptr) return false;
 
         VkDeviceSize offset = range.offset;
         VkDeviceSize size = range.size;
 
         if (size == VK_WHOLE_SIZE) {
-            return offset <= info.mappedSize;
+            return offset <= info.allocationSize;
         }
 
-        return offset + size <= info.mappedSize;
+        return offset + size <= info.allocationSize;
     }
 
     void setupFeatures(const EmulatorFeatureInfo* features) {
@@ -1069,22 +1064,22 @@ public:
                 VkDeviceMemory mem = memory[i];
 
                 auto it = info_VkDeviceMemory.find(mem);
-                if (it == info_VkDeviceMemory.end()) return;
+                if (it == info_VkDeviceMemory.end())
+                    return;
 
                 const auto& info = it->second;
 
-                if (!info.directMapped) continue;
+                if (!info.coherentMemory)
+                    continue;
 
-                memory[i] = info.subAlloc.baseMemory;
+                memory[i] = info.coherentMemory->getDeviceMemory();
 
                 if (offset) {
-                    offset[i] = info.subAlloc.baseOffset + offset[i];
+                    offset[i] = info.coherentMemoryOffset + offset[i];
                 }
 
-                if (size) {
-                    if (size[i] == VK_WHOLE_SIZE) {
-                        size[i] = info.subAlloc.subMappedSize;
-                    }
+                if (size && size[i] == VK_WHOLE_SIZE) {
+                    size[i] = info.allocationSize;
                 }
 
                 // TODO
@@ -1662,23 +1657,18 @@ public:
         VkDevice device,
         const VkAllocationCallbacks*) {
 
+        (void)context;
         AutoLock<RecursiveLock> lock(mLock);
 
         auto it = info_VkDevice.find(device);
         if (it == info_VkDevice.end()) return;
-        auto info = it->second;
 
-        lock.unlock();
-
-        VkEncoder* enc = (VkEncoder*)context;
-
-        bool freeMemorySyncSupported =
-            mFeatureInfo->hasVulkanFreeMemorySync;
-        for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
-            for (auto& block : info.hostMemBlocks[i]) {
-                destroyHostMemAlloc(
-                    freeMemorySyncSupported,
-                    enc, device, &block, false);
+        for (auto itr = info_VkDeviceMemory.cbegin() ; itr != info_VkDeviceMemory.cend(); ) {
+            auto& memInfo = itr->second;
+            if (memInfo.device == device) {
+                itr = info_VkDeviceMemory.erase(itr);
+            } else {
+                itr++;
             }
         }
     }
@@ -2912,15 +2902,138 @@ public:
     }
 #endif
 
-    HostMemBlockIndex getOrAllocateHostMemBlockLocked(
-        HostMemBlocks& blocks,
-        const VkMemoryAllocateInfo* pAllocateInfo,
-        VkEncoder* enc,
-        VkDevice device,
-        const VkDevice_Info& deviceInfo) {
+    VkResult allocateCoherentMemory(VkDevice device, const VkMemoryAllocateInfo *pAllocateInfo,
+                                    VkEncoder *enc, VkDeviceMemory* pMemory) {
 
-        HostMemBlockIndex res = 0;
-        bool found = false;
+        uint64_t offset = 0;
+        uint8_t *ptr = nullptr;
+        struct VkDeviceMemory_Info info;
+        VkMemoryAllocateFlagsInfo allocFlagsInfo;
+        VkMemoryOpaqueCaptureAddressAllocateInfo opaqueCaptureAddressAllocInfo;
+
+        const VkMemoryAllocateFlagsInfo* allocFlagsInfoPtr =
+            vk_find_struct<VkMemoryAllocateFlagsInfo>(pAllocateInfo);
+        const VkMemoryOpaqueCaptureAddressAllocateInfo* opaqueCaptureAddressAllocInfoPtr =
+            vk_find_struct<VkMemoryOpaqueCaptureAddressAllocateInfo>(pAllocateInfo);
+
+        bool deviceAddressMemoryAllocation =
+            allocFlagsInfoPtr &&
+            ((allocFlagsInfoPtr->flags & VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT) ||
+             (allocFlagsInfoPtr->flags & VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT));
+
+        bool dedicated = deviceAddressMemoryAllocation;
+
+        VkMemoryAllocateInfo hostAllocationInfo = vk_make_orphan_copy(*pAllocateInfo);
+        vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&hostAllocationInfo);
+
+        if (dedicated) {
+            hostAllocationInfo.allocationSize =
+                ((pAllocateInfo->allocationSize + kLargestPageSize - 1) / kLargestPageSize);
+        } else {
+            VkDeviceSize roundedUpAllocSize =
+                kMegaBtye * ((pAllocateInfo->allocationSize + kMegaBtye - 1) / kMegaBtye);
+            hostAllocationInfo.allocationSize = std::max(roundedUpAllocSize,
+                                                         kDefaultHostMemBlockSize);
+        }
+
+        // Support device address capture/replay allocations
+        if (deviceAddressMemoryAllocation) {
+            if (allocFlagsInfoPtr) {
+                ALOGV("%s: has alloc flags\n", __func__);
+                allocFlagsInfo = *allocFlagsInfoPtr;
+                vk_append_struct(&structChainIter, &allocFlagsInfo);
+            }
+
+            if (opaqueCaptureAddressAllocInfoPtr) {
+                ALOGV("%s: has opaque capture address\n", __func__);
+                opaqueCaptureAddressAllocInfo = *opaqueCaptureAddressAllocInfoPtr;
+                vk_append_struct(&structChainIter, &opaqueCaptureAddressAllocInfo);
+            }
+        }
+
+        VkDeviceMemory mem = VK_NULL_HANDLE;
+        mLock.unlock();
+        VkResult host_res =
+        enc->vkAllocateMemory(device, &hostAllocationInfo, nullptr,
+                              &mem, true /* do lock */);
+        mLock.lock();
+
+        info.coherentMemorySize = hostAllocationInfo.allocationSize;
+        info.memoryTypeIndex = hostAllocationInfo.memoryTypeIndex;
+        info.device = device;
+        info.dedicated = dedicated;
+
+        info_VkDeviceMemory[mem] = info;
+
+        CoherentMemoryPtr coherentMemory = nullptr;
+        if (mFeatureInfo->hasDirectMem) {
+            VkResult vkResult;
+            uint64_t gpuAddr = 0;
+            GoldfishAddressSpaceBlockPtr block = nullptr;
+
+            mLock.unlock();
+            vkResult = enc->vkMapMemoryIntoAddressSpaceGOOGLE(device, mem, &gpuAddr, true);
+            mLock.lock();
+
+            if (vkResult != VK_SUCCESS)
+                return vkResult;
+
+            auto it = info_VkDeviceMemory.find(mem);
+            if (it == info_VkDeviceMemory.end()) {
+                return VK_ERROR_OUT_OF_HOST_MEMORY;
+            }
+
+            auto& info = it->second;
+            block = info.goldfishBlock;
+            info.goldfishBlock = nullptr;
+
+            coherentMemory =
+                std::make_shared<CoherentMemory>(block, gpuAddr, hostAllocationInfo.allocationSize,
+                                                 enc, device, mem);
+        } else if (mFeatureInfo->hasVirtioGpuNext) {
+            struct VirtGpuCreateBlob createBlob = { 0 };
+            uint64_t hvaSizeId[3];
+
+            mLock.unlock();
+            enc->vkGetMemoryHostAddressInfoGOOGLE(device, mem,
+                    &hvaSizeId[0], &hvaSizeId[1], &hvaSizeId[2], true /* do lock */);
+            mLock.lock();
+
+            VirtGpuDevice& instance = VirtGpuDevice::getInstance((enum VirtGpuCapset)3);
+            createBlob.blobMem = kBlobMemHost3d;
+            createBlob.flags = kBlobFlagMappable;
+            createBlob.blobId = hvaSizeId[2];
+            createBlob.size = hostAllocationInfo.allocationSize;
+
+            auto blob = instance.createBlob(createBlob);
+            if (!blob) {
+                return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+            }
+
+            VirtGpuBlobMappingPtr mapping = blob->createMapping();
+            if (!mapping) {
+                return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+            }
+
+            coherentMemory =
+                std::make_shared<CoherentMemory>(mapping, createBlob.size, enc, device, mem);
+        }
+
+        coherentMemory->subAllocate(pAllocateInfo->allocationSize, &ptr, offset);
+
+        info.allocationSize = pAllocateInfo->allocationSize;
+        info.coherentMemoryOffset = offset;
+        info.coherentMemory = coherentMemory;
+        info.ptr = ptr;
+
+        info_VkDeviceMemory[mem] = info;
+        *pMemory = mem;
+
+        return VK_SUCCESS;
+    }
+
+    VkResult getCoherentMemory(const VkMemoryAllocateInfo* pAllocateInfo, VkEncoder* enc,
+                               VkDevice device, VkDeviceMemory* pMemory) {
 
         VkMemoryAllocateFlagsInfo allocFlagsInfo;
         VkMemoryOpaqueCaptureAddressAllocateInfo opaqueCaptureAddressAllocInfo;
@@ -2928,215 +3041,51 @@ public:
         // Add buffer device address capture structs
         const VkMemoryAllocateFlagsInfo* allocFlagsInfoPtr =
             vk_find_struct<VkMemoryAllocateFlagsInfo>(pAllocateInfo);
-        const VkMemoryOpaqueCaptureAddressAllocateInfo* opaqueCaptureAddressAllocInfoPtr =
-            vk_find_struct<VkMemoryOpaqueCaptureAddressAllocateInfo>(pAllocateInfo);
 
-        bool isDeviceAddressMemoryAllocation =
-            allocFlagsInfoPtr && ((allocFlagsInfoPtr->flags & VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT) ||
-               (allocFlagsInfoPtr->flags & VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT));
-        bool isDedicated = isDeviceAddressMemoryAllocation;
+        bool dedicated = allocFlagsInfoPtr &&
+                         ((allocFlagsInfoPtr->flags & VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT) ||
+                          (allocFlagsInfoPtr->flags & VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT));
 
-        while (!found) {
-            // If we need a dedicated host mapping, found = true necessarily
-            if (isDedicated) {
-                found = true;
-            } else {
-                for (HostMemBlockIndex i = 0; i < blocks.size(); ++i) {
-                    if (blocks[i].initialized &&
-                        blocks[i].initResult == VK_SUCCESS &&
-                        !blocks[i].isDedicated &&
-                        canSubAlloc(
-                            blocks[i].subAlloc,
-                            pAllocateInfo->allocationSize)) {
-                        res = i;
-                        found = true;
-                        return res;
-                    }
-                }
-            }
+        CoherentMemoryPtr coherentMemory = nullptr;
+        uint8_t *ptr = nullptr;
+        uint64_t offset = 0;
+        for (const auto &[memory, info] : info_VkDeviceMemory) {
+            if (info.memoryTypeIndex != pAllocateInfo->memoryTypeIndex)
+                continue;
 
-            blocks.push_back({});
+            if (info.dedicated || dedicated)
+                continue;
 
-            auto& hostMemAlloc = blocks.back();
+            if (!info.coherentMemory)
+                continue;
 
-            hostMemAlloc.isDedicated = isDedicated;
-            VkDeviceSize roundedUpAllocSize =
-                kMegaBtye * ((pAllocateInfo->allocationSize + kMegaBtye - 1) / kMegaBtye);
+            if (!info.coherentMemory->subAllocate(pAllocateInfo->allocationSize, &ptr, offset))
+                continue;
 
-            // If dedicated, use a smaller "page rounded alloc size".
-            VkDeviceSize pageRoundedAllocSize =
-                kLargestPageSize * ((pAllocateInfo->allocationSize + kLargestPageSize - 1) / kLargestPageSize);
+            coherentMemory = info.coherentMemory;
+            break;
+        }
 
-            VkDeviceSize blockSizeNeeded =
-                std::max(roundedUpAllocSize, kDefaultHostMemBlockSize);
+        struct VkDeviceMemory_Info info;
+        if (coherentMemory) {
+            info.coherentMemoryOffset = offset;
+            info.ptr = ptr;
+            info.memoryTypeIndex = pAllocateInfo->memoryTypeIndex;
+            info.allocationSize = pAllocateInfo->allocationSize;
+            info.coherentMemory = coherentMemory;
+            info.device = device;
 
-            VkMemoryAllocateInfo allocInfoForHost = vk_make_orphan_copy(*pAllocateInfo);
-            vk_struct_chain_iterator structChainIter = vk_make_chain_iterator(&allocInfoForHost);
-
-            allocInfoForHost.allocationSize = blockSizeNeeded;
-
-            if (isDedicated) {
-                allocInfoForHost.allocationSize = pageRoundedAllocSize;
-            }
-
-            // TODO: Support dedicated/external host visible allocation
-
-            // Support device address capture/replay allocations
-            if (isDeviceAddressMemoryAllocation) {
-                if (allocFlagsInfoPtr) {
-                    ALOGV("%s: has alloc flags\n", __func__);
-                    allocFlagsInfo = *allocFlagsInfoPtr;
-                    vk_append_struct(&structChainIter, &allocFlagsInfo);
-                }
-
-                if (opaqueCaptureAddressAllocInfoPtr) {
-                    ALOGV("%s: has opaque capture address\n", __func__);
-                    opaqueCaptureAddressAllocInfo = *opaqueCaptureAddressAllocInfoPtr;
-                    vk_append_struct(&structChainIter, &opaqueCaptureAddressAllocInfo);
-                }
-            }
-
-            mLock.unlock();
-            VkResult host_res =
-                enc->vkAllocateMemory(
-                    device,
-                    &allocInfoForHost,
-                    nullptr,
-                    &hostMemAlloc.memory, true /* do lock */);
-            mLock.lock();
-
-            if (host_res != VK_SUCCESS) {
-                ALOGE("Could not allocate backing for virtual host visible memory: %d",
-                      host_res);
-                hostMemAlloc.initialized = true;
-                hostMemAlloc.initResult = host_res;
-                return INVALID_HOST_MEM_BLOCK;
-            }
-
-            auto& hostMemInfo = info_VkDeviceMemory[hostMemAlloc.memory];
-            hostMemInfo.allocationSize = allocInfoForHost.allocationSize;
-            VkDeviceSize nonCoherentAtomSize =
-                deviceInfo.props.limits.nonCoherentAtomSize;
-            hostMemInfo.mappedSize = hostMemInfo.allocationSize;
-            hostMemInfo.memoryTypeIndex =
-                pAllocateInfo->memoryTypeIndex;
-            hostMemAlloc.nonCoherentAtomSize = nonCoherentAtomSize;
-
-            uint64_t directMappedAddr = 0;
-
-            VkResult directMapResult = VK_SUCCESS;
-            if (mFeatureInfo->hasDirectMem) {
-                mLock.unlock();
-                directMapResult =
-                    enc->vkMapMemoryIntoAddressSpaceGOOGLE(
-                            device, hostMemAlloc.memory, &directMappedAddr, true /* do lock */);
-                ALOGV("%s: direct mapped addr 0x%llx\n", __func__,
-                      (unsigned long long)directMappedAddr);
-                mLock.lock();
-            } else if (mFeatureInfo->hasVirtioGpuNext) {
-#if !defined(HOST_BUILD) && defined(VIRTIO_GPU)
-                uint64_t hvaSizeId[3];
-
-                mLock.unlock();
-                enc->vkGetMemoryHostAddressInfoGOOGLE(
-                        device, hostMemAlloc.memory,
-                        &hvaSizeId[0], &hvaSizeId[1], &hvaSizeId[2], true /* do lock */);
-                D("%s: hvaOff, size: 0x%llx 0x%llx id: 0x%llx\n", __func__,
-                  (unsigned long long)hvaSizeId[0],
-                  (unsigned long long)hvaSizeId[1],
-                  (unsigned long long)hvaSizeId[2]);
-                mLock.lock();
-
-                struct drm_virtgpu_resource_create_blob drm_rc_blob = { 0 };
-                drm_rc_blob.blob_mem = VIRTGPU_BLOB_MEM_HOST3D;
-                drm_rc_blob.blob_flags = VIRTGPU_BLOB_FLAG_USE_MAPPABLE;
-                drm_rc_blob.blob_id = hvaSizeId[2];
-                drm_rc_blob.size = hvaSizeId[1];
-
-                int res = drmIoctl(
-                    mRendernodeFd, DRM_IOCTL_VIRTGPU_RESOURCE_CREATE_BLOB, &drm_rc_blob);
-
-                if (res) {
-                    ALOGE("%s: Failed to resource create blob: sterror: %s errno: %d\n", __func__,
-                            strerror(errno), errno);
-                    abort();
-                }
-                hostMemAlloc.boCreated = true;
-                hostMemAlloc.boHandle = drm_rc_blob.bo_handle;
-
-                drm_virtgpu_map map_info;
-                memset(&map_info, 0, sizeof(map_info));
-                map_info.handle = drm_rc_blob.bo_handle;
-
-                res = drmIoctl(mRendernodeFd, DRM_IOCTL_VIRTGPU_MAP, &map_info);
-                if (res) {
-                    ALOGE("%s: Failed to virtgpu map: sterror: %s errno: %d\n", __func__,
-                            strerror(errno), errno);
-                    abort();
-                }
-
-                void* mapRes = mmap64(
-                    0, hvaSizeId[1], PROT_WRITE, MAP_SHARED, mRendernodeFd, map_info.offset);
-
-                if (mapRes == MAP_FAILED || mapRes == nullptr) {
-                    ALOGE("%s: mmap of virtio gpu resource failed: sterror: %s errno: %d\n\n",
-                            __func__, strerror(errno), errno);
-                     directMapResult = VK_ERROR_OUT_OF_DEVICE_MEMORY;
-                } else {
-                    directMappedAddr = (uint64_t)(uintptr_t)mapRes;
-                    // Does not take  ownership for the device.
-                    hostMemAlloc.rendernodeFd = mRendernodeFd;
-                    hostMemAlloc.memoryAddr = directMappedAddr;
-                    hostMemAlloc.memorySize = hvaSizeId[1];
-                    // add the host's page offset
-                    directMappedAddr += (uint64_t)(uintptr_t)(hvaSizeId[0]) & (PAGE_SIZE - 1);
-                    directMapResult = VK_SUCCESS;
-                }
-
-#endif // VK_USE_PLATFORM_ANDROID_KHR
-            }
-
-            if (directMapResult != VK_SUCCESS) {
-                ALOGE("%s: error: directMapResult != VK_SUCCESS\n", __func__);
-                hostMemAlloc.initialized = true;
-                hostMemAlloc.initResult = directMapResult;
-                mLock.unlock();
-                destroyHostMemAlloc(
-                    mFeatureInfo->hasDirectMem,
-                    enc,
-                    device,
-                    &hostMemAlloc,
-                    true) /* doLock */;
-                mLock.lock();
-                return INVALID_HOST_MEM_BLOCK;
-            }
-
-            hostMemInfo.mappedPtr =
-                (uint8_t*)(uintptr_t)directMappedAddr;
-            ALOGV("%s: Set mapped ptr to %p\n", __func__, hostMemInfo.mappedPtr);
-
-            VkResult hostMemAllocRes =
-                finishHostMemAllocInit(
-                    enc,
-                    device,
-                    pAllocateInfo->memoryTypeIndex,
-                    nonCoherentAtomSize,
-                    hostMemInfo.mappedSize,
-                    hostMemInfo.mappedPtr,
-                    &hostMemAlloc);
-
-            if (hostMemAllocRes != VK_SUCCESS) {
-                return INVALID_HOST_MEM_BLOCK;
-            }
-
-            if (isDedicated) {
-                ALOGV("%s: New dedicated block at %zu\n", __func__, blocks.size() - 1);
-                return blocks.size() - 1;
+            auto mem = new_from_host_VkDeviceMemory(VK_NULL_HANDLE);
+            info_VkDeviceMemory[mem] = info;
+            *pMemory = mem;
+        } else {
+            VkResult result = allocateCoherentMemory(device, pAllocateInfo, enc, pMemory);
+            if (result != VK_SUCCESS) {
+                return result;
             }
         }
 
-        // unreacheable, but we need to make Werror happy
-        return INVALID_HOST_MEM_BLOCK;
+        return VK_SUCCESS;
     }
 
     uint64_t getAHardwareBufferId(AHardwareBuffer* ahw) {
@@ -3735,7 +3684,6 @@ public:
             VkDeviceSize allocationSize = finalAllocInfo.allocationSize;
             setDeviceMemoryInfo(
                 device, *pMemory,
-                finalAllocInfo.allocationSize,
                 0, nullptr,
                 finalAllocInfo.memoryTypeIndex,
                 ahw,
@@ -3783,66 +3731,19 @@ public:
             }
 
             setDeviceMemoryInfo(device, *pMemory,
-                finalAllocInfo.allocationSize, finalAllocInfo.allocationSize,
+                finalAllocInfo.allocationSize,
                 reinterpret_cast<uint8_t*>(addr), finalAllocInfo.memoryTypeIndex,
                 /*ahw=*/nullptr, isImport, vmo_handle);
             return VK_SUCCESS;
         }
 #endif
 
-        // Host visible memory with direct mapping via
-        // VkImportPhysicalAddressGOOGLE
-        // if (importPhysAddr) {
-            // vkAllocateMemory(device, &finalAllocInfo, pAllocator, pMemory);
-            //    host maps the host pointer to the guest physical address
-            // TODO: the host side page offset of the
-            // host pointer needs to be returned somehow.
-        // }
-
         // Host visible memory with direct mapping
         AutoLock<RecursiveLock> lock(mLock);
 
-        auto it = info_VkDevice.find(device);
-        if (it == info_VkDevice.end()) _RETURN_FAILURE_WITH_DEVICE_MEMORY_REPORT(VK_ERROR_DEVICE_LOST);
-        auto& deviceInfo = it->second;
-
-        auto& hostMemBlocksForTypeIndex =
-            deviceInfo.hostMemBlocks[finalAllocInfo.memoryTypeIndex];
-
-        HostMemBlockIndex blockIndex =
-            getOrAllocateHostMemBlockLocked(
-                hostMemBlocksForTypeIndex,
-                &finalAllocInfo,
-                enc,
-                device,
-                deviceInfo);
-
-        if (blockIndex == (HostMemBlockIndex) INVALID_HOST_MEM_BLOCK) {
-            _RETURN_FAILURE_WITH_DEVICE_MEMORY_REPORT(VK_ERROR_OUT_OF_HOST_MEMORY);
-        }
-
-        VkDeviceMemory_Info virtualMemInfo;
-
-        subAllocHostMemory(
-            &hostMemBlocksForTypeIndex[blockIndex],
-            &finalAllocInfo,
-            &virtualMemInfo.subAlloc);
-
-        virtualMemInfo.allocationSize = virtualMemInfo.subAlloc.subAllocSize;
-        virtualMemInfo.mappedSize = virtualMemInfo.subAlloc.subMappedSize;
-        virtualMemInfo.mappedPtr = virtualMemInfo.subAlloc.mappedPtr;
-        virtualMemInfo.memoryTypeIndex = finalAllocInfo.memoryTypeIndex;
-        virtualMemInfo.directMapped = true;
-
-        D("host visible alloc (direct, suballoc): "
-          "size 0x%llx ptr %p mapped size 0x%llx",
-          (unsigned long long)virtualMemInfo.allocationSize, virtualMemInfo.mappedPtr,
-          (unsigned long long)virtualMemInfo.mappedSize);
-
-        info_VkDeviceMemory[
-            virtualMemInfo.subAlloc.subMemory] = virtualMemInfo;
-
-        *pMemory = virtualMemInfo.subAlloc.subMemory;
+        VkResult result = getCoherentMemory(&finalAllocInfo, enc, device, pMemory);
+        if (result != VK_SUCCESS)
+            return result;
 
         _RETURN_SCUCCESS_WITH_DEVICE_MEMORY_REPORT;
     }
@@ -3873,74 +3774,34 @@ public:
         );
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
-        if (info.vmoHandle && info.mappedPtr) {
+        if (info.vmoHandle && info.ptr) {
             zx_status_t status = zx_vmar_unmap(
-                zx_vmar_root_self(), reinterpret_cast<zx_paddr_t>(info.mappedPtr), info.mappedSize);
+                zx_vmar_root_self(), reinterpret_cast<zx_paddr_t>(info.ptr), info.allocationSize);
             if (status != ZX_OK) {
-                ALOGE("%s: Cannot unmap mappedPtr: status %d", status);
+                ALOGE("%s: Cannot unmap ptr: status %d", status);
             }
-            info.mappedPtr = nullptr;
+            info.ptr = nullptr;
         }
 #endif
 
-        if (!info.directMapped) {
+        if (!info.coherentMemory) {
             lock.unlock();
             VkEncoder* enc = (VkEncoder*)context;
             enc->vkFreeMemory(device, memory, pAllocateInfo, true /* do lock */);
             return;
         }
 
-        VkDeviceMemory baseMemory = info.subAlloc.baseMemory;
-        uint32_t memoryTypeIndex = info.memoryTypeIndex;
-        // If this was a device address memory allocation,
-        // free it right away.
-        if (subFreeHostMemory(&info.subAlloc)) {
-            ALOGV("%s: Last free for this device-address block, "
-                  "free on host and clear block contents\n", __func__);
-            ALOGV("%s: baseMem 0x%llx this mem 0x%llx\n", __func__,
-                    (unsigned long long)baseMemory,
-                    (unsigned long long)memory);
-            VkEncoder* enc = (VkEncoder*)context;
-            bool freeMemorySyncSupported =
-                mFeatureInfo->hasVulkanFreeMemorySync;
-
-            auto it = info_VkDevice.find(device);
-            if (it == info_VkDevice.end()) {
-                ALOGE("%s: Last free: could not find device\n", __func__);
-                return;
+        if (info.coherentMemory && info.ptr) {
+            if (info.coherentMemory->getDeviceMemory() != memory) {
+                delete_goldfish_VkDeviceMemory(memory);
             }
 
-            auto& deviceInfo = it->second;
-
-            auto& hostMemBlocksForTypeIndex =
-                deviceInfo.hostMemBlocks[memoryTypeIndex];
-
-            size_t indexToRemove = 0;
-            bool found = false;
-            for (const auto& allocInfo : hostMemBlocksForTypeIndex) {
-                if (baseMemory == allocInfo.memory) {
-                    found = true;
-                    break;
-                }
-                ++indexToRemove;
+            if (info.ptr) {
+                info.coherentMemory->release(info.ptr);
+                info.ptr = nullptr;
             }
 
-            if (!found) {
-                ALOGE("%s: Last free: could not find original block\n", __func__);
-                return;
-            }
-
-            ALOGV("%s: Destroying host mem alloc block at index %zu\n", __func__, indexToRemove);
-
-            destroyHostMemAlloc(
-                freeMemorySyncSupported,
-                enc, device,
-                hostMemBlocksForTypeIndex.data() + indexToRemove,
-                false);
-
-            ALOGV("%s: Destroying host mem alloc block at index %zu (done)\n", __func__, indexToRemove);
-
-            hostMemBlocksForTypeIndex.erase(hostMemBlocksForTypeIndex.begin() + indexToRemove);
+            info.coherentMemory = nullptr;
         }
     }
 
@@ -3969,13 +3830,13 @@ public:
 
         auto& info = it->second;
 
-        if (!info.mappedPtr) {
-            ALOGE("%s: mappedPtr null\n", __func__);
+        if (!info.ptr) {
+            ALOGE("%s: ptr null\n", __func__);
             return VK_ERROR_MEMORY_MAP_FAILED;
         }
 
         if (size != VK_WHOLE_SIZE &&
-            (info.mappedPtr + offset + size > info.mappedPtr + info.allocationSize)) {
+            (info.ptr + offset + size > info.ptr + info.allocationSize)) {
             ALOGE("%s: size is too big. alloc size 0x%llx while we wanted offset 0x%llx size 0x%llx total 0x%llx\n", __func__,
                     (unsigned long long)info.allocationSize,
                     (unsigned long long)offset,
@@ -3984,7 +3845,7 @@ public:
             return VK_ERROR_MEMORY_MAP_FAILED;
         }
 
-        *ppData = info.mappedPtr + offset;
+        *ppData = info.ptr + offset;
 
         return host_result;
     }
@@ -6251,15 +6112,12 @@ public:
         }
 
         auto& memInfo = it->second;
-        memInfo.goldfishAddressSpaceBlock =
-            new GoldfishAddressSpaceBlock;
-        auto& block = *(memInfo.goldfishAddressSpaceBlock);
 
-        block.allocate(
-            mGoldfishAddressSpaceBlockProvider.get(),
-            memInfo.mappedSize);
+        GoldfishAddressSpaceBlockPtr block = std::make_shared<GoldfishAddressSpaceBlock>();
+        block->allocate(mGoldfishAddressSpaceBlockProvider.get(), memInfo.coherentMemorySize);
 
-        *pAddress = block.physAddr();
+        memInfo.goldfishBlock = block;
+        *pAddress = block->physAddr();
 
         return VK_SUCCESS;
     }
@@ -6270,34 +6128,12 @@ public:
         VkDevice,
         VkDeviceMemory memory,
         uint64_t* pAddress) {
+        (void)memory;
+	(void)pAddress;
 
         if (input_result != VK_SUCCESS) {
             return input_result;
         }
-
-        // Now pAddress points to the gpu addr from host.
-        AutoLock<RecursiveLock> lock(mLock);
-
-        auto it = info_VkDeviceMemory.find(memory);
-        if (it == info_VkDeviceMemory.end()) {
-            return VK_ERROR_OUT_OF_HOST_MEMORY;
-        }
-
-        auto& memInfo = it->second;
-        auto& block = *(memInfo.goldfishAddressSpaceBlock);
-
-        uint64_t gpuAddr = *pAddress;
-
-        void* userPtr = block.mmap(gpuAddr);
-
-        D("%s: Got new host visible alloc. "
-          "Sizeof void: %zu map size: %zu Range: [%p %p]",
-          __func__,
-          sizeof(void*), (size_t)memInfo.mappedSize,
-          userPtr,
-          (unsigned char*)userPtr + memInfo.mappedSize);
-
-        *pAddress = (uint64_t)(uintptr_t)userPtr;
 
         return input_result;
     }
