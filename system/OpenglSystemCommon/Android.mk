@@ -40,7 +40,6 @@ LOCAL_HEADER_LIBRARIES += gfxstream_vulkan_headers
 
 LOCAL_CFLAGS += -DVIRTIO_GPU
 LOCAL_SRC_FILES += \
-    VirtioGpuStream.cpp \
     VirtioGpuPipeStream.cpp \
 
 LOCAL_C_INCLUDES += external/libdrm external/minigbm/cros_gralloc
