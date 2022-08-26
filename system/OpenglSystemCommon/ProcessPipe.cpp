@@ -189,7 +189,6 @@ static void processPipeInitOnce() {
         case HOST_CONNECTION_QEMU_PIPE:
         case HOST_CONNECTION_ADDRESS_SPACE:
         case HOST_CONNECTION_TCP:
-        case HOST_CONNECTION_VIRTIO_GPU:
             sQemuPipeInit();
             break;
         case HOST_CONNECTION_VIRTIO_GPU_PIPE:
@@ -231,7 +230,6 @@ void processPipeRestart() {
         case HOST_CONNECTION_QEMU_PIPE:
         case HOST_CONNECTION_ADDRESS_SPACE:
         case HOST_CONNECTION_TCP:
-        case HOST_CONNECTION_VIRTIO_GPU:
             isPipe = true;
             break;
         case HOST_CONNECTION_VIRTIO_GPU_PIPE:
