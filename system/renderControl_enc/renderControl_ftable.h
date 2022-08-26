@@ -76,6 +76,7 @@ static const struct _renderControl_funcs_by_name {
 	{"rcGetFBDisplayConfigsCount", (void*)rcGetFBDisplayConfigsCount},
 	{"rcGetFBDisplayConfigsParam", (void*)rcGetFBDisplayConfigsParam},
 	{"rcGetFBDisplayActiveConfig", (void*)rcGetFBDisplayActiveConfig},
+	{"rcSetProcessMetadata", (void*)rcSetProcessMetadata},
 };
 static const int renderControl_num_funcs = sizeof(renderControl_funcs_by_name) / sizeof(struct _renderControl_funcs_by_name);
 
