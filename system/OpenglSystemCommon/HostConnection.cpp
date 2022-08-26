@@ -16,6 +16,7 @@
 #include "HostConnection.h"
 
 #include "cutils/properties.h"
+#include "renderControl_types.h"
 
 #ifdef HOST_BUILD
 #include "android/base/Tracing.h"
@@ -92,6 +93,11 @@ using goldfish_vk::VkEncoder;
 #include <cros_gralloc_handle.h>
 #include <xf86drm.h>
 
+#endif
+
+#if defined(__linux__) || defined(__ANDROID__)
+#include <fstream>
+#include <string>
 #endif
 
 #undef LOG_TAG
@@ -564,6 +570,33 @@ std::unique_ptr<HostConnection> HostConnection::connect(uint32_t capset_id) {
 
     DPRINT("HostConnection::get() New Host Connection established %p, tid %d\n",
           con.get(), getCurrentThreadId());
+
+#if defined(__linux__) || defined(__ANDROID__)
+    auto rcEnc = con->rcEncoder();
+    if (rcEnc != nullptr) {
+#if defined(__ANDROID__) && __ANDROID_API__ >= 21
+        // The encoder does not modify the strings. The API gen does not yet
+        // handle const vars.
+        rcEnc->rcSetProcessMetadata(
+            rcEnc, const_cast<char*>("process_name"),
+            const_cast<RenderControlByte*>(getprogname()),
+            strlen(getprogname()) + 1);
+#else
+        std::ifstream stream("/proc/self/cmdline");
+        if (stream.is_open()) {
+            std::string cmdline((std::istreambuf_iterator<char>(stream)),
+                                std::istreambuf_iterator<char>());
+            // The encoder does not modify the strings. The API gen does not yet
+            // handle const vars.
+            rcEnc->rcSetProcessMetadata(
+                rcEnc, const_cast<char*>("process_name"),
+                const_cast<RenderControlByte*>(cmdline.c_str()),
+                strlen(cmdline.c_str()) + 1);
+        }
+#endif
+    }
+#endif
+
     return con;
 }
 

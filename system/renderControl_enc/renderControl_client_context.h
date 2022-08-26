@@ -78,6 +78,7 @@ struct renderControl_client_context_t {
 	rcGetFBDisplayConfigsCount_client_proc_t rcGetFBDisplayConfigsCount;
 	rcGetFBDisplayConfigsParam_client_proc_t rcGetFBDisplayConfigsParam;
 	rcGetFBDisplayActiveConfig_client_proc_t rcGetFBDisplayActiveConfig;
+	rcSetProcessMetadata_client_proc_t rcSetProcessMetadata;
 	virtual ~renderControl_client_context_t() {}
 
 	typedef renderControl_client_context_t *CONTEXT_ACCESSOR_TYPE(void);
