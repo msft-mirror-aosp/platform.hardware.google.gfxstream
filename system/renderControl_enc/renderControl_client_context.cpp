@@ -78,6 +78,7 @@ int renderControl_client_context_t::initDispatchByName(void *(*getProc)(const ch
 	rcGetFBDisplayConfigsCount = (rcGetFBDisplayConfigsCount_client_proc_t) getProc("rcGetFBDisplayConfigsCount", userData);
 	rcGetFBDisplayConfigsParam = (rcGetFBDisplayConfigsParam_client_proc_t) getProc("rcGetFBDisplayConfigsParam", userData);
 	rcGetFBDisplayActiveConfig = (rcGetFBDisplayActiveConfig_client_proc_t) getProc("rcGetFBDisplayActiveConfig", userData);
+	rcSetProcessMetadata = (rcSetProcessMetadata_client_proc_t) getProc("rcSetProcessMetadata", userData);
 	return 0;
 }
 
