@@ -7,7 +7,6 @@ files_lib_stream = files(
   'ProcessPipe.cpp',
   'QemuPipeStream.cpp',
   'ThreadInfo.cpp',
-  'VirtioGpuStream.cpp',
   'VirtioGpuPipeStream.cpp',
 )
 
