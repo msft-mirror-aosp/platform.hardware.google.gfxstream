@@ -77,44 +77,6 @@ void zx_event_create(int, zx_handle_t*) { }
 
 #include <android/hardware_buffer.h>
 
-native_handle_t *AHardwareBuffer_getNativeHandle(AHardwareBuffer*) { return NULL; }
-
-uint64_t getAndroidHardwareBufferUsageFromVkUsage(
-    const VkImageCreateFlags vk_create,
-    const VkImageUsageFlags vk_usage) {
-  return AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE;
-}
-
-VkResult importAndroidHardwareBuffer(
-    Gralloc *grallocHelper,
-    const VkImportAndroidHardwareBufferInfoANDROID* info,
-    struct AHardwareBuffer **importOut) {
-  return VK_SUCCESS;
-}
-
-VkResult createAndroidHardwareBuffer(
-    bool hasDedicatedImage,
-    bool hasDedicatedBuffer,
-    const VkExtent3D& imageExtent,
-    uint32_t imageLayers,
-    VkFormat imageFormat,
-    VkImageUsageFlags imageUsage,
-    VkImageCreateFlags imageCreateFlags,
-    VkDeviceSize bufferSize,
-    VkDeviceSize allocationInfoAllocSize,
-    struct AHardwareBuffer **out) {
-  return VK_SUCCESS;
-}
-
-VkResult getAndroidHardwareBufferPropertiesANDROID(
-    Gralloc *grallocHelper,
-    const VkPhysicalDeviceMemoryProperties* memProps,
-    VkDevice,
-    const AHardwareBuffer*,
-    VkAndroidHardwareBufferPropertiesANDROID*) { return VK_SUCCESS; }
-
-VkResult getMemoryAndroidHardwareBufferANDROID(struct AHardwareBuffer **) { return VK_SUCCESS; }
-
 #endif // VK_USE_PLATFORM_ANDROID_KHR
 
 #include "HostVisibleMemoryVirtualization.h"
@@ -126,7 +88,9 @@ VkResult getMemoryAndroidHardwareBufferANDROID(struct AHardwareBuffer **) { retu
 
 #include "goldfish_address_space.h"
 #include "goldfish_vk_private_defs.h"
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
 #include "vk_format_info.h"
+#endif
 #include "vk_struct_id.h"
 #include "vk_util.h"
 
@@ -315,7 +279,9 @@ public:
         bool dedicated = false;
         bool imported = false;
 
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
         AHardwareBuffer* ahw = nullptr;
+#endif
         zx_handle_t vmoHandle = ZX_HANDLE_INVALID;
         VkDevice device;
 
@@ -529,9 +495,11 @@ public:
 
         auto& memInfo = it->second;
 
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
         if (memInfo.ahw) {
             AHardwareBuffer_release(memInfo.ahw);
         }
+#endif
 
         if (memInfo.vmoHandle != ZX_HANDLE_INVALID) {
             zx_handle_close(memInfo.vmoHandle);
@@ -873,7 +841,9 @@ public:
         info.allocationSize = allocationSize;
         info.ptr = ptr;
         info.memoryTypeIndex = memoryTypeIndex;
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
         info.ahw = ahw;
+#endif
         info.imported = imported;
         info.vmoHandle = vmoHandle;
     }
@@ -1673,6 +1643,7 @@ public:
         }
     }
 
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
     VkResult on_vkGetAndroidHardwareBufferPropertiesANDROID(
         void*, VkResult,
         VkDevice device,
@@ -1720,6 +1691,7 @@ public:
 
         return queryRes;
     }
+#endif
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
     VkResult on_vkGetMemoryZirconHandleFUCHSIA(
@@ -3182,8 +3154,12 @@ public:
         const VkExportMemoryAllocateInfo* exportAllocateInfoPtr =
             vk_find_struct<VkExportMemoryAllocateInfo>(pAllocateInfo);
 
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
         const VkImportAndroidHardwareBufferInfoANDROID* importAhbInfoPtr =
             vk_find_struct<VkImportAndroidHardwareBufferInfoANDROID>(pAllocateInfo);
+#else
+        const void* importAhbInfoPtr = nullptr;
+#endif
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
         const VkImportMemoryBufferCollectionFUCHSIA*
@@ -3760,9 +3736,11 @@ public:
         if (it == info_VkDeviceMemory.end()) return;
         auto& info = it->second;
         uint64_t memoryObjectId = (uint64_t)(void*)memory;
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
         if (info.ahw) {
             memoryObjectId = getAHardwareBufferId(info.ahw);
         }
+#endif
         emitDeviceMemoryReport(
             info_VkDevice[device],
             info.imported ? VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_UNIMPORT_EXT
@@ -6032,6 +6010,7 @@ public:
         return enc->vkQueueWaitIdle(queue, true /* do lock */);
     }
 
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
     void unwrap_VkNativeBufferANDROID(
         const VkImageCreateInfo* pCreateInfo,
         VkImageCreateInfo* local_pCreateInfo) {
@@ -6063,7 +6042,6 @@ public:
     }
 
     void unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int*) {
-#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         if (fd != -1) {
             AEMU_SCOPED_TRACE("waitNativeFenceInAcquire");
             // Implicit Synchronization
@@ -6081,8 +6059,8 @@ public:
             // Therefore, assume contract where we need to close fd in this driver
             close(fd);
         }
-#endif
     }
+#endif
 
     // Action of vkMapMemoryIntoAddressSpaceGOOGLE:
     // 1. preprocess (on_vkMapMemoryIntoAddressSpaceGOOGLE_pre):
@@ -6461,8 +6439,10 @@ public:
         }
 #endif
 
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
         VkAndroidHardwareBufferUsageANDROID* output_ahw_usage =
             vk_find_struct<VkAndroidHardwareBufferUsageANDROID>(pImageFormatProperties);
+#endif
 
         VkResult hostRes;
 
@@ -6499,12 +6479,14 @@ public:
         }
 #endif
 
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
         if (output_ahw_usage) {
             output_ahw_usage->androidHardwareBufferUsage =
                 getAndroidHardwareBufferUsageFromVkUsage(
                     pImageFormatInfo->flags,
                     pImageFormatInfo->usage);
         }
+#endif
 
         return hostRes;
     }
@@ -7003,6 +6985,7 @@ public:
         return fd;
     }
 
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
     VkResult on_vkQueueSignalReleaseImageANDROID(
         void* context,
         VkResult input_result,
@@ -7014,7 +6997,6 @@ public:
 
         (void)input_result;
 
-#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
         VkEncoder* enc = (VkEncoder*)context;
 
         if (!mFeatureInfo->hasVulkanAsyncQsri) {
@@ -7040,9 +7022,9 @@ public:
             int syncFd = exportSyncFdForQSRILocked(image);
             if (syncFd >= 0) close(syncFd);
         }
-#endif
         return VK_SUCCESS;
     }
+#endif
 
     VkResult on_vkCreateGraphicsPipelines(
         void* context,
@@ -7738,11 +7720,15 @@ VkResult ResourceTracker::on_vkImportSemaphoreFdKHR(
 void ResourceTracker::unwrap_VkNativeBufferANDROID(
     const VkImageCreateInfo* pCreateInfo,
     VkImageCreateInfo* local_pCreateInfo) {
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
     mImpl->unwrap_VkNativeBufferANDROID(pCreateInfo, local_pCreateInfo);
+#endif
 }
 
 void ResourceTracker::unwrap_vkAcquireImageANDROID_nativeFenceFd(int fd, int* fd_out) {
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
     mImpl->unwrap_vkAcquireImageANDROID_nativeFenceFd(fd, fd_out);
+#endif
 }
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
@@ -7834,6 +7820,7 @@ VkResult ResourceTracker::on_vkGetBufferCollectionPropertiesFUCHSIA(
 }
 #endif
 
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
 VkResult ResourceTracker::on_vkGetAndroidHardwareBufferPropertiesANDROID(
     void* context, VkResult input_result,
     VkDevice device,
@@ -7851,6 +7838,7 @@ VkResult ResourceTracker::on_vkGetMemoryAndroidHardwareBufferANDROID(
         context, input_result,
         device, pInfo, pBuffer);
 }
+#endif
 
 VkResult ResourceTracker::on_vkCreateSamplerYcbcrConversion(
     void* context, VkResult input_result,
@@ -8271,6 +8259,7 @@ VkResult ResourceTracker::on_vkAllocateCommandBuffers(
     return mImpl->on_vkAllocateCommandBuffers(context, input_result, device, pAllocateInfo, pCommandBuffers);
 }
 
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
 VkResult ResourceTracker::on_vkQueueSignalReleaseImageANDROID(
     void* context,
     VkResult input_result,
@@ -8281,6 +8270,7 @@ VkResult ResourceTracker::on_vkQueueSignalReleaseImageANDROID(
     int* pNativeFenceFd) {
     return mImpl->on_vkQueueSignalReleaseImageANDROID(context, input_result, queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd);
 }
+#endif
 
 VkResult ResourceTracker::on_vkCreateGraphicsPipelines(
     void* context,

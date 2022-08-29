@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <utility>
+#include <cstring>
 
 namespace android {
 namespace base {
