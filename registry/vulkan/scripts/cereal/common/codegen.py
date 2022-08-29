@@ -24,7 +24,7 @@ import sys
 # Class capturing a .cpp file and a .h file (a "C++ module")
 class Module(object):
 
-    def __init__(self, directory, basename, customAbsDir = None, suppress = False, implOnly = False):
+    def __init__(self, directory, basename, customAbsDir = None, suppress = False, implOnly = False, headerOnly = False, suppressFeatureGuards = False):
         self.directory = directory
         self.basename = basename
 
@@ -42,6 +42,9 @@ class Module(object):
         self.suppress = suppress
 
         self.implOnly = implOnly
+        self.headerOnly = headerOnly
+
+        self.suppressFeatureGuards = suppressFeatureGuards
 
     def getMakefileSrcEntry(self):
         if self.customAbsDir:
@@ -72,11 +75,13 @@ class Module(object):
         filename = os.path.join(absDir, self.basename)
 
         fpHeader = None
+        fpImpl = None
 
         if not self.implOnly:
             fpHeader = open(filename + ".h", "w", encoding="utf-8")
 
-        fpImpl = open(filename + ".cpp", "w", encoding="utf-8")
+        if not self.headerOnly:
+            fpImpl = open(filename + ".cpp", "w", encoding="utf-8")
 
         self.headerFileHandle = fpHeader
         self.implFileHandle = fpImpl
@@ -84,7 +89,8 @@ class Module(object):
         if not self.implOnly:
             self.headerFileHandle.write(self.headerPreamble)
 
-        self.implFileHandle.write(self.implPreamble)
+        if not self.headerOnly:
+            self.implFileHandle.write(self.implPreamble)
 
     def appendHeader(self, toAppend):
         if self.suppress:
@@ -97,7 +103,8 @@ class Module(object):
         if self.suppress:
             return
 
-        self.implFileHandle.write(toAppend)
+        if not self.headerOnly:
+            self.implFileHandle.write(toAppend)
 
     def end(self):
         if self.suppress:
@@ -106,12 +113,14 @@ class Module(object):
         if not self.implOnly:
             self.headerFileHandle.write(self.headerPostamble)
 
-        self.implFileHandle.write(self.implPostamble)
+        if not self.headerOnly:
+            self.implFileHandle.write(self.implPostamble)
 
         if not self.implOnly:
             self.headerFileHandle.close()
 
-        self.implFileHandle.close()
+        if not self.headerOnly:
+            self.implFileHandle.close()
 
 # Class capturing a .proto protobuf definition file
 class Proto(object):
