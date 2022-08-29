@@ -80,7 +80,6 @@ typedef int (renderControl_APIENTRY *rcReadColorBufferDMA_client_proc_t) (void *
 typedef int (renderControl_APIENTRY *rcGetFBDisplayConfigsCount_client_proc_t) (void * ctx);
 typedef int (renderControl_APIENTRY *rcGetFBDisplayConfigsParam_client_proc_t) (void * ctx, int, EGLint);
 typedef int (renderControl_APIENTRY *rcGetFBDisplayActiveConfig_client_proc_t) (void * ctx);
-typedef void (renderControl_APIENTRY *rcSetProcessMetadata_client_proc_t) (void * ctx, char*, RenderControlByte*, uint32_t);
 
 
 #endif
