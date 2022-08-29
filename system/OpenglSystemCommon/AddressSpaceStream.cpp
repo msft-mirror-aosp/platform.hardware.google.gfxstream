@@ -148,7 +148,7 @@ AddressSpaceStream* createAddressSpaceStream(size_t ignored_bufSize) {
 }
 
 address_space_handle_t virtgpu_address_space_open() {
-    return -EINVAL;
+    return (address_space_handle_t)(-EINVAL);
 }
 
 void virtgpu_address_space_close(address_space_handle_t fd) {
@@ -157,9 +157,9 @@ void virtgpu_address_space_close(address_space_handle_t fd) {
 
 bool virtgpu_address_space_ping(address_space_handle_t fd, struct address_space_ping* info) {
     int ret;
-    struct VirtGpuExecBuffer exec = { 0 };
+    struct VirtGpuExecBuffer exec = {};
     VirtGpuDevice& instance = VirtGpuDevice::getInstance();
-    struct gfxstreamContextPing ping = {0};
+    struct gfxstreamContextPing ping = {};
 
     ping.hdr.opCode = GFXSTREAM_CONTEXT_PING;
     ping.resourceId = info->resourceId;
@@ -177,9 +177,9 @@ bool virtgpu_address_space_ping(address_space_handle_t fd, struct address_space_
 AddressSpaceStream* createVirtioGpuAddressSpaceStream(void) {
     VirtGpuBlobPtr pipe, blob;
     VirtGpuBlobMappingPtr pipeMapping, blobMapping;
-    struct VirtGpuExecBuffer exec = { 0 };
-    struct VirtGpuCreateBlob blobCreate = { 0 };
-    struct gfxstreamContextCreate contextCreate = { 0 };
+    struct VirtGpuExecBuffer exec = {};
+    struct VirtGpuCreateBlob blobCreate = {};
+    struct gfxstreamContextCreate contextCreate = {};
 
     char* blobAddr, *bufferPtr;
     int ret;
@@ -236,9 +236,7 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(void) {
     };
 
     AddressSpaceStream* res =
-        new AddressSpaceStream(
-            -1, 1, context,
-            0, 0, ops);
+            new AddressSpaceStream((address_space_handle_t)(-1), 1, context, 0, 0, ops);
 
     res->setMapping(blobMapping);
     res->setResourceId(contextCreate.resourceId);
@@ -278,6 +276,7 @@ AddressSpaceStream::AddressSpaceStream(
     m_ringStorageSize(sizeof(struct asg_ring_storage) + m_writeBufferSize) {
     // We'll use this in the future, but at the moment,
     // it's a potential compile Werror.
+    (void)m_ringStorageSize;
     (void)m_version;
 }
 
