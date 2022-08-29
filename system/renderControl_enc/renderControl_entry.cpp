@@ -73,7 +73,6 @@ extern "C" {
 	int rcGetFBDisplayConfigsCount();
 	int rcGetFBDisplayConfigsParam(int configId, EGLint param);
 	int rcGetFBDisplayActiveConfig();
-	void rcSetProcessMetadata(char* key, RenderControlByte* valuePtr, uint32_t valueSize);
 };
 
 #ifndef GET_CONTEXT
@@ -488,11 +487,5 @@ int rcGetFBDisplayActiveConfig()
 {
 	GET_CONTEXT;
 	return ctx->rcGetFBDisplayActiveConfig(ctx);
-}
-
-void rcSetProcessMetadata(char* key, RenderControlByte* valuePtr, uint32_t valueSize)
-{
-	GET_CONTEXT;
-	ctx->rcSetProcessMetadata(ctx, key, valuePtr, valueSize);
 }
 
