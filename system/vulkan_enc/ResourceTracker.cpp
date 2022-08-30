@@ -4995,15 +4995,17 @@ public:
         VkDevice device, VkImage image, const VkAllocationCallbacks *pAllocator) {
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
-        AutoLock<RecursiveLock> lock(mLock);
+        {
+          AutoLock<RecursiveLock> lock(mLock); // do not guard encoder may cause
+                                               // deadlock b/243339973
 
-        // Wait for any pending QSRIs to prevent a race between the Gfxstream host
-        // potentially processing the below `vkDestroyImage()` from the VK encoder
-        // command stream before processing a previously submitted
-        // `VIRTIO_GPU_NATIVE_SYNC_VULKAN_QSRI_EXPORT` from the virtio-gpu command
-        // stream which relies on the image existing.
-        auto imageInfoIt = info_VkImage.find(image);
-        if (imageInfoIt != info_VkImage.end()) {
+          // Wait for any pending QSRIs to prevent a race between the Gfxstream host
+          // potentially processing the below `vkDestroyImage()` from the VK encoder
+          // command stream before processing a previously submitted
+          // `VIRTIO_GPU_NATIVE_SYNC_VULKAN_QSRI_EXPORT` from the virtio-gpu command
+          // stream which relies on the image existing.
+          auto imageInfoIt = info_VkImage.find(image);
+          if (imageInfoIt != info_VkImage.end()) {
             auto& imageInfo = imageInfoIt->second;
             for (int syncFd : imageInfo.pendingQsriSyncFds) {
                 int syncWaitRet = sync_wait(syncFd, 3000);
@@ -5014,9 +5016,9 @@ public:
                 close(syncFd);
             }
             imageInfo.pendingQsriSyncFds.clear();
+          }
         }
 #endif
-
         VkEncoder* enc = (VkEncoder*)context;
         enc->vkDestroyImage(device, image, pAllocator, true /* do lock */);
     }
@@ -7003,18 +7005,18 @@ public:
             return enc->vkQueueSignalReleaseImageANDROID(queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd, true /* lock */);
         }
 
-        AutoLock<RecursiveLock> lock(mLock);
-
-        auto it = info_VkImage.find(image);
-        if (it == info_VkImage.end()) {
-            if (pNativeFenceFd) *pNativeFenceFd = -1;
-            return VK_ERROR_INITIALIZATION_FAILED;
+        {
+            AutoLock<RecursiveLock> lock(mLock);
+            auto it = info_VkImage.find(image);
+            if (it == info_VkImage.end()) {
+                if (pNativeFenceFd) *pNativeFenceFd = -1;
+                return VK_ERROR_INITIALIZATION_FAILED;
+            }
         }
-
-        auto& imageInfo = it->second;
 
         enc->vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(queue, waitSemaphoreCount, pWaitSemaphores, image, true /* lock */);
 
+        AutoLock<RecursiveLock> lock(mLock);
         if (pNativeFenceFd) {
             *pNativeFenceFd =
                 exportSyncFdForQSRILocked(image);
