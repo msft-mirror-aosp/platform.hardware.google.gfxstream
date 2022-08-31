@@ -20,6 +20,8 @@ from pathlib import Path, PurePosixPath
 
 import os
 import sys
+import shutil
+import subprocess
 
 # Class capturing a .cpp file and a .h file (a "C++ module")
 class Module(object):
@@ -110,17 +112,22 @@ class Module(object):
         if self.suppress:
             return
 
+        clang_format_command = shutil.which('clang-format')
+        assert (clang_format_command is not None)
+
+        def formatFile(filename: str):
+            assert (subprocess.call([clang_format_command, "-i", "--style=file", filename]) == 0)
+
         if not self.implOnly:
             self.headerFileHandle.write(self.headerPostamble)
+            self.headerFileHandle.close()
+            formatFile(self.headerFileHandle.name)
 
         if not self.headerOnly:
             self.implFileHandle.write(self.implPostamble)
-
-        if not self.implOnly:
-            self.headerFileHandle.close()
-
-        if not self.headerOnly:
             self.implFileHandle.close()
+            formatFile(self.implFileHandle.name)
+
 
 # Class capturing a .proto protobuf definition file
 class Proto(object):
