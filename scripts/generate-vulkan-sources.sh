@@ -16,18 +16,30 @@
 
 PROJECT_ROOT=$(pwd)
 
+WHICH=which
+if [[ "$OSTYPE" == "msys" ]]; then
+    WHICH=where
+fi
+
+# Detect clang-format
+
+if ! $WHICH clang-format > /dev/null; then
+    echo "Failed to find clang-format." 1>&2
+    exit 1
+fi
+
 # Generate Vulkan headers
 VULKAN_HEADERS_ROOT=$PROJECT_ROOT/include/vulkan
 rm -rf $VULKAN_HEADERS_ROOT && mkdir -p $VULKAN_HEADERS_ROOT
 if [ $? -ne 0 ]; then
     echo "Failed to clear the old Vulkan headers." 1>&2
-    exit $?
+    exit 1
 fi
 
 cd registry/vulkan/xml && make GENOPTS="-removeExtensions VK_GOOGLE_gfxstream" GENERATED=$VULKAN_HEADERS_ROOT
 if [ $? -ne 0 ]; then
     echo "Failed to generate Vulkan headers." 1>&2
-    exit $?
+    exit 1
 fi
 
 cd $PROJECT_ROOT
@@ -52,13 +64,19 @@ VULKAN_REGISTRY_SCRIPTS_DIR=$VULKAN_REGISTRY_DIR/scripts
 
 python3 $VULKAN_REGISTRY_SCRIPTS_DIR/genvk.py -registry $VULKAN_REGISTRY_XML_DIR/vk.xml cereal -o $VK_CEREAL_OUTPUT_DIR
 
+# Generate gfxstream specific Vulkan definitions.
 for OUT_DIR in $VK_CEREAL_HOST_DECODER_DIR $VK_CEREAL_GUEST_ENCODER_DIR; do
+    OUT_FILE_BASENAME=vulkan_gfxstream.h
     mkdir -p $OUT_DIR
     python3 registry/vulkan/scripts/genvk.py -registry registry/vulkan/xml/vk.xml -o $OUT_DIR \
-        vulkan_gfxstream.h
+        $OUT_FILE_BASENAME
 
     if [ $? -ne 0 ]; then
         echo "Failed to generate gfxstream specific vulkan headers." 1>&2
-        exit $?
+        exit 1
+    fi
+    if ! clang-format -i $OUT_DIR/$OUT_FILE_BASENAME; then
+        echo "Failed to reformat gfxstream specific vulkan headers." 1>&2
+        exit 1
     fi
 done
