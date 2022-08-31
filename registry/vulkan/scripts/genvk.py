@@ -277,6 +277,7 @@ def makeGenOpts(args):
         '// re-run gfxstream-protocols/scripts/generate-vulkan-sources.sh,',
         '// or directly from Python by calling the genvk.py script with correct parameters.',
         '',
+        '#pragma once',
         '#ifdef VK_GFXSTREAM_STRUCTURE_TYPE_EXT',
         '#include "vulkan_gfxstream_structure_type.h"',
         '#endif',
@@ -299,7 +300,9 @@ def makeGenOpts(args):
             emitExtensions    = makeREstring(['VK_GOOGLE_gfxstream'], None),
             prefixText        = gfxstreamPrefixStrings,
             genFuncPointers   = True,
-            protectFile       = protectFile,
+            # Use #pragma once in the prefixText instead, so that we can put the copyright comments
+            # at the beginning of the file.
+            protectFile       = False,
             protectFeature    = False,
             protectProto      = '#ifndef',
             protectProtoStr   = 'VK_NO_PROTOTYPES',
