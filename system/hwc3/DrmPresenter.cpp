@@ -93,6 +93,31 @@ HWC3::Error DrmPresenter::init() {
   return HWC3::Error::None;
 }
 
+HWC3::Error DrmPresenter::getDisplayConfigs(std::vector<DisplayConfig>* configs) const {
+  AutoReadLock lock(mStateMutex);
+
+  configs->clear();
+
+  for (uint32_t i = 0; i < mConnectors.size(); i++) {
+    const auto& connector = mConnectors[i];
+
+    if (connector.connection != DRM_MODE_CONNECTED) {
+      continue;
+    }
+
+    configs->emplace_back(DisplayConfig{
+        .id = i,
+        .width = connector.mMode.hdisplay,
+        .height = connector.mMode.vdisplay,
+        .dpiX = 160, //static_cast<uint32_t>(connector.dpiX),
+        .dpiY = 160, //static_cast<uint32_t>(connector.dpiY),
+        .refreshRateHz = connector.mRefreshRateAsInteger,
+    });
+  }
+
+  return HWC3::Error::None;
+}
+
 HWC3::Error DrmPresenter::registerOnHotplugCallback(const HotplugCallback& cb) {
   mHotplugCallback = cb;
   return HWC3::Error::None;
