@@ -25,7 +25,8 @@ public:
     ~VkDecoderSnapshot();
 
     void save(android::base::Stream* stream);
-    void load(android::base::Stream* stream, emugl::GfxApiLogger& gfx_logger);
+    void load(android::base::Stream* stream, emugl::GfxApiLogger& gfx_logger,
+              emugl::HealthMonitor<>& healthMonitor);
 """
 
 decoder_snapshot_decl_postamble = """
@@ -40,6 +41,7 @@ decoder_snapshot_impl_preamble ="""
 
 using namespace goldfish_vk;
 using emugl::GfxApiLogger;
+using emugl::HealthMonitor;
 
 class VkDecoderSnapshot::Impl {
 public:
@@ -49,8 +51,9 @@ public:
         mReconstruction.save(stream);
     }
 
-    void load(android::base::Stream* stream, GfxApiLogger& gfx_logger) {
-        mReconstruction.load(stream, gfx_logger);
+    void load(android::base::Stream* stream, GfxApiLogger& gfx_logger,
+              HealthMonitor<>& healthMonitor) {
+        mReconstruction.load(stream, gfx_logger, healthMonitor);
     }
 
 """
@@ -68,8 +71,9 @@ void VkDecoderSnapshot::save(android::base::Stream* stream) {
     mImpl->save(stream);
 }
 
-void VkDecoderSnapshot::load(android::base::Stream* stream, GfxApiLogger& gfx_logger) {
-    mImpl->load(stream, gfx_logger);
+void VkDecoderSnapshot::load(android::base::Stream* stream, GfxApiLogger& gfx_logger,
+                             HealthMonitor<>& healthMonitor) {
+    mImpl->load(stream, gfx_logger, healthMonitor);
 }
 
 VkDecoderSnapshot::~VkDecoderSnapshot() = default;
