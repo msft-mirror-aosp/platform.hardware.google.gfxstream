@@ -32,7 +32,8 @@ public:
     VkDecoder();
     ~VkDecoder();
     void setForSnapshotLoad(bool forSnapshotLoad);
-    size_t decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr, emugl::GfxApiLogger& gfx_logger);
+    size_t decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr,
+                  emugl::GfxApiLogger& gfx_logger, emugl::HealthMonitor<>& healthMonitor);
 private:
     class Impl;
     std::unique_ptr<Impl> mImpl;
@@ -42,6 +43,8 @@ private:
 decoder_impl_preamble ="""
 using emugl::vkDispatch;
 using emugl::GfxApiLogger;
+using emugl::HealthMonitor;
+using emugl::HealthWatchdog;
 
 using namespace goldfish_vk;
 
@@ -62,7 +65,8 @@ public:
         m_forSnapshotLoad = forSnapshotLoad;
     }
 
-    size_t decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr, GfxApiLogger& gfx_logger);
+    size_t decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr,
+                  GfxApiLogger& gfx_logger, HealthMonitor<>& healthMonitor);
 
 private:
     bool m_logCalls;
@@ -88,8 +92,9 @@ void VkDecoder::setForSnapshotLoad(bool forSnapshotLoad) {
     mImpl->setForSnapshotLoad(forSnapshotLoad);
 }
 
-size_t VkDecoder::decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr, GfxApiLogger& gfx_logger) {
-    return mImpl->decode(buf, bufsize, stream, seqnoPtr, gfx_logger);
+size_t VkDecoder::decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr,
+                         GfxApiLogger& gfx_logger, HealthMonitor<>& healthMonitor) {
+    return mImpl->decode(buf, bufsize, stream, seqnoPtr, gfx_logger, healthMonitor);
 }
 
 // VkDecoder::Impl::decode to follow
@@ -719,7 +724,10 @@ class VulkanDecoder(VulkanWrapperGenerator):
         self.module.appendImpl(decoder_impl_preamble)
 
         self.module.appendImpl(
-            "size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32_t* seqnoPtr, GfxApiLogger& gfx_logger)\n")
+            """
+size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32_t* seqnoPtr,
+                               GfxApiLogger& gfx_logger, HealthMonitor<>& healthMonitor)
+""")
 
         self.cgen.beginBlock() # function body
 
@@ -751,12 +759,33 @@ class VulkanDecoder(VulkanWrapperGenerator):
         if (queueSubmitWithCommandsEnabled && ((opcode >= OP_vkFirst && opcode < OP_vkLast) || (opcode >= OP_vkFirst_old && opcode < OP_vkLast_old))) {
             uint32_t seqno; memcpy(&seqno, *readStreamPtrPtr, sizeof(uint32_t)); *readStreamPtrPtr += sizeof(uint32_t);
             if (seqnoPtr && !m_forSnapshotLoad) {
-                while ((seqno - __atomic_load_n(seqnoPtr, __ATOMIC_SEQ_CST) != 1)) {
-                #if (defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64)))
-                _mm_pause();
-                #elif (defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__)))
-                __asm__ __volatile__("pause;");
-                #endif
+                {
+                    HealthWatchdog watchdog(
+                        healthMonitor,
+                        WATCHDOG_DATA("RenderThread seqno loop - 3 second timeout",
+                                      EventHangMetadata::HangType::kRenderThread, nullptr),
+                        /* Data gathered if this hangs*/
+                        std::function<std::unique_ptr<EventHangMetadata::HangAnnotations>()>([=](){
+                            std::unique_ptr<EventHangMetadata::HangAnnotations> annotations =
+                                std::make_unique<EventHangMetadata::HangAnnotations>();
+                            annotations->insert(
+                                {
+                                    {"seqno", std::to_string(seqno)},
+                                    {"seqnoPtr", std::to_string(__atomic_load_n(seqnoPtr, __ATOMIC_SEQ_CST))},
+                                    {"opcode", std::to_string(opcode)},
+                                    {"buffer_length", std::to_string(len)}
+                                }
+                            );
+                            return std::move(annotations);
+                        }),
+                        3000 /* 3 seconds. Should be plenty*/);
+                    while ((seqno - __atomic_load_n(seqnoPtr, __ATOMIC_SEQ_CST) != 1)) {
+                        #if (defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64)))
+                        _mm_pause();
+                        #elif (defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__)))
+                        __asm__ __volatile__("pause;");
+                        #endif
+                    }
                 }
             }
         }
