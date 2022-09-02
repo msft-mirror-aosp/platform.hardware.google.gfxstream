@@ -65,6 +65,13 @@ class HostFrameComposer : public FrameComposer {
 
   HWC3::Error onActiveConfigChange(Display* display) override;
 
+  const DrmPresenter* getDrmPresenter() const override {
+    if (mDrmPresenter) {
+      return &*mDrmPresenter;
+    }
+    return nullptr;
+  }
+
  private:
   HWC3::Error createHostComposerDisplayInfo(Display* display,
                                             uint32_t hostDisplayId);
