@@ -351,9 +351,10 @@ using DlSymFunc = void* (void*, const char*);
 #include <string.h>
 """
 
-        decoderSnapshotHeaderIncludes = """
+        decoderSnapshotHeaderIncludes = f"""
 #include <memory>
-#include "base/GfxApiLogger.h"
+#include "{self.baseLibDirPrefix}/GfxApiLogger.h"
+#include "{self.baseLibDirPrefix}/HealthMonitor.h"
 #include "common/goldfish_vk_private_defs.h"
 """
         decoderSnapshotImplIncludes = f"""
@@ -364,16 +365,17 @@ using DlSymFunc = void* (void*, const char*);
 #include "{self.baseLibDirPrefix}/Lock.h"
 """
 
-        decoderHeaderIncludes = """
-#include "base/GfxApiLogger.h"
+        decoderHeaderIncludes = f"""
+#include "{self.baseLibDirPrefix}/GfxApiLogger.h"
+#include "{self.baseLibDirPrefix}/HealthMonitor.h"
 
 #include <memory>
 
-namespace android {
-namespace base {
+namespace android {{
+namespace base {{
 class BumpPool;
-} // namespace android
-} // namespace base
+}} // namespace android
+}} // namespace base
 
 """
 
@@ -398,6 +400,7 @@ class BumpPool;
 #include "%s.h"
 
 #include <unordered_map>
+#include <functional>
 """ % VULKAN_STREAM_TYPE
 
         gfxstreamstructuretypePreamble = """
