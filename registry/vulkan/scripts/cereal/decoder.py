@@ -33,7 +33,8 @@ public:
     ~VkDecoder();
     void setForSnapshotLoad(bool forSnapshotLoad);
     size_t decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr,
-                  emugl::GfxApiLogger& gfx_logger, emugl::HealthMonitor<>& healthMonitor);
+                  emugl::GfxApiLogger& gfx_logger, emugl::HealthMonitor<>& healthMonitor,
+                  const char* processName);
 private:
     class Impl;
     std::unique_ptr<Impl> mImpl;
@@ -66,7 +67,8 @@ public:
     }
 
     size_t decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr,
-                  GfxApiLogger& gfx_logger, HealthMonitor<>& healthMonitor);
+                  GfxApiLogger& gfx_logger, HealthMonitor<>& healthMonitor,
+                  const char* processName);
 
 private:
     bool m_logCalls;
@@ -93,8 +95,9 @@ void VkDecoder::setForSnapshotLoad(bool forSnapshotLoad) {
 }
 
 size_t VkDecoder::decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr,
-                         GfxApiLogger& gfx_logger, HealthMonitor<>& healthMonitor) {
-    return mImpl->decode(buf, bufsize, stream, seqnoPtr, gfx_logger, healthMonitor);
+                         GfxApiLogger& gfx_logger, HealthMonitor<>& healthMonitor,
+                         const char* processName) {
+    return mImpl->decode(buf, bufsize, stream, seqnoPtr, gfx_logger, healthMonitor, processName);
 }
 
 // VkDecoder::Impl::decode to follow
@@ -726,7 +729,8 @@ class VulkanDecoder(VulkanWrapperGenerator):
         self.module.appendImpl(
             """
 size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32_t* seqnoPtr,
-                               GfxApiLogger& gfx_logger, HealthMonitor<>& healthMonitor)
+                               GfxApiLogger& gfx_logger, HealthMonitor<>& healthMonitor,
+                               const char* processName)
 """)
 
         self.cgen.beginBlock() # function body
@@ -776,6 +780,10 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32
                                     {"buffer_length", std::to_string(len)}
                                 }
                             );
+                            if (processName) {
+                                annotations->insert(
+                                    {{"renderthread_guest_process", std::string(processName)}});
+                            }
                             return std::move(annotations);
                         }),
                         3000 /* 3 seconds. Should be plenty*/);
