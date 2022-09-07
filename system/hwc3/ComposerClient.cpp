@@ -1237,7 +1237,7 @@ HWC3::Error ComposerClient::createDisplaysLocked() {
 
   std::vector<DisplayMultiConfigs> displays;
 
-  HWC3::Error error = findDisplays(displays);
+  HWC3::Error error = findDisplays(mComposer->getDrmPresenter(), &displays);
   if (error != HWC3::Error::None) {
     ALOGE("%s failed to find display configs", __FUNCTION__);
     return error;
