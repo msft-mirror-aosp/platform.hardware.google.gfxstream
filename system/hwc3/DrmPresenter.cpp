@@ -80,6 +80,18 @@ HWC3::Error DrmPresenter::init() {
       ALOGE("%s: Failed to initialize DRM backend", __FUNCTION__);
       return HWC3::Error::NoResources;
     }
+
+    constexpr const std::size_t kCachedBuffersPerDisplay = 3;
+    std::size_t numDisplays = 0;
+    for (const DrmConnector& connector : mConnectors) {
+      if (connector.connection == DRM_MODE_CONNECTED) {
+        ++numDisplays;
+      }
+    }
+    const std::size_t bufferCacheSize = kCachedBuffersPerDisplay * numDisplays;
+    DEBUG_LOG("%s: initializing DRM buffer cache to size %zu",
+              __FUNCTION__, bufferCacheSize);
+    mBufferCache = std::make_unique<DrmBufferCache>(bufferCacheSize);
   }
 
   mDrmEventListener = ::android::sp<DrmEventListener>::make(*this);
@@ -347,54 +359,59 @@ void DrmPresenter::resetDrmElementsLocked() {
   mPlanes.clear();
 }
 
-std::tuple<HWC3::Error, std::unique_ptr<DrmBuffer>> DrmPresenter::create(
+std::tuple<HWC3::Error, std::shared_ptr<DrmBuffer>> DrmPresenter::create(
     const native_handle_t* handle) {
-  auto buffer = std::unique_ptr<DrmBuffer>(new DrmBuffer(*this));
-
   cros_gralloc_handle* crosHandle = (cros_gralloc_handle*)handle;
   if (crosHandle == nullptr) {
     ALOGE("%s: invalid cros_gralloc_handle", __FUNCTION__);
-    return std::make_tuple(HWC3::Error::NoResources,
-                           std::unique_ptr<DrmBuffer>());
+    return std::make_tuple(HWC3::Error::NoResources, nullptr);
   }
 
+  DrmPrimeBufferHandle primeHandle = 0;
+  int ret = drmPrimeFDToHandle(mFd.get(), crosHandle->fds[0], &primeHandle);
+  if (ret) {
+    ALOGE("%s: drmPrimeFDToHandle failed: %s (errno %d)", __FUNCTION__,
+          strerror(errno), errno);
+    return std::make_tuple(HWC3::Error::NoResources, nullptr);
+  }
+
+  auto drmBufferPtr = mBufferCache->get(primeHandle);
+  if (drmBufferPtr != nullptr) {
+    return std::make_tuple(HWC3::Error::None,
+                           std::shared_ptr<DrmBuffer>(*drmBufferPtr));
+  }
+
+  auto buffer = std::shared_ptr<DrmBuffer>(new DrmBuffer(*this));
   buffer->mWidth = crosHandle->width;
   buffer->mHeight = crosHandle->height;
   buffer->mDrmFormat = crosHandle->format;
   buffer->mPlaneFds[0] = crosHandle->fds[0];
+  buffer->mPlaneHandles[0] = primeHandle;
   buffer->mPlanePitches[0] = crosHandle->strides[0];
   buffer->mPlaneOffsets[0] = crosHandle->offsets[0];
 
-  HWC3::Error error = createDrmFramebuffer(buffer.get());
-  return std::make_tuple(error, std::move(buffer));
-}
-
-HWC3::Error DrmPresenter::createDrmFramebuffer(DrmBuffer* buffer) {
-  int ret;
-
-  ret = drmPrimeFDToHandle(mFd.get(), buffer->mPlaneFds[0],
-                           &buffer->mPlaneHandles[0]);
-  if (ret) {
-    ALOGE("%s: drmPrimeFDToHandle failed: %s (errno %d)", __FUNCTION__,
-          strerror(errno), errno);
-    return HWC3::Error::NoResources;
-  }
-
   uint32_t framebuffer = 0;
-  ret = drmModeAddFB2(mFd.get(), buffer->mWidth, buffer->mHeight,
-                      buffer->mDrmFormat, buffer->mPlaneHandles,
-                      buffer->mPlanePitches, buffer->mPlaneOffsets,
-                      &framebuffer, 0);
+  ret = drmModeAddFB2(mFd.get(),
+                      buffer->mWidth,
+                      buffer->mHeight,
+                      buffer->mDrmFormat,
+                      buffer->mPlaneHandles,
+                      buffer->mPlanePitches,
+                      buffer->mPlaneOffsets,
+                      &framebuffer,
+                      0);
   if (ret) {
     ALOGE("%s: drmModeAddFB2 failed: %s (errno %d)", __FUNCTION__,
           strerror(errno), errno);
-    return HWC3::Error::NoResources;
+    return std::make_tuple(HWC3::Error::NoResources, nullptr);
   }
-
   DEBUG_LOG("%s: created framebuffer:%" PRIu32, __FUNCTION__, framebuffer);
+  buffer->mDrmFramebuffer = framebuffer;
 
-  buffer->mDrmFramebuffer.emplace(framebuffer);
-  return HWC3::Error::None;
+  mBufferCache->set(primeHandle, std::shared_ptr<DrmBuffer>(buffer));
+
+  return std::make_tuple(HWC3::Error::None,
+                         std::shared_ptr<DrmBuffer>(buffer));
 }
 
 HWC3::Error DrmPresenter::destroyDrmFramebuffer(DrmBuffer* buffer) {
@@ -416,6 +433,8 @@ HWC3::Error DrmPresenter::destroyDrmFramebuffer(DrmBuffer* buffer) {
             strerror(errno), errno);
       return HWC3::Error::NoResources;
     }
+
+    mBufferCache->remove(buffer->mPlaneHandles[0]);
   }
 
   return HWC3::Error::None;
