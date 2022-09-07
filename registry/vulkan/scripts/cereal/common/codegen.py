@@ -67,6 +67,12 @@ class SingleFileModule(object):
         self.file.write(self.postamble)
         self.file.close()
 
+    def getMakefileSrcEntry(self):
+        return ""
+
+    def getCMakeSrcEntry(self):
+        return ""
+
 # Class capturing a .cpp file and a .h file (a "C++ module")
 
 
@@ -174,6 +180,11 @@ class Module(object):
             formatFile(Path(self._implFileModule.file.name))
 
 
+class PyScript(SingleFileModule):
+    def __init__(self, directory, basename, customAbsDir=None, suppress=False):
+        super().__init__(".py", directory, basename, customAbsDir, suppress)
+
+
 # Class capturing a .proto protobuf definition file
 class Proto(SingleFileModule):
 
@@ -181,6 +192,7 @@ class Proto(SingleFileModule):
         super().__init__(".proto", directory, basename, customAbsDir, suppress)
 
     def getMakefileSrcEntry(self):
+        super().getMakefileSrcEntry()
         if self.customAbsDir:
             return self.basename + ".proto \\\n"
         dirName = self.directory
@@ -189,6 +201,7 @@ class Proto(SingleFileModule):
         return "    " + joined + ".proto \\\n"
 
     def getCMakeSrcEntry(self):
+        super().getCMakeSrcEntry()
         if self.customAbsDir:
             return "\n" + self.basename + ".proto "
 
