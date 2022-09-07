@@ -45,18 +45,25 @@ fi
 cd $PROJECT_ROOT
 
 AOSP_DIR=$(pwd)/../../
-export VK_CEREAL_GUEST_ENCODER_DIR=$AOSP_DIR/device/generic/goldfish-opengl/system/vulkan_enc
-export VK_CEREAL_GUEST_HAL_DIR=$AOSP_DIR/device/generic/goldfish-opengl/system/vulkan
-export VK_CEREAL_HOST_DECODER_DIR=$AOSP_DIR/device/generic/vulkan-cereal/stream-servers/vulkan
-export VK_CEREAL_HOST_INCLUDE_DIR=$AOSP_DIR/device/generic/vulkan-cereal/stream-servers
+VK_CEREAL_GUEST_DIR=$AOSP_DIR/device/generic/goldfish-opengl
+VK_CEREAL_HOST_DIR=$AOSP_DIR/device/generic/vulkan-cereal
+export VK_CEREAL_GUEST_ENCODER_DIR=$VK_CEREAL_GUEST_DIR/system/vulkan_enc
+export VK_CEREAL_GUEST_HAL_DIR=$VK_CEREAL_GUEST_DIR/system/vulkan
+export VK_CEREAL_HOST_DECODER_DIR=$VK_CEREAL_HOST_DIR/stream-servers/vulkan
+export VK_CEREAL_HOST_INCLUDE_DIR=$VK_CEREAL_HOST_DIR/stream-servers
 export VK_CEREAL_BASELIB_PREFIX=base
 export VK_CEREAL_BASELIB_LINKNAME=gfxstream-base.headers
 export VK_CEREAL_VK_HEADER_TARGET=gfxstream_vulkan_headers
 
 VK_CEREAL_OUTPUT_DIR=$VK_CEREAL_HOST_DECODER_DIR/cereal
-mkdir -p $VK_CEREAL_GUEST_HAL_DIR
-mkdir -p $VK_CEREAL_GUEST_HAL_DIR
-mkdir -p $VK_CEREAL_OUTPUT_DIR
+if [ -d "$VK_CEREAL_GUEST_DIR" ]; then
+    mkdir -p $VK_CEREAL_GUEST_ENCODER_DIR
+    mkdir -p $VK_CEREAL_GUEST_HAL_DIR
+fi
+if [ -d "$VK_CEREAL_HOST_DIR" ]; then
+    mkdir -p $VK_CEREAL_HOST_DECODER_DIR
+    mkdir -p $VK_CEREAL_OUTPUT_DIR
+fi
 
 VULKAN_REGISTRY_DIR=$AOSP_DIR/external/gfxstream-protocols/registry/vulkan
 VULKAN_REGISTRY_XML_DIR=$VULKAN_REGISTRY_DIR/xml
@@ -66,17 +73,18 @@ python3 $VULKAN_REGISTRY_SCRIPTS_DIR/genvk.py -registry $VULKAN_REGISTRY_XML_DIR
 
 # Generate gfxstream specific Vulkan definitions.
 for OUT_DIR in $VK_CEREAL_HOST_DECODER_DIR $VK_CEREAL_GUEST_ENCODER_DIR; do
-    OUT_FILE_BASENAME=vulkan_gfxstream.h
-    mkdir -p $OUT_DIR
-    python3 registry/vulkan/scripts/genvk.py -registry registry/vulkan/xml/vk.xml -o $OUT_DIR \
-        $OUT_FILE_BASENAME
+    if [ -d "$OUT_DIR" ]; then
+        OUT_FILE_BASENAME=vulkan_gfxstream.h
+        python3 registry/vulkan/scripts/genvk.py -registry registry/vulkan/xml/vk.xml -o $OUT_DIR \
+            $OUT_FILE_BASENAME
 
-    if [ $? -ne 0 ]; then
-        echo "Failed to generate gfxstream specific vulkan headers." 1>&2
-        exit 1
-    fi
-    if ! clang-format -i $OUT_DIR/$OUT_FILE_BASENAME; then
-        echo "Failed to reformat gfxstream specific vulkan headers." 1>&2
-        exit 1
+        if [ $? -ne 0 ]; then
+            echo "Failed to generate gfxstream specific vulkan headers." 1>&2
+            exit 1
+        fi
+        if ! clang-format -i $OUT_DIR/$OUT_FILE_BASENAME; then
+            echo "Failed to reformat gfxstream specific vulkan headers." 1>&2
+            exit 1
+        fi
     fi
 done
