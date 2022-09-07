@@ -62,6 +62,10 @@ class GuestFrameComposer : public FrameComposer {
 
   HWC3::Error onActiveConfigChange(Display* /*display*/) override;
 
+  const DrmPresenter* getDrmPresenter() const override {
+    return &mDrmPresenter;
+  }
+
  private:
   struct DisplayConfig {
     int width;
