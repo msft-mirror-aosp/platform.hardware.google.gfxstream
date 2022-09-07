@@ -89,10 +89,6 @@ class ApiLogDecoder(VulkanWrapperGenerator):
         VulkanWrapperGenerator.__init__(self, module, typeInfo)
         self.typeInfo = typeInfo
 
-        # Output file
-        self.out = open(
-            os.path.join(self.repo_root(), "scripts", "print_gfx_logs", "vulkan_printer.py"), "w")
-
         # Set of Vulkan structs that we need to write decoding logic for
         self.structs: Set[str] = set()
 
@@ -103,12 +99,8 @@ class ApiLogDecoder(VulkanWrapperGenerator):
         # Set of Vulkan enums that we need to write decoding logic for
         self.needed_enums: Set[str] = {"VkStructureType"}
 
-    def repo_root(self):
-        """Returns the path to the root of gfxstream's git repo"""
-        return os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
-
     def onBegin(self):
-        self.out.write("""
+        self.module.append("""
 #####################################################################################################
 # Pretty-printer functions for Vulkan data structures
 # THIS FILE IS AUTO-GENERATED - DO NOT EDIT
@@ -132,14 +124,14 @@ class ApiLogDecoder(VulkanWrapperGenerator):
     def process_api(self, api_name):
         """Main entry point to generate decoding logic for each Vulkan API"""
         api = self.typeInfo.apis[api_name]
-        self.out.write('def OP_{}(printer, indent: int):\n'.format(api_name))
+        self.module.append('def OP_{}(printer, indent: int):\n'.format(api_name))
 
         # Decode the sequence number. All commands have sequence numbers, except those handled
         # by VkSubdecoder.cpp. The logic here is a bit of a hack since it's based on the command
         # name. Ideally, we would detect whether a particular command is part of a subdecode block
         # in the decoding script.
         if not api_name.startswith("vkCmd") and api_name != "vkBeginCommandBufferAsyncGOOGLE":
-            self.out.write('    printer.write_int("seqno: ", 4, indent)\n')
+            self.module.append('    printer.write_int("seqno: ", 4, indent)\n')
 
         for param in api.parameters:
             # Add any structs that this API uses to the list of structs to write decoding logic for
@@ -155,7 +147,7 @@ class ApiLogDecoder(VulkanWrapperGenerator):
             self.process_type(param)
 
         # Finally, add a return statement. This is needed in case the API has no parameters.
-        self.out.write('    return\n\n')
+        self.module.append('    return\n\n')
 
     def process_structs(self):
         """Writes decoding logic for all the structs that we use"""
@@ -171,10 +163,10 @@ class ApiLogDecoder(VulkanWrapperGenerator):
         # Write a decoder for each of them
         for struct_name in sorted(self.structs):
             struct = self.typeInfo.structs[struct_name]
-            self.out.write('def struct_{}(printer, indent: int):\n'.format(struct_name))
+            self.module.append('def struct_{}(printer, indent: int):\n'.format(struct_name))
             for member in self.get_members(struct):
                 self.process_type(member)
-            self.out.write('\n')
+            self.module.append('\n')
 
     def expand_needed_structs(self, struct_name: str):
         """
@@ -202,8 +194,9 @@ class ApiLogDecoder(VulkanWrapperGenerator):
         or a struct member.
         """
         if type.typeName == "VkStructureType":
-            self.out.write('    printer.write_stype_and_pnext("{}", indent)\n'
-                           .format(type.parent.structEnumExpr))
+            self.module.append(
+                '    printer.write_stype_and_pnext("{}", indent)\n'.format(
+                    type.parent.structEnumExpr))
             return
 
         if type.isNextPointer():
@@ -216,8 +209,9 @@ class ApiLogDecoder(VulkanWrapperGenerator):
         # Enums
         if type.isEnum(self.typeInfo):
             self.needed_enums.add(type.typeName)
-            self.out.write('    printer.write_enum("{}", {}, indent)\n'.format(
-                type.paramName, type.typeName))
+            self.module.append(
+                '    printer.write_enum("{}", {}, indent)\n'.format(
+                    type.paramName, type.typeName))
             return
 
         # Bitmasks
@@ -225,14 +219,15 @@ class ApiLogDecoder(VulkanWrapperGenerator):
             enum_type = self.typeInfo.bitmasks.get(type.typeName)
             if enum_type:
                 self.needed_enums.add(enum_type)
-                self.out.write('    printer.write_flags("{}", {}, indent)\n'.format(
-                    type.paramName, enum_type))
+                self.module.append(
+                    '    printer.write_flags("{}", {}, indent)\n'.format(
+                        type.paramName, enum_type))
                 return
             # else, fall through and let the primitive type logic handle it
 
         # Structs or unions
         if self.typeInfo.isCompoundType(type.typeName):
-            self.out.write(
+            self.module.append(
                 '    printer.write_struct("{name}", struct_{type}, {optional}, {count}, indent)\n'
                     .format(name=type.paramName,
                             type=type.typeName,
@@ -242,7 +237,8 @@ class ApiLogDecoder(VulkanWrapperGenerator):
 
         # Null-terminated strings
         if type.isString():
-            self.out.write('    printer.write_string("{}", None, indent)\n'.format(type.paramName))
+            self.module.append('    printer.write_string("{}", None, indent)\n'.format(
+                type.paramName))
             return
 
         # Arrays of primitive types
@@ -253,14 +249,15 @@ class ApiLogDecoder(VulkanWrapperGenerator):
             assert array_size is not None, type.staticArrExpr
 
             if type.typeName == "char":
-                self.out.write('    printer.write_string("{}", {}, indent)\n'
-                               .format(type.paramName, array_size))
+                self.module.append(
+                    '    printer.write_string("{}", {}, indent)\n'.format(
+                        type.paramName, array_size))
             elif type.typeName == "float":
-                self.out.write(
+                self.module.append(
                     '    printer.write_float("{}", indent, count={})\n'
                         .format(type.paramName, array_size))
             else:
-                self.out.write(
+                self.module.append(
                     '    printer.write_int("{name}", {int_size}, indent, signed={signed}, count={array_size})\n'
                         .format(name=type.paramName,
                                 array_size=array_size,
@@ -273,7 +270,7 @@ class ApiLogDecoder(VulkanWrapperGenerator):
             # Assume that all uint32* are always serialized directly rather than passed by pointers.
             # This is probably not always true (e.g. out params) - fix this as needed.
             size = 4 if type.primitiveEncodingSize == 4 else 8
-            self.out.write(
+            self.module.append(
                 '    {name} = printer.write_int("{name}", {size}, indent, optional={opt}, count={count}, big_endian={big_endian})\n'
                     .format(name=type.paramName,
                             size=size,
@@ -285,10 +282,10 @@ class ApiLogDecoder(VulkanWrapperGenerator):
         # Primitive types (ints, floats)
         if type.isSimpleValueType(self.typeInfo) and type.primitiveEncodingSize:
             if type.typeName == "float":
-                self.out.write(
+                self.module.append(
                     '    printer.write_float("{name}", indent)\n'.format(name=type.paramName))
             else:
-                self.out.write(
+                self.module.append(
                     '    {name} = printer.write_int("{name}", {size}, indent, signed={signed}, big_endian={big_endian})\n'.format(
                         name=type.paramName,
                         size=type.primitiveEncodingSize,
@@ -332,9 +329,9 @@ class ApiLogDecoder(VulkanWrapperGenerator):
         to the enum name as a string
         """
         for enum_name in sorted(self.needed_enums):
-            self.out.write('{} = {{\n'.format(enum_name))
+            self.module.append('{} = {{\n'.format(enum_name))
             for identifier in self.all_enums[enum_name]:
                 value = self.typeInfo.enumValues.get(identifier)
                 if value is not None and isinstance(value, int):
-                    self.out.write('    {}: "{}",\n'.format(value, identifier))
-            self.out.write('}\n\n')
+                    self.module.append('    {}: "{}",\n'.format(value, identifier))
+            self.module.append('}\n\n')
