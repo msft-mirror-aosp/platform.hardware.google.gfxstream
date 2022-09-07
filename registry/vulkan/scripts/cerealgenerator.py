@@ -440,6 +440,8 @@ class BumpPool;
         self.host_abs_decoder_destination = \
             envGetOrDefault("VK_CEREAL_HOST_DECODER_DIR",
                             default_host_abs_decoder_destination)
+        self.host_script_destination = envGetOrDefault("VK_CEREAL_HOST_SCRIPTS_DIR")
+        assert(self.host_script_destination is not None)
 
         self.addGuestEncoderModule(
             "VkEncoder",
@@ -510,11 +512,8 @@ class BumpPool;
                            useNamespace=False,
                            implOnly=True)
 
-        self.addModule(
-            cereal.PyScript(
-                self.host_tag, "vulkan_printer", customAbsDir=Path(__file__).parent / '..' / '..' /
-                '..' / "scripts" / "print_gfx_logs"),
-            moduleName="ApiLogDecoder")
+        self.addModule(cereal.PyScript(self.host_tag, "vulkan_printer", customAbsDir=Path(
+            self.host_script_destination) / "print_gfx_logs"), moduleName="ApiLogDecoder")
         self.addHostModule(
             "vulkan_gfxstream_structure_type", headerOnly=True, suppressFeatureGuards=True,
             moduleName="vulkan_gfxstream_structure_type_host", useNamespace=False,
