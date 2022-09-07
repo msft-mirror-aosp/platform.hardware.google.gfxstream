@@ -23,46 +23,21 @@ import sys
 import shutil
 import subprocess
 
-# Class capturing a .cpp file and a .h file (a "C++ module")
-class Module(object):
+# Class capturing a single file
 
-    def __init__(self, directory, basename, customAbsDir = None, suppress = False, implOnly = False, headerOnly = False, suppressFeatureGuards = False):
+
+class SingleFileModule(object):
+    def __init__(self, suffix, directory, basename, customAbsDir=None, suppress=False):
         self.directory = directory
         self.basename = basename
-
-        self.headerPreamble = ""
-        self.implPreamble = ""
-
-        self.headerPostamble = ""
-        self.implPostamble = ""
-
-        self.headerFileHandle = ""
-        self.implFileHandle = ""
-
         self.customAbsDir = customAbsDir
+        self.suffix = suffix
+        self.file = None
+
+        self.preamble = ""
+        self.postamble = ""
 
         self.suppress = suppress
-
-        self.implOnly = implOnly
-        self.headerOnly = headerOnly
-
-        self.suppressFeatureGuards = suppressFeatureGuards
-
-    def getMakefileSrcEntry(self):
-        if self.customAbsDir:
-            return self.basename + ".cpp \\\n"
-        dirName = self.directory
-        baseName = self.basename
-        joined = os.path.join(dirName, baseName)
-        return "    " + joined + ".cpp \\\n"
-
-    def getCMakeSrcEntry(self):
-        if self.customAbsDir:
-            return "\n" + self.basename + ".cpp "
-        dirName = Path(self.directory)
-        baseName = Path(self.basename)
-        joined = PurePosixPath(dirName / baseName)
-        return "\n    " + str(joined) + ".cpp "
 
     def begin(self, globalDir):
         if self.suppress:
@@ -76,71 +51,134 @@ class Module(object):
 
         filename = os.path.join(absDir, self.basename)
 
-        fpHeader = None
-        fpImpl = None
+        self.file = open(filename + self.suffix, "w", encoding="utf-8")
+        self.file.write(self.preamble)
 
-        if not self.implOnly:
-            fpHeader = open(filename + ".h", "w", encoding="utf-8")
-
-        if not self.headerOnly:
-            fpImpl = open(filename + ".cpp", "w", encoding="utf-8")
-
-        self.headerFileHandle = fpHeader
-        self.implFileHandle = fpImpl
-
-        if not self.implOnly:
-            self.headerFileHandle.write(self.headerPreamble)
-
-        if not self.headerOnly:
-            self.implFileHandle.write(self.implPreamble)
-
-    def appendHeader(self, toAppend):
+    def append(self, toAppend):
         if self.suppress:
             return
 
-        if not self.implOnly:
-            self.headerFileHandle.write(toAppend)
-
-    def appendImpl(self, toAppend):
-        if self.suppress:
-            return
-
-        if not self.headerOnly:
-            self.implFileHandle.write(toAppend)
+        self.file.write(toAppend)
 
     def end(self):
         if self.suppress:
             return
 
+        self.file.write(self.postamble)
+        self.file.close()
+
+# Class capturing a .cpp file and a .h file (a "C++ module")
+
+
+class Module(object):
+
+    def __init__(
+            self, directory, basename, customAbsDir=None, suppress=False, implOnly=False,
+            headerOnly=False, suppressFeatureGuards=False):
+        self._headerFileModule = SingleFileModule(
+            ".h", directory, basename, customAbsDir, suppress or implOnly)
+        self._implFileModule = SingleFileModule(
+            ".cpp", directory, basename, customAbsDir, suppress or headerOnly)
+
+        self._headerOnly = headerOnly
+        self._implOnly = implOnly
+
+        self.directory = directory
+        self.basename = basename
+        self._customAbsDir = customAbsDir
+
+        self.suppressFeatureGuards = suppressFeatureGuards
+
+    @property
+    def suppress(self):
+        raise AttributeError("suppress is write only")
+
+    @suppress.setter
+    def suppress(self, value: bool):
+        self._headerFileModule.suppress = self._implOnly or value
+        self._implFileModule.suppress = self._headerOnly or value
+
+    @property
+    def headerPreamble(self) -> str:
+        return self._headerFileModule.preamble
+
+    @headerPreamble.setter
+    def headerPreamble(self, value: str):
+        self._headerFileModule.preamble = value
+
+    @property
+    def headerPostamble(self) -> str:
+        return self._headerFileModule.postamble
+
+    @headerPostamble.setter
+    def headerPostamble(self, value: str):
+        self._headerFileModule.postamble = value
+
+    @property
+    def implPreamble(self) -> str:
+        return self._implFileModule.preamble
+
+    @implPreamble.setter
+    def implPreamble(self, value: str):
+        self._implFileModule.preamble = value
+
+    @property
+    def implPostamble(self) -> str:
+        return self._implFileModule.postamble
+
+    @implPostamble.setter
+    def implPostamble(self, value: str):
+        self._implFileModule.postamble = value
+
+    def getMakefileSrcEntry(self):
+        if self._customAbsDir:
+            return self.basename + ".cpp \\\n"
+        dirName = self.directory
+        baseName = self.basename
+        joined = os.path.join(dirName, baseName)
+        return "    " + joined + ".cpp \\\n"
+
+    def getCMakeSrcEntry(self):
+        if self._customAbsDir:
+            return "\n" + self.basename + ".cpp "
+        dirName = Path(self.directory)
+        baseName = Path(self.basename)
+        joined = PurePosixPath(dirName / baseName)
+        return "\n    " + str(joined) + ".cpp "
+
+    def begin(self, globalDir):
+        self._headerFileModule.begin(globalDir)
+        self._implFileModule.begin(globalDir)
+
+    def appendHeader(self, toAppend):
+        self._headerFileModule.append(toAppend)
+
+    def appendImpl(self, toAppend):
+        self._implFileModule.append(toAppend)
+
+    def end(self):
+        self._headerFileModule.end()
+        self._implFileModule.end()
+
         clang_format_command = shutil.which('clang-format')
         assert (clang_format_command is not None)
 
-        def formatFile(filename: str):
-            assert (subprocess.call([clang_format_command, "-i", "--style=file", filename]) == 0)
+        def formatFile(filename: Path):
+            assert (subprocess.call([clang_format_command, "-i",
+                    "--style=file", str(filename.resolve())]) == 0)
 
-        if not self.implOnly:
-            self.headerFileHandle.write(self.headerPostamble)
-            self.headerFileHandle.close()
-            formatFile(self.headerFileHandle.name)
+        if not self._headerFileModule.suppress:
+            formatFile(Path(self._headerFileModule.file.name))
 
-        if not self.headerOnly:
-            self.implFileHandle.write(self.implPostamble)
-            self.implFileHandle.close()
-            formatFile(self.implFileHandle.name)
+        if not self._implFileModule.suppress:
+            formatFile(Path(self._implFileModule.file.name))
 
 
 # Class capturing a .proto protobuf definition file
-class Proto(object):
+class Proto(SingleFileModule):
 
-    def __init__(self, directory, basename, customAbsDir = None, suppress = False):
-        self.directory = directory
-        self.basename = basename
-        self.customAbsDir = customAbsDir
-
-        self.preamble = ""
-        self.postamble = ""
-
-        self.suppress = suppress
+    def __init__(self, directory, basename, customAbsDir=None, suppress=False):
+        super().__init__(".proto", directory, basename, customAbsDir, suppress)
 
     def getMakefileSrcEntry(self):
         if self.customAbsDir:
@@ -158,35 +196,6 @@ class Proto(object):
         baseName = self.basename
         joined = os.path.join(dirName, baseName)
         return "\n    " + joined + ".proto "
-
-    def begin(self, globalDir):
-        if self.suppress:
-            return
-
-        # Create subdirectory, if needed
-        if self.customAbsDir:
-            absDir = self.customAbsDir
-        else:
-            absDir = os.path.join(globalDir, self.directory)
-
-        filename = os.path.join(absDir, self.basename)
-
-        fpProto = open(filename + ".proto", "w", encoding="utf-8")
-        self.protoFileHandle = fpProto
-        self.protoFileHandle.write(self.preamble)
-
-    def append(self, toAppend):
-        if self.suppress:
-            return
-
-        self.protoFileHandle.write(toAppend)
-
-    def end(self):
-        if self.suppress:
-            return
-
-        self.protoFileHandle.write(self.postamble)
-        self.protoFileHandle.close()
 
 class CodeGen(object):
 
