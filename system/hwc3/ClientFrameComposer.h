@@ -70,7 +70,7 @@ class ClientFrameComposer : public FrameComposer {
 
  private:
   struct DisplayInfo {
-    std::unique_ptr<DrmBuffer> clientTargetDrmBuffer;;
+    std::shared_ptr<DrmBuffer> clientTargetDrmBuffer;
   };
 
   std::unordered_map<int64_t, DisplayInfo> mDisplayInfos;
