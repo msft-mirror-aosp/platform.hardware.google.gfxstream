@@ -92,10 +92,10 @@ class HostFrameComposer : public FrameComposer {
     const native_handle_t* compositionResultBuffer = nullptr;
 
     // Drm info for the additional composition result buffer.
-    std::unique_ptr<DrmBuffer> compositionResultDrmBuffer;
+    std::shared_ptr<DrmBuffer> compositionResultDrmBuffer;
 
     // Drm info for the displays client target buffer.
-    std::unique_ptr<DrmBuffer> clientTargetDrmBuffer;
+    std::shared_ptr<DrmBuffer> clientTargetDrmBuffer;
   };
 
   std::unordered_map<int64_t, HostComposerDisplayInfo> mDisplayInfos;
