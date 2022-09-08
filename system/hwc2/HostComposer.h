@@ -19,6 +19,7 @@
 
 #include <android-base/unique_fd.h>
 
+#include <memory>
 #include <tuple>
 #include <vector>
 
@@ -92,7 +93,7 @@ class HostComposer : public Composer {
 
     std::unique_ptr<FencedBuffer> mFencedBuffer;
     // Drm info for the additional composition result buffer.
-    std::unique_ptr<DrmBuffer> mDrmBuffer;
+    std::shared_ptr<DrmBuffer> mDrmBuffer;
   };
   class HostComposerDisplayInfo {
    public:
@@ -103,7 +104,7 @@ class HostComposer : public Composer {
 
     uint32_t hostDisplayId = 0;
     // Drm info for the displays client target buffer.
-    std::unique_ptr<DrmBuffer> clientTargetDrmBuffer;
+    std::shared_ptr<DrmBuffer> clientTargetDrmBuffer;
 
    private:
     // Additional per display buffer for the composition result.

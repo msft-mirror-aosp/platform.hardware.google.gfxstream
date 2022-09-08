@@ -26,6 +26,11 @@ using android::base::guest::ReadWriteLock;
 
 namespace android {
 
+DrmBuffer::DrmBuffer(DrmPresenter& DrmPresenter)
+    : mDrmPresenter(DrmPresenter) {}
+
+DrmBuffer::~DrmBuffer() { mDrmPresenter.destroyDrmFramebuffer(this); }
+
 bool DrmPresenter::init(const HotplugCallback& cb) {
   DEBUG_LOG("%s", __FUNCTION__);
 
@@ -59,6 +64,18 @@ bool DrmPresenter::init(const HotplugCallback& cb) {
       ALOGE("%s: Failed to initialize DRM backend", __FUNCTION__);
       return false;
     }
+
+    constexpr const std::size_t kCachedBuffersPerDisplay = 3;
+    std::size_t numDisplays = 0;
+    for (const DrmConnector& connector : mConnectors) {
+      if (connector.connection == DRM_MODE_CONNECTED) {
+        ++numDisplays;
+      }
+    }
+    const std::size_t bufferCacheSize = kCachedBuffersPerDisplay * numDisplays;
+    DEBUG_LOG("%s: initializing DRM buffer cache to size %zu",
+              __FUNCTION__, bufferCacheSize);
+    mBufferCache = std::make_unique<DrmBufferCache>(bufferCacheSize);
   }
 
   mDrmEventListener = sp<DrmEventListener>::make(*this);
@@ -316,45 +333,6 @@ HWC2::Error DrmPresenter::getDisplayConfigs(std::vector<DisplayConfig>* configs)
   return HWC2::Error::None;
 }
 
-int DrmPresenter::getDrmFB(hwc_drm_bo_t& bo) {
-  int ret = drmPrimeFDToHandle(mFd.get(), bo.prime_fds[0], &bo.gem_handles[0]);
-  if (ret) {
-    ALOGE("%s: drmPrimeFDToHandle failed: %s (errno %d)", __FUNCTION__,
-          strerror(errno), errno);
-    return -1;
-  }
-  ret = drmModeAddFB2(mFd.get(), bo.width, bo.height, bo.format, bo.gem_handles,
-                      bo.pitches, bo.offsets, &bo.fb_id, 0);
-  if (ret) {
-    ALOGE("%s: drmModeAddFB2 failed: %s (errno %d)", __FUNCTION__,
-          strerror(errno), errno);
-    return -1;
-  }
-  return 0;
-}
-
-int DrmPresenter::clearDrmFB(hwc_drm_bo_t& bo) {
-  int ret = 0;
-  if (bo.fb_id) {
-    if (drmModeRmFB(mFd.get(), bo.fb_id)) {
-      ALOGE("%s: drmModeRmFB failed: %s (errno %d)", __FUNCTION__,
-            strerror(errno), errno);
-    }
-    ret = -1;
-  }
-  if (bo.gem_handles[0]) {
-    struct drm_gem_close gem_close = {};
-    gem_close.handle = bo.gem_handles[0];
-    if (drmIoctl(mFd.get(), DRM_IOCTL_GEM_CLOSE, &gem_close)) {
-      ALOGE("%s: DRM_IOCTL_GEM_CLOSE failed: %s (errno %d)", __FUNCTION__,
-            strerror(errno), errno);
-    }
-    ret = -1;
-  }
-  ALOGV("%s: drm FB %d", __FUNCTION__, bo.fb_id);
-  return ret;
-}
-
 bool DrmPresenter::handleHotplug() {
   std::vector<DrmConnector> oldConnectors(mConnectors);
   {
@@ -403,9 +381,96 @@ bool DrmPresenter::handleHotplug() {
   return true;
 }
 
+std::tuple<HWC2::Error, std::shared_ptr<DrmBuffer>> DrmPresenter::create(
+    const native_handle_t* handle) {
+  cros_gralloc_handle* crosHandle = (cros_gralloc_handle*)handle;
+  if (crosHandle == nullptr) {
+    ALOGE("%s: invalid cros_gralloc_handle", __FUNCTION__);
+    return std::make_tuple(HWC2::Error::NoResources, nullptr);
+  }
+
+  DrmPrimeBufferHandle primeHandle = 0;
+  int ret = drmPrimeFDToHandle(mFd.get(), crosHandle->fds[0], &primeHandle);
+  if (ret) {
+    ALOGE("%s: drmPrimeFDToHandle failed: %s (errno %d)", __FUNCTION__,
+          strerror(errno), errno);
+    return std::make_tuple(HWC2::Error::NoResources, nullptr);
+  }
+
+  auto drmBufferPtr = mBufferCache->get(primeHandle);
+  if (drmBufferPtr != nullptr) {
+    return std::make_tuple(HWC2::Error::None,
+                           std::shared_ptr<DrmBuffer>(*drmBufferPtr));
+  }
+
+  auto buffer = std::shared_ptr<DrmBuffer>(new DrmBuffer(*this));
+  buffer->mWidth = crosHandle->width;
+  buffer->mHeight = crosHandle->height;
+  buffer->mDrmFormat = crosHandle->format;
+  buffer->mPlaneFds[0] = crosHandle->fds[0];
+  buffer->mPlaneHandles[0] = primeHandle;
+  buffer->mPlanePitches[0] = crosHandle->strides[0];
+  buffer->mPlaneOffsets[0] = crosHandle->offsets[0];
+
+  uint32_t framebuffer = 0;
+  ret = drmModeAddFB2(mFd.get(),
+                      buffer->mWidth,
+                      buffer->mHeight,
+                      buffer->mDrmFormat,
+                      buffer->mPlaneHandles,
+                      buffer->mPlanePitches,
+                      buffer->mPlaneOffsets,
+                      &framebuffer,
+                      0);
+  if (ret) {
+    ALOGE("%s: drmModeAddFB2 failed: %s (errno %d)", __FUNCTION__,
+          strerror(errno), errno);
+    return std::make_tuple(HWC2::Error::NoResources, nullptr);
+  }
+  DEBUG_LOG("%s: created framebuffer:%" PRIu32, __FUNCTION__, framebuffer);
+  buffer->mDrmFramebuffer = framebuffer;
+
+  mBufferCache->set(primeHandle, std::shared_ptr<DrmBuffer>(buffer));
+
+  return std::make_tuple(HWC2::Error::None,
+                         std::shared_ptr<DrmBuffer>(buffer));
+}
+
+HWC2::Error DrmPresenter::destroyDrmFramebuffer(DrmBuffer* buffer) {
+  if (buffer->mDrmFramebuffer) {
+    uint32_t framebuffer = *buffer->mDrmFramebuffer;
+    if (drmModeRmFB(mFd.get(), framebuffer)) {
+      ALOGE("%s: drmModeRmFB failed: %s (errno %d)", __FUNCTION__,
+            strerror(errno), errno);
+      return HWC2::Error::NoResources;
+    }
+    DEBUG_LOG("%s: destroyed framebuffer:%" PRIu32, __FUNCTION__, framebuffer);
+    buffer->mDrmFramebuffer.reset();
+  }
+  if (buffer->mPlaneHandles[0]) {
+    struct drm_gem_close gem_close = {};
+    gem_close.handle = buffer->mPlaneHandles[0];
+    if (drmIoctl(mFd.get(), DRM_IOCTL_GEM_CLOSE, &gem_close)) {
+      ALOGE("%s: DRM_IOCTL_GEM_CLOSE failed: %s (errno %d)", __FUNCTION__,
+            strerror(errno), errno);
+      return HWC2::Error::NoResources;
+    }
+
+    mBufferCache->remove(buffer->mPlaneHandles[0]);
+  }
+
+  return HWC2::Error::None;
+}
+
 std::tuple<HWC2::Error, base::unique_fd> DrmPresenter::flushToDisplay(
-    int display, hwc_drm_bo_t& bo, base::borrowed_fd inSyncFd) {
+    int display, const DrmBuffer& buffer, base::borrowed_fd inSyncFd) {
   ATRACE_CALL();
+
+  if (!buffer.mDrmFramebuffer) {
+    ALOGE("%s: failed, no framebuffer created.", __FUNCTION__);
+    return std::make_tuple(HWC2::Error::NoResources,
+                           ::android::base::unique_fd());
+  }
 
   AutoReadLock lock(mStateMutex);
 
@@ -460,7 +525,8 @@ std::tuple<HWC2::Error, base::unique_fd> DrmPresenter::flushToDisplay(
   DrmPlane& plane = mPlanes[crtc.mPlaneId];
 
   DEBUG_LOG("%s: set plane: plane id %d crtc id %d fbid %d bo w h %d %d\n",
-            __FUNCTION__, plane.mId, crtc.mId, bo.fb_id, bo.width, bo.height);
+            __FUNCTION__, plane.mId, crtc.mId, *buffer.mDrmFramebuffer,
+            buffer.mWidth, buffer.mHeight);
 
   ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mCrtcPropertyId,
                                  crtc.mId);
@@ -473,8 +539,8 @@ std::tuple<HWC2::Error, base::unique_fd> DrmPresenter::flushToDisplay(
     ALOGE("%s:%d: set IN_FENCE_FD failed %d errno %d\n", __FUNCTION__, __LINE__,
           ret, errno);
   }
-  ret =
-      drmModeAtomicAddProperty(pset, plane.mId, plane.mFbPropertyId, bo.fb_id);
+  ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mFbPropertyId,
+                                 *buffer.mDrmFramebuffer);
   if (ret < 0) {
     ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
   }
@@ -487,12 +553,12 @@ std::tuple<HWC2::Error, base::unique_fd> DrmPresenter::flushToDisplay(
     ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
   }
   ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mCrtcWPropertyId,
-                                 bo.width);
+                                 buffer.mWidth);
   if (ret < 0) {
     ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
   }
   ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mCrtcHPropertyId,
-                                 bo.height);
+                                 buffer.mHeight);
   if (ret < 0) {
     ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
   }
@@ -505,12 +571,12 @@ std::tuple<HWC2::Error, base::unique_fd> DrmPresenter::flushToDisplay(
     ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
   }
   ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mSrcWPropertyId,
-                                 bo.width << 16);
+                                 buffer.mWidth << 16);
   if (ret < 0) {
     ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
   }
   ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mSrcHPropertyId,
-                                 bo.height << 16);
+                                 buffer.mHeight << 16);
   if (ret < 0) {
     ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
   }
@@ -553,36 +619,6 @@ std::optional<std::vector<uint8_t>> DrmPresenter::getEdid(uint32_t id) {
   drmModeFreePropertyBlob(blob);
 
   return edid;
-}
-
-DrmBuffer::DrmBuffer(const native_handle_t* handle, DrmPresenter* drmPresenter)
-    : mDrmPresenter(drmPresenter), mBo({}) {
-  if (!convertBoInfo(handle)) {
-    mDrmPresenter->getDrmFB(mBo);
-  }
-}
-
-DrmBuffer::~DrmBuffer() { mDrmPresenter->clearDrmFB(mBo); }
-
-int DrmBuffer::convertBoInfo(const native_handle_t* handle) {
-  cros_gralloc_handle* gr_handle = (cros_gralloc_handle*)handle;
-  if (!gr_handle) {
-    ALOGE("%s: Null buffer handle", __FUNCTION__);
-    return -1;
-  }
-  mBo.width = gr_handle->width;
-  mBo.height = gr_handle->height;
-  mBo.hal_format = gr_handle->droid_format;
-  mBo.format = gr_handle->format;
-  mBo.usage = gr_handle->usage;
-  mBo.prime_fds[0] = gr_handle->fds[0];
-  mBo.pitches[0] = gr_handle->strides[0];
-  return 0;
-}
-
-std::tuple<HWC2::Error, base::unique_fd> DrmBuffer::flushToDisplay(
-    int display, base::borrowed_fd inWaitSyncFd) {
-  return mDrmPresenter->flushToDisplay(display, mBo, inWaitSyncFd);
 }
 
 DrmPresenter::DrmEventListener::DrmEventListener(DrmPresenter& presenter)
