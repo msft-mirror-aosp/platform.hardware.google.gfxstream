@@ -126,6 +126,11 @@ std::tuple<HWC2::Error, base::unique_fd> ClientComposer::presentDisplay(
   }
 
   DisplayInfo& displayInfo = displayInfoIt->second;
+  if (!displayInfo.clientTargetDrmBuffer) {
+    ALOGW("%s: display:%" PRIu64 " no client target set, nothing to present.",
+          __FUNCTION__, displayId);
+    return std::make_tuple(HWC2::Error::None, base::unique_fd());
+  }
 
   auto clientTargetFence = display->getClientTarget().getFence();
 
