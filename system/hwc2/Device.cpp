@@ -76,10 +76,10 @@ HWC2::Error Device::init() {
   DEBUG_LOG("%s", __FUNCTION__);
   bool isMinigbm = isMinigbmFromProperty();
 
-  if (IsNoOpMode()) {
+  if (IsInNoOpCompositionMode()) {
     DEBUG_LOG("%s: using NoOpComposer", __FUNCTION__);
     mComposer = std::make_unique<NoOpComposer>();
-  } else if (IsClientCompositionMode()) {
+  } else if (IsInClientCompositionMode()) {
     DEBUG_LOG("%s: using ClientComposer", __FUNCTION__);
     mComposer = std::make_unique<ClientComposer>(mDrmPresenter.get());
   } else if (ShouldUseGuestComposer()) {
@@ -90,7 +90,7 @@ HWC2::Error Device::init() {
     mComposer = std::make_unique<HostComposer>(mDrmPresenter.get(), isMinigbm);
   }
 
-  if (!IsNoOpMode() && (ShouldUseGuestComposer() || isMinigbm)) {
+  if (!IsInNoOpCompositionMode() && (ShouldUseGuestComposer() || isMinigbm)) {
     bool success = mDrmPresenter->init(
         [this](bool connected, uint32_t id, uint32_t width, uint32_t height,
                uint32_t dpiX, uint32_t dpiY, uint32_t refreshRate) {
@@ -136,7 +136,7 @@ HWC2::Error Device::createDisplays() {
 
   std::vector<DisplayMultiConfigs> displays;
 
-  HWC2::Error error = findDisplays(mDrmPresenter.get(), displays);
+  HWC2::Error error = findDisplays(mDrmPresenter.get(), &displays);
   if (error != HWC2::Error::None) {
     ALOGE("%s failed to find display configs", __FUNCTION__);
     return error;

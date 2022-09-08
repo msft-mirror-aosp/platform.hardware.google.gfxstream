@@ -291,6 +291,31 @@ void DrmPresenter::resetDrmElementsLocked() {
   mPlanes.clear();
 }
 
+HWC2::Error DrmPresenter::getDisplayConfigs(std::vector<DisplayConfig>* configs) const {
+  AutoReadLock lock(mStateMutex);
+
+  configs->clear();
+
+  for (uint32_t i = 0; i < mConnectors.size(); i++) {
+    const auto& connector = mConnectors[i];
+
+    if (connector.connection != DRM_MODE_CONNECTED) {
+      continue;
+    }
+
+    configs->emplace_back(DisplayConfig{
+        .id = i,
+        .width = connector.mMode.hdisplay,
+        .height = connector.mMode.vdisplay,
+        .dpiX = 160, //static_cast<uint32_t>(connector.dpiX),
+        .dpiY = 160, //static_cast<uint32_t>(connector.dpiY),
+        .refreshRateHz = connector.mRefreshRateAsInteger,
+    });
+  }
+
+  return HWC2::Error::None;
+}
+
 int DrmPresenter::getDrmFB(hwc_drm_bo_t& bo) {
   int ret = drmPrimeFDToHandle(mFd.get(), bo.prime_fds[0], &bo.gem_handles[0]);
   if (ret) {
