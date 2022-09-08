@@ -5830,7 +5830,7 @@ public:
                     }
 #endif
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
-                    if (semInfo.syncFd >= 0) {
+                    if (semInfo.syncFd != 0) {
                         pre_signal_sync_fds.push_back(semInfo.syncFd);
                         pre_signal_semaphores.push_back(pSubmits[i].pWaitSemaphores[j]);
                     }
@@ -5895,9 +5895,13 @@ public:
 #endif
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
             for (auto fd : pre_signal_sync_fds) {
-                preSignalTasks.push_back([fd] {
-                    sync_wait(fd, 3000);
-                });
+                // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkImportSemaphoreFdInfoKHR.html
+                // fd == -1 is treated as already signaled
+                if (fd != -1) {
+                    preSignalTasks.push_back([fd] {
+                        sync_wait(fd, 3000);
+                    });
+                }
             }
 #endif
             auto waitGroupHandle = mWorkPool.schedule(preSignalTasks);
