@@ -76,6 +76,17 @@ class DrmPresenter {
 
   bool init(const HotplugCallback& cb);
 
+  struct DisplayConfig {
+    uint32_t id;
+    uint32_t width;
+    uint32_t height;
+    uint32_t dpiX;
+    uint32_t dpiY;
+    uint32_t refreshRateHz;
+  };
+
+  HWC2::Error getDisplayConfigs(std::vector<DisplayConfig>* configs) const;
+
   uint32_t refreshRate(uint32_t display) const {
     if (display < mConnectors.size()) {
       return mConnectors[display].mRefreshRateAsInteger;
@@ -107,7 +118,7 @@ class DrmPresenter {
   HotplugCallback mHotplugCallback;
 
   // Protects access to the below drm structs.
-  android::base::guest::ReadWriteLock mStateMutex;
+  mutable android::base::guest::ReadWriteLock mStateMutex;
 
   struct DrmPlane {
     uint32_t mId = -1;
