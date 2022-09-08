@@ -2735,6 +2735,39 @@ int rcGetFBDisplayActiveConfig_enc(void *self )
 	return retval;
 }
 
+void rcSetProcessMetadata_enc(void *self , char* key, RenderControlByte* valuePtr, uint32_t valueSize)
+{
+	ENCODER_DEBUG_LOG("rcSetProcessMetadata(key:%s, valuePtr:%p, valueSize:0x%08x)", key, valuePtr, valueSize);
+	AEMU_SCOPED_TRACE("rcSetProcessMetadata encode");
+
+	renderControl_encoder_context_t *ctx = (renderControl_encoder_context_t *)self;
+	IOStream *stream = ctx->m_stream;
+	ChecksumCalculator *checksumCalculator = ctx->m_checksumCalculator;
+	bool useChecksum = checksumCalculator->getVersion() > 0;
+
+	const unsigned int __size_key =  (strlen(key) + 1);
+	const unsigned int __size_valuePtr =  valueSize;
+	 unsigned char *ptr;
+	 unsigned char *buf;
+	 const size_t sizeWithoutChecksum = 8 + __size_key + __size_valuePtr + 4 + 2*4;
+	 const size_t checksumSize = checksumCalculator->checksumByteSize();
+	 const size_t totalSize = sizeWithoutChecksum + checksumSize;
+	buf = stream->alloc(totalSize);
+	ptr = buf;
+	int tmp = OP_rcSetProcessMetadata;memcpy(ptr, &tmp, 4); ptr += 4;
+	memcpy(ptr, &totalSize, 4);  ptr += 4;
+
+	memcpy(ptr, &__size_key, 4); ptr += 4;
+	memcpy(ptr, key, __size_key);ptr += __size_key;
+	memcpy(ptr, &__size_valuePtr, 4); ptr += 4;
+	memcpy(ptr, valuePtr, __size_valuePtr);ptr += __size_valuePtr;
+		memcpy(ptr, &valueSize, 4); ptr += 4;
+
+	if (useChecksum) checksumCalculator->addBuffer(buf, ptr-buf);
+	if (useChecksum) checksumCalculator->writeChecksum(ptr, checksumSize); ptr += checksumSize;
+
+}
+
 }  // namespace
 
 renderControl_encoder_context_t::renderControl_encoder_context_t(IOStream *stream, ChecksumCalculator *checksumCalculator)
@@ -2810,5 +2843,6 @@ renderControl_encoder_context_t::renderControl_encoder_context_t(IOStream *strea
 	this->rcGetFBDisplayConfigsCount = &rcGetFBDisplayConfigsCount_enc;
 	this->rcGetFBDisplayConfigsParam = &rcGetFBDisplayConfigsParam_enc;
 	this->rcGetFBDisplayActiveConfig = &rcGetFBDisplayActiveConfig_enc;
+	this->rcSetProcessMetadata = &rcSetProcessMetadata_enc;
 }
 
