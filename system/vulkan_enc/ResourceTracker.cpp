@@ -5904,8 +5904,10 @@ public:
                 }
             }
 #endif
-            auto waitGroupHandle = mWorkPool.schedule(preSignalTasks);
-            mWorkPool.waitAll(waitGroupHandle);
+            if (!preSignalTasks.empty()) {
+                auto waitGroupHandle = mWorkPool.schedule(preSignalTasks);
+                mWorkPool.waitAll(waitGroupHandle);
+            }
 
             VkSubmitInfo submit_info = {
                 .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
