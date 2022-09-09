@@ -19,11 +19,11 @@
 
 #include <chrono>
 
+#include "ColorBuffer.h"
 #include "Debug.h"
 #include "FrameBuffer.h"
 #include "RenderThreadInfo.h"
 #include "aemu/base/Tracing.h"
-#include "gl/ColorBufferGl.h"
 #include "gl/DisplayGl.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/logging.h"
@@ -302,8 +302,7 @@ void PostWorker::screenshot(ColorBuffer* cb, int width, int height, GLenum forma
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) <<
                             "Screenshot not supported with native Vulkan swapchain enabled.";
     }
-    cb->readPixelsScaled(
-        width, height, format, type, rotation, pixels, rect);
+    cb->readToBytesScaled(width, height, format, type, rotation, rect, pixels);
 }
 
 void PostWorker::block(std::promise<void> scheduledSignal, std::future<void> continueSignal) {

@@ -511,8 +511,6 @@ VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice dev
         // If we used the Vulkan image without copying it back
         // to the CPU, reset the layout to PRESENT.
         if (anbInfo->useVulkanNativeImage) {
-            fb->setColorBufferInUse(anbInfo->colorBufferHandle, true);
-
             VkCommandBufferBeginInfo beginInfo = {
                 VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
                 0,
@@ -761,7 +759,6 @@ VkResult syncImageToColorBuffer(VulkanDispatch* vk, uint32_t queueFamilyIndex, V
 
     if (anbInfo->useVulkanNativeImage) {
         VK_ANB_DEBUG_OBJ(anbInfoPtr, "using native image, so use sync thread to wait");
-        fb->setColorBufferInUse(anbInfo->colorBufferHandle, false);
         // Queue wait to sync thread with completion callback
         // Pass anbInfo by value to get a ref
         SyncThread::get()->triggerGeneral(

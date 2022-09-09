@@ -46,14 +46,11 @@ std::shared_future<void> DisplayGl::post(const Post& post) {
 
     for (const PostLayer& layer : post.layers) {
         if (layer.layerOptions) {
-            layer.colorBuffer->postLayer(*layer.layerOptions,
-                                         post.frameWidth,
-                                         post.frameHeight);
+            layer.colorBuffer->glOpPostLayer(*layer.layerOptions, post.frameWidth,
+                                             post.frameHeight);
         } else if (layer.overlayOptions) {
-            layer.colorBuffer->postWithOverlay(layer.colorBuffer->getViewportScaledTexture(),
-                                               layer.overlayOptions->rotation,
-                                               layer.overlayOptions->dx,
-                                               layer.overlayOptions->dy);
+            layer.colorBuffer->glOpPostViewportScaledWithOverlay(
+                layer.overlayOptions->rotation, layer.overlayOptions->dx, layer.overlayOptions->dy);
         }
     }
 
