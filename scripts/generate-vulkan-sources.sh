@@ -72,6 +72,25 @@ VULKAN_REGISTRY_SCRIPTS_DIR=$VULKAN_REGISTRY_DIR/scripts
 
 python3 $VULKAN_REGISTRY_SCRIPTS_DIR/genvk.py -registry $VULKAN_REGISTRY_XML_DIR/vk.xml cereal -o $VK_CEREAL_OUTPUT_DIR
 
+
+# Generate VK_ANDROID_native_buffer specific Vulkan definitions.
+if [ -d $VK_CEREAL_HOST_DECODER_DIR ]; then
+    OUT_DIR=$VK_CEREAL_HOST_DECODER_DIR
+    OUT_FILE_BASENAME="vk_android_native_buffer.h"
+
+    python3 registry/vulkan/scripts/genvk.py -registry registry/vulkan/xml/vk.xml -o $OUT_DIR \
+        $OUT_FILE_BASENAME
+
+    if [ $? -ne 0 ]; then
+        echo "Failed to generate vk_android_native_buffer.h" 1>&2
+        exit 1
+    fi
+    if ! clang-format -i $OUT_DIR/$OUT_FILE_BASENAME; then
+        echo "Failed to reformat vk_android_native_buffer.h" 1>&2
+        exit 1
+    fi
+fi
+
 # Generate gfxstream specific Vulkan definitions.
 for OUT_DIR in $VK_CEREAL_HOST_DECODER_DIR $VK_CEREAL_GUEST_ENCODER_DIR; do
     if [ -d "$OUT_DIR" ]; then
