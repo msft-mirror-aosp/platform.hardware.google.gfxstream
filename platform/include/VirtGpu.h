@@ -30,7 +30,7 @@ enum VirtGpuParamId {
     kParamMax
 };
 
-enum VirtGpuExecBufferFlags {
+enum VirtGpuExecBufferFlags : uint32_t {
     kFenceIn = 0x0001,
     kFenceOut = 0x0002,
     kRingIdx = 0x0004,
@@ -58,7 +58,7 @@ enum VirtGpuHandleType {
     kFenceHandleZircon = 0x0080,
 };
 
-enum VirtGpuBlobFlags {
+enum VirtGpuBlobFlags : uint32_t {
     kBlobFlagMappable = 0x0001,
     kBlobFlagShareable = 0x0002,
     kBlobFlagCrossDevice = 0x0004
@@ -158,5 +158,18 @@ class VirtGpuDevice {
     int64_t mDeviceHandle;
     struct VirtGpuParam mParams[kParamMax];
 };
+
+// HACK: We can use android::base::EnumFlags, but we'll have to do more guest
+// refactorings to figure out our end goal.  We can either depend more on base or
+// try to transition to something else (b:202552093) [atleast for guests].
+constexpr enum VirtGpuBlobFlags operator |(const enum VirtGpuBlobFlags self,
+                                           const enum VirtGpuBlobFlags other) {
+    return (enum VirtGpuBlobFlags)(uint32_t(self) | uint32_t(other));
+}
+
+constexpr enum  VirtGpuExecBufferFlags operator |(const enum VirtGpuExecBufferFlags self,
+                                                  const enum VirtGpuExecBufferFlags other) {
+    return (enum VirtGpuExecBufferFlags)(uint32_t(self) | uint32_t(other));
+}
 
 #endif
