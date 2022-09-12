@@ -29,6 +29,7 @@
 #include <vector>
 
 #include "Common.h"
+#include "LruCache.h"
 #include "android/base/synchronization/AndroidLock.h"
 
 namespace aidl::android::hardware::graphics::composer3::impl {
@@ -60,7 +61,6 @@ class DrmBuffer {
   uint32_t mPlaneHandles[4] = {0, 0, 0, 0};
   uint32_t mPlanePitches[4] = {0, 0, 0, 0};
   uint32_t mPlaneOffsets[4] = {0, 0, 0, 0};
-
   std::optional<uint32_t> mDrmFramebuffer;
 };
 
@@ -77,6 +77,17 @@ class DrmPresenter {
 
   HWC3::Error init();
 
+  struct DisplayConfig {
+    uint32_t id;
+    uint32_t width;
+    uint32_t height;
+    uint32_t dpiX;
+    uint32_t dpiY;
+    uint32_t refreshRateHz;
+  };
+
+  HWC3::Error getDisplayConfigs(std::vector<DisplayConfig>* configs) const;
+
   using HotplugCallback = std::function<void(bool /*connected*/,   //
                                              uint32_t /*id*/,      //
                                              uint32_t /*width*/,   //
@@ -90,7 +101,7 @@ class DrmPresenter {
 
   uint32_t refreshRate() const { return mConnectors[0].mRefreshRateAsInteger; }
 
-  std::tuple<HWC3::Error, std::unique_ptr<DrmBuffer>> create(
+  std::tuple<HWC3::Error, std::shared_ptr<DrmBuffer>> create(
       const native_handle_t* handle);
 
   std::tuple<HWC3::Error, ::android::base::unique_fd> flushToDisplay(
@@ -100,9 +111,13 @@ class DrmPresenter {
   std::optional<std::vector<uint8_t>> getEdid(uint32_t id);
 
  private:
-  // Grant visibility for createDrmFramebuffer and clearDrmFB to DrmBuffer.
+  // TODO: make this cache per display when enabling hotplug support.
+  using DrmPrimeBufferHandle = uint32_t;
+  using DrmBufferCache = LruCache<DrmPrimeBufferHandle, std::shared_ptr<DrmBuffer>>;
+  std::unique_ptr<DrmBufferCache> mBufferCache;
+
+  // Grant visibility to destroyDrmFramebuffer to DrmBuffer.
   friend class DrmBuffer;
-  HWC3::Error createDrmFramebuffer(DrmBuffer* buffer);
   HWC3::Error destroyDrmFramebuffer(DrmBuffer* buffer);
 
   // Grant visibility for handleHotplug to DrmEventListener.
@@ -117,7 +132,7 @@ class DrmPresenter {
   std::optional<HotplugCallback> mHotplugCallback;
 
   // Protects access to the below drm structs.
-  ::android::base::guest::ReadWriteLock mStateMutex;
+  mutable ::android::base::guest::ReadWriteLock mStateMutex;
 
   struct DrmPlane {
     uint32_t mId = -1;

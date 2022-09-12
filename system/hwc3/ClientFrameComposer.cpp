@@ -146,6 +146,11 @@ HWC3::Error ClientFrameComposer::presentDisplay(
   }
 
   DisplayInfo& displayInfo = displayInfoIt->second;
+  if (!displayInfo.clientTargetDrmBuffer) {
+    ALOGW("%s: display:%" PRIu64 " no client target set, nothing to present.",
+          __FUNCTION__, displayId);
+    return HWC3::Error::None;
+  }
 
   ::android::base::unique_fd fence = display->getClientTarget().getFence();
 

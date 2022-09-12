@@ -64,9 +64,13 @@ class ClientFrameComposer : public FrameComposer {
       std::unordered_map<int64_t, ::android::base::unique_fd>* outLayerFences)
       override;
 
+  const DrmPresenter* getDrmPresenter() const override {
+    return &mDrmPresenter;
+  }
+
  private:
   struct DisplayInfo {
-    std::unique_ptr<DrmBuffer> clientTargetDrmBuffer;;
+    std::shared_ptr<DrmBuffer> clientTargetDrmBuffer;
   };
 
   std::unordered_map<int64_t, DisplayInfo> mDisplayInfos;

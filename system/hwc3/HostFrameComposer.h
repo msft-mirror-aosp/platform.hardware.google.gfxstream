@@ -65,6 +65,13 @@ class HostFrameComposer : public FrameComposer {
 
   HWC3::Error onActiveConfigChange(Display* display) override;
 
+  const DrmPresenter* getDrmPresenter() const override {
+    if (mDrmPresenter) {
+      return &*mDrmPresenter;
+    }
+    return nullptr;
+  }
+
  private:
   HWC3::Error createHostComposerDisplayInfo(Display* display,
                                             uint32_t hostDisplayId);
@@ -85,10 +92,10 @@ class HostFrameComposer : public FrameComposer {
     const native_handle_t* compositionResultBuffer = nullptr;
 
     // Drm info for the additional composition result buffer.
-    std::unique_ptr<DrmBuffer> compositionResultDrmBuffer;
+    std::shared_ptr<DrmBuffer> compositionResultDrmBuffer;
 
     // Drm info for the displays client target buffer.
-    std::unique_ptr<DrmBuffer> clientTargetDrmBuffer;
+    std::shared_ptr<DrmBuffer> clientTargetDrmBuffer;
   };
 
   std::unordered_map<int64_t, HostComposerDisplayInfo> mDisplayInfos;

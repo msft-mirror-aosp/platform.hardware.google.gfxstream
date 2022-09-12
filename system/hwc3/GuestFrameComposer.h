@@ -62,6 +62,10 @@ class GuestFrameComposer : public FrameComposer {
 
   HWC3::Error onActiveConfigChange(Display* /*display*/) override;
 
+  const DrmPresenter* getDrmPresenter() const override {
+    return &mDrmPresenter;
+  }
+
  private:
   struct DisplayConfig {
     int width;
@@ -91,7 +95,7 @@ class GuestFrameComposer : public FrameComposer {
     // Additional per display buffer for the composition result.
     buffer_handle_t compositionResultBuffer = nullptr;
 
-    std::unique_ptr<DrmBuffer> compositionResultDrmBuffer;
+    std::shared_ptr<DrmBuffer> compositionResultDrmBuffer;
   };
 
   std::unordered_map<int64_t, DisplayInfo> mDisplayInfos;
