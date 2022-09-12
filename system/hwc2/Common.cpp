@@ -55,3 +55,7 @@ bool IsInDrmDisplayFinderMode() {
             __FUNCTION__, mode.c_str());
   return mode == "drm";
 }
+
+bool IsClientCompositionMode() {
+  return android::base::GetProperty("ro.vendor.hwcomposer.mode", "") == "client";
+}
