@@ -97,6 +97,8 @@ shared_library("libvulkan_goldfish") {
     "system/vulkan_enc/goldfish_vk_reserved_marshaling_guest.h",
     "system/vulkan_enc/goldfish_vk_transform_guest.cpp",
     "system/vulkan_enc/goldfish_vk_transform_guest.h",
+    "system/vulkan_enc/vulkan_gfxstream.h",
+    "system/vulkan_enc/vulkan_gfxstream_structure_type.h",
   ]
 
   include_dirs = [
@@ -117,6 +119,7 @@ shared_library("libvulkan_goldfish") {
     "LOG_TAG=\"goldfish_vulkan\"",
     "GFXSTREAM",
     "GOLDFISH_NO_GL",
+    "VK_GFXSTREAM_STRUCTURE_TYPE_EXT",
     "VK_USE_PLATFORM_FUCHSIA",
     "PLATFORM_SDK_VERSION=1",
     "PAGE_SIZE=4096",
