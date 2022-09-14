@@ -404,7 +404,7 @@ static GoldfishProcessPipe m_goldfishProcessPipe;
 HostConnection::HostConnection() :
     exitUncleanly(false),
     m_checksumHelper(),
-    m_glExtensions(),
+    m_hostExtensions(),
     m_grallocOnly(true),
     m_noHostError(true),
     m_rendernodeFd(-1) {
@@ -743,42 +743,42 @@ gl2_client_context_t *HostConnection::s_getGL2Context()
     return NULL;
 }
 
-const std::string& HostConnection::queryGLExtensions(ExtendedRCEncoderContext *rcEnc) {
-    if (!m_glExtensions.empty()) {
-        return m_glExtensions;
+const std::string& HostConnection::queryHostExtensions(ExtendedRCEncoderContext *rcEnc) {
+    if (!m_hostExtensions.empty()) {
+        return m_hostExtensions;
     }
 
     // Extensions strings are usually quite long, preallocate enough here.
-    std::string extensions_buffer(1023, '\0');
+    std::string extensionsBuffer(1023, '\0');
 
-    // rcGetGLString() returns required size including the 0-terminator, so
+    // Returns the required size including the 0-terminator, so
     // account it when passing/using the sizes.
-    int extensionSize = rcEnc->rcGetGLString(rcEnc, GL_EXTENSIONS,
-                                             &extensions_buffer[0],
-                                             extensions_buffer.size() + 1);
+    int extensionSize = rcEnc->rcGetHostExtensionsString(rcEnc,
+                                                         extensionsBuffer.size() + 1,
+                                                         &extensionsBuffer[0]);
     if (extensionSize < 0) {
-        extensions_buffer.resize(-extensionSize);
-        extensionSize = rcEnc->rcGetGLString(rcEnc, GL_EXTENSIONS,
-                                             &extensions_buffer[0],
-                                            -extensionSize + 1);
+        extensionsBuffer.resize(-extensionSize);
+        extensionSize = rcEnc->rcGetHostExtensionsString(rcEnc,
+                                                         -extensionSize + 1,
+                                                         &extensionsBuffer[0]);
     }
 
     if (extensionSize > 0) {
-        extensions_buffer.resize(extensionSize - 1);
-        m_glExtensions.swap(extensions_buffer);
+        extensionsBuffer.resize(extensionSize - 1);
+        m_hostExtensions.swap(extensionsBuffer);
     }
 
-    return m_glExtensions;
+    return m_hostExtensions;
 }
 
 void HostConnection::queryAndSetHostCompositionImpl(ExtendedRCEncoderContext *rcEnc) {
-    const std::string& glExtensions = queryGLExtensions(rcEnc);
-    DPRINT("HostComposition ext %s", glExtensions.c_str());
+    const std::string& hostExtensions = queryHostExtensions(rcEnc);
+    DPRINT("HostComposition ext %s", hostExtensions.c_str());
     // make sure V2 is checked first before V1, as host may declare supporting both
-    if (glExtensions.find(kHostCompositionV2) != std::string::npos) {
+    if (hostExtensions.find(kHostCompositionV2) != std::string::npos) {
         rcEnc->setHostComposition(HOST_COMPOSITION_V2);
     }
-    else if (glExtensions.find(kHostCompositionV1) != std::string::npos) {
+    else if (hostExtensions.find(kHostCompositionV1) != std::string::npos) {
         rcEnc->setHostComposition(HOST_COMPOSITION_V1);
     }
     else {
@@ -787,11 +787,11 @@ void HostConnection::queryAndSetHostCompositionImpl(ExtendedRCEncoderContext *rc
 }
 
 void HostConnection::setChecksumHelper(ExtendedRCEncoderContext *rcEnc) {
-    const std::string& glExtensions = queryGLExtensions(rcEnc);
+    const std::string& hostExtensions = queryHostExtensions(rcEnc);
     // check the host supported version
     uint32_t checksumVersion = 0;
     const char* checksumPrefix = ChecksumCalculator::getMaxVersionStrPrefix();
-    const char* glProtocolStr = strstr(glExtensions.c_str(), checksumPrefix);
+    const char* glProtocolStr = strstr(hostExtensions.c_str(), checksumPrefix);
     if (glProtocolStr) {
         uint32_t maxVersion = ChecksumCalculator::getMaxVersion();
         sscanf(glProtocolStr+strlen(checksumPrefix), "%d", &checksumVersion);
@@ -806,12 +806,12 @@ void HostConnection::setChecksumHelper(ExtendedRCEncoderContext *rcEnc) {
 }
 
 void HostConnection::queryAndSetSyncImpl(ExtendedRCEncoderContext *rcEnc) {
-    const std::string& glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kRCNativeSyncV4) != std::string::npos) {
+    const std::string& hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kRCNativeSyncV4) != std::string::npos) {
         rcEnc->setSyncImpl(SYNC_IMPL_NATIVE_SYNC_V4);
-    } else if (glExtensions.find(kRCNativeSyncV3) != std::string::npos) {
+    } else if (hostExtensions.find(kRCNativeSyncV3) != std::string::npos) {
         rcEnc->setSyncImpl(SYNC_IMPL_NATIVE_SYNC_V3);
-    } else if (glExtensions.find(kRCNativeSyncV2) != std::string::npos) {
+    } else if (hostExtensions.find(kRCNativeSyncV2) != std::string::npos) {
         rcEnc->setSyncImpl(SYNC_IMPL_NATIVE_SYNC_V2);
     } else {
         rcEnc->setSyncImpl(SYNC_IMPL_NONE);
@@ -819,8 +819,8 @@ void HostConnection::queryAndSetSyncImpl(ExtendedRCEncoderContext *rcEnc) {
 }
 
 void HostConnection::queryAndSetDmaImpl(ExtendedRCEncoderContext *rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kDmaExtStr_v1) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kDmaExtStr_v1) != std::string::npos) {
         rcEnc->setDmaImpl(DMA_IMPL_v1);
     } else {
         rcEnc->setDmaImpl(DMA_IMPL_NONE);
@@ -828,179 +828,179 @@ void HostConnection::queryAndSetDmaImpl(ExtendedRCEncoderContext *rcEnc) {
 }
 
 void HostConnection::queryAndSetGLESMaxVersion(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kGLESMaxVersion_2) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kGLESMaxVersion_2) != std::string::npos) {
         rcEnc->setGLESMaxVersion(GLES_MAX_VERSION_2);
-    } else if (glExtensions.find(kGLESMaxVersion_3_0) != std::string::npos) {
+    } else if (hostExtensions.find(kGLESMaxVersion_3_0) != std::string::npos) {
         rcEnc->setGLESMaxVersion(GLES_MAX_VERSION_3_0);
-    } else if (glExtensions.find(kGLESMaxVersion_3_1) != std::string::npos) {
+    } else if (hostExtensions.find(kGLESMaxVersion_3_1) != std::string::npos) {
         rcEnc->setGLESMaxVersion(GLES_MAX_VERSION_3_1);
-    } else if (glExtensions.find(kGLESMaxVersion_3_2) != std::string::npos) {
+    } else if (hostExtensions.find(kGLESMaxVersion_3_2) != std::string::npos) {
         rcEnc->setGLESMaxVersion(GLES_MAX_VERSION_3_2);
     } else {
         ALOGW("Unrecognized GLES max version string in extensions: %s",
-              glExtensions.c_str());
+              hostExtensions.c_str());
         rcEnc->setGLESMaxVersion(GLES_MAX_VERSION_2);
     }
 }
 
 void HostConnection::queryAndSetNoErrorState(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kGLESUseHostError) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kGLESUseHostError) != std::string::npos) {
         m_noHostError = false;
     }
 }
 
 void HostConnection::queryAndSetDirectMemSupport(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kGLDirectMem) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kGLDirectMem) != std::string::npos) {
         rcEnc->featureInfo()->hasDirectMem = true;
     }
 }
 
 void HostConnection::queryAndSetVulkanSupport(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kVulkan) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kVulkan) != std::string::npos) {
         rcEnc->featureInfo()->hasVulkan = true;
     }
 }
 
 void HostConnection::queryAndSetDeferredVulkanCommandsSupport(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kDeferredVulkanCommands) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kDeferredVulkanCommands) != std::string::npos) {
         rcEnc->featureInfo()->hasDeferredVulkanCommands = true;
     }
 }
 
 void HostConnection::queryAndSetVulkanNullOptionalStringsSupport(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kVulkanNullOptionalStrings) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kVulkanNullOptionalStrings) != std::string::npos) {
         rcEnc->featureInfo()->hasVulkanNullOptionalStrings = true;
     }
 }
 
 void HostConnection::queryAndSetVulkanCreateResourcesWithRequirementsSupport(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kVulkanCreateResourcesWithRequirements) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kVulkanCreateResourcesWithRequirements) != std::string::npos) {
         rcEnc->featureInfo()->hasVulkanCreateResourcesWithRequirements = true;
     }
 }
 
 void HostConnection::queryAndSetVulkanIgnoredHandles(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kVulkanIgnoredHandles) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kVulkanIgnoredHandles) != std::string::npos) {
         rcEnc->featureInfo()->hasVulkanIgnoredHandles = true;
     }
 }
 
 void HostConnection::queryAndSetYUVCache(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kYUVCache) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kYUVCache) != std::string::npos) {
         rcEnc->featureInfo()->hasYUVCache = true;
     }
 }
 
 void HostConnection::queryAndSetAsyncUnmapBuffer(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kAsyncUnmapBuffer) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kAsyncUnmapBuffer) != std::string::npos) {
         rcEnc->featureInfo()->hasAsyncUnmapBuffer = true;
     }
 }
 
 void HostConnection::queryAndSetVirtioGpuNext(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kVirtioGpuNext) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kVirtioGpuNext) != std::string::npos) {
         rcEnc->featureInfo()->hasVirtioGpuNext = true;
     }
 }
 
 void HostConnection::queryHasSharedSlotsHostMemoryAllocator(ExtendedRCEncoderContext *rcEnc) {
-    const std::string& glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kHasSharedSlotsHostMemoryAllocator) != std::string::npos) {
+    const std::string& hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kHasSharedSlotsHostMemoryAllocator) != std::string::npos) {
         rcEnc->featureInfo()->hasSharedSlotsHostMemoryAllocator = true;
     }
 }
 
 void HostConnection::queryAndSetVulkanFreeMemorySync(ExtendedRCEncoderContext *rcEnc) {
-    const std::string& glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kVulkanFreeMemorySync) != std::string::npos) {
+    const std::string& hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kVulkanFreeMemorySync) != std::string::npos) {
         rcEnc->featureInfo()->hasVulkanFreeMemorySync = true;
     }
 }
 
 void HostConnection::queryAndSetVirtioGpuNativeSync(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kVirtioGpuNativeSync) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kVirtioGpuNativeSync) != std::string::npos) {
         rcEnc->featureInfo()->hasVirtioGpuNativeSync = true;
     }
 }
 
 void HostConnection::queryAndSetVulkanShaderFloat16Int8Support(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kVulkanShaderFloat16Int8) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kVulkanShaderFloat16Int8) != std::string::npos) {
         rcEnc->featureInfo()->hasVulkanShaderFloat16Int8 = true;
     }
 }
 
 void HostConnection::queryAndSetVulkanAsyncQueueSubmitSupport(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kVulkanAsyncQueueSubmit) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kVulkanAsyncQueueSubmit) != std::string::npos) {
         rcEnc->featureInfo()->hasVulkanAsyncQueueSubmit = true;
     }
 }
 
 void HostConnection::queryAndSetHostSideTracingSupport(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kHostSideTracing) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kHostSideTracing) != std::string::npos) {
         rcEnc->featureInfo()->hasHostSideTracing = true;
     }
 }
 
 void HostConnection::queryAndSetAsyncFrameCommands(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kAsyncFrameCommands) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kAsyncFrameCommands) != std::string::npos) {
         rcEnc->featureInfo()->hasAsyncFrameCommands = true;
     }
 }
 
 void HostConnection::queryAndSetVulkanQueueSubmitWithCommandsSupport(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kVulkanQueueSubmitWithCommands) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kVulkanQueueSubmitWithCommands) != std::string::npos) {
         rcEnc->featureInfo()->hasVulkanQueueSubmitWithCommands = true;
     }
 }
 
 void HostConnection::queryAndSetVulkanBatchedDescriptorSetUpdateSupport(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kVulkanBatchedDescriptorSetUpdate) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kVulkanBatchedDescriptorSetUpdate) != std::string::npos) {
         rcEnc->featureInfo()->hasVulkanBatchedDescriptorSetUpdate = true;
     }
 }
 
 void HostConnection::queryAndSetSyncBufferData(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kSyncBufferData) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kSyncBufferData) != std::string::npos) {
         rcEnc->featureInfo()->hasSyncBufferData = true;
     }
 }
 
 void HostConnection::queryAndSetVulkanAsyncQsri(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kVulkanAsyncQsri) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kVulkanAsyncQsri) != std::string::npos) {
         rcEnc->featureInfo()->hasVulkanAsyncQsri = true;
     }
 }
 
 void HostConnection::queryAndSetReadColorBufferDma(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kReadColorBufferDma) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kReadColorBufferDma) != std::string::npos) {
         rcEnc->featureInfo()->hasReadColorBufferDma = true;
     }
 }
 
 void HostConnection::queryAndSetHWCMultiConfigs(ExtendedRCEncoderContext* rcEnc) {
-    std::string glExtensions = queryGLExtensions(rcEnc);
-    if (glExtensions.find(kHWCMultiConfigs) != std::string::npos) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    if (hostExtensions.find(kHWCMultiConfigs) != std::string::npos) {
         rcEnc->featureInfo()->hasHWCMultiConfigs = true;
     }
 }
