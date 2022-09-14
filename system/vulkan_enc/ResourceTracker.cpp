@@ -37,6 +37,7 @@
 #include <fidl/fuchsia.sysmem/cpp/wire.h>
 #include <lib/zx/channel.h>
 #include <lib/zx/vmo.h>
+#include <optional>
 #include <zircon/errors.h>
 #include <zircon/process.h>
 #include <zircon/rights.h>
@@ -342,7 +343,7 @@ public:
         VkDevice device;
         zx_handle_t eventHandle = ZX_HANDLE_INVALID;
         zx_koid_t eventKoid = ZX_KOID_INVALID;
-        int syncFd = -1;
+        std::optional<int> syncFd = {};
     };
 
     struct VkDescriptorUpdateTemplate_Info {
@@ -539,8 +540,8 @@ public:
         }
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
-        if (semInfo.syncFd >= 0) {
-            close(semInfo.syncFd);
+        if (semInfo.syncFd.value_or(-1) >= 0) {
+            close(semInfo.syncFd.value());
         }
 #endif
 
@@ -5403,7 +5404,7 @@ public:
                 if (result != VK_SUCCESS)
                     return result;
 
-                info.syncFd = osHandle;
+                info.syncFd.emplace(osHandle);
             } else {
                 ensureSyncDeviceFd();
 
@@ -5414,7 +5415,7 @@ public:
                             get_host_u64_VkSemaphore(*pSemaphore) /* the handle */,
                             GOLDFISH_SYNC_VULKAN_SEMAPHORE_SYNC /* thread handle (doubling as type field) */,
                             &syncFd);
-                    info.syncFd = syncFd;
+                    info.syncFd.emplace(syncFd);
                 }
             }
         }
@@ -5448,7 +5449,8 @@ public:
             auto it = info_VkSemaphore.find(pGetFdInfo->semaphore);
             if (it == info_VkSemaphore.end()) return VK_ERROR_OUT_OF_HOST_MEMORY;
             auto& semInfo = it->second;
-            *pFd = dup(semInfo.syncFd);
+            // syncFd is supposed to have value.
+            *pFd = dup(semInfo.syncFd.value_or(-1));
             return VK_SUCCESS;
         } else {
             // opaque fd
@@ -5489,11 +5491,11 @@ public:
             auto semaphoreIt = info_VkSemaphore.find(pImportSemaphoreFdInfo->semaphore);
             auto& info = semaphoreIt->second;
 
-            if (info.syncFd >= 0) {
-                close(info.syncFd);
+            if (info.syncFd.value_or(-1) >= 0) {
+                close(info.syncFd.value());
             }
 
-            info.syncFd = pImportSemaphoreFdInfo->fd;
+            info.syncFd.emplace(pImportSemaphoreFdInfo->fd);
 
             return VK_SUCCESS;
         } else {
@@ -5783,8 +5785,8 @@ public:
                     }
 #endif
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
-                    if (semInfo.syncFd != 0) {
-                        pre_signal_sync_fds.push_back(semInfo.syncFd);
+                    if (semInfo.syncFd.has_value()) {
+                        pre_signal_sync_fds.push_back(semInfo.syncFd.value());
                         pre_signal_semaphores.push_back(pSubmits[i].pWaitSemaphores[j]);
                     }
 #endif
@@ -5812,8 +5814,8 @@ public:
                     }
 #endif
 #if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
-                    if (semInfo.syncFd >= 0) {
-                        post_wait_sync_fds.push_back(semInfo.syncFd);
+                    if (semInfo.syncFd.value_or(-1) >= 0) {
+                        post_wait_sync_fds.push_back(semInfo.syncFd.value());
                     }
 #endif
                 }
