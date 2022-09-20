@@ -1725,9 +1725,9 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
             wantedMinorVersion = true;
             break;
         case EGL_CONTEXT_FLAGS_KHR:
-            if ((attrib_val | EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR) ||
-                (attrib_val | EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE_BIT_KHR)  ||
-                (attrib_val | EGL_CONTEXT_OPENGL_ROBUST_ACCESS_BIT_KHR)) {
+            if ((attrib_val & EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR) ||
+                (attrib_val & EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE_BIT_KHR)  ||
+                (attrib_val & EGL_CONTEXT_OPENGL_ROBUST_ACCESS_BIT_KHR)) {
                 context_flags = attrib_val;
             } else {
                 RETURN_ERROR(EGL_NO_CONTEXT,EGL_BAD_ATTRIBUTE);
