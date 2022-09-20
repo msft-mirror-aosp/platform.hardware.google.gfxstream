@@ -5,6 +5,7 @@ from .reservedmarshaling import VulkanReservedMarshalingCodegen
 from .transform import TransformCodegen
 
 from .wrapperdefs import API_PREFIX_RESERVEDUNMARSHAL
+from .wrapperdefs import MAX_PACKET_LENGTH
 from .wrapperdefs import ROOT_TYPE_DEFAULT_VALUE
 
 
@@ -312,10 +313,15 @@ class VulkanSubDecoder(VulkanWrapperGenerator):
             "#define MAX_STACK_ITEMS %s\n" % MAX_STACK_ITEMS)
 
         self.module.appendImpl(
-            "size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* boxed_dispatchHandle, void* dispatchHandle, VkDeviceSize dataSize, const void* pData, GfxApiLogger& gfx_logger)\n")
+            "#define MAX_PACKET_LENGTH %s\n" % MAX_PACKET_LENGTH)
+
+        self.module.appendImpl(
+            "size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* boxed_dispatchHandle, void* dispatchHandle, VkDeviceSize dataSize, const void* pData, const VkDecoderContext& context)\n")
 
         self.cgen.beginBlock()  # function body
 
+        self.cgen.stmt("auto& gfx_logger = *context.gfxApiLogger")
+        self.cgen.stmt("auto& metricsLogger = *context.metricsLogger")
         self.cgen.stmt("uint32_t count = 0")
         self.cgen.stmt("unsigned char *buf = (unsigned char *)pData")
         self.cgen.stmt("android::base::BumpPool* pool = readStream->pool()")
@@ -330,6 +336,13 @@ class VulkanSubDecoder(VulkanWrapperGenerator):
 
         self.cgen.stmt("uint32_t opcode = *(uint32_t *)ptr")
         self.cgen.stmt("uint32_t packetLen = *(uint32_t *)(ptr + 4)")
+        self.cgen.line("""
+        // packetLen should be at least 8 (op code and packet length) and should not be excessively large
+        if (packetLen < 8 || packetLen > MAX_PACKET_LENGTH) {
+            WARN("Bad packet length %d detected, subdecode may fail", packetLen);
+            metricsLogger.logMetricEvent(MetricEventBadPacketLength{ .len = packetLen });
+        }
+        """)
         self.cgen.stmt("if (end - ptr < packetLen) return ptr - (unsigned char*)buf")
         self.cgen.stmt("gfx_logger.record(ptr, std::min(size_t(packetLen + 8), size_t(end - ptr)))")
 
