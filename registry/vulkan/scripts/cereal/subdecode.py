@@ -254,7 +254,8 @@ def emit_dispatch_call(api, cgen):
         cgen.stmt("lock()")
 
     cgen.vkApiCall(api, customPrefix="vk->", customParameters=customParams,
-                    checkForDeviceLost=True, globalStatePrefix=global_state_prefix)
+                    checkForDeviceLost=True, globalStatePrefix=global_state_prefix,
+                    checkForOutOfMemory=True)
 
     if api.name in driver_workarounds_global_lock_apis:
         cgen.stmt("unlock()")
@@ -268,7 +269,8 @@ def emit_global_state_wrapped_call(api, cgen, logger=False, context=False):
     if context:
         customParams += ["context"];
     cgen.vkApiCall(api, customPrefix=global_state_prefix,
-                   customParameters=customParams, checkForDeviceLost=True, globalStatePrefix=global_state_prefix)
+                   customParameters=customParams, checkForDeviceLost=True,
+                   checkForOutOfMemory=True, globalStatePrefix=global_state_prefix)
 
 
 def emit_default_decoding(typeInfo, api, cgen):
