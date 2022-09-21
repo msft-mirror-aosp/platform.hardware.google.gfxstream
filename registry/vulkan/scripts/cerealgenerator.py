@@ -376,8 +376,7 @@ using DlSymFunc = void* (void*, const char*);
 """
 
         decoderHeaderIncludes = f"""
-#include "{self.baseLibDirPrefix}/GfxApiLogger.h"
-#include "{self.baseLibDirPrefix}/HealthMonitor.h"
+#include "VkDecoderContext.h"
 
 #include <memory>
 
