@@ -94,11 +94,15 @@ int VirtGpuBlob::wait() {
     int ret;
     struct drm_virtgpu_3d_wait wait_3d = {0};
 
-    ret = -EAGAIN;
-    while (ret == -EAGAIN) {
+    int retry = 0;
+    do {
+        if (retry > 0 && (retry % 10 == 0)) {
+            ALOGE("DRM_IOCTL_VIRTGPU_WAIT failed with EBUSY for %d times.", retry);
+        }
         wait_3d.handle = mBlobHandle;
         ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_WAIT, &wait_3d);
-    }
+        ++retry;
+    } while (ret < 0 && errno == EBUSY);
 
     if (ret < 0) {
         ALOGE("DRM_IOCTL_VIRTGPU_WAIT failed with %s", strerror(errno));
