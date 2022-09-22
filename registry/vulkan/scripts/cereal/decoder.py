@@ -33,8 +33,7 @@ public:
     ~VkDecoder();
     void setForSnapshotLoad(bool forSnapshotLoad);
     size_t decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr,
-                  emugl::GfxApiLogger& gfx_logger, emugl::HealthMonitor<>& healthMonitor,
-                  const char* processName);
+                  const VkDecoderContext&);
 private:
     class Impl;
     std::unique_ptr<Impl> mImpl;
@@ -43,8 +42,6 @@ private:
 
 decoder_impl_preamble ="""
 using emugl::vkDispatch;
-using emugl::GfxApiLogger;
-using emugl::HealthMonitor;
 using emugl::HealthWatchdog;
 
 using namespace goldfish_vk;
@@ -67,8 +64,7 @@ public:
     }
 
     size_t decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr,
-                  GfxApiLogger& gfx_logger, HealthMonitor<>& healthMonitor,
-                  const char* processName);
+                  const VkDecoderContext&);
 
 private:
     bool m_logCalls;
@@ -95,9 +91,8 @@ void VkDecoder::setForSnapshotLoad(bool forSnapshotLoad) {
 }
 
 size_t VkDecoder::decode(void* buf, size_t bufsize, IOStream* stream, uint32_t* seqnoPtr,
-                         GfxApiLogger& gfx_logger, HealthMonitor<>& healthMonitor,
-                         const char* processName) {
-    return mImpl->decode(buf, bufsize, stream, seqnoPtr, gfx_logger, healthMonitor, processName);
+                         const VkDecoderContext& context) {
+    return mImpl->decode(buf, bufsize, stream, seqnoPtr, context);
 }
 
 // VkDecoder::Impl::decode to follow
@@ -729,13 +724,15 @@ class VulkanDecoder(VulkanWrapperGenerator):
         self.module.appendImpl(
             """
 size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32_t* seqnoPtr,
-                               GfxApiLogger& gfx_logger, HealthMonitor<>& healthMonitor,
-                               const char* processName)
+                               const VkDecoderContext& context)
 """)
 
         self.cgen.beginBlock() # function body
 
-        self.cgen.stmt("if (len < 8) return 0;")
+        self.cgen.stmt("const char* processName = context.processName")
+        self.cgen.stmt("auto& gfx_logger = *context.gfxApiLogger")
+        self.cgen.stmt("auto& healthMonitor = *context.healthMonitor")
+        self.cgen.stmt("if (len < 8) return 0")
         self.cgen.stmt("bool queueSubmitWithCommandsEnabled = feature_is_enabled(kFeature_VulkanQueueSubmitWithCommands)")
         self.cgen.stmt("unsigned char *ptr = (unsigned char *)buf")
         self.cgen.stmt("const unsigned char* const end = (const unsigned char*)buf + len")
