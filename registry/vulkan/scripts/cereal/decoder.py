@@ -42,7 +42,6 @@ private:
 
 decoder_impl_preamble ="""
 using emugl::vkDispatch;
-using emugl::HealthWatchdog;
 
 using namespace goldfish_vk;
 
@@ -761,29 +760,25 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32
             uint32_t seqno; memcpy(&seqno, *readStreamPtrPtr, sizeof(uint32_t)); *readStreamPtrPtr += sizeof(uint32_t);
             if (seqnoPtr && !m_forSnapshotLoad) {
                 {
-                    HealthWatchdog watchdog(
-                        healthMonitor,
-                        WATCHDOG_DATA("RenderThread seqno loop - 3 second timeout",
-                                      EventHangMetadata::HangType::kRenderThread, nullptr),
-                        /* Data gathered if this hangs*/
-                        std::function<std::unique_ptr<EventHangMetadata::HangAnnotations>()>([=](){
-                            std::unique_ptr<EventHangMetadata::HangAnnotations> annotations =
-                                std::make_unique<EventHangMetadata::HangAnnotations>();
-                            annotations->insert(
-                                {
-                                    {"seqno", std::to_string(seqno)},
-                                    {"seqnoPtr", std::to_string(__atomic_load_n(seqnoPtr, __ATOMIC_SEQ_CST))},
-                                    {"opcode", std::to_string(opcode)},
-                                    {"buffer_length", std::to_string(len)}
+                    auto watchdog =
+                        WATCHDOG_BUILDER(healthMonitor,
+                                         "RenderThread seqno loop")
+                            .setHangType(EventHangMetadata::HangType::kRenderThread)
+                            /* Data gathered if this hangs*/
+                            .setOnHangCallback([=]() {
+                                auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
+                                annotations->insert({{"seqno", std::to_string(seqno)},
+                                                     {"seqnoPtr", std::to_string(__atomic_load_n(
+                                                                      seqnoPtr, __ATOMIC_SEQ_CST))},
+                                                     {"opcode", std::to_string(opcode)},
+                                                     {"buffer_length", std::to_string(len)}});
+                                if (processName) {
+                                    annotations->insert(
+                                        {{"renderthread_guest_process", std::string(processName)}});
                                 }
-                            );
-                            if (processName) {
-                                annotations->insert(
-                                    {{"renderthread_guest_process", std::string(processName)}});
-                            }
-                            return std::move(annotations);
-                        }),
-                        3000 /* 3 seconds. Should be plenty*/);
+                                return std::move(annotations);
+                            })
+                            .build();
                     while ((seqno - __atomic_load_n(seqnoPtr, __ATOMIC_SEQ_CST) != 1)) {
                         #if (defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64)))
                         _mm_pause();
