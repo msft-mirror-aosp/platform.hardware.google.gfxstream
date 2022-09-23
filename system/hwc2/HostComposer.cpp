@@ -481,24 +481,18 @@ HWC2::Error HostComposer::validateDisplay(
   // layers will fall back to the client composition type.
   bool fallBackToClient = (!hostCompositionV1 && !hostCompositionV2) ||
                           display->hasColorTransform();
-  std::unordered_map<hwc2_layer_t, HWC2::Composition> changes;
+  std::unordered_map<Layer*, HWC2::Composition> changes;
 
   if (!fallBackToClient) {
-    for (const auto& layer : layers) {
+    for (Layer* layer : layers) {
       HWC2::Composition layerCompositionType = layer->getCompositionType();
       std::optional<HWC2::Composition> layerFallBackTo = std::nullopt;
       switch (layerCompositionType) {
         case HWC2::Composition::Client:
         case HWC2::Composition::Sideband:
-          ALOGI("%s: layer %" PRIu32 " CompositionType %d, fallback to client",
-                __FUNCTION__, static_cast<uint32_t>(layer->getId()),
-                layerCompositionType);
           layerFallBackTo = HWC2::Composition::Client;
           break;
         case HWC2::Composition::Cursor:
-          ALOGI("%s: layer %" PRIu32 " CompositionType %d, fallback to device",
-                __FUNCTION__, static_cast<uint32_t>(layer->getId()),
-                layerCompositionType);
           layerFallBackTo = HWC2::Composition::Device;
           break;
         case HWC2::Composition::Invalid:
@@ -515,24 +509,28 @@ HWC2::Error HostComposer::validateDisplay(
         fallBackToClient = true;
       }
       if (layerFallBackTo.has_value()) {
-        changes[layer->getId()] = layerFallBackTo.value();
+        changes.emplace(layer, layerFallBackTo.value());
       }
     }
   }
 
   if (fallBackToClient) {
     changes.clear();
-    for (auto& layer : layers) {
+    for (Layer* layer : layers) {
       if (layer->getCompositionType() == HWC2::Composition::Invalid) {
         continue;
       }
       if (layer->getCompositionType() != HWC2::Composition::Client) {
-        changes[layer->getId()] = HWC2::Composition::Client;
+        changes.emplace(layer, HWC2::Composition::Client);
       }
     }
   }
 
-  *layerCompositionChanges = std::move(changes);
+  layerCompositionChanges->clear();
+  for (auto& [layer, newCompositionType] : changes) {
+    layer->logCompositionFallbackIfChanged(newCompositionType);
+    layerCompositionChanges->emplace(layer->getId(), newCompositionType);
+  }
 
   return HWC2::Error::None;
 }

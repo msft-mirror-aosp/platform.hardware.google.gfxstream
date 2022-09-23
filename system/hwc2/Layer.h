@@ -17,6 +17,7 @@
 #ifndef ANDROID_HWC_LAYER_H
 #define ANDROID_HWC_LAYER_H
 
+#include <optional>
 #include <vector>
 
 #include "Common.h"
@@ -78,6 +79,9 @@ class Layer {
   HWC2::Error setZ(uint32_t z);
   uint32_t getZ() const;
 
+  // For log use only.
+  void logCompositionFallbackIfChanged(HWC2::Composition to);
+
  private:
   const hwc2_layer_t mId;
   FencedBuffer mBuffer;
@@ -85,6 +89,12 @@ class Layer {
   HWC2::BlendMode mBlendMode = HWC2::BlendMode::None;
   hwc_color_t mColor = {0, 0, 0, 0};
   HWC2::Composition mCompositionType = HWC2::Composition::Invalid;
+  struct CompositionTypeFallback {
+    HWC2::Composition from;
+    HWC2::Composition to;
+  };
+  // For log use only.
+  std::optional<CompositionTypeFallback> mLastCompositionFallback = std::nullopt;
   hwc_rect_t mDisplayFrame = {0, 0, -1, -1};
   float mPlaneAlpha = 0.0f;
   const native_handle_t* mSidebandStream = nullptr;

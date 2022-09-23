@@ -255,4 +255,18 @@ uint32_t Layer::getZ() const {
   return z;
 }
 
+void Layer::logCompositionFallbackIfChanged(HWC2::Composition to) {
+  HWC2::Composition from = getCompositionType();
+  if (mLastCompositionFallback && mLastCompositionFallback->from == from &&
+      mLastCompositionFallback->to == to) {
+    return;
+  }
+  ALOGI("%s: layer %" PRIu32 " CompositionType fallback from %d to %d", __FUNCTION__,
+        static_cast<uint32_t>(getId()), static_cast<int>(from), static_cast<int>(to));
+  mLastCompositionFallback = {
+      .from = from,
+      .to = to,
+  };
+}
+
 }  // namespace android
