@@ -227,7 +227,7 @@ private:
     static gl_client_context_t  *s_getGLContext();
     static gl2_client_context_t *s_getGL2Context();
 
-    const std::string& queryGLExtensions(ExtendedRCEncoderContext *rcEnc);
+    const std::string& queryHostExtensions(ExtendedRCEncoderContext *rcEnc);
     // setProtocol initilizes GL communication protocol for checksums
     // should be called when m_rcEnc is created
     void setChecksumHelper(ExtendedRCEncoderContext *rcEnc);
@@ -277,7 +277,7 @@ private:
     ChecksumCalculator m_checksumHelper;
     Gralloc* m_grallocHelper = nullptr;
     ProcessPipe* m_processPipe = nullptr;
-    std::string m_glExtensions;
+    std::string m_hostExtensions;
     bool m_grallocOnly;
     bool m_noHostError;
 #ifdef GFXSTREAM
