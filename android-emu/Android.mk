@@ -24,6 +24,8 @@ LOCAL_SRC_FILES := \
     android/base/threads/AndroidThreadStore.cpp \
     android/base/threads/AndroidThread_pthread.cpp \
     android/base/threads/AndroidWorkPool.cpp \
+    android/base/AndroidHealthMonitor.cpp \
+    android/base/AndroidHealthMonitorConsumerBasic.cpp \
     android/base/Tracing.cpp \
     android/utils/debug.c \
 

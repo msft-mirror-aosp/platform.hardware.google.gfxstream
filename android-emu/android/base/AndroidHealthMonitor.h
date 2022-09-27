@@ -27,25 +27,25 @@
 #include <unordered_set>
 #include <variant>
 
-#include "base/ConditionVariable.h"
-#include "base/Lock.h"
-#include "base/Metrics.h"
-#include "base/Thread.h"
-#include "host-common/GfxstreamFatalError.h"
-#include "host-common/logging.h"
+#include "android/base/AndroidHealthMonitorConsumer.h"
+#include "android/base/synchronization/AndroidConditionVariable.h"
+#include "android/base/synchronization/AndroidLock.h"
+#include "android/base/threads/AndroidThread.h"
 
-using android::base::EventHangMetadata;
-using android::base::getCurrentThreadId;
+#include <log/log.h>
 
-#define WATCHDOG_BUILDER(healthMonitor, msg)                                                       \
-    ::emugl::HealthWatchdogBuilder<std::decay_t<decltype(healthMonitor)>>(healthMonitor, __FILE__, \
-                                                                          __func__, msg, __LINE__)
+using android::base::guest::EventHangMetadata;
 
-namespace emugl {
+#define WATCHDOG_BUILDER(healthMonitor, msg)                                              \
+    ::android::base::guest::HealthWatchdogBuilder<std::decay_t<decltype(healthMonitor)>>( \
+        healthMonitor, __FILE__, __func__, msg, __LINE__)
 
-using android::base::ConditionVariable;
-using android::base::Lock;
-using android::base::MetricsLogger;
+namespace android {
+namespace base {
+namespace guest {
+
+using android::base::guest::ConditionVariable;
+using android::base::guest::Lock;
 using std::chrono::duration;
 using std::chrono::steady_clock;
 using std::chrono::time_point;
@@ -58,10 +58,10 @@ static std::chrono::nanoseconds kTimeEpsilon(1);
 // HealthMonitor provides the ability to register arbitrary start/touch/stop events associated
 // with client defined tasks. At some pre-defined interval, it will periodically consume
 // all logged events to assess whether the system is hanging on any task. Via the
-// MetricsLogger, it will log hang and unhang events when it detects tasks hanging/resuming.
+// HealthMonitorConsumer, it will log hang and unhang events when it detects tasks hanging/resuming.
 // Design doc: http://go/gfxstream-health-monitor
 template <class Clock = steady_clock>
-class HealthMonitor : public android::base::Thread {
+class HealthMonitor : public android::base::guest::Thread {
    public:
     // Alias for task id.
     using Id = uint64_t;
@@ -69,7 +69,7 @@ class HealthMonitor : public android::base::Thread {
     // Constructor
     // `heatbeatIntervalMs` is the interval, in milleseconds, that the thread will sleep for
     // in between health checks.
-    HealthMonitor(MetricsLogger& metricsLogger, uint64_t heartbeatInterval = kDefaultIntervalMs);
+    HealthMonitor(HealthMonitorConsumer& consumer, uint64_t heartbeatInterval = kDefaultIntervalMs);
 
     // Destructor
     // Enqueues an event to end monitoring and waits on thread to process remaining queued events.
@@ -160,11 +160,11 @@ class HealthMonitor : public android::base::Thread {
 
     // Members accessed only on the worker thread. Not protected by mutex.
     int mHungTasks = 0;
-    MetricsLogger& mLogger;
+    HealthMonitorConsumer& mConsumer;
     std::unordered_map<Id, MonitoredTask> mMonitoredTasks;
 
     // Lock and cv control access to queue and id counter
-    android::base::ConditionVariable mCv;
+    ConditionVariable mCv;
     Lock mLock;
     Id mNextId = 0;
     std::queue<std::unique_ptr<MonitoredEvent>> mEventQueue;
@@ -236,17 +236,18 @@ class HealthWatchdog {
         auto& threadTasks = getMonitoredThreadTasks();
         auto& stack = threadTasks[&mHealthMonitor];
         if (getCurrentThreadId() != mThreadId) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "HealthWatchdog destructor thread does not match origin. Destructor must be "
-                   "called on the same thread.";
+            ALOGE("HealthWatchdog destructor thread does not match origin. Destructor must be "
+                  "called on the same thread.");
+            abort();
         }
         if (stack.empty()) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "HealthWatchdog thread local stack is empty!";
+            ALOGE("HealthWatchdog thread local stack is empty!");
+            abort();
         }
         if (stack.top() != id) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "HealthWatchdog id " << id << " does not match top of stack: " << stack.top();
+            ALOGE("HealthWatchdog id %llu does not match top of stack: %llu",
+            (unsigned long long)id, (unsigned long long)stack.top());
+            abort();
         }
         stack.pop();
     }
@@ -305,4 +306,6 @@ class HealthWatchdogBuilder {
     std::optional<std::function<std::unique_ptr<HangAnnotations>()>> mOnHangCallback;
 };
 
-}  // namespace emugl
+}  // namespace guest
+}  // namespace base
+}  // namespace android

@@ -6,6 +6,8 @@ files_lib_linux_platform = files(
   'AndroidSubAllocator.cpp',
   'AndroidSubAllocator.h',
   'Pool.cpp',
+  'AndroidHealthMonitor.cpp',
+  'AndroidHealthMonitorConsumerBasic.cpp',
   'Tracing.cpp',
   'ring_buffer.c',
   'files/MemStream.cpp',

@@ -1,5 +1,5 @@
-// Copyright (C) 2021 The Android Open Source Project
-// Copyright (C) 2021 Google Inc.
+// Copyright (C) 2022 The Android Open Source Project
+// Copyright (C) 2022 Google Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,11 +22,13 @@
 #include <unordered_map>
 #include <variant>
 
-#include "base/threads/Thread.h"
+#include "android/base/threads/AndroidThread.h"
 
-// Library to log metrics.
+// Interface for consuming events from HealthMonitor
+
 namespace android {
 namespace base {
+namespace guest {
 
 // Struct for hanging events
 struct EventHangMetadata {
@@ -52,9 +54,9 @@ struct EventHangMetadata {
           function(function),
           msg(msg),
           line(line),
+          threadId(getCurrentThreadId()),
           data(std::move(data)),
-          hangType(hangType),
-          threadId(getCurrentThreadId()) {}
+          hangType(hangType) {}
 
     EventHangMetadata()
         : EventHangMetadata(nullptr, nullptr, nullptr, 0, HangType::kRenderThread, nullptr) {}
@@ -67,55 +69,15 @@ struct EventHangMetadata {
     }
 };
 
-// Events that can be logged.
-struct MetricEventBadPacketLength {
-    int64_t len;
-};
-struct MetricEventDuplicateSequenceNum {
-    int64_t opcode;
-};
-struct MetricEventFreeze {};
-struct MetricEventUnFreeze { int64_t frozen_ms; };
-struct MetricEventHang {
-    uint64_t taskId; /* From HealthMonitor */
-    EventHangMetadata* metadata;
-    int64_t otherHungTasks;
-};
-struct MetricEventUnHang {
-    uint64_t taskId; /* From HealthMonitor */
-    EventHangMetadata* metadata;
-    int64_t hung_ms;
-};
-struct GfxstreamVkAbort {
-    const char* file;
-    const char* function;
-    const char* msg;
-    int line;
-    int64_t abort_reason;
+class HealthMonitorConsumer {
+public:
+    virtual void consumeHangEvent(uint64_t taskId, const EventHangMetadata* metadata,
+                                  int64_t otherHungTasks) = 0;
+    virtual void consumeUnHangEvent(uint64_t taskId, const EventHangMetadata* metadata,
+                                    int64_t hungMs) = 0;
+    virtual ~HealthMonitorConsumer() {}
 };
 
-using MetricEventType =
-    std::variant<std::monostate, MetricEventBadPacketLength, MetricEventDuplicateSequenceNum,
-                 MetricEventFreeze, MetricEventUnFreeze, MetricEventHang, MetricEventUnHang,
-                 GfxstreamVkAbort>;
-
-class MetricsLogger {
-   public:
-    // Log a MetricEventType.
-    virtual void logMetricEvent(MetricEventType eventType) = 0;
-    // Virtual destructor.
-    virtual ~MetricsLogger() = default;
-
-    // Callbacks to log events
-    static void (*add_instant_event_callback)(int64_t event_code);
-    static void (*add_instant_event_with_descriptor_callback)(int64_t event_code,
-                                                              int64_t descriptor);
-    static void (*add_instant_event_with_metric_callback)(int64_t event_code, int64_t metric_value);
-    // Crashpad will copy the strings, so these need only persist for the function call
-    static void (*set_crash_annotation_callback)(const char* key, const char* value);
-};
-
-std::unique_ptr<MetricsLogger> CreateMetricsLogger();
-
+}  // namespace guest
 }  // namespace base
 }  // namespace android

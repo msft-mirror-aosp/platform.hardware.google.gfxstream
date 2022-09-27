@@ -16,6 +16,8 @@
 #include "HostConnection.h"
 
 #include "android/base/threads/AndroidThread.h"
+#include "android/base/AndroidHealthMonitor.h"
+#include "android/base/AndroidHealthMonitorConsumerBasic.h"
 #include "cutils/properties.h"
 #include "renderControl_types.h"
 
@@ -30,6 +32,9 @@
 #else
 #define DPRINT(...)
 #endif
+
+using android::base::guest::HealthMonitor;
+using android::base::guest::HealthMonitorConsumerBasic;
 
 #ifdef GOLDFISH_NO_GL
 struct gl_client_context_t {
@@ -113,6 +118,12 @@ using android::base::guest::getCurrentThreadId;
 
 #define STREAM_BUFFER_SIZE  (4*1024*1024)
 #define STREAM_PORT_NUM     22468
+
+HealthMonitor<>& getGlobalHealthMonitor() {
+    static HealthMonitorConsumerBasic sHealthMonitorConsumerBasic;
+    static HealthMonitor sHealthMonitor(sHealthMonitorConsumerBasic);
+    return sHealthMonitor;
+}
 
 static HostConnectionType getConnectionTypeFromProperty() {
 #ifdef __Fuchsia__
@@ -443,6 +454,11 @@ std::unique_ptr<HostConnection> HostConnection::connect(uint32_t capset_id) {
 
     // Use "new" to access a non-public constructor.
     auto con = std::unique_ptr<HostConnection>(new HostConnection);
+
+    // Initialize HealthMonitor
+    // Rather than inject as a construct arg, we keep it as a static variable in the .cpp
+    // to avoid setting up dependencies in other repos (external/qemu)
+    auto& healthMonitor = getGlobalHealthMonitor();
     switch (connType) {
         case HOST_CONNECTION_ADDRESS_SPACE: {
             auto stream = createAddressSpaceStream(STREAM_BUFFER_SIZE);
