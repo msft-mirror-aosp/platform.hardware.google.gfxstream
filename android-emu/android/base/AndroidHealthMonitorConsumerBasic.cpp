@@ -16,6 +16,8 @@
 
 #include <log/log.h>
 
+#include "android/base/Process.h"
+
 namespace android {
 namespace base {
 namespace guest {
@@ -26,8 +28,9 @@ void logEventHangMetadata(const EventHangMetadata* metadata) {
     ALOGE("\t function: %s", metadata->function);
     ALOGE("\t line: %d", metadata->line);
     ALOGE("\t msg: %s", metadata->msg);
-    ALOGE("\t thread: %lld (0x%08llx)",
-          (long long)metadata->threadId, (long long)metadata->threadId);
+    ALOGE("\t thread: %lld (0x%08llx)", (long long)metadata->threadId,
+          (long long)metadata->threadId);
+    ALOGE("\t process name: %s", getProcessName().c_str());
     if (metadata->data) {
         ALOGE("\t Additional information:");
         for (auto& [key, value] : *metadata->data) {
@@ -40,8 +43,7 @@ void logEventHangMetadata(const EventHangMetadata* metadata) {
 void HealthMonitorConsumerBasic::consumeHangEvent(uint64_t taskId,
                                                   const EventHangMetadata* metadata,
                                                   int64_t otherHungTasks) {
-    ALOGE("Logging hang event. Number of tasks already hung: %lld",
-          (long long)otherHungTasks);
+    ALOGE("Logging hang event. Number of tasks already hung: %lld", (long long)otherHungTasks);
     logEventHangMetadata(metadata);
 }
 

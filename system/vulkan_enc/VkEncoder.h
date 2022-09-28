@@ -33,15 +33,18 @@
 
 #include <memory>
 
+#include "android/base/AndroidHealthMonitor.h"
 #include "goldfish_vk_private_defs.h"
 #include "vulkan_gfxstream.h"
 class IOStream;
 
 namespace goldfish_vk {
 
+using android::base::guest::HealthMonitor;
+
 class VkEncoder {
    public:
-    VkEncoder(IOStream* stream);
+    VkEncoder(IOStream* stream, HealthMonitor<>* healthMonitor = nullptr);
     ~VkEncoder();
 
 #include "VkEncoder.h.inl"
@@ -2143,6 +2146,7 @@ class VkEncoder {
    private:
     class Impl;
     std::unique_ptr<Impl> mImpl;
+    HealthMonitor<>* mHealthMonitor;
 };
 
 }  // namespace goldfish_vk

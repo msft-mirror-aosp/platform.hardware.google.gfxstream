@@ -120,7 +120,7 @@ intptr_t HealthMonitor<Clock>::main() {
             if (mEventQueue.empty()) {
                 mCv.timedWait(
                     &mLock,
-                    currentTime.tv_usec +
+                    currentTime.tv_sec * 1000000LL + currentTime.tv_usec +
                         std::chrono::duration_cast<std::chrono::microseconds>(mInterval).count());
             }
             mEventQueue.swap(events);
