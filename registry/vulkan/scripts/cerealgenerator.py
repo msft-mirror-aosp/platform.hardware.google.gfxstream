@@ -248,7 +248,7 @@ class IOStream;
 #include "goldfish_vk_private_defs.h"
 
 #include "%s.h"
-#include "{self.baseLibDirPrefix}/StreamSerializing.h"
+#include "{self.baseLibDirPrefix}/files/StreamSerializing.h"
 """ % VULKAN_STREAM_TYPE
 
         testingInclude = f"""
@@ -372,7 +372,7 @@ using DlSymFunc = void* (void*, const char*);
 #include "VkDecoderGlobalState.h"
 #include "VkReconstruction.h"
 
-#include "{self.baseLibDirPrefix}/Lock.h"
+#include "{self.baseLibDirPrefix}/synchronization/Lock.h"
 """
 
         decoderHeaderIncludes = f"""
@@ -395,7 +395,7 @@ class BumpPool;
 #include "common/goldfish_vk_transform.h"
 
 #include "{self.baseLibDirPrefix}/BumpPool.h"
-#include "{self.baseLibDirPrefix}/System.h"
+#include "{self.baseLibDirPrefix}/system/System.h"
 #include "{self.baseLibDirPrefix}/Tracing.h"
 #include "{self.baseLibDirPrefix}/Metrics.h"
 #include "stream-servers/IOStream.h"
