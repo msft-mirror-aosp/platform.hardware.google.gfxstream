@@ -32,8 +32,6 @@ constexpr uint64_t kHostVisibleHeapSize = 512 * kMegaBtye;    // 512 mb
 
 namespace goldfish_vk {
 
-class VkEncoder;
-
 bool isHostVisible(const VkPhysicalDeviceMemoryProperties *memoryProps, uint32_t index);
 
 using GoldfishAddressSpaceBlockPtr = std::shared_ptr<GoldfishAddressSpaceBlock>;
@@ -41,16 +39,16 @@ using SubAllocatorPtr = std::unique_ptr<android::base::guest::SubAllocator>;
 
 class CoherentMemory {
   public:
-    CoherentMemory(VirtGpuBlobMappingPtr blobMapping, uint64_t size, VkEncoder *enc,
-                   VkDevice device, VkDeviceMemory memory);
-    CoherentMemory(GoldfishAddressSpaceBlockPtr block, uint64_t gpuAddr, uint64_t size,
-                   VkEncoder *enc, VkDevice device, VkDeviceMemory memory);
-    ~CoherentMemory();
+   CoherentMemory(VirtGpuBlobMappingPtr blobMapping, uint64_t size, VkDevice device,
+                  VkDeviceMemory memory);
+   CoherentMemory(GoldfishAddressSpaceBlockPtr block, uint64_t gpuAddr, uint64_t size,
+                  VkDevice device, VkDeviceMemory memory);
+   ~CoherentMemory();
 
-    VkDeviceMemory getDeviceMemory() const;
+   VkDeviceMemory getDeviceMemory() const;
 
-    bool subAllocate(uint64_t size, uint8_t **ptr, uint64_t& offset);
-    bool release(uint8_t *ptr);
+   bool subAllocate(uint64_t size, uint8_t** ptr, uint64_t& offset);
+   bool release(uint8_t* ptr);
 
   private:
     CoherentMemory(CoherentMemory const&);
@@ -59,7 +57,6 @@ class CoherentMemory {
     uint64_t mSize;
     VirtGpuBlobMappingPtr mBlobMapping = nullptr;
     GoldfishAddressSpaceBlockPtr mBlock = nullptr;
-    VkEncoder *mEnc;
     VkDevice mDevice;
     VkDeviceMemory mMemory;
     SubAllocatorPtr mAllocator;

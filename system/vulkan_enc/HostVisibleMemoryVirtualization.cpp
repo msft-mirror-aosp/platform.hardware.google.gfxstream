@@ -14,16 +14,15 @@
 // limitations under the License.
 #include "HostVisibleMemoryVirtualization.h"
 
-#include "android/base/AndroidSubAllocator.h"
-
-#include "Resources.h"
-#include "VkEncoder.h"
-
-#include "../OpenglSystemCommon/EmulatorFeatureInfo.h"
-
 #include <log/log.h>
 
 #include <set>
+
+#include "../OpenglSystemCommon/EmulatorFeatureInfo.h"
+#include "ResourceTracker.h"
+#include "Resources.h"
+#include "VkEncoder.h"
+#include "android/base/AndroidSubAllocator.h"
 
 using android::base::guest::SubAllocator;
 
@@ -33,26 +32,16 @@ bool isHostVisible(const VkPhysicalDeviceMemoryProperties* memoryProps, uint32_t
     return memoryProps->memoryTypes[index].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 }
 
-CoherentMemory::CoherentMemory(VirtGpuBlobMappingPtr blobMapping, uint64_t size, VkEncoder *enc,
-                               VkDevice device, VkDeviceMemory memory)
-    : mSize(size),
-      mBlobMapping(blobMapping),
-      mEnc(enc),
-      mDevice(device),
-      mMemory(memory)
-{
+CoherentMemory::CoherentMemory(VirtGpuBlobMappingPtr blobMapping, uint64_t size, VkDevice device,
+                               VkDeviceMemory memory)
+    : mSize(size), mBlobMapping(blobMapping), mDevice(device), mMemory(memory) {
     mAllocator = std::make_unique<android::base::guest::SubAllocator>(blobMapping->asRawPtr(),
                                                                       mSize, 4096);
 }
 
 CoherentMemory::CoherentMemory(GoldfishAddressSpaceBlockPtr block, uint64_t gpuAddr, uint64_t size,
-                               VkEncoder *enc, VkDevice device, VkDeviceMemory memory)
-    : mSize(size),
-      mBlock(block),
-      mEnc(enc),
-      mDevice(device),
-      mMemory(memory)
-{
+                               VkDevice device, VkDeviceMemory memory)
+    : mSize(size), mBlock(block), mDevice(device), mMemory(memory) {
     void* address = block->mmap(gpuAddr);
     mAllocator = std::make_unique<android::base::guest::SubAllocator>(address, mSize,
                                                                       kLargestPageSize);
@@ -60,7 +49,8 @@ CoherentMemory::CoherentMemory(GoldfishAddressSpaceBlockPtr block, uint64_t gpuA
 
 CoherentMemory::~CoherentMemory()
 {
-    mEnc->vkFreeMemorySyncGOOGLE(mDevice, mMemory, nullptr, false);
+    ResourceTracker::getThreadLocalEncoder()->vkFreeMemorySyncGOOGLE(mDevice, mMemory, nullptr,
+                                                                     false);
 }
 
 VkDeviceMemory CoherentMemory::getDeviceMemory() const
