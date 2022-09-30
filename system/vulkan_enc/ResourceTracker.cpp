@@ -2952,9 +2952,8 @@ public:
             block = info.goldfishBlock;
             info.goldfishBlock = nullptr;
 
-            coherentMemory =
-                std::make_shared<CoherentMemory>(block, gpuAddr, hostAllocationInfo.allocationSize,
-                                                 enc, device, mem);
+            coherentMemory = std::make_shared<CoherentMemory>(
+                block, gpuAddr, hostAllocationInfo.allocationSize, device, mem);
         } else if (mFeatureInfo->hasVirtioGpuNext) {
             struct VirtGpuCreateBlob createBlob = { 0 };
             uint64_t hvaSizeId[3];
@@ -2981,7 +2980,7 @@ public:
             }
 
             coherentMemory =
-                std::make_shared<CoherentMemory>(mapping, createBlob.size, enc, device, mem);
+                std::make_shared<CoherentMemory>(mapping, createBlob.size, device, mem);
         }
 
         coherentMemory->subAllocate(pAllocateInfo->allocationSize, &ptr, offset);
