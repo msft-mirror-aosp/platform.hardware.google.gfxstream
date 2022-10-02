@@ -69,8 +69,6 @@ class HostComposer : public Composer {
   void post(HostConnection* hostCon, ExtendedRCEncoderContext* rcEnc,
             buffer_handle_t h);
 
-  bool mIsMinigbm = false;
-
   int mSyncDeviceFd = -1;
 
   class CompositionResultBuffer {
@@ -114,6 +112,7 @@ class HostComposer : public Composer {
 
   std::unordered_map<hwc2_display_t, HostComposerDisplayInfo> mDisplayInfos;
   DrmPresenter* mDrmPresenter;
+  bool mIsMinigbm = false;
 };
 
 }  // namespace android
