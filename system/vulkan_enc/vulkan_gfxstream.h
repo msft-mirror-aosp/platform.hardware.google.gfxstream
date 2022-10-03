@@ -32,25 +32,25 @@ extern "C" {
 #define VK_GOOGLE_GFXSTREAM_NUMBER 386
 #define VK_GOOGLE_GFXSTREAM_EXTENSION_NAME "VK_GOOGLE_gfxstream"
 typedef struct VkImportColorBufferGOOGLE {
-  VkStructureType sType;
-  void* pNext;
-  uint32_t colorBuffer;
+    VkStructureType sType;
+    void* pNext;
+    uint32_t colorBuffer;
 } VkImportColorBufferGOOGLE;
 
 typedef struct VkImportBufferGOOGLE {
-  VkStructureType sType;
-  void* pNext;
-  uint32_t buffer;
+    VkStructureType sType;
+    void* pNext;
+    uint32_t buffer;
 } VkImportBufferGOOGLE;
 
 typedef struct VkImportPhysicalAddressGOOGLE {
-  VkStructureType sType;
-  void* pNext;
-  uint64_t physicalAddress;
-  VkDeviceSize size;
-  VkFormat format;
-  VkImageTiling tiling;
-  uint32_t tilingParameter;
+    VkStructureType sType;
+    void* pNext;
+    uint64_t physicalAddress;
+    VkDeviceSize size;
+    VkFormat format;
+    VkImageTiling tiling;
+    uint32_t tilingParameter;
 } VkImportPhysicalAddressGOOGLE;
 
 typedef VkResult(VKAPI_PTR* PFN_vkRegisterImageColorBufferGOOGLE)(VkDevice device, VkImage image,
