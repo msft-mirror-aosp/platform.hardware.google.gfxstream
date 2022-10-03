@@ -37,22 +37,22 @@
 
 namespace goldfish_vk {
 class ResourceTracker;
-#define LIST_TRIVIAL_TRANSFORMED_TYPES(f)    \
-  f(VkPhysicalDeviceExternalImageFormatInfo) \
-  f(VkPhysicalDeviceExternalBufferInfo)      \
-  f(VkExternalMemoryImageCreateInfo)         \
-  f(VkExternalMemoryBufferCreateInfo)        \
-  f(VkExportMemoryAllocateInfo)              \
-  f(VkExternalImageFormatProperties)         \
-  f(VkExternalBufferProperties)
+#define LIST_TRIVIAL_TRANSFORMED_TYPES(f)      \
+    f(VkPhysicalDeviceExternalImageFormatInfo) \
+    f(VkPhysicalDeviceExternalBufferInfo)      \
+    f(VkExternalMemoryImageCreateInfo)         \
+    f(VkExternalMemoryBufferCreateInfo)        \
+    f(VkExportMemoryAllocateInfo)              \
+    f(VkExternalImageFormatProperties)         \
+    f(VkExternalBufferProperties)
 
 #define LIST_NON_TRIVIAL_TRANSFORMED_TYPES(f) \
-  f(VkExternalMemoryProperties)               \
-  f(VkImageCreateInfo)
+    f(VkExternalMemoryProperties)             \
+    f(VkImageCreateInfo)
 
-#define LIST_TRANSFORMED_TYPES(f)   \
-  LIST_TRIVIAL_TRANSFORMED_TYPES(f) \
-  LIST_NON_TRIVIAL_TRANSFORMED_TYPES(f)
+#define LIST_TRANSFORMED_TYPES(f)     \
+    LIST_TRIVIAL_TRANSFORMED_TYPES(f) \
+    LIST_NON_TRIVIAL_TRANSFORMED_TYPES(f)
 
 #ifdef VK_VERSION_1_0
 void transform_tohost_VkExtent2D(ResourceTracker* resourceTracker, VkExtent2D* toTransform);
