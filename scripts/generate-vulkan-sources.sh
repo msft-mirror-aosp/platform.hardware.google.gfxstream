@@ -52,7 +52,7 @@ export VK_CEREAL_GUEST_HAL_DIR=$VK_CEREAL_GUEST_DIR/system/vulkan
 export VK_CEREAL_HOST_DECODER_DIR=$VK_CEREAL_HOST_DIR/stream-servers/vulkan
 export VK_CEREAL_HOST_INCLUDE_DIR=$VK_CEREAL_HOST_DIR/stream-servers
 export VK_CEREAL_HOST_SCRIPTS_DIR=$VK_CEREAL_HOST_DIR/scripts
-export VK_CEREAL_BASELIB_PREFIX=base
+export VK_CEREAL_BASELIB_PREFIX=aemu/base
 export VK_CEREAL_BASELIB_LINKNAME=gfxstream-base.headers
 export VK_CEREAL_VK_HEADER_TARGET=gfxstream_vulkan_headers
 
