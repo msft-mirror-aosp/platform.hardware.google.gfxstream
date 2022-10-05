@@ -20,8 +20,10 @@
 #endif
 
 #include <assert.h>
+
 #include "HostConnection.h"
 #include "ThreadInfo.h"
+#include "android/base/threads/AndroidThread.h"
 #include "eglDisplay.h"
 #include "eglSync.h"
 #include "egl_ftable.h"
@@ -61,6 +63,9 @@
 #include <cutils/trace.h>
 
 #include <system/window.h>
+
+using android::base::guest::getCurrentThreadId;
+
 #define DEBUG_EGL 0
 
 #if DEBUG_EGL
@@ -101,15 +106,17 @@ const char *  eglStrError(EGLint err)
 
 #ifdef LOG_EGL_ERRORS
 
-#define setErrorReturn(error, retVal)     \
-    {                                                \
-        ALOGE("tid %d: %s(%d): error 0x%x (%s)", getCurrentThreadId(), __FUNCTION__, __LINE__, error, eglStrError(error));     \
-        return setErrorFunc(error, retVal);            \
+#define setErrorReturn(error, retVal)                                                           \
+    {                                                                                           \
+        ALOGE("tid %lu: %s(%d): error 0x%x (%s)", getCurrentThreadId(), __FUNCTION__, __LINE__, \
+              error, eglStrError(error));                                                       \
+        return setErrorFunc(error, retVal);                                                     \
     }
 
-#define RETURN_ERROR(ret,err)           \
-    ALOGE("tid %d: %s(%d): error 0x%x (%s)", getCurrentThreadId(), __FUNCTION__, __LINE__, err, eglStrError(err));    \
-    getEGLThreadInfo()->eglError = err;    \
+#define RETURN_ERROR(ret, err)                                                                   \
+    ALOGE("tid %lu: %s(%d): error 0x%x (%s)", getCurrentThreadId(), __FUNCTION__, __LINE__, err, \
+          eglStrError(err));                                                                     \
+    getEGLThreadInfo()->eglError = err;                                                          \
     return ret;
 
 #else //!LOG_EGL_ERRORS
