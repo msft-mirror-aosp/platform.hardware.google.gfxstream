@@ -367,26 +367,13 @@ HWC2::Error HostComposer::onDisplayCreate(Display* display) {
     hostCon->unlock();
   } else {
     // Secondary display:
-    static constexpr const uint32_t kHostDisplayIdStart = 6;
-
-    uint32_t expectedHostDisplayId = kHostDisplayIdStart + displayId - 1;
-    uint32_t actualHostDisplayId = 0;
-
     hostCon->lock();
-    rcEnc->rcDestroyDisplay(rcEnc, expectedHostDisplayId);
-    rcEnc->rcCreateDisplay(rcEnc, &actualHostDisplayId);
-    rcEnc->rcSetDisplayPose(rcEnc, actualHostDisplayId, -1, -1, displayWidth,
+    rcEnc->rcDestroyDisplay(rcEnc, displayId);
+    rcEnc->rcCreateDisplayById(rcEnc, displayId);
+    rcEnc->rcSetDisplayPose(rcEnc, displayId, -1, -1, displayWidth,
                             displayHeight);
     hostCon->unlock();
-
-    if (actualHostDisplayId != expectedHostDisplayId) {
-      ALOGE(
-          "Something wrong with host displayId allocation, expected %d "
-          "but received %d",
-          expectedHostDisplayId, actualHostDisplayId);
-    }
-
-    hostDisplayId = actualHostDisplayId;
+    hostDisplayId = displayId;
   }
 
   error = createHostComposerDisplayInfo(display, hostDisplayId);
