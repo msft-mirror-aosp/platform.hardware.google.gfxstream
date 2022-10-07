@@ -260,11 +260,13 @@ def emit_dispatch_call(api, cgen):
         cgen.stmt("unlock()")
 
 
-def emit_global_state_wrapped_call(api, cgen, logger=False):
+def emit_global_state_wrapped_call(api, cgen, logger=False, context=False):
     customParams = ["pool", "(VkCommandBuffer)(boxed_dispatchHandle)"] + \
         list(map(lambda p: p.paramName, api.parameters[1:]))
     if logger:
         customParams += ["gfx_logger"];
+    if context:
+        customParams += ["context"];
     cgen.vkApiCall(api, customPrefix=global_state_prefix,
                    customParameters=customParams, checkForDeviceLost=True, globalStatePrefix=global_state_prefix)
 
@@ -282,9 +284,12 @@ def emit_global_state_wrapped_decoding_with_logger(typeInfo, api, cgen):
     emit_decode_parameters(typeInfo, api, cgen, globalWrapped=True)
     emit_global_state_wrapped_call(api, cgen, logger=True)
 
+def emit_global_state_wrapped_decoding_with_context(typeInfo, api, cgen):
+    emit_decode_parameters(typeInfo, api, cgen, globalWrapped=True)
+    emit_global_state_wrapped_call(api, cgen, context=True)
 
 custom_decodes = {
-    "vkCmdCopyBufferToImage": emit_global_state_wrapped_decoding,
+    "vkCmdCopyBufferToImage": emit_global_state_wrapped_decoding_with_context,
     "vkCmdCopyImage": emit_global_state_wrapped_decoding,
     "vkCmdCopyImageToBuffer": emit_global_state_wrapped_decoding,
     "vkCmdExecuteCommands": emit_global_state_wrapped_decoding,
