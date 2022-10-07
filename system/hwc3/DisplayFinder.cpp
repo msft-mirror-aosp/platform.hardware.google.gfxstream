@@ -213,11 +213,11 @@ HWC3::Error findNoOpDisplays(std::vector<DisplayMultiConfigs>* outDisplays) {
   return HWC3::Error::None;
 }
 
-HWC3::Error findDrmDisplays(const DrmPresenter& drm,
+HWC3::Error findDrmDisplays(const DrmClient& drm,
                             std::vector<DisplayMultiConfigs>* outDisplays) {
   outDisplays->clear();
 
-  std::vector<DrmPresenter::DisplayConfig> drmDisplayConfigs;
+  std::vector<DrmClient::DisplayConfig> drmDisplayConfigs;
 
   HWC3::Error error = drm.getDisplayConfigs(&drmDisplayConfigs);
   if (error != HWC3::Error::None) {
@@ -225,7 +225,7 @@ HWC3::Error findDrmDisplays(const DrmPresenter& drm,
     return error;
   }
 
-  for (const DrmPresenter::DisplayConfig drmDisplayConfig : drmDisplayConfigs) {
+  for (const DrmClient::DisplayConfig drmDisplayConfig : drmDisplayConfigs) {
     outDisplays->push_back(DisplayMultiConfigs{
       .displayId = drmDisplayConfig.id,
       .activeConfigId = static_cast<int32_t>(drmDisplayConfig.id),
@@ -245,7 +245,7 @@ HWC3::Error findDrmDisplays(const DrmPresenter& drm,
 
 }  // namespace
 
-HWC3::Error findDisplays(const DrmPresenter* drm,
+HWC3::Error findDisplays(const DrmClient* drm,
                          std::vector<DisplayMultiConfigs>* outDisplays) {
   HWC3::Error error = HWC3::Error::None;
   if (IsInNoOpCompositionMode()) {
