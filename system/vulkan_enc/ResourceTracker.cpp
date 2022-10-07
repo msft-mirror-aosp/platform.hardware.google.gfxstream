@@ -2867,12 +2867,76 @@ public:
     }
 #endif
 
-    VkResult allocateCoherentMemory(VkDevice device, const VkMemoryAllocateInfo *pAllocateInfo,
-                                    VkEncoder *enc, VkDeviceMemory* pMemory) {
+    CoherentMemoryPtr createCoherentMemory(VkDevice device,
+                                           VkDeviceMemory mem,
+                                           const VkMemoryAllocateInfo& hostAllocationInfo,
+                                           VkEncoder* enc,
+                                           VkResult& res)
+    {
+        CoherentMemoryPtr coherentMemory = nullptr;
+        if (mFeatureInfo->hasDirectMem) {
+            uint64_t gpuAddr = 0;
+            GoldfishAddressSpaceBlockPtr block = nullptr;
+            res = enc->vkMapMemoryIntoAddressSpaceGOOGLE(device, mem, &gpuAddr, true);
+            if (res != VK_SUCCESS) {
+                return coherentMemory;
+            }
+            {
+                AutoLock<RecursiveLock> lock(mLock);
+                auto it = info_VkDeviceMemory.find(mem);
+                if (it == info_VkDeviceMemory.end()) {
+                     res = VK_ERROR_OUT_OF_HOST_MEMORY;
+                     return coherentMemory;
+                }
+                auto& info = it->second;
+                block = info.goldfishBlock;
+                info.goldfishBlock = nullptr;
 
+                coherentMemory =
+                    std::make_shared<CoherentMemory>(block, gpuAddr, hostAllocationInfo.allocationSize, device, mem);
+            }
+        } else if (mFeatureInfo->hasVirtioGpuNext) {
+            struct VirtGpuCreateBlob createBlob = { 0 };
+            uint64_t hvaSizeId[3];
+            res = enc->vkGetMemoryHostAddressInfoGOOGLE(device, mem,
+                    &hvaSizeId[0], &hvaSizeId[1], &hvaSizeId[2], true /* do lock */);
+            if(res != VK_SUCCESS) {
+                return coherentMemory;
+            }
+            {
+                AutoLock<RecursiveLock> lock(mLock);
+                VirtGpuDevice& instance = VirtGpuDevice::getInstance((enum VirtGpuCapset)3);
+                createBlob.blobMem = kBlobMemHost3d;
+                createBlob.flags = kBlobFlagMappable;
+                createBlob.blobId = hvaSizeId[2];
+                createBlob.size = hostAllocationInfo.allocationSize;
+
+                auto blob = instance.createBlob(createBlob);
+                if (!blob) {
+                    res = VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                    return coherentMemory;
+                }
+
+                VirtGpuBlobMappingPtr mapping = blob->createMapping();
+                if (!mapping) {
+                    res = VK_ERROR_OUT_OF_DEVICE_MEMORY;
+                    return coherentMemory;
+                }
+
+                coherentMemory =
+                    std::make_shared<CoherentMemory>(mapping, createBlob.size, device, mem);
+            }
+        } else {
+            ALOGE("FATAL: Unsupported virtual memory feature");
+            abort();
+        }
+        return coherentMemory;
+    }
+
+  VkResult allocateCoherentMemory(VkDevice device, const VkMemoryAllocateInfo *pAllocateInfo,
+                                    VkEncoder *enc, VkDeviceMemory* pMemory) {
         uint64_t offset = 0;
         uint8_t *ptr = nullptr;
-        struct VkDeviceMemory_Info info;
         VkMemoryAllocateFlagsInfo allocFlagsInfo;
         VkMemoryOpaqueCaptureAddressAllocateInfo opaqueCaptureAddressAllocInfo;
 
@@ -2917,83 +2981,40 @@ public:
         }
 
         VkDeviceMemory mem = VK_NULL_HANDLE;
-        mLock.unlock();
         VkResult host_res =
         enc->vkAllocateMemory(device, &hostAllocationInfo, nullptr,
                               &mem, true /* do lock */);
-        mLock.lock();
-
+        if(host_res != VK_SUCCESS) {
+            return host_res;
+        }
+        struct VkDeviceMemory_Info info;
         info.coherentMemorySize = hostAllocationInfo.allocationSize;
         info.memoryTypeIndex = hostAllocationInfo.memoryTypeIndex;
         info.device = device;
         info.dedicated = dedicated;
-
-        info_VkDeviceMemory[mem] = info;
-
-        CoherentMemoryPtr coherentMemory = nullptr;
-        if (mFeatureInfo->hasDirectMem) {
-            VkResult vkResult;
-            uint64_t gpuAddr = 0;
-            GoldfishAddressSpaceBlockPtr block = nullptr;
-
-            mLock.unlock();
-            vkResult = enc->vkMapMemoryIntoAddressSpaceGOOGLE(device, mem, &gpuAddr, true);
-            mLock.lock();
-
-            if (vkResult != VK_SUCCESS)
-                return vkResult;
-
-            auto it = info_VkDeviceMemory.find(mem);
-            if (it == info_VkDeviceMemory.end()) {
-                return VK_ERROR_OUT_OF_HOST_MEMORY;
-            }
-
-            auto& info = it->second;
-            block = info.goldfishBlock;
-            info.goldfishBlock = nullptr;
-
-            coherentMemory = std::make_shared<CoherentMemory>(
-                block, gpuAddr, hostAllocationInfo.allocationSize, device, mem);
-        } else if (mFeatureInfo->hasVirtioGpuNext) {
-            struct VirtGpuCreateBlob createBlob = { 0 };
-            uint64_t hvaSizeId[3];
-
-            mLock.unlock();
-            enc->vkGetMemoryHostAddressInfoGOOGLE(device, mem,
-                    &hvaSizeId[0], &hvaSizeId[1], &hvaSizeId[2], true /* do lock */);
-            mLock.lock();
-
-            VirtGpuDevice& instance = VirtGpuDevice::getInstance((enum VirtGpuCapset)3);
-            createBlob.blobMem = kBlobMemHost3d;
-            createBlob.flags = kBlobFlagMappable;
-            createBlob.blobId = hvaSizeId[2];
-            createBlob.size = hostAllocationInfo.allocationSize;
-
-            auto blob = instance.createBlob(createBlob);
-            if (!blob) {
-                return VK_ERROR_OUT_OF_DEVICE_MEMORY;
-            }
-
-            VirtGpuBlobMappingPtr mapping = blob->createMapping();
-            if (!mapping) {
-                return VK_ERROR_OUT_OF_DEVICE_MEMORY;
-            }
-
-            coherentMemory =
-                std::make_shared<CoherentMemory>(mapping, createBlob.size, device, mem);
+        {
+            // createCoherentMemory inside need to access info_VkDeviceMemory
+            // information. set it before use.
+            AutoLock<RecursiveLock> lock(mLock);
+            info_VkDeviceMemory[mem] = info;
         }
-
-        coherentMemory->subAllocate(pAllocateInfo->allocationSize, &ptr, offset);
-
-        info.allocationSize = pAllocateInfo->allocationSize;
-        info.coherentMemoryOffset = offset;
-        info.coherentMemory = coherentMemory;
-        info.ptr = ptr;
-
-        info_VkDeviceMemory[mem] = info;
-        *pMemory = mem;
-
-        return VK_SUCCESS;
+        auto coherentMemory = createCoherentMemory(device, mem, hostAllocationInfo, enc, host_res);
+        if(coherentMemory) {
+            AutoLock<RecursiveLock> lock(mLock);
+            coherentMemory->subAllocate(pAllocateInfo->allocationSize, &ptr, offset);
+            info.allocationSize = pAllocateInfo->allocationSize;
+            info.coherentMemoryOffset = offset;
+            info.coherentMemory = coherentMemory;
+            info.ptr = ptr;
+            info_VkDeviceMemory[mem] = info;
+            *pMemory = mem;
+        }
+        else {
+            enc->vkFreeMemory(device, mem, nullptr, true);
+            AutoLock<RecursiveLock> lock(mLock);
+            info_VkDeviceMemory.erase(mem);
+        }
+        return host_res;
     }
 
     VkResult getCoherentMemory(const VkMemoryAllocateInfo* pAllocateInfo, VkEncoder* enc,
@@ -3013,43 +3034,40 @@ public:
         CoherentMemoryPtr coherentMemory = nullptr;
         uint8_t *ptr = nullptr;
         uint64_t offset = 0;
-        for (const auto &[memory, info] : info_VkDeviceMemory) {
-            if (info.memoryTypeIndex != pAllocateInfo->memoryTypeIndex)
-                continue;
+        {
+            AutoLock<RecursiveLock> lock(mLock);
+            for (const auto &[memory, info] : info_VkDeviceMemory) {
+                if (info.memoryTypeIndex != pAllocateInfo->memoryTypeIndex)
+                    continue;
 
-            if (info.dedicated || dedicated)
-                continue;
+                if (info.dedicated || dedicated)
+                    continue;
 
-            if (!info.coherentMemory)
-                continue;
+                if (!info.coherentMemory)
+                    continue;
 
-            if (!info.coherentMemory->subAllocate(pAllocateInfo->allocationSize, &ptr, offset))
-                continue;
+                if (!info.coherentMemory->subAllocate(pAllocateInfo->allocationSize, &ptr, offset))
+                    continue;
 
-            coherentMemory = info.coherentMemory;
-            break;
-        }
+                coherentMemory = info.coherentMemory;
+                break;
+            }
+            if (coherentMemory) {
+                struct VkDeviceMemory_Info info;
+                info.coherentMemoryOffset = offset;
+                info.ptr = ptr;
+                info.memoryTypeIndex = pAllocateInfo->memoryTypeIndex;
+                info.allocationSize = pAllocateInfo->allocationSize;
+                info.coherentMemory = coherentMemory;
+                info.device = device;
 
-        struct VkDeviceMemory_Info info;
-        if (coherentMemory) {
-            info.coherentMemoryOffset = offset;
-            info.ptr = ptr;
-            info.memoryTypeIndex = pAllocateInfo->memoryTypeIndex;
-            info.allocationSize = pAllocateInfo->allocationSize;
-            info.coherentMemory = coherentMemory;
-            info.device = device;
-
-            auto mem = new_from_host_VkDeviceMemory(VK_NULL_HANDLE);
-            info_VkDeviceMemory[mem] = info;
-            *pMemory = mem;
-        } else {
-            VkResult result = allocateCoherentMemory(device, pAllocateInfo, enc, pMemory);
-            if (result != VK_SUCCESS) {
-                return result;
+                auto mem = new_from_host_VkDeviceMemory(VK_NULL_HANDLE);
+                info_VkDeviceMemory[mem] = info;
+                *pMemory = mem;
+                return VK_SUCCESS;
             }
         }
-
-        return VK_SUCCESS;
+        return allocateCoherentMemory(device, pAllocateInfo, enc, pMemory);
     }
 
     uint64_t getAHardwareBufferId(AHardwareBuffer* ahw) {
@@ -3707,8 +3725,6 @@ public:
 #endif
 
         // Host visible memory with direct mapping
-        AutoLock<RecursiveLock> lock(mLock);
-
         VkResult result = getCoherentMemory(&finalAllocInfo, enc, device, pMemory);
         if (result != VK_SUCCESS)
             return result;
