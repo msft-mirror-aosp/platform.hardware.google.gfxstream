@@ -1,39 +1,39 @@
 /*
-* Copyright (C) 2011 The Android Open Source Project
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
-#include <string.h>
-#include <pthread.h>
-#include <limits.h>
+ * Copyright (C) 2011 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include <cutils/ashmem.h>
-#include <unistd.h>
-#include <errno.h>
 #include <dlfcn.h>
-#include <sys/mman.h>
-#include <hardware/gralloc.h>
-
+#include <errno.h>
 #include <gralloc_cb_bp.h>
-#include "gralloc_common.h"
+#include <hardware/gralloc.h>
+#include <limits.h>
+#include <pthread.h>
+#include <qemu_pipe_bp.h>
+#include <string.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
-#include "goldfish_dma.h"
-#include "goldfish_address_space.h"
 #include "FormatConversions.h"
 #include "HostConnection.h"
 #include "ProcessPipe.h"
 #include "ThreadInfo.h"
+#include "android/base/threads/AndroidThread.h"
 #include "glUtils.h"
-#include <qemu_pipe_bp.h>
+#include "goldfish_address_space.h"
+#include "goldfish_dma.h"
+#include "gralloc_common.h"
 
 #if PLATFORM_SDK_VERSION < 26
 #include <cutils/log.h>
@@ -78,6 +78,8 @@ static const bool isHidlGralloc = true;
 #else
 static const bool isHidlGralloc = false;
 #endif
+
+using android::base::guest::getCurrentThreadId;
 
 const uint32_t CB_HANDLE_MAGIC_OLD = CB_HANDLE_MAGIC_BASE | 0x1;
 
@@ -819,8 +821,8 @@ static int gralloc_alloc(alloc_device_t* dev,
         }
     }
 
-    D("gralloc_alloc format=%d, ashmem_size=%d, stride=%d, tid %d\n", format,
-      ashmem_size, stride, getCurrentThreadId());
+    D("gralloc_alloc format=%d, ashmem_size=%d, stride=%d, tid %lu\n", format, ashmem_size, stride,
+      getCurrentThreadId());
 
     //
     // Allocate space in ashmem if needed

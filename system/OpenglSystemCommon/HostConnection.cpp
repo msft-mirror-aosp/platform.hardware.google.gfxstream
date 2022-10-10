@@ -15,6 +15,7 @@
 */
 #include "HostConnection.h"
 
+#include "android/base/threads/AndroidThread.h"
 #include "cutils/properties.h"
 #include "renderControl_types.h"
 
@@ -83,6 +84,8 @@ using goldfish_vk::VkEncoder;
 #include "ThreadInfo.h"
 #include <gralloc_cb_bp.h>
 #include <unistd.h>
+
+using android::base::guest::getCurrentThreadId;
 
 #ifdef VIRTIO_GPU
 
@@ -568,8 +571,8 @@ std::unique_ptr<HostConnection> HostConnection::connect(uint32_t capset_id) {
     *pClientFlags = 0;
     con->m_stream->commitBuffer(sizeof(unsigned int));
 
-    DPRINT("HostConnection::get() New Host Connection established %p, tid %d\n",
-          con.get(), getCurrentThreadId());
+    DPRINT("HostConnection::get() New Host Connection established %p, tid %lu\n", con.get(),
+           getCurrentThreadId());
 
 #if defined(__linux__) || defined(__ANDROID__)
     auto rcEnc = con->rcEncoder();
@@ -648,8 +651,7 @@ GLEncoder *HostConnection::glEncoder()
 {
     if (!m_glEnc) {
         m_glEnc = std::make_unique<GLEncoder>(m_stream, checksumHelper());
-        DBG("HostConnection::glEncoder new encoder %p, tid %d",
-            m_glEnc, getCurrentThreadId());
+        DBG("HostConnection::glEncoder new encoder %p, tid %lu", m_glEnc, getCurrentThreadId());
         m_glEnc->setContextAccessor(s_getGLContext);
     }
     return m_glEnc.get();
@@ -660,8 +662,7 @@ GL2Encoder *HostConnection::gl2Encoder()
     if (!m_gl2Enc) {
         m_gl2Enc =
             std::make_unique<GL2Encoder>(m_stream, checksumHelper());
-        DBG("HostConnection::gl2Encoder new encoder %p, tid %d",
-            m_gl2Enc, getCurrentThreadId());
+        DBG("HostConnection::gl2Encoder new encoder %p, tid %lu", m_gl2Enc, getCurrentThreadId());
         m_gl2Enc->setContextAccessor(s_getGL2Context);
         m_gl2Enc->setNoHostError(m_noHostError);
         m_gl2Enc->setDrawCallFlushInterval(
