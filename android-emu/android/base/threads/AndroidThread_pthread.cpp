@@ -204,7 +204,7 @@ unsigned long getCurrentThreadId() {
     // Instead, just pick up the first sizeof(long) bytes as the "id".
     static_assert(sizeof(thread) >= sizeof(long),
                   "Expected pthread_t to be at least sizeof(long) wide");
-    auto tid = *reinterpret_cast<unsigned long*>(&tid);
+    unsigned long tid = *reinterpret_cast<unsigned long*>(&tid);
 #endif
     static_assert(sizeof(tid) <= sizeof(long),
                   "Expected thread handle to be at most sizeof(long) wide");
