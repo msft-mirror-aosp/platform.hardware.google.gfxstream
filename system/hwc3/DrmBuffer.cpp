@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef ANDROID_HWC_DISPLAYFINDER_H
-#define ANDROID_HWC_DISPLAYFINDER_H
+#include "DrmBuffer.h"
 
-#include <optional>
-#include <vector>
-
-#include "Common.h"
-#include "DisplayConfig.h"
 #include "DrmClient.h"
 
 namespace aidl::android::hardware::graphics::composer3::impl {
 
-struct DisplayMultiConfigs {
-  int64_t displayId;
-  int32_t activeConfigId;
-  // Modes that this display can be configured to use.
-  std::vector<DisplayConfig> configs;
-};
+DrmBuffer::DrmBuffer(DrmClient& DrmClient) : mDrmClient(DrmClient) {}
 
-HWC3::Error findDisplays(const DrmClient* drm,
-                         std::vector<DisplayMultiConfigs>* outDisplays);
+DrmBuffer::~DrmBuffer() { mDrmClient.destroyDrmFramebuffer(this); }
 
 }  // namespace aidl::android::hardware::graphics::composer3::impl
-
-#endif
