@@ -410,9 +410,9 @@ std::optional<BufferSpec> GetBufferSpec(GrallocBuffer& buffer,
 HWC3::Error GuestFrameComposer::init() {
   DEBUG_LOG("%s", __FUNCTION__);
 
-  HWC3::Error error = mDrmPresenter.init();
+  HWC3::Error error = mDrmClient.init();
   if (error != HWC3::Error::None) {
-    ALOGE("%s: failed to initialize DrmPresenter", __FUNCTION__);
+    ALOGE("%s: failed to initialize DrmClient", __FUNCTION__);
     return error;
   }
 
@@ -421,12 +421,12 @@ HWC3::Error GuestFrameComposer::init() {
 
 HWC3::Error GuestFrameComposer::registerOnHotplugCallback(
     const HotplugCallback& cb) {
-  return mDrmPresenter.registerOnHotplugCallback(cb);
+  return mDrmClient.registerOnHotplugCallback(cb);
   return HWC3::Error::None;
 }
 
 HWC3::Error GuestFrameComposer::unregisterOnHotplugCallback() {
-  return mDrmPresenter.unregisterOnHotplugCallback();
+  return mDrmClient.unregisterOnHotplugCallback();
 }
 
 HWC3::Error GuestFrameComposer::onDisplayCreate(Display* display) {
@@ -487,7 +487,7 @@ HWC3::Error GuestFrameComposer::onDisplayCreate(Display* display) {
 
   displayInfo.compositionResultBuffer = bufferHandle;
 
-  auto [drmBufferCreateError, drmBuffer] = mDrmPresenter.create(bufferHandle);
+  auto [drmBufferCreateError, drmBuffer] = mDrmClient.create(bufferHandle);
   if (drmBufferCreateError != HWC3::Error::None) {
     ALOGE("%s: failed to create drm buffer for display:%" PRIu64, __FUNCTION__,
           displayId);
@@ -496,8 +496,8 @@ HWC3::Error GuestFrameComposer::onDisplayCreate(Display* display) {
   displayInfo.compositionResultDrmBuffer = std::move(drmBuffer);
 
   if (displayId == 0) {
-    auto [flushError, flushSyncFd] = mDrmPresenter.flushToDisplay(
-        displayId, *displayInfo.compositionResultDrmBuffer, -1);
+    auto [flushError, flushSyncFd] = mDrmClient.flushToDisplay(
+        displayId, displayInfo.compositionResultDrmBuffer, -1);
     if (flushError != HWC3::Error::None) {
       ALOGW(
           "%s: Initial display flush failed. HWComposer assuming that we are "
@@ -507,7 +507,7 @@ HWC3::Error GuestFrameComposer::onDisplayCreate(Display* display) {
     }
   }
 
-  std::optional<std::vector<uint8_t>> edid = mDrmPresenter.getEdid(displayId);
+  std::optional<std::vector<uint8_t>> edid = mDrmClient.getEdid(displayId);
   if (edid) {
     display->setEdid(*edid);
   }
@@ -888,8 +888,8 @@ HWC3::Error GuestFrameComposer::presentDisplay(
   DEBUG_LOG("%s display:%" PRIu64 " flushing drm buffer", __FUNCTION__,
             displayId);
 
-  auto [error, fence] = mDrmPresenter.flushToDisplay(
-      displayId, *displayInfo.compositionResultDrmBuffer, -1);
+  auto [error, fence] = mDrmClient.flushToDisplay(
+      displayId, displayInfo.compositionResultDrmBuffer, -1);
   if (error != HWC3::Error::None) {
     ALOGE("%s: display:%" PRIu64 " failed to flush drm buffer" PRIu64,
           __FUNCTION__, displayId);
