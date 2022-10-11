@@ -19,7 +19,7 @@
 
 #include "Common.h"
 #include "Display.h"
-#include "DrmPresenter.h"
+#include "DrmClient.h"
 #include "FrameComposer.h"
 #include "Gralloc.h"
 #include "Layer.h"
@@ -64,8 +64,8 @@ class ClientFrameComposer : public FrameComposer {
       std::unordered_map<int64_t, ::android::base::unique_fd>* outLayerFences)
       override;
 
-  const DrmPresenter* getDrmPresenter() const override {
-    return &mDrmPresenter;
+  const DrmClient* getDrmPresenter() const override {
+    return &mDrmClient;
   }
 
  private:
@@ -75,7 +75,7 @@ class ClientFrameComposer : public FrameComposer {
 
   std::unordered_map<int64_t, DisplayInfo> mDisplayInfos;
 
-  DrmPresenter mDrmPresenter;
+  DrmClient mDrmClient;
 };
 
 }  // namespace aidl::android::hardware::graphics::composer3::impl

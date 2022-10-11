@@ -1284,6 +1284,8 @@ HWC3::Error ComposerClient::createDisplayLocked(
     return error;
   }
 
+  display->setPowerMode(PowerMode::ON);
+
   DEBUG_LOG("%s: adding display:%" PRIu64, __FUNCTION__, displayId);
   mDisplays.emplace(displayId, std::move(display));
 
@@ -1319,6 +1321,10 @@ HWC3::Error ComposerClient::destroyDisplayLocked(int64_t displayId) {
     ALOGE("%s: display:%" PRId64 " no such display?", __FUNCTION__, displayId);
     return HWC3::Error::BadDisplay;
   }
+
+  Display* display = it->second.get();
+
+  display->setPowerMode(PowerMode::OFF);
 
   HWC3::Error error = mComposer->onDisplayDestroy(it->second.get());
   if (error != HWC3::Error::None) {

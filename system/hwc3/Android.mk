@@ -84,7 +84,15 @@ LOCAL_SRC_FILES := \
     DisplayConfig.cpp \
     DisplayFinder.cpp \
     Drm.cpp \
-    DrmPresenter.cpp \
+    DrmAtomicRequest.cpp \
+    DrmBuffer.cpp \
+    DrmClient.cpp \
+    DrmConnector.cpp \
+    DrmCrtc.cpp \
+    DrmDisplay.cpp \
+    DrmEventListener.cpp \
+    DrmMode.cpp \
+    DrmPlane.cpp \
     Gralloc.cpp \
     GuestFrameComposer.cpp \
     HostFrameComposer.cpp \
