@@ -167,6 +167,7 @@ target_include_directories(OpenglRender_vulkan_cereal
 """
 
         encoderInclude = """
+#include "android/base/AndroidHealthMonitor.h"
 #include "goldfish_vk_private_defs.h"
 #include <memory>
 class IOStream;
@@ -193,7 +194,11 @@ class IOStream;
 #include "goldfish_vk_private_defs.h"
 #include "goldfish_vk_transform_guest.h"
 
+#include <memory>
+#include <optional>
 #include <unordered_map>
+#include <string>
+#include <vector>
 
 """ % VULKAN_STREAM_TYPE_GUEST
 
