@@ -15,8 +15,8 @@
 */
 #include "AddressSpaceStream.h"
 
-#include "android/base/Tracing.h"
 #include "VirtGpu.h"
+#include "android/base/Tracing.h"
 #include "virtgpu_gfxstream_protocol.h"
 
 #if PLATFORM_SDK_VERSION < 26
@@ -28,13 +28,14 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
 
 static const size_t kReadSize = 512 * 1024;
 static const size_t kWriteOffset = kReadSize;
 
-AddressSpaceStream* createAddressSpaceStream(size_t ignored_bufSize) {
+AddressSpaceStream* createAddressSpaceStream(size_t ignored_bufSize,
+                                             HealthMonitor<>& healthMonitor) {
     // Ignore incoming ignored_bufSize
     (void)ignored_bufSize;
 
@@ -142,7 +143,7 @@ AddressSpaceStream* createAddressSpaceStream(size_t ignored_bufSize) {
     AddressSpaceStream* res =
         new AddressSpaceStream(
             child_device_handle, version, context,
-            ringOffset, bufferOffset, ops);
+            ringOffset, bufferOffset, ops, healthMonitor);
 
     return res;
 }
@@ -174,7 +175,7 @@ bool virtgpu_address_space_ping(address_space_handle_t fd, struct address_space_
     return true;
 }
 
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(void) {
+AddressSpaceStream* createVirtioGpuAddressSpaceStream(HealthMonitor<>& healthMonitor) {
     VirtGpuBlobPtr pipe, blob;
     VirtGpuBlobMappingPtr pipeMapping, blobMapping;
     struct VirtGpuExecBuffer exec = {};
@@ -236,7 +237,7 @@ AddressSpaceStream* createVirtioGpuAddressSpaceStream(void) {
     };
 
     AddressSpaceStream* res =
-            new AddressSpaceStream((address_space_handle_t)(-1), 1, context, 0, 0, ops);
+            new AddressSpaceStream((address_space_handle_t)(-1), 1, context, 0, 0, ops, healthMonitor);
 
     res->setMapping(blobMapping);
     res->setResourceId(contextCreate.resourceId);
@@ -249,7 +250,8 @@ AddressSpaceStream::AddressSpaceStream(
     struct asg_context context,
     uint64_t ringOffset,
     uint64_t writeBufferOffset,
-    struct address_space_ops ops) :
+    struct address_space_ops ops,
+    HealthMonitor<>& healthMonitor) :
     IOStream(context.ring_config->flush_interval),
     m_ops(ops),
     m_tmpBuf(0),
@@ -273,7 +275,8 @@ AddressSpaceStream::AddressSpaceStream(
     m_written(0),
     m_backoffIters(0),
     m_backoffFactor(1),
-    m_ringStorageSize(sizeof(struct asg_ring_storage) + m_writeBufferSize) {
+    m_ringStorageSize(sizeof(struct asg_ring_storage) + m_writeBufferSize),
+    m_healthMonitor(healthMonitor) {
     // We'll use this in the future, but at the moment,
     // it's a potential compile Werror.
     (void)m_ringStorageSize;
@@ -303,6 +306,7 @@ size_t AddressSpaceStream::idealAllocSize(size_t len) {
 }
 
 void *AddressSpaceStream::allocBuffer(size_t minSize) {
+    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor, "ASG watchdog").build();
     AEMU_SCOPED_TRACE("allocBuffer");
     ensureType3Finished();
 
@@ -450,6 +454,7 @@ const unsigned char *AddressSpaceStream::read(void *buf, size_t *inout_len) {
 
 int AddressSpaceStream::writeFully(const void *buf, size_t size)
 {
+    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor, "ASG watchdog").build();
     AEMU_SCOPED_TRACE("writeFully");
     ensureType3Finished();
     ensureType1Finished();
@@ -515,6 +520,7 @@ int AddressSpaceStream::writeFully(const void *buf, size_t size)
 
 int AddressSpaceStream::writeFullyAsync(const void *buf, size_t size)
 {
+    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor, "ASG watchdog").build();
     AEMU_SCOPED_TRACE("writeFullyAsync");
     ensureType3Finished();
     ensureType1Finished();
@@ -638,6 +644,7 @@ ssize_t AddressSpaceStream::speculativeRead(unsigned char* readBuffer, size_t tr
 }
 
 void AddressSpaceStream::notifyAvailable() {
+    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor, "ASG watchdog").build();
     AEMU_SCOPED_TRACE("PING");
     struct address_space_ping request;
     request.metadata = ASG_NOTIFY_AVAILABLE;
@@ -680,6 +687,7 @@ void AddressSpaceStream::ensureConsumerFinishing() {
 }
 
 void AddressSpaceStream::ensureType1Finished() {
+    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor, "ASG watchdog").build();
     AEMU_SCOPED_TRACE("ensureType1Finished");
 
     uint32_t currAvailRead =
@@ -696,6 +704,7 @@ void AddressSpaceStream::ensureType1Finished() {
 }
 
 void AddressSpaceStream::ensureType3Finished() {
+    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor, "ASG watchdog").build();
     AEMU_SCOPED_TRACE("ensureType3Finished");
     uint32_t availReadLarge =
         ring_buffer_available_read(
@@ -720,6 +729,7 @@ void AddressSpaceStream::ensureType3Finished() {
 
 int AddressSpaceStream::type1Write(uint32_t bufferOffset, size_t size) {
 
+    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor, "ASG watchdog").build();
     AEMU_SCOPED_TRACE("type1Write");
 
     ensureType3Finished();
