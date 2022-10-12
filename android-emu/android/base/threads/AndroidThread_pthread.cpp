@@ -24,6 +24,14 @@
 #ifndef _MSC_VER
 #include <unistd.h>
 #endif
+#ifdef __linux__
+#include <sys/syscall.h>
+#include <sys/types.h>
+#endif
+
+#ifdef __Fuchsia__
+#include <zircon/process.h>
+#endif
 
 namespace android {
 namespace base {
@@ -179,12 +187,28 @@ void Thread::yield() {
 }
 
 unsigned long getCurrentThreadId() {
-    pthread_t tid = pthread_self();
+#ifdef __ANDROID__
+    // bionic has an efficient implementation for gettid.
+    pid_t tid = gettid();
+#elif defined(__linux__)
+    // Linux doesn't always include an implementation of gettid, so we use syscall.
+    thread_local pid_t tid = -1;
+    if (tid == -1) {
+        tid = syscall(__NR_gettid);
+    }
+#elif defined(__Fuchsia__)
+    zx_handle_t tid = zx_thread_self();
+#else
+    pthread_t thread = pthread_self();
     // POSIX doesn't require pthread_t to be a numeric type.
     // Instead, just pick up the first sizeof(long) bytes as the "id".
-    static_assert(sizeof(tid) >= sizeof(long),
+    static_assert(sizeof(thread) >= sizeof(long),
                   "Expected pthread_t to be at least sizeof(long) wide");
-    return *reinterpret_cast<unsigned long*>(&tid);
+    unsigned long tid = *reinterpret_cast<unsigned long*>(&tid);
+#endif
+    static_assert(sizeof(tid) <= sizeof(long),
+                  "Expected thread handle to be at most sizeof(long) wide");
+    return static_cast<unsigned long>(tid);
 }
 
 }  // namespace guest

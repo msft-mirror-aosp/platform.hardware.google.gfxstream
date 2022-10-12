@@ -29,7 +29,7 @@
 #include "services/service_connector.h"
 
 #define GET_STATUS_SAFE(result, member) \
-    ((result).ok() ? ((result).Unwrap()->member) : ZX_OK)
+    ((result).ok() ? ((result)->member) : ZX_OK)
 
 constexpr size_t kReadSize = 512 * 1024;
 constexpr size_t kWriteOffset = kReadSize;
@@ -131,7 +131,7 @@ int QemuPipeStream::connect(void)
 
     {
         auto result = m_pipe->Write(len + 1, 0);
-        if (!result.ok() || result.Unwrap()->res != ZX_OK) {
+        if (!result.ok() || result->res != ZX_OK) {
             ALOGD("%s: connecting to pipe service failed: %d:%d", __FUNCTION__,
                   result.status(), GET_STATUS_SAFE(result, res));
             return -1;
@@ -166,7 +166,7 @@ void *QemuPipeStream::allocBuffer(size_t minSize)
 
     {
         auto result = m_pipe->SetBufferSize(allocSize);
-        if (!result.ok() || result.Unwrap()->res != ZX_OK) {
+        if (!result.ok() || result->res != ZX_OK) {
             ALOGE("%s: failed to get buffer: %d:%d", __FUNCTION__,
                   result.status(), GET_STATUS_SAFE(result, res));
             return nullptr;
@@ -176,12 +176,12 @@ void *QemuPipeStream::allocBuffer(size_t minSize)
     zx::vmo vmo;
     {
         auto result = m_pipe->GetBuffer();
-        if (!result.ok() || result.Unwrap()->res != ZX_OK) {
+        if (!result.ok() || result->res != ZX_OK) {
             ALOGE("%s: failed to get buffer: %d:%d", __FUNCTION__,
                   result.status(), GET_STATUS_SAFE(result, res));
             return nullptr;
         }
-        vmo = std::move(result.Unwrap()->vmo);
+        vmo = std::move(result->vmo);
     }
 
     zx_vaddr_t mapped_addr;
@@ -204,7 +204,7 @@ int QemuPipeStream::commitBuffer(size_t size)
     if (size == 0) return 0;
 
     auto result = m_pipe->DoCall(size, kWriteOffset, 0, 0);
-    if (!result.ok() || result.Unwrap()->res != ZX_OK) {
+    if (!result.ok() || result->res != ZX_OK) {
         ALOGD("%s: Pipe call failed: %d:%d", __FUNCTION__, result.status(),
               GET_STATUS_SAFE(result, res));
         return -1;
@@ -269,8 +269,8 @@ const unsigned char *QemuPipeStream::commitBufferAndReadFully(size_t size, void 
     }
 
     // Updated buffered read size.
-    if (result.Unwrap()->actual) {
-        m_read = m_readLeft = result.Unwrap()->actual;
+    if (result->actual) {
+        m_read = m_readLeft = result->actual;
     }
 
     // Consume buffered read and read more if neccessary.
@@ -292,13 +292,13 @@ const unsigned char *QemuPipeStream::commitBufferAndReadFully(size_t size, void 
             return nullptr;
         }
 
-        if (result.Unwrap()->actual) {
-            m_read = m_readLeft = result.Unwrap()->actual;
+        if (result->actual) {
+            m_read = m_readLeft = result->actual;
             continue;
         }
-        if (result.Unwrap()->res != ZX_ERR_SHOULD_WAIT) {
+        if (result->res != ZX_ERR_SHOULD_WAIT) {
             ALOGD("%s: Error reading from pipe: %d", __FUNCTION__,
-                  result.Unwrap()->res);
+                  result->res);
             return nullptr;
         }
 

@@ -20,6 +20,8 @@
 #include <cutils/native_handle.h>
 #include <qemu_pipe_types_bp.h>
 
+#include <cinttypes>
+
 const uint32_t CB_HANDLE_MAGIC_MASK = 0xFFFFFFF0;
 const uint32_t CB_HANDLE_MAGIC_BASE = 0xABFABFA0;
 

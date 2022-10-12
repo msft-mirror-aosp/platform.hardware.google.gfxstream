@@ -71,16 +71,15 @@ HWC2::Error ClientComposer::onDisplayClientTargetSet(Display* display) {
 
   DisplayInfo& displayInfo = it->second;
 
-  auto clientTargetNativeBuffer = display->getClientTarget().getBuffer();
-  auto clientTargetDrmBuffer =
-    std::make_unique<DrmBuffer>(clientTargetNativeBuffer, mDrmPresenter);
-  if (!clientTargetDrmBuffer) {
+  auto [drmBufferCreateError, drmBuffer] =
+    mDrmPresenter->create(display->getClientTarget().getBuffer());
+  if (drmBufferCreateError != HWC2::Error::None) {
     ALOGE("%s: display:%" PRIu64 " failed to create client target drm buffer",
           __FUNCTION__, displayId);
     return HWC2::Error::NoResources;
   }
+  displayInfo.clientTargetDrmBuffer = std::move(drmBuffer);
 
-  displayInfo.clientTargetDrmBuffer = std::move(clientTargetDrmBuffer);
 
   return HWC2::Error::None;
 }
@@ -126,12 +125,16 @@ std::tuple<HWC2::Error, base::unique_fd> ClientComposer::presentDisplay(
   }
 
   DisplayInfo& displayInfo = displayInfoIt->second;
+  if (!displayInfo.clientTargetDrmBuffer) {
+    ALOGW("%s: display:%" PRIu64 " no client target set, nothing to present.",
+          __FUNCTION__, displayId);
+    return std::make_tuple(HWC2::Error::None, base::unique_fd());
+  }
 
   auto clientTargetFence = display->getClientTarget().getFence();
 
-  auto [error, presentFence] =
-      displayInfo.clientTargetDrmBuffer->flushToDisplay(
-          static_cast<int>(displayId), clientTargetFence);
+  auto [error, presentFence] = mDrmPresenter->flushToDisplay(
+        displayId, *displayInfo.clientTargetDrmBuffer, clientTargetFence);
   if (error != HWC2::Error::None) {
     ALOGE("%s: display:%" PRIu64 " failed to flush drm buffer" PRIu64,
           __FUNCTION__, displayId);

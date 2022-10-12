@@ -450,7 +450,7 @@ struct private_module_t {
             RETURN_ERROR(nullptr);
         }
 
-        if ((m->id == GRALLOC_HARDWARE_MODULE_ID) && (m->name == GOLDFISH_GRALLOC_MODULE_NAME)) {
+        if (strcmp(m->id, GRALLOC_HARDWARE_MODULE_ID) == 0 && m->name == GOLDFISH_GRALLOC_MODULE_NAME) {
             return reinterpret_cast<private_module_t*>(const_cast<hw_module_t*>(m));
         } else {
             RETURN_ERROR(nullptr);

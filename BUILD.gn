@@ -6,6 +6,11 @@ shared_library("libvulkan_goldfish") {
     "android-emu/android/base/AndroidSubAllocator.cpp",
     "android-emu/android/base/AndroidSubAllocator.h",
     "android-emu/android/base/BumpPool.h",
+    "android-emu/android/base/AndroidHealthMonitor.cpp",
+    "android-emu/android/base/AndroidHealthMonitor.h",
+    "android-emu/android/base/AndroidHealthMonitorConsumer.h",
+    "android-emu/android/base/AndroidHealthMonitorConsumerBasic.cpp",
+    "android-emu/android/base/AndroidHealthMonitorConsumerBasic.h",
     "android-emu/android/base/Pool.cpp",
     "android-emu/android/base/Pool.h",
     "android-emu/android/base/Tracing.cpp",
@@ -28,6 +33,7 @@ shared_library("libvulkan_goldfish") {
     "android-emu/android/base/synchronization/AndroidLock.h",
     "android-emu/android/base/synchronization/AndroidMessageChannel.cpp",
     "android-emu/android/base/synchronization/AndroidMessageChannel.h",
+    "android-emu/android/base/testing/TestClock.h",
     "android-emu/android/base/threads/AndroidFunctorThread.cpp",
     "android-emu/android/base/threads/AndroidFunctorThread.h",
     "android-emu/android/base/threads/AndroidThread.h",
@@ -36,6 +42,10 @@ shared_library("libvulkan_goldfish") {
     "android-emu/android/base/threads/AndroidThread_pthread.cpp",
     "android-emu/android/base/threads/AndroidWorkPool.cpp",
     "android-emu/android/base/threads/AndroidWorkPool.h",
+    "platform/include/VirtGpu.h",
+    "platform/stub/VirtGpuBlob.cpp",
+    "platform/stub/VirtGpuBlobMapping.cpp",
+    "platform/stub/VirtGpuDevice.cpp",
     "shared/GoldfishAddressSpace/goldfish_address_space.cpp",
     "shared/GoldfishAddressSpace/include/goldfish_address_space.h",
     "shared/OpenglCodecCommon/ChecksumCalculator.cpp",
@@ -93,6 +103,8 @@ shared_library("libvulkan_goldfish") {
     "system/vulkan_enc/goldfish_vk_reserved_marshaling_guest.h",
     "system/vulkan_enc/goldfish_vk_transform_guest.cpp",
     "system/vulkan_enc/goldfish_vk_transform_guest.h",
+    "system/vulkan_enc/vulkan_gfxstream.h",
+    "system/vulkan_enc/vulkan_gfxstream_structure_type.h",
   ]
 
   include_dirs = [
@@ -113,6 +125,7 @@ shared_library("libvulkan_goldfish") {
     "LOG_TAG=\"goldfish_vulkan\"",
     "GFXSTREAM",
     "GOLDFISH_NO_GL",
+    "VK_GFXSTREAM_STRUCTURE_TYPE_EXT",
     "VK_USE_PLATFORM_FUCHSIA",
     "PLATFORM_SDK_VERSION=1",
     "PAGE_SIZE=4096",
@@ -161,23 +174,29 @@ shared_library("libvulkan_goldfish") {
 
     include_dirs += [
       "fuchsia/include",
+      "platform/include",
       "//third_party/Vulkan-Headers/include",
     ]
 
     deps = [
-      "//sdk/fidl/fuchsia.hardware.goldfish:fuchsia.hardware.goldfish_llcpp",
-      "//sdk/fidl/fuchsia.logger:fuchsia.logger_llcpp",
-      "//sdk/fidl/fuchsia.sysmem:fuchsia.sysmem_llcpp",
-      "//sdk/lib/fdio",
+      "//sdk/fidl/fuchsia.hardware.goldfish:fuchsia.hardware.goldfish_cpp_wire",
+      "//sdk/fidl/fuchsia.logger:fuchsia.logger_cpp_wire",
+      "//sdk/fidl/fuchsia.sysmem:fuchsia.sysmem_cpp_wire",
       "//src/zircon/lib/zircon",
-      "//zircon/public/lib/async-cpp",
-      "//zircon/public/lib/zx",
-      "//zircon/system/ulib/async-default",
+      "//zircon/system/ulib/async:async-cpp",
       "//zircon/system/ulib/async-loop:async-loop-cpp",
       "//zircon/system/ulib/syslog:syslog-static",
       "//zircon/system/ulib/trace:trace-with-static-engine",
       "//zircon/system/ulib/trace-provider:trace-provider-with-static-engine",
+      "//zircon/system/ulib/zx",
       "//zircon/system/ulib/zxio",
+    ]
+
+    # Vulkan ICDs on Fuchsia are only allowed to depend on (parts of) libc
+    # and libzircon, and no other shared libraries.
+    assert_no_deps = [
+      "//sdk/lib/fdio",
+      "//zircon/system/ulib/async-default",
     ]
 
     defines += [
