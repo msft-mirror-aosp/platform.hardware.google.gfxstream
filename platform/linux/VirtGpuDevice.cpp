@@ -75,13 +75,9 @@ VirtGpuDevice::VirtGpuDevice(enum VirtGpuCapset capset) {
         ctx_set_params[0].value = 1;
         init.num_params = 1;
 
-        // TODO(b/218538495): A KI in the 5.4 kernel will sometimes result in capsets not
-        // being properly queried.
-#if defined(__linux__) && !defined(__ANDROID__)
         ctx_set_params[1].param = VIRTGPU_CONTEXT_PARAM_CAPSET_ID;
         ctx_set_params[1].value = static_cast<uint32_t>(capset);
         init.num_params++;
-#endif
 
         init.ctx_set_params = (unsigned long long)&ctx_set_params[0];
         ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_CONTEXT_INIT, &init);
