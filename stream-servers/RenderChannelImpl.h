@@ -13,8 +13,8 @@
 // limitations under the License.
 #pragma once
 
-#include "base/BufferQueue.h"
-#include "RenderChannel.h"
+#include "aemu/base/containers/BufferQueue.h"
+#include "render-utils/RenderChannel.h"
 #include "RendererImpl.h"
 
 namespace emugl {

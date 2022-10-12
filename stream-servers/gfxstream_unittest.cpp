@@ -15,8 +15,9 @@
 #include <gtest/gtest.h>
 
 #include "GfxStreamBackend.h"
+#include "host-common/testing/MockGraphicsAgentFactory.h"
 #include "OSWindow.h"
-#include "base/System.h"
+#include "aemu/base/system/System.h"
 
 class GfxStreamBackendTest : public ::testing::Test {
 private:
@@ -51,6 +52,7 @@ protected:
           }) {}
 
     static void SetUpTestSuite() {
+        android::emulation::injectGraphicsAgents(android::emulation::MockGraphicsAgentFactory());
         if (useWindow) {
             window.reset(CreateOSWindow());
         }

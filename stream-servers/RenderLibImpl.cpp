@@ -14,9 +14,10 @@
 #include "RenderLibImpl.h"
 
 #include "FrameBuffer.h"
+#include "OpenGLESDispatch/EGLDispatch.h"
+#include "OpenGLESDispatch/DispatchTables.h"
 #include "RendererImpl.h"
-
-#include "base/Stream.h"
+#include "aemu/base/files/Stream.h"
 #include "host-common/address_space_device_control_ops.h"
 #include "host-common/crash_reporter.h"
 #include "host-common/dma_device.h"
@@ -24,9 +25,6 @@
 #include "host-common/logging.h"
 #include "host-common/misc.h"
 #include "host-common/sync_device.h"
-
-#include "OpenGLESDispatch/EGLDispatch.h"
-#include "OpenGLESDispatch/DispatchTables.h"
 
 namespace emugl {
 
@@ -57,7 +55,7 @@ void RenderLibImpl::setCrashReporter(emugl_crash_reporter_t reporter) {
 }
 
 void RenderLibImpl::setFeatureController(emugl_feature_is_enabled_t featureController) {
-    // set_emugl_feature_is_enabled(featureController);
+    android::featurecontrol::setFeatureEnabledCallback(featureController);
 }
 
 void RenderLibImpl::setSyncDevice
@@ -98,6 +96,11 @@ void RenderLibImpl::setUsageTracker(android::base::CpuUsage* cpuUsage,
                                     android::base::MemoryTracker* memUsage) {
     emugl::setCpuUsage(cpuUsage);
     emugl::setMemoryTracker(memUsage);
+}
+
+void RenderLibImpl::setGrallocImplementation(GrallocImplementation gralloc) {
+    // TODO(joshuaduong): need a full CP of go/oag/1950399
+    (void) gralloc;
 }
 
 void* RenderLibImpl::getGLESv2Dispatch(void) {

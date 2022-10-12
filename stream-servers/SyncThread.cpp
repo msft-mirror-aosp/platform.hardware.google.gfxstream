@@ -17,8 +17,9 @@
 #include "SyncThread.h"
 
 #include "OpenGLESDispatch/OpenGLDispatchLoader.h"
-#include "base/System.h"
-#include "base/Thread.h"
+#include "aemu/base/Metrics.h"
+#include "aemu/base/system/System.h"
+#include "aemu/base/threads/Thread.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/crash_reporter.h"
 #include "host-common/logging.h"
@@ -29,6 +30,7 @@
 #endif
 #include <memory>
 
+using android::base::EventHangMetadata;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 
@@ -66,10 +68,10 @@ class GlobalSyncThread {
 public:
     GlobalSyncThread() = default;
 
-    void initialize(bool noGL) {
+    void initialize(bool noGL, HealthMonitor<>& healthMonitor) {
         AutoLock mutex(mLock);
         SYNC_THREAD_CHECK(!mSyncThread);
-        mSyncThread = std::make_unique<SyncThread>(noGL);
+        mSyncThread = std::make_unique<SyncThread>(noGL, healthMonitor);
     }
     SyncThread* syncThreadPtr() {
         AutoLock mutex(mLock);
@@ -96,10 +98,14 @@ static GlobalSyncThread* sGlobalSyncThread() {
 static const uint32_t kTimelineInterval = 1;
 static const uint64_t kDefaultTimeoutNsecs = 5ULL * 1000ULL * 1000ULL * 1000ULL;
 
-SyncThread::SyncThread(bool noGL)
+SyncThread::SyncThread(bool noGL, HealthMonitor<>& healthMonitor)
     : android::base::Thread(android::base::ThreadFlags::MaskSignals, 512 * 1024),
-      mWorkerThreadPool(kNumWorkerThreads, doSyncThreadCmd),
-      mNoGL(noGL) {
+      mWorkerThreadPool(kNumWorkerThreads,
+                        [this](Command&& command, ThreadPool::WorkerId id) {
+                            doSyncThreadCmd(std::move(command), id);
+                        }),
+      mNoGL(noGL),
+      mHealthMonitor(healthMonitor) {
     this->start();
     mWorkerThreadPool.start();
     if (!noGL) {
@@ -177,7 +183,12 @@ void SyncThread::triggerWaitVkQsriWithCompletionCallback(VkImage vkImage, FenceC
     sendAsync(
         [vkImage, cb = std::move(cb)](WorkerId) {
             auto decoder = goldfish_vk::VkDecoderGlobalState::get();
-            decoder->registerQsriCallback(vkImage, std::move(cb));
+            auto res = decoder->registerQsriCallback(vkImage, cb);
+            // If registerQsriCallback does not schedule the callback, we still need to complete
+            // the task, otherwise we may hit deadlocks on tasks on the same ring.
+            if (!res.CallbackScheduledOrFired()) {
+                cb();
+            }
         },
         ss.str());
 }
@@ -255,6 +266,17 @@ void SyncThread::sendAsync(std::function<void(WorkerId)> job, std::string descri
         .mDescription = std::move(description),
     });
     DPRINT("exit");
+}
+
+void SyncThread::doSyncThreadCmd(Command&& command, WorkerId workerId) {
+    std::unique_ptr<std::unordered_map<std::string, std::string>> syncThreadData =
+        std::make_unique<std::unordered_map<std::string, std::string>>();
+    syncThreadData->insert({{"syncthread_cmd_desc", command.mDescription}});
+    auto watchdog = WATCHDOG_BUILDER(mHealthMonitor, "SyncThread task execution")
+                        .setHangType(EventHangMetadata::HangType::kSyncThread)
+                        .setAnnotations(std::move(syncThreadData))
+                        .build();
+    command.mTask(workerId);
 }
 
 void SyncThread::initSyncEGLContext() {
@@ -402,16 +424,14 @@ int SyncThread::doSyncWaitVk(VkFence vkFence, std::function<void()> onComplete) 
 }
 
 /* static */
-void SyncThread::doSyncThreadCmd(Command&& command, WorkerId workerId) { command.mTask(workerId); }
-
 SyncThread* SyncThread::get() {
     auto res = sGlobalSyncThread()->syncThreadPtr();
     SYNC_THREAD_CHECK(res);
     return res;
 }
 
-void SyncThread::initialize(bool noEGL) {
-    sGlobalSyncThread()->initialize(noEGL);
+void SyncThread::initialize(bool noEGL, HealthMonitor<>& healthMonitor) {
+    sGlobalSyncThread()->initialize(noEGL, healthMonitor);
 }
 
 void SyncThread::destroy() { sGlobalSyncThread()->destroy(); }

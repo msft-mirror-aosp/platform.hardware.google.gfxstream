@@ -20,13 +20,14 @@
 #include <chrono>
 
 #include "ColorBuffer.h"
+#include "CompositorGl.h"
 #include "Debug.h"
-#include "DispatchTables.h"
 #include "FrameBuffer.h"
+#include "OpenGLESDispatch/DispatchTables.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
 #include "RenderThreadInfo.h"
-#include "base/Tracing.h"
+#include "aemu/base/Tracing.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/logging.h"
 #include "host-common/misc.h"
@@ -57,14 +58,13 @@ static void sDefaultRunOnUiThread(UiUpdateFunc f, void* data, bool wait) {
 }
 
 PostWorker::PostWorker(PostWorker::BindSubwinCallback&& cb, bool mainThreadPostingOnly,
-                       EGLContext eglContext, EGLSurface,
-                       DisplayVk* displayVk)
+                       Compositor* compositor, DisplayVk* displayVk)
     : mFb(FrameBuffer::getFB()),
       mBindSubwin(cb),
       m_mainThreadPostingOnly(mainThreadPostingOnly),
       m_runOnUiThread(m_mainThreadPostingOnly ? emugl::get_emugl_window_operations().runOnUiThread
                                               : sDefaultRunOnUiThread),
-      mContext(eglContext),
+      m_compositor(compositor),
       m_displayVk(displayVk) {}
 
 void PostWorker::fillMultiDisplayPostStruct(ComposeLayer* l,
@@ -79,31 +79,37 @@ void PostWorker::fillMultiDisplayPostStruct(ComposeLayer* l,
     l->crop = cropArea;
 }
 
-void PostWorker::postImpl(ColorBuffer* cb) {
+std::shared_future<void> PostWorker::postImpl(ColorBuffer* cb) {
+    std::shared_future<void> completedFuture =
+        std::async(std::launch::deferred, [] {}).share();
+    completedFuture.wait();
     // bind the subwindow eglSurface
     if (!m_mainThreadPostingOnly && m_needsToRebindWindow) {
         m_needsToRebindWindow = !mBindSubwin();
         if (m_needsToRebindWindow) {
             // Do not proceed if fail to bind to the window.
-            return;
+            return completedFuture;
         }
     }
 
     if (m_displayVk) {
-        bool shouldSkip = m_lastVkComposeColorBuffer == cb->getHndl();
-        m_lastVkComposeColorBuffer = std::nullopt;
-        if (shouldSkip) {
-            return;
+        const auto imageInfo = mFb->borrowColorBufferForDisplay(cb->getHndl());
+        bool success;
+        Compositor::CompositionFinishedWaitable waitForGpu;
+        std::tie(success, waitForGpu) = m_displayVk->post(imageInfo.get());
+        if (!success) {
+            // Create swapChain and retry
+            if (mBindSubwin()) {
+                const auto imageInfo = mFb->borrowColorBufferForDisplay(cb->getHndl());
+                std::tie(success, waitForGpu) = m_displayVk->post(imageInfo.get());
+            }
+            if (!success) {
+                m_needsToRebindWindow = true;
+                return completedFuture;
+            }
+            m_needsToRebindWindow = false;
         }
-        goldfish_vk::acquireColorBuffersForHostComposing({}, cb->getHndl());
-        auto [success, waitForGpu] = m_displayVk->post(cb->getDisplayBufferVk());
-        goldfish_vk::releaseColorBufferFromHostComposing({cb->getHndl()});
-        if (success) {
-            waitForGpu.wait();
-        } else {
-            m_needsToRebindWindow = true;
-        }
-        return;
+        return waitForGpu;
     }
 
     float dpr = mFb->getDpr();
@@ -113,8 +119,6 @@ void PostWorker::postImpl(ColorBuffer* cb) {
     float py = mFb->getPy();
     int zRot = mFb->getZrot();
     hwc_transform_t rotation = (hwc_transform_t)0;
-
-    cb->waitSync();
 
     // Find the x and y values at the origin when "fully scrolled."
     // Multiply by 2 because the texture goes from -1 to 1, not 0 to 1.
@@ -156,7 +160,7 @@ void PostWorker::postImpl(ColorBuffer* cb) {
                                      .right = (float)multiDisplayCb->getWidth(),
                                      .bottom = 0.0 };
             fillMultiDisplayPostStruct(&l, displayArea, cropArea, rotation);
-            multiDisplayCb->postLayer(&l, combinedW, combinedH);
+            multiDisplayCb->postLayer(l, combinedW, combinedH);
             start_id = id;
         }
         mFb->getTextureDraw()->cleanupForDrawLayer();
@@ -188,16 +192,17 @@ void PostWorker::postImpl(ColorBuffer* cb) {
         }
 
         fillMultiDisplayPostStruct(&l, displayArea, cropArea, rotation);
-        cb->postLayer(&l, m_viewportWidth/dpr, m_viewportHeight/dpr);
+        cb->postLayer(l, m_viewportWidth/dpr, m_viewportHeight/dpr);
         mFb->getTextureDraw()->cleanupForDrawLayer();
     }
     else {
         // render the color buffer to the window and apply the overlay
-        GLuint tex = cb->scale();
+        GLuint tex = cb->getViewportScaledTexture();
         cb->postWithOverlay(tex, zRot, dx, dy);
     }
 
     s_egl.eglSwapBuffers(mFb->getDisplay(), mFb->getWindowSurface());
+    return completedFuture;
 }
 
 // Called whenever the subwindow needs a refresh (FrameBuffer::setupSubWindow).
@@ -244,71 +249,15 @@ void PostWorker::clearImpl() {
 #endif
 }
 
-void PostWorker::composeImpl(const ComposeDevice* p) {
-    if (m_displayVk) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "PostWorker with Vulkan doesn't support ComposeV1";
-    }
-    // bind the subwindow eglSurface
-    if (!m_mainThreadPostingOnly && m_needsToRebindWindow) {
-        m_needsToRebindWindow = !mBindSubwin();
-        if (m_needsToRebindWindow) {
-            // Do not proceed if fail to bind to the window.
-            return;
-        }
+std::shared_future<void> PostWorker::composeImpl(const FlatComposeRequest& composeRequest) {
+    if (!isComposeTargetReady(composeRequest.targetHandle)) {
+        ERR("The last composition on the target buffer hasn't completed.");
     }
 
-    GLint vport[4] = { 0, };
-
-    auto cbPtr = mFb->findColorBuffer(p->targetHandle);
-    if (!cbPtr) {
-        s_gles2.glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        s_gles2.glViewport(vport[0], vport[1], vport[2], vport[3]);
-        return;
-    }
-
-    GL_SCOPED_DEBUG_GROUP("PostWorker::composeImpl(into ColorBuffer{hndl:%d tex:%d})", cbPtr->getHndl(), cbPtr->getTexture());
-
-    ComposeLayer* l = (ComposeLayer*)p->layer;
-
-    s_gles2.glGetIntegerv(GL_VIEWPORT, vport);
-    s_gles2.glViewport(0, 0, mFb->getWidth(),mFb->getHeight());
-    if (!m_composeFbo) {
-        s_gles2.glGenFramebuffers(1, &m_composeFbo);
-    }
-    s_gles2.glBindFramebuffer(GL_FRAMEBUFFER, m_composeFbo);
-    s_gles2.glFramebufferTexture2D(GL_FRAMEBUFFER,
-                                   GL_COLOR_ATTACHMENT0_OES,
-                                   GL_TEXTURE_2D,
-                                   cbPtr->getTexture(),
-                                   0);
-
-    DD("worker compose %d layers\n", p->numLayers);
-    mFb->getTextureDraw()->prepareForDrawLayer();
-    for (int i = 0; i < p->numLayers; i++, l++) {
-        DD("\tcomposeMode %d color %d %d %d %d blendMode "
-               "%d alpha %f transform %d %d %d %d %d "
-               "%f %f %f %f\n",
-               l->composeMode, l->color.r, l->color.g, l->color.b,
-               l->color.a, l->blendMode, l->alpha, l->transform,
-               l->displayFrame.left, l->displayFrame.top,
-               l->displayFrame.right, l->displayFrame.bottom,
-               l->crop.left, l->crop.top, l->crop.right,
-               l->crop.bottom);
-        glesComposeLayer(l, mFb->getWidth(), mFb->getHeight());
-    }
-
-    cbPtr->setSync();
-
-    s_gles2.glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    s_gles2.glViewport(vport[0], vport[1], vport[2], vport[3]);
-    mFb->getTextureDraw()->cleanupForDrawLayer();
-}
-
-std::shared_future<void> PostWorker::composev2Impl(const ComposeDevice_v2* p) {
     std::shared_future<void> completedFuture =
         std::async(std::launch::deferred, [] {}).share();
     completedFuture.wait();
+
     // bind the subwindow eglSurface
     if (!m_mainThreadPostingOnly && m_needsToRebindWindow) {
         m_needsToRebindWindow = !mBindSubwin();
@@ -317,146 +266,23 @@ std::shared_future<void> PostWorker::composev2Impl(const ComposeDevice_v2* p) {
             return completedFuture;
         }
     }
-    ComposeLayer* l = (ComposeLayer*)p->layer;
-    auto targetColorBufferPtr = mFb->findColorBuffer(p->targetHandle);
 
-    if (m_displayVk) {
-        if (!targetColorBufferPtr) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) <<
-                                "Failed to retrieve the composition target buffer";
+    Compositor::CompositionRequest compositorRequest = {};
+    compositorRequest.target = mFb->borrowColorBufferForComposition(composeRequest.targetHandle,
+                                                                    /*colorBufferIsTarget=*/true);
+    for (const ComposeLayer& guestLayer : composeRequest.layers) {
+        // Skip the ColorBuffer whose id is 0.
+        if (!guestLayer.cbHandle) {
+            continue;
         }
-        // We don't copy the render result to the targetHandle color buffer
-        // when using the Vulkan native host swapchain, because we directly
-        // render to the swapchain image instead of rendering onto a
-        // ColorBuffer, and we don't readback from the ColorBuffer so far.
-        std::vector<ColorBufferPtr> cbs;  // Keep ColorBuffers alive
-        cbs.emplace_back(targetColorBufferPtr);
-        std::vector<std::shared_ptr<DisplayVk::DisplayBufferInfo>>
-            composeBuffers;
-        std::vector<uint32_t> layerColorBufferHandles;
-        for (int i = 0; i < p->numLayers; ++i) {
-            auto colorBufferPtr = mFb->findColorBuffer(l[i].cbHandle);
-            if (!colorBufferPtr) {
-                composeBuffers.push_back(nullptr);
-                continue;
-            }
-            auto db = colorBufferPtr->getDisplayBufferVk();
-            composeBuffers.push_back(db);
-            if (!db) {
-                continue;
-            }
-            cbs.push_back(colorBufferPtr);
-            layerColorBufferHandles.emplace_back(l[i].cbHandle);
-        }
-        goldfish_vk::acquireColorBuffersForHostComposing(layerColorBufferHandles, p->targetHandle);
-        auto [success, waitForGpu] = m_displayVk->compose(
-            p->numLayers, l, composeBuffers, targetColorBufferPtr->getDisplayBufferVk());
-        goldfish_vk::setColorBufferCurrentLayout(p->targetHandle,
-                                                 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-        std::vector<uint32_t> colorBufferHandles(layerColorBufferHandles.begin(),
-                                                 layerColorBufferHandles.end());
-        colorBufferHandles.emplace_back(p->targetHandle);
-        goldfish_vk::releaseColorBufferFromHostComposing(colorBufferHandles);
-        if (!success) {
-            m_needsToRebindWindow = true;
-            waitForGpu = completedFuture;
-        }
-        m_lastVkComposeColorBuffer = p->targetHandle;
-        return waitForGpu;
+        auto& compositorLayer = compositorRequest.layers.emplace_back();
+        compositorLayer.props = guestLayer;
+        compositorLayer.source =
+            mFb->borrowColorBufferForComposition(guestLayer.cbHandle,
+                                                 /*colorBufferIsTarget=*/false);
     }
 
-    GLint vport[4] = { 0, };
-    s_gles2.glGetIntegerv(GL_VIEWPORT, vport);
-    uint32_t w, h;
-    emugl::get_emugl_multi_display_operations().getMultiDisplay(p->displayId,
-                                                                nullptr,
-                                                                nullptr,
-                                                                &w,
-                                                                &h,
-                                                                nullptr,
-                                                                nullptr,
-                                                                nullptr);
-    s_gles2.glViewport(0, 0, w, h);
-    if (!m_composeFbo) {
-        s_gles2.glGenFramebuffers(1, &m_composeFbo);
-    }
-    s_gles2.glBindFramebuffer(GL_FRAMEBUFFER, m_composeFbo);
-
-    if (!targetColorBufferPtr) {
-        s_gles2.glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        s_gles2.glViewport(vport[0], vport[1], vport[2], vport[3]);
-        return completedFuture;
-    }
-
-    s_gles2.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0_OES,
-                                   GL_TEXTURE_2D,
-                                   targetColorBufferPtr->getTexture(), 0);
-
-    DD("worker compose %d layers\n", p->numLayers);
-    mFb->getTextureDraw()->prepareForDrawLayer();
-    for (int i = 0; i < p->numLayers; i++, l++) {
-        DD("\tcomposeMode %d color %d %d %d %d blendMode "
-               "%d alpha %f transform %d %d %d %d %d "
-               "%f %f %f %f\n",
-               l->composeMode, l->color.r, l->color.g, l->color.b,
-               l->color.a, l->blendMode, l->alpha, l->transform,
-               l->displayFrame.left, l->displayFrame.top,
-               l->displayFrame.right, l->displayFrame.bottom,
-               l->crop.left, l->crop.top, l->crop.right,
-               l->crop.bottom);
-        glesComposeLayer(l, w, h);
-    }
-
-    targetColorBufferPtr->setSync();
-    s_gles2.glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    s_gles2.glViewport(vport[0], vport[1], vport[2], vport[3]);
-    mFb->getTextureDraw()->cleanupForDrawLayer();
-    return completedFuture;
-}
-
-void PostWorker::bind() {
-    if (m_mainThreadPostingOnly && !m_displayVk) {
-        if (mFb->getDisplay() != EGL_NO_DISPLAY) {
-            EGLint res = s_egl.eglMakeCurrent(mFb->getDisplay(), mFb->getWindowSurface(), mFb->getWindowSurface(), mContext);
-            if (!res) fprintf(stderr, "%s: error in binding: 0x%x\n", __func__, s_egl.eglGetError());
-        } else {
-            fprintf(stderr, "%s: no display!\n", __func__);
-        }
-    } else {
-        mBindSubwin();
-    }
-}
-
-void PostWorker::unbind() {
-    if (m_displayVk) {
-        return;
-    }
-    if (mFb->getDisplay() != EGL_NO_DISPLAY) {
-        s_egl.eglMakeCurrent(mFb->getDisplay(), EGL_NO_SURFACE, EGL_NO_SURFACE,
-                             EGL_NO_CONTEXT);
-    }
-}
-
-void PostWorker::glesComposeLayer(ComposeLayer* l, uint32_t w, uint32_t h) {
-    if (m_displayVk) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) <<
-                            "Should not reach with native vulkan swapchain enabled.";
-    }
-    if (l->composeMode == HWC2_COMPOSITION_DEVICE) {
-        ColorBufferPtr cb = mFb->findColorBuffer(l->cbHandle);
-        if (!cb) {
-            // bad colorbuffer handle
-            // ERR("%s: fail to find colorbuffer %d\n", __FUNCTION__, l->cbHandle);
-            return;
-        }
-
-        GL_SCOPED_DEBUG_GROUP("PostWorker::glesComposeLayer(layer ColorBuffer{hndl:%d tex:%d})", cb->getHndl(), cb->getTexture());
-        cb->postLayer(l, w, h);
-    }
-    else {
-        // no Colorbuffer associated with SOLID_COLOR mode
-        mFb->getTextureDraw()->drawLayer(l, w, h, 1, 1, 0);
-    }
+    return m_compositor->compose(compositorRequest);
 }
 
 void PostWorker::screenshot(
@@ -475,6 +301,19 @@ void PostWorker::screenshot(
         width, height, format, type, rotation, pixels);
 }
 
+void PostWorker::block(std::promise<void> scheduledSignal, std::future<void> continueSignal) {
+    // MSVC STL doesn't support not copyable std::packaged_task. As a workaround, we use the
+    // copyable std::shared_ptr here.
+    auto block = std::make_shared<Post::Block>(Post::Block{
+        .scheduledSignal = std::move(scheduledSignal),
+        .continueSignal = std::move(continueSignal),
+    });
+    runTask(std::packaged_task<void()>([block] {
+        block->scheduledSignal.set_value();
+        block->continueSignal.wait();
+    }));
+}
+
 PostWorker::~PostWorker() {
     if (mFb->getDisplay() != EGL_NO_DISPLAY) {
         s_egl.eglMakeCurrent(mFb->getDisplay(), EGL_NO_SURFACE, EGL_NO_SURFACE,
@@ -482,8 +321,13 @@ PostWorker::~PostWorker() {
     }
 }
 
-void PostWorker::post(ColorBuffer* cb) {
-    runTask(std::packaged_task<void()>([cb, this] { postImpl(cb); }));
+void PostWorker::post(ColorBuffer* cb, std::unique_ptr<Post::CompletionCallback> postCallback) {
+    auto packagedPostCallback = std::shared_ptr<Post::CompletionCallback>(std::move(postCallback));
+    runTask(
+        std::packaged_task<void()>([cb, packagedPostCallback, this] {
+            auto completedFuture = postImpl(cb);
+            (*packagedPostCallback)(completedFuture);
+        }));
 }
 
 void PostWorker::viewport(int width, int height) {
@@ -491,39 +335,20 @@ void PostWorker::viewport(int width, int height) {
         [width, height, this] { viewportImpl(width, height); }));
 }
 
-void PostWorker::compose(ComposeDevice* p, uint32_t bufferSize,
-                         std::shared_ptr<Post::ComposeCallback> callback) {
-    std::vector<char> buffer(bufferSize, 0);
-    memcpy(buffer.data(), p, bufferSize);
-    runTask(std::packaged_task<void()>([buffer = std::move(buffer),
-                                        callback = std::move(callback), this] {
-        auto completedFuture = std::async(std::launch::deferred, [] {}).share();
-        auto composeDevice =
-            reinterpret_cast<const ComposeDevice*>(buffer.data());
-        if (!isComposeTargetReady(composeDevice->targetHandle)) {
-            ERR("The last composition on the target buffer hasn't completed.");
-        }
-        composeImpl(composeDevice);
-        m_composeTargetToComposeFuture.emplace(composeDevice->targetHandle, completedFuture);
-        (*callback)(completedFuture);
-    }));
-}
-
-void PostWorker::compose(ComposeDevice_v2* p, uint32_t bufferSize,
-                         std::shared_ptr<Post::ComposeCallback> callback) {
-    std::vector<char> buffer(bufferSize, 0);
-    memcpy(buffer.data(), p, bufferSize);
-    runTask(std::packaged_task<void()>([buffer = std::move(buffer),
-                                        callback = std::move(callback), this] {
-        auto composeDevice =
-            reinterpret_cast<const ComposeDevice_v2*>(buffer.data());
-        if (!isComposeTargetReady(composeDevice->targetHandle)) {
-            ERR("The last composition on the target buffer hasn't completed.");
-        }
-        auto completedFuture = composev2Impl(composeDevice);
-        m_composeTargetToComposeFuture.emplace(composeDevice->targetHandle, completedFuture);
-        (*callback)(completedFuture);
-    }));
+void PostWorker::compose(std::unique_ptr<FlatComposeRequest> composeRequest,
+                         std::unique_ptr<Post::CompletionCallback> composeCallback) {
+    // std::shared_ptr(std::move(...)) is WA for MSFT STL implementation bug:
+    // https://developercommunity.visualstudio.com/t/unable-to-move-stdpackaged-task-into-any-stl-conta/108672
+    auto packagedComposeCallback =
+        std::shared_ptr<Post::CompletionCallback>(std::move(composeCallback));
+    auto packagedComposeRequest = std::shared_ptr<FlatComposeRequest>(std::move(composeRequest));
+    runTask(
+        std::packaged_task<void()>([packagedComposeCallback, packagedComposeRequest, this] {
+        auto completedFuture = composeImpl(*packagedComposeRequest);
+        m_composeTargetToComposeFuture.emplace(packagedComposeRequest->targetHandle,
+                                               completedFuture);
+        (*packagedComposeCallback)(completedFuture);
+        }));
 }
 
 void PostWorker::clear() {

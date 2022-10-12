@@ -16,18 +16,18 @@
 
 #include "FenceSync.h"
 
-#include "DispatchTables.h"
+#include <unordered_set>
+
 #include "FrameBuffer.h"
+#include "OpenGLESDispatch/DispatchTables.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "RenderThreadInfo.h"
 #include "StalePtrRegistry.h"
 
-#include "base/Lookup.h"
-#include "base/StaticMap.h"
-#include "base/StreamSerializing.h"
-#include "base/Lock.h"
-
-#include <unordered_set>
+#include "aemu/base/containers/Lookup.h"
+#include "aemu/base/containers/StaticMap.h"
+#include "aemu/base/files/StreamSerializing.h"
+#include "aemu/base/synchronization/Lock.h"
 
 using android::base::AutoLock;
 using android::base::Lock;
