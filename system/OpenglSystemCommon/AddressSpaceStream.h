@@ -17,15 +17,17 @@
 #define __ADDRESS_SPACE_STREAM_H
 
 #include "IOStream.h"
-
-#include "address_space_graphics_types.h"
-#include "goldfish_address_space.h"
 #include "VirtGpu.h"
+#include "address_space_graphics_types.h"
+#include "android/base/AndroidHealthMonitor.h"
+#include "goldfish_address_space.h"
+
+using android::base::guest::HealthMonitor;
 
 class AddressSpaceStream;
 
-AddressSpaceStream* createAddressSpaceStream(size_t bufSize);
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(void);
+AddressSpaceStream* createAddressSpaceStream(size_t bufSize, HealthMonitor<>& healthMonitor);
+AddressSpaceStream* createVirtioGpuAddressSpaceStream(HealthMonitor<>& healthMonitor);
 
 class AddressSpaceStream : public IOStream {
 public:
@@ -35,7 +37,8 @@ public:
         struct asg_context context,
         uint64_t ringOffset,
         uint64_t writeBufferOffset,
-        struct address_space_ops ops);
+        struct address_space_ops ops,
+        HealthMonitor<>& healthMonitor);
     ~AddressSpaceStream();
 
     virtual size_t idealAllocSize(size_t len);
@@ -102,6 +105,8 @@ private:
 
     size_t m_ringStorageSize;
     uint32_t m_resourceId = 0;
+
+    HealthMonitor<>& m_healthMonitor;
 };
 
 #endif
