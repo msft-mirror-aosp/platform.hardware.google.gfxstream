@@ -182,13 +182,10 @@ class HealthWatchdog {
                        onHangAnnotationsCallback = std::nullopt,
                    uint64_t timeout = kDefaultTimeoutMs)
         : mHealthMonitor(healthMonitor), mThreadId(getCurrentThreadId()) {
-        auto& threadTasks = getMonitoredThreadTasks();
-        auto& stack = threadTasks[&mHealthMonitor];
+        // TODO: willho@ re-enable thread awareness b/253483619
         typename HealthMonitorT::Id id = mHealthMonitor.startMonitoringTask(
-            std::move(metadata), std::move(onHangAnnotationsCallback), timeout,
-            stack.empty() ? std::nullopt : std::make_optional(stack.top()));
+            std::move(metadata), std::move(onHangAnnotationsCallback), timeout, std::nullopt);
         mId = id;
-        stack.push(id);
     }
 
     ~HealthWatchdog() {
@@ -196,7 +193,6 @@ class HealthWatchdog {
             return;
         }
         mHealthMonitor.stopMonitoringTask(*mId);
-        checkedStackPop();
     }
 
     void touch() {
@@ -208,9 +204,6 @@ class HealthWatchdog {
 
     // Return the underlying Id, and don't issue a stop on destruction.
     std::optional<typename HealthMonitorT::Id> release() {
-        if (mId.has_value()) {
-            checkedStackPop();
-        }
         return std::exchange(mId, std::nullopt);
     }
 
@@ -220,37 +213,6 @@ class HealthWatchdog {
     std::optional<typename HealthMonitorT::Id> mId;
     HealthMonitorT& mHealthMonitor;
     const unsigned long mThreadId;
-
-    // Thread local stack of task Ids enables better reentrant behavior.
-    // Multiple health monitors are not expected or advised, but as an injected dependency,
-    // it is possible.
-    ThreadTasks& getMonitoredThreadTasks() {
-        static thread_local ThreadTasks threadTasks;
-        return threadTasks;
-    }
-
-    // Pop the stack for the current thread, but with validation. Must be called with a non-empty
-    // WatchDog.
-    void checkedStackPop() {
-        typename HealthMonitorT::Id id = *mId;
-        auto& threadTasks = getMonitoredThreadTasks();
-        auto& stack = threadTasks[&mHealthMonitor];
-        if (getCurrentThreadId() != mThreadId) {
-            ALOGE("HealthWatchdog destructor thread does not match origin. Destructor must be "
-                  "called on the same thread.");
-            abort();
-        }
-        if (stack.empty()) {
-            ALOGE("HealthWatchdog thread local stack is empty!");
-            abort();
-        }
-        if (stack.top() != id) {
-            ALOGE("HealthWatchdog id %llu does not match top of stack: %llu",
-            (unsigned long long)id, (unsigned long long)stack.top());
-            abort();
-        }
-        stack.pop();
-    }
 };
 
 // HealthMonitorT should have the exact same interface as HealthMonitor. This template parameter is
