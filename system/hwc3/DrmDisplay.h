@@ -57,7 +57,9 @@ class DrmDisplay {
 
     uint32_t getRefreshRateUint() const { return mConnector->getRefreshRateUint(); }
 
-    std::optional<std::vector<uint8_t>> getEdid(::android::base::borrowed_fd drmFd) const;
+    bool isConnected() const { return mConnector->isConnected(); }
+
+    std::optional<std::vector<uint8_t>> getEdid() const { return mConnector->getEdid(); }
 
     std::tuple<HWC3::Error, ::android::base::unique_fd> flush(
         ::android::base::borrowed_fd drmFd, ::android::base::borrowed_fd inWaitSyncFd,
