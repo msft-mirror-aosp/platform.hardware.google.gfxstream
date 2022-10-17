@@ -81,19 +81,23 @@ HWC3::Error DrmClient::init() {
 }
 
 HWC3::Error DrmClient::getDisplayConfigs(std::vector<DisplayConfig>* configs) const {
+    DEBUG_LOG("%s", __FUNCTION__);
+
     AutoReadLock lock(mDisplaysMutex);
 
     configs->clear();
 
-    for (uint32_t i = 0; i < mDisplays.size(); i++) {
-        const auto& display = mDisplays[i];
+    for (const auto& display : mDisplays) {
+        if (!display->isConnected()) {
+            continue;
+        }
 
         configs->emplace_back(DisplayConfig{
-            .id = i,
+            .id = display->getId(),
             .width = display->getWidth(),
             .height = display->getHeight(),
-            .dpiX = 160,  // static_cast<uint32_t>(connector.dpiX),
-            .dpiY = 160,  // static_cast<uint32_t>(connector.dpiY),
+            .dpiX = display->getDpiX(),
+            .dpiY = display->getDpiY(),
             .refreshRateHz = display->getRefreshRateUint(),
         });
     }
@@ -304,7 +308,7 @@ std::optional<std::vector<uint8_t>> DrmClient::getEdid(uint32_t displayId) {
         return std::nullopt;
     }
 
-    return mDisplays[displayId]->getEdid(mFd);
+    return mDisplays[displayId]->getEdid();
 }
 
 }  // namespace aidl::android::hardware::graphics::composer3::impl

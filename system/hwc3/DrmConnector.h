@@ -52,14 +52,17 @@ class DrmConnector {
 
     bool isConnected() const { return mStatus == DRM_MODE_CONNECTED; }
 
+    std::optional<std::vector<uint8_t>> getEdid() const { return mEdid; }
+
     const DrmProperty& getCrtcProperty() const { return mCrtc; }
-    const DrmProperty& getEdidProperty() const { return mEdid; }
     const DrmMode* getDefaultMode() const { return mModes[0].get(); }
 
     bool update(::android::base::borrowed_fd drmFd);
 
    private:
     DrmConnector(uint32_t id) : mId(id) {}
+
+    bool loadEdid(::android::base::borrowed_fd drmFd);
 
     const uint32_t mId;
 
@@ -69,13 +72,14 @@ class DrmConnector {
     std::vector<std::unique_ptr<DrmMode>> mModes;
 
     DrmProperty mCrtc;
-    DrmProperty mEdid;
+    DrmProperty mEdidProp;
+    std::optional<std::vector<uint8_t>> mEdid;
 
     static const auto& GetPropertiesMap() {
         static const auto* sMap = []() {
             return new DrmPropertyMemberMap<DrmConnector>{
                 {"CRTC_ID", &DrmConnector::mCrtc},
-                {"EDID", &DrmConnector::mEdid},
+                {"EDID", &DrmConnector::mEdidProp},
             };
         }();
         return *sMap;
