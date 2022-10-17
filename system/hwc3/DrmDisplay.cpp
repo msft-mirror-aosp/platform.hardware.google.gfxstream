@@ -68,38 +68,6 @@ std::unique_ptr<DrmDisplay> DrmDisplay::create(uint32_t id, std::unique_ptr<DrmC
         new DrmDisplay(id, std::move(connector), std::move(crtc), std::move(plane)));
 }
 
-std::optional<std::vector<uint8_t>> DrmDisplay::getEdid(::android::base::borrowed_fd drmFd) const {
-    DEBUG_LOG("%s: display:%" PRIu32, __FUNCTION__, mId);
-
-    if (!mConnector) {
-        ALOGE("%s: display:%" PRIu32 " is missing connector.", __FUNCTION__, mId);
-        return std::nullopt;
-    }
-
-    const DrmProperty& edidProp = mConnector->getEdidProperty();
-    if (edidProp.getId() == -1) {
-        ALOGW("%s: display:%" PRIu32 " does not have EDID.", __FUNCTION__, mId);
-        return std::nullopt;
-    }
-
-    const uint64_t edidBlobId = edidProp.getValue();
-
-    auto blob = drmModeGetPropertyBlob(drmFd.get(), edidBlobId);
-    if (!blob) {
-        ALOGE("%s: display:%" PRIu32 " failed to read EDID blob (%" PRIu64 "): %s", __FUNCTION__,
-              mId, edidBlobId, strerror(errno));
-        return std::nullopt;
-    }
-
-    std::vector<uint8_t> edid;
-    uint8_t* start = static_cast<uint8_t*>(blob->data);
-    edid.insert(edid.begin(), start, start + blob->length);
-
-    drmModeFreePropertyBlob(blob);
-
-    return edid;
-}
-
 std::tuple<HWC3::Error, ::android::base::unique_fd> DrmDisplay::flush(
     ::android::base::borrowed_fd drmFd, ::android::base::borrowed_fd inSyncFd,
     const std::shared_ptr<DrmBuffer>& buffer) {
