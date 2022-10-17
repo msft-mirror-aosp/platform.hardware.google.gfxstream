@@ -3787,7 +3787,12 @@ public:
                 info.ptr = nullptr;
             }
 
-            info.coherentMemory = nullptr;
+            auto coherentMemory = std::move(info.coherentMemory);
+            // We have to release the lock before we could possibly free a
+            // CoherentMemory, because that will call into VkEncoder, which
+            // shouldn't be called when the lock is held.
+            lock.unlock();
+            coherentMemory = nullptr;
         }
     }
 
