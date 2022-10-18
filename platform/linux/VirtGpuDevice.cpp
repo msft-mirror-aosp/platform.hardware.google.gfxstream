@@ -47,6 +47,10 @@ VirtGpuDevice::VirtGpuDevice(enum VirtGpuCapset capset) {
             PARAM(VIRTGPU_PARAM_SUPPORTED_CAPSET_IDs),
     };
 
+    int ret;
+    struct drm_virtgpu_context_init init = {0};
+    struct drm_virtgpu_context_set_param ctx_set_params[2] = {{0}};
+
     mDeviceHandle = static_cast<int64_t>(drmOpenRender(128));
     if (mDeviceHandle < 0) {
         ALOGE("Failed to open rendernode: %s", strerror(errno));
@@ -66,25 +70,22 @@ VirtGpuDevice::VirtGpuDevice(enum VirtGpuCapset capset) {
         mParams[i] = params[i];
     }
 
+
+    ctx_set_params[0].param = VIRTGPU_CONTEXT_PARAM_NUM_RINGS;
+    ctx_set_params[0].value = 1;
+    init.num_params = 1;
+
     if (capset != kCapsetNone) {
-        int ret;
-        struct drm_virtgpu_context_init init = {0};
-        struct drm_virtgpu_context_set_param ctx_set_params[2] = {{0}};
-
-        ctx_set_params[0].param = VIRTGPU_CONTEXT_PARAM_NUM_RINGS;
-        ctx_set_params[0].value = 1;
-        init.num_params = 1;
-
         ctx_set_params[1].param = VIRTGPU_CONTEXT_PARAM_CAPSET_ID;
         ctx_set_params[1].value = static_cast<uint32_t>(capset);
         init.num_params++;
+    }
 
-        init.ctx_set_params = (unsigned long long)&ctx_set_params[0];
-        ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_CONTEXT_INIT, &init);
-        if (ret) {
-            ALOGE("DRM_IOCTL_VIRTGPU_CONTEXT_INIT failed with %s, continuing without context...",
-                  strerror(errno));
-        }
+    init.ctx_set_params = (unsigned long long)&ctx_set_params[0];
+    ret = drmIoctl(mDeviceHandle, DRM_IOCTL_VIRTGPU_CONTEXT_INIT, &init);
+    if (ret) {
+        ALOGE("DRM_IOCTL_VIRTGPU_CONTEXT_INIT failed with %s, continuing without context...",
+               strerror(errno));
     }
 }
 
