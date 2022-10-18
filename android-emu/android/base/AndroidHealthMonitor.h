@@ -26,6 +26,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <variant>
+#include <utility>
 
 #include "android/base/AndroidHealthMonitorConsumer.h"
 #include "android/base/synchronization/AndroidConditionVariable.h"
