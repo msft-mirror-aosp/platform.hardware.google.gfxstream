@@ -19,9 +19,9 @@
 #include "CommandBufferStagingStream.h"
 #include "DescriptorSetVirtualization.h"
 
-#include "android/base/Optional.h"
-#include "android/base/threads/AndroidWorkPool.h"
-#include "android/base/Tracing.h"
+#include "aemu/base/Optional.h"
+#include "aemu/base/threads/AndroidWorkPool.h"
+#include "aemu/base/Tracing.h"
 
 #include "goldfish_vk_private_defs.h"
 
@@ -84,8 +84,8 @@ void zx_event_create(int, zx_handle_t*) { }
 #include "Resources.h"
 #include "VkEncoder.h"
 
-#include "android/base/AlignedBuf.h"
-#include "android/base/synchronization/AndroidLock.h"
+#include "aemu/base/AlignedBuf.h"
+#include "aemu/base/synchronization/AndroidLock.h"
 #include "virtgpu_gfxstream_protocol.h"
 
 #include "goldfish_address_space.h"

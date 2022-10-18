@@ -15,16 +15,16 @@
 */
 #include "HostConnection.h"
 
-#include "android/base/threads/AndroidThread.h"
-#include "android/base/AndroidHealthMonitor.h"
-#include "android/base/AndroidHealthMonitorConsumerBasic.h"
+#include "aemu/base/threads/AndroidThread.h"
+#include "aemu/base/AndroidHealthMonitor.h"
+#include "aemu/base/AndroidHealthMonitorConsumerBasic.h"
 #include "cutils/properties.h"
 #include "renderControl_types.h"
 
 #ifdef HOST_BUILD
-#include "android/base/Tracing.h"
+#include "aemu/base/Tracing.h"
 #endif
-#include "android/base/Process.h"
+#include "aemu/base/Process.h"
 
 #define DEBUG_HOSTCONNECTION 0
 

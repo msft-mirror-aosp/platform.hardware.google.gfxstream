@@ -14,7 +14,7 @@
 // limitations under the License.
 #pragma once
 
-#include "android/base/containers/EntityManager.h"
+#include "aemu/base/containers/EntityManager.h"
 
 #include <vulkan/vulkan.h>
 

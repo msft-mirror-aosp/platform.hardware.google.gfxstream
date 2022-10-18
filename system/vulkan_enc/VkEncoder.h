@@ -33,7 +33,7 @@
 
 #include <memory>
 
-#include "android/base/AndroidHealthMonitor.h"
+#include "aemu/base/AndroidHealthMonitor.h"
 #include "goldfish_vk_private_defs.h"
 #include "vulkan_gfxstream.h"
 class IOStream;

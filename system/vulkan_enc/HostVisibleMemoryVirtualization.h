@@ -16,7 +16,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include "android/base/AndroidSubAllocator.h"
+#include "aemu/base/AndroidSubAllocator.h"
 #include "goldfish_address_space.h"
 
 constexpr uint64_t kMegaBtye = 1048576;

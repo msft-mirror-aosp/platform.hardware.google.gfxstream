@@ -29,7 +29,7 @@
 
 #include "Common.h"
 #include "LruCache.h"
-#include "android/base/synchronization/AndroidLock.h"
+#include "aemu/base/synchronization/AndroidLock.h"
 
 namespace android {
 
