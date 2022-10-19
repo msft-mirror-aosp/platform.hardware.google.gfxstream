@@ -21,8 +21,19 @@ if [[ "$OSTYPE" == "msys" ]]; then
     WHICH=where
 fi
 
-# Detect clang-format
+if [ -z "$1" ] || [ -z "$2" ];
+then
+    AOSP_DIR=$(pwd)/../..
+    export GOLDFISH_OPENGL_DIR=$AOSP_DIR/device/generic/goldfish-opengl
+    export VULKAN_CEREAL_DIR=$AOSP_DIR/device/generic/vulkan-cereal
+    export VULKAN_REGISTRY_DIR=$AOSP_DIR/external/gfxstream-protocols/registry/vulkan
+else
+    export GOLDFISH_OPENGL_DIR=$1
+    export VULKAN_CEREAL_DIR=$2
+    export VULKAN_REGISTRY_DIR=registry/vulkan
+fi
 
+# Detect clang-format
 if ! $WHICH clang-format > /dev/null; then
     echo "Failed to find clang-format." 1>&2
     exit 1
@@ -36,7 +47,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-cd registry/vulkan/xml && make GENOPTS="-removeExtensions VK_GOOGLE_gfxstream" GENERATED=$VULKAN_HEADERS_ROOT
+cd $VULKAN_REGISTRY_DIR/xml && make GENOPTS="-removeExtensions VK_GOOGLE_gfxstream" GENERATED=$VULKAN_HEADERS_ROOT
 if [ $? -ne 0 ]; then
     echo "Failed to generate Vulkan headers." 1>&2
     exit 1
@@ -44,14 +55,11 @@ fi
 
 cd $PROJECT_ROOT
 
-AOSP_DIR=$(pwd)/../../
-VK_CEREAL_GUEST_DIR=$AOSP_DIR/device/generic/goldfish-opengl
-VK_CEREAL_HOST_DIR=$AOSP_DIR/device/generic/vulkan-cereal
-export VK_CEREAL_GUEST_ENCODER_DIR=$VK_CEREAL_GUEST_DIR/system/vulkan_enc
-export VK_CEREAL_GUEST_HAL_DIR=$VK_CEREAL_GUEST_DIR/system/vulkan
-export VK_CEREAL_HOST_DECODER_DIR=$VK_CEREAL_HOST_DIR/stream-servers/vulkan
-export VK_CEREAL_HOST_INCLUDE_DIR=$VK_CEREAL_HOST_DIR/stream-servers
-export VK_CEREAL_HOST_SCRIPTS_DIR=$VK_CEREAL_HOST_DIR/scripts
+export VK_CEREAL_GUEST_ENCODER_DIR=$GOLDFISH_OPENGL_DIR/system/vulkan_enc
+export VK_CEREAL_GUEST_HAL_DIR=$GOLDFISH_OPENGL_DIR/system/vulkan
+export VK_CEREAL_HOST_DECODER_DIR=$VULKAN_CEREAL_DIR/stream-servers/vulkan
+export VK_CEREAL_HOST_INCLUDE_DIR=$VULKAN_CEREAL_DIR/stream-servers
+export VK_CEREAL_HOST_SCRIPTS_DIR=$VULKAN_CEREAL_DIR/scripts
 export VK_CEREAL_BASELIB_PREFIX=aemu/base
 export VK_CEREAL_BASELIB_LINKNAME=aemu-base.headers
 export VK_CEREAL_VK_HEADER_TARGET=gfxstream_vulkan_headers
@@ -66,7 +74,6 @@ if [ -d "$VK_CEREAL_HOST_DIR" ]; then
     mkdir -p $VK_CEREAL_OUTPUT_DIR
 fi
 
-VULKAN_REGISTRY_DIR=$AOSP_DIR/external/gfxstream-protocols/registry/vulkan
 VULKAN_REGISTRY_XML_DIR=$VULKAN_REGISTRY_DIR/xml
 VULKAN_REGISTRY_SCRIPTS_DIR=$VULKAN_REGISTRY_DIR/scripts
 
