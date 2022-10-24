@@ -109,7 +109,7 @@ bool DrmConnector::loadEdid(::android::base::borrowed_fd drmFd) {
     edid.remove_prefix(kEdidDescriptorOffset);
 
     byte_view descriptor(edid.data(), kEdidDescriptorLength);
-    if (descriptor[0] == 0 || descriptor[1] == 0) {
+    if (descriptor[0] == 0 && descriptor[1] == 0) {
         ALOGE("%s: display:%" PRIu32 " is missing preferred detailed timing descriptor.",
               __FUNCTION__, mId);
         return -1;
