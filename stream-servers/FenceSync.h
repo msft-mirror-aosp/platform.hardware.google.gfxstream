@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/files/Stream.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "base/Compiler.h"
+#include "base/Stream.h"
+#include "base/Lock.h"
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>

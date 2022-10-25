@@ -14,9 +14,9 @@
 
 #include "ShaderUtils.h"
 
-#include "aemu/base/files/PathUtils.h"
-#include "aemu/base/Optional.h"
-#include "aemu/base/system/System.h"
+#include "base/PathUtils.h"
+#include "base/Optional.h"
+#include "base/System.h"
 
 #include "OpenGLESDispatch/OpenGLDispatchLoader.h"
 

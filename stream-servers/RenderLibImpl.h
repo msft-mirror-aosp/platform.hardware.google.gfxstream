@@ -13,9 +13,9 @@
 // limitations under the License.
 #pragma once
 
-#include "render-utils/RenderLib.h"
+#include "RenderLib.h"
 
-#include "aemu/base/Compiler.h"
+#include "base/Compiler.h"
 #include "host-common/vm_operations.h"
 #include "host-common/misc.h"
 
@@ -52,7 +52,6 @@ public:
 
     virtual void setUsageTracker(android::base::CpuUsage* cpuUsage,
                                  android::base::MemoryTracker* memUsage) override;
-    virtual void setGrallocImplementation(GrallocImplementation gralloc) override;
 
     virtual void* getGLESv2Dispatch(void) override;
 

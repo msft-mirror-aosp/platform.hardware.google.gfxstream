@@ -15,7 +15,7 @@
 */
 #pragma once
 
-#include "aemu/base/files/Stream.h"
+#include "base/Stream.h"
 #include "host-common/logging.h"
 
 #include <assert.h>

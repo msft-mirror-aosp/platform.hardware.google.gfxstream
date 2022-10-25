@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "aemu/base/files/PathUtils.h"
-#include "aemu/base/files/StdioStream.h"
-#include "aemu/base/GLObjectCounter.h"
-#include "aemu/base/system/System.h"
+#include "base/PathUtils.h"
+#include "base/StdioStream.h"
+#include "base/GLObjectCounter.h"
+#include "base/System.h"
 #include "base/testing/TestSystem.h"
-#include "host-common/GraphicsAgentFactory.h"
+#include "host-common/AndroidAgentFactory.h"
 #include "host-common/multi_display_agent.h"
-#include "host-common/testing/MockGraphicsAgentFactory.h"
+#include "host-common/testing/MockAndroidAgentFactory.h"
 #include "host-common/window_agent.h"
 #include "host-common/MultiDisplay.h"
 #include "snapshot/TextureLoader.h"
@@ -33,7 +33,7 @@
 #include <memory>
 
 #ifdef _MSC_VER
-#include "aemu/base/msvc.h"
+#include "base/msvc.h"
 #else
 #include <sys/time.h>
 #endif
@@ -55,8 +55,8 @@ public:
 protected:
 
     static void SetUpTestSuite() {
-        android::emulation::injectGraphicsAgents(
-                android::emulation::MockGraphicsAgentFactory());
+        android::emulation::injectConsoleAgents(
+                android::emulation::MockAndroidConsoleFactory());
     }
 
     static void TearDownTestSuite() { }
@@ -64,13 +64,14 @@ protected:
     virtual void SetUp() override {
         // setupStandaloneLibrarySearchPaths();
         emugl::setGLObjectCounter(android::base::GLObjectCounter::get());
-        emugl::set_emugl_window_operations(*getGraphicsAgents()->emu);
-        emugl::set_emugl_multi_display_operations(*getGraphicsAgents()->multi_display);
+        emugl::set_emugl_window_operations(*getConsoleAgents()->emu);
+        emugl::set_emugl_multi_display_operations(*getConsoleAgents()->multi_display);
         const EGLDispatch* egl = LazyLoadedEGLDispatch::get();
         ASSERT_NE(nullptr, egl);
         ASSERT_NE(nullptr, LazyLoadedGLESv2Dispatch::get());
 
-        bool useHostGpu = shouldUseHostGpu();
+        // bool useHostGpu = shouldUseHostGpu();
+        bool useHostGpu = false;
         mWindow = createOrGetTestWindow(mXOffset, mYOffset, mWidth, mHeight);
         mUseSubWindow = mWindow != nullptr;
 
@@ -104,7 +105,6 @@ protected:
         EXPECT_EQ(EGL_SUCCESS, egl->eglGetError());
 
         mRenderThreadInfo = new RenderThreadInfo();
-        mRenderThreadInfo->initGl();
 
         // Snapshots
         mTestSystem.getTempRoot()->makeSubDir("Snapshots");
@@ -373,7 +373,7 @@ TEST_F(FrameBufferTest, CreateOpenUpdateCloseColorBuffer_FormatChange) {
 
 // Tests obtaining EGL configs from FrameBuffer.
 TEST_F(FrameBufferTest, Configs) {
-    const EmulatedEglConfigList* configs = mFb->getConfigs();
+    const FbConfigList* configs = mFb->getConfigs();
     EXPECT_GE(configs->size(), 0);
 }
 
@@ -539,14 +539,16 @@ TEST_F(FrameBufferTest, SnapshotFastBlitRestore) {
     EXPECT_TRUE(mFb->isFastBlitSupported());
 
     mFb->lock();
-    EXPECT_EQ(mFb->isFastBlitSupported(), mFb->findColorBuffer(handle)->isFastBlitSupported());
+    EXPECT_EQ(mFb->isFastBlitSupported(),
+              mFb->getColorBuffer_locked(handle)->isFastBlitSupported());
     mFb->unlock();
 
     saveSnapshot();
     loadSnapshot();
 
     mFb->lock();
-    EXPECT_EQ(mFb->isFastBlitSupported(), mFb->findColorBuffer(handle)->isFastBlitSupported());
+    EXPECT_EQ(mFb->isFastBlitSupported(),
+              mFb->getColorBuffer_locked(handle)->isFastBlitSupported());
     mFb->unlock();
 
     mFb->closeColorBuffer(handle);
@@ -916,7 +918,7 @@ TEST_F(FrameBufferTest, PixmapImport_Basic) {
     EXPECT_EQ(0, mFb->openColorBuffer(cb));
     mFb->updateColorBuffer(cb, 0, 0, kWidth, kHeight, GL_RGBA, GL_UNSIGNED_BYTE, forUpdate.data());
 
-    EXPECT_TRUE(mFb->platformImportResource(cb, RESOURCE_TYPE_EGL_NATIVE_PIXMAP|RESOURCE_USE_PRESERVE, pixmap));
+    EXPECT_TRUE(mFb->platformImportResource(cb, RESOURCE_TYPE_EGL_NATIVE_PIXMAP, pixmap));
 
     TestTexture forRead = createTestTextureRGBA8888SingleColor(kWidth, kHeight, 0.0f, 0.0f, 0.0f, 0.0f);
     mFb->readColorBuffer(cb, 0, 0, kWidth, kHeight, GL_RGBA, GL_UNSIGNED_BYTE, forRead.data());

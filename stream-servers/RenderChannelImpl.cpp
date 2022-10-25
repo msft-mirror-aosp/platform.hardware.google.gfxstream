@@ -14,7 +14,7 @@
 #include "RenderChannelImpl.h"
 
 #include "RenderThread.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "base/Lock.h"
 
 #include <algorithm>
 #include <utility>

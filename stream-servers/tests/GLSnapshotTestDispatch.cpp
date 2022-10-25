@@ -6,9 +6,9 @@
 #include "apigen-codec-common/glUtils.h"
 #include "RenderThreadInfo.h"
 
-#include "aemu/base/files/PathUtils.h"
-#include "aemu/base/files/StdioStream.h"
-#include "aemu/base/system/System.h"
+#include "base/PathUtils.h"
+#include "base/StdioStream.h"
+#include "base/System.h"
 #include "base/testing/TestSystem.h"
 #include "snapshot/TextureLoader.h"
 #include "snapshot/TextureSaver.h"
@@ -99,11 +99,11 @@ void SnapshotTestDispatch::loadSnapshot() {
         threadInfo->onLoad(m_stream.get());
         // rebind to context
         fb->bindContext(
-                threadInfo->m_glInfo->currContext ? threadInfo->m_glInfo->currContext->getHndl()
+                threadInfo->currContext ? threadInfo->currContext->getHndl()
                                         : 0,
-                threadInfo->m_glInfo->currDrawSurf ? threadInfo->m_glInfo->currDrawSurf->getHndl()
+                threadInfo->currDrawSurf ? threadInfo->currDrawSurf->getHndl()
                                          : 0,
-                threadInfo->m_glInfo->currReadSurf ? threadInfo->m_glInfo->currReadSurf->getHndl()
+                threadInfo->currReadSurf ? threadInfo->currReadSurf->getHndl()
                                          : 0);
     }
 

@@ -19,13 +19,13 @@
 #include "VulkanDispatch.h"
 #include "host-common/feature_control.h"
 
-#include "aemu/base/ArraySize.h"
-#include "aemu/base/GLObjectCounter.h"
-#include "aemu/base/files/PathUtils.h"
-#include "aemu/base/system/System.h"
+#include "base/ArraySize.h"
+#include "base/GLObjectCounter.h"
+#include "base/PathUtils.h"
+#include "base/System.h"
 #include "base/testing/TestSystem.h"
-#include "host-common/GraphicsAgentFactory.h"
-#include "host-common/testing/MockGraphicsAgentFactory.h"
+#include "host-common/AndroidAgentFactory.h"
+#include "host-common/testing/MockAndroidAgentFactory.h"
 
 #include "Standalone.h"
 
@@ -35,7 +35,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#include "aemu/base/system/Win32UnicodeString.h"
+#include "base/Win32UnicodeString.h"
 using android::base::Win32UnicodeString;
 #else
 #include <dlfcn.h>
@@ -418,8 +418,8 @@ static void teardownVulkanTest(const VulkanDispatch* vk,
 class VulkanTest : public ::testing::Test {
 protected:
     static void SetUpTestSuite() {
-        android::emulation::injectGraphicsAgents(
-                android::emulation::MockGraphicsAgentFactory());
+        android::emulation::injectConsoleAgents(
+                android::emulation::MockAndroidConsoleFactory());
     }
 
     static void TearDownTestSuite() { }
@@ -475,8 +475,8 @@ protected:
         VulkanTest::SetUp();
 
         emugl::setGLObjectCounter(android::base::GLObjectCounter::get());
-        emugl::set_emugl_window_operations(*getGraphicsAgents()->emu);
-        emugl::set_emugl_multi_display_operations(*getGraphicsAgents()->multi_display);
+        emugl::set_emugl_window_operations(*getConsoleAgents()->emu);
+        emugl::set_emugl_multi_display_operations(*getConsoleAgents()->multi_display);
         const EGLDispatch* egl = LazyLoadedEGLDispatch::get();
         ASSERT_NE(nullptr, egl);
         ASSERT_NE(nullptr, LazyLoadedGLESv2Dispatch::get());

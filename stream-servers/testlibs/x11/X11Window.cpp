@@ -8,7 +8,7 @@
 
 #include "x11/X11Window.h"
 
-#include "aemu/base/system/System.h"
+#include "base/System.h"
 
 #include <assert.h>
 

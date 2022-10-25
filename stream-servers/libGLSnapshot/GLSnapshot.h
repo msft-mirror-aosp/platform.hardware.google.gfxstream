@@ -1,6 +1,6 @@
 #pragma once
 
-#include "OpenGLESDispatch/GLESv2Dispatch.h"
+#include "GLESv2Dispatch.h"
 
 #include <map>
 #include <string>

@@ -13,9 +13,9 @@
 // limitations under the License.
 #pragma once
 
-#include "aemu/base/AlignedBuf.h"
+#include "base/AlignedBuf.h"
 
-#include "render-utils/render_api_platform_types.h"
+#include "render_api_platform_types.h"
 
 #include <GLES3/gl31.h>
 

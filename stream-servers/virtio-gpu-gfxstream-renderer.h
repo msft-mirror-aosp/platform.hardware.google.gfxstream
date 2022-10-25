@@ -12,7 +12,6 @@
 extern "C" {
 #endif
 typedef uint32_t VirtioGpuCtxId;
-typedef uint8_t VirtioGpuRingIdx;
 struct virgl_renderer_virtio_interface*
     get_goldfish_pipe_virgl_renderer_virtio_interface(void);
 
@@ -86,6 +85,9 @@ VG_EXPORT void stream_renderer_flush_resource_and_readback(
     uint32_t res_handle, uint32_t x, uint32_t y, uint32_t width, uint32_t height,
     void* pixels, uint32_t max_bytes);
 
+VG_EXPORT void stream_renderer_resource_create_v2(
+    uint32_t res_handle, uint64_t hvaId);
+
 #define STREAM_MEM_HANDLE_TYPE_OPAQUE_FD 0x1
 #define STREAM_MEM_HANDLE_TYPE_DMABUF 0x2
 #define STREAM_MEM_HANDLE_TYPE_OPAQUE_WIN32 0x3
@@ -132,17 +134,10 @@ VG_EXPORT int stream_renderer_context_create_fence(
     uint64_t fence_id, uint32_t ctx_id, uint8_t ring_idx);
 
 // Platform resources and contexts support
-#define STREAM_RENDERER_PLATFORM_RESOURCE_USE_MASK  0xF0
-#define STREAM_RENDERER_PLATFORM_RESOURCE_TYPE_MASK 0x0F
-
-// types
 #define STREAM_RENDERER_PLATFORM_RESOURCE_TYPE_EGL_NATIVE_PIXMAP 0x01
 #define STREAM_RENDERER_PLATFORM_RESOURCE_TYPE_EGL_IMAGE 0x02
 
-// uses
-#define STREAM_RENDERER_PLATFORM_RESOURCE_USE_PRESERVE 0x10
-
-VG_EXPORT int stream_renderer_platform_import_resource(int res_handle, int res_info, void* resource);
+VG_EXPORT int stream_renderer_platform_import_resource(int res_handle, int res_type, void* resource);
 VG_EXPORT int stream_renderer_platform_resource_info(int res_handle, int* width, int*  height, int* internal_format);
 VG_EXPORT void* stream_renderer_platform_create_shared_egl_context(void);
 VG_EXPORT int stream_renderer_platform_destroy_shared_egl_context(void*);
@@ -153,15 +148,6 @@ VG_EXPORT int stream_renderer_platform_destroy_shared_egl_context(void*);
 #define STREAM_RENDERER_MAP_CACHE_UNCACHED  0x02
 #define STREAM_RENDERER_MAP_CACHE_WC        0x03
 VG_EXPORT int stream_renderer_resource_map_info(uint32_t res_handle, uint32_t *map_info);
-
-struct stream_renderer_vulkan_info {
-    uint32_t memory_index;
-    uint8_t device_uuid[16];
-    uint8_t driver_uuid[16];
-};
-
-VG_EXPORT int stream_renderer_vulkan_info(uint32_t res_handle,
-                                          struct stream_renderer_vulkan_info *vulkan_info);
 
 #else
 
@@ -181,8 +167,17 @@ enum RendererFlags {
     GFXSTREAM_RENDERER_FLAGS_USE_SURFACELESS_BIT = 1 << 3,
     GFXSTREAM_RENDERER_FLAGS_USE_GLES_BIT = 1 << 4,
     GFXSTREAM_RENDERER_FLAGS_NO_VK_BIT = 1 << 5,  // for disabling vk
+    GFXSTREAM_RENDERER_FLAGS_IGNORE_HOST_GL_ERRORS_BIT =
+        1 << 6,  // control IgnoreHostOpenGLErrors flag
+    GFXSTREAM_RENDERER_FLAGS_NATIVE_TEXTURE_DECOMPRESSION_BIT =
+        1 << 7,  // Attempt GPU texture decompression
+    GFXSTREAM_RENDERER_FLAGS_ENABLE_BPTC_TEXTURES_BIT =
+        1 << 8,  // enable BPTC texture support if available
     GFXSTREAM_RENDERER_FLAGS_ENABLE_GLES31_BIT =
         1 << 9,  // disables the PlayStoreImage flag
+    GFXSTREAM_RENDERER_FLAGS_ENABLE_S3TC_TEXTURES_BIT =
+        1 << 10,  // enable S3TC texture support if available
+    GFXSTREAM_RENDERER_FLAGS_NO_SYNCFD_BIT = 1 << 20,  // for disabling syncfd
     GFXSTREAM_RENDERER_FLAGS_GUEST_USES_ANGLE = 1 << 21,
     GFXSTREAM_RENDERER_FLAGS_VULKAN_NATIVE_SWAPCHAIN_BIT = 1 << 22,
     GFXSTREAM_RENDERER_FLAGS_ASYNC_FENCE_CB = 1 << 23,

@@ -14,13 +14,13 @@
 
 #include "SampleApplication.h"
 
-#include "aemu/base/GLObjectCounter.h"
-#include "aemu/base/synchronization/ConditionVariable.h"
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/system/System.h"
-#include "aemu/base/threads/FunctorThread.h"
+#include "base/GLObjectCounter.h"
+#include "base/ConditionVariable.h"
+#include "base/Lock.h"
+#include "base/System.h"
 #include "base/testing/TestSystem.h"
-#include "host-common/GraphicsAgentFactory.h"
+#include "base/FunctorThread.h"
+#include "host-common/AndroidAgentFactory.h"
 #include "host-common/multi_display_agent.h"
 #include "host-common/MultiDisplay.h"
 #include "Standalone.h"
@@ -236,8 +236,8 @@ SampleApplication::SampleApplication(int windowWidth, int windowHeight, int refr
 
     // setupStandaloneLibrarySearchPaths();
     emugl::setGLObjectCounter(android::base::GLObjectCounter::get());
-    emugl::set_emugl_window_operations(*getGraphicsAgents()->emu);;
-    emugl::set_emugl_multi_display_operations(*getGraphicsAgents()->multi_display);
+    emugl::set_emugl_window_operations(*getConsoleAgents()->emu);;
+    emugl::set_emugl_multi_display_operations(*getConsoleAgents()->multi_display);
     LazyLoadedEGLDispatch::get();
     if (glVersion == GLESApi_CM) LazyLoadedGLESv1Dispatch::get();
     LazyLoadedGLESv2Dispatch::get();
@@ -263,7 +263,6 @@ SampleApplication::SampleApplication(int windowWidth, int windowHeight, int refr
     }
 
     mRenderThreadInfo.reset(new RenderThreadInfo());
-    mRenderThreadInfo->initGl();
 
     mColorBuffer = mFb->createColorBuffer(mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
     mContext = mFb->createRenderContext(0, 0, glVersion);

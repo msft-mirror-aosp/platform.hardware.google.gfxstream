@@ -15,15 +15,17 @@
 */
 #include "WindowSurface.h"
 
+#include "host-common/logging.h"
+#include "FbConfig.h"
+#include "FrameBuffer.h"
+
+#include "OpenGLESDispatch/EGLDispatch.h"
+
 #include <assert.h>
+#include <GLES/glext.h>
 #include <stdio.h>
 #include <string.h>
 
-#include <GLES/glext.h>
-
-#include "FrameBuffer.h"
-#include "OpenGLESDispatch/EGLDispatch.h"
-#include "host-common/logging.h"
 
 WindowSurface::WindowSurface(EGLDisplay display,
                              EGLConfig config,
@@ -234,7 +236,7 @@ WindowSurface * WindowSurface::onLoad(android::base::Stream* stream,
     WindowSurface* ret = create(display, config, width, height, hndl);
     assert(ret);
     // fb is already locked by its caller
-    ret->mAttachedColorBuffer = fb->findColorBuffer(cb);
+    ret->mAttachedColorBuffer = fb->getColorBuffer_locked(cb);
     assert(!cb || ret->mAttachedColorBuffer);
     ret->mReadContext = fb->getContext_locked(readCtx);
     ret->mDrawContext = fb->getContext_locked(drawCtx);

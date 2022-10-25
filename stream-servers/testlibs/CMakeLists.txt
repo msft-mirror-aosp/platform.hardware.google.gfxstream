@@ -18,15 +18,13 @@ add_library(
 target_link_libraries(
     OSWindow
     PRIVATE
-    aemu-base.headers)
+    gfxstream-base)
 target_include_directories(
     OSWindow
     PUBLIC
     .
     PRIVATE
-    ${GFXSTREAM_REPO_ROOT}/include
-    ${GFXSTREAM_REPO_ROOT}/third-party/angle/include
-    ${GFXSTREAM_REPO_ROOT}/third-party/glm/include)
+    ${GFXSTREAM_REPO_ROOT}/include)
 
 if (LINUX)
     target_link_libraries(
@@ -34,9 +32,4 @@ if (LINUX)
         PRIVATE
         X11
         )
-elseif (APPLE)
-    target_link_libraries(
-        OSWindow
-        PRIVATE
-        "-framework AppKit -framework QuartzCore")
 endif()

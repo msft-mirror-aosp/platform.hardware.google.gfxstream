@@ -13,14 +13,14 @@
 // limitations under the License.
 #pragma once
 
-#include "render-utils/Renderer.h"
+#include "Renderer.h"
 
 #include "RenderWindow.h"
 
-#include "aemu/base/Compiler.h"
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/synchronization/MessageChannel.h"
-#include "aemu/base/threads/FunctorThread.h"
+#include "base/Compiler.h"
+#include "base/Lock.h"
+#include "base/MessageChannel.h"
+#include "base/FunctorThread.h"
 #include "snapshot/common.h"
 
 #include "RenderThread.h"
@@ -50,9 +50,7 @@ public:
     void* addressSpaceGraphicsConsumerCreate(
         struct asg_context,
         android::base::Stream* stream,
-        android::emulation::asg::ConsumerCallbacks,
-        uint32_t contextId, uint32_t capsetId,
-        std::optional<std::string> name) override final;
+        android::emulation::asg::ConsumerCallbacks) override final;
     void addressSpaceGraphicsConsumerDestroy(void*) override final;
     void addressSpaceGraphicsConsumerPreSave(void* consumer) override final;
     void addressSpaceGraphicsConsumerSave(void* consumer, android::base::Stream* stream) override final;
@@ -114,13 +112,6 @@ public:
     void snapshotOperationCallback(
             int snapshotterOp,
             int snapshotterStage) final;
-
-    void addListener(FrameBufferChangeEventListener* listener) override;
-    void removeListener(FrameBufferChangeEventListener* listener) override;
-
-    void setVsyncHz(int vsyncHz) final;
-    void setDisplayConfigs(int configId, int w, int h, int dpiX, int dpiY) override;
-    void setDisplayActiveConfig(int configId) override;
 
 private:
     DISALLOW_COPY_ASSIGN_AND_MOVE(RendererImpl);

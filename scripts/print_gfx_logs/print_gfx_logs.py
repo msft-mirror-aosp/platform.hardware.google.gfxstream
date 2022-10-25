@@ -1,18 +1,3 @@
-#
-# Copyright (C) 2022 The Android Open Source Project
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 """
 Command line tool to process minidump files and print what was logged by GfxApiLogger.
 
@@ -27,14 +12,13 @@ Usage:
 python3 print_gfx_logs.py <path to minidump file>
 """
 
-from __future__ import annotations
 import argparse
 import ctypes
 import sys
 from datetime import datetime
 import mmap
 import textwrap
-from . import command_printer
+import command_printer
 from typing import NamedTuple, Optional, List
 import traceback
 
@@ -69,12 +53,6 @@ class Stream(NamedTuple):
     commands: List[Command]
     error_message: Optional[str]  # `None` if there were no errors parsing this stream
 
-    @staticmethod
-    def error(pos_in_file: int, error_message: str) -> Stream:
-        return Stream(
-            pos_in_file=pos_in_file, timestamp=0, thread_id=0, capture_id=0, commands=[],
-            error_message=error_message)
-
 
 def read_uint32(buf: bytes, pos: int) -> int:
     """Reads a single uint32 from buf at a given position"""
@@ -96,14 +74,11 @@ def process_stream(file_bytes: mmap, file_pos: int) -> Stream:
     ctypes.memmove(ctypes.addressof(header), header_bytes, ctypes.sizeof(header))
 
     if header.signature != b'GFXAPILOG':
-        return Stream.error(file_pos, error_message="Signature doesn't match")
+        return Stream(file_pos, error_message="Signature doesn't match")
 
     if header.version != 2:
-        return Stream.error(
-            file_pos,
-            error_message=(
-                "This script can only process version 2 of the graphics API logs, but the dump "
-                + "file uses version {} ").format(data.version))
+        return Stream(file_pos, error_message=("This script can only process version 2 of the graphics API logs, " +
+                                               "but the dump file uses version {} ").format(data.version))
 
     # Convert Windows' GetSystemTimeAsFileTime to Unix timestamp
     # https://stackoverflow.com/questions/1695288/getting-the-current-time-in-milliseconds-from-the-system-clock-in-windows
@@ -112,16 +87,12 @@ def process_stream(file_bytes: mmap, file_pos: int) -> Stream:
 
     # Sanity check the size
     if header.data_size > 5_000_000:
-        return Stream.error(
-            file_pos,
-            error_message="data size is larger than 5MB. This likely indicates garbage/corrupted " +
-            "data")
+        return Stream(file_pos,
+                      error_message="data size is larger than 5MB. This likely indicates garbage/corrupted data")
 
     if header.committed_index >= header.data_size:
-        return Stream.error(
-            file_pos,
-            error_message="index is larger than buffer size. Likely indicates garbage/corrupted " +
-            "data")
+        return Stream(file_pos,
+                      error_message="index is larger than buffer size. Likely indicates garbage/corrupted data")
 
     file_bytes.seek(file_pos + ctypes.sizeof(header))
     data = file_bytes.read(header.data_size)
@@ -146,18 +117,19 @@ def process_stream(file_bytes: mmap, file_pos: int) -> Stream:
     return Stream(file_pos, timestamp_ms, header.thread_id, header.capture_id, commands, None)
 
 
-def process_minidump(mm: mmap) -> List[Stream]:
+def process_minidump(dump_file: str) -> List[Stream]:
     """
     Extracts a list of commands streams from a minidump file
     """
     streams = []
-    pos = 0
-    while True:
-        pos = mm.find(b'GFXAPILOG', pos)
-        if pos == -1:
-            break
-        streams.append(process_stream(mm, pos))
-        pos += 1
+    with open(dump_file, "r+b") as f:
+        mm = mmap.mmap(f.fileno(), 0)
+        pos = 0
+        while True:
+            pos = mm.find(b'GFXAPILOG', pos + 1)
+            if pos == -1:
+                break
+            streams.append(process_stream(mm, pos))
 
     return streams
 
@@ -168,15 +140,10 @@ def main():
     parser.add_argument('dump_file', help="Path to  minidump file")
 
     args = parser.parse_args()
-    streams = None
-    with open(args.dump_file, "r+b") as f:
-        with mmap.mmap(f.fileno(), 0) as mm:
-            streams = process_minidump(mm)
+    streams = process_minidump(args.dump_file)
 
     streams.sort(key=lambda s: s.timestamp)
 
-    total_commands = 0
-    num_errors = 0
     for stream_idx, stream in enumerate(streams):
         print(textwrap.dedent("""
                   ======================================================= 
@@ -193,13 +160,11 @@ def main():
 
         subdecode_size = 0
         for cmd_idx, cmd in enumerate(stream.commands):
-            total_commands += 1
             cmd_printer = command_printer.CommandPrinter(cmd.opcode, cmd.original_size, cmd.data, stream_idx, cmd_idx)
 
             try:
                 cmd_printer.print_cmd()
             except:
-                num_errors += 1
                 # Print stack trace and continue
                 traceback.print_exc(file=sys.stdout)
 
@@ -213,12 +178,6 @@ def main():
                 assert subdecode_size == 0
                 subdecode_size = cmd.original_size - 36
                 print("\n--- start of subdecode, size = {} bytes ---".format(subdecode_size))
-    print("\nDone: {} commands, {} errors".format(total_commands, num_errors))
-    if num_errors > 0:
-        print("""
-NOTE: This script uses some simplifying assumptions to decode the commands. All
-decoding errors are almost certainly a bug with this script, NOT a sign of bad
-or corrupted data.""")
 
 
 if __name__ == '__main__':

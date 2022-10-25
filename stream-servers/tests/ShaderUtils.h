@@ -15,7 +15,7 @@
 
 #include <GLES2/gl2.h>
 
-#include "aemu/base/Optional.h"
+#include "base/Optional.h"
 
 #include <string>
 #include <vector>

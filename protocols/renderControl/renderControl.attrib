@@ -117,10 +117,3 @@ rcReadColorBufferDMA
     len pixels pixels_size
     var_flag pixels DMA
 
-rcSetProcessMetadata
-    len key (strlen(key) + 1)
-    len valuePtr valueSize
-
-rcGetHostExtensionsString
-    dir buffer out
-    len buffer bufferSize
