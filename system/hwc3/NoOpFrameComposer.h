@@ -19,7 +19,7 @@
 
 #include "Common.h"
 #include "Display.h"
-#include "DrmClient.h"
+#include "DrmPresenter.h"
 #include "FrameComposer.h"
 #include "Gralloc.h"
 #include "Layer.h"

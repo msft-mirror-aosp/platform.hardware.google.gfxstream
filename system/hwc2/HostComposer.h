@@ -19,7 +19,6 @@
 
 #include <android-base/unique_fd.h>
 
-#include <memory>
 #include <tuple>
 #include <vector>
 
@@ -69,6 +68,8 @@ class HostComposer : public Composer {
   void post(HostConnection* hostCon, ExtendedRCEncoderContext* rcEnc,
             buffer_handle_t h);
 
+  bool mIsMinigbm = false;
+
   int mSyncDeviceFd = -1;
 
   class CompositionResultBuffer {
@@ -91,7 +92,7 @@ class HostComposer : public Composer {
 
     std::unique_ptr<FencedBuffer> mFencedBuffer;
     // Drm info for the additional composition result buffer.
-    std::shared_ptr<DrmBuffer> mDrmBuffer;
+    std::unique_ptr<DrmBuffer> mDrmBuffer;
   };
   class HostComposerDisplayInfo {
    public:
@@ -102,7 +103,7 @@ class HostComposer : public Composer {
 
     uint32_t hostDisplayId = 0;
     // Drm info for the displays client target buffer.
-    std::shared_ptr<DrmBuffer> clientTargetDrmBuffer;
+    std::unique_ptr<DrmBuffer> clientTargetDrmBuffer;
 
    private:
     // Additional per display buffer for the composition result.
@@ -112,7 +113,6 @@ class HostComposer : public Composer {
 
   std::unordered_map<hwc2_display_t, HostComposerDisplayInfo> mDisplayInfos;
   DrmPresenter* mDrmPresenter;
-  bool mIsMinigbm = false;
 };
 
 }  // namespace android

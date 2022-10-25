@@ -90,7 +90,7 @@ class GuestComposer : public Composer {
     // Additional per display buffer for the composition result.
     buffer_handle_t compositionResultBuffer = nullptr;
 
-    std::shared_ptr<DrmBuffer> compositionResultDrmBuffer;
+    std::unique_ptr<DrmBuffer> compositionResultDrmBuffer;
   };
 
   std::unordered_map<hwc2_display_t, GuestComposerDisplayInfo> mDisplayInfos;

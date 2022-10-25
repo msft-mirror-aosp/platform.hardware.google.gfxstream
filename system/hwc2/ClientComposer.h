@@ -17,7 +17,6 @@
 #ifndef ANDROID_HWC_CLIENTCOMPOSER_H
 #define ANDROID_HWC_CLIENTCOMPOSER_H
 
-#include <memory>
 #include <unordered_map>
 
 #include "Common.h"
@@ -61,7 +60,7 @@ class ClientComposer : public Composer {
 
  private:
   struct DisplayInfo {
-    std::shared_ptr<DrmBuffer> clientTargetDrmBuffer;
+    std::unique_ptr<DrmBuffer> clientTargetDrmBuffer;
   };
 
   std::unordered_map<int64_t, DisplayInfo> mDisplayInfos;

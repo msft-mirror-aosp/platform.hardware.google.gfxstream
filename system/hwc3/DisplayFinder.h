@@ -22,7 +22,7 @@
 
 #include "Common.h"
 #include "DisplayConfig.h"
-#include "DrmClient.h"
+#include "DrmPresenter.h"
 
 namespace aidl::android::hardware::graphics::composer3::impl {
 
@@ -33,7 +33,7 @@ struct DisplayMultiConfigs {
   std::vector<DisplayConfig> configs;
 };
 
-HWC3::Error findDisplays(const DrmClient* drm,
+HWC3::Error findDisplays(const DrmPresenter* drm,
                          std::vector<DisplayMultiConfigs>* outDisplays);
 
 }  // namespace aidl::android::hardware::graphics::composer3::impl

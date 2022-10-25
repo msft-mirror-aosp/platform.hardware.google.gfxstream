@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Android Open Source Project
+ * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,56 +20,124 @@
 #include <linux/netlink.h>
 #include <sys/socket.h>
 
-using android::base::guest::AutoReadLock;
-using android::base::guest::AutoWriteLock;
-using android::base::guest::ReadWriteLock;
+#include <chrono>
+#include <thread>
 
-namespace android {
+using ::android::base::guest::AutoReadLock;
+using ::android::base::guest::AutoWriteLock;
+using ::android::base::guest::ReadWriteLock;
 
-bool DrmPresenter::init(const HotplugCallback& cb) {
+namespace aidl::android::hardware::graphics::composer3::impl {
+namespace {
+
+uint64_t addressAsUint(int* pointer) {
+  return static_cast<uint64_t>(reinterpret_cast<uintptr_t>(pointer));
+}
+
+}  // namespace
+
+DrmPresenter::~DrmPresenter() {
+  if (mFd > 0) {
+    drmDropMaster(mFd.get());
+  }
+}
+
+HWC3::Error DrmPresenter::init() {
   DEBUG_LOG("%s", __FUNCTION__);
 
-  mHotplugCallback = cb;
-  mFd = android::base::unique_fd(open("/dev/dri/card0", O_RDWR | O_CLOEXEC));
+  mFd = ::android::base::unique_fd(open("/dev/dri/card0", O_RDWR | O_CLOEXEC));
   if (mFd < 0) {
-    ALOGE("%s HWC2::Error opening DrmPresenter device: %d", __FUNCTION__,
-          errno);
-    return false;
+    ALOGE("%s: failed to open drm device: %s", __FUNCTION__, strerror(errno));
+    return HWC3::Error::NoResources;
   }
 
-  int univRet = drmSetClientCap(mFd.get(), DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
-  if (univRet) {
-    ALOGE("%s: fail to set universal plane %d\n", __FUNCTION__, univRet);
-    return false;
+  int ret = drmSetClientCap(mFd.get(), DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
+  if (ret) {
+    ALOGE("%s: failed to set cap universal plane %s\n", __FUNCTION__,
+          strerror(errno));
+    return HWC3::Error::NoResources;
   }
 
-  int atomicRet = drmSetClientCap(mFd.get(), DRM_CLIENT_CAP_ATOMIC, 1);
-  if (atomicRet) {
-    ALOGE("%s: fail to set atomic operation %d, %d\n", __FUNCTION__, atomicRet,
-          errno);
-    return false;
+  ret = drmSetClientCap(mFd.get(), DRM_CLIENT_CAP_ATOMIC, 1);
+  if (ret) {
+    ALOGE("%s: failed to set cap atomic %s\n", __FUNCTION__, strerror(errno));
+    return HWC3::Error::NoResources;
+  }
+
+  drmSetMaster(mFd.get());
+
+  if (!drmIsMaster(mFd.get())) {
+    ALOGE("%s: failed to get master drm device", __FUNCTION__);
+    return HWC3::Error::NoResources;
   }
 
   {
     AutoWriteLock lock(mStateMutex);
     bool initDrmRet = initDrmElementsLocked();
     if (initDrmRet) {
-      ALOGD("%s: Successfully initialized DRM backend", __FUNCTION__);
+      DEBUG_LOG("%s: Successfully initialized DRM backend", __FUNCTION__);
     } else {
       ALOGE("%s: Failed to initialize DRM backend", __FUNCTION__);
-      return false;
+      return HWC3::Error::NoResources;
     }
+
+    constexpr const std::size_t kCachedBuffersPerDisplay = 3;
+    std::size_t numDisplays = 0;
+    for (const DrmConnector& connector : mConnectors) {
+      if (connector.connection == DRM_MODE_CONNECTED) {
+        ++numDisplays;
+      }
+    }
+    const std::size_t bufferCacheSize = kCachedBuffersPerDisplay * numDisplays;
+    DEBUG_LOG("%s: initializing DRM buffer cache to size %zu",
+              __FUNCTION__, bufferCacheSize);
+    mBufferCache = std::make_unique<DrmBufferCache>(bufferCacheSize);
   }
 
-  mDrmEventListener = sp<DrmEventListener>::make(*this);
+  mDrmEventListener = ::android::sp<DrmEventListener>::make(*this);
   if (mDrmEventListener->init()) {
-    ALOGD("%s: Successfully initialized DRM event listener", __FUNCTION__);
+    DEBUG_LOG("%s: Successfully initialized DRM event listener", __FUNCTION__);
   } else {
     ALOGE("%s: Failed to initialize DRM event listener", __FUNCTION__);
   }
   mDrmEventListener->run("", ANDROID_PRIORITY_URGENT_DISPLAY);
 
-  return true;
+  return HWC3::Error::None;
+}
+
+HWC3::Error DrmPresenter::getDisplayConfigs(std::vector<DisplayConfig>* configs) const {
+  AutoReadLock lock(mStateMutex);
+
+  configs->clear();
+
+  for (uint32_t i = 0; i < mConnectors.size(); i++) {
+    const auto& connector = mConnectors[i];
+
+    if (connector.connection != DRM_MODE_CONNECTED) {
+      continue;
+    }
+
+    configs->emplace_back(DisplayConfig{
+        .id = i,
+        .width = connector.mMode.hdisplay,
+        .height = connector.mMode.vdisplay,
+        .dpiX = 160, //static_cast<uint32_t>(connector.dpiX),
+        .dpiY = 160, //static_cast<uint32_t>(connector.dpiY),
+        .refreshRateHz = connector.mRefreshRateAsInteger,
+    });
+  }
+
+  return HWC3::Error::None;
+}
+
+HWC3::Error DrmPresenter::registerOnHotplugCallback(const HotplugCallback& cb) {
+  mHotplugCallback = cb;
+  return HWC3::Error::None;
+}
+
+HWC3::Error DrmPresenter::unregisterOnHotplugCallback() {
+  mHotplugCallback.reset();
+  return HWC3::Error::None;
 }
 
 bool DrmPresenter::initDrmElementsLocked() {
@@ -78,12 +146,12 @@ bool DrmPresenter::initDrmElementsLocked() {
 
   res = drmModeGetResources(mFd.get());
   if (res == nullptr) {
-    ALOGE("%s HWC2::Error reading drm resources: %d", __FUNCTION__, errno);
+    ALOGE("%s HWC3::Error reading drm resources: %d", __FUNCTION__, errno);
     mFd.reset();
     return false;
   }
 
-  ALOGD(
+  DEBUG_LOG(
       "drmModeRes count fbs %d crtc %d connector %d encoder %d min w %d max w "
       "%d min h %d max h %d",
       res->count_fbs, res->count_crtcs, res->count_connectors,
@@ -127,7 +195,7 @@ bool DrmPresenter::initDrmElementsLocked() {
     drmModePlanePtr p = drmModeGetPlane(mFd.get(), planeRes->planes[i]);
     plane.mId = p->plane_id;
 
-    ALOGD(
+    DEBUG_LOG(
         "%s: plane id: %u crtcid %u fbid %u crtc xy %d %d xy %d %d "
         "possible ctrcs 0x%x",
         __FUNCTION__, p->plane_id, p->crtc_id, p->fb_id, p->crtc_x, p->crtc_y,
@@ -169,13 +237,13 @@ bool DrmPresenter::initDrmElementsLocked() {
         switch (type) {
           case DRM_PLANE_TYPE_OVERLAY:
             plane.mType = type;
-            ALOGD("%s: plane %" PRIu32 " is DRM_PLANE_TYPE_OVERLAY",
-                  __FUNCTION__, plane.mId);
+            DEBUG_LOG("%s: plane %" PRIu32 " is DRM_PLANE_TYPE_OVERLAY",
+                      __FUNCTION__, plane.mId);
             break;
           case DRM_PLANE_TYPE_PRIMARY:
             plane.mType = type;
-            ALOGD("%s: plane %" PRIu32 " is DRM_PLANE_TYPE_PRIMARY",
-                  __FUNCTION__, plane.mId);
+            DEBUG_LOG("%s: plane %" PRIu32 " is DRM_PLANE_TYPE_PRIMARY",
+                      __FUNCTION__, plane.mId);
             break;
           default:
             break;
@@ -192,12 +260,12 @@ bool DrmPresenter::initDrmElementsLocked() {
     if (isPrimaryOrOverlay) {
       for (uint32_t j = 0; j < mCrtcs.size(); j++) {
         if ((0x1 << j) & p->possible_crtcs) {
-          ALOGD("%s: plane %" PRIu32 " compatible with crtc mask %" PRIu32,
-                __FUNCTION__, plane.mId, p->possible_crtcs);
+          DEBUG_LOG("%s: plane %" PRIu32 " compatible with crtc mask %" PRIu32,
+                    __FUNCTION__, plane.mId, p->possible_crtcs);
           if (mCrtcs[j].mPlaneId == -1) {
             mCrtcs[j].mPlaneId = plane.mId;
-            ALOGD("%s: plane %" PRIu32 " associated with crtc %" PRIu32,
-                  __FUNCTION__, plane.mId, j);
+            DEBUG_LOG("%s: plane %" PRIu32 " associated with crtc %" PRIu32,
+                      __FUNCTION__, plane.mId, j);
             break;
           }
         }
@@ -256,10 +324,10 @@ bool DrmPresenter::initDrmElementsLocked() {
             c->mmHeight ? (c->modes[0].vdisplay * kUmPerInch) / (c->mmHeight)
                         : -1;
       }
-      ALOGD("%s connector %" PRIu32 " dpiX %" PRIi32 " dpiY %" PRIi32
-            " connection %d",
-            __FUNCTION__, connector.mId, connector.dpiX, connector.dpiY,
-            connector.connection);
+      DEBUG_LOG("%s connector %" PRIu32 " dpiX %" PRIi32 " dpiY %" PRIi32
+                " connection %d",
+                __FUNCTION__, connector.mId, connector.dpiX, connector.dpiY,
+                connector.connection);
 
       drmModeFreeConnector(c);
 
@@ -291,43 +359,85 @@ void DrmPresenter::resetDrmElementsLocked() {
   mPlanes.clear();
 }
 
-int DrmPresenter::getDrmFB(hwc_drm_bo_t& bo) {
-  int ret = drmPrimeFDToHandle(mFd.get(), bo.prime_fds[0], &bo.gem_handles[0]);
+std::tuple<HWC3::Error, std::shared_ptr<DrmBuffer>> DrmPresenter::create(
+    const native_handle_t* handle) {
+  cros_gralloc_handle* crosHandle = (cros_gralloc_handle*)handle;
+  if (crosHandle == nullptr) {
+    ALOGE("%s: invalid cros_gralloc_handle", __FUNCTION__);
+    return std::make_tuple(HWC3::Error::NoResources, nullptr);
+  }
+
+  DrmPrimeBufferHandle primeHandle = 0;
+  int ret = drmPrimeFDToHandle(mFd.get(), crosHandle->fds[0], &primeHandle);
   if (ret) {
     ALOGE("%s: drmPrimeFDToHandle failed: %s (errno %d)", __FUNCTION__,
           strerror(errno), errno);
-    return -1;
+    return std::make_tuple(HWC3::Error::NoResources, nullptr);
   }
-  ret = drmModeAddFB2(mFd.get(), bo.width, bo.height, bo.format, bo.gem_handles,
-                      bo.pitches, bo.offsets, &bo.fb_id, 0);
+
+  auto drmBufferPtr = mBufferCache->get(primeHandle);
+  if (drmBufferPtr != nullptr) {
+    return std::make_tuple(HWC3::Error::None,
+                           std::shared_ptr<DrmBuffer>(*drmBufferPtr));
+  }
+
+  auto buffer = std::shared_ptr<DrmBuffer>(new DrmBuffer(*this));
+  buffer->mWidth = crosHandle->width;
+  buffer->mHeight = crosHandle->height;
+  buffer->mDrmFormat = crosHandle->format;
+  buffer->mPlaneFds[0] = crosHandle->fds[0];
+  buffer->mPlaneHandles[0] = primeHandle;
+  buffer->mPlanePitches[0] = crosHandle->strides[0];
+  buffer->mPlaneOffsets[0] = crosHandle->offsets[0];
+
+  uint32_t framebuffer = 0;
+  ret = drmModeAddFB2(mFd.get(),
+                      buffer->mWidth,
+                      buffer->mHeight,
+                      buffer->mDrmFormat,
+                      buffer->mPlaneHandles,
+                      buffer->mPlanePitches,
+                      buffer->mPlaneOffsets,
+                      &framebuffer,
+                      0);
   if (ret) {
     ALOGE("%s: drmModeAddFB2 failed: %s (errno %d)", __FUNCTION__,
           strerror(errno), errno);
-    return -1;
+    return std::make_tuple(HWC3::Error::NoResources, nullptr);
   }
-  return 0;
+  DEBUG_LOG("%s: created framebuffer:%" PRIu32, __FUNCTION__, framebuffer);
+  buffer->mDrmFramebuffer = framebuffer;
+
+  mBufferCache->set(primeHandle, std::shared_ptr<DrmBuffer>(buffer));
+
+  return std::make_tuple(HWC3::Error::None,
+                         std::shared_ptr<DrmBuffer>(buffer));
 }
 
-int DrmPresenter::clearDrmFB(hwc_drm_bo_t& bo) {
-  int ret = 0;
-  if (bo.fb_id) {
-    if (drmModeRmFB(mFd.get(), bo.fb_id)) {
+HWC3::Error DrmPresenter::destroyDrmFramebuffer(DrmBuffer* buffer) {
+  if (buffer->mDrmFramebuffer) {
+    uint32_t framebuffer = *buffer->mDrmFramebuffer;
+    if (drmModeRmFB(mFd.get(), framebuffer)) {
       ALOGE("%s: drmModeRmFB failed: %s (errno %d)", __FUNCTION__,
             strerror(errno), errno);
+      return HWC3::Error::NoResources;
     }
-    ret = -1;
+    DEBUG_LOG("%s: destroyed framebuffer:%" PRIu32, __FUNCTION__, framebuffer);
+    buffer->mDrmFramebuffer.reset();
   }
-  if (bo.gem_handles[0]) {
+  if (buffer->mPlaneHandles[0]) {
     struct drm_gem_close gem_close = {};
-    gem_close.handle = bo.gem_handles[0];
+    gem_close.handle = buffer->mPlaneHandles[0];
     if (drmIoctl(mFd.get(), DRM_IOCTL_GEM_CLOSE, &gem_close)) {
       ALOGE("%s: DRM_IOCTL_GEM_CLOSE failed: %s (errno %d)", __FUNCTION__,
             strerror(errno), errno);
+      return HWC3::Error::NoResources;
     }
-    ret = -1;
+
+    mBufferCache->remove(buffer->mPlaneHandles[0]);
   }
-  ALOGV("%s: drm FB %d", __FUNCTION__, bo.fb_id);
-  return ret;
+
+  return HWC3::Error::None;
 }
 
 bool DrmPresenter::handleHotplug() {
@@ -365,29 +475,39 @@ bool DrmPresenter::handleHotplug() {
         continue;
       }
 
-      bool connected =
+      const bool connected =
           mConnectors[i].connection == DRM_MODE_CONNECTED ? true : false;
       if (mHotplugCallback) {
-        mHotplugCallback(connected, i, mConnectors[i].mMode.hdisplay,
-                         mConnectors[i].mMode.vdisplay, mConnectors[i].dpiX,
-                         mConnectors[i].dpiY,
-                         mConnectors[i].mRefreshRateAsInteger);
+        (*mHotplugCallback)(connected,                      //
+                            i,                              //
+                            mConnectors[i].mMode.hdisplay,  //
+                            mConnectors[i].mMode.vdisplay,  //
+                            mConnectors[i].dpiX,            //
+                            mConnectors[i].dpiY,            //
+                            mConnectors[i].mRefreshRateAsInteger);
       }
     }
   }
   return true;
 }
 
-std::tuple<HWC2::Error, base::unique_fd> DrmPresenter::flushToDisplay(
-    int display, hwc_drm_bo_t& bo, base::borrowed_fd inSyncFd) {
+std::tuple<HWC3::Error, ::android::base::unique_fd>
+DrmPresenter::flushToDisplay(int display, const DrmBuffer& buffer,
+                             ::android::base::borrowed_fd inSyncFd) {
   ATRACE_CALL();
+
+  if (!buffer.mDrmFramebuffer) {
+    ALOGE("%s: failed, no framebuffer created.", __FUNCTION__);
+    return std::make_tuple(HWC3::Error::NoResources,
+                           ::android::base::unique_fd());
+  }
 
   AutoReadLock lock(mStateMutex);
 
   DrmConnector& connector = mConnectors[display];
   DrmCrtc& crtc = mCrtcs[display];
 
-  HWC2::Error error = HWC2::Error::None;
+  HWC3::Error error = HWC3::Error::None;
 
   drmModeAtomicReqPtr pset = drmModeAtomicAlloc();
 
@@ -397,17 +517,17 @@ std::tuple<HWC2::Error, base::unique_fd> DrmPresenter::flushToDisplay(
     DEBUG_LOG("%s: Setting crtc.\n", __FUNCTION__);
     ret = drmModeAtomicAddProperty(pset, crtc.mId, crtc.mActivePropertyId, 1);
     if (ret < 0) {
-      ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
+      ALOGE("%s:%d: failed: %s\n", __FUNCTION__, __LINE__, strerror(errno));
     }
     ret = drmModeAtomicAddProperty(pset, crtc.mId, crtc.mModePropertyId,
                                    connector.mModeBlobId);
     if (ret < 0) {
-      ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
+      ALOGE("%s:%d: failed: %s\n", __FUNCTION__, __LINE__, strerror(errno));
     }
     ret = drmModeAtomicAddProperty(pset, connector.mId,
                                    connector.mCrtcPropertyId, crtc.mId);
     if (ret < 0) {
-      ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
+      ALOGE("%s:%d: failed: %s\n", __FUNCTION__, __LINE__, strerror(errno));
     }
 
     crtc.mDidSetCrtc = true;
@@ -415,12 +535,9 @@ std::tuple<HWC2::Error, base::unique_fd> DrmPresenter::flushToDisplay(
     DEBUG_LOG("%s: Already set crtc\n", __FUNCTION__);
   }
 
-  int rawOutSyncFd;
-  uint64_t outSyncFdUint =
-      static_cast<uint64_t>(reinterpret_cast<uintptr_t>(&rawOutSyncFd));
-
+  int flushFenceFd = -1;
   ret = drmModeAtomicAddProperty(pset, crtc.mId, crtc.mOutFencePtrPropertyId,
-                                 outSyncFdUint);
+                                 addressAsUint(&flushFenceFd));
   if (ret < 0) {
     ALOGE("%s:%d: set OUT_FENCE_PTR failed %d errno %d\n", __FUNCTION__,
           __LINE__, ret, errno);
@@ -429,89 +546,91 @@ std::tuple<HWC2::Error, base::unique_fd> DrmPresenter::flushToDisplay(
   if (crtc.mPlaneId == -1) {
     ALOGE("%s:%d: no plane available for crtc id %" PRIu32, __FUNCTION__,
           __LINE__, crtc.mId);
-    return std::make_tuple(HWC2::Error::NoResources, base::unique_fd());
+    return std::make_tuple(HWC3::Error::NoResources,
+                           ::android::base::unique_fd());
   }
 
   DrmPlane& plane = mPlanes[crtc.mPlaneId];
 
   DEBUG_LOG("%s: set plane: plane id %d crtc id %d fbid %d bo w h %d %d\n",
-            __FUNCTION__, plane.mId, crtc.mId, bo.fb_id, bo.width, bo.height);
+            __FUNCTION__, plane.mId, crtc.mId, *buffer.mDrmFramebuffer,
+            buffer.mWidth, buffer.mHeight);
 
   ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mCrtcPropertyId,
                                  crtc.mId);
   if (ret < 0) {
-    ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
+    ALOGE("%s:%d: failed: %s\n", __FUNCTION__, __LINE__, strerror(errno));
   }
   ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mInFenceFdPropertyId,
                                  inSyncFd.get());
   if (ret < 0) {
-    ALOGE("%s:%d: set IN_FENCE_FD failed %d errno %d\n", __FUNCTION__, __LINE__,
-          ret, errno);
+    ALOGE("%s:%d: failed: %s\n", __FUNCTION__, __LINE__, strerror(errno));
   }
-  ret =
-      drmModeAtomicAddProperty(pset, plane.mId, plane.mFbPropertyId, bo.fb_id);
+  ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mFbPropertyId,
+                                 *buffer.mDrmFramebuffer);
   if (ret < 0) {
-    ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
+    ALOGE("%s:%d: failed: %s\n", __FUNCTION__, __LINE__, strerror(errno));
   }
   ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mCrtcXPropertyId, 0);
   if (ret < 0) {
-    ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
+    ALOGE("%s:%d: failed: %s\n", __FUNCTION__, __LINE__, strerror(errno));
   }
   ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mCrtcYPropertyId, 0);
   if (ret < 0) {
-    ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
+    ALOGE("%s:%d: failed: %s\n", __FUNCTION__, __LINE__, strerror(errno));
   }
   ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mCrtcWPropertyId,
-                                 bo.width);
+                                 buffer.mWidth);
   if (ret < 0) {
-    ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
+    ALOGE("%s:%d: failed: %s\n", __FUNCTION__, __LINE__, strerror(errno));
   }
   ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mCrtcHPropertyId,
-                                 bo.height);
+                                 buffer.mHeight);
   if (ret < 0) {
-    ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
+    ALOGE("%s:%d: failed: %s\n", __FUNCTION__, __LINE__, strerror(errno));
   }
   ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mSrcXPropertyId, 0);
   if (ret < 0) {
-    ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
+    ALOGE("%s:%d: failed: %s\n", __FUNCTION__, __LINE__, strerror(errno));
   }
   ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mSrcYPropertyId, 0);
   if (ret < 0) {
-    ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
+    ALOGE("%s:%d: failed: %s\n", __FUNCTION__, __LINE__, strerror(errno));
   }
   ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mSrcWPropertyId,
-                                 bo.width << 16);
+                                 buffer.mWidth << 16);
   if (ret < 0) {
-    ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
+    ALOGE("%s:%d: failed: %s\n", __FUNCTION__, __LINE__, strerror(errno));
   }
   ret = drmModeAtomicAddProperty(pset, plane.mId, plane.mSrcHPropertyId,
-                                 bo.height << 16);
+                                 buffer.mHeight << 16);
   if (ret < 0) {
-    ALOGE("%s:%d: failed %d errno %d\n", __FUNCTION__, __LINE__, ret, errno);
+    ALOGE("%s:%d: failed: %s\n", __FUNCTION__, __LINE__, strerror(errno));
   }
 
-  uint32_t flags = DRM_MODE_ATOMIC_ALLOW_MODESET;
-  ret = drmModeAtomicCommit(mFd.get(), pset, flags, 0);
+  constexpr const uint32_t kCommitFlags = DRM_MODE_ATOMIC_ALLOW_MODESET;
+  ret = drmModeAtomicCommit(mFd.get(), pset, kCommitFlags, 0);
 
   if (ret) {
-    ALOGE("%s: Atomic commit failed with %d %d\n", __FUNCTION__, ret, errno);
-    error = HWC2::Error::NoResources;
+    ALOGE("%s:%d: atomic commit failed: %s\n", __FUNCTION__, __LINE__,
+          strerror(errno));
+    error = HWC3::Error::NoResources;
+    flushFenceFd = -1;
   }
-  base::unique_fd outSyncFd(rawOutSyncFd);
 
   if (pset) {
     drmModeAtomicFree(pset);
   }
 
-  DEBUG_LOG("%s: out fence: %d\n", __FUNCTION__, outSyncFd.get());
-  return std::make_tuple(error, std::move(outSyncFd));
+  DEBUG_LOG("%s: flush fence:%d\n", __FUNCTION__, flushFenceFd);
+  return std::make_tuple(error, ::android::base::unique_fd(flushFenceFd));
 }
 
 std::optional<std::vector<uint8_t>> DrmPresenter::getEdid(uint32_t id) {
   AutoReadLock lock(mStateMutex);
 
   if (mConnectors[id].mEdidBlobId == -1) {
-    ALOGW("%s: EDID not supported", __func__);
+    DEBUG_LOG("%s: EDID not supported", __func__);
     return std::nullopt;
   }
   drmModePropertyBlobPtr blob =
@@ -530,35 +649,10 @@ std::optional<std::vector<uint8_t>> DrmPresenter::getEdid(uint32_t id) {
   return edid;
 }
 
-DrmBuffer::DrmBuffer(const native_handle_t* handle, DrmPresenter* drmPresenter)
-    : mDrmPresenter(drmPresenter), mBo({}) {
-  if (!convertBoInfo(handle)) {
-    mDrmPresenter->getDrmFB(mBo);
-  }
-}
+DrmBuffer::DrmBuffer(DrmPresenter& DrmPresenter)
+    : mDrmPresenter(DrmPresenter) {}
 
-DrmBuffer::~DrmBuffer() { mDrmPresenter->clearDrmFB(mBo); }
-
-int DrmBuffer::convertBoInfo(const native_handle_t* handle) {
-  cros_gralloc_handle* gr_handle = (cros_gralloc_handle*)handle;
-  if (!gr_handle) {
-    ALOGE("%s: Null buffer handle", __FUNCTION__);
-    return -1;
-  }
-  mBo.width = gr_handle->width;
-  mBo.height = gr_handle->height;
-  mBo.hal_format = gr_handle->droid_format;
-  mBo.format = gr_handle->format;
-  mBo.usage = gr_handle->usage;
-  mBo.prime_fds[0] = gr_handle->fds[0];
-  mBo.pitches[0] = gr_handle->strides[0];
-  return 0;
-}
-
-std::tuple<HWC2::Error, base::unique_fd> DrmBuffer::flushToDisplay(
-    int display, base::borrowed_fd inWaitSyncFd) {
-  return mDrmPresenter->flushToDisplay(display, mBo, inWaitSyncFd);
-}
+DrmBuffer::~DrmBuffer() { mDrmPresenter.destroyDrmFramebuffer(this); }
 
 DrmPresenter::DrmEventListener::DrmEventListener(DrmPresenter& presenter)
     : mPresenter(presenter) {}
@@ -566,7 +660,7 @@ DrmPresenter::DrmEventListener::DrmEventListener(DrmPresenter& presenter)
 DrmPresenter::DrmEventListener::~DrmEventListener() {}
 
 bool DrmPresenter::DrmEventListener::init() {
-  mEventFd = android::base::unique_fd(
+  mEventFd = ::android::base::unique_fd(
       socket(PF_NETLINK, SOCK_DGRAM, NETLINK_KOBJECT_UEVENT));
   if (!mEventFd.ok()) {
     ALOGE("Failed to open uevent socket: %s", strerror(errno));
@@ -652,4 +746,5 @@ void DrmPresenter::DrmEventListener::processHotplug(uint64_t timestamp) {
   ALOGD("DrmEventListener detected hotplug event %" PRIu64, timestamp);
   mPresenter.handleHotplug();
 }
-}  // namespace android
+
+}  // namespace aidl::android::hardware::graphics::composer3::impl

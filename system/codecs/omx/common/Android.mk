@@ -32,7 +32,6 @@ $(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 $(call emugl-import,libGoldfishAddressSpace$(GOLDFISH_OPENGL_LIB_SUFFIX))
 else
-$(call emugl-export,STATIC_LIBRARIES,libplatform)
 $(call emugl-export,STATIC_LIBRARIES,libGoldfishAddressSpace)
 
 ifeq (true,$(GFXSTREAM))

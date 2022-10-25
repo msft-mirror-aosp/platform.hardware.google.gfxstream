@@ -640,7 +640,6 @@ private:
     GLuint m_dispatchIndirectBuffer;
     GLuint m_drawIndirectBuffer;
     GLuint m_shaderStorageBuffer;
-    GLuint m_textureBuffer;
 
     bool m_transformFeedbackActive;
     bool m_transformFeedbackUnpaused;
@@ -671,7 +670,6 @@ private:
         TEXTURE_2D_ARRAY = 3,
         TEXTURE_3D = 4,
         TEXTURE_2D_MULTISAMPLE = 5,
-        TEXTURE_BUFFER = 6,
         TEXTURE_TARGET_COUNT
     };
     struct TextureUnit {

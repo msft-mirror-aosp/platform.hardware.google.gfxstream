@@ -44,11 +44,7 @@
 
 bool IsCuttlefish();
 bool IsCuttlefishFoldable();
-
-bool IsInNoOpCompositionMode();
-bool IsInClientCompositionMode();
-
-bool IsInNoOpDisplayFinderMode();
-bool IsInDrmDisplayFinderMode();
+bool IsNoOpMode();
+bool IsClientCompositionMode();
 
 #endif

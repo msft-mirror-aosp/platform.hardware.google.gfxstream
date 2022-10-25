@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Android Open Source Project
+ * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 #define ANDROID_HWC_DRMPRESENTER_H
 
 #include <android-base/unique_fd.h>
+#include <cutils/native_handle.h>
 #include <utils/Thread.h>
 #include <xf86drm.h>
 #include <xf86drmMode.h>
@@ -28,10 +29,10 @@
 #include <vector>
 
 #include "Common.h"
+#include "LruCache.h"
 #include "android/base/synchronization/AndroidLock.h"
-#include "drmhwcgralloc.h"
 
-namespace android {
+namespace aidl::android::hardware::graphics::composer3::impl {
 
 class DrmBuffer;
 class DrmPresenter;
@@ -39,7 +40,6 @@ class DrmPresenter;
 // A RAII object that will clear a drm framebuffer upon destruction.
 class DrmBuffer {
  public:
-  DrmBuffer(const native_handle_t* handle, DrmPresenter* drmPresenter);
   ~DrmBuffer();
 
   DrmBuffer(const DrmBuffer&) = delete;
@@ -48,20 +48,26 @@ class DrmBuffer {
   DrmBuffer(DrmBuffer&&) = delete;
   DrmBuffer& operator=(DrmBuffer&&) = delete;
 
-  std::tuple<HWC2::Error, base::unique_fd> flushToDisplay(
-      int display, base::borrowed_fd inWaitSyncFd);
-
  private:
-  int convertBoInfo(const native_handle_t* handle);
+  friend class DrmPresenter;
+  DrmBuffer(DrmPresenter& drmPresenter);
 
-  DrmPresenter* mDrmPresenter;
-  hwc_drm_bo_t mBo;
+  DrmPresenter& mDrmPresenter;
+
+  uint32_t mWidth = 0;
+  uint32_t mHeight = 0;
+  uint32_t mDrmFormat = 0;
+  uint32_t mPlaneFds[4] = {0, 0, 0, 0};
+  uint32_t mPlaneHandles[4] = {0, 0, 0, 0};
+  uint32_t mPlanePitches[4] = {0, 0, 0, 0};
+  uint32_t mPlaneOffsets[4] = {0, 0, 0, 0};
+  std::optional<uint32_t> mDrmFramebuffer;
 };
 
 class DrmPresenter {
  public:
   DrmPresenter() = default;
-  ~DrmPresenter() = default;
+  ~DrmPresenter();
 
   DrmPresenter(const DrmPresenter&) = delete;
   DrmPresenter& operator=(const DrmPresenter&) = delete;
@@ -69,31 +75,50 @@ class DrmPresenter {
   DrmPresenter(DrmPresenter&&) = delete;
   DrmPresenter& operator=(DrmPresenter&&) = delete;
 
-  using HotplugCallback = std::function<void(
-      bool /*connected*/, uint32_t /*id*/, uint32_t /*width*/,
-      uint32_t /*height*/, uint32_t /*dpiX*/, uint32_t /*dpiY*/,
-      uint32_t /*refreshRate*/)>;
+  HWC3::Error init();
 
-  bool init(const HotplugCallback& cb);
+  struct DisplayConfig {
+    uint32_t id;
+    uint32_t width;
+    uint32_t height;
+    uint32_t dpiX;
+    uint32_t dpiY;
+    uint32_t refreshRateHz;
+  };
 
-  uint32_t refreshRate(uint32_t display) const {
-    if (display < mConnectors.size()) {
-      return mConnectors[display].mRefreshRateAsInteger;
-    }
+  HWC3::Error getDisplayConfigs(std::vector<DisplayConfig>* configs) const;
 
-    return -1;
-  }
+  using HotplugCallback = std::function<void(bool /*connected*/,   //
+                                             uint32_t /*id*/,      //
+                                             uint32_t /*width*/,   //
+                                             uint32_t /*height*/,  //
+                                             uint32_t /*dpiX*/,    //
+                                             uint32_t /*dpiY*/,    //
+                                             uint32_t /*refreshRate*/)>;
 
-  std::tuple<HWC2::Error, base::unique_fd> flushToDisplay(
-      int display, hwc_drm_bo_t& fb, base::borrowed_fd inWaitSyncFd);
+  HWC3::Error registerOnHotplugCallback(const HotplugCallback& cb);
+  HWC3::Error unregisterOnHotplugCallback();
+
+  uint32_t refreshRate() const { return mConnectors[0].mRefreshRateAsInteger; }
+
+  std::tuple<HWC3::Error, std::shared_ptr<DrmBuffer>> create(
+      const native_handle_t* handle);
+
+  std::tuple<HWC3::Error, ::android::base::unique_fd> flushToDisplay(
+      int display, const DrmBuffer& buffer,
+      ::android::base::borrowed_fd inWaitSyncFd);
 
   std::optional<std::vector<uint8_t>> getEdid(uint32_t id);
 
  private:
-  // Grant visibility for getDrmFB and clearDrmFB to DrmBuffer.
+  // TODO: make this cache per display when enabling hotplug support.
+  using DrmPrimeBufferHandle = uint32_t;
+  using DrmBufferCache = LruCache<DrmPrimeBufferHandle, std::shared_ptr<DrmBuffer>>;
+  std::unique_ptr<DrmBufferCache> mBufferCache;
+
+  // Grant visibility to destroyDrmFramebuffer to DrmBuffer.
   friend class DrmBuffer;
-  int getDrmFB(hwc_drm_bo_t& bo);
-  int clearDrmFB(hwc_drm_bo_t& bo);
+  HWC3::Error destroyDrmFramebuffer(DrmBuffer* buffer);
 
   // Grant visibility for handleHotplug to DrmEventListener.
   bool handleHotplug();
@@ -102,12 +127,12 @@ class DrmPresenter {
   void resetDrmElementsLocked();
 
   // Drm device.
-  android::base::unique_fd mFd;
+  ::android::base::unique_fd mFd;
 
-  HotplugCallback mHotplugCallback;
+  std::optional<HotplugCallback> mHotplugCallback;
 
   // Protects access to the below drm structs.
-  android::base::guest::ReadWriteLock mStateMutex;
+  mutable ::android::base::guest::ReadWriteLock mStateMutex;
 
   struct DrmPlane {
     uint32_t mId = -1;
@@ -152,7 +177,7 @@ class DrmPresenter {
   };
   std::vector<DrmConnector> mConnectors;
 
-  class DrmEventListener : public Thread {
+  class DrmEventListener : public ::android::Thread {
    public:
     DrmEventListener(DrmPresenter& presenter);
     virtual ~DrmEventListener();
@@ -165,13 +190,13 @@ class DrmPresenter {
     void processHotplug(uint64_t timestamp);
 
     DrmPresenter& mPresenter;
-    android::base::unique_fd mEventFd;
+    ::android::base::unique_fd mEventFd;
     int mMaxFd;
     fd_set mMonitoredFds;
   };
-  android::sp<DrmEventListener> mDrmEventListener;
+  ::android::sp<DrmEventListener> mDrmEventListener;
 };
 
-}  // namespace android
+}  // namespace aidl::android::hardware::graphics::composer3::impl
 
 #endif

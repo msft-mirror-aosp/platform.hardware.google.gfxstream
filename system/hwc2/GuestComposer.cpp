@@ -463,17 +463,12 @@ HWC2::Error GuestComposer::onDisplayCreate(Display* display) {
 
   displayInfo.compositionResultBuffer = bufferHandle;
 
-  auto [drmBufferCreateError, drmBuffer] = mDrmPresenter->create(bufferHandle);
-  if (drmBufferCreateError != HWC2::Error::None) {
-    ALOGE("%s: display:%" PRIu64 " failed to create client target drm buffer",
-          __FUNCTION__, displayId);
-    return HWC2::Error::NoResources;
-  }
-  displayInfo.compositionResultDrmBuffer = std::move(drmBuffer);
+  displayInfo.compositionResultDrmBuffer = std::make_unique<DrmBuffer>(
+      displayInfo.compositionResultBuffer, mDrmPresenter);
 
   if (displayId == 0) {
-    auto [flushError, flushSyncFd] = mDrmPresenter->flushToDisplay(
-        displayId, *displayInfo.compositionResultDrmBuffer, -1);
+    auto [flushError, flushSyncFd] =
+        displayInfo.compositionResultDrmBuffer->flushToDisplay(displayId, -1);
     if (flushError != HWC2::Error::None) {
       ALOGW(
           "%s: Initial display flush failed. HWComposer assuming that we are "
@@ -840,8 +835,9 @@ std::tuple<HWC2::Error, base::unique_fd> GuestComposer::presentDisplay(
   DEBUG_LOG("%s display:%" PRIu64 " flushing drm buffer", __FUNCTION__,
             displayId);
 
-  auto [error, outRetireFence] = mDrmPresenter->flushToDisplay(
-      displayId, *displayInfo.compositionResultDrmBuffer, -1);
+  auto [error, outRetireFence] =
+      displayInfo.compositionResultDrmBuffer->flushToDisplay(
+          static_cast<int>(displayId), -1);
   if (error != HWC2::Error::None) {
     ALOGE("%s: display:%" PRIu64 " failed to flush drm buffer" PRIu64,
           __FUNCTION__, displayId);

@@ -35,7 +35,6 @@ struct goldfish_dma_context;
 #endif
 
 #include <memory>
-#include <optional>
 #include <cstring>
 
 class GLEncoder;
@@ -143,10 +142,6 @@ public:
         ExtendedRCEncoderContext* rcEnc, int width, int height, uint32_t glformat) = 0;
     virtual uint32_t getHostHandle(native_handle_t const* handle) = 0;
     virtual int getFormat(native_handle_t const* handle) = 0;
-    virtual uint32_t getFormatDrmFourcc(native_handle_t const* /*handle*/) {
-        // Equal to DRM_FORMAT_INVALID -- see <drm_fourcc.h>
-        return 0;
-    }
     virtual size_t getAllocatedSize(native_handle_t const* handle) = 0;
     virtual ~Gralloc() {}
 };
@@ -227,7 +222,7 @@ private:
     static gl_client_context_t  *s_getGLContext();
     static gl2_client_context_t *s_getGL2Context();
 
-    const std::string& queryHostExtensions(ExtendedRCEncoderContext *rcEnc);
+    const std::string& queryGLExtensions(ExtendedRCEncoderContext *rcEnc);
     // setProtocol initilizes GL communication protocol for checksums
     // should be called when m_rcEnc is created
     void setChecksumHelper(ExtendedRCEncoderContext *rcEnc);
@@ -277,7 +272,7 @@ private:
     ChecksumCalculator m_checksumHelper;
     Gralloc* m_grallocHelper = nullptr;
     ProcessPipe* m_processPipe = nullptr;
-    std::string m_hostExtensions;
+    std::string m_glExtensions;
     bool m_grallocOnly;
     bool m_noHostError;
 #ifdef GFXSTREAM

@@ -19,7 +19,7 @@
 
 #include "Common.h"
 #include "Display.h"
-#include "DrmClient.h"
+#include "DrmPresenter.h"
 #include "FrameComposer.h"
 #include "Gralloc.h"
 #include "Layer.h"
@@ -62,8 +62,8 @@ class GuestFrameComposer : public FrameComposer {
 
   HWC3::Error onActiveConfigChange(Display* /*display*/) override;
 
-  const DrmClient* getDrmPresenter() const override {
-    return &mDrmClient;
+  const DrmPresenter* getDrmPresenter() const override {
+    return &mDrmPresenter;
   }
 
  private:
@@ -102,7 +102,7 @@ class GuestFrameComposer : public FrameComposer {
 
   Gralloc mGralloc;
 
-  DrmClient mDrmClient;
+  DrmPresenter mDrmPresenter;
 
   // Cuttlefish on QEMU does not have a display. Disable presenting to avoid
   // spamming logcat with DRM commit failures.

@@ -5,11 +5,9 @@ $(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
 $(call emugl-import,libOpenglCodecCommon$(GOLDFISH_OPENGL_LIB_SUFFIX) lib_renderControl_enc)
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 $(call emugl-import,libandroidemu)
-$(call emugl-import,libplatform$(GOLDFISH_OPENGL_LIB_SUFFIX))
 $(call emugl-import,libGoldfishAddressSpace$(GOLDFISH_OPENGL_LIB_SUFFIX))
 else
 $(call emugl-export,SHARED_LIBRARIES,libandroidemu)
-$(call emugl-export,STATIC_LIBRARIES,libplatform)
 $(call emugl-export,STATIC_LIBRARIES,libGoldfishAddressSpace)
 endif
 
@@ -17,7 +15,8 @@ endif
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 LOCAL_C_INCLUDES += \
     $(LOCAL_PATH) \
-    $(GFXSTREAM_PROTOCOLS_PATH)/include/vulkan/include
+    $(HOST_EMUGL_PATH)/host/include \
+    $(HOST_EMUGL_PATH)/host/include/vulkan
 endif
 
 ifneq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
@@ -29,7 +28,7 @@ LOCAL_C_INCLUDES += \
 
 LOCAL_HEADER_LIBRARIES += \
     hwvulkan_headers \
-    gfxstream_vulkan_headers \
+    vulkan_headers \
 
 LOCAL_SHARED_LIBRARIES += libdrm
 

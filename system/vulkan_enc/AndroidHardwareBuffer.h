@@ -33,7 +33,7 @@ getAndroidHardwareBufferUsageFromVkUsage(
 
 VkResult getAndroidHardwareBufferPropertiesANDROID(
     Gralloc* grallocHelper,
-    const VkPhysicalDeviceMemoryProperties* memProps,
+    const HostVisibleMemoryVirtualizationInfo* hostMemVirtInfo,
     VkDevice device,
     const AHardwareBuffer* buffer,
     VkAndroidHardwareBufferPropertiesANDROID* pProperties);

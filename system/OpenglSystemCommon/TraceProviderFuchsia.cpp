@@ -18,7 +18,9 @@
 
 #include <log/log.h>
 
+#include <lib/async-loop/default.h>
 #include <lib/async/cpp/task.h>
+#include <lib/fdio/directory.h>
 #include <lib/zx/channel.h>
 
 #include "services/service_connector.h"

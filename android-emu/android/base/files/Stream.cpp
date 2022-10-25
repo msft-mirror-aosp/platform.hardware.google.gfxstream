@@ -103,23 +103,17 @@ float Stream::getFloat() {
     return u.f;
 }
 
-void Stream::putString(const char* str) {
-    if (str) {
-        putString(str, strlen(str));
-    } else {
-        putString("", 0);
-    }
+void Stream::putString(StringView str) {
+    this->putBe32(str.size());
+    this->write(str.data(), str.size());
 }
 
-void Stream::putString(const std::string& str) {
-    putString(str.data(), str.size());
+void Stream::putString(const char* str) {
+    putString(StringView(str));
 }
 
 void Stream::putString(const char* str, size_t len) {
-    if (str) {
-        this->putBe32(len);
-        this->write(str, len);
-    }
+    putString(StringView(str, len));
 }
 
 std::string Stream::getString() {

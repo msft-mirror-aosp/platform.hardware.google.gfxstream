@@ -7,4 +7,4 @@ android_add_library(TARGET GoldfishProfiler SHARED LICENSE Apache-2.0 SRC profil
 target_include_directories(GoldfishProfiler PRIVATE ${GOLDFISH_DEVICE_ROOT}/system/profiler ${GOLDFISH_DEVICE_ROOT}/./host/include/libOpenglRender ${GOLDFISH_DEVICE_ROOT}/./system/include ${GOLDFISH_DEVICE_ROOT}/./../../../external/qemu/android/android-emugl/guest)
 target_compile_definitions(GoldfishProfiler PRIVATE "-DPLATFORM_SDK_VERSION=29" "-DGOLDFISH_HIDL_GRALLOC" "-DHOST_BUILD" "-DANDROID" "-DGL_GLEXT_PROTOTYPES" "-DPAGE_SIZE=4096" "-DGFXSTREAM")
 target_compile_options(GoldfishProfiler PRIVATE "-fvisibility=default" "-Wno-unused-parameter")
-target_link_libraries(GoldfishProfiler PRIVATE android-emu-shared vulkan_enc gui log _renderControl_enc GLESv2_enc GLESv1_enc OpenglCodecCommon_host cutils utils androidemu PRIVATE gralloc_cb_host GoldfishAddressSpace_host platform_host qemupipe_host)
+target_link_libraries(GoldfishProfiler PRIVATE android-emu-shared vulkan_enc gui log _renderControl_enc GLESv2_enc GLESv1_enc OpenglCodecCommon_host cutils utils androidemu PRIVATE gralloc_cb_host GoldfishAddressSpace_host qemupipe_host)

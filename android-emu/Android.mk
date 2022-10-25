@@ -18,15 +18,12 @@ LOCAL_SRC_FILES := \
     android/base/files/StreamSerializing.cpp \
     android/base/Pool.cpp \
     android/base/StringFormat.cpp \
-    android/base/Process.cpp \
     android/base/AndroidSubAllocator.cpp \
     android/base/synchronization/AndroidMessageChannel.cpp \
     android/base/threads/AndroidFunctorThread.cpp \
     android/base/threads/AndroidThreadStore.cpp \
     android/base/threads/AndroidThread_pthread.cpp \
     android/base/threads/AndroidWorkPool.cpp \
-    android/base/AndroidHealthMonitor.cpp \
-    android/base/AndroidHealthMonitorConsumerBasic.cpp \
     android/base/Tracing.cpp \
     android/utils/debug.c \
 

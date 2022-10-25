@@ -7,6 +7,7 @@ files_lib_stream = files(
   'ProcessPipe.cpp',
   'QemuPipeStream.cpp',
   'ThreadInfo.cpp',
+  'VirtioGpuStream.cpp',
   'VirtioGpuPipeStream.cpp',
 )
 
@@ -18,8 +19,8 @@ lib_stream = static_library(
                          inc_render_enc, inc_android_compat,
                          inc_qemu_pipe, inc_qemu_pipe_types, inc_gralloc,
                          inc_vulkan_enc, inc_goldfish_address_space,
-                         inc_system, inc_platform],
+                         inc_system],
    link_with: [lib_codec_common, lib_goldfish_address_space, lib_qemu_pipe,
-               lib_render_control_enc, lib_platform],
+               lib_render_control_enc],
    dependencies: drm_dep
 )

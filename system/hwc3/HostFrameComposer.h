@@ -23,7 +23,7 @@
 #include <tuple>
 
 #include "Common.h"
-#include "DrmClient.h"
+#include "DrmPresenter.h"
 #include "FrameComposer.h"
 #include "HostConnection.h"
 
@@ -65,9 +65,9 @@ class HostFrameComposer : public FrameComposer {
 
   HWC3::Error onActiveConfigChange(Display* display) override;
 
-  const DrmClient* getDrmPresenter() const override {
-    if (mDrmClient) {
-      return &*mDrmClient;
+  const DrmPresenter* getDrmPresenter() const override {
+    if (mDrmPresenter) {
+      return &*mDrmPresenter;
     }
     return nullptr;
   }
@@ -100,7 +100,7 @@ class HostFrameComposer : public FrameComposer {
 
   std::unordered_map<int64_t, HostComposerDisplayInfo> mDisplayInfos;
 
-  std::optional<DrmClient> mDrmClient;
+  std::optional<DrmPresenter> mDrmPresenter;
 };
 
 }  // namespace aidl::android::hardware::graphics::composer3::impl

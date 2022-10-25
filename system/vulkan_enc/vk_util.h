@@ -199,13 +199,13 @@ __vk_find_struct(void *start, VkStructureType sType)
 
 template <class T, class H> T* vk_find_struct(H* head)
 {
-    (void)vk_get_vk_struct_id<H>::id;
+    vk_get_vk_struct_id<H>::id;
     return static_cast<T*>(__vk_find_struct(static_cast<void*>(head), vk_get_vk_struct_id<T>::id));
 }
 
 template <class T, class H> const T* vk_find_struct(const H* head)
 {
-    (void)vk_get_vk_struct_id<H>::id;
+    vk_get_vk_struct_id<H>::id;
     return static_cast<const T*>(__vk_find_struct(const_cast<void*>(static_cast<const void*>(head)),
                                  vk_get_vk_struct_id<T>::id));
 }
@@ -228,14 +228,14 @@ template <class T> T vk_make_orphan_copy(const T& vk_struct) {
 
 template <class T> vk_struct_chain_iterator vk_make_chain_iterator(T* vk_struct)
 {
-    (void)vk_get_vk_struct_id<T>::id;
+    vk_get_vk_struct_id<T>::id;
     vk_struct_chain_iterator result = { reinterpret_cast<vk_struct_common*>(vk_struct) };
     return result;
 }
 
 template <class T> void vk_append_struct(vk_struct_chain_iterator* i, T* vk_struct)
 {
-    (void)vk_get_vk_struct_id<T>::id;
+    vk_get_vk_struct_id<T>::id;
 
     vk_struct_common* p = i->value;
     if (p->pNext) {

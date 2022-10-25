@@ -33,7 +33,7 @@
 #include <unordered_map>
 
 #define GET_STATUS_SAFE(result, member) \
-    ((result).ok() ? ((result)->member) : ZX_OK)
+    ((result).ok() ? ((result).Unwrap()->member) : ZX_OK)
 
 using android::base::guest::AutoLock;
 using android::base::guest::Lock;
@@ -131,12 +131,12 @@ bool GoldfishAddressSpaceBlock::allocate(GoldfishAddressSpaceBlockProvider *prov
     const fidl::WireSyncClient<AddressSpaceChildDriver>& driver = provider->m_child_driver;
 
     auto result = driver->AllocateBlock(size);
-    if (!result.ok() || result->res != ZX_OK) {
+    if (!result.ok() || result.Unwrap()->res != ZX_OK) {
         ALOGE("%s: allocate block failed: %d:%d", __func__, result.status(), GET_STATUS_SAFE(result, res));
         return false;
     }
-    m_phys_addr = result->paddr;
-    m_vmo = result->vmo.release();
+    m_phys_addr = result.Unwrap()->paddr;
+    m_vmo = result.Unwrap()->vmo.release();
 
     m_size = size;
     m_offset = 0;
@@ -225,13 +225,13 @@ void GoldfishAddressSpaceBlock::destroy()
             abort();
             // int32_t res = ZX_OK;
             // auto result = m_driver->UnclaimShared(m_offset);
-            // if (!result.ok() || result->res != ZX_OK) {
+            // if (!result.ok() || result.Unwrap()->res != ZX_OK) {
             //     ALOGE("%s: unclaim shared block failed: %d:%d", __func__,
             //           result.status(), GET_STATUS_SAFE(result, res));
             // }
         } else {
             auto result = (*m_driver)->DeallocateBlock(m_phys_addr);
-            if (!result.ok() || result->res != ZX_OK) {
+            if (!result.ok() || result.Unwrap()->res != ZX_OK) {
                 ALOGE("%s: deallocate block failed: %d:%d", __func__,
                       result.status(), GET_STATUS_SAFE(result, res));
             }
@@ -359,12 +359,12 @@ bool goldfish_address_space_allocate(
 
     zx::vmo vmo;
     auto result = deviceSync->AllocateBlock(size);
-    if (!result.ok() || result->res != ZX_OK) {
+    if (!result.ok() || result.Unwrap()->res != ZX_OK) {
         ALOGE("%s: allocate block failed: %d:%d", __func__, result.status(), GET_STATUS_SAFE(result, res));
         return false;
     }
-    *phys_addr = result->paddr;
-    vmo = std::move(result->vmo);
+    *phys_addr = result.Unwrap()->paddr;
+    vmo = std::move(result.Unwrap()->vmo);
 
     *offset = 0;
 
@@ -388,7 +388,7 @@ bool goldfish_address_space_free(
             fidl::WireSyncClient<AddressSpaceChildDriver>*>(handle);
 
     auto result = deviceSync->DeallocateBlock(info.phys_addr);
-    if (!result.ok() || result->res != ZX_OK) {
+    if (!result.ok() || result.Unwrap()->res != ZX_OK) {
         ALOGE("%s: deallocate block failed: %d:%d", __func__, result.status(), GET_STATUS_SAFE(result, res));
         return false;
     }
@@ -405,11 +405,11 @@ bool goldfish_address_space_claim_shared(
 
     zx::vmo vmo;
     auto result = deviceSync->ClaimSharedBlock(offset, size);
-    if (!result.ok() || result->res != ZX_OK) {
+    if (!result.ok() || result.Unwrap()->res != ZX_OK) {
         ALOGE("%s: claim shared failed: %d:%d", __func__, result.status(), GET_STATUS_SAFE(result, res));
         return false;
     }
-    vmo = std::move(result->vmo);
+    vmo = std::move(result.Unwrap()->vmo);
 
     VmoStore::Info info = {
         vmo.release(),
@@ -427,7 +427,7 @@ bool goldfish_address_space_unclaim_shared(
             fidl::WireSyncClient<AddressSpaceChildDriver>*>(handle);
 
     auto result = deviceSync->UnclaimSharedBlock(offset);
-    if (!result.ok() || result->res != ZX_OK) {
+    if (!result.ok() || result.Unwrap()->res != ZX_OK) {
         ALOGE("%s: unclaim shared failed: %d:%d", __func__, result.status(), GET_STATUS_SAFE(result, res));
         return false;
     }
@@ -474,10 +474,10 @@ bool goldfish_address_space_ping(
 
     AddressSpaceChildDriverPingMessage res;
     auto result = deviceSync->Ping(fuchsiaPing);
-    if (!result.ok() || result->res != ZX_OK) {
+    if (!result.ok() || result.Unwrap()->res != ZX_OK) {
         return false;
     }
-    res = std::move(result->ping);
+    res = std::move(result.Unwrap()->ping);
 
     *ping = *(struct address_space_ping*)(&res);
     return true;

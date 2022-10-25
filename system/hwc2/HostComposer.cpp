@@ -134,13 +134,8 @@ HostComposer::CompositionResultBuffer::createWithDrmBuffer(
   if (!res) {
     return nullptr;
   }
-
-  auto [error, buffer] = drmPresenter.create(res->mFencedBuffer->getBuffer());
-  if (error != HWC2::Error::None) {
-    return nullptr;
-  }
-  res->mDrmBuffer = std::move(buffer);
-
+  res->mDrmBuffer = std::make_unique<DrmBuffer>(res->mFencedBuffer->getBuffer(),
+                                                &drmPresenter);
   return res;
 }
 
@@ -446,14 +441,8 @@ HWC2::Error HostComposer::onDisplayClientTargetSet(Display* display) {
   if (mIsMinigbm) {
     FencedBuffer& clientTargetFencedBuffer = display->getClientTarget();
 
-    auto [drmBufferCreateError, drmBuffer] =
-        mDrmPresenter->create(clientTargetFencedBuffer.getBuffer());
-    if (drmBufferCreateError != HWC2::Error::None) {
-      ALOGE("%s: display:%" PRIu64 " failed to create client target drm buffer",
-            __FUNCTION__, displayId);
-      return HWC2::Error::NoResources;
-    }
-    displayInfo.clientTargetDrmBuffer = std::move(drmBuffer);
+    displayInfo.clientTargetDrmBuffer.reset(
+        new DrmBuffer(clientTargetFencedBuffer.getBuffer(), mDrmPresenter));
   }
 
   return HWC2::Error::None;
@@ -481,18 +470,24 @@ HWC2::Error HostComposer::validateDisplay(
   // layers will fall back to the client composition type.
   bool fallBackToClient = (!hostCompositionV1 && !hostCompositionV2) ||
                           display->hasColorTransform();
-  std::unordered_map<Layer*, HWC2::Composition> changes;
+  std::unordered_map<hwc2_layer_t, HWC2::Composition> changes;
 
   if (!fallBackToClient) {
-    for (Layer* layer : layers) {
+    for (const auto& layer : layers) {
       HWC2::Composition layerCompositionType = layer->getCompositionType();
       std::optional<HWC2::Composition> layerFallBackTo = std::nullopt;
       switch (layerCompositionType) {
         case HWC2::Composition::Client:
         case HWC2::Composition::Sideband:
+          ALOGI("%s: layer %" PRIu32 " CompositionType %d, fallback to client",
+                __FUNCTION__, static_cast<uint32_t>(layer->getId()),
+                layerCompositionType);
           layerFallBackTo = HWC2::Composition::Client;
           break;
         case HWC2::Composition::Cursor:
+          ALOGI("%s: layer %" PRIu32 " CompositionType %d, fallback to device",
+                __FUNCTION__, static_cast<uint32_t>(layer->getId()),
+                layerCompositionType);
           layerFallBackTo = HWC2::Composition::Device;
           break;
         case HWC2::Composition::Invalid:
@@ -509,28 +504,24 @@ HWC2::Error HostComposer::validateDisplay(
         fallBackToClient = true;
       }
       if (layerFallBackTo.has_value()) {
-        changes.emplace(layer, layerFallBackTo.value());
+        changes[layer->getId()] = layerFallBackTo.value();
       }
     }
   }
 
   if (fallBackToClient) {
     changes.clear();
-    for (Layer* layer : layers) {
+    for (auto& layer : layers) {
       if (layer->getCompositionType() == HWC2::Composition::Invalid) {
         continue;
       }
       if (layer->getCompositionType() != HWC2::Composition::Client) {
-        changes.emplace(layer, HWC2::Composition::Client);
+        changes[layer->getId()] = HWC2::Composition::Client;
       }
     }
   }
 
-  layerCompositionChanges->clear();
-  for (auto& [layer, newCompositionType] : changes) {
-    layer->logCompositionFallbackIfChanged(newCompositionType);
-    layerCompositionChanges->emplace(layer->getId(), newCompositionType);
-  }
+  *layerCompositionChanges = std::move(changes);
 
   return HWC2::Error::None;
 }
@@ -587,8 +578,9 @@ std::tuple<HWC2::Error, base::unique_fd> HostComposer::presentDisplay(
       if (displayClientTarget.getBuffer() != nullptr) {
         base::unique_fd fence = displayClientTarget.getFence();
         if (mIsMinigbm) {
-          auto [_, flushCompleteFence] = mDrmPresenter->flushToDisplay(
-              display->getId(), *displayInfo.clientTargetDrmBuffer, fence);
+          auto [_, flushCompleteFence] =
+              displayInfo.clientTargetDrmBuffer->flushToDisplay(
+                  display->getId(), fence);
           outRetireFence = std::move(flushCompleteFence);
         } else {
           post(hostCon, rcEnc, displayClientTarget.getBuffer());
@@ -733,8 +725,9 @@ std::tuple<HWC2::Error, base::unique_fd> HostComposer::presentDisplay(
     }
 
     if (mIsMinigbm) {
-      auto [_, fence] = mDrmPresenter->flushToDisplay(
-          display->getId(), compositionResultBuffer.waitAndGetDrmBuffer(), -1);
+      auto [_, fence] =
+          compositionResultBuffer.waitAndGetDrmBuffer().flushToDisplay(
+              display->getId(), -1);
       retire_fd = std::move(fence);
     } else {
       int fd;
@@ -763,8 +756,9 @@ std::tuple<HWC2::Error, base::unique_fd> HostComposer::presentDisplay(
     FencedBuffer& displayClientTarget = display->getClientTarget();
     base::unique_fd fence = displayClientTarget.getFence();
     if (mIsMinigbm) {
-      auto [_, outRetireFence] = mDrmPresenter->flushToDisplay(
-          display->getId(), *displayInfo.clientTargetDrmBuffer, fence);
+      auto [_, outRetireFence] =
+          displayInfo.clientTargetDrmBuffer->flushToDisplay(display->getId(),
+                                                            fence);
       outRetireFence = std::move(fence);
     } else {
       post(hostCon, rcEnc, displayClientTarget.getBuffer());

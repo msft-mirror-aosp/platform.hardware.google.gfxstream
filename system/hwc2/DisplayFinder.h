@@ -17,7 +17,6 @@
 #ifndef ANDROID_HWC_DISPLAYFINDER_H
 #define ANDROID_HWC_DISPLAYFINDER_H
 
-#include <optional>
 #include <vector>
 
 #include "Common.h"
@@ -34,7 +33,7 @@ struct DisplayMultiConfigs {
 };
 
 HWC2::Error findDisplays(DrmPresenter* drmPresenter,
-                         std::vector<DisplayMultiConfigs>* outDisplays);
+                         std::vector<DisplayMultiConfigs>& displays);
 
 }  // namespace android
 
