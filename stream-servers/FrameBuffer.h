@@ -29,6 +29,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "Buffer.h"
 #include "Compositor.h"
 #include "Display.h"
 #include "DisplaySurface.h"
@@ -72,7 +73,7 @@ using emugl::MetricsLogger;
 class DisplayVk;
 
 struct BufferRef {
-    BufferPtr buffer;
+    gfxstream::BufferPtr buffer;
 };
 
 class ProcessResources {
@@ -584,7 +585,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<emugl::FrameB
 
     void onLastColorBufferRef(uint32_t handle);
     ColorBufferPtr findColorBuffer(HandleType p_colorbuffer);
-    BufferPtr findBuffer(HandleType p_buffer);
+    gfxstream::BufferPtr findBuffer(HandleType p_buffer);
 
     void registerProcessCleanupCallback(void* key,
                                         std::function<void()> callback);
