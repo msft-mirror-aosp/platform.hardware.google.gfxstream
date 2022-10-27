@@ -454,9 +454,8 @@ bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_t x, ui
 bool getBufferAllocationInfo(uint32_t bufferHandle, VkDeviceSize* outSize,
                              uint32_t* outMemoryTypeIndex);
 
-bool setupVkBuffer(uint32_t bufferHandle, bool vulkanOnly = false, uint32_t memoryProperty = 0,
-                   bool* exported = nullptr, VkDeviceSize* allocSize = nullptr,
-                   uint32_t* typeIndex = nullptr);
+bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly = false,
+                   uint32_t memoryProperty = 0);
 bool teardownVkBuffer(uint32_t bufferHandle);
 VK_EXT_MEMORY_HANDLE getBufferExtMemoryHandle(uint32_t bufferHandle);
 
