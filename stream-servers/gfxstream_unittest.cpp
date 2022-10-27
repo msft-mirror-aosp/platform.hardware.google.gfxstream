@@ -197,7 +197,7 @@ TEST_F(GfxStreamBackendTest, MinimumRequiredParameters) {
     // Only the minimum required parameters.
     int initResult =
         stream_renderer_init(minimumRequiredParams.data(), minimumRequiredParams.size());
-    EXPECT_EQ(initResult, STREAM_RENDERER_SUCCESS);
+    EXPECT_EQ(initResult, 0);
 }
 
 TEST_F(GfxStreamBackendTest, MissingRequiredParameter) {
@@ -206,7 +206,7 @@ TEST_F(GfxStreamBackendTest, MissingRequiredParameter) {
         std::vector<stream_renderer_param> insufficientParams = minimumRequiredParams;
         insufficientParams.erase(insufficientParams.begin() + i);
         int initResult = stream_renderer_init(insufficientParams.data(), insufficientParams.size());
-        EXPECT_EQ(initResult, STREAM_RENDERER_ERROR_MISSING_PARAM);
+        EXPECT_EQ(initResult, -1);
 
         // Ensure background threads aren't mid-initialization.
         sleepMs(100);
@@ -215,5 +215,5 @@ TEST_F(GfxStreamBackendTest, MissingRequiredParameter) {
 
     // Initialize once more for the teardown function.
     int initResult = stream_renderer_init(streamRendererParams.data(), streamRendererParams.size());
-    EXPECT_EQ(initResult, STREAM_RENDERER_SUCCESS);
+    EXPECT_EQ(initResult, 0);
 }

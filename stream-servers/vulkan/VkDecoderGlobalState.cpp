@@ -35,6 +35,7 @@
 #include "aemu/base/containers/HybridEntityManager.h"
 #include "aemu/base/containers/Lookup.h"
 #include "aemu/base/files/Stream.h"
+#include "aemu/base/memory/SharedMemory.h"
 #include "aemu/base/synchronization/ConditionVariable.h"
 #include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/system/System.h"
@@ -73,6 +74,7 @@ using android::base::MetricEventBadPacketLength;
 using android::base::MetricEventDuplicateSequenceNum;
 using android::base::MetricEventVulkanOutOfMemory;
 using android::base::Optional;
+using android::base::SharedMemory;
 using android::base::StaticLock;
 using android::emulation::HostmemIdMapping;
 using android::emulation::ManagedDescriptorInfo;
@@ -80,6 +82,10 @@ using android::emulation::VulkanInfo;
 using emugl::ABORT_REASON_OTHER;
 using emugl::FatalError;
 using emugl::GfxApiLogger;
+
+// TODO(b/261477138): Move to a shared aemu definition
+#define __ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
+#define __ALIGN(x, a) __ALIGN_MASK(x, (__typeof__(x))(a)-1)
 
 // TODO: Asserts build
 #define DCHECK(condition) (void)(condition);
@@ -3164,6 +3170,42 @@ class VkDecoderGlobalState::Impl {
             localAllocInfo.pNext = &exportAllocate;
         }
 
+        VkImportMemoryHostPointerInfoEXT importHostInfo;
+        std::optional<SharedMemory> sharedMemory;
+
+        // TODO(b/261222354): Make sure the feature exists when initializing sVkEmulation.
+        if (hostVisible && feature_is_enabled(kFeature_SystemBlob)) {
+            // Ensure size is page-aligned.
+            VkDeviceSize alignedSize = __ALIGN(localAllocInfo.allocationSize, kPageSizeforBlob);
+            if (alignedSize != localAllocInfo.allocationSize) {
+                ERR("Warning: Aligning allocation size from %llu to %llu",
+                    static_cast<unsigned long long>(localAllocInfo.allocationSize),
+                    static_cast<unsigned long long>(alignedSize));
+            }
+            localAllocInfo.allocationSize = alignedSize;
+
+            static std::atomic<uint64_t> uniqueShmemId = 0;
+            sharedMemory = SharedMemory("shared-memory-vk-" + std::to_string(uniqueShmemId++),
+                                        localAllocInfo.allocationSize);
+            int ret = sharedMemory->create(0600);
+            if (ret) {
+                ERR("Failed to create system-blob host-visible memory, error: %d", ret);
+                return VK_ERROR_OUT_OF_HOST_MEMORY;
+            }
+            mappedPtr = sharedMemory->get();
+            int mappedPtrAlignment = reinterpret_cast<uintptr_t>(mappedPtr) % kPageSizeforBlob;
+            if (mappedPtrAlignment != 0) {
+                ERR("Warning: Mapped shared memory pointer is not aligned to page size, alignment "
+                    "is: %d",
+                    mappedPtrAlignment);
+            }
+            importHostInfo = {.sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT,
+                              .pNext = NULL,
+                              .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT,
+                              .pHostPointer = mappedPtr};
+            localAllocInfo.pNext = &importHostInfo;
+        }
+
         VkResult result = vk->vkAllocateMemory(device, &localAllocInfo, pAllocator, pMemory);
 
         if (result != VK_SUCCESS) {
@@ -3213,7 +3255,13 @@ class VkDecoderGlobalState::Impl {
             mapInfo.caching = MAP_CACHE_WC;
         }
 
-        if (mappedPtr) {
+        if (feature_is_enabled(kFeature_SystemBlob)) {
+            // If using shared memory to back the VK memory, the mapping is owned by the
+            // SharedMemory in the mapInfo, which will be unmapped when the info is removed.
+            mapInfo.needUnmap = false;
+            mapInfo.ptr = mappedPtr;
+            mapInfo.sharedMemory = std::exchange(sharedMemory, std::nullopt);
+        } else if (mappedPtr) {
             mapInfo.needUnmap = false;
             mapInfo.ptr = mappedPtr;
         } else if (feature_is_enabled(kFeature_ExternalBlob)) {
@@ -3525,7 +3573,16 @@ class VkDecoderGlobalState::Impl {
         auto* info = android::base::find(mMapInfo, memory);
         if (!info) return VK_ERROR_OUT_OF_HOST_MEMORY;
 
-        if (feature_is_enabled(kFeature_ExternalBlob)) {
+        if (feature_is_enabled(kFeature_SystemBlob) && info->sharedMemory.has_value()) {
+            uint32_t handleType = STREAM_MEM_HANDLE_TYPE_SHM;
+            // We transfer ownership of the shared memory handle to the descriptor info.
+            // The memory itself is destroyed only when all processes unmap / release their
+            // handles.
+            *pHostmemId = HostmemIdMapping::get()->addDescriptorInfo(
+                info->sharedMemory->releaseHandle(), handleType, info->caching, std::nullopt);
+            *pSize = info->size;
+            *pAddress = 0;
+        } else if (feature_is_enabled(kFeature_ExternalBlob)) {
             VkResult result;
             auto device = unbox_VkDevice(boxed_device);
             DescriptorType handle;
@@ -5215,6 +5272,10 @@ class VkDecoderGlobalState::Impl {
             res.push_back(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
         }
 
+        if (hasDeviceExtension(properties, VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME)) {
+            res.push_back(VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME);
+        }
+
         if (hasDeviceExtension(properties, VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME)) {
             res.push_back(VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME);
         }
@@ -5754,6 +5815,8 @@ class VkDecoderGlobalState::Impl {
         VkDevice device = VK_NULL_HANDLE;
         MTLTextureRef mtlTexture = nullptr;
         uint32_t memoryIndex = 0;
+        // Set if the memory is backed by shared memory.
+        std::optional<SharedMemory> sharedMemory;
     };
 
     struct InstanceInfo {
