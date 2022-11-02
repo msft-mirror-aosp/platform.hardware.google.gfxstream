@@ -22,7 +22,7 @@
 #include "ResourceTracker.h"
 #include "Resources.h"
 #include "VkEncoder.h"
-#include "android/base/AndroidSubAllocator.h"
+#include "aemu/base/AndroidSubAllocator.h"
 
 using android::base::guest::SubAllocator;
 

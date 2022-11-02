@@ -16,7 +16,7 @@
 #include "AddressSpaceStream.h"
 
 #include "VirtGpu.h"
-#include "android/base/Tracing.h"
+#include "aemu/base/Tracing.h"
 #include "virtgpu_gfxstream_protocol.h"
 
 #if PLATFORM_SDK_VERSION < 26

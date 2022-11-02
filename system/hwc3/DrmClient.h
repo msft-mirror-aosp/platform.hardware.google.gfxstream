@@ -34,7 +34,7 @@
 #include "DrmPlane.h"
 #include "DrmProperty.h"
 #include "LruCache.h"
-#include "android/base/synchronization/AndroidLock.h"
+#include "aemu/base/synchronization/AndroidLock.h"
 
 namespace aidl::android::hardware::graphics::composer3::impl {
 

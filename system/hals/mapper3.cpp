@@ -23,7 +23,7 @@
 #include "FormatConversions.h"
 #include "debug.h"
 
-#include "android/base/Tracing.h"
+#include "aemu/base/Tracing.h"
 
 #define ATRACE_TAG ATRACE_TAG_GRAPHICS
 
