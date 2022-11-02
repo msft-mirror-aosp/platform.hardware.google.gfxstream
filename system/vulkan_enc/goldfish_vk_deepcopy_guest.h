@@ -31,7 +31,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
-#include "android/base/BumpPool.h"
+#include "aemu/base/BumpPool.h"
 #include "goldfish_vk_private_defs.h"
 #include "vk_platform_compat.h"
 #include "vulkan_gfxstream.h"

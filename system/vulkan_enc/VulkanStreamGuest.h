@@ -13,8 +13,8 @@
 // limitations under the License.
 #pragma once
 
-#include "android/base/files/Stream.h"
-#include "android/base/files/StreamSerializing.h"
+#include "aemu/base/files/Stream.h"
+#include "aemu/base/files/StreamSerializing.h"
 
 #include "goldfish_vk_private_defs.h"
 
@@ -23,8 +23,8 @@
 #include "IOStream.h"
 #include "ResourceTracker.h"
 
-#include "android/base/BumpPool.h"
-#include "android/base/Tracing.h"
+#include "aemu/base/BumpPool.h"
+#include "aemu/base/Tracing.h"
 
 #include <vector>
 #include <memory>

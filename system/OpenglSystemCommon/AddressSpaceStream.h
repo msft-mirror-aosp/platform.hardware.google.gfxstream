@@ -19,7 +19,7 @@
 #include "IOStream.h"
 #include "VirtGpu.h"
 #include "address_space_graphics_types.h"
-#include "android/base/AndroidHealthMonitor.h"
+#include "aemu/base/AndroidHealthMonitor.h"
 #include "goldfish_address_space.h"
 
 using android::base::guest::HealthMonitor;

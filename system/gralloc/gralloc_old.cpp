@@ -29,7 +29,7 @@
 #include "HostConnection.h"
 #include "ProcessPipe.h"
 #include "ThreadInfo.h"
-#include "android/base/threads/AndroidThread.h"
+#include "aemu/base/threads/AndroidThread.h"
 #include "glUtils.h"
 #include "goldfish_address_space.h"
 #include "goldfish_dma.h"

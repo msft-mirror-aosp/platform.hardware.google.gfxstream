@@ -23,7 +23,7 @@
 
 #include "HostConnection.h"
 #include "ThreadInfo.h"
-#include "android/base/threads/AndroidThread.h"
+#include "aemu/base/threads/AndroidThread.h"
 #include "eglDisplay.h"
 #include "eglSync.h"
 #include "egl_ftable.h"
@@ -58,7 +58,7 @@
 #endif // VIRTIO_GPU
 
 #ifdef GFXSTREAM
-#include "android/base/Tracing.h"
+#include "aemu/base/Tracing.h"
 #endif
 #include <cutils/trace.h>
 

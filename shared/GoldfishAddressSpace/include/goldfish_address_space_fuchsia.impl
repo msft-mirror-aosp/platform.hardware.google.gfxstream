@@ -27,7 +27,7 @@
 #include <zircon/syscalls/object.h>
 
 #include "goldfish_address_space.h"
-#include "android/base/synchronization/AndroidLock.h"
+#include "aemu/base/synchronization/AndroidLock.h"
 #include "services/service_connector.h"
 
 #include <unordered_map>
