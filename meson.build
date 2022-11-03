@@ -62,6 +62,6 @@ inc_system = include_directories('system/include')
 
 subdir('fuchsia')
 subdir('platform')
-subdir('android-emu/android/base')
+subdir('android-emu/aemu/base')
 subdir('shared')
 subdir('system')
