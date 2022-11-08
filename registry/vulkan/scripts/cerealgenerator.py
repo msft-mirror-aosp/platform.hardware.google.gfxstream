@@ -145,6 +145,8 @@ class CerealGenerator(OutputGenerator):
         self.baseLibLinkName = \
             envGetOrDefault("VK_CEREAL_BASELIB_LINKNAME", "android-emu-base")
         self.vulkanHeaderTargetName = envGetOrDefault("VK_CEREAL_VK_HEADER_TARGET", "")
+        self.utilsHeader = envGetOrDefault("VK_CEREAL_UTILS_LINKNAME", "")
+        self.utilsHeaderDirPrefix = envGetOrDefault("VK_CEREAL_UTILS_PREFIX", "utils")
 
         # THe host always needs all possible guest struct definitions, while the guest only needs
         # platform sepcific headers.
@@ -155,7 +157,13 @@ target_compile_definitions(OpenglRender_vulkan_cereal PRIVATE -DVK_GOOGLE_gfxstr
 if (WIN32)
     target_compile_definitions(OpenglRender_vulkan_cereal PRIVATE -DVK_USE_PLATFORM_WIN32_KHR)
 endif()
-target_link_libraries(OpenglRender_vulkan_cereal PUBLIC {self.baseLibLinkName} {self.vulkanHeaderTargetName})
+target_link_libraries(
+    OpenglRender_vulkan_cereal
+    PUBLIC
+    {self.baseLibLinkName}
+    {self.vulkanHeaderTargetName}
+    PRIVATE
+    {self.utilsHeader})
 
 target_include_directories(OpenglRender_vulkan_cereal
                            PUBLIC
@@ -368,7 +376,7 @@ using DlSymFunc = void* (void*, const char*);
 
         decoderSnapshotHeaderIncludes = f"""
 #include <memory>
-#include "{self.baseLibDirPrefix}/GfxApiLogger.h"
+#include "{self.utilsHeaderDirPrefix}/GfxApiLogger.h"
 #include "{self.baseLibDirPrefix}/HealthMonitor.h"
 #include "common/goldfish_vk_private_defs.h"
 """
