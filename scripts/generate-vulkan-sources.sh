@@ -63,6 +63,8 @@ export VK_CEREAL_HOST_SCRIPTS_DIR=$VULKAN_CEREAL_DIR/scripts
 export VK_CEREAL_BASELIB_PREFIX=aemu/base
 export VK_CEREAL_BASELIB_LINKNAME=aemu-base.headers
 export VK_CEREAL_VK_HEADER_TARGET=gfxstream_vulkan_headers
+export VK_CEREAL_UTILS_LINKNAME=gfxstream_utils.headers
+export VK_CEREAL_UTILS_PREFIX=utils
 
 VK_CEREAL_OUTPUT_DIR=$VK_CEREAL_HOST_DECODER_DIR/cereal
 if [ -d "$VK_CEREAL_GUEST_DIR" ]; then
