@@ -16,11 +16,14 @@
 
 #pragma once
 
+#define OP_gfxApiLoggerBeginCommandExecution 90000
+
 namespace emugl {
 // TODO(kaiyili): complete the implementation in
 // https://r.android.com/c/device/generic/vulkan-cereal/+/2165168.
 class GfxApiLogger {
    public:
     void record(const unsigned char* buf, size_t len) {}
+    void recordCommandExecution() {};
 };
 }  // namespace emugl

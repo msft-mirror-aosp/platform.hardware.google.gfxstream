@@ -5,6 +5,7 @@ This is a map of all gfxstream opcodes back to their string names.
 
 Currently, this was manually generated from the following files:
 
+GfxApiLogger:  http://source/android/device/generic/vulkan-cereal/utils/include/utils/GfxApiLogger.h
 Vulkan:        http://source/play-internal/battlestar/aosp/device/generic/vulkan-cereal/stream-servers/vulkan/cereal/common/goldfish_vk_marshaling.h
 RenderControl: http://source/play-internal/battlestar/aosp/device/generic/vulkan-cereal/stream-servers/renderControl_dec/renderControl_opcodes.h
 GLES1:         http://source/android/device/generic/vulkan-cereal/stream-servers/gles1_dec/gles1_opcodes.h
@@ -14,6 +15,11 @@ TODO(gregschlom): Consider auto-generating this file in the future.
 """
 
 opcodes = {
+    ###############################################################################################
+    # GfxApiLogger opcodes for logging additional information
+    # http://source/android/device/generic/vulkan-cereal/utils/include/utils/GfxApiLogger.h
+    ###############################################################################################
+    90000: "OP_gfxApiLoggerBeginCommandExecution",
     ###############################################################################################
     # Vulkan opcodes
     # http://source/play-internal/battlestar/aosp/device/generic/vulkan-cereal/stream-servers/vulkan/cereal/common/goldfish_vk_marshaling.h
