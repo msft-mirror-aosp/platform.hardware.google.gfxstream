@@ -56,8 +56,7 @@ static const char* getTestIcdFilename() {
 
 static void initIcdPaths(bool forTesting) {
     auto androidIcd = android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD");
-    android::base::setEnvironmentVariable("ANDROID_EMU_SANDBOX", "1");
-    if (android::base::getEnvironmentVariable("ANDROID_EMU_SANDBOX") == "1") {
+    if (androidIcd == "") {
         // Rely on user to set VK_ICD_FILENAMES
         return;
     } else {
@@ -223,7 +222,7 @@ class VulkanDispatchImpl {
     void initialize(bool forTesting);
 
     void* dlopen() {
-        bool sandbox = android::base::getEnvironmentVariable("ANDROID_EMU_SANDBOX") == "1";
+        bool sandbox = android::base::getEnvironmentVariable("ANDROID_EMU_VK_ICD") == "";
 
         if (mVulkanLibs.size() == 0) {
             if (sandbox) {

@@ -2255,7 +2255,6 @@ VG_EXPORT int stream_renderer_init(
     // end for test on GCE
 
     android::base::setEnvironmentVariable("ANDROID_EMU_HEADLESS", "1");
-    android::base::setEnvironmentVariable("ANDROID_EMU_SANDBOX", "1");
     bool enableVk =
         !(renderer_flags & GFXSTREAM_RENDERER_FLAGS_NO_VK_BIT);
 
