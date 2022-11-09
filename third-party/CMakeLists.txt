@@ -15,14 +15,16 @@ if (ASTC_CPU_DECODING)
     add_subdirectory(astc-encoder)
 endif ()
 
-add_subdirectory(lz4)
-add_subdirectory(perfetto-tracing-only)
+# TODO(Battlestar -- b/256177310): Enable lz4/perfetto in CMake if needed
+# add_subdirectory(lz4)
+# add_subdirectory(perfetto-tracing-only)
 add_subdirectory(renderdoc)
 add_subdirectory(stb)
 
+# TODO(Battlestar -- b/256177310): Enable Googletest in CMake if needed
 # For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-add_subdirectory(googletest)
+# set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+# add_subdirectory(googletest)
 
 set(PROJECT_TO_FETCH)
 

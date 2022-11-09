@@ -8,7 +8,7 @@ if(NOT hasParent)
 endif()
 cmake_minimum_required(VERSION 3.18)
 
-option(ENABLE_VKCEREAL_TESTS "Enable building vulkan-cereal unittests" ON)
+option(ENABLE_VKCEREAL_TESTS "Enable building vulkan-cereal unittests" OFF)
 option(BUILD_ASAN_WIN32 "Build with ASAN on Windows platform" OFF)
 
 set(VALID_DEPENDENCY_RESOLUTION AOSP SYSTEM DOWNLOAD)
