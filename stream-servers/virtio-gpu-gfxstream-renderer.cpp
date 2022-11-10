@@ -2107,6 +2107,40 @@ static void default_post_callback(
 VG_EXPORT int stream_renderer_init(
     struct stream_renderer_param* stream_renderer_params,
     uint64_t num_params) {
+    // Required parameters.
+    std::unordered_set<uint64_t> required_params{STREAM_RENDERER_PARAM_USER_DATA,
+                                                 STREAM_RENDERER_PARAM_RENDERER_FLAGS,
+                                                 STREAM_RENDERER_PARAM_WRITE_FENCE_CALLBACK};
+
+    // String names of the parameters.
+    std::unordered_map<uint64_t, std::string> param_strings{
+        {STREAM_RENDERER_PARAM_USER_DATA, "USER_DATA"},
+        {STREAM_RENDERER_PARAM_RENDERER_FLAGS, "RENDERER_FLAGS"},
+        {STREAM_RENDERER_PARAM_WRITE_FENCE_CALLBACK, "WRITE_FENCE_CALLBACK"},
+        {STREAM_RENDERER_PARAM_WRITE_CONTEXT_FENCE_CALLBACK, "WRITE_CONTEXT_FENCE_CALLBACK"},
+        {STREAM_RENDERER_PARAM_WIN0_WIDTH, "WIN0_WIDTH"},
+        {STREAM_RENDERER_PARAM_WIN0_HEIGHT, "WIN0_HEIGHT"},
+        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT,
+         "METRICS_CALLBACK_ADD_INSTANT_EVENT"},
+        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_DESCRIPTOR,
+         "METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_DESCRIPTOR"},
+        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_METRIC,
+         "METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_METRIC"},
+        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_VULKAN_OUT_OF_MEMORY_EVENT,
+         "METRICS_CALLBACK_ADD_VULKAN_OUT_OF_MEMORY_EVENT"},
+        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_SET_ANNOTATION, "METRICS_CALLBACK_SET_ANNOTATION"},
+        {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ABORT, "METRICS_CALLBACK_ABORT"}};
+
+    // We may have unknown parameters, so this function is lenient.
+    auto get_param_string = [&](uint64_t key) -> std::string {
+        auto param_string = param_strings.find(key);
+        if (param_string != param_strings.end()) {
+            return param_string->second;
+        } else {
+            return "Unknown param with key=" + std::to_string(key);
+        }
+    };
+
     // Initialization data.
     uint32_t display_width = 0;
     uint32_t display_height = 0;
@@ -2118,22 +2152,27 @@ VG_EXPORT int stream_renderer_init(
     GFXS_LOG("Reading stream renderer parameters:");
     for (uint64_t i = 0; i < num_params; ++i) {
         stream_renderer_param& param = stream_renderer_params[i];
+
+        // Print out parameter we are processing.
+        GFXS_LOG("%s - %llu", get_param_string(param.key).c_str(),
+                 static_cast<unsigned long long>(param.value));
+
+        // Removing every param we process will leave required_params empty if all provided.
+        required_params.erase(param.key);
+
         switch (param.key) {
             case STREAM_RENDERER_PARAM_USER_DATA: {
                 renderer_cookie = reinterpret_cast<void*>(static_cast<uintptr_t>(param.value));
-                GFXS_LOG("USER_DATA");
                 break;
             }
             case STREAM_RENDERER_PARAM_RENDERER_FLAGS: {
                 renderer_flags = static_cast<int>(param.value);
-                GFXS_LOG("RENDERER_FLAGS: %#x", renderer_flags);
                 break;
             }
             case STREAM_RENDERER_PARAM_WRITE_FENCE_CALLBACK: {
                 virglrenderer_callbacks.write_fence =
                     reinterpret_cast<stream_renderer_param_write_fence_callback>(
                         static_cast<uintptr_t>(param.value));
-                GFXS_LOG("WRITE_FENCE_CALLBACK");
                 break;
             }
             case STREAM_RENDERER_PARAM_WRITE_CONTEXT_FENCE_CALLBACK: {
@@ -2144,59 +2183,50 @@ VG_EXPORT int stream_renderer_init(
 #else
                 ERR("Cannot use WRITE_CONTEXT_FENCE_CALLBACK with unstable APIs OFF.");
 #endif
-                GFXS_LOG("WRITE_CONTEXT_FENCE_CALLBACK");
                 break;
             }
             case STREAM_RENDERER_PARAM_WIN0_WIDTH: {
                 display_width = static_cast<uint32_t>(param.value);
-                GFXS_LOG("WIN0_WIDTH: %lu", static_cast<unsigned long>(display_width));
                 break;
             }
             case STREAM_RENDERER_PARAM_WIN0_HEIGHT: {
                 display_height = static_cast<uint32_t>(param.value);
-                GFXS_LOG("WIN0_HEIGHT: %lu", static_cast<unsigned long>(display_height));
                 break;
             }
             case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT: {
                 MetricsLogger::add_instant_event_callback =
                     reinterpret_cast<stream_renderer_param_metrics_callback_add_instant_event>(
                         static_cast<uintptr_t>(param.value));
-                GFXS_LOG("METRICS_ADD_INSTANT_EVENT");
                 break;
             }
             case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_DESCRIPTOR: {
                 MetricsLogger::add_instant_event_with_descriptor_callback = reinterpret_cast<
                     stream_renderer_param_metrics_callback_add_instant_event_with_descriptor>(
                     static_cast<uintptr_t>(param.value));
-                GFXS_LOG("METRICS_ADD_INSTANT_EVENT_WITH_DESCRIPTOR");
                 break;
             }
             case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT_WITH_METRIC: {
                 MetricsLogger::add_instant_event_with_metric_callback = reinterpret_cast<
                     stream_renderer_param_metrics_callback_add_instant_event_with_metric>(
                     static_cast<uintptr_t>(param.value));
-                GFXS_LOG("METRICS_ADD_INSTANT_EVENT_WITH_METRIC");
                 break;
             }
             case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_VULKAN_OUT_OF_MEMORY_EVENT: {
                 MetricsLogger::add_vulkan_out_of_memory_event = reinterpret_cast<
                     stream_renderer_param_metrics_callback_add_vulkan_out_of_memory_event>(
                     static_cast<uintptr_t>(param.value));
-                GFXS_LOG("METRICS_ADD_VULKAN_OUT_OF_MEMORY_EVENT");
                 break;
             }
             case STREAM_RENDERER_PARAM_METRICS_CALLBACK_SET_ANNOTATION: {
                 MetricsLogger::set_crash_annotation_callback =
                     reinterpret_cast<stream_renderer_param_metrics_callback_set_annotation>(
                         static_cast<uintptr_t>(param.value));
-                GFXS_LOG("METRICS_SET_ANNOTATION");
                 break;
             }
             case STREAM_RENDERER_PARAM_METRICS_CALLBACK_ABORT: {
                 emugl::setDieFunction(
                     reinterpret_cast<stream_renderer_param_metrics_callback_abort>(
                         static_cast<uintptr_t>(param.value)));
-                GFXS_LOG("METRICS_ABORT");
                 break;
             }
             default: {
@@ -2209,7 +2239,15 @@ VG_EXPORT int stream_renderer_init(
     }
     GFXS_LOG("Finished reading parameters");
 
-    // TODO(b/257313414): An error for missing required parameters.
+    // Some required params not found.
+    if (required_params.size() > 0) {
+        ERR("Missing required parameters:");
+        for (uint64_t param : required_params) {
+            ERR("%s", get_param_string(param).c_str());
+        }
+        ERR("Failing initialization intentionally");
+        return STREAM_RENDERER_ERROR_MISSING_PARAM;
+    }
 
     // Set non product-specific callbacks
     vk_util::setVkCheckCallbacks(
@@ -2422,7 +2460,7 @@ VG_EXPORT int stream_renderer_init(
 
     GFXS_LOG("Started renderer");
 
-    return 0;
+    return STREAM_RENDERER_SUCCESS;
 }
 
 VG_EXPORT void gfxstream_backend_init(

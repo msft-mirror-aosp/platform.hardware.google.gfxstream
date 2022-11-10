@@ -243,10 +243,18 @@ static_assert(offsetof(stream_renderer_param, value) == 8,
 // Entry point for the stream renderer.
 // Pass a list of parameters to configure the renderer. The available ones are listed above. If a
 // parameter is not supported, the renderer will ignore it and warn in stderr.
-// Return value of 0 indicates success, otherwise an error code is returned.
+// Return value of STREAM_RENDERER_SUCCESS indicates success, otherwise an error code is returned.
+// Error codes:
+// STREAM_RENDERER_ERROR_MISSING_PARAM - Missing a required parameter.
 VG_EXPORT int stream_renderer_init(
     struct stream_renderer_param* stream_renderer_params,
     uint64_t num_params);
+
+// Generic success return code.
+#define STREAM_RENDERER_SUCCESS 0
+
+// Missing a required parameter.
+#define STREAM_RENDERER_ERROR_MISSING_PARAM 1
 
 struct gfxstream_callbacks {
     /* Metrics callbacks */
