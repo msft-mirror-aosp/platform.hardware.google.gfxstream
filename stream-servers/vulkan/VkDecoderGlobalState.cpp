@@ -764,33 +764,26 @@ class VkDecoderGlobalState::Impl {
         VkImageFormatProperties* pImageFormatProperties) {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
-        bool emulatedEtc2 = needEmulatedEtc2(physicalDevice, vk);
-        bool emulatedAstc = needEmulatedAstc(physicalDevice, vk);
-        bool needEmulateCompressedImage = false;
-        if (emulatedEtc2 || emulatedAstc) {
-            CompressedImageInfo cmpInfo = CompressedImageInfo::create(format);
-            if (cmpInfo.isCompressed &&
-                ((emulatedEtc2 && cmpInfo.isEtc2) || (emulatedAstc && cmpInfo.isAstc))) {
-                if (!supportEmulatedCompressedImageFormatProperty(format, type, tiling, usage,
-                                                                  flags)) {
-                    memset(pImageFormatProperties, 0, sizeof(VkImageFormatProperties));
-                    return VK_ERROR_FORMAT_NOT_SUPPORTED;
-                }
-                flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT_KHR;
-                flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
-                usage |= VK_IMAGE_USAGE_STORAGE_BIT;
-                format = cmpInfo.sizeCompFormat;
-                needEmulateCompressedImage = true;
+        const bool emulatedTexture = isEmulatedCompressedTexture(format, physicalDevice, vk);
+        if (emulatedTexture) {
+            if (!supportEmulatedCompressedImageFormatProperty(format, type, tiling, usage, flags)) {
+                memset(pImageFormatProperties, 0, sizeof(VkImageFormatProperties));
+                return VK_ERROR_FORMAT_NOT_SUPPORTED;
             }
+            flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT_KHR;
+            flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+            usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+            format = CompressedImageInfo::getSizeCompFormat(format);
         }
+
         VkResult res = vk->vkGetPhysicalDeviceImageFormatProperties(
                 physicalDevice, format, type, tiling, usage, flags,
                 pImageFormatProperties);
         if (res != VK_SUCCESS) {
             return res;
         }
-        if (needEmulateCompressedImage) {
-            maskImageFormatPropertiesForEmulatedEtc2(pImageFormatProperties);
+        if (emulatedTexture) {
+            maskImageFormatPropertiesForEmulatedTextures(pImageFormatProperties);
         }
         return res;
     }
@@ -802,28 +795,22 @@ class VkDecoderGlobalState::Impl {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
         VkPhysicalDeviceImageFormatInfo2 imageFormatInfo;
-        bool emulatedEtc2 = needEmulatedEtc2(physicalDevice, vk);
-        bool emulatedAstc = needEmulatedAstc(physicalDevice, vk);
-        bool needEmulateCompressedImage = false;
-        if (emulatedEtc2 || emulatedAstc) {
-            CompressedImageInfo cmpInfo = CompressedImageInfo::create(pImageFormatInfo->format);
-            if (cmpInfo.isCompressed &&
-                ((emulatedEtc2 && cmpInfo.isEtc2) || (emulatedAstc && cmpInfo.isAstc))) {
-                if (!supportEmulatedCompressedImageFormatProperty(
-                        pImageFormatInfo->format, pImageFormatInfo->type, pImageFormatInfo->tiling,
-                        pImageFormatInfo->usage, pImageFormatInfo->flags)) {
-                    memset(&pImageFormatProperties->imageFormatProperties, 0,
-                           sizeof(VkImageFormatProperties));
-                    return VK_ERROR_FORMAT_NOT_SUPPORTED;
-                }
-                imageFormatInfo = *pImageFormatInfo;
-                pImageFormatInfo = &imageFormatInfo;
-                imageFormatInfo.flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT_KHR;
-                imageFormatInfo.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
-                imageFormatInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
-                imageFormatInfo.format = cmpInfo.sizeCompFormat;
-                needEmulateCompressedImage = true;
+        VkFormat format = pImageFormatInfo->format;
+        const bool emulatedTexture = isEmulatedCompressedTexture(format, physicalDevice, vk);
+        if (emulatedTexture) {
+            if (!supportEmulatedCompressedImageFormatProperty(
+                    pImageFormatInfo->format, pImageFormatInfo->type, pImageFormatInfo->tiling,
+                    pImageFormatInfo->usage, pImageFormatInfo->flags)) {
+                memset(&pImageFormatProperties->imageFormatProperties, 0,
+                       sizeof(VkImageFormatProperties));
+                return VK_ERROR_FORMAT_NOT_SUPPORTED;
             }
+            imageFormatInfo = *pImageFormatInfo;
+            pImageFormatInfo = &imageFormatInfo;
+            imageFormatInfo.flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT_KHR;
+            imageFormatInfo.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+            imageFormatInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+            imageFormatInfo.format = CompressedImageInfo::getSizeCompFormat(format);
         }
         std::lock_guard<std::recursive_mutex> lock(mLock);
 
@@ -881,8 +868,8 @@ class VkDecoderGlobalState::Impl {
                 VK_EXTERNAL_MEMORY_FEATURE_DEDICATED_ONLY_BIT;
         }
 
-        if (needEmulateCompressedImage) {
-            maskImageFormatPropertiesForEmulatedEtc2(
+        if (emulatedTexture) {
+            maskImageFormatPropertiesForEmulatedTextures(
                     &pImageFormatProperties->imageFormatProperties);
         }
 
@@ -1502,34 +1489,10 @@ class VkDecoderGlobalState::Impl {
             return VK_ERROR_OUT_OF_HOST_MEMORY;
         }
 
-        CompressedImageInfo cmpInfo = {};
-        VkImageCreateInfo& sizeCompInfo = cmpInfo.sizeCompImgCreateInfo;
+        CompressedImageInfo cmpInfo;
         VkImageCreateInfo decompInfo;
         if (deviceInfo->needEmulatedDecompression(pCreateInfo->format)) {
-            cmpInfo = CompressedImageInfo::create(pCreateInfo->format);
-            cmpInfo.imageType = pCreateInfo->imageType;
-            cmpInfo.extent = pCreateInfo->extent;
-            cmpInfo.mipLevels = pCreateInfo->mipLevels;
-            cmpInfo.layerCount = pCreateInfo->arrayLayers;
-            sizeCompInfo = *pCreateInfo;
-            sizeCompInfo.format = cmpInfo.sizeCompFormat;
-            sizeCompInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
-            sizeCompInfo.flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT_KHR;
-            sizeCompInfo.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
-            // Each block is 4x4 in ETC2 compressed texture
-            sizeCompInfo.extent.width =
-                (sizeCompInfo.extent.width + cmpInfo.compressedBlockWidth - 1) /
-                cmpInfo.compressedBlockWidth;
-            sizeCompInfo.extent.height =
-                (sizeCompInfo.extent.height + cmpInfo.compressedBlockHeight - 1) /
-                cmpInfo.compressedBlockHeight;
-            sizeCompInfo.mipLevels = 1;
-            if (pCreateInfo->queueFamilyIndexCount) {
-                cmpInfo.sizeCompImgQueueFamilyIndices.assign(
-                    pCreateInfo->pQueueFamilyIndices,
-                    pCreateInfo->pQueueFamilyIndices + pCreateInfo->queueFamilyIndexCount);
-                sizeCompInfo.pQueueFamilyIndices = cmpInfo.sizeCompImgQueueFamilyIndices.data();
-            }
+            cmpInfo = CompressedImageInfo(*pCreateInfo);
             decompInfo = *pCreateInfo;
             decompInfo.format = cmpInfo.decompFormat;
             decompInfo.flags &= ~VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT_KHR;
@@ -1564,14 +1527,13 @@ class VkDecoderGlobalState::Impl {
             cmpInfo.decompImg = *pImage;
             cmpInfo.createSizeCompImages(vk);
 
-            if (cmpInfo.isAstc) {
+            if (cmpInfo.isAstc()) {
                 VkInstance* instance = deviceToInstanceLocked(device);
                 InstanceInfo* instanceInfo = android::base::find(mInstanceInfo, *instance);
                 if (instanceInfo && instanceInfo->useAstcCpuDecompression) {
                     cmpInfo.astcTexture = std::make_unique<AstcTexture>(
                         m_vk, device, mDeviceInfo[device].physicalDevice, cmpInfo.extent,
-                        cmpInfo.compressedBlockWidth, cmpInfo.compressedBlockHeight,
-                        &AstcCpuDecompressor::get());
+                        cmpInfo.blockWidth, cmpInfo.blockHeight, &AstcCpuDecompressor::get());
                 }
             }
         }
@@ -1594,6 +1556,7 @@ class VkDecoderGlobalState::Impl {
         if (!imageInfo) return;
 
         if (!imageInfo->anbInfo) {
+            // TODO(gregschlom): Consider moving this to CompressedImageInfo::destroy()
             if (imageInfo->cmpInfo.isCompressed) {
                 CompressedImageInfo& cmpInfo = imageInfo->cmpInfo;
                 if (image != cmpInfo.decompImg) {
@@ -1687,26 +1650,23 @@ class VkDecoderGlobalState::Impl {
         if (!deviceInfo || !imageInfo) return VK_ERROR_OUT_OF_HOST_MEMORY;
         VkImageViewCreateInfo createInfo;
         bool needEmulatedAlpha = false;
-        if (deviceInfo->emulateTextureEtc2 || deviceInfo->emulateTextureAstc) {
-            CompressedImageInfo cmpInfo = CompressedImageInfo::create(pCreateInfo->format);
-            if (deviceInfo->needEmulatedDecompression(cmpInfo)) {
-                if (imageInfo->cmpInfo.decompImg) {
-                    createInfo = *pCreateInfo;
-                    createInfo.format = cmpInfo.decompFormat;
-                    needEmulatedAlpha = cmpInfo.needEmulatedAlpha();
-                    createInfo.image = imageInfo->cmpInfo.decompImg;
-                    pCreateInfo = &createInfo;
-                }
-            } else if (deviceInfo->needEmulatedDecompression(imageInfo->cmpInfo)) {
-                // Size compatible image view
+        if (deviceInfo->needEmulatedDecompression(pCreateInfo->format)) {
+            if (imageInfo->cmpInfo.decompImg) {
                 createInfo = *pCreateInfo;
-                createInfo.format = cmpInfo.sizeCompFormat;
-                needEmulatedAlpha = false;
-                createInfo.image =
-                    imageInfo->cmpInfo.sizeCompImgs[pCreateInfo->subresourceRange.baseMipLevel];
-                createInfo.subresourceRange.baseMipLevel = 0;
+                createInfo.format = CompressedImageInfo::getDecompFormat(pCreateInfo->format);
+                needEmulatedAlpha = CompressedImageInfo::needEmulatedAlpha(pCreateInfo->format);
+                createInfo.image = imageInfo->cmpInfo.decompImg;
                 pCreateInfo = &createInfo;
             }
+        } else if (deviceInfo->needEmulatedDecompression(imageInfo->cmpInfo)) {
+            // Size compatible image view
+            createInfo = *pCreateInfo;
+            createInfo.format = CompressedImageInfo::getSizeCompFormat(pCreateInfo->format);
+            needEmulatedAlpha = false;
+            createInfo.image =
+                imageInfo->cmpInfo.sizeCompImgs[pCreateInfo->subresourceRange.baseMipLevel];
+            createInfo.subresourceRange.baseMipLevel = 0;
+            pCreateInfo = &createInfo;
         }
         if (imageInfo->anbInfo && imageInfo->anbInfo->externallyBacked) {
             createInfo = *pCreateInfo;
@@ -2557,23 +2517,16 @@ class VkDecoderGlobalState::Impl {
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
 
         std::lock_guard<std::recursive_mutex> lock(mLock);
-        auto srcIt = mImageInfo.find(srcImage);
-        if (srcIt == mImageInfo.end()) {
-            return;
-        }
-        auto dstIt = mImageInfo.find(dstImage);
-        if (dstIt == mImageInfo.end()) {
-            return;
-        }
-        VkDevice device = srcIt->second.cmpInfo.device;
-        auto deviceInfoIt = mDeviceInfo.find(device);
-        if (deviceInfoIt == mDeviceInfo.end()) {
-            return;
-        }
-        bool needEmulatedSrc =
-            deviceInfoIt->second.needEmulatedDecompression(srcIt->second.cmpInfo);
-        bool needEmulatedDst =
-            deviceInfoIt->second.needEmulatedDecompression(dstIt->second.cmpInfo);
+        auto* srcImg = android::base::find(mImageInfo, srcImage);
+        auto* dstImg = android::base::find(mImageInfo, dstImage);
+        if (!srcImg || !dstImg) return;
+
+        VkDevice device = srcImg->cmpInfo.device;
+        auto* deviceInfo = android::base::find(mDeviceInfo, device);
+        if (!deviceInfo) return;
+
+        bool needEmulatedSrc = deviceInfo->needEmulatedDecompression(srcImg->cmpInfo);
+        bool needEmulatedDst = deviceInfo->needEmulatedDecompression(dstImg->cmpInfo);
         if (!needEmulatedSrc && !needEmulatedDst) {
             vk->vkCmdCopyImage(commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout,
                                regionCount, pRegions);
@@ -2582,34 +2535,14 @@ class VkDecoderGlobalState::Impl {
         VkImage srcImageMip = srcImage;
         VkImage dstImageMip = dstImage;
         for (uint32_t r = 0; r < regionCount; r++) {
-            VkImageCopy region = pRegions[r];
             if (needEmulatedSrc) {
-                uint32_t mipLevel = region.srcSubresource.mipLevel;
-                uint32_t compressedBlockWidth = srcIt->second.cmpInfo.compressedBlockWidth;
-                uint32_t compressedBlockHeight = srcIt->second.cmpInfo.compressedBlockHeight;
-                srcImageMip = srcIt->second.cmpInfo.sizeCompImgs[mipLevel];
-                region.srcSubresource.mipLevel = 0;
-                region.srcOffset.x /= compressedBlockWidth;
-                region.srcOffset.y /= compressedBlockHeight;
-                uint32_t width = srcIt->second.cmpInfo.sizeCompMipmapWidth(mipLevel);
-                uint32_t height = srcIt->second.cmpInfo.sizeCompMipmapHeight(mipLevel);
-                // region.extent uses pixel size for source image
-                region.extent.width =
-                    (region.extent.width + compressedBlockWidth - 1) / compressedBlockWidth;
-                region.extent.height =
-                    (region.extent.height + compressedBlockHeight - 1) / compressedBlockHeight;
-                region.extent.width = std::min(region.extent.width, width);
-                region.extent.height = std::min(region.extent.height, height);
+                srcImageMip = srcImg->cmpInfo.sizeCompImgs[pRegions[r].srcSubresource.mipLevel];
             }
             if (needEmulatedDst) {
-                uint32_t compressedBlockWidth = dstIt->second.cmpInfo.compressedBlockWidth;
-                uint32_t compressedBlockHeight = dstIt->second.cmpInfo.compressedBlockHeight;
-                uint32_t mipLevel = region.dstSubresource.mipLevel;
-                dstImageMip = dstIt->second.cmpInfo.sizeCompImgs[mipLevel];
-                region.dstSubresource.mipLevel = 0;
-                region.dstOffset.x /= compressedBlockWidth;
-                region.dstOffset.y /= compressedBlockHeight;
+                dstImageMip = dstImg->cmpInfo.sizeCompImgs[pRegions[r].dstSubresource.mipLevel];
             }
+            VkImageCopy region = CompressedImageInfo::getSizeCompImageCopy(
+                pRegions[r], srcImg->cmpInfo, dstImg->cmpInfo, needEmulatedSrc, needEmulatedDst);
             vk->vkCmdCopyImage(commandBuffer, srcImageMip, srcImageLayout, dstImageMip,
                                dstImageLayout, 1, &region);
         }
@@ -2635,23 +2568,8 @@ class VkDecoderGlobalState::Impl {
             return;
         }
         for (uint32_t r = 0; r < regionCount; r++) {
-            VkBufferImageCopy region;
-            region = pRegions[r];
-            uint32_t mipLevel = region.imageSubresource.mipLevel;
-            region.imageSubresource.mipLevel = 0;
-            region.bufferRowLength /= cmp.compressedBlockWidth;
-            region.bufferImageHeight /= cmp.compressedBlockHeight;
-            region.imageOffset.x /= cmp.compressedBlockWidth;
-            region.imageOffset.y /= cmp.compressedBlockHeight;
-            uint32_t width = cmp.sizeCompMipmapWidth(mipLevel);
-            uint32_t height = cmp.sizeCompMipmapHeight(mipLevel);
-            region.imageExtent.width = (region.imageExtent.width + cmp.compressedBlockWidth - 1) /
-                                       cmp.compressedBlockWidth;
-            region.imageExtent.height =
-                (region.imageExtent.height + cmp.compressedBlockHeight - 1) /
-                cmp.compressedBlockHeight;
-            region.imageExtent.width = std::min(region.imageExtent.width, width);
-            region.imageExtent.height = std::min(region.imageExtent.height, height);
+            uint32_t mipLevel = pRegions[r].imageSubresource.mipLevel;
+            VkBufferImageCopy region = cmp.getSizeCompBufferImageCopy(pRegions[r]);
             vk->vkCmdCopyImageToBuffer(commandBuffer, cmp.sizeCompImgs[mipLevel], srcImageLayout,
                                        dstBuffer, 1, &region);
         }
@@ -2732,27 +2650,10 @@ class VkDecoderGlobalState::Impl {
         }
         CompressedImageInfo& cmp = imageInfo->cmpInfo;
         for (uint32_t r = 0; r < regionCount; r++) {
-            VkBufferImageCopy dstRegion;
-            dstRegion = pRegions[r];
-            uint32_t mipLevel = dstRegion.imageSubresource.mipLevel;
-            dstRegion.imageSubresource.mipLevel = 0;
-            dstRegion.bufferRowLength /= cmp.compressedBlockWidth;
-            dstRegion.bufferImageHeight /= cmp.compressedBlockHeight;
-            dstRegion.imageOffset.x /= cmp.compressedBlockWidth;
-            dstRegion.imageOffset.y /= cmp.compressedBlockHeight;
-            uint32_t width = cmp.sizeCompMipmapWidth(mipLevel);
-            uint32_t height = cmp.sizeCompMipmapHeight(mipLevel);
-            dstRegion.imageExtent.width =
-                (dstRegion.imageExtent.width + cmp.compressedBlockWidth - 1) /
-                cmp.compressedBlockWidth;
-            dstRegion.imageExtent.height =
-                (dstRegion.imageExtent.height + cmp.compressedBlockHeight - 1) /
-                cmp.compressedBlockHeight;
-
-            dstRegion.imageExtent.width = std::min(dstRegion.imageExtent.width, width);
-            dstRegion.imageExtent.height = std::min(dstRegion.imageExtent.height, height);
+            uint32_t mipLevel = pRegions[r].imageSubresource.mipLevel;
+            VkBufferImageCopy region = cmp.getSizeCompBufferImageCopy(pRegions[r]);
             vk->vkCmdCopyBufferToImage(commandBuffer, srcBuffer, cmp.sizeCompImgs[mipLevel],
-                                       dstImageLayout, 1, &dstRegion);
+                                       dstImageLayout, 1, &region);
         }
 
         // Perform CPU decompression of ASTC textures, if enabled
@@ -5456,49 +5357,34 @@ class VkDecoderGlobalState::Impl {
         return !feature.textureCompressionASTC_LDR;
     }
 
-    static const VkFormatFeatureFlags kEmulatedEtc2BufferFeatureMask =
-        VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
-        VK_FORMAT_FEATURE_TRANSFER_DST_BIT |
-        VK_FORMAT_FEATURE_BLIT_SRC_BIT |
-        VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT;
+    bool isEmulatedCompressedTexture(VkFormat format, VkPhysicalDevice physicalDevice,
+                                     goldfish_vk::VulkanDispatch* vk) {
+        return (CompressedImageInfo::isEtc2(format) && needEmulatedEtc2(physicalDevice, vk)) ||
+               (CompressedImageInfo::isAstc(format) && needEmulatedAstc(physicalDevice, vk));
+    }
 
-    static const VkFormatFeatureFlags kEmulatedEtc2OptimalTilingFeatureMask =
-        VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
-        VK_FORMAT_FEATURE_TRANSFER_DST_BIT |
-        VK_FORMAT_FEATURE_BLIT_SRC_BIT |
-        VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT |
+    static const VkFormatFeatureFlags kEmulatedTextureBufferFeatureMask =
+        VK_FORMAT_FEATURE_TRANSFER_SRC_BIT | VK_FORMAT_FEATURE_TRANSFER_DST_BIT |
+        VK_FORMAT_FEATURE_BLIT_SRC_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT;
+
+    static const VkFormatFeatureFlags kEmulatedTextureOptimalTilingMask =
+        VK_FORMAT_FEATURE_TRANSFER_SRC_BIT | VK_FORMAT_FEATURE_TRANSFER_DST_BIT |
+        VK_FORMAT_FEATURE_BLIT_SRC_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT |
         VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;
 
-    void maskFormatPropertiesForEmulatedEtc2(
-            VkFormatProperties* pFormatProperties) {
-        pFormatProperties->linearTilingFeatures &=
-            kEmulatedEtc2BufferFeatureMask;
-        pFormatProperties->optimalTilingFeatures &=
-            kEmulatedEtc2OptimalTilingFeatureMask;
-        pFormatProperties->bufferFeatures &=
-            kEmulatedEtc2BufferFeatureMask;
+    void maskFormatPropertiesForEmulatedTextures(VkFormatProperties* pFormatProp) {
+        pFormatProp->linearTilingFeatures &= kEmulatedTextureBufferFeatureMask;
+        pFormatProp->optimalTilingFeatures &= kEmulatedTextureOptimalTilingMask;
+        pFormatProp->bufferFeatures &= kEmulatedTextureBufferFeatureMask;
     }
 
-    void maskFormatPropertiesForEmulatedEtc2(
-            VkFormatProperties2* pFormatProperties) {
-        pFormatProperties->formatProperties.linearTilingFeatures &=
-            kEmulatedEtc2BufferFeatureMask;
-        pFormatProperties->formatProperties.optimalTilingFeatures &=
-            kEmulatedEtc2OptimalTilingFeatureMask;
-        pFormatProperties->formatProperties.bufferFeatures &=
-            kEmulatedEtc2BufferFeatureMask;
+    void maskFormatPropertiesForEmulatedTextures(VkFormatProperties2* pFormatProp) {
+        pFormatProp->formatProperties.linearTilingFeatures &= kEmulatedTextureBufferFeatureMask;
+        pFormatProp->formatProperties.optimalTilingFeatures &= kEmulatedTextureOptimalTilingMask;
+        pFormatProp->formatProperties.bufferFeatures &= kEmulatedTextureBufferFeatureMask;
     }
 
-    void maskFormatPropertiesForEmulatedAstc(VkFormatProperties* pFormatProperties) {
-        maskFormatPropertiesForEmulatedEtc2(pFormatProperties);
-    }
-
-    void maskFormatPropertiesForEmulatedAstc(VkFormatProperties2* pFormatProperties) {
-        maskFormatPropertiesForEmulatedEtc2(pFormatProperties);
-    }
-
-    void maskImageFormatPropertiesForEmulatedEtc2(
-            VkImageFormatProperties* pProperties) {
+    void maskImageFormatPropertiesForEmulatedTextures(VkImageFormatProperties* pProperties) {
         // dEQP-VK.api.info.image_format_properties.2d.optimal#etc2_r8g8b8_unorm_block
         pProperties->sampleCounts &= VK_SAMPLE_COUNT_1_BIT;
     }
@@ -5509,76 +5395,13 @@ class VkDecoderGlobalState::Impl {
             getPhysicalDeviceFormatPropertiesFunc,
         goldfish_vk::VulkanDispatch* vk, VkPhysicalDevice physicalDevice, VkFormat format,
         VkFormatProperties1or2* pFormatProperties) {
-        switch (format) {
-            case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
-            case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
-            case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
-            case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
-            case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
-            case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
-            case VK_FORMAT_EAC_R11_UNORM_BLOCK:
-            case VK_FORMAT_EAC_R11_SNORM_BLOCK:
-            case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
-            case VK_FORMAT_EAC_R11G11_SNORM_BLOCK: {
-                if (!needEmulatedEtc2(physicalDevice, vk)) {
-                    // Hardware supported ETC2
-                    getPhysicalDeviceFormatPropertiesFunc(physicalDevice, format,
-                                                          pFormatProperties);
-                    return;
-                }
-                // Emulate ETC formats
-                CompressedImageInfo cmpInfo = CompressedImageInfo::create(format);
-                getPhysicalDeviceFormatPropertiesFunc(physicalDevice, cmpInfo.decompFormat,
-                                                      pFormatProperties);
-                maskFormatPropertiesForEmulatedEtc2(pFormatProperties);
-
-                break;
-            }
-            case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
-            case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
-            case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:
-            case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:
-            case VK_FORMAT_ASTC_6x6_UNORM_BLOCK:
-            case VK_FORMAT_ASTC_8x5_UNORM_BLOCK:
-            case VK_FORMAT_ASTC_8x6_UNORM_BLOCK:
-            case VK_FORMAT_ASTC_8x8_UNORM_BLOCK:
-            case VK_FORMAT_ASTC_10x5_UNORM_BLOCK:
-            case VK_FORMAT_ASTC_10x6_UNORM_BLOCK:
-            case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:
-            case VK_FORMAT_ASTC_10x10_UNORM_BLOCK:
-            case VK_FORMAT_ASTC_12x10_UNORM_BLOCK:
-            case VK_FORMAT_ASTC_12x12_UNORM_BLOCK:
-            case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_12x12_SRGB_BLOCK: {
-                if (!needEmulatedAstc(physicalDevice, vk)) {
-                    // Hardware supported ASTC
-                    getPhysicalDeviceFormatPropertiesFunc(physicalDevice, format,
-                                                          pFormatProperties);
-                    return;
-                }
-                // Emulate ASTC formats
-                CompressedImageInfo cmpInfo = CompressedImageInfo::create(format);
-                getPhysicalDeviceFormatPropertiesFunc(physicalDevice, cmpInfo.decompFormat,
-                                                      pFormatProperties);
-                maskFormatPropertiesForEmulatedAstc(pFormatProperties);
-                break;
-            }
-            default:
-                getPhysicalDeviceFormatPropertiesFunc(physicalDevice, format, pFormatProperties);
-                break;
+        if (isEmulatedCompressedTexture(format, physicalDevice, vk)) {
+            getPhysicalDeviceFormatPropertiesFunc(
+                physicalDevice, CompressedImageInfo::getDecompFormat(format), pFormatProperties);
+            maskFormatPropertiesForEmulatedTextures(pFormatProperties);
+            return;
         }
+        getPhysicalDeviceFormatPropertiesFunc(physicalDevice, format, pFormatProperties);
     }
 
     void executePreprocessRecursive(int level, VkCommandBuffer cmdBuffer) {
@@ -5951,54 +5774,12 @@ class VkDecoderGlobalState::Impl {
                    !(imageInfo.astcTexture && imageInfo.astcTexture->successfullyDecompressed());
         }
         bool needEmulatedDecompression(const CompressedImageInfo& imageInfo) {
-            return imageInfo.isCompressed && ((imageInfo.isEtc2 && emulateTextureEtc2) ||
-                                              (imageInfo.isAstc && emulateTextureAstc));
+            return ((imageInfo.isEtc2() && emulateTextureEtc2) ||
+                    (imageInfo.isAstc() && emulateTextureAstc));
         }
         bool needEmulatedDecompression(VkFormat format) {
-            switch (format) {
-                case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
-                case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
-                case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
-                case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
-                case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
-                case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
-                case VK_FORMAT_EAC_R11_UNORM_BLOCK:
-                case VK_FORMAT_EAC_R11_SNORM_BLOCK:
-                case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
-                case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
-                    return emulateTextureEtc2;
-                case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
-                case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
-                case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
-                case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
-                case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:
-                case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
-                case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:
-                case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
-                case VK_FORMAT_ASTC_6x6_UNORM_BLOCK:
-                case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
-                case VK_FORMAT_ASTC_8x5_UNORM_BLOCK:
-                case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
-                case VK_FORMAT_ASTC_8x6_UNORM_BLOCK:
-                case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
-                case VK_FORMAT_ASTC_8x8_UNORM_BLOCK:
-                case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
-                case VK_FORMAT_ASTC_10x5_UNORM_BLOCK:
-                case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
-                case VK_FORMAT_ASTC_10x6_UNORM_BLOCK:
-                case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
-                case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:
-                case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
-                case VK_FORMAT_ASTC_10x10_UNORM_BLOCK:
-                case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
-                case VK_FORMAT_ASTC_12x10_UNORM_BLOCK:
-                case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
-                case VK_FORMAT_ASTC_12x12_UNORM_BLOCK:
-                case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
-                    return emulateTextureAstc;
-                default:
-                    return false;
-            }
+            return (CompressedImageInfo::isEtc2(format) && emulateTextureEtc2) ||
+                   (CompressedImageInfo::isAstc(format) && emulateTextureAstc);
         }
     };
 
