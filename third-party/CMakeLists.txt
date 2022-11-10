@@ -198,6 +198,30 @@ if(NOT TARGET gfxstream_egl_headers)
     endif()
 endif()
 
+if(WITH_BENCHMARK)
+    # Add Google's benchmarking framework
+    set(BENCHMARK_ENABLE_EXCEPTIONS OFF)  # We disable exceptions in gfxstream
+    set(BENCHMARK_ENABLE_TESTING OFF)     # Don't build the unit tests for the library, to save time
+    set(BENCHMARK_ENABLE_GTEST_TESTS OFF)
+
+    if(DEPENDENCY_RESOLUTION STREQUAL "AOSP")
+        set(GOOGLE_BENCHMARK_PATH ${PROJECT_SOURCE_DIR}/../../../external/google-benchmark)
+        if(EXISTS ${GOOGLE_BENCHMARK_PATH})
+            add_subdirectory(${GOOGLE_BENCHMARK_PATH} google-benchmark)
+        endif()
+    elseif(DEPENDENCY_RESOLUTION STREQUAL "SYSTEM")
+        message(FATAL_ERROR "Not implemented")
+    elseif(DEPENDENCY_RESOLUTION STREQUAL "DOWNLOAD")
+        FetchContent_Declare(
+            google_benchmark
+            GIT_REPOSITORY https://github.com/google/benchmark.git
+            GIT_TAG v1.7.0
+            GIT_PROGRESS TRUE
+        )
+        list(APPEND PROJECT_TO_FETCH google_benchmark)
+    endif()
+endif()
+
 if(PROJECT_TO_FETCH)
     FetchContent_MakeAvailable(${PROJECT_TO_FETCH})
 endif()
