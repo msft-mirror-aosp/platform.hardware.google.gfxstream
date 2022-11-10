@@ -1175,11 +1175,15 @@ void FrameBuffer::createColorBufferWithHandle(int p_width, int p_height, GLenum 
     }
 
     if (m_displayVk || m_guestUsesAngle) {
-        goldfish_vk::setupVkColorBuffer(
+        if (!goldfish_vk::setupVkColorBuffer(
             handle,
             m_guestUsesAngle /* not vulkan only */,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT /* memory property */,
-            nullptr /* exported */);
+            nullptr /* exported */)) {
+            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                << "Failed to set up color buffer, Format:" << p_internalFormat
+                << " Width:" << p_width << " Height:" << p_height;
+        }
     }
 }
 
@@ -1237,7 +1241,9 @@ HandleType FrameBuffer::createColorBufferWithHandleLocked(
             }
         }
     } else {
-        ERR("Failed to create color buffer %d", handle);
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+            << "Failed to create color buffer. format:" << p_internalFormat << " width:" << p_width
+            << " height:" << p_height;
         handle = 0;
     }
     return handle;
