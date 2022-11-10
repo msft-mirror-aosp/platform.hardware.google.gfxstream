@@ -559,13 +559,29 @@ class FrameBuffer {
 
     // Fill GLES usage protobuf
     void fillGLESUsages(android_studio::EmulatorGLESUsages*);
-    // Save a screenshot of the previous frame.
+
+    // Saves a screenshot of the previous frame.
     // nChannels should be 3 (RGB) or 4 (RGBA).
-    // Note: swiftshader_indirect does not work with 3 channels
-    void getScreenshot(unsigned int nChannels, unsigned int* width,
-                       unsigned int* height, std::vector<unsigned char>& pixels,
-                       int displayId, int desiredWidth, int desiredHeight,
-                       int desiredRotation);
+    // You must provide a pre-allocated buffer of sufficient
+    // size. Returns 0 on success. In the case of failure and if *cPixels != 0
+    // you can call this function again with a buffer of size *cPixels. cPixels
+    // should usually be at at least desiredWidth * desiredHeight * nChannels.
+    //
+    // In practice the buffer should be > desiredWidth *
+    // desiredHeight * nChannels.
+    //
+    // Note: Do not call this function again if it fails and *cPixels == 0
+    //  swiftshader_indirect does not work with 3 channels
+    int getScreenshot(unsigned int nChannels,
+                      unsigned int* width,
+                      unsigned int* height,
+                      uint8_t* pixels,
+                      size_t* cPixels,
+                      int displayId,
+                      int desiredWidth,
+                      int desiredHeight,
+                      int desiredRotation);
+
     void onLastColorBufferRef(uint32_t handle);
     ColorBufferPtr findColorBuffer(HandleType p_colorbuffer);
     BufferPtr findBuffer(HandleType p_buffer);

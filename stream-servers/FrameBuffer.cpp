@@ -2787,8 +2787,8 @@ static void loadProcOwnedCollection(Stream* stream, Collection* c) {
     });
 }
 
-void FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width,
-        unsigned int* height, std::vector<unsigned char>& pixels, int displayId,
+int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width,
+        unsigned int* height, uint8_t* pixels, size_t* cPixels, int displayId,
         int desiredWidth, int desiredHeight, int desiredRotation) {
     AutoLock mutex(m_lock);
     uint32_t w, h, cb;
@@ -2803,15 +2803,15 @@ void FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width,
         ERR("Screenshot of invalid display %d", displayId);
         *width = 0;
         *height = 0;
-        pixels.resize(0);
-        return;
+        *cPixels = 0;
+        return -1;
     }
     if (nChannels != 3 && nChannels != 4) {
         ERR("Screenshot only support 3(RGB) or 4(RGBA) channels");
         *width = 0;
         *height = 0;
-        pixels.resize(0);
-        return;
+        *cPixels = 0;
+        return -1;
     }
     emugl::get_emugl_multi_display_operations().getDisplayColorBuffer(displayId, &cb);
     if (displayId == 0) {
@@ -2821,19 +2821,24 @@ void FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width,
     if (!colorBuffer) {
         *width = 0;
         *height = 0;
-        pixels.resize(0);
-        return;
+        *cPixels = 0;
+        return -1;
     }
 
     *width = (desiredWidth == 0) ? w : desiredWidth;
     *height = (desiredHeight == 0) ? h : desiredHeight;
+
+    int needed = nChannels * (*width) * (*height);
+    if (*cPixels < needed) {
+        *cPixels = needed;
+        return -2;
+    }
+    *cPixels = needed;
     if (desiredRotation == SKIN_ROTATION_90 || desiredRotation == SKIN_ROTATION_270) {
         std::swap(*width, *height);
     }
-    pixels.resize(nChannels * (*width) * (*height));
 
     GLenum format = nChannels == 3 ? GL_RGB : GL_RGBA;
-
     Post scrCmd;
     scrCmd.cmd = PostCmd::Screenshot;
     scrCmd.screenshot.cb = colorBuffer.get();
@@ -2842,10 +2847,11 @@ void FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width,
     scrCmd.screenshot.format = format;
     scrCmd.screenshot.type = GL_UNSIGNED_BYTE;
     scrCmd.screenshot.rotation = desiredRotation;
-    scrCmd.screenshot.pixels = pixels.data();
+    scrCmd.screenshot.pixels = pixels;
 
     std::future<void> completeFuture = sendPostWorkerCmd(std::move(scrCmd));
     completeFuture.wait();
+    return 0;
 }
 
 void FrameBuffer::onLastColorBufferRef(uint32_t handle) {
