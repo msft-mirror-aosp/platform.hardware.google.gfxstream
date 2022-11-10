@@ -144,12 +144,18 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
     }
 
     bool colorBufferExportedToGl = false;
-    if (colorBufferVulkanCompatible && externalMemoryCompatible &&
-        setupVkColorBuffer(out->colorBufferHandle, emu->guestUsesAngle,
-                           0u /* memoryProperty */, &colorBufferExportedToGl)) {
+    if (colorBufferVulkanCompatible && externalMemoryCompatible) {
+        if (!setupVkColorBuffer(out->colorBufferHandle, emu->guestUsesAngle,
+                                0u /* memoryProperty */, &colorBufferExportedToGl)) {
+            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                << "Failed to create vk color buffer. format:" << pCreateInfo->format
+                << " width:" << out->extent.width << " height:" << out->extent.height
+                << " depth:" << out->extent.depth;
+        }
         releaseColorBufferForGuestUse(out->colorBufferHandle);
         out->externallyBacked = true;
     }
+
     out->useVulkanNativeImage =
         (emu && emu->live && emu->guestUsesAngle) || colorBufferExportedToGl;
 

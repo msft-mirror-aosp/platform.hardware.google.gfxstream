@@ -3058,11 +3058,14 @@ class VkDecoderGlobalState::Impl {
             bool vulkanOnly = mGuestUsesAngle;
 
             // Ensure color buffer has Vulkan backing.
-            setupVkColorBuffer(
+            if (!setupVkColorBuffer(
                 importCbInfoPtr->colorBuffer, vulkanOnly, memoryPropertyFlags, nullptr,
                 // Modify the allocation size and type index
                 // to suit the resulting image memory size.
-                &localAllocInfo.allocationSize, &localAllocInfo.memoryTypeIndex, &mappedPtr);
+                &localAllocInfo.allocationSize, &localAllocInfo.memoryTypeIndex, &mappedPtr)) {
+                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                    << "Failed to set up vk color buffer.";
+            }
 
             if (!vulkanOnly) {
                 updateColorBufferFromGl(importCbInfoPtr->colorBuffer);
