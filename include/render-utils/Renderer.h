@@ -27,7 +27,7 @@
 #include <string>
 
 namespace android_studio {
-    class EmulatorGLESUsages;
+class EmulatorGLESUsages;
 }
 
 namespace emugl {
@@ -65,9 +65,12 @@ public:
         std::optional<std::string> nameOpt) = 0;
     virtual void addressSpaceGraphicsConsumerDestroy(void*) = 0;
     virtual void addressSpaceGraphicsConsumerPreSave(void* consumer) = 0;
-    virtual void addressSpaceGraphicsConsumerSave(void* consumer, android::base::Stream* stream) = 0;
+    virtual void addressSpaceGraphicsConsumerSave(
+            void* consumer,
+            android::base::Stream* stream) = 0;
     virtual void addressSpaceGraphicsConsumerPostSave(void* consumer) = 0;
-    virtual void addressSpaceGraphicsConsumerRegisterPostLoadRenderThread(void* consumer) = 0;
+    virtual void addressSpaceGraphicsConsumerRegisterPostLoadRenderThread(
+            void* consumer) = 0;
 
     // getHardwareStrings - describe the GPU hardware and driver.
     // The underlying GL's vendor/renderer/version strings are returned to the
@@ -136,15 +139,16 @@ public:
     virtual bool asyncReadbackSupported() = 0;
 
     // Separate callback to get RGBA Pixels in async readback mode.
-    using ReadPixelsCallback = void (*)(void* pixels, uint32_t bytes, uint32_t displayId);
+    using ReadPixelsCallback = void (*)(void* pixels,
+                                        uint32_t bytes,
+                                        uint32_t displayId);
     virtual ReadPixelsCallback getReadPixelsCallback() = 0;
 
-    using FlushReadPixelPipeline = void(*)(int displayId);
+    using FlushReadPixelPipeline = void (*)(int displayId);
     // Flushes the pipeline by duplicating the last frame and informing
     // the async callback that a new frame is available if no reads are
     // active
     virtual FlushReadPixelPipeline getFlushReadPixelPipeline() = 0;
-
 
     // showOpenGLSubwindow -
     //     Create or modify a native subwindow which is a child of 'window'
@@ -209,7 +213,9 @@ public:
     // setScreenMask -
     //    provide the image that should be overlayed on the
     //    device screen to mask that screen
-    virtual void setScreenMask(int width, int height, const unsigned char* rgbaData) = 0;
+    virtual void setScreenMask(int width,
+                               int height,
+                               const unsigned char* rgbaData) = 0;
 
     // setMultiDisplay
     //    add/modify/del multi-display window
@@ -253,16 +259,38 @@ public:
     // Resumes all channels after snapshot saving or loading.
     virtual void resumeAll() = 0;
 
-    virtual void save(android::base::Stream* stream,
-                      const android::snapshot::ITextureSaverPtr& textureSaver) = 0;
-    virtual bool load(android::base::Stream* stream,
-                      const android::snapshot::ITextureLoaderPtr& textureLoader) = 0;
+    virtual void save(
+            android::base::Stream* stream,
+            const android::snapshot::ITextureSaverPtr& textureSaver) = 0;
+    virtual bool load(
+            android::base::Stream* stream,
+            const android::snapshot::ITextureLoaderPtr& textureLoader) = 0;
     // Fill GLES usage protobuf
     virtual void fillGLESUsages(android_studio::EmulatorGLESUsages*) = 0;
-    virtual void getScreenshot(unsigned int nChannels, unsigned int* width,
-        unsigned int* height, std::vector<unsigned char>& pixels, int displayId = 0,
-        int desiredWidth = 0, int desiredHeight = 0,
-        int desiredRotation = 0) = 0;
+
+    // Saves a screenshot of the previous frame.
+    // nChannels should be 3 (RGB) or 4 (RGBA).
+    // You must provide a pre-allocated buffer of sufficient
+    // size. Returns 0 on success. In the case of failure and if *cPixels != 0
+    // you can call this function again with a buffer of size *cPixels. cPixels
+    // should usually be at at least desiredWidth * desiredHeight * nChannels.
+    //
+    // In practice the buffer should be > desiredWidth *
+    // desiredHeight * nChannels.
+    //
+    // Note: Do not call this function again if it fails and *cPixels == 0
+    //  swiftshader_indirect does not work with 3 channels
+    virtual int getScreenshot(
+            unsigned int nChannels,
+            unsigned int* width,
+            unsigned int* height,
+            uint8_t* pixels,
+            size_t* cPixels,
+            int displayId = 0,
+            int desiredWidth = 0,
+            int desiredHeight = 0,
+            int desiredRotation = 0) = 0;
+
     virtual void snapshotOperationCallback(
             int snapshotterOp,
             int snapshotterStage) = 0;
