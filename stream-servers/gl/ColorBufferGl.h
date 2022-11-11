@@ -136,7 +136,7 @@ class ColorBufferGl {
     // and data type.
     // Otherwise, subUpdate() will explicitly convert |pixels|
     // to be in |p_format|.
-    void subUpdate(int x, int y, int width, int height, GLenum p_format, GLenum p_type,
+    bool subUpdate(int x, int y, int width, int height, GLenum p_format, GLenum p_type,
                    const void* pixels);
 
     // Completely replaces contents, assuming that |pixels| is a buffer
