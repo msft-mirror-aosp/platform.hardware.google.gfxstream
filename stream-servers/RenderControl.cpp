@@ -31,11 +31,11 @@
 #include "RenderThreadInfoGl.h"
 #include "SyncThread.h"
 #include "aemu/base/Tracing.h"
-#include "host-common/dma_device.h"
 #include "host-common/feature_control.h"
+#include "host-common/logging.h"
 #include "host-common/misc.h"
 #include "host-common/sync_device.h"
-#include "math.h"
+#include "stream-servers/compressedTextureFormats/AstcCpuDecompressor.h"
 #include "vulkan/VkCommonOperations.h"
 #include "vulkan/VkDecoderGlobalState.h"
 
@@ -643,8 +643,22 @@ static EGLint rcGetGLString(EGLenum name, void* buffer, EGLint bufferSize) {
             glStr += "GL_OES_vertex_array_object ";
         }
 
+
+
         // ASTC LDR compressed texture support.
-        glStr += "GL_KHR_texture_compression_astc_ldr ";
+        const std::string& glExtensions =
+            FrameBuffer::getFB()->hasEmulationGl()
+                ? FrameBuffer::getFB()->getEmulationGl().getGlesExtensionsString()
+                : "<no GL emulation>";
+        const bool hasNativeAstc =
+            glExtensions.find("GL_KHR_texture_compression_astc_ldr") != std::string::npos;
+        const bool hasAstcDecompressor = goldfish_vk::AstcCpuDecompressor::get().available();
+        if (hasNativeAstc || hasAstcDecompressor) {
+            glStr += "GL_KHR_texture_compression_astc_ldr ";
+        } else {
+            INFO("rcGetGLString: ASTC not supported. CPU decompressor? %d. GL extensions: %s",
+                 hasAstcDecompressor, glExtensions.c_str());
+        }
 
         // Host side tracing support.
         glStr += kHostSideTracing;
