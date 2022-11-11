@@ -66,6 +66,8 @@ LOCAL_SRC_FILES := AndroidHardwareBuffer.cpp \
     goldfish_vk_transform_guest.cpp \
 	func_table.cpp \
 
+LOCAL_TIDY_DISABLED_SRCS := VkEncoder.cpp
+
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 LOCAL_CFLAGS += -D__ANDROID_API__=28
 $(call emugl-export,SHARED_LIBRARIES,libgui)
