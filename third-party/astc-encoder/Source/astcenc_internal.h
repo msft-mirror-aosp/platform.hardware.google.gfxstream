@@ -23,15 +23,12 @@
 #define ASTCENC_INTERNAL_INCLUDED
 
 #include <algorithm>
-#include <atomic>
 #include <cstddef>
 #include <cstdint>
-#include <cstdio>
+#if defined(ASTCENC_DIAGNOSTICS)
+	#include <cstdio>
+#endif
 #include <cstdlib>
-#include <condition_variable>
-#include <functional>
-#include <mutex>
-#include <type_traits>
 
 #include "astcenc.h"
 #include "astcenc_mathlib.h"
@@ -133,7 +130,14 @@ static constexpr unsigned int TUNE_MIN_TEXELS_MODE0_FASTPATH { 24 };
  *
  * This can be dynamically reduced by the compression quality preset.
  */
-static constexpr unsigned int TUNE_MAX_TRIAL_CANDIDATES { 4 };
+static constexpr unsigned int TUNE_MAX_TRIAL_CANDIDATES { 8 };
+
+/**
+ * @brief The maximum number of candidate partitionings tested for each encoding mode.
+ *
+ * This can be dynamically reduced by the compression quality preset.
+ */
+static constexpr unsigned int TUNE_MAX_PARTITIIONING_CANDIDATES { 32 };
 
 /**
  * @brief The maximum quant level using full angular endpoint search method.
@@ -160,223 +164,6 @@ static_assert((BLOCK_MAX_WEIGHTS % ASTCENC_SIMD_WIDTH) == 0,
 static_assert((WEIGHTS_MAX_BLOCK_MODES % ASTCENC_SIMD_WIDTH) == 0,
               "WEIGHTS_MAX_BLOCK_MODES must be multiple of ASTCENC_SIMD_WIDTH");
 
-
-/* ============================================================================
-  Parallel execution control
-============================================================================ */
-
-/**
- * @brief A simple counter-based manager for parallel task execution.
- *
- * The task processing execution consists of:
- *
- *     * A single-threaded init stage.
- *     * A multi-threaded processing stage.
- *     * A condition variable so threads can wait for processing completion.
- *
- * The init stage will be executed by the first thread to arrive in the critical section, there is
- * no main thread in the thread pool.
- *
- * The processing stage uses dynamic dispatch to assign task tickets to threads on an on-demand
- * basis. Threads may each therefore executed different numbers of tasks, depending on their
- * processing complexity. The task queue and the task tickets are just counters; the caller must map
- * these integers to an actual processing partition in a specific problem domain.
- *
- * The exit wait condition is needed to ensure processing has finished before a worker thread can
- * progress to the next stage of the pipeline. Specifically a worker may exit the processing stage
- * because there are no new tasks to assign to it while other worker threads are still processing.
- * Calling @c wait() will ensure that all other worker have finished before the thread can proceed.
- *
- * The basic usage model:
- *
- *     // --------- From single-threaded code ---------
- *
- *     // Reset the tracker state
- *     manager->reset()
- *
- *     // --------- From multi-threaded code ---------
- *
- *     // Run the stage init; only first thread actually runs the lambda
- *     manager->init(<lambda>)
- *
- *     do
- *     {
- *         // Request a task assignment
- *         uint task_count;
- *         uint base_index = manager->get_tasks(<granule>, task_count);
- *
- *         // Process any tasks we were given (task_count <= granule size)
- *         if (task_count)
- *         {
- *             // Run the user task processing code for N tasks here
- *             ...
- *
- *             // Flag these tasks as complete
- *             manager->complete_tasks(task_count);
- *         }
- *     } while (task_count);
- *
- *     // Wait for all threads to complete tasks before progressing
- *     manager->wait()
- *
-  *     // Run the stage term; only first thread actually runs the lambda
- *     manager->term(<lambda>)
- */
-class ParallelManager
-{
-private:
-	/** @brief Lock used for critical section and condition synchronization. */
-	std::mutex m_lock;
-
-	/** @brief True if the stage init() step has been executed. */
-	bool m_init_done;
-
-	/** @brief True if the stage term() step has been executed. */
-	bool m_term_done;
-
-	/** @brief Condition variable for tracking stage processing completion. */
-	std::condition_variable m_complete;
-
-	/** @brief Number of tasks started, but not necessarily finished. */
-	std::atomic<unsigned int> m_start_count;
-
-	/** @brief Number of tasks finished. */
-	unsigned int m_done_count;
-
-	/** @brief Number of tasks that need to be processed. */
-	unsigned int m_task_count;
-
-public:
-	/** @brief Create a new ParallelManager. */
-	ParallelManager()
-	{
-		reset();
-	}
-
-	/**
-	 * @brief Reset the tracker for a new processing batch.
-	 *
-	 * This must be called from single-threaded code before starting the multi-threaded processing
-	 * operations.
-	 */
-	void reset()
-	{
-		m_init_done = false;
-		m_term_done = false;
-		m_start_count = 0;
-		m_done_count = 0;
-		m_task_count = 0;
-	}
-
-	/**
-	 * @brief Trigger the pipeline stage init step.
-	 *
-	 * This can be called from multi-threaded code. The first thread to hit this will process the
-	 * initialization. Other threads will block and wait for it to complete.
-	 *
-	 * @param init_func   Callable which executes the stage initialization. It must return the
-	 *                    total number of tasks in the stage.
-	 */
-	void init(std::function<unsigned int(void)> init_func)
-	{
-		std::lock_guard<std::mutex> lck(m_lock);
-		if (!m_init_done)
-		{
-			m_task_count = init_func();
-			m_init_done = true;
-		}
-	}
-
-	/**
-	 * @brief Trigger the pipeline stage init step.
-	 *
-	 * This can be called from multi-threaded code. The first thread to hit this will process the
-	 * initialization. Other threads will block and wait for it to complete.
-	 *
-	 * @param task_count   Total number of tasks needing processing.
-	 */
-	void init(unsigned int task_count)
-	{
-		std::lock_guard<std::mutex> lck(m_lock);
-		if (!m_init_done)
-		{
-			m_task_count = task_count;
-			m_init_done = true;
-		}
-	}
-
-	/**
-	 * @brief Request a task assignment.
-	 *
-	 * Assign up to @c granule tasks to the caller for processing.
-	 *
-	 * @param      granule   Maximum number of tasks that can be assigned.
-	 * @param[out] count     Actual number of tasks assigned, or zero if no tasks were assigned.
-	 *
-	 * @return Task index of the first assigned task; assigned tasks increment from this.
-	 */
-	unsigned int get_task_assignment(unsigned int granule, unsigned int& count)
-	{
-		unsigned int base = m_start_count.fetch_add(granule, std::memory_order_relaxed);
-		if (base >= m_task_count)
-		{
-			count = 0;
-			return 0;
-		}
-
-		count = astc::min(m_task_count - base, granule);
-		return base;
-	}
-
-	/**
-	 * @brief Complete a task assignment.
-	 *
-	 * Mark @c count tasks as complete. This will notify all threads blocked on @c wait() if this
-	 * completes the processing of the stage.
-	 *
-	 * @param count   The number of completed tasks.
-	 */
-	void complete_task_assignment(unsigned int count)
-	{
-		// Note: m_done_count cannot use an atomic without the mutex; this has a race between the
-		// update here and the wait() for other threads
-		std::unique_lock<std::mutex> lck(m_lock);
-		this->m_done_count += count;
-		if (m_done_count == m_task_count)
-		{
-			lck.unlock();
-			m_complete.notify_all();
-		}
-	}
-
-	/**
-	 * @brief Wait for stage processing to complete.
-	 */
-	void wait()
-	{
-		std::unique_lock<std::mutex> lck(m_lock);
-		m_complete.wait(lck, [this]{ return m_done_count == m_task_count; });
-	}
-
-	/**
-	 * @brief Trigger the pipeline stage term step.
-	 *
-	 * This can be called from multi-threaded code. The first thread to hit this will process the
-	 * work pool termination. Caller must have called @c wait() prior to calling this function to
-	 * ensure that processing is complete.
-	 *
-	 * @param term_func   Callable which executes the stage termination.
-	 */
-	void term(std::function<void(void)> term_func)
-	{
-		std::lock_guard<std::mutex> lck(m_lock);
-		if (!m_term_done)
-		{
-			term_func();
-			m_term_done = true;
-		}
-	}
-};
 
 /* ============================================================================
   Commonly used data structures
@@ -800,13 +587,6 @@ struct block_size_descriptor
 	uint8_t kmeans_texels[BLOCK_MAX_KMEANS_TEXELS];
 
 	/**
-	 * @brief Is 0 if this 2-partition is valid for compression 255 otherwise.
-	 *
-	 * Indexed by remapped index, not physical index.
-	 */
-	uint8_t partitioning_valid_2[BLOCK_MAX_PARTITIONINGS];
-
-	/**
 	 * @brief The canonical 2-partition coverage pattern used during block partition search.
 	 *
 	 * Indexed by remapped index, not physical index.
@@ -814,25 +594,11 @@ struct block_size_descriptor
 	uint64_t coverage_bitmaps_2[BLOCK_MAX_PARTITIONINGS][2];
 
 	/**
-	 * @brief Is 0 if this 3-partition is valid for compression 255 otherwise.
-	 *
-	 * Indexed by remapped index, not physical index.
-	 */
-	uint8_t partitioning_valid_3[BLOCK_MAX_PARTITIONINGS];
-
-	/**
 	 * @brief The canonical 3-partition coverage pattern used during block partition search.
 	 *
 	 * Indexed by remapped index, not physical index.
 	 */
 	uint64_t coverage_bitmaps_3[BLOCK_MAX_PARTITIONINGS][3];
-
-	/**
-	 * @brief Is 0 if this 4-partition is valid for compression 255 otherwise.
-	 *
-	 * Indexed by remapped index, not physical index.
-	 */
-	uint8_t partitioning_valid_4[BLOCK_MAX_PARTITIONINGS];
 
 	/**
 	 * @brief The canonical 4-partition coverage pattern used during block partition search.
@@ -1432,7 +1198,7 @@ class TraceLog;
 /**
  * @brief The astcenc compression context.
  */
-struct astcenc_context
+struct astcenc_contexti
 {
 	/** @brief The configuration this context was created with. */
 	astcenc_config config;
@@ -1458,16 +1224,7 @@ struct astcenc_context
 #if !defined(ASTCENC_DECOMPRESS_ONLY)
 	/** @brief The pixel region and variance worker arguments. */
 	avg_args avg_preprocess_args;
-
-	/** @brief The parallel manager for averages computation. */
-	ParallelManager manage_avg;
-
-	/** @brief The parallel manager for compression. */
-	ParallelManager manage_compress;
 #endif
-
-	/** @brief The parallel manager for decompression. */
-	ParallelManager manage_decompress;
 
 #if defined(ASTCENC_DIAGNOSTICS)
 	/**
@@ -1595,11 +1352,11 @@ extern const int8_t quant_mode_table[10][128];
  * Note that BISE can return strings that are not a whole number of bytes in length, and ASTC can
  * start storing strings in a block at arbitrary bit offsets in the encoded data.
  *
- * @param         quant_level      The BISE alphabet size.
- * @param         character_count  The number of characters in the string.
- * @param         input_data       The unpacked string, one byte per character.
- * @param[in,out] output_data      The output packed string.
- * @param         bit_offset       The starting offset in the output storage.
+ * @param         quant_level       The BISE alphabet size.
+ * @param         character_count   The number of characters in the string.
+ * @param         input_data        The unpacked string, one byte per character.
+ * @param[in,out] output_data       The output packed string.
+ * @param         bit_offset        The starting offset in the output storage.
  */
 void encode_ise(
 	quant_method quant_level,
@@ -1686,11 +1443,11 @@ void compute_avgs_and_dirs_3_comp(
  * This is a specialization of @c compute_avgs_and_dirs_3_comp where the omitted component is
  * always alpha, a common case during partition search.
  *
- * @param      pi                  The partition info for the current trial.
- * @param      blk                 The image block color data to be compressed.
- * @param[out] pm                  The output partition metrics.
- *                                 - Only pi.partition_count array entries actually get initialized.
- *                                 - Direction vectors @c pm.dir are not normalized.
+ * @param      pi    The partition info for the current trial.
+ * @param      blk   The image block color data to be compressed.
+ * @param[out] pm    The output partition metrics.
+ *                   - Only pi.partition_count array entries actually get initialized.
+ *                   - Direction vectors @c pm.dir are not normalized.
  */
 void compute_avgs_and_dirs_3_comp_rgb(
 	const partition_info& pi,
@@ -1721,11 +1478,11 @@ void compute_avgs_and_dirs_4_comp(
  *
  * This function computes the squared error when using these two representations.
  *
- * @param         pi              The partition info for the current trial.
- * @param         blk             The image block color data to be compressed.
- * @param[in,out] plines          Processed line inputs, and line length outputs.
- * @param[out]    uncor_error     The cumulative error for using the uncorrelated line.
- * @param[out]    samec_error     The cumulative error for using the same chroma line.
+ * @param         pi            The partition info for the current trial.
+ * @param         blk           The image block color data to be compressed.
+ * @param[in,out] plines        Processed line inputs, and line length outputs.
+ * @param[out]    uncor_error   The cumulative error for using the uncorrelated line.
+ * @param[out]    samec_error   The cumulative error for using the same chroma line.
  */
 void compute_error_squared_rgb(
 	const partition_info& pi,
@@ -1770,18 +1527,23 @@ void compute_error_squared_rgba(
  * candidates; one assuming data has uncorrelated chroma and one assuming the
  * data has correlated chroma. The best candidate is returned first in the list.
  *
- * @param      bsd                        The block size information.
- * @param      blk                        The image block color data to compress.
- * @param      partition_count            The number of partitions in the block.
- * @param      partition_search_limit     The number of candidate partition encodings to trial.
- * @param[out] best_partitions            The best partition candidates.
+ * @param      bsd                      The block size information.
+ * @param      blk                      The image block color data to compress.
+ * @param      partition_count          The number of partitions in the block.
+ * @param      partition_search_limit   The number of candidate partition encodings to trial.
+ * @param[out] best_partitions          The best partition candidates.
+ * @param      requested_candidates     The number of requsted partitionings. May return fewer if
+ *                                      candidates are not avaiable.
+ *
+ * @return The actual number of candidates returned.
  */
-void find_best_partition_candidates(
+unsigned int find_best_partition_candidates(
 	const block_size_descriptor& bsd,
 	const image_block& blk,
 	unsigned int partition_count,
 	unsigned int partition_search_limit,
-	unsigned int best_partitions[2]);
+	unsigned int best_partitions[TUNE_MAX_PARTITIIONING_CANDIDATES],
+	unsigned int requested_candidates);
 
 /* ============================================================================
   Functionality for managing images and image related data.
@@ -1795,10 +1557,10 @@ void find_best_partition_candidates(
  *
  * Results are written back into @c img->input_alpha_averages.
  *
- * @param      img                     The input image data, also holds output data.
- * @param      alpha_kernel_radius     The kernel radius (in pixels) for alpha mods.
- * @param      swz                     Input data component swizzle.
- * @param[out] ag                      The average variance arguments to init.
+ * @param      img                   The input image data, also holds output data.
+ * @param      alpha_kernel_radius   The kernel radius (in pixels) for alpha mods.
+ * @param      swz                   Input data component swizzle.
+ * @param[out] ag                    The average variance arguments to init.
  *
  * @return The number of tasks in the processing stage.
  */
@@ -1809,20 +1571,17 @@ unsigned int init_compute_averages(
 	avg_args& ag);
 
 /**
- * @brief Compute regional averages in an image.
+ * @brief Compute averages for a pixel region.
  *
- * This function can be called by multiple threads, but only after a single
- * thread calls the setup function @c init_compute_averages().
+ * The routine computes both in a single pass, using a summed-area table to decouple the running
+ * time from the averaging/variance kernel size.
  *
- * Results are written back into @c img->input_alpha_averages.
- *
- * @param[out] ctx   The context.
- * @param      ag    The average and variance arguments created during setup.
+ * @param[out] ctx   The compressor context storing the output data.
+ * @param      arg   The input parameter structure.
  */
-void compute_averages(
-	astcenc_context& ctx,
-	const avg_args& ag);
-
+void compute_pixel_region_variance(
+	astcenc_contexti& ctx,
+	const pixel_region_args& arg);
 /**
  * @brief Load a single image block from the input image.
  *
@@ -2019,13 +1778,13 @@ float compute_error_of_weight_set_2planes(
  * The user requests a base color endpoint mode in @c format, but the quantizer may choose a
  * delta-based representation. It will report back the format variant it actually used.
  *
- * @param      color0       The input unquantized color0 endpoint for absolute endpoint pairs.
- * @param      color1       The input unquantized color1 endpoint for absolute endpoint pairs.
- * @param      rgbs_color   The input unquantized RGBS variant endpoint for same chroma endpoints.
- * @param      rgbo_color   The input unquantized RGBS variant endpoint for HDR endpoints..
- * @param      format       The desired base format.
- * @param[out] output       The output storage for the quantized colors/
- * @param      quant_level  The quantization level requested.
+ * @param      color0        The input unquantized color0 endpoint for absolute endpoint pairs.
+ * @param      color1        The input unquantized color1 endpoint for absolute endpoint pairs.
+ * @param      rgbs_color    The input unquantized RGBS variant endpoint for same chroma endpoints.
+ * @param      rgbo_color    The input unquantized RGBS variant endpoint for HDR endpoints.
+ * @param      format        The desired base format.
+ * @param[out] output        The output storage for the quantized colors/
+ * @param      quant_level   The quantization level requested.
  *
  * @return The actual endpoint mode used.
  */
@@ -2126,13 +1885,13 @@ unsigned int compute_ideal_endpoint_formats(
  * As we quantize and decimate weights the optimal endpoint colors may change slightly, so we must
  * recompute the ideal colors for a specific weight set.
  *
- * @param         blk                        The image block color data to compress.
- * @param         pi                         The partition info for the current trial.
- * @param         di                         The weight grid decimation table.
+ * @param         blk                  The image block color data to compress.
+ * @param         pi                   The partition info for the current trial.
+ * @param         di                   The weight grid decimation table.
  * @param         dec_weights_uquant   The quantized weight set.
- * @param[in,out] ep                         The color endpoints (modifed in place).
- * @param[out]    rgbs_vectors               The RGB+scale vectors for LDR blocks.
- * @param[out]    rgbo_vectors               The RGB+offset vectors for HDR blocks.
+ * @param[in,out] ep                   The color endpoints (modifed in place).
+ * @param[out]    rgbs_vectors         The RGB+scale vectors for LDR blocks.
+ * @param[out]    rgbo_vectors         The RGB+offset vectors for HDR blocks.
  */
 void recompute_ideal_colors_1plane(
 	const image_block& blk,
@@ -2149,15 +1908,15 @@ void recompute_ideal_colors_1plane(
  * As we quantize and decimate weights the optimal endpoint colors may change slightly, so we must
  * recompute the ideal colors for a specific weight set.
  *
- * @param         blk                               The image block color data to compress.
- * @param         bsd                               The block_size descriptor.
- * @param         di                                The weight grid decimation table.
+ * @param         blk                         The image block color data to compress.
+ * @param         bsd                         The block_size descriptor.
+ * @param         di                          The weight grid decimation table.
  * @param         dec_weights_uquant_plane1   The quantized weight set for plane 1.
  * @param         dec_weights_uquant_plane2   The quantized weight set for plane 2.
- * @param[in,out] ep                                The color endpoints (modifed in place).
- * @param[out]    rgbs_vector                       The RGB+scale color for LDR blocks.
- * @param[out]    rgbo_vector                       The RGB+offset color for HDR blocks.
- * @param         plane2_component                  The component assigned to plane 2.
+ * @param[in,out] ep                          The color endpoints (modifed in place).
+ * @param[out]    rgbs_vector                 The RGB+scale color for LDR blocks.
+ * @param[out]    rgbo_vector                 The RGB+offset color for HDR blocks.
+ * @param         plane2_component            The component assigned to plane 2.
  */
 void recompute_ideal_colors_2planes(
 	const image_block& blk,
@@ -2178,15 +1937,13 @@ void prepare_angular_tables();
 /**
  * @brief Compute the angular endpoints for one plane for each block mode.
  *
- * @param      tune_low_weight_limit     Weight count cutoff below which we use simpler searches.
- * @param      only_always               Only consider block modes that are always enabled.
- * @param      bsd                       The block size descriptor for the current trial.
- * @param      dec_weight_ideal_value    The ideal decimated unquantized weight values.
- * @param      max_weight_quant          The maximum block mode weight quantization allowed.
- * @param[out] tmpbuf                    Preallocated scratch buffers for the compressor.
+ * @param      only_always              Only consider block modes that are always enabled.
+ * @param      bsd                      The block size descriptor for the current trial.
+ * @param      dec_weight_ideal_value   The ideal decimated unquantized weight values.
+ * @param      max_weight_quant         The maximum block mode weight quantization allowed.
+ * @param[out] tmpbuf                   Preallocated scratch buffers for the compressor.
  */
 void compute_angular_endpoints_1plane(
-	unsigned int tune_low_weight_limit,
 	bool only_always,
 	const block_size_descriptor& bsd,
 	const float* dec_weight_ideal_value,
@@ -2196,14 +1953,12 @@ void compute_angular_endpoints_1plane(
 /**
  * @brief Compute the angular endpoints for two planes for each block mode.
  *
- * @param      tune_low_weight_limit     Weight count cutoff below which we use simpler searches.
- * @param      bsd                       The block size descriptor for the current trial.
- * @param      dec_weight_ideal_value    The ideal decimated unquantized weight values.
- * @param      max_weight_quant          The maximum block mode weight quantization allowed.
- * @param[out] tmpbuf                    Preallocated scratch buffers for the compressor.
+ * @param      bsd                      The block size descriptor for the current trial.
+ * @param      dec_weight_ideal_value   The ideal decimated unquantized weight values.
+ * @param      max_weight_quant         The maximum block mode weight quantization allowed.
+ * @param[out] tmpbuf                   Preallocated scratch buffers for the compressor.
  */
 void compute_angular_endpoints_2planes(
-	unsigned int tune_low_weight_limit,
 	const block_size_descriptor& bsd,
 	const float* dec_weight_ideal_value,
 	unsigned int max_weight_quant,
@@ -2222,7 +1977,7 @@ void compute_angular_endpoints_2planes(
  * @param[out] tmpbuf   Preallocated scratch buffers for the compressor.
  */
 void compress_block(
-	const astcenc_context& ctx,
+	const astcenc_contexti& ctx,
 	const image_block& blk,
 	physical_compressed_block& pcb,
 	compression_working_buffers& tmpbuf);
@@ -2413,20 +2168,6 @@ void aligned_free(T* ptr)
 #else
 	free(reinterpret_cast<void*>(ptr));
 #endif
-}
-
-static inline void dump_weights(const char* label, uint8_t* weights, int weight_count)
-{
-	printf("%s\n", label);
-	vint lane = vint::lane_id();
-	for (int i = 0; i < weight_count; i += ASTCENC_SIMD_WIDTH)
-	{
-		vmask mask = lane < vint(weight_count);
-		vint val(weights + i);
-		val = select(vint::zero(), val, mask);
-		print(val);
-		lane += vint(ASTCENC_SIMD_WIDTH);
-	}
 }
 
 #endif

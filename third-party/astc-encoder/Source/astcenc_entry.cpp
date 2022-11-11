@@ -24,7 +24,7 @@
 #include <new>
 
 #include "astcenc.h"
-#include "astcenc_internal.h"
+#include "astcenc_internal_entry.h"
 #include "astcenc_diagnostic_trace.h"
 
 /**
@@ -40,10 +40,15 @@ struct astcenc_preset_config
 {
 	float quality;
 	unsigned int tune_partition_count_limit;
-	unsigned int tune_partition_index_limit;
+	unsigned int tune_2partition_index_limit;
+	unsigned int tune_3partition_index_limit;
+	unsigned int tune_4partition_index_limit;
 	unsigned int tune_block_mode_limit;
 	unsigned int tune_refinement_limit;
 	unsigned int tune_candidate_limit;
+	unsigned int tune_2partitioning_candidate_limit;
+	unsigned int tune_3partitioning_candidate_limit;
+	unsigned int tune_4partitioning_candidate_limit;
 	float tune_db_limit_a_base;
 	float tune_db_limit_b_base;
 	float tune_mode0_mse_overshoot;
@@ -51,7 +56,6 @@ struct astcenc_preset_config
 	float tune_2_partition_early_out_limit_factor;
 	float tune_3_partition_early_out_limit_factor;
 	float tune_2_plane_early_out_limit_correlation;
-	unsigned int tune_low_weight_count_limit;
 };
 
 
@@ -59,22 +63,25 @@ struct astcenc_preset_config
  * @brief The static quality presets that are built-in for high bandwidth
  * presets (x < 25 texels per block).
  */
-static const std::array<astcenc_preset_config, 5> preset_configs_high {{
+static const std::array<astcenc_preset_config, 6> preset_configs_high {{
 	{
 		ASTCENC_PRE_FASTEST,
-		2, 10, 43, 2, 2, 85.2f, 63.2f, 3.5f, 3.5f, 1.0f, 1.0f, 0.5f, 25
+		2, 10, 6, 4, 43, 2, 2, 2, 2, 2, 85.2f, 63.2f, 3.5f, 3.5f, 1.0f, 1.0f, 0.85f
 	}, {
 		ASTCENC_PRE_FAST,
-		3, 14, 55, 3, 3, 85.2f, 63.2f, 3.5f, 3.5f, 1.0f, 1.1f, 0.65f, 20
+		3, 18, 10, 8, 55, 3, 3, 2, 2, 2, 85.2f, 63.2f, 3.5f, 3.5f, 1.0f, 1.0f, 0.90f
 	}, {
 		ASTCENC_PRE_MEDIUM,
-		4, 28, 76, 3, 3, 95.0f, 70.0f, 2.5f, 2.5f, 1.2f, 1.25f, 0.85f, 16
+		4, 34, 28, 16, 77, 3, 3, 2, 2, 2, 95.0f, 70.0f, 2.5f, 2.5f, 1.1f, 1.05f, 0.95f
 	}, {
 		ASTCENC_PRE_THOROUGH,
-		4, 76, 93, 4, 4, 105.0f, 77.0f, 10.0f, 10.0f, 2.5f, 1.25f, 0.95f, 12
+		4, 82, 60, 30, 94, 4, 4, 3, 2, 2, 105.0f, 77.0f, 10.0f, 10.0f, 1.35f, 1.15f, 0.97f
+	}, {
+		ASTCENC_PRE_VERYTHOROUGH,
+		4, 256, 128, 64, 98, 4, 6, 20, 14, 8, 200.0f, 200.0f, 10.0f, 10.0f, 1.6f, 1.4f, 0.98f
 	}, {
 		ASTCENC_PRE_EXHAUSTIVE,
-		4, 1024, 100, 4, 4, 200.0f, 200.0f, 10.0f, 10.0f, 10.0f, 10.0f, 0.99f, 0
+		4, 512, 512, 512, 100, 4, 8, 32, 32, 32, 200.0f, 200.0f, 10.0f, 10.0f, 2.0f, 2.0f, 0.99f
 	}
 }};
 
@@ -82,46 +89,51 @@ static const std::array<astcenc_preset_config, 5> preset_configs_high {{
  * @brief The static quality presets that are built-in for medium bandwidth
  * presets (25 <= x < 64 texels per block).
  */
-static const std::array<astcenc_preset_config, 5> preset_configs_mid {{
+static const std::array<astcenc_preset_config, 6> preset_configs_mid {{
 	{
 		ASTCENC_PRE_FASTEST,
-		2, 10, 43, 2, 2, 85.2f, 63.2f, 3.5f, 3.5f, 1.0f, 1.0f, 0.5f, 20
+		2, 10, 6, 4, 43, 2, 2, 2, 2, 2, 85.2f, 63.2f, 3.5f, 3.5f, 1.0f, 1.0f, 0.80f
 	}, {
 		ASTCENC_PRE_FAST,
-		3, 15, 55, 3, 3, 85.2f, 63.2f, 3.5f, 3.5f, 1.0f, 1.1f, 0.5f, 16
+		3, 18, 12, 10, 55, 3, 3, 2, 2, 2, 85.2f, 63.2f, 3.5f, 3.5f, 1.0f, 1.0f, 0.85f
 	}, {
 		ASTCENC_PRE_MEDIUM,
-		4, 30, 76, 3, 3, 95.0f, 70.0f, 3.0f, 3.0f, 1.2f, 1.25f, 0.75f, 14
+		4, 34, 28, 16, 77, 3, 3, 2, 2, 2, 95.0f, 70.0f, 3.0f, 3.0f, 1.1f, 1.05f, 0.90f
 	}, {
 		ASTCENC_PRE_THOROUGH,
-		4, 76, 93, 4, 4, 105.0f, 77.0f, 10.0f, 10.0f, 2.5f, 1.25f, 0.95f, 10
+		4, 82, 60, 30, 94, 4, 4, 3, 2, 2, 105.0f, 77.0f, 10.0f, 10.0f, 1.4f, 1.2f, 0.95f
+	}, {
+		ASTCENC_PRE_VERYTHOROUGH,
+		4, 256, 128, 64, 98, 4, 6, 12, 8, 3, 200.0f, 200.0f, 10.0f, 10.0f, 1.6f, 1.4f, 0.98f
 	}, {
 		ASTCENC_PRE_EXHAUSTIVE,
-		4, 1024, 100, 4, 4, 200.0f, 200.0f, 10.0f, 10.0f, 10.0f, 10.0f, 0.99f, 0
+		4, 256, 256, 256, 100, 4, 8, 32, 32, 32, 200.0f, 200.0f, 10.0f, 10.0f, 2.0f, 2.0f, 0.99f
 	}
 }};
-
 
 /**
  * @brief The static quality presets that are built-in for low bandwidth
  * presets (64 <= x texels per block).
  */
-static const std::array<astcenc_preset_config, 5> preset_configs_low {{
+static const std::array<astcenc_preset_config, 6> preset_configs_low {{
 	{
 		ASTCENC_PRE_FASTEST,
-		2, 10, 40, 2, 2, 85.0f, 63.0f, 3.5f, 3.5f, 1.0f, 1.0f, 0.5f, 20
+		2, 10, 6, 4, 40, 2, 2, 2, 2, 2, 85.0f, 63.0f, 3.5f, 3.5f, 1.0f, 1.0f, 0.80f
 	}, {
 		ASTCENC_PRE_FAST,
-		2, 15, 55, 3, 3, 85.0f, 63.0f, 3.5f, 3.5f, 1.0f, 1.1f, 0.5f, 16
+		2, 18, 12, 10, 55, 3, 3, 2, 2, 2, 85.0f, 63.0f, 3.5f, 3.5f, 1.0f, 1.0f, 0.85f
 	}, {
 		ASTCENC_PRE_MEDIUM,
-		3, 30, 76, 3, 3, 95.0f, 70.0f, 3.5f, 3.5f, 1.2f, 1.25f, 0.65f, 12
+		3, 34, 28, 16, 77, 3, 3, 2, 2, 2, 95.0f, 70.0f, 3.5f, 3.5f, 1.1f, 1.05f, 0.90f
 	}, {
 		ASTCENC_PRE_THOROUGH,
-		4, 75, 92, 4, 4, 105.0f, 77.0f, 10.0f, 10.0f, 2.5f, 1.25f, 0.85f, 10
+		4, 82, 60, 30, 93, 4, 4, 3, 2, 2, 105.0f, 77.0f, 10.0f, 10.0f, 1.3f, 1.2f, 0.97f
+	}, {
+		ASTCENC_PRE_VERYTHOROUGH,
+		4, 256, 128, 64, 98, 4, 6, 9, 5, 2, 200.0f, 200.0f, 10.0f, 10.0f, 1.6f, 1.4f, 0.98f
 	}, {
 		ASTCENC_PRE_EXHAUSTIVE,
-		4, 1024, 100, 4, 4, 200.0f, 200.0f, 10.0f, 10.0f, 10.0f, 10.0f, 0.99f, 0
+		4, 256, 256, 256, 100, 4, 8, 32, 32, 32, 200.0f, 200.0f, 10.0f, 10.0f, 2.0f, 2.0f, 0.99f
 	}
 }};
 
@@ -422,10 +434,15 @@ static astcenc_error validate_config(
 	config.rgbm_m_scale = astc::max(config.rgbm_m_scale, 1.0f);
 
 	config.tune_partition_count_limit = astc::clamp(config.tune_partition_count_limit, 1u, 4u);
-	config.tune_partition_index_limit = astc::clamp(config.tune_partition_index_limit, 1u, BLOCK_MAX_PARTITIONINGS);
+	config.tune_2partition_index_limit = astc::clamp(config.tune_2partition_index_limit, 1u, BLOCK_MAX_PARTITIONINGS);
+	config.tune_3partition_index_limit = astc::clamp(config.tune_3partition_index_limit, 1u, BLOCK_MAX_PARTITIONINGS);
+	config.tune_4partition_index_limit = astc::clamp(config.tune_4partition_index_limit, 1u, BLOCK_MAX_PARTITIONINGS);
 	config.tune_block_mode_limit = astc::clamp(config.tune_block_mode_limit, 1u, 100u);
 	config.tune_refinement_limit = astc::max(config.tune_refinement_limit, 1u);
 	config.tune_candidate_limit = astc::clamp(config.tune_candidate_limit, 1u, TUNE_MAX_TRIAL_CANDIDATES);
+	config.tune_2partitioning_candidate_limit = astc::clamp(config.tune_2partitioning_candidate_limit, 1u, TUNE_MAX_PARTITIIONING_CANDIDATES);
+	config.tune_3partitioning_candidate_limit = astc::clamp(config.tune_3partitioning_candidate_limit, 1u, TUNE_MAX_PARTITIIONING_CANDIDATES);
+	config.tune_4partitioning_candidate_limit = astc::clamp(config.tune_4partitioning_candidate_limit, 1u, TUNE_MAX_PARTITIIONING_CANDIDATES);
 	config.tune_db_limit = astc::max(config.tune_db_limit, 0.0f);
 	config.tune_mode0_mse_overshoot = astc::max(config.tune_mode0_mse_overshoot, 1.0f);
 	config.tune_refinement_mse_overshoot = astc::max(config.tune_refinement_mse_overshoot, 1.0f);
@@ -464,9 +481,23 @@ astcenc_error astcenc_config_init(
 	astcenc_config* configp
 ) {
 	astcenc_error status;
-	astcenc_config& config = *configp;
+
+	// Check basic library compatibility options here so they are checked early. Note, these checks
+	// are repeated in context_alloc for cases where callers use a manually defined config struct
+	status = validate_cpu_isa();
+	if (status != ASTCENC_SUCCESS)
+	{
+		return status;
+	}
+
+	status = validate_cpu_float();
+	if (status != ASTCENC_SUCCESS)
+	{
+		return status;
+	}
 
 	// Zero init all config fields; although most of will be over written
+	astcenc_config& config = *configp;
 	std::memset(&config, 0, sizeof(config));
 
 	// Process the block size
@@ -493,7 +524,7 @@ astcenc_error astcenc_config_init(
 		return ASTCENC_ERR_BAD_QUALITY;
 	}
 
-	static const std::array<astcenc_preset_config, 5>* preset_configs;
+	static const std::array<astcenc_preset_config, 6>* preset_configs;
 	int texels_int = block_x * block_y * block_z;
 	if (texels_int < 25)
 	{
@@ -525,11 +556,15 @@ astcenc_error astcenc_config_init(
 	if (start == end)
 	{
 		config.tune_partition_count_limit = (*preset_configs)[start].tune_partition_count_limit;
-		config.tune_partition_index_limit = (*preset_configs)[start].tune_partition_index_limit;
+		config.tune_2partition_index_limit = (*preset_configs)[start].tune_2partition_index_limit;
+		config.tune_3partition_index_limit = (*preset_configs)[start].tune_3partition_index_limit;
+		config.tune_4partition_index_limit = (*preset_configs)[start].tune_4partition_index_limit;
 		config.tune_block_mode_limit = (*preset_configs)[start].tune_block_mode_limit;
 		config.tune_refinement_limit = (*preset_configs)[start].tune_refinement_limit;
-		config.tune_candidate_limit = astc::min((*preset_configs)[start].tune_candidate_limit,
-		                                        TUNE_MAX_TRIAL_CANDIDATES);
+		config.tune_candidate_limit = astc::min((*preset_configs)[start].tune_candidate_limit, TUNE_MAX_TRIAL_CANDIDATES);
+		config.tune_2partitioning_candidate_limit = astc::min((*preset_configs)[start].tune_2partitioning_candidate_limit, TUNE_MAX_PARTITIIONING_CANDIDATES);
+		config.tune_3partitioning_candidate_limit = astc::min((*preset_configs)[start].tune_3partitioning_candidate_limit, TUNE_MAX_PARTITIIONING_CANDIDATES);
+		config.tune_4partitioning_candidate_limit = astc::min((*preset_configs)[start].tune_4partitioning_candidate_limit, TUNE_MAX_PARTITIIONING_CANDIDATES);
 		config.tune_db_limit = astc::max((*preset_configs)[start].tune_db_limit_a_base - 35 * ltexels,
 		                                 (*preset_configs)[start].tune_db_limit_b_base - 19 * ltexels);
 
@@ -539,7 +574,6 @@ astcenc_error astcenc_config_init(
 		config.tune_2_partition_early_out_limit_factor = (*preset_configs)[start].tune_2_partition_early_out_limit_factor;
 		config.tune_3_partition_early_out_limit_factor =(*preset_configs)[start].tune_3_partition_early_out_limit_factor;
 		config.tune_2_plane_early_out_limit_correlation = (*preset_configs)[start].tune_2_plane_early_out_limit_correlation;
-		config.tune_low_weight_count_limit = (*preset_configs)[start].tune_low_weight_count_limit;
 	}
 	// Start and end node are not the same - so interpolate between them
 	else
@@ -561,11 +595,19 @@ astcenc_error astcenc_config_init(
 		#define LERPUI(param) static_cast<unsigned int>(LERPI(param))
 
 		config.tune_partition_count_limit = LERPI(tune_partition_count_limit);
-		config.tune_partition_index_limit = LERPI(tune_partition_index_limit);
+		config.tune_2partition_index_limit = LERPI(tune_2partition_index_limit);
+		config.tune_3partition_index_limit = LERPI(tune_3partition_index_limit);
+		config.tune_4partition_index_limit = LERPI(tune_4partition_index_limit);
 		config.tune_block_mode_limit = LERPI(tune_block_mode_limit);
 		config.tune_refinement_limit = LERPI(tune_refinement_limit);
 		config.tune_candidate_limit = astc::min(LERPUI(tune_candidate_limit),
 		                                        TUNE_MAX_TRIAL_CANDIDATES);
+		config.tune_2partitioning_candidate_limit = astc::min(LERPUI(tune_2partitioning_candidate_limit),
+		                                                      BLOCK_MAX_PARTITIONINGS);
+		config.tune_3partitioning_candidate_limit = astc::min(LERPUI(tune_3partitioning_candidate_limit),
+		                                                      BLOCK_MAX_PARTITIONINGS);
+		config.tune_4partitioning_candidate_limit = astc::min(LERPUI(tune_4partitioning_candidate_limit),
+		                                                      BLOCK_MAX_PARTITIONINGS);
 		config.tune_db_limit = astc::max(LERP(tune_db_limit_a_base) - 35 * ltexels,
 		                                 LERP(tune_db_limit_b_base) - 19 * ltexels);
 
@@ -575,7 +617,6 @@ astcenc_error astcenc_config_init(
 		config.tune_2_partition_early_out_limit_factor = LERP(tune_2_partition_early_out_limit_factor);
 		config.tune_3_partition_early_out_limit_factor = LERP(tune_3_partition_early_out_limit_factor);
 		config.tune_2_plane_early_out_limit_correlation = LERP(tune_2_plane_early_out_limit_correlation);
-		config.tune_low_weight_count_limit = LERPI(tune_low_weight_count_limit);
 		#undef LERP
 		#undef LERPI
 		#undef LERPUI
@@ -676,13 +717,13 @@ astcenc_error astcenc_context_alloc(
 	astcenc_error status;
 	const astcenc_config& config = *configp;
 
-	status = validate_cpu_float();
+	status = validate_cpu_isa();
 	if (status != ASTCENC_SUCCESS)
 	{
 		return status;
 	}
 
-	status = validate_cpu_isa();
+	status = validate_cpu_float();
 	if (status != ASTCENC_SUCCESS)
 	{
 		return status;
@@ -701,7 +742,8 @@ astcenc_error astcenc_context_alloc(
 	}
 #endif
 
-	astcenc_context* ctx = new astcenc_context;
+	astcenc_context* ctxo = new astcenc_context;
+	astcenc_contexti* ctx = &ctxo->context;
 	ctx->thread_count = thread_count;
 	ctx->config = config;
 	ctx->working_buffers = nullptr;
@@ -713,7 +755,7 @@ astcenc_error astcenc_context_alloc(
 	status = validate_config(ctx->config);
 	if (status != ASTCENC_SUCCESS)
 	{
-		delete ctx;
+		delete ctxo;
 		return status;
 	}
 
@@ -746,7 +788,7 @@ astcenc_error astcenc_context_alloc(
 		if (!ctx->working_buffers)
 		{
 			aligned_free<block_size_descriptor>(ctx->bsd);
-			delete ctx;
+			delete ctxo;
 			*context = nullptr;
 			return ASTCENC_ERR_OUT_OF_MEM;
 		}
@@ -765,7 +807,7 @@ astcenc_error astcenc_context_alloc(
 	trace_add_data("block_z", config.block_z);
 #endif
 
-	*context = ctx;
+	*context = ctxo;
 
 #if !defined(ASTCENC_DECOMPRESS_ONLY)
 	prepare_angular_tables();
@@ -776,16 +818,17 @@ astcenc_error astcenc_context_alloc(
 
 /* See header dor documentation. */
 void astcenc_context_free(
-	astcenc_context* ctx
+	astcenc_context* ctxo
 ) {
-	if (ctx)
+	if (ctxo)
 	{
+		astcenc_contexti* ctx = &ctxo->context;
 		aligned_free<compression_working_buffers>(ctx->working_buffers);
 		aligned_free<block_size_descriptor>(ctx->bsd);
 #if defined(ASTCENC_DIAGNOSTICS)
 		delete ctx->trace_log;
 #endif
-		delete ctx;
+		delete ctxo;
 	}
 }
 
@@ -794,19 +837,20 @@ void astcenc_context_free(
 /**
  * @brief Compress an image, after any preflight has completed.
  *
- * @param[out] ctx            The compressor context.
+ * @param[out] ctxo           The compressor context.
  * @param      thread_index   The thread index.
  * @param      image          The intput image.
  * @param      swizzle        The input swizzle.
  * @param[out] buffer         The output array for the compressed data.
  */
 static void compress_image(
-	astcenc_context& ctx,
+	astcenc_context& ctxo,
 	unsigned int thread_index,
 	const astcenc_image& image,
 	const astcenc_swizzle& swizzle,
 	uint8_t* buffer
 ) {
+	astcenc_contexti& ctx = ctxo.context;
 	const block_size_descriptor& bsd = *ctx.bsd;
 	astcenc_profile decode_mode = ctx.config.profile;
 
@@ -839,7 +883,7 @@ static void compress_image(
 	auto& temp_buffers = ctx.working_buffers[thread_index];
 
 	// Only the first thread actually runs the initializer
-	ctx.manage_compress.init(block_count);
+	ctxo.manage_compress.init(block_count);
 
 	// Determine if we can use an optimized load function
 	bool needs_swz = (swizzle.r != ASTCENC_SWZ_R) || (swizzle.g != ASTCENC_SWZ_G) ||
@@ -861,7 +905,7 @@ static void compress_image(
 	while (true)
 	{
 		unsigned int count;
-		unsigned int base = ctx.manage_compress.get_task_assignment(16, count);
+		unsigned int base = ctxo.manage_compress.get_task_assignment(16, count);
 		if (!count)
 		{
 			break;
@@ -945,15 +989,77 @@ static void compress_image(
 			compress_block(ctx, blk, *pcb, temp_buffers);
 		}
 
-		ctx.manage_compress.complete_task_assignment(count);
+		ctxo.manage_compress.complete_task_assignment(count);
 	}
+}
+
+/**
+ * @brief Compute regional averages in an image.
+ *
+ * This function can be called by multiple threads, but only after a single
+ * thread calls the setup function @c init_compute_averages().
+ *
+ * Results are written back into @c img->input_alpha_averages.
+ *
+ * @param[out] ctx   The context.
+ * @param      ag    The average and variance arguments created during setup.
+ */
+static void compute_averages(
+	astcenc_context& ctx,
+	const avg_args &ag
+) {
+	pixel_region_args arg = ag.arg;
+	arg.work_memory = new vfloat4[ag.work_memory_size];
+
+	int size_x = ag.img_size_x;
+	int size_y = ag.img_size_y;
+	int size_z = ag.img_size_z;
+
+	int step_xy = ag.blk_size_xy;
+	int step_z = ag.blk_size_z;
+
+	int y_tasks = (size_y + step_xy - 1) / step_xy;
+
+	// All threads run this processing loop until there is no work remaining
+	while (true)
+	{
+		unsigned int count;
+		unsigned int base = ctx.manage_avg.get_task_assignment(16, count);
+		if (!count)
+		{
+			break;
+		}
+
+		for (unsigned int i = base; i < base + count; i++)
+		{
+			int z = (i / (y_tasks)) * step_z;
+			int y = (i - (z * y_tasks)) * step_xy;
+
+			arg.size_z = astc::min(step_z, size_z - z);
+			arg.offset_z = z;
+
+			arg.size_y = astc::min(step_xy, size_y - y);
+			arg.offset_y = y;
+
+			for (int x = 0; x < size_x; x += step_xy)
+			{
+				arg.size_x = astc::min(step_xy, size_x - x);
+				arg.offset_x = x;
+				compute_pixel_region_variance(ctx.context, arg);
+			}
+		}
+
+		ctx.manage_avg.complete_task_assignment(count);
+	}
+
+	delete[] arg.work_memory;
 }
 
 #endif
 
 /* See header for documentation. */
 astcenc_error astcenc_compress_image(
-	astcenc_context* ctx,
+	astcenc_context* ctxo,
 	astcenc_image* imagep,
 	const astcenc_swizzle* swizzle,
 	uint8_t* data_out,
@@ -961,7 +1067,7 @@ astcenc_error astcenc_compress_image(
 	unsigned int thread_index
 ) {
 #if defined(ASTCENC_DECOMPRESS_ONLY)
-	(void)ctx;
+	(void)ctxo;
 	(void)imagep;
 	(void)swizzle;
 	(void)data_out;
@@ -969,6 +1075,7 @@ astcenc_error astcenc_compress_image(
 	(void)thread_index;
 	return ASTCENC_ERR_BAD_CONTEXT;
 #else
+	astcenc_contexti* ctx = &ctxo->context;
 	astcenc_error status;
 	astcenc_image& image = *imagep;
 
@@ -1006,7 +1113,7 @@ astcenc_error astcenc_compress_image(
 	// If context thread count is one then implicitly reset
 	if (ctx->thread_count == 1)
 	{
-		astcenc_compress_reset(ctx);
+		astcenc_compress_reset(ctxo);
 	}
 
 	if (ctx->config.a_scale_radius != 0)
@@ -1024,19 +1131,19 @@ astcenc_error astcenc_compress_image(
 		};
 
 		// Only the first thread actually runs the initializer
-		ctx->manage_avg.init(init_avg);
+		ctxo->manage_avg.init(init_avg);
 
 		// All threads will enter this function and dynamically grab work
-		compute_averages(*ctx, ctx->avg_preprocess_args);
+		compute_averages(*ctxo, ctx->avg_preprocess_args);
 	}
 
 	// Wait for compute_averages to complete before compressing
-	ctx->manage_avg.wait();
+	ctxo->manage_avg.wait();
 
-	compress_image(*ctx, thread_index, image, *swizzle, data_out);
+	compress_image(*ctxo, thread_index, image, *swizzle, data_out);
 
 	// Wait for compress to complete before freeing memory
-	ctx->manage_compress.wait();
+	ctxo->manage_compress.wait();
 
 	auto term_compress = [ctx]() {
 		delete[] ctx->input_alpha_averages;
@@ -1044,7 +1151,7 @@ astcenc_error astcenc_compress_image(
 	};
 
 	// Only the first thread to arrive actually runs the term
-	ctx->manage_compress.term(term_compress);
+	ctxo->manage_compress.term(term_compress);
 
 	return ASTCENC_SUCCESS;
 #endif
@@ -1052,26 +1159,27 @@ astcenc_error astcenc_compress_image(
 
 /* See header for documentation. */
 astcenc_error astcenc_compress_reset(
-	astcenc_context* ctx
+	astcenc_context* ctxo
 ) {
 #if defined(ASTCENC_DECOMPRESS_ONLY)
-	(void)ctx;
+	(void)ctxo;
 	return ASTCENC_ERR_BAD_CONTEXT;
 #else
+	astcenc_contexti* ctx = &ctxo->context;
 	if (ctx->config.flags & ASTCENC_FLG_DECOMPRESS_ONLY)
 	{
 		return ASTCENC_ERR_BAD_CONTEXT;
 	}
 
-	ctx->manage_avg.reset();
-	ctx->manage_compress.reset();
+	ctxo->manage_avg.reset();
+	ctxo->manage_compress.reset();
 	return ASTCENC_SUCCESS;
 #endif
 }
 
 /* See header for documentation. */
 astcenc_error astcenc_decompress_image(
-	astcenc_context* ctx,
+	astcenc_context* ctxo,
 	const uint8_t* data,
 	size_t data_len,
 	astcenc_image* image_outp,
@@ -1080,6 +1188,7 @@ astcenc_error astcenc_decompress_image(
 ) {
 	astcenc_error status;
 	astcenc_image& image_out = *image_outp;
+	astcenc_contexti* ctx = &ctxo->context;
 
 	// Today this doesn't matter (working set on stack) but might in future ...
 	if (thread_index >= ctx->thread_count)
@@ -1117,17 +1226,17 @@ astcenc_error astcenc_decompress_image(
 	// If context thread count is one then implicitly reset
 	if (ctx->thread_count == 1)
 	{
-		astcenc_decompress_reset(ctx);
+		astcenc_decompress_reset(ctxo);
 	}
 
 	// Only the first thread actually runs the initializer
-	ctx->manage_decompress.init(zblocks * yblocks * xblocks);
+	ctxo->manage_decompress.init(zblocks * yblocks * xblocks);
 
 	// All threads run this processing loop until there is no work remaining
 	while (true)
 	{
 		unsigned int count;
-		unsigned int base = ctx->manage_decompress.get_task_assignment(128, count);
+		unsigned int base = ctxo->manage_decompress.get_task_assignment(128, count);
 		if (!count)
 		{
 			break;
@@ -1157,7 +1266,7 @@ astcenc_error astcenc_decompress_image(
 			                  x * block_x, y * block_y, z * block_z, *swizzle);
 		}
 
-		ctx->manage_decompress.complete_task_assignment(count);
+		ctxo->manage_decompress.complete_task_assignment(count);
 	}
 
 	return ASTCENC_SUCCESS;
@@ -1165,24 +1274,26 @@ astcenc_error astcenc_decompress_image(
 
 /* See header for documentation. */
 astcenc_error astcenc_decompress_reset(
-	astcenc_context* ctx
+	astcenc_context* ctxo
 ) {
-	ctx->manage_decompress.reset();
+	ctxo->manage_decompress.reset();
 	return ASTCENC_SUCCESS;
 }
 
 /* See header for documentation. */
 astcenc_error astcenc_get_block_info(
-	astcenc_context* ctx,
+	astcenc_context* ctxo,
 	const uint8_t data[16],
 	astcenc_block_info* info
 ) {
 #if defined(ASTCENC_DECOMPRESS_ONLY)
-	(void)ctx;
+	(void)ctxo;
 	(void)data;
 	(void)info;
 	return ASTCENC_ERR_BAD_CONTEXT;
 #else
+	astcenc_contexti* ctx = &ctxo->context;
+
 	// Decode the compressed data into a symbolic form
 	const physical_compressed_block&pcb = *reinterpret_cast<const physical_compressed_block*>(data);
 	symbolic_compressed_block scb;
