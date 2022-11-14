@@ -27,6 +27,7 @@
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "host-common/logging.h"
 #include "host-common/misc.h"
+#include "host-common/opengl/misc.h"
 
 // #define V(...)  VERBOSE_PRINT(gles,__VA_ARGS__)
 #define V(...)

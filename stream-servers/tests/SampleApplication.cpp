@@ -23,6 +23,7 @@
 #include "host-common/GraphicsAgentFactory.h"
 #include "host-common/multi_display_agent.h"
 #include "host-common/MultiDisplay.h"
+#include "host-common/opengl/misc.h"
 #include "Standalone.h"
 
 #include <EGL/egl.h>

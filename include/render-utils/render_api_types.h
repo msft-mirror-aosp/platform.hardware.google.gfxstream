@@ -25,17 +25,6 @@ typedef void (*emugl_crash_reporter_t)(const char* format, ...);
 // Feature control
 typedef bool (*emugl_feature_is_enabled_t)(android::featurecontrol::Feature feature);
 
-// Goldfish sync device
-typedef uint64_t (*emugl_sync_create_timeline_t)();
-typedef int (*emugl_sync_create_fence_t)(uint64_t timeline, uint32_t pt);
-typedef void (*emugl_sync_timeline_inc_t)(uint64_t timeline, uint32_t howmuch);
-typedef void (*emugl_sync_destroy_timeline_t)(uint64_t timeline);
-
-typedef void (*emugl_sync_trigger_wait_t)(uint64_t glsync, uint64_t thread, uint64_t timeline);
-typedef void (*emugl_sync_register_trigger_wait_t)(emugl_sync_trigger_wait_t trigger_fn);
-
-typedef bool (*emugl_sync_device_exists_t)();
-
 // OpenGL timestamped logger
 typedef void (*emugl_logger_t)(const char* fmt, ...);
 typedef struct {
@@ -43,12 +32,3 @@ typedef struct {
     emugl_logger_t fine;
 } emugl_logger_struct;
 
-// Function type that describes functions for
-// accessing Goldfish DMA regions at a specified offset.
-typedef void* (*emugl_dma_get_host_addr_t)(uint64_t);
-typedef void (*emugl_dma_unlock_t)(uint64_t);
-
-typedef struct {
-    emugl_dma_get_host_addr_t get_host_addr;
-    emugl_dma_unlock_t unlock;
-} emugl_dma_ops;

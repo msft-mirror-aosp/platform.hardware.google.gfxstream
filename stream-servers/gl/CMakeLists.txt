@@ -31,6 +31,7 @@ target_link_libraries(
         gfxstream-gl-server
         PUBLIC
         aemu-base.headers
+        gfxstream-gl-host-common.headers
         gfxstream_vulkan_headers
         gfxstream_egl_headers
         gles1_dec
