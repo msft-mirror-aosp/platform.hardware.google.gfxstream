@@ -24,7 +24,7 @@ if(MSVC)
     add_compile_options("/wd4324") # Disable structure was padded due to alignment specifier
 endif()
 
-project(astcencoder VERSION 4.0.0)
+project(astcencoder VERSION 4.2.0)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -219,9 +219,7 @@ if(PACKAGE)
         string(TOLOWER ${CMAKE_SYSTEM_NAME} PKG_OS)
     endif()
 
-    set(PKG_VER ${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION_MINOR})
-
-    set(CPACK_PACKAGE_FILE_NAME "astcenc-${PKG_VER}-${PKG_OS}-${PACKAGE}")
+    set(CPACK_PACKAGE_FILE_NAME "astcenc-${CMAKE_PROJECT_VERSION}-${PKG_OS}-${PACKAGE}")
     set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY FALSE)
     set(CPACK_PACKAGE_CHECKSUM SHA256)
     set(CPACK_GENERATOR ZIP)
