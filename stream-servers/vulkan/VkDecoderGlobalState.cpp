@@ -92,6 +92,17 @@ using emugl::GfxApiLogger;
 #define VKDGS_LOG(fmt, ...)
 #endif
 
+#define VALIDATE_REQUIRED_HANDLE(parameter) \
+    validateRequiredHandle(__FUNCTION__, #parameter, parameter)
+
+template <typename T>
+void validateRequiredHandle(const char* api_name, const char* parameter_name, T value) {
+    if (value == VK_NULL_HANDLE) {
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+            <<api_name << ":" << parameter_name;
+    }
+}
+
 namespace goldfish_vk {
 
 // A list of device extensions that should not be passed to the host driver.
@@ -1429,6 +1440,7 @@ class VkDecoderGlobalState::Impl {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
+        VALIDATE_REQUIRED_HANDLE(memory);
         VkResult result = vk->vkBindBufferMemory(device, buffer, memory, memoryOffset);
 
         if (result == VK_SUCCESS) {
@@ -1444,6 +1456,9 @@ class VkDecoderGlobalState::Impl {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
+        for (uint32_t i = 0; i < bindInfoCount; ++ i) {
+            VALIDATE_REQUIRED_HANDLE(pBindInfos[i].memory);
+        }
         VkResult result = vk->vkBindBufferMemory2(device, bindInfoCount, pBindInfos);
 
         if (result == VK_SUCCESS) {
@@ -1463,6 +1478,9 @@ class VkDecoderGlobalState::Impl {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
+        for (uint32_t i = 0; i < bindInfoCount; ++ i) {
+            VALIDATE_REQUIRED_HANDLE(pBindInfos[i].memory);
+        }
         VkResult result = vk->vkBindBufferMemory2KHR(device, bindInfoCount, pBindInfos);
 
         if (result == VK_SUCCESS) {
@@ -1599,6 +1617,8 @@ class VkDecoderGlobalState::Impl {
                                   VkImage image, VkDeviceMemory memory, VkDeviceSize memoryOffset) {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
+
+        VALIDATE_REQUIRED_HANDLE(memory);
         VkResult result = vk->vkBindImageMemory(device, image, memory, memoryOffset);
         if (VK_SUCCESS != result) {
             return result;
