@@ -2131,6 +2131,17 @@ VG_EXPORT int stream_renderer_init(
         {STREAM_RENDERER_PARAM_METRICS_CALLBACK_SET_ANNOTATION, "METRICS_CALLBACK_SET_ANNOTATION"},
         {STREAM_RENDERER_PARAM_METRICS_CALLBACK_ABORT, "METRICS_CALLBACK_ABORT"}};
 
+    // Print full values for these parameters:
+    // Values here must not be pointers (e.g. callback functions), to avoid potentially identifying
+    // someone via ASLR. Pointers in ASLR are randomized on boot, which means pointers may be
+    // different between users but similar across a single user's sessions.
+    // As a convenience, any value <= 4096 is also printed, to catch small or null pointer errors.
+    std::unordered_set<uint64_t> printed_param_values{
+        STREAM_RENDERER_PARAM_RENDERER_FLAGS,
+        STREAM_RENDERER_PARAM_WIN0_WIDTH,
+        STREAM_RENDERER_PARAM_WIN0_HEIGHT
+    };
+
     // We may have unknown parameters, so this function is lenient.
     auto get_param_string = [&](uint64_t key) -> std::string {
         auto param_string = param_strings.find(key);
@@ -2153,9 +2164,16 @@ VG_EXPORT int stream_renderer_init(
     for (uint64_t i = 0; i < num_params; ++i) {
         stream_renderer_param& param = stream_renderer_params[i];
 
-        // Print out parameter we are processing.
-        GFXS_LOG("%s - %llu", get_param_string(param.key).c_str(),
-                 static_cast<unsigned long long>(param.value));
+        // Print out parameter we are processing. See comment above `printed_param_values` before
+        // adding new prints.
+        if (printed_param_values.find(param.key) != printed_param_values.end() ||
+            param.value <= 4096) {
+            GFXS_LOG("%s - %llu", get_param_string(param.key).c_str(),
+                     static_cast<unsigned long long>(param.value));
+        } else {
+            // If not full value, print that it was passed.
+            GFXS_LOG("%s", get_param_string(param.key).c_str());
+        }
 
         // Removing every param we process will leave required_params empty if all provided.
         required_params.erase(param.key);
