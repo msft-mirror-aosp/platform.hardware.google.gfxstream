@@ -64,6 +64,13 @@ typedef int VK_EXT_MEMORY_HANDLE;
 
 VK_EXT_MEMORY_HANDLE dupExternalMemory(VK_EXT_MEMORY_HANDLE);
 
+enum class AstcEmulationMode {
+    Disabled,  // No ASTC emulation (ie: ASTC not supported unless the GPU supports it natively)
+    Auto,      // Use either GPU or CPU decompression depending on what's most appropriate
+    CpuOnly,   // Force to use CPU decompression always
+    GpuOnly,   // Force to use GPU decompression always
+};
+
 // Global state that holds a global Vulkan instance along with globally
 // exported memory allocations + images. This is in order to service things
 // like AndroidHardwareBuffer/FuchsiaImagePipeHandle. Each such allocation is
@@ -85,7 +92,7 @@ struct VkEmulation {
 
     // Whether to use ASTC emulation. Our current ASTC decoder implementation may lead to device
     // lost on certain device on Windows.
-    bool enableAstcLdrEmulation = false;
+    AstcEmulationMode astcLdrEmulationMode = AstcEmulationMode::Disabled;
 
     // Whether to use ETC2 emulation.
     bool enableEtc2Emulation = false;
@@ -375,7 +382,7 @@ struct VkEmulationFeatures {
     bool useVulkanComposition = false;
     bool useVulkanNativeSwapchain = false;
     std::unique_ptr<emugl::RenderDocWithMultipleVkInstances> guestRenderDoc = nullptr;
-    bool enableAstcLdrEmulation = false;
+    AstcEmulationMode astcLdrEmulationMode = AstcEmulationMode::Disabled;
     bool enableEtc2Emulation = false;
     bool enableYcbcrEmulation = false;
     bool guestUsesAngle = false;
