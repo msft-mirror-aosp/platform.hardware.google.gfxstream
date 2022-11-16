@@ -28,6 +28,7 @@ cc_library_shared {
     static_libs: [
         "gfxstream_base",
         "gfxstream_host_common",
+        "gfxstream_gl_host_common",
         "gfxstream_apigen_codec_common",
         "gfxstream_gl_server",
         "gfxstream_gles1_dec",

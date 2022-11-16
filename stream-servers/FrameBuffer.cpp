@@ -48,6 +48,7 @@
 #include "host-common/feature_control.h"
 #include "host-common/logging.h"
 #include "host-common/misc.h"
+#include "host-common/opengl/misc.h"
 #include "host-common/vm_operations.h"
 #include "vulkan/DisplayVk.h"
 #include "vulkan/VkCommonOperations.h"
