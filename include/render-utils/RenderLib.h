@@ -16,10 +16,12 @@
 #include <memory>
 
 #include "aemu/base/files/Stream.h"
+#include "host-common/dma_device.h"
+#include "host-common/multi_display_agent.h"
 #include "host-common/RefcountPipe.h"
+#include "host-common/sync_device.h"
 #include "host-common/vm_operations.h"
 #include "host-common/window_agent.h"
-#include "host-common/multi_display_agent.h"
 #include "host-common/opengl/emugl_config.h"
 #include "render-utils/Renderer.h"
 #include "render-utils/render_api_types.h"

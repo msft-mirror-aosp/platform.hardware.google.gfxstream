@@ -25,6 +25,7 @@
 #include "aemu/base/system/System.h"
 #include "aemu/base/testing/TestSystem.h"
 #include "host-common/GraphicsAgentFactory.h"
+#include "host-common/opengl/misc.h"
 #include "host-common/testing/MockGraphicsAgentFactory.h"
 
 #include "Standalone.h"

@@ -23,7 +23,7 @@
 #include "host-common/dma_device.h"
 #include "host-common/feature_control.h"
 #include "host-common/logging.h"
-#include "host-common/misc.h"
+#include "host-common/opengl/misc.h"
 #include "host-common/sync_device.h"
 
 namespace emugl {

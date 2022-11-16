@@ -19,6 +19,7 @@
 #include "host-common/feature_control.h"
 #include "host-common/logging.h"
 #include "host-common/misc.h"
+#include "host-common/opengl/misc.h"
 
 #include <stdio.h>
 #include <string.h>

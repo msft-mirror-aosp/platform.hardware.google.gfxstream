@@ -22,6 +22,7 @@
 #include "host-common/testing/MockGraphicsAgentFactory.h"
 #include "host-common/window_agent.h"
 #include "host-common/MultiDisplay.h"
+#include "host-common/opengl/misc.h"
 #include "snapshot/TextureLoader.h"
 #include "snapshot/TextureSaver.h"
 

@@ -21,7 +21,7 @@
 #include "aemu/base/system/System.h"
 #include "aemu/base/misc/StringUtils.h"
 #include "host-common/feature_control.h"
-#include "host-common/misc.h"
+#include "host-common/opengl/misc.h"
 
 #include <algorithm>
 

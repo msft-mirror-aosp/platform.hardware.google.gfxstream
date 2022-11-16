@@ -22,7 +22,7 @@
 
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "host-common/feature_control.h"
-#include "host-common/misc.h"
+#include "host-common/opengl/misc.h"
 
 
 #define FATAL(fmt,...) do { \
