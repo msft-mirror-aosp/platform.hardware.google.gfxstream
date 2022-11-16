@@ -20,6 +20,8 @@
 #include "OSWindow.h"
 #include "aemu/base/system/System.h"
 
+using android::base::sleepMs;
+
 class GfxStreamBackendTest : public ::testing::Test {
 private:
     static void sWriteFence(void* cookie, uint32_t fence) {
@@ -32,6 +34,7 @@ protected:
     uint32_t cookie;
     static const bool useWindow;
     std::vector<stream_renderer_param> streamRendererParams;
+    std::vector<stream_renderer_param> minimumRequiredParams;
     static constexpr uint32_t width = 256;
     static constexpr uint32_t height = 256;
     static std::unique_ptr<OSWindow> window;
@@ -49,7 +52,14 @@ protected:
               {STREAM_RENDERER_PARAM_RENDERER_FLAGS, surfacelessFlags},
               {STREAM_RENDERER_PARAM_WIN0_WIDTH, width},
               {STREAM_RENDERER_PARAM_WIN0_HEIGHT, height}
-          } {}
+          },
+          minimumRequiredParams{
+              {STREAM_RENDERER_PARAM_USER_DATA,
+               static_cast<uint64_t>(reinterpret_cast<uintptr_t>(&cookie))},
+              {STREAM_RENDERER_PARAM_WRITE_FENCE_CALLBACK,
+               static_cast<uint64_t>(reinterpret_cast<uintptr_t>(&sWriteFence))},
+              {STREAM_RENDERER_PARAM_RENDERER_FLAGS, surfacelessFlags}
+          }{}
 
     static void SetUpTestSuite() {
         android::emulation::injectGraphicsAgents(android::emulation::MockGraphicsAgentFactory());
@@ -70,6 +80,8 @@ protected:
     }
 
     void TearDown() override {
+        // Ensure background threads aren't mid-initialization.
+        sleepMs(100);
         if (useWindow) {
             window->destroy();
         }
@@ -179,4 +191,29 @@ TEST_F(GfxStreamBackendTest, DISABLED_ApiCallLinkTest) {
     pipe_virgl_renderer_ctx_attach_resource(0, 0);
     pipe_virgl_renderer_ctx_detach_resource(0, 0);
     pipe_virgl_renderer_resource_get_info(0, 0);
+}
+
+TEST_F(GfxStreamBackendTest, MinimumRequiredParameters) {
+    // Only the minimum required parameters.
+    int initResult =
+        stream_renderer_init(minimumRequiredParams.data(), minimumRequiredParams.size());
+    EXPECT_EQ(initResult, STREAM_RENDERER_SUCCESS);
+}
+
+TEST_F(GfxStreamBackendTest, MissingRequiredParameter) {
+    for (size_t i = 0; i < minimumRequiredParams.size(); ++i) {
+        // For each parameter, remove it and try to init, expecting failure.
+        std::vector<stream_renderer_param> insufficientParams = minimumRequiredParams;
+        insufficientParams.erase(insufficientParams.begin() + i);
+        int initResult = stream_renderer_init(insufficientParams.data(), insufficientParams.size());
+        EXPECT_EQ(initResult, STREAM_RENDERER_ERROR_MISSING_PARAM);
+
+        // Ensure background threads aren't mid-initialization.
+        sleepMs(100);
+        gfxstream_backend_teardown();
+    }
+
+    // Initialize once more for the teardown function.
+    int initResult = stream_renderer_init(streamRendererParams.data(), streamRendererParams.size());
+    EXPECT_EQ(initResult, STREAM_RENDERER_SUCCESS);
 }
