@@ -19,7 +19,7 @@
 #include "aemu/base/system/System.h"
 #include "aemu/base/SharedLibrary.h"
 #include "host-common/logging.h"
-#include "host-common/misc.h"
+#include "host-common/opengl/misc.h"
 #include "GLcommon/GLLibrary.h"
 #include "ShaderCache.h"
 

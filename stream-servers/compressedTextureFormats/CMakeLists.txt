@@ -14,22 +14,24 @@ if(ASTC_CPU_DECODING)
 endif()
 
 
-add_executable(
-    gfxstream-compressedTextures_unittests
-    AstcCpuDecompressor_unittest.cpp)
+if (ENABLE_VKCEREAL_TESTS)
+    add_executable(
+        gfxstream-compressedTextures_unittests
+        AstcCpuDecompressor_unittest.cpp)
 
-target_include_directories(
-    gfxstream-compressedTextures_unittests
-    PRIVATE
-    ${GFXSTREAM_REPO_ROOT}/include)
+    target_include_directories(
+        gfxstream-compressedTextures_unittests
+        PRIVATE
+        ${GFXSTREAM_REPO_ROOT}/include)
 
-target_link_libraries(
-    gfxstream-compressedTextures_unittests
-    PRIVATE
-    aemu-base.headers
-    gfxstream-compressedTextures
-    ${GFXSTREAM_BASE_LIB}
-    gtest_main
-    gmock_main)
+    target_link_libraries(
+        gfxstream-compressedTextures_unittests
+        PRIVATE
+        aemu-base.headers
+        gfxstream-compressedTextures
+        ${GFXSTREAM_BASE_LIB}
+        gtest_main
+        gmock_main)
 
-gtest_discover_tests(gfxstream-compressedTextures_unittests)
+    gtest_discover_tests(gfxstream-compressedTextures_unittests)
+endif()

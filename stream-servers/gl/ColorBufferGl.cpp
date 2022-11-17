@@ -29,7 +29,7 @@
 #include "gl/YUVConverter.h"
 #include "glestranslator/include/GLcommon/GLutils.h"
 #include "host-common/GfxstreamFatalError.h"
-#include "host-common/misc.h"
+#include "host-common/opengl/misc.h"
 
 #define DEBUG_CB_FBO 0
 
