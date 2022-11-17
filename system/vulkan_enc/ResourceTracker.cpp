@@ -2246,7 +2246,7 @@ public:
             createInfo->usage, createInfo->flags, &imageFormatProperties,
             true /* do lock */);
         if (result != VK_SUCCESS) {
-            ALOGW(
+            ALOGD(
                 "%s: Image format (%u) type (%u) tiling (%u) "
                 "usage (%u) flags (%u) not supported by physical "
                 "device",
@@ -2271,7 +2271,7 @@ public:
                     : formatProperties.optimalTilingFeatures;
             auto requiredFeatures = formatConstraints->requiredFormatFeatures;
             if ((~supportedFeatures) & requiredFeatures) {
-                ALOGW(
+                ALOGD(
                     "%s: Host device support features for %s tiling: %08x, "
                     "required features: %08x, feature bits %08x missing",
                     __func__,
@@ -2291,7 +2291,7 @@ public:
                     formatConstraints->sysmemPixelFormat);
             if (createInfo->format != VK_FORMAT_UNDEFINED &&
                 !vkFormatMatchesSysmemFormat(createInfo->format, pixelFormat)) {
-                ALOGW("%s: VkFormat %u doesn't match sysmem pixelFormat %lu",
+                ALOGD("%s: VkFormat %u doesn't match sysmem pixelFormat %lu",
                       __func__, static_cast<uint32_t>(createInfo->format),
                       formatConstraints->sysmemPixelFormat);
                 return VK_ERROR_FORMAT_NOT_SUPPORTED;
@@ -2301,7 +2301,7 @@ public:
             auto pixel_format = vkFormatTypeToSysmem(createInfo->format);
             if (pixel_format ==
                 fuchsia_sysmem::wire::PixelFormatType::kInvalid) {
-                ALOGW("%s: Unsupported VkFormat %u", __func__,
+                ALOGD("%s: Unsupported VkFormat %u", __func__,
                       static_cast<uint32_t>(createInfo->format));
                 return VK_ERROR_FORMAT_NOT_SUPPORTED;
             }
