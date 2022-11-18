@@ -8,6 +8,7 @@ target_link_libraries(
     PUBLIC
     apigen-codec-common
     GLSnapshot
+    ${GFXSTREAM_BASE_LIB}
     PRIVATE
     gfxstream_egl_headers)
 target_include_directories(
