@@ -13,7 +13,6 @@
 // limitations under the License.
 #pragma once
 
-#include <GLES2/gl2.h>
 #include <vulkan/vulkan.h>
 
 #include <atomic>
@@ -26,7 +25,6 @@
 #include "BorrowedImageVk.h"
 #include "CompositorVk.h"
 #include "DisplayVk.h"
-#include "FrameworkFormats.h"
 #include "aemu/base/synchronization/Lock.h"
 #include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/Optional.h"
@@ -402,19 +400,17 @@ bool importExternalMemoryDedicatedImage(VulkanDispatch* vk, VkDevice targetDevic
 
 // ColorBuffer operations
 
-bool isColorBufferExportedToGl(uint32_t colorBufferHandle, bool* exported);
-
-bool getColorBufferAllocationInfo(uint32_t colorBufferHandle,
-                                  VkDeviceSize* outSize ,
-                                  uint32_t* outMemoryTypeIndex,
-                                  void** outMappedPtr);
+bool isColorBufferVulkanCompatible(uint32_t colorBufferHandle);
 
 std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo(VkFormat format,
                                                                         uint32_t width,
                                                                         uint32_t height,
                                                                         VkImageTiling tiling);
 
-bool setupVkColorBuffer(uint32_t colorBufferHandle, bool vulkanOnly, uint32_t memoryProperty);
+bool setupVkColorBuffer(uint32_t colorBufferHandle, bool vulkanOnly = false,
+                        uint32_t memoryProperty = 0, bool* exported = nullptr,
+                        VkDeviceSize* allocSize = nullptr, uint32_t* typeIndex = nullptr,
+                        void** mappedPtr = nullptr);
 bool teardownVkColorBuffer(uint32_t colorBufferHandle);
 VkEmulation::ColorBufferInfo getColorBufferInfo(uint32_t colorBufferHandle);
 VK_EXT_MEMORY_HANDLE getColorBufferExtMemoryHandle(uint32_t colorBufferHandle);
@@ -435,9 +431,6 @@ bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_t x, ui
                                       uint32_t w, uint32_t h, const void* pixels);
 
 // Data buffer operations
-bool getBufferAllocationInfo(uint32_t bufferHandle,
-                             VkDeviceSize* outSize,
-                             uint32_t* outMemoryTypeIndex);
 
 bool setupVkBuffer(uint32_t bufferHandle, bool vulkanOnly = false, uint32_t memoryProperty = 0,
                    bool* exported = nullptr, VkDeviceSize* allocSize = nullptr,
