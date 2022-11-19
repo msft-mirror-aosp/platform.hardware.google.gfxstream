@@ -3077,12 +3077,14 @@ class VkDecoderGlobalState::Impl {
         if (importCbInfoPtr) {
             bool vulkanOnly = mGuestUsesAngle;
 
-            if (!getColorBufferAllocationInfo(importCbInfoPtr->colorBuffer,
-                                              &localAllocInfo.allocationSize,
-                                              &localAllocInfo.memoryTypeIndex,
-                                              &mappedPtr)) {
-                ERR("Failed to get ColorBuffer:%d allocation info.", importCbInfoPtr->colorBuffer);
-                return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+            // Ensure color buffer has Vulkan backing.
+            if (!setupVkColorBuffer(
+                importCbInfoPtr->colorBuffer, vulkanOnly, memoryPropertyFlags, nullptr,
+                // Modify the allocation size and type index
+                // to suit the resulting image memory size.
+                &localAllocInfo.allocationSize, &localAllocInfo.memoryTypeIndex, &mappedPtr)) {
+                GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                    << "Failed to set up vk color buffer.";
             }
 
             if (!vulkanOnly) {
@@ -3113,12 +3115,12 @@ class VkDecoderGlobalState::Impl {
         }
 
         if (importBufferInfoPtr) {
-            if (!getBufferAllocationInfo(importBufferInfoPtr->buffer,
-                                         &localAllocInfo.allocationSize,
-                                         &localAllocInfo.memoryTypeIndex)) {
-                ERR("Failed to get Buffer:%d allocation info.", importBufferInfoPtr->buffer);
-                return VK_ERROR_OUT_OF_DEVICE_MEMORY;
-            }
+            // Ensure buffer has Vulkan backing.
+            setupVkBuffer(importBufferInfoPtr->buffer, true /* Buffers are Vulkan only */,
+                          memoryPropertyFlags, nullptr,
+                          // Modify the allocation size and type index
+                          // to suit the resulting image memory size.
+                          &localAllocInfo.allocationSize, &localAllocInfo.memoryTypeIndex);
 
             if (m_emu->instanceSupportsExternalMemoryCapabilities) {
                 VK_EXT_MEMORY_HANDLE bufferExtMemoryHandle =
@@ -3626,18 +3628,22 @@ class VkDecoderGlobalState::Impl {
         return VK_SUCCESS;
     }
 
-    VkResult on_vkRegisterImageColorBufferGOOGLE(android::base::BumpPool*, VkDevice, VkImage,
-                                                 uint32_t) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Unimplemented deprecated vkRegisterImageColorBufferGOOGLE() called.";
-        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+    VkResult on_vkRegisterImageColorBufferGOOGLE(android::base::BumpPool* pool, VkDevice device,
+                                                 VkImage image, uint32_t colorBuffer) {
+        (void)image;
+
+        bool success = setupVkColorBuffer(colorBuffer);
+
+        return success ? VK_SUCCESS : VK_ERROR_OUT_OF_DEVICE_MEMORY;
     }
 
-    VkResult on_vkRegisterBufferColorBufferGOOGLE(android::base::BumpPool* pool, VkDevice,
-                                                  VkBuffer, uint32_t) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Unimplemented deprecated on_vkRegisterBufferColorBufferGOOGLE() called.";
-        return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+    VkResult on_vkRegisterBufferColorBufferGOOGLE(android::base::BumpPool* pool, VkDevice device,
+                                                  VkBuffer buffer, uint32_t colorBuffer) {
+        (void)buffer;
+
+        bool success = setupVkColorBuffer(colorBuffer);
+
+        return success ? VK_SUCCESS : VK_ERROR_OUT_OF_DEVICE_MEMORY;
     }
 
     VkResult on_vkAllocateCommandBuffers(android::base::BumpPool* pool, VkDevice boxed_device,

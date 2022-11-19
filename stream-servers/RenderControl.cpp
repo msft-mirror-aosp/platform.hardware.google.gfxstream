@@ -1415,9 +1415,24 @@ static void rcCloseBuffer(uint32_t buffer) {
 static int rcSetColorBufferVulkanMode2(uint32_t colorBuffer,
                                        uint32_t mode,
                                        uint32_t memoryProperty) {
+    if (!goldfish_vk::isColorBufferVulkanCompatible(colorBuffer)) {
+        fprintf(stderr,
+                "%s: error: colorBuffer 0x%x is not Vulkan compatible\n",
+                __func__, colorBuffer);
+        return -1;
+    }
+
 #define VULKAN_MODE_VULKAN_ONLY 1
 
     bool modeIsVulkanOnly = mode == VULKAN_MODE_VULKAN_ONLY;
+
+    if (!goldfish_vk::setupVkColorBuffer(colorBuffer, modeIsVulkanOnly,
+                                         memoryProperty)) {
+        fprintf(stderr,
+                "%s: error: failed to create VkImage for colorBuffer 0x%x\n",
+                __func__, colorBuffer);
+        return -1;
+    }
 
     if (!goldfish_vk::setColorBufferVulkanMode(colorBuffer, mode)) {
         fprintf(stderr,
