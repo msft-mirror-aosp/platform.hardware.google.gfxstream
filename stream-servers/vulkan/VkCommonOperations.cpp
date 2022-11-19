@@ -1486,8 +1486,8 @@ bool importExternalMemoryDedicatedImage(VulkanDispatch* vk, VkDevice targetDevic
     return true;
 }
 
-static VkFormat glFormat2VkFormat(GLint internalFormat) {
-    switch (internalFormat) {
+static VkFormat glFormat2VkFormat(GLint internalformat) {
+    switch (internalformat) {
         case GL_R8:
         case GL_LUMINANCE:
             return VK_FORMAT_R8_UNORM;
@@ -1521,7 +1521,7 @@ static VkFormat glFormat2VkFormat(GLint internalFormat) {
             return VK_FORMAT_R8G8_UNORM;
         default:
             VK_COMMON_ERROR("Unhandled format %d, falling back to VK_FORMAT_R8G8B8A8_UNORM",
-                            internalFormat);
+                            internalformat);
             return VK_FORMAT_R8G8B8A8_UNORM;
     }
 };
@@ -1546,54 +1546,6 @@ bool isColorBufferVulkanCompatible(uint32_t colorBufferHandle) {
     }
 
     return false;
-}
-
-bool isColorBufferExportedToGl(uint32_t colorBufferHandle, bool* exported) {
-    if (!sVkEmulation || !sVkEmulation->live) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Vulkan emulation not available.";
-    }
-
-    AutoLock lock(sVkEmulationLock);
-
-    auto info = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
-    if (!info) {
-        return false;
-    }
-
-    *exported = info->glExported;
-    return true;
-}
-
-bool getColorBufferAllocationInfo(uint32_t colorBufferHandle,
-                                  VkDeviceSize* outSize,
-                                  uint32_t* outMemoryTypeIndex,
-                                  void** outMappedPtr) {
-    if (!sVkEmulation || !sVkEmulation->live) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Vulkan emulation not available.";
-    }
-
-    AutoLock lock(sVkEmulationLock);
-
-    auto info = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
-    if (!info) {
-        return false;
-    }
-
-    if (outSize) {
-        *outSize = info->memory.size;
-    }
-
-    if (outMemoryTypeIndex) {
-        *outMemoryTypeIndex = info->memory.typeIndex;
-    }
-
-    if (outMappedPtr) {
-        *outMappedPtr = info->memory.mappedPtr;
-    }
-
-    return true;
 }
 
 static uint32_t lastGoodTypeIndex(uint32_t indices) {
@@ -1707,17 +1659,21 @@ std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo(VkFormat
 // We should make it so the guest can only allocate external images/
 // buffers of one type index for image and one type index for buffer
 // to begin with, via filtering from the host.
-bool setupVkColorBuffer(uint32_t colorBufferHandle, bool vulkanOnly, uint32_t memoryProperty) {
+bool setupVkColorBuffer(uint32_t colorBufferHandle, bool vulkanOnly, uint32_t memoryProperty,
+                        bool* exported, VkDeviceSize* allocSize, uint32_t* typeIndex,
+                        void** mappedPtr) {
     if (!isColorBufferVulkanCompatible(colorBufferHandle)) return false;
+
+    auto vk = sVkEmulation->dvk;
 
     auto fb = FrameBuffer::getFB();
 
     int width;
     int height;
-    GLint internalFormat;
+    GLint internalformat;
     FrameworkFormat frameworkFormat;
 
-    if (!fb->getColorBufferInfo(colorBufferHandle, &width, &height, &internalFormat,
+    if (!fb->getColorBufferInfo(colorBufferHandle, &width, &height, &internalformat,
                                 &frameworkFormat)) {
         return false;
     }
@@ -1728,6 +1684,18 @@ bool setupVkColorBuffer(uint32_t colorBufferHandle, bool vulkanOnly, uint32_t me
 
     // Already setup
     if (infoPtr) {
+        // Setting exported is required for on_vkCreateImage backed by
+        // an AHardwareBuffer.
+        if (exported) *exported = infoPtr->glExported;
+        // Update the allocation size to what the host driver wanted, or we
+        // might get VK_ERROR_OUT_OF_DEVICE_MEMORY and a host crash
+        if (allocSize) *allocSize = infoPtr->memory.size;
+        // Update the type index to what the host driver wanted, or we might
+        // get VK_ERROR_DEVICE_LOST
+        if (typeIndex) *typeIndex = infoPtr->memory.typeIndex;
+        // Update the mappedPtr to what the host driver wanted, otherwise we
+        // may map the same memory twice.
+        if (mappedPtr) *mappedPtr = infoPtr->memory.mappedPtr;
         return true;
     }
 
@@ -1735,7 +1703,7 @@ bool setupVkColorBuffer(uint32_t colorBufferHandle, bool vulkanOnly, uint32_t me
     bool glCompatible = (frameworkFormat == FRAMEWORK_FORMAT_GL_COMPATIBLE);
     switch (frameworkFormat) {
         case FrameworkFormat::FRAMEWORK_FORMAT_GL_COMPATIBLE:
-            vkFormat = glFormat2VkFormat(internalFormat);
+            vkFormat = glFormat2VkFormat(internalformat);
             break;
         case FrameworkFormat::FRAMEWORK_FORMAT_NV12:
             vkFormat = VK_FORMAT_G8_B8R8_2PLANE_420_UNORM;
@@ -1748,8 +1716,8 @@ bool setupVkColorBuffer(uint32_t colorBufferHandle, bool vulkanOnly, uint32_t me
             vkFormat = VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM;
             break;
         default:
-            VK_COMMON_ERROR("WARNING: unhandled framework format %d\n", frameworkFormat);
-            vkFormat = glFormat2VkFormat(internalFormat);
+            vkFormat = glFormat2VkFormat(internalformat);
+            fprintf(stderr, "WARNING: unsupported framework format %d\n", frameworkFormat);
             break;
     }
 
@@ -1786,8 +1754,6 @@ bool setupVkColorBuffer(uint32_t colorBufferHandle, bool vulkanOnly, uint32_t me
     }
 
     imageCi->pNext = extImageCiPtr;
-
-    auto vk = sVkEmulation->dvk;
 
     VkResult createRes =
         vk->vkCreateImage(sVkEmulation->device, imageCi.get(), nullptr, &res.image);
@@ -1903,6 +1869,11 @@ bool setupVkColorBuffer(uint32_t colorBufferHandle, bool vulkanOnly, uint32_t me
     if (vulkanOnly) {
         res.vulkanMode = VkEmulation::VulkanMode::VulkanOnly;
     }
+
+    if (exported) *exported = res.glExported;
+    if (allocSize) *allocSize = res.memory.size;
+    if (typeIndex) *typeIndex = res.memory.typeIndex;
+    if (mappedPtr) *mappedPtr = res.memory.mappedPtr;
 
     sVkEmulation->colorBuffers[colorBufferHandle] = res;
     return true;
@@ -2452,32 +2423,6 @@ int32_t mapGpaToBufferHandle(uint32_t bufferHandle, uint64_t gpa, uint64_t size)
     sVkEmulation->occupiedGpas.insert(gpa);
 
     return memoryInfoPtr->pageOffset;
-}
-
-bool getBufferAllocationInfo(uint32_t bufferHandle,
-                             VkDeviceSize* outSize,
-                             uint32_t* outMemoryTypeIndex) {
-    if (!sVkEmulation || !sVkEmulation->live) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Vulkan emulation not available.";
-    }
-
-    AutoLock lock(sVkEmulationLock);
-
-    auto info = android::base::find(sVkEmulation->buffers, bufferHandle);
-    if (!info) {
-        return false;
-    }
-
-    if (outSize) {
-        *outSize = info->memory.size;
-    }
-
-    if (outMemoryTypeIndex) {
-        *outMemoryTypeIndex = info->memory.typeIndex;
-    }
-
-    return true;
 }
 
 bool setupVkBuffer(uint32_t bufferHandle, bool vulkanOnly, uint32_t memoryProperty, bool* exported,
