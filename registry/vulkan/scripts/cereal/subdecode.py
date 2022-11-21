@@ -351,7 +351,6 @@ class VulkanSubDecoder(VulkanWrapperGenerator):
         }
         """)
         self.cgen.stmt("if (end - ptr < packetLen) return ptr - (unsigned char*)buf")
-        self.cgen.stmt("gfx_logger.record(ptr, std::min(size_t(packetLen + 8), size_t(end - ptr)))")
 
 
         self.cgen.stmt("%s->setBuf((uint8_t*)(ptr + 8))" % READ_STREAM)

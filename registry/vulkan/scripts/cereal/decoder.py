@@ -58,7 +58,7 @@ public:
              m_boxedHandleDestroyMapping(m_state),
              m_boxedHandleUnwrapAndDeleteMapping(m_state),
              m_boxedHandleUnwrapAndDeletePreserveBoxedMapping(m_state),
-             m_prevSeqno(std::nullopt) { }
+             m_prevSeqno(std::nullopt) {}
     %s* stream() { return &m_vkStream; }
     VulkanMemReadingStream* readStream() { return &m_vkMemReadingStream; }
 
@@ -816,6 +816,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32
             }
         }
         """)
+
+        self.cgen.line("""
+        gfx_logger.recordCommandExecution();
+        """)
+
         self.cgen.stmt("auto vk = m_vk")
 
         self.cgen.line("switch (opcode)")
