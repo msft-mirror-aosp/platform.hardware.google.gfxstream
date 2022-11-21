@@ -29,11 +29,12 @@ class ComandPrinterOutputTestCase(unittest.TestCase):
     Tests individual aspects of the command printer logic.
     """
 
-    def get_printer(self, hex_data: str):
+    def get_printer(self, hex_data: str, timestamp_ms=0):
         """Helper function to return the command printer"""
         out = io.StringIO()
         buf = bytes.fromhex(hex_data)
-        cmd_printer = command_printer.CommandPrinter(0, len(buf), buf, 0, 0, out)
+        cmd_printer = command_printer.CommandPrinter(
+            0, len(buf), buf, timestamp_ms, 0, 0, out)
         return cmd_printer, out
 
     def test_raises_if_not_all_bytes_decoded(self):
@@ -128,6 +129,18 @@ class ComandPrinterOutputTestCase(unittest.TestCase):
         cmd_printer.check_no_more_bytes()
         self.assertEqual(output.getvalue(), 'foo: (all flags) (0xffffffff)\n')
 
+    def test_decode_zero_timestamp(self):
+        cmd_printer, output = self.get_printer("", 0)
+        cmd_printer.write_timestamp(indent=0)
+        cmd_printer.check_no_more_bytes()
+        self.assertEqual(output.getvalue(), "") # Print nothing
+
+    def test_decode_zero_timestamp(self):
+        cmd_printer, output = self.get_printer("", 100)
+        cmd_printer.write_timestamp(indent=0)
+        cmd_printer.check_no_more_bytes()
+        self.assertEqual(output.getvalue(), "Recorded at: 1969-12-31 16:00:00.000100\n")
+
 
 class SuccessfullyDecodesCommandTestCase(unittest.TestCase):
     """
@@ -142,7 +155,7 @@ class SuccessfullyDecodesCommandTestCase(unittest.TestCase):
     def run_test(self, opcode_str: str, cmd_data_hex: str):
         opcode = reverse_opcodes[opcode_str]
         cmd_data = bytes.fromhex(cmd_data_hex)
-        cmd_printer = command_printer.CommandPrinter(opcode, len(cmd_data), cmd_data, 0, 0)
+        cmd_printer = command_printer.CommandPrinter(opcode, len(cmd_data), cmd_data, 0, 0, 0)
         cmd_printer.print_cmd()
 
     def test_OP_vkAcquireImageANDROID(self):

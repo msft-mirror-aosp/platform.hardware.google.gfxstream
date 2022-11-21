@@ -53,7 +53,6 @@ size_t subDecode(VulkanMemReadingStream* readStream, VulkanDispatch* vk, void* b
         }
 
         if (end - ptr < packetLen) return ptr - (unsigned char*)buf;
-        gfx_logger.record(ptr, std::min(size_t(packetLen + 8), size_t(end - ptr)));
         readStream->setBuf((uint8_t*)(ptr + 8));
         uint8_t* readStreamPtr = readStream->getBuf();
         uint8_t** readStreamPtrPtr = &readStreamPtr;

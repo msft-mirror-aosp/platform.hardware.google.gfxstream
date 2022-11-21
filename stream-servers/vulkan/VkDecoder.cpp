@@ -193,6 +193,8 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32
             }
         }
 
+        gfx_logger.recordCommandExecution();
+
         auto vk = m_vk;
         switch (opcode) {
 #ifdef VK_VERSION_1_0
