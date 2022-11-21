@@ -94,9 +94,7 @@ static void initIcdPaths(bool forTesting) {
             } else if (androidIcd == "portability-debug") {
                 setIcdPath(icdJsonNameToProgramAndLauncherPaths("portability-macos-debug.json"));
             } else {
-                if (androidIcd == "swiftshader" ||
-                    emugl::getRenderer() == SELECTED_RENDERER_SWIFTSHADER ||
-                    emugl::getRenderer() == SELECTED_RENDERER_SWIFTSHADER_INDIRECT) {
+                if (androidIcd == "swiftshader") {
                     setIcdPath(icdJsonNameToProgramAndLauncherPaths("vk_swiftshader_icd.json"));
                     android::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", "swiftshader");
                 } else {
