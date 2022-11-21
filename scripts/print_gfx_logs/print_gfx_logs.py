@@ -55,6 +55,7 @@ class Header(ctypes.Structure):
 
 class Command(NamedTuple):
     """A single command in the stream"""
+    timestamp: int # Unix timestamp when command was recorded, in microseconds
     opcode: int
     original_size: int
     data: bytes
@@ -63,7 +64,7 @@ class Command(NamedTuple):
 class Stream(NamedTuple):
     """Stream of commands received from the guest"""
     pos_in_file: int  # Location of this stream in the minidump file, useful for debugging
-    timestamp: int  # Unix timestamp of last command received, in milliseconds
+    timestamp: int  # Unix timestamp of last command received, in microseconds
     thread_id: int
     capture_id: int
     commands: List[Command]
@@ -75,17 +76,35 @@ class Stream(NamedTuple):
             pos_in_file=pos_in_file, timestamp=0, thread_id=0, capture_id=0, commands=[],
             error_message=error_message)
 
+def timestampToUnixUs(timestamp: int) -> int:
+    # Convert Windows' GetSystemTimeAsFileTime to Unix timestamp in microseconds
+    # https://stackoverflow.com/questions/1695288/getting-the-current-time-in-milliseconds-from-the-system-clock-in-windows
+    timestamp_us = int(timestamp / 10 - 11644473600000000)
+    if timestamp_us <= 0: timestamp_us = 0
+    return timestamp_us
 
 def read_uint32(buf: bytes, pos: int) -> int:
     """Reads a single uint32 from buf at a given position"""
     assert pos + 4 <= len(buf)
     return int.from_bytes(buf[pos:pos + 4], byteorder='little', signed=False)
 
+def read_uint64(buf: bytes, pos: int) -> int:
+    """Reads a single uint32 from buf at a given position"""
+    assert pos + 8 <= len(buf)
+    return int.from_bytes(buf[pos:pos + 8], byteorder='little', signed=False)
 
-def process_command(buf: bytes) -> Command:
-    opcode = read_uint32(buf, 0)
-    size = read_uint32(buf, 4)
-    return Command(opcode, size, bytes(buf[8:]))
+def process_command(buf: bytes, version: int) -> Command:
+    pos = 0
+    if version >= 3:
+        timestamp_us = read_uint64(buf, pos)
+        pos += 8
+    else:
+        timestamp_us = 0
+    opcode = read_uint32(buf, pos)
+    pos += 4
+    size = read_uint32(buf, pos)
+    pos += 4
+    return Command(timestamp_us, opcode, size, bytes(buf[pos:]))
 
 
 def process_stream(file_bytes: mmap, file_pos: int) -> Stream:
@@ -98,17 +117,17 @@ def process_stream(file_bytes: mmap, file_pos: int) -> Stream:
     if header.signature != b'GFXAPILOG':
         return Stream.error(file_pos, error_message="Signature doesn't match")
 
-    if header.version != 2:
+    if header.version < 2:
         return Stream.error(
             file_pos,
             error_message=(
-                "This script can only process version 2 of the graphics API logs, but the dump "
-                + "file uses version {} ").format(data.version))
+                "This script can only process version 2 or later of the graphics API logs, but the "
+                + "dump file uses version {} ").format(header.version))
 
-    # Convert Windows' GetSystemTimeAsFileTime to Unix timestamp
-    # https://stackoverflow.com/questions/1695288/getting-the-current-time-in-milliseconds-from-the-system-clock-in-windows
-    timestamp_ms = int(header.last_written_time / 10000 - 11644473600000)
-    if timestamp_ms <= 0: timestamp_ms = 0
+    if header.version == 2:
+        timestamp_us = timestampToUnixUs(int(header.last_written_time))
+    else:
+        timestamp_us = int(header.last_written_time)
 
     # Sanity check the size
     if header.data_size > 5_000_000:
@@ -137,13 +156,13 @@ def process_stream(file_bytes: mmap, file_pos: int) -> Stream:
         if size == 0 or size > i:
             # We reached the end of the stream
             break
-        cmd = process_command(buf[i - size:i])
+        cmd = process_command(buf[i - size:i], header.version)
 
         commands.append(cmd)
         i -= size
 
     commands.reverse()  # so that they're sorted from oldest to most recent
-    return Stream(file_pos, timestamp_ms, header.thread_id, header.capture_id, commands, None)
+    return Stream(file_pos, timestamp_us, header.thread_id, header.capture_id, commands, None)
 
 
 def process_minidump(mm: mmap) -> List[Stream]:
@@ -179,12 +198,12 @@ def main():
     num_errors = 0
     for stream_idx, stream in enumerate(streams):
         print(textwrap.dedent("""
-                  ======================================================= 
+                  =======================================================
                   GfxApiLog command stream #{} at offset {} in dump
                     - Timestamp: {}
                     - Thread id: {}
                     - Capture id: {}""".format(stream_idx, stream.pos_in_file,
-                                               datetime.fromtimestamp(stream.timestamp / 1000.0),
+                                               datetime.fromtimestamp(stream.timestamp / 1000000.0),
                                                stream.thread_id,
                                                stream.capture_id)))
         if stream.error_message:
@@ -194,7 +213,8 @@ def main():
         subdecode_size = 0
         for cmd_idx, cmd in enumerate(stream.commands):
             total_commands += 1
-            cmd_printer = command_printer.CommandPrinter(cmd.opcode, cmd.original_size, cmd.data, stream_idx, cmd_idx)
+            cmd_printer = command_printer.CommandPrinter(
+                cmd.opcode, cmd.original_size, cmd.data, cmd.timestamp, stream_idx, cmd_idx)
 
             try:
                 cmd_printer.print_cmd()
