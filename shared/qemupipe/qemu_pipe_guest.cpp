@@ -108,8 +108,8 @@ int open_verbose(const char *pipeName, const int flags) {
         fd = open_verbose_vsock(VsockPort::Data, flags);
         if (fd >= 0) {
             gVsockAvailable = true;
-            return fd;
         }
+        return fd;
     }
 
     fd = open_verbose_path("/dev/goldfish_pipe", flags);
