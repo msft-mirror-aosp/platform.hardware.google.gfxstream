@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "NativeGpuInfo.h"
+#include "host-common/opengl/NativeGpuInfo.h"
 
 #include "aemu/base/StringFormat.h"
 #include "aemu/base/containers/SmallVector.h"
