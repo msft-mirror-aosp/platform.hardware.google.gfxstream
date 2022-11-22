@@ -21,7 +21,7 @@ namespace {
 static constexpr const bool kDefaultSaveImageIfComparisonFailed = false;
 
 std::string GetTestDataPath(const std::string& basename) {
-    const std::filesystem::path currentPath = std::filesystem::current_path();
+    const std::filesystem::path currentPath = android::base::getProgramDirectory();
     return (currentPath / "tests" / "testdata" / basename).string();
 }
 
