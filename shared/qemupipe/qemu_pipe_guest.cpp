@@ -117,6 +117,11 @@ int open_verbose(const char *pipeName, const int flags) {
         return fd;
     }
 
+    fd = open_verbose_path("/dev/goldfish_pipe_dprctd", flags);
+    if (fd >= 0) {
+        return fd;
+    }
+
     ALOGE("%s:%d: both vsock and goldfish_pipe paths failed",
           __func__, __LINE__);
     return -1;
