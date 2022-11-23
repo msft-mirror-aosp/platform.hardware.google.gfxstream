@@ -431,6 +431,11 @@ intptr_t RenderThread::main() {
                     {{"renderthread_guest_process", tInfo.m_processName.value()}});
                 processName = tInfo.m_processName.value().c_str();
             }
+            if (readBuf.validData() >= 4) {
+                renderThreadData->insert(
+                    {{"first_opcode", std::to_string(*(uint32_t*)readBuf.buf())},
+                    {"buffer_length", std::to_string(readBuf.validData())}});
+            }
             auto watchdog = WATCHDOG_BUILDER(FrameBuffer::getFB()->getHealthMonitor(),
                                              "RenderThread decode operation")
                                 .setHangType(EventHangMetadata::HangType::kRenderThread)
