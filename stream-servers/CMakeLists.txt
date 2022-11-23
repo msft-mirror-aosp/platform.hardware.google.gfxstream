@@ -110,6 +110,12 @@ target_link_libraries(
     PRIVATE
     gfxstream_backend.init-product-override)
 
+if(BUILD_STANDALONE)
+    target_link_libraries(gfxstream_backend
+        PRIVATE
+        gfxstream-gl-host-common)
+endif()
+
 if (APPLE)
     set_target_properties(gfxstream_backend
         PROPERTIES
