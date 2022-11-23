@@ -6,7 +6,8 @@ target_link_libraries(
     gfxstream-gl-host-common.headers
     INTERFACE
     aemu-host-common.headers
-    aemu-base.headers)
+    aemu-base.headers
+    gfxstream_egl_headers)
 
 if (APPLE)
     set(gl-host-common-opengles-platform-sources
