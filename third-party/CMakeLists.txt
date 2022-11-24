@@ -21,12 +21,38 @@ endif ()
 add_subdirectory(renderdoc)
 add_subdirectory(stb)
 
-# TODO(Battlestar -- b/256177310): Enable Googletest in CMake if needed
-# For Windows: Prevent overriding the parent project's compiler/linker settings
-# set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-# add_subdirectory(googletest)
-
 set(PROJECT_TO_FETCH)
+
+if(NOT TARGET gtest_main AND ENABLE_VKCEREAL_TESTS)
+    # For Windows: Prevent overriding the parent project's compiler/linker settings
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    if(DEPENDENCY_RESOLUTION STREQUAL "AOSP")
+        set(GOOGLETEST_PATH ${PROJECT_SOURCE_DIR}/../../../external/googletest)
+        if(EXISTS ${GOOGLETEST_PATH})
+            add_subdirectory(${GOOGLETEST_PATH} googletest)
+        endif()
+    elseif(DEPENDENCY_RESOLUTION STREQUAL "SYSTEM")
+        find_package(PkgConfig REQUIRED)
+        pkg_search_module(gtest REQUIRED IMPORTED_TARGET GLOBAL gtest)
+        pkg_search_module(gtest_main REQUIRED IMPORTED_TARGET GLOBAL gtest_main)
+        pkg_search_module(gmock REQUIRED IMPORTED_TARGET GLOBAL gmock)
+        pkg_search_module(gmock_main REQUIRED IMPORTED_TARGET GLOBAL gmock_main)
+        add_library(gtest ALIAS PkgConfig::gtest)
+        add_library(gtest_main ALIAS PkgConfig::gtest_main)
+        add_library(gmock ALIAS PkgConfig::gmock)
+        add_library(gmock_main ALIAS PkgConfig::gmock_main)
+    elseif(DEPENDENCY_RESOLUTION STREQUAL "DOWNLOAD")
+        FetchContent_Declare(
+            googletest
+            GIT_REPOSITORY https://android.googlesource.com/platform/external/googletest
+            GIT_REMOTE_NAME aosp
+            GIT_TAG aosp/master
+            GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
+            GIT_PROGRESS TRUE
+        )
+        list(APPEND PROJECT_TO_FETCH googletest)
+    endif()
+endif()
 
 if(NOT TARGET aemu_common)
     set(AEMU_COMMON_BUILD_CONFIG "gfxstream" CACHE STRING "")
