@@ -39,6 +39,13 @@ target_link_libraries(
         GLSnapshot
         OpenGLESDispatch)
 
+if(BUILD_STANDALONE)
+    target_link_libraries(
+        gfxstream-gl-server
+        PRIVATE
+        gfxstream-gl-host-common)
+endif()
+
 target_include_directories(gfxstream-gl-server
                            PRIVATE
                            ${GFXSTREAM_REPO_ROOT}
