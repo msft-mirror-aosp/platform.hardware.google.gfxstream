@@ -139,9 +139,9 @@ class CerealGenerator(OutputGenerator):
         self.codegen = cereal.CodeGen()
 
         self.guestBaseLibDirPrefix = \
-            envGetOrDefault("VK_CEREAL_GUEST_BASELIB_PREFIX", "android/base")
+            envGetOrDefault("VK_CEREAL_GUEST_BASELIB_PREFIX", "aemu/base")
         self.baseLibDirPrefix = \
-            envGetOrDefault("VK_CEREAL_BASELIB_PREFIX", "android/base")
+            envGetOrDefault("VK_CEREAL_BASELIB_PREFIX", "aemu/base")
         self.baseLibLinkName = \
             envGetOrDefault("VK_CEREAL_BASELIB_LINKNAME", "android-emu-base")
         self.vulkanHeaderTargetName = envGetOrDefault("VK_CEREAL_VK_HEADER_TARGET", "")
@@ -174,8 +174,8 @@ target_include_directories(OpenglRender_vulkan_cereal
                            ../../../include)
 """
 
-        encoderInclude = """
-#include "android/base/AndroidHealthMonitor.h"
+        encoderInclude = f"""
+#include "{self.guestBaseLibDirPrefix}/AndroidHealthMonitor.h"
 #include "goldfish_vk_private_defs.h"
 #include <memory>
 class IOStream;
