@@ -2325,6 +2325,7 @@ VG_EXPORT int stream_renderer_init(
     bool surfaceless =
         renderer_flags & GFXSTREAM_RENDERER_FLAGS_USE_SURFACELESS_BIT;
     bool enableGlEs31Flag = renderer_flags & GFXSTREAM_RENDERER_FLAGS_ENABLE_GLES31_BIT;
+    bool useExternalBlob = renderer_flags & GFXSTREAM_RENDERER_FLAGS_USE_EXTERNAL_BLOB;
     bool guestUsesAngle = renderer_flags & GFXSTREAM_RENDERER_FLAGS_GUEST_USES_ANGLE;
     bool useVulkanNativeSwapchain =
         renderer_flags & GFXSTREAM_RENDERER_FLAGS_VULKAN_NATIVE_SWAPCHAIN_BIT;
@@ -2333,6 +2334,7 @@ VG_EXPORT int stream_renderer_init(
     GFXS_LOG("egl2egl enabled? %d", enable_egl2egl);
     GFXS_LOG("surfaceless? %d", surfaceless);
     GFXS_LOG("OpenGL ES 3.1 enabled? %d", enableGlEs31Flag);
+    GFXS_LOG("use external blob? %d", useExternalBlob);
     GFXS_LOG("guest using ANGLE? %d", guestUsesAngle);
     GFXS_LOG("use Vulkan native swapchain on the host? %d",
              useVulkanNativeSwapchain);
@@ -2398,7 +2400,7 @@ VG_EXPORT int stream_renderer_init(
     feature_set_enabled_override(kFeature_VulkanAstcLdrEmulation, true);
     feature_set_enabled_override(kFeature_VulkanEtc2Emulation, true);
     feature_set_enabled_override(kFeature_VulkanYcbcrEmulation, false);
-    feature_set_enabled_override(kFeature_ExternalBlob, false);
+    feature_set_enabled_override(kFeature_ExternalBlob, useExternalBlob);
 
     android::featurecontrol::productFeatureOverride();
 
