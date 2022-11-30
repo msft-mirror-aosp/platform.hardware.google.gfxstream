@@ -141,11 +141,30 @@ VG_EXPORT int stream_renderer_platform_destroy_shared_egl_context(void*);
 #define STREAM_RENDERER_MAP_CACHE_WC 0x03
 VG_EXPORT int stream_renderer_resource_map_info(uint32_t res_handle, uint32_t* map_info);
 
-struct stream_renderer_vulkan_info {
-    uint32_t memory_index;
+// Unique identifier for a GPU device.
+struct stream_renderer_device_id {
     uint8_t device_uuid[16];
     uint8_t driver_uuid[16];
 };
+
+static_assert(sizeof(stream_renderer_device_id) == 32,
+              "stream_renderer_device_id must be 32 bytes");
+static_assert(offsetof(stream_renderer_device_id, device_uuid) == 0,
+              "stream_renderer_device_id.device_uuid must be at offset 0");
+static_assert(offsetof(stream_renderer_device_id, driver_uuid) == 16,
+              "stream_renderer_device_id.driver_uuid must be at offset 16");
+
+struct stream_renderer_vulkan_info {
+    uint32_t memory_index;
+    struct stream_renderer_device_id device_id;
+};
+
+static_assert(sizeof(stream_renderer_vulkan_info) == 36,
+              "stream_renderer_vulkan_info must be 36 bytes");
+static_assert(offsetof(stream_renderer_vulkan_info, memory_index) == 0,
+              "stream_renderer_vulkan_info.memory_index must be at offset 0");
+static_assert(offsetof(stream_renderer_vulkan_info, device_id) == 4,
+              "stream_renderer_vulkan_info.device_id must be at offset 4");
 
 VG_EXPORT int stream_renderer_vulkan_info(uint32_t res_handle,
                                           struct stream_renderer_vulkan_info* vulkan_info);
