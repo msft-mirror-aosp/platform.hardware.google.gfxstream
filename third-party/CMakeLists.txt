@@ -15,13 +15,41 @@ if (ASTC_CPU_DECODING)
     add_subdirectory(astc-encoder)
 endif ()
 
-# TODO(Battlestar -- b/256177310): Enable lz4/perfetto in CMake if needed
-# add_subdirectory(lz4)
+# Enable perfetto in CMake if needed
 # add_subdirectory(perfetto-tracing-only)
 add_subdirectory(renderdoc)
 add_subdirectory(stb)
 
 set(PROJECT_TO_FETCH)
+
+if(ENABLE_VKCEREAL_TESTS)
+    set(AEMU_BASE_USE_LZ4 ON CACHE BOOL "" FORCE)
+endif()
+
+if(NOT TARGET lz4_static AND AEMU_BASE_USE_LZ4)
+    set(BUILD_STATIC_LIBS ON CACHE BOOL "" FORCE)
+    if(DEPENDENCY_RESOLUTION STREQUAL "AOSP")
+        set(LZ4_PATH ${PROJECT_SOURCE_DIR}/../../../external/lz4/build/cmake)
+        if(EXISTS ${LZ4_PATH})
+            add_subdirectory(${LZ4_PATH} lz4)
+        endif()
+    elseif(DEPENDENCY_RESOLUTION STREQUAL "SYSTEM")
+        find_package(PkgConfig REQUIRED)
+        pkg_search_module(lz4 REQUIRED IMPORTED_TARGET GLOBAL liblz4)
+        add_library(lz4_static ALIAS PkgConfig::lz4)
+    elseif(DEPENDENCY_RESOLUTION STREQUAL "DOWNLOAD")
+        FetchContent_Declare(
+            lz4
+            GIT_REPOSITORY https://android.googlesource.com/platform/external/lz4
+            GIT_REMOTE_NAME aosp
+            GIT_TAG aosp/master
+            GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
+            GIT_PROGRESS TRUE
+            SOURCE_SUBDIR build/cmake
+        )
+        list(APPEND PROJECT_TO_FETCH lz4)
+    endif()
+endif()
 
 if(NOT TARGET gtest_main AND ENABLE_VKCEREAL_TESTS)
     # For Windows: Prevent overriding the parent project's compiler/linker settings
@@ -99,7 +127,7 @@ if(NOT TARGET aemu_common)
             INTERFACE
             PkgConfig::aemu_base
             logging-base
-            lz4
+            lz4_static
             perfetto-tracing-only
             ${aemu-base-platform-deps})
 
@@ -123,7 +151,7 @@ if(NOT TARGET aemu_common)
             PkgConfig::aemu_host_common
             PkgConfig::aemu_base
             PkgConfig::logging_base
-            lz4
+            lz4_static
             perfetto-tracing-only
             gmock
             gtest)
