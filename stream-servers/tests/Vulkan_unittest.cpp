@@ -48,6 +48,29 @@ using android::base::TestSystem;
 
 namespace emugl {
 
+static std::string libDir() {
+    return
+        pj({android::base::getProgramDirectory(),
+#ifdef _WIN32
+           // Windows uses mock Vulkan ICD.
+           "testlib64"
+#else
+           "lib64", "vulkan"
+#endif
+        });
+}
+
+static std::string testIcdFilename() {
+    return pj(libDir(),
+#ifdef _WIN32
+        // Windows uses mock Vulkan ICD.
+        "VkICD_mock_icd.json"
+#else
+        "vk_swiftshader_icd.json"
+#endif
+    );
+}
+
 #ifdef _WIN32
 #define SKIP_TEST_IF_WIN32() GTEST_SKIP()
 #else
@@ -69,11 +92,11 @@ static void* dlOpenFuncForTesting() {
     std::string libName =
         std::string("libvulkan") + suffix;
 
-    auto res = dlopen(libName.c_str(), RTLD_NOW);
+    auto res = dlopen(pj(libDir(), libName).c_str(), RTLD_NOW);
     if (!res) {
         libName = std::string("libvulkan") + suffix + ".1";
     }
-    res = dlopen(libName.c_str(), RTLD_NOW);
+    res = dlopen(pj(libDir(), libName).c_str(), RTLD_NOW);
     return res;
 #endif
 }
@@ -426,6 +449,10 @@ protected:
     static void TearDownTestSuite() { }
 
     void SetUp() override {
+        android::base::setEnvironmentVariable(
+            "VK_ICD_FILENAMES",
+            testIcdFilename());
+
         goldfish_vk::init_vulkan_dispatch_from_system_loader(
                 dlOpenFuncForTesting,
                 dlSymFuncForTesting,
@@ -473,6 +500,7 @@ protected:
         feature_set_enabled_override(kFeature_Vulkan, true);
         feature_set_enabled_override(kFeature_VulkanIgnoredHandles, true);
 
+        android::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", "swiftshader");
         VulkanTest::SetUp();
 
         emugl::setGLObjectCounter(android::base::GLObjectCounter::get());
