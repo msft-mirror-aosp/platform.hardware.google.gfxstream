@@ -222,8 +222,8 @@ void GLDispatch::dispatchFuncs(GLESVersion version, GlLibrary* glLib, EGLGetProc
     }
 
     const char* kAngleName = "ANGLE";
-    if (0 == strncmp(reinterpret_cast<const char*>(glGetString(GL_RENDERER)),
-                     kAngleName, strlen(kAngleName))) {
+    const char* glString = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+    if (glString && 0 == strncmp(glString, kAngleName, strlen(kAngleName))) {
         // ANGLE loads a bad glGetTexImage. (No it is not the dummy.)
         // Overwrite it.
         void* _glGetTexImageANGLE =

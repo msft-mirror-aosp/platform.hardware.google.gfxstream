@@ -488,7 +488,7 @@ EmulationGl::~EmulationGl() {
         mDisplayGl->unbindFromSurface();
     }
 
-    {
+    if (mPbufferSurface) {
         const auto* displaySurfaceGl =
             reinterpret_cast<const DisplaySurfaceGl*>(mPbufferSurface->getImpl());
 
