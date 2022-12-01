@@ -49,7 +49,7 @@ class SyncThread : public android::base::Thread {
     // - constructor: start up the sync worker threads for a given context.
     // The initialization of the sync threads is nonblocking.
     // - Triggers a |SyncThreadCmd| with op code |SYNC_THREAD_EGL_INIT|
-    SyncThread(bool noGL, HealthMonitor<>* healthMonitor);
+    SyncThread(bool hasGl, HealthMonitor<>* healthMonitor);
     ~SyncThread();
 
     // |triggerWait|: async wait with a given EmulatedEglFenceSync object.
@@ -90,7 +90,7 @@ class SyncThread : public android::base::Thread {
     void cleanup();
 
     // Initialize the global sync thread.
-    static void initialize(bool noGL, HealthMonitor<>* healthMonitor);
+    static void initialize(bool hasGl, HealthMonitor<>* healthMonitor);
 
     // Obtains the global sync thread.
     static SyncThread* get();
@@ -143,7 +143,7 @@ class SyncThread : public android::base::Thread {
     android::base::Lock mLock;
     android::base::ConditionVariable mCv;
     ThreadPool mWorkerThreadPool;
-    bool mNoGL;
+    bool mHasGl;
 
     HealthMonitor<>* mHealthMonitor;
 };
