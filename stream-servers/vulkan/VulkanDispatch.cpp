@@ -37,8 +37,12 @@ static void setIcdPath(const std::string& path) {
 
 static std::string icdJsonNameToProgramAndLauncherPaths(const std::string& icdFilename) {
     std::string suffix = pj({"lib64", "vulkan", icdFilename});
-
-    return pj({android::base::getProgramDirectory(), suffix}) + ":" +
+#if defined(_WIN32)
+    const char* sep = ";";
+#else
+    const char* sep = ":";
+#endif
+    return pj({android::base::getProgramDirectory(), suffix}) + sep +
            pj({android::base::getLauncherDirectory(), suffix});
 }
 
