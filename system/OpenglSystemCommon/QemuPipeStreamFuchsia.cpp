@@ -72,17 +72,30 @@ QemuPipeStream::~QemuPipeStream()
 
 int QemuPipeStream::connect(void)
 {
-    fidl::ClientEnd<fuchsia_hardware_goldfish::PipeDevice> channel{
+    fidl::ClientEnd<fuchsia_hardware_goldfish::Controller> controller_channel{
         zx::channel(GetConnectToServiceFunction()(QEMU_PIPE_PATH))};
-    if (!channel) {
-        ALOGE("%s: failed to get service handle for " QEMU_PIPE_PATH,
+    if (!controller_channel) {
+        ALOGE("%s: failed to open " QEMU_PIPE_PATH,
               __FUNCTION__);
+        return -1;
+    }
+    fidl::WireSyncClient controller(std::move(controller_channel));
+    zx::result pipe_device_ends =
+        fidl::CreateEndpoints<fuchsia_hardware_goldfish::PipeDevice>();
+    if (pipe_device_ends.is_error()) {
+        ALOGE("%s: zx_channel_create failed: %s", __FUNCTION__, pipe_device_ends.status_string());
+        return -1;
+    }
+
+    if (fidl::Status result = controller->OpenSession(std::move(pipe_device_ends->server));
+        !result.ok()) {
+        ALOGE("%s: failed to open session: %s", __FUNCTION__, result.status_string());
         return -1;
     }
 
     m_device = std::make_unique<
         fidl::WireSyncClient<fuchsia_hardware_goldfish::PipeDevice>>(
-        std::move(channel));
+        std::move(pipe_device_ends->client));
 
     auto pipe_ends =
         fidl::CreateEndpoints<::fuchsia_hardware_goldfish::Pipe>();
