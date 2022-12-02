@@ -98,8 +98,7 @@ using emugl::GfxApiLogger;
 template <typename T>
 void validateRequiredHandle(const char* api_name, const char* parameter_name, T value) {
     if (value == VK_NULL_HANDLE) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            <<api_name << ":" << parameter_name;
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << api_name << ":" << parameter_name;
     }
 }
 
@@ -454,10 +453,8 @@ class VkDecoderGlobalState::Impl {
         auto* curr = reinterpret_cast<vk_struct_common*>(&createInfoFiltered);
         while (curr != nullptr) {
             if (curr->pNext != nullptr &&
-                (curr->pNext->sType ==
-                         VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT ||
-                 curr->pNext->sType ==
-                         VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT)) {
+                (curr->pNext->sType == VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT ||
+                 curr->pNext->sType == VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT)) {
                 curr->pNext = curr->pNext->pNext;
             }
             curr = curr->pNext;
@@ -788,8 +785,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         VkResult res = vk->vkGetPhysicalDeviceImageFormatProperties(
-                physicalDevice, format, type, tiling, usage, flags,
-                pImageFormatProperties);
+            physicalDevice, format, type, tiling, usage, flags, pImageFormatProperties);
         if (res != VK_SUCCESS) {
             return res;
         }
@@ -881,7 +877,7 @@ class VkDecoderGlobalState::Impl {
 
         if (emulatedTexture) {
             maskImageFormatPropertiesForEmulatedTextures(
-                    &pImageFormatProperties->imageFormatProperties);
+                &pImageFormatProperties->imageFormatProperties);
         }
 
         return res;
@@ -1125,8 +1121,8 @@ class VkDecoderGlobalState::Impl {
         }
 
 #ifdef VK_MVK_moltenvk
-        if (m_emu->instanceSupportsMoltenVK && !hasDeviceExtension(properties,
-                                                                VK_MVK_MOLTENVK_EXTENSION_NAME)) {
+        if (m_emu->instanceSupportsMoltenVK &&
+            !hasDeviceExtension(properties, VK_MVK_MOLTENVK_EXTENSION_NAME)) {
             VkExtensionProperties mvk_props;
             strncpy(mvk_props.extensionName, VK_MVK_MOLTENVK_EXTENSION_NAME,
                     sizeof(mvk_props.extensionName));
@@ -1163,8 +1159,9 @@ class VkDecoderGlobalState::Impl {
         auto physicalDevice = unbox_VkPhysicalDevice(boxed_physicalDevice);
         auto vk = dispatch_VkPhysicalDevice(boxed_physicalDevice);
 
-        std::vector<const char*> finalExts = filteredDeviceExtensionNames(vk, physicalDevice,
-            pCreateInfo->enabledExtensionCount, pCreateInfo->ppEnabledExtensionNames);
+        std::vector<const char*> finalExts =
+            filteredDeviceExtensionNames(vk, physicalDevice, pCreateInfo->enabledExtensionCount,
+                                         pCreateInfo->ppEnabledExtensionNames);
 
         // Run the underlying API call, filtering extensions.
         VkDeviceCreateInfo createInfoFiltered = *pCreateInfo;
@@ -1456,7 +1453,7 @@ class VkDecoderGlobalState::Impl {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
-        for (uint32_t i = 0; i < bindInfoCount; ++ i) {
+        for (uint32_t i = 0; i < bindInfoCount; ++i) {
             VALIDATE_REQUIRED_HANDLE(pBindInfos[i].memory);
         }
         VkResult result = vk->vkBindBufferMemory2(device, bindInfoCount, pBindInfos);
@@ -1478,7 +1475,7 @@ class VkDecoderGlobalState::Impl {
         auto device = unbox_VkDevice(boxed_device);
         auto vk = dispatch_VkDevice(boxed_device);
 
-        for (uint32_t i = 0; i < bindInfoCount; ++ i) {
+        for (uint32_t i = 0; i < bindInfoCount; ++i) {
             VALIDATE_REQUIRED_HANDLE(pBindInfos[i].memory);
         }
         VkResult result = vk->vkBindBufferMemory2KHR(device, bindInfoCount, pBindInfos);
@@ -1729,9 +1726,8 @@ class VkDecoderGlobalState::Impl {
         std::lock_guard<std::recursive_mutex> lock(mLock);
         auto& samplerInfo = mSamplerInfo[*pSampler];
         samplerInfo.device = device;
-        deepcopy_VkSamplerCreateInfo(
-                &samplerInfo.pool, VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO, pCreateInfo,
-                &samplerInfo.createInfo);
+        deepcopy_VkSamplerCreateInfo(&samplerInfo.pool, VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+                                     pCreateInfo, &samplerInfo.createInfo);
         // We emulate RGB with RGBA for some compressed textures, which does not
         // handle translarent border correctly.
         samplerInfo.needEmulatedAlpha =
@@ -2369,20 +2365,18 @@ class VkDecoderGlobalState::Impl {
                             case VK_BORDER_COLOR_FLOAT_CUSTOM_EXT:
                             case VK_BORDER_COLOR_INT_CUSTOM_EXT: {
                                 VkSamplerCustomBorderColorCreateInfoEXT*
-                                        customBorderColorCreateInfo = vk_find_struct<
-                                                VkSamplerCustomBorderColorCreateInfoEXT>(
-                                                &createInfo);
+                                    customBorderColorCreateInfo =
+                                        vk_find_struct<VkSamplerCustomBorderColorCreateInfoEXT>(
+                                            &createInfo);
                                 if (customBorderColorCreateInfo) {
                                     switch (createInfo.borderColor) {
                                         case VK_BORDER_COLOR_FLOAT_CUSTOM_EXT:
-                                            customBorderColorCreateInfo
-                                                    ->customBorderColor
-                                                    .float32[3] = 1.0f;
+                                            customBorderColorCreateInfo->customBorderColor
+                                                .float32[3] = 1.0f;
                                             break;
                                         case VK_BORDER_COLOR_INT_CUSTOM_EXT:
-                                            customBorderColorCreateInfo
-                                                    ->customBorderColor
-                                                    .int32[3] = 128;
+                                            customBorderColorCreateInfo->customBorderColor
+                                                .int32[3] = 128;
                                             break;
                                         default:
                                             break;
@@ -3079,10 +3073,10 @@ class VkDecoderGlobalState::Impl {
 
             // Ensure color buffer has Vulkan backing.
             if (!setupVkColorBuffer(
-                importCbInfoPtr->colorBuffer, vulkanOnly, memoryPropertyFlags, nullptr,
-                // Modify the allocation size and type index
-                // to suit the resulting image memory size.
-                &localAllocInfo.allocationSize, &localAllocInfo.memoryTypeIndex, &mappedPtr)) {
+                    importCbInfoPtr->colorBuffer, vulkanOnly, memoryPropertyFlags, nullptr,
+                    // Modify the allocation size and type index
+                    // to suit the resulting image memory size.
+                    &localAllocInfo.allocationSize, &localAllocInfo.memoryTypeIndex, &mappedPtr)) {
                 GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
                     << "Failed to set up vk color buffer.";
             }
@@ -3537,7 +3531,7 @@ class VkDecoderGlobalState::Impl {
             DescriptorType handle;
             uint32_t handleType;
             struct VulkanInfo vulkanInfo = {
-                    .memoryIndex = info->memoryIndex,
+                .memoryIndex = info->memoryIndex,
             };
             memcpy(vulkanInfo.deviceUUID, m_emu->deviceInfo.idProps.deviceUUID,
                    sizeof(vulkanInfo.deviceUUID));
@@ -3586,9 +3580,9 @@ class VkDecoderGlobalState::Impl {
 #endif
 
             ManagedDescriptor managedHandle(handle);
-            *pHostmemId = HostmemIdMapping::get()->addDescriptorInfo(std::move(managedHandle),
-                                                                     handleType, info->caching,
-                                                                     std::optional<VulkanInfo>(vulkanInfo));
+            *pHostmemId = HostmemIdMapping::get()->addDescriptorInfo(
+                std::move(managedHandle), handleType, info->caching,
+                std::optional<VulkanInfo>(vulkanInfo));
             *pSize = info->size;
             *pAddress = 0;
         } else {
@@ -3596,8 +3590,8 @@ class VkDecoderGlobalState::Impl {
             uint64_t size = (uint64_t)(uintptr_t)(info->size);
 
             uint64_t alignedHva = hva & kPageMaskForBlob;
-            uint64_t alignedSize = kPageSizeforBlob *
-                                   ((size + kPageSizeforBlob - 1) / kPageSizeforBlob);
+            uint64_t alignedSize =
+                kPageSizeforBlob * ((size + kPageSizeforBlob - 1) / kPageSizeforBlob);
 
             entry.hva = (void*)(uintptr_t)alignedHva;
             entry.size = alignedSize;
@@ -4266,13 +4260,9 @@ class VkDecoderGlobalState::Impl {
     }
 
     void on_vkCmdCopyQueryPoolResults(android::base::BumpPool* pool,
-                                      VkCommandBuffer boxed_commandBuffer,
-                                      VkQueryPool queryPool,
-                                      uint32_t firstQuery,
-                                      uint32_t queryCount,
-                                      VkBuffer dstBuffer,
-                                      VkDeviceSize dstOffset,
-                                      VkDeviceSize stride,
+                                      VkCommandBuffer boxed_commandBuffer, VkQueryPool queryPool,
+                                      uint32_t firstQuery, uint32_t queryCount, VkBuffer dstBuffer,
+                                      VkDeviceSize dstOffset, VkDeviceSize stride,
                                       VkQueryResultFlags flags) {
         auto commandBuffer = unbox_VkCommandBuffer(boxed_commandBuffer);
         auto vk = dispatch_VkCommandBuffer(boxed_commandBuffer);
@@ -4282,9 +4272,8 @@ class VkDecoderGlobalState::Impl {
             // So we just use the largest stride possible.
             stride = mBufferInfo[dstBuffer].size - dstOffset;
         }
-        vk->vkCmdCopyQueryPoolResults(commandBuffer, queryPool, firstQuery,
-                                      queryCount, dstBuffer, dstOffset, stride,
-                                      flags);
+        vk->vkCmdCopyQueryPoolResults(commandBuffer, queryPool, firstQuery, queryCount, dstBuffer,
+                                      dstOffset, stride, flags);
     }
 
     VkResult on_vkCreateFramebuffer(android::base::BumpPool* pool, VkDevice boxed_device,
@@ -4712,15 +4701,14 @@ class VkDecoderGlobalState::Impl {
     void DeviceLostHandler() {}
 
     void on_CheckOutOfMemory(VkResult result, uint32_t opCode, const VkDecoderContext& context,
-                        std::optional<uint64_t> allocationSize = std::nullopt) {
-        if (result == VK_ERROR_OUT_OF_HOST_MEMORY ||
-            result == VK_ERROR_OUT_OF_DEVICE_MEMORY ||
+                             std::optional<uint64_t> allocationSize = std::nullopt) {
+        if (result == VK_ERROR_OUT_OF_HOST_MEMORY || result == VK_ERROR_OUT_OF_DEVICE_MEMORY ||
             result == VK_ERROR_OUT_OF_POOL_MEMORY) {
             context.metricsLogger->logMetricEvent(
                 MetricEventVulkanOutOfMemory{.vkResultCode = result,
                                              .opCode = std::make_optional(opCode),
                                              .allocationSize = allocationSize});
-            }
+        }
     }
 
     VkResult waitForFence(VkFence boxed_fence, uint64_t timeout) {
@@ -5165,7 +5153,7 @@ class VkDecoderGlobalState::Impl {
     type unbox_##type(type boxed) {                                                               \
         auto elt = sBoxedHandleManager.get((uint64_t)(uintptr_t)boxed);                           \
         if (!elt) {                                                                               \
-            if constexpr(!std::is_same_v<type, VkFence>) {                                        \
+            if constexpr (!std::is_same_v<type, VkFence>) {                                       \
                 GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))                                   \
                     << "Unbox " << boxed << " failed, not found.";                                \
             }                                                                                     \
@@ -5180,7 +5168,7 @@ class VkDecoderGlobalState::Impl {
     VkDecoderSnapshot* snapshot() { return &mSnapshot; }
 
    private:
-    bool isEmulatedInstanceExtension(const char *name) const {
+    bool isEmulatedInstanceExtension(const char* name) const {
         for (auto emulatedExt : kEmulatedInstanceExtensions) {
             if (!strcmp(emulatedExt, name)) return true;
         }
@@ -5201,8 +5189,10 @@ class VkDecoderGlobalState::Impl {
         return !(usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) && !(type == VK_IMAGE_TYPE_1D);
     }
 
-    std::vector<const char*> filteredDeviceExtensionNames(VulkanDispatch* vk, VkPhysicalDevice physicalDevice,
-                                                          uint32_t count, const char* const* extNames) {
+    std::vector<const char*> filteredDeviceExtensionNames(VulkanDispatch* vk,
+                                                          VkPhysicalDevice physicalDevice,
+                                                          uint32_t count,
+                                                          const char* const* extNames) {
         std::vector<const char*> res;
         std::vector<VkExtensionProperties> properties;
         VkResult result;
@@ -5231,7 +5221,6 @@ class VkDecoderGlobalState::Impl {
 
         if (hasDeviceExtension(properties, VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME)) {
             res.push_back(VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME);
-
         }
 
 #ifdef _WIN32
@@ -5260,7 +5249,8 @@ class VkDecoderGlobalState::Impl {
         return res;
     }
 
-    std::vector<const char*> filteredInstanceExtensionNames(uint32_t count, const char* const* extNames) {
+    std::vector<const char*> filteredInstanceExtensionNames(uint32_t count,
+                                                            const char* const* extNames) {
         std::vector<const char*> res;
         for (uint32_t i = 0; i < count; ++i) {
             auto extName = extNames[i];
@@ -5840,17 +5830,14 @@ class VkDecoderGlobalState::Impl {
         android::base::BumpPool pool = android::base::BumpPool(256);
         SamplerInfo() = default;
         SamplerInfo& operator=(const SamplerInfo& other) {
-            deepcopy_VkSamplerCreateInfo(&pool,
-                    VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-                    &other.createInfo, &createInfo);
+            deepcopy_VkSamplerCreateInfo(&pool, VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+                                         &other.createInfo, &createInfo);
             device = other.device;
             needEmulatedAlpha = other.needEmulatedAlpha;
             emulatedborderSampler = other.emulatedborderSampler;
             return *this;
         }
-        SamplerInfo(const SamplerInfo& other) {
-            *this = other;
-        }
+        SamplerInfo(const SamplerInfo& other) { *this = other; }
         SamplerInfo(SamplerInfo&& other) = delete;
         SamplerInfo& operator=(SamplerInfo&& other) = delete;
     };
@@ -6923,11 +6910,10 @@ VkResult VkDecoderGlobalState::on_vkCreateRenderPass2(android::base::BumpPool* p
     return mImpl->on_vkCreateRenderPass2(pool, boxed_device, pCreateInfo, pAllocator, pRenderPass);
 }
 
-VkResult VkDecoderGlobalState::on_vkCreateRenderPass2KHR(android::base::BumpPool* pool,
-                                                         VkDevice boxed_device,
-                                                         const VkRenderPassCreateInfo2KHR* pCreateInfo,
-                                                         const VkAllocationCallbacks* pAllocator,
-                                                         VkRenderPass* pRenderPass) {
+VkResult VkDecoderGlobalState::on_vkCreateRenderPass2KHR(
+    android::base::BumpPool* pool, VkDevice boxed_device,
+    const VkRenderPassCreateInfo2KHR* pCreateInfo, const VkAllocationCallbacks* pAllocator,
+    VkRenderPass* pRenderPass) {
     return mImpl->on_vkCreateRenderPass2(pool, boxed_device, pCreateInfo, pAllocator, pRenderPass);
 }
 
@@ -6957,19 +6943,14 @@ void VkDecoderGlobalState::on_vkQueueHostSyncGOOGLE(android::base::BumpPool* poo
     mImpl->hostSyncQueue("hostSyncQueue", queue, needHostSync, sequenceNumber);
 }
 
-void VkDecoderGlobalState::on_vkCmdCopyQueryPoolResults(
-        android::base::BumpPool* pool,
-        VkCommandBuffer commandBuffer,
-        VkQueryPool queryPool,
-        uint32_t firstQuery,
-        uint32_t queryCount,
-        VkBuffer dstBuffer,
-        VkDeviceSize dstOffset,
-        VkDeviceSize stride,
-        VkQueryResultFlags flags) {
-    mImpl->on_vkCmdCopyQueryPoolResults(pool, commandBuffer, queryPool,
-                                        firstQuery, queryCount, dstBuffer,
-                                        dstOffset, stride, flags);
+void VkDecoderGlobalState::on_vkCmdCopyQueryPoolResults(android::base::BumpPool* pool,
+                                                        VkCommandBuffer commandBuffer,
+                                                        VkQueryPool queryPool, uint32_t firstQuery,
+                                                        uint32_t queryCount, VkBuffer dstBuffer,
+                                                        VkDeviceSize dstOffset, VkDeviceSize stride,
+                                                        VkQueryResultFlags flags) {
+    mImpl->on_vkCmdCopyQueryPoolResults(pool, commandBuffer, queryPool, firstQuery, queryCount,
+                                        dstBuffer, dstOffset, stride, flags);
 }
 
 void VkDecoderGlobalState::on_vkQueueSubmitAsyncGOOGLE(android::base::BumpPool* pool, VkQueue queue,
@@ -7085,8 +7066,8 @@ void VkDecoderGlobalState::on_DeviceLost() { mImpl->on_DeviceLost(); }
 void VkDecoderGlobalState::DeviceLostHandler() { mImpl->DeviceLostHandler(); }
 
 void VkDecoderGlobalState::on_CheckOutOfMemory(VkResult result, uint32_t opCode,
-                                          const VkDecoderContext& context,
-                                          std::optional<uint64_t> allocationSize) {
+                                               const VkDecoderContext& context,
+                                               std::optional<uint64_t> allocationSize) {
     mImpl->on_CheckOutOfMemory(result, opCode, context, allocationSize);
 }
 
@@ -7099,7 +7080,7 @@ VkResult VkDecoderGlobalState::getFenceStatus(VkFence boxed_fence) {
 }
 
 AsyncResult VkDecoderGlobalState::registerQsriCallback(VkImage image,
-                                                    VkQsriTimeline::Callback callback) {
+                                                       VkQsriTimeline::Callback callback) {
     return mImpl->registerQsriCallback(image, std::move(callback));
 }
 
