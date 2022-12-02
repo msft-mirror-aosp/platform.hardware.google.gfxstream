@@ -164,7 +164,7 @@ void AstcTexture::on_vkCmdCopyBufferToImage(VkCommandBuffer commandBuffer, uint8
                                             const VkBufferImageCopy* pRegions,
                                             const VkDecoderContext& context) {
     auto watchdog =
-        WATCHDOG_BUILDER(*context.healthMonitor, "AstcTexture::on_vkCmdCopyBufferToImage").build();
+        WATCHDOG_BUILDER(context.healthMonitor, "AstcTexture::on_vkCmdCopyBufferToImage").build();
     auto start_time = std::chrono::steady_clock::now();
     mSuccess = false;
     size_t decompSize = 0;  // How many bytes we need to hold the decompressed data

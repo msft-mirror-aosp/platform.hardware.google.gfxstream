@@ -216,7 +216,7 @@ class TrivialStream : public IOStream {
 };
 
 void VkReconstruction::load(android::base::Stream* stream, emugl::GfxApiLogger& gfxLogger,
-                            emugl::HealthMonitor<>& healthMonitor) {
+                            emugl::HealthMonitor<>* healthMonitor) {
     DEBUG_RECON("start. assuming VkDecoderGlobalState has been cleared for loading already");
     mApiTrace.clear();
     mHandleReconstructions.clear();
@@ -254,7 +254,7 @@ void VkReconstruction::load(android::base::Stream* stream, emugl::GfxApiLogger& 
     VkDecoderContext context = {
         .processName = nullptr,
         .gfxApiLogger = &gfxLogger,
-        .healthMonitor = &healthMonitor,
+        .healthMonitor = healthMonitor,
     };
     decoderForLoading.decode(mLoadedTrace.data(), mLoadedTrace.size(), &trivialStream, &seqno,
                              context);

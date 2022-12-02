@@ -347,7 +347,7 @@ class VkDecoderGlobalState::Impl {
     void save(android::base::Stream* stream) { snapshot()->save(stream); }
 
     void load(android::base::Stream* stream, GfxApiLogger& gfxLogger,
-              HealthMonitor<>& healthMonitor) {
+              HealthMonitor<>* healthMonitor) {
         // assume that we already destroyed all instances
         // from FrameBuffer's onLoad method.
 
@@ -6159,7 +6159,7 @@ bool VkDecoderGlobalState::vkCleanupEnabled() const { return mImpl->vkCleanupEna
 void VkDecoderGlobalState::save(android::base::Stream* stream) { mImpl->save(stream); }
 
 void VkDecoderGlobalState::load(android::base::Stream* stream, GfxApiLogger& gfxLogger,
-                                HealthMonitor<>& healthMonitor) {
+                                HealthMonitor<>* healthMonitor) {
     mImpl->load(stream, gfxLogger, healthMonitor);
 }
 

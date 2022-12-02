@@ -47,7 +47,7 @@ class VkDecoderSnapshot::Impl {
     void save(android::base::Stream* stream) { mReconstruction.save(stream); }
 
     void load(android::base::Stream* stream, GfxApiLogger& gfx_logger,
-              HealthMonitor<>& healthMonitor) {
+              HealthMonitor<>* healthMonitor) {
         mReconstruction.load(stream, gfx_logger, healthMonitor);
     }
 
@@ -4548,7 +4548,7 @@ VkDecoderSnapshot::VkDecoderSnapshot() : mImpl(new VkDecoderSnapshot::Impl()) {}
 void VkDecoderSnapshot::save(android::base::Stream* stream) { mImpl->save(stream); }
 
 void VkDecoderSnapshot::load(android::base::Stream* stream, GfxApiLogger& gfx_logger,
-                             HealthMonitor<>& healthMonitor) {
+                             HealthMonitor<>* healthMonitor) {
     mImpl->load(stream, gfx_logger, healthMonitor);
 }
 
