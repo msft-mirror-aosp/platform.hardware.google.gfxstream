@@ -202,6 +202,41 @@ typedef void (*stream_renderer_param_write_context_fence_callback)(void* user_da
 // Window 0's height.
 #define STREAM_RENDERER_PARAM_WIN0_HEIGHT 7
 
+// Enables the host to control which memory types the guest will be allowed to map. For types not
+// in the mask, the bits HOST_VISIBLE and HOST_COHERENT will be removed.
+#define STREAM_RENDERER_PARAM_HOST_VISIBLE_MEMORY_MASK 8
+
+// Information about one device's memory mask.
+struct stream_renderer_param_host_visible_memory_mask_entry {
+    // Which device the mask applies to.
+    struct stream_renderer_device_id device_id;
+    // Memory types allowed to be host visible are 1, otherwise 0.
+    uint32_t memory_type_mask;
+};
+
+static_assert(sizeof(stream_renderer_param_host_visible_memory_mask_entry) == 36,
+              "stream_renderer_param_host_visible_memory_mask_entry must be 36 bytes");
+static_assert(offsetof(stream_renderer_param_host_visible_memory_mask_entry, device_id) == 0,
+              "stream_renderer_param_host_visible_memory_mask_entry.device_id must be at offset 0");
+static_assert(
+    offsetof(stream_renderer_param_host_visible_memory_mask_entry, memory_type_mask) == 32,
+    "stream_renderer_param_host_visible_memory_mask_entry.memory_type_mask must be at offset 32");
+
+// Information about the devices in the system with host visible memory type constraints.
+struct stream_renderer_param_host_visible_memory_mask {
+    // Points to a stream_renderer_param_host_visible_memory_mask_entry array.
+    uint64_t entries;
+    // Length of the entries array.
+    uint64_t num_entries;
+};
+
+static_assert(sizeof(stream_renderer_param_host_visible_memory_mask) == 16,
+              "stream_renderer_param_host_visible_memory_mask must be 16 bytes");
+static_assert(offsetof(stream_renderer_param_host_visible_memory_mask, entries) == 0,
+              "stream_renderer_param_host_visible_memory_mask.entries must be at offset 0");
+static_assert(offsetof(stream_renderer_param_host_visible_memory_mask, num_entries) == 8,
+              "stream_renderer_param_host_visible_memory_mask.num_entries must be at offset 8");
+
 // External callbacks for tracking metrics.
 // Separating each function to a parameter allows new functions to be added later.
 #define STREAM_RENDERER_PARAM_METRICS_CALLBACK_ADD_INSTANT_EVENT 1024
