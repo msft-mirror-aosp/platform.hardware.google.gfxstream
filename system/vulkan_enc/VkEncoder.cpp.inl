@@ -1,5 +1,6 @@
 static ResourceTracker* sResourceTracker = nullptr;
 static uint32_t sFeatureBits = 0;
+static constexpr uint32_t kWatchdogBufferMax = 1'000;
 
 class VkEncoder::Impl {
    public:
@@ -76,4 +77,14 @@ bool VkEncoder::decRef() {
         return true;
     }
     return false;
+}
+
+std::string VkEncoder::getPacketContents(const uint8_t* ptr, size_t len) {
+  std::string result;
+  std::unique_ptr<char[]> buf(new char[3]);
+  for (size_t i = 0; i < len; i++) {
+    std::snprintf(buf.get(), 3, "%02X", ptr[i]);
+    result += " " + std::string(buf.get(), buf.get() + 2);
+  }
+  return result;
 }
