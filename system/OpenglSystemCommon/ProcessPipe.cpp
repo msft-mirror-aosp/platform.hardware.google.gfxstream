@@ -76,16 +76,28 @@ static void initSeqno() {
 static void processPipeInitOnce() {
     initSeqno();
 
-    fidl::ClientEnd<fuchsia_hardware_goldfish::PipeDevice> channel{
+    fidl::ClientEnd<fuchsia_hardware_goldfish::Controller> controller_channel{
         zx::channel(GetConnectToServiceFunction()(QEMU_PIPE_PATH))};
-    if (!channel) {
+    if (!controller_channel) {
         ALOGE("%s: failed to open " QEMU_PIPE_PATH,
               __FUNCTION__);
         return;
     }
+    fidl::WireSyncClient controller(std::move(controller_channel));
+    zx::result pipe_device_ends =
+        fidl::CreateEndpoints<fuchsia_hardware_goldfish::PipeDevice>();
+    if (pipe_device_ends.is_error()) {
+        ALOGE("%s: zx_channel_create failed: %s", __FUNCTION__, pipe_device_ends.status_string());
+        return;
+    }
 
-    fidl::WireSyncClient<fuchsia_hardware_goldfish::PipeDevice> device(
-        std::move(channel));
+    if (fidl::Status result = controller->OpenSession(std::move(pipe_device_ends->server));
+        !result.ok()) {
+        ALOGE("%s: failed to open session: %s", __FUNCTION__, result.status_string());
+        return;
+    }
+
+    fidl::WireSyncClient device(std::move(pipe_device_ends->client));
 
     auto pipe_ends =
         fidl::CreateEndpoints<::fuchsia_hardware_goldfish::Pipe>();
@@ -94,8 +106,7 @@ static void processPipeInitOnce() {
         return;
     }
 
-    fidl::WireSyncClient<fuchsia_hardware_goldfish::Pipe> pipe(
-        std::move(pipe_ends->client));
+    fidl::WireSyncClient pipe(std::move(pipe_ends->client));
     device->OpenPipe(std::move(pipe_ends->server));
 
     zx::vmo vmo;
