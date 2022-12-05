@@ -111,6 +111,11 @@ RendererImpl::RendererImpl() {
 
 RendererImpl::~RendererImpl() {
     stop(true);
+    // We can't finish until the loader render thread has
+    // completed else can get a crash at the end of the destructor.
+    if (mLoaderRenderThread) {
+        mLoaderRenderThread->wait();
+    }
     mRenderWindow.reset();
 }
 
