@@ -140,7 +140,7 @@ bool getStagingMemoryTypeIndex(VulkanDispatch* vk, VkDevice device,
     bool foundSuitableStagingMemoryType = false;
     uint32_t stagingMemoryTypeIndex = 0;
 
-    for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
+    for (uint32_t i = 0; i < memProps->memoryTypeCount; ++i) {
         const auto& typeInfo = memProps->memoryTypes[i];
         bool hostVisible = typeInfo.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
         bool hostCached = typeInfo.propertyFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
@@ -149,6 +149,21 @@ bool getStagingMemoryTypeIndex(VulkanDispatch* vk, VkDevice device,
             foundSuitableStagingMemoryType = true;
             stagingMemoryTypeIndex = i;
             break;
+        }
+    }
+
+    // If the previous loop failed, try to accept a type that is not HOST_CACHED.
+    if (!foundSuitableStagingMemoryType) {
+        for (uint32_t i = 0; i < memProps->memoryTypeCount; ++i) {
+            const auto& typeInfo = memProps->memoryTypes[i];
+            bool hostVisible = typeInfo.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+            bool allowedInBuffer = (1 << i) & memReqs.memoryTypeBits;
+            if (hostVisible && allowedInBuffer) {
+                VK_COMMON_ERROR("Warning: using non-cached HOST_VISIBLE type for staging memory");
+                foundSuitableStagingMemoryType = true;
+                stagingMemoryTypeIndex = i;
+                break;
+            }
         }
     }
 
