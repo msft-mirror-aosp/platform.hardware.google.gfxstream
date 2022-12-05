@@ -50,7 +50,7 @@ public:
                       int refreshRate = 60,
                       gfxstream::GLESApi glVersion = gfxstream::GLESApi_3_0,
                       bool compose = false);
-    ~SampleApplication();
+    virtual ~SampleApplication();
 
     // A basic draw loop that works similar to most simple
     // GL apps that run on desktop.

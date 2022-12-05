@@ -1,0 +1,20 @@
+// *** THIS PACKAGE HAS SPECIAL LICENSING CONDITIONS.  PLEASE
+//     CONSULT THE OWNERS AND opensource-licensing@google.com BEFORE
+//     DEPENDING ON IT IN YOUR PROJECT. ***
+
+cc_test_library {
+    name: "gfxstream_oswindow_test_support",
+    defaults: [ "gfxstream_defaults" ],
+    shared_libs: [
+        "libbase",
+    ],
+    static_libs: [
+        "gfxstream_base",
+        "gfxstream_host_common",
+    ],
+    srcs: [
+        "OSWindow.cpp",
+        "stub/StubWindow.cpp",
+    ],
+    export_include_dirs: ["."],
+}
