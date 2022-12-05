@@ -893,7 +893,7 @@ TEST_F(FrameBufferTest, ComposeMultiDisplay) {
     mFb->destroyEmulatedEglWindowSurface(surface);
 }
 
-#ifdef __linux__
+#ifdef GFXSTREAM_HAS_X11
 // Tests basic pixmap import. Can we import a native pixmap and successfully
 // upload and read back some color?
 TEST_F(FrameBufferTest, PixmapImport_Basic) {

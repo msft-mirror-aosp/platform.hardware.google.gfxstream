@@ -203,6 +203,9 @@ if (ENABLE_VKCEREAL_TESTS)
         gfxstream_backend_static
         gtest_main)
     if (LINUX)
+        target_compile_definitions(
+            OpenglRender_unittests
+            PRIVATE GFXSTREAM_HAS_X11=1)
         target_link_libraries(
             OpenglRender_unittests
             PRIVATE x11_testing_support)
