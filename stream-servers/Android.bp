@@ -47,6 +47,9 @@ cc_library_shared {
         "gfxstream_emulated_textures",
     ],
     export_static_lib_headers: [
+        "gfxstream_base",
+        "gfxstream_gles2_dec",
+        "gfxstream_glsnapshot",
         "gfxstream_vulkan_cereal_host",
     ],
     shared_libs: [
@@ -88,6 +91,38 @@ cc_library_shared {
             srcs: ["NativeSubWindow_android.cpp",],
         }
     }
+}
+
+cc_test_library {
+    name: "gfxstream_backend_test_support",
+    defaults: ["gfxstream_defaults"],
+    srcs: [
+        "tests/GLSnapshotTesting.cpp",
+        "tests/GLTestUtils.cpp",
+        "tests/GLSnapshotTestDispatch.cpp",
+        "tests/GLSnapshotTestStateUtils.cpp",
+        "tests/OpenGLTestContext.cpp",
+        "tests/SampleApplication.cpp",
+        "tests/ShaderUtils.cpp",
+    ],
+    shared_libs: [
+        "libbase",
+        "libgfxstream_backend",
+    ],
+    export_static_lib_headers: [
+        "gfxstream_oswindow_test_support",
+    ],
+    static_libs: [
+        "gfxstream_apigen_codec_common",
+        "gfxstream_base",
+        "gfxstream_base_test_support",
+        "gfxstream_host_common_test_support",
+        "gfxstream_snapshot",
+        "gfxstream_oswindow_test_support",
+        "libgmock",
+        "liblz4",
+    ],
+    export_include_dirs: ["tests"],
 }
 
 cc_library {
@@ -146,6 +181,36 @@ cc_test_host {
         "gfxstream_vulkan_server",
         "gfxstream_glm",
         "libc++fs",
+    ],
+    test_options: {
+        // Disabled by default as requires Vulkan.
+        unit_test: false,
+    },
+}
+
+// Run with `atest --host gfxstream_framebuffer_tests`
+cc_test_host {
+    name: "gfxstream_framebuffer_tests",
+    defaults: [ "gfxstream_defaults" ],
+    srcs: [
+        "tests/FrameBuffer_unittest.cpp",
+    ],
+    shared_libs: [
+        "libbase",
+        "libgfxstream_backend",
+        "libgfxstream_test_image_utils",
+    ],
+    static_libs: [
+        "gfxstream_backend_test_support",
+        "gfxstream_base",
+        "gfxstream_base_test_support",
+        "gfxstream_glm",
+        "gfxstream_host_common_test_support",
+        "gfxstream_oswindow_test_support",
+        "gfxstream_snapshot",
+        "gfxstream_vulkan_server",
+        "libgmock",
+        "liblz4",
     ],
     test_options: {
         // Disabled by default as requires Vulkan.

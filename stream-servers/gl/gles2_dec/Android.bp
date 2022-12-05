@@ -19,4 +19,5 @@ cc_library_static {
         "gles2_server_context.cpp",
         "GLESv2Decoder.cpp",
     ],
+    export_include_dirs: ["."],
 }
