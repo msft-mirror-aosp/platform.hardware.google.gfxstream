@@ -26,7 +26,7 @@ public:
 
     void save(android::base::Stream* stream);
     void load(android::base::Stream* stream, emugl::GfxApiLogger& gfx_logger,
-              emugl::HealthMonitor<>& healthMonitor);
+              emugl::HealthMonitor<>* healthMonitor);
 """
 
 decoder_snapshot_decl_postamble = """
@@ -52,7 +52,7 @@ public:
     }
 
     void load(android::base::Stream* stream, GfxApiLogger& gfx_logger,
-              HealthMonitor<>& healthMonitor) {
+              HealthMonitor<>* healthMonitor) {
         mReconstruction.load(stream, gfx_logger, healthMonitor);
     }
 
@@ -72,7 +72,7 @@ void VkDecoderSnapshot::save(android::base::Stream* stream) {
 }
 
 void VkDecoderSnapshot::load(android::base::Stream* stream, GfxApiLogger& gfx_logger,
-                             HealthMonitor<>& healthMonitor) {
+                             HealthMonitor<>* healthMonitor) {
     mImpl->load(stream, gfx_logger, healthMonitor);
 }
 
