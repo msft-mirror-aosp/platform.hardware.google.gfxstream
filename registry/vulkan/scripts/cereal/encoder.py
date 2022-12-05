@@ -373,6 +373,7 @@ def emit_parameter_encode_write_packet_info(typeInfo, api, cgen):
         cgen.stmt("if (queueSubmitWithCommandsEnabled) packetSize_%s -= 8" % api.name)
 
     cgen.stmt("uint8_t* streamPtr = %s->reserve(packetSize_%s)" % (STREAM, api.name))
+    cgen.stmt("uint8_t* packetBeginPtr = streamPtr")
     cgen.stmt("uint8_t** streamPtrPtr = &streamPtr")
     cgen.stmt("uint32_t opcode_%s = OP_%s" % (api.name, api.name))
 
@@ -400,6 +401,12 @@ def emit_parameter_encode_do_parameter_write(typeInfo, api, cgen):
             emit_marshal(typeInfo, p, cgen)
 
         dispatchDone = True
+    
+    cgen.beginIf("watchdog")
+    cgen.stmt("size_t watchdogBufSize = std::min<size_t>(static_cast<size_t>(packetSize_%s), kWatchdogBufferMax)" % (api.name))
+    cgen.stmt("healthMonitorAnnotation_packetContents.resize(watchdogBufSize)")
+    cgen.stmt("memcpy(&healthMonitorAnnotation_packetContents[0], packetBeginPtr, watchdogBufSize)")
+    cgen.endIf()
 
 def emit_parameter_encode_read(typeInfo, api, cgen):
     encodingParams = EncodingParameters(api)
@@ -495,6 +502,7 @@ def emit_debug_log(typeInfo, api, cgen):
 def emit_health_watchdog(api, cgen):
     cgen.stmt("std::optional<uint32_t> healthMonitorAnnotation_seqno = std::nullopt")
     cgen.stmt("std::optional<uint32_t> healthMonitorAnnotation_packetSize = std::nullopt")
+    cgen.stmt("std::vector<uint8_t> healthMonitorAnnotation_packetContents")
     cgen.line("""
     auto watchdog = mHealthMonitor ?
                     WATCHDOG_BUILDER(*mHealthMonitor, \"%s in VkEncoder\")
@@ -505,6 +513,11 @@ def emit_health_watchdog(api, cgen):
                             }
                             if (healthMonitorAnnotation_packetSize) {
                                 annotations->insert({{"packetSize", std::to_string(healthMonitorAnnotation_packetSize.value())}});
+                            }
+                            if (!healthMonitorAnnotation_packetContents.empty()) {
+                                annotations->insert(
+                                    {{"packetContents", getPacketContents(
+                                        &healthMonitorAnnotation_packetContents[0], healthMonitorAnnotation_packetContents.size())}});
                             }
                             return std::move(annotations);
                         })
