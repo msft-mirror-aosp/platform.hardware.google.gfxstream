@@ -520,7 +520,9 @@ class VkDecoderGlobalState::Impl {
         //   Theoretically the pApplicationName field would be exactly what we want, unfortunately
         //   it looks like Unity apps always set this to "Unity" instead of the actual application.
         //   Eventually we will want to use https://r.android.com/2163499 for this purpose.
-        if (appName == "Unity" && engineName == "Unity") {
+        if (m_emu->astcLdrEmulationMode == AstcEmulationMode::CpuOnly ||
+            (m_emu->astcLdrEmulationMode != AstcEmulationMode::Auto && appName == "Unity" &&
+             engineName == "Unity")) {
             info.useAstcCpuDecompression = true;
         }
 
@@ -2669,11 +2671,13 @@ class VkDecoderGlobalState::Impl {
             return;
         }
         CompressedImageInfo& cmp = imageInfo->cmpInfo;
-        for (uint32_t r = 0; r < regionCount; r++) {
-            uint32_t mipLevel = pRegions[r].imageSubresource.mipLevel;
-            VkBufferImageCopy region = cmp.getSizeCompBufferImageCopy(pRegions[r]);
-            vk->vkCmdCopyBufferToImage(commandBuffer, srcBuffer, cmp.sizeCompImgs[mipLevel],
-                                       dstImageLayout, 1, &region);
+        if (m_emu->astcLdrEmulationMode != AstcEmulationMode::CpuOnly) {
+            for (uint32_t r = 0; r < regionCount; r++) {
+                uint32_t mipLevel = pRegions[r].imageSubresource.mipLevel;
+                VkBufferImageCopy region = cmp.getSizeCompBufferImageCopy(pRegions[r]);
+                vk->vkCmdCopyBufferToImage(commandBuffer, srcBuffer, cmp.sizeCompImgs[mipLevel],
+                                           dstImageLayout, 1, &region);
+            }
         }
 
         // Perform CPU decompression of ASTC textures, if enabled
@@ -2767,7 +2771,10 @@ class VkDecoderGlobalState::Impl {
             const VkImageMemoryBarrier& srcBarrier = pImageMemoryBarriers[i];
             auto image = srcBarrier.image;
             auto* imageInfo = android::base::find(mImageInfo, image);
-            if (!imageInfo || !deviceInfo->needGpuDecompression(imageInfo->cmpInfo)) {
+            // Skip if the image was already successfully decompressed on the CPU, or if we disabled
+            // GPU decompression.
+            if (!imageInfo || !deviceInfo->needGpuDecompression(imageInfo->cmpInfo) ||
+                m_emu->astcLdrEmulationMode == AstcEmulationMode::CpuOnly) {
                 persistentImageBarriers.push_back(srcBarrier);
                 continue;
             }
@@ -5407,7 +5414,9 @@ class VkDecoderGlobalState::Impl {
     }
 
     bool enableEmulatedAstc(VkPhysicalDevice physicalDevice, goldfish_vk::VulkanDispatch* vk) {
-        if (!m_emu->enableAstcLdrEmulation) return false;
+        if (m_emu->astcLdrEmulationMode == AstcEmulationMode::Disabled) {
+            return false;
+        }
 
         // Don't enable ASTC emulation for ANGLE, let it do its own emulation.
         return !isAngleInstance(physicalDevice, vk);
