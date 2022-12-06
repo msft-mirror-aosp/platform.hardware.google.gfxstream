@@ -112,11 +112,6 @@ int open_verbose(const char *pipeName, const int flags) {
         return fd;
     }
 
-    fd = open_verbose_path("/dev/goldfish_pipe", flags);
-    if (fd >= 0) {
-        return fd;
-    }
-
     fd = open_verbose_path("/dev/goldfish_pipe_dprctd", flags);
     if (fd >= 0) {
         return fd;
