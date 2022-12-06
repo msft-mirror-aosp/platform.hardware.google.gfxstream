@@ -73,6 +73,8 @@ using gfxstream::GLESApi;
 using gfxstream::GLESApi_CM;
 using gfxstream::GLESApi_2;
 using gfxstream::ReadbackWorker;
+using goldfish_vk::VkEmulationFeatures;
+using goldfish_vk::AstcEmulationMode;
 
 // static std::string getTimeStampString() {
 //     const time_t timestamp = android::base::getUnixTimeUs();
@@ -388,8 +390,8 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
     fb->m_useVulkanComposition = feature_is_enabled(kFeature_GuestUsesAngle) ||
                                  feature_is_enabled(kFeature_VulkanNativeSwapchain);
 
-    std::unique_ptr<goldfish_vk::VkEmulationFeatures> vkEmulationFeatures =
-        std::make_unique<goldfish_vk::VkEmulationFeatures>(goldfish_vk::VkEmulationFeatures{
+    std::unique_ptr<VkEmulationFeatures> vkEmulationFeatures =
+        std::make_unique<VkEmulationFeatures>(VkEmulationFeatures{
             .glInteropSupported = false,  // Set later.
             .deferredCommands =
                 android::base::getEnvironmentVariable("ANDROID_EMU_VK_DISABLE_DEFERRED_COMMANDS")
@@ -401,7 +403,9 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
             .useVulkanComposition = fb->m_useVulkanComposition,
             .useVulkanNativeSwapchain = feature_is_enabled(kFeature_VulkanNativeSwapchain),
             .guestRenderDoc = std::move(renderDocMultipleVkInstances),
-            .enableAstcLdrEmulation = feature_is_enabled(kFeature_VulkanAstcLdrEmulation),
+            .astcLdrEmulationMode = feature_is_enabled(kFeature_VulkanAstcLdrEmulation)
+                                        ? AstcEmulationMode::Auto
+                                        : AstcEmulationMode::Disabled,
             .enableEtc2Emulation = feature_is_enabled(kFeature_VulkanEtc2Emulation),
             .enableYcbcrEmulation = feature_is_enabled(kFeature_VulkanYcbcrEmulation),
             .guestUsesAngle = fb->m_guestUsesAngle,
