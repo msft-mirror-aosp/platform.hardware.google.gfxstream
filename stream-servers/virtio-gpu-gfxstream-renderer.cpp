@@ -1625,10 +1625,12 @@ class PipeVirglRenderer {
         const auto& entry = it->second;
         if (entry.descriptorInfo && entry.descriptorInfo->vulkanInfoOpt) {
             vulkan_info->memory_index = (*entry.descriptorInfo->vulkanInfoOpt).memoryIndex;
-            memcpy(vulkan_info->device_uuid, (*entry.descriptorInfo->vulkanInfoOpt).deviceUUID,
-                   sizeof(vulkan_info->device_uuid));
-            memcpy(vulkan_info->driver_uuid, (*entry.descriptorInfo->vulkanInfoOpt).driverUUID,
-                   sizeof(vulkan_info->driver_uuid));
+            memcpy(vulkan_info->device_id.device_uuid,
+                   (*entry.descriptorInfo->vulkanInfoOpt).deviceUUID,
+                   sizeof(vulkan_info->device_id.device_uuid));
+            memcpy(vulkan_info->device_id.driver_uuid,
+                   (*entry.descriptorInfo->vulkanInfoOpt).driverUUID,
+                   sizeof(vulkan_info->device_id.driver_uuid));
             return 0;
         }
 
