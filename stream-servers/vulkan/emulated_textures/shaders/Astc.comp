@@ -41,132 +41,112 @@ ${UnquantTables}
 // HDR CEM: 2, 3, 7, 11, 14, 15
 
 const bool kHDRCEM[16] = {
-        false, false, true,  true, false, false, false, true,
-        false, false, false, true, false, false, true,  true,
+    false, false, true,  true, false, false, false, true,
+    false, false, false, true, false, false, true,  true,
 };
 
 // Encoding table for C.2.12
 
 const uint kTritEncodings[256][5] = {
-        {0, 0, 0, 0, 0}, {1, 0, 0, 0, 0}, {2, 0, 0, 0, 0}, {0, 0, 2, 0, 0},
-        {0, 1, 0, 0, 0}, {1, 1, 0, 0, 0}, {2, 1, 0, 0, 0}, {1, 0, 2, 0, 0},
-        {0, 2, 0, 0, 0}, {1, 2, 0, 0, 0}, {2, 2, 0, 0, 0}, {2, 0, 2, 0, 0},
-        {0, 2, 2, 0, 0}, {1, 2, 2, 0, 0}, {2, 2, 2, 0, 0}, {2, 0, 2, 0, 0},
-        {0, 0, 1, 0, 0}, {1, 0, 1, 0, 0}, {2, 0, 1, 0, 0}, {0, 1, 2, 0, 0},
-        {0, 1, 1, 0, 0}, {1, 1, 1, 0, 0}, {2, 1, 1, 0, 0}, {1, 1, 2, 0, 0},
-        {0, 2, 1, 0, 0}, {1, 2, 1, 0, 0}, {2, 2, 1, 0, 0}, {2, 1, 2, 0, 0},
-        {0, 0, 0, 2, 2}, {1, 0, 0, 2, 2}, {2, 0, 0, 2, 2}, {0, 0, 2, 2, 2},
-        {0, 0, 0, 1, 0}, {1, 0, 0, 1, 0}, {2, 0, 0, 1, 0}, {0, 0, 2, 1, 0},
-        {0, 1, 0, 1, 0}, {1, 1, 0, 1, 0}, {2, 1, 0, 1, 0}, {1, 0, 2, 1, 0},
-        {0, 2, 0, 1, 0}, {1, 2, 0, 1, 0}, {2, 2, 0, 1, 0}, {2, 0, 2, 1, 0},
-        {0, 2, 2, 1, 0}, {1, 2, 2, 1, 0}, {2, 2, 2, 1, 0}, {2, 0, 2, 1, 0},
-        {0, 0, 1, 1, 0}, {1, 0, 1, 1, 0}, {2, 0, 1, 1, 0}, {0, 1, 2, 1, 0},
-        {0, 1, 1, 1, 0}, {1, 1, 1, 1, 0}, {2, 1, 1, 1, 0}, {1, 1, 2, 1, 0},
-        {0, 2, 1, 1, 0}, {1, 2, 1, 1, 0}, {2, 2, 1, 1, 0}, {2, 1, 2, 1, 0},
-        {0, 1, 0, 2, 2}, {1, 1, 0, 2, 2}, {2, 1, 0, 2, 2}, {1, 0, 2, 2, 2},
-        {0, 0, 0, 2, 0}, {1, 0, 0, 2, 0}, {2, 0, 0, 2, 0}, {0, 0, 2, 2, 0},
-        {0, 1, 0, 2, 0}, {1, 1, 0, 2, 0}, {2, 1, 0, 2, 0}, {1, 0, 2, 2, 0},
-        {0, 2, 0, 2, 0}, {1, 2, 0, 2, 0}, {2, 2, 0, 2, 0}, {2, 0, 2, 2, 0},
-        {0, 2, 2, 2, 0}, {1, 2, 2, 2, 0}, {2, 2, 2, 2, 0}, {2, 0, 2, 2, 0},
-        {0, 0, 1, 2, 0}, {1, 0, 1, 2, 0}, {2, 0, 1, 2, 0}, {0, 1, 2, 2, 0},
-        {0, 1, 1, 2, 0}, {1, 1, 1, 2, 0}, {2, 1, 1, 2, 0}, {1, 1, 2, 2, 0},
-        {0, 2, 1, 2, 0}, {1, 2, 1, 2, 0}, {2, 2, 1, 2, 0}, {2, 1, 2, 2, 0},
-        {0, 2, 0, 2, 2}, {1, 2, 0, 2, 2}, {2, 2, 0, 2, 2}, {2, 0, 2, 2, 2},
-        {0, 0, 0, 0, 2}, {1, 0, 0, 0, 2}, {2, 0, 0, 0, 2}, {0, 0, 2, 0, 2},
-        {0, 1, 0, 0, 2}, {1, 1, 0, 0, 2}, {2, 1, 0, 0, 2}, {1, 0, 2, 0, 2},
-        {0, 2, 0, 0, 2}, {1, 2, 0, 0, 2}, {2, 2, 0, 0, 2}, {2, 0, 2, 0, 2},
-        {0, 2, 2, 0, 2}, {1, 2, 2, 0, 2}, {2, 2, 2, 0, 2}, {2, 0, 2, 0, 2},
-        {0, 0, 1, 0, 2}, {1, 0, 1, 0, 2}, {2, 0, 1, 0, 2}, {0, 1, 2, 0, 2},
-        {0, 1, 1, 0, 2}, {1, 1, 1, 0, 2}, {2, 1, 1, 0, 2}, {1, 1, 2, 0, 2},
-        {0, 2, 1, 0, 2}, {1, 2, 1, 0, 2}, {2, 2, 1, 0, 2}, {2, 1, 2, 0, 2},
-        {0, 2, 2, 2, 2}, {1, 2, 2, 2, 2}, {2, 2, 2, 2, 2}, {2, 0, 2, 2, 2},
-        {0, 0, 0, 0, 1}, {1, 0, 0, 0, 1}, {2, 0, 0, 0, 1}, {0, 0, 2, 0, 1},
-        {0, 1, 0, 0, 1}, {1, 1, 0, 0, 1}, {2, 1, 0, 0, 1}, {1, 0, 2, 0, 1},
-        {0, 2, 0, 0, 1}, {1, 2, 0, 0, 1}, {2, 2, 0, 0, 1}, {2, 0, 2, 0, 1},
-        {0, 2, 2, 0, 1}, {1, 2, 2, 0, 1}, {2, 2, 2, 0, 1}, {2, 0, 2, 0, 1},
-        {0, 0, 1, 0, 1}, {1, 0, 1, 0, 1}, {2, 0, 1, 0, 1}, {0, 1, 2, 0, 1},
-        {0, 1, 1, 0, 1}, {1, 1, 1, 0, 1}, {2, 1, 1, 0, 1}, {1, 1, 2, 0, 1},
-        {0, 2, 1, 0, 1}, {1, 2, 1, 0, 1}, {2, 2, 1, 0, 1}, {2, 1, 2, 0, 1},
-        {0, 0, 1, 2, 2}, {1, 0, 1, 2, 2}, {2, 0, 1, 2, 2}, {0, 1, 2, 2, 2},
-        {0, 0, 0, 1, 1}, {1, 0, 0, 1, 1}, {2, 0, 0, 1, 1}, {0, 0, 2, 1, 1},
-        {0, 1, 0, 1, 1}, {1, 1, 0, 1, 1}, {2, 1, 0, 1, 1}, {1, 0, 2, 1, 1},
-        {0, 2, 0, 1, 1}, {1, 2, 0, 1, 1}, {2, 2, 0, 1, 1}, {2, 0, 2, 1, 1},
-        {0, 2, 2, 1, 1}, {1, 2, 2, 1, 1}, {2, 2, 2, 1, 1}, {2, 0, 2, 1, 1},
-        {0, 0, 1, 1, 1}, {1, 0, 1, 1, 1}, {2, 0, 1, 1, 1}, {0, 1, 2, 1, 1},
-        {0, 1, 1, 1, 1}, {1, 1, 1, 1, 1}, {2, 1, 1, 1, 1}, {1, 1, 2, 1, 1},
-        {0, 2, 1, 1, 1}, {1, 2, 1, 1, 1}, {2, 2, 1, 1, 1}, {2, 1, 2, 1, 1},
-        {0, 1, 1, 2, 2}, {1, 1, 1, 2, 2}, {2, 1, 1, 2, 2}, {1, 1, 2, 2, 2},
-        {0, 0, 0, 2, 1}, {1, 0, 0, 2, 1}, {2, 0, 0, 2, 1}, {0, 0, 2, 2, 1},
-        {0, 1, 0, 2, 1}, {1, 1, 0, 2, 1}, {2, 1, 0, 2, 1}, {1, 0, 2, 2, 1},
-        {0, 2, 0, 2, 1}, {1, 2, 0, 2, 1}, {2, 2, 0, 2, 1}, {2, 0, 2, 2, 1},
-        {0, 2, 2, 2, 1}, {1, 2, 2, 2, 1}, {2, 2, 2, 2, 1}, {2, 0, 2, 2, 1},
-        {0, 0, 1, 2, 1}, {1, 0, 1, 2, 1}, {2, 0, 1, 2, 1}, {0, 1, 2, 2, 1},
-        {0, 1, 1, 2, 1}, {1, 1, 1, 2, 1}, {2, 1, 1, 2, 1}, {1, 1, 2, 2, 1},
-        {0, 2, 1, 2, 1}, {1, 2, 1, 2, 1}, {2, 2, 1, 2, 1}, {2, 1, 2, 2, 1},
-        {0, 2, 1, 2, 2}, {1, 2, 1, 2, 2}, {2, 2, 1, 2, 2}, {2, 1, 2, 2, 2},
-        {0, 0, 0, 1, 2}, {1, 0, 0, 1, 2}, {2, 0, 0, 1, 2}, {0, 0, 2, 1, 2},
-        {0, 1, 0, 1, 2}, {1, 1, 0, 1, 2}, {2, 1, 0, 1, 2}, {1, 0, 2, 1, 2},
-        {0, 2, 0, 1, 2}, {1, 2, 0, 1, 2}, {2, 2, 0, 1, 2}, {2, 0, 2, 1, 2},
-        {0, 2, 2, 1, 2}, {1, 2, 2, 1, 2}, {2, 2, 2, 1, 2}, {2, 0, 2, 1, 2},
-        {0, 0, 1, 1, 2}, {1, 0, 1, 1, 2}, {2, 0, 1, 1, 2}, {0, 1, 2, 1, 2},
-        {0, 1, 1, 1, 2}, {1, 1, 1, 1, 2}, {2, 1, 1, 1, 2}, {1, 1, 2, 1, 2},
-        {0, 2, 1, 1, 2}, {1, 2, 1, 1, 2}, {2, 2, 1, 1, 2}, {2, 1, 2, 1, 2},
-        {0, 2, 2, 2, 2}, {1, 2, 2, 2, 2}, {2, 2, 2, 2, 2}, {2, 1, 2, 2, 2},
+    {0, 0, 0, 0, 0}, {1, 0, 0, 0, 0}, {2, 0, 0, 0, 0}, {0, 0, 2, 0, 0}, {0, 1, 0, 0, 0},
+    {1, 1, 0, 0, 0}, {2, 1, 0, 0, 0}, {1, 0, 2, 0, 0}, {0, 2, 0, 0, 0}, {1, 2, 0, 0, 0},
+    {2, 2, 0, 0, 0}, {2, 0, 2, 0, 0}, {0, 2, 2, 0, 0}, {1, 2, 2, 0, 0}, {2, 2, 2, 0, 0},
+    {2, 0, 2, 0, 0}, {0, 0, 1, 0, 0}, {1, 0, 1, 0, 0}, {2, 0, 1, 0, 0}, {0, 1, 2, 0, 0},
+    {0, 1, 1, 0, 0}, {1, 1, 1, 0, 0}, {2, 1, 1, 0, 0}, {1, 1, 2, 0, 0}, {0, 2, 1, 0, 0},
+    {1, 2, 1, 0, 0}, {2, 2, 1, 0, 0}, {2, 1, 2, 0, 0}, {0, 0, 0, 2, 2}, {1, 0, 0, 2, 2},
+    {2, 0, 0, 2, 2}, {0, 0, 2, 2, 2}, {0, 0, 0, 1, 0}, {1, 0, 0, 1, 0}, {2, 0, 0, 1, 0},
+    {0, 0, 2, 1, 0}, {0, 1, 0, 1, 0}, {1, 1, 0, 1, 0}, {2, 1, 0, 1, 0}, {1, 0, 2, 1, 0},
+    {0, 2, 0, 1, 0}, {1, 2, 0, 1, 0}, {2, 2, 0, 1, 0}, {2, 0, 2, 1, 0}, {0, 2, 2, 1, 0},
+    {1, 2, 2, 1, 0}, {2, 2, 2, 1, 0}, {2, 0, 2, 1, 0}, {0, 0, 1, 1, 0}, {1, 0, 1, 1, 0},
+    {2, 0, 1, 1, 0}, {0, 1, 2, 1, 0}, {0, 1, 1, 1, 0}, {1, 1, 1, 1, 0}, {2, 1, 1, 1, 0},
+    {1, 1, 2, 1, 0}, {0, 2, 1, 1, 0}, {1, 2, 1, 1, 0}, {2, 2, 1, 1, 0}, {2, 1, 2, 1, 0},
+    {0, 1, 0, 2, 2}, {1, 1, 0, 2, 2}, {2, 1, 0, 2, 2}, {1, 0, 2, 2, 2}, {0, 0, 0, 2, 0},
+    {1, 0, 0, 2, 0}, {2, 0, 0, 2, 0}, {0, 0, 2, 2, 0}, {0, 1, 0, 2, 0}, {1, 1, 0, 2, 0},
+    {2, 1, 0, 2, 0}, {1, 0, 2, 2, 0}, {0, 2, 0, 2, 0}, {1, 2, 0, 2, 0}, {2, 2, 0, 2, 0},
+    {2, 0, 2, 2, 0}, {0, 2, 2, 2, 0}, {1, 2, 2, 2, 0}, {2, 2, 2, 2, 0}, {2, 0, 2, 2, 0},
+    {0, 0, 1, 2, 0}, {1, 0, 1, 2, 0}, {2, 0, 1, 2, 0}, {0, 1, 2, 2, 0}, {0, 1, 1, 2, 0},
+    {1, 1, 1, 2, 0}, {2, 1, 1, 2, 0}, {1, 1, 2, 2, 0}, {0, 2, 1, 2, 0}, {1, 2, 1, 2, 0},
+    {2, 2, 1, 2, 0}, {2, 1, 2, 2, 0}, {0, 2, 0, 2, 2}, {1, 2, 0, 2, 2}, {2, 2, 0, 2, 2},
+    {2, 0, 2, 2, 2}, {0, 0, 0, 0, 2}, {1, 0, 0, 0, 2}, {2, 0, 0, 0, 2}, {0, 0, 2, 0, 2},
+    {0, 1, 0, 0, 2}, {1, 1, 0, 0, 2}, {2, 1, 0, 0, 2}, {1, 0, 2, 0, 2}, {0, 2, 0, 0, 2},
+    {1, 2, 0, 0, 2}, {2, 2, 0, 0, 2}, {2, 0, 2, 0, 2}, {0, 2, 2, 0, 2}, {1, 2, 2, 0, 2},
+    {2, 2, 2, 0, 2}, {2, 0, 2, 0, 2}, {0, 0, 1, 0, 2}, {1, 0, 1, 0, 2}, {2, 0, 1, 0, 2},
+    {0, 1, 2, 0, 2}, {0, 1, 1, 0, 2}, {1, 1, 1, 0, 2}, {2, 1, 1, 0, 2}, {1, 1, 2, 0, 2},
+    {0, 2, 1, 0, 2}, {1, 2, 1, 0, 2}, {2, 2, 1, 0, 2}, {2, 1, 2, 0, 2}, {0, 2, 2, 2, 2},
+    {1, 2, 2, 2, 2}, {2, 2, 2, 2, 2}, {2, 0, 2, 2, 2}, {0, 0, 0, 0, 1}, {1, 0, 0, 0, 1},
+    {2, 0, 0, 0, 1}, {0, 0, 2, 0, 1}, {0, 1, 0, 0, 1}, {1, 1, 0, 0, 1}, {2, 1, 0, 0, 1},
+    {1, 0, 2, 0, 1}, {0, 2, 0, 0, 1}, {1, 2, 0, 0, 1}, {2, 2, 0, 0, 1}, {2, 0, 2, 0, 1},
+    {0, 2, 2, 0, 1}, {1, 2, 2, 0, 1}, {2, 2, 2, 0, 1}, {2, 0, 2, 0, 1}, {0, 0, 1, 0, 1},
+    {1, 0, 1, 0, 1}, {2, 0, 1, 0, 1}, {0, 1, 2, 0, 1}, {0, 1, 1, 0, 1}, {1, 1, 1, 0, 1},
+    {2, 1, 1, 0, 1}, {1, 1, 2, 0, 1}, {0, 2, 1, 0, 1}, {1, 2, 1, 0, 1}, {2, 2, 1, 0, 1},
+    {2, 1, 2, 0, 1}, {0, 0, 1, 2, 2}, {1, 0, 1, 2, 2}, {2, 0, 1, 2, 2}, {0, 1, 2, 2, 2},
+    {0, 0, 0, 1, 1}, {1, 0, 0, 1, 1}, {2, 0, 0, 1, 1}, {0, 0, 2, 1, 1}, {0, 1, 0, 1, 1},
+    {1, 1, 0, 1, 1}, {2, 1, 0, 1, 1}, {1, 0, 2, 1, 1}, {0, 2, 0, 1, 1}, {1, 2, 0, 1, 1},
+    {2, 2, 0, 1, 1}, {2, 0, 2, 1, 1}, {0, 2, 2, 1, 1}, {1, 2, 2, 1, 1}, {2, 2, 2, 1, 1},
+    {2, 0, 2, 1, 1}, {0, 0, 1, 1, 1}, {1, 0, 1, 1, 1}, {2, 0, 1, 1, 1}, {0, 1, 2, 1, 1},
+    {0, 1, 1, 1, 1}, {1, 1, 1, 1, 1}, {2, 1, 1, 1, 1}, {1, 1, 2, 1, 1}, {0, 2, 1, 1, 1},
+    {1, 2, 1, 1, 1}, {2, 2, 1, 1, 1}, {2, 1, 2, 1, 1}, {0, 1, 1, 2, 2}, {1, 1, 1, 2, 2},
+    {2, 1, 1, 2, 2}, {1, 1, 2, 2, 2}, {0, 0, 0, 2, 1}, {1, 0, 0, 2, 1}, {2, 0, 0, 2, 1},
+    {0, 0, 2, 2, 1}, {0, 1, 0, 2, 1}, {1, 1, 0, 2, 1}, {2, 1, 0, 2, 1}, {1, 0, 2, 2, 1},
+    {0, 2, 0, 2, 1}, {1, 2, 0, 2, 1}, {2, 2, 0, 2, 1}, {2, 0, 2, 2, 1}, {0, 2, 2, 2, 1},
+    {1, 2, 2, 2, 1}, {2, 2, 2, 2, 1}, {2, 0, 2, 2, 1}, {0, 0, 1, 2, 1}, {1, 0, 1, 2, 1},
+    {2, 0, 1, 2, 1}, {0, 1, 2, 2, 1}, {0, 1, 1, 2, 1}, {1, 1, 1, 2, 1}, {2, 1, 1, 2, 1},
+    {1, 1, 2, 2, 1}, {0, 2, 1, 2, 1}, {1, 2, 1, 2, 1}, {2, 2, 1, 2, 1}, {2, 1, 2, 2, 1},
+    {0, 2, 1, 2, 2}, {1, 2, 1, 2, 2}, {2, 2, 1, 2, 2}, {2, 1, 2, 2, 2}, {0, 0, 0, 1, 2},
+    {1, 0, 0, 1, 2}, {2, 0, 0, 1, 2}, {0, 0, 2, 1, 2}, {0, 1, 0, 1, 2}, {1, 1, 0, 1, 2},
+    {2, 1, 0, 1, 2}, {1, 0, 2, 1, 2}, {0, 2, 0, 1, 2}, {1, 2, 0, 1, 2}, {2, 2, 0, 1, 2},
+    {2, 0, 2, 1, 2}, {0, 2, 2, 1, 2}, {1, 2, 2, 1, 2}, {2, 2, 2, 1, 2}, {2, 0, 2, 1, 2},
+    {0, 0, 1, 1, 2}, {1, 0, 1, 1, 2}, {2, 0, 1, 1, 2}, {0, 1, 2, 1, 2}, {0, 1, 1, 1, 2},
+    {1, 1, 1, 1, 2}, {2, 1, 1, 1, 2}, {1, 1, 2, 1, 2}, {0, 2, 1, 1, 2}, {1, 2, 1, 1, 2},
+    {2, 2, 1, 1, 2}, {2, 1, 2, 1, 2}, {0, 2, 2, 2, 2}, {1, 2, 2, 2, 2}, {2, 2, 2, 2, 2},
+    {2, 1, 2, 2, 2},
 };
 
 const uint kQuintEncodings[128][3] = {
-        {0, 0, 0}, {1, 0, 0}, {2, 0, 0}, {3, 0, 0}, {4, 0, 0}, {0, 4, 0},
-        {4, 4, 0}, {4, 4, 4}, {0, 1, 0}, {1, 1, 0}, {2, 1, 0}, {3, 1, 0},
-        {4, 1, 0}, {1, 4, 0}, {4, 4, 1}, {4, 4, 4}, {0, 2, 0}, {1, 2, 0},
-        {2, 2, 0}, {3, 2, 0}, {4, 2, 0}, {2, 4, 0}, {4, 4, 2}, {4, 4, 4},
-        {0, 3, 0}, {1, 3, 0}, {2, 3, 0}, {3, 3, 0}, {4, 3, 0}, {3, 4, 0},
-        {4, 4, 3}, {4, 4, 4}, {0, 0, 1}, {1, 0, 1}, {2, 0, 1}, {3, 0, 1},
-        {4, 0, 1}, {0, 4, 1}, {4, 0, 4}, {0, 4, 4}, {0, 1, 1}, {1, 1, 1},
-        {2, 1, 1}, {3, 1, 1}, {4, 1, 1}, {1, 4, 1}, {4, 1, 4}, {1, 4, 4},
-        {0, 2, 1}, {1, 2, 1}, {2, 2, 1}, {3, 2, 1}, {4, 2, 1}, {2, 4, 1},
-        {4, 2, 4}, {2, 4, 4}, {0, 3, 1}, {1, 3, 1}, {2, 3, 1}, {3, 3, 1},
-        {4, 3, 1}, {3, 4, 1}, {4, 3, 4}, {3, 4, 4}, {0, 0, 2}, {1, 0, 2},
-        {2, 0, 2}, {3, 0, 2}, {4, 0, 2}, {0, 4, 2}, {2, 0, 4}, {3, 0, 4},
-        {0, 1, 2}, {1, 1, 2}, {2, 1, 2}, {3, 1, 2}, {4, 1, 2}, {1, 4, 2},
-        {2, 1, 4}, {3, 1, 4}, {0, 2, 2}, {1, 2, 2}, {2, 2, 2}, {3, 2, 2},
-        {4, 2, 2}, {2, 4, 2}, {2, 2, 4}, {3, 2, 4}, {0, 3, 2}, {1, 3, 2},
-        {2, 3, 2}, {3, 3, 2}, {4, 3, 2}, {3, 4, 2}, {2, 3, 4}, {3, 3, 4},
-        {0, 0, 3}, {1, 0, 3}, {2, 0, 3}, {3, 0, 3}, {4, 0, 3}, {0, 4, 3},
-        {0, 0, 4}, {1, 0, 4}, {0, 1, 3}, {1, 1, 3}, {2, 1, 3}, {3, 1, 3},
-        {4, 1, 3}, {1, 4, 3}, {0, 1, 4}, {1, 1, 4}, {0, 2, 3}, {1, 2, 3},
-        {2, 2, 3}, {3, 2, 3}, {4, 2, 3}, {2, 4, 3}, {0, 2, 4}, {1, 2, 4},
-        {0, 3, 3}, {1, 3, 3}, {2, 3, 3}, {3, 3, 3}, {4, 3, 3}, {3, 4, 3},
-        {0, 3, 4}, {1, 3, 4}};
+    {0, 0, 0}, {1, 0, 0}, {2, 0, 0}, {3, 0, 0}, {4, 0, 0}, {0, 4, 0}, {4, 4, 0}, {4, 4, 4},
+    {0, 1, 0}, {1, 1, 0}, {2, 1, 0}, {3, 1, 0}, {4, 1, 0}, {1, 4, 0}, {4, 4, 1}, {4, 4, 4},
+    {0, 2, 0}, {1, 2, 0}, {2, 2, 0}, {3, 2, 0}, {4, 2, 0}, {2, 4, 0}, {4, 4, 2}, {4, 4, 4},
+    {0, 3, 0}, {1, 3, 0}, {2, 3, 0}, {3, 3, 0}, {4, 3, 0}, {3, 4, 0}, {4, 4, 3}, {4, 4, 4},
+    {0, 0, 1}, {1, 0, 1}, {2, 0, 1}, {3, 0, 1}, {4, 0, 1}, {0, 4, 1}, {4, 0, 4}, {0, 4, 4},
+    {0, 1, 1}, {1, 1, 1}, {2, 1, 1}, {3, 1, 1}, {4, 1, 1}, {1, 4, 1}, {4, 1, 4}, {1, 4, 4},
+    {0, 2, 1}, {1, 2, 1}, {2, 2, 1}, {3, 2, 1}, {4, 2, 1}, {2, 4, 1}, {4, 2, 4}, {2, 4, 4},
+    {0, 3, 1}, {1, 3, 1}, {2, 3, 1}, {3, 3, 1}, {4, 3, 1}, {3, 4, 1}, {4, 3, 4}, {3, 4, 4},
+    {0, 0, 2}, {1, 0, 2}, {2, 0, 2}, {3, 0, 2}, {4, 0, 2}, {0, 4, 2}, {2, 0, 4}, {3, 0, 4},
+    {0, 1, 2}, {1, 1, 2}, {2, 1, 2}, {3, 1, 2}, {4, 1, 2}, {1, 4, 2}, {2, 1, 4}, {3, 1, 4},
+    {0, 2, 2}, {1, 2, 2}, {2, 2, 2}, {3, 2, 2}, {4, 2, 2}, {2, 4, 2}, {2, 2, 4}, {3, 2, 4},
+    {0, 3, 2}, {1, 3, 2}, {2, 3, 2}, {3, 3, 2}, {4, 3, 2}, {3, 4, 2}, {2, 3, 4}, {3, 3, 4},
+    {0, 0, 3}, {1, 0, 3}, {2, 0, 3}, {3, 0, 3}, {4, 0, 3}, {0, 4, 3}, {0, 0, 4}, {1, 0, 4},
+    {0, 1, 3}, {1, 1, 3}, {2, 1, 3}, {3, 1, 3}, {4, 1, 3}, {1, 4, 3}, {0, 1, 4}, {1, 1, 4},
+    {0, 2, 3}, {1, 2, 3}, {2, 2, 3}, {3, 2, 3}, {4, 2, 3}, {2, 4, 3}, {0, 2, 4}, {1, 2, 4},
+    {0, 3, 3}, {1, 3, 3}, {2, 3, 3}, {3, 3, 3}, {4, 3, 3}, {3, 4, 3}, {0, 3, 4}, {1, 3, 4}};
 
 const int kRQuantParamTableLength = 19;
 // T, Q, B values in Table c.2.16, including binaries, in reversed order
 const uint kRQuantParamTable[kRQuantParamTableLength][3] = {
-        {0, 0, 8},  // 255
-        {1, 0, 6},  // 191
-        {0, 1, 5},  // 159
-        {0, 0, 7},  // 127
-        {1, 0, 5},  // 95
-        {0, 1, 4},  // 79
-        {0, 0, 6},  // 63
-        {1, 0, 4},  // 47
-        {0, 1, 3},  // 39
-        {0, 0, 5},  // 31
-        {1, 0, 3},  // 23
-        {0, 1, 2},  // 19
-        {0, 0, 4},  // 15
-        {1, 0, 2},  // 11
-        {0, 1, 1},  // 9
-        {0, 0, 3},  // 7
-        {1, 0, 1},  // 5
-        //{0, 1, 0}, // 4
-        {0, 0, 2},  // 3
-        //{1, 0, 0}, // 2
-        {0, 0, 1},  // 1
+    {0, 0, 8},  // 255
+    {1, 0, 6},  // 191
+    {0, 1, 5},  // 159
+    {0, 0, 7},  // 127
+    {1, 0, 5},  // 95
+    {0, 1, 4},  // 79
+    {0, 0, 6},  // 63
+    {1, 0, 4},  // 47
+    {0, 1, 3},  // 39
+    {0, 0, 5},  // 31
+    {1, 0, 3},  // 23
+    {0, 1, 2},  // 19
+    {0, 0, 4},  // 15
+    {1, 0, 2},  // 11
+    {0, 1, 1},  // 9
+    {0, 0, 3},  // 7
+    {1, 0, 1},  // 5
+    //{0, 1, 0}, // 4
+    {0, 0, 2},  // 3
+    //{1, 0, 0}, // 2
+    {0, 0, 1},  // 1
 };
 
-uint bit(uint u, int bit) {
-    return (u >> bit) & 1;
-}
+uint bit(uint u, int bit) { return (u >> bit) & 1; }
 
 uint bits128(uvec4 u, uint bitStart, uint bitCount) {
     uint firstIdx = bitStart / 32;
@@ -197,11 +177,7 @@ uint get_bit_count(uint num_vals, uint trits, uint quints, uint bits) {
     return trit_bit_count + quint_bit_count + base_bit_count;
 }
 
-void get_pack_size(uint trits,
-                   uint quints,
-                   uint bits,
-                   out uint pack,
-                   out uint packedSize) {
+void get_pack_size(uint trits, uint quints, uint bits, out uint pack, out uint packedSize) {
     if (trits == 1) {
         pack = 5;
         packedSize = 8 + 5 * bits;
@@ -227,8 +203,7 @@ uint[5] decode_trit(uvec4 data, uint start, uint end, uint n) {
         m[i] = bits128fillZeros(data, start, end, n);
         start += n;
 
-        uint encoded_bits =
-                bits128fillZeros(data, start, end, kInterleavedBits[i]);
+        uint encoded_bits = bits128fillZeros(data, start, end, kInterleavedBits[i]);
         start += kInterleavedBits[i];
         encoded |= encoded_bits << encoded_bits_read;
         encoded_bits_read += kInterleavedBits[i];
@@ -255,8 +230,7 @@ uint[3] decode_quint(uvec4 data, uint start, uint end, uint n) {
         m[i] = bits128fillZeros(data, start, end, n);
         start += n;
 
-        uint encoded_bits =
-                bits128fillZeros(data, start, end, kInterleavedBits[i]);
+        uint encoded_bits = bits128fillZeros(data, start, end, kInterleavedBits[i]);
         start += kInterleavedBits[i];
         encoded |= encoded_bits << encoded_bits_read;
         encoded_bits_read += kInterleavedBits[i];
@@ -269,9 +243,7 @@ uint[3] decode_quint(uvec4 data, uint start, uint end, uint n) {
     return result;
 }
 
-uint get_v_count(uint cem) {
-    return (cem / 4 + 1) * 2;
-}
+uint get_v_count(uint cem) { return (cem / 4 + 1) * 2; }
 
 const uint kLDRLumaDirect = 0;
 const uint kLDRLumaBaseOffset = 1;
@@ -301,8 +273,7 @@ void bit_transfer_signed(inout int a, inout int b) {
     b |= (a & 0x80);
     a >>= 1;
     a &= 0x3F;
-    if ((a & 0x20) != 0)
-        a -= 0x40;
+    if ((a & 0x20) != 0) a -= 0x40;
 }
 
 void blue_contract(inout ivec4 val) {
@@ -310,10 +281,7 @@ void blue_contract(inout ivec4 val) {
     val.g = (val.g + val.b) / 2;
 }
 
-void decode_ldr_for_mode(const uint[40] vals,
-                         uint start_idx,
-                         uint mode,
-                         out uvec4 c1,
+void decode_ldr_for_mode(const uint[40] vals, uint start_idx, uint mode, out uvec4 c1,
                          out uvec4 c2) {
     int v0 = int(vals[start_idx + 0]);
     int v1 = int(vals[start_idx + 1]);
@@ -350,8 +318,7 @@ void decode_ldr_for_mode(const uint[40] vals,
 
             endpoint_low_rgba = clamp(ivec4(v0, v0, v0, v2), 0, 255);
             const int high_luma = v0 + v1;
-            endpoint_high_rgba = clamp(
-                    ivec4(high_luma, high_luma, high_luma, v2 + v3), 0, 255);
+            endpoint_high_rgba = clamp(ivec4(high_luma, high_luma, high_luma, v2 + v3), 0, 255);
         } break;
 
         case kLDRRGBBaseScale: {
@@ -533,10 +500,8 @@ uint select_partition(uint seed, uint x, uint y, uint partitioncount) {
     c &= 0x3F;
     d &= 0x3F;
 
-    if (partitioncount < 4)
-        d = 0;
-    if (partitioncount < 3)
-        c = 0;
+    if (partitioncount < 4) d = 0;
+    if (partitioncount < 3) c = 0;
 
     if (a >= b && a >= c && a >= d)
         return 0;
@@ -558,9 +523,7 @@ uvec4[144] single_color_block(uvec4 color) {
     return ret;
 }
 
-uvec4[144] error_color_block() {
-    return single_color_block(uvec4(0xff, 0, 0xff, 0xff));
-}
+uvec4[144] error_color_block() { return single_color_block(uvec4(0xff, 0, 0xff, 0xff)); }
 
 uvec4[144] astc_decode_block(const uvec4 u) {
     uint d;
@@ -601,8 +564,8 @@ uvec4[144] astc_decode_block(const uvec4 u) {
                 // 1 1 D 1 1 1 1 1 1 1 0 0
                 // Where D is the HDR bit
 
-                uvec4 color = uvec4(u[1] >> 8 & 0xff, u[1] >> 24 & 0xff,
-                                    u[0] >> 8 & 0xff, u[0] >> 24 & 0xff);
+                uvec4 color =
+                    uvec4(u[1] >> 8 & 0xff, u[1] >> 24 & 0xff, u[0] >> 8 & 0xff, u[0] >> 24 & 0xff);
                 return single_color_block(color);
             } else {  // reserved
                 return error_color_block();
@@ -634,8 +597,7 @@ uvec4[144] astc_decode_block(const uvec4 u) {
         }
     }
 
-    if (width > u_pushConstant.blockSize.x ||
-        height > u_pushConstant.blockSize.y) {
+    if (width > u_pushConstant.blockSize.x || height > u_pushConstant.blockSize.y) {
         return error_color_block();
     }
     // Decode weight
@@ -706,26 +668,22 @@ uvec4[144] astc_decode_block(const uvec4 u) {
         uint srcIdx = 0;
         uint dstIdx = 0;
         uvec4 uReversed = bitfieldReverse(u);
-        const uint weightBitCount =
-                get_bit_count(weightCounts, trits, quints, bits);
+        const uint weightBitCount = get_bit_count(weightCounts, trits, quints, bits);
         const int kWeightGridMinBitLength = 24;
         const int kWeightGridMaxBitLength = 96;
-        if (weightBitCount < kWeightGridMinBitLength ||
-            weightBitCount > kWeightGridMaxBitLength) {
+        if (weightBitCount < kWeightGridMinBitLength || weightBitCount > kWeightGridMaxBitLength) {
             return error_color_block();
         }
-        uReversed =
-                uvec4(uReversed[3], uReversed[2], uReversed[1], uReversed[0]);
+        uReversed = uvec4(uReversed[3], uReversed[2], uReversed[1], uReversed[0]);
         const uint kUnquantBinMulTable[] = {0x3f, 0x15, 0x9, 0x4, 0x2, 0x1};
         const uint kUnquantBinMovTable[] = {0x8, 0x8, 0x8, 0x2, 0x4, 0x8};
         while (dstIdx < weightCounts) {
             if (trits == 1) {
-                uint decoded[5] =
-                        decode_trit(uReversed, srcIdx, weightBitCount, bits);
+                uint decoded[5] = decode_trit(uReversed, srcIdx, weightBitCount, bits);
                 // uint decoded[5] = {0, 0, 0, 0, 0};
                 for (int i = 0; i < 5; i++) {
-                    weightGrid[dstIdx] = kUnquantTritWeightMap
-                            [kUnquantTritWeightMapBitIdx[bits] + decoded[i]];
+                    weightGrid[dstIdx] =
+                        kUnquantTritWeightMap[kUnquantTritWeightMapBitIdx[bits] + decoded[i]];
                     if (weightGrid[dstIdx] > 32) {
                         weightGrid[dstIdx] += 1;
                     }
@@ -735,12 +693,11 @@ uvec4[144] astc_decode_block(const uvec4 u) {
                     }
                 }
             } else if (quints == 1) {
-                uint decoded[3] =
-                        decode_quint(uReversed, srcIdx, weightBitCount, bits);
+                uint decoded[3] = decode_quint(uReversed, srcIdx, weightBitCount, bits);
                 for (int i = 0; i < 3; i++) {
                     // TODO: handle overflow in the last
-                    weightGrid[dstIdx] = kUnquantQuintWeightMap
-                            [kUnquantQuintWeightMapBitIdx[bits] + decoded[i]];
+                    weightGrid[dstIdx] =
+                        kUnquantQuintWeightMap[kUnquantQuintWeightMapBitIdx[bits] + decoded[i]];
                     if (weightGrid[dstIdx] > 32) {
                         weightGrid[dstIdx] += 1;
                     }
@@ -766,8 +723,7 @@ uvec4[144] astc_decode_block(const uvec4 u) {
     if (d == 1 && partitionCount == 4) {
         return error_color_block();
     }
-    const uint weightStart =
-            128 - get_bit_count(weightCounts, trits, quints, bits);
+    const uint weightStart = 128 - get_bit_count(weightCounts, trits, quints, bits);
     uint dualPlaneStart = 0;
     // Decode cem mode
     if (partitionCount == 1) {
@@ -779,8 +735,7 @@ uvec4[144] astc_decode_block(const uvec4 u) {
         // Calculate CEM for all 4 partitions, even when partitionCount < 4
         uint partMode = u3 >> 23 & 3;
         const uint kExtraMBitsTable[4] = {0, 2, 5, 8};
-        const uint extraMBitCount =
-                (partMode == 0) ? 0 : kExtraMBitsTable[partitionCount - 1];
+        const uint extraMBitCount = (partMode == 0) ? 0 : kExtraMBitsTable[partitionCount - 1];
         const uint extraMStart = weightStart - extraMBitCount;
         dualPlaneStart = extraMStart - d * 2;
 
@@ -789,15 +744,12 @@ uvec4[144] astc_decode_block(const uvec4 u) {
             cem = uvec4(cem_all, cem_all, cem_all, cem_all);
         } else {
             uint cemBase = partMode - 1;
-            uvec4 cemHigh = cemBase + uvec4(bit(u3, 25), bit(u3, 26),
-                                            bit(u3, 27), bit(u3, 28));
+            uvec4 cemHigh = cemBase + uvec4(bit(u3, 25), bit(u3, 26), bit(u3, 27), bit(u3, 28));
             const uint extraM = bits128(u, extraMStart, extraMBitCount);
             const uint kMainMBitsTable[4] = {0, 2, 1, 0};
             const uint mainMBitCount = kMainMBitsTable[partitionCount - 1];
-            const uint m = extraM << mainMBitCount |
-                           ((u3 >> 27 & 3) >> (2 - mainMBitCount));
-            cem = cemHigh << 2 |
-                  uvec4(m & 3, m >> 2 & 3, m >> 4 & 3, m >> 6 & 3);
+            const uint m = extraM << mainMBitCount | ((u3 >> 27 & 3) >> (2 - mainMBitCount));
+            cem = cemHigh << 2 | uvec4(m & 3, m >> 2 & 3, m >> 4 & 3, m >> 6 & 3);
         }
     }
     // Decode end points
@@ -821,8 +773,7 @@ uvec4[144] astc_decode_block(const uvec4 u) {
             epTrits = kRQuantParamTable[i][0];
             epQuints = kRQuantParamTable[i][1];
             epBits = kRQuantParamTable[i][2];
-            if (get_bit_count(totalV, epTrits, epQuints, epBits) <=
-                totalAvailBits) {
+            if (get_bit_count(totalV, epTrits, epQuints, epBits) <= totalAvailBits) {
                 break;
             }
         }
@@ -830,8 +781,7 @@ uvec4[144] astc_decode_block(const uvec4 u) {
             return error_color_block();
         }
 
-        const uint epBitCount =
-                get_bit_count(totalV, epTrits, epQuints, epBits);
+        const uint epBitCount = get_bit_count(totalV, epTrits, epQuints, epBits);
         const uint epEnd = epStart + epBitCount;
         uint packedSize = 0;
         uint pack = 0;
@@ -841,15 +791,14 @@ uvec4[144] astc_decode_block(const uvec4 u) {
         uint vBuffer[40];
         uint srcIdx = epStart;
         uint dstIdx = 0;
-        const uint kUnquantBinMulTable[8] = {0xff, 0x55, 0x24, 0x11,
-                                             0x8,  0x4,  0x2,  0x1};
+        const uint kUnquantBinMulTable[8] = {0xff, 0x55, 0x24, 0x11, 0x8, 0x4, 0x2, 0x1};
         const uint kUnquantBinMovTable[8] = {8, 8, 1, 8, 2, 4, 6, 8};
         while (dstIdx < totalV) {
             if (epTrits == 1) {
                 uint decoded[5] = decode_trit(u, srcIdx, epEnd, epBits);
                 for (int i = 0; i < 5; i++) {
-                    vBuffer[dstIdx] = kUnquantTritColorMap
-                            [kUnquantTritColorMapBitIdx[epBits] + decoded[i]];
+                    vBuffer[dstIdx] =
+                        kUnquantTritColorMap[kUnquantTritColorMapBitIdx[epBits] + decoded[i]];
                     dstIdx++;
                     if (dstIdx >= totalV) {
                         break;
@@ -858,8 +807,8 @@ uvec4[144] astc_decode_block(const uvec4 u) {
             } else if (epQuints == 1) {
                 uint decoded[3] = decode_quint(u, srcIdx, epEnd, epBits);
                 for (int i = 0; i < 3; i++) {
-                    vBuffer[dstIdx] = kUnquantQuintColorMap
-                            [kUnquantQuintColorMapBitIdx[epBits] + decoded[i]];
+                    vBuffer[dstIdx] =
+                        kUnquantQuintColorMap[kUnquantQuintColorMapBitIdx[epBits] + decoded[i]];
                     dstIdx++;
                     if (dstIdx >= totalV) {
                         break;
@@ -867,8 +816,8 @@ uvec4[144] astc_decode_block(const uvec4 u) {
                 }
             } else {
                 uint src = bits128(u, srcIdx, packedSize);
-                uint decoded = src * kUnquantBinMulTable[epBits - 1] |
-                               src >> kUnquantBinMovTable[epBits - 1];
+                uint decoded =
+                    src * kUnquantBinMulTable[epBits - 1] | src >> kUnquantBinMovTable[epBits - 1];
                 vBuffer[dstIdx] = decoded;
                 dstIdx++;
             }
@@ -877,24 +826,21 @@ uvec4[144] astc_decode_block(const uvec4 u) {
         uint bufferIdx = 0;
         for (uint part = 0; part < partitionCount; part++) {
             // TODO: HDR support
-            decode_ldr_for_mode(vBuffer, bufferIdx, cem[part],
-                                endPoints[part][0], endPoints[part][1]);
+            decode_ldr_for_mode(vBuffer, bufferIdx, cem[part], endPoints[part][0],
+                                endPoints[part][1]);
             bufferIdx += get_v_count(cem[part]);
         }
     }
     uvec4 ret[144];
     {
-        uvec2 dst = (1024 + u_pushConstant.blockSize / 2) /
-                    (u_pushConstant.blockSize - 1);
+        uvec2 dst = (1024 + u_pushConstant.blockSize / 2) / (u_pushConstant.blockSize - 1);
         uint dd = d + 1;
         for (uint h = 0; h < u_pushConstant.blockSize.y; h++) {
             for (uint w = 0; w < u_pushConstant.blockSize.x; w++) {
-                uint part =
-                        select_partition(u3 >> 13 & 1023, w, h, partitionCount);
+                uint part = select_partition(u3 >> 13 & 1023, w, h, partitionCount);
                 if (kHDRCEM[cem[part]]) {
                     // HDR not supported
-                    ret[h * u_pushConstant.blockSize.x + w] = uvec4(0xff, 0,
-                                                                    0xff, 0xff);
+                    ret[h * u_pushConstant.blockSize.x + w] = uvec4(0xff, 0, 0xff, 0xff);
                     continue;
                 }
                 // Calculate weight
@@ -905,18 +851,15 @@ uvec4[144] astc_decode_block(const uvec4 u) {
                 uvec2 fst = gst & 0xf;
                 uint v0 = jst.x + jst.y * width;
                 uvec2 p00 = uvec2(weightGrid[v0 * dd], weightGrid[v0 * dd + 1]);
-                uvec2 p01 = uvec2(weightGrid[(v0 + 1) * dd],
-                                  weightGrid[(v0 + 1) * dd + 1]);
-                uvec2 p10 = uvec2(weightGrid[(v0 + width) * dd],
-                                  weightGrid[(v0 + width) * dd + 1]);
-                uvec2 p11 = uvec2(weightGrid[(v0 + width + 1) * dd],
-                                  weightGrid[(v0 + width + 1) * dd + 1]);
+                uvec2 p01 = uvec2(weightGrid[(v0 + 1) * dd], weightGrid[(v0 + 1) * dd + 1]);
+                uvec2 p10 = uvec2(weightGrid[(v0 + width) * dd], weightGrid[(v0 + width) * dd + 1]);
+                uvec2 p11 =
+                    uvec2(weightGrid[(v0 + width + 1) * dd], weightGrid[(v0 + width + 1) * dd + 1]);
                 uint w11 = (fst.x * fst.y + 8) >> 4;
                 uint w10 = fst.y - w11;
                 uint w01 = fst.x - w11;
                 uint w00 = 16 - fst.x - fst.y + w11;
-                uvec2 i = (p00 * w00 + p01 * w01 + p10 * w10 + p11 * w11 + 8) >>
-                          4;
+                uvec2 i = (p00 * w00 + p01 * w01 + p10 * w10 + p11 * w11 + 8) >> 4;
 
                 uvec4 c0 = endPoints[part][0];
                 uvec4 c1 = endPoints[part][1];
@@ -932,29 +875,17 @@ uvec4[144] astc_decode_block(const uvec4 u) {
     return ret;
 }
 
-ivec2 getPos1DArray(ivec3 pos) {
-    return ivec2(pos.x, pos.z);
-}
+ivec2 getPos1DArray(ivec3 pos) { return ivec2(pos.x, pos.z); }
 
-ivec3 getPos2DArray(ivec3 pos) {
-    return pos;
-}
+ivec3 getPos2DArray(ivec3 pos) { return pos; }
 
-ivec3 getPos3D(ivec3 pos) {
-    return pos;
-}
+ivec3 getPos3D(ivec3 pos) { return pos; }
 
-uint block_y_size_1DArray() {
-    return 1;
-}
+uint block_y_size_1DArray() { return 1; }
 
-uint block_y_size_2DArray() {
-    return u_pushConstant.blockSize.y;
-}
+uint block_y_size_2DArray() { return u_pushConstant.blockSize.y; }
 
-uint block_y_size_3D() {
-    return u_pushConstant.blockSize.y;
-}
+uint block_y_size_3D() { return u_pushConstant.blockSize.y; }
 
 uvec4 flip32(uvec4 a) {
     return ((a & 0xff) << 24) | ((a & 0xff00) << 8) | ((a & 0xff0000) >> 8) |
@@ -971,9 +902,7 @@ void main(void) {
     for (uint y = 0; y < block_y_size_${type}(); y++) {
         for (uint x = 0; x < u_pushConstant.blockSize.x; x++) {
             imageStore(u_image1,
-                       getPos${type}(ivec3(
-                               pos.xy * u_pushConstant.blockSize + ivec2(x, y),
-                               pos.z)),
+                       getPos${type}(ivec3(pos.xy * u_pushConstant.blockSize + ivec2(x, y), pos.z)),
                        decompressed[y * u_pushConstant.blockSize.x + x]);
         }
     }
