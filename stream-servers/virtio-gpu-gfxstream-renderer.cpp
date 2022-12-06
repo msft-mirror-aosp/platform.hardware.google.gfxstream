@@ -2173,7 +2173,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
             ERR("%s", get_param_string(param).c_str());
         }
         ERR("Failing initialization intentionally");
-        return STREAM_RENDERER_ERROR_MISSING_PARAM;
+        return -1;
     }
 
     // Set non product-specific callbacks
@@ -2233,6 +2233,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     bool surfaceless = renderer_flags & GFXSTREAM_RENDERER_FLAGS_USE_SURFACELESS_BIT;
     bool enableGlEs31Flag = renderer_flags & GFXSTREAM_RENDERER_FLAGS_ENABLE_GLES31_BIT;
     bool useExternalBlob = renderer_flags & GFXSTREAM_RENDERER_FLAGS_USE_EXTERNAL_BLOB;
+    bool useSystemBlob = renderer_flags & GFXSTREAM_RENDERER_FLAGS_USE_SYSTEM_BLOB;
     bool guestUsesAngle = renderer_flags & GFXSTREAM_RENDERER_FLAGS_GUEST_USES_ANGLE;
     bool useVulkanNativeSwapchain =
         renderer_flags & GFXSTREAM_RENDERER_FLAGS_VULKAN_NATIVE_SWAPCHAIN_BIT;
@@ -2242,8 +2243,20 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     GFXS_LOG("surfaceless? %d", surfaceless);
     GFXS_LOG("OpenGL ES 3.1 enabled? %d", enableGlEs31Flag);
     GFXS_LOG("use external blob? %d", useExternalBlob);
+    GFXS_LOG("use system blob? %d", useSystemBlob);
     GFXS_LOG("guest using ANGLE? %d", guestUsesAngle);
     GFXS_LOG("use Vulkan native swapchain on the host? %d", useVulkanNativeSwapchain);
+
+    if (useSystemBlob) {
+        if (!useExternalBlob) {
+            GFXS_LOG("USE_EXTERNAL_BLOB must be on with USE_SYSTEM_BLOB");
+            return -2;
+        }
+
+#ifndef _WIN32
+        GFXS_LOG("Warning: USE_SYSTEM_BLOB has only been tested on Windows");
+#endif
+    }
 
     // Need to manually set the GLES backend paths in gfxstream environment
     // because the library search paths are not automatically set to include
@@ -2285,6 +2298,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
     feature_set_enabled_override(kFeature_VulkanEtc2Emulation, true);
     feature_set_enabled_override(kFeature_VulkanYcbcrEmulation, false);
     feature_set_enabled_override(kFeature_ExternalBlob, useExternalBlob);
+    feature_set_enabled_override(kFeature_SystemBlob, useSystemBlob);
 
     android::featurecontrol::productFeatureOverride();
 
@@ -2356,7 +2370,7 @@ VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer
 
     GFXS_LOG("Started renderer");
 
-    return STREAM_RENDERER_SUCCESS;
+    return 0;
 }
 
 VG_EXPORT void gfxstream_backend_init(uint32_t display_width, uint32_t display_height,

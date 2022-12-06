@@ -245,17 +245,9 @@ static_assert(offsetof(stream_renderer_param, value) == 8,
 // Entry point for the stream renderer.
 // Pass a list of parameters to configure the renderer. The available ones are listed above. If a
 // parameter is not supported, the renderer will ignore it and warn in stderr.
-// Return value of STREAM_RENDERER_SUCCESS indicates success, otherwise an error code is returned.
-// Error codes:
-// STREAM_RENDERER_ERROR_MISSING_PARAM - Missing a required parameter.
+// Return value 0 indicates success, and a negative number indicates failure.
 VG_EXPORT int stream_renderer_init(struct stream_renderer_param* stream_renderer_params,
                                    uint64_t num_params);
-
-// Generic success return code.
-#define STREAM_RENDERER_SUCCESS 0
-
-// Missing a required parameter.
-#define STREAM_RENDERER_ERROR_MISSING_PARAM 1
 
 struct gfxstream_callbacks {
     /* Metrics callbacks */
@@ -323,6 +315,7 @@ enum RendererFlags {
     GFXSTREAM_RENDERER_FLAGS_NO_VK_BIT = 1 << 5,          // for disabling vk
     GFXSTREAM_RENDERER_FLAGS_ENABLE_GLES31_BIT = 1 << 9,  // disables the PlayStoreImage flag
     GFXSTREAM_RENDERER_FLAGS_USE_EXTERNAL_BLOB = 1 << 10,
+    GFXSTREAM_RENDERER_FLAGS_USE_SYSTEM_BLOB = 1 << 11,
     GFXSTREAM_RENDERER_FLAGS_GUEST_USES_ANGLE = 1 << 21,
     GFXSTREAM_RENDERER_FLAGS_VULKAN_NATIVE_SWAPCHAIN_BIT = 1 << 22,
     GFXSTREAM_RENDERER_FLAGS_ASYNC_FENCE_CB = 1 << 23,
