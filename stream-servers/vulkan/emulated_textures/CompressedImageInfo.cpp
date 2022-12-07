@@ -31,9 +31,7 @@ struct Etc2PushConstant {
 
 struct AstcPushConstant {
     uint32_t blockSize[2];
-    uint32_t compFormat;
     uint32_t baseLayer;
-    uint32_t sRGB;
     uint32_t smallBlock;
 };
 
@@ -741,28 +739,7 @@ void CompressedImageInfo::cmdDecompress(goldfish_vk::VulkanDispatch* vk,
         vk->vkCmdPushConstants(commandBuffer, decompPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
                                sizeof(pushConstant), &pushConstant);
     } else if (isAstc()) {
-        uint32_t srgb = false;
         uint32_t smallBlock = false;
-        switch (compFormat) {
-            case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
-            case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
-                srgb = true;
-                break;
-            default:
-                break;
-        }
         switch (compFormat) {
             case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
             case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
@@ -777,9 +754,7 @@ void CompressedImageInfo::cmdDecompress(goldfish_vk::VulkanDispatch* vk,
             default:
                 break;
         }
-        AstcPushConstant pushConstant = {
-            {blockWidth, blockHeight}, (uint32_t)compFormat, baseLayer, srgb, smallBlock,
-        };
+        AstcPushConstant pushConstant = {{blockWidth, blockHeight}, baseLayer, smallBlock};
         if (extent.depth > 1) {
             // 3D texture
             pushConstant.baseLayer = 0;
