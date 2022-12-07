@@ -391,7 +391,7 @@ static void restoreTexture(SaveableTexture* texture) {
 
 extern "C" {
 
-GL_APICALL GLESiface* GL_APIENTRY static_translator_glesv2_getIfaces(const EGLiface* eglIface);
+GLESiface* static_translator_glesv2_getIfaces(const EGLiface* eglIface);
 
 GLESiface* static_translator_glesv2_getIfaces(const EGLiface* eglIface) {
     s_eglIface = (EGLiface*)eglIface;
