@@ -67,6 +67,7 @@ LOCAL_SRC_FILES := AndroidHardwareBuffer.cpp \
 	func_table.cpp \
 
 LOCAL_TIDY_DISABLED_SRCS := VkEncoder.cpp
+LOCAL_TIDY := false
 
 ifeq (true,$(GOLDFISH_OPENGL_BUILD_FOR_HOST))
 LOCAL_CFLAGS += -D__ANDROID_API__=28
