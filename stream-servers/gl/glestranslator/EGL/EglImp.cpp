@@ -300,7 +300,7 @@ EGLAPI EGLDisplay EGLAPIENTRY eglGetDisplay(EGLNativeDisplayType display_id) {
 
 extern "C" {
 GLESiface* static_translator_glescm_getIfaces(const EGLiface*);
-GL_APICALL GLESiface* GL_APIENTRY static_translator_glesv2_getIfaces(const EGLiface*);
+GLESiface* static_translator_glesv2_getIfaces(const EGLiface*);
 }; // extern "C"
 
 #define STATIC_TRANSLATOR_GETIFACE_NAME_GLES_CM static_translator_glescm_getIfaces
