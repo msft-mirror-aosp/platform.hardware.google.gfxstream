@@ -25,70 +25,154 @@
 
 namespace goldfish_vk {
 
-struct CompressedImageInfo {
-    VkFormat compFormat = VK_FORMAT_UNDEFINED;      // The compressed format
-    VkFormat decompFormat = VK_FORMAT_UNDEFINED;    // Decompressed format
-    VkFormat sizeCompFormat = VK_FORMAT_UNDEFINED;  // Size compatible format
-    bool isCompressed = false;
-    VkDevice device = VK_NULL_HANDLE;
-    VkImageCreateInfo sizeCompImgCreateInfo;
-    VkImageType imageType;
-    std::vector<uint32_t> sizeCompImgQueueFamilyIndices;
-    VkDeviceSize alignment = 0;
-    std::vector<VkDeviceSize> memoryOffsets = {};
-    std::vector<VkImage> sizeCompImgs;  // Size compatible images
-    VkImage decompImg = 0;              // Decompressed image
-    VkExtent3D extent = {};
-    uint32_t blockWidth = 1;
-    uint32_t blockHeight = 1;
-    uint32_t layerCount = 1;
-    uint32_t mipLevels = 1;
-    std::unique_ptr<AstcTexture> astcTexture = nullptr;
-    VkDescriptorSetLayout decompDescriptorSetLayout = VK_NULL_HANDLE;
-    VkDescriptorPool decompDescriptorPool = VK_NULL_HANDLE;
-    std::vector<VkDescriptorSet> decompDescriptorSets = {};
-    VkShaderModule decompShader = VK_NULL_HANDLE;
-    VkPipelineLayout decompPipelineLayout = VK_NULL_HANDLE;
-    VkPipeline decompPipeline = VK_NULL_HANDLE;
-    std::vector<VkImageView> sizeCompImageViews = {};
-    std::vector<VkImageView> decompImageViews = {};
+class CompressedImageInfo {
+   public:
+    // Static methods
 
-    CompressedImageInfo() = default;
-    explicit CompressedImageInfo(const VkImageCreateInfo& createInfo);
+    static VkFormat getDecompressedFormat(VkFormat compFmt);
 
-    static VkFormat getDecompFormat(VkFormat compFmt);
-    static VkFormat getSizeCompFormat(VkFormat compFmt);
+    // Returns the image format used to store the compressed data. Each pixel in the compressed
+    // mipmaps will hold an entire compressed block.
+    static VkFormat getCompressedMipmapsFormat(VkFormat compFmt);
+
     static bool isEtc2(VkFormat format);
     static bool isAstc(VkFormat format);
     static bool needEmulatedAlpha(VkFormat format);
-    static VkImageCopy getSizeCompImageCopy(const VkImageCopy& origRegion,
-                                            const CompressedImageInfo& srcImg,
-                                            const CompressedImageInfo& dstImg, bool needEmulatedSrc,
-                                            bool needEmulatedDst);
+
+    // Returns a VkImageCopy to copy to/from the compressed data
+    static VkImageCopy getCompressedMipmapsImageCopy(const VkImageCopy& origRegion,
+                                                     const CompressedImageInfo& srcImg,
+                                                     const CompressedImageInfo& dstImg,
+                                                     bool needEmulatedSrc, bool needEmulatedDst);
+
+    // Constructors
+
+    // TODO(gregschlom) Delete these constructors once we switch to holding a
+    //  std::unique_ptr<CompressedImageInfo>
+    CompressedImageInfo() = default;
+    explicit CompressedImageInfo(VkDevice device);
+
+    CompressedImageInfo(VkDevice device, const VkImageCreateInfo& createInfo);
+
+    // Public methods
+
+    // Returns the VkImageCreateInfo needed to create the decompressed image
+    VkImageCreateInfo getDecompressedCreateInfo(const VkImageCreateInfo& createInfo) const;
+
+    // Creates the compressed mipmap images, that is the VkImages holding the compressed data
+    void createCompressedMipmapImages(goldfish_vk::VulkanDispatch* vk,
+                                      const VkImageCreateInfo& createInfo);
+
+    // Initializes the resources needed to perform CPU decompression of ASTC textures
+    void initAstcCpuDecompression(VulkanDispatch* vk, VkPhysicalDevice physicalDevice);
+
+    // Should be called when the guest calls vkCmdPipelineBarrier.
+    // This function checks if the image barrier transitions the compressed image to a layout where
+    // it will be read from, and if so, it decompresses the image.
+    //
+    // outputBarriers: any barrier that needs to be passed to the vkCmdPipelineBarrier call will be
+    // added to this vector.
+    // Returns whether image decompression happened.
+    bool decompressIfNeeded(goldfish_vk::VulkanDispatch* vk, VkCommandBuffer commandBuffer,
+                            VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask,
+                            const VkImageMemoryBarrier& targetBarrier,
+                            std::vector<VkImageMemoryBarrier>& outputBarriers);
+
+    void decompressOnCpu(VkCommandBuffer commandBuffer, uint8_t* srcAstcData, size_t astcDataSize,
+                         VkImage dstImage, VkImageLayout dstImageLayout, uint32_t regionCount,
+                         const VkBufferImageCopy* pRegions, const VkDecoderContext& context);
+
+    VkMemoryRequirements getMemoryRequirements() const;
+
+    VkResult bindCompressedMipmapsMemory(goldfish_vk::VulkanDispatch* vk, VkDeviceMemory memory,
+                                         VkDeviceSize memoryOffset);
+
+    // Given a VkBufferImageCopy object for the original image, returns a new
+    // VkBufferImageCopy that points to the same location in the compressed mipmap images.
+    VkBufferImageCopy getBufferImageCopy(const VkBufferImageCopy& origRegion) const;
+
+    // Releases all the resources used by this class. It may no longer be used after calling this.
+    void destroy(VulkanDispatch* vk);
+
+    // Accessors
 
     bool isEtc2() const;
     bool isAstc() const;
-
-    void createSizeCompImages(goldfish_vk::VulkanDispatch* vk);
-
-    VkBufferImageCopy getSizeCompBufferImageCopy(const VkBufferImageCopy& origRegion) const;
-
-    VkResult initDecomp(goldfish_vk::VulkanDispatch* vk, VkDevice device, VkImage image);
-
-    void cmdDecompress(goldfish_vk::VulkanDispatch* vk, VkCommandBuffer commandBuffer,
-                       VkPipelineStageFlags dstStageMask, VkImageLayout newLayout,
-                       VkAccessFlags dstAccessMask, uint32_t baseMipLevel, uint32_t levelCount,
-                       uint32_t baseLayer, uint32_t _layerCount);
+    VkDevice device() const { return mDevice; }
+    VkImage compressedMipmap(uint32_t level) { return mCompressedMipmaps[level]; }
+    VkImage decompressedImage() { return mDecompressedImage; }
+    void setDecompressedImage(VkImage image) { mDecompressedImage = image; }
+    bool canDecompressOnCpu() { return mAstcTexture && mAstcTexture->canDecompressOnCpu(); }
+    bool successfullyDecompressedOnCpu() const {
+        return mAstcTexture && mAstcTexture->successfullyDecompressed();
+    }
 
    private:
-    uint32_t mipmapWidth(uint32_t level) const;
-    uint32_t mipmapHeight(uint32_t level) const;
-    uint32_t mipmapDepth(uint32_t level) const;
-    uint32_t sizeCompMipmapWidth(uint32_t level) const;
-    uint32_t sizeCompMipmapHeight(uint32_t level) const;
-    uint32_t sizeCompMipmapDepth(uint32_t level) const;
-    uint32_t sizeCompWidth(uint32_t width, uint32_t mipLevel) const;
-    uint32_t sizeCompHeight(uint32_t height, uint32_t mipLevel) const;
+    // Returns the size in bytes needed for the storage of a given image.
+    // Also updates the alignment field of this class.
+    VkDeviceSize getImageSize(goldfish_vk::VulkanDispatch* vk, VkImage image);
+
+    // Returns a vector of image barriers for the compressed mipmap images and the decompressed
+    // image.
+    std::vector<VkImageMemoryBarrier> getImageBarriers(const VkImageMemoryBarrier& srcBarrier);
+
+    VkImageSubresourceRange getImageSubresourceRange(const VkImageSubresourceRange& range) const;
+
+    // Initializes the compute shader pipeline to decompress the image.
+    // No-op if this was already called successfully.
+    VkResult initializeDecompressionPipeline(goldfish_vk::VulkanDispatch* vk, VkDevice device);
+
+    // Runs the decompression shader
+    void decompress(goldfish_vk::VulkanDispatch* vk, VkCommandBuffer commandBuffer,
+                    const VkImageSubresourceRange& range);
+
+    // Returns the size of the image at a given mip level
+    VkExtent3D mipmapExtent(uint32_t level) const;
+    // Returns the size of the compressed mipmaps at a given mip level. This is mipmapExtent divided
+    // by the block size, and rounded up.
+    VkExtent3D compressedMipmapExtent(uint32_t level) const;
+    // Returns an extent into the compressed mipmaps. This divides the components of origExtent by
+    // the block size, and the result is clamped to not exceed the compressed mipmap size.
+    VkExtent3D compressedMipmapPortion(const VkExtent3D& origExtent, uint32_t level) const;
+
+    // Member variables
+
+    // The original compressed format of this image. E.g.: VK_FORMAT_ASTC_4x4_UNORM_BLOCK
+    VkFormat mCompressedFormat = VK_FORMAT_UNDEFINED;
+    // The format that we decompressed the image to. E.g.: VK_FORMAT_R8G8B8A8_UINT
+    VkFormat mDecompressedFormat = VK_FORMAT_UNDEFINED;
+    // The format that we use to store the compressed data, since the original compressed format
+    // isn't available. This holds one compressed block per pixel. E.g.: VK_FORMAT_R32G32B32A32_UINT
+    VkFormat mCompressedMipmapsFormat = VK_FORMAT_UNDEFINED;
+
+    VkImageType mImageType = VK_IMAGE_TYPE_MAX_ENUM;
+    uint32_t mMipLevels = 1;     // Number of mip levels in the image
+    VkExtent3D mExtent = {};     // Size of the image
+    VkExtent2D mBlock = {1, 1};  // Size of the compressed blocks
+    uint32_t mLayerCount = 1;
+
+    VkDevice mDevice = VK_NULL_HANDLE;
+    VkImage mDecompressedImage = VK_NULL_HANDLE;
+
+    // Compressed data. Each mip level of the original image is stored as a separate VkImage, and
+    // each pixel in those images contains an entire compressed block.
+    std::vector<VkImage> mCompressedMipmaps;
+
+    VkDeviceSize mAlignment = 0;
+    std::vector<VkDeviceSize> mMemoryOffsets;
+
+    // Used to perform CPU decompression of ASTC textures. Null for non-ASTC images.
+    std::unique_ptr<AstcTexture> mAstcTexture = nullptr;
+
+    // Vulkan resources used by the decompression pipeline
+    VkShaderModule mDecompShader = VK_NULL_HANDLE;
+    VkPipeline mDecompPipeline = VK_NULL_HANDLE;
+    VkPipelineLayout mDecompPipelineLayout = VK_NULL_HANDLE;
+    std::vector<VkDescriptorSet> mDecompDescriptorSets;
+    VkDescriptorSetLayout mDecompDescriptorSetLayout = VK_NULL_HANDLE;
+    VkDescriptorPool mDecompDescriptorPool = VK_NULL_HANDLE;
+    std::vector<VkImageView> mCompressedMipmapsImageViews;
+    std::vector<VkImageView> mDecompImageViews;
 };
 
 }  // namespace goldfish_vk

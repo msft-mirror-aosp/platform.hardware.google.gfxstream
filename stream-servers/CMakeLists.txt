@@ -271,7 +271,6 @@ endfunction()
         vulkan/VkFormatUtils_unittest.cpp
         vulkan/VkQsriTimeline_unittest.cpp
         vulkan/VkDecoderGlobalState_unittest.cpp
-        vulkan/emulated_textures/CompressedImageInfo_unittest.cpp
     )
     target_link_libraries(
         Vulkan_unittests
