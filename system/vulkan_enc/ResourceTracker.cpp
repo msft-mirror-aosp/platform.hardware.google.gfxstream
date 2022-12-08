@@ -3198,8 +3198,7 @@ public:
             !isHostVisible(&mMemoryProps, pAllocateInfo->memoryTypeIndex);
 
         if (!exportAllocateInfoPtr &&
-            (importAhbInfoPtr || importBufferCollectionInfoPtr ||
-             importVmoInfoPtr) &&
+            ( importBufferCollectionInfoPtr || importVmoInfoPtr) &&
             dedicatedAllocInfoPtr &&
             isHostVisible(&mMemoryProps, pAllocateInfo->memoryTypeIndex)) {
             ALOGE(
@@ -3660,7 +3659,7 @@ public:
         }
 #endif
 
-        if (!isHostVisible(&mMemoryProps, finalAllocInfo.memoryTypeIndex)) {
+        if (ahw || !isHostVisible(&mMemoryProps, finalAllocInfo.memoryTypeIndex)) {
             input_result =
                 enc->vkAllocateMemory(
                     device, &finalAllocInfo, pAllocator, pMemory, true /* do lock */);
@@ -3864,10 +3863,6 @@ public:
         uint32_t res = 0;
         for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i) {
             bool shouldAcceptMemoryIndex = normalBits & (1 << i);
-#if defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(__linux__)
-            shouldAcceptMemoryIndex &= !isHostVisible(&mMemoryProps, i);
-#endif  // VK_USE_PLATFORM_FUCHSIA
-
             if (shouldAcceptMemoryIndex) {
                 res |= (1 << i);
             }

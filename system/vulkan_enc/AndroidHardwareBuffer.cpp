@@ -25,6 +25,7 @@
 
 #include "vk_format_info.h"
 #include "vk_util.h"
+#include <assert.h>
 
 namespace goldfish_vk {
 
@@ -230,17 +231,8 @@ VkResult getAndroidHardwareBufferPropertiesANDROID(
     if (!colorBufferHandle) {
         return VK_ERROR_INVALID_EXTERNAL_HANDLE;
     }
-
-    // Disallow host visible (hard to make actual dedicated allocs)
-    uint32_t memoryTypeBits = 0;
-    for (uint32_t i = 0; i < memProps->memoryTypeCount; ++i) {
-        if (isHostVisible(memProps, i))
-            continue;
-
-        memoryTypeBits |= (1 << i);
-    }
-
-    pProperties->memoryTypeBits = memoryTypeBits;
+    assert(memProps->memoryTypeCount < VK_MAX_MEMORY_TYPES);
+    pProperties->memoryTypeBits = (1u << memProps->memoryTypeCount) - 1;
     pProperties->allocationSize =
         grallocHelper->getAllocatedSize(handle);
 
