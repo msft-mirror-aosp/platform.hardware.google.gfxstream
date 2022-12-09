@@ -48,9 +48,16 @@ uint32_t DisplaySurface::getHeight() const {
 }
 
 void DisplaySurface::updateSize(uint32_t newWidth, uint32_t newHeight) {
-    std::lock_guard<std::mutex> lock(mParamsMutex);
-    mWidth = newWidth;
-    mHeight = newHeight;
+    {
+        std::lock_guard<std::mutex> lock(mParamsMutex);
+        if (mWidth != newWidth || mHeight != newHeight) {
+            mWidth = newWidth;
+            mHeight = newHeight;
+        }
+    }
+    for (auto & users : mBoundUsers) {
+        users->surfaceUpdated(this);
+    }
 }
 
 void DisplaySurface::registerUser(DisplaySurfaceUser* user) {

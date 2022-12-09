@@ -66,6 +66,7 @@ class DisplayGl : public gfxstream::Display {
 
   protected:
     void bindToSurfaceImpl(gfxstream::DisplaySurface* surface) override {}
+    void surfaceUpdated(gfxstream::DisplaySurface* surface) override{} ;
     void unbindFromSurfaceImpl() override {}
 
   private:
