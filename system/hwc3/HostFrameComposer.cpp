@@ -578,7 +578,7 @@ HWC3::Error HostFrameComposer::presentDisplay(
               displayId, static_cast<int>(layers.size()));
 
     if (numLayer == 0) {
-      ALOGW(
+      ALOGV(
           "%s display has no layers to compose, flushing client target buffer.",
           __FUNCTION__);
 
