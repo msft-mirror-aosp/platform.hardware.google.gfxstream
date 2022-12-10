@@ -37,6 +37,7 @@ class CompositorGl : public Compositor, public gfxstream::DisplaySurfaceUser {
 
   protected:
     void bindToSurfaceImpl(gfxstream::DisplaySurface* surface) override;
+    void surfaceUpdated(gfxstream::DisplaySurface* surface) override {};
     void unbindFromSurfaceImpl() override;
 
   private:

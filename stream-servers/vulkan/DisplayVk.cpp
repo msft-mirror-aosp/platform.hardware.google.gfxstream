@@ -101,6 +101,10 @@ void DisplayVk::bindToSurfaceImpl(gfxstream::DisplaySurface* surface) {
     m_needToRecreateSwapChain = true;
 }
 
+void DisplayVk::surfaceUpdated(gfxstream::DisplaySurface* surface) {
+    m_needToRecreateSwapChain = true;
+}
+
 void DisplayVk::unbindFromSurfaceImpl() {
     destroySwapchain();
 }

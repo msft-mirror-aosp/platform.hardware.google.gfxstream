@@ -57,12 +57,12 @@ class DisplaySurface {
     void registerUser(DisplaySurfaceUser* user);
     void unregisterUser(DisplaySurfaceUser* user);
 
-    std::unique_ptr<DisplaySurfaceImpl> mImpl;
-    std::unordered_set<DisplaySurfaceUser*> mBoundUsers;
-
     mutable std::mutex mParamsMutex;
     uint32_t mWidth = 0;
     uint32_t mHeight = 0;
+
+    std::unique_ptr<DisplaySurfaceImpl> mImpl;
+    std::unordered_set<DisplaySurfaceUser*> mBoundUsers;
 };
 
 }  // namespace gfxstream
