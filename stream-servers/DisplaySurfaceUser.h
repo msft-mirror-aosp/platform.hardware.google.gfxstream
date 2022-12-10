@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 namespace gfxstream {
 
 class DisplaySurface;
@@ -30,6 +32,8 @@ class DisplaySurfaceUser {
 
   protected:
     virtual void bindToSurfaceImpl(DisplaySurface* surface) = 0;
+
+    virtual void surfaceUpdated(DisplaySurface* surface) = 0;
 
     virtual void unbindFromSurfaceImpl() = 0;
 
