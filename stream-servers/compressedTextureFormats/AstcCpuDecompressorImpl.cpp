@@ -57,10 +57,39 @@ AstcencContextUniquePtr makeDecoderContext(uint32_t blockWidth, uint32_t blockHe
     return AstcencContextUniquePtr(context);
 }
 
+
+#if !defined(__clang__) && defined(_MSC_VER)
+// AVX2 support detection for Visual Studio
+#include <intrin.h>
+bool cpuSupportsAvx2()
+{
+    int data[4];
+    __cpuid(data, 0);
+    if (data[0] >= 7) {
+        __cpuidex(data, 7, 0);
+        return data[1] & (1 << 5);  // AVX2 = Bank 7, EBX, bit 5
+    }
+    return false;
+}
+
+#else
+// AVX2 support detection for GCC and Clang
+#include <cpuid.h>
+bool cpuSupportsAvx2()
+{
+    unsigned int data[4];
+    if (__get_cpuid_count(7, 0, &data[0], &data[1], &data[2], &data[3])) {
+        return data[1] & (1 << 5);  // AVX2 = Bank 7, EBX, bit 5
+    }
+    return false;
+}
+#endif
+
 // Returns whether the ASTC decoder can be used on this machine. It might not be available if the
 // CPU doesn't support AVX2 instructions for example. Since this call is a bit expensive and never
 // changes, the result should be cached.
 bool isAstcDecoderAvailable() {
+    if (!cpuSupportsAvx2()) return false;
     astcenc_error error;
     // Try getting an arbitrary context. If it works, the decoder is available.
     auto context = makeDecoderContext(5, 5, &error);
