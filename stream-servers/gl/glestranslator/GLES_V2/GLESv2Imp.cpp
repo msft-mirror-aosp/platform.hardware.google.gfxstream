@@ -628,7 +628,9 @@ static void sSetDesktopGLEnable(const GLESv2Context* ctx, bool enable, GLenum ca
 // depending on the internal format and attachment combinations of the
 // framebuffer object.
 static void sUpdateFboEmulation(GLESv2Context* ctx) {
-    if (ctx->getMajorVersion() < 3 || isGles2Gles()) return;
+    if (ctx->getMajorVersion() < 3 || isGles2Gles()) {
+        return;
+    }
 
     std::vector<GLenum> colorAttachments(ctx->getCaps()->maxDrawBuffers);
     std::iota(colorAttachments.begin(), colorAttachments.end(), GL_COLOR_ATTACHMENT0);
@@ -1536,11 +1538,13 @@ GL_APICALL void  GL_APIENTRY glDisable(GLenum cap){
         }
     }
 #ifdef __APPLE__
-    switch (cap) {
-    case GL_PRIMITIVE_RESTART_FIXED_INDEX:
-        ctx->setPrimitiveRestartEnabled(false);
-        ctx->setEnable(cap, false);
-        return;
+    if (!isGles2Gles()) {
+        switch (cap) {
+        case GL_PRIMITIVE_RESTART_FIXED_INDEX:
+            ctx->setPrimitiveRestartEnabled(false);
+            ctx->setEnable(cap, false);
+            return;
+        }
     }
 #endif
     ctx->setEnable(cap, false);
@@ -1674,11 +1678,13 @@ GL_APICALL void  GL_APIENTRY glEnable(GLenum cap){
         }
     }
 #ifdef __APPLE__
-    switch (cap) {
-    case GL_PRIMITIVE_RESTART_FIXED_INDEX:
-        ctx->setPrimitiveRestartEnabled(true);
-        ctx->setEnable(cap, true);
-        return;
+    if (!isGles2Gles()) {
+        switch (cap) {
+        case GL_PRIMITIVE_RESTART_FIXED_INDEX:
+            ctx->setPrimitiveRestartEnabled(true);
+            ctx->setEnable(cap, true);
+            return;
+        }
     }
 #endif
     ctx->setEnable(cap, true);
@@ -3206,7 +3212,7 @@ GL_APICALL void  GL_APIENTRY glLineWidth(GLfloat width){
     // Line width emulation can be done (replace user's
     // vertex buffer with thick triangles of our own),
     // but just have thin lines on Mac for now.
-    if (!ctx->isCoreProfile()) {
+    if (!ctx->isCoreProfile() || isGles2Gles()) {
         ctx->dispatcher().glLineWidth(width);
     }
 #else
@@ -3302,7 +3308,6 @@ GL_APICALL void  GL_APIENTRY glReadPixels(GLint x, GLint y, GLsizei width, GLsiz
     GET_CTX_V2();
     SET_ERROR_IF(!(GLESv2Validate::pixelOp(format,type)),GL_INVALID_OPERATION);
     SET_ERROR_IF(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE, GL_INVALID_FRAMEBUFFER_OPERATION);
-
     if (ctx->isDefaultFBOBound(GL_READ_FRAMEBUFFER) &&
         ctx->getDefaultFBOMultisamples()) {
 

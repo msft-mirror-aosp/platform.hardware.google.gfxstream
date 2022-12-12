@@ -743,7 +743,9 @@ WorkerProcessingResult FrameBuffer::postWorkerFunc(Post& post) {
 
 std::future<void> FrameBuffer::sendPostWorkerCmd(Post post) {
 #ifdef __APPLE__
-    bool postOnlyOnMainThread = m_subWin && (emugl::getRenderer() == SELECTED_RENDERER_HOST);
+    bool postOnlyOnMainThread = m_subWin &&
+        ((emugl::getRenderer() == SELECTED_RENDERER_HOST) ||
+            (emugl::getRenderer() == SELECTED_RENDERER_ANGLE_INDIRECT));
 #else
     bool postOnlyOnMainThread = false;
 #endif
@@ -955,7 +957,7 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
         m_windowHeight = wh;
 
         m_subWin = ::createSubWindow(p_window, m_x, m_y, m_windowWidth,
-                                     m_windowHeight, subWindowRepaint, this,
+                                     m_windowHeight, dpr, subWindowRepaint, this,
                                      hideWindow);
         if (m_subWin) {
             m_nativeWindow = p_window;
