@@ -101,7 +101,7 @@ void NameSpace::touchTextures() {
         NamedObjectPtr texNamedObj = saveableTexture->getGlobalObject();
         if (!texNamedObj) {
             GL_LOG("%p: fatal: global object null for texture data %p", this, texData);
-            emugl_crash_reporter(
+            emugl::emugl_crash_reporter(
                     "fatal: null global texture object in "
                     "NameSpace::touchTextures");
         }
@@ -299,7 +299,7 @@ void NameSpace::setObjectData(ObjectLocalName p_localName,
 void GlobalNameSpace::preSaveAddEglImage(EglImage* eglImage) {
     if (!eglImage->globalTexObj) {
         GL_LOG("%p: egl image %p with null texture object", this, eglImage);
-        emugl_crash_reporter(
+        emugl::emugl_crash_reporter(
                 "Fatal: egl image with null texture object\n");
     }
     unsigned int globalName = eglImage->globalTexObj->getGlobalName();
@@ -386,7 +386,7 @@ void GlobalNameSpace::onLoad(android::base::Stream* stream,
     if (!textureLoader->start()) {
         fprintf(stderr,
                 "Error: texture file unsupported version or corrupted.\n");
-        emugl_crash_reporter(
+        emugl::emugl_crash_reporter(
                 "Error: texture file unsupported version or corrupted.\n");
         return;
     }

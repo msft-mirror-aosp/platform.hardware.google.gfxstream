@@ -19,6 +19,7 @@
 
 #include "aemu/base/synchronization/Lock.h"
 
+#include "host-common/emugl_vm_operations.h"
 #include "host-common/vm_operations.h"
 #include "host-common/dma_device.h"
 

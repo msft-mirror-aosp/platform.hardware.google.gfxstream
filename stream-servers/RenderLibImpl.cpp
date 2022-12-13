@@ -21,6 +21,7 @@
 #include "host-common/address_space_device_control_ops.h"
 #include "host-common/crash_reporter.h"
 #include "host-common/dma_device.h"
+#include "host-common/emugl_vm_operations.h"
 #include "host-common/feature_control.h"
 #include "host-common/logging.h"
 #include "host-common/opengl/misc.h"

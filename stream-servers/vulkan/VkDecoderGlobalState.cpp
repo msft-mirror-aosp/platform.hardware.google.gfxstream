@@ -48,6 +48,7 @@
 #include "host-common/HostmemIdMapping.h"
 #include "host-common/address_space_device_control_ops.h"
 #include "host-common/feature_control.h"
+#include "host-common/emugl_vm_operations.h"
 #include "host-common/vm_operations.h"
 #include "utils/RenderDoc.h"
 #include "vk_util.h"

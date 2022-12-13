@@ -52,4 +52,9 @@ namespace emugl {
     EMUGL_COMMON_API void setGLObjectCounter(
             android::base::GLObjectCounter* counter);
     EMUGL_COMMON_API android::base::GLObjectCounter* getGLObjectCounter();
+
+    // Gralloc implementation get/set
+    EMUGL_COMMON_API void setGrallocImplementation(
+            GrallocImplementation gralloc);
+    EMUGL_COMMON_API GrallocImplementation getGrallocImplementation();
 }
