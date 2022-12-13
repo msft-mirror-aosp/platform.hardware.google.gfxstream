@@ -19,6 +19,8 @@
 // https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#operators
 
 #version 450
+#include "AstcUnquantMap.comp"
+#include "Common.comp"
 
 precision highp int;
 
@@ -33,10 +35,8 @@ layout(push_constant) uniform ImageFormatBlock {
 }
 u_pushConstant;
 
-layout(binding = 0, rgba32ui) readonly uniform uimage${type} u_image0;
-layout(binding = 1, rgba8ui) writeonly uniform uimage${type} u_image1;
-
-${UnquantTables}
+layout(binding = 0, rgba32ui) readonly uniform WITH_TYPE(uimage) u_image0;
+layout(binding = 1, rgba8ui) writeonly uniform WITH_TYPE(uimage) u_image1;
 
 // HDR CEM: 2, 3, 7, 11, 14, 15
 
@@ -895,15 +895,16 @@ uvec4 flip32(uvec4 a) {
 void main(void) {
     ivec3 pos = ivec3(gl_GlobalInvocationID.xyz);
     pos.z += int(u_pushConstant.baseLayer);
-    uvec4 srcBlock = uvec4(imageLoad(u_image0, getPos${type}(pos)));
+    uvec4 srcBlock = uvec4(imageLoad(u_image0, WITH_TYPE(getPos)(pos)));
     srcBlock = uvec4(srcBlock[3], srcBlock[2], srcBlock[1], srcBlock[0]);
     uvec4[144] decompressed = astc_decode_block(srcBlock);
 
-    for (uint y = 0; y < block_y_size_${type}(); y++) {
+    for (uint y = 0; y < WITH_TYPE(block_y_size_)(); y++) {
         for (uint x = 0; x < u_pushConstant.blockSize.x; x++) {
-            imageStore(u_image1,
-                       getPos${type}(ivec3(pos.xy * u_pushConstant.blockSize + ivec2(x, y), pos.z)),
-                       decompressed[y * u_pushConstant.blockSize.x + x]);
+            imageStore(
+                u_image1,
+                WITH_TYPE(getPos)(ivec3(pos.xy * u_pushConstant.blockSize + ivec2(x, y), pos.z)),
+                decompressed[y * u_pushConstant.blockSize.x + x]);
         }
     }
 }

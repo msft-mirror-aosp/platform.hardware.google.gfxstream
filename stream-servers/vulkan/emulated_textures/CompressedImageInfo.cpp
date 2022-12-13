@@ -15,10 +15,8 @@
 #include "CompressedImageInfo.h"
 
 #include "aemu/base/ArraySize.h"
-#include "stream-servers/vulkan/DecompressionShaders.h"
 #include "stream-servers/vulkan/VkFormatUtils.h"
-
-#include <cstring>
+#include "stream-servers/vulkan/emulated_textures/shaders/DecompressionShaders.h"
 
 namespace goldfish_vk {
 
@@ -39,18 +37,110 @@ struct AstcPushConstant {
     uint32_t smallBlock;
 };
 
-SpvFileEntry loadDecompressionShaderSource(const char* filename) {
-    size_t numDecompressionShaderFileEntries = arraySize(sDecompressionShaderFileEntries);
+struct ShaderData {
+    const uint32_t* code;
+    const size_t size;
+};
 
-    for (size_t i = 0; i < numDecompressionShaderFileEntries; ++i) {
-        if (!strcmp(filename, sDecompressionShaderFileEntries[i].name)) {
-            return sDecompressionShaderFileEntries[i];
-        }
+struct ShaderGroup {
+    ShaderData shader1D;
+    ShaderData shader2D;
+    ShaderData shader3D;
+};
+
+#define DECLARE_SHADER_GROUP(Format)                                      \
+    constexpr ShaderGroup kShader##Format {                               \
+        .shader1D = {.code = decompression_shaders::Format##_1D,          \
+                     .size = sizeof(decompression_shaders::Format##_1D)}, \
+        .shader2D = {.code = decompression_shaders::Format##_2D,          \
+                     .size = sizeof(decompression_shaders::Format##_2D)}, \
+        .shader3D = {.code = decompression_shaders::Format##_3D,          \
+                     .size = sizeof(decompression_shaders::Format##_3D)}, \
     }
 
-    SpvFileEntry invalid = {filename, nullptr, 0};
-    fprintf(stderr, "WARNING: shader source open failed! %s\n", filename);
-    return invalid;
+DECLARE_SHADER_GROUP(Astc);
+DECLARE_SHADER_GROUP(EacR11Snorm);
+DECLARE_SHADER_GROUP(EacR11Unorm);
+DECLARE_SHADER_GROUP(EacRG11Snorm);
+DECLARE_SHADER_GROUP(EacRG11Unorm);
+DECLARE_SHADER_GROUP(Etc2RGB8);
+DECLARE_SHADER_GROUP(Etc2RGBA8);
+
+#undef DECLARE_SHADER_GROUP
+
+const ShaderGroup* getShaderGroup(VkFormat format) {
+    switch (format) {
+        case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_6x6_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_8x5_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_8x6_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_8x8_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_10x5_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_10x6_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_10x10_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_12x10_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_12x12_UNORM_BLOCK:
+        case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
+        case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
+        case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
+        case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
+        case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
+        case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
+        case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
+        case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
+        case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
+        case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
+        case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
+        case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
+        case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
+        case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
+            return &kShaderAstc;
+
+        case VK_FORMAT_EAC_R11_SNORM_BLOCK:
+            return &kShaderEacR11Snorm;
+
+        case VK_FORMAT_EAC_R11_UNORM_BLOCK:
+            return &kShaderEacR11Unorm;
+
+        case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
+            return &kShaderEacRG11Snorm;
+
+        case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
+            return &kShaderEacRG11Unorm;
+
+        case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
+        case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
+        case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
+        case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
+            return &kShaderEtc2RGB8;
+
+        case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
+        case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
+            return &kShaderEtc2RGBA8;
+
+        default:
+            return nullptr;
+    }
+}
+
+const ShaderData* getDecompressionShader(VkFormat format, VkImageType imageType) {
+    const ShaderGroup* group = getShaderGroup(format);
+    if (!group) return nullptr;
+
+    switch (imageType) {
+        case VK_IMAGE_TYPE_1D:
+            return &group->shader1D;
+        case VK_IMAGE_TYPE_2D:
+            return &group->shader2D;
+        case VK_IMAGE_TYPE_3D:
+            return &group->shader3D;
+        default:
+            return nullptr;
+    }
 }
 
 VkImageView createDefaultImageView(goldfish_vk::VulkanDispatch* vk, VkDevice device, VkImage image,
@@ -459,84 +549,17 @@ VkResult CompressedImageInfo::initDecomp(goldfish_vk::VulkanDispatch* vk, VkDevi
     }
     // TODO: release resources on failure
 
-    std::string shaderSrcFileName;
-    switch (compFormat) {
-        case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
-        case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
-        case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
-        case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
-            shaderSrcFileName = "Etc2RGB8_";
-            break;
-        case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
-        case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
-            shaderSrcFileName = "Etc2RGBA8_";
-            break;
-        case VK_FORMAT_EAC_R11_UNORM_BLOCK:
-            shaderSrcFileName = "EacR11Unorm_";
-            break;
-        case VK_FORMAT_EAC_R11_SNORM_BLOCK:
-            shaderSrcFileName = "EacR11Snorm_";
-            break;
-        case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
-            shaderSrcFileName = "EacRG11Unorm_";
-            break;
-        case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
-            shaderSrcFileName = "EacRG11Snorm_";
-            break;
-        case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_6x6_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_8x5_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_8x6_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_8x8_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_10x5_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_10x6_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_10x10_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_12x10_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_12x12_UNORM_BLOCK:
-        case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
-        case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
-            shaderSrcFileName = "Astc_";
-            break;
-        default:
-            shaderSrcFileName = "Etc2RGB8_";
-            break;
-    }
-    if (imageType == VK_IMAGE_TYPE_1D) {
-        shaderSrcFileName += "1DArray.spv";
-    } else if (imageType == VK_IMAGE_TYPE_3D) {
-        shaderSrcFileName += "3D.spv";
-    } else {
-        shaderSrcFileName += "2DArray.spv";
-    }
-
-    SpvFileEntry shaderSource = loadDecompressionShaderSource(shaderSrcFileName.c_str());
-
-    if (!shaderSource.size) {
-        return VK_ERROR_OUT_OF_HOST_MEMORY;
+    const ShaderData* shader = getDecompressionShader(compFormat, imageType);
+    if (!shader) {
+        WARN("No decompression shader found for format %s and img type %s",
+             string_VkFormat(compFormat), string_VkImageType(imageType));
+        return VK_ERROR_FORMAT_NOT_SUPPORTED;
     }
 
     VkShaderModuleCreateInfo shaderInfo = {};
     shaderInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    shaderInfo.codeSize = shaderSource.size;
-    // DecompressionShaders.h declares everything as aligned to 4 bytes,
-    // so it is safe to cast
-    shaderInfo.pCode = reinterpret_cast<const uint32_t*>(shaderSource.base);
+    shaderInfo.codeSize = shader->size;
+    shaderInfo.pCode = shader->code;
     _RETURN_ON_FAILURE(vk->vkCreateShaderModule(device, &shaderInfo, nullptr, &decompShader));
 
     VkDescriptorSetLayoutBinding dsLayoutBindings[] = {
@@ -611,7 +634,7 @@ VkResult CompressedImageInfo::initDecomp(goldfish_vk::VulkanDispatch* vk, VkDevi
     _RETURN_ON_FAILURE(
         vk->vkCreateComputePipelines(device, 0, 1, &computePipelineInfo, nullptr, &decompPipeline));
 
-    VkFormat intermediateFormat = decompFormat;
+    VkFormat intermediateFormat;
     switch (compFormat) {
         case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
         case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
