@@ -20,6 +20,7 @@ import os
 # The list of shaders to compile, without the .comp extension
 shaders = [
     "Astc",
+    "AstcNew",
     "EacR11Snorm",
     "EacR11Unorm",
     "EacRG11Snorm",
