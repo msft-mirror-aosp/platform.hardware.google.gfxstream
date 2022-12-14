@@ -302,4 +302,19 @@ if (ENABLE_VKCEREAL_TESTS)
                        COMMAND ${CMAKE_COMMAND} -E copy_if_different
                             ${Vulkan_unittests_datafiles}
                             ${CMAKE_BINARY_DIR}/tests/testdata)
+
+    add_executable(
+            Vulkan_integrationtests
+            vulkan/testing/VkDecoderTestDispatch.h
+            vulkan/testing/VulkanTestHelper.cpp
+    )
+    target_link_libraries(
+            Vulkan_integrationtests
+            PRIVATE
+            gfxstream_backend_static
+            stream-server-testing-support
+            gtest
+            gtest_main
+            gmock)
+    gtest_discover_tests(Vulkan_integrationtests)
 endif()

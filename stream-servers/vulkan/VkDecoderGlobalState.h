@@ -65,9 +65,12 @@ class VkDecoderGlobalState {
     VkDecoderGlobalState();
     ~VkDecoderGlobalState();
 
-    // There should only be one instance of VkDecoderGlobalState
-    // per process
+    // There should only be one instance of VkDecoderGlobalState per process
+    // Note: currently not thread-safe
     static VkDecoderGlobalState* get();
+
+    // For testing only - destroys the global instance of VkDecoderGlobalState.
+    static void reset();
 
     // Snapshot save/load
     bool snapshotsEnabled() const;
