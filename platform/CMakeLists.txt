@@ -5,6 +5,6 @@ android_validate_sha256("${GOLDFISH_DEVICE_ROOT}/platform/Android.mk" "b2e96eaf4
 set(platform_host_src stub/VirtGpuBlob.cpp stub/VirtGpuBlobMapping.cpp stub/VirtGpuDevice.cpp)
 android_add_library(TARGET platform_host LICENSE Apache-2.0 SRC stub/VirtGpuBlob.cpp stub/VirtGpuBlobMapping.cpp stub/VirtGpuDevice.cpp)
 target_include_directories(platform_host PRIVATE ${GOLDFISH_DEVICE_ROOT}/platform/include ${GOLDFISH_DEVICE_ROOT}/./host/include/libOpenglRender ${GOLDFISH_DEVICE_ROOT}/./system/include ${GOLDFISH_DEVICE_ROOT}/./../../../external/qemu/android/android-emugl/guest)
-target_compile_definitions(platform_host PRIVATE "-DPLATFORM_SDK_VERSION=29" "-DGOLDFISH_HIDL_GRALLOC" "-DHOST_BUILD" "-DANDROID" "-DGL_GLEXT_PROTOTYPES" "-DPAGE_SIZE=4096" "-DGFXSTREAM")
+target_compile_definitions(platform_host PRIVATE "-DPLATFORM_SDK_VERSION=29" "-DGOLDFISH_HIDL_GRALLOC" "-DHOST_BUILD" "-DANDROID" "-DGL_GLEXT_PROTOTYPES" "-DPAGE_SIZE=4096" "-DGFXSTREAM" "-DENABLE_ANDROID_HEALTH_MONITOR")
 target_compile_options(platform_host PRIVATE "-fvisibility=default" "-Wno-unused-parameter")
 target_link_libraries(platform_host PRIVATE log android-emu-shared)
