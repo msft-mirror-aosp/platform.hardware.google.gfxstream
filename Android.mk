@@ -178,3 +178,7 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -gt 28 -o $(IS_AT_LEAST_QPR1) = true 
 endif
 
 endif
+
+ifeq (true,$(GFXSTREAM)) # Vulkan lib tests
+    include $(GOLDFISH_OPENGL_PATH)/system/vulkan_enc_unit_tests/Android.mk
+endif
