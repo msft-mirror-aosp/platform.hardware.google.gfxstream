@@ -743,7 +743,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32
 
         self.cgen.stmt("const char* processName = context.processName")
         self.cgen.stmt("auto& gfx_logger = *context.gfxApiLogger")
-        self.cgen.stmt("auto& healthMonitor = *context.healthMonitor")
+        self.cgen.stmt("auto* healthMonitor = context.healthMonitor")
         self.cgen.stmt("auto& metricsLogger = *context.metricsLogger")
         self.cgen.stmt("if (len < 8) return 0")
         self.cgen.stmt("bool queueSubmitWithCommandsEnabled = feature_is_enabled(kFeature_VulkanQueueSubmitWithCommands)")
@@ -778,18 +778,22 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32
         self.cgen.line("""
         std::unique_ptr<EventHangMetadata::HangAnnotations> executionData =
             std::make_unique<EventHangMetadata::HangAnnotations>();
-        executionData->insert(
-             {{"packet_length", std::to_string(packetLen)},
-             {"opcode", std::to_string(opcode)}});
-        if (processName) {
+        if (healthMonitor) {
             executionData->insert(
-                {{"renderthread_guest_process", std::string(processName)}});
+                 {{"packet_length", std::to_string(packetLen)},
+                 {"opcode", std::to_string(opcode)}});
+            if (processName) {
+                executionData->insert(
+                    {{"renderthread_guest_process", std::string(processName)}});
+            }
+            if (m_prevSeqno) {
+                executionData->insert({{"previous_seqno", std::to_string(m_prevSeqno.value())}});
+            }
         }
-        if (m_prevSeqno) executionData->insert({{"previous_seqno", std::to_string(m_prevSeqno.value())}});
         if (queueSubmitWithCommandsEnabled && ((opcode >= OP_vkFirst && opcode < OP_vkLast) || (opcode >= OP_vkFirst_old && opcode < OP_vkLast_old))) {
             uint32_t seqno;
             memcpy(&seqno, *readStreamPtrPtr, sizeof(uint32_t)); *readStreamPtrPtr += sizeof(uint32_t);
-            executionData->insert({{"seqno", std::to_string(seqno)}});
+            if (healthMonitor) executionData->insert({{"seqno", std::to_string(seqno)}});
             if (m_prevSeqno  && seqno == m_prevSeqno.value()) {
                 WARN(
                     "Seqno %d is the same as previously processed on thread %d. It might be a "
@@ -809,7 +813,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32
                                 auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
                                 annotations->insert({{"seqnoPtr", std::to_string(__atomic_load_n(
                                                                       seqnoPtr, __ATOMIC_SEQ_CST))}});
-                                return std::move(annotations);
+                                return annotations;
                             })
                             .build();
                     while ((seqno - __atomic_load_n(seqnoPtr, __ATOMIC_SEQ_CST) != 1)) {
