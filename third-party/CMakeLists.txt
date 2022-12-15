@@ -197,8 +197,8 @@ if(NOT TARGET gfxstream_vulkan_headers)
 endif()
 
 if(NOT TARGET flatbuffers)
-    option(FLATBUFFERS_BUILD_TESTS "" OFF)
-    option(FLATBUFFERS_BUILD_CPP17 "" ON)
+    set(FLATBUFFERS_BUILD_TESTS OFF)
+    set(FLATBUFFERS_BUILD_CPP17 ON)
 
     if(DEPENDENCY_RESOLUTION STREQUAL "AOSP")
         set(FLATBUFFERS_PATH ${PROJECT_SOURCE_DIR}/../../../external/flatbuffers)
