@@ -639,7 +639,8 @@ class FrameBuffer {
                                                                        bool colorBufferIsTarget);
     std::unique_ptr<BorrowedImageInfo> borrowColorBufferForDisplay(uint32_t colorBufferHandle);
 
-    HealthMonitor<>& getHealthMonitor();
+    HealthMonitor<>* getHealthMonitor() { return m_healthMonitor.get(); }
+
     emugl::MetricsLogger& getMetricsLogger() {
         return *m_logger;
     }
@@ -863,6 +864,6 @@ class FrameBuffer {
     std::unordered_map<void*, PlatformEglContextInfo> m_platformEglContexts;
 
     std::unique_ptr<MetricsLogger> m_logger;
-    HealthMonitor<> m_healthMonitor;
+    std::unique_ptr<HealthMonitor<>> m_healthMonitor;
 };
 #endif

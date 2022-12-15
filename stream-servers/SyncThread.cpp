@@ -69,7 +69,7 @@ class GlobalSyncThread {
 public:
     GlobalSyncThread() = default;
 
-    void initialize(bool noGL, HealthMonitor<>& healthMonitor) {
+    void initialize(bool noGL, HealthMonitor<>* healthMonitor) {
         AutoLock mutex(mLock);
         SYNC_THREAD_CHECK(!mSyncThread);
         mSyncThread = std::make_unique<SyncThread>(noGL, healthMonitor);
@@ -99,7 +99,7 @@ static GlobalSyncThread* sGlobalSyncThread() {
 static const uint32_t kTimelineInterval = 1;
 static const uint64_t kDefaultTimeoutNsecs = 5ULL * 1000ULL * 1000ULL * 1000ULL;
 
-SyncThread::SyncThread(bool noGL, HealthMonitor<>& healthMonitor)
+SyncThread::SyncThread(bool noGL, HealthMonitor<>* healthMonitor)
     : android::base::Thread(android::base::ThreadFlags::MaskSignals, 512 * 1024),
       mWorkerThreadPool(kNumWorkerThreads,
                         [this](Command&& command, ThreadPool::WorkerId id) {
@@ -432,7 +432,7 @@ SyncThread* SyncThread::get() {
     return res;
 }
 
-void SyncThread::initialize(bool noEGL, HealthMonitor<>& healthMonitor) {
+void SyncThread::initialize(bool noEGL, HealthMonitor<>* healthMonitor) {
     sGlobalSyncThread()->initialize(noEGL, healthMonitor);
 }
 

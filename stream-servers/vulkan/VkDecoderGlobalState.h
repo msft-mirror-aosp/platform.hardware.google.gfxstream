@@ -81,7 +81,7 @@ class VkDecoderGlobalState {
 
     void save(android::base::Stream* stream);
     void load(android::base::Stream* stream, emugl::GfxApiLogger& gfxLogger,
-              emugl::HealthMonitor<>& healthMonitor);
+              emugl::HealthMonitor<>* healthMonitor);
 
     // Lock/unlock of global state to serve as a global lock
     void lock();

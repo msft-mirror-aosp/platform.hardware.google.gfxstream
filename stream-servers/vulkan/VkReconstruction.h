@@ -29,7 +29,7 @@ class VkReconstruction {
 
     void save(android::base::Stream* stream);
     void load(android::base::Stream* stream, emugl::GfxApiLogger& gfxLogger,
-              emugl::HealthMonitor<>& healthMonitor);
+              emugl::HealthMonitor<>* healthMonitor);
 
     struct ApiInfo {
         // Fast

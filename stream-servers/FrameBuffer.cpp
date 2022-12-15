@@ -60,6 +60,7 @@ using android::base::MetricEventVulkanOutOfMemory;
 using android::base::Stream;
 using android::base::WorkerProcessingResult;
 using emugl::ABORT_REASON_OTHER;
+using emugl::CreateHealthMonitor;
 using emugl::FatalError;
 using emugl::GfxApiLogger;
 using gfxstream::EmulatedEglContext;
@@ -604,12 +605,10 @@ FrameBuffer::FrameBuffer(int p_width, int p_height, bool useSubWindow)
           [this](FrameBuffer::Readback&& readback) { return sendReadbackWorkerCmd(readback); }),
       m_refCountPipeEnabled(feature_is_enabled(kFeature_RefCountPipe)),
       m_noDelayCloseColorBufferEnabled(feature_is_enabled(kFeature_NoDelayCloseColorBuffer) ||
-          feature_is_enabled(kFeature_Minigbm)),
-      m_postThread([this](Post&& post) {
-          return postWorkerFunc(post);
-      }),
+                                       feature_is_enabled(kFeature_Minigbm)),
+      m_postThread([this](Post&& post) { return postWorkerFunc(post); }),
       m_logger(CreateMetricsLogger()),
-      m_healthMonitor(*m_logger) {
+      m_healthMonitor(CreateHealthMonitor(*m_logger)) {
     uint32_t displayId = 0;
     if (createDisplay(&displayId) < 0) {
         fprintf(stderr, "Failed to create default display\n");
@@ -666,8 +665,10 @@ FrameBuffer::sendReadbackWorkerCmd(const Readback& readback) {
 
 WorkerProcessingResult FrameBuffer::postWorkerFunc(Post& post) {
     auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
-    annotations->insert({"Post command opcode", std::to_string(static_cast<uint64_t>(post.cmd))});
-    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor, "PostWorker main function")
+    if (m_healthMonitor)
+        annotations->insert(
+            {"Post command opcode", std::to_string(static_cast<uint64_t>(post.cmd))});
+    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor.get(), "PostWorker main function")
                         .setAnnotations(std::move(annotations))
                         .build();
     switch (post.cmd) {
@@ -919,23 +920,25 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
     std::future<void> postWorkerContinueSignalFuture;
     std::tie(postWorkerContinueSignal, postWorkerContinueSignalFuture) = ScopedPromise::create();
     {
-        auto watchdog = WATCHDOG_BUILDER(m_healthMonitor, "Wait for other tasks on PostWorker")
-                            .setTimeoutMs(6000)
-                            .build();
+        auto watchdog =
+            WATCHDOG_BUILDER(m_healthMonitor.get(), "Wait for other tasks on PostWorker")
+                .setTimeoutMs(6000)
+                .build();
         blockPostWorker(std::move(postWorkerContinueSignalFuture)).wait();
     }
     if (m_displayVk) {
-        auto watchdog =
-            WATCHDOG_BUILDER(m_healthMonitor, "Draining the VkQueue").setTimeoutMs(6000).build();
+        auto watchdog = WATCHDOG_BUILDER(m_healthMonitor.get(), "Draining the VkQueue")
+                            .setTimeoutMs(6000)
+                            .build();
         m_displayVk->drainQueues();
     }
-    HealthMonitor<>::Id lockWatchdogId =
-        WATCHDOG_BUILDER(m_healthMonitor, "Wait for the FrameBuffer global lock")
-            .build()
-            ->release()
-            .value();
+    auto lockWatchdog =
+        WATCHDOG_BUILDER(m_healthMonitor.get(), "Wait for the FrameBuffer global lock").build();
+    auto lockWatchdogId = lockWatchdog->release();
     AutoLock mutex(m_lock);
-    m_healthMonitor.stopMonitoringTask(lockWatchdogId);
+    if (lockWatchdogId.has_value()) {
+        m_healthMonitor->stopMonitoringTask(lockWatchdogId.value());
+    }
 
 #if SNAPSHOT_PROFILE > 1
     // printf("FrameBuffer::%s(): got lock at %lld ms\n", __func__,
@@ -1013,7 +1016,7 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
         }
     }
 
-    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor, "Updating subwindow state").build();
+    auto watchdog = WATCHDOG_BUILDER(m_healthMonitor.get(), "Updating subwindow state").build();
     // At this point, if the subwindow doesn't exist, it is because it either
     // couldn't be created
     // in the first place or the EGLSurface couldn't be created.
@@ -1030,7 +1033,7 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
             m_windowHeight = wh;
 
             {
-                auto watchdog = WATCHDOG_BUILDER(m_healthMonitor, "Moving subwindow").build();
+                auto watchdog = WATCHDOG_BUILDER(m_healthMonitor.get(), "Moving subwindow").build();
                 success = ::moveSubWindow(m_nativeWindow, m_subWin, m_x, m_y, m_windowWidth,
                                           m_windowHeight);
             }
@@ -3261,7 +3264,7 @@ bool FrameBuffer::onLoad(Stream* stream,
 
         lock.unlock();
         GfxApiLogger gfxLogger;
-        goldfish_vk::VkDecoderGlobalState::get()->load(stream, gfxLogger, m_healthMonitor);
+        goldfish_vk::VkDecoderGlobalState::get()->load(stream, gfxLogger, m_healthMonitor.get());
         lock.lock();
 
     }
@@ -3470,8 +3473,6 @@ void FrameBuffer::waitForGpuVulkanQsri(uint64_t image) {
 void FrameBuffer::setGuestManagedColorBufferLifetime(bool guestManaged) {
     m_guestManagedColorBufferLifetime = guestManaged;
 }
-
-HealthMonitor<>& FrameBuffer::getHealthMonitor() { return m_healthMonitor; }
 
 bool FrameBuffer::platformImportResource(uint32_t handle, uint32_t info, void* resource) {
     if (!resource) {
