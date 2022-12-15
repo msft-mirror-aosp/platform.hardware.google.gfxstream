@@ -3178,7 +3178,7 @@ class VkDecoderGlobalState::Impl {
         }
 
         VkImportMemoryHostPointerInfoEXT importHostInfo;
-        std::optional<SharedMemory> sharedMemory;
+        std::optional<SharedMemory> sharedMemory = std::nullopt;
 
         // TODO(b/261222354): Make sure the feature exists when initializing sVkEmulation.
         if (hostVisible && feature_is_enabled(kFeature_SystemBlob)) {
@@ -3262,25 +3262,32 @@ class VkDecoderGlobalState::Impl {
             mapInfo.caching = MAP_CACHE_WC;
         }
 
-        if (feature_is_enabled(kFeature_SystemBlob)) {
-            // If using shared memory to back the VK memory, the mapping is owned by the
-            // SharedMemory in the mapInfo, which will be unmapped when the info is removed.
-            mapInfo.needUnmap = false;
-            mapInfo.ptr = mappedPtr;
-            mapInfo.sharedMemory = std::exchange(sharedMemory, std::nullopt);
-        } else if (mappedPtr) {
-            mapInfo.needUnmap = false;
-            mapInfo.ptr = mappedPtr;
-        } else if (feature_is_enabled(kFeature_ExternalBlob)) {
-            mapInfo.needUnmap = false;
-            mapInfo.ptr = nullptr;
-        } else {
+        VkInstance* instance = deviceToInstanceLocked(device);
+        InstanceInfo* instanceInfo = android::base::find(mInstanceInfo, *instance);
+
+        // If gfxstream needs to be able to read from this memory, needToMap should be true.
+        // When external blobs are off, we always want to map HOST_VISIBLE memory. Because, we run
+        // in the same process as the guest.
+        // When external blobs are on, we want to map memory only if a workaround is using it in
+        // the gfxstream process. This happens when ASTC CPU emulation is on.
+        bool needToMap =
+            !feature_is_enabled(kFeature_ExternalBlob) || instanceInfo->useAstcCpuDecompression;
+
+        // Some cases provide a mappedPtr, so we only map if we still don't have a pointer here.
+        if (!mappedPtr && needToMap) {
             mapInfo.needUnmap = true;
             VkResult mapResult =
                 vk->vkMapMemory(device, *pMemory, 0, mapInfo.size, 0, &mapInfo.ptr);
             if (mapResult != VK_SUCCESS) {
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
             }
+        } else {
+            // Since we didn't call vkMapMemory, unmapping is not needed (don't own mappedPtr).
+            mapInfo.needUnmap = false;
+            mapInfo.ptr = mappedPtr;
+            // Always assign the shared memory into mapInfo. If it was used, then it will have
+            // ownership transferred.
+            mapInfo.sharedMemory = std::exchange(sharedMemory, std::nullopt);
         }
 
         *pMemory = new_boxed_non_dispatchable_VkDeviceMemory(*pMemory);
