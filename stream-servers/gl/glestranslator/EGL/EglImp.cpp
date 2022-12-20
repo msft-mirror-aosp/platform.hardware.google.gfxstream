@@ -1335,6 +1335,9 @@ EGLAPI EGLBoolean EGLAPIENTRY eglReleaseThread(void) {
     MEM_TRACE("EMUGL");
     ThreadInfo* thread  = getThreadInfo();
     EglDisplay* dpy     = static_cast<EglDisplay*>(thread->eglDisplay);
+    if (!dpy) {
+        return EGL_TRUE;
+    }
     if (!translator::egl::eglMakeCurrent(dpy,EGL_NO_SURFACE,EGL_NO_SURFACE,EGL_NO_CONTEXT)) {
         return EGL_FALSE;
     }
