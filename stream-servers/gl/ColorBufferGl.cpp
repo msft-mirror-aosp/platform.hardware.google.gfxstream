@@ -404,13 +404,8 @@ void ColorBuffer::readPixels(int x,
     }
 }
 
-void ColorBuffer::readPixelsScaled(int width,
-                                   int height,
-                                   GLenum p_format,
-                                   GLenum p_type,
-                                   int rotation,
-                                   void* pixels,
-                                   SkinRect rect) {
+void ColorBuffer::readPixelsScaled(int width, int height, GLenum p_format, GLenum p_type,
+                                   int rotation, void* pixels, emugl::Rect rect) {
     RecursiveScopedContextBind context(m_helper);
     if (!context.isOk()) {
         return;
@@ -420,11 +415,9 @@ void ColorBuffer::readPixelsScaled(int width,
     if (useSnipping &&
         (rect.pos.x < 0 || rect.pos.y < 0 || rect.pos.x + rect.size.w > width ||
          rect.pos.y + rect.size.h > height)) {
-        LOG(ERROR) << "readPixelsScaled failed. Out-of-bound rectangle: ("
-                   << rect.pos.x << ", " << rect.pos.y << ") [" << rect.size.w
-                   << " x " << rect.size.h << "] "
-                   << "with screen "
-                   << "[" << width << " x " << height << "] ";
+        ERR("readPixelsScaled failed. Out-of-bound rectangle: (%d, %d) [%d x %d]"
+            " with screen [%d x %d]",
+            rect.pos.x, rect.pos.y, rect.size.w, rect.size.h);
         return;
     }
     p_format = sGetUnsizedColorBufferFormat(p_format);

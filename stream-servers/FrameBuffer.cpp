@@ -2792,11 +2792,11 @@ static void loadProcOwnedCollection(Stream* stream, Collection* c) {
     });
 }
 
-int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width,
-        unsigned int* height, uint8_t* pixels, size_t* cPixels, int displayId,
-        int desiredWidth, int desiredHeight, int desiredRotation, SkinRect rect) {
+int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsigned int* height,
+                               uint8_t* pixels, size_t* cPixels, int displayId, int desiredWidth,
+                               int desiredHeight, int desiredRotation, emugl::Rect rect) {
     AutoLock mutex(m_lock);
-    uint32_t w, h, cb;
+    uint32_t w, h, cb, screenWidth, screenHeight;
     if (!emugl::get_emugl_multi_display_operations().getMultiDisplay(displayId,
                                                                      nullptr,
                                                                      nullptr,
@@ -2836,9 +2836,8 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width,
     bool useSnipping = (rect.size.w != 0 && rect.size.h != 0);
     if (useSnipping) {
         if (desiredWidth == 0 || desiredHeight == 0) {
-            LOG(ERROR)
-                    << "Must provide non-zero desiredWidth and desireRectanlge "
-                    << "when using rectangle snipping";
+            ERR("Must provide non-zero desiredWidth and desireRectanlge "
+                "when using rectangle snipping");
             *width = 0;
             *height = 0;
             *cPixels = 0;

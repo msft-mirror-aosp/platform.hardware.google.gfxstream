@@ -579,16 +579,9 @@ class FrameBuffer {
     // partial screen.
     // - |rect|  represents a rectangle within the screen defined by
     // desiredWidth and desiredHeight.
-    int getScreenshot(unsigned int nChannels,
-                      unsigned int* width,
-                      unsigned int* height,
-                      uint8_t* pixels,
-                      size_t* cPixels,
-                      int displayId,
-                      int desiredWidth,
-                      int desiredHeight,
-                      SkinRotation desiredRotation,
-                      SkinRect rect = {{0, 0}, {0, 0}});
+    int getScreenshot(unsigned int nChannels, unsigned int* width, unsigned int* height,
+                      uint8_t* pixels, size_t* cPixels, int displayId, int desiredWidth,
+                      int desiredHeight, int desiredRotation, emugl::Rect rect = {{0, 0}, {0, 0}});
 
     void onLastColorBufferRef(uint32_t handle);
     ColorBufferPtr findColorBuffer(HandleType p_colorbuffer);

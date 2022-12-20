@@ -32,6 +32,22 @@ class EmulatorGLESUsages;
 
 namespace emugl {
 
+typedef struct {
+    int x, y;
+} Pos;
+
+typedef struct {
+    int w, h;
+} Size;
+
+// A structure used to model a rectangle in pixels.
+// |pos| is the location of the rectangle's origin (top-left corner).
+// |size| is the dimension in integer pixels of the rectangle.
+typedef struct {
+    Pos pos;
+    Size size;
+} Rect;
+
 enum class FrameBufferChange {
     FrameReady = 0,
 };
@@ -286,16 +302,10 @@ public:
     // indicates the users wants to snip the entire screen.
     // - |rect|  represents a rectangle within the screen defined by
     // desiredWidth and desiredHeight.
-    virtual int getScreenshot(unsigned int nChannels,
-                              unsigned int* width,
-                              unsigned int* height,
-                              uint8_t* pixels,
-                              size_t* cPixels,
-                              int displayId = 0,
-                              int desiredWidth = 0,
-                              int desiredHeight = 0,
-                              SkinRotation desiredRotation = SKIN_ROTATION_0,
-                              SkinRect rect = {{0, 0}, {0, 0}}) = 0;
+    virtual int getScreenshot(unsigned int nChannels, unsigned int* width, unsigned int* height,
+                              uint8_t* pixels, size_t* cPixels, int displayId = 0,
+                              int desiredWidth = 0, int desiredHeight = 0, int desiredRotation = 0,
+                              Rect rect = {{0, 0}, {0, 0}}) = 0;
     virtual void snapshotOperationCallback(
             int snapshotterOp,
             int snapshotterStage) = 0;
