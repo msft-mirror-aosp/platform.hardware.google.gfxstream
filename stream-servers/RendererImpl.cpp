@@ -24,6 +24,7 @@
 #include "RenderThread.h"
 #include "aemu/base/system/System.h"
 #include "aemu/base/threads/WorkerThread.h"
+#include "gl/EmulatedEglFenceSync.h"
 #include "host-common/logging.h"
 #include "snapshot/common.h"
 
@@ -367,6 +368,9 @@ bool RendererImpl::load(android::base::Stream* stream,
     assert(fb);
 
     bool res = true;
+
+    res = fb->onLoad(stream, textureLoader);
+    gfxstream::EmulatedEglFenceSync::onLoad(stream);
 
     return res;
 }
