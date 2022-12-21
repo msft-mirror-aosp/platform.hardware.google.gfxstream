@@ -16,14 +16,14 @@
 
 #pragma once
 
-#include <memory>
-#include <unordered_map>
-#include <unordered_set>
-
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GLES/gl.h>
 #include <GLES3/gl3.h>
+
+#include <memory>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "BorrowedImage.h"
 #include "ContextHelper.h"
@@ -32,6 +32,7 @@
 #include "Hwc2.h"
 #include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/files/Stream.h"
+#include "render-utils/Renderer.h"
 #include "snapshot/LazySnapshotObj.h"
 
 // From ANGLE "src/common/angleutils.h"
@@ -121,13 +122,11 @@ class ColorBuffer :
                     GLenum p_format,
                     GLenum p_type,
                     void* pixels);
-
-    void readPixelsScaled(int width,
-                          int height,
-                          GLenum p_format,
-                          GLenum p_type,
-                          int skinRotation,
-                          void* pixels);
+    // Read the ColorBuffer instance's pixel values by first scaling
+    // to the size of width x height, then clipping a |rect| from the
+    // screen defined by width x height.
+    void readPixelsScaled(int width, int height, GLenum p_format, GLenum p_type, int skinRotation,
+                          void* pixels, emugl::Rect rect);
 
     // Read cached YUV pixel values into host memory.
     void readPixelsYUVCached(int x,
