@@ -28,9 +28,7 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 layout(push_constant) uniform ImageFormatBlock {
     uvec2 blockSize;
-    uint compFormat;
     uint baseLayer;
-    uint sRGB;
     uint smallBlock;
 }
 u_pushConstant;
