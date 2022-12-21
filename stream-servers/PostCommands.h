@@ -7,6 +7,8 @@
 #include <memory>
 #include <vector>
 
+#include "render-utils/Renderer.h"
+
 class ColorBuffer;
 
 // Posting
@@ -48,6 +50,7 @@ struct Post {
             GLenum type;
             int rotation;
             void* pixels;
+            emugl::Rect rect;
         } screenshot;
     };
 };
