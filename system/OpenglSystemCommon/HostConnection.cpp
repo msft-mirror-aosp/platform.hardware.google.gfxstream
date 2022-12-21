@@ -727,6 +727,7 @@ ExtendedRCEncoderContext *HostConnection::rcEncoder()
         queryAndSetVulkanAsyncQsri(rcEnc);
         queryAndSetReadColorBufferDma(rcEnc);
         queryAndSetHWCMultiConfigs(rcEnc);
+        queryAndSetVulkanAuxCommandBufferMemory(rcEnc);
         queryVersion(rcEnc);
         if (m_processPipe) {
             auto fd = (m_connectionType == HOST_CONNECTION_VIRTIO_GPU_ADDRESS_SPACE) ? m_rendernodeFd : -1;
@@ -1015,6 +1016,12 @@ void HostConnection::queryAndSetHWCMultiConfigs(ExtendedRCEncoderContext* rcEnc)
         rcEnc->featureInfo()->hasHWCMultiConfigs = true;
     }
 }
+
+void HostConnection::queryAndSetVulkanAuxCommandBufferMemory(ExtendedRCEncoderContext* rcEnc) {
+    std::string hostExtensions = queryHostExtensions(rcEnc);
+    rcEnc->featureInfo()->hasVulkanAuxCommandMemory = hostExtensions.find(kVulkanAuxCommandMemory) != std::string::npos;
+}
+
 
 GLint HostConnection::queryVersion(ExtendedRCEncoderContext* rcEnc) {
     GLint version = m_rcEnc->rcGetRendererVersion(m_rcEnc.get());
