@@ -572,15 +572,16 @@ class FrameBuffer {
     //
     // Note: Do not call this function again if it fails and *cPixels == 0
     //  swiftshader_indirect does not work with 3 channels
-    int getScreenshot(unsigned int nChannels,
-                      unsigned int* width,
-                      unsigned int* height,
-                      uint8_t* pixels,
-                      size_t* cPixels,
-                      int displayId,
-                      int desiredWidth,
-                      int desiredHeight,
-                      int desiredRotation);
+    //
+    // This function supports rectangle snipping by
+    // providing an |rect| parameter. The default value of {{0,0}, {0,0}}
+    // indicates the users wants to snip the entire screen instead of a
+    // partial screen.
+    // - |rect|  represents a rectangle within the screen defined by
+    // desiredWidth and desiredHeight.
+    int getScreenshot(unsigned int nChannels, unsigned int* width, unsigned int* height,
+                      uint8_t* pixels, size_t* cPixels, int displayId, int desiredWidth,
+                      int desiredHeight, int desiredRotation, emugl::Rect rect = {{0, 0}, {0, 0}});
 
     void onLastColorBufferRef(uint32_t handle);
     ColorBufferPtr findColorBuffer(HandleType p_colorbuffer);

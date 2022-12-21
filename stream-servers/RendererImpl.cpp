@@ -380,21 +380,15 @@ void RendererImpl::fillGLESUsages(android_studio::EmulatorGLESUsages* usages) {
     if (fb) fb->fillGLESUsages(usages);
 }
 
-int RendererImpl::getScreenshot(
-        unsigned int nChannels,
-        unsigned int* width,
-        unsigned int* height,
-        uint8_t* pixels,
-        size_t* cPixels,
-        int displayId = 0,
-        int desiredWidth = 0,
-        int desiredHeight = 0,
-        int desiredRotation = 0) {
+int RendererImpl::getScreenshot(unsigned int nChannels, unsigned int* width, unsigned int* height,
+                                uint8_t* pixels, size_t* cPixels, int displayId = 0,
+                                int desiredWidth = 0, int desiredHeight = 0,
+                                int desiredRotation = 0, Rect rect = {{0, 0}, {0, 0}}) {
     auto fb = FrameBuffer::getFB();
     if (fb) {
         return fb->getScreenshot(nChannels, width, height, pixels, cPixels,
                                  displayId, desiredWidth, desiredHeight,
-                                 desiredRotation);
+                                 desiredRotation, rect);
     }
     *cPixels = 0;
     return -1;

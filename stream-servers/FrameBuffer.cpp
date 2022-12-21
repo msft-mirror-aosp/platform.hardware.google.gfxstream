@@ -722,13 +722,10 @@ WorkerProcessingResult FrameBuffer::postWorkerFunc(Post& post) {
             break;
         case PostCmd::Screenshot:
             m_postWorker->screenshot(
-                post.screenshot.cb,
-                post.screenshot.screenwidth,
-                post.screenshot.screenheight,
-                post.screenshot.format,
-                post.screenshot.type,
-                post.screenshot.rotation,
-                post.screenshot.pixels);
+                    post.screenshot.cb, post.screenshot.screenwidth,
+                    post.screenshot.screenheight, post.screenshot.format,
+                    post.screenshot.type, post.screenshot.rotation,
+                    post.screenshot.pixels, post.screenshot.rect);
             break;
         case PostCmd::Block:
             m_postWorker->block(std::move(post.block->scheduledSignal),
@@ -774,13 +771,11 @@ std::future<void> FrameBuffer::sendPostWorkerCmd(Post post) {
     res.wait();
     if (postOnlyOnMainThread && (PostCmd::Screenshot == post.cmd) &&
         emugl::get_emugl_window_operations().isRunningInUiThread()) {
-        post.cb->readPixelsScaled(
-            post.screenshot.screenwidth,
-            post.screenshot.screenheight,
-            post.screenshot.format,
-            post.screenshot.type,
-            post.screenshot.rotation,
-            post.screenshot.pixels);
+        post.cb->readPixelsScaled(post.screenshot.screenwidth,
+                                  post.screenshot.screenheight,
+                                  post.screenshot.format, post.screenshot.type,
+                                  post.screenshot.rotation,
+                                  post.screenshot.pixels, post.screenshot.rect);
     } else {
         std::future<void> completeFuture =
             m_postThread.enqueue(Post(std::move(post)));
@@ -2797,11 +2792,11 @@ static void loadProcOwnedCollection(Stream* stream, Collection* c) {
     });
 }
 
-int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width,
-        unsigned int* height, uint8_t* pixels, size_t* cPixels, int displayId,
-        int desiredWidth, int desiredHeight, int desiredRotation) {
+int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width, unsigned int* height,
+                               uint8_t* pixels, size_t* cPixels, int displayId, int desiredWidth,
+                               int desiredHeight, int desiredRotation, emugl::Rect rect) {
     AutoLock mutex(m_lock);
-    uint32_t w, h, cb;
+    uint32_t w, h, cb, screenWidth, screenHeight;
     if (!emugl::get_emugl_multi_display_operations().getMultiDisplay(displayId,
                                                                      nullptr,
                                                                      nullptr,
@@ -2835,10 +2830,37 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width,
         return -1;
     }
 
-    *width = (desiredWidth == 0) ? w : desiredWidth;
-    *height = (desiredHeight == 0) ? h : desiredHeight;
+    screenWidth = (desiredWidth == 0) ? w : desiredWidth;
+    screenHeight = (desiredHeight == 0) ? h : desiredHeight;
 
-    int needed = nChannels * (*width) * (*height);
+    bool useSnipping = (rect.size.w != 0 && rect.size.h != 0);
+    if (useSnipping) {
+        if (desiredWidth == 0 || desiredHeight == 0) {
+            ERR("Must provide non-zero desiredWidth and desireRectanlge "
+                "when using rectangle snipping");
+            *width = 0;
+            *height = 0;
+            *cPixels = 0;
+            return -1;
+        }
+        if ((rect.pos.x < 0 || rect.pos.y < 0) ||
+            (desiredWidth < rect.pos.x + rect.size.w ||
+             desiredHeight < rect.pos.y + rect.size.h)) {
+            return -1;
+        }
+    }
+
+    if (useSnipping) {
+        *width = rect.size.w;
+        *height = rect.size.h;
+    } else {
+        *width = screenWidth;
+        *height = screenHeight;
+    }
+
+    int needed = useSnipping ? (nChannels * rect.size.w * rect.size.h)
+                             : (nChannels * (*width) * (*height));
+
     if (*cPixels < needed) {
         *cPixels = needed;
         return -2;
@@ -2846,6 +2868,33 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width,
     *cPixels = needed;
     if (desiredRotation == SKIN_ROTATION_90 || desiredRotation == SKIN_ROTATION_270) {
         std::swap(*width, *height);
+        std::swap(screenWidth, screenHeight);
+        std::swap(rect.size.w, rect.size.h);
+    }
+    // Transform the x, y coordinates given the rotation.
+    // Assume (0, 0) represents the top left corner of the screen.
+    if (useSnipping) {
+        int x, y;
+        switch (desiredRotation) {
+            case SKIN_ROTATION_0:
+                x = rect.pos.x;
+                y = rect.pos.y;
+                break;
+            case SKIN_ROTATION_90:
+                x = rect.pos.y;
+                y = rect.pos.x;
+                break;
+            case SKIN_ROTATION_180:
+                x = screenWidth - rect.pos.x - rect.size.w;
+                y = rect.pos.y;
+                break;
+            case SKIN_ROTATION_270:
+                x = rect.pos.y;
+                y = screenHeight - rect.pos.x - rect.size.h;
+                break;
+        }
+        rect.pos.x = x;
+        rect.pos.y = y;
     }
 
     GLenum format = nChannels == 3 ? GL_RGB : GL_RGBA;
@@ -2858,6 +2907,7 @@ int FrameBuffer::getScreenshot(unsigned int nChannels, unsigned int* width,
     scrCmd.screenshot.type = GL_UNSIGNED_BYTE;
     scrCmd.screenshot.rotation = desiredRotation;
     scrCmd.screenshot.pixels = pixels;
+    scrCmd.screenshot.rect = rect;
 
     std::future<void> completeFuture = sendPostWorkerCmd(std::move(scrCmd));
     completeFuture.wait();
