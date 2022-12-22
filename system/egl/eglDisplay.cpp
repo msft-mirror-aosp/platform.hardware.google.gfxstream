@@ -367,6 +367,7 @@ static char *buildExtensionString()
 
         asprintf(&finalEGLExts, "%s%s", initialEGLExts, dynamicEGLExtensions.c_str());
 
+        free(initialEGLExts);
         free((char*)hostExt);
         return finalEGLExts;
     }
