@@ -37,7 +37,12 @@ class CompositorVkTest : public ::testing::Test {
                                                 VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT>;
     using SourceImage = emugl::RenderTextureVk;
 
-    static void SetUpTestCase() { k_vk = emugl::vkDispatch(false); }
+    static void SetUpTestCase() {
+        android::base::setEnvironmentVariable(
+            "VK_ICD_FILENAMES",
+            emugl::testIcdFilename());
+        k_vk = emugl::vkDispatch(false);
+    }
 
     void SetUp() override {
         ASSERT_NE(k_vk, nullptr);
