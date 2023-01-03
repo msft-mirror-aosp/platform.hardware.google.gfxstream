@@ -631,10 +631,9 @@ std::unique_ptr<EmulatedEglFenceSync> EmulationGl::createEmulatedEglFenceSync(
 std::unique_ptr<EmulatedEglImage> EmulationGl::createEmulatedEglImage(
         EmulatedEglContext* context,
         EGLenum target,
-        EGLClientBuffer buffer,
-        HandleType handle) {
+        EGLClientBuffer buffer) {
     EGLContext eglContext = context ? context->getEGLContext() : EGL_NO_CONTEXT;
-    return EmulatedEglImage::create(mEglDisplay, eglContext, target, buffer, handle);
+    return EmulatedEglImage::create(mEglDisplay, eglContext, target, buffer);
 }
 
 std::unique_ptr<EmulatedEglWindowSurface> EmulationGl::createEmulatedEglWindowSurface(
