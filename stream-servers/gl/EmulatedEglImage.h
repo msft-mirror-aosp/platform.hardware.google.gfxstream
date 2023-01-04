@@ -32,12 +32,13 @@ class EmulatedEglImage {
     static std::unique_ptr<EmulatedEglImage> create(EGLDisplay display,
                                                     EGLContext context,
                                                     EGLenum target,
-                                                    EGLClientBuffer buffer,
-                                                    HandleType handle);
+                                                    EGLClientBuffer buffer);
 
     ~EmulatedEglImage();
 
     EGLBoolean destroy();
+
+    HandleType getHandle() const { return mHandle; }
 
   private:
     EmulatedEglImage(HandleType handle,

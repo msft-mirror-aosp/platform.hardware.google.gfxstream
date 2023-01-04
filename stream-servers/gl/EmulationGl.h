@@ -109,8 +109,7 @@ class EmulationGl {
     std::unique_ptr<EmulatedEglImage> createEmulatedEglImage(
         EmulatedEglContext* context,
         EGLenum target,
-        EGLClientBuffer buffer,
-        HandleType handle);
+        EGLClientBuffer buffer);
 
     std::unique_ptr<EmulatedEglWindowSurface> createEmulatedEglWindowSurface(
         uint32_t emulatedConfigIndex,
