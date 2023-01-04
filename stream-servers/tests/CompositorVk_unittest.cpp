@@ -45,6 +45,9 @@ class CompositorVkTest : public ::testing::Test {
     }
 
     void SetUp() override {
+#if defined(__APPLE__) && defined(__arm64__)
+        GTEST_SKIP() << "Skipping all test on Apple M2, as they are failing, see b/263494782";
+#endif
         ASSERT_NE(k_vk, nullptr);
         createInstance();
         pickPhysicalDevice();
@@ -73,6 +76,10 @@ class CompositorVkTest : public ::testing::Test {
     }
 
     void TearDown() override {
+#if defined(__APPLE__) && defined(__arm64__)
+        return;
+#endif
+
         k_vk->vkDestroyCommandPool(m_vkDevice, m_vkCommandPool, nullptr);
         k_vk->vkDestroyDevice(m_vkDevice, nullptr);
         m_vkDevice = VK_NULL_HANDLE;
