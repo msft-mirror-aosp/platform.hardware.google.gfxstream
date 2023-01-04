@@ -2428,16 +2428,15 @@ HandleType FrameBuffer::createEmulatedEglImage(HandleType contextHandle,
         context = it->second.get();
     }
 
-    HandleType imageHandle = genHandle_locked();
-
     auto image = m_emulationGl->createEmulatedEglImage(context,
                                                        target,
-                                                       reinterpret_cast<EGLClientBuffer>(buffer),
-                                                       imageHandle);
+                                                       reinterpret_cast<EGLClientBuffer>(buffer));
     if (!image) {
         ERR("Failed to create EmulatedEglImage");
         return false;
     }
+
+    HandleType imageHandle = image->getHandle();
 
     m_images[imageHandle] = std::move(image);
 
