@@ -255,13 +255,11 @@ RenderChannelPtr RendererImpl::createRenderChannel(
 }
 
 void RendererImpl::addListener(FrameBufferChangeEventListener* listener) {
-    // TODO: need CP
-    (void)listener;
+    mRenderWindow->addListener(listener);
 }
 
 void RendererImpl::removeListener(FrameBufferChangeEventListener* listener) {
-    // TODO: need CP
-    (void)listener;
+    mRenderWindow->removeListener(listener);
 }
 
 void* RendererImpl::addressSpaceGraphicsConsumerCreate(
