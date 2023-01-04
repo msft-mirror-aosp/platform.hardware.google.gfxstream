@@ -1,10 +1,36 @@
 #ifndef VK_TEST_UTILS_H
 #define VK_TEST_UTILS_H
 
+#include "aemu/base/files/PathUtils.h"
 #include "vulkan/VulkanDispatch.h"
 #include "vulkan/vk_util.h"
 
 namespace emugl {
+
+inline std::string libDir() {
+    using android::base::pj;
+    return
+        pj({android::base::getProgramDirectory(),
+#ifdef _WIN32
+           // Windows uses mock Vulkan ICD.
+           "testlib64"
+#else
+           "lib64", "vulkan"
+#endif
+        });
+}
+
+inline std::string testIcdFilename() {
+    using android::base::pj;
+    return pj(libDir(),
+#ifdef _WIN32
+        // Windows uses mock Vulkan ICD.
+        "VkICD_mock_icd.json"
+#else
+        "vk_swiftshader_icd.json"
+#endif
+    );
+}
 
 struct RenderResourceVkBase
     : public vk_util::MultiCrtp<RenderResourceVkBase,                         //

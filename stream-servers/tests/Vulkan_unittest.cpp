@@ -27,6 +27,7 @@
 #include "host-common/GraphicsAgentFactory.h"
 #include "host-common/opengl/misc.h"
 #include "host-common/testing/MockGraphicsAgentFactory.h"
+#include "tests/VkTestUtils.h"
 
 #include "Standalone.h"
 
@@ -47,29 +48,6 @@ using android::base::pj;
 using android::base::TestSystem;
 
 namespace emugl {
-
-static std::string libDir() {
-    return
-        pj({android::base::getProgramDirectory(),
-#ifdef _WIN32
-           // Windows uses mock Vulkan ICD.
-           "testlib64"
-#else
-           "lib64", "vulkan"
-#endif
-        });
-}
-
-static std::string testIcdFilename() {
-    return pj(libDir(),
-#ifdef _WIN32
-        // Windows uses mock Vulkan ICD.
-        "VkICD_mock_icd.json"
-#else
-        "vk_swiftshader_icd.json"
-#endif
-    );
-}
 
 #ifdef _WIN32
 #define SKIP_TEST_IF_WIN32() GTEST_SKIP()
