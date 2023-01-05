@@ -19,9 +19,6 @@
 #include "host-common/goldfish_sync.h"
 #include "host-common/FeatureControl.h"
 
-// Crash reporter
-typedef void (*emugl_crash_reporter_t)(const char* format, ...);
-
 // Feature control
 typedef bool (*emugl_feature_is_enabled_t)(android::featurecontrol::Feature feature);
 

@@ -24,6 +24,7 @@ static int s_glesMinorVersion = 0;
 android::base::GLObjectCounter* s_default_gl_object_counter = nullptr;
 
 android::base::GLObjectCounter* s_gl_object_counter = nullptr;
+static GrallocImplementation s_gralloc_implementation = MINIGBM;
 
 static SelectedRenderer s_renderer =
     SELECTED_RENDERER_HOST;
@@ -69,4 +70,12 @@ android::base::GLObjectCounter* emugl::getGLObjectCounter() {
         return s_default_gl_object_counter;
     }
     return s_gl_object_counter;
+}
+
+void emugl::setGrallocImplementation(GrallocImplementation gralloc) {
+    s_gralloc_implementation = gralloc;
+}
+
+GrallocImplementation emugl::getGrallocImplementation() {
+    return s_gralloc_implementation;
 }

@@ -15,7 +15,8 @@
 #include "VulkanTestHelper.h"
 
 #include "host-common/feature_control.h"
-#include "host-common/include/host-common/vm_operations.h"
+#include "host-common/emugl_vm_operations.h"
+#include "host-common/vm_operations.h"
 #include "host-common/logging.h"
 
 namespace goldfish_vk::testing {
