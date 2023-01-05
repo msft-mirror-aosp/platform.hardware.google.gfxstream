@@ -8470,6 +8470,15 @@ static void entry_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(VkQueue queue,
     vkEnc->vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(queue, waitSemaphoreCount, pWaitSemaphores,
                                                        image, true /* do lock */);
 }
+static void entry_vkQueueFlushCommandsFromAuxMemoryGOOGLE(VkQueue queue,
+                                                          VkCommandBuffer commandBuffer,
+                                                          VkDeviceSize dataOffset,
+                                                          VkDeviceSize dataSize) {
+    AEMU_SCOPED_TRACE("vkQueueFlushCommandsFromAuxMemoryGOOGLE");
+    auto vkEnc = ResourceTracker::getQueueEncoder(queue);
+    vkEnc->vkQueueFlushCommandsFromAuxMemoryGOOGLE(queue, commandBuffer, dataOffset, dataSize,
+                                                   true /* do lock */);
+}
 #endif
 #ifdef VK_EXT_global_priority_query
 #endif
@@ -10875,6 +10884,9 @@ void* goldfish_vulkan_get_proc_address(const char* name) {
     if (!strcmp(name, "vkQueueSignalReleaseImageANDROIDAsyncGOOGLE")) {
         return nullptr;
     }
+    if (!strcmp(name, "vkQueueFlushCommandsFromAuxMemoryGOOGLE")) {
+        return nullptr;
+    }
 #endif
 #ifdef VK_EXT_multi_draw
     if (!strcmp(name, "vkCmdDrawMultiEXT")) {
@@ -13081,6 +13093,10 @@ void* goldfish_vulkan_get_instance_proc_address(VkInstance instance, const char*
     if (!strcmp(name, "vkQueueSignalReleaseImageANDROIDAsyncGOOGLE")) {
         bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkQueueFlushCommandsFromAuxMemoryGOOGLE")) {
+        bool hasExt = resources->hasInstanceExtension(instance, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)entry_vkQueueFlushCommandsFromAuxMemoryGOOGLE : nullptr;
     }
 #endif
 #ifdef VK_EXT_multi_draw
@@ -15330,6 +15346,10 @@ void* goldfish_vulkan_get_device_proc_address(VkDevice device, const char* name)
     if (!strcmp(name, "vkQueueSignalReleaseImageANDROIDAsyncGOOGLE")) {
         bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
         return hasExt ? (void*)entry_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE : nullptr;
+    }
+    if (!strcmp(name, "vkQueueFlushCommandsFromAuxMemoryGOOGLE")) {
+        bool hasExt = resources->hasDeviceExtension(device, "VK_GOOGLE_gfxstream");
+        return hasExt ? (void*)entry_vkQueueFlushCommandsFromAuxMemoryGOOGLE : nullptr;
     }
 #endif
 #ifdef VK_EXT_multi_draw

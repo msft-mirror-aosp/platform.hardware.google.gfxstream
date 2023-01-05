@@ -119,6 +119,10 @@ typedef void(VKAPI_PTR* PFN_vkCollectDescriptorPoolIdsGOOGLE)(VkDevice device,
                                                               uint64_t* pPoolIds);
 typedef void(VKAPI_PTR* PFN_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE)(
     VkQueue queue, uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores, VkImage image);
+typedef void(VKAPI_PTR* PFN_vkQueueFlushCommandsFromAuxMemoryGOOGLE)(VkQueue queue,
+                                                                     VkCommandBuffer commandBuffer,
+                                                                     VkDeviceSize dataOffset,
+                                                                     VkDeviceSize dataSize);
 
 #ifndef VK_NO_PROTOTYPES
 VKAPI_ATTR VkResult VKAPI_CALL vkRegisterImageColorBufferGOOGLE(VkDevice device, VkImage image,
@@ -206,6 +210,11 @@ VKAPI_ATTR void VKAPI_CALL vkCollectDescriptorPoolIdsGOOGLE(VkDevice device,
 
 VKAPI_ATTR void VKAPI_CALL vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(
     VkQueue queue, uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores, VkImage image);
+
+VKAPI_ATTR void VKAPI_CALL vkQueueFlushCommandsFromAuxMemoryGOOGLE(VkQueue queue,
+                                                                   VkCommandBuffer commandBuffer,
+                                                                   VkDeviceSize dataOffset,
+                                                                   VkDeviceSize dataSize);
 #endif
 
 #ifdef __cplusplus
