@@ -16,6 +16,7 @@
 #include <memory>
 
 #include "aemu/base/files/Stream.h"
+#include "host-common/crash_reporter.h"
 #include "host-common/dma_device.h"
 #include "host-common/multi_display_agent.h"
 #include "host-common/RefcountPipe.h"

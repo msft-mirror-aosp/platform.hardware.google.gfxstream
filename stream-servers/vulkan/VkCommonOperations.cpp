@@ -36,6 +36,7 @@
 #include "aemu/base/Tracing.h"
 #include "common/goldfish_vk_dispatch.h"
 #include "host-common/GfxstreamFatalError.h"
+#include "host-common/emugl_vm_operations.h"
 #include "host-common/vm_operations.h"
 
 #ifdef _WIN32

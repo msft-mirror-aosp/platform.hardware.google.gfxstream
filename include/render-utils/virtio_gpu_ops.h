@@ -13,8 +13,10 @@
 // limitations under the License.
 #pragma once
 
+#ifdef __cplusplus
 #include <functional>
 #include <future>
+#endif
 
 /* virtio-gpu interface for buffers
  * (triggered by minigbm/egl calling virtio-gpu ioctls) */
@@ -68,7 +70,8 @@ typedef void (*swap_textures_and_update_color_buffer_t)(
         uint32_t format,
         uint32_t type,
         uint32_t texture_type,
-        uint32_t* textures);
+        uint32_t* textures,
+        void* metadata);
 
 typedef void (*open_color_buffer_t)(uint32_t handle);
 typedef void (*close_buffer_t)(uint32_t handle);
@@ -85,8 +88,12 @@ typedef void (*read_color_buffer_yuv_t)(
     uint32_t handle, int x, int y, int width, int height,
     void* pixels, uint32_t pixels_size);
 typedef void (*post_color_buffer_t)(uint32_t handle);
+#ifdef __cplusplus
 using CpuCompletionCallback = std::function<void(std::shared_future<void> waitForGpu)>;
 typedef void (*async_post_color_buffer_t)(uint32_t, CpuCompletionCallback);
+#else
+typedef void* async_post_color_buffer_t;
+#endif
 typedef void (*repost_t)(void);
 typedef uint32_t (*get_last_posted_color_buffer_t)(void);
 typedef void (*bind_color_buffer_to_texture_t)(uint32_t);
@@ -94,15 +101,27 @@ typedef void* (*get_global_egl_context_t)(void);
 typedef void (*wait_for_gpu_t)(uint64_t eglsync);
 typedef void (*wait_for_gpu_vulkan_t)(uint64_t device, uint64_t fence);
 typedef void (*set_guest_managed_color_buffer_lifetime_t)(bool guest_managed);
-typedef void (*update_color_buffer_from_framework_format_t)(
-    uint32_t handle, int x, int y, int width, int height,
-    uint32_t fwkFormat, uint32_t format, uint32_t type, void* pixels);
+typedef void (*update_color_buffer_from_framework_format_t)(uint32_t handle,
+                                                            int x,
+                                                            int y,
+                                                            int width,
+                                                            int height,
+                                                            uint32_t fwkFormat,
+                                                            uint32_t format,
+                                                            uint32_t type,
+                                                            void* pixels,
+                                                            void* metadata);
 
+#ifdef __cplusplus
 using FenceCompletionCallback = std::function<void()>;
 typedef void (*async_wait_for_gpu_with_cb_t)(uint64_t eglsync, FenceCompletionCallback);
 typedef void (*async_wait_for_gpu_vulkan_with_cb_t)(uint64_t device, uint64_t fence, FenceCompletionCallback);
-
 typedef void (*async_wait_for_gpu_vulkan_qsri_with_cb_t)(uint64_t image, FenceCompletionCallback);
+#else
+typedef void* async_wait_for_gpu_with_cb_t;
+typedef void* async_wait_for_gpu_vulkan_with_cb_t;
+typedef void* async_wait_for_gpu_vulkan_qsri_with_cb_t;
+#endif
 typedef void (*wait_for_gpu_vulkan_qsri_t)(uint64_t image);
 
 // Platform resources and contexts support

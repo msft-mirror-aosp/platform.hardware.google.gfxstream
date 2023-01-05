@@ -608,7 +608,7 @@ void GLESv2Context::drawWithEmulations(
             s_glDispatch.glDrawArraysInstanced(mode, first, count, primcount);
             break;
         default:
-            emugl_crash_reporter(
+            emugl::emugl_crash_reporter(
                 "drawWithEmulations has corrupt call parameters!");
     }
 
