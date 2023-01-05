@@ -848,7 +848,7 @@ void SaveableTexture::restore() {
             GenNameInfo(NamedObjectType::TEXTURE), m_globalNamespace));
     if (!m_globalTexObj) {
         GL_LOG("SaveableTexture::%s: %p: could not allocate NamedObject for texture\n", __func__, this);
-        emugl_crash_reporter(
+        emugl::emugl_crash_reporter(
                 "Fatal: could not allocate SaveableTexture m_globalTexObj\n");
     }
 

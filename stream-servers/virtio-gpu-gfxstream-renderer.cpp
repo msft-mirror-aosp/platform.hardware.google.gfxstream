@@ -727,8 +727,8 @@ class PipeVirglRenderer {
                     .createRenderThread = true,
                     .externalAddr = resEntry.hva,
                     .externalAddrSize = resEntry.hvaSize,
-                    .contextId = ctxId,
-                    .capsetId = ctxEntry.capsetId,
+                    .virtioGpuContextId = ctxId,
+                    .virtioGpuCapsetId = ctxEntry.capsetId,
                     .contextName = name.c_str(),
                     .contextNameSize = static_cast<uint32_t>(ctxEntry.name.size()),
                 };
@@ -1904,11 +1904,11 @@ VG_EXPORT void get_pixels(void* pixels, uint32_t bytes);
 static const GoldfishPipeServiceOps goldfish_pipe_service_ops = {
     // guest_open()
     [](GoldfishHwPipe* hwPipe) -> GoldfishHostPipe* {
-        return static_cast<GoldfishHostPipe*>(android_pipe_guest_open(hwPipe));
+        return static_cast<GoldfishHostPipe*>(android_pipe_guest_open(hwPipe, nullptr));
     },
     // guest_open_with_flags()
     [](GoldfishHwPipe* hwPipe, uint32_t flags) -> GoldfishHostPipe* {
-        return static_cast<GoldfishHostPipe*>(android_pipe_guest_open_with_flags(hwPipe, flags));
+        return static_cast<GoldfishHostPipe*>(android_pipe_guest_open_with_flags(hwPipe, flags, nullptr));
     },
     // guest_close()
     [](GoldfishHostPipe* hostPipe, GoldfishPipeCloseReason reason) {
