@@ -895,7 +895,12 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
     //        deleteExisting ? "deleteExisting" : "keepExisting",
     //        (long long)System::get()->getProcessTimes().wallClockMs);
 #endif
-
+    // The order of acquiring m_lock and blockPostWorker has created quite some race
+    // conditions and we swap them back and forth. Currently acquiring m_lock before
+    // blockPostWorker resolves the race condition in AEMU but we still need to
+    // verify it after turning on guest ANGLE and Vulkan swapchain.
+    // TODO: b/264458932
+    AutoLock mutex(m_lock);
     class ScopedPromise {
        public:
         ~ScopedPromise() { mPromise.set_value(); }
@@ -930,7 +935,6 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
     auto lockWatchdog =
         WATCHDOG_BUILDER(m_healthMonitor.get(), "Wait for the FrameBuffer global lock").build();
     auto lockWatchdogId = lockWatchdog->release();
-    AutoLock mutex(m_lock);
     if (lockWatchdogId.has_value()) {
         m_healthMonitor->stopMonitoringTask(lockWatchdogId.value());
     }
