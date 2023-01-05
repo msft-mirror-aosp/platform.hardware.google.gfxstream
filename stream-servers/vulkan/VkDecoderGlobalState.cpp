@@ -4608,6 +4608,12 @@ class VkDecoderGlobalState::Impl {
         subDecode(readStream, vk, boxed_commandBuffer, commandBuffer, dataSize, pData, context);
     }
 
+    void on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(android::base::BumpPool* pool, VkQueue queue,
+                                                    VkCommandBuffer commandBuffer,
+                                                    VkDeviceSize dataOffset, VkDeviceSize dataSize,
+                                                    const VkDecoderContext& context) {
+        // TODO : implement
+    }
     VkDescriptorSet getOrAllocateDescriptorSetFromPoolAndId(VulkanDispatch* vk, VkDevice device,
                                                             VkDescriptorPool pool,
                                                             VkDescriptorSetLayout setLayout,
@@ -7082,6 +7088,13 @@ void VkDecoderGlobalState::on_vkQueueFlushCommandsGOOGLE(android::base::BumpPool
                                                          VkDeviceSize dataSize, const void* pData,
                                                          const VkDecoderContext& context) {
     mImpl->on_vkQueueFlushCommandsGOOGLE(pool, queue, commandBuffer, dataSize, pData, context);
+}
+
+void VkDecoderGlobalState::on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(
+    android::base::BumpPool* pool, VkQueue queue, VkCommandBuffer commandBuffer,
+    VkDeviceSize dataOffset, VkDeviceSize dataSize, const VkDecoderContext& context) {
+    mImpl->on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(pool, queue, commandBuffer, dataOffset,
+                                                      dataSize, context);
 }
 
 void VkDecoderGlobalState::on_vkQueueCommitDescriptorSetUpdatesGOOGLE(

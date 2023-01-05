@@ -1764,6 +1764,9 @@ void init_vulkan_dispatch_from_system_loader(DlOpenFunc dlOpenFunc, DlSymFunc dl
     out->vkQueueSignalReleaseImageANDROIDAsyncGOOGLE =
         (PFN_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE)dlSymFunc(
             lib, "vkQueueSignalReleaseImageANDROIDAsyncGOOGLE");
+    out->vkQueueFlushCommandsFromAuxMemoryGOOGLE =
+        (PFN_vkQueueFlushCommandsFromAuxMemoryGOOGLE)dlSymFunc(
+            lib, "vkQueueFlushCommandsFromAuxMemoryGOOGLE");
 #endif
 #ifdef VK_EXT_multi_draw
     out->vkCmdDrawMultiEXT = (PFN_vkCmdDrawMultiEXT)dlSymFunc(lib, "vkCmdDrawMultiEXT");
@@ -3291,6 +3294,9 @@ void init_vulkan_dispatch_from_instance(VulkanDispatch* vk, VkInstance instance,
     out->vkQueueSignalReleaseImageANDROIDAsyncGOOGLE =
         (PFN_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE)vk->vkGetInstanceProcAddr(
             instance, "vkQueueSignalReleaseImageANDROIDAsyncGOOGLE");
+    out->vkQueueFlushCommandsFromAuxMemoryGOOGLE =
+        (PFN_vkQueueFlushCommandsFromAuxMemoryGOOGLE)vk->vkGetInstanceProcAddr(
+            instance, "vkQueueFlushCommandsFromAuxMemoryGOOGLE");
 #endif
 #ifdef VK_EXT_multi_draw
     out->vkCmdDrawMultiEXT =
@@ -4790,6 +4796,9 @@ void init_vulkan_dispatch_from_device(VulkanDispatch* vk, VkDevice device, Vulka
     out->vkQueueSignalReleaseImageANDROIDAsyncGOOGLE =
         (PFN_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE)vk->vkGetDeviceProcAddr(
             device, "vkQueueSignalReleaseImageANDROIDAsyncGOOGLE");
+    out->vkQueueFlushCommandsFromAuxMemoryGOOGLE =
+        (PFN_vkQueueFlushCommandsFromAuxMemoryGOOGLE)vk->vkGetDeviceProcAddr(
+            device, "vkQueueFlushCommandsFromAuxMemoryGOOGLE");
 #endif
 #ifdef VK_EXT_multi_draw
     out->vkCmdDrawMultiEXT =

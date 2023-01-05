@@ -6635,6 +6635,7 @@ void unmarshal_VkImportPhysicalAddressGOOGLE(VulkanStream* vkStream, VkStructure
 #define OP_vkQueueCommitDescriptorSetUpdatesGOOGLE 267932433
 #define OP_vkCollectDescriptorPoolIdsGOOGLE 213659202
 #define OP_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE 243985229
+#define OP_vkQueueFlushCommandsFromAuxMemoryGOOGLE 290633483
 #endif
 #ifdef VK_EXT_global_priority_query
 void marshal_VkPhysicalDeviceGlobalPriorityQueryFeaturesEXT(

@@ -2684,6 +2684,11 @@ class VkDecoderSnapshot {
                                                      uint32_t waitSemaphoreCount,
                                                      const VkSemaphore* pWaitSemaphores,
                                                      VkImage image);
+    void vkQueueFlushCommandsFromAuxMemoryGOOGLE(const uint8_t* snapshotTraceBegin,
+                                                 size_t snapshotTraceBytes,
+                                                 android::base::BumpPool* pool, VkQueue queue,
+                                                 VkCommandBuffer commandBuffer,
+                                                 VkDeviceSize dataOffset, VkDeviceSize dataSize);
 #endif
 #ifdef VK_EXT_global_priority_query
 #endif
