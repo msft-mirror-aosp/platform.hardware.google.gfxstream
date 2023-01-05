@@ -11157,6 +11157,13 @@ typedef void <name>CAMetalLayer</name>;
             <param noautovalidity="true" len="waitSemaphoreCount">const <type>VkSemaphore</type>* <name>pWaitSemaphores</name></param>
             <param><type>VkImage</type> <name>image</name></param>
         </command>
+        <command>
+            <proto><type>void</type> <name>vkQueueFlushCommandsFromAuxMemoryGOOGLE</name></proto>
+            <param externsync="true"><type>VkQueue</type> <name>queue</name></param>
+            <param externsync="true"><type>VkCommandBuffer</type> <name>commandBuffer</name></param>
+            <param><type>VkDeviceSize</type> <name>dataOffset</name></param>
+            <param><type>VkDeviceSize</type> <name>dataSize</name></param>
+        </command>
         <command queues="graphics" renderpass="both" cmdbufferlevel="primary,secondary">
             <proto><type>void</type> <name>vkCmdSetVertexInputEXT</name></proto>
             <param externsync="true"><type>VkCommandBuffer</type> <name>commandBuffer</name></param>
@@ -17677,6 +17684,7 @@ typedef void <name>CAMetalLayer</name>;
                 <command name="vkQueueCommitDescriptorSetUpdatesGOOGLE"/>
                 <command name="vkCollectDescriptorPoolIdsGOOGLE"/>
                 <command name="vkQueueSignalReleaseImageANDROIDAsyncGOOGLE"/>
+                <command name="vkQueueFlushCommandsFromAuxMemoryGOOGLE"/>
             </require>
         </extension>
     </extensions>

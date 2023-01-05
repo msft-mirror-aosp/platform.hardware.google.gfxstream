@@ -261,7 +261,7 @@ def emit_decode_parameters(typeInfo: VulkanTypeInfo, api: VulkanAPI, cgen, globa
             emit_dispatch_unmarshal(typeInfo, p, cgen, globalWrapped)
         else:
             destroy = p.nonDispatchableHandleDestroy or p.dispatchableHandleDestroy
-            noUnbox = api.name == "vkQueueFlushCommandsGOOGLE" and p.paramName == "commandBuffer"
+            noUnbox = api.name in ["vkQueueFlushCommandsGOOGLE", "vkQueueFlushCommandsFromAuxMemoryGOOGLE"] and p.paramName == "commandBuffer"
 
             if p.nonDispatchableHandleDestroy or p.dispatchableHandleDestroy:
                 destroy = True
@@ -703,6 +703,7 @@ custom_decodes = {
     "vkGetLinearImageLayoutGOOGLE" : emit_global_state_wrapped_decoding,
     "vkGetLinearImageLayout2GOOGLE" : emit_global_state_wrapped_decoding,
     "vkQueueFlushCommandsGOOGLE" : emit_global_state_wrapped_decoding_with_context,
+    "vkQueueFlushCommandsFromAuxMemoryGOOGLE" : emit_global_state_wrapped_decoding_with_context,
     "vkQueueCommitDescriptorSetUpdatesGOOGLE" : emit_global_state_wrapped_decoding,
     "vkCollectDescriptorPoolIdsGOOGLE" : emit_global_state_wrapped_decoding,
     "vkQueueSignalReleaseImageANDROIDAsyncGOOGLE" : emit_global_state_wrapped_decoding,
