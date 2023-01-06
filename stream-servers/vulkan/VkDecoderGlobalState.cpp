@@ -3280,6 +3280,8 @@ class VkDecoderGlobalState::Impl {
             VkResult mapResult =
                 vk->vkMapMemory(device, *pMemory, 0, mapInfo.size, 0, &mapInfo.ptr);
             if (mapResult != VK_SUCCESS) {
+                freeMemoryLocked(vk, device, *pMemory, pAllocator);
+                *pMemory = VK_NULL_HANDLE;
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
             }
         } else {
