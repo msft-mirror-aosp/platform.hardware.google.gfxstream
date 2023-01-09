@@ -889,9 +889,10 @@ static int rcFlushWindowColorBuffer(uint32_t windowSurface)
         return -1;
     }
 
+    HandleType colorBufferHandle = fb->getEmulatedEglWindowSurfaceColorBufferHandle(windowSurface);
+
     // Update from Vulkan if necessary
-    goldfish_vk::readColorBufferToGl(
-        fb->getEmulatedEglWindowSurfaceColorBufferHandle(windowSurface));
+    fb->updateColorBufferFromVk(colorBufferHandle);
 
     if (!fb->flushEmulatedEglWindowSurfaceColorBuffer(windowSurface)) {
         GRSYNC_DPRINT("unlock gralloc cb lock }");
@@ -899,8 +900,7 @@ static int rcFlushWindowColorBuffer(uint32_t windowSurface)
     }
 
     // Update to Vulkan if necessary
-    goldfish_vk::updateColorBufferFromGl(
-        fb->getEmulatedEglWindowSurfaceColorBufferHandle(windowSurface));
+    fb->updateColorBufferFromGl(colorBufferHandle);
 
     GRSYNC_DPRINT("unlock gralloc cb lock }");
 
@@ -966,7 +966,7 @@ static void rcFBPost(uint32_t colorBuffer)
     }
 
     // Update from Vulkan if necessary
-    goldfish_vk::readColorBufferToGl(colorBuffer);
+    fb->updateColorBufferFromVk(colorBuffer);
 
     fb->post(colorBuffer);
 }
@@ -984,7 +984,7 @@ static void rcBindTexture(uint32_t colorBuffer)
     }
 
     // Update from Vulkan if necessary
-    goldfish_vk::readColorBufferToGl(colorBuffer);
+    fb->updateColorBufferFromVk(colorBuffer);
 
     fb->bindColorBufferToTexture(colorBuffer);
 }
@@ -997,7 +997,7 @@ static void rcBindRenderbuffer(uint32_t colorBuffer)
     }
 
     // Update from Vulkan if necessary
-    goldfish_vk::readColorBufferToGl(colorBuffer);
+    fb->updateColorBufferFromVk(colorBuffer);
 
     fb->bindColorBufferToRenderbuffer(colorBuffer);
 }
@@ -1023,7 +1023,7 @@ static void rcReadColorBuffer(uint32_t colorBuffer,
     }
 
     // Update from Vulkan if necessary
-    goldfish_vk::readColorBufferToGl(colorBuffer);
+    fb->updateColorBufferFromVk(colorBuffer);
 
     fb->readColorBuffer(colorBuffer, x, y, width, height, format, type, pixels);
 }
@@ -1043,7 +1043,7 @@ static int rcUpdateColorBuffer(uint32_t colorBuffer,
 
     // Since this is a modify operation, also read the current contents
     // of the VkImage, if any.
-    goldfish_vk::readColorBufferToGl(colorBuffer);
+    fb->updateColorBufferFromVk(colorBuffer);
 
     fb->updateColorBuffer(colorBuffer, x, y, width, height, format, type, pixels);
 
@@ -1051,7 +1051,7 @@ static int rcUpdateColorBuffer(uint32_t colorBuffer,
     sGrallocSync()->unlockColorBufferPrepare();
 
     // Update to Vulkan if necessary
-    goldfish_vk::updateColorBufferFromGl(colorBuffer);
+    fb->updateColorBufferFromGl(colorBuffer);
 
     return 0;
 }
@@ -1072,7 +1072,7 @@ static int rcUpdateColorBufferDMA(uint32_t colorBuffer,
 
     // Since this is a modify operation, also read the current contents
     // of the VkImage, if any.
-    goldfish_vk::readColorBufferToGl(colorBuffer);
+    fb->updateColorBufferFromVk(colorBuffer);
 
     fb->updateColorBuffer(colorBuffer, x, y, width, height,
                           format, type, pixels);
@@ -1081,7 +1081,7 @@ static int rcUpdateColorBufferDMA(uint32_t colorBuffer,
     sGrallocSync()->unlockColorBufferPrepare();
 
     // Update to Vulkan if necessary
-    goldfish_vk::updateColorBufferFromGl(colorBuffer);
+    fb->updateColorBufferFromGl(colorBuffer);
 
     return 0;
 }
@@ -1412,27 +1412,11 @@ static void rcCloseBuffer(uint32_t buffer) {
     fb->closeBuffer(buffer);
 }
 
-static int rcSetColorBufferVulkanMode2(uint32_t colorBuffer,
-                                       uint32_t mode,
+static int rcSetColorBufferVulkanMode2(uint32_t colorBuffer, uint32_t mode,
                                        uint32_t memoryProperty) {
-    if (!goldfish_vk::isColorBufferVulkanCompatible(colorBuffer)) {
-        fprintf(stderr,
-                "%s: error: colorBuffer 0x%x is not Vulkan compatible\n",
-                __func__, colorBuffer);
-        return -1;
-    }
-
 #define VULKAN_MODE_VULKAN_ONLY 1
 
     bool modeIsVulkanOnly = mode == VULKAN_MODE_VULKAN_ONLY;
-
-    if (!goldfish_vk::setupVkColorBuffer(colorBuffer, modeIsVulkanOnly,
-                                         memoryProperty)) {
-        fprintf(stderr,
-                "%s: error: failed to create VkImage for colorBuffer 0x%x\n",
-                __func__, colorBuffer);
-        return -1;
-    }
 
     if (!goldfish_vk::setColorBufferVulkanMode(colorBuffer, mode)) {
         fprintf(stderr,
@@ -1526,7 +1510,7 @@ static int rcReadColorBufferDMA(uint32_t colorBuffer,
     }
 
     // Update from Vulkan if necessary
-    goldfish_vk::readColorBufferToGl(colorBuffer);
+    fb->updateColorBufferFromVk(colorBuffer);
 
     fb->readColorBuffer(colorBuffer, x, y, width, height, format, type, pixels);
     return 0;

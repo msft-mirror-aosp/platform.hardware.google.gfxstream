@@ -134,7 +134,6 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
     out->stride = nativeBufferANDROID->stride;
     out->colorBufferHandle = *(nativeBufferANDROID->handle);
 
-    bool colorBufferVulkanCompatible = isColorBufferVulkanCompatible(out->colorBufferHandle);
     bool externalMemoryCompatible = false;
 
     auto emu = getGlobalVkEmulation();
@@ -144,14 +143,12 @@ VkResult prepareAndroidNativeBufferImage(VulkanDispatch* vk, VkDevice device,
     }
 
     bool colorBufferExportedToGl = false;
-    if (colorBufferVulkanCompatible && externalMemoryCompatible) {
-        if (!setupVkColorBuffer(out->colorBufferHandle, emu->guestUsesAngle,
-                                0u /* memoryProperty */, &colorBufferExportedToGl)) {
-            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-                << "Failed to create vk color buffer. format:" << pCreateInfo->format
-                << " width:" << out->extent.width << " height:" << out->extent.height
-                << " depth:" << out->extent.depth;
-        }
+    if (!isColorBufferExportedToGl(out->colorBufferHandle, &colorBufferExportedToGl)) {
+        VK_ANB_ERR("Failed to query if ColorBuffer:%d exported to GL.", out->colorBufferHandle);
+        return VK_ERROR_INITIALIZATION_FAILED;
+    }
+
+    if (externalMemoryCompatible) {
         releaseColorBufferForGuestUse(out->colorBufferHandle);
         out->externallyBacked = true;
     }
@@ -514,8 +511,6 @@ VkResult setAndroidNativeImageSemaphoreSignaled(VulkanDispatch* vk, VkDevice dev
         // If we used the Vulkan image without copying it back
         // to the CPU, reset the layout to PRESENT.
         if (anbInfo->useVulkanNativeImage) {
-            fb->setColorBufferInUse(anbInfo->colorBufferHandle, true);
-
             VkCommandBufferBeginInfo beginInfo = {
                 VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
                 0,
@@ -764,7 +759,6 @@ VkResult syncImageToColorBuffer(VulkanDispatch* vk, uint32_t queueFamilyIndex, V
 
     if (anbInfo->useVulkanNativeImage) {
         VK_ANB_DEBUG_OBJ(anbInfoPtr, "using native image, so use sync thread to wait");
-        fb->setColorBufferInUse(anbInfo->colorBufferHandle, false);
         // Queue wait to sync thread with completion callback
         // Pass anbInfo by value to get a ref
         SyncThread::get()->triggerGeneral(
