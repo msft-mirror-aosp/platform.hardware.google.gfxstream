@@ -264,6 +264,17 @@ void HealthMonitor<Clock>::updateTaskParent(std::queue<std::unique_ptr<Monitored
     }
 }
 
+std::unique_ptr<HealthMonitor<>> CreateHealthMonitor(HealthMonitorConsumer& consumer,
+                                                     uint64_t heartbeatInterval) {
+#ifdef ENABLE_ANDROID_HEALTH_MONITOR
+    ALOGI("HealthMonitor enabled. Returning monitor.");
+    return std::make_unique<HealthMonitor<>>(consumer, heartbeatInterval);
+#else
+    ALOGI("HealthMonitor disabled. Returning nullptr");
+    return nullptr;
+#endif
+}
+
 template class HealthMonitor<steady_clock>;
 
 }  // namespace guest

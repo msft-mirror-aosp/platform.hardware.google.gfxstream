@@ -26,8 +26,8 @@ using android::base::guest::HealthMonitor;
 
 class AddressSpaceStream;
 
-AddressSpaceStream* createAddressSpaceStream(size_t bufSize, HealthMonitor<>& healthMonitor);
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(HealthMonitor<>& healthMonitor);
+AddressSpaceStream* createAddressSpaceStream(size_t bufSize, HealthMonitor<>* healthMonitor);
+AddressSpaceStream* createVirtioGpuAddressSpaceStream(HealthMonitor<>* healthMonitor);
 
 class AddressSpaceStream : public IOStream {
 public:
@@ -38,7 +38,7 @@ public:
         uint64_t ringOffset,
         uint64_t writeBufferOffset,
         struct address_space_ops ops,
-        HealthMonitor<>& healthMonitor);
+        HealthMonitor<>* healthMonitor);
     ~AddressSpaceStream();
 
     virtual size_t idealAllocSize(size_t len);
@@ -106,7 +106,7 @@ private:
     size_t m_ringStorageSize;
     uint32_t m_resourceId = 0;
 
-    HealthMonitor<>& m_healthMonitor;
+    HealthMonitor<>* m_healthMonitor;
 };
 
 #endif
