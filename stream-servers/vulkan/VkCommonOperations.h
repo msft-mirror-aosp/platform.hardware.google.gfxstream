@@ -13,6 +13,7 @@
 // limitations under the License.
 #pragma once
 
+#include <GLES2/gl2.h>
 #include <vulkan/vulkan.h>
 
 #include <atomic>
@@ -25,9 +26,10 @@
 #include "BorrowedImageVk.h"
 #include "CompositorVk.h"
 #include "DisplayVk.h"
-#include "aemu/base/synchronization/Lock.h"
+#include "FrameworkFormats.h"
 #include "aemu/base/ManagedDescriptor.hpp"
 #include "aemu/base/Optional.h"
+#include "aemu/base/synchronization/Lock.h"
 #include "cereal/common/goldfish_vk_private_defs.h"
 #include "utils/GfxApiLogger.h"
 #include "utils/RenderDoc.h"
@@ -391,8 +393,7 @@ VkEmulation* getGlobalVkEmulation();
 void teardownGlobalVkEmulation();
 
 std::unique_ptr<gfxstream::DisplaySurface> createDisplaySurface(FBNativeWindowType window,
-                                                                uint32_t width,
-                                                                uint32_t height);
+                                                                uint32_t width, uint32_t height);
 
 bool allocExternalMemory(
     VulkanDispatch* vk, VkEmulation::ExternalMemoryInfo* info, bool actuallyExternal = true,
@@ -407,41 +408,54 @@ bool importExternalMemoryDedicatedImage(VulkanDispatch* vk, VkDevice targetDevic
 
 // ColorBuffer operations
 
-bool isColorBufferVulkanCompatible(uint32_t colorBufferHandle);
+bool isColorBufferExportedToGl(uint32_t colorBufferHandle, bool* exported);
+
+bool getColorBufferAllocationInfo(uint32_t colorBufferHandle, VkDeviceSize* outSize,
+                                  uint32_t* outMemoryTypeIndex, void** outMappedPtr);
 
 std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo(VkFormat format,
                                                                         uint32_t width,
                                                                         uint32_t height,
                                                                         VkImageTiling tiling);
 
-bool setupVkColorBuffer(uint32_t colorBufferHandle, bool vulkanOnly = false,
-                        uint32_t memoryProperty = 0, bool* exported = nullptr,
-                        VkDeviceSize* allocSize = nullptr, uint32_t* typeIndex = nullptr,
-                        void** mappedPtr = nullptr);
+bool setupVkColorBuffer(uint32_t width, uint32_t height, GLenum format,
+                        FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
+                        bool vulkanOnly, uint32_t memoryProperty);
 bool teardownVkColorBuffer(uint32_t colorBufferHandle);
 VkEmulation::ColorBufferInfo getColorBufferInfo(uint32_t colorBufferHandle);
 VK_EXT_MEMORY_HANDLE getColorBufferExtMemoryHandle(uint32_t colorBufferHandle);
+
+struct VkColorBufferMemoryExport {
+    android::base::ManagedDescriptor descriptor;
+    uint64_t size = 0;
+    bool linearTiling = false;
+};
+std::optional<VkColorBufferMemoryExport> exportColorBufferMemory(uint32_t colorBufferHandle);
+
 MTLTextureRef getColorBufferMTLTexture(uint32_t colorBufferHandle);
 bool setColorBufferVulkanMode(uint32_t colorBufferHandle, uint32_t vulkanMode);
 int32_t mapGpaToBufferHandle(uint32_t bufferHandle, uint64_t gpa, uint64_t size = 0);
 
-bool readColorBufferToGl(uint32_t colorBufferHandle);
+bool colorBufferNeedsUpdateBetweenGlAndVk(uint32_t colorBufferHandle);
+
+bool readColorBufferToBytes(uint32_t colorBufferHandle, std::vector<uint8_t>* bytes);
 bool readColorBufferToBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
                             uint32_t h, void* outPixels);
 bool readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
                                   uint32_t h, void* outPixels);
 
-bool updateColorBufferFromGl(uint32_t colorBufferHandle);
+bool updateColorBufferFromBytes(uint32_t colorBufferHandle, const std::vector<uint8_t>& bytes);
 bool updateColorBufferFromBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
                                 uint32_t h, const void* pixels);
 bool updateColorBufferFromBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32_t y,
                                       uint32_t w, uint32_t h, const void* pixels);
 
 // Data buffer operations
+bool getBufferAllocationInfo(uint32_t bufferHandle, VkDeviceSize* outSize,
+                             uint32_t* outMemoryTypeIndex);
 
-bool setupVkBuffer(uint32_t bufferHandle, bool vulkanOnly = false, uint32_t memoryProperty = 0,
-                   bool* exported = nullptr, VkDeviceSize* allocSize = nullptr,
-                   uint32_t* typeIndex = nullptr);
+bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly = false,
+                   uint32_t memoryProperty = 0);
 bool teardownVkBuffer(uint32_t bufferHandle);
 VK_EXT_MEMORY_HANDLE getBufferExtMemoryHandle(uint32_t bufferHandle);
 

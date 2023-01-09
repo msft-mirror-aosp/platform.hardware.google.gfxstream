@@ -25,15 +25,14 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "FrameBuffer.h"
 #include "VkFormatUtils.h"
 #include "VulkanDispatch.h"
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/containers/Lookup.h"
 #include "aemu/base/Optional.h"
-#include "aemu/base/containers/StaticMap.h"
-#include "aemu/base/system/System.h"
 #include "aemu/base/Tracing.h"
+#include "aemu/base/containers/Lookup.h"
+#include "aemu/base/containers/StaticMap.h"
+#include "aemu/base/synchronization/Lock.h"
+#include "aemu/base/system/System.h"
 #include "common/goldfish_vk_dispatch.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/emugl_vm_operations.h"
@@ -1504,8 +1503,11 @@ bool importExternalMemoryDedicatedImage(VulkanDispatch* vk, VkDevice targetDevic
     return true;
 }
 
-static VkFormat glFormat2VkFormat(GLint internalformat) {
-    switch (internalformat) {
+// From ANGLE "src/common/angleutils.h"
+#define GL_BGR10_A2_ANGLEX 0x6AF9
+
+static VkFormat glFormat2VkFormat(GLint internalFormat) {
+    switch (internalFormat) {
         case GL_R8:
         case GL_LUMINANCE:
             return VK_FORMAT_R8_UNORM;
@@ -1539,23 +1541,13 @@ static VkFormat glFormat2VkFormat(GLint internalformat) {
             return VK_FORMAT_R8G8_UNORM;
         default:
             VK_COMMON_ERROR("Unhandled format %d, falling back to VK_FORMAT_R8G8B8A8_UNORM",
-                            internalformat);
+                            internalFormat);
             return VK_FORMAT_R8G8B8A8_UNORM;
     }
 };
 
-bool isColorBufferVulkanCompatible(uint32_t colorBufferHandle) {
-    auto fb = FrameBuffer::getFB();
-
-    int width;
-    int height;
-    GLint internalformat;
-
-    if (!fb->getColorBufferInfo(colorBufferHandle, &width, &height, &internalformat)) {
-        return false;
-    }
-
-    VkFormat vkFormat = glFormat2VkFormat(internalformat);
+static bool isFormatVulkanCompatible(GLenum internalFormat) {
+    VkFormat vkFormat = glFormat2VkFormat(internalFormat);
 
     for (const auto& supportInfo : sVkEmulation->imageSupportInfo) {
         if (supportInfo.format == vkFormat && supportInfo.supported) {
@@ -1564,6 +1556,50 @@ bool isColorBufferVulkanCompatible(uint32_t colorBufferHandle) {
     }
 
     return false;
+}
+
+bool isColorBufferExportedToGl(uint32_t colorBufferHandle, bool* exported) {
+    if (!sVkEmulation || !sVkEmulation->live) {
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Vulkan emulation not available.";
+    }
+
+    AutoLock lock(sVkEmulationLock);
+
+    auto info = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
+    if (!info) {
+        return false;
+    }
+
+    *exported = info->glExported;
+    return true;
+}
+
+bool getColorBufferAllocationInfo(uint32_t colorBufferHandle, VkDeviceSize* outSize,
+                                  uint32_t* outMemoryTypeIndex, void** outMappedPtr) {
+    if (!sVkEmulation || !sVkEmulation->live) {
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Vulkan emulation not available.";
+    }
+
+    AutoLock lock(sVkEmulationLock);
+
+    auto info = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
+    if (!info) {
+        return false;
+    }
+
+    if (outSize) {
+        *outSize = info->memory.size;
+    }
+
+    if (outMemoryTypeIndex) {
+        *outMemoryTypeIndex = info->memory.typeIndex;
+    }
+
+    if (outMappedPtr) {
+        *outMappedPtr = info->memory.mappedPtr;
+    }
+
+    return true;
 }
 
 static uint32_t lastGoodTypeIndex(uint32_t indices) {
@@ -1677,24 +1713,10 @@ std::unique_ptr<VkImageCreateInfo> generateColorBufferVkImageCreateInfo(VkFormat
 // We should make it so the guest can only allocate external images/
 // buffers of one type index for image and one type index for buffer
 // to begin with, via filtering from the host.
-bool setupVkColorBuffer(uint32_t colorBufferHandle, bool vulkanOnly, uint32_t memoryProperty,
-                        bool* exported, VkDeviceSize* allocSize, uint32_t* typeIndex,
-                        void** mappedPtr) {
-    if (!isColorBufferVulkanCompatible(colorBufferHandle)) return false;
-
-    auto vk = sVkEmulation->dvk;
-
-    auto fb = FrameBuffer::getFB();
-
-    int width;
-    int height;
-    GLint internalformat;
-    FrameworkFormat frameworkFormat;
-
-    if (!fb->getColorBufferInfo(colorBufferHandle, &width, &height, &internalformat,
-                                &frameworkFormat)) {
-        return false;
-    }
+bool setupVkColorBuffer(uint32_t width, uint32_t height, GLenum internalFormat,
+                        FrameworkFormat frameworkFormat, uint32_t colorBufferHandle,
+                        bool vulkanOnly, uint32_t memoryProperty) {
+    if (!isFormatVulkanCompatible(internalFormat)) return false;
 
     AutoLock lock(sVkEmulationLock);
 
@@ -1702,18 +1724,6 @@ bool setupVkColorBuffer(uint32_t colorBufferHandle, bool vulkanOnly, uint32_t me
 
     // Already setup
     if (infoPtr) {
-        // Setting exported is required for on_vkCreateImage backed by
-        // an AHardwareBuffer.
-        if (exported) *exported = infoPtr->glExported;
-        // Update the allocation size to what the host driver wanted, or we
-        // might get VK_ERROR_OUT_OF_DEVICE_MEMORY and a host crash
-        if (allocSize) *allocSize = infoPtr->memory.size;
-        // Update the type index to what the host driver wanted, or we might
-        // get VK_ERROR_DEVICE_LOST
-        if (typeIndex) *typeIndex = infoPtr->memory.typeIndex;
-        // Update the mappedPtr to what the host driver wanted, otherwise we
-        // may map the same memory twice.
-        if (mappedPtr) *mappedPtr = infoPtr->memory.mappedPtr;
         return true;
     }
 
@@ -1721,7 +1731,7 @@ bool setupVkColorBuffer(uint32_t colorBufferHandle, bool vulkanOnly, uint32_t me
     bool glCompatible = (frameworkFormat == FRAMEWORK_FORMAT_GL_COMPATIBLE);
     switch (frameworkFormat) {
         case FrameworkFormat::FRAMEWORK_FORMAT_GL_COMPATIBLE:
-            vkFormat = glFormat2VkFormat(internalformat);
+            vkFormat = glFormat2VkFormat(internalFormat);
             break;
         case FrameworkFormat::FRAMEWORK_FORMAT_NV12:
             vkFormat = VK_FORMAT_G8_B8R8_2PLANE_420_UNORM;
@@ -1734,8 +1744,8 @@ bool setupVkColorBuffer(uint32_t colorBufferHandle, bool vulkanOnly, uint32_t me
             vkFormat = VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM;
             break;
         default:
-            vkFormat = glFormat2VkFormat(internalformat);
-            fprintf(stderr, "WARNING: unsupported framework format %d\n", frameworkFormat);
+            VK_COMMON_ERROR("WARNING: unhandled framework format %d\n", frameworkFormat);
+            vkFormat = glFormat2VkFormat(internalFormat);
             break;
     }
 
@@ -1772,6 +1782,8 @@ bool setupVkColorBuffer(uint32_t colorBufferHandle, bool vulkanOnly, uint32_t me
     }
 
     imageCi->pNext = extImageCiPtr;
+
+    auto vk = sVkEmulation->dvk;
 
     VkResult createRes =
         vk->vkCreateImage(sVkEmulation->device, imageCi.get(), nullptr, &res.image);
@@ -1875,26 +1887,44 @@ bool setupVkColorBuffer(uint32_t colorBufferHandle, bool vulkanOnly, uint32_t me
     }
 #endif
 
-    bool glExported = sVkEmulation->deviceInfo.supportsExternalMemory &&
-                      sVkEmulation->deviceInfo.glInteropSupported && glCompatible && !vulkanOnly;
-    if (glExported) {
-        ManagedDescriptor exportedHandle(dupExternalMemory(res.memory.exportedHandle));
-        glExported = FrameBuffer::getFB()->importMemoryToColorBuffer(
-            std::move(exportedHandle), res.memory.size, false /* dedicated */, vulkanOnly,
-            colorBufferHandle, res.image, *imageCi);
-    }
-    res.glExported = glExported;
     if (vulkanOnly) {
         res.vulkanMode = VkEmulation::VulkanMode::VulkanOnly;
     }
 
-    if (exported) *exported = res.glExported;
-    if (allocSize) *allocSize = res.memory.size;
-    if (typeIndex) *typeIndex = res.memory.typeIndex;
-    if (mappedPtr) *mappedPtr = res.memory.mappedPtr;
-
     sVkEmulation->colorBuffers[colorBufferHandle] = res;
     return true;
+}
+
+std::optional<VkColorBufferMemoryExport> exportColorBufferMemory(uint32_t colorBufferHandle) {
+    if (!sVkEmulation || !sVkEmulation->live) {
+        return std::nullopt;
+    }
+
+    AutoLock lock(sVkEmulationLock);
+
+    const auto& deviceInfo = sVkEmulation->deviceInfo;
+    if (!deviceInfo.supportsExternalMemory || !deviceInfo.glInteropSupported) {
+        return std::nullopt;
+    }
+
+    auto info = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
+    if (!info) {
+        return std::nullopt;
+    }
+
+    if (info->frameworkFormat != FRAMEWORK_FORMAT_GL_COMPATIBLE) {
+        return std::nullopt;
+    }
+
+    ManagedDescriptor descriptor(dupExternalMemory(info->memory.exportedHandle));
+
+    info->glExported = true;
+
+    return VkColorBufferMemoryExport{
+        .descriptor = std::move(descriptor),
+        .size = info->memory.size,
+        .linearTiling = info->imageCreateInfoShallow.tiling == VK_IMAGE_TILING_LINEAR,
+    };
 }
 
 bool teardownVkColorBuffer(uint32_t colorBufferHandle) {
@@ -1941,7 +1971,7 @@ VkEmulation::ColorBufferInfo getColorBufferInfo(uint32_t colorBufferHandle) {
     return res;
 }
 
-bool colorBufferNeedsTransferBetweenGlAndVk(const VkEmulation::ColorBufferInfo& colorBufferInfo) {
+bool colorBufferNeedsUpdateBetweenGlAndVk(const VkEmulation::ColorBufferInfo& colorBufferInfo) {
     // GL is not used.
     if (colorBufferInfo.vulkanMode == VkEmulation::VulkanMode::VulkanOnly) {
         return false;
@@ -1960,7 +1990,22 @@ bool colorBufferNeedsTransferBetweenGlAndVk(const VkEmulation::ColorBufferInfo& 
     return true;
 }
 
-bool readColorBufferToGl(uint32_t colorBufferHandle) {
+bool colorBufferNeedsUpdateBetweenGlAndVk(uint32_t colorBufferHandle) {
+    if (!sVkEmulation || !sVkEmulation->live) {
+        return false;
+    }
+
+    AutoLock lock(sVkEmulationLock);
+
+    auto colorBufferInfo = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
+    if (!colorBufferInfo) {
+        return false;
+    }
+
+    return colorBufferNeedsUpdateBetweenGlAndVk(*colorBufferInfo);
+}
+
+bool readColorBufferToBytes(uint32_t colorBufferHandle, std::vector<uint8_t>* bytes) {
     if (!sVkEmulation || !sVkEmulation->live) {
         VK_COMMON_VERBOSE("VkEmulation not available.");
         return false;
@@ -1971,11 +2016,8 @@ bool readColorBufferToGl(uint32_t colorBufferHandle) {
     auto colorBufferInfo = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
     if (!colorBufferInfo) {
         VK_COMMON_VERBOSE("Failed to read from ColorBuffer:%d, not found.", colorBufferHandle);
+        bytes->clear();
         return false;
-    }
-
-    if (!colorBufferNeedsTransferBetweenGlAndVk(*colorBufferInfo)) {
-        return true;
     }
 
     VkDeviceSize bytesNeeded = 0;
@@ -1989,19 +2031,18 @@ bool readColorBufferToGl(uint32_t colorBufferHandle) {
         return false;
     }
 
-    std::vector<uint8_t> bytes(bytesNeeded);
+    bytes->resize(bytesNeeded);
 
     result = readColorBufferToBytesLocked(
         colorBufferHandle, 0, 0, colorBufferInfo->imageCreateInfoShallow.extent.width,
-        colorBufferInfo->imageCreateInfoShallow.extent.height, bytes.data());
+        colorBufferInfo->imageCreateInfoShallow.extent.height, bytes->data());
     if (!result) {
         VK_COMMON_ERROR("Failed to read from ColorBuffer:%d, failed to get read size.",
                         colorBufferHandle);
         return false;
     }
 
-    return FrameBuffer::getFB()->replaceColorBufferContents(colorBufferHandle, bytes.data(),
-                                                            bytes.size());
+    return true;
 }
 
 bool readColorBufferToBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
@@ -2148,7 +2189,7 @@ bool readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32
     return true;
 }
 
-bool updateColorBufferFromGl(uint32_t colorBufferHandle) {
+bool updateColorBufferFromBytes(uint32_t colorBufferHandle, const std::vector<uint8_t>& bytes) {
     if (!sVkEmulation || !sVkEmulation->live) {
         VK_COMMON_VERBOSE("VkEmulation not available.");
         return false;
@@ -2162,25 +2203,24 @@ bool updateColorBufferFromGl(uint32_t colorBufferHandle) {
         return false;
     }
 
-    if (!colorBufferNeedsTransferBetweenGlAndVk(*colorBufferInfo)) {
-        return true;
-    }
-
-    size_t bytesNeeded = 0;
-    bool result =
-        FrameBuffer::getFB()->readColorBufferContents(colorBufferHandle, &bytesNeeded, nullptr);
+    VkDeviceSize transferSize = 0;
+    bool result = getFormatTransferInfo(colorBufferInfo->imageCreateInfoShallow.format,
+                                        colorBufferInfo->imageCreateInfoShallow.extent.width,
+                                        colorBufferInfo->imageCreateInfoShallow.extent.height,
+                                        &transferSize, nullptr);
     if (!result) {
-        VK_COMMON_ERROR("Failed to update ColorBuffer:%d, failed to get read contents size.",
+        VK_COMMON_ERROR("Failed to update ColorBuffer:%d, failed to get expected size.",
                         colorBufferHandle);
         return false;
     }
 
-    std::vector<uint8_t> bytes(bytesNeeded);
-    result = FrameBuffer::getFB()->readColorBufferContents(colorBufferHandle, &bytesNeeded,
-                                                           bytes.data());
-    if (!result) {
-        VK_COMMON_ERROR("Failed to update ColorBuffer:%d, failed to read contents.",
-                        colorBufferHandle);
+    const auto bytesProvided = bytes.size();
+    const auto bytesExpected = static_cast<std::size_t>(transferSize);
+    if (bytesProvided != bytesExpected) {
+        VK_COMMON_ERROR(
+            "Unexpected contents size when trying to update ColorBuffer:%d, "
+            "provided:%zu expected:%zu",
+            colorBufferHandle, bytesProvided, bytesExpected);
         return false;
     }
 
@@ -2443,20 +2483,37 @@ int32_t mapGpaToBufferHandle(uint32_t bufferHandle, uint64_t gpa, uint64_t size)
     return memoryInfoPtr->pageOffset;
 }
 
-bool setupVkBuffer(uint32_t bufferHandle, bool vulkanOnly, uint32_t memoryProperty, bool* exported,
-                   VkDeviceSize* allocSize, uint32_t* typeIndex) {
+bool getBufferAllocationInfo(uint32_t bufferHandle, VkDeviceSize* outSize,
+                             uint32_t* outMemoryTypeIndex) {
+    if (!sVkEmulation || !sVkEmulation->live) {
+        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "Vulkan emulation not available.";
+    }
+
+    AutoLock lock(sVkEmulationLock);
+
+    auto info = android::base::find(sVkEmulation->buffers, bufferHandle);
+    if (!info) {
+        return false;
+    }
+
+    if (outSize) {
+        *outSize = info->memory.size;
+    }
+
+    if (outMemoryTypeIndex) {
+        *outMemoryTypeIndex = info->memory.typeIndex;
+    }
+
+    return true;
+}
+
+bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32_t memoryProperty) {
     if (vulkanOnly == false) {
-        fprintf(stderr, "Data buffers should be vulkanOnly. Setup failed.\n");
+        VK_COMMON_ERROR("Data buffers should be vulkanOnly. Setup failed.");
         return false;
     }
 
     auto vk = sVkEmulation->dvk;
-    auto fb = FrameBuffer::getFB();
-
-    int size;
-    if (!fb->getBufferInfo(bufferHandle, &size)) {
-        return false;
-    }
 
     AutoLock lock(sVkEmulationLock);
 
@@ -2464,12 +2521,6 @@ bool setupVkBuffer(uint32_t bufferHandle, bool vulkanOnly, uint32_t memoryProper
 
     // Already setup
     if (infoPtr) {
-        // Update the allocation size to what the host driver wanted, or we
-        // might get VK_ERROR_OUT_OF_DEVICE_MEMORY and a host crash
-        if (allocSize) *allocSize = infoPtr->memory.size;
-        // Update the type index to what the host driver wanted, or we might
-        // get VK_ERROR_DEVICE_LOST
-        if (typeIndex) *typeIndex = infoPtr->memory.typeIndex;
         return true;
     }
 
@@ -2577,9 +2628,6 @@ bool setupVkBuffer(uint32_t bufferHandle, bool vulkanOnly, uint32_t memoryProper
     }
 
     res.glExported = false;
-    if (exported) *exported = res.glExported;
-    if (allocSize) *allocSize = res.memory.size;
-    if (typeIndex) *typeIndex = res.memory.typeIndex;
 
     sVkEmulation->buffers[bufferHandle] = res;
     return allocRes;

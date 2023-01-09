@@ -49,6 +49,8 @@ using android::base::TestSystem;
 
 namespace emugl {
 
+static constexpr const HandleType kArbitraryColorBufferHandle = 5;
+
 #ifdef _WIN32
 #define SKIP_TEST_IF_WIN32() GTEST_SKIP()
 #else
@@ -511,15 +513,12 @@ protected:
 
 TEST_F(VulkanFrameBufferTest, VkColorBufferWithoutMemoryProperties) {
     // Create a color buffer without any memory properties restriction.
-    HandleType colorBuffer = mFb->createColorBuffer(
-            mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
-    ASSERT_NE(colorBuffer, 0u);
-    EXPECT_TRUE(goldfish_vk::setupVkColorBuffer(colorBuffer,
-                                                true, /* vulkanOnly */
-                                                0     /* memoryProperty */
+    EXPECT_TRUE(goldfish_vk::setupVkColorBuffer(mWidth, mHeight, GL_RGBA,
+                                                FRAMEWORK_FORMAT_GL_COMPATIBLE,
+                                                kArbitraryColorBufferHandle, true, /* vulkanOnly */
+                                                0 /* memoryProperty */
                                                 ));
-    EXPECT_TRUE(goldfish_vk::teardownVkColorBuffer(colorBuffer));
-    mFb->closeColorBuffer(colorBuffer);
+    EXPECT_TRUE(goldfish_vk::teardownVkColorBuffer(kArbitraryColorBufferHandle));
 }
 
 TEST_F(VulkanFrameBufferTest, VkColorBufferWithMemoryPropertyFlags) {
@@ -580,19 +579,22 @@ TEST_F(VulkanFrameBufferTest, VkColorBufferWithMemoryPropertyFlags) {
     }
 
     // Create a color buffer with the target memory property flags.
+    EXPECT_TRUE(goldfish_vk::setupVkColorBuffer(mWidth, mHeight, GL_RGBA,
+                                                FRAMEWORK_FORMAT_GL_COMPATIBLE,
+                                                kArbitraryColorBufferHandle, true, /* vulkanOnly */
+                                                static_cast<uint32_t>(kTargetMemoryPropertyFlags)));
+
     uint32_t allocatedTypeIndex = 0u;
-    HandleType colorBuffer = mFb->createColorBuffer(
-            mWidth, mHeight, GL_RGBA, FRAMEWORK_FORMAT_GL_COMPATIBLE);
-    ASSERT_NE(colorBuffer, 0u);
-    EXPECT_TRUE(goldfish_vk::setupVkColorBuffer(
-            colorBuffer, true, /* vulkanOnly */
-            static_cast<uint32_t>(kTargetMemoryPropertyFlags), nullptr, nullptr,
-            &allocatedTypeIndex));
+    EXPECT_TRUE(goldfish_vk::getColorBufferAllocationInfo(kArbitraryColorBufferHandle, nullptr,
+                                                          &allocatedTypeIndex, nullptr));
+
     EXPECT_TRUE(vkEmulation->deviceInfo.memProps.memoryTypes[allocatedTypeIndex]
                         .propertyFlags &
                 kTargetMemoryPropertyFlags);
-    EXPECT_TRUE(goldfish_vk::teardownVkColorBuffer(colorBuffer));
-    mFb->closeColorBuffer(colorBuffer);
+
+    EXPECT_TRUE(goldfish_vk::teardownVkColorBuffer(kArbitraryColorBufferHandle));
 }
+
 #endif // !_WIN32
+
 } // namespace emugl
