@@ -35,7 +35,7 @@ static const size_t kReadSize = 512 * 1024;
 static const size_t kWriteOffset = kReadSize;
 
 AddressSpaceStream* createAddressSpaceStream(size_t ignored_bufSize,
-                                             HealthMonitor<>& healthMonitor) {
+                                             HealthMonitor<>* healthMonitor) {
     // Ignore incoming ignored_bufSize
     (void)ignored_bufSize;
 
@@ -175,7 +175,7 @@ bool virtgpu_address_space_ping(address_space_handle_t fd, struct address_space_
     return true;
 }
 
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(HealthMonitor<>& healthMonitor) {
+AddressSpaceStream* createVirtioGpuAddressSpaceStream(HealthMonitor<>* healthMonitor) {
     VirtGpuBlobPtr pipe, blob;
     VirtGpuBlobMappingPtr pipeMapping, blobMapping;
     struct VirtGpuExecBuffer exec = {};
@@ -251,7 +251,7 @@ AddressSpaceStream::AddressSpaceStream(
     uint64_t ringOffset,
     uint64_t writeBufferOffset,
     struct address_space_ops ops,
-    HealthMonitor<>& healthMonitor) :
+    HealthMonitor<>* healthMonitor) :
     IOStream(context.ring_config->flush_interval),
     m_ops(ops),
     m_tmpBuf(0),

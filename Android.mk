@@ -63,6 +63,7 @@ EMUGL_COMMON_CFLAGS += \
     -fvisibility=default \
     -DPAGE_SIZE=4096 \
     -DGFXSTREAM \
+    -DENABLE_ANDROID_HEALTH_MONITOR \
     -Wno-unused-parameter
 
 endif # GOLDFISH_OPENGL_BUILD_FOR_HOST
