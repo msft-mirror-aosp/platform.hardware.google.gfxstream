@@ -504,8 +504,7 @@ def emit_health_watchdog(api, cgen):
     cgen.stmt("std::optional<uint32_t> healthMonitorAnnotation_packetSize = std::nullopt")
     cgen.stmt("std::vector<uint8_t> healthMonitorAnnotation_packetContents")
     cgen.line("""
-    auto watchdog = mHealthMonitor ?
-                    WATCHDOG_BUILDER(*mHealthMonitor, \"%s in VkEncoder\")
+    auto watchdog = WATCHDOG_BUILDER(mHealthMonitor, \"%s in VkEncoder\")
                         .setOnHangCallback([&]() {
                             auto annotations = std::make_unique<EventHangMetadata::HangAnnotations>();
                             if (healthMonitorAnnotation_seqno) {
@@ -521,8 +520,7 @@ def emit_health_watchdog(api, cgen):
                             }
                             return std::move(annotations);
                         })
-                        .build() :
-                    nullptr;
+                        .build();
     """% (api.name)
     )
 
