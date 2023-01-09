@@ -37,9 +37,9 @@
 
 using android::base::guest::EventHangMetadata;
 
-#define WATCHDOG_BUILDER(healthMonitor, msg)                                              \
-    ::android::base::guest::HealthWatchdogBuilder<std::decay_t<decltype(healthMonitor)>>( \
-        healthMonitor, __FILE__, __func__, msg, __LINE__)
+#define WATCHDOG_BUILDER(healthMonitorPtr, msg)                                              \
+    ::android::base::guest::HealthWatchdogBuilder<std::decay_t<decltype(*(healthMonitorPtr))>>( \
+        (healthMonitorPtr), __FILE__, __func__, msg, __LINE__)
 
 namespace android {
 namespace base {
@@ -178,13 +178,17 @@ class HealthMonitor : public android::base::guest::Thread {
 template <class HealthMonitorT = HealthMonitor<>>
 class HealthWatchdog {
    public:
-    HealthWatchdog(HealthMonitorT& healthMonitor, std::unique_ptr<EventHangMetadata> metadata,
+    HealthWatchdog(HealthMonitorT* healthMonitor, std::unique_ptr<EventHangMetadata> metadata,
                    std::optional<std::function<std::unique_ptr<HangAnnotations>()>>
                        onHangAnnotationsCallback = std::nullopt,
                    uint64_t timeout = kDefaultTimeoutMs)
         : mHealthMonitor(healthMonitor), mThreadId(getCurrentThreadId()) {
+        if (!mHealthMonitor) {
+            mId = std::nullopt;
+            return;
+        }
         // TODO: willho@ re-enable thread awareness b/253483619
-        typename HealthMonitorT::Id id = mHealthMonitor.startMonitoringTask(
+        typename HealthMonitorT::Id id = mHealthMonitor->startMonitoringTask(
             std::move(metadata), std::move(onHangAnnotationsCallback), timeout, std::nullopt);
         mId = id;
     }
@@ -193,14 +197,14 @@ class HealthWatchdog {
         if (!mId.has_value()) {
             return;
         }
-        mHealthMonitor.stopMonitoringTask(*mId);
+        mHealthMonitor->stopMonitoringTask(*mId);
     }
 
     void touch() {
         if (!mId.has_value()) {
             return;
         }
-        mHealthMonitor.touchMonitoredTask(*mId);
+        mHealthMonitor->touchMonitoredTask(*mId);
     }
 
     // Return the underlying Id, and don't issue a stop on destruction.
@@ -212,7 +216,7 @@ class HealthWatchdog {
     using ThreadTasks =
         std::unordered_map<HealthMonitorT*, std::stack<typename HealthMonitorT::Id>>;
     std::optional<typename HealthMonitorT::Id> mId;
-    HealthMonitorT& mHealthMonitor;
+    HealthMonitorT* mHealthMonitor;
     const unsigned long mThreadId;
 };
 
@@ -221,7 +225,7 @@ class HealthWatchdog {
 template <class HealthMonitorT>
 class HealthWatchdogBuilder {
    public:
-    HealthWatchdogBuilder(HealthMonitorT& healthMonitor, const char* fileName,
+    HealthWatchdogBuilder(HealthMonitorT* healthMonitor, const char* fileName,
                           const char* functionName, const char* message, uint32_t line)
         : mHealthMonitor(healthMonitor),
           mMetadata(std::make_unique<EventHangMetadata>(
@@ -232,24 +236,26 @@ class HealthWatchdogBuilder {
     DISALLOW_COPY_ASSIGN_AND_MOVE(HealthWatchdogBuilder);
 
     HealthWatchdogBuilder& setHangType(EventHangMetadata::HangType hangType) {
-        mMetadata->hangType = hangType;
+        if (mHealthMonitor) mMetadata->hangType = hangType;
         return *this;
     }
     HealthWatchdogBuilder& setTimeoutMs(uint32_t timeoutMs) {
-        mTimeoutMs = timeoutMs;
+        if (mHealthMonitor) mTimeoutMs = timeoutMs;
         return *this;
     }
     // F should be a callable that returns a std::unique_ptr<EventHangMetadata::HangAnnotations>. We
     // use template instead of std::function here to avoid extra copy.
     template <class F>
     HealthWatchdogBuilder& setOnHangCallback(F&& callback) {
-        mOnHangCallback =
-            std::function<std::unique_ptr<HangAnnotations>()>(std::forward<F>(callback));
+        if (mHealthMonitor) {
+            mOnHangCallback =
+                std::function<std::unique_ptr<HangAnnotations>()>(std::forward<F>(callback));
+        }
         return *this;
     }
 
     HealthWatchdogBuilder& setAnnotations(std::unique_ptr<HangAnnotations> annotations) {
-        mMetadata->data = std::move(annotations);
+        if (mHealthMonitor) mMetadata->data = std::move(annotations);
         return *this;
     }
 
@@ -263,11 +269,14 @@ class HealthWatchdogBuilder {
     }
 
    private:
-    HealthMonitorT& mHealthMonitor;
+    HealthMonitorT* mHealthMonitor;
     std::unique_ptr<EventHangMetadata> mMetadata;
     uint32_t mTimeoutMs;
     std::optional<std::function<std::unique_ptr<HangAnnotations>()>> mOnHangCallback;
 };
+
+std::unique_ptr<HealthMonitor<>> CreateHealthMonitor(
+    HealthMonitorConsumer& consumer, uint64_t heartbeatInterval = kDefaultIntervalMs);
 
 }  // namespace guest
 }  // namespace base

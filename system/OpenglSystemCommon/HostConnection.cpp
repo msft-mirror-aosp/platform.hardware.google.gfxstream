@@ -34,6 +34,7 @@
 #define DPRINT(...)
 #endif
 
+using android::base::guest::CreateHealthMonitor;
 using android::base::guest::HealthMonitor;
 using android::base::guest::HealthMonitorConsumerBasic;
 
@@ -76,11 +77,11 @@ struct VkEncoder {
 } // namespace goldfish_vk
 class QemuPipeStream;
 typedef QemuPipeStream AddressSpaceStream;
-AddressSpaceStream* createAddressSpaceStream(size_t bufSize, HealthMonitor<>& healthMonitor) {
+AddressSpaceStream* createAddressSpaceStream(size_t bufSize, HealthMonitor<>* healthMonitor) {
     ALOGE("%s: FATAL: Trying to create ASG stream in unsupported build\n", __func__);
     abort();
 }
-AddressSpaceStream* createVirtioGpuAddressSpaceStream(HealthMonitor<>& healthMonitor) {
+AddressSpaceStream* createVirtioGpuAddressSpaceStream(HealthMonitor<>* healthMonitor) {
     ALOGE("%s: FATAL: Trying to create VirtioGpu ASG stream in unsupported build\n", __func__);
     abort();
 }
@@ -124,13 +125,13 @@ using android::base::guest::getCurrentThreadId;
 #define STREAM_BUFFER_SIZE  (4*1024*1024)
 #define STREAM_PORT_NUM     22468
 
-HealthMonitor<>& getGlobalHealthMonitor() {
+HealthMonitor<>* getGlobalHealthMonitor() {
     // Initialize HealthMonitor
     // Rather than inject as a construct arg, we keep it as a static variable in the .cpp
     // to avoid setting up dependencies in other repos (external/qemu)
     static HealthMonitorConsumerBasic sHealthMonitorConsumerBasic;
-    static HealthMonitor sHealthMonitor(sHealthMonitorConsumerBasic);
-    return sHealthMonitor;
+    static std::unique_ptr<HealthMonitor<>> sHealthMonitor = CreateHealthMonitor(sHealthMonitorConsumerBasic);
+    return sHealthMonitor.get();
 }
 
 static HostConnectionType getConnectionTypeFromProperty() {
@@ -687,7 +688,7 @@ VkEncoder *HostConnection::vkEncoder()
 {
     rcEncoder();
     if (!m_vkEnc) {
-        m_vkEnc = new VkEncoder(m_stream, &getGlobalHealthMonitor());
+        m_vkEnc = new VkEncoder(m_stream, getGlobalHealthMonitor());
     }
     return m_vkEnc;
 }
