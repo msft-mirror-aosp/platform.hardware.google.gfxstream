@@ -741,17 +741,14 @@ WorkerProcessingResult FrameBuffer::postWorkerFunc(Post& post) {
 
 std::future<void> FrameBuffer::sendPostWorkerCmd(Post post) {
 #ifdef __APPLE__
-    bool postOnlyOnMainThread = m_subWin &&
-        ((emugl::getRenderer() == SELECTED_RENDERER_HOST) ||
-            (emugl::getRenderer() == SELECTED_RENDERER_ANGLE_INDIRECT));
+    bool postOnlyOnMainThread = (emugl::getRenderer() == SELECTED_RENDERER_HOST);
 #else
     bool postOnlyOnMainThread = false;
 #endif
-
     bool expectedPostThreadStarted = false;
     if (m_postThreadStarted.compare_exchange_strong(expectedPostThreadStarted, true)) {
         if (m_emulationGl) {
-            m_emulationGl->setUseBoundSurfaceContextForDisplay(!postOnlyOnMainThread);
+            m_emulationGl->setUseBoundSurfaceContextForDisplay(true);
         }
 
         m_postWorker.reset(new PostWorker(postOnlyOnMainThread,
@@ -1055,23 +1052,16 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
                 postCmd.cmd = PostCmd::Viewport;
                 postCmd.viewport.width = fbw;
                 postCmd.viewport.height = fbh;
-                std::future<void> completeFuture =
-                    sendPostWorkerCmd(std::move(postCmd));
-                completeFuture.wait();
-
-                bool posted = false;
+                sendPostWorkerCmd(std::move(postCmd));
 
                 if (m_lastPostedColorBuffer) {
                     GL_LOG("setupSubwindow: draw last posted cb");
-                    posted = postImplSync(m_lastPostedColorBuffer, false);
-                }
-
-                if (!posted) {
+                    postImpl(m_lastPostedColorBuffer,
+                        [](std::shared_future<void> waitForGpu) {}, false);
+                } else {
                     Post postCmd;
                     postCmd.cmd = PostCmd::Clear;
-                    std::future<void> completeFuture =
-                        sendPostWorkerCmd(std::move(postCmd));
-                    completeFuture.wait();
+                    sendPostWorkerCmd(std::move(postCmd));
                 }
             }
         }

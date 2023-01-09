@@ -307,6 +307,10 @@ void PostWorker::screenshot(ColorBuffer* cb, int width, int height, GLenum forma
 }
 
 void PostWorker::block(std::promise<void> scheduledSignal, std::future<void> continueSignal) {
+    // Do not block mainthread.
+    if (m_mainThreadPostingOnly) {
+        return;
+    }
     // MSVC STL doesn't support not copyable std::packaged_task. As a workaround, we use the
     // copyable std::shared_ptr here.
     auto block = std::make_shared<Post::Block>(Post::Block{
