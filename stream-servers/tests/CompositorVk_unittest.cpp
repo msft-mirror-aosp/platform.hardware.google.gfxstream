@@ -38,9 +38,6 @@ class CompositorVkTest : public ::testing::Test {
     using SourceImage = emugl::RenderTextureVk;
 
     static void SetUpTestCase() {
-        android::base::setEnvironmentVariable(
-            "VK_ICD_FILENAMES",
-            emugl::testIcdFilename());
         k_vk = emugl::vkDispatch(false);
     }
 
