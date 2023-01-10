@@ -350,7 +350,6 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
         if (!vkEmu) {
             ERR("Failed to initialize global Vulkan emulation. Disable the Vulkan support.");
         }
-        fb->m_emulationVk = vkEmu;
     }
     if (vkEmu) {
         fb->m_vulkanEnabled = true;
@@ -555,6 +554,22 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
     return true;
 }
 
+void FrameBuffer::setColorBufferInUse(
+    uint32_t colorBufferHandle,
+    bool inUse) {
+
+    AutoLock mutex(m_lock);
+
+    ColorBufferPtr colorBuffer = findColorBuffer(colorBufferHandle);
+    if (!colorBuffer) {
+        // bad colorbuffer handle
+        ERR("FB: setColorBufferInUse cb handle %#x not found", colorBufferHandle);
+        return;
+    }
+
+    colorBuffer->setInUse(inUse);
+}
+
 void FrameBuffer::fillGLESUsages(android_studio::EmulatorGLESUsages* usages) {
     if (s_egl.eglFillUsages) {
         s_egl.eglFillUsages(usages);
@@ -740,10 +755,11 @@ std::future<void> FrameBuffer::sendPostWorkerCmd(Post post) {
     res.wait();
     if (postOnlyOnMainThread && (PostCmd::Screenshot == post.cmd) &&
         emugl::get_emugl_window_operations().isRunningInUiThread()) {
-        post.cb->readToBytesScaled(post.screenshot.screenwidth, post.screenshot.screenheight,
-                                   post.screenshot.format, post.screenshot.type,
-                                   post.screenshot.rotation, post.screenshot.rect,
-                                   post.screenshot.pixels);
+        post.cb->readPixelsScaled(post.screenshot.screenwidth,
+                                  post.screenshot.screenheight,
+                                  post.screenshot.format, post.screenshot.type,
+                                  post.screenshot.rotation,
+                                  post.screenshot.pixels, post.screenshot.rect);
     } else {
         std::future<void> completeFuture =
             m_postThread.enqueue(Post(std::move(post)));
@@ -1151,13 +1167,47 @@ HandleType FrameBuffer::createColorBufferWithHandleLocked(
         GLenum p_internalFormat,
         FrameworkFormat p_frameworkFormat,
         HandleType handle) {
-    ColorBufferPtr cb = ColorBuffer::create(m_emulationGl.get(), m_emulationVk, p_width, p_height,
-                                            p_internalFormat, p_frameworkFormat, handle);
+    EGLDisplay display = EGL_NO_DISPLAY;
+    ContextHelper* contextHelper = nullptr;
+    TextureDraw* textureDraw = nullptr;
+    bool isFastBlitSupported = false;
+    if (m_emulationGl) {
+        display = getDisplay();
+        contextHelper = getPbufferSurfaceContextHelper();
+        textureDraw = getTextureDraw();
+        isFastBlitSupported = this->isFastBlitSupported();
+    }
+
+    ColorBufferPtr cb(ColorBuffer::create(display, p_width, p_height,
+                                          p_internalFormat, p_frameworkFormat,
+                                          handle, contextHelper, textureDraw,
+                                          isFastBlitSupported, m_guestUsesAngle));
     if (cb.get() == nullptr) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
             << "Failed to create ColorBuffer:" << handle << " format:" << p_internalFormat
             << " framework-format:" << p_frameworkFormat << " width:" << p_width
             << " height:" << p_height;
+    }
+
+    if (m_vulkanEnabled) {
+        if (!goldfish_vk::setupVkColorBuffer(
+                p_width, p_height, p_internalFormat, p_frameworkFormat, handle,
+                /*vulkanOnly=*/m_guestUsesAngle, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
+            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                << "Failed to create color buffer."
+                << " format:" << p_internalFormat << " width:" << p_width << " height:" << p_height;
+            return 0;
+        }
+
+        auto memoryExport = goldfish_vk::exportColorBufferMemory(handle);
+        if (memoryExport) {
+            if (!cb->importMemory(std::move(memoryExport->descriptor), memoryExport->size,
+                                  /*dedicated=*/false, memoryExport->linearTiling,
+                                  /*vulkanOnly*/false)) {
+                ERR("Failed to import memory to ColorBuffer:%d", handle);
+                return 0;
+            }
+        }
     }
 
     assert(m_colorbuffers.count(handle) == 0);
@@ -1940,8 +1990,19 @@ void FrameBuffer::readBuffer(HandleType handle, uint64_t offset, uint64_t size, 
     buffer->read(offset, size, bytes);
 }
 
-void FrameBuffer::readColorBuffer(HandleType p_colorbuffer, int x, int y, int width, int height,
-                                  GLenum format, GLenum type, void* pixels) {
+void FrameBuffer::readColorBuffer(HandleType p_colorbuffer,
+                                  int x,
+                                  int y,
+                                  int width,
+                                  int height,
+                                  GLenum format,
+                                  GLenum type,
+                                  void* pixels) {
+    if (m_guestUsesAngle) {
+        goldfish_vk::readColorBufferToBytes(p_colorbuffer, x, y, width, height, pixels);
+        return;
+    }
+
     AutoLock mutex(m_lock);
 
     ColorBufferPtr colorBuffer = findColorBuffer(p_colorbuffer);
@@ -1950,11 +2011,21 @@ void FrameBuffer::readColorBuffer(HandleType p_colorbuffer, int x, int y, int wi
         return;
     }
 
-    colorBuffer->readToBytes(x, y, width, height, format, type, pixels);
+    colorBuffer->readPixels(x, y, width, height, format, type, pixels);
 }
 
-void FrameBuffer::readColorBufferYUV(HandleType p_colorbuffer, int x, int y, int width, int height,
-                                     void* pixels, uint32_t pixels_size) {
+void FrameBuffer::readColorBufferYUV(HandleType p_colorbuffer,
+                                     int x,
+                                     int y,
+                                     int width,
+                                     int height,
+                                     void* pixels,
+                                     uint32_t pixels_size) {
+    if (m_guestUsesAngle) {
+        goldfish_vk::readColorBufferToBytes(p_colorbuffer, x, y, width, height, pixels);
+        return;
+    }
+
     AutoLock mutex(m_lock);
 
     ColorBufferPtr colorBuffer = findColorBuffer(p_colorbuffer);
@@ -1963,7 +2034,7 @@ void FrameBuffer::readColorBufferYUV(HandleType p_colorbuffer, int x, int y, int
         return;
     }
 
-    colorBuffer->readYuvToBytes(x, y, width, height, pixels, pixels_size);
+    colorBuffer->readPixelsYUVCached(x, y, width, height, pixels, pixels_size);
 }
 
 void FrameBuffer::createYUVTextures(uint32_t type,
@@ -2047,9 +2118,11 @@ void FrameBuffer::swapTexturesAndUpdateColorBuffer(uint32_t p_colorbuffer,
             // bad colorbuffer handle
             return;
         }
-        colorBuffer->glOpSwapYuvTexturesAndUpdate(
-            format, type, static_cast<FrameworkFormat>(texture_type), textures);
+        colorBuffer->swapYUVTextures(texture_type, textures);
     }
+
+    updateColorBuffer(p_colorbuffer, x, y, width, height, format, type,
+                      nullptr);
 }
 
 bool FrameBuffer::updateBuffer(HandleType p_buffer, uint64_t offset, uint64_t size, void* bytes) {
@@ -2082,6 +2155,10 @@ bool FrameBuffer::updateColorBuffer(HandleType p_colorbuffer,
         return false;
     }
 
+    if (m_guestUsesAngle) {
+        return goldfish_vk::updateColorBufferFromBytes(p_colorbuffer, x, y, width, height, pixels);
+    }
+
     AutoLock mutex(m_lock);
 
     ColorBufferPtr colorBuffer = findColorBuffer(p_colorbuffer);
@@ -2090,7 +2167,7 @@ bool FrameBuffer::updateColorBuffer(HandleType p_colorbuffer,
         return false;
     }
 
-    colorBuffer->updateFromBytes(x, y, width, height, format, type, pixels);
+    colorBuffer->subUpdate(x, y, width, height, format, type, pixels);
 
     return true;
 }
@@ -2105,7 +2182,7 @@ bool FrameBuffer::replaceColorBufferContents(
         return false;
     }
 
-    return colorBuffer->glOpReplaceContents(numBytes, pixels);
+    return colorBuffer->replaceContents(pixels, numBytes);
 }
 
 bool FrameBuffer::readColorBufferContents(
@@ -2119,7 +2196,7 @@ bool FrameBuffer::readColorBufferContents(
         return false;
     }
 
-    return colorBuffer->glOpReadContents(numBytes, pixels);
+    return colorBuffer->readContents(numBytes, pixels);
 }
 
 bool FrameBuffer::getColorBufferInfo(
@@ -2136,7 +2213,7 @@ bool FrameBuffer::getColorBufferInfo(
 
     *width = colorBuffer->getWidth();
     *height = colorBuffer->getHeight();
-    *internalformat = colorBuffer->getFormat();
+    *internalformat = colorBuffer->getInternalFormat();
     if (frameworkFormat) {
         *frameworkFormat = colorBuffer->getFrameworkFormat();
     }
@@ -2167,7 +2244,7 @@ bool FrameBuffer::bindColorBufferToTexture(HandleType p_colorbuffer) {
         return false;
     }
 
-    return colorBuffer->glOpBindToTexture();
+    return colorBuffer->bindToTexture();
 }
 
 bool FrameBuffer::bindColorBufferToTexture2(HandleType p_colorbuffer) {
@@ -2179,7 +2256,7 @@ bool FrameBuffer::bindColorBufferToTexture2(HandleType p_colorbuffer) {
         return false;
     }
 
-    return colorBuffer->glOpBindToTexture2();
+    return colorBuffer->bindToTexture2();
 }
 
 bool FrameBuffer::bindColorBufferToRenderbuffer(HandleType p_colorbuffer) {
@@ -2191,7 +2268,7 @@ bool FrameBuffer::bindColorBufferToRenderbuffer(HandleType p_colorbuffer) {
         return false;
     }
 
-    return colorBuffer->glOpBindToRenderbuffer();
+    return colorBuffer->bindToRenderbuffer();
 }
 
 bool FrameBuffer::bindContext(HandleType p_context,
@@ -2552,7 +2629,7 @@ AsyncResult FrameBuffer::postImpl(HandleType p_colorbuffer,
                 doPostCallback(iter.second.img, iter.first);
             }
         } else {
-            cb->glOpReadback(iter.second.img, iter.second.readBgra);
+            cb->readback(iter.second.img, iter.second.readBgra);
             doPostCallback(iter.second.img, iter.first);
         }
     }
@@ -3143,7 +3220,8 @@ bool FrameBuffer::onLoad(Stream* stream,
         m_guestManagedColorBufferLifetime = stream->getByte();
         loadCollection(
             stream, &m_colorbuffers, [this, now](Stream* stream) -> ColorBufferMap::value_type {
-                ColorBufferPtr cb = ColorBuffer::onLoad(m_emulationGl.get(), m_emulationVk, stream);
+                ColorBufferPtr cb(ColorBuffer::onLoad(stream, getDisplay(), getPbufferSurfaceContextHelper(),
+                                                      getTextureDraw(), isFastBlitSupported()));
                 const HandleType handle = cb->getHndl();
                 const unsigned refCount = stream->getBe32();
                 const bool opened = stream->getByte();
@@ -3432,9 +3510,9 @@ bool FrameBuffer::platformImportResource(uint32_t handle, uint32_t info, void* r
 
     switch (type) {
         case RESOURCE_TYPE_EGL_NATIVE_PIXMAP:
-            return colorBuffer->glOpImportEglNativePixmap(resource, preserveContent);
+            return colorBuffer->importEglNativePixmap(resource, preserveContent);
         case RESOURCE_TYPE_EGL_IMAGE:
-            return colorBuffer->glOpImportEglImage(resource, preserveContent);
+            return colorBuffer->importEglImage(resource, preserveContent);
         default:
             ERR("Error: unsupported resource type: %u", type);
             return false;
@@ -3479,25 +3557,30 @@ bool FrameBuffer::platformDestroySharedEglContext(void* underlyingContext) {
 
 std::unique_ptr<BorrowedImageInfo> FrameBuffer::borrowColorBufferForComposition(
     uint32_t colorBufferHandle, bool colorBufferIsTarget) {
+    if (m_useVulkanComposition) {
+        return goldfish_vk::borrowColorBufferForComposition(colorBufferHandle, colorBufferIsTarget);
+    }
+
     ColorBufferPtr colorBufferPtr = findColorBuffer(colorBufferHandle);
     if (!colorBufferPtr) {
         ERR("Failed to get borrowed image info for ColorBuffer:%d", colorBufferHandle);
         return nullptr;
     }
-
-    const auto api = m_useVulkanComposition ? ColorBuffer::UsedApi::kVk : ColorBuffer::UsedApi::kGl;
-    return colorBufferPtr->borrowForComposition(api, colorBufferIsTarget);
+    return colorBufferPtr->getBorrowedImageInfo();
 }
 
 std::unique_ptr<BorrowedImageInfo> FrameBuffer::borrowColorBufferForDisplay(
-    uint32_t colorBufferHandle) {
+        uint32_t colorBufferHandle) {
+    if (m_useVulkanComposition) {
+        return goldfish_vk::borrowColorBufferForDisplay(colorBufferHandle);
+    }
+
     ColorBufferPtr colorBufferPtr = findColorBuffer(colorBufferHandle);
     if (!colorBufferPtr) {
         ERR("Failed to get borrowed image info for ColorBuffer:%d", colorBufferHandle);
         return nullptr;
     }
-    const auto api = m_useVulkanComposition ? ColorBuffer::UsedApi::kVk : ColorBuffer::UsedApi::kGl;
-    return colorBufferPtr->borrowForDisplay(api);
+    return colorBufferPtr->getBorrowedImageInfo();
 }
 
 gfxstream::EmulationGl& FrameBuffer::getEmulationGl() {
@@ -3640,7 +3723,30 @@ void FrameBuffer::updateColorBufferFromGlLocked(HandleType colorBufferHandle) {
         ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
         return;
     }
-    colorBuffer->updateFromGl();
+
+    // TODO(b/233939967): move the below into the generic ColorBuffer.
+
+    if (!goldfish_vk::colorBufferNeedsUpdateBetweenGlAndVk(colorBufferHandle)) {
+        return;
+    }
+
+    std::size_t contentsSize = 0;
+    if (!colorBuffer->readContents(&contentsSize, nullptr)) {
+        ERR("Failed to get GL contents size for ColorBuffer:%d", colorBufferHandle);
+        return;
+    }
+
+    std::vector<uint8_t> contents(contentsSize, 0);
+
+    if (!colorBuffer->readContents(&contentsSize, contents.data())) {
+        ERR("Failed to get GL contents for ColorBuffer:%d", colorBufferHandle);
+        return;
+    }
+
+    if (!goldfish_vk::updateColorBufferFromBytes(colorBufferHandle, contents)) {
+        ERR("Failed to set VK contents for ColorBuffer:%d", colorBufferHandle);
+        return;
+    }
 }
 
 void FrameBuffer::updateColorBufferFromVk(HandleType colorBufferHandle) {
@@ -3651,5 +3757,23 @@ void FrameBuffer::updateColorBufferFromVk(HandleType colorBufferHandle) {
         ERR("Failed to find ColorBuffer:%d", colorBufferHandle);
         return;
     }
-    colorBuffer->updateFromVk();
+
+    // TODO(b/233939967): move the below into the generic ColorBuffer.
+
+    if (!goldfish_vk::colorBufferNeedsUpdateBetweenGlAndVk(colorBufferHandle)) {
+        return;
+    }
+
+    std::vector<uint8_t> contents;
+    if (!goldfish_vk::readColorBufferToBytes(colorBufferHandle, &contents)) {
+        ERR("Failed to get VK contents for ColorBuffer:%d", colorBufferHandle);
+        return;
+    }
+
+    if (contents.empty()) return;
+
+    if (!colorBuffer->replaceContents(contents.data(), contents.size())) {
+        ERR("Failed to set GL contents for ColorBuffer:%d", colorBufferHandle);
+        return;
+    }
 }
