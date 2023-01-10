@@ -2921,28 +2921,19 @@ void FrameBuffer::onSave(Stream* stream,
     //     m_prevReadSurf
     //     m_prevDrawSurf
     AutoLock mutex(m_lock);
-
-    std::unique_ptr<RecursiveScopedContextBind> bind;
-    if (m_emulationGl) {
-        // Some snapshot commands try using GL.
-        bind = std::make_unique<RecursiveScopedContextBind>(getPbufferSurfaceContextHelper());
-        if (!bind->isOk()) {
-            ERR("Failed to make context current for saving snapshot.");
+    // set up a context because some snapshot commands try using GL
+    RecursiveScopedContextBind scopedBind(getPbufferSurfaceContextHelper());
+    // eglPreSaveContext labels all guest context textures to be saved
+    // (textures created by the host are not saved!)
+    // eglSaveAllImages labels all EGLImages (both host and guest) to be saved
+    // and save all labeled textures and EGLImages.
+    if (s_egl.eglPreSaveContext && s_egl.eglSaveAllImages) {
+        for (const auto& ctx : m_contexts) {
+            s_egl.eglPreSaveContext(getDisplay(), ctx.second->getEGLContext(),
+                    stream);
         }
-
-        // eglPreSaveContext labels all guest context textures to be saved
-        // (textures created by the host are not saved!)
-        // eglSaveAllImages labels all EGLImages (both host and guest) to be saved
-        // and save all labeled textures and EGLImages.
-        if (s_egl.eglPreSaveContext && s_egl.eglSaveAllImages) {
-            for (const auto& ctx : m_contexts) {
-                s_egl.eglPreSaveContext(getDisplay(), ctx.second->getEGLContext(),
-                        stream);
-            }
-            s_egl.eglSaveAllImages(getDisplay(), stream, &textureSaver);
-        }
+        s_egl.eglSaveAllImages(getDisplay(), stream, &textureSaver);
     }
-
     // Don't save subWindow's x/y/w/h here - those are related to the current
     // emulator UI state, not guest state that we're saving.
     stream->putBe32(m_framebufferWidth);
@@ -3000,21 +2991,19 @@ void FrameBuffer::onSave(Stream* stream,
         goldfish_vk::VkDecoderGlobalState::get()->save(stream);
     }
 
-    if (m_emulationGl) {
-        if (s_egl.eglPostSaveContext) {
-            for (const auto& ctx : m_contexts) {
-                s_egl.eglPostSaveContext(getDisplay(), ctx.second->getEGLContext(),
-                        stream);
-            }
-            // We need to run the post save step for m_eglContext
-            // to mark their texture handles dirty
-            if (getContext() != EGL_NO_CONTEXT) {
-                s_egl.eglPostSaveContext(getDisplay(), getContext(), stream);
-            }
+    if (s_egl.eglPostSaveContext) {
+        for (const auto& ctx : m_contexts) {
+            s_egl.eglPostSaveContext(getDisplay(), ctx.second->getEGLContext(),
+                    stream);
         }
-
-        EmulatedEglFenceSync::onSave(stream);
+        // We need to run the post save step for m_eglContext
+        // to mark their texture handles dirty
+        if (getContext() != EGL_NO_CONTEXT) {
+            s_egl.eglPostSaveContext(getDisplay(), getContext(), stream);
+        }
     }
+
+    EmulatedEglFenceSync::onSave(stream);
 }
 
 bool FrameBuffer::onLoad(Stream* stream,
@@ -3024,15 +3013,7 @@ bool FrameBuffer::onLoad(Stream* stream,
     {
         sweepColorBuffersLocked();
 
-        std::unique_ptr<RecursiveScopedContextBind> bind;
-        if (m_emulationGl) {
-            // Some snapshot commands try using GL.
-            bind = std::make_unique<RecursiveScopedContextBind>(getPbufferSurfaceContextHelper());
-            if (!bind->isOk()) {
-                ERR("Failed to make context current for loading snapshot.");
-            }
-        }
-
+        RecursiveScopedContextBind scopedBind(getPbufferSurfaceContextHelper());
         bool cleanupComplete = false;
         {
             AutoLock colorBufferMapLock(m_colorBufferMapLock);
@@ -3122,10 +3103,8 @@ bool FrameBuffer::onLoad(Stream* stream,
 #ifdef SNAPSHOT_PROFILE
         uint64_t texTime = android::base::getUnixTimeUs();
 #endif
-        if (m_emulationGl) {
-            if (s_egl.eglLoadAllImages) {
-                s_egl.eglLoadAllImages(getDisplay(), stream, &textureLoader);
-            }
+        if (s_egl.eglLoadAllImages) {
+            s_egl.eglLoadAllImages(getDisplay(), stream, &textureLoader);
         }
 #ifdef SNAPSHOT_PROFILE
         printf("Texture load time: %lld ms\n",
@@ -3203,24 +3182,14 @@ bool FrameBuffer::onLoad(Stream* stream,
     loadProcOwnedCollection(stream, &m_procOwnedEmulatedEglImages);
     loadProcOwnedCollection(stream, &m_procOwnedEmulatedEglContexts);
 
-    if (m_emulationGl) {
-        if (s_egl.eglPostLoadAllImages) {
-            s_egl.eglPostLoadAllImages(getDisplay(), stream);
-        }
+    if (s_egl.eglPostLoadAllImages) {
+        s_egl.eglPostLoadAllImages(getDisplay(), stream);
     }
 
     registerTriggerWait();
 
     {
-        std::unique_ptr<RecursiveScopedContextBind> bind;
-        if (m_emulationGl) {
-            // Some snapshot commands try using GL.
-            bind = std::make_unique<RecursiveScopedContextBind>(getPbufferSurfaceContextHelper());
-            if (!bind->isOk()) {
-                ERR("Failed to make context current for loading snapshot.");
-            }
-        }
-
+        RecursiveScopedContextBind scopedBind(getPbufferSurfaceContextHelper());
         AutoLock colorBufferMapLock(m_colorBufferMapLock);
         for (auto& it : m_colorbuffers) {
             if (it.second.cb) {
@@ -3242,9 +3211,7 @@ bool FrameBuffer::onLoad(Stream* stream,
 
     repost(false);
 
-    if (m_emulationGl) {
-        EmulatedEglFenceSync::onLoad(stream);
-    }
+    EmulatedEglFenceSync::onLoad(stream);
 
     return true;
     // TODO: restore memory management
