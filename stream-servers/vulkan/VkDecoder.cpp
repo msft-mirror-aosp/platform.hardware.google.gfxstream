@@ -32908,6 +32908,51 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32
                 android::base::endTrace();
                 break;
             }
+            case OP_vkQueueFlushCommandsFromAuxMemoryGOOGLE: {
+                android::base::beginTrace("vkQueueFlushCommandsFromAuxMemoryGOOGLE decode");
+                VkQueue queue;
+                VkCommandBuffer commandBuffer;
+                VkDeviceSize dataOffset;
+                VkDeviceSize dataSize;
+                // Begin global wrapped dispatchable handle unboxing for queue;
+                uint64_t cgen_var_0;
+                memcpy((uint64_t*)&cgen_var_0, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkQueue*)&queue = (VkQueue)(VkQueue)((VkQueue)(*&cgen_var_0));
+                // No unbox for commandBuffer
+                uint64_t cgen_var_1;
+                memcpy((uint64_t*)&cgen_var_1, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkCommandBuffer*)&commandBuffer =
+                    (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_1));
+                memcpy((VkDeviceSize*)&dataOffset, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                memcpy((VkDeviceSize*)&dataSize, *readStreamPtrPtr, sizeof(VkDeviceSize));
+                *readStreamPtrPtr += sizeof(VkDeviceSize);
+                if (m_logCalls) {
+                    fprintf(stderr,
+                            "stream %p: call vkQueueFlushCommandsFromAuxMemoryGOOGLE 0x%llx 0x%llx "
+                            "0x%llx 0x%llx \n",
+                            ioStream, (unsigned long long)queue, (unsigned long long)commandBuffer,
+                            (unsigned long long)dataOffset, (unsigned long long)dataSize);
+                }
+                m_state->on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(&m_pool, queue, commandBuffer,
+                                                                    dataOffset, dataSize, context);
+                vkStream->unsetHandleMapping();
+                vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
+                                         (uintptr_t)snapshotTraceBegin);
+                size_t snapshotTraceBytes = vkReadStream->endTrace();
+                if (m_state->snapshotsEnabled()) {
+                    m_state->snapshot()->vkQueueFlushCommandsFromAuxMemoryGOOGLE(
+                        snapshotTraceBegin, snapshotTraceBytes, &m_pool, queue, commandBuffer,
+                        dataOffset, dataSize);
+                }
+                vkReadStream->clearPool();
+                if (queueSubmitWithCommandsEnabled)
+                    __atomic_fetch_add(seqnoPtr, 1, __ATOMIC_SEQ_CST);
+                android::base::endTrace();
+                break;
+            }
 #endif
 #ifdef VK_EXT_global_priority_query
 #endif

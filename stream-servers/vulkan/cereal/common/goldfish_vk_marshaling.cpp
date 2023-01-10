@@ -40909,6 +40909,11 @@ const char* api_opcode_to_string(const uint32_t opcode) {
             return "OP_vkWriteAccelerationStructuresPropertiesKHR";
         }
 #endif
+#ifdef VK_GOOGLE_gfxstream
+        case OP_vkQueueFlushCommandsFromAuxMemoryGOOGLE: {
+            return "OP_vkQueueFlushCommandsFromAuxMemoryGOOGLE";
+        }
+#endif
 #ifdef VK_EXT_private_data
         case OP_vkGetPrivateDataEXT: {
             return "OP_vkGetPrivateDataEXT";

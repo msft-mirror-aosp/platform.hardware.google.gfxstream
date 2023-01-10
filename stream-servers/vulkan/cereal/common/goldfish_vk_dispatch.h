@@ -1118,6 +1118,7 @@ struct VulkanDispatch {
     PFN_vkQueueCommitDescriptorSetUpdatesGOOGLE vkQueueCommitDescriptorSetUpdatesGOOGLE;
     PFN_vkCollectDescriptorPoolIdsGOOGLE vkCollectDescriptorPoolIdsGOOGLE;
     PFN_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE vkQueueSignalReleaseImageANDROIDAsyncGOOGLE;
+    PFN_vkQueueFlushCommandsFromAuxMemoryGOOGLE vkQueueFlushCommandsFromAuxMemoryGOOGLE;
 #endif
 #ifdef VK_EXT_global_priority_query
 #endif
