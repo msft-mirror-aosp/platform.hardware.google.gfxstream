@@ -1938,7 +1938,7 @@ VkEmulation::ColorBufferInfo getColorBufferInfo(uint32_t colorBufferHandle) {
     return res;
 }
 
-bool colorBufferNeedsUpdateBetweenGlAndVk(const VkEmulation::ColorBufferInfo& colorBufferInfo) {
+bool colorBufferNeedsTransferBetweenGlAndVk(const VkEmulation::ColorBufferInfo& colorBufferInfo) {
     // GL is not used.
     if (colorBufferInfo.vulkanMode == VkEmulation::VulkanMode::VulkanOnly) {
         return false;
@@ -1957,22 +1957,7 @@ bool colorBufferNeedsUpdateBetweenGlAndVk(const VkEmulation::ColorBufferInfo& co
     return true;
 }
 
-bool colorBufferNeedsUpdateBetweenGlAndVk(uint32_t colorBufferHandle) {
-    if (!sVkEmulation || !sVkEmulation->live) {
-        return false;
-    }
-
-    AutoLock lock(sVkEmulationLock);
-
-    auto colorBufferInfo = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
-    if (!colorBufferInfo) {
-        return false;
-    }
-
-    return colorBufferNeedsUpdateBetweenGlAndVk(*colorBufferInfo);
-}
-
-bool readColorBufferToBytes(uint32_t colorBufferHandle, std::vector<uint8_t>* bytes) {
+bool readColorBufferToGl(uint32_t colorBufferHandle) {
     if (!sVkEmulation || !sVkEmulation->live) {
         VK_COMMON_VERBOSE("VkEmulation not available.");
         return false;
@@ -1983,8 +1968,11 @@ bool readColorBufferToBytes(uint32_t colorBufferHandle, std::vector<uint8_t>* by
     auto colorBufferInfo = android::base::find(sVkEmulation->colorBuffers, colorBufferHandle);
     if (!colorBufferInfo) {
         VK_COMMON_VERBOSE("Failed to read from ColorBuffer:%d, not found.", colorBufferHandle);
-        bytes->clear();
         return false;
+    }
+
+    if (!colorBufferNeedsTransferBetweenGlAndVk(*colorBufferInfo)) {
+        return true;
     }
 
     VkDeviceSize bytesNeeded = 0;
@@ -1998,18 +1986,19 @@ bool readColorBufferToBytes(uint32_t colorBufferHandle, std::vector<uint8_t>* by
         return false;
     }
 
-    bytes->resize(bytesNeeded);
+    std::vector<uint8_t> bytes(bytesNeeded);
 
     result = readColorBufferToBytesLocked(
         colorBufferHandle, 0, 0, colorBufferInfo->imageCreateInfoShallow.extent.width,
-        colorBufferInfo->imageCreateInfoShallow.extent.height, bytes->data());
+        colorBufferInfo->imageCreateInfoShallow.extent.height, bytes.data());
     if (!result) {
         VK_COMMON_ERROR("Failed to read from ColorBuffer:%d, failed to get read size.",
                         colorBufferHandle);
         return false;
     }
 
-    return true;
+    return FrameBuffer::getFB()->replaceColorBufferContents(colorBufferHandle, bytes.data(),
+                                                            bytes.size());
 }
 
 bool readColorBufferToBytes(uint32_t colorBufferHandle, uint32_t x, uint32_t y, uint32_t w,
@@ -2156,7 +2145,7 @@ bool readColorBufferToBytesLocked(uint32_t colorBufferHandle, uint32_t x, uint32
     return true;
 }
 
-bool updateColorBufferFromBytes(uint32_t colorBufferHandle, const std::vector<uint8_t>& bytes) {
+bool updateColorBufferFromGl(uint32_t colorBufferHandle) {
     if (!sVkEmulation || !sVkEmulation->live) {
         VK_COMMON_VERBOSE("VkEmulation not available.");
         return false;
@@ -2170,24 +2159,25 @@ bool updateColorBufferFromBytes(uint32_t colorBufferHandle, const std::vector<ui
         return false;
     }
 
-    VkDeviceSize transferSize = 0;
-    bool result = getFormatTransferInfo(colorBufferInfo->imageCreateInfoShallow.format,
-                                        colorBufferInfo->imageCreateInfoShallow.extent.width,
-                                        colorBufferInfo->imageCreateInfoShallow.extent.height,
-                                        &transferSize, nullptr);
+    if (!colorBufferNeedsTransferBetweenGlAndVk(*colorBufferInfo)) {
+        return true;
+    }
+
+    size_t bytesNeeded = 0;
+    bool result =
+        FrameBuffer::getFB()->readColorBufferContents(colorBufferHandle, &bytesNeeded, nullptr);
     if (!result) {
-        VK_COMMON_ERROR("Failed to update ColorBuffer:%d, failed to get expected size.",
+        VK_COMMON_ERROR("Failed to update ColorBuffer:%d, failed to get read contents size.",
                         colorBufferHandle);
         return false;
     }
 
-    const auto bytesProvided = bytes.size();
-    const auto bytesExpected = static_cast<std::size_t>(transferSize);
-    if (bytesProvided != bytesExpected) {
-        VK_COMMON_ERROR(
-            "Unexpected contents size when trying to update ColorBuffer:%d, "
-            "provided:%zu expected:%zu",
-            colorBufferHandle, bytesProvided, bytesExpected);
+    std::vector<uint8_t> bytes(bytesNeeded);
+    result = FrameBuffer::getFB()->readColorBufferContents(colorBufferHandle, &bytesNeeded,
+                                                           bytes.data());
+    if (!result) {
+        VK_COMMON_ERROR("Failed to update ColorBuffer:%d, failed to read contents.",
+                        colorBufferHandle);
         return false;
     }
 
