@@ -1241,42 +1241,59 @@ HandleType FrameBuffer::createColorBufferWithHandleLocked(
 }
 
 HandleType FrameBuffer::createBuffer(uint64_t p_size, uint32_t memoryProperty) {
-    AutoLock mutex(m_lock);
-    AutoLock colorBufferMapLock(m_colorBufferMapLock);
-    return createBufferWithHandleLocked(p_size, genHandle_locked(), memoryProperty);
+    HandleType handle = 0;
+    {
+        AutoLock mutex(m_lock);
+        // Hold the ColorBuffer map lock so that the new handle won't collide with a ColorBuffer
+        // handle.
+        AutoLock colorBufferMapLock(m_colorBufferMapLock);
+        handle = createBufferWithHandleLocked(p_size, genHandle_locked());
+    }
+
+    bool setupStatus =
+            goldfish_vk::setupVkBuffer(handle, /* vulkanOnly */ true, memoryProperty);
+    assert(setupStatus);
+    return handle;
 }
 
 void FrameBuffer::createBufferWithHandle(uint64_t size, HandleType handle) {
-    AutoLock mutex(m_lock);
-    AutoLock colorBufferMapLock(m_colorBufferMapLock);
+    {
+        AutoLock mutex(m_lock);
+        AutoLock colorBufferMapLock(m_colorBufferMapLock);
 
-    if (m_buffers.count(handle) != 0) {
-        GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
-            << "Buffer already exists with handle " << handle;
+        // Check for handle collision
+        if (m_buffers.count(handle) != 0) {
+            GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
+                << "Buffer already exists with handle " << handle;
+        }
+
+        handle = createBufferWithHandleLocked(size, handle);
+        if (!handle) {
+            return;
+        }
     }
 
-    createBufferWithHandleLocked(size, handle, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    if (m_displayVk || m_guestUsesAngle) {
+        goldfish_vk::setupVkBuffer(handle, /* vulkanOnly */ true,
+                                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    }
 }
 
-HandleType FrameBuffer::createBufferWithHandleLocked(int p_size, HandleType handle,
-                                                     uint32_t memoryProperty) {
+HandleType FrameBuffer::createBufferWithHandleLocked(int p_size,
+                                                     HandleType handle) {
     if (m_buffers.count(handle) != 0) {
         GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER))
             << "Buffer already exists with handle " << handle;
     }
 
     BufferPtr buffer(Buffer::create(p_size, handle, getPbufferSurfaceContextHelper()));
-    if (!buffer) {
+
+    if (buffer) {
+        m_buffers[handle] = {std::move(buffer)};
+    } else {
+        handle = 0;
         ERR("Create buffer failed.\n");
-        return 0;
     }
-
-    m_buffers[handle] = {std::move(buffer)};
-
-    if (m_displayVk || m_guestUsesAngle) {
-        goldfish_vk::setupVkBuffer(handle, /* vulkanOnly */ true, memoryProperty);
-    }
-
     return handle;
 }
 
