@@ -187,7 +187,8 @@ bool ColorBuffer::updateFromBytes(int x, int y, int width, int height, GLenum pi
         return goldfish_vk::updateColorBufferFromBytes(mHandle, x, y, width, height, pixels);
     }
     if (mColorBufferGl) {
-        return mColorBufferGl->subUpdate(x, y, width, height, pixelsFormat, pixelsType, pixels);
+        mColorBufferGl->subUpdate(x, y, width, height, pixelsFormat, pixelsType, pixels);
+        return true;
     }
 
     GFXSTREAM_ABORT(FatalError(ABORT_REASON_OTHER)) << "No ColorBuffer impl?";
