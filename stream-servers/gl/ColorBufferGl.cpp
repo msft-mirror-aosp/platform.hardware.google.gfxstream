@@ -584,7 +584,12 @@ void ColorBuffer::subUpdate(int x,
     if (m_vulkanOnly) {
         return;
     }
+    subUpdateFromFrameworkFormat(x, y, width, height, m_frameworkFormat, p_format, p_type, pixels);
+}
 
+void ColorBuffer::subUpdateFromFrameworkFormat(int x, int y, int width, int height,
+                                               FrameworkFormat fwkFormat, GLenum p_format,
+                                               GLenum p_type, void* pixels) {
     const GLenum p_unsizedFormat = sGetUnsizedColorBufferFormat(p_format);
     RecursiveScopedContextBind context(m_helper);
     if (!context.isOk()) {
@@ -602,13 +607,13 @@ void ColorBuffer::subUpdate(int x,
         m_needFormatCheck = false;
     }
 
-    if (m_frameworkFormat != FRAMEWORK_FORMAT_GL_COMPATIBLE) {
+    if (m_frameworkFormat != FRAMEWORK_FORMAT_GL_COMPATIBLE || fwkFormat != m_frameworkFormat) {
         assert(m_yuv_converter.get());
 
         // This FBO will convert the YUV frame to RGB
         // and render it to |m_tex|.
         bindFbo(&m_yuv_conversion_fbo, m_tex, m_needFboReattach);
-        m_yuv_converter->drawConvert(x, y, width, height, (char*)pixels);
+        m_yuv_converter->drawConvertFromFormat(fwkFormat, x, y, width, height, (char*)pixels);
         unbindFbo();
 
         // |m_tex| still needs to be bound afterwards

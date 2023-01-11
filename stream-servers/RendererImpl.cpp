@@ -523,169 +523,117 @@ void RendererImpl::cleanupProcGLObjects(uint64_t puid) {
 }
 
 static struct AndroidVirtioGpuOps sVirtioGpuOps = {
-        .create_buffer_with_handle =
-                [](uint64_t size, uint32_t handle) {
-                    FrameBuffer::getFB()->createBufferWithHandle(size, handle);
-                },
-        .create_color_buffer_with_handle =
-                [](uint32_t width,
-                   uint32_t height,
-                   uint32_t format,
-                   uint32_t fwkFormat,
-                   uint32_t handle) {
-                    FrameBuffer::getFB()->createColorBufferWithHandle(
-                            width, height, (GLenum)format,
-                            (FrameworkFormat)fwkFormat, handle);
-                },
-        .open_color_buffer =
-                [](uint32_t handle) {
-                    FrameBuffer::getFB()->openColorBuffer(handle);
-                },
-        .close_buffer =
-                [](uint32_t handle) {
-                    FrameBuffer::getFB()->closeBuffer(handle);
-                },
-        .close_color_buffer =
-                [](uint32_t handle) {
-                    FrameBuffer::getFB()->closeColorBuffer(handle);
-                },
-        .update_buffer =
-                [](uint32_t handle,
-                   uint64_t offset,
-                   uint64_t size,
-                   void* bytes) {
-                    FrameBuffer::getFB()->updateBuffer(
-                            handle, offset, size, bytes);
-                },
-        .update_color_buffer =
-                [](uint32_t handle,
-                   int x,
-                   int y,
-                   int width,
-                   int height,
-                   uint32_t format,
-                   uint32_t type,
-                   void* pixels) {
-                    FrameBuffer::getFB()->updateColorBuffer(
-                            handle, x, y, width, height, format, type, pixels);
-                },
-        .read_buffer =
-                [](uint32_t handle,
-                   uint64_t offset,
-                   uint64_t size,
-                   void* bytes) {
-                    FrameBuffer::getFB()->readBuffer(
-                            handle, offset, size, bytes);
-                },
-        .read_color_buffer =
-                [](uint32_t handle,
-                   int x,
-                   int y,
-                   int width,
-                   int height,
-                   uint32_t format,
-                   uint32_t type,
-                   void* pixels) {
-                    FrameBuffer::getFB()->readColorBuffer(
-                            handle, x, y, width, height, format, type, pixels);
-                },
-        .read_color_buffer_yuv =
-                [](uint32_t handle,
-                   int x,
-                   int y,
-                   int width,
-                   int height,
-                   void* pixels,
-                   uint32_t pixels_size) {
-                    FrameBuffer::getFB()->readColorBufferYUV(
-                            handle, x, y, width, height, pixels, pixels_size);
-                },
-        .post_color_buffer =
-                [](uint32_t handle) { FrameBuffer::getFB()->post(handle); },
-        .async_post_color_buffer =
-                [](uint32_t handle, CpuCompletionCallback cb) {
-                    FrameBuffer::getFB()->postWithCallback(handle, cb); },
-        .repost = []() { FrameBuffer::getFB()->repost(); },
-        .create_yuv_textures =
-                [](uint32_t type,
-                   uint32_t count,
-                   int width,
-                   int height,
-                   uint32_t* output) {
-                    FrameBuffer::getFB()->createYUVTextures(type, count, width,
-                                                            height, output);
-                },
-        .destroy_yuv_textures =
-                [](uint32_t type, uint32_t count, uint32_t* textures) {
-                    FrameBuffer::getFB()->destroyYUVTextures(type, count,
-                                                             textures);
-                },
-        .update_yuv_textures =
-                [](uint32_t type,
-                   uint32_t* textures,
-                   void* privData,
-                   void* func) {
-                    FrameBuffer::getFB()->updateYUVTextures(type, textures,
-                                                            privData, func);
-                },
-        .swap_textures_and_update_color_buffer =
-                [](uint32_t colorbufferhandle,
-                   int x,
-                   int y,
-                   int width,
-                   int height,
-                   uint32_t format,
-                   uint32_t type,
-                   uint32_t texture_type,
-                   uint32_t* textures,
-                   void* metadata) {
-                    (void)metadata;
-                    // TODO(joshuaduong): CP go/oag/2170490
-                    FrameBuffer::getFB()->swapTexturesAndUpdateColorBuffer(
-                            colorbufferhandle, x, y, width, height, format,
-                            type, texture_type, textures);
-                },
-        .get_last_posted_color_buffer = []() {
-            return FrameBuffer::getFB()->getLastPostedColorBuffer();
+    .create_buffer_with_handle =
+        [](uint64_t size, uint32_t handle) {
+            FrameBuffer::getFB()->createBufferWithHandle(size, handle);
         },
-        .bind_color_buffer_to_texture = [](uint32_t handle) {
-            FrameBuffer::getFB()->bindColorBufferToTexture2(handle);
+    .create_color_buffer_with_handle =
+        [](uint32_t width, uint32_t height, uint32_t format, uint32_t fwkFormat, uint32_t handle) {
+            FrameBuffer::getFB()->createColorBufferWithHandle(width, height, (GLenum)format,
+                                                              (FrameworkFormat)fwkFormat, handle);
         },
-        .get_global_egl_context = []() {
-            return FrameBuffer::getFB()->getGlobalEGLContext();
+    .open_color_buffer = [](uint32_t handle) { FrameBuffer::getFB()->openColorBuffer(handle); },
+    .close_buffer = [](uint32_t handle) { FrameBuffer::getFB()->closeBuffer(handle); },
+    .close_color_buffer = [](uint32_t handle) { FrameBuffer::getFB()->closeColorBuffer(handle); },
+    .update_buffer =
+        [](uint32_t handle, uint64_t offset, uint64_t size, void* bytes) {
+            FrameBuffer::getFB()->updateBuffer(handle, offset, size, bytes);
         },
-        .wait_for_gpu = [](uint64_t eglsync) {
-            FrameBuffer::getFB()->waitForGpu(eglsync);
+    .update_color_buffer =
+        [](uint32_t handle, int x, int y, int width, int height, uint32_t format, uint32_t type,
+           void* pixels) {
+            FrameBuffer::getFB()->updateColorBuffer(handle, x, y, width, height, format, type,
+                                                    pixels);
         },
-        .wait_for_gpu_vulkan = [](uint64_t device, uint64_t fence) {
+    .read_buffer =
+        [](uint32_t handle, uint64_t offset, uint64_t size, void* bytes) {
+            FrameBuffer::getFB()->readBuffer(handle, offset, size, bytes);
+        },
+    .read_color_buffer =
+        [](uint32_t handle, int x, int y, int width, int height, uint32_t format, uint32_t type,
+           void* pixels) {
+            FrameBuffer::getFB()->readColorBuffer(handle, x, y, width, height, format, type,
+                                                  pixels);
+        },
+    .read_color_buffer_yuv =
+        [](uint32_t handle, int x, int y, int width, int height, void* pixels,
+           uint32_t pixels_size) {
+            FrameBuffer::getFB()->readColorBufferYUV(handle, x, y, width, height, pixels,
+                                                     pixels_size);
+        },
+    .post_color_buffer = [](uint32_t handle) { FrameBuffer::getFB()->post(handle); },
+    .async_post_color_buffer =
+        [](uint32_t handle, CpuCompletionCallback cb) {
+            FrameBuffer::getFB()->postWithCallback(handle, cb);
+        },
+    .repost = []() { FrameBuffer::getFB()->repost(); },
+    .create_yuv_textures =
+        [](uint32_t type, uint32_t count, int width, int height, uint32_t* output) {
+            FrameBuffer::getFB()->createYUVTextures(type, count, width, height, output);
+        },
+    .destroy_yuv_textures =
+        [](uint32_t type, uint32_t count, uint32_t* textures) {
+            FrameBuffer::getFB()->destroyYUVTextures(type, count, textures);
+        },
+    .update_yuv_textures =
+        [](uint32_t type, uint32_t* textures, void* privData, void* func) {
+            FrameBuffer::getFB()->updateYUVTextures(type, textures, privData, func);
+        },
+    .swap_textures_and_update_color_buffer =
+        [](uint32_t colorbufferhandle, int x, int y, int width, int height, uint32_t format,
+           uint32_t type, uint32_t texture_type, uint32_t* textures, void* metadata) {
+            (void)metadata;
+            // TODO(joshuaduong): CP go/oag/2170490
+            FrameBuffer::getFB()->swapTexturesAndUpdateColorBuffer(
+                colorbufferhandle, x, y, width, height, format, type, texture_type, textures);
+        },
+    .get_last_posted_color_buffer =
+        []() { return FrameBuffer::getFB()->getLastPostedColorBuffer(); },
+    .bind_color_buffer_to_texture =
+        [](uint32_t handle) { FrameBuffer::getFB()->bindColorBufferToTexture2(handle); },
+    .get_global_egl_context = []() { return FrameBuffer::getFB()->getGlobalEGLContext(); },
+    .wait_for_gpu = [](uint64_t eglsync) { FrameBuffer::getFB()->waitForGpu(eglsync); },
+    .wait_for_gpu_vulkan =
+        [](uint64_t device, uint64_t fence) {
             FrameBuffer::getFB()->waitForGpuVulkan(device, fence);
         },
-        .set_guest_managed_color_buffer_lifetime = [](bool guestManaged) {
+    .set_guest_managed_color_buffer_lifetime =
+        [](bool guestManaged) {
             FrameBuffer::getFB()->setGuestManagedColorBufferLifetime(guestManaged);
         },
-        .async_wait_for_gpu_with_cb = [](uint64_t eglsync, FenceCompletionCallback cb) {
+    .async_wait_for_gpu_with_cb =
+        [](uint64_t eglsync, FenceCompletionCallback cb) {
             FrameBuffer::getFB()->asyncWaitForGpuWithCb(eglsync, cb);
         },
-        .async_wait_for_gpu_vulkan_with_cb = [](uint64_t device, uint64_t fence, FenceCompletionCallback cb) {
+    .async_wait_for_gpu_vulkan_with_cb =
+        [](uint64_t device, uint64_t fence, FenceCompletionCallback cb) {
             FrameBuffer::getFB()->asyncWaitForGpuVulkanWithCb(device, fence, cb);
         },
-        .async_wait_for_gpu_vulkan_qsri_with_cb = [](uint64_t image, FenceCompletionCallback cb) {
+    .async_wait_for_gpu_vulkan_qsri_with_cb =
+        [](uint64_t image, FenceCompletionCallback cb) {
             FrameBuffer::getFB()->asyncWaitForGpuVulkanQsriWithCb(image, cb);
         },
-        .wait_for_gpu_vulkan_qsri = [](uint64_t image) {
-            FrameBuffer::getFB()->waitForGpuVulkanQsri(image);
-        },
-        .platform_import_resource = [](uint32_t handle, uint32_t info, void* resource) {
+    .wait_for_gpu_vulkan_qsri =
+        [](uint64_t image) { FrameBuffer::getFB()->waitForGpuVulkanQsri(image); },
+    .platform_import_resource =
+        [](uint32_t handle, uint32_t info, void* resource) {
             return FrameBuffer::getFB()->platformImportResource(handle, info, resource);
         },
-        .platform_resource_info = [](uint32_t handle, int32_t* width, int32_t* height, int32_t* internal_format) {
+    .platform_resource_info =
+        [](uint32_t handle, int32_t* width, int32_t* height, int32_t* internal_format) {
             return FrameBuffer::getFB()->getColorBufferInfo(handle, width, height, internal_format);
         },
-        .platform_create_shared_egl_context = []() {
-            return FrameBuffer::getFB()->platformCreateSharedEglContext();
-        },
-        .platform_destroy_shared_egl_context = [](void* context) {
+    .platform_create_shared_egl_context =
+        []() { return FrameBuffer::getFB()->platformCreateSharedEglContext(); },
+    .platform_destroy_shared_egl_context =
+        [](void* context) {
             return FrameBuffer::getFB()->platformDestroySharedEglContext(context);
+        },
+    .update_color_buffer_from_framework_format =
+        [](uint32_t handle, int x, int y, int width, int height, uint32_t fwkFormat,
+           uint32_t format, uint32_t type, void* pixels, void* pMetadata) {
+            FrameBuffer::getFB()->updateColorBufferFromFrameworkFormat(
+                handle, x, y, width, height, (FrameworkFormat)fwkFormat, format, type, pixels);
         },
 };
 
