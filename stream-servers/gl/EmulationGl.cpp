@@ -591,29 +591,6 @@ void EmulationGl::setUseBoundSurfaceContextForDisplay(bool use) {
     }
 }
 
-ContextHelper* EmulationGl::getColorBufferContextHelper() {
-    if (!mPbufferSurface) {
-        return nullptr;
-    }
-
-    const auto* surfaceGl = static_cast<const DisplaySurfaceGl*>(mPbufferSurface->getImpl());
-    return surfaceGl->getContextHelper();
-}
-
-std::unique_ptr<ColorBufferGl> EmulationGl::createColorBuffer(uint32_t width, uint32_t height,
-                                                              GLenum internalFormat,
-                                                              FrameworkFormat frameworkFormat,
-                                                              HandleType handle) {
-    return ColorBufferGl::create(mEglDisplay, width, height, internalFormat, frameworkFormat,
-                                 handle, getColorBufferContextHelper(), mTextureDraw.get(),
-                                 isFastBlitSupported());
-}
-
-std::unique_ptr<ColorBufferGl> EmulationGl::loadColorBuffer(android::base::Stream* stream) {
-    return ColorBufferGl::onLoad(stream, mEglDisplay, getColorBufferContextHelper(),
-                                 mTextureDraw.get(), isFastBlitSupported());
-}
-
 std::unique_ptr<EmulatedEglContext> EmulationGl::createEmulatedEglContext(
         uint32_t emulatedEglConfigIndex,
         const EmulatedEglContext* sharedContext,
