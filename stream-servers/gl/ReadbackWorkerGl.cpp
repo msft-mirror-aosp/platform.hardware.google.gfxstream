@@ -17,6 +17,7 @@
 
 #include <string.h>
 
+#include "ColorBuffer.h"
 #include "ContextHelper.h"
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
@@ -165,7 +166,7 @@ ReadbackWorkerGl::doNextReadback(uint32_t displayId,
         r.m_readbackCount++;
         r.mPrevReadPixelsIndex = readAt;
 
-        cb->readbackAsync(r.mBuffers[readAt], readbackBgra);
+        cb->glOpReadbackAsync(r.mBuffers[readAt], readbackBgra);
 
         // It's possible to post callback before any of the async readbacks
         // have written any data yet, which results in a black frame.  Safer
