@@ -25,15 +25,14 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "FrameBuffer.h"
 #include "VkFormatUtils.h"
 #include "VulkanDispatch.h"
-#include "aemu/base/synchronization/Lock.h"
-#include "aemu/base/containers/Lookup.h"
 #include "aemu/base/Optional.h"
-#include "aemu/base/containers/StaticMap.h"
-#include "aemu/base/system/System.h"
 #include "aemu/base/Tracing.h"
+#include "aemu/base/containers/Lookup.h"
+#include "aemu/base/containers/StaticMap.h"
+#include "aemu/base/synchronization/Lock.h"
+#include "aemu/base/system/System.h"
 #include "common/goldfish_vk_dispatch.h"
 #include "host-common/GfxstreamFatalError.h"
 #include "host-common/emugl_vm_operations.h"
@@ -1504,6 +1503,9 @@ bool importExternalMemoryDedicatedImage(VulkanDispatch* vk, VkDevice targetDevic
     return true;
 }
 
+// From ANGLE "src/common/angleutils.h"
+#define GL_BGR10_A2_ANGLEX 0x6AF9
+
 static VkFormat glFormat2VkFormat(GLint internalFormat) {
     switch (internalFormat) {
         case GL_R8:
@@ -2505,20 +2507,13 @@ bool getBufferAllocationInfo(uint32_t bufferHandle, VkDeviceSize* outSize,
     return true;
 }
 
-bool setupVkBuffer(uint32_t bufferHandle, bool vulkanOnly, uint32_t memoryProperty, bool* exported,
-                   VkDeviceSize* allocSize, uint32_t* typeIndex) {
+bool setupVkBuffer(uint64_t size, uint32_t bufferHandle, bool vulkanOnly, uint32_t memoryProperty) {
     if (vulkanOnly == false) {
-        fprintf(stderr, "Data buffers should be vulkanOnly. Setup failed.\n");
+        VK_COMMON_ERROR("Data buffers should be vulkanOnly. Setup failed.");
         return false;
     }
 
     auto vk = sVkEmulation->dvk;
-    auto fb = FrameBuffer::getFB();
-
-    int size;
-    if (!fb->getBufferInfo(bufferHandle, &size)) {
-        return false;
-    }
 
     AutoLock lock(sVkEmulationLock);
 
@@ -2526,12 +2521,6 @@ bool setupVkBuffer(uint32_t bufferHandle, bool vulkanOnly, uint32_t memoryProper
 
     // Already setup
     if (infoPtr) {
-        // Update the allocation size to what the host driver wanted, or we
-        // might get VK_ERROR_OUT_OF_DEVICE_MEMORY and a host crash
-        if (allocSize) *allocSize = infoPtr->memory.size;
-        // Update the type index to what the host driver wanted, or we might
-        // get VK_ERROR_DEVICE_LOST
-        if (typeIndex) *typeIndex = infoPtr->memory.typeIndex;
         return true;
     }
 
@@ -2639,9 +2628,6 @@ bool setupVkBuffer(uint32_t bufferHandle, bool vulkanOnly, uint32_t memoryProper
     }
 
     res.glExported = false;
-    if (exported) *exported = res.glExported;
-    if (allocSize) *allocSize = res.memory.size;
-    if (typeIndex) *typeIndex = res.memory.typeIndex;
 
     sVkEmulation->buffers[bufferHandle] = res;
     return allocRes;
