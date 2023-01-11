@@ -150,6 +150,9 @@ class ColorBuffer :
                    GLenum p_format,
                    GLenum p_type,
                    void* pixels);
+    void subUpdateFromFrameworkFormat(int x, int y, int width, int height,
+                                      FrameworkFormat fwkFormat, GLenum p_format, GLenum p_type,
+                                      void* pixels);
 
     // Completely replaces contents, assuming that |pixels| is a buffer
     // that is allocated and filled with the same format.

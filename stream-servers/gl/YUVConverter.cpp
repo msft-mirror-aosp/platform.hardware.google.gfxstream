@@ -880,17 +880,35 @@ void YUVConverter::swapTextures(uint32_t type, uint32_t* textures) {
     }
 
     mFormat = format;
+    mTexturesSwapped = true;
 }
 
+// drawConvert: per-frame updates.
+// Update YUV textures, then draw the fullscreen
+// quad set up above, which results in a framebuffer
+// with the RGB colors.
 void YUVConverter::drawConvert(int x, int y, int width, int height, const char* pixels) {
-    YUV_DEBUG_LOG("x:%d y:%d w:%d h:%d", x, y, width, height);
+    drawConvertFromFormat(mFormat, x, y, width, height, pixels);
+}
 
+void YUVConverter::drawConvertFromFormat(FrameworkFormat format, int x, int y, int width,
+                                         int height, const char* pixels) {
     saveGLState();
     if (pixels && (width != mWidth || height != mHeight)) {
         reset();
     }
 
-    if (mProgram == 0) {
+    bool uploadFormatChanged = !mTexturesSwapped && pixels && (format != mFormat);
+    bool initNeeded = (mProgram == 0) || uploadFormatChanged;
+
+    if (initNeeded) {
+        if (uploadFormatChanged) {
+            mFormat = format;
+            // TODO: missing cherry-picks, put it back
+            // b/264928117
+            //mCbFormat = format;
+            reset();
+        }
         init(width, height, mFormat);
     }
 
