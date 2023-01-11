@@ -557,9 +557,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<emugl::FrameB
 
     bool isVulkanInteropSupported() const { return m_vulkanInteropSupported; }
     bool isVulkanEnabled() const { return m_vulkanEnabled; }
-    bool importMemoryToColorBuffer(android::base::ManagedDescriptor descriptor, uint64_t size,
-                                   bool dedicated, bool vulkanOnly, uint32_t colorBufferHandle,
-                                   VkImage, const VkImageCreateInfo&);
     void setColorBufferInUse(uint32_t colorBufferHandle, bool inUse);
 
     // Fill GLES usage protobuf
