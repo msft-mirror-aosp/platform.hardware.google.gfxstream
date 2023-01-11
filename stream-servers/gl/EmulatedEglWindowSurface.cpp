@@ -122,7 +122,7 @@ bool EmulatedEglWindowSurface::flushColorBuffer() {
         }
     }
 
-    mAttachedColorBuffer->glOpBlitFromCurrentReadBuffer();
+    mAttachedColorBuffer->blitFromCurrentReadBuffer();
 
     if (needToSet) {
         // restore current context/surface

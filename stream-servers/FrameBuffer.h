@@ -553,6 +553,10 @@ class FrameBuffer : public android::base::EventNotificationSupport<emugl::FrameB
 
     bool isVulkanInteropSupported() const { return m_vulkanInteropSupported; }
     bool isVulkanEnabled() const { return m_vulkanEnabled; }
+    bool importMemoryToColorBuffer(android::base::ManagedDescriptor descriptor, uint64_t size,
+                                   bool dedicated, bool vulkanOnly, uint32_t colorBufferHandle,
+                                   VkImage, const VkImageCreateInfo&);
+    void setColorBufferInUse(uint32_t colorBufferHandle, bool inUse);
 
     // Fill GLES usage protobuf
     void fillGLESUsages(android_studio::EmulatorGLESUsages*);
@@ -646,10 +650,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<emugl::FrameB
     void logVulkanOutOfMemory(VkResult result, const char* function, int line,
                               std::optional<uint64_t> allocationSize = std::nullopt);
 
-    void updateColorBufferFromGl(HandleType colorBufferHandle);
-    void updateColorBufferFromGlLocked(HandleType colorBufferHandle);
-    void updateColorBufferFromVk(HandleType colorBufferHandle);
-
    private:
     FrameBuffer(int p_width, int p_height, bool useSubWindow);
     // Requires the caller to hold the m_colorBufferMapLock until the new handle is inserted into of
@@ -681,7 +681,7 @@ class FrameBuffer : public android::base::EventNotificationSupport<emugl::FrameB
     HandleType createColorBufferWithHandleLocked(int p_width, int p_height, GLenum p_internalFormat,
                                                  FrameworkFormat p_frameworkFormat,
                                                  HandleType handle);
-    HandleType createBufferWithHandleLocked(int p_size, HandleType handle, uint32_t memoryProperty);
+    HandleType createBufferWithHandleLocked(int p_size, HandleType handle);
 
     void recomputeLayout();
     void setDisplayPoseInSkinUI(int totalHeight);
@@ -839,7 +839,6 @@ class FrameBuffer : public android::base::EventNotificationSupport<emugl::FrameB
     Compositor* m_compositor = nullptr;
     bool m_useVulkanComposition = false;
 
-    goldfish_vk::VkEmulation* m_emulationVk = nullptr;
     // The implementation for Vulkan native swapchain. Only initialized when useVulkan is set when
     // calling FrameBuffer::initialize(). DisplayVk is actually owned by VkEmulation.
     DisplayVk *m_displayVk = nullptr;
