@@ -587,6 +587,7 @@ class VkDecoderGlobalState {
                                        const void* pData, const VkDecoderContext& context);
     void on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(android::base::BumpPool* pool, VkQueue queue,
                                                     VkCommandBuffer commandBuffer,
+                                                    VkDeviceMemory deviceMemory,
                                                     VkDeviceSize dataOffset, VkDeviceSize dataSize,
                                                     const VkDecoderContext& context);
     void on_vkQueueCommitDescriptorSetUpdatesGOOGLE(

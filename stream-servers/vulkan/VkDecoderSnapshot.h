@@ -2688,6 +2688,7 @@ class VkDecoderSnapshot {
                                                  size_t snapshotTraceBytes,
                                                  android::base::BumpPool* pool, VkQueue queue,
                                                  VkCommandBuffer commandBuffer,
+                                                 VkDeviceMemory deviceMemory,
                                                  VkDeviceSize dataOffset, VkDeviceSize dataSize);
 #endif
 #ifdef VK_EXT_global_priority_query

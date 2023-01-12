@@ -32912,6 +32912,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32
                 android::base::beginTrace("vkQueueFlushCommandsFromAuxMemoryGOOGLE decode");
                 VkQueue queue;
                 VkCommandBuffer commandBuffer;
+                VkDeviceMemory deviceMemory;
                 VkDeviceSize dataOffset;
                 VkDeviceSize dataSize;
                 // Begin global wrapped dispatchable handle unboxing for queue;
@@ -32925,6 +32926,11 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32
                 *readStreamPtrPtr += 1 * 8;
                 *(VkCommandBuffer*)&commandBuffer =
                     (VkCommandBuffer)(VkCommandBuffer)((VkCommandBuffer)(*&cgen_var_1));
+                uint64_t cgen_var_2;
+                memcpy((uint64_t*)&cgen_var_2, *readStreamPtrPtr, 1 * 8);
+                *readStreamPtrPtr += 1 * 8;
+                *(VkDeviceMemory*)&deviceMemory =
+                    (VkDeviceMemory)unbox_VkDeviceMemory((VkDeviceMemory)(*&cgen_var_2));
                 memcpy((VkDeviceSize*)&dataOffset, *readStreamPtrPtr, sizeof(VkDeviceSize));
                 *readStreamPtrPtr += sizeof(VkDeviceSize);
                 memcpy((VkDeviceSize*)&dataSize, *readStreamPtrPtr, sizeof(VkDeviceSize));
@@ -32932,12 +32938,13 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32
                 if (m_logCalls) {
                     fprintf(stderr,
                             "stream %p: call vkQueueFlushCommandsFromAuxMemoryGOOGLE 0x%llx 0x%llx "
-                            "0x%llx 0x%llx \n",
+                            "0x%llx 0x%llx 0x%llx \n",
                             ioStream, (unsigned long long)queue, (unsigned long long)commandBuffer,
-                            (unsigned long long)dataOffset, (unsigned long long)dataSize);
+                            (unsigned long long)deviceMemory, (unsigned long long)dataOffset,
+                            (unsigned long long)dataSize);
                 }
-                m_state->on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(&m_pool, queue, commandBuffer,
-                                                                    dataOffset, dataSize, context);
+                m_state->on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(
+                    &m_pool, queue, commandBuffer, deviceMemory, dataOffset, dataSize, context);
                 vkStream->unsetHandleMapping();
                 vkReadStream->setReadPos((uintptr_t)(*readStreamPtrPtr) -
                                          (uintptr_t)snapshotTraceBegin);
@@ -32945,7 +32952,7 @@ size_t VkDecoder::Impl::decode(void* buf, size_t len, IOStream* ioStream, uint32
                 if (m_state->snapshotsEnabled()) {
                     m_state->snapshot()->vkQueueFlushCommandsFromAuxMemoryGOOGLE(
                         snapshotTraceBegin, snapshotTraceBytes, &m_pool, queue, commandBuffer,
-                        dataOffset, dataSize);
+                        deviceMemory, dataOffset, dataSize);
                 }
                 vkReadStream->clearPool();
                 if (queueSubmitWithCommandsEnabled)

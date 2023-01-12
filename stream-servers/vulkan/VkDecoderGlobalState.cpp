@@ -4610,6 +4610,7 @@ class VkDecoderGlobalState::Impl {
 
     void on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(android::base::BumpPool* pool, VkQueue queue,
                                                     VkCommandBuffer commandBuffer,
+                                                    VkDeviceMemory deviceMemory,
                                                     VkDeviceSize dataOffset, VkDeviceSize dataSize,
                                                     const VkDecoderContext& context) {
         // TODO : implement
@@ -7092,9 +7093,10 @@ void VkDecoderGlobalState::on_vkQueueFlushCommandsGOOGLE(android::base::BumpPool
 
 void VkDecoderGlobalState::on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(
     android::base::BumpPool* pool, VkQueue queue, VkCommandBuffer commandBuffer,
-    VkDeviceSize dataOffset, VkDeviceSize dataSize, const VkDecoderContext& context) {
-    mImpl->on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(pool, queue, commandBuffer, dataOffset,
-                                                      dataSize, context);
+    VkDeviceMemory deviceMemory, VkDeviceSize dataOffset, VkDeviceSize dataSize,
+    const VkDecoderContext& context) {
+    mImpl->on_vkQueueFlushCommandsFromAuxMemoryGOOGLE(pool, queue, commandBuffer, deviceMemory,
+                                                      dataOffset, dataSize, context);
 }
 
 void VkDecoderGlobalState::on_vkQueueCommitDescriptorSetUpdatesGOOGLE(
