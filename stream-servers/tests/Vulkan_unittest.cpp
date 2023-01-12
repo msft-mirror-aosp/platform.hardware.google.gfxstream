@@ -55,38 +55,6 @@ namespace emugl {
 #define SKIP_TEST_IF_WIN32()
 #endif
 
-static void* dlOpenFuncForTesting() {
-#ifdef _WIN32
-    const Win32UnicodeString name("vulkan-1.dll");
-    return LoadLibraryW(name.c_str());
-#else
-
-#ifdef __APPLE__
-    constexpr char suffix[] = ".dylib";
-#else
-    constexpr char suffix[] = ".so";
-#endif
-
-    std::string libName =
-        std::string("libvulkan") + suffix;
-
-    auto res = dlopen(pj(libDir(), libName).c_str(), RTLD_NOW);
-    if (!res) {
-        libName = std::string("libvulkan") + suffix + ".1";
-    }
-    res = dlopen(pj(libDir(), libName).c_str(), RTLD_NOW);
-    return res;
-#endif
-}
-
-static void* dlSymFuncForTesting(void* lib, const char* sym) {
-#ifdef _WIN32
-    return (void*)GetProcAddress((HMODULE)lib, sym);
-#else
-    return dlsym(lib, sym);
-#endif
-}
-
 static std::string deviceTypeToString(VkPhysicalDeviceType type) {
 #define DO_ENUM_RETURN_STRING(e) \
     case e: \
@@ -427,18 +395,12 @@ protected:
     static void TearDownTestSuite() { }
 
     void SetUp() override {
-        android::base::setEnvironmentVariable(
-            "VK_ICD_FILENAMES",
-            testIcdFilename());
-
-        goldfish_vk::init_vulkan_dispatch_from_system_loader(
-                dlOpenFuncForTesting,
-                dlSymFuncForTesting,
-                &mVk);
+        auto dispatch = emugl::vkDispatch(false);
+        ASSERT_NE(dispatch, nullptr);
+        mVk = *dispatch;
 
         testInstanceCreation(&mVk, &mInstance);
-        testDeviceCreation(
-            &mVk, mInstance, &mPhysicalDevice, &mDevice);
+        testDeviceCreation(&mVk, mInstance, &mPhysicalDevice, &mDevice);
     }
 
     void TearDown() override {
@@ -478,7 +440,6 @@ protected:
         feature_set_enabled_override(kFeature_Vulkan, true);
         feature_set_enabled_override(kFeature_VulkanIgnoredHandles, true);
 
-        android::base::setEnvironmentVariable("ANDROID_EMU_VK_ICD", "swiftshader");
         VulkanTest::SetUp();
 
         emugl::setGLObjectCounter(android::base::GLObjectCounter::get());
