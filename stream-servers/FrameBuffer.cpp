@@ -288,6 +288,7 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
             .enableEtc2Emulation = true,
             .enableYcbcrEmulation = false,
             .guestUsesAngle = fb->m_guestUsesAngle,
+            .useDedicatedAllocations = false,  // Set later.
         });
 
     //
@@ -375,6 +376,12 @@ bool FrameBuffer::initialize(int width, int height, bool useSubWindow, bool egl2
 
     fb->m_vulkanInteropSupported = vulkanInteropSupported;
     GL_LOG("interop? %d", fb->m_vulkanInteropSupported);
+
+    if (vulkanInteropSupported && fb->m_emulationGl && fb->m_emulationGl->isMesa()) {
+        // Mesa currently expects dedicated allocations for external memory sharing
+        // between GL and VK. See b/265186355.
+        vkEmulationFeatures->useDedicatedAllocations = true;
+    }
 
     GL_LOG("glvk interop final: %d", fb->m_vulkanInteropSupported);
     vkEmulationFeatures->glInteropSupported = fb->m_vulkanInteropSupported;
