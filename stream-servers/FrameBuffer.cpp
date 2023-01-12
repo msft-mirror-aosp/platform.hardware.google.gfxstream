@@ -1854,6 +1854,10 @@ std::vector<HandleType> FrameBuffer::cleanupProcGLObjects_locked(uint64_t puid, 
             if (procIte != m_procOwnedEmulatedEglWindowSurfaces.end()) {
                 for (auto whndl : procIte->second) {
                     auto w = m_windows.find(whndl);
+                    // TODO(b/265186226): figure out if we are leaking?
+                    if (w == m_windows.end()) {
+                        continue;
+                    }
                     if (!m_guestManagedColorBufferLifetime) {
                         if (m_refCountPipeEnabled) {
                             if (decColorBufferRefCountLocked(w->second.second)) {
