@@ -447,7 +447,7 @@ std::unique_ptr<EmulationGl> EmulationGl::create(uint32_t width, uint32_t height
     emulationGl->mCompositorGl = std::make_unique<CompositorGl>(emulationGl->mTextureDraw.get());
     emulationGl->mCompositorGl->bindToSurface(emulationGl->mFakeWindowSurface.get());
 
-    emulationGl->mDisplayGl = std::make_unique<DisplayGl>();
+    emulationGl->mDisplayGl = std::make_unique<DisplayGl>(emulationGl->mTextureDraw.get());
     emulationGl->mDisplayGl->bindToSurface(emulationGl->mFakeWindowSurface.get());
 
     {
