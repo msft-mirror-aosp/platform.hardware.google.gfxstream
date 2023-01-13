@@ -2322,7 +2322,7 @@ GL_APICALL void  GL_APIENTRY glGetBooleanv(GLenum pname, GLboolean* params){
 #define TO_GLBOOL(params, x) \
     *params = x ? GL_TRUE : GL_FALSE; \
 
-    GLint i;
+    GLint i = 0;
     switch (pname) {
     case GL_CURRENT_PROGRAM:
         if (ctx->shareGroup().get()) {
@@ -3317,8 +3317,8 @@ GL_APICALL void  GL_APIENTRY glReadPixels(GLint x, GLint y, GLsizei width, GLsiz
         glGetIntegerv(GL_RENDERBUFFER_BINDING, &prev_bound_rbo);
         glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prev_bound_draw_fbo);
 
-        GLuint resolve_fbo;
-        GLuint resolve_rbo;
+        GLuint resolve_fbo = 0;
+        GLuint resolve_rbo = 0;
         glGenFramebuffers(1, &resolve_fbo);
         glGenRenderbuffers(1, &resolve_rbo);
 

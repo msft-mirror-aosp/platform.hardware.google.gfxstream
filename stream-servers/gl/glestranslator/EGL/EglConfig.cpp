@@ -331,7 +331,7 @@ bool EglConfig::getConfAttrib(EGLint attrib,EGLint* val) const {
 }
 
 EGLint EglConfig::getConfAttrib(EGLint attrib) const {
-    EGLint res;
+    EGLint res = 0;
     getConfAttrib(attrib, &res);
     return res;
 }

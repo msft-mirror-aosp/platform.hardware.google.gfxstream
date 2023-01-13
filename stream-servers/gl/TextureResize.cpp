@@ -587,6 +587,8 @@ GLuint TextureResize::GenericResizer::draw(GLuint texture, int width, int height
     case SKIN_ROTATION_270:
         indexShift = 18;
         break;
+    default:
+        indexShift = 0;
     }
     s_gles2.glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, (const GLvoid*)indexShift);
 
