@@ -112,6 +112,7 @@ std::shared_future<void> PostWorker::postImpl(ColorBuffer* cb) {
         .composeMode = HWC2_COMPOSITION_DEVICE,
         .blendMode = HWC2_BLEND_MODE_NONE,
         .transform = HWC_TRANSFORM_NONE,
+        .alpha = 1.0f,
     };
 
     const auto& multiDisplay = emugl::get_emugl_multi_display_operations();
