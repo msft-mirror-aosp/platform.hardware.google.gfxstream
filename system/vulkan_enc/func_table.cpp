@@ -8472,12 +8472,13 @@ static void entry_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(VkQueue queue,
 }
 static void entry_vkQueueFlushCommandsFromAuxMemoryGOOGLE(VkQueue queue,
                                                           VkCommandBuffer commandBuffer,
+                                                          VkDeviceMemory deviceMemory,
                                                           VkDeviceSize dataOffset,
                                                           VkDeviceSize dataSize) {
     AEMU_SCOPED_TRACE("vkQueueFlushCommandsFromAuxMemoryGOOGLE");
     auto vkEnc = ResourceTracker::getQueueEncoder(queue);
-    vkEnc->vkQueueFlushCommandsFromAuxMemoryGOOGLE(queue, commandBuffer, dataOffset, dataSize,
-                                                   true /* do lock */);
+    vkEnc->vkQueueFlushCommandsFromAuxMemoryGOOGLE(queue, commandBuffer, deviceMemory, dataOffset,
+                                                   dataSize, true /* do lock */);
 }
 #endif
 #ifdef VK_EXT_global_priority_query
