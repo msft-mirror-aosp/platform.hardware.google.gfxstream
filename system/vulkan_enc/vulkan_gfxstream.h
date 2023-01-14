@@ -121,6 +121,7 @@ typedef void(VKAPI_PTR* PFN_vkQueueSignalReleaseImageANDROIDAsyncGOOGLE)(
     VkQueue queue, uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores, VkImage image);
 typedef void(VKAPI_PTR* PFN_vkQueueFlushCommandsFromAuxMemoryGOOGLE)(VkQueue queue,
                                                                      VkCommandBuffer commandBuffer,
+                                                                     VkDeviceMemory deviceMemory,
                                                                      VkDeviceSize dataOffset,
                                                                      VkDeviceSize dataSize);
 
@@ -213,6 +214,7 @@ VKAPI_ATTR void VKAPI_CALL vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(
 
 VKAPI_ATTR void VKAPI_CALL vkQueueFlushCommandsFromAuxMemoryGOOGLE(VkQueue queue,
                                                                    VkCommandBuffer commandBuffer,
+                                                                   VkDeviceMemory deviceMemory,
                                                                    VkDeviceSize dataOffset,
                                                                    VkDeviceSize dataSize);
 #endif

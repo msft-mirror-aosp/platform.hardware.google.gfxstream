@@ -61016,6 +61016,7 @@ void VkEncoder::vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(VkQueue queue,
 
 void VkEncoder::vkQueueFlushCommandsFromAuxMemoryGOOGLE(VkQueue queue,
                                                         VkCommandBuffer commandBuffer,
+                                                        VkDeviceMemory deviceMemory,
                                                         VkDeviceSize dataOffset,
                                                         VkDeviceSize dataSize, uint32_t doLock) {
     std::optional<uint32_t> healthMonitorAnnotation_seqno = std::nullopt;
@@ -61046,9 +61047,9 @@ void VkEncoder::vkQueueFlushCommandsFromAuxMemoryGOOGLE(VkQueue queue,
             .build();
 
     ENCODER_DEBUG_LOG(
-        "vkQueueFlushCommandsFromAuxMemoryGOOGLE(queue:%p, commandBuffer:%p, dataOffset:%ld, "
-        "dataSize:%ld)",
-        queue, commandBuffer, dataOffset, dataSize);
+        "vkQueueFlushCommandsFromAuxMemoryGOOGLE(queue:%p, commandBuffer:%p, deviceMemory:%p, "
+        "dataOffset:%ld, dataSize:%ld)",
+        queue, commandBuffer, deviceMemory, dataOffset, dataSize);
     (void)doLock;
     bool queueSubmitWithCommandsEnabled =
         sFeatureBits & VULKAN_STREAM_FEATURE_QUEUE_SUBMIT_WITH_COMMANDS_BIT;
@@ -61057,10 +61058,12 @@ void VkEncoder::vkQueueFlushCommandsFromAuxMemoryGOOGLE(VkQueue queue,
     auto pool = mImpl->pool();
     VkQueue local_queue;
     VkCommandBuffer local_commandBuffer;
+    VkDeviceMemory local_deviceMemory;
     VkDeviceSize local_dataOffset;
     VkDeviceSize local_dataSize;
     local_queue = queue;
     local_commandBuffer = commandBuffer;
+    local_deviceMemory = deviceMemory;
     local_dataOffset = dataOffset;
     local_dataSize = dataSize;
     size_t count = 0;
@@ -61069,6 +61072,8 @@ void VkEncoder::vkQueueFlushCommandsFromAuxMemoryGOOGLE(VkQueue queue,
         uint64_t cgen_var_0;
         *countPtr += 1 * 8;
         uint64_t cgen_var_1;
+        *countPtr += 1 * 8;
+        uint64_t cgen_var_2;
         *countPtr += 1 * 8;
         *countPtr += sizeof(VkDeviceSize);
         *countPtr += sizeof(VkDeviceSize);
@@ -61100,6 +61105,10 @@ void VkEncoder::vkQueueFlushCommandsFromAuxMemoryGOOGLE(VkQueue queue,
     uint64_t cgen_var_1;
     *&cgen_var_1 = get_host_u64_VkCommandBuffer((*&local_commandBuffer));
     memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_1, 1 * 8);
+    *streamPtrPtr += 1 * 8;
+    uint64_t cgen_var_2;
+    *&cgen_var_2 = get_host_u64_VkDeviceMemory((*&local_deviceMemory));
+    memcpy(*streamPtrPtr, (uint64_t*)&cgen_var_2, 1 * 8);
     *streamPtrPtr += 1 * 8;
     memcpy(*streamPtrPtr, (VkDeviceSize*)&local_dataOffset, sizeof(VkDeviceSize));
     *streamPtrPtr += sizeof(VkDeviceSize);

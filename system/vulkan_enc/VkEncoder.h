@@ -2030,6 +2030,7 @@ class VkEncoder {
                                                      const VkSemaphore* pWaitSemaphores,
                                                      VkImage image, uint32_t doLock);
     void vkQueueFlushCommandsFromAuxMemoryGOOGLE(VkQueue queue, VkCommandBuffer commandBuffer,
+                                                 VkDeviceMemory deviceMemory,
                                                  VkDeviceSize dataOffset, VkDeviceSize dataSize,
                                                  uint32_t doLock);
 #endif
