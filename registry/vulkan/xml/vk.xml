@@ -11161,6 +11161,7 @@ typedef void <name>CAMetalLayer</name>;
             <proto><type>void</type> <name>vkQueueFlushCommandsFromAuxMemoryGOOGLE</name></proto>
             <param externsync="true"><type>VkQueue</type> <name>queue</name></param>
             <param externsync="true"><type>VkCommandBuffer</type> <name>commandBuffer</name></param>
+            <param><type>VkDeviceMemory</type> <name>deviceMemory</name></param>
             <param><type>VkDeviceSize</type> <name>dataOffset</name></param>
             <param><type>VkDeviceSize</type> <name>dataSize</name></param>
         </command>
