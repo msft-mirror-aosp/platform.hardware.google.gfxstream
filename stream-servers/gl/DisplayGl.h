@@ -28,7 +28,7 @@
 
 class DisplayGl : public gfxstream::Display {
   public:
-    DisplayGl() {}
+    DisplayGl(TextureDraw* textureDraw): mTextureDraw(textureDraw) {}
     ~DisplayGl() {}
 
     // If false, this display will use the existing bound context when
@@ -74,4 +74,5 @@ class DisplayGl : public gfxstream::Display {
     int mViewportHeight = 0;
 
     std::atomic_bool mUseBoundSurfaceContext{true};
+    TextureDraw* mTextureDraw = nullptr;
 };
