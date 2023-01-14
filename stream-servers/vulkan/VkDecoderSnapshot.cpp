@@ -4335,6 +4335,7 @@ class VkDecoderSnapshot::Impl {
                                                  size_t snapshotTraceBytes,
                                                  android::base::BumpPool* pool, VkQueue queue,
                                                  VkCommandBuffer commandBuffer,
+                                                 VkDeviceMemory deviceMemory,
                                                  VkDeviceSize dataOffset, VkDeviceSize dataSize) {
         // TODO: Implement
     }
@@ -9524,9 +9525,11 @@ void VkDecoderSnapshot::vkQueueSignalReleaseImageANDROIDAsyncGOOGLE(
 #ifdef VK_GOOGLE_gfxstream
 void VkDecoderSnapshot::vkQueueFlushCommandsFromAuxMemoryGOOGLE(
     const uint8_t* snapshotTraceBegin, size_t snapshotTraceBytes, android::base::BumpPool* pool,
-    VkQueue queue, VkCommandBuffer commandBuffer, VkDeviceSize dataOffset, VkDeviceSize dataSize) {
+    VkQueue queue, VkCommandBuffer commandBuffer, VkDeviceMemory deviceMemory,
+    VkDeviceSize dataOffset, VkDeviceSize dataSize) {
     mImpl->vkQueueFlushCommandsFromAuxMemoryGOOGLE(snapshotTraceBegin, snapshotTraceBytes, pool,
-                                                   queue, commandBuffer, dataOffset, dataSize);
+                                                   queue, commandBuffer, deviceMemory, dataOffset,
+                                                   dataSize);
 }
 #endif
 #ifdef VK_EXT_multi_draw
