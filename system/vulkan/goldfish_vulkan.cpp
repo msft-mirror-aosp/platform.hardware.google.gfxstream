@@ -808,7 +808,7 @@ public:
         if (status != ZX_OK)
             return false;
 
-        status = zxio_close(&io_storage.io);
+        status = zxio_close_new_transitional(&io_storage.io, /*should_wait=*/true);
         if (status != ZX_OK)
             return false;
 
