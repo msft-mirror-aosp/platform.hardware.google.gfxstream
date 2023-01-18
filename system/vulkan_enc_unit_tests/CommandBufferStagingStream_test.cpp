@@ -115,6 +115,20 @@ TEST(CommandBufferStagingStreamTest, MultipleAllocationCalls) {
     EXPECT_THAT(anotherBuffer, Eq(buffer));
 }
 
+// this test verifies that allocBuffer doesn't cause reallcation if buffer has available space
+TEST(CommandBufferStagingStream, NoReallocationIfBufferIsNotFull) {
+    CommandBufferStagingStream stream;
+    uint8_t* buffer = static_cast<uint8_t*>(stream.allocBuffer(kTestBufferSize));
+    EXPECT_THAT(buffer, NotNull());
+
+    // commit portion of buffer
+    const size_t writeSize = 10;
+    stream.commitBuffer(writeSize);
+
+    uint8_t* writePtr = static_cast<uint8_t*>(stream.allocBuffer(writeSize));
+    EXPECT_THAT(writePtr, buffer + writeSize);
+}
+
 // tests that data written prior to reallocation is still intact
 TEST(CommandBufferStagingStreamTest, ReallocationBoundary) {
     CommandBufferStagingStream stream;
@@ -311,10 +325,7 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, CommitBuffer) {
         .Times(1)
         .WillRepeatedly(Return(memorySrc.data()));
 
-    // no expectation needed for freeFn in this test
-    MockFunction<void(void*)> freeFn;
-
-    CommandBufferStagingStream stream(allocFn.AsStdFunction(), freeFn.AsStdFunction());
+    CommandBufferStagingStream stream(allocFn.AsStdFunction(), [](void*) {});
     uint8_t* buffer = static_cast<uint8_t*>(stream.allocBuffer(kTestBufferSize));
     EXPECT_THAT(buffer, NotNull());
 
@@ -457,6 +468,28 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, ReallocationBoundary) {
     EXPECT_THAT(actualData, Eq(expectedData));
 }
 
+// this test verifies that allocBuffer doesn't cause reallcation if buffer has available space
+TEST(CommandBufferStagingStreamCustomAllocationTest, NoReallocationIfBufferIsNotFull) {
+    // memory source
+    std::vector<uint8_t> memorySrc(kTestBufferSize * 3);
+
+    MockFunction<void*(size_t)> allocFn;
+    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize)))
+        .Times(1)
+        .WillRepeatedly(Return(memorySrc.data()));
+
+    CommandBufferStagingStream stream(allocFn.AsStdFunction(), [](void*) {});
+    uint8_t* buffer = static_cast<uint8_t*>(stream.allocBuffer(kTestBufferSize));
+    EXPECT_THAT(buffer, NotNull());
+
+    // commit portion of buffer
+    const size_t writeSize = 10;
+    stream.commitBuffer(writeSize);
+
+    uint8_t* writePtr = static_cast<uint8_t*>(stream.allocBuffer(writeSize));
+    EXPECT_THAT(writePtr, buffer + writeSize);
+}
+
 // this test verifies that CommandBufferStagingStream accounts for metadata in the
 // beginning of its stream buffer
 TEST(CommandBufferStagingStreamCustomAllocationTest, MetadataCheck) {
@@ -470,10 +503,7 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, MetadataCheck) {
         .Times(1)
         .WillRepeatedly(Return(memorySrc.data()));
 
-    // no expectation needed for freefn for this test
-    MockFunction<void(void*)> freeFn;
-
-    CommandBufferStagingStream stream(allocFn.AsStdFunction(), freeFn.AsStdFunction());
+    CommandBufferStagingStream stream(allocFn.AsStdFunction(), [](void*) {});
     uint8_t* buffer = static_cast<uint8_t*>(stream.allocBuffer(kTestBufferSize));
     EXPECT_THAT(buffer, NotNull());
 }
@@ -488,10 +518,7 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, MarkFlushingTest) {
         .Times(1)
         .WillRepeatedly(Return(memorySrc.data()));
 
-    // no expectation needed for freefn for this test
-    MockFunction<void(void*)> freeFn;
-
-    CommandBufferStagingStream stream(allocFn.AsStdFunction(), freeFn.AsStdFunction());
+    CommandBufferStagingStream stream(allocFn.AsStdFunction(), [](void*) {});
     uint8_t* buffer = static_cast<uint8_t*>(stream.allocBuffer(kTestBufferSize));
 
     // write some data
@@ -519,10 +546,7 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, MarkFlushing) {
         .Times(1)
         .WillRepeatedly(Return(memorySrc.data()));
 
-    // no expectation needed for freefn for this test
-    MockFunction<void(void*)> freeFn;
-
-    CommandBufferStagingStream stream(allocFn.AsStdFunction(), freeFn.AsStdFunction());
+    CommandBufferStagingStream stream(allocFn.AsStdFunction(), [](void*) {});
     uint8_t* buffer = static_cast<uint8_t*>(stream.allocBuffer(kTestBufferSize));
 
     // write some data
@@ -552,12 +576,7 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, ReallocNotCalledTillBufferI
 
     // track the number of times allocFn is called
 
-    // uint allocInvocationCount;
-
     MockFunction<void*(size_t)> allocFn;
-
-    // no expectation needed for freefn for this test
-    MockFunction<void(void*)> freeFn;
 
     // mock function to notify read is complete
     // this will be used to set up the expectation that realloc should
@@ -582,7 +601,7 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, ReallocNotCalledTillBufferI
         fn();
     });
 
-    CommandBufferStagingStream stream(allocFn.AsStdFunction(), freeFn.AsStdFunction());
+    CommandBufferStagingStream stream(allocFn.AsStdFunction(), [](void*) {});
     // scope for writeLock
     {
         std::lock_guard writeLock(mutex);

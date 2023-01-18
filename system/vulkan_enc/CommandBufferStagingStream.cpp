@@ -173,7 +173,9 @@ void* CommandBufferStagingStream::allocBuffer(size_t minSize) {
 
     // Calculate remaining
     size_t remaining = m_size - m_writePos;
-    if (remaining < allocSize) {
+    // check if there is at least minSize bytes left in buffer
+    // if not, reallocate a buffer of big enough size
+    if (remaining < minSize) {
         size_t newAllocSize = m_size * 2 + allocSize;
         m_buf = (unsigned char*)m_realloc(m_buf, newAllocSize);
         m_size = newAllocSize;
