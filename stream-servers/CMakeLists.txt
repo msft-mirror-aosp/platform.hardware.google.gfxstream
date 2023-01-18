@@ -16,7 +16,6 @@ set(stream-server-core-sources
     GfxStreamAgents.cpp
     VirtioGpuTimelines.cpp
     ChannelStream.cpp
-    Debug.cpp
     DisplaySurface.cpp
     DisplaySurfaceUser.cpp
     Hwc2.cpp

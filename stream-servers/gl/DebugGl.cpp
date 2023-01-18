@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "Debug.h"
+#include "DebugGl.h"
 
 #include <cstdarg>
 

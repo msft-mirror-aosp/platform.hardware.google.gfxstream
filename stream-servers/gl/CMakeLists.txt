@@ -13,6 +13,7 @@ add_library(gfxstream-gl-server
             BufferGl.cpp
             ColorBufferGl.cpp
             CompositorGl.cpp
+            DebugGl.cpp
             DisplayGl.cpp
             DisplaySurfaceGl.cpp
             EmulatedEglConfig.cpp
