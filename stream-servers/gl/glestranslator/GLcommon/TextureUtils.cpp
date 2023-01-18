@@ -1259,6 +1259,13 @@ TextureUnpackReset::TextureUnpackReset(GLEScontext* ctx) : glesContext(ctx) {
         unpackSkipRows = unpackCheckAndUpdate(GL_UNPACK_SKIP_ROWS, kUnpackSkipRows);
         unpackSkipPixels = unpackCheckAndUpdate(GL_UNPACK_SKIP_PIXELS, kUnpackSkipPixels);
         unpackSkipImages = unpackCheckAndUpdate(GL_UNPACK_SKIP_IMAGES, kUnpackSkipImages);
+    } else {
+        // avoid clang-tidy warnings on uninitialized values
+        unpackRowLength = 0;
+        unpackImageHeight = 0;
+        unpackSkipRows = 0;
+        unpackSkipPixels = 0;
+        unpackSkipImages = 0;
     }
 }
 TextureUnpackReset::~TextureUnpackReset() {

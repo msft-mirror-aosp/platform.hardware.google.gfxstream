@@ -776,9 +776,9 @@ YUVConverter::YUVConverter(int width, int height, FrameworkFormat format)
 void YUVConverter::init(int width, int height, FrameworkFormat format) {
     YUV_DEBUG_LOG("w:%d h:%d format:%d", width, height, format);
 
-    uint32_t yWidth, yHeight, yOffsetBytes, yStridePixels, yStrideBytes;
-    uint32_t uWidth, uHeight, uOffsetBytes, uStridePixels, uStrideBytes;
-    uint32_t vWidth, vHeight, vOffsetBytes, vStridePixels, vStrideBytes;
+    uint32_t yWidth, yHeight = 0, yOffsetBytes, yStridePixels = 0, yStrideBytes;
+    uint32_t uWidth, uHeight = 0, uOffsetBytes, uStridePixels = 0, uStrideBytes;
+    uint32_t vWidth, vHeight = 0, vOffsetBytes, vStridePixels = 0, vStrideBytes;
     getYUVOffsets(width, height, mFormat,
                   &yWidth, &yHeight, &yOffsetBytes, &yStridePixels, &yStrideBytes,
                   &uWidth, &uHeight, &uOffsetBytes, &uStridePixels, &uStrideBytes,
@@ -917,9 +917,9 @@ void YUVConverter::drawConvertFromFormat(FrameworkFormat format, int x, int y, i
         return;
     }
 
-    uint32_t yWidth, yHeight, yOffsetBytes, yStridePixels, yStrideBytes;
-    uint32_t uWidth, uHeight, uOffsetBytes, uStridePixels, uStrideBytes;
-    uint32_t vWidth, vHeight, vOffsetBytes, vStridePixels, vStrideBytes;
+    uint32_t yWidth = 0, yHeight = 0, yOffsetBytes, yStridePixels = 0, yStrideBytes;
+    uint32_t uWidth = 0, uHeight = 0, uOffsetBytes, uStridePixels = 0, uStrideBytes;
+    uint32_t vWidth = 0, vHeight = 0, vOffsetBytes, vStridePixels = 0, vStrideBytes;
     getYUVOffsets(width, height, mFormat,
                   &yWidth, &yHeight, &yOffsetBytes, &yStridePixels, &yStrideBytes,
                   &uWidth, &uHeight, &uOffsetBytes, &uStridePixels, &uStrideBytes,
