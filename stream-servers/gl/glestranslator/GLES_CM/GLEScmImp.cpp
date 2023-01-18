@@ -1198,7 +1198,7 @@ GL_API void GL_APIENTRY  glGetFloatv( GLenum pname, GLfloat *params) {
         return;
     }
 
-    GLint i;
+    GLint i = 0;
 
     switch (pname) {
     case GL_FRAMEBUFFER_BINDING_OES:
@@ -2728,8 +2728,8 @@ GL_API void GL_APIENTRY  glReadPixels( GLint x, GLint y, GLsizei width, GLsizei 
         ctx->getDefaultFBOMultisamples()) {
         SET_ERROR_IF(!isGles2Gles(), GL_INVALID_OPERATION);
 
-        GLint prev_bound_rbo;
-        GLint prev_bound_draw_fbo;
+        GLint prev_bound_rbo = 0;
+        GLint prev_bound_draw_fbo = 0;
 
         glGetIntegerv(GL_RENDERBUFFER_BINDING, &prev_bound_rbo);
         glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prev_bound_draw_fbo);
