@@ -81,8 +81,8 @@ class DisplayVkTest : public ::testing::Test {
     }
 
     static const goldfish_vk::VulkanDispatch *k_vk;
-    static const uint32_t k_width = 0x100;
-    static const uint32_t k_height = 0x100;
+    static constexpr uint32_t k_width = 0x100;
+    static constexpr uint32_t k_height = 0x100;
 
     OSWindow *m_window;
     VkInstance m_vkInstance = VK_NULL_HANDLE;
