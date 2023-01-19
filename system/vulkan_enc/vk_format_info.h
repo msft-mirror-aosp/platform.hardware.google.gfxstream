@@ -113,6 +113,7 @@ static inline bool
 android_format_is_yuv(unsigned android_format)
 {
    switch (android_format) {
+   case AHARDWAREBUFFER_FORMAT_BLOB:
    case AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM:
    case AHARDWAREBUFFER_FORMAT_R8G8B8X8_UNORM:
    case AHARDWAREBUFFER_FORMAT_R8G8B8_UNORM:
