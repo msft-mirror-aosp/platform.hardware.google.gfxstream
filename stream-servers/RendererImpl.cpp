@@ -615,6 +615,12 @@ static struct AndroidVirtioGpuOps sVirtioGpuOps = {
         },
     .wait_for_gpu_vulkan_qsri =
         [](uint64_t image) { FrameBuffer::getFB()->waitForGpuVulkanQsri(image); },
+    .update_color_buffer_from_framework_format =
+        [](uint32_t handle, int x, int y, int width, int height, uint32_t fwkFormat,
+           uint32_t format, uint32_t type, void* pixels, void* pMetadata) {
+            FrameBuffer::getFB()->updateColorBufferFromFrameworkFormat(
+                handle, x, y, width, height, (FrameworkFormat)fwkFormat, format, type, pixels);
+        },
     .platform_import_resource =
         [](uint32_t handle, uint32_t info, void* resource) {
             return FrameBuffer::getFB()->platformImportResource(handle, info, resource);
@@ -628,12 +634,6 @@ static struct AndroidVirtioGpuOps sVirtioGpuOps = {
     .platform_destroy_shared_egl_context =
         [](void* context) {
             return FrameBuffer::getFB()->platformDestroySharedEglContext(context);
-        },
-    .update_color_buffer_from_framework_format =
-        [](uint32_t handle, int x, int y, int width, int height, uint32_t fwkFormat,
-           uint32_t format, uint32_t type, void* pixels, void* pMetadata) {
-            FrameBuffer::getFB()->updateColorBufferFromFrameworkFormat(
-                handle, x, y, width, height, (FrameworkFormat)fwkFormat, format, type, pixels);
         },
 };
 
