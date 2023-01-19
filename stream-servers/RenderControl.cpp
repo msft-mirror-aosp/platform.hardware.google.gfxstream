@@ -352,6 +352,10 @@ static bool shouldEnableVulkanAsyncQsri() {
           feature_is_enabled(kFeature_VirtioGpuFenceContexts)));
 }
 
+static bool shouldEnableVsyncGatedSyncFences() {
+    return shouldEnableAsyncSwap();
+}
+
 const char* maxVersionToFeatureString(GLESDispatchMaxVersion version) {
     switch (version) {
         case GLES_DISPATCH_MAX_VERSION_2:
@@ -1127,11 +1131,22 @@ static void rcTriggerWait(uint64_t eglsync_ptr,
                                          timeline);
     } else {
         EmulatedEglFenceSync* fenceSync = reinterpret_cast<EmulatedEglFenceSync*>(eglsync_ptr);
-        EGLSYNC_DPRINT(
-                "eglsync=0x%llx fenceSync=%p thread_ptr=0x%llx "
-                "timeline=0x%llx",
-                eglsync_ptr, fenceSync, thread_ptr, timeline);
-        SyncThread::get()->triggerWait(fenceSync, timeline);
+        FrameBuffer *fb = FrameBuffer::getFB();
+        if (fb && fenceSync->isCompositionFence()) {
+            fb->scheduleVsyncTask([eglsync_ptr, fenceSync, timeline](uint64_t) {
+                EGLSYNC_DPRINT(
+                    "vsync: eglsync=0x%llx fenceSync=%p thread_ptr=0x%llx "
+                    "timeline=0x%llx",
+                    eglsync_ptr, fenceSync, thread_ptr, timeline);
+                SyncThread::get()->triggerWait(fenceSync, timeline);
+            });
+        } else {
+            EGLSYNC_DPRINT(
+                    "eglsync=0x%llx fenceSync=%p thread_ptr=0x%llx "
+                    "timeline=0x%llx",
+                    eglsync_ptr, fenceSync, thread_ptr, timeline);
+            SyncThread::get()->triggerWait(fenceSync, timeline);
+        }
     }
 }
 
@@ -1157,6 +1172,12 @@ static void rcCreateSyncKHR(EGLenum type,
                                                      destroyWhenSignaled,
                                                      outSync,
                                                      outSyncThread);
+
+    RenderThreadInfo* tInfo = RenderThreadInfo::get();
+    if (tInfo && outSync && shouldEnableVsyncGatedSyncFences()) {
+        auto fenceSync = reinterpret_cast<EmulatedEglFenceSync*>(outSync);
+        fenceSync->setIsCompositionFence(tInfo->m_isCompositionThread);
+    }
 }
 
 // |rcClientWaitSyncKHR| implements |eglClientWaitSyncKHR|
@@ -1247,6 +1268,9 @@ static void rcSetPuid(uint64_t puid) {
 }
 
 static int rcCompose(uint32_t bufferSize, void* buffer) {
+    RenderThreadInfo *tInfo = RenderThreadInfo::get();
+    if (tInfo) tInfo->m_isCompositionThread = true;
+
     FrameBuffer *fb = FrameBuffer::getFB();
     if (!fb) {
         return -1;
@@ -1255,6 +1279,9 @@ static int rcCompose(uint32_t bufferSize, void* buffer) {
 }
 
 static int rcComposeWithoutPost(uint32_t bufferSize, void* buffer) {
+    RenderThreadInfo *tInfo = RenderThreadInfo::get();
+    if (tInfo) tInfo->m_isCompositionThread = true;
+
     FrameBuffer *fb = FrameBuffer::getFB();
     if (!fb) {
         return -1;
@@ -1494,6 +1521,9 @@ static void rcMakeCurrentAsync(uint32_t context, uint32_t drawSurf, uint32_t rea
 }
 
 static void rcComposeAsync(uint32_t bufferSize, void* buffer) {
+    RenderThreadInfo *tInfo = RenderThreadInfo::get();
+    if (tInfo) tInfo->m_isCompositionThread = true;
+
     FrameBuffer* fb = FrameBuffer::getFB();
     if (!fb) {
         return;
@@ -1502,6 +1532,9 @@ static void rcComposeAsync(uint32_t bufferSize, void* buffer) {
 }
 
 static void rcComposeAsyncWithoutPost(uint32_t bufferSize, void* buffer) {
+    RenderThreadInfo *tInfo = RenderThreadInfo::get();
+    if (tInfo) tInfo->m_isCompositionThread = true;
+
     FrameBuffer *fb = FrameBuffer::getFB();
     if (!fb) {
         return;

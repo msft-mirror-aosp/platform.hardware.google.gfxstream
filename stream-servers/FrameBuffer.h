@@ -655,6 +655,8 @@ class FrameBuffer : public android::base::EventNotificationSupport<emugl::FrameB
                               std::optional<uint64_t> allocationSize = std::nullopt);
 
     void setVsyncHz(int vsyncHz);
+    void scheduleVsyncTask(VsyncThread::VsyncTask task);
+
    private:
     FrameBuffer(int p_width, int p_height, bool useSubWindow);
     // Requires the caller to hold the m_colorBufferMapLock until the new handle is inserted into of

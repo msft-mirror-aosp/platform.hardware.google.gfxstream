@@ -52,6 +52,9 @@ struct RenderThreadInfo {
     std::optional<RenderThreadInfoGl> m_glInfo;
     std::optional<goldfish_vk::RenderThreadInfoVk> m_vkInfo;
 
+    // Whether this thread was used to perform composition.
+    bool m_isCompositionThread = false;
+
     // Functions to save / load a snapshot
     // They must be called after Framebuffer snapshot
     void onSave(android::base::Stream* stream);
