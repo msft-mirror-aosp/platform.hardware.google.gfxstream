@@ -187,6 +187,9 @@ cc_test_host {
         // Disabled by default as requires Vulkan.
         unit_test: false,
     },
+    test_suites: [
+        "general-tests",
+    ],
 }
 
 // Run with `atest --host gfxstream_framebuffer_tests`
@@ -217,4 +220,7 @@ cc_test_host {
         // Disabled by default as requires Vulkan.
         unit_test: false,
     },
+    test_suites: [
+        "general-tests",
+    ],
 }
