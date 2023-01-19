@@ -142,14 +142,15 @@ std::shared_future<void> PostWorker::postImpl(ColorBuffer* cb) {
                                                 &currentDisplayColorBufferHandle)) {
             previousDisplayId = currentDisplayId;
 
-            if (currentDisplayW == 0 ||
-                currentDisplayH == 0 ||
-                currentDisplayColorBufferHandle == 0) {
+            if (currentDisplayW == 0 || currentDisplayH == 0 ||
+                (currentDisplayId != 0 && currentDisplayColorBufferHandle == 0)) {
                 continue;
             }
 
-            ColorBuffer* cb = mFb->findColorBuffer(currentDisplayColorBufferHandle).get();
-            if (!cb) {
+            ColorBuffer* currentCb =
+                currentDisplayId == 0 ? cb
+                                      : mFb->findColorBuffer(currentDisplayColorBufferHandle).get();
+            if (!currentCb) {
                 continue;
             }
 
@@ -161,13 +162,13 @@ std::shared_future<void> PostWorker::postImpl(ColorBuffer* cb) {
             };
             postLayerOptions.crop = {
                 .left = 0.0f,
-                .top = static_cast<float>(cb->getHeight()),
-                .right = static_cast<float>(cb->getWidth()),
+                .top = static_cast<float>(currentCb->getHeight()),
+                .right = static_cast<float>(currentCb->getWidth()),
                 .bottom = 0.0f,
             };
 
             post.layers.push_back(DisplayGl::PostLayer{
-                .colorBuffer = cb,
+                .colorBuffer = currentCb,
                 .layerOptions = postLayerOptions,
             });
         }
