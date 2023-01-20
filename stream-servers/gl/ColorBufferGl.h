@@ -178,7 +178,7 @@ class ColorBuffer :
     // the device screen overlay (if there is one).
     // |rotation| is the rotation angle in degrees, clockwise in the GL
     // coordinate space.
-    bool postWithOverlay(GLuint tex, float rotation, float dx, float dy);
+    bool postWithOverlay(float rotation, float dx, float dy);
 
     // Bind the current context's EGL_TEXTURE_2D texture to this ColorBuffer's
     // EGLImage. This is intended to implement glEGLImageTargetTexture2DOES()
