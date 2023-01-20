@@ -90,9 +90,6 @@ static bool sEgl2egl = false;
 static gfxstream::RenderLib* sRenderLib = nullptr;
 static gfxstream::RendererPtr sRenderer = nullptr;
 
-static const EGLDispatch* sEgl = nullptr;
-static const GLESv2Dispatch* sGlesv2 = nullptr;
-
 int android_prepareOpenglesEmulation() {
     android_init_opengl_logger();
 
@@ -119,12 +116,9 @@ int android_prepareOpenglesEmulation() {
 
 int android_setOpenglesEmulation(void* renderLib, void* eglDispatch, void* glesv2Dispatch) {
     sRenderLib = (gfxstream::RenderLib*)renderLib;
-    sEgl = (EGLDispatch*)eglDispatch;
-    sGlesv2 = (GLESv2Dispatch*)glesv2Dispatch;
-    sEgl2egl = false;
-    if (android::base::getEnvironmentVariable("ANDROID_EGL_ON_EGL") == "1") {
-        sEgl2egl = true;
-    }
+    (void)eglDispatch;
+    (void)glesv2Dispatch;
+    sEgl2egl = android::base::getEnvironmentVariable("ANDROID_EGL_ON_EGL") == "1";
     return 0;
 }
 
@@ -143,16 +137,6 @@ android_startOpenglesRenderer(int width, int height, bool guestPhoneApi, int gue
 {
     if (!sRenderLib) {
         D("Can't start OpenGLES renderer without support libraries");
-        return -1;
-    }
-
-    if (!sEgl) {
-        D("Can't start OpenGLES renderer without EGL libraries");
-        return -1;
-    }
-
-    if (!sGlesv2) {
-        D("Can't start OpenGLES renderer without GLES libraries");
         return -1;
     }
 
@@ -509,11 +493,17 @@ struct AndroidVirtioGpuOps* android_getVirtioGpuOps() {
 }
 
 const void* android_getEGLDispatch() {
-    return sEgl;
+    if (sRenderer) {
+        return sRenderer->getEglDispatch();
+    }
+    return nullptr;
 }
 
 const void* android_getGLESv2Dispatch() {
-    return sGlesv2;
+    if (sRenderer) {
+        return sRenderer->getGles2Dispatch();
+    }
+    return nullptr;
 }
 
 void android_setVsyncHz(int vsyncHz) {

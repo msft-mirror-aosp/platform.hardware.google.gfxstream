@@ -18,38 +18,11 @@
 #include "host-common/logging.h"
 #include "RenderLibImpl.h"
 
-#include "OpenGLESDispatch/OpenGLDispatchLoader.h"
-#include "OpenGLESDispatch/DispatchTables.h"
-
 #include <memory>
 
 namespace gfxstream {
 
 RENDER_APICALL RenderLibPtr RENDER_APIENTRY initLibrary() {
-    //
-    // Load EGL Plugin
-    //
-    if (!gl::LazyLoadedEGLDispatch::get()) {
-        // Failed to load EGL
-        printf("Failed to init_egl_dispatch\n");
-        return nullptr;
-    }
-
-    //
-    // Load GLES Plugin
-    //
-    if (!gl::LazyLoadedGLESv1Dispatch::get()) {
-        // Failed to load GLES
-        ERR("Failed to gles1_dispatch_init\n");
-        return nullptr;
-    }
-
-    /* failure to init the GLES2 dispatch table is not fatal */
-    if (!gl::LazyLoadedGLESv2Dispatch::get()) {
-        ERR("Failed to gles2_dispatch_init\n");
-        return nullptr;
-    }
-
     return RenderLibPtr(new RenderLibImpl());
 }
 

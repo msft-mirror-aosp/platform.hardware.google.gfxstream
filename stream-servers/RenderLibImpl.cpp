@@ -104,10 +104,6 @@ void RenderLibImpl::setGrallocImplementation(GrallocImplementation gralloc) {
     (void) gralloc;
 }
 
-void* RenderLibImpl::getGLESv2Dispatch(void) { return &gl::s_gles2; }
-
-void* RenderLibImpl::getEGLDispatch(void) { return &gl::s_egl; }
-
 bool RenderLibImpl::getOpt(RenderOpt* opt) {
     FrameBuffer* fb  = FrameBuffer::getFB();
     if (fb == nullptr) {

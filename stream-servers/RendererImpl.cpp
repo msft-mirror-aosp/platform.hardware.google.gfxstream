@@ -688,4 +688,12 @@ void RendererImpl::setDisplayActiveConfig(int configId) {
     }
 }
 
+const void* RendererImpl::getEglDispatch() {
+    return FrameBuffer::getFB()->getEglDispatch();
+}
+
+const void* RendererImpl::getGles2Dispatch() {
+    return FrameBuffer::getFB()->getGles2Dispatch();
+}
+
 }  // namespace gfxstream
