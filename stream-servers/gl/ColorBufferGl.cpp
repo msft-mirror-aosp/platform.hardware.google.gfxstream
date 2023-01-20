@@ -935,10 +935,10 @@ bool ColorBuffer::post(GLuint tex, float rotation, float dx, float dy) {
     return m_textureDraw->draw(tex, rotation, dx, dy);
 }
 
-bool ColorBuffer::postWithOverlay(GLuint tex, float rotation, float dx, float dy) {
+bool ColorBuffer::postWithOverlay(float rotation, float dx, float dy) {
     // NOTE: Do not call m_helper->setupContext() here!
     waitSync();
-    return m_textureDraw->drawWithOverlay(tex, rotation, dx, dy);
+    return m_textureDraw->drawWithOverlay(getViewportScaledTexture(), rotation, dx, dy);
 }
 
 void ColorBuffer::readback(unsigned char* img, bool readbackBgra) {
@@ -1059,7 +1059,8 @@ GLuint ColorBuffer::getTexture() {
 void ColorBuffer::postLayer(const ComposeLayer& l, int frameWidth, int frameHeight) {
     if (m_inUse) fprintf(stderr, "%s: cb in use\n", __func__);
     waitSync();
-    m_textureDraw->drawLayer(l, frameWidth, frameHeight, m_width, m_height, m_tex);
+    m_textureDraw->drawLayer(l, frameWidth, frameHeight, m_width, m_height,
+                             getViewportScaledTexture());
 }
 
 bool ColorBuffer::importMemory(ManagedDescriptor externalDescriptor, uint64_t size, bool dedicated,
