@@ -17,6 +17,8 @@
 
 #include <string>
 
+#include "host-common/logging.h"
+
 std::string formatString(const char* format, ...);
 
 class ScopedDebugGroup {

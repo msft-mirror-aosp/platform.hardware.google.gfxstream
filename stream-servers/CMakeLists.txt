@@ -17,7 +17,6 @@ set(stream-server-core-sources
     VirtioGpuTimelines.cpp
     VsyncThread.cpp
     ChannelStream.cpp
-    Debug.cpp
     DisplaySurface.cpp
     DisplaySurfaceUser.cpp
     Hwc2.cpp

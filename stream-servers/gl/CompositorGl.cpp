@@ -15,7 +15,7 @@
 #include "CompositorGl.h"
 
 #include "BorrowedImageGl.h"
-#include "Debug.h"
+#include "DebugGl.h"
 #include "DisplaySurfaceGl.h"
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "TextureDraw.h"
