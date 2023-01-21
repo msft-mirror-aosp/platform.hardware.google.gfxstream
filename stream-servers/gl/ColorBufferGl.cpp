@@ -20,7 +20,7 @@
 #include <string.h>
 
 #include "BorrowedImageGl.h"
-#include "Debug.h"
+#include "DebugGl.h"
 #include "OpenGLESDispatch/DispatchTables.h"
 #include "OpenGLESDispatch/EGLDispatch.h"
 #include "RenderThreadInfoGl.h"

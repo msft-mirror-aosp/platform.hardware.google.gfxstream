@@ -19,7 +19,6 @@
 
 #include <chrono>
 
-#include "Debug.h"
 #include "FrameBuffer.h"
 #include "RenderThreadInfo.h"
 #include "aemu/base/Tracing.h"
