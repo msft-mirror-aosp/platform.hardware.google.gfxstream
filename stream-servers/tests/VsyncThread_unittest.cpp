@@ -15,7 +15,9 @@
 
 #include <gtest/gtest.h>
 
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 // Tests scheduling some basic task, and that they are processed
 // before the thread completely exits.
