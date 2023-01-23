@@ -4792,13 +4792,21 @@ GL_APICALL void GL_APIENTRY glPrimitiveRestartIndex(GLuint index) {
 
 GL_APICALL GLenum GL_APIENTRY glGetGraphicsResetStatusEXT() {
     GET_CTX_V2_RET(GL_NO_ERROR);
+    GLenum error = ctx->dispatcher().glGetError();
+    if (error && !ctx->getGLerror()) {
+        ctx->setGLerror(error);
+    }
     auto fptr = ctx->dispatcher().glGetGraphicsResetStatusEXT;
     if (!fptr) {
         // If we're running on native OpenGL (not ANGLE) and glGetGraphicsResetStatusEXT
         // isn't supported by the driver, then default to no error. See b/185407409
         return GL_NO_ERROR;
     }
-    return fptr();
+    GLenum res = fptr();
+    // On some versions of SwANGLE it sets GL_INVALID_OPERATION after calling
+    // glGetGraphicsResetStatusEXT. We should discard such error code.
+    ctx->dispatcher().glGetError();
+    return res;
 }
 
 } // namespace translator
