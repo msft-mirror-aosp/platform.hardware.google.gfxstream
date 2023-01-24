@@ -656,6 +656,11 @@ class FrameBuffer : public android::base::EventNotificationSupport<emugl::FrameB
 
     void setVsyncHz(int vsyncHz);
     void scheduleVsyncTask(VsyncThread::VsyncTask task);
+    void setDisplayConfigs(int configId, int w, int h, int dpiX, int dpiY);
+    void setDisplayActiveConfig(int configId);
+    const int getDisplayConfigsCount();
+    const int getDisplayConfigsParam(int configId, EGLint param);
+    const int getDisplayActiveConfig();
 
    private:
     FrameBuffer(int p_width, int p_height, bool useSubWindow);
@@ -883,5 +888,17 @@ class FrameBuffer : public android::base::EventNotificationSupport<emugl::FrameB
 
     // Vsync thread.
     std::unique_ptr<VsyncThread> m_vsyncThread = {};
+
+    struct DisplayConfig{
+        int w;
+        int h;
+        int dpiX;
+        int dpiY;
+        DisplayConfig() {}
+        DisplayConfig(int w, int h, int x, int y)
+        : w(w), h(h), dpiX(x), dpiY(y) {}
+    };
+    std::map<int, DisplayConfig> mDisplayConfigs;
+    int mDisplayActiveConfigId = -1;
 };
 #endif
