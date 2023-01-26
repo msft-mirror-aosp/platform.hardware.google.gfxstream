@@ -139,6 +139,15 @@ struct InitializedGlobals {
     android::base::Lock lock;
     android::base::ConditionVariable condVar;
 };
+
+bool postOnlyOnMainThread() {
+#ifdef __APPLE__
+    return true;
+#else
+    return false;
+#endif
+}
+
 }  // namespace
 
 // |sInitialized| caches the initialized framebuffer state - this way
@@ -656,11 +665,7 @@ WorkerProcessingResult FrameBuffer::postWorkerFunc(Post& post) {
 }
 
 std::future<void> FrameBuffer::sendPostWorkerCmd(Post post) {
-#ifdef __APPLE__
-    bool postOnlyOnMainThread = true;
-#else
-    bool postOnlyOnMainThread = false;
-#endif
+    bool postOnlyOnMainThread = ::postOnlyOnMainThread();
     bool expectedPostThreadStarted = false;
     if (m_postThreadStarted.compare_exchange_strong(expectedPostThreadStarted, true)) {
         if (m_emulationGl) {
@@ -2215,7 +2220,12 @@ bool FrameBuffer::bindColorBufferToTexture(HandleType p_colorbuffer) {
 }
 
 bool FrameBuffer::bindColorBufferToTexture2(HandleType p_colorbuffer) {
-    AutoLock mutex(m_lock);
+    // This is only called when using multi window display
+    // It will deadlock when posting from main thread.
+    std::unique_ptr<AutoLock> mutex;
+    if (!postOnlyOnMainThread()) {
+        mutex = std::make_unique<AutoLock>(m_lock);
+    }
 
     ColorBufferPtr colorBuffer = findColorBuffer(p_colorbuffer);
     if (!colorBuffer) {
