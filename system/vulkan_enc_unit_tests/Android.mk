@@ -6,7 +6,7 @@ $(call emugl-import,libvulkan_enc)
 
 LOCAL_C_INCLUDES += \
     device/generic/goldfish-opengl/host/include/libOpenglRender \
-
+    external/gfxstream-protocols/include/vulkan/include/
 
 LOCAL_SRC_FILES:= \
     CommandBufferStagingStream_test.cpp \

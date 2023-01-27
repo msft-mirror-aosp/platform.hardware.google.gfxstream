@@ -215,8 +215,9 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, AllocateBufferTest) {
     // memory source
     std::vector<uint8_t> memorySrc(kTestBufferSize * 2);
 
-    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
-                                              .ptr = memorySrc.data()};
+    CommandBufferStagingStream::Memory memory{
+        .deviceMemory = VK_NULL_HANDLE,  // not needed for this test
+        .ptr = memorySrc.data()};
 
     MockAlloc allocFn;
 
@@ -243,8 +244,8 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, AllocateBufferFailure) {
     std::vector<uint8_t> memorySrc(kTestBufferSize * 2);
 
     CommandBufferStagingStream::Memory memory{
-        .deviceMemory = nullptr,  // not needed for this test
-        .ptr = nullptr,           // to test alloc call failing
+        .deviceMemory = VK_NULL_HANDLE,  // not needed for this test
+        .ptr = nullptr,                  // to test alloc call failing
     };
 
     MockAlloc allocFn;
@@ -271,8 +272,8 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, DeviceMemoryPointerIsPassed
     std::vector<uint8_t> memorySrc(kTestBufferSize * 2);
 
     // device memory for test purposes. The test just needs a pointer
-    uint32_t deviceMem = 0;
-    uint32_t* deviceMemPtr = &deviceMem;
+    uint64_t deviceMem = 0;
+    VkDeviceMemory deviceMemPtr = (VkDeviceMemory)(&deviceMem);
 
     CommandBufferStagingStream::Memory memory{.deviceMemory = deviceMemPtr,
                                               .ptr = memorySrc.data()};
@@ -327,11 +328,12 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, ReallocateBuffer) {
     // memory source after reallocation
     std::vector<uint8_t> reallocatedMemorySrc(kTestBufferSize * 3);
 
-    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
-                                              .ptr = memorySrc.data()};
+    CommandBufferStagingStream::Memory memory{
+        .deviceMemory = VK_NULL_HANDLE,  // not needed for this test
+        .ptr = memorySrc.data()};
 
     CommandBufferStagingStream::Memory reallocatedMemory{
-        .deviceMemory = nullptr,  // not needed for this test
+        .deviceMemory = VK_NULL_HANDLE,  // not needed for this test
         .ptr = reallocatedMemorySrc.data()};
 
     MockAlloc allocFn;
@@ -393,8 +395,9 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, CommitBuffer) {
     // memory source
     std::vector<uint8_t> memorySrc(kTestBufferSize * 2);
 
-    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
-                                              .ptr = memorySrc.data()};
+    CommandBufferStagingStream::Memory memory{
+        .deviceMemory = VK_NULL_HANDLE,  // not needed for this test
+        .ptr = memorySrc.data()};
 
     MockAlloc allocFn;
 
@@ -427,8 +430,9 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, Reset) {
     // memory source
     std::vector<uint8_t> memorySrc(kTestBufferSize * 2);
 
-    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
-                                              .ptr = memorySrc.data()};
+    CommandBufferStagingStream::Memory memory{
+        .deviceMemory = VK_NULL_HANDLE,  // not needed for this test
+        .ptr = memorySrc.data()};
 
     MockAlloc allocFn;
 
@@ -463,8 +467,9 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, MultipleAllocationCalls) {
     // memory source
     std::vector<uint8_t> memorySrc(kTestBufferSize * 2);
 
-    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
-                                              .ptr = memorySrc.data()};
+    CommandBufferStagingStream::Memory memory{
+        .deviceMemory = VK_NULL_HANDLE,  // not needed for this test
+        .ptr = memorySrc.data()};
 
     MockAlloc allocFn;
 
@@ -485,8 +490,9 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, MultipleAllocationCalls) {
 TEST(CommandBufferStagingStreamCustomAllocationTest, ReallocationBoundary) {
     // memory source
     std::vector<uint8_t> memorySrc(kTestBufferSize * 3);
-    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
-                                              .ptr = memorySrc.data()};
+    CommandBufferStagingStream::Memory memory{
+        .deviceMemory = VK_NULL_HANDLE,  // not needed for this test
+        .ptr = memorySrc.data()};
 
     MockAlloc allocFn;
 
@@ -546,8 +552,9 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, NoReallocationIfBufferIsNot
     // memory source
     std::vector<uint8_t> memorySrc(kTestBufferSize * 3);
 
-    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
-                                              .ptr = memorySrc.data()};
+    CommandBufferStagingStream::Memory memory{
+        .deviceMemory = VK_NULL_HANDLE,  // not needed for this test
+        .ptr = memorySrc.data()};
 
     MockAlloc allocFn;
     EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize))).Times(1).WillRepeatedly(Return(memory));
@@ -570,8 +577,9 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, NoReallocationIfBufferIsNot
 TEST(CommandBufferStagingStreamCustomAllocationTest, MetadataCheck) {
     // memory source
     std::vector<uint8_t> memorySrc(kTestBufferSize * 2);
-    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
-                                              .ptr = memorySrc.data()};
+    CommandBufferStagingStream::Memory memory{
+        .deviceMemory = VK_NULL_HANDLE,  // not needed for this test
+        .ptr = memorySrc.data()};
 
     // CommandBufferStagingStream allocates metadata when using custom allocators
     static const size_t expectedMetadataSize = 8;
@@ -592,8 +600,9 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, MetadataCheck) {
 TEST(CommandBufferStagingStreamCustomAllocationTest, MarkFlushing) {
     // memory source for  allocation
     std::vector<uint8_t> memorySrc(kTestBufferSize * 2);
-    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
-                                              .ptr = memorySrc.data()};
+    CommandBufferStagingStream::Memory memory{
+        .deviceMemory = VK_NULL_HANDLE,  // not needed for this test
+        .ptr = memorySrc.data()};
     MockAlloc allocFn;
 
     EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize))).Times(1).WillRepeatedly(Return(memory));
@@ -622,8 +631,9 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, ReallocNotCalledTillBufferI
     // memory source for  allocation
     // allocate a big enough buffer to avoid resizes in test
     std::vector<uint8_t> memorySrc(kTestBufferSize * 3);
-    CommandBufferStagingStream::Memory memory{.deviceMemory = nullptr,  // not needed for this test
-                                              .ptr = memorySrc.data()};
+    CommandBufferStagingStream::Memory memory{
+        .deviceMemory = VK_NULL_HANDLE,  // not needed for this test
+        .ptr = memorySrc.data()};
 
     std::condition_variable memoryFlushedCondition;
     std::mutex mutex;
@@ -688,4 +698,27 @@ TEST(CommandBufferStagingStreamCustomAllocationTest, ReallocNotCalledTillBufferI
 
     // wait for read thread to finish
     consumer.join();
+}
+
+// this test verifies that allocBuffer() cannot be called on a stream
+// that is currently being read by the host
+TEST(CommandBufferStagingStreamCustomAllocationTest, AllocBufferFailsIfReadPending) {
+    // memory source for  allocation
+    std::vector<uint8_t> memorySrc(kTestBufferSize * 2);
+    CommandBufferStagingStream::Memory memory{
+        .deviceMemory = VK_NULL_HANDLE,  // not needed for this test
+        .ptr = memorySrc.data()};
+    MockAlloc allocFn;
+
+    EXPECT_CALL(allocFn, Call(Ge(kTestBufferSize))).Times(1).WillRepeatedly(Return(memory));
+
+    auto allocStdFn = allocFn.AsStdFunction();
+    CommandBufferStagingStream stream(allocStdFn, EmptyFree);
+    (void)stream.allocBuffer(kTestBufferSize);
+
+    // will set metadata of the stream buffer to pending read
+    stream.markFlushing();
+
+    EXPECT_DEATH({ (void)stream.allocBuffer(kTestBufferSize); }, "")
+        << "allocBuffer() should not be called while previous data is being flushed";
 }

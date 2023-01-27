@@ -16,8 +16,11 @@
 #ifndef __COMMAND_BUFFER_STAGING_STREAM_H
 #define __COMMAND_BUFFER_STAGING_STREAM_H
 
-#include "IOStream.h"
+#include <vulkan/vulkan_core.h>
+
 #include <functional>
+
+#include "IOStream.h"
 
 class CommandBufferStagingStream : public IOStream {
 public:
@@ -31,11 +34,10 @@ public:
  // indicates read is pending
  static constexpr uint32_t kSyncDataReadPending = 0X1;
 
- // alias for DeviceMemory
- using DeviceMemory = void*;
  // \struct backing memory structure
  struct Memory {
-     DeviceMemory deviceMemory = nullptr;  // device memory associated with allocated memory
+     VkDeviceMemory deviceMemory =
+         VK_NULL_HANDLE;                   // device memory associated with allocated memory
      void* ptr = nullptr;                  // pointer to allocated memory
      bool operator==(const Memory& rhs) const {
          return (deviceMemory == rhs.deviceMemory) && (ptr == rhs.ptr);
@@ -74,6 +76,10 @@ public:
  // using custom allocators. markFlushing will be a no-op if called
  // when not using custom allocators
  void markFlushing();
+
+ // gets the device memory associated with the stream. This is VK_NULL_HANDLE for default allocation
+ // \return device memory
+ VkDeviceMemory getDeviceMemory();
 
 private:
  // underlying memory for data
