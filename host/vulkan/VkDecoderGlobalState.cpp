@@ -57,6 +57,7 @@
 #include "vk_util.h"
 #include "vulkan/emulated_textures/AstcTexture.h"
 #include "vulkan/emulated_textures/CompressedImageInfo.h"
+#include "vulkan/emulated_textures/GpuDecompressionPipeline.h"
 #include "vulkan/vk_enum_string_helper.h"
 
 #ifndef _WIN32
@@ -1274,6 +1275,8 @@ class VkDecoderGlobalState::Impl {
         deviceInfo.physicalDevice = physicalDevice;
         deviceInfo.emulateTextureEtc2 = emulateTextureEtc2;
         deviceInfo.emulateTextureAstc = emulateTextureAstc;
+        deviceInfo.decompPipelines =
+            std::make_unique<GpuDecompressionPipelineManager>(m_vk, *pDevice);
 
         for (uint32_t i = 0; i < createInfoFiltered.enabledExtensionCount; ++i) {
             deviceInfo.enabledExtensionNames.push_back(
@@ -1394,6 +1397,8 @@ class VkDecoderGlobalState::Impl {
     void destroyDeviceLocked(VkDevice device, const VkAllocationCallbacks* pAllocator) {
         auto* deviceInfo = android::base::find(mDeviceInfo, device);
         if (!deviceInfo) return;
+
+        deviceInfo->decompPipelines->clear();
 
         auto eraseIt = mQueueInfo.begin();
         for (; eraseIt != mQueueInfo.end();) {
@@ -1556,8 +1561,10 @@ class VkDecoderGlobalState::Impl {
         }
 
         const bool needDecompression = deviceInfo->needEmulatedDecompression(pCreateInfo->format);
-        CompressedImageInfo cmpInfo = needDecompression ? CompressedImageInfo(device, *pCreateInfo)
-                                                        : CompressedImageInfo(device);
+        CompressedImageInfo cmpInfo =
+            needDecompression
+                ? CompressedImageInfo(device, *pCreateInfo, deviceInfo->decompPipelines.get())
+                : CompressedImageInfo(device);
         VkImageCreateInfo decompInfo;
         if (needDecompression) {
             decompInfo = cmpInfo.getDecompressedCreateInfo(*pCreateInfo);
@@ -5948,6 +5955,7 @@ class VkDecoderGlobalState::Impl {
         DebugUtilsHelper debugUtilsHelper = DebugUtilsHelper::withUtilsDisabled();
         std::unique_ptr<ExternalFencePool<VulkanDispatch>> externalFencePool = nullptr;
         std::set<VkFormat> imageFormats = {};  // image formats used on this device
+        std::unique_ptr<GpuDecompressionPipelineManager> decompPipelines = nullptr;
 
         // True if this is a compressed image that needs to be decompressed on the GPU (with our
         // compute shader)
