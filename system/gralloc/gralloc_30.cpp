@@ -138,7 +138,7 @@ public:
                              int width, int height, int format,
                              EmulatorFrameworkFormat emulatorFrameworkFormat,
                              int glFormat, int glType,
-                             size_t bufferSize,
+                             size_t stride, size_t bufferSize,
                              buffer_handle_t* pHandle) = 0;
     virtual int free_buffer(buffer_handle_t h) = 0;
     virtual int register_buffer(buffer_handle_t h) = 0;
@@ -165,13 +165,13 @@ public:
                      int width, int height, int format,
                      EmulatorFrameworkFormat emulatorFrameworkFormat,
                      int glFormat, int glType,
-                     size_t bufferSize,
+                     size_t stride, size_t bufferSize,
                      buffer_handle_t* pHandle) {
         return m_bufferManager->alloc_buffer(usage,
                                              width, height, format,
                                              emulatorFrameworkFormat,
                                              glFormat, glType,
-                                             bufferSize,
+                                             stride, bufferSize,
                                              pHandle);
     }
 
@@ -653,7 +653,7 @@ private:
             width, height, format,
             emulatorFrameworkFormat,
             glFormat, glType,
-            bufferSize,
+            stride, bufferSize,
             pHandle);
         if (res) {
             return res;
@@ -732,6 +732,7 @@ struct cb_handle_30_t : public cb_handle_t {
                    int32_t p_format,
                    int32_t p_glFormat,
                    int32_t p_glType,
+                   uint32_t p_stride,
                    uint32_t p_bufSize,
                    void* p_bufPtr,
                    int32_t p_bufferPtrPid,
@@ -749,7 +750,8 @@ struct cb_handle_30_t : public cb_handle_t {
                           p_glType,
                           p_bufSize,
                           p_bufPtr,
-                          p_mmapedOffset),
+                          p_mmapedOffset,
+                          p_stride),
               bufferFdAsInt(p_bufferFd),
               bufferPtrPid(p_bufferPtrPid),
               mmapedSize(p_mmapedSize) {
@@ -804,7 +806,7 @@ public:
                      int width, int height, int format,
                      EmulatorFrameworkFormat emulatorFrameworkFormat,
                      int glFormat, int glType,
-                     size_t bufferSize,
+                     size_t stride, size_t bufferSize,
                      buffer_handle_t* pHandle) override {
         const HostConnectionSession conn = m_gr->getHostConnectionSession();
         ExtendedRCEncoderContext *const rcEnc = conn.getRcEncoder();
@@ -846,7 +848,7 @@ public:
                 hostHandle,
                 usage, width, height,
                 format, glFormat, glType,
-                bufferSize, bufferBits.guestPtr(), getpid(),
+                stride, bufferSize, bufferBits.guestPtr(), getpid(),
                 bufferBits.size(), bufferBits.offset());
         bufferBits.release();
 
