@@ -43,8 +43,12 @@ class X11FunctionGetter {
 
 class GlxFunctionGetter {
     public:
+        // Important: Use libGL.so.1 explicitly, because it will always link to
+        // the vendor-specific version of the library. libGL.so might in some
+        // cases, depending on bad ldconfig configurations, link to the wrapper
+        // lib that doesn't behave the same.
         GlxFunctionGetter() :
-            mGlxLib(android::base::SharedLibrary::open("libGL")) {
+            mGlxLib(android::base::SharedLibrary::open("libGL.so.1")) {
 
 #define GLX_ASSIGN_DUMMY_IMPL(funcname) mApi.funcname = dummy_##funcname;
 
