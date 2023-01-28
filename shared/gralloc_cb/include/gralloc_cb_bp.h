@@ -41,8 +41,7 @@ struct cb_handle_t : public native_handle_t {
                 int32_t p_glType,
                 uint32_t p_bufSize,
                 void* p_bufPtr,
-                uint64_t p_mmapedOffset,
-                uint32_t p_stride)
+                uint64_t p_mmapedOffset)
         : bufferFd(p_bufferFd),
           hostHandleRefCountFd(p_hostHandleRefCountFd),
           magic(p_magic),
@@ -56,7 +55,6 @@ struct cb_handle_t : public native_handle_t {
           bufferSize(p_bufSize),
           mmapedOffsetLo(static_cast<uint32_t>(p_mmapedOffset)),
           mmapedOffsetHi(static_cast<uint32_t>(p_mmapedOffset >> 32)),
-          stride(p_stride),
           lockedLeft(0),
           lockedTop(0),
           lockedWidth(0),
@@ -123,7 +121,6 @@ struct cb_handle_t : public native_handle_t {
     uint32_t bufferPtrHi;
     uint32_t mmapedOffsetLo;
     uint32_t mmapedOffsetHi;
-    uint32_t stride;
     int32_t  lockedLeft;    // region of buffer locked for s/w write
     int32_t  lockedTop;
     int32_t  lockedWidth;
