@@ -23,15 +23,15 @@
 const uint32_t CB_HANDLE_MAGIC_30 = CB_HANDLE_MAGIC_BASE | 0x2;
 
 struct cb_handle_30_t : public cb_handle_t {
-    cb_handle_30_t(address_space_handle_t p_bufferFd,
+    cb_handle_30_t(int p_bufferFd,
                    QEMU_PIPE_HANDLE p_hostHandleRefCountFd,
                    uint32_t p_hostHandle,
-                   int32_t p_usage,
-                   int32_t p_width,
-                   int32_t p_height,
-                   int32_t p_format,
-                   int32_t p_glFormat,
-                   int32_t p_glType,
+                   uint32_t p_usage,
+                   uint32_t p_width,
+                   uint32_t p_height,
+                   uint32_t p_format,
+                   uint32_t p_glFormat,
+                   uint32_t p_glType,
                    uint32_t p_bufSize,
                    void* p_bufPtr,
                    uint32_t p_mmapedSize,
@@ -42,24 +42,39 @@ struct cb_handle_30_t : public cb_handle_t {
                           p_hostHandleRefCountFd,
                           CB_HANDLE_MAGIC_30,
                           p_hostHandle,
-                          p_usage,
-                          p_width,
-                          p_height,
                           p_format,
-                          p_glFormat,
-                          p_glType,
+                          p_stride,
                           p_bufSize,
-                          p_bufPtr,
                           p_mmapedOffset),
-              mmapedSize(p_mmapedSize),
+              usage(p_usage),
+              width(p_width),
+              height(p_height),
+              glFormat(p_glFormat),
+              glType(p_glType),
               bytesPerPixel(p_bytesPerPixel),
-              stride(p_stride),
+              mmapedSize(p_mmapedSize),
               locked(0),
-              lockedUsage(0) {
+              lockedUsage(0),
+              lockedLeft(0),
+              lockedTop(0),
+              lockedWidth(0),
+              lockedHeight(0) {
         numInts = CB_HANDLE_NUM_INTS(numFds);
+        setBufferPtr(p_bufPtr);
     }
 
     bool isValid() const { return (version == sizeof(native_handle_t)) && (magic == CB_HANDLE_MAGIC_30); }
+
+    void* getBufferPtr() const {
+        const uint64_t addr = (uint64_t(bufferPtrHi) << 32) | bufferPtrLo;
+        return reinterpret_cast<void*>(static_cast<uintptr_t>(addr));
+    }
+
+    void setBufferPtr(void* ptr) {
+        const uint64_t addr = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(ptr));
+        bufferPtrLo = uint32_t(addr);
+        bufferPtrHi = uint32_t(addr >> 32);
+    }
 
     static cb_handle_30_t* from(void* p) {
         if (!p) { return nullptr; }
@@ -75,11 +90,21 @@ struct cb_handle_30_t : public cb_handle_t {
         return from(const_cast<void*>(p));
     }
 
-    uint32_t mmapedSize;            // real allocation side
+    uint32_t usage;         // usage bits the buffer was created with
+    uint32_t width;         // buffer width
+    uint32_t height;        // buffer height
+    uint32_t glFormat;      // OpenGL format enum used for host h/w color buffer
+    uint32_t glType;        // OpenGL type enum used when uploading to host
     uint32_t bytesPerPixel;
-    uint32_t stride;
+    uint32_t mmapedSize;    // real allocation side
+    uint32_t bufferPtrLo;
+    uint32_t bufferPtrHi;
     uint32_t locked;
     uint32_t lockedUsage;
+    uint32_t lockedLeft;    // region of buffer locked for s/w write
+    uint32_t lockedTop;
+    uint32_t lockedWidth;
+    uint32_t lockedHeight;
 };
 
 #endif // SYSTEM_HALS_CB_HANDLE_30_H
