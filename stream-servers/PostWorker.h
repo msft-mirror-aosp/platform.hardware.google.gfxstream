@@ -73,6 +73,7 @@ class PostWorker {
    private:
     // Impl versions of the above, so we can run it from separate threads
     std::shared_future<void> postImpl(ColorBuffer* cb);
+    DisplayGl::PostLayer postWithOverlay(ColorBuffer* cb);
     void viewportImpl(int width, int height);
     std::shared_future<void> composeImpl(const FlatComposeRequest& composeRequest);
     void clearImpl();
