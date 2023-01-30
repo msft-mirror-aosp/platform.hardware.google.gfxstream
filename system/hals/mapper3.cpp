@@ -611,9 +611,6 @@ private:  // **** impl ****
             RETURN(true);
 
         case PixelFormat::IMPLEMENTATION_DEFINED:
-            if (usage & BufferUsage::CAMERA_OUTPUT) {
-                RETURN(true);
-            }
             RETURN(false);
 
         case PixelFormat::RGB_888:

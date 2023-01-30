@@ -290,21 +290,6 @@ private:
                                   const uint32_t usage,
                                   PixelFormat* format) {
         if (frameworkFormat == PixelFormat::IMPLEMENTATION_DEFINED) {
-            if (usage & BufferUsage::CAMERA_OUTPUT) {
-                if (usage & BufferUsage::GPU_TEXTURE) {
-                    // Camera-to-display is RGBA
-                    *format = PixelFormat::RGBA_8888;
-                    RETURN(Error3::NONE);
-                } else if (usage & BufferUsage::VIDEO_ENCODER) {
-                    // Camera-to-encoder is NV21
-                    *format = PixelFormat::YCRCB_420_SP;
-                    RETURN(Error3::NONE);
-                } else {
-                    // b/189957071
-                    *format = PixelFormat::YCBCR_420_888;
-                    RETURN(Error3::NONE);
-                }
-            }
             RETURN_ERROR(Error3::UNSUPPORTED);
         } else if (static_cast<int>(frameworkFormat) == kOMX_COLOR_FormatYUV420Planar &&
                (usage & BufferUsage::VIDEO_DECODER)) {
