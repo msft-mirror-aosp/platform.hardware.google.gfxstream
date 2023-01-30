@@ -199,16 +199,14 @@ private:
             emulatorFrameworkFormat = EmulatorFrameworkFormat::YUV_420_888;
             break;
 
-        default:
-            if (static_cast<android::hardware::graphics::common::V1_1::PixelFormat>(format) ==
-                    android::hardware::graphics::common::V1_1::PixelFormat::YCBCR_P010) {
-                yuv_format = true;
-                glFormat = GL_RGBA;
-                glType = GL_UNSIGNED_BYTE;
-                bpp = 2;
-                break;
-            }
+        case PixelFormat::YCBCR_P010:
+            yuv_format = true;
+            glFormat = GL_RGBA;
+            glType = GL_UNSIGNED_BYTE;
+            bpp = 2;
+            break;
 
+        default:
             ALOGE("%s:%d Unsupported format: format=%d, frameworkFormat=%d, usage=%x",
                   __func__, __LINE__, format, descriptor.format, usage);
             RETURN_ERROR(Error3::UNSUPPORTED);
